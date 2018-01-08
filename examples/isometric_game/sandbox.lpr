@@ -8,7 +8,7 @@ uses
   { Castle Game Engine units }
   CastleWindow, CastleFilesUtils, CastleWindowModes, CastleStringUtils,
   CastleUtils, CastleGLUtils, CastleKeysMouse, CastleMessages, CastleGLImages,
-  CastleImages, CastleColors, CastleLog,
+  CastleImages, CastleColors, CastleLog, CastleApplicationProperties,
   { game units }
   SandBoxMap, SandBoxPlayer, SandBoxGame;
 
@@ -264,16 +264,12 @@ begin
   Player.Update;
 end;
 
-
-function MyGetApplicationName: string;
 begin
-  // Do not collide with /usr/share/sandbox on macOS
-  Result := 'sandbox_game';
-end;
-
-begin
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here.
+    Calling it 'sandbox_game', not 'sandbox',
+    to not collide with /usr/share/sandbox on macOS. }
+  ApplicationProperties.ApplicationName := 'sandbox_game';
 
   InitializeLog;
 

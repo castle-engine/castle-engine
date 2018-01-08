@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This unit implements the game logic, independent from mobile / standalone. }
+{ Game initialization and logic. }
 unit Game;
 
 interface
@@ -30,6 +30,7 @@ uses SysUtils, Classes, DOM,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
+  CastleApplicationProperties,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -294,16 +295,9 @@ begin
   finally FreeAndNil(StringList) end;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'test_local_characters';
-end;
-
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'test_local_characters';
 
   InitializeLog;
 

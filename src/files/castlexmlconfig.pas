@@ -421,10 +421,10 @@ type
           a default filename for storing application user preferences.
 
           It uses ApplicationName to pick a filename that is unique
-          to your application (usually you want to assign OnGetApplicationName
-          callback to set your name, unless you're fine with default determination
-          that looks at stuff like ParamStr(0)).
-          See FPC OnGetApplicationName docs.
+          to your application. Usually you want to assign
+          @link(ApplicationProperties.ApplicationName TCastleApplicationProperties.ApplicationName),
+          unless you're fine with the default name derived from ParamStr(0).
+
           It uses @link(ApplicationConfig) to determine location of this file.)
 
         @item(The overloaded @code(Load) version with URL

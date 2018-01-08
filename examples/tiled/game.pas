@@ -15,7 +15,7 @@
 
 {$mode objfpc}{$H+}
 
-{ Implements the game logic, independent from mobile / standalone. }
+{ Game initialization and logic. }
 unit Game;
 
 interface
@@ -27,9 +27,10 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow, CastleScene, CastleControls,
+uses SysUtils,
+  CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
-  CastleParameters, CastleTiledMap;
+  CastleParameters, CastleTiledMap, CastleApplicationProperties;
 
 var
   TiledMap: TCastleTiledMapControl;
@@ -68,18 +69,11 @@ begin
   // ... react to press of key, mouse, touch
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'Tiled demo';
-end;
-
 initialization
-  // ifdef debug
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'tiled_demo';
+
   InitializeLog;
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;

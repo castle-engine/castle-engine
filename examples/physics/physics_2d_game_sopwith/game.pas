@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, Castle2DSceneManager,
-  CastleUIControls, CastleTimeUtils, CastleUtils;
+  CastleUIControls, CastleTimeUtils, CastleUtils, CastleApplicationProperties;
 
 { Global variables ----------------------------------------------------------- }
 
@@ -294,16 +294,9 @@ begin
     UpdatePlanePosition(Event.Position);
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'physics_2d_game_sopwith';
-end;
-
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'physics_2d_game_sopwith';
 
   InitializeLog;
 

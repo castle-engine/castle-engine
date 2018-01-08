@@ -603,22 +603,18 @@ begin
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'fps_game';
-end;
-
 initialization
   { This unit's initialization *must* initialize Application.MainWindow value.
-    Usually it also initializes things related to logging (OnGetApplicationName,
+    Usually it also initializes things related to logging
+    (ApplicationProperties.ApplicationName, ApplicationProperties.Version,
     InitializeLog), because it's beneficial to initialize them as early as possible.
 
     The rest of initialization should usually be done inside
     Application.OnInitialize callback (ApplicationInitialize in this unit). }
 
-  { OnGetApplicationName should be initialized as early as possible
-    to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here. }
+  ApplicationProperties.ApplicationName := 'fps_game';
 
   { Enable log.
     See http://castle-engine.sourceforge.net/tutorial_log.php

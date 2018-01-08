@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager,
-  CastleUIControls;
+  CastleUIControls, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -211,16 +211,9 @@ begin
   end;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'physics_3d_demo';
-end;
-
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'physics_3d_demo';
 
   InitializeLog;
 

@@ -91,11 +91,6 @@ begin
   end;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'rift';
-end;
-
 const
   DefaultWidth = 1024;
   DefaultHeight = 768;
@@ -103,12 +98,8 @@ const
 { main -------------------------------------------------------------------- }
 
 begin
-  { This is needed because
-    - I sometimes display ApplicationName for user, and under Windows
-      ParamStr(0) is ugly uppercased.
-    - ParamStr(0) is unsure for Unixes.
-    - ApplicationConfig uses this. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'rift';
 
   ApplicationProperties.Version := '0.1.0';
 

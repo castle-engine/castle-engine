@@ -58,13 +58,23 @@ type
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
     FVersion: string;
+    function GetApplicationName: string;
+    procedure SetApplicationName(const Value: string);
   public
     constructor Create;
     destructor Destroy; override;
 
-    { The version of your application.
+    { Version of this application.
       It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
     property Version: string read FVersion write FVersion;
+
+    { Application short name.
+      Used e.g. by @link(InitializeLog) to name the log file.
+
+      When compiled with FPC, this returns and sets the same thing
+      as standard SysUtils.ApplicationName.
+      When setting this, we automatically set SysUtils.OnGetApplicationName. }
+    property ApplicationName: string read GetApplicationName write SetApplicationName;
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
@@ -253,6 +263,25 @@ begin
   FreeAndNil(FOnResume);
   FreeAndNil(FOnWarning);
   inherited;
+end;
+
+function TCastleApplicationProperties.GetApplicationName: string;
+begin
+  Result := {$ifdef FPC} SysUtils {$else} CastleUtils {$endif} .ApplicationName;
+end;
+
+var
+  CastleApplicationNameValue: string;
+
+function CastleGetApplicationName: string;
+begin
+  Result := CastleApplicationNameValue;
+end;
+
+procedure TCastleApplicationProperties.SetApplicationName(const Value: string);
+begin
+  OnGetApplicationName := @CastleGetApplicationName;
+  CastleApplicationNameValue := Value;
 end;
 
 procedure TCastleApplicationProperties._GLContextEarlyOpen;

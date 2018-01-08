@@ -26,7 +26,7 @@ var
 implementation
 
 uses SysUtils, Classes, CastleControls, CastleImages, CastleLog, CastleColors,
-  CastleFilesUtils, CastleKeysMouse, CastleVectors;
+  CastleFilesUtils, CastleKeysMouse, CastleVectors, CastleApplicationProperties;
 
 var
   ImageControl: TCastleImageControl;
@@ -129,11 +129,6 @@ begin
   Window.Invalidate;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'drawing_toy';
-end;
-
 procedure ApplicationFinalize;
 var
   I: Integer;
@@ -143,7 +138,8 @@ begin
 end;
 
 initialization
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'drawing_toy';
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;

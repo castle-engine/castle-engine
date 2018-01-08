@@ -26,10 +26,12 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
+uses SysUtils,
+  CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
   CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
-  CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine;
+  CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine,
+  CastleApplicationProperties;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -350,14 +352,9 @@ begin
     Window.SceneManager.Statistics.ShapesVisible]));
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'simple_3d_demo';
-end;
-
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'simple_3d_demo';
 
   InitializeLog;
 

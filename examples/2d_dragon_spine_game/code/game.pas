@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implements the game logic, independent from Android / standalone. }
+{ Game initialization and logic. }
 unit Game;
 
 interface
@@ -29,7 +29,7 @@ uses SysUtils, Math,
   CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
   CastleVectors, CastleTransform, CastleSceneCore, CastleUtils, CastleColors,
   CastleUIControls, CastleMessaging, CastleGameService, CastleLog,
-  CastleCameras;
+  CastleCameras, CastleApplicationProperties;
 
 { Google Play Games integration stuff ---------------------------------------- }
 
@@ -423,14 +423,9 @@ begin
   GameService.ShowAchievements;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'castle_spine';
-end;
-
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'castle_spine';
 
   InitializeLog;
 
