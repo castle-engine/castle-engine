@@ -482,8 +482,15 @@ begin
       Looping := paForceLooping
     else
       Looping := paForceNotLooping;
-    // calculate Time with looping/clamping applied
-    if Loop then
+
+    // if Defined and (Duration = 0) then
+    //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',
+    //     [GoodAnimationName, Owner.Name]);
+
+    { Calculate Time with looping/clamping applied.
+      Test Duration <> 0 to avoid dividing by 0 in FloatModulo(Time, 0)
+      (testcase: fps_game debug build on Android) }
+    if Loop and (Duration <> 0) then
       ActualTime := FloatModulo(Time, Duration)
     else
       ActualTime := Clamped(Time, 0, Duration);
