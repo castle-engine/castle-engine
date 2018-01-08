@@ -207,6 +207,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -736,15 +738,28 @@ begin
   Camera.SetView(P, D, U);
 end;
 
+procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
+var
+  P, D, U: TVector3;
+begin
+  inherited;
+
+  { Synchronize Position, Direction, Up *from* Camera.
+
+    Do this before rendering (not in TPlayer.UpdateCamera)
+    makes the player's weapon always correctly rendered, without any delay.
+    (Testcase: move/rotate using touch control
+    in fps_game when you have shooting_eye.) }
+
+  Camera.GetView(P, D, U);
+  SetView(P, D, U);
+end;
+
 procedure TPlayer.UpdateCamera;
 var
   NormalCameraInput: TCameraInputs;
-  P, D, U: TVector3;
 begin
-  // synchronize Position, Direction, Up *from* Camera
-  Camera.GetView(P, D, U);
-  SetView(P, D, U);
-
   Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
