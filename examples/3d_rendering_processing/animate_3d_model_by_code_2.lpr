@@ -98,7 +98,7 @@ begin
     Scene.Load(CreateVrmlGraph, true);
 
     {$ifdef LOG}
-    InitializeLog('1.0');
+    InitializeLog;
     Scene.LogChanges := true;
     {$endif}
 

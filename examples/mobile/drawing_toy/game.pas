@@ -41,7 +41,7 @@ procedure ApplicationInitialize;
   end;
 
 begin
-  InitializeLog('1.0.0');
+  InitializeLog;
 
   Brushes[0] := LoadBrush('red');
   Brushes[1] := LoadBrush('green');
