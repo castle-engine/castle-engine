@@ -344,13 +344,14 @@ begin
     and TCastleScrollView.Motion.
 
     But we still have to mark the mouse click as "handled" here.
-    Otherwise some control underneath us (like TCastleSceneManager) could handle
+    Otherwise some control underneath us (like TUIState with InterceptInput = true,
+    like the one used by TStateDialogOK) could handle
     mouse and capture it (the TUIContainer automatically "captures" the control
     that returns "true" from Press event), and then we would not receive
     TCastleScrollView.Motion events anymore.
 
-    (Testcase: MessageOK or TStateDialogOK on mobile (Android, iOS) with
-    long text, to make scrolling useful.)  }
+    (Testcase: show MessageOK or TStateDialogOK on mobile (Android, iOS)
+    with a long text (to make scrolling relevant).)  }
 
   if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
     Result := ExclusiveEvents;
