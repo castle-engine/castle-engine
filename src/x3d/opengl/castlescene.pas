@@ -1316,7 +1316,8 @@ begin
   end;
 
   if Params.InShadow then
-    LightRenderEvent := @LightRenderInShadow else
+    LightRenderEvent := @LightRenderInShadow
+  else
     LightRenderEvent := nil;
 
   ModelView := GetModelViewTransform;
@@ -1327,14 +1328,8 @@ begin
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    if not Params.TransformIdentity then
-    begin
-      glPushMatrix;
-      glMultMatrix(Params.Transform^);
-    end;
-    { TODO: this should be replaced with just
-    glLoadMatrix(GetModelViewTransform);
-      to just load full matrix, and be consistent with what happens when GLFeatures.EnableFixedFunction=false. }
+    glPushMatrix;
+    glLoadMatrix(ModelView);
   end;
   {$endif}
 
@@ -1431,8 +1426,7 @@ begin
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
-    if not Params.TransformIdentity then
-      glPopMatrix;
+    glPopMatrix;
   {$endif}
 end;
 
