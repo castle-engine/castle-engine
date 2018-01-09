@@ -36,8 +36,8 @@ uses Math, SysUtils,
   CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
   CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
-  CastleGameNotifications, CastleRenderingCamera, CastleTransform, CastleRectangles,
-  CastleKeysMouse,
+  CastleGameNotifications, CastleTransform, CastleRectangles,
+  CastleKeysMouse, CastleRenderingCamera,
   RiftSceneManager, RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow,
   RiftGame;
 
@@ -93,11 +93,14 @@ var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4;
 begin
+  { this is done by TCastleAbstractViewport.Render3D in normal circumstances }
+  Params.Frustum := @RenderingCamera.Frustum;
+
   { Render the location 3D scene.
     If DebugDisplay = ddNormal, render it only to the depth buffer. }
   if DebugDisplay = ddNormal then
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
+  CurrentLocation.Scene.Render(Params);
   if DebugDisplay = ddNormal then
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
@@ -152,7 +155,7 @@ begin
       H.Node.AmbientIntensity := 1;
       H.Node.Color := Vector3(0.2, 0.2, 0.2);
     end;
-    RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
+    RiftPlay.Player.Render(Params);
     if Params.InShadow and HeadlightInstance(H) then
     begin
       H.Node.AmbientIntensity := H.Node.FdAmbientIntensity.DefaultValue;

@@ -369,10 +369,10 @@ end;
 type
   T3DTerrain = class(TCastleTransform)
     function LocalBoundingBox: TBox3D; override;
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
   end;
 
-procedure T3DTerrain.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DTerrain.LocalRender(const Params: TRenderParams);
 
   procedure WalkCameraAboveGround;
   var
@@ -402,7 +402,7 @@ begin
   end;
 
   glPushMatrix;
-    glMultMatrix(Params.Transform);
+    glMultMatrix(Params.Transform^);
 
     if (CurrentTerrain is TTerrainGrid) and
        SpecializedGridRendering then

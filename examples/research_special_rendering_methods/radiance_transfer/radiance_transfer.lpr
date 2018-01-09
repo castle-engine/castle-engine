@@ -34,7 +34,7 @@ uses SysUtils, Classes, Math,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
   CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleControls, CastleTransform;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
@@ -94,17 +94,12 @@ end;
 
 type
   TMySceneManager = class(TCastleSceneManager)
-    procedure RenderFromViewEverything; override;
+    procedure Render; override;
+    procedure Render3D(const Params: TRenderParams); override;
   end;
 
-procedure TMySceneManager.RenderFromViewEverything;
-{ It would be cleaner to override Draw (and move SHVectorGLCapture there)
-  and Render3D (and move DrawLight there). But then, our debugging view
-  of SHVectorGLCapture (under 3d model) would not be visible. }
+procedure TMySceneManager.Render;
 begin
-  RenderContext.Clear([cbColor, cbDepth], Black);
-  glLoadMatrix(RenderingCamera.Matrix);
-
   if not Scene.BoundingBox.IsEmpty then
   begin
     { SHVectorGLCapture wil draw maps, get them,
@@ -113,11 +108,17 @@ begin
 
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Center,
       @DrawLight, 100, 100, LightIntensityScale);
-    glViewport(ScreenRect);
+
+    { no need to reset glViewport, inheried TCastleSceneManager.Render calls
+      ApplyProjection that will already do it. }
   end;
 
-  Scene.Render(RenderingCamera.Frustum, RenderParams);
+  inherited;
+end;
 
+procedure TMySceneManager.Render3D(const Params: TRenderParams);
+begin
+  inherited;
   DrawLight(false);
 end;
 
@@ -293,8 +294,13 @@ begin
       Scene.BoundingBox.Data[0].Data[0] + LightRadius;
   end;
 
+  Window.Controls.InsertFront(TCastleSimpleBackground.Create(Application));
+
   SceneManager := TMySceneManager.Create(Application);
   SceneManager.Items.Add(Scene);
+  { we will clear context by our own TCastleSimpleBackground,
+    to keep SHVectorGLCapture visible for debugging }
+  SceneManager.Transparent := true;
   SceneManager.MainScene := Scene;
 
   Window.MainMenu := CreateMainMenu;

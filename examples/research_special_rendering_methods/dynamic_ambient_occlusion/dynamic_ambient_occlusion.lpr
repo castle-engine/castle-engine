@@ -618,14 +618,15 @@ var
 begin
   { RenderFromView3D must initialize some Params fields itself }
   Params.InShadow := false;
+  Params.Frustum := @RenderingCamera.Frustum;
 
   case DrawType of
     dtNormalGL:
       begin
-        Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
-        Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
+        Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
+        Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
+        Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
+        Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
       end;
     dtElements:
       begin
@@ -649,10 +650,10 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
-          Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
+          Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
+          Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
+          Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
+          Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;
   end;

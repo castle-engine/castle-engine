@@ -443,7 +443,7 @@ type
 
       Updates Params.Statistics. }
     procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum; const Params: TRenderParams);
+      const Params: TRenderParams);
 
     { Render everything using LocalRenderInside.
       The rendering parameters are configurable
@@ -491,7 +491,6 @@ type
         culling, or some other visibility algorithm.) }
     procedure LocalRenderOutside(
       const TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum;
       const Params: TRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
@@ -577,7 +576,7 @@ type
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
 
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
@@ -1147,7 +1146,7 @@ end;
 
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
-  const Frustum: TFrustum; const Params: TRenderParams);
+  const Params: TRenderParams);
 var
   ModelView: TMatrix4;
 
@@ -1165,7 +1164,7 @@ var
     if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.Transform;
+      Result := CameraMatrix^ * Params.Transform^;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }
@@ -1283,7 +1282,7 @@ var
             NewActive := false;
             Instances := VisibilitySensorsPair.Value;
             for J := 0 to Instances.Count - 1 do
-              if Frustum.Box3DCollisionPossibleSimple(Instances[J].Box) then
+              if Params.Frustum^.Box3DCollisionPossibleSimple(Instances[J].Box) then
               begin
                 NewActive := true;
                 Break;
@@ -1331,7 +1330,7 @@ begin
     if not Params.TransformIdentity then
     begin
       glPushMatrix;
-      glMultMatrix(Params.Transform);
+      glMultMatrix(Params.Transform^);
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
@@ -1358,7 +1357,7 @@ begin
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Frustum, Params, RenderCameraKnown, RenderCameraPosition);
+        Params, RenderCameraKnown, RenderCameraPosition);
 
       { Inside we could set OcclusionBoxState }
       OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
@@ -1571,11 +1570,11 @@ end;
 
 procedure TCastleScene.LocalRenderOutside(
   const TestShapeVisibility: TTestShapeVisibility;
-  const Frustum: TFrustum; const Params: TRenderParams);
+  const Params: TRenderParams);
 
   procedure RenderNormal;
   begin
-    LocalRenderInside(TestShapeVisibility, Frustum, Params);
+    LocalRenderInside(TestShapeVisibility, Params);
   end;
 
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
@@ -1701,10 +1700,11 @@ procedure TCastleScene.LocalRenderOutside(
   end;
 
 begin
-  { This is usually called by Render(Frustum, Params) that probably
+  { This is usually called by LocalRender(Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetVisible and (InternalDirty = 0) and
+  if GetVisible and
+     (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -1926,10 +1926,10 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
 { Call LocalRenderOutside, choosing TTestShapeVisibility function
-  suitable for our Frustum, octrees and some settings.
+  suitable for our Params.Frustum, octrees and some settings.
 
   If InternalOctreeRendering is initialized (so be sure to include
   ssRendering in @link(Spatial)), this octree will be used to quickly
@@ -1945,7 +1945,8 @@ procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRende
 
   begin
     Shapes.Traverse(@ResetShapeVisible, false, true);
-    Octree.EnumerateCollidingOctreeItems(Frustum, @RenderFrustumOctree_EnumerateShapes);
+    Octree.EnumerateCollidingOctreeItems(Params.Frustum^,
+      @RenderFrustumOctree_EnumerateShapes);
   end;
 
 begin
@@ -1954,23 +1955,23 @@ begin
   if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
-    RenderFrustum_Frustum := @Frustum;
+    RenderFrustum_Frustum := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
     if RenderCameraKnown then
-      RenderCameraPosition := Params.InverseTransform.MultPoint(World.CameraPosition);
+      RenderCameraPosition := Params.InverseTransform^.MultPoint(World.CameraPosition);
 
     if Assigned(InternalVisibilityTest) then
-      LocalRenderOutside(InternalVisibilityTest, Frustum, Params)
+      LocalRenderOutside(InternalVisibilityTest, Params)
     else
     if InternalIgnoreFrustum then
-      LocalRenderOutside(nil, Frustum, Params)
+      LocalRenderOutside(nil, Params)
     else
     if InternalOctreeRendering <> nil then
     begin
       TestOctreeWithFrustum(InternalOctreeRendering);
-      LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
+      LocalRenderOutside(@RenderFrustumOctree_TestShape, Params);
     end else
-      LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
+      LocalRenderOutside(FrustumCullingFunc, Params);
 
     { Nothing should even try to access camera outside of Render...
       But for security, set RenderCameraKnown to false. }
@@ -2376,9 +2377,9 @@ procedure TCastleSceneList.GLContextClose;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].GLContextClose;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].GLContextClose;
 end;
 
 procedure TCastleSceneList.InvalidateBackground;
@@ -2387,9 +2388,9 @@ procedure TCastleSceneList.InvalidateBackground;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].InvalidateBackground;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].InvalidateBackground;
 end;
 
 procedure TCastleSceneList.CloseGLRenderer;
@@ -2398,18 +2399,18 @@ procedure TCastleSceneList.CloseGLRenderer;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].CloseGLRenderer;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].CloseGLRenderer;
 end;
 
 procedure TCastleSceneList.ViewChangedSuddenly;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].ViewChangedSuddenly;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].ViewChangedSuddenly;
 end;
 
 initialization

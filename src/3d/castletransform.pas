@@ -222,7 +222,16 @@ type
 
   TRenderingPass = 0..1;
 
-  { Information that a TCastleTransform object needs to prepare rendering. }
+  { Information that a TCastleTransform object needs to prepare rendering.
+
+    This is @bold(mostly an internal class). You should not need to create it,
+    you should not need to read anything inside or deal with this class otherwise.
+
+    The only official usage allowed is to pass an instance of this class
+    taken from @link(TCastleAbstractViewport.PrepareParams)
+    as a parameter to @link(TCastleTransform.PrepareResources) and friends
+    like @link(T3DResource.Prepare). You should treat this class as a "black box"
+    in normal applications. }
   TPrepareParams = class
     { Include a headlight, or global lights that shine on all
       scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
@@ -235,20 +244,29 @@ type
 
       @exclude }
     InternalBaseLights: TAbstractLightInstancesList;
+
     { World fog, in any, to prepare for.
       @exclude }
     InternalGlobalFog: TAbstractFogNode;
   end;
 
   { Information that a TCastleTransform object needs to render.
-    Read-only for TCastleTransform.Render
-    (except Statistics, which should be updated during rendering). }
+    Read-only for @link(TCastleTransform.LocalRender)
+    (except Statistics, which should be updated during rendering).
+
+    This is @bold(mostly an internal class). You should not need to create it,
+    you should not need to read anything inside or deal with this class otherwise,
+    and actually you should not need to override
+    @link(TCastleTransform.LocalRender) during normal engine usage.
+    But it may be useful for special customized rendering. }
   TRenderParams = class
-    { Which parts should be rendered: opaque (@false) or transparent (@true). }
+    { Which parts should be rendered: opaque (@false) or transparent (@true).
+      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
     Transparent: boolean;
 
     { Should we render parts that may receive shadow volumes, or ones that don't.
-      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes. }
+      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
+      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
     ShadowVolumesReceivers: boolean;
 
     { If @true, means that we're using multi-pass
@@ -269,14 +287,21 @@ type
     { Transformation that should be applied to the rendered result.
       If TransformIdentity, then Transform and InverseTransform is always identity.
       @groupBegin }
-    Transform, InverseTransform: TMatrix4;
+    Transform, InverseTransform: PMatrix4;
     TransformIdentity: boolean;
     { @groupEnd }
 
+    { Current rendering statistics, should be updated by each
+      @link(TCastleTransform.LocalRender) call. }
     Statistics: TRenderStatistics;
 
     { Fog that affects all scenes. }
     GlobalFog: TAbstractFogNode;
+
+    { Camera frustum in local coordinates. Local for the TCastleTransform instance
+      receiving this TRenderParams as @link(TCastleTransform.LocalRender)
+      parameter. }
+    Frustum: PFrustum;
 
     constructor Create;
 
@@ -672,10 +697,20 @@ type
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; virtual;
 
-    { Render with given Params (includes a full transformation of this scene). }
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
+    { Render with given Params (includes a full transformation of this scene).
 
-    { Render shadow volumes (with a full transformation of this scene). }
+      This is @bold(mostly an internal method). You should not need to override
+      it during normal engine usage. Instead, you should render everything using
+      TCastleScene, which allows to load or build (by code) nodes to display
+      meshes, light and everything else.
+      But overriding this may be useful for special customized rendering. }
+    procedure LocalRender(const Params: TRenderParams); virtual;
+
+    { Render shadow volumes (with a full transformation of this scene).
+
+      This is @bold(mostly an internal method). You should not need to override
+      it during normal engine usage. If you render everything using TCastleScene,
+      then rendering shadow volumes is also automatically handled by TCastleScene. }
     procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -896,16 +931,14 @@ type
 
     { Render given object.
       Should check and immediately exit when @link(GetVisible) is @false.
-      Should render only parts with matching Params.Transparency
-      and Params.ShadowVolumesReceivers values (it may be called
-      more than once to render frame).
 
-      @param(Frustum May be used to optimize rendering, to not
-        render the parts outside the Frustum.)
+      The rendering transformation, frustum, and filtering
+      is specified inside TRenderParams class.
+      This method should only update @link(TRenderParams.Statistics). }
+    procedure Render(const Params: TRenderParams); overload;
 
-      @param(Params Other parameters helpful for rendering.)
-    }
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams);
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); overload;
+      deprecated 'use Render method without an explicit Frustum parameter, it is in Params.Frustum now';
 
     { Does the 3D object cast shadows by shadow volumes.
       See also TCastleScene.ReceiveShadowVolumes. }
@@ -2020,17 +2053,20 @@ end;
 
 { TRenderParams -------------------------------------------------------------- }
 
+var
+  GlobalIdentityMatrix: TMatrix4;
+
 constructor TRenderParams.Create;
 begin
   inherited;
-  Transform := TMatrix4.Identity;
-  InverseTransform := TMatrix4.Identity;
+  Transform := @GlobalIdentityMatrix;
+  InverseTransform := @GlobalIdentityMatrix;
   TransformIdentity := true;
 end;
 
 function TRenderParams.RenderTransform: TMatrix4;
 begin
-  Result := Transform;
+  Result := Transform^;
 end;
 
 function TRenderParams.RenderTransformIdentity: boolean;
@@ -2487,14 +2523,14 @@ begin
   end;
 end;
 
-procedure TCastleTransform.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleTransform.LocalRender(const Params: TRenderParams);
 var
   I: Integer;
 begin
   if GetVisible then
   begin
     for I := 0 to List.Count - 1 do
-      List[I].Render(Frustum, Params);
+      List[I].Render(Params);
   end;
 end;
 
@@ -2881,48 +2917,76 @@ end;
 
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
+  OldFrustum: PFrustum;
+begin
+  OldFrustum := Params.Frustum;
+  Params.Frustum := @Frustum;
+  try
+    Render(Params);
+  finally Params.Frustum := OldFrustum end;
+end;
+
+procedure TCastleTransform.Render(const Params: TRenderParams);
+var
   T: TVector3;
-  OldParamsTransform, OldParamsInverseTransform: TMatrix4;
+  OldParamsTransform, OldParamsInverseTransform: PMatrix4;
+  NewParamsTransformValue, NewParamsInverseTransformValue: TMatrix4;
   OldParamsTransformIdentity: boolean;
+  OldFrustum: PFrustum;
+  NewFrustumValue: TFrustum;
 begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
-    LocalRender(Frustum, Params)
+    LocalRender(Params)
   else
   begin
-    { LocalRender expects Frustum in local coordinates (without
-      transformation), so we subtract transformation here. }
-
+    OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
-    OldParamsTransformIdentity := Params.TransformIdentity;
-    Params.TransformIdentity := false;
+    OldFrustum                 := Params.Frustum;
 
+    NewParamsTransformValue        := OldParamsTransform^;
+    NewParamsInverseTransformValue := OldParamsInverseTransform^;
+    NewFrustumValue                := OldFrustum^;
+
+    Params.TransformIdentity := false;
+    Params.Transform        := @NewParamsTransformValue;
+    Params.InverseTransform := @NewParamsInverseTransformValue;
+    Params.Frustum          := @NewFrustumValue;
+
+    { Update NewXxx to apply the transformation defined by this TCastleTransform.
+      LocalRender expects Frustum in local coordinates (without transformation),
+      so we subtract transformation below. }
     if FOnlyTranslation then
     begin
-      MultMatricesTranslation(Params.Transform, Params.InverseTransform, T);
-      LocalRender(Frustum.Move(-T), Params);
+      MultMatricesTranslation(NewParamsTransformValue, NewParamsInverseTransformValue, T);
+      NewFrustumValue.MoveVar(-T);
     end else
     begin
-      InternalTransformMatricesMult(Params.Transform, Params.InverseTransform);
-      if IsNan(Params.InverseTransform.Data[0, 0]) then
+      InternalTransformMatricesMult(NewParamsTransformValue, NewParamsInverseTransformValue);
+      if IsNan(NewParamsInverseTransformValue.Data[0, 0]) then
         WritelnWarning('Transform', Format(
           'Inverse transform matrix has NaN value inside:' + NL +
           '%s' + NL +
           '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [Params.InverseTransform.ToString('  '),
+          [NewParamsInverseTransformValue.ToString('  '),
            FCenter.ToString,
            FRotation.ToString,
            FScale.ToString,
            FScaleOrientation.ToString,
            FTranslation.ToString
           ]));
-      LocalRender(Frustum.Transform(InverseTransform), Params);
+      NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
 
+    LocalRender(Params);
+
+    { Restore OldXxx values.
+      They can be restored fast, thanks to using pointers to matrix/frustum. }
+    Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
-    Params.TransformIdentity := OldParamsTransformIdentity;
+    Params.Frustum           := OldFrustum;
   end;
 end;
 
@@ -3353,4 +3417,6 @@ begin
   inherited;
 end;
 
+initialization
+  GlobalIdentityMatrix := TMatrix4.Identity;
 end.

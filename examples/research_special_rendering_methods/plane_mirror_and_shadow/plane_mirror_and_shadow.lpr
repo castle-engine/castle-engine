@@ -55,9 +55,9 @@ uses SysUtils, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleWindow, CastleRenderer,
   CastleClassUtils, CastleUtils, X3DLoad, CastleLog,
-  CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
+  CastleGLUtils, CastleScene, CastleCameras, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
-  CastleColors, CastleURIUtils, CastleApplicationProperties;
+  CastleColors, CastleURIUtils, CastleApplicationProperties, CastleRenderingCamera;
 
 var
   Window: TCastleWindowCustom;
@@ -209,9 +209,9 @@ var
               in bad places }
             glDepthFunc(GL_ALWAYS);
 
-            { TODO: RenderingCamera.Frustum is invalid. }
+            { TODO: Params.Frustum is invalid. }
             SceneForShadow.InternalIgnoreFrustum := true;
-            SceneForShadow.Render(RenderingCamera.Frustum, RenderParams);
+            SceneForShadow.Render(RenderParams);
           glPopAttrib();
         glPopMatrix();
       glPopAttrib();
@@ -298,9 +298,9 @@ var
             so different faces are visible (and have normals defined). }
           glFrontFace(GL_CW);
 
-          { TODO: RenderingCamera.Frustum is invalid. }
+          { TODO: Params.Frustum is invalid. }
           Scene.InternalIgnoreFrustum := true;
-          Scene.Render(RenderingCamera.Frustum, RenderParams);
+          Scene.Render(RenderParams);
           glFrontFace(GL_CCW);
         glPopMatrix();
 
@@ -378,6 +378,7 @@ var
 begin
   RenderContext.Clear([cbColor, cbDepth, cbStencil], ClearColor);
   glLoadMatrix(RenderingCamera.Matrix);
+  RenderParams.Frustum := @RenderingCamera.Frustum;
 
   { set light position for Scene (by LightInstance and LightNode) }
   LightInstance.Location := LightPosition.XYZ;
@@ -401,9 +402,9 @@ begin
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
 
-      { TODO: RenderingCamera.Frustum is invalid. }
+      { TODO: Params.Frustum is invalid. }
       Scene.InternalIgnoreFrustum := true;
-      Scene.Render(RenderingCamera.Frustum, RenderParams);
+      Scene.Render(RenderParams);
     glPopMatrix();
 
     BoxMaxSize := Box.MaxSize;

@@ -31,7 +31,7 @@ uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleLog,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
   CastleProgress, CastleProgressConsole, CastleFilesUtils,
-  CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse,
+  CastleSceneManager, CastleParameters, CastleKeysMouse,
   CastleApplicationProperties, CastleControls, CastleColors;
 
 var

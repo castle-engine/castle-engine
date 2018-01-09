@@ -120,7 +120,7 @@ type
     FLoop: boolean;
     CurrentChild: TCastleScene;
   protected
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
   public
     property Animation: T3DResourceAnimation read FAnimation;
     { Time within the ResourceAnimation. }
@@ -623,7 +623,7 @@ end;
 
 { TResourceFrame ------------------------------------------------------------- }
 
-procedure TResourceFrame.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TResourceFrame.LocalRender(const Params: TRenderParams);
 
   procedure UpdateChild;
   var

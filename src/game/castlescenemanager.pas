@@ -1926,7 +1926,8 @@ end;
 
 procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
-  GetItems.Render(RenderingCamera.Frustum, Params);
+  Params.Frustum := @RenderingCamera.Frustum;
+  GetItems.Render(Params);
   if Assigned(OnRender3D) then
     OnRender3D(Self, Params);
 end;
@@ -2110,7 +2111,7 @@ begin
       end;
       RenderingCamera.RotationOnly := true;
 
-      { The background rendering doesn't like custom Dimensions.
+      { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
         testcase. So temporary set good perspective projection. }
@@ -2122,7 +2123,7 @@ begin
           FProjection.ProjectionFar);
       end;
 
-      UsedBackground.Render(BackgroundWireframe, RenderingCamera.Frustum);
+      UsedBackground.Render(BackgroundWireframe);
 
       if FProjection.ProjectionType = ptOrthographic then
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;

@@ -160,7 +160,10 @@ type
 
 var
   { Current OpenGL / OpenGLES context state.
-    @bold(Only access it during the rendering, i.e. in TUIControl.Render.) }
+    @bold(Only access it during the rendering, i.e. in TUIControl.Render.)
+
+    TODO: In the future, this global singleton may be removed,
+    and this may be accessible instead through a new TUIControl.Render parameter. }
   RenderContext: TRenderContext;
 
 procedure GLClear(const Buffers: TClearBuffers;
@@ -177,7 +180,8 @@ procedure SetProjectionMatrix(const Value: TMatrix4);
 { Current projection matrix.
 
   For OpenGLES, this is merely a global ProjectionMatrix variable.
-  It must be passed to various shaders to honour the projection.
+  It must be passed to shaders used by TCastleScene rendering
+  to honour the projection.
 
   For desktop OpenGL, setting this also sets fixed-function projection matrix.
   The OpenGL matrix mode is temporarily changed to GL_PROJECTION,

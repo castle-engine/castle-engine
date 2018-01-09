@@ -185,7 +185,7 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -1371,7 +1371,7 @@ begin
   AboveGround := nil;
 end;
 
-procedure TPlayer.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TPlayer.LocalRender(const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently

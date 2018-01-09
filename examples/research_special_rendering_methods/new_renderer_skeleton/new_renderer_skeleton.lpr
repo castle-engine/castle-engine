@@ -64,7 +64,7 @@ type
   public
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); override;
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
   end;
 
 function TCastleSceneVulkan.CreateShape(AGeometry: TAbstractGeometryNode;
@@ -112,8 +112,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-procedure TCastleSceneVulkan.LocalRender(
-  const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
 
   function GetSceneModelView: TMatrix4;
   var
@@ -127,7 +126,7 @@ procedure TCastleSceneVulkan.LocalRender(
     if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.Transform;
+      Result := CameraMatrix^ * Params.Transform^;
   end;
 
   function PrimitiveToStr(const Primitive: TGeometryPrimitive): string;
@@ -219,11 +218,12 @@ begin
     Scene.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
     Scene.PrepareResources([], false, nil);
 
-    { TODO: Creating TRenderParams with abstract methods (BaseLights).
+    { TODO: Creating TRenderParams explicitly, and with abstract methods (BaseLights).
       Ignore this temporarily, you don't need BaseLights to test your new renderer
       (BaseLights are only used for a configurable headlight, and for shining
       lights from one TCastleScene over another TCastleScene). }
     Params := TRenderParams.Create;
+    Params.Frustum := @RenderingCamera.Frustum;
 
     while not Application.Quit do
     begin
@@ -244,7 +244,7 @@ begin
         support blending (partial transparency) in your renderer). }
 
       // Render the Scene
-      Scene.Render(RenderingCamera.Frustum, Params);
+      Scene.Render(Params);
 
       { TODO: do something like Window.Flush or Window.SwapBuffers,
         to make sure GPU will execute the rendering commands ASAP. }

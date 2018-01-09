@@ -70,7 +70,7 @@ type
     constructor Create(const AScene: TCastleSceneCore;
       const AUtils: TOcclusionQueryUtilsRenderer);
     procedure Render(const RenderShape: TShapeProcedure;
-      const Frustum: TFrustum; const Params: TRenderParams;
+      const Params: TRenderParams;
       const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
     function WasLastVisible(const Shape: TGLShape): boolean;
   end;
@@ -356,7 +356,7 @@ end;
 
 procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
-  const Frustum: TFrustum; const Params: TRenderParams;
+  const Params: TRenderParams;
   const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
 {$ifndef OpenGLES}
 var
@@ -490,7 +490,7 @@ begin
       if TraversalStack.Count <> 0 then
       begin
         Node := TShapeOctreeNode(TraversalStack.Pop);
-        if Node.FrustumCollisionPossible(Frustum) then
+        if Node.FrustumCollisionPossible(Params.Frustum^) then
         begin
           {$ifdef VISIBILITY_KEEP_FRAMES}
           { There was a resigned idea below (maybe useful later) to do
