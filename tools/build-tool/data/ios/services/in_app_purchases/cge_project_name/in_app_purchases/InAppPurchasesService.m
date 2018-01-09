@@ -90,6 +90,7 @@
         product.title = skProduct.localizedTitle;
         product.productDescription = skProduct.localizedDescription;
 
+        // title and description may be nil if IAP are in rejected state
         if (product.title == nil) {
             NSLog(@"WARNING: AppStore product localizedTitle is nil, for id %@. This can happen, ignoring...", skProduct.productIdentifier);
         }
