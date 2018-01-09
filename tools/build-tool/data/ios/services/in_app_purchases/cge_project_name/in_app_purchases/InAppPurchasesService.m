@@ -90,6 +90,13 @@
         product.title = skProduct.localizedTitle;
         product.productDescription = skProduct.localizedDescription;
 
+        if (product.title == nil) {
+            NSLog(@"WARNING: AppStore product localizedTitle is nil, for id %@. This can happen, ignoring...", skProduct.productIdentifier);
+        }
+        if (product.productDescription == nil) {
+            NSLog(@"WARNING: AppStore product localizedDescription is nil, for id %@. This can happen, ignoring...", skProduct.productIdentifier);
+        }
+
         // format price, using code recommended by Apple docs
         {
             NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
@@ -115,8 +122,8 @@
         [self messageSend: @[@"in-app-purchases-can-purchase",
             product.id,
             product.price,
-            product.title,
-            product.productDescription,
+            stringNonNil(product.title),
+            stringNonNil(product.productDescription),
             product.priceAmountMicros,
             product.priceCurrencyCode]];
     }

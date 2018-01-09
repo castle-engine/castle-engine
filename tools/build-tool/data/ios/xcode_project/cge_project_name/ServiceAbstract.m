@@ -74,3 +74,8 @@
 }
 
 @end
+
+NSString* stringNonNil(NSString* value)
+{
+    return value != nil ? value : @"";
+}
