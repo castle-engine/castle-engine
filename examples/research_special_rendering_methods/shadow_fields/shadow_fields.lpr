@@ -51,7 +51,7 @@ uses SysUtils,
   ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager,
   CastleSphericalHarmonics, CastleGLCubeMaps, CastleMessages, CastleShapes,
   CastleStringUtils, CastleKeysMouse, CastleURIUtils,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleRenderingCamera;
 
 var
   Window: TCastleWindowCustom;
