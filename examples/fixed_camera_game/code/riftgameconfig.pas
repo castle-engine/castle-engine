@@ -20,23 +20,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
-unit RiftData;
+{ Read data/game.xml that configures game. }
+unit RiftGameConfig;
 
 interface
 
 uses CastleXMLConfig;
 
 var
-  DataConfig: TCastleConfig;
+  GameConfig: TCastleConfig;
 
 implementation
 
 uses SysUtils, CastleFilesUtils, CastleURIUtils;
 
 initialization
-  DataConfig := TCastleConfig.Create(nil);
-  DataConfig.URL := ApplicationData('index.xml');
+  GameConfig := TCastleConfig.Create(nil);
+  GameConfig.URL := ApplicationData('game.xml');
 finalization
-  FreeAndNil(DataConfig);
+  FreeAndNil(GameConfig);
 end.

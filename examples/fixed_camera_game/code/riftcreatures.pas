@@ -31,7 +31,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, CastleTransform, CastleFrustum, CastleApplicationProperties,
   CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform,
-  RiftWindow, RiftGame, RiftLoadable;
+  RiftWindow, RiftLoadable;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -66,7 +66,7 @@ type
 
     function LoadSteps: Cardinal; override;
 
-    { Loads creature properties from DataConfig file.
+    { Loads creature properties from GameConfig file.
       This is normally called by constructor, so you don't have to call it.
       However, it may be useful for debugging purposes to "reload index.xml"
       file, and then you should call this (and probably you should reload
@@ -89,6 +89,7 @@ type
     FDebugTransform: TDebugTransform;
     FState: TCreatureState;
     CurrentChild: TCastleTransform;
+    LifeTime: TFloatTime;
     procedure SetState(const Value: TCreatureState);
   private
     { SetState actually only "schedules" actual state change at the nearest
@@ -139,7 +140,7 @@ implementation
 uses Math,
   CastleLog, CastleProgress, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleGLBoxes, CastleSceneCore,
-  RiftData, RiftVideoOptions;
+  RiftGameConfig, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -176,9 +177,9 @@ begin
   for S := Low(S) to High(S) do
   begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
-    Animations[S].URL := DataConfig.GetURL(StatePath + 'url');
+    Animations[S].URL := GameConfig.GetURL(StatePath + 'url');
   end;
-  FReceiveShadowVolumes := DataConfig.GetValue(
+  FReceiveShadowVolumes := GameConfig.GetValue(
     'creatures/' + Name + '/receive_shadow_volumes', true);
 end;
 
@@ -270,7 +271,8 @@ begin
 
   { initialize state fields }
   FState := csStand;
-  CurrentStateStartTime := WorldTime;
+  LifeTime := 0;
+  CurrentStateStartTime := LifeTime;
 
   FKind := AKind;
 
@@ -310,14 +312,14 @@ begin
     if Kind.Animations[FState].Duration = 0 then
     begin
       { That's easy, just switch to new state already ! }
-      ScheduledTransitionBeginTime := WorldTime;
+      ScheduledTransitionBeginTime := LifeTime;
     end else
     begin
-      { So the current state is at WorldTime - CurrentStateStartTime time.
+      { So the current state is at LifeTime - CurrentStateStartTime time.
         When will it pass through it's "TimeEnd" point ? }
       ScheduledTransitionBeginTime := CurrentStateStartTime +
         RoundFloatDown(
-          WorldTime - CurrentStateStartTime,
+          LifeTime - CurrentStateStartTime,
           Kind.Animations[FState].Duration);
 
       { Now at ScheduledTransitionBeginTime the animation was in starting
@@ -332,7 +334,7 @@ begin
         2. because of floating point errors inside RoundFloatDown...).
         So we correct it. If there were no floating point errors inside
         RoundFloatDown, loop below should execute at most once. }
-      while ScheduledTransitionBeginTime < WorldTime do
+      while ScheduledTransitionBeginTime < LifeTime do
         ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
     end;
   end;
@@ -347,7 +349,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     Scene := Kind.Animations[FState].Animation;
     Result := Scene;
     Scene.ForceAnimationPose('animation',
-      WorldTime - CurrentStateStartTime, paForceLooping);
+      LifeTime - CurrentStateStartTime, paForceLooping);
   end;
 
   procedure UpdateChild;
@@ -368,15 +370,17 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 begin
   inherited;
 
+  LifeTime := LifeTime + SecondsPassed;
+
   FDebugTransform.Exists := DebugRenderBoundingGeometry;
 
   if ScheduledTransitionBegin then
   begin
-    if WorldTime > ScheduledTransitionBeginTime then
+    if LifeTime > ScheduledTransitionBeginTime then
     begin
       ScheduledTransitionBegin := false;
       FState := ScheduledTransitionBeginNewState;
-      CurrentStateStartTime := WorldTime;
+      CurrentStateStartTime := LifeTime;
     end;
   end else
     UpdateNoStateChangeScheduled(SecondsPassed);
@@ -389,7 +393,7 @@ begin
   if State = csBored then
     State := csStand else
   if (State = csStand) and
-     (WorldTime - CurrentStateStartTime > StandTimeToBeBored) then
+     (LifeTime - CurrentStateStartTime > StandTimeToBeBored) then
   begin
     State := csBored;
     RandomizeStandTimeToBeBored;
@@ -514,7 +518,7 @@ procedure TPlayer.LocationChanged;
 begin
   FState := csStand;
   ScheduledTransitionBegin := false;
-  CurrentStateStartTime := WorldTime;
+  CurrentStateStartTime := LifeTime;
 end;
 
 procedure TPlayer.WantsToWalk(const Value: TVector3);

@@ -85,7 +85,7 @@ implementation
 uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer,
   CastleUIControls, CastleGLUtils, CastleWindow, CastleXMLUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad,
-  RiftWindow, RiftData;
+  RiftWindow, RiftGameConfig;
 
 { TLocation ------------------------------------------------------------------ }
 
@@ -176,7 +176,7 @@ var
 begin
   Locations := TLocationList.Create(true);
 
-  LocationsElement := DataConfig.PathElement('locations');
+  LocationsElement := GameConfig.PathElement('locations');
   if LocationsElement = nil then
     raise Exception.Create('Unable to find XML <locations> element');
 
@@ -196,9 +196,9 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      Location.FImageURL := I.Current.AttributeURL('image_url', DataConfig.URL);
-      Location.FShadowedImageURL := I.Current.AttributeURL('shadowed_image_url', DataConfig.URL);
-      Location.FSceneURL := I.Current.AttributeURL('scene_url', DataConfig.URL);
+      Location.FImageURL := I.Current.AttributeURL('image_url', GameConfig.URL);
+      Location.FShadowedImageURL := I.Current.AttributeURL('shadowed_image_url', GameConfig.URL);
+      Location.FSceneURL := I.Current.AttributeURL('scene_url', GameConfig.URL);
 
       I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);

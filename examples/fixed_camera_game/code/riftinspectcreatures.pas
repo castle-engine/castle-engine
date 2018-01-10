@@ -20,7 +20,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
+{ State to inspect creatures (right now: player) animations. }
 unit RiftInspectCreatures;
 
 interface
@@ -29,42 +29,17 @@ procedure InspectCreatures;
 
 implementation
 
-uses CastleWindowModes, CastleCameras, CastleGLUtils, CastleWindow, CastleVectors, SysUtils,
-  Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
-  RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures, CastleControlsImages,
-  CastleUIControls, RiftSceneManager, CastleColors, CastleKeysMouse, CastleControls;
+uses SysUtils, Classes,
+  CastleWindowModes, CastleCameras, CastleGLUtils, CastleWindow, CastleVectors,
+  CastleColors, CastleKeysMouse, CastleControls, CastleStringUtils, CastleMessages,
+  CastleFilesUtils, CastleControlsImages, CastleUIControls, CastleUtils,
+  RiftVideoOptions, RiftWindow, RiftCreatures, RiftSceneManager;
 
 var
   Creature: TCreature;
   UserQuit: boolean;
   SceneManager: TRiftSceneManager;
-
-{ TStatusText ---------------------------------------------------------------- }
-
-type
-  TStatusText = class(TCastleLabel)
-    procedure Render; override;
-  end;
-
-procedure TStatusText.Render;
-var
-  Pos, Dir, Up: TVector3;
-begin
-  if not GetExists then Exit;
-
-  { regenerate Text contents at every Render call }
-  Text.Clear;
-  SceneManager.Camera.GetView(Pos, Dir, Up);
-  Text.Append(Format('Camera: pos %s, dir %s, up %s',
-    [ Pos.ToString, Dir.ToString, Up.ToString ]));
-  Text.Append(Format('World time : %f', [WorldTime]));
-  Text.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
-
-  inherited;
-end;
-
-var
-  StatusText: TStatusText;
+  StatusText: TCastleLabel;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
@@ -83,16 +58,22 @@ begin
 end;
 
 procedure Update(Container: TUIContainer);
+var
+  Pos, Dir, Up: TVector3;
 begin
-  WorldTime += Window.Fps.SecondsPassed;
+  SceneManager.Camera.GetView(Pos, Dir, Up);
+  StatusText.Caption :=
+    Format('Camera: pos %s, dir %s, up %s',
+      [Pos.ToString, Dir.ToString, Up.ToString]) + NL +
+    Format('Creature state : %s',
+      [CreatureStateName[Creature.State]]) + NL +
+    'Press W B S - change state, F5 - screenshot, H - camera home';
 end;
 
 procedure InspectCreatures;
 var
   SavedMode: TGLMode;
 begin
-  WorldTime := 0;
-
   SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
   try
     Window.FpsShowOnCaption := DebugMenuFps;
@@ -120,7 +101,7 @@ begin
       Creature.Up := Vector3(0, 0, 1);
       SceneManager.Items.Add(Creature);
 
-      StatusText := TStatusText.Create(Window);
+      StatusText := TCastleLabel.Create(Window);
       StatusText.Padding := 5;
       StatusText.Left := 5;
       StatusText.Bottom := 5;

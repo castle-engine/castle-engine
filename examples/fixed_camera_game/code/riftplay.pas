@@ -38,8 +38,7 @@ uses Math, SysUtils,
   CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleTransform, CastleRectangles,
   CastleKeysMouse, CastleRenderingCamera,
-  RiftSceneManager, RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow,
-  RiftGame;
+  RiftSceneManager, RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow;
 
 type
   TDebugDisplay = (
@@ -52,6 +51,7 @@ type
 
 var
   Player: TPlayer;
+  CurrentLocation: TLocation;
   UserQuit: boolean;
   DebugDisplay: TDebugDisplay = ddNormal;
   AngleOfViewX, AngleOfViewY: Single;
@@ -254,7 +254,6 @@ end;
 
 procedure Update(Container: TUIContainer);
 begin
-  WorldTime += Window.Fps.SecondsPassed;
 end;
 
 procedure InitLocation;
@@ -304,6 +303,8 @@ procedure Play;
 var
   SavedMode: TGLMode;
 begin
+  CurrentLocation := StartLocation;
+
   Notifications.Clear;
 
   SceneManager := nil;

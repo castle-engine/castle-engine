@@ -38,7 +38,7 @@ uses SysUtils, DOM, Generics.Collections,
   CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
   CastleKeysMouse, CastleColors, CastleApplicationProperties,
-  RiftData, RiftSound, RiftVideoOptions;
+  RiftGameConfig, RiftSound, RiftVideoOptions;
 
 { $define DEBUG_INTRO_FAST}
 
@@ -170,7 +170,7 @@ procedure ContextOpen;
   begin
     IntroParts := TIntroPartList.Create(true);
 
-    I := DataConfig.PathChildrenIterator('intro/parts', 'part');
+    I := GameConfig.PathChildrenIterator('intro/parts', 'part');
     try
       while I.GetNext do
       begin

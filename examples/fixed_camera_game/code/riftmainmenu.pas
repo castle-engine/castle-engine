@@ -39,8 +39,8 @@ uses SysUtils, CastleWindow, CastleFilesUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
   CastleApplicationProperties,
-  RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
-  RiftLocations, RiftGame, CastleKeysMouse, CastleRectangles;
+  RiftGameConfig, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
+  RiftLocations, CastleKeysMouse, CastleRectangles;
 
 { menu classes and variables  ------------------------------------------------ }
 
@@ -173,8 +173,6 @@ end;
 
 procedure TRiftMainMenu.ClickNewGame(Sender: TObject);
 begin
-  CurrentLocation := StartLocation;
-  WorldTime := 0;
   Play;
 end;
 
@@ -294,7 +292,7 @@ begin
   SoundDeviceMenu := TSoundDeviceMenu.Create(nil);
 
   MenuBg := TCastleImageControl.Create(nil);
-  MenuBg.URL := DataConfig.GetURL('main_menu/image');
+  MenuBg.URL := GameConfig.GetURL('main_menu/image');
   MenuBg.FullSize := true;
   MenuBg.Stretch := true;
 end;
