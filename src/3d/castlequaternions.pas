@@ -352,7 +352,13 @@ begin
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
 
   if NormalizeAxis then
+  begin
+    { protect from zero-length axis
+      (testcase: code/tovrmlx3d demo-models/castle-anim-frames/simple/cube_opening.castle-anim-frames ) }
+    if Axis.IsZero then
+      Exit(TQuaternion.ZeroRotation);
     SinHalfAngle := SinHalfAngle / Axis.Length;
+  end;
 
   Result.Data.Vector := Axis * SinHalfAngle;
   Result.Data.Real := CosHalfAngle;
