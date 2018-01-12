@@ -36,7 +36,7 @@ const
 
 type
   { }
-  EDynLibError =class(Exception);
+  EDynLibError = class(Exception);
 
   TDynLibSymbolErrorBehaviour = (seRaise, seReturnNil, seWarnAndReturnNil);
 
