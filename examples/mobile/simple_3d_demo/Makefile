@@ -3,8 +3,8 @@
 
 MODE:=debug
 
-.PHONY: compile
-compile:
+.PHONY: standalone
+standalone:
 	castle-engine --mode=$(MODE) compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean

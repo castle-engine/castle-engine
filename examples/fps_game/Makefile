@@ -1,9 +1,11 @@
 # This Makefile uses castle-engine build tool for most operations.
 # See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
+MODE:=debug
+
 .PHONY: standalone
 standalone:
-	castle-engine compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+	castle-engine --mode=$(MODE) compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
 clean:
