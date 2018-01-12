@@ -43,14 +43,13 @@ type
     FInitialDirection: TVector3;
     FInitialUp: TVector3;
     Loaded: boolean;
-    procedure EnumerateLights(Node: TX3DNode);
   public
     destructor Destroy; override;
 
     { Create things necessary for playing (displaying this location). }
     procedure Load(const PrepareParams: TPrepareParams);
 
-    { Internal name, must be simple (needs to be valid XML element
+    { Location short name, must be simple (needs to be valid XML element
       name and X3D node name, for easy data reading). }
     property Name: string read FName;
 
@@ -98,14 +97,6 @@ begin
   inherited;
 end;
 
-procedure TLocation.EnumerateLights(Node: TX3DNode);
-begin
-  { This is not necessary for normal game display,
-    but it is useful in DebugDisplay = ddOnly3D or ddBlend3D.
-    It means that shadows (through shadow volumes) are also visible on 3D rendering. }
-  (Node as TAbstractLightNode).ShadowVolumes := true;
-end;
-
 procedure TLocation.Load(const PrepareParams: TPrepareParams);
 var
   SceneRoot: TX3DRootNode;
@@ -115,12 +106,9 @@ begin
 
   FScene := TCastleScene.Create(nil);
   FScene.Spatial := [ssRendering, ssDynamicCollisions];
-  // TODO
-  { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
-  FScene.Attributes.Mode := rmDepth;
+  // two-sided lighting
+  FScene.Attributes.PhongShading := true;
   SceneRoot := Load3D(SceneURL);
-  // TODO
-  SceneRoot.EnumerateNodes(TAbstractLightNode, @EnumerateLights, false);
   FScene.Load(SceneRoot, true);
 
   FScene.PrepareResources([prRender, prBoundingBox], false, PrepareParams);

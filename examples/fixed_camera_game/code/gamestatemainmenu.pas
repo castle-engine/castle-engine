@@ -119,9 +119,9 @@ end;
 constructor TStateMainMenu.TRiftMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  Add('Replay intro', @ClickIntro);
-  Add('New game', @ClickNewGame);
-  Add('Sound options', @ClickSoundOptions);
+  Add('New Game', @ClickNewGame);
+  Add('Replay Intro', @ClickIntro);
+  Add('Sound Options', @ClickSoundOptions);
   { on mobile, do not show quit -- users don't expect it,
     and also Application.Terminate cannot be used on iOS and Android. }
   if not ApplicationProperties.TouchDevice then

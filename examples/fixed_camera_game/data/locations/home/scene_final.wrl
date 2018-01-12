@@ -5,13 +5,21 @@ NavigationInfo {
 	visibilityLimit 9.7382536
 	type ["EXAMINE", "ANY"]
 	avatarSize [0.25, 1.75, 0.75]
-} 
- 
+}
+
 Background {
 	groundColor [ 0.1 0.1 0.1, 	0.0922368 0.3600824 0.6522775 ]
 	groundAngle [ 1.57 ]
 	skyColor [ 0.1 0.1 0.1, 	0.0922368 0.3600824 0.6522775 ]
 	skyAngle [ 1.57 ]
+}
+
+# define light that determines shadow volumes
+DirectionalLight {
+  shadowVolumesMain TRUE
+  shadowVolumes TRUE
+  # on FALSE # TODO
+  direction 1 1 -1
 }
 
 DEF OB_Camera_001 Transform {
@@ -20,11 +28,11 @@ DEF OB_Camera_001 Transform {
 	scale 0.249600 0.249600 0.249600
 	children [
 		DEF Camera_001 Viewpoint {
-			description "Camera.001" 
+			description "Camera.001"
 			position 0.0 0.0 0.0
 			fieldOfView 0.484
 		}
-		
+
 	]
 }
 

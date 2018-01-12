@@ -60,8 +60,8 @@ type
     { Create things necessary for playing (displaying this creature). }
     procedure Load(const PrepareParams: TPrepareParams);
 
-    { Internal creature name, must be simple (needs to be valid XML element
-      name and VRML node name, for easy data reading). }
+    { Creature short name, must be simple (needs to be valid XML element
+      name and X3D node name, for easy data reading). }
     property Name: string read FName;
 
     { Loads creature properties from GameConfig file.
@@ -198,11 +198,10 @@ begin
   for S := Low(S) to High(S) do
   begin
     Animations[S].Animation := TCastleScene.Create(nil);
-    { So not set Animation.ReceiveShadowVolumes := false,
-      this would make incorrect rendering.
-      Instead, we implement ReceiveShadowVolumes=false differently in this game.
-      See TGameSceneManager.Render3D comments. }
-    //Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
+    // prevents placing WantsToWalk in game over a creature body
+    Animations[S].Animation.Pickable := false;
+    // TODO uncomment?
+    // Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
       [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);

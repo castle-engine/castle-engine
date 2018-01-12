@@ -99,4 +99,6 @@ initialization
   Window.FullScreen := true;
   Window.Caption := 'The Rift';
   Window.FpsShowOnCaption := true;
+  // for shadow volumes to be possible
+  Window.StencilBits := 8;
 end.

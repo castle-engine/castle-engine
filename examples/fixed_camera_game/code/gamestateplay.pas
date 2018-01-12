@@ -39,16 +39,10 @@ type
   strict private
     type
       TGameSceneManager = class(TCastleSceneManager)
-      private
-        DefaultHeadlightNode: TDirectionalLightNode;
-      protected
-        function Headlight: TAbstractLightNode; override;
       public
         State: TStatePlay; // TODO
-        destructor Destroy; override;
         function CalculateProjection: TProjection; override;
         procedure Render3D(const Params: TRenderParams); override;
-        function MainLightForShadows(out AMainLightPosition: TVector4): boolean; override;
       end;
 
     var
@@ -80,19 +74,6 @@ uses Math, SysUtils,
 
 { TStatePlay.TGameSceneManager ----------------------------------------------- }
 
-function TStatePlay.TGameSceneManager.Headlight: TAbstractLightNode;
-begin
-  if DefaultHeadlightNode = nil then
-    DefaultHeadlightNode := TDirectionalLightNode.Create;
-  Result := DefaultHeadlightNode;
-end;
-
-destructor TStatePlay.TGameSceneManager.Destroy;
-begin
-  FreeAndNil(DefaultHeadlightNode);
-  inherited;
-end;
-
 procedure TStatePlay.TGameSceneManager.Render3D(const Params: TRenderParams);
 
   { Draw Image centered on screen, scaled to fit inside the window size.
@@ -106,6 +87,10 @@ var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4;
 begin
+  // TODO: test
+  // inherited;
+  // Exit;
+
   { this is done by TCastleAbstractViewport.Render3D in normal circumstances }
   Params.Frustum := @RenderingCamera.Frustum;
 
@@ -170,18 +155,6 @@ begin
   end;
 end;
 
-function TStatePlay.TGameSceneManager.MainLightForShadows(
-  out AMainLightPosition: TVector4): boolean;
-begin
-  { The light casting shadows.
-    TODO: Hardcoded for now, in the future could be determined per-location
-    (e.g. looking at location light with shadowVolumesMain, would be consistent
-    with standard 3D rendering of shadow volumes). }
-  AMainLightPosition := {Vector4(SceneCamera.InitialPosition, 1);}
-    Vector4(1, 1, -1, 0);
-  Result := true;
-end;
-
 function TStatePlay.TGameSceneManager.CalculateProjection: TProjection;
 begin
   Result.ProjectionType := ptPerspective;
@@ -200,7 +173,6 @@ end;
 function TStatePlay.Press(const Event: TInputPressRelease): boolean;
 var
   URL: string;
-  RayOrigin, RayDirection, SelectedPoint: TVector3;
 begin
   Result := inherited;
 
@@ -222,24 +194,8 @@ begin
       begin
         if Event.MouseButton = mbLeft then
         begin
-          { This is a cleaner way to query mouse picks
-            if CurrentLocation.Scene was part of scene manager.
-            But for now, this example does rendering tricks
-            (see TGameSceneManager.Render3D) and avoids using SceneManager
-            is normal way. TODO: to be fixed.
-
           if SceneManager.MouseRayHit <> nil then
             Player.WantsToWalk(SceneManager.MouseRayHit.Last.Point);
-          }
-
-          SceneManager.RequiredCamera.CustomRay(
-            Container.Rect, Container.MousePosition,
-            SceneManager.Projection, RayOrigin, RayDirection);
-          if CurrentLocation.Scene.InternalOctreeCollisions.RayCollision(
-               SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
-          begin
-            Player.WantsToWalk(SelectedPoint);
-          end;
         end;
       end;
   end;
@@ -258,26 +214,26 @@ begin
   SceneManager.WalkCamera.Init(
     ScenePosition, SceneDirection, SceneUp, SceneGravityUp, 0, 0);
 
+  // TODO: is this even necessary?
   { calculate AngleOfViewX, AngleOfViewY }
 
   if (GeneralViewpoint <> nil) and
      (GeneralViewpoint is TViewpointNode) then
-    RadAngleOfViewY := TViewpointNode(GeneralViewpoint).FdFieldOfView.Value else
+    RadAngleOfViewY := TViewpointNode(GeneralViewpoint).FieldOfView
+  else
     RadAngleOfViewY := DefaultViewpointFieldOfView;
 
   RadAngleOfViewX := TViewpointNode.ViewpointAngleOfView(
     RadAngleOfViewY, StateContainer.Width / StateContainer.Height);
 
   { now, corrent RadAngleOfViewY, since RadAngleOfViewX may force it to be
-    smaller than FdFieldOfView.Value --- see VRML spec and
+    smaller than FdFieldOfView.Value --- see X3D spec and
     TViewpointNode.ViewpointAngleOfView comments. }
   RadAngleOfViewY := AdjustViewAngleRadToAspectRatio(
     RadAngleOfViewX, StateContainer.Height / StateContainer.Width);
 
   AngleOfViewX := RadToDeg(RadAngleOfViewX);
   AngleOfViewY := RadToDeg(RadAngleOfViewY);
-
-  CurrentLocation.Scene.Attributes.Mode := rmDepth;
 
   Player.SetView(
     CurrentLocation.InitialPosition,
@@ -300,7 +256,6 @@ begin
 
   SceneManager := TGameSceneManager.Create(FreeAtStop);
   SceneManager.State := Self;
-  SceneManager.ShadowVolumes := true; // TODO
   InsertFront(SceneManager);
 
   Progress.Init(Locations.Count + CreatureKinds.Count, 'Preparing');
@@ -318,6 +273,9 @@ begin
   finally Progress.Fini end;
 
   SceneManager.Items.Add(CurrentLocation.Scene);
+  { set as MainScene, to allow location VRML / X3D file to determine
+    headlight, viewpoint, shadow volumes light... }
+  SceneManager.MainScene := CurrentLocation.Scene;
 
   Player := TPlayer.Create(CreatureKinds.PlayerKind);
   SceneManager.Items.Add(Player);
