@@ -51,7 +51,6 @@ type
   private
     FName: string;
     Animations: array [TCreatureState] of TCreatureAnimation;
-    FReceiveShadowVolumes: boolean;
     Loaded: boolean;
   public
     constructor Create(const AName: string);
@@ -71,8 +70,6 @@ type
       this creature kind, if it's already loaded; unless you know what
       you're doing :) ). }
     procedure LoadFromConfig;
-
-    property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
   TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
@@ -184,8 +181,6 @@ begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
     Animations[S].URL := GameConfig.GetURL(StatePath + 'url');
   end;
-  FReceiveShadowVolumes := GameConfig.GetValue(
-    'creatures/' + Name + '/receive_shadow_volumes', true);
 end;
 
 procedure TCreatureKind.Load(const PrepareParams: TPrepareParams);
@@ -200,8 +195,23 @@ begin
     Animations[S].Animation := TCastleScene.Create(nil);
     // prevents placing WantsToWalk in game over a creature body
     Animations[S].Animation.Pickable := false;
-    // TODO uncomment?
-    // Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
+
+    { Do not receive shadows,
+      as self-shadowing looks bad on smooth player geometry.
+
+      But we cannot do it using ReceiveShadowVolumes := false,
+      as that would break TLocationScene.LocalRender rendering,
+      as it scenes with ReceiveShadowVolumes=false are rendered earlier,
+      and TLocationScene.LocalRender would alwways overdraw the player.
+
+      TODO: hrm, how does this actually work now?
+      It does not receive self shadow volumes, for some reason, already.
+
+      Ev. change TLocationScene.LocalRender to use a shader effect
+      to draw location images only at pixels where location is actually rendered.
+    }
+    // Animations[S].Animation.ReceiveShadowVolumes := false;
+
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
       [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);

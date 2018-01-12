@@ -23,9 +23,6 @@
 { State in which you actually play the game (TStatePlay). }
 unit GameStatePlay;
 
-//TODO
-{$I castleconf.inc}
-
 interface
 
 uses
@@ -42,7 +39,6 @@ type
       public
         State: TStatePlay; // TODO
         function CalculateProjection: TProjection; override;
-        procedure Render3D(const Params: TRenderParams); override;
       end;
 
     var
@@ -55,6 +51,7 @@ type
   public
     procedure Start; override;
     procedure Stop; override;
+    procedure Resize; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   end;
@@ -65,95 +62,12 @@ var
 implementation
 
 uses Math, SysUtils,
-  //TODO
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLUtils, CastleStringUtils, CastleProgress, CastleCameras, CastleUtils,
   CastleFilesUtils, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleRectangles, CastleRenderingCamera, CastleColors,
   GameStateMainMenu;
 
 { TStatePlay.TGameSceneManager ----------------------------------------------- }
-
-procedure TStatePlay.TGameSceneManager.Render3D(const Params: TRenderParams);
-
-  { Draw Image centered on screen, scaled to fit inside the window size.
-    The goal is to always match the 3D scene projection. }
-  procedure DrawCentered(const Image: TGLImage);
-  begin
-    Image.Draw(Image.Rect.FitInside(Container.Rect));
-  end;
-
-var
-  H: TLightInstance;
-  SavedProjectionMatrix: TMatrix4;
-begin
-  // TODO: test
-  // inherited;
-  // Exit;
-
-  { this is done by TCastleAbstractViewport.Render3D in normal circumstances }
-  Params.Frustum := @RenderingCamera.Frustum;
-
-  { Render the location 3D scene }
-  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  State.CurrentLocation.Scene.Render(Params);
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-  { Render the location 2D image. }
-  if (not Params.Transparent) and
-     Params.ShadowVolumesReceivers then
-  begin
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-      OrthoProjection(FloatRectangle(Container.Rect)); // need 2D projection
-      Assert(not GLFeatures.EnableFixedFunction);
-      {$ifndef OpenGLES}
-      { With GLFeatures.EnableFixedFunction = true,
-        TGLImage.Draw will reset modelview matrix
-        (that should keep camera matrix, in non-OpenGLES renderer now),
-        so save it. }
-      glPushMatrix;
-      {$endif}
-        if Params.InShadow then
-          DrawCentered(State.CurrentLocation.ShadowedImage)
-        else
-          DrawCentered(State.CurrentLocation.Image);
-      {$ifndef OpenGLES}
-      glPopMatrix;
-      {$endif}
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
-  end;
-
-  { Render the 3D characters, both to depth and color buffers. }
-  if Params.InShadow and HeadlightInstance(H) and
-
-    { We implement PlayerKind.ReceiveShadowVolumes=false
-      by simply making player look the same,
-      regardless if Params.InShadow is true or false.
-
-      We do not implement ReceiveShadowVolumes=false case by setting
-      player TCastleScene.ReceiveShadowVolumes=false, that would be wrong:
-
-      - The DrawCentered image done above would always draw over the
-        player, obscuring the visible player, since scenes with
-        ReceiveShadowVolumes=false are drawn underneath
-        by TGLShadowVolumeRenderer.Render.
-
-      - Moreover the player's shadow would be visible on the image
-        (drawn by DrawCentered), since player still casts shadow volumes.
-    }
-
-    CreatureKinds.PlayerKind.ReceiveShadowVolumes then
-  begin
-    H.Node.AmbientIntensity := 1;
-    H.Node.Color := Vector3(0.2, 0.2, 0.2);
-  end;
-  State.Player.Render(Params);
-  if Params.InShadow and HeadlightInstance(H) then
-  begin
-    H.Node.AmbientIntensity := H.Node.FdAmbientIntensity.DefaultValue;
-    H.Node.Color := H.Node.FdColor.DefaultValue;
-  end;
-end;
 
 function TStatePlay.TGameSceneManager.CalculateProjection: TProjection;
 begin
@@ -169,37 +83,6 @@ begin
 end;
 
 { TStatePlay ----------------------------------------------------------------------- }
-
-function TStatePlay.Press(const Event: TInputPressRelease): boolean;
-var
-  URL: string;
-begin
-  Result := inherited;
-
-  case Event.EventType of
-    itKey:
-      if Event.KeyCharacter = CharEscape then
-        TUIState.Current := StateMainMenu
-      else
-      { Debug keys }
-      case Event.Key of
-        K_F5:
-          begin
-            URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-            Container.SaveScreen(URL);
-            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
-          end;
-      end;
-    itMouseButton:
-      begin
-        if Event.MouseButton = mbLeft then
-        begin
-          if SceneManager.MouseRayHit <> nil then
-            Player.WantsToWalk(SceneManager.MouseRayHit.Last.Point);
-        end;
-      end;
-  end;
-end;
 
 procedure TStatePlay.InitLocation;
 var
@@ -241,6 +124,12 @@ begin
     CurrentLocation.InitialUp);
 
   Player.LocationChanged;
+end;
+
+procedure TStatePlay.Resize;
+begin
+  inherited;
+  CurrentLocation.Scene.SceneManagerRect := SceneManager.ScreenRect;
 end;
 
 procedure TStatePlay.Start;
@@ -305,8 +194,43 @@ begin
   InfoLabel.Caption :=
     'FPS: ' + Container.Fps.ToString + NL +
     '[Click] to move.' + NL +
+    '[F2] toggles debug rendering.' + NL +
     '[F5] to make screenshot.' + NL +
     '[Escape] exit.';
+end;
+
+function TStatePlay.Press(const Event: TInputPressRelease): boolean;
+var
+  URL: string;
+begin
+  Result := inherited;
+
+  case Event.EventType of
+    itKey:
+      if Event.KeyCharacter = CharEscape then
+        TUIState.Current := StateMainMenu
+      else
+      { Debug keys }
+      case Event.Key of
+        K_F2:
+          CurrentLocation.Scene.RenderInternalModel :=
+            not CurrentLocation.Scene.RenderInternalModel;
+        K_F5:
+          begin
+            URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
+            Container.SaveScreen(URL);
+            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+          end;
+      end;
+    itMouseButton:
+      begin
+        if Event.MouseButton = mbLeft then
+        begin
+          if SceneManager.MouseRayHit <> nil then
+            Player.WantsToWalk(SceneManager.MouseRayHit.Last.Point);
+        end;
+      end;
+  end;
 end;
 
 end.

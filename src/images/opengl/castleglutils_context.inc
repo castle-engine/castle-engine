@@ -73,23 +73,24 @@ type
       public
         procedure Update;
       end;
-
     var
-    FClearColor: TCastleColor;
-    FLineWidth, FPointSize: Single;
-    FGlobalAmbient: TCastleColorRGB;
-    FGlobalScissor: TScissor;
-    FProjectionMatrix: TMatrix4;
-    FDepthRange: TDepthRange;
-    FCullFace, FFrontFaceCcw: boolean;
-    procedure SetLineWidth(const Value: Single);
-    procedure SetPointSize(const Value: Single);
-    procedure SetGlobalAmbient(const Value: TCastleColorRGB);
-    procedure WarnContextNotCurrent;
-    procedure SetProjectionMatrix(const Value: TMatrix4);
-    procedure SetDepthRange(const Value: TDepthRange);
-    procedure SetCullFace(const Value: boolean);
-    procedure SetFrontFaceCcw(const Value: boolean);
+      FClearColor: TCastleColor;
+      FLineWidth, FPointSize: Single;
+      FGlobalAmbient: TCastleColorRGB;
+      FGlobalScissor: TScissor;
+      FProjectionMatrix: TMatrix4;
+      FDepthRange: TDepthRange;
+      FCullFace, FFrontFaceCcw: boolean;
+      FColorMask: boolean;
+      procedure SetLineWidth(const Value: Single);
+      procedure SetPointSize(const Value: Single);
+      procedure SetGlobalAmbient(const Value: TCastleColorRGB);
+      procedure WarnContextNotCurrent;
+      procedure SetProjectionMatrix(const Value: TMatrix4);
+      procedure SetDepthRange(const Value: TDepthRange);
+      procedure SetCullFace(const Value: boolean);
+      procedure SetFrontFaceCcw(const Value: boolean);
+      procedure SetColorMask(const Value: boolean);
   private
     FEnabledScissors: TScissorList;
   public
@@ -156,6 +157,9 @@ type
       and to interpret the normal vectors (they point ourward from front face). }
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
+
+    { When this is @false, the color buffer is untouched by rendering. }
+    property ColorMask: boolean read FColorMask write SetColorMask default true;
   end;
 
 var
@@ -230,6 +234,7 @@ begin
   FDepthRange := drFull;
   FCullFace := false;
   FFrontFaceCcw := true;
+  FColorMask := true;
 end;
 
 destructor TRenderContext.Destroy;
@@ -406,6 +411,21 @@ begin
       glFrontFace(GL_CCW)
     else
       glFrontFace(GL_CW);
+  end;
+end;
+
+procedure TRenderContext.SetColorMask(const Value: boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FColorMask <> Value then
+  begin
+    FColorMask := Value;
+    if Value then
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
+    else
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
   end;
 end;
 

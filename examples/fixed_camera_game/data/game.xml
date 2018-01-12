@@ -11,9 +11,7 @@
     </parts>
   </intro>
   <creatures>
-    <!-- Do not receive shadows,
-         as self-shadowing looks bad on smooth sphere geometry. -->
-    <player receive_shadow_volumes="False">
+    <player>
       <!-- Each state has a url of associated animation. -->
       <stand url="creatures/humanoid/stand.castle-anim-frames" />
       <walk url="creatures/humanoid/walk.castle-anim-frames" />
