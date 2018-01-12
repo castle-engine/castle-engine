@@ -1023,6 +1023,10 @@ type
       if you make direct OpenGL / OpenGLES calls). }
     procedure Render; virtual;
 
+    { Render a control contents @italic(over the children controls).
+      This is analogous to @link(Render), but it executes after children are drawn.
+      You should usually prefer to override @link(Render) instead of this method,
+      as the convention is that the parent is underneath children. }
     procedure RenderOverChildren; virtual;
 
     { Determines the rendering order.

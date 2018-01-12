@@ -20,8 +20,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
-unit RiftSound;
+{ Sound. }
+unit GameSound;
 
 interface
 
@@ -32,13 +32,17 @@ var
   stMainMenuMusic
   : TSoundType;
 
+procedure InitializeSound;
+
 implementation
 
 uses SysUtils, CastleFilesUtils;
 
-initialization
+procedure InitializeSound;
+begin
   SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
-
   stIntroMusic    := SoundEngine.SoundFromName('intro_music');
   stMainMenuMusic := SoundEngine.SoundFromName('main_menu_music');
+end;
+
 end.

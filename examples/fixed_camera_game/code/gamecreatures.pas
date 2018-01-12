@@ -20,8 +20,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
-unit RiftCreatures;
+{ Creatures and (as a special creature descendant) player. }
+unit GameCreatures;
 
 {$I castleconf.inc}
 
@@ -30,8 +30,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, CastleTransform, CastleFrustum, CastleApplicationProperties,
-  CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform,
-  RiftWindow, RiftLoadable;
+  CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -48,23 +47,22 @@ type
     Duration: Single;
   end;
 
-  TCreatureKind = class(TLoadable)
+  TCreatureKind = class
   private
     FName: string;
     Animations: array [TCreatureState] of TCreatureAnimation;
     FReceiveShadowVolumes: boolean;
-  protected
-    procedure LoadInternal(const PrepareParams: TPrepareParams); override;
-    procedure UnLoadInternal; override;
+    Loaded: boolean;
   public
     constructor Create(const AName: string);
     destructor Destroy; override;
 
+    { Create things necessary for playing (displaying this creature). }
+    procedure Load(const PrepareParams: TPrepareParams);
+
     { Internal creature name, must be simple (needs to be valid XML element
       name and VRML node name, for easy data reading). }
     property Name: string read FName;
-
-    function LoadSteps: Cardinal; override;
 
     { Loads creature properties from GameConfig file.
       This is normally called by constructor, so you don't have to call it.
@@ -79,8 +77,10 @@ type
 
   TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
-    procedure Load(const PrepareParams: TPrepareParams);
-    procedure UnLoad;
+    PlayerKind: TCreatureKind;
+
+    { Create creatures and set their parameters from GameConfig. }
+    constructor Create;
   end;
 
   TCreature = class(TCastleTransform)
@@ -132,15 +132,16 @@ type
   end;
 
 var
-  CreaturesKinds: TCreatureKindList;
-  PlayerKind: TCreatureKind;
+  CreatureKinds: TCreatureKindList;
 
 implementation
 
 uses Math,
-  CastleLog, CastleProgress, CastleGLUtils, CastleWindow,
-  CastleUIControls, CastleGLBoxes, CastleSceneCore,
-  RiftGameConfig, RiftVideoOptions;
+  CastleLog, CastleGLUtils, CastleUIControls, CastleGLBoxes, CastleSceneCore,
+  GameConfiguration;
+
+const
+  Debug = true;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -162,7 +163,11 @@ var
   S: TCreatureState;
 begin
   for S := Low(S) to High(S) do
-    FreeAndNil(Animations[S]);
+    if Animations[S] <> nil then
+    begin
+      FreeAndNil(Animations[S].Animation);
+      FreeAndNil(Animations[S]);
+    end;
 
   inherited;
 end;
@@ -183,22 +188,12 @@ begin
     'creatures/' + Name + '/receive_shadow_volumes', true);
 end;
 
-function TCreatureKind.LoadSteps: Cardinal;
-begin
-  Result := inherited LoadSteps + Ord(High(TCreatureState)) + 1;
-end;
-
-procedure TCreatureKind.LoadInternal(const PrepareParams: TPrepareParams);
+procedure TCreatureKind.Load(const PrepareParams: TPrepareParams);
 var
   S: TCreatureState;
 begin
-  inherited;
-
-  if DebugNoCreatures then
-  begin
-    Progress.Step(3);
-    Exit;
-  end;
+  if Loaded then Exit;
+  Loaded := true;
 
   for S := Low(S) to High(S) do
   begin
@@ -212,55 +207,10 @@ begin
     Animations[S].Animation.PrepareResources(
       [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
-    Progress.Step;
 
     if Log then
       WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
   end;
-end;
-
-procedure TCreatureKind.UnLoadInternal;
-var
-  S: TCreatureState;
-begin
-  for S := Low(S) to High(S) do
-    { this may be called from inherited destructor, so check for <> nil }
-    if Animations[S] <> nil then
-      FreeAndNil(Animations[S].Animation);
-
-  inherited;
-end;
-
-{ TCreatureKindList -------------------------------------------------------- }
-
-procedure TCreatureKindList.Load(const PrepareParams: TPrepareParams);
-var
-  I: Integer;
-  ProgressCount: Cardinal;
-  TimeBegin: TProcessTimerResult;
-begin
-  ProgressCount := 0;
-  for I := 0 to Count - 1 do
-    ProgressCount := ProgressCount + Items[I].LoadSteps;
-
-  TimeBegin := ProcessTimer;
-
-  Progress.Init(ProgressCount, 'Loading creatures');
-  try
-    for I := 0 to Count - 1 do
-      Items[I].Load(PrepareParams);
-  finally Progress.Fini end;
-
-  WritelnLog('Creatures', Format('Creatures loading time: %f seconds',
-    [ProcessTimerSeconds(ProcessTimer, TimeBegin)]));
-end;
-
-procedure TCreatureKindList.UnLoad;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    Items[I].UnLoad;
 end;
 
 { TCreature ------------------------------------------------------------------ }
@@ -372,7 +322,7 @@ begin
 
   LifeTime := LifeTime + SecondsPassed;
 
-  FDebugTransform.Exists := DebugRenderBoundingGeometry;
+  FDebugTransform.Exists := Debug;
 
   if ScheduledTransitionBegin then
   begin
@@ -398,6 +348,15 @@ begin
     State := csBored;
     RandomizeStandTimeToBeBored;
   end;
+end;
+
+{ TCreatureKindList ---------------------------------------------------------- }
+
+constructor TCreatureKindList.Create;
+begin
+  inherited Create(true);
+  PlayerKind := TCreatureKind.Create('player');
+  Add(PlayerKind);
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -504,7 +463,7 @@ begin
       Move;
   end;
 
-  FTargetVisualizeShape.Render := DebugRenderWantsToWalk and (State = csWalk);
+  FTargetVisualizeShape.Render := Debug and (State = csWalk);
   FTargetVisualize.Translation := WantsToWalkPos;
 
   { Update children 3D objects *after* updating our own transformation,
@@ -537,19 +496,6 @@ begin
   State := csWalk;
 end;
 
-{ initialization / finalization ---------------------------------------------- }
-
-procedure ContextClose;
-begin
-  FreeAndNil(CreaturesKinds);
-end;
-
-initialization
-  CreaturesKinds := TCreatureKindList.Create(true);
-  TCastleTransform.DefaultOrientation := otUpZDirectionX;
-
-  PlayerKind := TCreatureKind.Create('player');
-  CreaturesKinds.Add(PlayerKind);
-
-  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
+finalization
+  FreeAndNil(CreatureKinds);
 end.

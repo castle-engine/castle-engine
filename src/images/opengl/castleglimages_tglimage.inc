@@ -1568,7 +1568,7 @@ begin
   if High(LoadAsClass) = -1 then
     NewImage := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
     NewImage := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
-  Create(NewImage, { ASmoothScaling } false, { AOwnsImage } true);
+  Create(NewImage, { ASmoothScaling } true, { AOwnsImage } true);
 end;
 
 constructor TGLImage.Create(const URL: string;

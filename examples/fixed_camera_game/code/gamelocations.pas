@@ -20,39 +20,39 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
-unit RiftLocations;
+{ Locations in game (Locations). }
+unit GameLocations;
 
 interface
 
 uses Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene, CastleVectors, CastleTransform,
-  CastleGLImages, X3DNodes,
-  RiftLoadable;
+  CastleGLImages, X3DNodes;
 
 type
-  TLocation = class(TLoadable)
+  TLocation = class
   private
     FName: string;
     FImageURL: string;
     FShadowedImageURL: string;
     FSceneURL: string;
     FScene: TCastleScene;
-    FGLImage, FGLShadowedImage: TGLImage;
+    FImage, FShadowedImage: TGLImage;
     FSceneCameraDescription: string;
     FInitialPosition: TVector3;
     FInitialDirection: TVector3;
     FInitialUp: TVector3;
+    Loaded: boolean;
     procedure EnumerateLights(Node: TX3DNode);
-  protected
-    procedure LoadInternal(const PrepareParams: TPrepareParams); override;
-    procedure UnLoadInternal; override;
   public
-    { Internal creature name, must be simple (needs to be valid XML element
-      name and VRML node name, for easy data reading). }
-    property Name: string read FName;
+    destructor Destroy; override;
 
-    function LoadSteps: Cardinal; override;
+    { Create things necessary for playing (displaying this location). }
+    procedure Load(const PrepareParams: TPrepareParams);
+
+    { Internal name, must be simple (needs to be valid XML element
+      name and X3D node name, for easy data reading). }
+    property Name: string read FName;
 
     property ImageURL: string read FImageURL;
     property ShadowedImageURL: string read FShadowedImageURL;
@@ -65,29 +65,38 @@ type
     property InitialUp: TVector3 read FInitialUp;
 
     property Scene: TCastleScene read FScene;
-    property GLImage: TGLImage read FGLImage;
-    property GLShadowedImage: TGLImage read FGLShadowedImage;
+    property Image: TGLImage read FImage;
+    property ShadowedImage: TGLImage read FShadowedImage;
   end;
 
   TLocationList = class(specialize TObjectList<TLocation>)
-    { Call Load on all items, producing also appropriate progress bar. }
-    procedure Load(const PrepareParams: TPrepareParams);
+  public
+    StartLocation: TLocation;
+
+    { Create locations and set their parameters from GameConfig. }
+    constructor Create;
   end;
 
 var
-  { List of all locations, created and destroyed in GL open/close. }
+  { List of all locations, should be created in Application.OnInitialize. }
   Locations: TLocationList;
-
-  StartLocation: TLocation;
 
 implementation
 
 uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer,
   CastleUIControls, CastleGLUtils, CastleWindow, CastleXMLUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad,
-  RiftWindow, RiftGameConfig;
+  GameConfiguration;
 
 { TLocation ------------------------------------------------------------------ }
+
+destructor TLocation.Destroy;
+begin
+  FreeAndNil(FScene);
+  FreeAndNil(FImage);
+  FreeAndNil(FShadowedImage);
+  inherited;
+end;
 
 procedure TLocation.EnumerateLights(Node: TX3DNode);
 begin
@@ -97,69 +106,32 @@ begin
   (Node as TAbstractLightNode).ShadowVolumes := true;
 end;
 
-procedure TLocation.LoadInternal(const PrepareParams: TPrepareParams);
+procedure TLocation.Load(const PrepareParams: TPrepareParams);
 var
   SceneRoot: TX3DRootNode;
 begin
-  inherited;
+  if Loaded then Exit;
+  Loaded := true;
 
   FScene := TCastleScene.Create(nil);
+  FScene.Spatial := [ssRendering, ssDynamicCollisions];
+  // TODO
+  { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
+  FScene.Attributes.Mode := rmDepth;
   SceneRoot := Load3D(SceneURL);
+  // TODO
   SceneRoot.EnumerateNodes(TAbstractLightNode, @EnumerateLights, false);
   FScene.Load(SceneRoot, true);
-  Progress.Step;
 
-  { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
-  Scene.Attributes.Mode := rmDepth;
+  FScene.PrepareResources([prRender, prBoundingBox], false, PrepareParams);
 
-  Scene.PrepareResources([prRender, prBoundingBox], false, PrepareParams);
-  Progress.Step;
-
-  { prepare octrees }
-
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
-
-  Progress.Step;
-
-  FGLImage := TGLImage.Create(ImageURL, [TRGBImage]);
-  FGLShadowedImage := TGLImage.Create(ShadowedImageURL, [TRGBImage]);
-  Progress.Step;
-end;
-
-function TLocation.LoadSteps: Cardinal;
-begin
-  Result := inherited LoadSteps + 4;
-end;
-
-procedure TLocation.UnLoadInternal;
-begin
-  FreeAndNil(FScene);
-  FreeAndNil(FGLImage);
-  FreeAndNil(FGLShadowedImage);
-  inherited;
+  FImage := TGLImage.Create(ImageURL, [TRGBImage]);
+  FShadowedImage := TGLImage.Create(ShadowedImageURL, [TRGBImage]);
 end;
 
 { TLocationList ------------------------------------------------------------- }
 
-procedure TLocationList.Load(const PrepareParams: TPrepareParams);
-var
-  I: Integer;
-  ProgressCount: Cardinal;
-begin
-  ProgressCount := 0;
-  for I := 0 to Count - 1 do
-    ProgressCount += Items[I].LoadSteps;
-
-  Progress.Init(ProgressCount, 'Loading locations');
-  try
-    for I := 0 to Count - 1 do
-      Items[I].Load(PrepareParams);
-  finally Progress.Fini end;
-end;
-
-{ initialization / finalization ---------------------------------------------- }
-
-procedure ContextOpen;
+constructor TLocationList.Create;
 
   procedure MissingLocationAttribute(const AttrName: string);
   begin
@@ -172,24 +144,23 @@ var
   LocationsElement: TDOMElement;
   Location: TLocation;
   StartLocationName: string;
-  V: string;
 begin
-  Locations := TLocationList.Create(true);
+  inherited Create(true);
 
   LocationsElement := GameConfig.PathElement('locations');
   if LocationsElement = nil then
     raise Exception.Create('Unable to find XML <locations> element');
 
   if not LocationsElement.AttributeString('start_name', StartLocationName) then
-    raise Exception.CreateFmt(
-      '<locations> doesn''t have a required attribute "start_name"', []);
+    raise Exception.Create(
+      '<locations> doesn''t have a required attribute "start_name"');
 
   I := LocationsElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
       Location := TLocation.Create;
-      Locations.Add(Location);
+      Add(Location);
 
       if not I.Current.AttributeString('name', Location.FName) then
         MissingLocationAttribute('name');
@@ -203,17 +174,12 @@ begin
       I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);
 
-      if I.Current.AttributeString('initial_position', V) then
-        Location.FInitialPosition := Vector3FromStr(V) else
-        Location.FInitialPosition := Vector3(0, 0, 0);
-
-      if I.Current.AttributeString('initial_direction', V) then
-        Location.FInitialDirection := Vector3FromStr(V) else
-        Location.FInitialDirection := Vector3(1, 0, 0);
-
-      if I.Current.AttributeString('initial_up', V) then
-        Location.FInitialUp := Vector3FromStr(V) else
-        Location.FInitialUp := Vector3(0, 0, 1);
+      Location.FInitialPosition := I.Current.AttributeVector3Def(
+        'initial_position', TVector3.Zero);
+      Location.FInitialDirection := I.Current.AttributeVector3Def(
+        'initial_direction', Vector3(1, 0, 0));
+      Location.FInitialUp := I.Current.AttributeVector3Def(
+        'initial_up', Vector3(0, 0, 1));
     end;
   finally FreeAndNil(I) end;
 
@@ -222,12 +188,6 @@ begin
       [StartLocationName]);
 end;
 
-procedure ContextClose;
-begin
+finalization
   FreeAndNil(Locations);
-end;
-
-initialization
-  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
-  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

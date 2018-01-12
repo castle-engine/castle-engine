@@ -4,14 +4,10 @@
   <main_menu image="menu_bg/main_menu.png" />
   <intro>
     <parts>
-      <part image="morning_buildings"
-        corrode_duration="5.00" idle_duration="40.0" />
-      <part image="train_crash"
-        corrode_duration="10.00" idle_duration="40.0" />
-      <part image="wild_road"
-        corrode_duration="7.00" idle_duration="40.0" />
-      <part image="human_beach"
-        corrode_duration="7.00" idle_duration="40.0" />
+      <part image="morning_buildings" corrode_duration="5.00" />
+      <part image="train_crash"       corrode_duration="10.00" />
+      <part image="wild_road"         corrode_duration="7.00" />
+      <part image="human_beach"       corrode_duration="7.00" />
     </parts>
   </intro>
   <creatures>

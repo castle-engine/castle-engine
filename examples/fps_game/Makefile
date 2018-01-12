@@ -9,29 +9,38 @@ standalone:
 clean:
 	castle-engine clean
 
-.PHONY: release-src
-release-src:
-	castle-engine package-source
+.PHONY: win32
+win32:
+	castle-engine --mode=$(MODE) package --os=win32 --cpu=i386
 
-.PHONY: release-win32
-release-win32:
-	castle-engine package --os=win32 --cpu=i386
+.PHONY: linux32
+linux32:
+	castle-engine --mode=$(MODE) package --os=linux --cpu=i386
 
-.PHONY: release-linux
-release-linux:
-	castle-engine package --os=linux --cpu=i386
+.PHONY: linux64
+linux64:
+	castle-engine --mode=$(MODE) package --os=linux --cpu=x86_64
 
-.PHONY: release-linux64
-release-linux64:
-	castle-engine package --os=linux --cpu=x86_64
+.PHONY: src
+src:
+	castle-engine --mode=$(MODE) package-source
 
 .PHONY: android
 android:
-	castle-engine package --os=android --cpu=arm --fast --mode=debug
+	castle-engine --mode=$(MODE) package --os=android --cpu=arm --fast
 	castle-engine install --os=android --cpu=arm
 	castle-engine run --os=android --cpu=arm
 
-.PHONY: release-android
-release-android:
-	castle-engine package --os=android --cpu=arm --mode=release
-	castle-engine install --os=android --cpu=arm
+.PHONY: android-release
+android-release:
+	castle-engine clean
+	$(MAKE) android MODE=release
+
+.PHONY: ios
+ios:
+	castle-engine --mode=$(MODE) package --target=iOS --fast
+
+.PHONY: ios-release
+ios-release:
+	castle-engine clean
+	$(MAKE) ios MODE=release
