@@ -58,15 +58,12 @@ type
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
     FVersion: string;
+    FTouchDevice: boolean;
     function GetApplicationName: string;
     procedure SetApplicationName(const Value: string);
   public
     constructor Create;
     destructor Destroy; override;
-
-    { Version of this application.
-      It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
-    property Version: string read FVersion write FVersion;
 
     { Application short name.
       Used e.g. by @link(InitializeLog) to name the log file.
@@ -75,6 +72,52 @@ type
       as standard SysUtils.ApplicationName.
       When setting this, we automatically set SysUtils.OnGetApplicationName. }
     property ApplicationName: string read GetApplicationName write SetApplicationName;
+
+    { Version of this application.
+      It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
+    property Version: string read FVersion write FVersion;
+
+    { Initialized to @true on touch devices (Android, iOS).
+
+      A "touch device" means that:
+
+      @unorderedList(
+        @item(We cannot track @link(TUIContainer.MousePosition)
+          when nothing is pressed (@link(TUIContainer.MousePressed) is [])
+          on a touch device.)
+
+        @item(The only "mouse button" you will ever see pressed
+          on a touch device is mbLeft.)
+
+        @item(On the other hand, touch devices support multitouch, exposed by
+          @link(TUIContainer.Touches) and @link(TUIContainer.TouchesCount).
+          On touch devices, @link(TUIContainer.TouchesCount) can range
+          from 0 to a few (modern touch devices support up to 5 simultaneous
+          touches).
+
+          On non-touch devices, @link(TUIContainer.TouchesCount) is always 1.)
+      )
+
+      As a debugging feature, you can set this to @true
+      to simulate touch devices on a desktop.
+      The idea is that when an application shows a different input behaviour
+      on touch devices, it should always condition it depending on
+      this boolean property. So an application may do this:
+
+      @longCode(#
+      Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
+      Window.ScenaManager.WalkCamera.MouseLook := not ApplicationProperties.TouchDevice;
+      #)
+
+      And to test on desktop whether everything behaves OK on mobile,
+      you can just earlier call this:
+
+      @longCode(#
+      if FakeTouchDeviceOnDesktop then
+        ApplicationProperties.TouchDevice := true;
+      #)
+    }
+    property TouchDevice: boolean read FTouchDevice write FTouchDevice;
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
@@ -249,6 +292,10 @@ begin
   FOnResume := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
   FFileAccessSafe := true;
+  FTouchDevice :=
+    {$ifdef ANDROID} true {$else}
+    {$ifdef IOS}     true {$else}
+                     false {$endif} {$endif};
 end;
 
 destructor TCastleApplicationProperties.Destroy;

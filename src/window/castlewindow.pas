@@ -2535,6 +2535,9 @@ type
 
     function GetVersion: string;
     procedure SetVersion(const Value: string);
+
+    function GetTouchDevice: boolean;
+    procedure SetTouchDevice(const Value: boolean);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2552,11 +2555,6 @@ type
     VideoResizeWidth,
     VideoResizeheight : integer;
     { @groupEnd }
-
-    { Initialized to @true on touch devices (Android, iOS).
-      You can change this to easily pretend that you have a touch device
-      on desktop. }
-    TouchDevice: boolean;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2827,6 +2825,8 @@ type
 
     property Version: string read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
+    property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
+      deprecated 'use ApplicationProperties.TouchDevice';
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -4601,10 +4601,6 @@ begin
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
   FDefaultWindowClass := TCastleWindowCustom;
-  TouchDevice :=
-    {$ifdef ANDROID} true {$else}
-    {$ifdef IOS}     true {$else}
-                     false {$endif} {$endif};
   CreateBackend;
 end;
 
@@ -5090,6 +5086,16 @@ end;
 procedure TCastleApplication.SetVersion(const Value: string);
 begin
   ApplicationProperties.Version := Value;
+end;
+
+function TCastleApplication.GetTouchDevice: boolean;
+begin
+  Result := ApplicationProperties.TouchDevice;
+end;
+
+procedure TCastleApplication.SetTouchDevice(const Value: boolean);
+begin
+  ApplicationProperties.TouchDevice := Value;
 end;
 
 { global --------------------------------------------------------------------- }

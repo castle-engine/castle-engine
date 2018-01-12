@@ -2013,8 +2013,13 @@ procedure TUIContainer.EventUpdate;
 
     T := Fps.UpdateStartTime;
     if (not HasLastPositionForTooltip) or
+       { reset the time counter to show tooltip, if you moved mouse/finger
+         significantly }
        (PointsDistanceSqr(LastPositionForTooltip, MousePosition) >
-        Sqr(TooltipDistance)) then
+        Sqr(TooltipDistance)) or
+       { on touch devices, the time counter to show tooltip doesn't advance
+         if we don't keep the finger pressed down }
+       (ApplicationProperties.TouchDevice and (MousePressed = [])) then
     begin
       HasLastPositionForTooltip := true;
       LastPositionForTooltip := MousePosition;
