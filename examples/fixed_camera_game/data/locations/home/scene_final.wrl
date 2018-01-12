@@ -35,6 +35,7 @@ Transform {
     position 0 0 0 # camera position is expressed by translation
     orientation 0 0 1 0
     fieldOfView 0.663
+    fieldOfViewForceVertical TRUE
   }
 }
 

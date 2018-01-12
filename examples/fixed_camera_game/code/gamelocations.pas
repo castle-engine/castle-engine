@@ -103,11 +103,20 @@ uses SysUtils, DOM,
 
 procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
 
-  { Draw Image centered on screen, scaled to fit inside the window size.
-    The goal is to always match the 3D scene projection. }
+  { Draw Image centered on screen, to fit inside the scene manager rect,
+    matching the 3D scene projection. }
   procedure DrawImage(const Image: TGLImage);
+  var
+    DrawRect: TRectangle;
   begin
-    Image.Draw(Image.Rect.FitInside(SceneManagerRect));
+    { Draw Image such that Image.Height always fills the SceneManagerRect.Height,
+      because that is the field of view of 3D scene,
+      and that was the field of view used to render the image in Blender. }
+    DrawRect := Image.Rect.ScaleToHeight(SceneManagerRect.Height);
+    { above calculated DrawRect size OK, but DrawRect position (Left, Bottom)
+      should be fixed now. }
+    DrawRect := SceneManagerRect.CenterInside(DrawRect.Width, DrawRect.Height);
+    Image.Draw(DrawRect);
   end;
 
 var
