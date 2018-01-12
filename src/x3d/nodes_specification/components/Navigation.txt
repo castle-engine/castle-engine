@@ -53,6 +53,9 @@ OrthoViewpoint : X3DViewpointNode {
 Viewpoint : X3DViewpointNode {
   SFFloat    [in,out] fieldOfView       Pi/4     (0,Pi)
   SFVec3f    [in,out] position          0 0 10  (-Inf,Inf)
+
+  # EXTENSIONS:
+  SFBool     [in,out] fieldOfViewForceVertical FALSE
 }
 
 ViewpointGroup : X3DChildNode {

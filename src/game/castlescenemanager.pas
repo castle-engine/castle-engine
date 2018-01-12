@@ -1783,7 +1783,6 @@ var
   Box: TBox3D;
   Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
-  PerspectiveFieldOfView: Single;
 
   procedure DoPerspective;
   begin
@@ -1839,6 +1838,9 @@ var
   end;
 
 var
+  PerspectiveFieldOfView: Single;
+  PerspectiveFieldOfViewForceVertical: boolean;
+  PerspectiveAnglesRad: TVector2;
   ProjectionType: TProjectionType;
 begin
   Box := GetItems.BoundingBox;
@@ -1851,17 +1853,26 @@ begin
 
   if (ViewpointNode <> nil) and
      (ViewpointNode is TViewpointNode) then
-    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
+  begin
+    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FieldOfView;
+    PerspectiveFieldOfViewForceVertical := TViewpointNode(ViewpointNode).FieldOfViewForceVertical;
+  end else
   if (ViewpointNode <> nil) and
      (ViewpointNode is TPerspectiveCameraNode_1) then
-    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
+  begin
+    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value;
+    PerspectiveFieldOfViewForceVertical := false;
+  end else
+  begin
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
+    PerspectiveFieldOfViewForceVertical := false;
+  end;
 
-  Result.PerspectiveAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
-    PerspectiveFieldOfView, Viewport.Width / Viewport.Height));
-
-  Result.PerspectiveAngles[1] := AdjustViewAngleDegToAspectRatio(
-    Result.PerspectiveAngles[0], Viewport.Height / Viewport.Width);
+  PerspectiveAnglesRad := TViewpointNode.ViewpointAngleOfView(
+    PerspectiveFieldOfView, PerspectiveFieldOfViewForceVertical,
+    Viewport.Width, Viewport.Height);
+  Result.PerspectiveAngles[0] := RadToDeg(PerspectiveAnglesRad[0]);
+  Result.PerspectiveAngles[1] := RadToDeg(PerspectiveAnglesRad[1]);
 
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }

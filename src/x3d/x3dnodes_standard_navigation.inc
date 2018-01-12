@@ -386,14 +386,17 @@
     strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
 
+    strict private FFdFieldOfViewForceVertical: TSFBool;
+    public property FdFieldOfViewForceVertical: TSFBool read FFdFieldOfViewForceVertical;
+
     strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     class function ProjectionType: TProjectionType; override;
 
-    { This calculates proper angle of view for typical rectangular
+    { Calculate proper angle of view for typical rectangular
       display, based on given fieldOfView field value.
-      Result is in radians (just like fieldOfView VRML field).
+      Result is in radians (just like fieldOfView X3D field).
 
       If you want to calculate horizontal angle of view then
       pass as ThisToOtherSizeRatio your window's width / height.
@@ -402,19 +405,30 @@
       For this method it doesn't really matter which is horizontal
       and which is vertical, both are treated the same.
 
-      This works following VRML spec. So the angle of view for
+      This works following X3D spec. So the angle of view for
       smaller window size is set to fieldOfView. The other angle
       can always be calculated by AdjustViewAngleRadToAspectRatio
-      (this implements the same equation that is mentioned in VRML spec).
+      (this implements the same equation that is mentioned in X3D spec).
       The larger angle cannot be larger than Pi, and may force the
       smaller angle to be smaller than fieldOfView. }
     function AngleOfView(const ThisToOtherSizeRatio: Single): Single;
+      deprecated 'use only ViewpointAngleOfView for calculating angles';
 
-    { This is like AngleOfView, but it allows you to specify
-      FieldOfView as a parameter. }
+    { Like AngleOfView, but allows to specify FieldOfView as a parameter. }
     class function ViewpointAngleOfView(
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
+      deprecated 'use only ViewpointAngleOfView for calculating angles';
+
+    { Calculate horizontal and vertical angle of view,
+      assuming given value of FieldOfView and FieldOfViewForceVertical fields,
+      and assuming given viewport size.
+
+      The result is in radians, like the input FieldOfView. }
+    class function ViewpointAngleOfView(
+      const FieldOfView: Single; const FieldOfViewForceVertical: boolean;
+      const ViewportWidth, ViewportHeight: Single): TVector2;
+
     function ProjectionMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
@@ -1208,6 +1222,10 @@ begin
   AddField(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
+  FFdFieldOfViewForceVertical := TSFBool.Create(Self, true, 'fieldOfViewForceVertical', false);
+   FdFieldOfViewForceVertical.ChangesAlways := [chViewpointProjection];
+  AddField(FdFieldOfViewForceVertical);
+
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
    FdPosition.ChangesAlways := [chViewpointVectors];
   AddField(FFdPosition);
@@ -1238,10 +1256,24 @@ begin
   Result := ptPerspective;
 end;
 
-function TViewpointNode.AngleOfView(
-  const ThisToOtherSizeRatio: Single): Single;
+class function TViewpointNode.ViewpointAngleOfView(
+  const FieldOfView: Single; const FieldOfViewForceVertical: boolean;
+  const ViewportWidth, ViewportHeight: Single): TVector2;
 begin
-  Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
+  if FieldOfViewForceVertical then
+  begin
+    Result[1] := FieldOfView;
+    Result[0] := AdjustViewAngleRadToAspectRatio(
+      Result[1], ViewportWidth / ViewportHeight);
+  end else
+  begin
+    {$warnings off} // knowingly using deprecated in deprecated, in the future it should be private
+    Result[0] := ViewpointAngleOfView(
+      FieldOfView, ViewportWidth / ViewportHeight);
+    {$warnings on}
+    Result[1] := AdjustViewAngleRadToAspectRatio(
+      Result[0], ViewportHeight / ViewportWidth);
+  end;
 end;
 
 class function TViewpointNode.ViewpointAngleOfView(
@@ -1269,6 +1301,14 @@ begin
     if Result > Pi then
       Result := Pi;
   end;
+end;
+
+function TViewpointNode.AngleOfView(
+  const ThisToOtherSizeRatio: Single): Single;
+begin
+  {$warnings off} // knowingly using deprecated in deprecated, in the future these both should be private
+  Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
+  {$warnings on}
 end;
 
 function TViewpointNode.ProjectionMatrix: TMatrix4;
