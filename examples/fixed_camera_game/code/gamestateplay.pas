@@ -34,20 +34,10 @@ type
   { State in which you actually play the game. }
   TStatePlay = class(TUIState)
   strict private
-    type
-      TGameSceneManager = class(TCastleSceneManager)
-      public
-        State: TStatePlay; // TODO
-        function CalculateProjection: TProjection; override;
-      end;
-
-    var
-      Player: TPlayer;
-      CurrentLocation: TLocation;
-      AngleOfViewX, AngleOfViewY: Single;
-      SceneManager: TGameSceneManager;
-      InfoLabel: TCastleLabel;
-    procedure InitLocation;
+    Player: TPlayer;
+    CurrentLocation: TLocation;
+    SceneManager: TCastleSceneManager;
+    InfoLabel: TCastleLabel;
   public
     procedure Start; override;
     procedure Stop; override;
@@ -62,69 +52,12 @@ var
 implementation
 
 uses Math, SysUtils,
-  CastleGLUtils, CastleStringUtils, CastleProgress, CastleCameras, CastleUtils,
-  CastleFilesUtils, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
-  CastleGameNotifications, CastleRectangles, CastleRenderingCamera, CastleColors,
+  CastleGLUtils, CastleStringUtils, CastleProgress, CastleUtils, CastleCameras,
+  CastleFilesUtils, CastleUIControls, CastleRenderer, CastleImages,
+  CastleGameNotifications, CastleRectangles, CastleColors,
   GameStateMainMenu;
 
-{ TStatePlay.TGameSceneManager ----------------------------------------------- }
-
-function TStatePlay.TGameSceneManager.CalculateProjection: TProjection;
-begin
-  Result.ProjectionType := ptPerspective;
-  Result.PerspectiveAngles[0] := State.AngleOfViewX;
-  Result.PerspectiveAngles[1] := State.AngleOfViewY;
-  Result.ProjectionNear := 0.01;
-  Result.ProjectionFarFinite := 100;
-  if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-    Result.ProjectionFar := ZFarInfinity
-  else
-    Result.ProjectionFar := Result.ProjectionFarFinite;
-end;
-
 { TStatePlay ----------------------------------------------------------------------- }
-
-procedure TStatePlay.InitLocation;
-var
-  ScenePosition, SceneDirection, SceneUp, SceneGravityUp: TVector3;
-  GeneralViewpoint: TAbstractViewpointNode;
-  RadAngleOfViewX, RadAngleOfViewY: Single;
-begin
-  GeneralViewpoint := CurrentLocation.Scene.GetPerspectiveViewpoint(
-    ScenePosition, SceneDirection, SceneUp, SceneGravityUp,
-    CurrentLocation.SceneCameraDescription);
-
-  SceneManager.WalkCamera.Init(
-    ScenePosition, SceneDirection, SceneUp, SceneGravityUp, 0, 0);
-
-  // TODO: is this even necessary?
-  { calculate AngleOfViewX, AngleOfViewY }
-
-  if (GeneralViewpoint <> nil) and
-     (GeneralViewpoint is TViewpointNode) then
-    RadAngleOfViewY := TViewpointNode(GeneralViewpoint).FieldOfView
-  else
-    RadAngleOfViewY := DefaultViewpointFieldOfView;
-
-  RadAngleOfViewX := TViewpointNode.ViewpointAngleOfView(
-    RadAngleOfViewY, StateContainer.Width / StateContainer.Height);
-
-  { now, corrent RadAngleOfViewY, since RadAngleOfViewX may force it to be
-    smaller than FdFieldOfView.Value --- see X3D spec and
-    TViewpointNode.ViewpointAngleOfView comments. }
-  RadAngleOfViewY := AdjustViewAngleRadToAspectRatio(
-    RadAngleOfViewX, StateContainer.Height / StateContainer.Width);
-
-  AngleOfViewX := RadToDeg(RadAngleOfViewX);
-  AngleOfViewY := RadToDeg(RadAngleOfViewY);
-
-  Player.SetView(
-    CurrentLocation.InitialPosition,
-    CurrentLocation.InitialDirection,
-    CurrentLocation.InitialUp);
-
-  Player.LocationChanged;
-end;
 
 procedure TStatePlay.Resize;
 begin
@@ -143,8 +76,7 @@ begin
   Notifications.Clear;
   InsertFront(Notifications);
 
-  SceneManager := TGameSceneManager.Create(FreeAtStop);
-  SceneManager.State := Self;
+  SceneManager := TCastleSceneManager.Create(FreeAtStop);
   InsertFront(SceneManager);
 
   Progress.Init(Locations.Count + CreatureKinds.Count, 'Preparing');
@@ -167,10 +99,16 @@ begin
   SceneManager.MainScene := CurrentLocation.Scene;
 
   Player := TPlayer.Create(CreatureKinds.PlayerKind);
+  Player.SetView(
+    CurrentLocation.PlayerPosition,
+    CurrentLocation.PlayerDirection,
+    CurrentLocation.PlayerUp);
+  Player.LocationChanged;
   SceneManager.Items.Add(Player);
 
-  { Tip: To nicely position the camera vs 2D image, it may be useful to
-    temporarily use normal ntWalk or ntExamine camera. }
+  { set NavigationType after SceneManager.MainScene is assigned.
+    This way newly created camera will have positio/dir/up derived
+    from location Viewpoint. }
   SceneManager.NavigationType := ntNone;
 
   InfoLabel := TCastleLabel.Create(FreeAtStop);
@@ -178,8 +116,6 @@ begin
   InfoLabel.Anchor(hpRight, -5);
   InfoLabel.Anchor(vpTop, -5);
   InsertFront(InfoLabel);
-
-  InitLocation;
 end;
 
 procedure TStatePlay.Stop;

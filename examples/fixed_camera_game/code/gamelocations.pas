@@ -50,9 +50,9 @@ type
     FScene: TLocationScene;
     FImage, FShadowedImage: TGLImage;
     FSceneCameraDescription: string;
-    FInitialPosition: TVector3;
-    FInitialDirection: TVector3;
-    FInitialUp: TVector3;
+    FPlayerPosition: TVector3;
+    FPlayerDirection: TVector3;
+    FPlayerUp: TVector3;
     Loaded: boolean;
   public
     destructor Destroy; override;
@@ -70,9 +70,9 @@ type
 
     property SceneCameraDescription: string read FSceneCameraDescription;
 
-    property InitialPosition: TVector3 read FInitialPosition;
-    property InitialDirection: TVector3 read FInitialDirection;
-    property InitialUp: TVector3 read FInitialUp;
+    property PlayerPosition: TVector3 read FPlayerPosition;
+    property PlayerDirection: TVector3 read FPlayerDirection;
+    property PlayerUp: TVector3 read FPlayerUp;
 
     property Scene: TLocationScene read FScene;
     property Image: TGLImage read FImage;
@@ -232,12 +232,12 @@ begin
       I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);
 
-      Location.FInitialPosition := I.Current.AttributeVector3Def(
-        'initial_position', TVector3.Zero);
-      Location.FInitialDirection := I.Current.AttributeVector3Def(
-        'initial_direction', Vector3(1, 0, 0));
-      Location.FInitialUp := I.Current.AttributeVector3Def(
-        'initial_up', Vector3(0, 0, 1));
+      Location.FPlayerPosition := I.Current.AttributeVector3Def(
+        'player_position', TVector3.Zero);
+      Location.FPlayerDirection := I.Current.AttributeVector3Def(
+        'player_direction', Vector3(1, 0, 0));
+      Location.FPlayerUp := I.Current.AttributeVector3Def(
+        'player_up', Vector3(0, 0, 1));
     end;
   finally FreeAndNil(I) end;
 

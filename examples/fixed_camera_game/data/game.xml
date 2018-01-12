@@ -31,10 +31,9 @@
       image_url="locations/home/renders/render.png"
       shadowed_image_url="locations/home/renders/render_shadowed.png"
       scene_url="locations/home/scene_final.wrl"
-      scene_camera_description="Camera"
-      initial_position="0 0 0"
-      initial_direction="1 0 0"
-      initial_up="0 0 1"
+      player_position="0 0 0"
+      player_direction="1 0 0"
+      player_up="0 0 1"
     >
     </location>
   </locations>
