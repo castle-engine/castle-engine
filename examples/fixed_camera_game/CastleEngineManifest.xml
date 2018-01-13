@@ -12,4 +12,6 @@
     <include path="README.txt" />
     <include path="COPYING.GPL2.txt" />
   </package>
+  <!-- makes sound working on Android -->
+  <android project_type="integrated" />
 </project>
