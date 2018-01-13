@@ -16,22 +16,20 @@
 { Terrain initialization and main UI and logic. }
 unit TerrainInitialize;
 
-{$I castleconf.inc}
-
 interface
 
 implementation
 
 uses SysUtils, Classes,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleBoxes, CastleKeysMouse, CastleColors,
   CastleUtils, CastleWindow, CastleGLUtils, CastleParameters,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
-  RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
+  CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   CastleTransform, CastleFrustum, CastleSceneManager, CastleURIUtils,
   CastleRectangles, CastleControls, CastleRendererBaseTypes,
-  CastleApplicationProperties, CastleLog;
+  CastleApplicationProperties, CastleLog, CastleScene,
+  TerrainScene;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -39,14 +37,11 @@ type
 var
   { global stuff }
   Window: TCastleWindow;
+  Scene: TTerrainScene;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   CurrentTerrain: TTerrain;
   TerrainTypeRadio: TMenuItemRadioGroup;
-
-  { gl helpers }
-  GLSLProgram: TGLSLProgram;
-  GLTexSand, GLTexBread, GLTexRock: TGLuint;
 
   { settings }
   TerrainType: TTerrainType = ttNoise; {< this is tied with Terrain class }
@@ -58,25 +53,27 @@ var
   Lighting: boolean = true;
   KeepCameraAboveGround: boolean = true;
   BaseSize: Single = 1.0;
-  LayersCount: Cardinal = 3;
   ControlsVisible: boolean = true;
   Fog: boolean = false;
   BackgroundColor: TCastleColor;
-  SpecializedGridRendering: boolean = true;
+
+procedure UpdateScene;
+begin
+  Scene.Regenerate(CurrentTerrain, Subdivision,
+    WalkCamera.Position[0], WalkCamera.Position[1], BaseSize);
+end;
 
 type
   TCommonMenu = class(TCastleOnScreenMenu)
   public
     SubdivisionSlider: TCastleIntegerSlider;
     BaseSizeSlider: TCastleFloatSlider;
-    LayersCountSlider: TCastleIntegerSlider;
     ImageHeightScaleSlider: TCastleFloatSlider;
 
     constructor Create(AOwner: TComponent); override;
 
     procedure SubdivisionChanged(Sender: TObject);
     procedure BaseSizeChanged(Sender: TObject);
-    procedure LayersCountChanged(Sender: TObject);
     procedure ImageHeightScaleChanged(Sender: TObject);
   end;
 
@@ -115,51 +112,55 @@ type
 procedure TCommonMenu.SubdivisionChanged(Sender: TObject);
 begin
   Subdivision := SubdivisionSlider.Value;
+  UpdateScene;
 end;
 
 procedure TCommonMenu.BaseSizeChanged(Sender: TObject);
 begin
   BaseSize := BaseSizeSlider.Value;
-end;
-
-procedure TCommonMenu.LayersCountChanged(Sender: TObject);
-begin
-  LayersCount := LayersCountSlider.Value;
+  UpdateScene;
 end;
 
 procedure TCommonMenu.ImageHeightScaleChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.OctavesChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.SmoothnessChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.HeterogeneousChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.AmplitudeChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.FrequencyChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
+  UpdateScene;
 end;
 
 procedure TControlsNoise.SeedChanged(Sender: TObject);
 begin
   (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
+  UpdateScene;
 end;
 
 constructor TCommonMenu.Create(AOwner: TComponent);
@@ -178,12 +179,6 @@ begin
   BaseSizeSlider.Max := 20;
   BaseSizeSlider.Value := BaseSize;
   BaseSizeSlider.OnChange := @BaseSizeChanged;
-
-  LayersCountSlider := TCastleIntegerSlider.Create(Self);
-  LayersCountSlider.Min := 1;
-  LayersCountSlider.Max := 10;
-  LayersCountSlider.Value := LayersCount;
-  LayersCountSlider.OnChange := @LayersCountChanged;
 
   ImageHeightScaleSlider := TCastleFloatSlider.Create(Self);
   ImageHeightScaleSlider.Min := 0.0;
@@ -242,8 +237,7 @@ begin
   Add('Frequency (scales size)', FrequencySlider);
   Add('Seed', SeedSlider);
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Add('Layers Count (render farther)', LayersCountSlider);
+  Add('Size', BaseSizeSlider);
   Add('Image scale (load image first)', ImageHeightScaleSlider);
 end;
 
@@ -251,8 +245,7 @@ constructor TControlsImage.Create(AOwner: TComponent);
 begin
   inherited;
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Add('Layers Count (render farther)', LayersCountSlider);
+  Add('Size', BaseSizeSlider);
   Add('Image scale (load image first)', ImageHeightScaleSlider);
 end;
 
@@ -260,13 +253,12 @@ constructor TControlsGeneral.Create(AOwner: TComponent);
 begin
   inherited;
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Add('Layers Count (render farther)', LayersCountSlider);
+  Add('Size', BaseSizeSlider);
   // do not include ImageHeightScaleSlider, should not be used with this terrain
 end;
 
 var
-  { ui controls }
+  { UI controls }
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
   ControlsGeneral: TControlsGeneral;
@@ -310,11 +302,13 @@ begin
 
     if CurrentTerrain is TTerrainGrid then
     begin
-      TTerrainGrid(CurrentTerrain).GridX1 := GridX1;
-      TTerrainGrid(CurrentTerrain).GridY1 := GridY1;
-      TTerrainGrid(CurrentTerrain).GridX2 := GridX2;
-      TTerrainGrid(CurrentTerrain).GridY2 := GridY2;
-      TTerrainGrid(CurrentTerrain).GridHeightScale := GridHeightScale;
+      { Scale grid coords to fit in a similar box as random generation
+        from TTerrainNoise produces. }
+      TTerrainGrid(CurrentTerrain).GridX1 := -1;
+      TTerrainGrid(CurrentTerrain).GridY1 := -1;
+      TTerrainGrid(CurrentTerrain).GridX2 := 1;
+      TTerrainGrid(CurrentTerrain).GridY2 := 1;
+      TTerrainGrid(CurrentTerrain).GridHeightScale := 0.0002;
     end;
 
     { calculate TerrainType }
@@ -332,16 +326,14 @@ begin
       and this is good (because some have Ok/Cancel dialog and user can
       cancel)). }
     TerrainTypeRadio.Selected := TerrainTypeRadio.Items[Ord(TerrainType)];
+
+    UpdateScene;
   end;
 end;
 
-type
-  T3DTerrain = class(TCastleTransform)
-    function LocalBoundingBox: TBox3D; override;
-    procedure LocalRender(const Params: TRenderParams); override;
-  end;
-
-procedure T3DTerrain.LocalRender(const Params: TRenderParams);
+(*
+TODO:
+fix walk camera. Previously, T3DTerrain.LocalRender was doing this:
 
   procedure WalkCameraAboveGround;
   var
@@ -352,106 +344,47 @@ procedure T3DTerrain.LocalRender(const Params: TRenderParams);
     WalkCamera.Position := P;
   end;
 
-var
-  VisibilityEnd: Single;
-begin
-  if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
-
   if (SceneManager.Camera = WalkCamera) and KeepCameraAboveGround then
     WalkCameraAboveGround;
 
-  if Wireframe then
-  begin
-    glPushAttrib(GL_POLYGON_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  end else
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-    glEnable(GL_DEPTH_TEST);
-  end;
+------------------------------------------------------------------------------
 
-  glPushMatrix;
-    glMultMatrix(Params.Transform^);
+TODO:
+fix rendering with textures. previously we were setting up shader:
 
-    if (CurrentTerrain is TTerrainGrid) and
-       SpecializedGridRendering then
-    begin
-      { DrawGrid cannot make normals for now, so no LIGHTING or other stuff }
-      DrawGrid(TTerrainGrid(CurrentTerrain));
-    end else
-    begin
-      glPushAttrib(GL_ENABLE_BIT);
-        if Lighting then
+var
+  VisibilityEnd: Single;
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, GLTexSand);
+        GLSLProgram.SetUniform('tex_sand', 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, GLTexBread);
+        GLSLProgram.SetUniform('tex_bread', 1);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, GLTexRock);
+        GLSLProgram.SetUniform('tex_rock', 2);
+
+        GLSLProgram.SetUniform('z0', 0.8);
+        GLSLProgram.SetUniform('z1', 1.0);
+        GLSLProgram.SetUniform('z2', 1.2);
+        GLSLProgram.SetUniform('z3', 1.5);
+        GLSLProgram.SetUniform('color_scale', 0.2);
+        GLSLProgram.SetUniform('tex_scale', 0.8);
+        if Fog then
         begin
-          glEnable(GL_LIGHTING);
-          glEnable(GL_LIGHT0);
-          glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-          glEnable(GL_COLOR_MATERIAL);
-          glEnable(GL_NORMALIZE);
+          { This is the exact visibility end.
+            In practice, we may want to make it a litlle smaller
+            (to hide RoundGridCell hack in renderterrains.pas),
+            or ignore problems and make it a little larger
+            (otherwise, we needlessly render corners of terrain squares). }
+          VisibilityEnd := BaseSize;
+          GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
+          GLSLProgram.SetUniform('fog_end', VisibilityEnd);
+          GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
         end;
-
-        if Shader and (GLSLProgram <> nil) then
-        begin
-          TGLSLProgram.Current := GLSLProgram;
-
-          glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, GLTexSand);
-          GLSLProgram.SetUniform('tex_sand', 0);
-
-          glActiveTexture(GL_TEXTURE1);
-          glBindTexture(GL_TEXTURE_2D, GLTexBread);
-          GLSLProgram.SetUniform('tex_bread', 1);
-
-          glActiveTexture(GL_TEXTURE2);
-          glBindTexture(GL_TEXTURE_2D, GLTexRock);
-          GLSLProgram.SetUniform('tex_rock', 2);
-
-          GLSLProgram.SetUniform('z0', 0.8);
-          GLSLProgram.SetUniform('z1', 1.0);
-          GLSLProgram.SetUniform('z2', 1.2);
-          GLSLProgram.SetUniform('z3', 1.5);
-          GLSLProgram.SetUniform('color_scale', 0.2);
-          GLSLProgram.SetUniform('tex_scale', 0.8);
-          if Fog then
-          begin
-            { This is the exact visibility end.
-              In practice, we may want to make it a litlle smaller
-              (to hide RoundGridCell hack in renderterrains.pas),
-              or ignore problems and make it a little larger
-              (otherwise, we needlessly render corners of terrain squares). }
-            VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
-            GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
-            GLSLProgram.SetUniform('fog_end', VisibilityEnd);
-            GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
-          end;
-        end else
-          TGLSLProgram.Current := nil;
-
-        DrawTerrain(CurrentTerrain, Subdivision,
-          WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
-      glPopAttrib;
-    end;
-
-  glPopMatrix;
-
-  glPopAttrib;
-end;
-
-function T3DTerrain.LocalBoundingBox: TBox3D;
-{ Instead of trying to figure out what is a suitable bounding box,
-  just assume we fill the whole 3D space.
-  It must be large to always consider terrain within frustum,
-  and to force TCastleSceneManager.Projection implementation
-  to calculate sufficiently large ProjectionFar. }
-const
-  M = 10000;
-  InfiniteBox: TBox3D = (Data: (
-    (Data: (-M, -M, -M)),
-    (Data: (M, M, M))
-  ));
-begin
-  Result := InfiniteBox;
-end;
 
 { Load GLSL program from files, add #define if Fog, relink. }
 procedure GLSLProgramRegenerate;
@@ -478,57 +411,7 @@ begin
   Writeln('----------------------------- Shader debug info:');
   Writeln(GLSLProgram.DebugInfo);
 end;
-
-procedure Open(Container: TUIContainer);
-
-  function LoadTexture(const Name: string): TGLuint;
-  begin
-    Result := LoadGLTexture(ApplicationData('textures/' + Name),
-      TextureFilter(minLinearMipmapLinear, magLinear), Texture2DRepeat);
-  end;
-
-begin
-  { TODO: this demo uses specialized rendering (in renderterrains.pas)
-    that currently assumes some fixed-function things set up. }
-  GLFeatures.EnableFixedFunction := true;
-
-  RenderTerrainsOpenGL;
-
-  ControlsNoise := TControlsNoise.Create(nil);
-  ControlsImage := TControlsImage.Create(nil);
-  ControlsGeneral := TControlsGeneral.Create(nil);
-
-  if CurrentTerrain = nil then
-  begin
-    if Parameters.High = 1 then
-      SetTerrain(TTerrainSRTM.CreateFromFile(Parameters[1])) else
-      { some default terrain }
-      SetTerrain(TTerrainNoise.Create);
-  end;
-
-  { load textures }
-  GLTexSand := LoadTexture('sand.png');
-  GLTexBread := LoadTexture('bread.png');
-  GLTexRock := LoadTexture('rock_d01.png');
-
-  { initialize GLSL program }
-  if GLFeatures.Shaders <> gsNone then
-    GLSLProgram := TGLSLProgram.Create
-  else
-    Shader := false;
-  GLSLProgramRegenerate;
-end;
-
-procedure Close(Container: TUIContainer);
-begin
-  FreeAndNil(GLSLProgram);
-
-  FreeAndNil(ControlsNoise);
-  FreeAndNil(ControlsImage);
-  FreeAndNil(ControlsGeneral);
-
-  RenderTerrainsCloseGL;
-end;
+*)
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
@@ -606,7 +489,13 @@ var
   NewTerrain: TTerrain;
 begin
   case Item.IntData of
-    10: Wireframe := not Wireframe;
+    10: begin
+          Wireframe := not Wireframe;
+          if Wireframe then
+            Scene.Attributes.WireframeEffect := weWireframeOnly
+          else
+            Scene.Attributes.WireframeEffect := weNormal;
+        end;
     50: begin
           URL := '';
           if Window.FileDialog('Open SRTM (.hgt) terrain file', URL, true,
@@ -653,12 +542,16 @@ begin
       begin
         NoiseBlur := not NoiseBlur;
         if CurrentTerrain is TTerrainNoise then
+        begin
           (CurrentTerrain as TTerrainNoise).Blur := NoiseBlur;
+          UpdateScene;
+        end;
       end;
     120:
       begin
         if SceneManager.Camera = ExamineCamera then
-          SceneManager.Camera := WalkCamera else
+          SceneManager.Camera := WalkCamera
+        else
           SceneManager.Camera := ExamineCamera;
       end;
     125: KeepCameraAboveGround := not KeepCameraAboveGround;
@@ -667,24 +560,23 @@ begin
     142:
       begin
         Fog := not Fog;
-        GLSLProgramRegenerate;
+        // TODO: GLSLProgramRegenerate;
       end;
     145:
       begin
         ControlsVisible := not ControlsVisible;
         Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
       end;
-    147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
       begin
         if CurrentTerrain is TTerrainImage then
         begin
           URL := TTerrainImage(CurrentTerrain).ImageURL;
-          if Window.FileDialog('Open image file', URL, true,
-            LoadImage_FileFilters) then
+          if Window.FileDialog('Open image file', URL, true, LoadImage_FileFilters) then
           begin
             try
               TTerrainImage(CurrentTerrain).LoadImage(URL);
+              UpdateScene;
             except
               on E: Exception do
               begin
@@ -699,7 +591,10 @@ begin
     160:
       begin
         if CurrentTerrain is TTerrainImage then
-          TTerrainImage(CurrentTerrain).ClearImage else
+        begin
+          TTerrainImage(CurrentTerrain).ClearImage;
+          UpdateScene;
+        end else
           MessageOk(Window, 'Not an image terrain');
       end;
     170:
@@ -709,7 +604,10 @@ begin
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
         if CurrentTerrain is TTerrainNoise then
+        begin
           (CurrentTerrain as TTerrainNoise).Interpolation := NoiseInterpolation;
+          UpdateScene;
+        end;
       end;
     1000, 1001:
       begin
@@ -764,8 +662,6 @@ begin
     M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Specialized grid (SRTM) rendering (also ignores Subdivision and Layers count)', 147, 'g', SpecializedGridRendering, true));
-    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Background and Fog Color ...', 170));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
@@ -798,21 +694,47 @@ begin
     { Radius } 0.02);
   WalkCamera.MoveSpeed := 0.5;
 
+  Scene := TTerrainScene.Create(Window);
+
   SceneManager := Window.SceneManager;
-  SceneManager.Items.Add(T3DTerrain.Create(Window));
+  SceneManager.Items.Add(Scene);
   SceneManager.Camera := ExamineCamera;
 
   Window.OnMenuClick := @MenuClick;
-  Window.OnOpen := @Open;
-  Window.OnClose := @Close;
-  { Do not enable
-    - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
-      (we should readd appropriate Controls* and camera to Window.Controls,
-      sliders should be recreated but with default values coming from
-      last values, terrain should be updated with sliders values;
-      This isn't difficult, but would complicate source code for little gain.)
-    - Close_CharKey: it would make it too easy to close. }
   Window.FpsShowOnCaption := true;
+
+  ControlsNoise := TControlsNoise.Create(nil);
+  ControlsImage := TControlsImage.Create(nil);
+  ControlsGeneral := TControlsGeneral.Create(nil);
+
+  if CurrentTerrain = nil then
+  begin
+    if Parameters.High = 1 then
+      SetTerrain(TTerrainSRTM.CreateFromFile(Parameters[1]))
+    else
+      { some default terrain }
+      SetTerrain(TTerrainNoise.Create);
+  end;
+
+  // TODO
+  // function LoadTexture(const Name: string): TGLuint;
+  // begin
+  //   Result := LoadGLTexture(ApplicationData('textures/' + Name),
+  //     TextureFilter(minLinearMipmapLinear, magLinear), Texture2DRepeat);
+  // end;
+
+  // TODO
+  // { load textures }
+  // GLTexSand := LoadTexture('sand.png');
+  // GLTexBread := LoadTexture('bread.png');
+  // GLTexRock := LoadTexture('rock_d01.png');
+
+  // { initialize GLSL program }
+  // if GLFeatures.Shaders <> gsNone then
+  //   GLSLProgram := TGLSLProgram.Create
+  // else
+  //   Shader := false;
+  // GLSLProgramRegenerate;
 end;
 
 initialization
@@ -834,4 +756,7 @@ initialization
   Window.Caption := ApplicationName;
 finalization
   FreeAndNil(CurrentTerrain);
+  FreeAndNil(ControlsNoise);
+  FreeAndNil(ControlsImage);
+  FreeAndNil(ControlsGeneral);
 end.
