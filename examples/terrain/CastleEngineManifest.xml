@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="terrain" standalone_source="terrain.lpr">
+<project name="terrain"
+  standalone_source="terrain.lpr"
+  game_units="TerrainInitialize">
   <package>
     <include path="textures/*" />
     <include path="dump.png" />

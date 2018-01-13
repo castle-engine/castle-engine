@@ -1,6 +1,4 @@
-This directory contains an example terrain generation and visualization toy.
-
-The rest of this file contains a draft notes for Michalis' talk at seminar
+This file contains a draft notes for Michalis' talk at seminar
 (http://www.ii.uni.wroc.pl/~anl/dyd/GKs/ at 2010).
 
 ------------------------------------------------------------------------------
@@ -234,4 +232,3 @@ Texture this thing to make it look Ok! (Demo with/without shaders).
 Multitexturing, blending textures based on their height.
 Additionally: darken on steep faces (when normal.z is low).
 Adding a hint of color is good also.
-
