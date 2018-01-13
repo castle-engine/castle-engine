@@ -467,8 +467,8 @@ begin
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
   if Fog then Prefix := Prefix + ('#define FOG' + NL);
-  GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('terrain.vs')));
-  GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
+  GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('shaders/terrain.vs')));
+  GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('shaders/terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link;
@@ -570,11 +570,11 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
         { Add shader. Setup everything, like for rendering (without fog). }
         TexSand := TImageTextureNode.Create;
-        TexSand.SetUrl(['textures/sand.png']);
+        TexSand.SetUrl([ApplicationData('textures/sand.png')]);
         TexBread := TImageTextureNode.Create;
-        TexBread.SetUrl(['textures/bread.png']);
+        TexBread.SetUrl([ApplicationData('textures/bread.png')]);
         TexRock := TImageTextureNode.Create;
-        TexRock.SetUrl(['textures/rock_d01.png']);
+        TexRock.SetUrl([ApplicationData('textures/rock_d01.png')]);
         Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_sand', [], TexSand));
         Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_bread', [], TexBread));
         Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_rock', [], TexRock));
@@ -588,12 +588,12 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
         Part.ShaderType := stFragment;
-        Part.SetUrl(['terrain.fs']);
+        Part.SetUrl([ApplicationData('shaders/terrain.fs')]);
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
         Part.ShaderType := stVertex;
-        Part.SetUrl(['terrain.vs']);
+        Part.SetUrl([ApplicationData('shaders/terrain.vs')]);
       end;
 
       Save3D(Root, URL, 'terrain', '', xeClassic);
