@@ -1,3 +1,5 @@
+# Overview
+
 Demo of an isometric game, using static images, using Castle Game Engine.
 
 Everything is just drawn as 2D, using our TGLImage.
@@ -11,29 +13,35 @@ This could be made much more impressive by:
 
 Contributions are most welcome:)
 
-----------------------------------------
-Keybindings:
-12346789:
+# Keybindings
+
+* 12346789:
   Move your character. These are comfortable to use on numpad when NumLock is ON.
-up/down/right/left:
+
+* up/down/right/left:
   Move your character, if "view follows the player" mode is ON.
   Otherwise, only move the view.
-f:
+
+* f:
   Toggle "view follows the player" mode. Initially it's ON.
-Escape:
+
+* Escape:
   Exit.
-e:
+
+* e:
   Edit base tile.
-E:
+
+* E:
   Edit bonus tile.
-s:
+
+* s:
   Save current map to the file. Together with "e" and "E" keys,
   this allows you to design new levels completely inside the game.
-i:
+
+* i:
   Field info.
 
-----------------------------------------
-Map file format:
+# Map file format
 
 Design considerations:
 - This was reused as a programming exercise (PGK exercise on ii.uni.wroc.pl,
@@ -66,8 +74,7 @@ BonusChar1 BonusTileFileName1
 ...
 ```
 
-----------------------------------------
-TODO:
+# TODO
 
 Well, obviously, this is not a real game :)
 
@@ -88,6 +95,5 @@ A whole lot of things should be done to turn this into a real game:
 - Changing levels (maps) --- at least things disappearing/appearing on the map
   when player does something (open door).
 
-----------------------------------------
 Michalis Kamburelis
-http://castle-engine.sourceforge.net/
+https://castle-engine.sourceforge.io/
