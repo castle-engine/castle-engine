@@ -20,8 +20,8 @@ unit CastleTerrain;
 
 interface
 
-uses SysUtils, Classes, CastleScript, CastleImages, X3DNodes,
-  CastleVectors;
+uses SysUtils, Classes,
+  CastleScript, CastleImages, X3DNodes, CastleVectors, CastleRectangles;
 
 type
   TTerrain = class;
@@ -31,26 +31,65 @@ type
 
   { Terrain (height for each X, Y) data. }
   TTerrain = class
+  strict private
+    procedure UpdateNodeCore(const Node: TAbstractChildNode;
+      const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode);
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
-    { Create X3D node with the given terrain.
 
-      Size determines the resulting shape size.
+    { Create X3D node with the given terrain shape.
 
-      XRange and ZRange determine the range of values queried from
-      the underlying terrain.
+      InputRange determines the range of values (minimum and maximum X and Y)
+      queried from the underlying terrain, that is: queried using the @link(Height)
+      method.
 
-      The Size does not need to be synchronized with XRange and ZRange.
-      But it may be: in most cases, you will provide values such that
-      @code(Size = XRange[1] - XRange[0]) and
-      @code(Size = ZRange[1] - ZRange[0]).
-    }
+      OutputRange determines the span of the resulting shape in X and Z
+      coordinates. Note that, when converting a heightmap to 3D,
+      the 2nd dimension is Z. In 3D, we use Y for height, as this is the default
+      in X3D and Castle Game Engine.
+
+      Often you will set InputRange and OutputRange to the same values,
+      but you don't have to. Often they will at least have the same aspect ratio
+      (actually, often they will be square), but you don't have to.
+
+      Divisions determines how dense is the mesh.
+
+      We return the node that you should insert to your scene.
+
+      It will use the given TAppearanceNode.
+      The appearance is not configured in any way by this method,
+      and it can even be @nil. }
     function CreateNode(const Divisions: Cardinal;
-      const Size: Single; const XRange, ZRange: TVector2): TShapeNode; overload;
+      const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode): TAbstractChildNode; overload;
+
+    { Update a node created by @link(CreateNode)
+      to the new terrain and it's settings.
+      The appearance of the previously created node (in CreateNode) is preserved. }
+    procedure UpdateNode(const Node: TAbstractChildNode;
+      const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
+
     function CreateNode(const Divisions: Cardinal;
       const Size: Single; const XRange, ZRange: TVector2;
-      const ColorFromHeight: TColorFromHeightFunction): TShapeNode; overload;
+      const ColorFromHeight: TColorFromHeightFunction): TAbstractChildNode; overload;
       deprecated 'use overloaded version without ColorFromHeight; better to set color by shaders or texture color';
+
+    { Alternative version of @link(CreateNode) that creates a different shape.
+      It may be less functional (it remains to be seen what exactly this means),
+      but faster to update using UpdateTriangulatedNode
+      (it remains to be seen how faster in practice).
+
+      The parameters have the same meaning as for @link(CreateNode),
+      and resulting look should be the same. }
+    function CreateTriangulatedNode(const Divisions: Cardinal;
+      const InputRange, OutputRange: TFloatRectangle;
+      const Appearance: TAppearanceNode): TAbstractChildNode; experimental;
+
+    { Update a node created by @link(CreateTriangulatedNode)
+      to the new terrain and it's settings. }
+    procedure UpdateTriangulatedNode(const Node: TAbstractChildNode;
+      const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
   end;
 
   { Terrain (height for each X, Y) data taken from intensities in an image.
@@ -319,57 +358,226 @@ uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 { TTerrain ------------------------------------------------------------------- }
 
 function TTerrain.CreateNode(const Divisions: Cardinal;
-  const Size: Single; const XRange, ZRange: TVector2): TShapeNode;
+  const Size: Single; const XRange, ZRange: TVector2;
+  const ColorFromHeight: TColorFromHeightFunction): TAbstractChildNode;
+var
+  Appearance: TAppearanceNode;
 begin
-  {$warnings off} // knowingly using deprecated
-  Result := CreateNode(Divisions, Size, XRange, ZRange, nil);
-  {$warnings on}
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := TMaterialNode.Create;
+
+  Result := CreateNode(Divisions,
+    FloatRectangle(
+      XRange[0]            , ZRange[0],
+      XRange[1] - XRange[0], ZRange[1] - ZRange[0]),
+    FloatRectangle(0, 0, Size, Size), Appearance);
 end;
 
 function TTerrain.CreateNode(const Divisions: Cardinal;
-  const Size: Single; const XRange, ZRange: TVector2;
-  const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
-var
-  X, Z: Cardinal;
-  Grid: TElevationGridNode;
-  Appearance: TAppearanceNode;
-  Color: TColorNode;
+  const InputRange, OutputRange: TFloatRectangle;
+  const Appearance: TAppearanceNode): TAbstractChildNode;
 begin
-  Result := TShapeNode.Create;
+  Result := TTransformNode.Create;
+  UpdateNodeCore(Result, Divisions, InputRange, OutputRange, Appearance);
+end;
+
+procedure TTerrain.UpdateNode(const Node: TAbstractChildNode;
+  const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
+var
+  Transform: TTransformNode;
+  Shape: TShapeNode;
+  Appearance: TAppearanceNode;
+begin
+  { extract Appearance from Node, assuming Node was created by CreateNode }
+  Transform := Node as TTransformNode;
+  Shape := Transform.FdChildren[0] as TShapeNode;
+  Appearance := Shape.Appearance;
+
+  Appearance.KeepExistingBegin;
+  UpdateNodeCore(Node, Divisions, InputRange, OutputRange, Appearance);
+  Appearance.KeepExistingEnd;
+end;
+
+procedure TTerrain.UpdateNodeCore(const Node: TAbstractChildNode;
+  const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle;
+  const Appearance: TAppearanceNode);
+var
+  Transform: TTransformNode;
+  Shape: TShapeNode;
+  Grid: TElevationGridNode;
+  X, Z: Cardinal;
+begin
+  Transform := Node as TTransformNode; // created by CreateNode
+  Transform.ClearChildren;
+  Transform.Translation := Vector3(OutputRange.Left, 0, OutputRange.Bottom);
+
+  Shape := TShapeNode.Create;
 
   Grid := TElevationGridNode.Create;
-  Result.FdGeometry.Value := Grid;
+  Shape.FdGeometry.Value := Grid;
   Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
   Grid.FdXDimension.Value := Divisions;
   Grid.FdZDimension.Value := Divisions;
-  Grid.FdXSpacing.Value := Size / (Divisions - 1);
-  Grid.FdZSpacing.Value := Size / (Divisions - 1);
+  Grid.FdXSpacing.Value := OutputRange.Width / (Divisions - 1);
+  Grid.FdZSpacing.Value := OutputRange.Height / (Divisions - 1);
   Grid.FdHeight.Items.Count := Divisions * Divisions;
-
-  if Assigned(ColorFromHeight) then
-  begin
-    Color := TColorNode.Create;
-    Grid.FdColor.Value := Color;
-    Color.FdColor.Items.Count := Divisions * Divisions;
-  end;
 
   for X := 0 to Divisions - 1 do
     for Z := 0 to Divisions - 1 do
     begin
-      Grid.FdHeight.Items.L[X + Z * Divisions] := Height(
-        MapRange(X, 0, Divisions, XRange[0], XRange[1]),
-        MapRange(Z, 0, Divisions, ZRange[0], ZRange[1]));
-
-      if Assigned(ColorFromHeight) then
-        Color.FdColor.Items.L[X + Z * Divisions] :=
-          ColorFromHeight(Self, Grid.FdHeight.Items.L[X + Z * Divisions]);
+      Grid.FdHeight.Items.List^[X + Z * Divisions] := Height(
+        MapRange(X, 0, Divisions - 1, InputRange.Left  , InputRange.Right),
+        MapRange(Z, 0, Divisions - 1, InputRange.Bottom, InputRange.Top));
     end;
 
-  Appearance := TAppearanceNode.Create;
-  Result.Appearance := Appearance;
+  Shape.Appearance := Appearance;
 
-  { add any material, to be lit (even without shaders) }
-  Appearance.Material := TMaterialNode.Create;
+  // at the end, as this may cause Scene.ChangedAll
+  Transform.AddChildren(Shape);
+end;
+
+function TTerrain.CreateTriangulatedNode(const Divisions: Cardinal;
+  const InputRange, OutputRange: TFloatRectangle;
+  const Appearance: TAppearanceNode): TAbstractChildNode;
+var
+  Geometry: TIndexedTriangleStripSetNode;
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  Shape: TShapeNode;
+begin
+  Geometry := TIndexedTriangleStripSetNode.Create;
+
+  CoordNode := TCoordinateNode.Create;
+  Geometry.Coord := CoordNode;
+
+  NormalNode := TNormalNode.Create;
+  Geometry.Normal := NormalNode;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Geometry;
+  Shape.Appearance := Appearance;
+
+  Result := Shape;
+
+  UpdateTriangulatedNode(Result, Divisions, InputRange, OutputRange);
+end;
+
+procedure TTerrain.UpdateTriangulatedNode(const Node: TAbstractChildNode;
+  const Divisions: Cardinal; const InputRange, OutputRange: TFloatRectangle);
+var
+  DivisionsPlus1: Cardinal;
+  Coord, Normal: TVector3List;
+  Index: TLongIntList;
+
+  procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
+  var
+    QueryPosition: TVector2;
+  begin
+    QueryPosition[0] := InputRange.Width  * I / (Divisions-1) + InputRange.Left;
+    QueryPosition[1] := InputRange.Height * J / (Divisions-1) + InputRange.Bottom;
+
+    Position[0] := OutputRange.Width  * I / (Divisions-1) + OutputRange.Left;
+    Position[2] := OutputRange.Height * J / (Divisions-1) + OutputRange.Bottom;
+
+    Position[1] := Height(QueryPosition[0], QueryPosition[1]);
+  end;
+
+  procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
+
+    function FaceNormal(out Normal: TVector3; const DeltaX, DeltaY: Integer): boolean;
+    var
+      X, Y: Integer;
+      P, PX, PY: PVector3;
+    begin
+      X := I + DeltaX;
+      Y := J + DeltaY;
+      Result := (X >= 0) and (Y >= 0);
+      if Result then
+      begin
+        P  := Coord.Ptr( X      * DivisionsPlus1 + Y);
+        PX := Coord.Ptr((X + 1) * DivisionsPlus1 + Y);
+        PY := Coord.Ptr( X      * DivisionsPlus1 + Y + 1);
+        Normal := TVector3.CrossProduct(
+          (PY^ - P^),
+          (PX^ - P^)).Normalize;
+      end;
+    end;
+
+  var
+    N: TVector3;
+  begin
+    Normal := TVector3.Zero;
+    if FaceNormal(N,  0,  0) then Normal := Normal + N;
+    if FaceNormal(N, -1,  0) then Normal := Normal + N;
+    if FaceNormal(N,  0, -1) then Normal := Normal + N;
+    if FaceNormal(N, -1, -1) then Normal := Normal + N;
+    Normal.NormalizeMe;
+  end;
+
+var
+  Shape: TShapeNode;
+  Geometry: TIndexedTriangleStripSetNode;
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  I, J, Idx: Cardinal;
+  IndexPtr: PLongInt;
+begin
+  { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
+  Shape := Node as TShapeNode;
+  Geometry := Shape.Geometry as TIndexedTriangleStripSetNode;
+  CoordNode := Geometry.Coord as TCoordinateNode;
+  NormalNode := Geometry.Normal as TNormalNode;
+
+  { Divisions-1 squares (edges) along the way,
+    Divisions points along the way.
+    Calculate positions for Divisions + 1 points
+    (+ 1 additional for normal calculation). }
+  DivisionsPlus1 := Divisions + 1;
+
+  Index := Geometry.FdIndex.Items;
+  Coord := CoordNode.FdPoint.Items;
+  Normal := NormalNode.FdVector.Items;
+
+  { We will render Divisions^2 points, but we want to calculate
+    (Divisions + 1)^2 points : to be able to calculate normal vectors.
+    Normals for the last row and last column will not be calculated,
+    and will not be used. }
+  Coord.Count := Sqr(DivisionsPlus1);
+  Normal.Count := Sqr(DivisionsPlus1);
+
+  { calculate Coord }
+  for I := 0 to Divisions do
+    for J := 0 to Divisions do
+    begin
+      Idx := I * DivisionsPlus1 + J;
+      CalculatePosition(I, J, Coord.List^[Idx]);
+    end;
+  CoordNode.FdPoint.Changed;
+
+  { calculate Normals }
+  for I := 0 to Divisions - 1 do
+    for J := 0 to Divisions - 1 do
+    begin
+      Idx := I * DivisionsPlus1 + J;
+      CalculateNormal(I, J, Normal.List^[Idx]);
+    end;
+  NormalNode.FdVector.Changed;
+
+  { calculate Index }
+  Index.Count := (Divisions - 1) * (Divisions * 2 + 1);
+  IndexPtr := PLongInt(Index.List);
+  for I := 1 to Divisions - 1 do
+  begin
+    for J := 0 to Divisions - 1 do
+    begin
+      // order to make it CCW when viewed from above
+      IndexPtr^ :=  I      * DivisionsPlus1 + J; Inc(IndexPtr);
+      IndexPtr^ := (I - 1) * DivisionsPlus1 + J; Inc(IndexPtr);
+    end;
+    IndexPtr^ := -1;
+    Inc(IndexPtr);
+  end;
+  Geometry.FdIndex.Changed;
 end;
 
 { TTerrainImage ------------------------------------------------------------ }

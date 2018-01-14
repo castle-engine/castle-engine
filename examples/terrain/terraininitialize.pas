@@ -52,27 +52,27 @@ var
   Shader: boolean = true;
   Lighting: boolean = true;
   KeepCameraAboveGround: boolean = true;
-  BaseSize: Single = 10.0;
+  Size: Single = 10.0;
   ControlsVisible: boolean = true;
   Fog: boolean = false;
   BackgroundColor: TCastleColor;
 
 procedure UpdateScene;
 begin
-  Scene.Regenerate(CurrentTerrain, Subdivision, BaseSize);
+  Scene.Regenerate(CurrentTerrain, 1 shl Subdivision + 1, Size);
 end;
 
 type
   TCommonMenu = class(TCastleOnScreenMenu)
   public
     SubdivisionSlider: TCastleIntegerSlider;
-    BaseSizeSlider: TCastleFloatSlider;
+    SizeSlider: TCastleFloatSlider;
     ImageHeightScaleSlider: TCastleFloatSlider;
 
     constructor Create(AOwner: TComponent); override;
 
     procedure SubdivisionChanged(Sender: TObject);
-    procedure BaseSizeChanged(Sender: TObject);
+    procedure SizeChanged(Sender: TObject);
     procedure ImageHeightScaleChanged(Sender: TObject);
   end;
 
@@ -114,9 +114,9 @@ begin
   UpdateScene;
 end;
 
-procedure TCommonMenu.BaseSizeChanged(Sender: TObject);
+procedure TCommonMenu.SizeChanged(Sender: TObject);
 begin
-  BaseSize := BaseSizeSlider.Value;
+  Size := SizeSlider.Value;
   UpdateScene;
 end;
 
@@ -173,11 +173,11 @@ begin
   SubdivisionSlider.Value := Subdivision;
   SubdivisionSlider.OnChange := @SubdivisionChanged;
 
-  BaseSizeSlider := TCastleFloatSlider.Create(Self);
-  BaseSizeSlider.Min := 5;
-  BaseSizeSlider.Max := 100;
-  BaseSizeSlider.Value := BaseSize;
-  BaseSizeSlider.OnChange := @BaseSizeChanged;
+  SizeSlider := TCastleFloatSlider.Create(Self);
+  SizeSlider.Min := 5;
+  SizeSlider.Max := 100;
+  SizeSlider.Value := Size;
+  SizeSlider.OnChange := @SizeChanged;
 
   ImageHeightScaleSlider := TCastleFloatSlider.Create(Self);
   ImageHeightScaleSlider.Min := 0.0;
@@ -236,7 +236,7 @@ begin
   Add('Frequency (scales size)', FrequencySlider);
   Add('Seed', SeedSlider);
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size', BaseSizeSlider);
+  Add('Size', SizeSlider);
   Add('Image scale (load image first)', ImageHeightScaleSlider);
 end;
 
@@ -244,7 +244,7 @@ constructor TControlsImage.Create(AOwner: TComponent);
 begin
   inherited;
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size', BaseSizeSlider);
+  Add('Size', SizeSlider);
   Add('Image scale (load image first)', ImageHeightScaleSlider);
 end;
 
@@ -252,7 +252,7 @@ constructor TControlsGeneral.Create(AOwner: TComponent);
 begin
   inherited;
   Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size', BaseSizeSlider);
+  Add('Size', SizeSlider);
   // do not include ImageHeightScaleSlider, should not be used with this terrain
 end;
 
@@ -332,27 +332,27 @@ end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
-  procedure ExportToX3DElevationGrid(const URL: string);
+  procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
   var
-    CountSteps: Cardinal;
-    Root: TX3DRootNode;
-    Shape: TShapeNode;
+    OldUseTriangulatedNode: boolean;
   begin
-    CountSteps := 1 shl Subdivision + 1;
-    Root := TX3DRootNode.Create;
-    try
-      Shape := CurrentTerrain.CreateNode(CountSteps, BaseSize * 2,
-        Vector2(-BaseSize, BaseSize),
-        Vector2(-BaseSize, BaseSize));
-      Root.AddChildren(Shape);
-      Scene.AdjustAppearance(Shape.Appearance);
-      Save3D(Root, URL, ApplicationName);
-    finally FreeAndNil(Root) end;
-  end;
+    if UseTriangulatedNode = Scene.UseTriangulatedNode then
+      Scene.Save(URL)
+    else
+    begin
+      { we could write it shorter,
+        knowing that OldUseTriangulatedNode = not UseTriangulatedNode in this case,
+        but it seems more dirty. }
 
-  procedure ExportToX3DIndexedTriangleStripSet(const URL: string);
-  begin
-    Scene.Save(URL);
+      OldUseTriangulatedNode := Scene.UseTriangulatedNode;
+      Scene.UseTriangulatedNode := UseTriangulatedNode;
+      UpdateScene;
+
+      Scene.Save(URL);
+
+      Scene.UseTriangulatedNode := OldUseTriangulatedNode;
+      UpdateScene;
+    end;
   end;
 
 var
@@ -481,17 +481,22 @@ begin
           UpdateScene;
         end;
       end;
+    300:
+      begin
+        Scene.UseTriangulatedNode := not Scene.UseTriangulatedNode;
+        UpdateScene;
+      end;
     1000:
       begin
         URL := '';
         if Window.FileDialog('Save terrain to', URL, false, SaveX3D_FileFilters) then
-          ExportToX3DElevationGrid(URL);
+          ExportToX3D(URL, false);
       end;
     1001:
       begin
         URL := '';
         if Window.FileDialog('Save terrain to', URL, false, SaveX3D_FileFilters) then
-          ExportToX3DIndexedTriangleStripSet(URL);
+          ExportToX3D(URL, true);
       end;
   end;
 end;
@@ -534,6 +539,8 @@ begin
   M := TMenu.Create('_View');
     M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
     M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('Use IndexedTriangleStripSet node', 300,
+      true { Scene.UseTriangulatedNode }, true));
     M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
     M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
     M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));

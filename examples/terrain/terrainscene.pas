@@ -25,9 +25,9 @@ uses Classes,
 type
   TTerrainScene = class(TCastleScene)
   private
-    Geometry: TIndexedTriangleStripSetNode;
-    CoordNode: TCoordinateNode;
-    NormalNode: TNormalNode;
+    TerrainNode: TAbstractChildNode;
+    TerrainNodeTriangulated: boolean;
+    Appearance: TAppearanceNode;
 
     TextureHeights: array [0..3] of Single;
     UVScale: array [1..3] of Single;
@@ -36,27 +36,23 @@ type
     TextureHeightsFields: array [0..3] of TSFFloat;
     UVScaleFields: array [1..3] of TSFFloat;
   public
+    UseTriangulatedNode: boolean;
+
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { Regenerate geometry (vertexes, normals etc.) to show the current
       Terrain instance. This only calls @link(TTerrain.Height) method.
-      BaseSize * 2 is the size of the square layer around the (MiddleX, MiddleY).
 
-      TODO: This does not use TTerrain.Node, to maximize the speed of updating.
-      Eventually, we would like to merge these two approaches (TTerrain.Node
-      and TTerrainScene.Regenerate) as they really do the same: convert
-      TTerrain height information into X3D nodes. }
+      Size is the size of the square layer around the (0, 0). }
     procedure Regenerate(Terrain: TTerrain;
-      const Subdivision: Cardinal; const BaseSize: Single);
-
-    { Adjust Appearence node to use our terrain shaders. }
-    procedure AdjustAppearance(Appearance: TAppearanceNode);
+      const Divisions: Cardinal; const Size: Single);
   end;
 
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleFilesUtils;
+  CastleUtils, CastleFilesUtils, CastleRectangles;
 
 constructor TTerrainScene.Create(AOwner: TComponent);
 
@@ -74,199 +70,109 @@ constructor TTerrainScene.Create(AOwner: TComponent);
     NormalDarkening := 0.3;
   end;
 
-  procedure LoadInitialScene;
+  procedure AdjustAppearance;
   var
-    Shape: TShapeNode;
-    Root: TX3DRootNode;
+    Effect: TEffectNode;
+    VertexPart, FragmentPart: TEffectPartNode;
+    Tex1, Tex2, Tex3: TImageTextureNode;
+    I: Integer;
   begin
-    Geometry := TIndexedTriangleStripSetNode.Create;
+    { initialize Effect node, for a shader effect }
+    Effect := TEffectNode.Create;
+    Effect.Language := slGLSL;
+    Appearance.SetEffects([Effect]);
 
-    CoordNode := TCoordinateNode.Create;
-    Geometry.Coord := CoordNode;
+    { pass textures to shader effect }
+    Tex1 := TImageTextureNode.Create;
+    Tex1.SetUrl([ApplicationData('textures/island_sand2_d.jpg')]);
+    Tex2 := TImageTextureNode.Create;
+    Tex2.SetUrl([ApplicationData('textures/ground_mud2_d.jpg')]);
+    Tex3 := TImageTextureNode.Create;
+    Tex3.SetUrl([ApplicationData('textures/mntn_white_d.jpg')]);
 
-    NormalNode := TNormalNode.Create;
-    Geometry.Normal := NormalNode;
+    Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_1', [], Tex1));
+    Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_2', [], Tex2));
+    Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_3', [], Tex3));
 
-    Shape := TShapeNode.Create;
-    Shape.Geometry := Geometry;
-    Shape.Appearance := TAppearanceNode.Create;
-    AdjustAppearance(Shape.Appearance);
+    { pass uniforms to shader effect }
+    for I := Low(TextureHeights) to High(TextureHeights) do
+    begin
+      TextureHeightsFields[I] := TSFFloat.Create(
+        Effect, true, 'h' + IntToStr(I), TextureHeights[I]);
+      Effect.AddCustomField(TextureHeightsFields[I]);
+    end;
+    for I := Low(UVScale) to High(UVScale) do
+    begin
+      UVScaleFields[I] := TSFFloat.Create(
+        Effect, true, 'uv_scale_' + IntToStr(I), UVScale[I]);
+      Effect.AddCustomField(UVScaleFields[I]);
+    end;
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', TextureMix));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_dark', NormalDark));
+    Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_darkening', NormalDarkening));
 
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(Shape);
+    { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
+    FragmentPart := TEffectPartNode.Create;
+    FragmentPart.ShaderType := stFragment;
+    FragmentPart.SetUrl([ApplicationData('shaders/terrain.fs')]);
 
-    Load(Root, true);
+    VertexPart := TEffectPartNode.Create;
+    VertexPart.ShaderType := stVertex;
+    VertexPart.SetUrl([ApplicationData('shaders/terrain.vs')]);
+
+    Effect.SetParts([FragmentPart, VertexPart]);
+
+    { make the material lit }
+    Appearance.Material := TMaterialNode.Create;
   end;
 
 begin
   inherited;
   SetDefaultShaderUniforms;
-  LoadInitialScene;
+  Appearance := TAppearanceNode.Create;
+  Appearance.KeepExistingBegin; // it's easiest to manage release of Appearance
+  AdjustAppearance;
+  UseTriangulatedNode := true;
 end;
 
-procedure TTerrainScene.AdjustAppearance(Appearance: TAppearanceNode);
-var
-  Effect: TEffectNode;
-  VertexPart, FragmentPart: TEffectPartNode;
-  Tex1, Tex2, Tex3: TImageTextureNode;
-  I: Integer;
+destructor TTerrainScene.Destroy;
 begin
-  { initialize Effect node, for a shader effect }
-  Effect := TEffectNode.Create;
-  Effect.Language := slGLSL;
-  Appearance.SetEffects([Effect]);
-
-  { pass textures to shader effect }
-  Tex1 := TImageTextureNode.Create;
-  Tex1.SetUrl([ApplicationData('textures/island_sand2_d.jpg')]);
-  Tex2 := TImageTextureNode.Create;
-  Tex2.SetUrl([ApplicationData('textures/ground_mud2_d.jpg')]);
-  Tex3 := TImageTextureNode.Create;
-  Tex3.SetUrl([ApplicationData('textures/mntn_white_d.jpg')]);
-
-  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_1', [], Tex1));
-  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_2', [], Tex2));
-  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_3', [], Tex3));
-
-  { pass uniforms to shader effect }
-  for I := Low(TextureHeights) to High(TextureHeights) do
-  begin
-    TextureHeightsFields[I] := TSFFloat.Create(
-      Effect, true, 'h' + IntToStr(I), TextureHeights[I]);
-    Effect.AddCustomField(TextureHeightsFields[I]);
-  end;
-  for I := Low(UVScale) to High(UVScale) do
-  begin
-    UVScaleFields[I] := TSFFloat.Create(
-      Effect, true, 'uv_scale_' + IntToStr(I), UVScale[I]);
-    Effect.AddCustomField(UVScaleFields[I]);
-  end;
-  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', TextureMix));
-  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_dark', NormalDark));
-  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_darkening', NormalDarkening));
-
-  { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
-  FragmentPart := TEffectPartNode.Create;
-  FragmentPart.ShaderType := stFragment;
-  FragmentPart.SetUrl([ApplicationData('shaders/terrain.fs')]);
-
-  VertexPart := TEffectPartNode.Create;
-  VertexPart.ShaderType := stVertex;
-  VertexPart.SetUrl([ApplicationData('shaders/terrain.vs')]);
-
-  Effect.SetParts([FragmentPart, VertexPart]);
-
-  Appearance.Material := TMaterialNode.Create;
+  inherited;
+  // remove after RootNode containing this is removed too
+  FreeAndNil(Appearance);
 end;
 
 procedure TTerrainScene.Regenerate(Terrain: TTerrain;
-  const Subdivision: Cardinal; const BaseSize: Single);
+  const Divisions: Cardinal; const Size: Single);
 var
-  CountSteps, CountSteps1: Cardinal;
-  X1, Z1, X2, Z2: Single;
-  Coord, Normal: TVector3List;
-  Index: TLongIntList;
-
-  procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
-  begin
-    { set XZ to cover (X1, Z1) ... (X2, Z2) rectangle with our terrain }
-    Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
-    Position[2] := (Z2 - Z1) * J / (CountSteps-1) + Z1;
-    Position[1] := Terrain.Height(Position[0], Position[2]);
-  end;
-
-  procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
-
-    function FaceNormal(out Normal: TVector3; const DeltaX, DeltaY: Integer): boolean;
-    var
-      X, Y: Integer;
-      P, PX, PY: PVector3;
-    begin
-      X := I + DeltaX;
-      Y := J + DeltaY;
-      Result := (X >= 0) and (Y >= 0);
-      if Result then
-      begin
-        P  := Coord.Ptr( X      * CountSteps1 + Y);
-        PX := Coord.Ptr((X + 1) * CountSteps1 + Y);
-        PY := Coord.Ptr( X      * CountSteps1 + Y + 1);
-        Normal := TVector3.CrossProduct(
-          (PY^ - P^),
-          (PX^ - P^)).Normalize;
-      end;
-    end;
-
-  var
-    N: TVector3;
-  begin
-    Normal := TVector3.Zero;
-    if FaceNormal(N,  0,  0) then Normal := Normal + N;
-    if FaceNormal(N, -1,  0) then Normal := Normal + N;
-    if FaceNormal(N,  0, -1) then Normal := Normal + N;
-    if FaceNormal(N, -1, -1) then Normal := Normal + N;
-    Normal.NormalizeMe;
-  end;
-
-var
-  I, J, Idx: Cardinal;
-  IndexPtr: PLongInt;
+  Root: TX3DRootNode;
+  Range: TFloatRectangle;
 begin
-  X1 := - BaseSize;
-  Z1 := - BaseSize;
-  X2 := + BaseSize;
-  Z2 := + BaseSize;
-
-  { CountSteps-1 squares (edges) along the way,
-    CountSteps points along the way.
-    Calculate positions for CountSteps + 1 points
-    (+ 1 additional for normal calculation). }
-  CountSteps := 1 shl Subdivision + 1;
-  CountSteps1 := CountSteps + 1;
-
-  Index := Geometry.FdIndex.Items;
-  Coord := CoordNode.FdPoint.Items;
-  Normal := NormalNode.FdVector.Items;
-
-  { We will render CountSteps^2 points, but we want to calculate
-    (CountSteps + 1)^2 points : to be able to calculate normal vectors.
-    Normals for the last row and last column will not be calculated,
-    and will not be used. }
-  Coord.Count := Sqr(CountSteps1);
-  Normal.Count := Sqr(CountSteps1);
-
-  { calculate Coord }
-  for I := 0 to CountSteps do
-    for J := 0 to CountSteps do
-    begin
-      Idx := I * CountSteps1 + J;
-      CalculatePosition(I, J, Coord.List^[Idx]);
-    end;
-  CoordNode.FdPoint.Changed;
-
-  { calculate Normals }
-  for I := 0 to CountSteps - 1 do
-    for J := 0 to CountSteps - 1 do
-    begin
-      Idx := I * CountSteps1 + J;
-      CalculateNormal(I, J, Normal.List^[Idx]);
-    end;
-  NormalNode.FdVector.Changed;
-
-  { calculate Index }
-  Index.Count := (CountSteps - 1) * (CountSteps * 2 + 1);
-  IndexPtr := PLongInt(Index.List);
-  for I := 1 to CountSteps - 1 do
+  if (TerrainNode <> nil) and (TerrainNodeTriangulated <> UseTriangulatedNode) then
   begin
-    for J := 0 to CountSteps - 1 do
-    begin
-      // order to make it CCW when viewed from above
-      IndexPtr^ :=  I      * CountSteps1 + J; Inc(IndexPtr);
-      IndexPtr^ := (I - 1) * CountSteps1 + J; Inc(IndexPtr);
-    end;
-    IndexPtr^ := -1;
-    Inc(IndexPtr);
+    RootNode := nil; // will free TerrainNode and RootNode
+    TerrainNode := nil;
   end;
-  Geometry.FdIndex.Changed;
+
+  Range := FloatRectangle(-Size/2, -Size/2, Size, Size);
+
+  if TerrainNode = nil then
+  begin
+    if UseTriangulatedNode then
+      TerrainNode := Terrain.CreateTriangulatedNode(Divisions, Range, Range, Appearance)
+    else
+      TerrainNode := Terrain.CreateNode(Divisions, Range, Range, Appearance);
+    TerrainNodeTriangulated := UseTriangulatedNode;
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(TerrainNode);
+    Load(Root, true);
+  end else
+  begin
+    if UseTriangulatedNode then
+      Terrain.UpdateTriangulatedNode(TerrainNode, Divisions, Range, Range)
+    else
+      Terrain.UpdateNode(TerrainNode, Divisions, Range, Range);
+  end;
 end;
 
 end.
