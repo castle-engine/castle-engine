@@ -27,7 +27,7 @@ interface
 
 uses Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene, CastleVectors, CastleTransform,
-  CastleGLImages, X3DNodes, CastleRectangles;
+  CastleGLImages, X3DNodes, CastleRectangles, CastleRenderer;
 
 type
   TLocation = class
@@ -94,8 +94,7 @@ var
 implementation
 
 uses SysUtils, DOM,
-  CastleProgress, CastleImages, CastleRenderer,
-  CastleUIControls, CastleGLUtils, CastleXMLUtils,
+  CastleProgress, CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
   CastleSceneCore, CastleApplicationProperties, X3DLoad,
   GameConfiguration;
 
@@ -123,9 +122,16 @@ var
   SavedProjectionMatrix: TMatrix4;
 begin
   if RenderInternalModel then
-    inherited
-  else
   begin
+    Attributes.Mode := rmFull;
+    inherited;
+  end else
+  begin
+    { this makes a tiny (not important in case of our trivial location 3D model)
+      optimization: since we only care about filling the depth buffer,
+      rendering with rmDepth will not initialize some material stuff. }
+    Attributes.Mode := rmDepth;
+
     RenderContext.ColorMask := false;
     inherited;
     RenderContext.ColorMask := true;
