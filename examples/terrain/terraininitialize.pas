@@ -114,6 +114,10 @@ procedure TCommonMenu.SizeChanged(Sender: TObject);
 begin
   Size := SizeSlider.Value;
   UpdateScene;
+  { TODO: Workaround: In case of UseTriangulatedNode = true,
+    it seems that UpdateScene doesn't properly cause octree rebuild.
+    But we need it for walk mode (WalkCamera) gravity to work. }
+  Scene.ChangedAll;
 end;
 
 procedure TCommonMenu.ImageHeightScaleChanged(Sender: TObject);
@@ -351,6 +355,29 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     end;
   end;
 
+  procedure ToggleWalk;
+  var
+    MoveLimit: TBox3D;
+    Y: Single;
+  begin
+    if SceneManager.Camera = ExamineCamera then
+    begin
+      SceneManager.Camera := WalkCamera;
+
+      Y := CurrentTerrain.Height(0, 0) + WalkCamera.PreferredHeight;
+      WalkCamera.SetView(
+        Vector3(0, Y, 0),
+        Vector3(0, 0, -1),
+        Vector3(0, 1, 0));
+
+      // make gravity work even if your position is over the world bbox
+      MoveLimit := SceneManager.Items.BoundingBox;
+      MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
+      SceneManager.MoveLimit := MoveLimit;
+    end else
+      SceneManager.Camera := ExamineCamera;
+  end;
+
   procedure ToggleFog;
   var
     FogNode: TFogNode;
@@ -426,13 +453,7 @@ begin
           UpdateScene;
         end;
       end;
-    120:
-      begin
-        if SceneManager.Camera = ExamineCamera then
-          SceneManager.Camera := WalkCamera
-        else
-          SceneManager.Camera := ExamineCamera;
-      end;
+    120: ToggleWalk;
     130: Scene.Lighting := not Scene.Lighting;
     140: Scene.Textured := not Scene.Textured;
     142: ToggleFog;
@@ -530,12 +551,12 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (ElevationGrid) ...', 1000));
     M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Walk', 120, 'c', false { SceneManager.Camera = WalkCamera }, true));
+    M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { SceneManager.Camera = WalkCamera }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_View');
-    M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'w', Wireframe, true));
+    M.Append(TMenuItemChecked.Create('_Wireframe', 10, 'e', Wireframe, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Use IndexedTriangleStripSet node', 300,
       true { Scene.UseTriangulatedNode }, true));
@@ -574,15 +595,18 @@ begin
 
   WalkCamera := TWalkCamera.Create(Window);
   WalkCamera.Init(
-    Vector3(0, 0, 0),
+    Vector3(0, 10, 0),
     Vector3(0, 0, -1),
     Vector3(0, 1, 0),
     Vector3(0, 1, 0),
-    { PreferredHeight: unused, we don't use Gravity here } 0,
+    { PreferredHeight } 2,
     { Radius } 0.02);
-  WalkCamera.MoveSpeed := 0.5;
+  WalkCamera.MoveSpeed := 10.0;
+  WalkCamera.Gravity := true;
+  WalkCamera.MouseLook := true;
 
   Scene := TTerrainScene.Create(Window);
+  Scene.Spatial := [ssDynamicCollisions]; // for proper walking
 
   SceneManager := Window.SceneManager;
   SceneManager.Items.Add(Scene);
