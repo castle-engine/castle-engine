@@ -104,6 +104,13 @@ const
   'Spine animation (*.json)|*.json|' +
   'Standard Triangle Language (*.stl)|*.stl';
 
+  SaveX3D_FileFilters =
+  'All files|*|' +
+  '*X3D XML (*.x3d)|*.x3d|' +
+  'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz|' +
+  'X3D classic (*.x3dv)|*.x3dv|' +
+  'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
+
 { Load various model formats as animation expressed by VRML/X3D sequence.
 
   For model formats that cannot express animations (like GEO or Wavefront OBJ)

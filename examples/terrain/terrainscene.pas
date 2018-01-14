@@ -19,7 +19,8 @@ unit TerrainScene;
 interface
 
 uses Classes,
-  CastleVectors, CastleTerrain, CastleScene, X3DNodes;
+  CastleVectors, CastleTerrain, CastleScene, X3DNodes, X3DFields,
+  CastleRendererBaseTypes;
 
 type
   TTerrainScene = class(TCastleScene)
@@ -27,11 +28,17 @@ type
     Geometry: TIndexedTriangleStripSetNode;
     CoordNode: TCoordinateNode;
     NormalNode: TNormalNode;
-    ColorNode: TColorNode;
+
+    TextureHeights: array [0..3] of Single;
+    UVScale: array [1..3] of Single;
+    TextureMix, NormalDark, NormalDarkening: Single;
+
+    TextureHeightsFields: array [0..3] of TSFFloat;
+    UVScaleFields: array [1..3] of TSFFloat;
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Regenerate geometry (vertexes, normals, colors etc.) to show the current
+    { Regenerate geometry (vertexes, normals etc.) to show the current
       Terrain instance. This only calls @link(TTerrain.Height) method.
       BaseSize * 2 is the size of the square layer around the (MiddleX, MiddleY).
 
@@ -40,89 +47,148 @@ type
       and TTerrainScene.Regenerate) as they really do the same: convert
       TTerrain height information into X3D nodes. }
     procedure Regenerate(Terrain: TTerrain;
-      const Subdivision: Cardinal;
-      MiddleX, MiddleY: Single; BaseSize: Single);
-  end;
+      const Subdivision: Cardinal; const BaseSize: Single);
 
-{ Returns same colors as used by @link(TTerrainScene.Regenerate). }
-function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
+    { Adjust Appearence node to use our terrain shaders. }
+    procedure AdjustAppearance(Appearance: TAppearanceNode);
+  end;
 
 implementation
 
-uses SysUtils, CastleUtils;
+uses SysUtils,
+  CastleUtils, CastleFilesUtils;
 
 constructor TTerrainScene.Create(AOwner: TComponent);
-var
-  Shape: TShapeNode;
-  Root: TX3DRootNode;
-begin
-  inherited;
 
-  Geometry := TIndexedTriangleStripSetNode.Create;
-
-  CoordNode := TCoordinateNode.Create;
-  Geometry.Coord := CoordNode;
-
-  NormalNode := TNormalNode.Create;
-  Geometry.Normal := NormalNode;
-
-  ColorNode := TColorNode.Create;
-  Geometry.Color := ColorNode;
-
-  Shape := TShapeNode.Create;
-  Shape.Geometry := Geometry;
-
-  Root := TX3DRootNode.Create;
-  Root.AddChildren(Shape);
-
-  Load(Root, true);
-end;
-
-function ColorFromHeightCore(const H: Single): TVector3;
-begin
-  { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
-  if      (H < 0  )  then Result := Vector3(0,       0,         1) { blue }
-  else if (H < 500)  then Result := Vector3(0,       H/500,     0) { green }
-  else if (H < 1000) then Result := Vector3(H/500-1, 1,         0) { yellow }
-  else if (H < 1500) then Result := Vector3(1,       H/500-2.0, 0) { red }
-  else Result := Vector3(1, 1, 1);                                 { white }
-end;
-
-function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
-begin
-  if Terrain is TTerrainGrid then
+  procedure SetDefaultShaderUniforms;
   begin
-    { For TTerrainGrid, Height is original GridHeight result. }
-    Height /= TTerrainGrid(Terrain).GridHeightScale;
-  end else
-  begin
-    { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
-    if Terrain is TTerrainNoise then
-      Height /= TTerrainNoise(Terrain).Amplitude;
-    { some hacks to hit interesting colors }
-    Height := Height  * 2000 - 1000;
+    TextureHeights[0] := 5;
+    TextureHeights[1] := 6;
+    TextureHeights[2] := 7;
+    TextureHeights[3] := 10;
+    UVScale[1] := 0.11;
+    UVScale[2] := 0.26;
+    UVScale[3] := 0.36;
+    TextureMix := 1;
+    NormalDark := 0.94;
+    NormalDarkening := 0.3;
   end;
 
-  Result := ColorFromHeightCore(Height);
+  procedure LoadInitialScene;
+  var
+    Shape: TShapeNode;
+    Root: TX3DRootNode;
+  begin
+    Geometry := TIndexedTriangleStripSetNode.Create;
+
+    CoordNode := TCoordinateNode.Create;
+    Geometry.Coord := CoordNode;
+
+    NormalNode := TNormalNode.Create;
+    Geometry.Normal := NormalNode;
+
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Geometry;
+    Shape.Appearance := TAppearanceNode.Create;
+    AdjustAppearance(Shape.Appearance);
+
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+
+    Load(Root, true);
+  end;
+
+begin
+  inherited;
+  SetDefaultShaderUniforms;
+  LoadInitialScene;
+end;
+
+procedure TTerrainScene.AdjustAppearance(Appearance: TAppearanceNode);
+var
+  Effect: TEffectNode;
+  VertexPart, FragmentPart: TEffectPartNode;
+  Tex1, Tex2, Tex3: TImageTextureNode;
+  I: Integer;
+begin
+  { initialize Effect node, for a shader effect }
+  Effect := TEffectNode.Create;
+  Effect.Language := slGLSL;
+  Appearance.SetEffects([Effect]);
+
+  { pass textures to shader effect }
+  Tex1 := TImageTextureNode.Create;
+  Tex1.SetUrl([ApplicationData('textures/island_sand2_d.jpg')]);
+  Tex2 := TImageTextureNode.Create;
+  Tex2.SetUrl([ApplicationData('textures/ground_mud2_d.jpg')]);
+  Tex3 := TImageTextureNode.Create;
+  Tex3.SetUrl([ApplicationData('textures/mntn_white_d.jpg')]);
+
+  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_1', [], Tex1));
+  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_2', [], Tex2));
+  Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_3', [], Tex3));
+
+  { pass uniforms to shader effect }
+  for I := Low(TextureHeights) to High(TextureHeights) do
+  begin
+    TextureHeightsFields[I] := TSFFloat.Create(
+      Effect, true, 'h' + IntToStr(I), TextureHeights[I]);
+    Effect.AddCustomField(TextureHeightsFields[I]);
+  end;
+  for I := Low(UVScale) to High(UVScale) do
+  begin
+    UVScaleFields[I] := TSFFloat.Create(
+      Effect, true, 'uv_scale_' + IntToStr(I), UVScale[I]);
+    Effect.AddCustomField(UVScaleFields[I]);
+  end;
+  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'texture_mix', TextureMix));
+  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_dark', NormalDark));
+  Effect.AddCustomField(TSFFloat.Create(Effect, true, 'normal_darkening', NormalDarkening));
+
+  { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
+  FragmentPart := TEffectPartNode.Create;
+  FragmentPart.ShaderType := stFragment;
+  FragmentPart.SetUrl([ApplicationData('shaders/terrain.fs')]);
+
+  VertexPart := TEffectPartNode.Create;
+  VertexPart.ShaderType := stVertex;
+  VertexPart.SetUrl([ApplicationData('shaders/terrain.vs')]);
+
+  Effect.SetParts([FragmentPart, VertexPart]);
+
+  Appearance.Material := TMaterialNode.Create;
 end;
 
 procedure TTerrainScene.Regenerate(Terrain: TTerrain;
-  const Subdivision: Cardinal;
-  MiddleX, MiddleY: Single; BaseSize: Single);
+  const Subdivision: Cardinal; const BaseSize: Single);
 var
   CountSteps, CountSteps1: Cardinal;
-  X1, Y1, X2, Y2: Single;
-  Coord, Color, Normal: TVector3List;
+  X1, Z1, X2, Z2: Single;
+
+  procedure RegenerateElevationGrid;
+  var
+    Shape: TShapeNode;
+    Root: TX3DRootNode;
+  begin
+    Shape := Terrain.CreateNode(CountSteps, X2 - X1,
+      Vector2(X1, X2),
+      Vector2(Z1, Z2));
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+    Load(Root, true);
+    AdjustAppearance(Shape.Appearance);
+  end;
+
+var
+  Coord, Normal: TVector3List;
   Index: TLongIntList;
 
-  procedure CalculatePositionColor(const I, J: Cardinal; out Position, Color: TVector3);
+  procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
   begin
-    { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our terrain }
+    { set XZ to cover (X1, Z1) ... (X2, Z2) rectangle with our terrain }
     Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
-    Position[1] := (Y2 - Y1) * J / (CountSteps-1) + Y1;
-    Position[2] := Terrain.Height(Position[0], Position[1]);
-
-    Color := ColorFromHeight(Terrain, Position[2]);
+    Position[2] := (Z2 - Z1) * J / (CountSteps-1) + Z1;
+    Position[1] := Terrain.Height(Position[0], Position[2]);
   end;
 
   procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
@@ -141,22 +207,14 @@ var
       (PY^ - P^));
   end;
 
-const
-  RoundGridCell = 0.5;
 var
   I, J, Idx: Cardinal;
   IndexPtr: PLongInt;
 begin
-  { to somewhat cure the effect of terrain "flowing" (because every small
-    change of Middle point shifts all the points), round middle to
-    some cell size. }
-  MiddleX := Round(MiddleX / RoundGridCell) * RoundGridCell;
-  MiddleY := Round(MiddleY / RoundGridCell) * RoundGridCell;
-
-  X1 := MiddleX - BaseSize;
-  Y1 := MiddleY - BaseSize;
-  X2 := MiddleX + BaseSize;
-  Y2 := MiddleY + BaseSize;
+  X1 := - BaseSize;
+  Z1 := - BaseSize;
+  X2 := + BaseSize;
+  Z2 := + BaseSize;
 
   { CountSteps-1 squares (edges) along the way,
     CountSteps points along the way.
@@ -165,10 +223,13 @@ begin
   CountSteps := 1 shl Subdivision + 1;
   CountSteps1 := CountSteps + 1;
 
+  // TODO: for testing
+  // RegenerateElevationGrid;
+  // Exit;
+
   Index := Geometry.FdIndex.Items;
   Coord := CoordNode.FdPoint.Items;
   Normal := NormalNode.FdVector.Items;
-  Color := ColorNode.FdColor.Items;
 
   { We will render CountSteps^2 points, but we want to calculate
     (CountSteps + 1)^2 points : to be able to calculate normal vectors.
@@ -176,17 +237,15 @@ begin
     and will not be used. }
   Coord.Count := Sqr(CountSteps1);
   Normal.Count := Sqr(CountSteps1);
-  Color.Count := Sqr(CountSteps1);
 
-  { calculate Points and Colors }
+  { calculate Coord }
   for I := 0 to CountSteps do
     for J := 0 to CountSteps do
     begin
       Idx := I * CountSteps1 + J;
-      CalculatePositionColor(I, J, Coord.List^[Idx], Color.List^[Idx]);
+      CalculatePosition(I, J, Coord.List^[Idx]);
     end;
   CoordNode.FdPoint.Changed;
-  ColorNode.FdColor.Changed;
 
   { calculate Normals }
   for I := 0 to CountSteps - 1 do
@@ -204,8 +263,9 @@ begin
   begin
     for J := 0 to CountSteps - 1 do
     begin
-      IndexPtr^ := (I - 1) * CountSteps1 + J; Inc(IndexPtr);
+      // order to make it CCW when viewed from above
       IndexPtr^ :=  I      * CountSteps1 + J; Inc(IndexPtr);
+      IndexPtr^ := (I - 1) * CountSteps1 + J; Inc(IndexPtr);
     end;
     IndexPtr^ := -1;
     Inc(IndexPtr);

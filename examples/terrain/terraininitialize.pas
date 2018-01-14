@@ -28,7 +28,7 @@ uses SysUtils, Classes,
   CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   CastleTransform, CastleFrustum, CastleSceneManager, CastleURIUtils,
   CastleRectangles, CastleControls, CastleRendererBaseTypes,
-  CastleApplicationProperties, CastleLog, CastleScene,
+  CastleApplicationProperties, CastleLog, CastleScene, X3DLoad,
   TerrainScene;
 
 type
@@ -52,15 +52,14 @@ var
   Shader: boolean = true;
   Lighting: boolean = true;
   KeepCameraAboveGround: boolean = true;
-  BaseSize: Single = 1.0;
+  BaseSize: Single = 10.0;
   ControlsVisible: boolean = true;
   Fog: boolean = false;
   BackgroundColor: TCastleColor;
 
 procedure UpdateScene;
 begin
-  Scene.Regenerate(CurrentTerrain, Subdivision,
-    WalkCamera.Position[0], WalkCamera.Position[1], BaseSize);
+  Scene.Regenerate(CurrentTerrain, Subdivision, BaseSize);
 end;
 
 type
@@ -175,8 +174,8 @@ begin
   SubdivisionSlider.OnChange := @SubdivisionChanged;
 
   BaseSizeSlider := TCastleFloatSlider.Create(Self);
-  BaseSizeSlider.Min := 0.1;
-  BaseSizeSlider.Max := 20;
+  BaseSizeSlider.Min := 5;
+  BaseSizeSlider.Max := 100;
   BaseSizeSlider.Value := BaseSize;
   BaseSizeSlider.OnChange := @BaseSizeChanged;
 
@@ -197,31 +196,31 @@ begin
   OctavesSlider := TCastleFloatSlider.Create(Self);
   OctavesSlider.Min := 0.0;
   OctavesSlider.Max := 20.0;
-  OctavesSlider.Value := 4.0;
+  OctavesSlider.Value := 7.0;
   OctavesSlider.OnChange := @OctavesChanged;
 
   SmoothnessSlider := TCastleFloatSlider.Create(Self);
   SmoothnessSlider.Min := 1.0;
   SmoothnessSlider.Max := 10.0;
-  SmoothnessSlider.Value := 2.0;
+  SmoothnessSlider.Value := 1.5;
   SmoothnessSlider.OnChange := @SmoothnessChanged;
 
   HeterogeneousSlider := TCastleFloatSlider.Create(Self);
   HeterogeneousSlider.Min := 0.0;
   HeterogeneousSlider.Max := 2.0;
-  HeterogeneousSlider.Value := 0.0;
+  HeterogeneousSlider.Value := 0.5;
   HeterogeneousSlider.OnChange := @HeterogeneousChanged;
 
   AmplitudeSlider := TCastleFloatSlider.Create(Self);
   AmplitudeSlider.Min := 0.1;
   AmplitudeSlider.Max := 10.0;
-  AmplitudeSlider.Value := 1.0;
+  AmplitudeSlider.Value := 8.0;
   AmplitudeSlider.OnChange := @AmplitudeChanged;
 
   FrequencySlider := TCastleFloatSlider.Create(Self);
-  FrequencySlider.Min := 0.5;
-  FrequencySlider.Max := 10.0;
-  FrequencySlider.Value := 1.0;
+  FrequencySlider.Min := 0.001;
+  FrequencySlider.Max := 0.1;
+  FrequencySlider.Value := 0.05;
   FrequencySlider.OnChange := @FrequencyChanged;
 
   SeedSlider := TCastleIntegerSlider.Create(Self);
@@ -331,156 +330,29 @@ begin
   end;
 end;
 
-(*
-TODO:
-fix walk camera. Previously, T3DTerrain.LocalRender was doing this:
-
-  procedure WalkCameraAboveGround;
-  var
-    P: TVector3;
-  begin
-    P := WalkCamera.Position;
-    P[2] := CurrentTerrain.Height(P[0], P[1]) + 0.1;
-    WalkCamera.Position := P;
-  end;
-
-  if (SceneManager.Camera = WalkCamera) and KeepCameraAboveGround then
-    WalkCameraAboveGround;
-
-------------------------------------------------------------------------------
-
-TODO:
-fix rendering with textures. previously we were setting up shader:
-
-var
-  VisibilityEnd: Single;
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, GLTexSand);
-        GLSLProgram.SetUniform('tex_sand', 0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, GLTexBread);
-        GLSLProgram.SetUniform('tex_bread', 1);
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, GLTexRock);
-        GLSLProgram.SetUniform('tex_rock', 2);
-
-        GLSLProgram.SetUniform('z0', 0.8);
-        GLSLProgram.SetUniform('z1', 1.0);
-        GLSLProgram.SetUniform('z2', 1.2);
-        GLSLProgram.SetUniform('z3', 1.5);
-        GLSLProgram.SetUniform('color_scale', 0.2);
-        GLSLProgram.SetUniform('tex_scale', 0.8);
-        if Fog then
-        begin
-          { This is the exact visibility end.
-            In practice, we may want to make it a litlle smaller
-            (to hide RoundGridCell hack in renderterrains.pas),
-            or ignore problems and make it a little larger
-            (otherwise, we needlessly render corners of terrain squares). }
-          VisibilityEnd := BaseSize;
-          GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
-          GLSLProgram.SetUniform('fog_end', VisibilityEnd);
-          GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
-        end;
-
-{ Load GLSL program from files, add #define if Fog, relink. }
-procedure GLSLProgramRegenerate;
-var
-  Prefix: string;
-begin
-  if GLSLProgram = nil then
-  begin
-    Writeln('Warning: Your graphic card doesn''t support GLSL shaders.');
-    Exit;
-  end;
-
-  GLSLProgram.DetachAllShaders;
-  Prefix := '#define HEIGHT_IS_Z' + NL;
-  if Fog then Prefix := Prefix + ('#define FOG' + NL);
-  GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('shaders/terrain.vs')));
-  GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('shaders/terrain.fs')));
-  { For this test program, we eventually allow shader to run in software.
-    We display debug info, so user should know what's going on. }
-  GLSLProgram.Link;
-  { Only warn on non-used uniforms. This is more comfortable for shader
-    development, you can easily comment shader parts. }
-  GLSLProgram.UniformNotFoundAction := uaWarning;
-  Writeln('----------------------------- Shader debug info:');
-  Writeln(GLSLProgram.DebugInfo);
-end;
-*)
-
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
-  procedure ExportToX3D(const URL: string;
-    const AddShadersTextures: boolean);
+  procedure ExportToX3DElevationGrid(const URL: string);
   var
     CountSteps: Cardinal;
-    Size: Single;
-    XRange, ZRange: TVector2;
     Root: TX3DRootNode;
     Shape: TShapeNode;
-    Shader: TComposedShaderNode;
-    TexSand: TImageTextureNode;
-    TexBread: TImageTextureNode;
-    TexRock: TImageTextureNode;
-    Part: TShaderPartNode;
   begin
     CountSteps := 1 shl Subdivision + 1;
-    Size := BaseSize * 2;
-    { Note about XY (our TTerrain) -> XZ (X3D TerrainNode) conversion:
-      we change Y into Z, this also means that Z must go into the other
-      direction (when Y increases, Z decreases) to produce the same look. }
-    XRange[0] := WalkCamera.Position[0] - Size/2;
-    ZRange[0] := WalkCamera.Position[1] + Size/2; // Z direction is inverted
-    XRange[1] := WalkCamera.Position[0] + Size/2;
-    ZRange[1] := WalkCamera.Position[1] - Size/2; // Z direction is inverted
-
     Root := TX3DRootNode.Create;
     try
-      Shape := CurrentTerrain.CreateNode(CountSteps, Size, XRange, ZRange,
-        @ColorFromHeight);
+      Shape := CurrentTerrain.CreateNode(CountSteps, BaseSize * 2,
+        Vector2(-BaseSize, BaseSize),
+        Vector2(-BaseSize, BaseSize));
       Root.AddChildren(Shape);
-
-      if AddShadersTextures then
-      begin
-        Shader := TComposedShaderNode.Create;
-        Shape.Appearance.FdShaders.Add(Shader);
-        Shader.Language := slGLSL; // not actually needed, TComposedShaderNode assumes GLSL by default
-
-        { Add shader. Setup everything, like for rendering (without fog). }
-        TexSand := TImageTextureNode.Create;
-        TexSand.SetUrl([ApplicationData('textures/sand.png')]);
-        TexBread := TImageTextureNode.Create;
-        TexBread.SetUrl([ApplicationData('textures/bread.png')]);
-        TexRock := TImageTextureNode.Create;
-        TexRock.SetUrl([ApplicationData('textures/rock_d01.png')]);
-        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_sand', [], TexSand));
-        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_bread', [], TexBread));
-        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_rock', [], TexRock));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z0', 0.8));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z1', 1.0));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z2', 1.2));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z3', 1.5));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'color_scale', 0.2));
-        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'tex_scale', 0.8));
-
-        Part := TShaderPartNode.Create;
-        Shader.FdParts.Add(Part);
-        Part.ShaderType := stFragment;
-        Part.SetUrl([ApplicationData('shaders/terrain.fs')]);
-
-        Part := TShaderPartNode.Create;
-        Shader.FdParts.Add(Part);
-        Part.ShaderType := stVertex;
-        Part.SetUrl([ApplicationData('shaders/terrain.vs')]);
-      end;
-
-      Save3D(Root, URL, 'terrain', '', xeClassic);
+      Scene.AdjustAppearance(Shape.Appearance);
+      Save3D(Root, URL, ApplicationName);
     finally FreeAndNil(Root) end;
+  end;
+
+  procedure ExportToX3DIndexedTriangleStripSet(const URL: string);
+  begin
+    Scene.Save(URL);
   end;
 
 var
@@ -609,15 +481,19 @@ begin
           UpdateScene;
         end;
       end;
-    1000, 1001:
+    1000:
       begin
         URL := '';
-        if Window.FileDialog('Save terrain to X3D', URL, false,
-          X3DVersion.FileFilters(xeClassic)) then
-          ExportToX3D(URL, Item.IntData = 1001);
+        if Window.FileDialog('Save terrain to', URL, false, SaveX3D_FileFilters) then
+          ExportToX3DElevationGrid(URL);
+      end;
+    1001:
+      begin
+        URL := '';
+        if Window.FileDialog('Save terrain to', URL, false, SaveX3D_FileFilters) then
+          ExportToX3DIndexedTriangleStripSet(URL);
       end;
   end;
-  Window.Invalidate;
 end;
 
 function CreateMainMenu: TMenu;
@@ -647,8 +523,8 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Export to _X3D (basic) ...', 1000));
-    M.Append(TMenuItem.Create('Export to _X3D (with our shaders and textures) ...', 1001));
+    M.Append(TMenuItem.Create('Export to _X3D (ElevationGrid) ...', 1000));
+    M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', false { SceneManager.Camera = WalkCamera }, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
@@ -684,12 +560,18 @@ begin
   ExamineCamera.Init(Box3D(
     Vector3(-1, -1, -1),
     Vector3( 1,  1,  1)), { Radius } 0.2);
+  ExamineCamera.SetView(
+    Vector3(0, 20, 0),
+    Vector3(0, -1, 0),
+    Vector3(0, 0, -1)
+  );
 
   WalkCamera := TWalkCamera.Create(Window);
-  WalkCamera.Init(Vector3(0, 0, 0) { position },
-    Vector3(0, 1, 0) { direction },
-    Vector3(0, 0, 1) { up },
-    Vector3(0, 0, 1),
+  WalkCamera.Init(
+    Vector3(0, 0, 0),
+    Vector3(0, 0, -1),
+    Vector3(0, 1, 0),
+    Vector3(0, 1, 0),
     { PreferredHeight: unused, we don't use Gravity here } 0,
     { Radius } 0.02);
   WalkCamera.MoveSpeed := 0.5;
@@ -715,26 +597,6 @@ begin
       { some default terrain }
       SetTerrain(TTerrainNoise.Create);
   end;
-
-  // TODO
-  // function LoadTexture(const Name: string): TGLuint;
-  // begin
-  //   Result := LoadGLTexture(ApplicationData('textures/' + Name),
-  //     TextureFilter(minLinearMipmapLinear, magLinear), Texture2DRepeat);
-  // end;
-
-  // TODO
-  // { load textures }
-  // GLTexSand := LoadTexture('sand.png');
-  // GLTexBread := LoadTexture('bread.png');
-  // GLTexRock := LoadTexture('rock_d01.png');
-
-  // { initialize GLSL program }
-  // if GLFeatures.Shaders <> gsNone then
-  //   GLSLProgram := TGLSLProgram.Create
-  // else
-  //   Shader := false;
-  // GLSLProgramRegenerate;
 end;
 
 initialization

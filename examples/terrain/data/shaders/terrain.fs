@@ -1,62 +1,87 @@
-uniform sampler2D tex_sand;
-uniform sampler2D tex_bread;
-uniform sampler2D tex_rock;
+/* OpenGL shader effect (used to enhance the Castle Game Engine shaders,
+   see https://castle-engine.sourceforge.io/compositing_shaders.php ),
+   applied over terrain.
 
-varying vec3 position;
-varying vec3 normal;
+   This adjusts terrain color, mixing textures, based on current height. */
 
-/* No, these can't be simple constants in the shader, fglrx is f** broken,
-   see rants in my other shaders. */
-uniform float z0; // below sand
-uniform float z1; // below sand + bread
-uniform float z2; // below bread
-uniform float z3; // below bread + rock
-// above only rock
+uniform sampler2D tex_1;
+uniform sampler2D tex_2;
+uniform sampler2D tex_3;
 
-uniform float color_scale;
-uniform float tex_scale;
+uniform float uv_scale_1;
+uniform float uv_scale_2;
+uniform float uv_scale_3;
 
-#ifdef FOG
-varying float camera_distance;
-uniform float fog_start;
-uniform float fog_end;
-uniform vec3 fog_color;
-#endif
+uniform float normal_dark;
+uniform float normal_darkening;
+uniform float texture_mix;
 
-void main(void)
+uniform float h0; // below is tex_1
+uniform float h1; // below is tex_2 mixed with tex_1
+uniform float h2; // below is tex_2
+uniform float h3; // below is tex_3 mixed with tex_2
+                  // above is tex_3
+
+varying vec3 terrain_position;
+varying vec3 terrain_normal;
+
+void PLUG_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 {
-  /* calculate tex color by nicely blending textures based on
-     height (position.z) */
   vec4 tex;
-  if (position.z <= z0)
-    tex = texture2D(tex_sand, position.xy); else
-  if (position.z <= z1)
-    tex = mix( texture2D(tex_sand, position.xy),
-               texture2D(tex_bread, position.xy),
-               (position.z - z0) / (z1 - z0)); else
-  if (position.z <= z2)
-    tex = texture2D(tex_bread, position.xy); else
-  if (position.z <= z3)
-    tex = mix( texture2D(tex_bread, position.xy),
-               texture2D(tex_rock, position.xy),
-               (position.z - z2) / (z3 - z2)); else
-    tex = texture2D(tex_rock, position.xy);
+  float h = terrain_position.y;
+  vec2 uv = terrain_position.xz;
+  float normal_slope = normalize(terrain_normal).y;
 
-  /* use normal to darken color on steep faces.
-     Steep face =~ one with small n.z */
-  vec3 n = normalize(normal);
-
-  tex *= n.z;
-
-  gl_FragColor = (gl_Color * color_scale) + (tex * tex_scale);
-
-#ifdef FOG
-  if (camera_distance > fog_start)
+  /*
+  if (h <= h0) {
+    tex = texture2D(tex_1, uv);
+  } else
+  if (h <= h1) {
+    float mixfactor = smoothstep(h0, h1, h);
+      //clamp((h - h0) / (h1 - h0), 0.0, 1.0);
+    tex = mix(texture2D(tex_1, uv), texture2D(tex_2, uv), mixfactor);
+  } else
+  if (h <= h2) {
+    tex = texture2D(tex_2, uv);
+  } else
+  if (h <= h3) {
+    float mixfactor = smoothstep(h2, h3, h);
+      //clamp((h - h2) / (h3 - h2), 0.0, 1.0);
+    tex = mix(texture2D(tex_2, uv), texture2D(tex_3, uv), mixfactor);
+  } else
   {
-    if (camera_distance > fog_end)
-      gl_FragColor.rgb = fog_color; else
-      gl_FragColor.rgb = mix(gl_FragColor.rgb,  fog_color,
-        (camera_distance - fog_start) / (fog_end - fog_start));
+    tex = texture2D(tex_3, uv);
   }
-#endif
+  */
+
+  /* This achieves the same effect as above (because smoothstep
+     does clamp() inside), but better:
+     - one 1 "if", instead of 4 "if"s
+     - no weird artifacts when h is precisely at h0, h1, h2 or h3.
+
+       (previous code was sometimes showing a weird color at these borders,
+       possibly GPU was forcing all neighboring pixels to have the same
+       "if" outcome -- observed with
+         Renderer: GeForce GTS 450/PCIe/SSE2
+         Version: 4.5.0 NVIDIA 375.82
+         on Linux/x86_64.
+       ).
+  */
+
+  float hhalf = (h1 + h2) * 0.5;
+  if (h < hhalf) {
+    float mixfactor = smoothstep(h0, h1, h);
+    tex = mix(
+      texture2D(tex_1, uv * uv_scale_1),
+      texture2D(tex_2, uv * uv_scale_2), mixfactor);
+  } else {
+    float mixfactor = smoothstep(h2, h3, h);
+    tex = mix(
+      texture2D(tex_2, uv * uv_scale_2),
+      texture2D(tex_3, uv * uv_scale_3), mixfactor);
+  }
+
+  fragment_color.rgb = mix(fragment_color.rgb, tex.rgb, texture_mix);
+
+  fragment_color.rgb *= mix(normal_darkening, 1.0, smoothstep(normal_dark, 1.0, normal_slope));
 }

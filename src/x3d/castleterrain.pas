@@ -33,10 +33,24 @@ type
   TTerrain = class
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
-    { Create X3D node with the given terrain. }
+    { Create X3D node with the given terrain.
+
+      Size determines the resulting shape size.
+
+      XRange and ZRange determine the range of values queried from
+      the underlying terrain.
+
+      The Size does not need to be synchronized with XRange and ZRange.
+      But it may be: in most cases, you will provide values such that
+      @code(Size = XRange[1] - XRange[0]) and
+      @code(Size = ZRange[1] - ZRange[0]).
+    }
+    function CreateNode(const Divisions: Cardinal;
+      const Size: Single; const XRange, ZRange: TVector2): TShapeNode; overload;
     function CreateNode(const Divisions: Cardinal;
       const Size: Single; const XRange, ZRange: TVector2;
-      const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
+      const ColorFromHeight: TColorFromHeightFunction): TShapeNode; overload;
+      deprecated 'use overloaded version without ColorFromHeight; better to set color by shaders or texture color';
   end;
 
   { Terrain (height for each X, Y) data taken from intensities in an image.
@@ -303,6 +317,14 @@ implementation
 uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 
 { TTerrain ------------------------------------------------------------------- }
+
+function TTerrain.CreateNode(const Divisions: Cardinal;
+  const Size: Single; const XRange, ZRange: TVector2): TShapeNode;
+begin
+  {$warnings off} // knowingly using deprecated
+  Result := CreateNode(Divisions, Size, XRange, ZRange, nil);
+  {$warnings on}
+end;
 
 function TTerrain.CreateNode(const Divisions: Cardinal;
   const Size: Single; const XRange, ZRange: TVector2;
