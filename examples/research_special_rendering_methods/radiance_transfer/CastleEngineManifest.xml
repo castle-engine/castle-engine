@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="radiance_transfer"
+  caption="Radiance Transfer"
+  qualified_name="io.castleengine.radiance.transfer"
+  standalone_source="radiance_transfer.lpr"
+  game_units="RadianceTransferMain"
+  author="Michalis Kamburelis"
+  screen_orientation="landscape">
+</project>

@@ -26,7 +26,7 @@ uses
   CastleRenderingCamera, CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
+  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean); experimental;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -48,7 +48,7 @@ procedure SHVectorGLCapture(
   const CapturePoint: TVector3;
   const Render: TCubeMapRenderSimpleFunction;
   const MapScreenX, MapScreenY: Integer;
-  const ScaleColor: Single);
+  const ScaleColor: Single); experimental;
 
 { Capture cube map by rendering environment from CapturePoint.
 
