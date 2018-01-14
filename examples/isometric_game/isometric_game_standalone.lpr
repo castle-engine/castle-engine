@@ -24,7 +24,7 @@ program isometric_game_standalone;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize, GameWindow;
+uses CastleApplicationProperties, CastleLog, CastleWindow, Game, GameWindow;
 
 begin
   ApplicationProperties.Version := '';
