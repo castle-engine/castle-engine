@@ -483,13 +483,18 @@ var
     Position[1] := Height(QueryPosition[0], QueryPosition[1]);
   end;
 
+  function Idx(const I, J: Integer): Integer;
+  begin
+    Result := I + J * DivisionsPlus1;
+  end;
+
   procedure CalculateFaceNormal(const I, J: Cardinal; out Normal: TVector3);
   var
     P, PX, PY: PVector3;
   begin
-    P  := Coord.Ptr( I      * DivisionsPlus1 + J);
-    PX := Coord.Ptr((I + 1) * DivisionsPlus1 + J);
-    PY := Coord.Ptr( I      * DivisionsPlus1 + J + 1);
+    P  := Coord.Ptr(Idx(I, J));
+    PX := Coord.Ptr(Idx(I + 1, J));
+    PY := Coord.Ptr(Idx(I, J + 1));
     Normal := TVector3.CrossProduct(
       (PY^ - P^),
       (PX^ - P^)).Normalize;
@@ -499,7 +504,7 @@ var
 
     function FaceNormal(const DeltaX, DeltaY: Integer): TVector3;
     begin
-      Result := FaceNormals.List^[(I + DeltaX) * DivisionsPlus1 + J + DeltaY];
+      Result := FaceNormals.List^[Idx(I + DeltaX, J + DeltaY)];
     end;
 
   begin
@@ -518,7 +523,7 @@ var
   Geometry: TIndexedTriangleStripSetNode;
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
-  I, J, Idx: Cardinal;
+  I, J: Cardinal;
   IndexPtr: PLongInt;
 begin
   { extract nodes from Node, assuming it was created by CreateTriangulatedNode }
@@ -547,10 +552,7 @@ begin
   { calculate Coord }
   for I := 0 to Divisions do
     for J := 0 to Divisions do
-    begin
-      Idx := I * DivisionsPlus1 + J;
-      CalculatePosition(I, J, Coord.List^[Idx]);
-    end;
+      CalculatePosition(I, J, Coord.List^[Idx(I, J)]);
   CoordNode.FdPoint.Changed;
 
   { calculate Normals }
@@ -560,17 +562,11 @@ begin
     { calculate per-face (flat) normals }
     for I := 0 to Divisions - 1 do
       for J := 0 to Divisions - 1 do
-      begin
-        Idx := I * DivisionsPlus1 + J;
-        CalculateFaceNormal(I, J, FaceNormals.List^[Idx]);
-      end;
+        CalculateFaceNormal(I, J, FaceNormals.List^[Idx(I, J)]);
     { calculate smooth vertex normals }
     for I := 0 to Divisions - 1 do
       for J := 0 to Divisions - 1 do
-      begin
-        Idx := I * DivisionsPlus1 + J;
-        CalculateNormal(I, J, Normal.List^[Idx]);
-      end;
+        CalculateNormal(I, J, Normal.List^[Idx(I, J)]);
   finally FreeAndNil(FaceNormals) end;
   NormalNode.FdVector.Changed;
 
@@ -582,8 +578,8 @@ begin
     for J := 0 to Divisions - 1 do
     begin
       // order to make it CCW when viewed from above
-      IndexPtr^ :=  I      * DivisionsPlus1 + J; Inc(IndexPtr);
-      IndexPtr^ := (I - 1) * DivisionsPlus1 + J; Inc(IndexPtr);
+      IndexPtr^ := Idx(I    , J); Inc(IndexPtr);
+      IndexPtr^ := Idx(I - 1, J); Inc(IndexPtr);
     end;
     IndexPtr^ := -1;
     Inc(IndexPtr);
