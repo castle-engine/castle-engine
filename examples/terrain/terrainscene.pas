@@ -204,7 +204,7 @@ var
       and for vertex normal take average. }
     Normal := TVector3.CrossProduct(
       (PX^ - P^),
-      (PY^ - P^));
+      (PY^ - P^)).Normalize;
   end;
 
 var
