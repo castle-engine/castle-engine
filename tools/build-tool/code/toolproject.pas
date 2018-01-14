@@ -1439,8 +1439,8 @@ procedure TCastleProject.DoGenerateProgram;
     TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
     TargetFile := Path + NamePascal + '_standalone.' + Ext;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
-    if Verbose then
-      Writeln('Generated ', TargetFile);
+    Writeln('Generated ',
+      ExtractRelativePath(InclPathDelim(GetCurrentDir), TargetFile));
   end;
 
 begin
