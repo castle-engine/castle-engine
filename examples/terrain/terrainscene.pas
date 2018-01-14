@@ -23,11 +23,15 @@ uses Classes,
   CastleRendererBaseTypes;
 
 type
+  { Scene showing a terrain.
+    Uses CastleTerrain to build terrain shape.
+    Uses custom shader effect to have nice and configurable appearance. }
   TTerrainScene = class(TCastleScene)
   private
     TerrainNode: TAbstractChildNode;
     TerrainNodeTriangulated: boolean;
     Appearance: TAppearanceNode;
+    Effect: TEffectNode;
 
     TextureHeights: array [0..3] of Single;
     UVScale: array [1..3] of Single;
@@ -35,6 +39,11 @@ type
 
     TextureHeightsFields: array [0..3] of TSFFloat;
     UVScaleFields: array [1..3] of TSFFloat;
+
+    function GetLighting: boolean;
+    procedure SetLighting(const Value: boolean);
+    function GetTextured: boolean;
+    procedure SetTextured(const Value: boolean);
   public
     UseTriangulatedNode: boolean;
 
@@ -47,6 +56,9 @@ type
       Size is the size of the square layer around the (0, 0). }
     procedure Regenerate(Terrain: TTerrain;
       const Divisions: Cardinal; const Size: Single);
+
+    property Lighting: boolean read GetLighting write SetLighting;
+    property Textured: boolean read GetTextured write SetTextured;
   end;
 
 implementation
@@ -72,7 +84,6 @@ constructor TTerrainScene.Create(AOwner: TComponent);
 
   procedure AdjustAppearance;
   var
-    Effect: TEffectNode;
     VertexPart, FragmentPart: TEffectPartNode;
     Tex1, Tex2, Tex3: TImageTextureNode;
     I: Integer;
@@ -173,6 +184,31 @@ begin
     else
       Terrain.UpdateNode(TerrainNode, Divisions, Range, Range);
   end;
+end;
+
+function TTerrainScene.GetLighting: boolean;
+begin
+  Result := Appearance.Material <> nil;
+end;
+
+procedure TTerrainScene.SetLighting(const Value: boolean);
+begin
+  if Value then
+  begin
+    if Appearance.Material = nil then
+      Appearance.Material := TMaterialNode.Create;
+  end else
+    Appearance.Material := nil;
+end;
+
+function TTerrainScene.GetTextured: boolean;
+begin
+  Result := Effect.Enabled;
+end;
+
+procedure TTerrainScene.SetTextured(const Value: boolean);
+begin
+  Effect.Enabled := Value;
 end;
 
 end.

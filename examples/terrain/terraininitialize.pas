@@ -37,7 +37,8 @@ type
 var
   { global stuff }
   Window: TCastleWindow;
-  Scene: TTerrainScene;
+  Scene: TTerrainScene; //< terrain
+  EnvironmentScene: TCastleScene; //< defines sky (background) and fog
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   CurrentTerrain: TTerrain;
@@ -49,13 +50,8 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
-  Shader: boolean = true;
-  Lighting: boolean = true;
-  KeepCameraAboveGround: boolean = true;
   Size: Single = 10.0;
   ControlsVisible: boolean = true;
-  Fog: boolean = false;
-  BackgroundColor: TCastleColor;
 
 procedure UpdateScene;
 begin
@@ -355,6 +351,17 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     end;
   end;
 
+  procedure ToggleFog;
+  var
+    FogNode: TFogNode;
+  begin
+    FogNode := EnvironmentScene.Node('MainFog') as TFogNode;
+    if EnvironmentScene.FogStack.Top = FogNode then
+      FogNode.EventSet_Bind.Send(false)
+    else
+      FogNode.EventSet_Bind.Send(true);
+  end;
+
 var
   URL: string;
   Expression: string;
@@ -426,14 +433,9 @@ begin
         else
           SceneManager.Camera := ExamineCamera;
       end;
-    125: KeepCameraAboveGround := not KeepCameraAboveGround;
-    130: Lighting := not Lighting;
-    140: Shader := not Shader;
-    142:
-      begin
-        Fog := not Fog;
-        // TODO: GLSLProgramRegenerate;
-      end;
+    130: Scene.Lighting := not Scene.Lighting;
+    140: Scene.Textured := not Scene.Textured;
+    142: ToggleFog;
     145:
       begin
         ControlsVisible := not ControlsVisible;
@@ -469,9 +471,6 @@ begin
         end else
           MessageOk(Window, 'Not an image terrain');
       end;
-    170:
-      if Window.ColorDialog(BackgroundColor) then
-        SceneManager.BackgroundColor := BackgroundColor;
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
@@ -532,7 +531,6 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', false { SceneManager.Camera = WalkCamera }, true));
-    M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
     Result.Append(M);
@@ -541,11 +539,12 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Use IndexedTriangleStripSet node', 300,
       true { Scene.UseTriangulatedNode }, true));
-    M.Append(TMenuItemChecked.Create('Shader', 140, 's', Shader, true));
-    M.Append(TMenuItemChecked.Create('Fog (when Shader)', 142, 'f', Fog, true));
-    M.Append(TMenuItemChecked.Create('Lighting (when no Shader)', 130, 'l', Lighting, true));
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Background and Fog Color ...', 170));
+    M.Append(TMenuItemChecked.Create('Lighting', 130, 'l',
+      true { Scene.Lighting }, true));
+    M.Append(TMenuItemChecked.Create('Textured', 140, 't',
+      true { Scene.Textured }, true));
+    M.Append(TMenuItemChecked.Create('Fog', 142, 'f',
+      true { default Fog on EnvironmentScene }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
     Result.Append(M);
@@ -588,6 +587,11 @@ begin
   SceneManager := Window.SceneManager;
   SceneManager.Items.Add(Scene);
   SceneManager.Camera := ExamineCamera;
+
+  EnvironmentScene := TCastleScene.Create(Window);
+  EnvironmentScene.Load(ApplicationData('environment/environment.x3dv'));
+  SceneManager.Items.Add(EnvironmentScene);
+  SceneManager.MainScene := EnvironmentScene;
 
   Window.OnMenuClick := @MenuClick;
   Window.FpsShowOnCaption := true;
