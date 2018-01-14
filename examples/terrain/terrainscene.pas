@@ -164,22 +164,6 @@ procedure TTerrainScene.Regenerate(Terrain: TTerrain;
 var
   CountSteps, CountSteps1: Cardinal;
   X1, Z1, X2, Z2: Single;
-
-  procedure RegenerateElevationGrid;
-  var
-    Shape: TShapeNode;
-    Root: TX3DRootNode;
-  begin
-    Shape := Terrain.CreateNode(CountSteps, X2 - X1,
-      Vector2(X1, X2),
-      Vector2(Z1, Z2));
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(Shape);
-    Load(Root, true);
-    AdjustAppearance(Shape.Appearance);
-  end;
-
-var
   Coord, Normal: TVector3List;
   Index: TLongIntList;
 
@@ -192,19 +176,35 @@ var
   end;
 
   procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
-  var
-    P, PX, PY: PVector3;
-  begin
-    P  := Coord.Ptr( I      * CountSteps1 + J);
-    PX := Coord.Ptr((I + 1) * CountSteps1 + J);
-    PY := Coord.Ptr( I      * CountSteps1 + J + 1);
 
-    { TODO: this is actually normal vector of 1 of the four faces around this
-      vertex. Optimally, we should calculate normals on all faces,
-      and for vertex normal take average. }
-    Normal := TVector3.CrossProduct(
-      (PX^ - P^),
-      (PY^ - P^)).Normalize;
+    function FaceNormal(out Normal: TVector3; const DeltaX, DeltaY: Integer): boolean;
+    var
+      X, Y: Integer;
+      P, PX, PY: PVector3;
+    begin
+      X := I + DeltaX;
+      Y := J + DeltaY;
+      Result := (X >= 0) and (Y >= 0);
+      if Result then
+      begin
+        P  := Coord.Ptr( X      * CountSteps1 + Y);
+        PX := Coord.Ptr((X + 1) * CountSteps1 + Y);
+        PY := Coord.Ptr( X      * CountSteps1 + Y + 1);
+        Normal := TVector3.CrossProduct(
+          (PY^ - P^),
+          (PX^ - P^)).Normalize;
+      end;
+    end;
+
+  var
+    N: TVector3;
+  begin
+    Normal := TVector3.Zero;
+    if FaceNormal(N,  0,  0) then Normal := Normal + N;
+    if FaceNormal(N, -1,  0) then Normal := Normal + N;
+    if FaceNormal(N,  0, -1) then Normal := Normal + N;
+    if FaceNormal(N, -1, -1) then Normal := Normal + N;
+    Normal.NormalizeMe;
   end;
 
 var
@@ -222,10 +222,6 @@ begin
     (+ 1 additional for normal calculation). }
   CountSteps := 1 shl Subdivision + 1;
   CountSteps1 := CountSteps + 1;
-
-  // TODO: for testing
-  // RegenerateElevationGrid;
-  // Exit;
 
   Index := Geometry.FdIndex.Items;
   Coord := CoordNode.FdPoint.Items;
