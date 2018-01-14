@@ -2,11 +2,13 @@ Demo of an isometric game, using static images, using Castle Game Engine.
 
 Everything is just drawn as 2D, using our TGLImage.
 
-This could probably be made much more impressive by:
+This could be made much more impressive by:
+
 - Using T2DSceneManager for a game world,
   and using inside T2DScene with (possibly animated) models.
 - And by providing more impressive game assets :)
 - And by designing some interesting map (the current map is just a test).
+
 Contributions are most welcome:)
 
 ----------------------------------------
@@ -33,37 +35,36 @@ i:
 ----------------------------------------
 Map file format:
 
-(design considerations:
+Design considerations:
 - This was reused as a programming exercise (PGK exercise on ii.uni.wroc.pl,
   where Michalis was a lecturer), so I wanted some simple text format.
   Simple to read by code.
   And simple to design even when you don't have a visual editor.
 - Tile filenames and counts must be specified inside the file,
   to make it flexible.
-)
 
 The map file looks like this:
 
-    ```
-    Width Height
-    PlayerStartX PlayerStartY
-    BaseTilesCount BonusTilesCount
-    # Now BaseTilesCount lines follow, describing the tiles used on this map.
-    # The idea is that each tile corresponds to a different image filename.
-    # Each tile also has a one-char name, that will be used to indicate this
-    # tile later on the map. This one-char is any non-whitespace character
-    # besides the "_".
-    BaseChar1 BaseTileFileName1
-    ...
-    BonusChar1 BonusTileFileName1
-    ....
-    # Now Height map lines follow. Each line has exactly 2*Width
-    # characters. First char of each pair indicates the base tile,
-    # second char indicates the bonus tile (or _ if no bonus tile).
-    # Lines are specified from highest to lowest (so the resulting game
-    # screen looks roughly like your text file).
-    ...
-    ```
+```
+Width Height
+PlayerStartX PlayerStartY
+BaseTilesCount BonusTilesCount
+# Now BaseTilesCount lines follow, describing the tiles used on this map.
+# The idea is that each tile corresponds to a different image filename.
+# Each tile also has a one-char name, that will be used to indicate this
+# tile later on the map. This one-char is any non-whitespace character
+# besides the "_".
+BaseChar1 BaseTileFileName1
+...
+BonusChar1 BonusTileFileName1
+....
+# Now Height map lines follow. Each line has exactly 2*Width
+# characters. First char of each pair indicates the base tile,
+# second char indicates the bonus tile (or _ if no bonus tile).
+# Lines are specified from highest to lowest (so the resulting game
+# screen looks roughly like your text file).
+...
+```
 
 ----------------------------------------
 TODO:

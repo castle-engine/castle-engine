@@ -1,6 +1,9 @@
-program SandBox;
+{ Game initialization and logic. }
+unit GameInitialize;
 
-{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+interface
+
+implementation
 
 uses
   { standard units }
@@ -10,7 +13,7 @@ uses
   CastleUtils, CastleGLUtils, CastleKeysMouse, CastleMessages, CastleGLImages,
   CastleImages, CastleColors, CastleLog, CastleApplicationProperties,
   { game units }
-  SandBoxMap, SandBoxPlayer, SandBoxGame;
+  GameMap, GamePlayer, GameWindow;
 
 var
   Player: TPlayer;
@@ -264,37 +267,46 @@ begin
   Player.Update;
 end;
 
+{ One-time initialization of resources. }
+procedure ApplicationInitialize;
 begin
-  { Set ApplicationName early, as our log uses it.
-    Optionally you could also set ApplicationProperties.Version here.
-    Calling it 'sandbox_game', not 'sandbox',
-    to not collide with /usr/share/sandbox on macOS. }
-  ApplicationProperties.ApplicationName := 'sandbox_game';
-
-  InitializeLog;
-
-  Window := TCastleWindowCustom.Create(Application);
-
-  Window.Caption := 'The Sandbox';
-  { Our drawing routine is not prepared to react perfectly to window size change
-    at runtime. So disable it, for now. }
-  Window.ResizeAllowed := raOnlyAtOpen;
-  Window.AutoRedisplay := true;
-  Window.FpsShowOnCaption := true;
-  Window.OnResize := @Resize2D;
-  Window.OnRender := @WindowRender;
-  Window.OnPress := @WindowPress;
+  { Assign Window callbacks }
   Window.OnUpdate := @WindowUpdate;
+  Window.OnPress := @WindowPress;
+  Window.OnRender := @WindowRender;
+
+  { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
+  // Window.Container.UIReferenceWidth := 1024;
+  // Window.Container.UIReferenceHeight := 768;
+  // Window.Container.UIScaling := usEncloseReferenceSize;
 
   Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
   Player := TPlayer.Create;
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
-  try
-    Window.Open;
-    Player.CalculatePixelPosition;
-    Application.Run;
-  finally
-    FreeAndNil(Player);
-    FreeAndNil(Map);
-  end;
+  Player.CalculatePixelPosition;
+end;
+
+initialization
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here. }
+  ApplicationProperties.ApplicationName := 'isometric_game';
+
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization. }
+  InitializeLog;
+
+  { Initialize Application.OnInitialize. }
+  Application.OnInitialize := @ApplicationInitialize;
+
+  { Create and assign Application.MainWindow. }
+  Window := TCastleWindowCustom.Create(Application);
+  Application.MainWindow := Window;
+
+  { Our drawing routine is not prepared to react perfectly to window size change
+    at runtime. So disable it for now. }
+  Window.ResizeAllowed := raOnlyAtOpen;
+  Window.FpsShowOnCaption := true;
+finalization
+  FreeAndNil(Player);
+  FreeAndNil(Map);
 end.

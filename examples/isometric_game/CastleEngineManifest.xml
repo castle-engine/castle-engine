@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="sandbox"
-  caption="Isometric Sandbox"
-  qualified_name="net.sourceforge.castleengine.sandbox"
-  standalone_source="sandbox.lpr"
-  author="Michalis Kamburelis">
+<project name="isometric_game"
+  caption="Isometric Game Example"
+  qualified_name="io.castleengine.isometric.game"
+  standalone_source="isometric_game_standalone.lpr"
+  game_units="GameInitialize, GameWindow"
+  author="Michalis Kamburelis"
+  screen_orientation="landscape">
 </project>
