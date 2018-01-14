@@ -33,19 +33,21 @@ type
     Appearance: TAppearanceNode;
     Effect: TEffectNode;
 
-    TextureHeights: array [0..3] of Single;
-    UVScale: array [1..3] of Single;
-    TextureMix, NormalDark, NormalDarkening: Single;
-
-    TextureHeightsFields: array [0..3] of TSFFloat;
-    UVScaleFields: array [1..3] of TSFFloat;
-
     function GetLighting: boolean;
     procedure SetLighting(const Value: boolean);
     function GetTextured: boolean;
     procedure SetTextured(const Value: boolean);
   public
     UseTriangulatedNode: boolean;
+
+    { Shader parameters.
+      @groupBegin }
+    TextureHeights: array [0..3] of Single;
+    TextureHeightsFields: array [0..3] of TSFFloat;
+    UVScale: array [1..3] of Single;
+    UVScaleFields: array [1..3] of TSFFloat;
+    TextureMix, NormalDark, NormalDarkening: Single;
+    { @groupEnd }
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -59,6 +61,9 @@ type
 
     property Lighting: boolean read GetLighting write SetLighting;
     property Textured: boolean read GetTextured write SetTextured;
+
+    { Apply new shader values. }
+    procedure UpdateShader(Sender: TObject);
   end;
 
 implementation
@@ -209,6 +214,20 @@ end;
 procedure TTerrainScene.SetTextured(const Value: boolean);
 begin
   Effect.Enabled := Value;
+end;
+
+procedure TTerrainScene.UpdateShader(Sender: TObject);
+var
+  I: Integer;
+begin
+  { Pass new value to the existing shader. }
+  for I := Low(TextureHeights) to High(TextureHeights) do
+    TextureHeightsFields[I].Send(TextureHeights[I]);
+  for I := Low(UVScale) to High(UVScale) do
+    UVScaleFields[I].Send(UVScale[I]);
+  (Effect.Field('texture_mix') as TSFFloat).Send(TextureMix);
+  (Effect.Field('normal_dark') as TSFFloat).Send(NormalDark);
+  (Effect.Field('normal_darkening') as TSFFloat).Send(NormalDarkening);
 end;
 
 end.

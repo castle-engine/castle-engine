@@ -51,15 +51,18 @@ var
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
   Size: Single = 10.0;
-  ControlsVisible: boolean = true;
+  OnScreenMenuVisible: boolean = true;
 
 procedure UpdateScene;
 begin
   Scene.Regenerate(CurrentTerrain, 1 shl Subdivision + 1, Size);
 end;
 
+{ TBaseOnScreenMenu ---------------------------------------------------------- }
+
 type
-  TCommonMenu = class(TCastleOnScreenMenu)
+  { Base class for on-screen menus in this demo. }
+  TBaseOnScreenMenu = class(TCastleOnScreenMenu)
   public
     SubdivisionSlider: TCastleIntegerSlider;
     SizeSlider: TCastleFloatSlider;
@@ -72,97 +75,17 @@ type
     procedure ImageHeightScaleChanged(Sender: TObject);
   end;
 
-  TControlsNoise = class(TCommonMenu)
-  public
-    OctavesSlider: TCastleFloatSlider;
-    AmplitudeSlider: TCastleFloatSlider;
-    FrequencySlider: TCastleFloatSlider;
-    SmoothnessSlider: TCastleFloatSlider;
-    HeterogeneousSlider: TCastleFloatSlider;
-    SeedSlider: TCastleIntegerSlider;
+constructor TBaseOnScreenMenu.Create(AOwner: TComponent);
 
-    constructor Create(AOwner: TComponent); override;
-
-    procedure OctavesChanged(Sender: TObject);
-    procedure AmplitudeChanged(Sender: TObject);
-    procedure FrequencyChanged(Sender: TObject);
-    procedure SmoothnessChanged(Sender: TObject);
-    procedure HeterogeneousChanged(Sender: TObject);
-    procedure SeedChanged(Sender: TObject);
+  procedure ShaderSlider(const Name: string; const ValuePointer: PSingle;
+    const Min, Max: Single);
+  begin
+    Add(Name, TCastleFloatSlider.Create(
+      Self, ValuePointer, Min, Max, @Scene.UpdateShader));
   end;
 
-  { For any TTerrainImage except
-    TTerrainNoise (that has it's own TControlsNoise). }
-  TControlsImage = class(TCommonMenu)
-  public
-    constructor Create(AOwner: TComponent); override;
-  end;
-
-  { For any TCurrentTerrain. }
-  TControlsGeneral = class(TCommonMenu)
-  public
-    constructor Create(AOwner: TComponent); override;
-  end;
-
-procedure TCommonMenu.SubdivisionChanged(Sender: TObject);
-begin
-  Subdivision := SubdivisionSlider.Value;
-  UpdateScene;
-end;
-
-procedure TCommonMenu.SizeChanged(Sender: TObject);
-begin
-  Size := SizeSlider.Value;
-  UpdateScene;
-  { TODO: Workaround: In case of UseTriangulatedNode = true,
-    it seems that UpdateScene doesn't properly cause octree rebuild.
-    But we need it for walk mode (WalkCamera) gravity to work. }
-  Scene.ChangedAll;
-end;
-
-procedure TCommonMenu.ImageHeightScaleChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.OctavesChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.SmoothnessChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.HeterogeneousChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.AmplitudeChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.FrequencyChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
-  UpdateScene;
-end;
-
-procedure TControlsNoise.SeedChanged(Sender: TObject);
-begin
-  (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
-  UpdateScene;
-end;
-
-constructor TCommonMenu.Create(AOwner: TComponent);
+var
+  I: Integer;
 begin
   inherited;
 
@@ -187,9 +110,84 @@ begin
 
   Anchor(hpLeft, 10);
   Anchor(vpBottom, 10);
+
+  Add('Terrain shader:');
+
+  for I := Low(Scene.TextureHeights) to High(Scene.TextureHeights) do
+    ShaderSlider('Texture Height ' + IntToStr(I), @Scene.TextureHeights[I], 0, 10);
+  for I := Low(Scene.UVScale) to High(Scene.UVScale) do
+    ShaderSlider('UV Scale ' + IntToStr(I), @Scene.UVScale[I], 0.01, 0.5);
+  ShaderSlider('Texture Mix', @Scene.TextureMix, 0, 1);
+  ShaderSlider('Normal Dark', @Scene.NormalDark, 0, 1);
+  ShaderSlider('Normal Darkening', @Scene.NormalDarkening, 0, 1);
+
+  Add('Terrain shape:');
 end;
 
-constructor TControlsNoise.Create(AOwner: TComponent);
+procedure TBaseOnScreenMenu.SubdivisionChanged(Sender: TObject);
+begin
+  Subdivision := SubdivisionSlider.Value;
+  UpdateScene;
+end;
+
+procedure TBaseOnScreenMenu.SizeChanged(Sender: TObject);
+begin
+  Size := SizeSlider.Value;
+  UpdateScene;
+  { TODO: Workaround: In case of UseTriangulatedNode = true,
+    it seems that UpdateScene doesn't properly cause octree rebuild.
+    But we need it for walk mode (WalkCamera) gravity to work. }
+  Scene.ChangedAll;
+end;
+
+procedure TBaseOnScreenMenu.ImageHeightScaleChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+  UpdateScene;
+end;
+
+{ TOnScreenMenuImage --------------------------------------------------------- }
+
+type
+  { Configure TTerrainImage parameters
+    (but for TTerrainNoise, better use more specialized TOnScreenMenuNoise). }
+  TOnScreenMenuImage = class(TBaseOnScreenMenu)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TOnScreenMenuImage.Create(AOwner: TComponent);
+begin
+  inherited;
+  Add('Subdivision (render details)', SubdivisionSlider);
+  Add('Size', SizeSlider);
+  Add('Image scale (load image first)', ImageHeightScaleSlider);
+end;
+
+{ TOnScreenMenuNoise --------------------------------------------------------- }
+
+type
+  { Configure TTerrainNoise parameters }
+  TOnScreenMenuNoise = class(TBaseOnScreenMenu)
+  public
+    OctavesSlider: TCastleFloatSlider;
+    AmplitudeSlider: TCastleFloatSlider;
+    FrequencySlider: TCastleFloatSlider;
+    SmoothnessSlider: TCastleFloatSlider;
+    HeterogeneousSlider: TCastleFloatSlider;
+    SeedSlider: TCastleIntegerSlider;
+
+    constructor Create(AOwner: TComponent); override;
+
+    procedure OctavesChanged(Sender: TObject);
+    procedure AmplitudeChanged(Sender: TObject);
+    procedure FrequencyChanged(Sender: TObject);
+    procedure SmoothnessChanged(Sender: TObject);
+    procedure HeterogeneousChanged(Sender: TObject);
+    procedure SeedChanged(Sender: TObject);
+  end;
+
+constructor TOnScreenMenuNoise.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -240,15 +238,51 @@ begin
   Add('Image scale (load image first)', ImageHeightScaleSlider);
 end;
 
-constructor TControlsImage.Create(AOwner: TComponent);
+procedure TOnScreenMenuNoise.OctavesChanged(Sender: TObject);
 begin
-  inherited;
-  Add('Subdivision (render details)', SubdivisionSlider);
-  Add('Size', SizeSlider);
-  Add('Image scale (load image first)', ImageHeightScaleSlider);
+  (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
+  UpdateScene;
 end;
 
-constructor TControlsGeneral.Create(AOwner: TComponent);
+procedure TOnScreenMenuNoise.SmoothnessChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
+  UpdateScene;
+end;
+
+procedure TOnScreenMenuNoise.HeterogeneousChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
+  UpdateScene;
+end;
+
+procedure TOnScreenMenuNoise.AmplitudeChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
+  UpdateScene;
+end;
+
+procedure TOnScreenMenuNoise.FrequencyChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
+  UpdateScene;
+end;
+
+procedure TOnScreenMenuNoise.SeedChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
+  UpdateScene;
+end;
+
+{ TOnScreenMenuGeneral ------------------------------------------------------- }
+
+type
+  { Configure any TCurrentTerrain. }
+  TOnScreenMenuGeneral = class(TBaseOnScreenMenu)
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+constructor TOnScreenMenuGeneral.Create(AOwner: TComponent);
 begin
   inherited;
   Add('Subdivision (render details)', SubdivisionSlider);
@@ -256,23 +290,27 @@ begin
   // do not include ImageHeightScaleSlider, should not be used with this terrain
 end;
 
+{ global routines ------------------------------------------------------------ }
+
 var
   { UI controls }
-  ControlsNoise: TControlsNoise;
-  ControlsImage: TControlsImage;
-  ControlsGeneral: TControlsGeneral;
+  OnScreenMenuNoise: TOnScreenMenuNoise;
+  OnScreenMenuImage: TOnScreenMenuImage;
+  OnScreenMenuGeneral: TOnScreenMenuGeneral;
   SceneManager: TCastleSceneManager;
 
-{ Current TCastleOnScreenMenu, or none, based on Terrain class and ControlsVisible. }
-function CurrentControls: TCommonMenu;
+{ Current TCastleOnScreenMenu, or none, based on Terrain class and OnScreenMenuVisible. }
+function CurrentOnScreenMenu: TBaseOnScreenMenu;
 begin
-  if not ControlsVisible then Exit(nil);
+  if not OnScreenMenuVisible then Exit(nil);
 
   if CurrentTerrain is TTerrainNoise then
-    Result := ControlsNoise else
+    Result := OnScreenMenuNoise
+  else
   if CurrentTerrain is TTerrainImage then
-    Result := ControlsImage else
-    Result := ControlsGeneral;
+    Result := OnScreenMenuImage
+  else
+    Result := OnScreenMenuGeneral;
 end;
 
 procedure SetTerrain(Value: TTerrain);
@@ -282,19 +320,19 @@ begin
     FreeAndNil(CurrentTerrain);
     CurrentTerrain := Value;
 
-    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
+    Window.Controls.MakeSingle(TBaseOnScreenMenu, CurrentOnScreenMenu, true);
 
     if CurrentTerrain is TTerrainImage then
-      TTerrainImage(CurrentTerrain).ImageHeightScale := CurrentControls.ImageHeightScaleSlider.Value;
+      TTerrainImage(CurrentTerrain).ImageHeightScale := CurrentOnScreenMenu.ImageHeightScaleSlider.Value;
 
     if CurrentTerrain is TTerrainNoise then
     begin
-      TTerrainNoise(CurrentTerrain).Octaves := ControlsNoise.OctavesSlider.Value;
-      TTerrainNoise(CurrentTerrain).Smoothness := ControlsNoise.SmoothnessSlider.Value;
-      TTerrainNoise(CurrentTerrain).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
-      TTerrainNoise(CurrentTerrain).Amplitude := ControlsNoise.AmplitudeSlider.Value;
-      TTerrainNoise(CurrentTerrain).Frequency := ControlsNoise.FrequencySlider.Value;
-      TTerrainNoise(CurrentTerrain).Seed := ControlsNoise.SeedSlider.Value;
+      TTerrainNoise(CurrentTerrain).Octaves := OnScreenMenuNoise.OctavesSlider.Value;
+      TTerrainNoise(CurrentTerrain).Smoothness := OnScreenMenuNoise.SmoothnessSlider.Value;
+      TTerrainNoise(CurrentTerrain).Heterogeneous := OnScreenMenuNoise.HeterogeneousSlider.Value;
+      TTerrainNoise(CurrentTerrain).Amplitude := OnScreenMenuNoise.AmplitudeSlider.Value;
+      TTerrainNoise(CurrentTerrain).Frequency := OnScreenMenuNoise.FrequencySlider.Value;
+      TTerrainNoise(CurrentTerrain).Seed := OnScreenMenuNoise.SeedSlider.Value;
       TTerrainNoise(CurrentTerrain).Interpolation := NoiseInterpolation;
       TTerrainNoise(CurrentTerrain).Blur := NoiseBlur;
     end;
@@ -459,8 +497,8 @@ begin
     142: ToggleFog;
     145:
       begin
-        ControlsVisible := not ControlsVisible;
-        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
+        OnScreenMenuVisible := not OnScreenMenuVisible;
+        Window.Controls.MakeSingle(TBaseOnScreenMenu, CurrentOnScreenMenu, true);
       end;
     150:
       begin
@@ -567,7 +605,7 @@ begin
     M.Append(TMenuItemChecked.Create('Fog', 142, 'f',
       true { default Fog on EnvironmentScene }, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, ControlsVisible, true));
+    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, OnScreenMenuVisible, true));
     Result.Append(M);
   M := TMenu.Create('_Noise');
     M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);
@@ -583,6 +621,11 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
+  { automatically scale user interface to reference sizes }
+  Window.Container.UIReferenceWidth := 1600;
+  Window.Container.UIReferenceHeight := 900;
+  Window.Container.UIScaling := usEncloseReferenceSize;
+
   ExamineCamera := TExamineCamera.Create(Window);
   ExamineCamera.Init(Box3D(
     Vector3(-1, -1, -1),
@@ -620,9 +663,9 @@ begin
   Window.OnMenuClick := @MenuClick;
   Window.FpsShowOnCaption := true;
 
-  ControlsNoise := TControlsNoise.Create(nil);
-  ControlsImage := TControlsImage.Create(nil);
-  ControlsGeneral := TControlsGeneral.Create(nil);
+  OnScreenMenuNoise := TOnScreenMenuNoise.Create(nil);
+  OnScreenMenuImage := TOnScreenMenuImage.Create(nil);
+  OnScreenMenuGeneral := TOnScreenMenuGeneral.Create(nil);
 
   if CurrentTerrain = nil then
   begin
@@ -653,7 +696,7 @@ initialization
   Window.Caption := ApplicationName;
 finalization
   FreeAndNil(CurrentTerrain);
-  FreeAndNil(ControlsNoise);
-  FreeAndNil(ControlsImage);
-  FreeAndNil(ControlsGeneral);
+  FreeAndNil(OnScreenMenuNoise);
+  FreeAndNil(OnScreenMenuImage);
+  FreeAndNil(OnScreenMenuGeneral);
 end.
