@@ -112,6 +112,11 @@
     procedure RemoveChildren(const Children: array of TAbstractChildNode); overload;
     procedure RemoveChildren(const Child: TAbstractChildNode); overload;
 
+    { Clear all children from the list.
+      This automatically propagates the changes appropriately
+      to the parent TCastleSceneCore. }
+    procedure ClearChildren;
+
     {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
   end;
 
@@ -670,6 +675,18 @@ procedure TAbstractX3DGroupingNode.RemoveChildren(
   const Child: TAbstractChildNode);
 begin
   RemoveChildren([Child]);
+end;
+
+procedure TAbstractX3DGroupingNode.ClearChildren;
+begin
+  if FdChildren.Count <> 0 then
+  begin
+    if Scene <> nil then
+      Scene.BeforeNodesFree;
+    FdChildren.Clear;
+    if Scene <> nil then
+      Scene.ChangedAll;
+  end;
 end;
 
 procedure TGroupNode.CreateNode;
