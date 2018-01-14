@@ -76,9 +76,11 @@ type
       deprecated 'use overloaded version without ColorFromHeight; better to set color by shaders or texture color';
 
     { Alternative version of @link(CreateNode) that creates a different shape.
-      It may be less functional (it remains to be seen what exactly this means),
-      but faster to update using UpdateTriangulatedNode
-      (it remains to be seen how faster in practice).
+      It's has little less quality (triangulation is not adaptive like
+      for ElevationGrid), but updating it (by UpdateTriangulatedNode)
+      is a little faster (than updating the CreateNode by UpdatNode).
+      In practice, the speed gain is minimal, and this method will likely
+      be removed at some point.
 
       The parameters have the same meaning as for @link(CreateNode),
       and resulting look should be the same. }
