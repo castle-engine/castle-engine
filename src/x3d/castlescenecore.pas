@@ -2643,6 +2643,12 @@ procedure TCastleSceneCore.SetRootNode(const Value: TX3DRootNode);
 begin
   if FRootNode <> Value then
   begin
+    if OwnsRootNode then
+    begin
+      BeforeNodesFree;
+      PointingDeviceClear;
+      FreeAndNil(FRootNode);
+    end;
     FRootNode := Value;
     ScheduleChangedAll;
   end;
