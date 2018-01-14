@@ -468,6 +468,7 @@ var
   DivisionsPlus1: Cardinal;
   Coord, Normal: TVector3List;
   Index: TLongIntList;
+  FaceNormals: TVector3List;
 
   procedure CalculatePosition(const I, J: Cardinal; out Position: TVector3);
   var
@@ -482,35 +483,33 @@ var
     Position[1] := Height(QueryPosition[0], QueryPosition[1]);
   end;
 
+  procedure CalculateFaceNormal(const I, J: Cardinal; out Normal: TVector3);
+  var
+    P, PX, PY: PVector3;
+  begin
+    P  := Coord.Ptr( I      * DivisionsPlus1 + J);
+    PX := Coord.Ptr((I + 1) * DivisionsPlus1 + J);
+    PY := Coord.Ptr( I      * DivisionsPlus1 + J + 1);
+    Normal := TVector3.CrossProduct(
+      (PY^ - P^),
+      (PX^ - P^)).Normalize;
+  end;
+
   procedure CalculateNormal(const I, J: Cardinal; out Normal: TVector3);
 
-    function FaceNormal(out Normal: TVector3; const DeltaX, DeltaY: Integer): boolean;
-    var
-      X, Y: Integer;
-      P, PX, PY: PVector3;
+    function FaceNormal(const DeltaX, DeltaY: Integer): TVector3;
     begin
-      X := I + DeltaX;
-      Y := J + DeltaY;
-      Result := (X >= 0) and (Y >= 0);
-      if Result then
-      begin
-        P  := Coord.Ptr( X      * DivisionsPlus1 + Y);
-        PX := Coord.Ptr((X + 1) * DivisionsPlus1 + Y);
-        PY := Coord.Ptr( X      * DivisionsPlus1 + Y + 1);
-        Normal := TVector3.CrossProduct(
-          (PY^ - P^),
-          (PX^ - P^)).Normalize;
-      end;
+      Result := FaceNormals.List^[(I + DeltaX) * DivisionsPlus1 + J + DeltaY];
     end;
 
-  var
-    N: TVector3;
   begin
-    Normal := TVector3.Zero;
-    if FaceNormal(N,  0,  0) then Normal := Normal + N;
-    if FaceNormal(N, -1,  0) then Normal := Normal + N;
-    if FaceNormal(N,  0, -1) then Normal := Normal + N;
-    if FaceNormal(N, -1, -1) then Normal := Normal + N;
+    Normal := FaceNormal(0, 0);
+    if (I > 0) then
+      Normal := Normal + FaceNormal(-1, 0);
+    if (J > 0) then
+      Normal := Normal + FaceNormal(0, -1);
+    if (I > 0) and (J > 0) then
+      Normal := Normal + FaceNormal(-1, -1);
     Normal.NormalizeMe;
   end;
 
@@ -555,12 +554,24 @@ begin
   CoordNode.FdPoint.Changed;
 
   { calculate Normals }
-  for I := 0 to Divisions - 1 do
-    for J := 0 to Divisions - 1 do
-    begin
-      Idx := I * DivisionsPlus1 + J;
-      CalculateNormal(I, J, Normal.List^[Idx]);
-    end;
+  FaceNormals := TVector3List.Create;
+  try
+    FaceNormals.Count := Sqr(DivisionsPlus1);
+    { calculate per-face (flat) normals }
+    for I := 0 to Divisions - 1 do
+      for J := 0 to Divisions - 1 do
+      begin
+        Idx := I * DivisionsPlus1 + J;
+        CalculateFaceNormal(I, J, FaceNormals.List^[Idx]);
+      end;
+    { calculate smooth vertex normals }
+    for I := 0 to Divisions - 1 do
+      for J := 0 to Divisions - 1 do
+      begin
+        Idx := I * DivisionsPlus1 + J;
+        CalculateNormal(I, J, Normal.List^[Idx]);
+      end;
+  finally FreeAndNil(FaceNormals) end;
   NormalNode.FdVector.Changed;
 
   { calculate Index }
