@@ -706,7 +706,7 @@ begin
       because if EarDir is non-zero then they had to be different. }
   until (P2 = P0) or
     { use IsPerfectlyZero, not IsZero, to not consider triangle invalid too soon.
-      Testcase: demo-models/obj/humanoid_pose_concave_test_normals.x3dv }
+      Testcase: demo-models/x3d/humanoid_pose_concave_test_normals.x3dv }
     not Result.IsPerfectlyZero;
   if P2 = P0 then
   begin
