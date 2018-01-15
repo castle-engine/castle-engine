@@ -126,10 +126,14 @@ type
 
     Multisample: boolean;
 
-    { Number of texture units available.
+    { Number of texture units available for fixed-function pipeline.
+      Equal to 0 on OpenGLES (that doesn't have fixed-function pipeline).
       Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
       available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
-    MaxTextureUnits: Cardinal;
+    MaxTextureUnitsFixedFunction: Cardinal;
+
+    { Number of texture units available for shader pipeline. }
+    MaxTextureUnitsShaders: Cardinal;
 
     { Are all OpenGL multi-texturing extensions for
       VRML/X3D MultiTexture support available.
@@ -251,6 +255,11 @@ type
       Call Memory.Refresh whenever needed. }
     Memory: TGLMemoryInfo;
 
+    { Maximum number of texture units you can safely always use.
+      If EnableFixedFunction, this is MaxTextureUnitsFixedFunction,
+      otherwise MaxTextureUnitsShaders. }
+    function MaxTextureUnits: Cardinal;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -370,15 +379,17 @@ begin
     Make it configurable somewhere, e.g. at Attribtes.MaxLightsPerShape ? }
   MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
 
-  {$ifdef OpenGLES}
-  MaxTextureUnits := Max(
+  MaxTextureUnitsShaders := Max(
     glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
     glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
+
+  {$ifdef OpenGLES}
+  MaxTextureUnitsFixedFunction := 0;
   {$else}
   if Version_1_3 then
-    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS)
+    MaxTextureUnitsFixedFunction := glGetInteger(GL_MAX_TEXTURE_UNITS)
   else
-    MaxTextureUnits := 1;
+    MaxTextureUnitsFixedFunction := 1;
   {$endif}
 
   MaxCubeMapTextureSize := 0;
@@ -596,6 +607,14 @@ end;
 destructor TGLFeatures.Destroy;
 begin
   FreeAndNil(Memory);
+end;
+
+function TGLFeatures.MaxTextureUnits: Cardinal;
+begin
+  if EnableFixedFunction then
+    Result := MaxTextureUnitsFixedFunction
+  else
+    Result := MaxTextureUnitsShaders;
 end;
 
 { TGLMemoryInfo -------------------------------------------------------------- }

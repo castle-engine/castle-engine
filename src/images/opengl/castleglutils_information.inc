@@ -271,7 +271,8 @@ begin
     {$endif}
     '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) +nl+
     '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-    '  Max texture units: ' + IntToStr(GLFeatures.MaxTextureUnits) +nl+
+    '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) +nl+
+    '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) +nl+
     '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
     '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
     '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
