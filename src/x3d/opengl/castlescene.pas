@@ -641,24 +641,6 @@ type
       const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
-
-    { Render silhouette edges.
-      Silhouette is determined from the ObserverPos.
-      Useful to debug (visualize) ManifoldEdges of the scene.
-
-      Whole scene is transformed by ATransform (before checking which
-      edges are silhouette and before rendering). In other words,
-      ATransform must transform the scene to the same coord space where
-      given ObserverPos is. When they are in the same space, just use
-      TMatrix4.Identity. }
-    procedure RenderSilhouetteEdges(
-      const ObserverPos: TVector4;
-      const ATransform: TMatrix4);
-
-    { Render all border edges (the edges without neighbor).
-      Useful to debug (visualize) BorderEdges of the scene. }
-    procedure RenderBorderEdges(
-      const ATransform: TMatrix4);
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -1795,39 +1777,6 @@ begin
       finally FreeAndNil(SI) end;
     end;
   end;
-end;
-
-procedure TCastleScene.RenderSilhouetteEdges(
-  const ObserverPos: TVector4;
-  const ATransform: TMatrix4);
-var
-  SI: TShapeTreeIterator;
-  T: TMatrix4;
-begin
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      T := ATransform * SI.Current.State.Transform;
-      SI.Current.InternalShadowVolumes.RenderSilhouetteEdges(ObserverPos, T);
-    end;
-  finally FreeAndNil(SI) end;
-end;
-
-procedure TCastleScene.RenderBorderEdges(
-  const ATransform: TMatrix4);
-var
-  SI: TShapeTreeIterator;
-  T: TMatrix4;
-begin
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      T := ATransform * SI.Current.State.Transform;
-      SI.Current.InternalShadowVolumes.RenderBorderEdges(T);
-    end;
-  finally FreeAndNil(SI) end;
 end;
 
 { Frustum culling ------------------------------------------------------------ }
