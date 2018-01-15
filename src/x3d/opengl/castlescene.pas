@@ -27,7 +27,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
-  CastleRectangles, CastleCameras, CastleRendererInternalShader,
+  CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
 {$define read_interface}
@@ -72,14 +72,14 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      WireframeColor and LineWidth are used as wireframe
-      line color/width (regardless of current scene
-      @link(TRenderingAttributes.Mode Attributes.Mode) value).
+      @link(TRenderingAttributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth) determine the color and width
+      of lines.
 
-      This usually gives best results when
-      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
-      Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color). }
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -88,14 +88,14 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      WireframeColor and LineWidth are used as silhouette
-      line color/width (regardless of current scene
-      @link(TRenderingAttributes.Mode Attributes.Mode) value).
+      @link(TRenderingAttributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth) determine the color and width
+      of silhouette lines.
 
-      This is sometimes sensible to use with
-      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
-      Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color). }
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
     weSilhouette);
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
@@ -115,7 +115,7 @@ type
     FBlendingSort: TBlendingSort;
     FOcclusionSort: boolean;
     FControlBlending: boolean;
-    FWireframeColor: TVector3;
+    FWireframeColor: TCastleColor;
     FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
@@ -166,7 +166,7 @@ type
       { Default value of @link(TSceneRenderingAttributes.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TVector3 = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColor = (Data: (0, 0, 0, 1));
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -249,8 +249,12 @@ type
     property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
 
     { Wireframe color, used with some WireframeEffect values.
-      Default value is DefaultWireframeColor. }
-    property WireframeColor: TVector3
+      Default value is DefaultWireframeColor.
+
+      Using the alpha value of WireframeColor does not have any effect now,
+      but it may automatically make blending in the future.
+      To be on the safe side, always set alpha = 1 of the WireframeColor now. }
+    property WireframeColor: TCastleColor
       read FWireframeColor write FWireframeColor;
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
@@ -1559,23 +1563,26 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
+    SavedSolidColor: TCastleColor;
   begin
     glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
 
       if UseWireframeColor then
       begin
-        glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
-        glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
-        glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
         SavedMode := Attributes.Mode;
-        Attributes.Mode := rmPureGeometry;
+        SavedSolidColor := Attributes.SolidColor;
+        Attributes.Mode := rmSolidColor;
+        Attributes.SolidColor := Attributes.WireframeColor;
       end;
 
       RenderNormal;
 
       if UseWireframeColor then
+      begin
         Attributes.Mode := SavedMode;
+        Attributes.SolidColor := SavedSolidColor;
+      end;
     glPopAttrib;
   end;
   {$warnings on}
@@ -1590,7 +1597,7 @@ procedure TCastleScene.LocalRenderOutside(
   begin
     case Attributes.WireframeEffect of
       weNormal: RenderNormal;
-      weWireframeOnly: RenderWireframe(Attributes.Mode = rmPureGeometry);
+      weWireframeOnly: RenderWireframe(Attributes.Mode = rmSolidColor);
       weSolidWireframe:
         begin
           glPushAttrib(GL_POLYGON_BIT);
@@ -1609,16 +1616,16 @@ procedure TCastleScene.LocalRenderOutside(
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
-            { rmPureGeometry still does backface culling.
-              This is very good in this case. When rmPureGeometry and weSilhouette,
+            { rmSolidColor still does backface culling.
+              This is very good in this case. When rmSolidColor and weSilhouette,
               and objects are solid (so backface culling is used) we can
               significantly improve the effect by reverting glFrontFace,
               this way we will cull *front* faces. This will not be noticed
-              in case of rmPureGeometry will single solid color, and it will
+              in case of rmSolidColor will single solid color, and it will
               improve the silhouette look, since front-face edges will not be
               rendered at all (no need to even hide them by glPolygonOffset,
               which is somewhat sloppy). }
-            if Attributes.Mode = rmPureGeometry then
+            if Attributes.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
             RenderWireframe(true);
           glPopAttrib;

@@ -210,9 +210,8 @@ begin
 
   { calculate and apply Lighting }
   Lighting := Attributes.Lighting and MaterialAndShapeLit and
-    (Attributes.Mode <> rmDepth);
-  if Attributes.Mode <> rmPureGeometry then
-    FixedFunctionLighting := Lighting;
+    (Attributes.Mode = rmFull);
+  FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 
@@ -224,4 +223,8 @@ begin
     Material_CommonSurfaceShader(SurfaceShader)
   else
     Material_2(M2);
+
+  { override Shader.MaterialUnlit in case rmSolidColor }
+  if Attributes.Mode = rmSolidColor then
+    Shader.MaterialUnlit := Attributes.SolidColor;
 end;

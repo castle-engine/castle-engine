@@ -121,7 +121,7 @@ interface
 
 uses Classes, SysUtils, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleUtils, CastleVectors, X3DFields, X3DNodes,
+  CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
@@ -145,39 +145,23 @@ type
       (as long as other TRenderingAttributes settings allow them). }
     rmFull,
 
-    { Pure geometry is rendered, without any colors, materials,
-      lights, textures. Only the geometry primitives
-      are rendered. We still set correct modelview matrix transformations,
-      control face culling and depth test and such.
+    { Solid color is used for everything. We do not show any color variation,
+      materials, lights, fog, textures on surfaces.
+      We still do back-face culling and depth test.
       The idea is that we "hit" the same pixels as normal rendering
-      (with the exception of alpha test textures, that are not used for
-      pure geometry rendering --- for now).
-      But we do absolutely nothing to set a particular pixel color.
-      Which means that the caller controls the color (by default,
-      if lighting and everything else is disabled, you just get solid look
-      with color from last glColor).
+      (with the exception of alpha test textures, this mode
+      doesn't set up alpha test for them).
+      But everything has color TRenderingAttributes.SolidColor.
 
-      For example, Renderer will not set any color (no glColor calls),
-      will not set any material
-      (no glMaterial calls), will not set any texture coordinates and
-      will not bind any texture, fog and such.
-
-      This is useful for special tricks, in particular to draw the geometry
-      into stencil buffer.
-      Another example of use is to render plane-projected shadows,
-      see castle_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
-      where you have to draw the model with pure black color. }
-    rmPureGeometry,
+      This is useful for special tricks. }
+    rmSolidColor,
 
     { Only the rendering fetures that affect depth buffer work reliably,
       everything else is undefined (and works as fast as possible).
       This is suitable if you render only to depth buffer, like for shadow maps.
 
-      It's quite similar to rmPureGeometry, except alpha testing must work,
-      so (at least some) textures must be applied over the model.
-      Also, contrary to rmPureGeometry, various features (like fixed-function
-      lighting state) are simply forcibly disabled (instead of letting caller
-      to set OpenGL state for them). }
+      It's quite similar to rmSolidColor, except alpha testing must work,
+      so (at least some) textures must be applied over the model. }
     rmDepth
   );
 
@@ -207,6 +191,7 @@ type
     FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
     FPhongShading: boolean;
+    FSolidColor: TCastleColor;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
   protected
@@ -435,6 +420,13 @@ type
       what you're doing, if you're sure that the order of rendering will
       always be good. }
     property DepthTest: boolean read FDepthTest write FDepthTest default true;
+
+    { Color used when @link(Mode) is @link(rmSolidColor).
+
+      Using the alpha value of SolidColor does not have any effect now,
+      but it may automatically make blending in the future.
+      To be on the safe side, always set alpha = 1 of the SolidColor now. }
+    property SolidColor: TCastleColor read FSolidColor write FSolidColor;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -1015,6 +1007,8 @@ const
     'Steep Parallax',
     'Steep Parallax With Self-Shadowing' );
 
+  rmPureGeometry = rmSolidColor deprecated 'use rmSolidColor';
+
 var
   { Log renderer cache events. Allows to see how the cache performs.
     A @italic(lot) of log messages.
@@ -1033,7 +1027,7 @@ implementation
 
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
-  X3DCameraUtils, CastleProjection, CastleColors, CastleRectangles;
+  X3DCameraUtils, CastleProjection, CastleRectangles;
 
 {$define read_implementation}
 
@@ -2537,6 +2531,9 @@ begin
     { push matrix after RenderCleanState, to be sure we're in modelview mode }
     {$ifndef OpenGLES}
     glPushMatrix;
+
+    if Attributes.Mode = rmSolidColor then
+      glColorv(Attributes.SolidColor);
     {$endif}
   end;
 
@@ -3246,7 +3243,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    if Attributes.Mode = rmPureGeometry then
+    if Attributes.Mode = rmSolidColor then
       Exit;
 
     AlphaTest := false;
@@ -3583,7 +3580,7 @@ begin
   if FFixedFunctionLighting <> Value then
   begin
     FFixedFunctionLighting := Value;
-    {$ifndef OpenGLES} //TODO-es
+    {$ifndef OpenGLES}
     GLSetEnabled(GL_LIGHTING, FixedFunctionLighting);
     {$endif}
   end;

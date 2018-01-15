@@ -202,7 +202,7 @@ var
           { Render scene for shadow.
             SceneForShadow is a normal 3D model and it's rendered
             almost exactly like Scene (the same set of glVertex etc.),
-            but it's rendered with Attributes.Mode = rmPureGeometry
+            but it's rendered with Attributes.Mode = rmSolidColor
             (we want it's color to be consistently black). }
           glPushAttrib(GL_DEPTH_BUFFER_BIT);
             { we want it to always pass depth test, stencil protects us from drawing
@@ -652,7 +652,7 @@ begin
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
     SceneForShadow := TCastleScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
-    SceneForShadow.Attributes.Mode := rmPureGeometry;
+    SceneForShadow.Attributes.Mode := rmSolidColor;
 
     { init light that we'll control }
     LightNode := TPointLightNode.Create;
