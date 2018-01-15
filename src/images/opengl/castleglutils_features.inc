@@ -376,7 +376,8 @@ begin
     glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
   {$else}
   if Version_1_3 then
-    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
+    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS)
+  else
     MaxTextureUnits := 1;
   {$endif}
 

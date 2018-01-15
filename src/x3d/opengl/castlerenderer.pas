@@ -779,7 +779,7 @@ type
     { How many texture units are used.
 
       It's always clamped by the number of available texture units
-      (GLMaxTextureUnits). Always <= 1 if OpenGL doesn't support
+      (GLFeatures.MaxTextureUnits). Always <= 1 if OpenGL doesn't support
       multitexturing (not GLFeatures.UseMultiTexturing). }
     BoundTextureUnits: Cardinal;
 

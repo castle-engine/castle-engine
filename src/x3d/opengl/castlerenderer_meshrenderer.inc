@@ -478,7 +478,7 @@ end;
   the only texture unit (glTexCoord).
 
   The only thing that you have to care about is to specify TextureUnit <
-  GLMaxTextureUnits. Everything else (whether multitexturing
+  GLFeatures.MaxTextureUnits. Everything else (whether multitexturing
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
