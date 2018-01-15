@@ -72,8 +72,8 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      @link(TRenderingAttributes.WireframeColor) and
-      @link(TRenderingAttributes.LineWidth) determine the color and width
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of lines.
 
       This is often used together with the
@@ -88,8 +88,8 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      @link(TRenderingAttributes.WireframeColor) and
-      @link(TRenderingAttributes.LineWidth) determine the color and width
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of silhouette lines.
 
       This is often used together with the
