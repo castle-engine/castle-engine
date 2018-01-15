@@ -226,5 +226,5 @@ begin
 
   { override Shader.MaterialUnlit in case rmSolidColor }
   if Attributes.Mode = rmSolidColor then
-    Shader.MaterialUnlit := Attributes.SolidColor;
+    Shader.MaterialUnlit := Vector4(Attributes.SolidColor, 1);
 end;

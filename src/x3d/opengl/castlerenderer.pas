@@ -191,7 +191,7 @@ type
     FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
     FPhongShading: boolean;
-    FSolidColor: TCastleColor;
+    FSolidColor: TCastleColorRGB;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
   protected
@@ -421,12 +421,8 @@ type
       always be good. }
     property DepthTest: boolean read FDepthTest write FDepthTest default true;
 
-    { Color used when @link(Mode) is @link(rmSolidColor).
-
-      Using the alpha value of SolidColor does not have any effect now,
-      but it may automatically make blending in the future.
-      To be on the safe side, always set alpha = 1 of the SolidColor now. }
-    property SolidColor: TCastleColor read FSolidColor write FSolidColor;
+    { Color used when @link(Mode) is @link(rmSolidColor). }
+    property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;

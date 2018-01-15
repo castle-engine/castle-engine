@@ -115,7 +115,7 @@ type
     FBlendingSort: TBlendingSort;
     FOcclusionSort: boolean;
     FControlBlending: boolean;
-    FWireframeColor: TCastleColor;
+    FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
@@ -166,7 +166,7 @@ type
       { Default value of @link(TSceneRenderingAttributes.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TCastleColor = (Data: (0, 0, 0, 1));
+      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -249,12 +249,8 @@ type
     property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
 
     { Wireframe color, used with some WireframeEffect values.
-      Default value is DefaultWireframeColor.
-
-      Using the alpha value of WireframeColor does not have any effect now,
-      but it may automatically make blending in the future.
-      To be on the safe side, always set alpha = 1 of the WireframeColor now. }
-    property WireframeColor: TCastleColor
+      Default value is DefaultWireframeColor. }
+    property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
@@ -1563,7 +1559,7 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
-    SavedSolidColor: TCastleColor;
+    SavedSolidColor: TCastleColorRGB;
   begin
     glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
