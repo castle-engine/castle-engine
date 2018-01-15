@@ -861,6 +861,8 @@ begin
   Exclude('*.xcf', Files);
   Exclude('*.blend*', Files);
   Exclude('*~', Files);
+  Exclude('*.DS_Store', Files);
+  Exclude('*thumbs.db', Files);
   for I := 0 to ExcludePaths.Count - 1 do
     Exclude(ExcludePaths[I], Files);
 end;
@@ -1720,6 +1722,8 @@ begin
     FileInfo.AbsoluteName, true);
 
   if IsWild(DestinationRelativeFileName, '*setup_sdk.sh', true) or
+     IsWild(DestinationRelativeFileName, '*.DS_Store', true) or
+     IsWild(DestinationRelativeFileName, '*thumbs.db', true) or
      IsWild(DestinationRelativeFileName, '*~', true) then
   begin
     // if Verbose then
