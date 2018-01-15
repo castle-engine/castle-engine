@@ -115,7 +115,6 @@ begin
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
   SceneManager.WalkCamera.Input :=
     SceneManager.WalkCamera.Input - [ciMouseDragging];
-  SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
   // easy way to make the simulation feel more dynamic
   SceneManager.TimeScale := 2;
 
