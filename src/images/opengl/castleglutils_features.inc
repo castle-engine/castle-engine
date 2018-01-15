@@ -379,9 +379,11 @@ begin
     Make it configurable somewhere, e.g. at Attribtes.MaxLightsPerShape ? }
   MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
 
-  MaxTextureUnitsShaders := Max(
-    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
+  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+    which is usually much smaller (may even be 0).
+    But most of our texture uses do not access the texture from the vertex shader,
+    only fragment shader. }
+  MaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
 
   {$ifdef OpenGLES}
   MaxTextureUnitsFixedFunction := 0;
@@ -612,6 +614,10 @@ end;
 function TGLFeatures.MaxTextureUnits: Cardinal;
 begin
   if EnableFixedFunction then
+    { Note doing
+        Result := Min(MaxTextureUnitsFixedFunction, MaxTextureUnitsShaders)
+      would not be OK, since then a GPU that cannot do shaders would not
+      be able to use textures at all. }
     Result := MaxTextureUnitsFixedFunction
   else
     Result := MaxTextureUnitsShaders;
