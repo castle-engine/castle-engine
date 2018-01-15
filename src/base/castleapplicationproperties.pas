@@ -74,7 +74,8 @@ type
     property ApplicationName: string read GetApplicationName write SetApplicationName;
 
     { Version of this application.
-      It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
+      It may be used e.g. by @link(InitializeLog) and
+      @link(TCastleApplication.ParseStandardParameters). }
     property Version: string read FVersion write FVersion;
 
     { Initialized to @true on touch devices (Android, iOS).

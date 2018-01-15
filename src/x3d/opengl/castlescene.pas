@@ -392,12 +392,13 @@ type
     fcBoth
   );
 
-  { Basic non-abstact implementation of render params for calling T3D.Render.
+  { Basic non-abstact implementation of render params for calling
+    TCastleTransform.LocalRender.
 
     @exclude
     @bold(This is exposed here only to support some experiments with non-standard
     rendering in engine example programs. Do not use this in your own code.)
-    This can be used when you have to call T3D.Render,
+    This can be used when you have to call TCastleTransform.LocalRender,
     but you don't use scene manager.
     Usually this should not be needed.
     This class may be removed at some point!

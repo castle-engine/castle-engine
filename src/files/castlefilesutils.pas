@@ -33,7 +33,7 @@
       or CastleUtils unit for Delphi).
       Every application can customize it by assigning OnGetApplicationName
       or (often more comfortable) assigning
-      @link(ApplicationProperties.ApplicationName TCastleApplicationProperties.ApplicationName).
+      @link(TCastleApplicationProperties.ApplicationName ApplicationProperties.ApplicationName).
       The Castle Game Engine units use it where appropriate.
     )
 
@@ -117,7 +117,7 @@ function ExeName: string; deprecated 'as this function is not portable (may rais
   and you should just call ApplicationName directly in new code.
   ApplicationName is included in standard FPC SysUtils unit for FPC,
   has good default and is easily configurable by callback OnGetApplicationName
-  or our @link(ApplicationProperties.ApplicationName TCastleApplicationProperties.ApplicationName).
+  or our @link(TCastleApplicationProperties.ApplicationName ApplicationProperties.ApplicationName).
   See http://www.freepascal.org/docs-html/rtl/sysutils/getappconfigdir.html .
 
   This is suitable to show to user. It should also indicate how to run the program,

@@ -74,7 +74,7 @@ type
 
     Other 3D objects may be pushed, if @link(Pushes).
     There are two methods of pushing available, see @link(PushesEverythingInside).
-    Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by
+    Only the 3D objects with @link(TCastleTransform.CollidesWithMoving) are ever pushed by
     this object (the rest of 3D world is treated as static, does not interact with
     elevators / doors or such).
 

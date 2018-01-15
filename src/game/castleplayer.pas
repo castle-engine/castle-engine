@@ -409,7 +409,7 @@ type
 
     { Camera synchronized with this player instance.
 
-      You can use this camera as @link(TCastleSceneManager.Camera)
+      You can use this camera as @link(TCastleAbstractViewport.Camera)
       to allow user to directly control this player in first-person game.
       @link(TGameSceneManager.LoadLevel) sets this automatically.
 

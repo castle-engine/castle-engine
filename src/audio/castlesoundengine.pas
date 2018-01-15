@@ -197,10 +197,10 @@ type
     { Make sure that the sound keeps playing, in case it stopped playing.
 
       This is an alternative approach to play a sound many times,
-      like in a loop, but without using the @link(Loop) property.
-      The idea is that you leave @link(Loop) set to @false,
+      like in a loop, but without using the @link(Looping) property.
+      The idea is that you leave @link(Looping) set to @false,
       and you keep calling this method from some "update" event
-      (like some @link(TUIControl.Update) implementation).
+      (like some @link(TInputListener.Update) implementation).
       Once you stop calling this method, the sound will automatically stop
       (once it finishes the current cycle).
 
@@ -491,8 +491,7 @@ type
     { Initialize sound engine.
       Initializes OpenAL library.
       Sets @link(ALInitialized), @link(ALActive),
-      @link(Information), @link(EFXSupported),
-      @link(ALMajorVersion), @link(ALMinorVersion).
+      @link(Information), @link(EFXSupported).
 
       You can set @link(Device) before calling this.
 

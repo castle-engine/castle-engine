@@ -416,7 +416,7 @@ type
     During the lifetime of the scene, this X3D graph can change
     (e.g. because of animations), and you can always change it by code
     too. E.g. you can freely change @link(TTransformNode.Translation)
-    or add children by @link(TX3DRootNode.AddChildren).
+    or add children by @link(TAbstractX3DGroupingNode.AddChildren RootNode.AddChildren).
     The X3D nodes graph works like a DOM tree for rendering HTML documents:
     it's typically initialized from a file (3D model), but during
     the game execution it is dynamic, always changing.
@@ -764,7 +764,7 @@ type
     ScreenEffectNodes: TX3DNodeList;
 
     { Is the scene visible currently. Descendants may set this to @true
-      during @link(T3D.Render). }
+      during @link(TCastleTransform.LocalRender). }
     IsVisibleNow: boolean;
 
     GeneratedTextures: TGeneratedTextureList;
@@ -1816,14 +1816,14 @@ type
           E.g. you can have another animation running (another TTimeSensorNode running)
           in parallel to the animation run by this method.
           You can also change parts of the node graph by your own code
-          (accessing @link(RoootNode))
+          (accessing @link(RootNode))
           in parallel to the animation by this method, as long as you don't touch
           the same nodes.
           @italic(Such tricks are possible, but require manually designing a proper X3D file).
 
           If you load a model from a castle-anim-frames or MD3 format, note that it
           is animated using a special "node interpolator" algorithm. In this case,
-          you cannot really change the model inside @link(RoootNode) anymore
+          you cannot really change the model inside @link(RootNode) anymore
           --- any modifications may be overwritten by the "node interpolator"
           at some point (the exact overwrite moment depends on the "merge nodes"
           optimization done by the "node interpolator").

@@ -1752,7 +1752,8 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or TUIControl.Update, or TCastleTransform.Update) and look at it's @code(SecondsPassed)
+      (or @link(TInputListener.Update) in your @link(TUIControl) descendant,
+      or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
 
@@ -2113,7 +2114,8 @@ type
         )
 
         @itemLabel poLimitFps
-        @item(Handle @--no-limit-fps: disables @link(Application.LimitFps),
+        @item(Handle @--no-limit-fps: disables
+          @link(TCastleApplication.LimitFps Application.LimitFps),
           allows to observe maximum FPS, see
           http://castle-engine.sourceforge.io/manual_optimization.php )
       )

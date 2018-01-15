@@ -505,7 +505,7 @@ type
 
       Note: Instead of using @link(TCastleTransform.PrepareResources),
       and this method,
-      it's usually easier to call @link(TCastleAbstractViewport.PrepareResources).
+      it's usually easier to call @link(TCastleSceneManager.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
     function PrepareParams: TPrepareParams;
 

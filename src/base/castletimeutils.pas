@@ -305,7 +305,7 @@ type
 
       This measures only time spend in @link(TUIContainer.EventRender)
       method (and it's subordinates, like @link(TUIControl.Render),
-      @link(TCastleScene.Render),
+      @link(TCastleScene.LocalRender),
       @link(TCastleWindowCustom.OnRender)).
       It does not take into account time spent on other activities,
       like "update" calls, and it doesn't take into account that frames are possibly
@@ -326,8 +326,8 @@ type
       Anything can slow this down, not only long rendering,
       but also slow processing of other events (like "update" that does physics).
 
-      When @link(TCastleCustomWindow.AutoRedisplay) or
-      @link(TCastleCustomControl.AutoRedisplay) is @false,
+      When @link(TCastleWindowCustom.AutoRedisplay) or
+      @link(TCastleControlCustom.AutoRedisplay) is @false,
       this may be very low, since we may not
       render the frames all the time (we may sleep for some time,
       or perform updates without rendering).
@@ -360,7 +360,7 @@ type
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
       (@link(TUIContainer.EventUpdate),
-      @link(TUIControl.Update),
+      @link(TInputListener.Update),
       @link(TCastleTransform.Update)...) to scale the movement.
       This way, your animation will work with the same speed
       (objects will travel at the same speed),

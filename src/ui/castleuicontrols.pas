@@ -281,9 +281,13 @@ type
       Most of these methods are called automatically
       by the container owner, like TCastleWindow or TCastleControl.
       Some are called by @link(EventUpdate),
-      which is special in this regard, as @link(EventUpdate) it not only
-      responsible for calling TUIControl.Update, it also calls
-      EventJoyAxisMove, EventJoyButtonPress, EventSensorRotation, EventSensorTranslation.
+      which is special in this regard, as @link(EventUpdate) is not only
+      responsible for calling @link(TInputListener.Update) on all @link(Controls),
+      it also calls
+      @link(EventJoyAxisMove),
+      @link(EventJoyButtonPress),
+      @link(EventSensorRotation),
+      @link(EventSensorTranslation).
 
       @groupBegin }
     procedure EventOpen(const OpenWindowsCount: Cardinal); virtual;

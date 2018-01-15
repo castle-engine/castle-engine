@@ -201,7 +201,7 @@ type
       used by TCastleScene), or occlusion culling (see
       TSceneRenderingAttributes.UseOcclusionQuery),
       or any custom algorithm you implement by using TTestShapeVisibility
-      callback with @link(TCastleScene.Render). }
+      callback with @link(TCastleScene.LocalRender). }
     ShapesRendered, ShapesVisible: Cardinal;
 
     { The number of shapes that were not rendered,
@@ -213,11 +213,11 @@ type
   end;
 
   { List of lights. Always TLightInstancesList, but we cannot declare it here
-    as such. Internal. @exlude }
+    as such. Internal. @exclude }
   TAbstractLightInstancesList = TObject;
 
   { Fog node. Always TFogNode, but we cannot declare it here as such.
-    Internal. @exlude }
+    Internal. @exclude }
   TAbstractFogNode = TObject;
 
   TRenderingPass = 0..1;
@@ -1903,7 +1903,7 @@ type
       when it is not possible (e.g. when the same scene instance
       is reused under many different locations).
 
-      So, to be on the safe side, do not turn on @link(TCastleScene.ProcessEvents),
+      So, to be on the safe side, do not turn on @link(TCastleSceneCore.ProcessEvents),
       or do not share the scene in multiple places in the scene manager.
       Or at least don't use features like LOD or Billboard or ProximitySensor,
       that cannot work in case the same scene instance in rendered in multiple
