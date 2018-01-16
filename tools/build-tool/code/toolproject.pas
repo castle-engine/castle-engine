@@ -861,8 +861,9 @@ begin
   Exclude('*.xcf', Files);
   Exclude('*.blend*', Files);
   Exclude('*~', Files);
-  Exclude('*.DS_Store', Files);
-  Exclude('*thumbs.db', Files);
+  // Note: slash or backslash below doesn't matter, Exclude function converts them
+  Exclude('*/.DS_Store', Files);
+  Exclude('*/thumbs.db', Files);
   for I := 0 to ExcludePaths.Count - 1 do
     Exclude(ExcludePaths[I], Files);
 end;
@@ -1722,9 +1723,9 @@ begin
     FileInfo.AbsoluteName, true);
 
   if IsWild(DestinationRelativeFileName, '*setup_sdk.sh', true) or
-     IsWild(DestinationRelativeFileName, '*.DS_Store', true) or
-     IsWild(DestinationRelativeFileName, '*thumbs.db', true) or
-     IsWild(DestinationRelativeFileName, '*~', true) then
+     IsWild(DestinationRelativeFileName, '*~', true) or
+     SameFileName(ExtractFileName(DestinationRelativeFileName), '.DS_Store') or
+     SameFileName(ExtractFileName(DestinationRelativeFileName), 'thumbs.db') then
   begin
     // if Verbose then
     //   Writeln('Ignoring template file: ' + DestinationRelativeFileName);
