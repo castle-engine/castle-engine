@@ -27,7 +27,7 @@
 
     FScroll: Single;
     ScrollbarVisible: boolean;
-    { Rects in screen coordinates (like ScreenRect, after UI scaling and anchors. }
+    { Rects in screen coordinates (like ScreenRect), after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TRectangle;
     ScrollBarDragging: boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
