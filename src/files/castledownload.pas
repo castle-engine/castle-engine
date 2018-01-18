@@ -637,7 +637,7 @@ end;
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
-  P, FileName, S: string;
+  P, FileName: string;
   {$ifdef HAS_FP_HTTP_CLIENT}
   NetworkResult: TMemoryStream;
   {$endif}
