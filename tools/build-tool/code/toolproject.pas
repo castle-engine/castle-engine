@@ -23,7 +23,7 @@ uses SysUtils, Classes,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
 
 type
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
+  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
@@ -886,7 +886,7 @@ var
 
   procedure AddExternalLibrary(const LibraryName: string);
   begin
-    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), LibraryName);
+    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), ExtractFileName(LibraryName));
   end;
 
 var
@@ -971,6 +971,11 @@ begin
             AddExternalLibrary('vorbisenc.dll');
             AddExternalLibrary('vorbisfile.dll');
           end;
+          if depHttps in Dependencies then
+          begin
+            AddExternalLibrary('openssl/libeay32.dll');
+            AddExternalLibrary('openssl/ssleay32.dll');
+          end;
         end;
 
       win64:
@@ -992,6 +997,11 @@ begin
             AddExternalLibrary('libvorbis.dll');
             { AddExternalLibrary('vorbisenc.dll'); not present? }
             AddExternalLibrary('vorbisfile.dll');
+          end;
+          if depHttps in Dependencies then
+          begin
+            AddExternalLibrary('openssl/libeay32.dll');
+            AddExternalLibrary('openssl/ssleay32.dll');
           end;
         end;
     end;
@@ -1800,7 +1810,7 @@ end;
 
 const
   DependencyNames: array [TDependency] of string =
-  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis');
+  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis', 'Https');
 
 function DependencyToString(const D: TDependency): string;
 begin
