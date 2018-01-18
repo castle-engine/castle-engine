@@ -1075,11 +1075,17 @@ function SoundEngine: TRepoSoundEngine;
 
 implementation
 
+{ use a deprecated unit below, only to have it compiled together with Lazarus
+  castle_base.lpk package }
+{$warnings off}
 uses DOM, XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
   CastleInternalVorbisFile, CastleInternalEFX,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
-  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
+  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
+  // this is deprecated
+  CastleSoundAllocator;
+{$warnings on}
 
 { TSoundBuffer --------------------------------------------------------------- }
 

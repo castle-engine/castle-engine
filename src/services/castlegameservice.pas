@@ -332,8 +332,14 @@ type
 
 implementation
 
+{$warnings off}
+{ use deprecated units below, only to have them compiled together with Lazarus
+  castle_base.lpk package }
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleApplicationProperties, CastleLog;
+  CastleUtils, CastleMessaging, CastleApplicationProperties, CastleLog,
+  // this is deprecated
+  CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings;
+{$warnings on}
 
 constructor TGameService.Create(AOwner: TComponent);
 begin
