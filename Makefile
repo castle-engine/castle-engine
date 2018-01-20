@@ -175,15 +175,12 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field \
-  examples/research_special_rendering_methods/shadow_fields/shadow_fields \
   examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
-  examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \

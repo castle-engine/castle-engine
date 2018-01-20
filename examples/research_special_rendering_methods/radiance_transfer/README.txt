@@ -6,7 +6,7 @@ http://en.wikipedia.org/wiki/Precomputed_Radiance_Transfer
 
 Many papers related to this, including full dynamic soft-shadows approaches.
 - "Precomputed Shadow Fields for Dynamic Scenes" (uses SH for combining shadow fields)
-  (see other demo ../shadow_fields/)
+  (see also other demo ../shadow_fields/ -- not included in CGE for now)
 
   "Real-time Soft Shadows in Dynamic Scenes using Spherical Harmonic Exponentiation"
   Both from http://www.kunzhou.net/

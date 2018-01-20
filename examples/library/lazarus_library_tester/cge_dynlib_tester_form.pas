@@ -127,7 +127,6 @@ begin
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true);
   sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
-  //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
 
   OpenGLControl1.Invalidate;
