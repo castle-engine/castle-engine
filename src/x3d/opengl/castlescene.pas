@@ -1758,7 +1758,9 @@ begin
     SVRenderer.InitCaster(SceneBox);
     if SVRenderer.CasterShadowPossiblyVisible then
     begin
-      SI := TShapeTreeIterator.Create(Shapes, true);
+      { shadows are cast only by visible scene parts
+        (not e.g. invisible collision box of castle-anim-frames) }
+      SI := TShapeTreeIterator.Create(Shapes, { OnlyActive } true, { OnlyVisible } true);
       try
         while SI.GetNext do
         begin
