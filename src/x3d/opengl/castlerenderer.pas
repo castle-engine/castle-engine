@@ -516,7 +516,6 @@ type
     Attributes: TRenderingAttributes;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
-    Fog: IAbstractFogObject;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
@@ -1730,7 +1729,6 @@ begin
   Result.Attributes := ARenderer.Attributes;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
-  Result.Fog := Fog;
   Result.FogVolumetric := FogVolumetric;
   Result.FogVolumetricDirection := FogVolumetricDirection;
   Result.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
@@ -1751,15 +1749,8 @@ begin
       Dec(ShapeCache.References);
       if LogRendererCache and Log then
         WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.X3DType, ShapeCache.References]);
-
       if ShapeCache.References = 0 then
-      try
         ShapeCaches.Delete(I);
-      except
-        on E: Exception do
-          WritelnLog('Failure when releasing shape from cache!!! Workarounding mysterious TObjectList<T>.Notify crash after freeing TShapeCache. Please report if you observe this, and can shed some light on when does this appear. So far, observed only when exiting from "The Gate" level on Castle1 (not other levels, not even "Cages" with spiders too; and not observed on other games). Exception: ' + ExceptMessage(E));
-      end;
-
       ShapeCache := nil;
       Exit;
     end;
