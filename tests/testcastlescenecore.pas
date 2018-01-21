@@ -138,20 +138,15 @@ procedure TTestSceneCore.TestIterator;
   end;
 
 begin
-  {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
-  CheckIterator('../../demo_models/x3d/deranged_house_final.x3dv');
-  CheckIterator('../../demo_models/x3d/anchor_test.x3dv');
-  CheckIterator('../../demo_models/x3d/switches_and_transforms.x3dv');
-  CheckIterator('../../demo_models/x3d/key_sensor.x3dv');
-  {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
-
+  CheckIterator('data/demo-models-copy/deranged_house_final.x3dv');
+  CheckIterator('data/demo-models-copy/anchor_test.x3dv');
   CheckIterator('data/switches_and_transforms_2.x3dv');
   CheckIterator('data/key_sensor_2.x3dv');
   CheckIterator('data/extrusion_empty_spine.x3dv');
   CheckIterator('data/extrusion_empty_spine_concave.x3dv');
   CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
 
-  // This failed to be read with FPC 3.1.1
+  // This once failed to be read with FPC 3.1.1
   CheckIterator('data/escape_from_the_universe_boss/boss.json');
 end;
 
