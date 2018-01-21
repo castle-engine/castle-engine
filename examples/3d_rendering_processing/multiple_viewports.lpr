@@ -246,12 +246,15 @@ begin
 
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
+  Window := TCastleWindow.Create(Application);
+  Window.StencilBits := 8;
+  Window.Open;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
+
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-
-  Window := TCastleWindow.Create(Application);
 
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
@@ -332,8 +335,8 @@ begin
   Background.Color := Vector4(0.5, 0.5, 1.0, 1.0);
   Window.Controls.InsertBack(Background);
 
-  Window.StencilBits := 8;
   Window.OnResize := @Resize;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun;
+  Window.Container.EventResize; // call Resize() now
+
+  Application.Run;
 end.
