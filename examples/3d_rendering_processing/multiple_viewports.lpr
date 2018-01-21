@@ -233,6 +233,8 @@ begin
   Application.Terminate;
 end;
 
+{ One-time initialization. }
+procedure ApplicationInitialize;
 var
   I: Integer;
   Background: TCastleSimpleBackground;
@@ -241,15 +243,13 @@ var
   Transform: TCastleTransform;
   {$endif ADD_ANIMATION}
 begin
-  if Parameters.High = 1 then
-    URL := Parameters[1];
-
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Window := TCastleWindow.Create(Application);
-  Window.StencilBits := 8;
-  Window.Open;
   Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.OnResize := @Resize;
+
+  if Parameters.High = 1 then
+    URL := Parameters[1];
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
@@ -334,9 +334,22 @@ begin
   Background := TCastleSimpleBackground.Create(Application);
   Background.Color := Vector4(0.5, 0.5, 1.0, 1.0);
   Window.Controls.InsertBack(Background);
+end;
 
-  Window.OnResize := @Resize;
-  Window.Container.EventResize; // call Resize() now
+{ The main program body only creates and assigns Application.MainWindow,
+  and runs the application (Window.OpenAndRun).
+  The actual initialization job is done inside Application.OnInitialize.
 
-  Application.Run;
+  In a cross-platform application, everything above (including
+  the ApplicationInitialize) would be in a cross-platform unit.
+  See https://castle-engine.sourceforge.io/manual_cross_platform.php . }
+begin
+  Window := TCastleWindow.Create(Application);
+  Window.StencilBits := 8;
+
+  Application.OnInitialize := @ApplicationInitialize;
+  Application.MainWindow := Window;
+
+  Window.OpenAndRun;
 end.
+
