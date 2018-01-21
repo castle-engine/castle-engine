@@ -278,6 +278,7 @@ begin
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
+  Window.Open;
 
   Resources.LoadFromFiles;
 
@@ -292,9 +293,6 @@ begin
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
   Window.SceneManager.MainScene := BaseScene;
   Window.SceneManager.Items.Add(BaseScene);
-
-  { Open the window, as OpenGL context must be ready before Resources.Prepare. }
-  Window.Open;
 
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
