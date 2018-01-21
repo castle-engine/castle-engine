@@ -76,7 +76,7 @@ begin
 
   NextButtonBottom := ControlsMargin;
 
-  if not Application.TouchDevice then
+  if not ApplicationProperties.TouchDevice then
   begin
     { Do not show this on touch device, as mouse look navigation
       cannot work with a touch device.
@@ -185,7 +185,7 @@ begin
   { Guess the URL where to write the screenshot.
     Using ApplicationConfig is safer (on ANY platform, but especially on mobile),
     because the ApplicationConfig is somewhere we can definitely write files. }
-  if Application.TouchDevice then
+  if ApplicationProperties.TouchDevice then
     URL := FileNameAutoInc(ApplicationConfig(ApplicationName + '_screen_%d.png'))
   else
     URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
@@ -520,14 +520,14 @@ begin
   Progress.UserInterface := WindowProgressInterface;
 
   { Enable automatic navigation UI on touch devices. }
-  //Application.TouchDevice := true; // use this to test touch behavior on desktop
-  Window.AutomaticTouchInterface := Application.TouchDevice;
+  //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
+  Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
   Input_DropItem.Assign(K_R);
-  if not Application.TouchDevice then
+  if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
     Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
 

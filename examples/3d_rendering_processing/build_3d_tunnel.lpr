@@ -229,7 +229,7 @@ begin
 
   { Set some parameters for the player }
 
-  Player.Position := Vector3(0,0,-1);
+  Player.Translation := Vector3(0,0,-1);
   Player.Camera.MouseLook := true;
   Player.DefaultPreferredHeight := 1;
   Player.DefaultMoveHorizontalSpeed := 10;
