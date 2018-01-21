@@ -13,50 +13,65 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various basic utilities. Developed for "Castle Game Engine",
-  but generally usable.
+{ Various basic utilities.
 
   @unorderedList(
-    @item(Lists of primitives, using FPC generics.
-      Like TIntegerList, TFloatList etc.)
+    @item(Lists, using generics derived from standard Generics.Collections.
+      Lists of primitives, like @link(TIntegerList) and @link(TFloatList),
+      and a helpful class to define a list of structures @link(TStructList).)
 
-    @item(Basic operations on numbers.)
+    @item(Basic operations on numbers (compare, randomize).)
 
     @item(Some OS-dependent things.)
 
-    @item(Filenames operations (they somehow complement the standard set
-      of routines in SysUtils).)
+    @item(Some compatibility things, to plug the differences between
+      various versions of FPC and Delphi.)
 
-    @item(Basic algorithms: @link(Sort).)
+    @item(Filenames operations. They do not touch actual files
+      (operations on files are in @link(CastleFilesUtils).))
   )
 
-  This unit is a bag for simple and generally useful things.
-  As a rule (to not let myself put too much things here)
-  this unit must not depend on the Classes unit
-  (see CastleClassUtils for those). Or any higher-level GUI libs
-  like LCL, VCL, or CLX.
-  The only classes defined and used here are exceptions
-  (the base Exception class comes from SysUtils unit)
-  and primitives lists classes.
+  This unit is a bag for simple and useful things.
+  Let's not overload this unit with too many trivial utilities.
+  When adding new utilities, first consider more specific units,
+  like @link(CastleFilesUtils), @link(CastleStringUtils) and @link(CastleClassUtils).
+  This unit does not depend on the standard @code(Classes) unit (use @link(CastleClassUtils)
+  for utilities on top of @code(Classes)).
 
   Initialization of this unit does some generally-useful things:
 
   @unorderedList(
-    @item(Calls Randomize (so that you never forget about it).)
+    @item(Calls @code(Randomize), to initialize random sequence of the standard
+      @code(Random).
 
-    @item(Sets DecimalSeparator to '.'.
+      Because the initial value of the random seed if undefined anyway.
+      And forgetting to call @code(Randomize) can easily lead to accidentally
+      getting the same random sequence from multiple runs of the program.
+    )
 
-      Delphi and FPC define DecimalSeparator
-      based on local settings (like configured user's country).
-      But this makes things like StrToFloat and FloatToStr less
-      predictable --- they may give different results on different
-      systems, which limits their use.
-      E.g. FloatToStr(0.9) may output '0,9' on some system.
-      And if you write '0,9' to a text file, it may not be understood
-      by StrToFloat on some other system.
+    @item(Sets @code(DecimalSeparator) to '.' (dot).
 
-      Initial (probably localized) value of DecimalSeparator
-      is saved in LocaleDecimalSeparator variable.)
+      Bacause Delphi and FPC define DecimalSeparator
+      based on local settings (e.g. user's country).
+      This makes standard functions like @code(StrToFloat) and @code(FloatToStr)
+      less useful for various parsing and printing done by Castle Game Engine,
+      where we often must read and write the "dot".
+      E.g. @code(FloatToStr(0.9)) may output '0,9' (with a comma) in a some countries.
+      Writing it to a file would be usually a mistake --
+      as the file may be transferred to another user with a different locale,
+      where @code(StrToFloat) could not deal with a comma being used for the separator.
+
+      Initial (localized) value of DecimalSeparator
+      is saved in LocaleDecimalSeparator variable.
+
+      @bold(Do not depend on this feature.
+      Maybe we had good reasons to do this,
+      but in the long run it may be unexpected to new developers
+      that the engine overrides a global DecimalSeparator.
+      We will eventually remove this feature in the future.)
+      Of course, our functions will continue to return the values
+      with "dot" inside, regardless of the DecimalSeparator.
+    )
   )
 }
 
