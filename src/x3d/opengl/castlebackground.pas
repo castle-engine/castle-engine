@@ -21,7 +21,7 @@ unit CastleBackground;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
-  CastleFrustum, CastleColors, CastleGLUtils;
+  CastleColors, CastleGLUtils;
 
 type
   { Background for 3D world.
@@ -76,7 +76,7 @@ type
     destructor Destroy; override;
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
-    procedure Render(const Wireframe: boolean; const Frustum: TFrustum);
+    procedure Render(const Wireframe: boolean);
     procedure UpdateTransform(const Transform: TMatrix4);
     procedure FreeResources;
   end;
@@ -534,7 +534,7 @@ begin
   Scene.Load(RootNode, true);
 end;
 
-procedure TBackground.Render(const Wireframe: boolean; const Frustum: TFrustum);
+procedure TBackground.Render(const Wireframe: boolean);
 begin
   Params.InShadow := false;
   { since we constructed Scene ourselves,
@@ -554,12 +554,14 @@ begin
     are successfully loaded and which have alpha. }
   RenderContext.Clear([cbColor], ClearColor);
 
-  { Note: the Frustum is useless now, as it contains a shifted camera,
-    not just rotated. }
+  { We don't calculate correct Frustum (accounting for the fact that camera
+    is rotated but never shifted during background rendering) now.
+    But also frustum culling for this would not be very useful,
+    so just disable it. }
   Scene.InternalIgnoreFrustum := true;
 
-  Params.Transparent := false; Scene.Render(Frustum, Params);
-  Params.Transparent := true ; Scene.Render(Frustum, Params);
+  Params.Transparent := false; Scene.Render(Params);
+  Params.Transparent := true ; Scene.Render(Params);
 end;
 
 procedure TBackground.FreeResources;

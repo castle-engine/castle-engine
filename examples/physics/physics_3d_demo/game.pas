@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager,
-  CastleUIControls;
+  CastleUIControls, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -115,7 +115,6 @@ begin
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
   SceneManager.WalkCamera.Input :=
     SceneManager.WalkCamera.Input - [ciMouseDragging];
-  SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
   // easy way to make the simulation feel more dynamic
   SceneManager.TimeScale := 2;
 
@@ -211,16 +210,9 @@ begin
   end;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'physics_3d_demo';
-end;
-
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'physics_3d_demo';
 
   InitializeLog;
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implements the game logic, independent from mobile / standalone. }
+{ Game initialization and logic. }
 unit Game;
 
 interface
@@ -28,7 +28,8 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils;
+  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils
+  CastleApplicationProperties;
 
 var
   SceneVisualizeLight: TCastleScene;
@@ -104,16 +105,9 @@ begin
   SceneVisualizeLight.Translation := MainLight.Location;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'test_bump_mapping';
-end;
-
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'test_bump_mapping';
 
   InitializeLog;
 

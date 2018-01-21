@@ -61,7 +61,7 @@
       when you just changed @link(UIFont) (changing
       @link(CustomFont) automatically calls this automatically)
       and you want control size to be updated immediately
-      (for example, you need @link(TCastleButton.CalculatedHeight)
+      (for example, you need @link(CalculatedHeight)
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;

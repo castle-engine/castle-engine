@@ -233,6 +233,7 @@ var
 
   function CurrentToken: TX3DTokenInfo;
   begin
+    Result := TX3DTokenInfo.Create;
     Result.Token := Lexer.Token;
     Result.Keyword := Lexer.TokenKeyword;
     Result.Name := Lexer.TokenName;
@@ -278,7 +279,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false, false);
-      NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.wrl';
+      NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;
@@ -293,10 +294,12 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   end;
 
 begin
-  {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
-  TestReadWrite('../../demo_models/x3d/proto_sfnode_default.x3dv');
-  TestReadWrite('../../demo_models/x3d/tricky_def_use.x3dv');
-  {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
+  // TODO: This will never pass for now, because writing adds 3 new tokens:
+  // META "generator" "test_castle_game_engine"
+  // so the Second file has always 3 more tokens.
+
+  // TestReadWrite('data/demo-models-copy/proto_sfnode_default.x3dv');
+  // TestReadWrite('data/demo-models-copy/tricky_def_use.x3dv');
 end;
 
 procedure TTestX3DNodes.TestInterfaceSupports;

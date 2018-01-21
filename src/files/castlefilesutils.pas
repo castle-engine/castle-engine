@@ -29,8 +29,11 @@
   @unorderedList(
     @item(
       To get a nice application name, use the @code(ApplicationName)
-      function (defined in the standard SysUtils unit).
-      Every application can customize it by OnGetApplicationName.
+      function (defined in the standard SysUtils unit for FPC,
+      or CastleUtils unit for Delphi).
+      Every application can customize it by assigning OnGetApplicationName
+      or (often more comfortable) assigning
+      @link(TCastleApplicationProperties.ApplicationName ApplicationProperties.ApplicationName).
       The Castle Game Engine units use it where appropriate.
     )
 
@@ -112,8 +115,9 @@ function ExeName: string; deprecated 'as this function is not portable (may rais
 
   @deprecated Deprecated, this is equivalent to ApplicationName,
   and you should just call ApplicationName directly in new code.
-  ApplicationName is included in standard FPC SysUtils unit, had good default
-  and is easily configurable by callback OnGetApplicationName.
+  ApplicationName is included in standard FPC SysUtils unit for FPC,
+  has good default and is easily configurable by callback OnGetApplicationName
+  or our @link(TCastleApplicationProperties.ApplicationName ApplicationProperties.ApplicationName).
   See http://www.freepascal.org/docs-html/rtl/sysutils/getappconfigdir.html .
 
   This is suitable to show to user. It should also indicate how to run the program,
@@ -149,7 +153,7 @@ function UserConfigPath: string; deprecated;
   @unorderedList(
     @itemSpacing Compact
     @item is inside UserConfigPath
-    @item depends on OnGetApplicationName
+    @item depends on ApplicationName
     @item(has given Extension. Extension should contain
       beginning dot. E.g. FExtension = '.ini'. This way you can pass
       FExtension = '' to have a filename without extension.)
@@ -182,7 +186,7 @@ var
   the only 100% way to know if you can write there is to actually try it).
 
   This uses FPC GetAppConfigDir under the hood.
-  Which in turn looks at OnGetApplicationName, and may use
+  Which in turn looks at ApplicationName, and may use
   OS-specific algorithm to find good config directory, see
   http://www.freepascal.org/docs-html/rtl/sysutils/ongetapplicationname.html .
   On UNIX this follows XDG Base Directory Specification,

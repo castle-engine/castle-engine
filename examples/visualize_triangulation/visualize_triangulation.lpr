@@ -298,7 +298,7 @@ var
   URL: string;
   Vis: TVisualizeTriangulation;
 begin
-  InitializeLog('1.0.0');
+  InitializeLog;
   LogTriangulation := true;
 
   Parameters.CheckHighAtMost(1);

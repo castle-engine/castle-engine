@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="rift" standalone_source="code/rift.lpr">
-  <version value="0.1.0" />
+<project name="rift"
+  standalone_source="code/rift_standalone.lpr"
+  game_units="GameInitialize">
+  <version value="0.2.0" />
   <compiler_options>
     <search_paths>
       <path value="code/" />
@@ -10,4 +12,6 @@
     <include path="README.txt" />
     <include path="COPYING.GPL2.txt" />
   </package>
+  <!-- makes sound working on Android -->
+  <android project_type="integrated" />
 </project>

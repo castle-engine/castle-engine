@@ -163,10 +163,8 @@ begin
     TestScenesInDir('data');
 
     {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
-    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'demo_models');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'demo-models');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'castle' + PathDelim + 'data');
-    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'vrml_engine_doc');
-    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'rift' + PathDelim + 'data');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
     {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 

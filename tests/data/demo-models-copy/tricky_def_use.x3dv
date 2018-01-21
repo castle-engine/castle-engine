@@ -1,0 +1,119 @@
+#X3D V3.0 utf8
+PROFILE Interchange
+
+# All VRML versions allow non-unique node names.
+# Each DEF XXX overrides all previous ("previous" in lexical sense,
+# i.e. normal order of tokens in the file) DEF XXX with the same XXX,
+# thus hiding previous node name "XXX".
+# X3D doesn't advice it, but it's still allowed.
+#
+# One problem with non-unique names
+# is when saving: you have to be very careful about the order of ROUTE, PROTO,
+# normal nodes' declarations and pretty much everything else.
+# Almost everything can use some node name. Even PROTOs interface
+# declarations, or Script/shaders interface declarations depend
+# on current node binding, as default values for SFNode/MFNode
+# fields may modify/use node name binding by DEF/USE.
+#
+# This means that when reading and then writing VRML file, we have to be
+# careful to use the same order, otherwise it could be impossible
+# to keep the same DEF/USE sharing of nodes. (And for ROUTEs, it could
+# be impossible at all to save them, since ROUTE always must be specified
+# when appropriate node names are bound).
+
+# ----------------------------------------------------------------------------
+# Define yellow sphere under XXX name
+
+DEF XXXTransform Transform {
+  children [
+
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "yellow" } }
+      ]
+    }
+
+    DEF XXX Shape {
+      geometry Sphere { }
+      appearance Appearance { material DEF XXXMat Material { diffuseColor 1 1 0 } }
+    }
+  ]
+}
+
+# This isn't really any sensible ROUTE, it's just to test keeping proper binding.
+ROUTE XXXTouch.hitPoint_changed TO XXXTransform.translation
+
+# ----------------------------------------------------------------------------
+# Use yellow sphere from XXX name
+
+PROTO YellowSphereByDefault [
+  inputOutput MFNode node USE XXX
+] {
+  Group { children IS node }
+}
+
+# ----------------------------------------------------------------------------
+# Define blue sphere under the same XXX name
+# (should override previous name)
+
+DEF XXXTransform Transform {
+  translation 4 0 0
+  children [
+
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "blue" } }
+      ]
+    }
+
+    DEF XXX Shape {
+      geometry Sphere { }
+      appearance Appearance { material Material { diffuseColor 0 0 1 } }
+    }
+  ]
+}
+
+# This isn't really any sensible ROUTE, it's just to test keeping proper binding.
+ROUTE XXXTouch.hitPoint_changed TO XXXTransform.translation
+
+# ----------------------------------------------------------------------------
+# Use blue sphere from XXX name
+
+PROTO BlueSphereByDefault [
+  inputOutput MFNode node USE XXX
+] {
+  Group { children IS node }
+}
+
+# ----------------------------------------------------------------------------
+# Test PROTOs using XXX name
+
+Transform {
+  translation 8 0 0
+  children [
+
+    Transform {
+      translation 0 2 0
+      children Shape { geometry Text { string "yellow" } }
+    }
+
+    YellowSphereByDefault { }
+  ]
+}
+
+Transform {
+  translation 12 0 0
+  children [
+
+    Transform {
+      translation 0 2 0
+      children Shape { geometry Text { string "blue" } }
+    }
+
+    BlueSphereByDefault { }
+  ]
+}

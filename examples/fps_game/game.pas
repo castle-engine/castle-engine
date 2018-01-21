@@ -76,8 +76,11 @@ begin
 
   NextButtonBottom := ControlsMargin;
 
-  if not Application.TouchDevice then
+  if not ApplicationProperties.TouchDevice then
   begin
+    { Do not show this on touch device, as mouse look navigation
+      cannot work with a touch device.
+      See also https://castle-engine.sourceforge.io/manual_cross_platform.php }
     ToggleMouseLookButton := TCastleButton.Create(Application);
     ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
     ToggleMouseLookButton.Toggle := true;
@@ -86,15 +89,20 @@ begin
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
     NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.CalculatedHeight + ControlsMargin);
-  end;
 
-  ExitButton := TCastleButton.Create(Application);
-  ExitButton.Caption := 'Exit (Escape)';
-  ExitButton.OnClick := @ExitButtonClick;
-  ExitButton.Left := ControlsMargin;
-  ExitButton.Bottom := NextButtonBottom;
-  Window.Controls.InsertFront(ExitButton);
-  NextButtonBottom := NextButtonBottom + (ExitButton.CalculatedHeight + ControlsMargin);
+    { Do not show this on touch device, as Application.Terminate
+      (or Window.Close, or anything similar) doesn't make sense on mobile devices.
+      Users do not press "exit" button on mobile devices, they just switch
+      to home/other application.
+      See also https://castle-engine.sourceforge.io/manual_cross_platform.php }
+    ExitButton := TCastleButton.Create(Application);
+    ExitButton.Caption := 'Exit (Escape)';
+    ExitButton.OnClick := @ExitButtonClick;
+    ExitButton.Left := ControlsMargin;
+    ExitButton.Bottom := NextButtonBottom;
+    Window.Controls.InsertFront(ExitButton);
+    NextButtonBottom := NextButtonBottom + (ExitButton.CalculatedHeight + ControlsMargin);
+  end;
 
   RenderDebugCreaturesButton := TCastleButton.Create(Application);
   RenderDebugCreaturesButton.Caption := 'Creatures Debug Visualization';
@@ -174,6 +182,14 @@ procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
   URL: string;
 begin
+  { Guess the URL where to write the screenshot.
+    Using ApplicationConfig is safer (on ANY platform, but especially on mobile),
+    because the ApplicationConfig is somewhere we can definitely write files. }
+  if ApplicationProperties.TouchDevice then
+    URL := FileNameAutoInc(ApplicationConfig(ApplicationName + '_screen_%d.png'))
+  else
+    URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
+
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
     (overloaded Window.SaveScreen returns you a TRGBImage and we have
@@ -181,7 +197,6 @@ begin
     You could also ask use to choose a file (e.g. by Window.FileDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
   Window.SaveScreen(URL);
   Notifications.Show('Saved screen to ' + URL);
 end;
@@ -335,7 +350,9 @@ begin
     mechanism to assign key shortcut to a TCastleButton right now.
     Note that we pass Sender = nil to the callbacks, because we know that
     our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(K_F4) then
+  if Event.IsKey(K_F4) and
+     // in case we test touch input in desktop, ToggleMouseLookButton = nil
+     (Buttons.ToggleMouseLookButton <> nil) then
     Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
     Buttons.ExitButtonClick(nil) else
@@ -503,14 +520,14 @@ begin
   Progress.UserInterface := WindowProgressInterface;
 
   { Enable automatic navigation UI on touch devices. }
-  //Application.TouchDevice := true; // use this to test touch behavior on desktop
-  Window.AutomaticTouchInterface := Application.TouchDevice;
+  //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
+  Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
   Input_DropItem.Assign(K_R);
-  if not Application.TouchDevice then
+  if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
     Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
 
@@ -601,22 +618,18 @@ begin
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'fps_game';
-end;
-
 initialization
   { This unit's initialization *must* initialize Application.MainWindow value.
-    Usually it also initializes things related to logging (OnGetApplicationName,
+    Usually it also initializes things related to logging
+    (ApplicationProperties.ApplicationName, ApplicationProperties.Version,
     InitializeLog), because it's beneficial to initialize them as early as possible.
 
     The rest of initialization should usually be done inside
     Application.OnInitialize callback (ApplicationInitialize in this unit). }
 
-  { OnGetApplicationName should be initialized as early as possible
-    to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here. }
+  ApplicationProperties.ApplicationName := 'fps_game';
 
   { Enable log.
     See http://castle-engine.sourceforge.net/tutorial_log.php

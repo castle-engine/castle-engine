@@ -500,14 +500,14 @@ type
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
 
-    { When @link(TWalkCamera) moves, it makes a "head bobbing" effect,
+    { When @link(TWalkCamera) moves, it may make a "head bobbing" effect,
       by moving the camera a bit up and down.
 
       This property mutiplied by PreferredHeight
       says how much head bobbing can move you along GravityUp.
       Set this to 0 to disable head bobbing.
       This must always be < 1.0. For sensible effects, this should
-      be rather close to 0.0.
+      be rather close to 0.0, for example 0.02.
 
       This is meaningfull only when @link(TWalkCamera.Gravity) works. }
     property HeadBobbing: Single

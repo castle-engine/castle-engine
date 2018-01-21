@@ -27,7 +27,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
-  CastleRectangles, CastleCameras, CastleRendererInternalShader,
+  CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
 {$define read_interface}
@@ -72,14 +72,14 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      WireframeColor and LineWidth are used as wireframe
-      line color/width (regardless of current scene
-      @link(TRenderingAttributes.Mode Attributes.Mode) value).
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      of lines.
 
-      This usually gives best results when
-      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
-      Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color). }
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -88,14 +88,14 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      WireframeColor and LineWidth are used as silhouette
-      line color/width (regardless of current scene
-      @link(TRenderingAttributes.Mode Attributes.Mode) value).
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      of silhouette lines.
 
-      This is sometimes sensible to use with
-      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
-      Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color). }
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
     weSilhouette);
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
@@ -115,7 +115,7 @@ type
     FBlendingSort: TBlendingSort;
     FOcclusionSort: boolean;
     FControlBlending: boolean;
-    FWireframeColor: TVector3;
+    FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
@@ -166,7 +166,7 @@ type
       { Default value of @link(TSceneRenderingAttributes.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TVector3 = (Data: (0, 0, 0));
+      DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -250,7 +250,7 @@ type
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
-    property WireframeColor: TVector3
+    property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
@@ -392,12 +392,13 @@ type
     fcBoth
   );
 
-  { Basic non-abstact implementation of render params for calling T3D.Render.
+  { Basic non-abstact implementation of render params for calling
+    TCastleTransform.LocalRender.
 
     @exclude
     @bold(This is exposed here only to support some experiments with non-standard
     rendering in engine example programs. Do not use this in your own code.)
-    This can be used when you have to call T3D.Render,
+    This can be used when you have to call TCastleTransform.LocalRender,
     but you don't use scene manager.
     Usually this should not be needed.
     This class may be removed at some point!
@@ -443,7 +444,7 @@ type
 
       Updates Params.Statistics. }
     procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum; const Params: TRenderParams);
+      const Params: TRenderParams);
 
     { Render everything using LocalRenderInside.
       The rendering parameters are configurable
@@ -491,7 +492,6 @@ type
         culling, or some other visibility algorithm.) }
     procedure LocalRenderOutside(
       const TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum;
       const Params: TRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
@@ -577,7 +577,7 @@ type
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
 
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
@@ -642,24 +642,6 @@ type
       const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
-
-    { Render silhouette edges.
-      Silhouette is determined from the ObserverPos.
-      Useful to debug (visualize) ManifoldEdges of the scene.
-
-      Whole scene is transformed by ATransform (before checking which
-      edges are silhouette and before rendering). In other words,
-      ATransform must transform the scene to the same coord space where
-      given ObserverPos is. When they are in the same space, just use
-      TMatrix4.Identity. }
-    procedure RenderSilhouetteEdges(
-      const ObserverPos: TVector4;
-      const ATransform: TMatrix4);
-
-    { Render all border edges (the edges without neighbor).
-      Useful to debug (visualize) BorderEdges of the scene. }
-    procedure RenderBorderEdges(
-      const ATransform: TMatrix4);
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -1147,7 +1129,7 @@ end;
 
 procedure TCastleScene.LocalRenderInside(
   const TestShapeVisibility: TTestShapeVisibility;
-  const Frustum: TFrustum; const Params: TRenderParams);
+  const Params: TRenderParams);
 var
   ModelView: TMatrix4;
 
@@ -1165,7 +1147,7 @@ var
     if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.Transform;
+      Result := CameraMatrix^ * Params.Transform^;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }
@@ -1283,7 +1265,7 @@ var
             NewActive := false;
             Instances := VisibilitySensorsPair.Value;
             for J := 0 to Instances.Count - 1 do
-              if Frustum.Box3DCollisionPossibleSimple(Instances[J].Box) then
+              if Params.Frustum^.Box3DCollisionPossibleSimple(Instances[J].Box) then
               begin
                 NewActive := true;
                 Break;
@@ -1317,7 +1299,8 @@ begin
   end;
 
   if Params.InShadow then
-    LightRenderEvent := @LightRenderInShadow else
+    LightRenderEvent := @LightRenderInShadow
+  else
     LightRenderEvent := nil;
 
   ModelView := GetModelViewTransform;
@@ -1328,14 +1311,8 @@ begin
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    if not Params.TransformIdentity then
-    begin
-      glPushMatrix;
-      glMultMatrix(Params.Transform);
-    end;
-    { TODO: this should be replaced with just
-    glLoadMatrix(GetModelViewTransform);
-      to just load full matrix, and be consistent with what happens when GLFeatures.EnableFixedFunction=false. }
+    glPushMatrix;
+    glLoadMatrix(ModelView);
   end;
   {$endif}
 
@@ -1358,7 +1335,7 @@ begin
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Frustum, Params, RenderCameraKnown, RenderCameraPosition);
+        Params, RenderCameraKnown, RenderCameraPosition);
 
       { Inside we could set OcclusionBoxState }
       OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
@@ -1432,8 +1409,7 @@ begin
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
-    if not Params.TransformIdentity then
-      glPopMatrix;
+    glPopMatrix;
   {$endif}
 end;
 
@@ -1571,11 +1547,11 @@ end;
 
 procedure TCastleScene.LocalRenderOutside(
   const TestShapeVisibility: TTestShapeVisibility;
-  const Frustum: TFrustum; const Params: TRenderParams);
+  const Params: TRenderParams);
 
   procedure RenderNormal;
   begin
-    LocalRenderInside(TestShapeVisibility, Frustum, Params);
+    LocalRenderInside(TestShapeVisibility, Params);
   end;
 
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
@@ -1584,23 +1560,26 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
+    SavedSolidColor: TCastleColorRGB;
   begin
     glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
 
       if UseWireframeColor then
       begin
-        glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
-        glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
-        glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
         SavedMode := Attributes.Mode;
-        Attributes.Mode := rmPureGeometry;
+        SavedSolidColor := Attributes.SolidColor;
+        Attributes.Mode := rmSolidColor;
+        Attributes.SolidColor := Attributes.WireframeColor;
       end;
 
       RenderNormal;
 
       if UseWireframeColor then
+      begin
         Attributes.Mode := SavedMode;
+        Attributes.SolidColor := SavedSolidColor;
+      end;
     glPopAttrib;
   end;
   {$warnings on}
@@ -1615,7 +1594,7 @@ procedure TCastleScene.LocalRenderOutside(
   begin
     case Attributes.WireframeEffect of
       weNormal: RenderNormal;
-      weWireframeOnly: RenderWireframe(Attributes.Mode = rmPureGeometry);
+      weWireframeOnly: RenderWireframe(Attributes.Mode = rmSolidColor);
       weSolidWireframe:
         begin
           glPushAttrib(GL_POLYGON_BIT);
@@ -1634,16 +1613,16 @@ procedure TCastleScene.LocalRenderOutside(
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
-            { rmPureGeometry still does backface culling.
-              This is very good in this case. When rmPureGeometry and weSilhouette,
+            { rmSolidColor still does backface culling.
+              This is very good in this case. When rmSolidColor and weSilhouette,
               and objects are solid (so backface culling is used) we can
               significantly improve the effect by reverting glFrontFace,
               this way we will cull *front* faces. This will not be noticed
-              in case of rmPureGeometry will single solid color, and it will
+              in case of rmSolidColor will single solid color, and it will
               improve the silhouette look, since front-face edges will not be
               rendered at all (no need to even hide them by glPolygonOffset,
               which is somewhat sloppy). }
-            if Attributes.Mode = rmPureGeometry then
+            if Attributes.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
             RenderWireframe(true);
           glPopAttrib;
@@ -1701,10 +1680,11 @@ procedure TCastleScene.LocalRenderOutside(
   end;
 
 begin
-  { This is usually called by Render(Frustum, Params) that probably
+  { This is usually called by LocalRender(Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetVisible and (InternalDirty = 0) and
+  if GetVisible and
+     (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -1778,7 +1758,9 @@ begin
     SVRenderer.InitCaster(SceneBox);
     if SVRenderer.CasterShadowPossiblyVisible then
     begin
-      SI := TShapeTreeIterator.Create(Shapes, true);
+      { shadows are cast only by visible scene parts
+        (not e.g. invisible collision box of castle-anim-frames) }
+      SI := TShapeTreeIterator.Create(Shapes, { OnlyActive } true, { OnlyVisible } true);
       try
         while SI.GetNext do
         begin
@@ -1801,39 +1783,6 @@ begin
       finally FreeAndNil(SI) end;
     end;
   end;
-end;
-
-procedure TCastleScene.RenderSilhouetteEdges(
-  const ObserverPos: TVector4;
-  const ATransform: TMatrix4);
-var
-  SI: TShapeTreeIterator;
-  T: TMatrix4;
-begin
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      T := ATransform * SI.Current.State.Transform;
-      SI.Current.InternalShadowVolumes.RenderSilhouetteEdges(ObserverPos, T);
-    end;
-  finally FreeAndNil(SI) end;
-end;
-
-procedure TCastleScene.RenderBorderEdges(
-  const ATransform: TMatrix4);
-var
-  SI: TShapeTreeIterator;
-  T: TMatrix4;
-begin
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      T := ATransform * SI.Current.State.Transform;
-      SI.Current.InternalShadowVolumes.RenderBorderEdges(T);
-    end;
-  finally FreeAndNil(SI) end;
 end;
 
 { Frustum culling ------------------------------------------------------------ }
@@ -1926,10 +1875,10 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
 { Call LocalRenderOutside, choosing TTestShapeVisibility function
-  suitable for our Frustum, octrees and some settings.
+  suitable for our Params.Frustum, octrees and some settings.
 
   If InternalOctreeRendering is initialized (so be sure to include
   ssRendering in @link(Spatial)), this octree will be used to quickly
@@ -1945,7 +1894,8 @@ procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRende
 
   begin
     Shapes.Traverse(@ResetShapeVisible, false, true);
-    Octree.EnumerateCollidingOctreeItems(Frustum, @RenderFrustumOctree_EnumerateShapes);
+    Octree.EnumerateCollidingOctreeItems(Params.Frustum^,
+      @RenderFrustumOctree_EnumerateShapes);
   end;
 
 begin
@@ -1954,23 +1904,23 @@ begin
   if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
-    RenderFrustum_Frustum := @Frustum;
+    RenderFrustum_Frustum := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
     if RenderCameraKnown then
-      RenderCameraPosition := Params.InverseTransform.MultPoint(World.CameraPosition);
+      RenderCameraPosition := Params.InverseTransform^.MultPoint(World.CameraPosition);
 
     if Assigned(InternalVisibilityTest) then
-      LocalRenderOutside(InternalVisibilityTest, Frustum, Params)
+      LocalRenderOutside(InternalVisibilityTest, Params)
     else
     if InternalIgnoreFrustum then
-      LocalRenderOutside(nil, Frustum, Params)
+      LocalRenderOutside(nil, Params)
     else
     if InternalOctreeRendering <> nil then
     begin
       TestOctreeWithFrustum(InternalOctreeRendering);
-      LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
+      LocalRenderOutside(@RenderFrustumOctree_TestShape, Params);
     end else
-      LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
+      LocalRenderOutside(FrustumCullingFunc, Params);
 
     { Nothing should even try to access camera outside of Render...
       But for security, set RenderCameraKnown to false. }
@@ -2376,9 +2326,9 @@ procedure TCastleSceneList.GLContextClose;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].GLContextClose;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].GLContextClose;
 end;
 
 procedure TCastleSceneList.InvalidateBackground;
@@ -2387,9 +2337,9 @@ procedure TCastleSceneList.InvalidateBackground;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].InvalidateBackground;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].InvalidateBackground;
 end;
 
 procedure TCastleSceneList.CloseGLRenderer;
@@ -2398,18 +2348,18 @@ procedure TCastleSceneList.CloseGLRenderer;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].CloseGLRenderer;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].CloseGLRenderer;
 end;
 
 procedure TCastleSceneList.ViewChangedSuddenly;
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].ViewChangedSuddenly;
+  for I := 0 to Count - 1 do
+    if Items[I] <> nil then
+      Items[I].ViewChangedSuddenly;
 end;
 
 initialization

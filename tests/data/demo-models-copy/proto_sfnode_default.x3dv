@@ -1,0 +1,110 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# This tests PROTOtypes with SFNode fields with non-NULL default values,
+# combined with non-unique names similar to tricky_def_use.x3dv.
+#
+# Reading + saving this file *must* write back AppearanceYellowByDefault
+# and AppearanceBlueByDefault usage without any fields, in other words
+# it must remember that AppearanceYellowByDefault and AppearanceBlueByDefault
+# use default prototype values for "mat" field.
+#
+# Otherwise, there's no way to specify "USE XXXMat" (since XXXMat
+# name is overridden). And duplicating Material node contents is not
+# good (for potential events, routes etc.)
+
+# ----------------------------------------------------------------------------
+# Define XXXMat as yellow, and define AppearanceYellowByDefault prototype
+
+Transform {
+  children [
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "yellow" } }
+      ]
+    }
+
+    Shape {
+      geometry Sphere { }
+      appearance Appearance { material DEF XXXMat Material { diffuseColor 1 1 0 } }
+    }
+  ]
+}
+
+PROTO AppearanceYellowByDefault [
+  inputOutput SFNode mat USE XXXMat
+] {
+  Appearance { material IS mat }
+}
+
+# ----------------------------------------------------------------------------
+# Define XXXMat as blue, and define AppearanceBlueByDefault prototype
+
+Transform {
+  translation 4 0 0
+  children [
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "blue" } }
+      ]
+    }
+
+    Shape {
+      geometry Sphere { }
+      appearance Appearance { material DEF XXXMat Material { diffuseColor 0 0 1 } }
+    }
+  ]
+}
+
+
+PROTO AppearanceBlueByDefault [
+  inputOutput SFNode mat USE XXXMat
+] {
+  Appearance { material IS mat }
+}
+
+# ----------------------------------------------------------------------------
+# Use AppearanceYellowByDefault prototype
+
+Transform {
+  translation 8 0 0
+  children [
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "yellow" } }
+      ]
+    }
+
+    Shape {
+      geometry Sphere { }
+      appearance AppearanceYellowByDefault { }
+    }
+  ]
+}
+
+# ----------------------------------------------------------------------------
+# Use AppearanceBlueByDefault prototype
+
+Transform {
+  translation 12 0 0
+  children [
+    Transform {
+      translation 0 2 0
+      children [
+        DEF XXXTouch TouchSensor { }
+        Shape { geometry Text { string "blue" } }
+      ]
+    }
+
+    Shape {
+      geometry Sphere { }
+      appearance AppearanceBlueByDefault { }
+    }
+  ]
+}

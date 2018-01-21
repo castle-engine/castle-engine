@@ -542,7 +542,7 @@ implementation
 uses SysUtils, Generics.Defaults, Math,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderingCamera, CastleLog, X3DCameraUtils,
+  CastleLog, X3DCameraUtils,
   CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }

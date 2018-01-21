@@ -62,7 +62,7 @@ Transform {
         specularColor 1 1 1 shininess 1 }
       texture MultiTexture {
         texture [
-          ImageTexture { url "../../terrain/textures/sand.png" }
+          ImageTexture { url "textures/059_plombieresgbr.jpg" }
           GeneratedCubeMapTexture {
             update "ALWAYS" # change to "NEXT_FRAME_ONLY" for speed
             size 256

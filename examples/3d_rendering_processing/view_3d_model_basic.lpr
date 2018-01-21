@@ -34,15 +34,16 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
 begin
+  Window := TCastleWindow.Create(Application);
+  Window.Open;
+
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
   Scene.Load('data/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window := TCastleWindow.Create(Application);
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  Window.Open;
   Application.Run;
 end.

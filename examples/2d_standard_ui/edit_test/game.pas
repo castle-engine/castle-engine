@@ -26,7 +26,8 @@ var
 implementation
 
 uses SysUtils, Classes,
-  CastleControls, CastleUtils, CastleColors, CastleUIControls;
+  CastleControls, CastleUtils, CastleColors, CastleUIControls,
+  CastleApplicationProperties;
 
 const
   Margin = 10;
@@ -127,14 +128,9 @@ begin
   ButtonCopyText.Width := Container.UnscaledWidth - 2 * Margin;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'edit_test';
-end;
-
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'edit_test';
 
   Window := TCastleWindowCustom.Create(Application);
   Window.OnResize := @WindowResize;

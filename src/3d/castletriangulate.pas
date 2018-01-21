@@ -704,7 +704,10 @@ begin
     Result := TriangleDirection(Verts(P0), Verts(P1), Verts(P2));
     { note: no need to check for TVector3.Equals(Verts(P2), Verts(P1)) anywhere,
       because if EarDir is non-zero then they had to be different. }
-  until (P2 = P0) or not Result.IsZero;
+  until (P2 = P0) or
+    { use IsPerfectlyZero, not IsZero, to not consider triangle invalid too soon.
+      Testcase: demo-models/x3d/humanoid_pose_concave_test_normals.x3dv }
+    not Result.IsPerfectlyZero;
   if P2 = P0 then
   begin
     { All vertexes of given polygon are collinear. }

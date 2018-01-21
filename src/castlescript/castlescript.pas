@@ -933,34 +933,6 @@ implementation
 
 uses CastleScriptCoreFunctions, CastleLog;
 
-{ FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
-  that strongly hits calculating invalid expressions.
-  This results in calls like
-    gen_function "ln(x)" -10 10 0.1
-    gen_function "sqrt(x)" -10 10 0.1
-  to fail after a couple of "break" lines with
-
-    gen_function: Exception EInvalidOp (at address 0x080488B5) :
-    Invalid floating point operation
-    An unhandled exception occurred at $080488B5 :
-    EInvalidOp : Invalid floating point operation
-      $080488B5  main,  line 127 of gen_function.lpr
-
-  I tried to make more elegant workarounds by doing dummy fp
-  operations at the end of function calculation or Execute, to cause
-  the exception, but it just looks like EInvalidOp is never cleared by
-  try..except block.
-
-  The only workaround seems to be to use Set8087CW to mask exceptions,
-  and then compare with NaN to make proper Execute implementation.
-
-  Tests show that FPC 2.2.3 (fixes_2_2) also has this bug, and so 2.2.4
-  will probably have this too...
-
-  Also 2.3.1 (current trunk on 2009-03-03) still has it...
-  It's easier to just define it always, for now. }
-{$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-
 { TCasScriptExpression ------------------------------------------------------- }
 
 procedure TCasScriptExpression.FreeByParentExpression;
@@ -988,14 +960,15 @@ begin
         [E.ClassName, E.Message]);
   end;
 
-  {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+  { In case some code will mask exceptions (and for cpui386 or cpux86_64,
+    the OpenGL units must mask exceptions) then we need to check
+    IsNan / IsInfinite. }
   {$I norqcheckbegin.inc}
   if (Result is TCasScriptFloat) and
      ( IsNan(TCasScriptFloat(Result).Value) or
        IsInfinite(TCasScriptFloat(Result).Value) ) then
     raise ECasScriptAnyMathError.Create('Floating point error');
   {$I norqcheckend.inc}
-  {$endif}
 end;
 
 function TCasScriptExpression.TryExecuteMath: TCasScriptValue;
@@ -2770,12 +2743,6 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
-  {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
-  {$if defined(cpui386) or defined(cpux86_64)}
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-  {$endif}
-  {$endif}
-
   FunctionHandlers := TCasScriptFunctionHandlers.Create;
 
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSequence(nil).HandleSequence, TCasScriptSequence, [TCasScriptValue], true);

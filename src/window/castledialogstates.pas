@@ -27,11 +27,11 @@
   This is comfortable to use, as you can write code like this:
 
   @longCode(#
-  if MesssageYesNo(Window, 'Are you sure you want to delete this file?') then
+  if MessageYesNo(Window, 'Are you sure you want to delete this file?') then
     DeleteFile(...);
   #)
 
-  Underneath, the @link(MesssageYesNo) will use a @link(TStateDialogYesNo),
+  Underneath, the @link(MessageYesNo) will use a @link(TStateDialogYesNo),
   making sure that your normal window callbacks are redirected as appropriate.
   But you don't need to be concerned with this.
 

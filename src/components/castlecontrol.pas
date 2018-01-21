@@ -56,7 +56,7 @@ type
         We will pass events to these controls, draw them etc.)
 
       @item(Continously called @link(OnUpdate) event, and automatic handling
-        of all controls @link(TUIControl.Update).
+        of calling @link(TInputListener.Update) for all @link(Controls).
         This is something different than LCL "idle" event,
         as it's guaranteed to be run continously, even when your application
         is clogged with events (like when using TWalkCamera.MouseLook).
@@ -76,7 +76,7 @@ type
         @unorderedList(
           @item(Register an event on @link(OnUpdate) of this component,)
           @item(Add custom @link(TUIControl) instance to the @link(Controls) list
-            with overridden @link(TUIControl.Update) method,)
+            with overridden @link(TInputListener.Update) method,)
           @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
             ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
             unit.)

@@ -147,6 +147,7 @@ begin
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
+    P.Targets.AddUnit('castleinternaldoublelists.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
@@ -178,6 +179,7 @@ begin
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
+    P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services' + PathDelim + 'opengl');

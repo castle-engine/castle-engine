@@ -637,7 +637,7 @@ end;
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
-  P, FileName, S: string;
+  P, FileName: string;
   {$ifdef HAS_FP_HTTP_CLIENT}
   NetworkResult: TMemoryStream;
   {$endif}
@@ -656,8 +656,11 @@ begin
 
   {$ifdef HAS_FP_HTTP_CLIENT}
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
-  if EnableNetwork and (P = 'http') then
+  if (P = 'http') or (P = 'https') then
   begin
+    if not EnableNetwork then
+      raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
+
     CheckFileAccessSafe(URL);
     WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
@@ -753,10 +756,7 @@ begin
   end else
 
   begin
-    if P = 'http' then
-      S := 'Downloading from "http" is not enabled' else
-      S := Format('Downloading from protocol "%s" is not supported', [P]);
-    raise EDownloadError.Create(S);
+    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
   end;
 end;
 

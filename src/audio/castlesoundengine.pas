@@ -197,10 +197,10 @@ type
     { Make sure that the sound keeps playing, in case it stopped playing.
 
       This is an alternative approach to play a sound many times,
-      like in a loop, but without using the @link(Loop) property.
-      The idea is that you leave @link(Loop) set to @false,
+      like in a loop, but without using the @link(Looping) property.
+      The idea is that you leave @link(Looping) set to @false,
       and you keep calling this method from some "update" event
-      (like some @link(TUIControl.Update) implementation).
+      (like some @link(TInputListener.Update) implementation).
       Once you stop calling this method, the sound will automatically stop
       (once it finishes the current cycle).
 
@@ -491,8 +491,7 @@ type
     { Initialize sound engine.
       Initializes OpenAL library.
       Sets @link(ALInitialized), @link(ALActive),
-      @link(Information), @link(EFXSupported),
-      @link(ALMajorVersion), @link(ALMinorVersion).
+      @link(Information), @link(EFXSupported).
 
       You can set @link(Device) before calling this.
 
@@ -518,7 +517,7 @@ type
 
     { Do we have active OpenAL context. This is @true when you successfully
       called ALContextOpen (and you didn't call ALContextClose yet).
-      This also implies that OpenAL library is loaded, that is ALInitialized = @true. }
+      This also implies that OpenAL library is loaded. }
     property ALActive: boolean read FALActive;
 
     { Did we attempt to initialize OpenAL context. This indicates that ALContextOpen
@@ -1076,11 +1075,17 @@ function SoundEngine: TRepoSoundEngine;
 
 implementation
 
+{ use a deprecated unit below, only to have it compiled together with Lazarus
+  castle_base.lpk package }
+{$warnings off}
 uses DOM, XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
   CastleInternalVorbisFile, CastleInternalEFX,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
-  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
+  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
+  // this is deprecated
+  CastleSoundAllocator;
+{$warnings on}
 
 { TSoundBuffer --------------------------------------------------------------- }
 
@@ -1709,7 +1714,7 @@ function TSoundEngine.Devices: TSoundDeviceList;
   begin
     Add('', 'Default OpenAL device');
 
-    if ALInitialized and EnumerationExtPresent(pDeviceList) then
+    if ALLibraryAvailable and EnumerationExtPresent(pDeviceList) then
     begin
       { parse pDeviceList }
       while pDeviceList^ <> #0 do
@@ -1722,7 +1727,7 @@ function TSoundEngine.Devices: TSoundDeviceList;
         Inc(pDeviceList);
       end;
     end else
-    if ALInitialized and OpenALSampleImplementation then
+    if ALLibraryAvailable and OpenALSampleImplementation then
     begin
       Add(SampleImpALCDeviceName('native'), 'Operating system native');
       Add(SampleImpALCDeviceName('sdl'), 'SDL (Simple DirectMedia Layer)');
@@ -1863,8 +1868,10 @@ procedure TSoundEngine.ALContextOpenCore;
       FALMajorVersion := 0;
       FALMinorVersion := 0;
 
-      if not ALInitialized then
+      if not ALLibraryAvailable then
         raise EOpenALInitError.Create('OpenAL library is not available');
+
+      Assert(Assigned(alcOpenDevice), 'Assigned(alcOpenDevice)');
 
       ALDevice := alcOpenDevice(PCharOrNil(Device));
       if (ALDevice = nil) then
@@ -2400,7 +2407,7 @@ function TSoundEngine.ParseParametersHelp: string;
     DefaultDeviceName: string;
     I: Integer;
   begin
-    if not ALInitialized then
+    if not ALLibraryAvailable then
       Result := '                        Warning: OpenAL is not available, cannot print' +NL+
                 '                        available audio devices.' +NL else
     if not EnumerationExtPresent then

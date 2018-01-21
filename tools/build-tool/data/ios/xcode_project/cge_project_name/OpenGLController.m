@@ -92,6 +92,23 @@
     else
         m_fScale = 1.0;
 
+    /*
+     Get the DPI/PPI. The real values (132*scale for iPhones, 163*scale for iPads)
+     are too high when used in reality. The concept of scaling UI using DPI fails
+     on iOS. It is much better to use screen scale only (m_fScale). In that case,
+     when you define 25 px large icon, it will have 50 px at Retina resolution,
+     which is what we want.
+
+     Also, it is impossible to get the precise iDevice PPI other then enumerating all
+     existing devices.
+     */
+    /*unsigned dpi = 160;
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+        dpi = 132;
+    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+        dpi = 163;*/
+    unsigned dpi = 96; // CastleWindow.DefaultDpi
+
     m_oldViewWidth  = self.view.bounds.size.width;
     m_oldViewHeight = self.view.bounds.size.height;
 
@@ -100,7 +117,7 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, 115 * m_fScale, [libraryDirectory fileSystemRepresentation]);
+    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
 
     [self update];
 }

@@ -1,7 +1,24 @@
-program Image_Paint;
+{
+  Copyright 2017-2018 Yevhen Loza.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Drawing ellipses, rectangles, lines on TCastleImage (using CPU drawing). }
+program image_paint;
+
 uses SysUtils,
-  CastleWindow, CastleImages, CastleGLImages, castle_base, castle_window,
-  CastleVectors, CastleColors, CastleLog;
+  CastleWindow, CastleImages, CastleGLImages, CastleVectors, CastleColors,
+  CastleLog;
 
 const
   TestSize = 100;
@@ -86,4 +103,3 @@ begin
   FreeAndNil(GrayscaleImageGL);
   FreeAndNil(RGBFloatImageGL);
 end.
-

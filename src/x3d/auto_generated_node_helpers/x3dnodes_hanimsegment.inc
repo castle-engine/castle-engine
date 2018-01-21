@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2017 Michalis Kamburelis.
+  Copyright 2015-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

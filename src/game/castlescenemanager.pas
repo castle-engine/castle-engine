@@ -505,7 +505,7 @@ type
 
       Note: Instead of using @link(TCastleTransform.PrepareResources),
       and this method,
-      it's usually easier to call @link(TCastleAbstractViewport.PrepareResources).
+      it's usually easier to call @link(TCastleSceneManager.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
     function PrepareParams: TPrepareParams;
 
@@ -1783,7 +1783,6 @@ var
   Box: TBox3D;
   Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
-  PerspectiveFieldOfView: Single;
 
   procedure DoPerspective;
   begin
@@ -1839,6 +1838,9 @@ var
   end;
 
 var
+  PerspectiveFieldOfView: Single;
+  PerspectiveFieldOfViewForceVertical: boolean;
+  PerspectiveAnglesRad: TVector2;
   ProjectionType: TProjectionType;
 begin
   Box := GetItems.BoundingBox;
@@ -1851,17 +1853,26 @@ begin
 
   if (ViewpointNode <> nil) and
      (ViewpointNode is TViewpointNode) then
-    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
+  begin
+    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FieldOfView;
+    PerspectiveFieldOfViewForceVertical := TViewpointNode(ViewpointNode).FieldOfViewForceVertical;
+  end else
   if (ViewpointNode <> nil) and
      (ViewpointNode is TPerspectiveCameraNode_1) then
-    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
+  begin
+    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value;
+    PerspectiveFieldOfViewForceVertical := false;
+  end else
+  begin
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
+    PerspectiveFieldOfViewForceVertical := false;
+  end;
 
-  Result.PerspectiveAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
-    PerspectiveFieldOfView, Viewport.Width / Viewport.Height));
-
-  Result.PerspectiveAngles[1] := AdjustViewAngleDegToAspectRatio(
-    Result.PerspectiveAngles[0], Viewport.Height / Viewport.Width);
+  PerspectiveAnglesRad := TViewpointNode.ViewpointAngleOfView(
+    PerspectiveFieldOfView, PerspectiveFieldOfViewForceVertical,
+    Viewport.Width, Viewport.Height);
+  Result.PerspectiveAngles[0] := RadToDeg(PerspectiveAnglesRad[0]);
+  Result.PerspectiveAngles[1] := RadToDeg(PerspectiveAnglesRad[1]);
 
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }
@@ -1926,7 +1937,8 @@ end;
 
 procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
-  GetItems.Render(RenderingCamera.Frustum, Params);
+  Params.Frustum := @RenderingCamera.Frustum;
+  GetItems.Render(Params);
   if Assigned(OnRender3D) then
     OnRender3D(Self, Params);
 end;
@@ -2110,7 +2122,7 @@ begin
       end;
       RenderingCamera.RotationOnly := true;
 
-      { The background rendering doesn't like custom Dimensions.
+      { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
         testcase. So temporary set good perspective projection. }
@@ -2122,7 +2134,7 @@ begin
           FProjection.ProjectionFar);
       end;
 
-      UsedBackground.Render(BackgroundWireframe, RenderingCamera.Frustum);
+      UsedBackground.Render(BackgroundWireframe);
 
       if FProjection.ProjectionType = ptOrthographic then
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;

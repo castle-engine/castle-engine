@@ -1752,7 +1752,8 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or TUIControl.Update, or TCastleTransform.Update) and look at it's @code(SecondsPassed)
+      (or @link(TInputListener.Update) in your @link(TUIControl) descendant,
+      or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
 
@@ -2113,7 +2114,8 @@ type
         )
 
         @itemLabel poLimitFps
-        @item(Handle @--no-limit-fps: disables @link(Application.LimitFps),
+        @item(Handle @--no-limit-fps: disables
+          @link(TCastleApplication.LimitFps Application.LimitFps),
           allows to observe maximum FPS, see
           http://castle-engine.sourceforge.io/manual_optimization.php )
       )
@@ -2535,6 +2537,9 @@ type
 
     function GetVersion: string;
     procedure SetVersion(const Value: string);
+
+    function GetTouchDevice: boolean;
+    procedure SetTouchDevice(const Value: boolean);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2552,11 +2557,6 @@ type
     VideoResizeWidth,
     VideoResizeheight : integer;
     { @groupEnd }
-
-    { Initialized to @true on touch devices (Android, iOS).
-      You can change this to easily pretend that you have a touch device
-      on desktop. }
-    TouchDevice: boolean;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2827,6 +2827,8 @@ type
 
     property Version: string read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
+    property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
+      deprecated 'use ApplicationProperties.TouchDevice';
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -4601,10 +4603,6 @@ begin
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
   FDefaultWindowClass := TCastleWindowCustom;
-  TouchDevice :=
-    {$ifdef ANDROID} true {$else}
-    {$ifdef IOS}     true {$else}
-                     false {$endif} {$endif};
   CreateBackend;
 end;
 
@@ -5090,6 +5088,16 @@ end;
 procedure TCastleApplication.SetVersion(const Value: string);
 begin
   ApplicationProperties.Version := Value;
+end;
+
+function TCastleApplication.GetTouchDevice: boolean;
+begin
+  Result := ApplicationProperties.TouchDevice;
+end;
+
+procedure TCastleApplication.SetTouchDevice(const Value: boolean);
+begin
+  ApplicationProperties.TouchDevice := Value;
 end;
 
 { global --------------------------------------------------------------------- }

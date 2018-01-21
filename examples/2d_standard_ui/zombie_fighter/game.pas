@@ -22,6 +22,7 @@ implementation
 
 uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   CastleColors, CastleUIControls, CastleUIState, CastleWindow,
+  CastleApplicationProperties,
   GameStateMainMenu, GameStatePlay, GameStateAskDialog;
 
 var
@@ -42,14 +43,9 @@ begin
   TUIState.Current := StateMainMenu;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'zombie_fighter';
-end;
-
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'zombie_fighter';
 
   Window := TCastleWindowCustom.Create(Application);
 

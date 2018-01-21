@@ -13,7 +13,7 @@
   Fixed to compile also under FPC 2.4.0 and 2.2.4.
   Some small comfortable methods added. }
 unit CastleGenericLists
-  deprecated 'use TList and TDictionary from Generics.Collections unit, it works for all types perfectly like we want';
+  deprecated 'instead of this unit, use TList and TDictionary from Generics.Collections unit, it works for all types perfectly like we want';
 
 {$I castleconf.inc}
 

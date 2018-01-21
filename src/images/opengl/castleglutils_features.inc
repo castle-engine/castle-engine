@@ -126,10 +126,14 @@ type
 
     Multisample: boolean;
 
-    { Number of texture units available.
+    { Number of texture units available for fixed-function pipeline.
+      Equal to 0 on OpenGLES (that doesn't have fixed-function pipeline).
       Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
       available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
-    MaxTextureUnits: Cardinal;
+    MaxTextureUnitsFixedFunction: Cardinal;
+
+    { Number of texture units available for shader pipeline. }
+    MaxTextureUnitsShaders: Cardinal;
 
     { Are all OpenGL multi-texturing extensions for
       VRML/X3D MultiTexture support available.
@@ -251,6 +255,11 @@ type
       Call Memory.Refresh whenever needed. }
     Memory: TGLMemoryInfo;
 
+    { Maximum number of texture units you can safely always use.
+      If EnableFixedFunction, this is MaxTextureUnitsFixedFunction,
+      otherwise MaxTextureUnitsShaders. }
+    function MaxTextureUnits: Cardinal;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -370,14 +379,19 @@ begin
     Make it configurable somewhere, e.g. at Attribtes.MaxLightsPerShape ? }
   MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
 
+  { We do not look at GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+    which is usually much smaller (may even be 0).
+    But most of our texture uses do not access the texture from the vertex shader,
+    only fragment shader. }
+  MaxTextureUnitsShaders := glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS);
+
   {$ifdef OpenGLES}
-  MaxTextureUnits := Max(
-    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
+  MaxTextureUnitsFixedFunction := 0;
   {$else}
   if Version_1_3 then
-    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
-    MaxTextureUnits := 1;
+    MaxTextureUnitsFixedFunction := glGetInteger(GL_MAX_TEXTURE_UNITS)
+  else
+    MaxTextureUnitsFixedFunction := 1;
   {$endif}
 
   MaxCubeMapTextureSize := 0;
@@ -583,7 +597,8 @@ begin
 
   EnableFixedFunction :=
     {$ifdef OpenGLES} false
-    {$else} Shaders <> gsStandard
+    // checking for VertexBufferObject also makes sure that BuggyVBO = false
+    {$else} (Shaders <> gsStandard) or (not VertexBufferObject)
     {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
@@ -595,6 +610,18 @@ end;
 destructor TGLFeatures.Destroy;
 begin
   FreeAndNil(Memory);
+end;
+
+function TGLFeatures.MaxTextureUnits: Cardinal;
+begin
+  if EnableFixedFunction then
+    { Note doing
+        Result := Min(MaxTextureUnitsFixedFunction, MaxTextureUnitsShaders)
+      would not be OK, since then a GPU that cannot do shaders would not
+      be able to use textures at all. }
+    Result := MaxTextureUnitsFixedFunction
+  else
+    Result := MaxTextureUnitsShaders;
 end;
 
 { TGLMemoryInfo -------------------------------------------------------------- }

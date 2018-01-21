@@ -63,6 +63,7 @@ begin
   Scene.Load(ApplicationData('level1.x3d'));
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
+  Scene.Attributes.PhongShading := true; // looks better
   { zombie sprites are rendered using blending, and you can see multiple
     sprites sometimes at once. So we need sorting, to render them correctly.
     This is actually the default now. }
@@ -78,6 +79,8 @@ begin
   SceneManager.MainScene := Scene;
   SceneManager.NavigationType := ntWalk;
   SceneManager.WalkCamera.MoveSpeed := 10;
+  { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
+  SceneManager.WalkCamera.HeadBobbing := 0;
   InsertFront(SceneManager);
 
   ViewportRect := TCastleRectangleControl.Create(FreeAtStop);

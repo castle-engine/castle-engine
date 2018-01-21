@@ -25,13 +25,11 @@ uses SysUtils, CastleUtils,
 var
   Buffer: TSoundBuffer;
   URL: string;
-  Duration: TFloatTime;
 begin
   ApplicationProperties.OnWarning.Add(
     {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
-  { add here InitializeLog('1.0') (from CastleLog unit) to see various info
-    about OpenAL and sound loading }
+  InitializeLog; // to see various info about OpenAL and sound loading
 
   { parse params }
   SoundEngine.ParseParameters;
@@ -47,8 +45,8 @@ begin
     OpenAL will be automatically initialized when needed below.
     Although you could also initialize it explicitly by SoundEngine.ALContextOpen,
     check SoundEngine.SoundInitializationReport, SoundEngine.ALActive etc. }
-  Buffer := SoundEngine.LoadBuffer(URL, Duration);
-  Writeln('Sound loaded, duration in seconds: ', Duration:1:2);
+  Buffer := SoundEngine.LoadBuffer(URL);
+  Writeln('Sound loaded, duration in seconds: ', Buffer.Duration:1:2);
   SoundEngine.PlaySound(Buffer);
 
   { Wait enough time to finish playing. (because PlaySound above doesn't block).
@@ -57,5 +55,5 @@ begin
     to do this would be query is sound playing (call SoundEngine.Refresh
     from time to time, and watch out for TSound.OnRelease event;
     PlaySound returns TSound instance for such purposes). }
-  Sleep(Round(Duration * 1000) + 500);
+  Sleep(Round(Buffer.Duration * 1000) + 500);
 end.

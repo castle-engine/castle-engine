@@ -281,9 +281,13 @@ type
       Most of these methods are called automatically
       by the container owner, like TCastleWindow or TCastleControl.
       Some are called by @link(EventUpdate),
-      which is special in this regard, as @link(EventUpdate) it not only
-      responsible for calling TUIControl.Update, it also calls
-      EventJoyAxisMove, EventJoyButtonPress, EventSensorRotation, EventSensorTranslation.
+      which is special in this regard, as @link(EventUpdate) is not only
+      responsible for calling @link(TInputListener.Update) on all @link(Controls),
+      it also calls
+      @link(EventJoyAxisMove),
+      @link(EventJoyButtonPress),
+      @link(EventSensorRotation),
+      @link(EventSensorTranslation).
 
       @groupBegin }
     procedure EventOpen(const OpenWindowsCount: Cardinal); virtual;
@@ -1023,6 +1027,10 @@ type
       if you make direct OpenGL / OpenGLES calls). }
     procedure Render; virtual;
 
+    { Render a control contents @italic(over the children controls).
+      This is analogous to @link(Render), but it executes after children are drawn.
+      You should usually prefer to override @link(Render) instead of this method,
+      as the convention is that the parent is underneath children. }
     procedure RenderOverChildren; virtual;
 
     { Determines the rendering order.
@@ -2013,8 +2021,13 @@ procedure TUIContainer.EventUpdate;
 
     T := Fps.UpdateStartTime;
     if (not HasLastPositionForTooltip) or
+       { reset the time counter to show tooltip, if you moved mouse/finger
+         significantly }
        (PointsDistanceSqr(LastPositionForTooltip, MousePosition) >
-        Sqr(TooltipDistance)) then
+        Sqr(TooltipDistance)) or
+       { on touch devices, the time counter to show tooltip doesn't advance
+         if we don't keep the finger pressed down }
+       (ApplicationProperties.TouchDevice and (MousePressed = [])) then
     begin
       HasLastPositionForTooltip := true;
       LastPositionForTooltip := MousePosition;

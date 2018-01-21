@@ -3,8 +3,8 @@
 
 MODE:=debug
 
-.PHONY: compile
-compile:
+.PHONY: standalone
+standalone:
 	castle-engine --mode=$(MODE) compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
@@ -15,9 +15,13 @@ clean:
 win32:
 	castle-engine --mode=$(MODE) package --os=win32 --cpu=i386
 
-.PHONY: linux
-linux:
+.PHONY: linux32
+linux32:
 	castle-engine --mode=$(MODE) package --os=linux --cpu=i386
+
+.PHONY: linux64
+linux64:
+	castle-engine --mode=$(MODE) package --os=linux --cpu=x86_64
 
 .PHONY: src
 src:

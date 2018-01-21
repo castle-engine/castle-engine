@@ -64,7 +64,6 @@ uses
   TestCastleScript,
   TestCastleScriptVectors,
   TestCastleCubeMaps,
-  TestShadowFields, // this unit is part of shadow_fields example
   TestCastleGLVersion,
   TestCastleCompositeImage,
   TestCastleTriangulate,

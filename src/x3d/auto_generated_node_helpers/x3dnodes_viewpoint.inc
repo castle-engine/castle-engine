@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2017 Michalis Kamburelis.
+  Copyright 2015-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -29,8 +29,11 @@
   strict private
     function GetFieldOfView: Single;
     procedure SetFieldOfView(const Value: Single);
+    function GetFieldOfViewForceVertical: boolean;
+    procedure SetFieldOfViewForceVertical(const Value: boolean);
   public
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
+    property FieldOfViewForceVertical: boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
 
 {$endif read_interface}
 
@@ -46,6 +49,16 @@ end;
 procedure TViewpointNode.SetFieldOfView(const Value: Single);
 begin
   FdFieldOfView.Send(Value);
+end;
+
+function TViewpointNode.GetFieldOfViewForceVertical: boolean;
+begin
+  Result := FdFieldOfViewForceVertical.Value;
+end;
+
+procedure TViewpointNode.SetFieldOfViewForceVertical(const Value: boolean);
+begin
+  FdFieldOfViewForceVertical.Send(Value);
 end;
 
 {$endif read_implementation}

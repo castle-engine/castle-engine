@@ -13,7 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Current rendering camera (TRenderingCamera).) }
+{ @abstract(Current rendering camera (TRenderingCamera).)
+
+  @bold(This is mostly an internal unit), normal applications should not access
+  camera this way (instead use TCastleAbstractViewport.Camera).
+  However, there are some valid uses for it (like querying
+  @link(TRenderingCamera.Target) to selectively hide some stuff). }
 unit CastleRenderingCamera;
 
 {$I castleconf.inc}
@@ -50,7 +55,11 @@ type
       (in the normal color buffer). }
     rtVarianceShadowMap);
 
-  { Current camera used for rendering. }
+  { Current camera used for rendering, almost always accessed using
+    @link(RenderingCamera) singleton.
+
+    @bold(This is an internal class), normal applications should not access
+    camera this way (instead use TCastleAbstractViewport.Camera). }
   TRenderingCamera = class
   strict private
     FOnChanged: TCameraChangedEventList;
@@ -140,6 +149,10 @@ type
   end;
 
 var
+  { Current camera used for rendering.
+
+    @bold(This is an internal information), normal applications should not access
+    camera this way (instead use TCastleAbstractViewport.Camera). }
   RenderingCamera: TRenderingCamera;
 
 implementation

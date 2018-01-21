@@ -29,7 +29,7 @@ implementation
 uses SysUtils,
   CastleVectors, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
-  CastleUIControls, CastleNotifications, CastleLog;
+  CastleUIControls, CastleNotifications, CastleLog, CastleApplicationProperties;
 
 var
   Notifications: TCastleNotifications;
@@ -307,14 +307,9 @@ begin
   Window.Controls.InsertFront(Circle4);
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'show_various_ui_controls';
-end;
-
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'show_various_ui_controls';
 
   Window := TCastleWindowCustom.Create(Application);
 

@@ -23,7 +23,7 @@ uses SysUtils, Classes,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
 
 type
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
+  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
   TDependencies = set of TDependency;
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
@@ -861,6 +861,9 @@ begin
   Exclude('*.xcf', Files);
   Exclude('*.blend*', Files);
   Exclude('*~', Files);
+  // Note: slash or backslash below doesn't matter, Exclude function converts them
+  Exclude('*/.DS_Store', Files);
+  Exclude('*/thumbs.db', Files);
   for I := 0 to ExcludePaths.Count - 1 do
     Exclude(ExcludePaths[I], Files);
 end;
@@ -883,7 +886,7 @@ var
 
   procedure AddExternalLibrary(const LibraryName: string);
   begin
-    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), LibraryName);
+    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), ExtractFileName(LibraryName));
   end;
 
 var
@@ -968,6 +971,11 @@ begin
             AddExternalLibrary('vorbisenc.dll');
             AddExternalLibrary('vorbisfile.dll');
           end;
+          if depHttps in Dependencies then
+          begin
+            AddExternalLibrary('openssl/libeay32.dll');
+            AddExternalLibrary('openssl/ssleay32.dll');
+          end;
         end;
 
       win64:
@@ -989,6 +997,11 @@ begin
             AddExternalLibrary('libvorbis.dll');
             { AddExternalLibrary('vorbisenc.dll'); not present? }
             AddExternalLibrary('vorbisfile.dll');
+          end;
+          if depHttps in Dependencies then
+          begin
+            AddExternalLibrary('openssl/libeay32.dll');
+            AddExternalLibrary('openssl/ssleay32.dll');
           end;
         end;
     end;
@@ -1439,8 +1452,8 @@ procedure TCastleProject.DoGenerateProgram;
     TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
     TargetFile := Path + NamePascal + '_standalone.' + Ext;
     ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
-    if Verbose then
-      Writeln('Generated ', TargetFile);
+    Writeln('Generated ',
+      ExtractRelativePath(InclPathDelim(GetCurrentDir), TargetFile));
   end;
 
 begin
@@ -1720,7 +1733,9 @@ begin
     FileInfo.AbsoluteName, true);
 
   if IsWild(DestinationRelativeFileName, '*setup_sdk.sh', true) or
-     IsWild(DestinationRelativeFileName, '*~', true) then
+     IsWild(DestinationRelativeFileName, '*~', true) or
+     SameFileName(ExtractFileName(DestinationRelativeFileName), '.DS_Store') or
+     SameFileName(ExtractFileName(DestinationRelativeFileName), 'thumbs.db') then
   begin
     // if Verbose then
     //   Writeln('Ignoring template file: ' + DestinationRelativeFileName);
@@ -1795,7 +1810,7 @@ end;
 
 const
   DependencyNames: array [TDependency] of string =
-  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis');
+  ('Freetype', 'Zlib', 'Png', 'Sound', 'OggVorbis', 'Https');
 
 function DependencyToString(const D: TDependency): string;
 begin

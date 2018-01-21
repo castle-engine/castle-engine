@@ -54,3 +54,17 @@
 @property (nonatomic, retain) OpenGLController *mainController;
 
 @end
+
+/* Return non-nil version of the string.
+   In case value is nil, returns zero-length non-nil string version, @"".
+
+   This is particularly useful because when NSArray cannot hold nil.
+   So this is unsafe, in case myString may be nil:
+
+     @[myString]
+
+   This is always safe:
+
+     @[stringNonNil(myString)]
+*/
+NSString* stringNonNil(NSString* value);

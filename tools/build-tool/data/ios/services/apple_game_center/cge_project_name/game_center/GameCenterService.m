@@ -239,7 +239,7 @@ const int STATUS_SIGNING_OUT = 3;
 - (void)saveGameLoadingError:(NSString* )errorStr
 {
     NSLog(@"Loading savegame failed: %@", errorStr);
-    [self messageSend:@[@"save-game-loaded", @"false", errorStr]];
+    [self messageSend:@[@"save-game-loaded", @"false", stringNonNil(errorStr)]];
 }
 
 - (void)saveGameLoad:(NSString*) saveGameName

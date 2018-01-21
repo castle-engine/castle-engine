@@ -1231,22 +1231,30 @@ var
 
     procedure DoPerspective;
     var
-      FieldOfView: Single;
-      AngleOfViewX, AngleOfViewY: Single;
+      FieldOfView, AngleOfViewY: Single;
+      FieldOfViewForceVertical: boolean;
+      Angles: TVector2;
     begin
       if (Viewpoint <> nil) and
          (Viewpoint is TViewpointNode) then
-        FieldOfView := TViewpointNode(Viewpoint).FdFieldOfView.Value else
+      begin
+        FieldOfView := TViewpointNode(Viewpoint).FieldOfView;
+        FieldOfViewForceVertical := TViewpointNode(Viewpoint).FieldOfViewForceVertical;
+      end else
       if (Viewpoint <> nil) and
          (Viewpoint is TPerspectiveCameraNode_1) then
-        FieldOfView := TPerspectiveCameraNode_1(Viewpoint).FdHeightAngle.Value else
+      begin
+        FieldOfView := TPerspectiveCameraNode_1(Viewpoint).FdHeightAngle.Value;
+        FieldOfViewForceVertical := false;
+      end else
+      begin
         FieldOfView := DefaultViewpointFieldOfView;
+        FieldOfViewForceVertical := false;
+      end;
 
-      AngleOfViewX := RadToDeg(TViewpointNode.ViewpointAngleOfView(
-        FieldOfView, Width / Height));
-
-      AngleOfViewY := AdjustViewAngleDegToAspectRatio(
-        AngleOfViewX, Height / Width);
+      Angles := TViewpointNode.ViewpointAngleOfView(
+        FieldOfView, FieldOfViewForceVertical, Width, Height);
+      AngleOfViewY := RadToDeg(Angles[1]);
 
       Result := PerspectiveProjectionMatrixDeg(AngleOfViewY, Width / Height,
         ProjectionNear, ProjectionFar);

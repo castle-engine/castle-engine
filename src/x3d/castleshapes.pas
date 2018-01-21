@@ -106,8 +106,8 @@ type
       This is a shortcut for @link(Shape).State. }
     function State: TX3DGraphTraverseState;
 
-    { Use State.Transform to update triangle @link(World) geometry
-      from triangle @link(Local) geometry. }
+    { Use State.Transform to update triangle @link(TTriangle.World) geometry
+      from triangle @link(TTriangle.Local) geometry. }
     procedure UpdateWorld;
 
     { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }

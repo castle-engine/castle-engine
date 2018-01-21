@@ -206,20 +206,15 @@ begin
   end;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'castle-engine';
-end;
-
 procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
 begin
+  ApplicationProperties.ApplicationName := 'castle-engine';
   ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-  OnGetApplicationName := @MyGetApplicationName;
 
   OS := DefaultOS;
   CPU := DefaultCPU;

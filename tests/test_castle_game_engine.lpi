@@ -58,7 +58,6 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="../src/base"/>
-      <OtherUnitFiles Value="../examples/research_special_rendering_methods/shadow_fields;../examples/curves_surfaces"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

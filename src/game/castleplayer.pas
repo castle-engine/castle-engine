@@ -185,7 +185,7 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -207,6 +207,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -407,7 +409,7 @@ type
 
     { Camera synchronized with this player instance.
 
-      You can use this camera as @link(TCastleSceneManager.Camera)
+      You can use this camera as @link(TCastleAbstractViewport.Camera)
       to allow user to directly control this player in first-person game.
       @link(TGameSceneManager.LoadLevel) sets this automatically.
 
@@ -736,15 +738,28 @@ begin
   Camera.SetView(P, D, U);
 end;
 
+procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
+var
+  P, D, U: TVector3;
+begin
+  inherited;
+
+  { Synchronize Position, Direction, Up *from* Camera.
+
+    Do this before rendering (not in TPlayer.UpdateCamera)
+    makes the player's weapon always correctly rendered, without any delay.
+    (Testcase: move/rotate using touch control
+    in fps_game when you have shooting_eye.) }
+
+  Camera.GetView(P, D, U);
+  SetView(P, D, U);
+end;
+
 procedure TPlayer.UpdateCamera;
 var
   NormalCameraInput: TCameraInputs;
-  P, D, U: TVector3;
 begin
-  // synchronize Position, Direction, Up *from* Camera
-  Camera.GetView(P, D, U);
-  SetView(P, D, U);
-
   Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
@@ -1356,7 +1371,7 @@ begin
   AboveGround := nil;
 end;
 
-procedure TPlayer.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TPlayer.LocalRender(const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently

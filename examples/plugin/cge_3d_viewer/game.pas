@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implements the game logic, independent from mobile / standalone / plugin. }
+{ Game initialization and logic. }
 unit Game;
 
 interface
@@ -24,7 +24,7 @@ uses SysUtils, CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleWindowTouch,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
-  CastleDownload, CastleMessages;
+  CastleDownload, CastleMessages, CastleApplicationProperties;
 
 { routines ------------------------------------------------------------------- }
 
@@ -175,13 +175,9 @@ begin
   EnableNetwork := true;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'cge_3d_viewer';
-end;
-
 initialization
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it. }
+  ApplicationProperties.ApplicationName := 'cge_3d_viewer';
 
   InitializeLog; // start logging early, to test plugin startup
 

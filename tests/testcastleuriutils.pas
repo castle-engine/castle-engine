@@ -57,11 +57,16 @@ begin
 end;
 
 procedure TTestURIUtils.TestAbsoluteURI;
+{$ifdef MSWINDOWS}
+var
+  Drive: string;
+{$endif}
 begin
   {$ifdef MSWINDOWS}
   AssertFilenamesEqual('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
   { Below ExpandFileName will change /foo.txt on Windows to add drive letter }
-  AssertFilenamesEqual('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
+  Drive := ExtractFileDrive(GetCurrentDir);
+  AssertFilenamesEqual('file:///' + Drive + '/foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
 
   {$ifdef UNIX}

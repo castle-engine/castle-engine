@@ -27,7 +27,8 @@ program scene_manager_demos;
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleLog, CastleTransform,
-  CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties;
+  CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties,
+  CastleFilesUtils;
 
 var
   Window: TCastleWindow;
@@ -35,12 +36,14 @@ var
   DinoTransform1, DinoTransform2: TCastleTransform;
 begin
   Window := TCastleWindow.Create(Application);
+  Window.Open;
+  Window.FpsShowOnCaption := true;
 
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { initialize first Scene }
   Scene := TCastleScene.Create(Application);
-  Scene.Load('data/bridge_final.x3dv');
+  Scene.Load(ApplicationData('bridge_final.x3dv'));
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
     optimization when rendering (ssRendering). }
@@ -81,7 +84,7 @@ begin
 
   { initialize ParticlesScene }
   ParticlesScene := TCastleScene.Create(Application);
-  ParticlesScene.Load('data/castle_script_particles.x3dv');
+  ParticlesScene.Load(ApplicationData('castle_script_particles.x3dv'));
   ParticlesScene.Spatial := [ssRendering, ssDynamicCollisions];
   { Modify the loaded nodes graph, just to show that we can.
     We find a node called ParticleScript, and change it's "count" field.
@@ -95,7 +98,7 @@ begin
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
-  DinoScene.Load('data/raptor.castle-anim-frames');
+  DinoScene.Load(ApplicationData('raptor.castle-anim-frames'));
   DinoScene.ProcessEvents := true;
   DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs
@@ -117,7 +120,5 @@ begin
   DinoTransform1.Add(DinoScene);
   DinoTransform2.Add(DinoScene);
 
-  Window.FpsShowOnCaption := true;
-
-  Window.OpenAndRun;
+  Application.Run;
 end.

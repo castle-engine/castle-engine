@@ -26,7 +26,7 @@ implementation
 uses SysUtils,
   CastleWindowTouch, CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls;
+  CastleUIControls, CastleApplicationProperties;
 
 var
   Window: TCastleWindowTouch;
@@ -83,15 +83,10 @@ begin
   Window.SceneManager.MainScene := ExampleScene;
 end;
 
-function MyGetApplicationName: string;
-begin
-  Result := 'my_fantastic_game';
-end;
-
 initialization
-  { Set OnGetApplicationName, to determine the ApplicationName value.
-    Our log uses ApplicationName, so it's useful to set OnGetApplicationName early. }
-  OnGetApplicationName := @MyGetApplicationName;
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here. }
+  ApplicationProperties.ApplicationName := 'my_fantastic_game';
 
   { Start logging. Do this as early as possible,
     to log information and eventual warnings during initialization. }
