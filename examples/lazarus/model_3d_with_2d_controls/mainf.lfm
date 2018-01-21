@@ -17,7 +17,6 @@ object Form1: TForm1
     Top = 0
     Width = 1043
     Align = alClient
-    Options = []
     TabOrder = 0
     OnResize = BrowserResize
   end
