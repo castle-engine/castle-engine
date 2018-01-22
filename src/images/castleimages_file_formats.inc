@@ -16,7 +16,7 @@
 { Image formats. }
 
 type
-  { }
+  { Possible image file format. }
   TImageFormat = (
     { We handle PNG file format fully, both reading and writing,
       through the libpng library.
