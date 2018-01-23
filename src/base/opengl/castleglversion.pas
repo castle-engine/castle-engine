@@ -454,15 +454,27 @@ begin
 
   FBuggyGenerateMipmap :=
     (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-    {$ifdef MSWINDOWS} or (VendorType = gvIntel) {$endif};
+    {$ifdef MSWINDOWS}
+    or
+    ( (VendorType = gvIntel) and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
+    {$endif};
 
   FBuggyFBOCubeMap :=
-    {$ifdef MSWINDOWS} ((VendorType = gvIntel) and not VendorVersionAtLeast(9, 0, 0))
+    {$ifdef MSWINDOWS}
+    ( (VendorType = gvIntel) and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
     {$else} false
     {$endif};
 
   FBuggyGenerateCubeMap :=
-    {$ifdef MSWINDOWS} ((VendorType = gvIntel) and SameText(Renderer, 'Intel(R) HD Graphics 4000'))
+    {$ifdef MSWINDOWS}
+    ( (VendorType = gvIntel) and
+      SameText(Renderer, 'Intel(R) HD Graphics 4000')
+      not VendorVersionAtLeast(9, 0, 0)
+    )
     {$else} false
     {$endif};
 
