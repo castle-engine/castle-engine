@@ -472,7 +472,7 @@ begin
   FBuggyGenerateCubeMap :=
     {$ifdef MSWINDOWS}
     ( (VendorType = gvIntel) and
-      SameText(Renderer, 'Intel(R) HD Graphics 4000')
+      SameText(Renderer, 'Intel(R) HD Graphics 4000') and
       not VendorVersionAtLeast(9, 0, 0)
     )
     {$else} false
