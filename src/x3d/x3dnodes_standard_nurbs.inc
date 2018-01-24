@@ -197,6 +197,11 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
+    { Make this NURBS curve equal to a piecewise Bezier curve by setting appropriate
+      "knot". This looks at @link(ControlPoint) count and @link(Order)
+      (set Order = 4 for a typical cubic Bezier curve). }
+    procedure PiecewiseBezier;
+
     {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
   end;
   TNurbsCurveNode_3 = TNurbsCurveNode;
@@ -879,6 +884,19 @@ function TNurbsCurveNode.TrianglesCount(State: TX3DGraphTraverseState; OverTrian
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := 0;
+end;
+
+procedure TNurbsCurveNode.PiecewiseBezier;
+var
+  ControlPointCount: Integer;
+begin
+  FdKnot.Items.Clear;
+
+  if ControlPoint is TCoordinateNode then
+  begin
+    ControlPointCount := TCoordinateNode(ControlPoint).FdPoint.Count;
+    NurbsKnotIfNeeded(FdKnot.Items, ControlPointCount, Order, nkPiecewiseBezier);
+  end;
 end;
 
 procedure TNurbsCurve2DNode.CreateNode;

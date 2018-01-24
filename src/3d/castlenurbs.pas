@@ -100,6 +100,8 @@ function NurbsSurfacePoint(const Points: TVector3List;
   Normal: PVector3): TVector3;
 
 type
+  EInvalidPiecewiseBezierCount = class(Exception);
+
   { Naming notes: what precisely is called a "uniform" knot vector seems
     to differ in literature / software.
     Blender calls nkPeriodicUniform as "Uniform",
@@ -115,13 +117,21 @@ type
     { All knot values are evenly spaced, all knots are single.
       This is good for periodic curves. }
     nkPeriodicUniform,
+
     { Starting and ending knots have Order multiplicity, rest is evenly spaced.
       The curve hits endpoints. }
-    nkEndpointUniform);
+    nkEndpointUniform,
+
+    { NURBS curve will effectively become a piecewise Bezier curve.
+      The order of NURBS curve will determine the order of Bezier curve,
+      for example NURBS curve with order = 4 results in a cubic Bezier curve. }
+    nkPiecewiseBezier);
 
 { Calculate a default knot, if Knot doesn't already have required number of items.
   After this, it's guaranteed that Knot.Count is Dimension + Order
-  (just as required by NurbsCurvePoint, NurbsSurfacePoint). }
+  (just as required by NurbsCurvePoint, NurbsSurfacePoint).
+  @raises(EInvalidPiecewiseBezierCount When you use nkPiecewiseBezier
+    with invalid control points count (Dimension) and Order.) }
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 
@@ -430,7 +440,7 @@ end;
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 var
-  I: Integer;
+  I, Segments: Integer;
 begin
   if Cardinal(Knot.Count) <> Dimension + Order then
   begin
@@ -449,13 +459,49 @@ begin
             Knot.List^[I] := 0;
             Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
           end;
-          for I := 0 to Dimension - Order - 1 do
-            Knot.List^[Cardinal(I) + Order] := I + 1;
-          for I := 0 to Order + Dimension - 1 do
+          for I := Order to Dimension - 1 do
+            Knot.List^[I] := I - Order + 1;
+          for I := 0 to Dimension + Order - 1 do
             Knot.List^[I] := Knot.List^[I] / (Dimension - Order + 1);
+        end;
+      nkPiecewiseBezier:
+        begin
+          { For useful notes on knots, see
+            http://www-evasion.imag.fr/~Francois.Faure/doc/inventorMentor/sgi_html/ch08.html
+            http://saccade.com/writing/graphics/KnotVectors.pdf
+
+            For Order = 4 (cubic Bezier curve) and 3 segments you want to get
+            14 knot values:
+              0 0 0 0
+                1 1 1
+                2 2 2
+              3 3 3 3
+
+            Control points count (Dimension) must be "Segments * (Order - 1)  + 1".
+            In the example above, we have Dimension = 10,
+            and it matches knot count that has Dimension + Order = 14.
+          }
+
+          Segments := (Dimension - 1) div (Order - 1);
+          if (Dimension - 1) mod (Order - 1) <> 0 then
+            raise EInvalidPiecewiseBezierCount.CreateFmt('Invalid NURBS curve control points count (%d) for a piecewise Bezier curve with order %d',
+              [Dimension, Order]);
+
+          for I := 0 to Order - 1 do
+          begin
+            Knot.List^[I] := 0;
+            Knot.List^[Cardinal(I) + Dimension] := Segments;
+          end;
+          for I := Order to Dimension - 1 do
+            Knot.List^[I] := (I - Order) div (Order - 1) + 1;
         end;
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
+
+    // Debug:
+    // Writeln('Recalculated NURBS knot:');
+    // for I := 0 to Knot.Count - 1 do
+    //   Writeln(I:4, ' = ', Knot[I]:1:2);
   end;
 end;
 
