@@ -57,6 +57,7 @@ uses SysUtils, Process,
 type
   TFPCVersion = object
     Major, Minor, Release: Integer;
+    IsCodeTyphon: Boolean;
     function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
   end;
 
@@ -80,6 +81,8 @@ begin
   MyRunCommandIndir(GetCurrentDir, FpcExe, ['-iV'], FpcOutput, FpcExitStatus);
   if FpcExitStatus <> 0 then
     raise Exception.Create('Failed to query FPC version');
+
+  Result.IsCodeTyphon := Pos('codetyphon', LowerCase(FpcExe)) > 0;
 
   { parse output into 3 numbers }
   FpcOutput := Trim(FpcOutput);
@@ -415,7 +418,7 @@ begin
         AddEnginePath('physics');
         AddEnginePath('physics/kraft');
 
-        if not FPCVer.AtLeast(3, 1, 1) then
+        if not FPCVer.AtLeast(3, 1, 1) or FPCVer.IsCodeTyphon then
           AddEnginePath('compatibility/generics.collections/src');
 
         { Do not add castle-fpc.cfg.
