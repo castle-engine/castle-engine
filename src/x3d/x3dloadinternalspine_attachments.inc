@@ -575,6 +575,7 @@ begin
     BaseUrl);
   Shape.Material.ForcePureEmissive;
   Shape.Material.EmissiveColor := WhiteRGB;
+  Shape.Render := false;
   Material := Shape.Material;
 
   ControlPoints := TCoordinateNode.Create('', BaseUrl);
