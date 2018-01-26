@@ -19,10 +19,15 @@
   TAttachment = class abstract
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
     SlotName, AttachmentName: string;
-    { The real attachment name, for image attachment
-      this refers to texture loader (e.g. atlas) region name.
+    { The real attachment name.
+
+      For image attachment this refers to texture loader (e.g. atlas) region name.
       This is a unique region name, but multiple TAttachment may refer to the same
-      Name (see Escape ship_upgrade.json testcase). }
+      Name (see Escape ship_upgrade.json testcase).
+
+      For path this refers to path name.
+      Multiple slots may refer to the same path name,
+      and it does *not* have to be the same path geometry then. }
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
