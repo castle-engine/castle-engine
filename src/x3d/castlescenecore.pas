@@ -1768,7 +1768,8 @@ type
       and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
     function ForceAnimationPose(const AnimationName: string;
       const TimeInAnimation: TFloatTime;
-      const Looping: TPlayAnimationLooping): boolean;
+      const Looping: TPlayAnimationLooping;
+      const Forward: boolean = true): boolean;
 
     { Play a named animation (animation listed by the @link(AnimationsList) method).
       This also stops previously playing named animation, if any.
@@ -1804,6 +1805,8 @@ type
           to show the beginning of this animation.
           You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
           it doesn't matter.
+
+          Or you can call @link(ForceInitialAnimationPose) right after @link(PlayAnimation).
         )
 
         @item(Internally, @italic(the animation is performed using TTimeSensorNode
@@ -1839,6 +1842,10 @@ type
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping;
       const Forward: boolean = true): boolean;
+
+    { Call right after calling @link(PlayAnimation) (before any update event
+      took place) to force setting initial animation frame @italic(now). }
+    procedure ForceInitialAnimationPose;
 
     { Duration, in seconds, of the named animation
       (named animations are detected by @link(AnimationsList) method).
@@ -6888,7 +6895,8 @@ end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
   const TimeInAnimation: TFloatTime;
-  const Looping: TPlayAnimationLooping): boolean;
+  const Looping: TPlayAnimationLooping;
+  const Forward: boolean): boolean;
 var
   Index: Integer;
   TimeNode: TTimeSensorNode;
@@ -6906,7 +6914,27 @@ begin
     end;
     Inc(ForceImmediateProcessing);
     try
-      TimeNode.FakeTime(TimeInAnimation, Loop, true, NextEventTime);
+      TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
+    finally
+      Dec(ForceImmediateProcessing);
+    end;
+  end;
+end;
+
+procedure TCastleSceneCore.ForceInitialAnimationPose;
+var
+  Loop: boolean;
+begin
+  if NewPlayingAnimationUse then
+  begin
+    Inc(ForceImmediateProcessing);
+    try
+      case NewPlayingAnimationLooping of
+        paForceLooping   : Loop := true;
+        paForceNotLooping: Loop := false;
+        else               Loop := NewPlayingAnimationNode.Loop;
+      end;
+      NewPlayingAnimationNode.FakeTime(0, Loop, NewPlayingAnimationForward, NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
     end;
