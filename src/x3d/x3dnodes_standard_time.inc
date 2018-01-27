@@ -351,10 +351,13 @@
       instead we follow our own ALoop parameter.
       We also ignore TimeSensor.fractionIncreasing field,
       instead we follow our own AFractionIncreasing parameter.
+      We also ignore TimeSensor.enabled field,
+      assuming that you always want to behave like it's enabled
+      (in particular, this makes @link(TCastleSceneCore.ForceAnimationPose)
+      always working, even if @link(TCastleSceneCore.PlayAnimation)
+      set enabled = false on previously-stopped animation).
 
-      We take into account
-      TimeSensor.cycleInterval (FdCycleInterval) and
-      TimeSensor.enabled (FdEnabled) fields,
+      We take into account TimeSensor.cycleInterval (FdCycleInterval),
       just like during normal TimeSensor behaviour.
       We send out isActive:=true, fraction_changed, elapsedTime and time X3D
       output events, and they should drive the rest of animation.
@@ -1034,23 +1037,20 @@ procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
 var
   Fraction: Single;
 begin
-  if FdEnabled.Value then
-  begin
-    Inc(FakingTime);
-    EventIsActive.Send(true, TimeOfEvents);
+  Inc(FakingTime);
+  EventIsActive.Send(true, TimeOfEvents);
 
-    if ALoop then
-      Fraction := Frac(TimeInAnimation / SafeCycleInterval)
-    else
-      Fraction := Clamped(TimeInAnimation / SafeCycleInterval, 0, 1);
-    if not AFractionIncreasing then
-      Fraction := 1 - Fraction;
-    EventFraction_changed.Send(Fraction, TimeOfEvents);
+  if ALoop then
+    Fraction := Frac(TimeInAnimation / SafeCycleInterval)
+  else
+    Fraction := Clamped(TimeInAnimation / SafeCycleInterval, 0, 1);
+  if not AFractionIncreasing then
+    Fraction := 1 - Fraction;
+  EventFraction_changed.Send(Fraction, TimeOfEvents);
 
-    EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
-    EventTime.Send(TimeInAnimation, TimeOfEvents);
-    Dec(FakingTime);
-  end;
+  EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
+  EventTime.Send(TimeInAnimation, TimeOfEvents);
+  Dec(FakingTime);
 end;
 
 procedure RegisterTimeNodes;
