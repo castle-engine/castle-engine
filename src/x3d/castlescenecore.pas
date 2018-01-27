@@ -471,6 +471,7 @@ type
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLooping: TPlayAnimationLooping;
+    NewPlayingAnimationForward: boolean;
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
@@ -1775,6 +1776,11 @@ type
       Playing an already-playing animation is guaranteed to start it from
       the beginning.
 
+      You can specify whether the animation loops.
+      Using Looping = paDefault means that we read from the model format whether
+      the animation should loop (some model formats support it,
+      like X3D or castle-anim-frames).
+
       Notes:
 
       @unorderedList(
@@ -1831,7 +1837,8 @@ type
       )
     }
     function PlayAnimation(const AnimationName: string;
-      const Looping: TPlayAnimationLooping): boolean;
+      const Looping: TPlayAnimationLooping;
+      const Forward: boolean = true): boolean;
 
     { Duration, in seconds, of the named animation
       (named animations are detected by @link(AnimationsList) method).
@@ -5692,6 +5699,7 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceLooping   : PlayingAnimationNode.Loop := true;
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
+        PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
         PlayingAnimationNode.Enabled := true;
 
         { Disable the "ignore" mechanism, otherwise
@@ -6898,7 +6906,7 @@ begin
     end;
     Inc(ForceImmediateProcessing);
     try
-      TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+      TimeNode.FakeTime(TimeInAnimation, Loop, true, NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
     end;
@@ -6906,7 +6914,8 @@ begin
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
-  const Looping: TPlayAnimationLooping): boolean;
+  const Looping: TPlayAnimationLooping;
+  const Forward: boolean): boolean;
 var
   Index: Integer;
 begin
@@ -6934,6 +6943,7 @@ begin
     FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationNode := FCurrentAnimation;
     NewPlayingAnimationLooping := Looping;
+    NewPlayingAnimationForward := Forward;
     NewPlayingAnimationUse := true;
   end;
 end;
