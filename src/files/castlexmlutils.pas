@@ -301,6 +301,14 @@ type
       such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
     procedure AttributeSet(const AttrName: string; const Value: Single); overload;
 
+    { Set the attribute as TVector2,
+      such that it's readable back by @link(AttributeVector2) and @link(AttributeVector2Def). }
+    procedure AttributeSet(const AttrName: string; const Value: TVector2); overload;
+
+    { Set the attribute as TVector3,
+      such that it's readable back by @link(AttributeVector3) and @link(AttributeVector3Def). }
+    procedure AttributeSet(const AttrName: string; const Value: TVector3); overload;
+
     { Other methods ---------------------------------------------------------- }
 
     { Get child element with given ChildName.
@@ -915,6 +923,16 @@ end;
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStr(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector2);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector3);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
 end;
 
 { ------------------------------------------------------------------------
