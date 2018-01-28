@@ -39,7 +39,7 @@ var
   CompilerExtraOptions: TCastleStringList;
 
 const
-  Options: array [0..11] of TOption =
+  Options: array [0..12] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -52,7 +52,8 @@ const
     (Short: #0 ; Long: 'fast'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone),
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
-    (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired)
+    (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired),
+    (Short: #0 ; Long: 'output'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -146,6 +147,8 @@ begin
             'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). You can set this to "auto" (this is the default) to auto-detect this based on regular FPC version. Or you can set this to a particular version, like "3.0.5". Or you can set this to empty "" to avoid passing any -V<VERSION> (suitable for FPC 3.1.1).') +NL+
           OptionDescription('--compiler-option=PARAM',
             'Extra parameter for "fpc" command line. For example --compiler-option=-dUSE_MOUSE will add -dUSE_MOUSE. You can use this parameter multiple times.') +NL+
+          OptionDescription('--output=DIR',
+            'Where to place the "castle-engine-output" directory with all generated files (compiler output, Android package etc.).') +NL+
           TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +
@@ -172,6 +175,7 @@ begin
     9:Plugin := true;
     10:FPCVersionForIPhoneSimulator := Argument;
     11:CompilerExtraOptions.Add(Argument);
+    12:OutputPathBase := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

@@ -784,7 +784,9 @@ begin
             { move exe to top-level (in case MainSource is in subdirectory
               like code/) and eventually rename to follow ExecutableName }
             Writeln('Moving ', SourceExe, ' to ', DestExe);
-            CheckRenameFile(Path + SourceExe, Path + DestExe);
+            CheckRenameFile(
+              CombinePaths(Path, SourceExe),
+              CombinePaths(Path, DestExe));
           end;
         end;
     end;
@@ -1220,9 +1222,10 @@ begin
       raise Exception.Create(ErrorMessageMissingGameUnits);
     ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeURL, true);
   end;
-  if not IsPrefix(Path, AbsoluteResult, true) then
-    raise EInternalError.CreateFmt('Something is wrong with the temporary source location "%s", it is not within the project "%s"',
-      [AbsoluteResult, Path]);
+  // This may not be true anymore, if user changes OutputPathBase
+  // if not IsPrefix(Path, AbsoluteResult, true) then
+  //   raise EInternalError.CreateFmt('Something is wrong with the temporary source location "%s", it is not within the project "%s"',
+  //     [AbsoluteResult, Path]);
   RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
 end;
 
