@@ -397,10 +397,10 @@ type
       should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
       values. }
     paDefault,
-    { Force TimeSensor.Loop to be @true, to force looping. }
-    paForceLooping,
-    { Force TimeSensor.Loop to be @false, to force not looping. }
-    paForceNotLooping);
+    { Set TimeSensor.Loop to be @true, to force looping. }
+    paLooping,
+    { Set TimeSensor.Loop to be @false, to force not looping. }
+    paNotLooping);
 
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
@@ -2108,6 +2108,11 @@ var
   OptimizeExtensiveTransformations: boolean = false;
 
 const
+  // Old name for paLooping.
+  paForceLooping    = paLooping;
+  // Old name for paNotLooping.
+  paForceNotLooping = paNotLooping;
+
   ssCollidableTriangles = ssStaticCollisions deprecated 'use ssStaticCollisions instead';
 
 implementation
@@ -5703,8 +5708,8 @@ procedure TCastleSceneCore.InternalSetTime(
       if PlayingAnimationNode <> nil then
       begin
         case NewPlayingAnimationLooping of
-          paForceLooping   : PlayingAnimationNode.Loop := true;
-          paForceNotLooping: PlayingAnimationNode.Loop := false;
+          paLooping   : PlayingAnimationNode.Loop := true;
+          paNotLooping: PlayingAnimationNode.Loop := false;
         end;
         PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
         PlayingAnimationNode.Enabled := true;
@@ -6908,9 +6913,9 @@ begin
   begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
     case Looping of
-      paForceLooping   : Loop := true;
-      paForceNotLooping: Loop := false;
-      else               Loop := TimeNode.Loop;
+      paLooping   : Loop := true;
+      paNotLooping: Loop := false;
+      else          Loop := TimeNode.Loop;
     end;
     Inc(ForceImmediateProcessing);
     try
@@ -6930,9 +6935,9 @@ begin
     Inc(ForceImmediateProcessing);
     try
       case NewPlayingAnimationLooping of
-        paForceLooping   : Loop := true;
-        paForceNotLooping: Loop := false;
-        else               Loop := NewPlayingAnimationNode.Loop;
+        paLooping   : Loop := true;
+        paNotLooping: Loop := false;
+        else          Loop := NewPlayingAnimationNode.Loop;
       end;
       NewPlayingAnimationNode.FakeTime(0, Loop, NewPlayingAnimationForward, NextEventTime);
     finally

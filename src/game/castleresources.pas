@@ -479,9 +479,9 @@ begin
     else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
     if Loop then
-      Looping := paForceLooping
+      Looping := paLooping
     else
-      Looping := paForceNotLooping;
+      Looping := paNotLooping;
 
     // if Defined and (Duration = 0) then
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',

@@ -95,7 +95,7 @@ procedure AddBackgroundItems;
     Scene.Load(ApplicationData(Path));
     Scene.ProcessEvents := true;
     if RunAnimation then
-      Scene.PlayAnimation('animation', paForceLooping);
+      Scene.PlayAnimation('animation', paLooping);
     Scene.Scale := Vector3(Scale, Scale, Scale);
     Scene.Translation := Vector3(X, Y, Z);
     { do not capture mouse picking on this item,
@@ -181,7 +181,7 @@ begin
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
-  Dragon.PlayAnimation('idle', paForceLooping);
+  Dragon.PlayAnimation('idle', paLooping);
   Dragon.Pickable := false;
   Dragon.Scale := Vector3(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
@@ -322,7 +322,7 @@ begin
        (T[1] = DragonFlyingTarget[1]) then
     begin
       DragonFlying := false;
-      Dragon.PlayAnimation('idle', paForceLooping);
+      Dragon.PlayAnimation('idle', paLooping);
     end;
 
     if (T[0] < 1000) and not AchievementSeeLeftSubmitted then
@@ -368,7 +368,7 @@ begin
        (Background.PointingDeviceOverItem <> nil) then
     begin
       if not DragonFlying then
-        Dragon.PlayAnimation('flying', paForceLooping);
+        Dragon.PlayAnimation('flying', paLooping);
       DragonFlying := true;
       DragonFlyingTarget := Vector2(
         { ignore 3rd dimension from Background.PointingDeviceOverPoint }
