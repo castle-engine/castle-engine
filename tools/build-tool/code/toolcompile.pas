@@ -634,7 +634,7 @@ end;
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
   const WorkingDirectory: string): string;
 begin
-  Result := OutputPath(WorkingDirectory) + 'compilation' + PathDelim +
+  Result := TempOutputPath(WorkingDirectory) + 'compilation' + PathDelim +
     CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
   CheckForceDirectories(Result);
 end;

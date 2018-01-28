@@ -440,7 +440,7 @@ var
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := OutputPath(Project.Path) +
+  AndroidProjectPath := TempOutputPath(Project.Path) +
     'android' + PathDelim + 'project' + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
     RemoveNonEmptyDir(AndroidProjectPath);
@@ -460,7 +460,7 @@ begin
   CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
     PathDelim + 'outputs' + PathDelim + 'apk' + PathDelim +
     'app-' + PackageModeToName[PackageMode] + '.apk',
-    Project.Path + ApkName);
+    Project.OutputPath + ApkName);
 
   Writeln('Build ' + ApkName);
 end;

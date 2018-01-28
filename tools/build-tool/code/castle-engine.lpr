@@ -148,7 +148,7 @@ begin
           OptionDescription('--compiler-option=PARAM',
             'Extra parameter for "fpc" command line. For example --compiler-option=-dUSE_MOUSE will add -dUSE_MOUSE. You can use this parameter multiple times.') +NL+
           OptionDescription('--output=DIR',
-            'Where to place the "castle-engine-output" directory with all generated files (compiler output, Android package etc.).') +NL+
+            'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
           TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +

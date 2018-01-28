@@ -36,9 +36,9 @@ type
     constructor Create(const ATopDirectoryName: string);
     destructor Destroy; override;
 
-    { Create final archive. It will be placed within ProjectPath.
+    { Create final archive. It will be placed within OutputProjectPath.
       PackageName should contain only the base name, without extension. }
-    procedure Make(const ProjectPath: string; const PackageFileName: string;
+    procedure Make(const OutputProjectPath: string; const PackageFileName: string;
       const PackageType: TPackageType);
 
     { Add file to the package. SourceFileName must be an absolute filename,
@@ -74,7 +74,7 @@ begin
   inherited;
 end;
 
-procedure TPackageDirectory.Make(const ProjectPath: string;
+procedure TPackageDirectory.Make(const OutputProjectPath: string;
   const PackageFileName: string; const PackageType: TPackageType);
 var
   FullPackageFileName, ProcessOutput, CommandExe: string;
@@ -111,7 +111,7 @@ begin
   if ProcessExitStatus <> 0 then
     raise Exception.CreateFmt('Package process exited with error, status %d', [ProcessExitStatus]);
 
-  FullPackageFileName := ProjectPath + PackageFileName;
+  FullPackageFileName := CombinePaths(OutputProjectPath, PackageFileName);
   DeleteFile(FullPackageFileName);
   CheckRenameFile(InclPathDelim(TemporaryDir) + PackageFileName, FullPackageFileName);
   Writeln('Created package ' + PackageFileName + ', size: ',

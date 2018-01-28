@@ -363,7 +363,7 @@ var
 
 begin
   UsesCocoaPods := false;
-  XcodeProject := OutputPath(Project.Path) +
+  XcodeProject := TempOutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
   if DirectoryExists(XcodeProject) then
     RemoveNonEmptyDir(XcodeProject);
