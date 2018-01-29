@@ -2601,6 +2601,15 @@ begin
   end else
     raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
       [Source.ClassName, ClassName]);
+
+  { TODO: one day, this should just call
+      DrawFrom(Source, 0, 0, Source.Width, Source.Height, dmOverwrite);
+    instead of raising EImageAssignmentError.
+
+    TCastleImage.Assign will not even need to be virtual then.
+
+    However, for now, DrawFrom and friends do not handle the Z coordinate
+    (they only draw from/to Z = 0). }
 end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
