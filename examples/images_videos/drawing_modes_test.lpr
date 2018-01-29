@@ -26,7 +26,7 @@ uses Classes, SysUtils, TypInfo,
 type
   TSetOfImages = class(TComponent)
   public
-    data: array[0..4, 0..4] of TCastleImageControl;
+    Data: array[0..4, 0..4] of TCastleImageControl;
     procedure Reset(const DrawMode: TDrawMode);
     procedure ChangeModeClick(Sender: TObject);
   end;
@@ -47,7 +47,7 @@ var
 procedure TSetOfImages.Reset(const DrawMode: TDrawMode);
 var
   i, j: integer;
-  source, dest: TCastleImage;
+  Source, Dest: TCastleImage;
 begin
   for i := 0 to 4 do
     for j := 0 to 4 do
@@ -57,44 +57,44 @@ begin
         we need to free the previous TCastleImageControl.
         Otherwise, it would remain visible in Window.Controls
         (there would be no memory leak though, as it's owned by Self). }
-      FreeAndNil(data[i,j]);
-      data[i,j] := TCastleImageControl.Create(Self);
+      FreeAndNil(Data[i,j]);
+      Data[i,j] := TCastleImageControl.Create(Self);
     end;
 
-  data[0,0].image := Legend; data[0,0].OwnsImage := false;
-  data[1,0].image := RGBA1;  data[1,0].OwnsImage := false;
-  data[2,0].image := GA1;    data[2,0].OwnsImage := false;
-  data[3,0].image := RGB1;   data[3,0].OwnsImage := false;
-  data[4,0].image := G1;     data[4,0].OwnsImage := false;
-  data[0,1].image := RGBA2;  data[0,1].OwnsImage := false;
-  data[0,2].image := GA2;    data[0,2].OwnsImage := false;
-  data[0,3].image := RGB2;   data[0,3].OwnsImage := false;
-  data[0,4].image := G2;     data[0,4].OwnsImage := false;
+  Data[0,0].Image := Legend; Data[0,0].OwnsImage := false;
+  Data[1,0].Image := RGBA1;  Data[1,0].OwnsImage := false;
+  Data[2,0].Image := GA1;    Data[2,0].OwnsImage := false;
+  Data[3,0].Image := RGB1;   Data[3,0].OwnsImage := false;
+  Data[4,0].Image := G1;     Data[4,0].OwnsImage := false;
+  Data[0,1].Image := RGBA2;  Data[0,1].OwnsImage := false;
+  Data[0,2].Image := GA2;    Data[0,2].OwnsImage := false;
+  Data[0,3].Image := RGB2;   Data[0,3].OwnsImage := false;
+  Data[0,4].Image := G2;     Data[0,4].OwnsImage := false;
 
   for i := 1 to 4 do
     for j := 1 to 4 do
     begin
       try
-        data[i,j].image := data[i,0].image.MakeCopy;
-        Dest := data[i,j].image;
-        Source := data[0,j].image;
-        Dest.DrawFrom(Source, 0, 0, 0, 0, Source.width, Source.height, DrawMode);
+        Data[i,j].Image := Data[i,0].Image.MakeCopy;
+        Dest := Data[i,j].Image;
+        Source := Data[0,j].Image;
+        Dest.DrawFrom(Source, 0, 0, 0, 0, Source.Width, Source.Height, DrawMode);
       except
-        data[i,j].image := NotApplicable;
-        { We will free NotApplicable image at the end of program, this is better than
+        Data[i,j].Image := NotApplicable;
+        { We will free NotApplicable Image at the end of program, this is better than
           relying on TCastleImageControl.OwnsImage mechanism,
           as it will correctly free it regardless if it's used here or not. }
-        data[i,j].OwnsImage := false;
+        Data[i,j].OwnsImage := false;
       end;
     end;
 
   for i := 0 to 4 do
     for j := 0 to 4 do
     begin
-      data[i,j].Anchor(vpTop, -data[i,j].image.height * j);
-      data[i,j].Anchor(hpLeft, data[i,j].image.width * i);
+      Data[i,j].Anchor(vpTop, -Data[i,j].Image.Height * j);
+      Data[i,j].Anchor(hpLeft, Data[i,j].Image.Width * i);
       { InsertBack, not InsertFront, to be behind the labels and buttons. }
-      Window.Controls.InsertBack(data[i,j]);
+      Window.Controls.InsertBack(Data[i,j]);
     end;
 end;
 
