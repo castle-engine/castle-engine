@@ -308,20 +308,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-{      dmOverwrite: //should be handled by TCastleImage.DrawFromCore
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^ := PSource^;
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;}
+      dmOverwrite: inherited; //handled by TCastleImage.DrawFromCore
       dmAdd:
         if Source.PremultipliedAlpha then
         begin
@@ -685,20 +672,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^ := PSource^;
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;}
+      dmOverwrite: inherited; //handled by TCastleImage.DrawFromCore
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -1311,20 +1285,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^ := PSource^;
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;}
+      dmOverwrite: inherited; //handled by TCastleImage.DrawFromCore
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
@@ -1660,21 +1621,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^.Data[0] := PSource^.Data[0];
-              PDest^.Data[1] := PSource^.Data[1];
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;}
+      dmOverwrite: inherited; //handled by TCastleImage.DrawFromCore
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
