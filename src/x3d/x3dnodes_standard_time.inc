@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2017 Michalis Kamburelis.
+  Copyright 2008-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -330,6 +330,9 @@
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
+    strict private FFdFractionIncreasing: TSFBool;
+    public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
+
     { Send TimeSensor output events, without actually activating the TimeSensor.
 
       This is useful in situations when you want the X3D scene state to reflect
@@ -345,15 +348,25 @@
       you don't want to create 100 copies of this 3D model in memory).
 
       We ignore TimeSensor.loop (FdLoop) field,
-      instead we follow our own Loop parameter.
-      We take into account TimeSensor.cycleInterval (FdCycleInterval) and
-      TimeSensor.enabled (FdEnabled) fields, just like normal TimeSensor.
-      We send out isActive:=true, fraction_changed, elapsedTime and time X3D output events,
-      and they should drive the rest of animation.
+      instead we follow our own ALoop parameter.
+      We also ignore TimeSensor.fractionIncreasing field,
+      instead we follow our own AFractionIncreasing parameter.
+      We also ignore TimeSensor.enabled field,
+      assuming that you always want to behave like it's enabled
+      (in particular, this makes @link(TCastleSceneCore.ForceAnimationPose)
+      always working, even if @link(TCastleSceneCore.PlayAnimation)
+      set enabled = false on previously-stopped animation).
+
+      We take into account TimeSensor.cycleInterval (FdCycleInterval),
+      just like during normal TimeSensor behaviour.
+      We send out isActive:=true, fraction_changed, elapsedTime and time X3D
+      output events, and they should drive the rest of animation.
 
       @groupBegin }
-    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean); overload;
-    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean;
+    procedure FakeTime(const TimeInAnimation: TFloatTime;
+      const ALoop, AFractionIncreasing: boolean); overload;
+    procedure FakeTime(const TimeInAnimation: TFloatTime;
+      const ALoop, AFractionIncreasing: boolean;
       const TimeOfEvents: TX3DTime); overload;
     { @groupEnd }
 
@@ -943,6 +956,9 @@ begin
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
+  FFdFractionIncreasing := TSFBool.Create(Self, true, 'fractionIncreasing', true);
+  AddField(FFdFractionIncreasing);
+
   DefaultContainerField := 'children';
 
   { set InternalTimeDependentHandler }
@@ -984,6 +1000,8 @@ begin
   begin
     Fraction := InternalTimeDependentHandler.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
+    if not FdFractionIncreasing.Value then
+      Fraction := 1 - Fraction;
     Eventfraction_changed.Send(Fraction, Time);
 
     EventTime.Send(Time.Seconds, Time);
@@ -993,7 +1011,8 @@ end;
 var
   FakeX3DTime: TX3DTime;
 
-procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean);
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
+  const ALoop, AFractionIncreasing: boolean);
 begin
   { This method may be called with any TimeInAnimation values sequence,
     e.g. decreasing.
@@ -1009,24 +1028,29 @@ begin
     FakeX3DTime.PlusTicks := 0;
   end;
 
-  FakeTime(TimeInAnimation, ALoop, FakeX3DTime);
+  FakeTime(TimeInAnimation, ALoop, AFractionIncreasing, FakeX3DTime);
 end;
 
-procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean;
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
+  const ALoop, AFractionIncreasing: boolean;
   const TimeOfEvents: TX3DTime);
+var
+  Fraction: Single;
 begin
-  if FdEnabled.Value then
-  begin
-    Inc(FakingTime);
-    EventIsActive.Send(true, TimeOfEvents);
-    if ALoop then
-      EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents)
-    else
-      EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);
-    EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
-    EventTime.Send(TimeInAnimation, TimeOfEvents);
-    Dec(FakingTime);
-  end;
+  Inc(FakingTime);
+  EventIsActive.Send(true, TimeOfEvents);
+
+  if ALoop then
+    Fraction := Frac(TimeInAnimation / SafeCycleInterval)
+  else
+    Fraction := Clamped(TimeInAnimation / SafeCycleInterval, 0, 1);
+  if not AFractionIncreasing then
+    Fraction := 1 - Fraction;
+  EventFraction_changed.Send(Fraction, TimeOfEvents);
+
+  EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
+  EventTime.Send(TimeInAnimation, TimeOfEvents);
+  Dec(FakingTime);
 end;
 
 procedure RegisterTimeNodes;

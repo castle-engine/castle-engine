@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -363,7 +363,7 @@ var
 
 begin
   UsesCocoaPods := false;
-  XcodeProject := OutputPath(Project.Path) +
+  XcodeProject := TempOutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
   if DirectoryExists(XcodeProject) then
     RemoveNonEmptyDir(XcodeProject);

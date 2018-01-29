@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2017 Michalis Kamburelis.
+  Copyright 2001-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -452,12 +452,32 @@ begin
 
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
-  FBuggyGenerateMipmap := (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-                          {$ifdef MSWINDOWS} or (VendorType = gvIntel) {$endif};
+  FBuggyGenerateMipmap :=
+    (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
+    {$ifdef MSWINDOWS}
+    or
+    ( (VendorType = gvIntel) and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
+    {$endif};
 
-  FBuggyFBOCubeMap := {$ifdef MSWINDOWS} VendorType = gvIntel {$else} false {$endif};
+  FBuggyFBOCubeMap :=
+    {$ifdef MSWINDOWS}
+    ( (VendorType = gvIntel) and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
+    {$else} false
+    {$endif};
 
-  FBuggyGenerateCubeMap := {$ifdef MSWINDOWS} ((VendorType = gvIntel) and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
+  FBuggyGenerateCubeMap :=
+    {$ifdef MSWINDOWS}
+    ( (VendorType = gvIntel) and
+      SameText(Renderer, 'Intel(R) HD Graphics 4000') and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
+    {$else} false
+    {$endif};
+
   { On which fglrx versions does this occur?
 
     - On Catalyst 8.12 (fglrx 8.561) all seems to work fine

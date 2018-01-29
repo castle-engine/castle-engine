@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2017 Michalis Kamburelis.
+  Copyright 2003-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -804,6 +804,8 @@ const
   paDefault = CastleSceneCore.paDefault;
   paForceLooping = CastleSceneCore.paForceLooping;
   paForceNotLooping = CastleSceneCore.paForceNotLooping;
+  paLooping = CastleSceneCore.paLooping;
+  paNotLooping = CastleSceneCore.paNotLooping;
 
   ssRendering = CastleSceneCore.ssRendering;
   ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;

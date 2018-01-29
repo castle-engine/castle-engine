@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,10 +19,15 @@
   TAttachment = class abstract
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
     SlotName, AttachmentName: string;
-    { The real attachment name, for image attachment
-      this refers to texture loader (e.g. atlas) region name.
+    { The real attachment name.
+
+      For image attachment this refers to texture loader (e.g. atlas) region name.
       This is a unique region name, but multiple TAttachment may refer to the same
-      Name (see Escape ship_upgrade.json testcase). }
+      Name (see Escape ship_upgrade.json testcase).
+
+      For path this refers to path name.
+      Multiple slots may refer to the same path name,
+      and it does *not* have to be the same path geometry then. }
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
@@ -104,6 +109,15 @@
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
+  TPathAttachment = class(TAttachment)
+    Vertices: TVector2List;
+    Lengths: TSingleList;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+  end;
+
   TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
@@ -145,6 +159,13 @@ begin
     if TypeName = 'regionsequence' then
       WritelnWarning('Spine', 'Spine region type "regionsequence" is for now rendered just like normal "region"');
     Result := TRegionAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json, Bones);
+  end else
+  if TypeName = 'path' then
+  begin
+    Result := TPathAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
@@ -504,6 +525,76 @@ begin
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
     List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
+end;
+
+{ TPathAttachment ---------------------------------------------------------- }
+
+constructor TPathAttachment.Create;
+begin
+  inherited;
+  Vertices := TVector2List.Create;
+  Lengths := TSingleList.Create;
+end;
+
+destructor TPathAttachment.Destroy;
+begin
+  FreeAndNil(Lengths);
+  FreeAndNil(Vertices);
+  inherited;
+end;
+
+procedure TPathAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+var
+  VertexCount: Integer;
+begin
+  inherited;
+  VertexCount := Json.Get('vertexCount', 0);
+  ReadVector2List(Json, 'vertices', Vertices);
+  ReadSingleList(Json, 'lengths', Lengths);
+  if Vertices.Count <> VertexCount then
+    WritelnWarning('Spine "path" attachment has unexpected "vertices" count: expected %d, has %d', [VertexCount, Vertices.Count]);
+  if Lengths.Count <> VertexCount div 3 then
+    WritelnWarning('Spine "path" attachment has unexpected "lengths" count: expected %d, has %d', [VertexCount div 3, Lengths.Count]);
+end;
+
+procedure TPathAttachment.BuildNodes(const BaseUrl: string;
+  const TextureLoader: TTextureLoader);
+var
+  Shape: TShapeNode;
+  ControlPoints: TCoordinateNode;
+  Curve: TNurbsCurveNode;
+  I: Integer;
+begin
+  if Node <> nil then
+    WritelnWarning('Spine', 'TPathAttachment.BuildNodes multiple times on same node');
+
+  Node := TTransformNode.Create(
+    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
+
+  Shape := TShapeNode.Create('', BaseUrl);
+  Node.AddChildren(Shape);
+
+  Shape.Material := TMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
+  Shape.Material.ForcePureEmissive;
+  Shape.Material.EmissiveColor := WhiteRGB;
+  Shape.Render := false;
+  Material := Shape.Material;
+
+  ControlPoints := TCoordinateNode.Create('', BaseUrl);
+  { we ignore first and last Vertices, they are only handles outside of
+    the curve, not taking part in curve calculation }
+  for I := 1 to Vertices.Count - 2 do
+    ControlPoints.FdPoint.Items.Add(Vector3(Vertices[I], 0));
+
+  Curve := TNurbsCurveNode.Create('', BaseUrl);
+  Curve.ControlPoint := ControlPoints;
+  Curve.Order := 4; // cubic Bezier
+  Curve.Tessellation := ControlPoints.FdPoint.Count * 10; // by default, make quite detailed tesselation
+  Curve.PiecewiseBezier;
+  Shape.Geometry := Curve;
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2017 Michalis Kamburelis.
+  Copyright 2004-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -76,7 +76,7 @@ type
       [] by accident. This checks all the fields with Changes = [],
       they *must* be added to ConfirmedEmptyChanges function. }
     { Later: maintaining a list of exceptions to this test was not efficient.
-      And we default we generate non-empty ChangesAlways, so it's not easy
+      And by default we generate non-empty ChangesAlways, so it's not easy
       to make this mistake anymore. }
     // procedure TestEmptyChanges;
 

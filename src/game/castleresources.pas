@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2017 Michalis Kamburelis.
+  Copyright 2006-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -479,9 +479,9 @@ begin
     else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
     if Loop then
-      Looping := paForceLooping
+      Looping := paLooping
     else
-      Looping := paForceNotLooping;
+      Looping := paNotLooping;
 
     // if Defined and (Duration = 0) then
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',

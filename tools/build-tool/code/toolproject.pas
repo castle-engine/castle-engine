@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -198,6 +198,10 @@ type
       Relative to @link(Path) if AbsolutePath = @false,
       otherwise a complete absolute path. }
     function IOSLibraryFile(const AbsolutePath: boolean = true): string;
+
+    { Where should we place our output files, calculated looking at OutputPathBase
+      and project path. Always an absolute filename ending with path delimiter. }
+    function OutputPath: string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -784,7 +788,9 @@ begin
             { move exe to top-level (in case MainSource is in subdirectory
               like code/) and eventually rename to follow ExecutableName }
             Writeln('Moving ', SourceExe, ' to ', DestExe);
-            CheckRenameFile(Path + SourceExe, Path + DestExe);
+            CheckRenameFile(
+              CombinePaths(Path, SourceExe),
+              CombinePaths(OutputPath, DestExe));
           end;
         end;
     end;
@@ -884,72 +890,35 @@ procedure TCastleProject.DoPackage(const Target: TTarget;
 var
   Pack: TPackageDirectory;
 
+  procedure AddExecutable;
+  var
+    ExecutableNameExt, ExecutableNameFull: string;
+    UnixPermissionsMatter: boolean;
+  begin
+    if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
+              amiga, atari, solaris, qnx, netware, openbsd, wdosx,
+              palmos, macos, darwin, emx, watcom, morphos, netwlibc,
+              win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
+              aix, java, {android,} nativent, msdos, wii] then
+    begin
+      ExecutableNameExt := ExecutableName + ExeExtensionOS(OS);
+      ExecutableNameFull := OutputPath + ExecutableNameExt;
+      Pack.Add(ExecutableNameFull, ExecutableNameExt);
+
+      { For OSes where chmod matters, make sure to set it before packing }
+      UnixPermissionsMatter := not (OS in AllWindowsOSes);
+      if UnixPermissionsMatter then
+        Pack.MakeExecutable(ExecutableNameFull);
+    end;
+  end;
+
   procedure AddExternalLibrary(const LibraryName: string);
   begin
     Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), ExtractFileName(LibraryName));
   end;
 
-var
-  Files: TCastleStringList;
-  I: Integer;
-  PackageFileName, ExecutableNameExt: string;
-  UnixPermissionsMatter: boolean;
-begin
-  Writeln(Format('Packaging project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
-
-  if Plugin then
-    raise Exception.Create('The "package" command is not useful to package plugins for now');
-
-  { for iOS, the packaging process is special }
-  if Target = targetIOS then
+  procedure AddExternalLibraries;
   begin
-    PackageIOS(Self);
-    Exit;
-  end;
-
-  { for Android, the packaging process is special }
-  if OS = Android then
-  begin
-    Files := TCastleStringList.Create;
-    try
-      PackageFiles(Files, true);
-      CreateAndroidPackage(Self, OS, CPU, Mode, Files);
-    finally FreeAndNil(Files) end;
-    Exit;
-  end;
-
-  ExecutableNameExt := '';
-
-  { packaging for OS where permissions matter }
-  UnixPermissionsMatter := not (OS in AllWindowsOSes);
-
-  Pack := TPackageDirectory.Create(Name);
-  try
-    Files := TCastleStringList.Create;
-    try
-      { executable is 1st on Files list, since it's the most likely file
-        to not exist, so we'll fail earlier }
-      if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
-                amiga, atari, solaris, qnx, netware, openbsd, wdosx,
-                palmos, macos, darwin, emx, watcom, morphos, netwlibc,
-                win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
-                aix, java, {android,} nativent, msdos, wii] then
-      begin
-        ExecutableNameExt := ExecutableName + ExeExtensionOS(OS);
-        Files.Add(ExecutableNameExt);
-      end;
-
-      PackageFiles(Files, false);
-
-      for I := 0 to Files.Count - 1 do
-        Pack.Add(Path + Files[I], Files[I]);
-    finally FreeAndNil(Files) end;
-
-    { For OSes where chmod matters, make sure to set it before packing }
-    if UnixPermissionsMatter then
-      Pack.MakeExecutable(ExecutableNameExt);
-
     case OS of
       win32:
         begin
@@ -1005,12 +974,57 @@ begin
           end;
         end;
     end;
+  end;
+
+var
+  Files: TCastleStringList;
+  I: Integer;
+  PackageFileName: string;
+begin
+  Writeln(Format('Packaging project "%s" for %s.',
+    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+
+  if Plugin then
+    raise Exception.Create('The "package" command is not useful to package plugins for now');
+
+  { for iOS, the packaging process is special }
+  if Target = targetIOS then
+  begin
+    PackageIOS(Self);
+    Exit;
+  end;
+
+  { for Android, the packaging process is special }
+  if OS = Android then
+  begin
+    Files := TCastleStringList.Create;
+    try
+      PackageFiles(Files, true);
+      CreateAndroidPackage(Self, OS, CPU, Mode, Files);
+    finally FreeAndNil(Files) end;
+    Exit;
+  end;
+
+  Pack := TPackageDirectory.Create(Name);
+  try
+    { executable is added 1st, since it's the most likely file
+      to not exist, so we'll fail earlier }
+    AddExecutable;
+    AddExternalLibraries;
+
+    Files := TCastleStringList.Create;
+    try
+      PackageFiles(Files, false);
+      for I := 0 to Files.Count - 1 do
+        Pack.Add(Path + Files[I], Files[I]);
+    finally FreeAndNil(Files) end;
 
     PackageFileName := PackageName(OS, CPU);
 
     if OS in AllWindowsOSes then
-      Pack.Make(Path, PackageFileName, ptZip) else
-      Pack.Make(Path, PackageFileName, ptTarGz);
+      Pack.Make(OutputPath, PackageFileName, ptZip)
+    else
+      Pack.Make(OutputPath, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -1167,7 +1181,7 @@ begin
     finally FreeAndNil(Files) end;
 
     PackageFileName := SourcePackageName;
-    Pack.Make(Path, PackageFileName, ptTarGz);
+    Pack.Make(OutputPath, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -1212,7 +1226,7 @@ procedure TCastleProject.GeneratedSourceFile(
 var
   TemplateFile: string;
 begin
-  AbsoluteResult := OutputPath(Path, CreateIfNecessary) + TargetRelativePath;
+  AbsoluteResult := TempOutputPath(Path, CreateIfNecessary) + TargetRelativePath;
   if CreateIfNecessary then
   begin
     TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativeURL));
@@ -1220,9 +1234,10 @@ begin
       raise Exception.Create(ErrorMessageMissingGameUnits);
     ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeURL, true);
   end;
-  if not IsPrefix(Path, AbsoluteResult, true) then
-    raise EInternalError.CreateFmt('Something is wrong with the temporary source location "%s", it is not within the project "%s"',
-      [AbsoluteResult, Path]);
+  // This may not be true anymore, if user changes OutputPathBase
+  // if not IsPrefix(Path, AbsoluteResult, true) then
+  //   raise EInternalError.CreateFmt('Something is wrong with the temporary source location "%s", it is not within the project "%s"',
+  //     [AbsoluteResult, Path]);
   RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
 end;
 
@@ -1381,7 +1396,7 @@ var
 begin
   { delete OutputPath first, this also removes many files
     (but RemoveNonEmptyDir does not count them) }
-  OutputP := OutputPath(Path, false);
+  OutputP := TempOutputPath(Path, false);
   if DirectoryExists(OutputP) then
   begin
     RemoveNonEmptyDir(OutputP);
@@ -1803,6 +1818,17 @@ begin
     Contents := FileToString(FilenameToURISafe(SourceFileName));
     Contents := ReplaceMacros(Contents);
     StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+  end;
+end;
+
+function TCastleProject.OutputPath: string;
+begin
+  if OutputPathBase = '' then
+    Result := Path
+  else
+  begin
+    Result := InclPathDelim(ExpandFileName(OutputPathBase));
+    CheckForceDirectories(Result);
   end;
 end;
 

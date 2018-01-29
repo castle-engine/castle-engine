@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2017 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2001-2018 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 

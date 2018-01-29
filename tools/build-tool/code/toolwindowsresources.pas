@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,8 @@ interface
 uses CastleUtils, CastleStringUtils,
   ToolProject, ToolUtils, ToolArchitectures;
 
-procedure GenerateWindowsResources(const Project: TCastleProject; const ExePath: string;
+procedure GenerateWindowsResources(const Project: TCastleProject;
+  const FinalOutputResourcePath: string;
   const CPU: TCpu; const Plugin: boolean);
 
 implementation
@@ -31,7 +32,8 @@ implementation
 uses SysUtils,
   CastleURIUtils, CastleLog, CastleFilesUtils;
 
-procedure GenerateWindowsResources(const Project: TCastleProject; const ExePath: string;
+procedure GenerateWindowsResources(const Project: TCastleProject;
+  const FinalOutputResourcePath: string;
   const CPU: TCpu; const Plugin: boolean);
 const
   RcTemplate: array [boolean { plugin? }] of string = (
@@ -49,7 +51,7 @@ var
   WindresStatus: Integer;
   OutputResourcesPath, FullIcoPath: string;
 begin
-  OutputResourcesPath := OutputPath(Project.Path) + 'windows' + PathDelim;
+  OutputResourcesPath := TempOutputPath(Project.Path) + 'windows' + PathDelim;
   CheckForceDirectories(OutputResourcesPath);
 
   OutputRc := Project.ReplaceMacros(RcTemplate[Plugin]);
@@ -95,7 +97,7 @@ begin
 
   CheckRenameFile(
     OutputResourcesPath + ResName,
-    ExePath + ResName);
+    FinalOutputResourcePath + ResName);
 
   Writeln('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
   Writeln('  {$ifdef MSWINDOWS} {$R ' + ResName + '} {$endif MSWINDOWS}');

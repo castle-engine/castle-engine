@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2017 Michalis Kamburelis.
+  Copyright 2001-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Image formats. }
 
 type
-  { }
+  { Possible image file format. }
   TImageFormat = (
     { We handle PNG file format fully, both reading and writing,
       through the libpng library.

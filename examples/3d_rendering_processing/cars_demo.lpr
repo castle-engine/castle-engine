@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2017 Michalis Kamburelis.
+  Copyright 2010-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -133,7 +133,7 @@ begin
   CarScene.Load(ApplicationData('car.x3d'));
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
-  CarScene.PlayAnimation('wheels_turning', paForceLooping);
+  CarScene.PlayAnimation('wheels_turning', paLooping);
 
   for I := Low(CarTransforms) to High(CarTransforms) do
   begin

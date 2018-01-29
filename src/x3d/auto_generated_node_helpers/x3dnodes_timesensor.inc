@@ -29,8 +29,11 @@
   strict private
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
+    function GetFractionIncreasing: boolean;
+    procedure SetFractionIncreasing(const Value: boolean);
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
+    property FractionIncreasing: boolean read GetFractionIncreasing write SetFractionIncreasing;
 
 {$endif read_interface}
 
@@ -46,6 +49,16 @@ end;
 procedure TTimeSensorNode.SetEnabled(const Value: boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+function TTimeSensorNode.GetFractionIncreasing: boolean;
+begin
+  Result := FdFractionIncreasing.Value;
+end;
+
+procedure TTimeSensorNode.SetFractionIncreasing(const Value: boolean);
+begin
+  FdFractionIncreasing.Send(Value);
 end;
 
 {$endif read_implementation}

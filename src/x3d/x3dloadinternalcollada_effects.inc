@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2017 Michalis Kamburelis.
+  Copyright 2008-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -69,20 +69,18 @@ var
   If we have <texture>, return white color (and the appropriate texture
   and coord names; if texture name was empty, you want to treat it like not
   existing anyway). }
-function ReadColorOrTexture(Element: TDOMElement; out TextureName, TexCoordName: string): TCastleColorRGB;
+function ReadColorOrTexture(Element: TDOMElement;
+  out TextureName, TexCoordName: string): TCastleColor;
 var
   Child: TDOMElement;
 begin
   TextureName := '';
   TexCoordName := '';
-  Result := WhiteRGB;
+  Result := White;
   Child := Element.ChildElement('color', false);
   if Child <> nil then
   begin
-    { I simply drop 4th color component, I don't know what's the use of this
-      (alpha is exposed by effect/materials parameter transparency, so color
-      alpha is supposed to mean something else ?). }
-    Result := Vector4FromStr(Child.TextData).XYZ;
+    Result := Vector4FromStr(Child.TextData);
   end else
   begin
     Child := Element.ChildElement('texture', false);
@@ -94,9 +92,25 @@ begin
   end;
 end;
 
+function ReadColorOrTextureRGB(Element: TDOMElement;
+  out TextureName, TexCoordName: string): TCastleColorRGB;
+begin
+  { use ReadColorOrTexture and just ignore the alpha value }
+  Result := ReadColorOrTexture(Element, TextureName, TexCoordName).XYZ;
+end;
+
 { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x,
   but allow only color specification. }
-function ReadColor(Element: TDOMElement): TVector3;
+function ReadColorRGB(Element: TDOMElement): TVector3;
+var
+  IgnoreTextureName, IgnoreTexCoordName: string;
+begin
+  Result := ReadColorOrTextureRGB(Element, IgnoreTextureName, IgnoreTexCoordName);
+end;
+
+{ Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x,
+  but allow only color specification. }
+function ReadColor(Element: TDOMElement): TVector4;
 var
   IgnoreTextureName, IgnoreTexCoordName: string;
 begin
@@ -116,6 +130,37 @@ begin
     { We don't support anything else than <float> here, just use
       default 1 eventually. }
     Result := 1.0;
+end;
+
+{ Read <transparent> element.
+  Returns transparency (1 = transparent, 0 = opaque). }
+function ReadTransparentElement(const Element: TDOMElement): Single;
+var
+  OpaqueMode: string;
+  Color: TCastleColor;
+begin
+  OpaqueMode := Element.AttributeStringDef('opaque', 'A_ONE');
+  Color := ReadColor(Element);
+
+  if OpaqueMode = 'A_ONE' then
+  begin
+    { Collada 1.4 spefication about A_ONE:
+      Takes the transparency information from the color’s
+      alpha channel, where the value 1.0 is opaque. }
+    Result := 1 - Color.Data[3];
+  end else
+  if OpaqueMode = 'RGB_ZERO' then
+  begin
+    { Collada 1.4 spefication about RGB_ZERO:
+       Takes the transparency information from the color’s red, green,
+       and blue channels, where the value 0.0 is opaque,
+       with each channel modulated independently. }
+    Result := Color.XYZ.Average;
+  end else
+  begin
+    WritelnWarning('Invalid Collada opaque mode "%s"', [OpaqueMode]);
+    Result := 0;
+  end;
 end;
 
 { Read <effect>. Only for Collada >= 1.4.x.
@@ -171,12 +216,12 @@ var
         while I.GetNext do
         begin
           if I.Current.TagName = 'emission' then
-            Mat.FdEmissiveColor.Value :=  ReadColor(I.Current) else
+            Mat.FdEmissiveColor.Value :=  ReadColorRGB(I.Current) else
           if I.Current.TagName = 'ambient' then
-            Mat.FdAmbientIntensity.Value := ReadColor(I.Current).Average else
+            Mat.FdAmbientIntensity.Value := ReadColorRGB(I.Current).Average else
           if I.Current.TagName = 'diffuse' then
           begin
-            Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current,
+            Mat.FdDiffuseColor.Value := ReadColorOrTextureRGB(I.Current,
               DiffuseTextureName, DiffuseTexCoordName);
             if DiffuseTextureName <> '' then
             begin
@@ -203,11 +248,11 @@ var
             end;
           end else
           if I.Current.TagName = 'specular' then
-            Mat.FdSpecularColor.Value := ReadColor(I.Current) else
+            Mat.FdSpecularColor.Value := ReadColorRGB(I.Current) else
           if I.Current.TagName = 'shininess' then
             Mat.FdShininess.Value := ReadFloatOrParam(I.Current) / 128.0 else
           if I.Current.TagName = 'reflective' then
-            {Mat.FdMirrorColor.Value := } ReadColor(I.Current) else
+            {Mat.FdMirrorColor.Value := } ReadColorRGB(I.Current) else
           if I.Current.TagName = 'reflectivity' then
           begin
             if AllowKambiExtensions then
@@ -216,7 +261,7 @@ var
           end else
           if I.Current.TagName = 'transparent' then
           begin
-            Transparency := Transparency * ReadColor(I.Current).Average;
+            Transparency := Transparency * ReadTransparentElement(I.Current);
             HasTransparency := true;
           end else
           if I.Current.TagName = 'transparency' then

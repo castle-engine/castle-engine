@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -63,9 +63,22 @@ begin
         So don't check "if JsonArray[I] is TJSONIntegerNumber then" or such,
         better just use [I].AsInteger (or Integers[I]).
 
-        (Testcase: when this goes wrong, Spine mesh (e.g. hero wings in escape_universe) doesn't show,
+        (Testcase: when this goes wrong, Spine mesh (e.g. hero wings
+        in escape_universe) doesn't show,
         because IndexedTriangleSet remains unset.) }
       List.Add(JsonArray[I].AsInteger);
     end;
+end;
+
+procedure ReadSingleList(const Json: TJSONObject; const Name: string;
+  const List: TSingleList);
+var
+  JsonArray: TJSONArray;
+  I: Integer;
+begin
+  JsonArray := Json.Find(Name, jtArray) as TJSONArray;
+  if JsonArray <> nil then
+    for I := 0 to JsonArray.Count - 1 do
+      List.Add(JsonArray[I].AsFloat);
 end;
 {$endif}

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2017 Michalis Kamburelis.
+  Copyright 2014-2018 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -85,10 +85,11 @@ var
   { Output path base directory. Empty to use working project directory. }
   OutputPathBase: string = '';
 
-{ Calculate the final location of output files (including the castle-engine-output
-  subdir part), as an absolute path ending with path delimiter.
+{ Calculate the final location of temporary output files
+  (including the castle-engine-output subdir part),
+  as an absolute path ending with path delimiter.
   Makes sure the dir exists, if CreateIfNecessary. }
-function OutputPath(const WorkingDirectory: string;
+function TempOutputPath(const WorkingDirectory: string;
   const CreateIfNecessary: boolean = true): string;
 
 type
@@ -293,7 +294,7 @@ end;
 var
   FOutputPath: string;
 
-function OutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
+function TempOutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
 const
   OutputNoteContents = {$I ../embedded_templates/template-castle-engine-output-warning.txt.inc};
 var
