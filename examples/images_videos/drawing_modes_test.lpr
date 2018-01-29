@@ -34,6 +34,10 @@ type
 var
   Window: TCastleWindowCustom;
 
+  { Fills Window background with a simple color.
+    Add all the other controls as children of this. }
+  Background: TCastleRectangleControl;
+
   RGBA1, RGBA2: TCastleImage;
   GA1, GA2: TCastleImage;
   RGB1, RGB2: TCastleImage;
@@ -94,7 +98,7 @@ begin
       Data[i,j].Anchor(vpTop, -Data[i,j].Image.Height * j);
       Data[i,j].Anchor(hpLeft, Data[i,j].Image.Width * i);
       { InsertBack, not InsertFront, to be behind the labels and buttons. }
-      Window.Controls.InsertBack(Data[i,j]);
+      Background.InsertBack(Data[i,j]);
     end;
 end;
 
@@ -127,7 +131,7 @@ begin
       Labels[I].Anchor(hpMiddle, hpLeft, ImageSize div 2);
       Labels[I].Anchor(vpMiddle, vpTop, - ImageSize * (I + 1) - ImageSize div 2);
     end;
-    Window.Controls.InsertFront(Labels[I]);
+    Background.InsertFront(Labels[I]);
   end;
   Labels[0].Caption := 'RGB' + LineEnding + '+ Alpha';
   Labels[1].Caption := 'Grayscale' + LineEnding + '+ Alpha';
@@ -153,12 +157,17 @@ begin
     B.Anchor(vpBottom, 20 + Ord(DrawMode) * 50);
     B.Tag := Ord(DrawMode); // pass DrawMode to ChangeModeClick in the Tag
     B.OnClick := @SetOfImages.ChangeModeClick;
-    Window.Controls.InsertFront(B);
+    Background.InsertFront(B);
   end;
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
+
+  Background := TCastleRectangleControl.Create(Application);
+  Background.FullSize := true;
+  Background.Color := Black;
+  Window.Controls.InsertFront(Background);
 
   RGBA1 := LoadImage(ApplicationData('1RGBA.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
   RGBA2 := LoadImage(ApplicationData('2RGBA.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
