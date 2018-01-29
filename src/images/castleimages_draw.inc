@@ -32,7 +32,7 @@ begin
     raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Cannot draw pixels from image class %s to %s',
       [Source.ClassName, ClassName]);
 
-  if Mode <> dmBlend then
+  if (Mode <> dmBlend) and (Mode <> dmOverwrite) then
     raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Base TCastleImage.DrawFromCore cannot draw pixels with Mode <> dmBlend, override DrawFromCore to implement this correctly, from image class %s to %s',
       [Source.ClassName, ClassName]);
 
@@ -214,6 +214,23 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^.Data[0];
+              PDest^.Data[1] := PSource^.Data[1];
+              PDest^.Data[2] := PSource^.Data[2];
+              //PDest^.Data[3] unchanged
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -291,6 +308,20 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+{      dmOverwrite: //should be handled by TCastleImage.DrawFromCore
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := PSource^;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;}
       dmAdd:
         if Source.PremultipliedAlpha then
         begin
@@ -386,6 +417,23 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := Source.ColorWhenTreatedAsAlpha.Data[0];
+              PDest^.Data[1] := Source.ColorWhenTreatedAsAlpha.Data[1];
+              PDest^.Data[2] := Source.ColorWhenTreatedAsAlpha.Data[2];
+              PDest^.Data[3] := PSource^;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         begin
           for DestY := Y to Y + SourceHeight - 1 do
@@ -465,6 +513,23 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^.Data[0];
+              PDest^.Data[1] := PSource^.Data[0];
+              PDest^.Data[2] := PSource^.Data[0];
+              PDest^.Data[3] := PSource^.Data[1];
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
@@ -538,6 +603,23 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^;
+              PDest^.Data[1] := PSource^;
+              PDest^.Data[2] := PSource^;
+              //PDest^.Data[3] remains unchanged
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -603,6 +685,20 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := PSource^;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;}
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -653,6 +749,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
               PDest^.Data[0] := MultiplyBytesOpaque(PDest^.Data[0], PSource^.Data[0], PSource^.Data[3]);
               PDest^.Data[1] := MultiplyBytesOpaque(PDest^.Data[1], PSource^.Data[1], PSource^.Data[3]);
               PDest^.Data[2] := MultiplyBytesOpaque(PDest^.Data[2], PSource^.Data[2], PSource^.Data[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^.Data[0];
+              PDest^.Data[1] := PSource^.Data[1];
+              PDest^.Data[2] := PSource^.Data[2];
               Inc(PSource);
               Inc(PDest);
             end;
@@ -731,6 +843,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := Source.ColorWhenTreatedAsAlpha.Data[0];
+              PDest^.Data[1] := Source.ColorWhenTreatedAsAlpha.Data[1];
+              PDest^.Data[2] := Source.ColorWhenTreatedAsAlpha.Data[2];
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         begin
           for DestY := Y to Y + SourceHeight - 1 do
@@ -783,6 +911,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
               PDest^.Data[0] := MultiplyBytesOpaque(PDest^.Data[0], PSource^.Data[0], PSource^.Data[1]);
               PDest^.Data[1] := MultiplyBytesOpaque(PDest^.Data[1], PSource^.Data[0], PSource^.Data[1]);
               PDest^.Data[2] := MultiplyBytesOpaque(PDest^.Data[2], PSource^.Data[0], PSource^.Data[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^.Data[0];
+              PDest^.Data[1] := PSource^.Data[0];
+              PDest^.Data[2] := PSource^.Data[0];
               Inc(PSource);
               Inc(PDest);
             end;
@@ -856,6 +1000,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
               PDest^.Data[0] := MultiplyBytes(PDest^.Data[0], PSource^);
               PDest^.Data[1] := MultiplyBytes(PDest^.Data[1], PSource^);
               PDest^.Data[2] := MultiplyBytes(PDest^.Data[2], PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^;
+              PDest^.Data[1] := PSource^;
+              PDest^.Data[2] := PSource^;
               Inc(PSource);
               Inc(PDest);
             end;
@@ -935,6 +1095,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := GrayscaleValue(PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         if Source.PremultipliedAlpha then
         begin
@@ -1000,6 +1174,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := GrayscaleValue(Source.ColorWhenTreatedAsAlpha);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         begin
           for DestY := Y to Y + SourceHeight - 1 do
@@ -1046,6 +1234,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             for DestX := X to X + SourceWidth - 1 do
             begin
               PDest^ := MultiplyBytesOpaque(PDest^, PSource^.Data[0], PSource^.Data[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := PSource^.Data[0];
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1109,6 +1311,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := PSource^;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;}
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
@@ -1169,6 +1385,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             for DestX := X to X + SourceWidth - 1 do
             begin
               PDest^ := MultiplyBytes(PDest^, GrayscaleValue(PSource^));
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := GrayscaleValue(PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1246,6 +1476,21 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := GrayscaleValue(PSource^);
+              //PDest^.Data[1] unchanged
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -1310,6 +1555,21 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             begin
               PDest^.Data[0] := MultiplyBytes(PDest^.Data[0], GrayscaleValue(PSource^));
               PDest^.Data[1] := MultiplyBytes(PDest^.Data[1], PSource^.Data[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := GrayscaleValue(PSource^);
+              PDest^.Data[1] := PSource^.Data[3];
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1400,6 +1660,21 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {dmOverwrite: //should be handled by TCastleImage.DrawFromCore
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^.Data[0];
+              PDest^.Data[1] := PSource^.Data[1];
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;}
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
@@ -1485,6 +1760,21 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := GrayscaleValue(Source.ColorWhenTreatedAsAlpha);
+              PDest^.Data[1] := PSource^;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         begin
           for DestY := Y to Y + SourceHeight - 1 do
@@ -1531,6 +1821,22 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             for DestX := X to X + SourceWidth - 1 do
             begin
               PDest^.Data[0] := MultiplyBytes(PDest^.Data[0], PSource^);
+              //PDest^.Data[1] unchanged
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      dmOverwrite:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^.Data[0] := PSource^;
+              //PDest^.Data[1] unchanged
               Inc(PSource);
               Inc(PDest);
             end;
