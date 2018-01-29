@@ -225,7 +225,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
               PDest^.Data[0] := PSource^.Data[0];
               PDest^.Data[1] := PSource^.Data[1];
               PDest^.Data[2] := PSource^.Data[2];
-              //PDest^.Data[3] unchanged
+              PDest^.Data[3] := 255;
               Inc(PSource);
               Inc(PDest);
             end;
@@ -601,7 +601,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
               PDest^.Data[0] := PSource^;
               PDest^.Data[1] := PSource^;
               PDest^.Data[2] := PSource^;
-              //PDest^.Data[3] remains unchanged
+              PDest^.Data[3] := 255;
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1446,7 +1446,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             for DestX := X to X + SourceWidth - 1 do
             begin
               PDest^.Data[0] := GrayscaleValue(PSource^);
-              //PDest^.Data[1] unchanged
+              PDest^.Data[1] := 255;
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1783,7 +1783,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             for DestX := X to X + SourceWidth - 1 do
             begin
               PDest^.Data[0] := PSource^;
-              //PDest^.Data[1] unchanged
+              PDest^.Data[1] := 255;
               Inc(PSource);
               Inc(PDest);
             end;
