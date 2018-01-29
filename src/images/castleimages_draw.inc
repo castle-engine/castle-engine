@@ -33,7 +33,7 @@ begin
       [Source.ClassName, ClassName]);
 
   if (Mode <> dmBlend) and (Mode <> dmOverwrite) then
-    raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Base TCastleImage.DrawFromCore cannot draw pixels with Mode <> dmBlend, override DrawFromCore to implement this correctly, from image class %s to %s',
+    raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Base TCastleImage.DrawFromCore cannot draw pixels with Mode <> dmBlend or dmOverwrite, override DrawFromCore to implement this correctly, from image class %s to %s',
       [Source.ClassName, ClassName]);
 
   Ptr := PixelPtr(X, Y);
