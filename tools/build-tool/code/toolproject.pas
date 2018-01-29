@@ -275,8 +275,9 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
-    DefaultAndroidCompileSdkVersion = 23;
-    DefaultAndroidBuildToolsVersion = '23.0.2';
+    DefaultAndroidCompileSdkVersion = 27;
+    // TODO: no need to specify build tools version anymore in Gradle? Remove this?
+    DefaultAndroidBuildToolsVersion = '27.0.3';
     { We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
       We want also NativeActivity and EGL, which require API level 9 or higher. }
     ReallyMinSdkVersion = 9;

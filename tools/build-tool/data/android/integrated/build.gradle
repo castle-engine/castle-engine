@@ -2,6 +2,7 @@
 buildscript {
     repositories {
         jcenter()
+        google()
     }
     dependencies {
         // This declares the "Android Gradle plugin" version
@@ -13,7 +14,7 @@ buildscript {
         // This allows to replace our Gradle wrapper
         // with the Gradle from Debian package, if needed.
         // See https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:3.0.1'
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-DEPENDENCIES
