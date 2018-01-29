@@ -297,6 +297,15 @@ type
       to the previous simple multiply equation. }
     dmMultiply,
 
+    { Overwrite drawing mode, where the image contents of destination image
+      is replaced with contents of source image. That is,
+
+      @preformatted(
+        destination.rgba := source.rgba;
+      )
+    }
+    dmOverwrite,
+
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
