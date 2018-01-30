@@ -1039,7 +1039,7 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
     PluginFile, Source, Target: string;
   begin
     PluginFile := PluginLibraryFile(OS, CPU);
-    Source := InclPathDelim(Path) + PluginFile;
+    Source := InclPathDelim(OutputPath) + PluginFile;
     Target := TargetPathSystemWide + PluginFile;
     try
       SmartCopyFile(Source, Target);
@@ -1064,10 +1064,10 @@ begin
     InstallIOS(Self)
   else
   if OS = Android then
-    InstallAndroidPackage(Name, QualifiedName)
+    InstallAndroidPackage(Name, QualifiedName, OutputPath)
   else
   if Plugin and (OS in AllWindowsOSes) then
-    InstallWindowsPluginRegistry(Name, QualifiedName, Path,
+    InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
       PluginLibraryFile(OS, CPU), Version, Author)
   else
   {$ifdef UNIX}
@@ -1098,10 +1098,12 @@ begin
     RunAndroidPackage(Self)
   else
   begin
-    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     Writeln('Running ' + ExeName);
-    { run through ExecuteProcess, because we don't want to capture output,
-      we want to immediately pass it to user }
+    { Run through ExecuteProcess, because we don't want to capture output,
+      we want to immediately pass it to user.
+      Note that we set current path to Path, not OutputPath,
+      because data/ subdirectory is under Path. }
     SetCurrentDir(Path);
     ProcessStatus := ExecuteProcess(ExeName, Params.ToArray);
     // this will cause our own status be non-zero

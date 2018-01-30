@@ -22,14 +22,14 @@ interface
 
 uses CastleUtils, CastleStringUtils;
 
-procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, ProjectPath,
+procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, OutputPath,
   PluginCompiledFile, Version, Author: string);
 
 implementation
 
 uses SysUtils, Registry;
 
-procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, ProjectPath,
+procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, OutputPath,
   PluginCompiledFile, Version, Author: string);
 var
   Registry: TRegistry;
@@ -58,7 +58,7 @@ begin
 
     OpenCreateKey(BaseKeyPath);
     Registry.WriteString('Description', 'Plugin created with Castle Game Engine to run ' + ProjectName);
-    Registry.WriteString('Path', InclPathDelim(ProjectPath) + PluginCompiledFile);
+    Registry.WriteString('Path', InclPathDelim(OutputPath) + PluginCompiledFile);
     Registry.WriteString('ProductName', ProjectName);
     Registry.WriteString('Vendor', Author);
     Registry.WriteString('Version', Version);

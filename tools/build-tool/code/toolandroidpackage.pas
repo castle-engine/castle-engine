@@ -25,7 +25,7 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 
 procedure RunAndroidPackage(const Project: TCastleProject);
 
@@ -465,12 +465,12 @@ begin
   Writeln('Build ' + ApkName);
 end;
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 var
   ApkDebugName, ApkReleaseName, ApkName: string;
 begin
-  ApkReleaseName := Name + '-' + PackageModeToName[cmRelease] + '.apk';
-  ApkDebugName   := Name + '-' + PackageModeToName[cmDebug  ] + '.apk';
+  ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
+  ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
   if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
     raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);
