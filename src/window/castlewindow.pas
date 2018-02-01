@@ -633,11 +633,23 @@ type
     So as the first control on @link(TCastleWindowCustom.Controls),
     you must place something that fills the whole screen.
     For example:
+
     @unorderedList(
       @item(use @link(TCastleSimpleBackground),)
-      @item(or use @link(TCastleRectangleControl) with @link(TCastleRectangleControl.FullSize) = @true,),
-      @item(or use @link(TCastleSceneManager) with @link(TCastleSceneManager.FullSize) = @true and @link(TCastleSceneManager.Transparent) = @false,)
-      @item(eventually you can also call @link(CastleGLUtils.GLClear) at the beginning of your rendering, e.g. in @link(OnRender). But this is least advised, as @link(OnRender) is performed after drawing all other controls, so doing @link(CastleGLUtils.GLClear) there would force you to make all your drawing in @link(OnRender).)
+
+      @item(or use @link(TCastleRectangleControl) with
+        @link(TUIControlSizeable.FullSize FullSize) = @true,)
+
+      @item(or use @link(TCastleSceneManager) with
+        @link(TUIControlSizeable.FullSize) = @true and
+        @link(TCastleAbstractViewport.Transparent) = @false,)
+
+      @item(eventually you can also call @link(CastleGLUtils.GLClear)
+        at the beginning of your rendering in @link(OnRender).
+        But this is the least advised method, as @link(OnRender)
+        is performed after drawing all other controls,
+        so doing @link(CastleGLUtils.GLClear) there would force you to make
+        all your drawing in @link(OnRender).)
     )
 
     If you're looking for an analogous Lazarus component

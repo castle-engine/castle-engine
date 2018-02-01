@@ -443,9 +443,18 @@ type
 
       It is valid (and reasonable) to call this with AImage instance equal
       to the image instance that you used when creating this TGLImage.
-      TGLImage @italic(does not) automatically update the image contents
-      (once they were loaded to GPU) when you change the underlying
-      @link(TEncodedImage) instance. }
+      That's because TGLImage @italic(does not) automatically update
+      the image contents (once they were loaded to GPU) when you change
+      the underlying @link(TEncodedImage) instance.
+
+      @italic(Do not call this method too often.) This methos copies
+      the image contents from @link(TEncodedImage) to GPU, which is not something
+      you want to do every frame. Doing this occasionally,
+      or during the loading/preparation stage, is OK.
+      Doing this often, e.g. during every @link(TCastleWindowCustom.OnRender)
+      or @link(TCastleWindowCustom.OnUpdate), will hurt your performance.
+      During the game, it's most efficient to treat the @link(TGLImage) instances
+      as "constant" -- avoid changing their contents, avoid creating new ones. }
     procedure Load(const AImage: TEncodedImage); virtual;
 
     { Prepare all the possible resources.
