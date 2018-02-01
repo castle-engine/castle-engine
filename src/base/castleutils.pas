@@ -162,26 +162,26 @@ implementation
 {$undef read_implementation}
 
 initialization
- InitializationOSSpecific;
+  InitializationOSSpecific;
 
- Randomize; { required by e.g. GetTempFname }
+  Randomize; { required by e.g. GetTempFname }
 
- LocaleDecimalSeparator :=
-   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
- {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
-   .DecimalSeparator := '.';
+  LocaleDecimalSeparator :=
+    {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
+  {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
+    .DecimalSeparator := '.';
 
- { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
-   so backslash will be considered as directory separator by
-   Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
-   since normal OS routines on Unix *do not* consider backslash to be any
-   special character in a filename, it certainly does not separate dirs.
-   So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
+  { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
+    so backslash will be considered as directory separator by
+    Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
+    since normal OS routines on Unix *do not* consider backslash to be any
+    special character in a filename, it certainly does not separate dirs.
+    So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
 
-   Fortunately we can fix it by globally changing AllowDirectorySeparators. }
- {$ifndef MSWINDOWS}
- AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
- {$endif}
+    Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+  {$ifndef MSWINDOWS}
+  AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
+  {$endif}
 finalization
- FinalizationOSSpecific;
+  FinalizationOSSpecific;
 end.
