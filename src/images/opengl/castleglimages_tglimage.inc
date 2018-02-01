@@ -1596,7 +1596,7 @@ end;
 
 procedure TGLImage.Load(const AImage: TEncodedImage);
 begin
-  if FOwnsImage then
+  if FOwnsImage and (FImage <> AImage) then
     FreeAndNil(FImage) else
     FImage := nil;
   inherited Load(AImage);
