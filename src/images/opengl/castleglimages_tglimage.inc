@@ -665,9 +665,19 @@ type
       ("Framebuffer Object", FBO).
       Remember that the result lives only on GPU (the underlying TEncodedImage,
       in normal RAM memory, is not updated by this drawing in any way).
+
+      Between @link(RenderToImageBegin) and @link(RenderToImageEnd)
+      you can use various rendering methods, like
+
+      @unorderedList(
+        @item(TGLImage.Draw (to draw @italic(other) TGLImage instances on this one),)
+        @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
+        @item(@link(TGLContainer.RenderControl Window.Container.RenderControl)
+          to render any TUIControl to this image.)
+      )
+
       Calling the RenderToImageBegin for the first time automatically
       creates a TGLRenderToTexture descendant suitable for rendering to this texture.
-
       It is automatically released on certain events,
       you can also explicitly release it by @link(RenderToImageFree). }
     procedure RenderToImageBegin;
