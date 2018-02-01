@@ -142,7 +142,7 @@ type
     constructor Create(const Image: TEncodedImage;
       const ASmoothScaling: boolean); overload;
 
-    constructor Create(const Image: TEncodedImage); overload; deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
+    constructor Create(const Image: TEncodedImage); overload; deprecated 'use TGLImage.Create(Image, ASmoothScaling, AOwnsImage) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -507,6 +507,8 @@ type
     property ClipLine: TVector3 read FClipLine write FClipLine;
   end;
 
+  TGLRenderToTexture = class;
+
   { Image ready to be drawn on 2D screen, with automatically
     managed OpenGL resources.
 
@@ -521,6 +523,7 @@ type
   strict private
     FImage: TEncodedImage;
     FOwnsImage: boolean;
+    FRenderToImage: TGLRenderToTexture;
     procedure SetImage(const AImage: TEncodedImage);
     procedure GLContextCloseEvent(Sender: TObject);
   public
@@ -657,6 +660,32 @@ type
     procedure PrepareResources; override;
     procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
       const Count: Integer); override;
+
+    { Start rendering to this image, using an efficient GPU method
+      ("Framebuffer Object", FBO).
+      Remember that the result lives only on GPU (the underlying TEncodedImage,
+      in normal RAM memory, is not updated by this drawing in any way).
+      Calling the RenderToImageBegin for the first time automatically
+      creates a TGLRenderToTexture descendant suitable for rendering to this texture.
+
+      It is automatically released on certain events,
+      you can also explicitly release it by @link(RenderToImageFree). }
+    procedure RenderToImageBegin;
+    procedure RenderToImageEnd;
+    procedure RenderToImageFree;
+
+    { Draw a SourceImage over this image.
+
+      The drawing is done completely on GPU (using the @link(RenderToImageBegin)).
+      This is a much faster alternative to drawing using
+      @link(TCastleImage.DrawFrom) (that happens on CPU).
+      The result "lives" only on GPU (the underlying TEncodedImage,
+      in normal RAM memory, is not updated by this drawing in any way).
+
+      If you use this only occasionally, it's nice to later free the resources
+      by @link(RenderToImageFree). }
+    procedure DrawFrom(const SourceImage: TGLImageCore;
+      const DestinationRect, SourceRect: TFloatRectangle);
   end;
 
   TGLImageManaged = TGLImage deprecated 'Use TGLImage name, it now equals the previous TGLImageManaged definition';
@@ -1606,6 +1635,7 @@ begin
   if ApplicationProperties <> nil then
     ApplicationProperties.OnGLContextCloseObject.Remove(
       {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
+  RenderToImageFree;
   inherited;
 end;
 
@@ -1655,6 +1685,47 @@ end;
 procedure TGLImage.GLContextCloseEvent(Sender: TObject);
 begin
   GLContextClose;
+  RenderToImageFree;
+end;
+
+procedure TGLImage.RenderToImageBegin;
+
+  procedure CreateRenderToImage;
+  begin
+    FRenderToImage := TGLRenderToTexture.Create(Width, Height);
+    FRenderToImage.Buffer := tbColor;
+    FRenderToImage.SetTexture(Texture, GL_TEXTURE_2D);
+    FRenderToImage.GLContextOpen;
+  end;
+
+begin
+  PrepareResources;
+  Assert(Texture <> 0);
+
+  if (FRenderToImage = nil) or
+     (FRenderToImage.Width <> Width) or
+     (FRenderToImage.Height <> Height) then
+    CreateRenderToImage;
+
+  FRenderToImage.RenderBegin;
+end;
+
+procedure TGLImage.RenderToImageEnd;
+begin
+  FRenderToImage.RenderEnd;
+end;
+
+procedure TGLImage.RenderToImageFree;
+begin
+  FreeAndNil(FRenderToImage);
+end;
+
+procedure TGLImage.DrawFrom(const SourceImage: TGLImageCore;
+  const DestinationRect, SourceRect: TFloatRectangle);
+begin
+  RenderToImageBegin;
+  SourceImage.Draw(DestinationRect, SourceRect);
+  RenderToImageEnd;
 end;
 
 { TGLImageOnDemand ------------------------------------------------------------ }
