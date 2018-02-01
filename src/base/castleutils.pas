@@ -72,6 +72,23 @@
       Of course, our functions will continue to return the values
       with "dot" inside, regardless of the DecimalSeparator.
     )
+
+    @item(Makes AnsiString (which is usually just called "string")
+      have UTF-8 encoding.
+
+      This is consistent with Lazarus, that already does the same:
+      http://wiki.lazarus.freepascal.org/Unicode_Support_in_Lazarus .
+      This way you can just use "string" (not UTF8String or UnicodeString)
+      throughout your code, and everything will just work.
+
+      This way your applications will behave the same, whether they use LCL
+      (which happens if you use TCastleControl on Lazarus form) or not
+      (which happens if you use TCastleWindow).
+
+      This is also consistent with what our TCastleFont expects (it's
+      rendering assumes UTF-8 encoding of strings) and what some of our
+      XML manipulation routines expect.
+    )
   )
 }
 
@@ -182,6 +199,12 @@ initialization
   {$ifndef MSWINDOWS}
   AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
   {$endif}
+
+  { Set UTF-8 in AnsiStrings, just like Lazarus
+    (see initialization of lazarus/components/lazutils/fpcadds.pas in Lazarus sources) }
+  SetMultiByteConversionCodePage(CP_UTF8);
+  // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
+  SetMultiByteRTLFileSystemCodePage(CP_UTF8);
 finalization
   FinalizationOSSpecific;
 end.
