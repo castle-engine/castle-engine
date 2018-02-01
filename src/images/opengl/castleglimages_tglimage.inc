@@ -439,7 +439,13 @@ type
     { Load the given image contents.
       Use this to efficiently replace the image contents on GPU.
       Updates the @link(Width), @link(Height), @link(Alpha) to correspond
-      to new image. }
+      to new image.
+
+      It is valid (and reasonable) to call this with AImage instance equal
+      to the image instance that you used when creating this TGLImage.
+      TGLImage @italic(does not) automatically update the image contents
+      (once they were loaded to GPU) when you change the underlying
+      @link(TEncodedImage) instance. }
     procedure Load(const AImage: TEncodedImage); virtual;
 
     { Prepare all the possible resources.

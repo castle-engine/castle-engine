@@ -48,8 +48,16 @@ type
 
       @item(Sets @bold(2D projection). By default
         our visible X range is @code([0..scene manager width in pixels]),
-        visible Y is @code([0..scene manager height in pixels]).
-        See the @link(ProjectionOriginCenter) for other options.
+        visible Y range is @code([0..scene manager height in pixels]).
+
+        You can set the @link(ProjectionAutoSize) to @false,
+        and then set @link(ProjectionWidth) or @link(ProjectionHeight)
+        to explicitly control the size of the game world @italic(inside the scene manager),
+        regardless of the size of the scene manager control.
+        This is a trivial way to scale your 2D game contents.
+
+        You can set the @link(ProjectionOriginCenter) to control where the
+        origin is (how does the Camera.Position affect the view).
 
         Such projection is set regardless of the X3D viewpoint nodes
         present in the MainScene.
