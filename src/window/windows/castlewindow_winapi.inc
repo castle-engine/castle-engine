@@ -35,7 +35,7 @@ Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes,
+CastleWindowModes, CastleMessages,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -1294,6 +1294,7 @@ begin
     Color := ColorRefToVector3(Struct.rgbResult);
 end;
 
+(*
 const
   MessageTypeToWin: array [TWindowMessageType] of LongWord =
   ( MB_ICONINFORMATION,
@@ -1308,9 +1309,15 @@ const
     'Question',
     'Error',
     'Information');
+*)
 
 procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
+  CastleMessages.MessageOK(Self, S);
+
+  // WinAPI MessageBox is unreliable to display over a fullscreen window.
+  // See also e.g. https://gamedev.stackexchange.com/questions/892/display-a-message-box-over-a-full-screen-directx-application
+  (*
   MessageBox(H_Wnd, PChar(S),
     { Always pass meaningfull caption. Passing nil here causes Windows to
       always display localized "Error" on caption, which looks nonsensible
@@ -1320,17 +1327,24 @@ begin
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
     MB_APPLMODAL);
+  *)
 end;
 
 function TCastleWindowCustom.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
+  Result := CastleMessages.MessageYesNo(Self, S);
+
+  // WinAPI MessageBox is unreliable to display over a fullscreen window.
+  // See also e.g. https://gamedev.stackexchange.com/questions/892/display-a-message-box-over-a-full-screen-directx-application
+  (*
   Result := MessageBox(H_Wnd, PChar(S),
     PChar(MessageTypeToCaption[MessageType]),
     MB_YESNO or MessageTypeToWin[MessageType] or
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
     MB_APPLMODAL) = IDYES;
+  *)
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
