@@ -72,7 +72,8 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+      out AMeasuredSize: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -442,20 +443,32 @@ begin
     Result := SubFont.RealSize;
 end;
 
-procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+  out AMeasuredSize: Single);
+var
+  ScaleFactor: Single;
 begin
   { Just like TCustomizedFont.Measure comments, this is good to call SubFont.Measure }
-  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  { our Scale is always 1, so scale the resulting sizes manually now }
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend, AMeasuredSize);
+
   { TODO: should we add Outline *2 here maybe, if CustomizeOutline?
     If yes, then changing CustomizeOutline should also cause InvalidateMeasure.
     Changing the Outline* props in base font class should also cause InvalidateMeasure. }
-  if Size <> 0 then
-  begin
-    ARowHeight     := Round(ARowHeight     * Size / SubFont.Size);
-    ARowHeightBase := Round(ARowHeightBase * Size / SubFont.Size);
-    ADescend       := Round(ADescend       * Size / SubFont.Size);
-  end;
+
+  { The returned measurements must be valid for font with property Scale = 1.
+
+    Our Scale property is always 1, but it doesn't mean that we take SubFont
+    unscaled. It may be scaled if user adjusted SubFont.Size (e.g. changed
+    TTextureFont.Size from original value derived from TTextureFont.FFont.Size),
+    or if user adjusted our own Size (set it non-zero).
+    The RealSize right now indicates our actual size (accounts for both
+    cases when we're scaled mentioned above),
+    and the AMeasuredSize describes for what size the measurement was done. }
+  ScaleFactor := RealSize / AMeasuredSize;
+  ARowHeight     := Round(ARowHeight     * ScaleFactor);
+  ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
+  ADescend       := Round(ADescend       * ScaleFactor);
+  AMeasuredSize := RealSize;
 end;
 
 { TPrintState ---------------------------------------------------------------- }

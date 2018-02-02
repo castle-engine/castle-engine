@@ -40,6 +40,7 @@ type
     TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
   var
     MeasureDone: boolean;
+    FMeasuredSize: Single;
     FRowHeight, FRowHeightBase, FDescend: Integer;
     FScale: Single;
     FOutline: Cardinal;
@@ -50,10 +51,12 @@ type
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
   strict protected
-    { Calculate properties based on measuring the font.
+    { Calculate properties based on measuring the font,
+      for Scale = 1 of the font (when size is AMeasuredSize).
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+      out AMeasuredSize: Single); virtual;
     { Call when data calculated by Measure changed,
       because TextWidth / TextHeight results changed (but not by Scale,
       that is taken care of automatically). }
@@ -516,7 +519,8 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+      out AMeasuredSize: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -920,7 +924,8 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+  out AMeasuredSize: Single);
 var
   OldScale: Single;
 begin
@@ -929,6 +934,7 @@ begin
   ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
   ADescend := Max(0, TextHeight('y') - TextHeight('a'));
+  AMeasuredSize := Size; // get the Size when Scale = 1
   Scale := OldScale;
 end;
 
@@ -936,7 +942,7 @@ procedure TCastleFont.MakeMeasure;
 begin
   if not MeasureDone then
   begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
+    Measure(FRowHeight, FRowHeightBase, FDescend, FMeasuredSize);
     MeasureDone := true;
   end;
 end;
@@ -1607,21 +1613,32 @@ begin
     Result := SourceFont.RealSize;
 end;
 
-procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
+  out AMeasuredSize: Single);
+var
+  ScaleFactor: Single;
 begin
-  { in usual circumstances, overriding Measure in TCustomizedFont is not needed,
+  { In usual circumstances, overriding Measure in TCustomizedFont is not needed,
     the default implementation would work OK. But if the FSourceFont has some custom
     override fot Measure(), than we need to call it here, otherwise wrapping
     a font in TCustomizedFont (which is what e.g. TCastleLabel does when it has some
     size) would not use the user Measure implementation. }
-  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  { our Scale is always 1, to scale the resulting sizes manually now }
-  if Size <> 0 then
-  begin
-    ARowHeight     := Round(ARowHeight     * Size / FSourceFont.Size);
-    ARowHeightBase := Round(ARowHeightBase * Size / FSourceFont.Size);
-    ADescend       := Round(ADescend       * Size / FSourceFont.Size);
-  end;
+  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend, AMeasuredSize);
+
+  { The returned measurements must be valid for font with property Scale = 1.
+
+    Our Scale property is always 1, but it doesn't mean that we take FSourceFont
+    unscaled. It may be scaled if user adjusted FSourceFont.Size (e.g. changed
+    TTextureFont.Size from original value derived from TTextureFont.FFont.Size),
+    or if user adjusted our own Size (set it non-zero).
+    The RealSize right now indicates our actual size (accounts for both
+    cases when we're scaled mentioned above),
+    and the AMeasuredSize describes for what size the measurement was done. }
+  ScaleFactor := RealSize / AMeasuredSize;
+  ARowHeight     := Round(ARowHeight     * ScaleFactor);
+  ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
+  ADescend       := Round(ADescend       * ScaleFactor);
+  AMeasuredSize := RealSize;
 end;
 
 end.
