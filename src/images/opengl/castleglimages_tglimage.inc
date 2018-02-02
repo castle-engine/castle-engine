@@ -659,7 +659,7 @@ type
     procedure Load(const AImage: TEncodedImage); override;
     procedure PrepareResources; override;
     procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
-      const Count: Integer); override;
+      const Count: Integer); overload; override;
 
     { Start rendering to this image, using an efficient GPU method
       ("Framebuffer Object", FBO).
