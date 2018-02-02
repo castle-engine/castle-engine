@@ -13,14 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCastleGLFonts;
+unit TestCastleFonts;
 
 interface
 
 uses fpcunit, testutils, testregistry;
 
 type
-  TTestCastleGLFonts = class(TTestCase)
+  TTestCastleFonts = class(TTestCase)
   published
     procedure TestMaxTextWidthHtml;
   end;
@@ -28,9 +28,9 @@ type
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15;
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily;
 
-procedure TTestCastleGLFonts.TestMaxTextWidthHtml;
+procedure TTestCastleFonts.TestMaxTextWidthHtml;
 var
   Window: TCastleWindow;
 
@@ -70,5 +70,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCastleGLFonts);
+  RegisterTest(TTestCastleFonts);
 end.
