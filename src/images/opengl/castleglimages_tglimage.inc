@@ -1700,7 +1700,7 @@ end;
 
 procedure TGLImage.RenderToImageBegin;
 
-  procedure CreateRenderToImage;
+  procedure RenderToImageCreate;
   begin
     FRenderToImage := TGLRenderToTexture.Create(Width, Height);
     FRenderToImage.Buffer := tbColor;
@@ -1715,7 +1715,10 @@ begin
   if (FRenderToImage = nil) or
      (FRenderToImage.Width <> Width) or
      (FRenderToImage.Height <> Height) then
-    CreateRenderToImage;
+  begin
+    RenderToImageFree;
+    RenderToImageCreate;
+  end;
 
   FRenderToImage.RenderBegin;
 end;
