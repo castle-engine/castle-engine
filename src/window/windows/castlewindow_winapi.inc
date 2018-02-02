@@ -328,9 +328,10 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
   end;
 
   type
-    { This is useful to deconstruct WParam and LParam. It will work faster
-      than any LoWord/HiWord functions in Windows unit, and it allows you
-      to specify signedness of values as you wish. }
+    { This is useful to deconstruct WParam and LParam.
+      It will work faster than any LoWord/HiWord functions in Windows unit,
+      it avoids any range-check errors,
+      it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
         0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
@@ -443,7 +444,7 @@ begin
   case uMsg of
     WM_ACTIVATE:
       if not InCloseBackend then
-        if LoWord(wParm) = WA_INACTIVE then
+        if TWinParam(wParm).LoWord = WA_INACTIVE then
           { When user switches to another program, fake that we release all keys/mouse.
             Otherwise we could miss some key up / mouse up, when user releases it over
             another program/window.
@@ -490,7 +491,7 @@ begin
         { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
           take care of requesting window redraw after window resize. }
         if (wParm = SIZE_MAXIMIZED) or (wParm = SIZE_RESTORED) then
-          DoResize(LoWord(lParm), HiWord(lParm), false);
+          DoResize(TWinParam(lParm).LoWord, TWinParam(lParm).HiWord, false);
         Exit;
       end;
     WM_MOVE:
@@ -645,9 +646,9 @@ begin
     WM_RBUTTONUP  : begin HandleMouseUp(mbRight ); Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }
-      if HiWord(wParm) = 0 then
+      if TWinParam(wParm).HiWord = 0 then
       begin
-        DoMenuClick(MenuItemFromSmallId(LoWord(wParm)));
+        DoMenuClick(MenuItemFromSmallId(TWinParam(wParm).LoWord));
         Exit;
       end;
 
@@ -688,8 +689,8 @@ begin
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
       begin
-        if HiWord(WParm) <> 0 then
-          DoMouseWheel(SmallInt(HiWord(WParm)) / 120, uMsg = WM_MOUSEWHEEL);
+        if TWinParam(WParm).HiSmallInt <> 0 then
+          DoMouseWheel(TWinParam(WParm).HiSmallInt / 120, uMsg = WM_MOUSEWHEEL);
         Exit;
       end;
   end;
