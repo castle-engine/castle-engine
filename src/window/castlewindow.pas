@@ -1196,7 +1196,7 @@ type
       read FFullScreen write SetFullScreen default false;
 
     { Deprecated, instead just do @code(FullScreen := not FullScreen). }
-    procedure SwapFullScreen; deprecated;
+    procedure SwapFullScreen; deprecated 'use "FullScreen := not FullScreen"';
 
     { Should we request and use the double buffer.
       After every draw, we automatically swap buffers (if DoubleBuffer)
