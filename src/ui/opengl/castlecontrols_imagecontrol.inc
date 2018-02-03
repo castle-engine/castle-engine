@@ -40,7 +40,7 @@
   strict private
     FURL: string;
     FImage: TCastleImage;
-    FGLImage: TGLImageCore;
+    FGLImage: TGLImage;
     FAlphaChannel: TAutoAlphaChannel;
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
@@ -102,6 +102,16 @@
       The control size will be updated immediately (taking into account current
       @link(Stretch) and related properties values). }
     property Image: TCastleImage read FImage write SetImage;
+
+    { Image used to draw this on GPU.
+      In most circumstances, you should deal with @link(Image) instead
+      (changing it will automatically update @name).
+      But in special cases it may make sense to use this,
+      e.g. for fast image-to-image drawing using @link(TGLImage.DrawFrom).
+
+      This is non-nil only when OpenGL context is initialized,
+      and @link(Image) is assigned. }
+    property DrawableImage: TGLImage read FGLImage;
 
     { Whether the memory management of assigned @link(Image) is automatic.
       See @link(Image) documentation for details. }
@@ -430,7 +440,7 @@ begin
       if FGLImage <> nil then
         FGLImage.Load(FImage) else
       begin
-        FGLImage := TGLImageCore.Create(FImage, FSmoothScaling);
+        FGLImage := TGLImage.Create(FImage, FSmoothScaling, false);
         FGLImage.Color := Color;
         FGLImage.CenterX := FCenterX;
         FGLImage.CenterY := FCenterY;
