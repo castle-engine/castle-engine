@@ -218,7 +218,10 @@ uses StrUtils, DOM, Process,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
 
 const
-  SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
+  SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
+    {$ifdef UNIX}
+    + ' Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.'
+    {$endif};
 
 { Insert 'lib' prefix at the beginning of file name. }
 function InsertLibPrefix(const S: string): string;
@@ -1812,14 +1815,24 @@ begin
   Ext := ExtractFileExt(SourceFileName);
   BinaryFile := SameText(Ext, '.so') or SameText(Ext, '.jar');
   CheckForceDirectories(ExtractFilePath(DestinationFileName));
-  if BinaryFile then
-  begin
-    CheckCopyFile(SourceFileName, DestinationFileName);
-  end else
-  begin
-    Contents := FileToString(FilenameToURISafe(SourceFileName));
-    Contents := ReplaceMacros(Contents);
-    StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+
+  try
+    if BinaryFile then
+    begin
+      CheckCopyFile(SourceFileName, DestinationFileName);
+    end else
+    begin
+      Contents := FileToString(FilenameToURISafe(SourceFileName));
+      Contents := ReplaceMacros(Contents);
+      StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+    end;
+  except
+    on E: EFOpenError do
+    begin
+      Writeln('Cannot open a template file.');
+      Writeln(SErrDataDir);
+      raise;
+    end;
   end;
 end;
 
