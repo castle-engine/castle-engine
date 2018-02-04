@@ -398,27 +398,29 @@ var
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      try
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      finally
+        { Gradle deamon is automatically initialized since Gradle version 3.0
+          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
+          but it prevents removing the castle-engine-output/android/project/ .
+          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
+          again in the same directory, because it cannot remove the
+          "castle-engine-output/android/project/" at the beginning.
 
-      { Gradle deamon is automatically initialized since Gradle version 3.0
-        (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-        but it prevents removing the castle-engine-output/android/project/ .
-        E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-        again in the same directory, because it cannot remove the
-        "castle-engine-output/android/project/" at the beginning.
+          It seems the current directory of Java (Gradle) process is inside
+          castle-engine-output/android/project/, and Windows doesn't allow to remove such
+          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
+          also fails with
 
-        It seems the current directory of Java (Gradle) process is inside
-        castle-engine-output/android/project/, and Windows doesn't allow to remove such
-        directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-        also fails with
+            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
 
-          rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
+          This may be related to
+          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
 
-        This may be related to
-        https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-        The solution for now is to kill the daemon afterwards. }
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+          The solution for now is to kill the daemon afterwards. }
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+      end;
 
       {$else}
       if FileExists(AndroidProjectPath + 'gradlew') then
