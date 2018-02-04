@@ -530,8 +530,11 @@ procedure TTriangleFanSetGenerator.GenerateCoordsRange(
   procedure FaceNormal(const v1, v2, v3: integer);
   begin
     if NorImplementation = niNone then
-      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+    begin
       TriFaceNormal := TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
+      if not NormalsCcw then
+        TriFaceNormal := -TriFaceNormal;
+    end;
   end;
 
 var
@@ -754,8 +757,11 @@ procedure TTriangleStripSetGenerator.GenerateCoordsRange(
   procedure FaceNormal(const v1, v2, v3: integer);
   begin
     if NorImplementation = niNone then
-      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+    begin
       TriFaceNormal := TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
+      if not NormalsCcw then
+        TriFaceNormal := -TriFaceNormal;
+    end;
   end;
 
 var

@@ -154,7 +154,7 @@ type
 
     { Is the front face ordered counter-clockwise.
       The "front face" is important to interpreting the @link(CullFace)
-      and to interpret the normal vectors (they point ourward from front face). }
+      and to interpret the normal vectors (they point outward from front face). }
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
