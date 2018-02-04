@@ -26,7 +26,7 @@
     Scissor: TScissor;
 
     FScroll: Single;
-    ScrollbarVisible: boolean;
+    FScrollbarVisible: boolean;
     { Rects in screen coordinates (like ScreenRect), after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TRectangle;
     ScrollBarDragging: boolean;
@@ -49,6 +49,8 @@
     property Scroll: Single read FScroll write SetScroll;
 
     function ScrollBarWidthScaled: Integer;
+  protected
+    property ScrollbarVisible: boolean read FScrollbarVisible;
   public
     const
       DefaultKeyScrollSpeed = 200.0;
@@ -164,16 +166,16 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
 
     ScrollbarSlider := ScrollbarFrame;
     if ScrollArea.CalculatedHeight = 0 then
-      ScrollBarVisible := false
+      FScrollBarVisible := false
     else
     begin
       ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
-      ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+      FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
       { equivalent would be to set
           ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
         But this way makes it clear that MapRange below is valid, will not divide by zero. }
     end;
-    if ScrollBarVisible then
+    if FScrollBarVisible then
       ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
         ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
     begin
