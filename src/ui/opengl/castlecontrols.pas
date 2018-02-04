@@ -35,7 +35,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2,
+    tiCrosshair1, tiCrosshair2, tiCheckmark, tiDisclosure,
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)

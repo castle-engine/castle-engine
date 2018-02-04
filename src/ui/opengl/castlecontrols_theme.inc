@@ -198,6 +198,10 @@ begin
   FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiCheckmark] := Checkmark;
+  FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiDisclosure] := Disclosure;
+  FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
   FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
   FImages[tiEdit] := Edit;
