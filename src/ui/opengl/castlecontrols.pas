@@ -20,7 +20,8 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+uses Classes, Generics.Collections,
+  CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
   CastleURIUtils, CastleLog, CastleStringUtils;
@@ -85,6 +86,7 @@ type
   {$I castlecontrols_sliders.inc}
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_switchcontrol.inc}
+  {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   // Add more UI controls include files here.
@@ -119,6 +121,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_sliders.inc}
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_switchcontrol.inc}
+{$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_theme.inc}
