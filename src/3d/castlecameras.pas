@@ -625,6 +625,7 @@ type
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3;
     FTurntable: boolean;
+    FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -639,6 +640,7 @@ type
     procedure SetTranslation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
+    procedure OnGestureRecognized(Sender: TObject);
 
     function GetInput_MoveXInc: TInputShortcut;
     function GetInput_MoveXDec: TInputShortcut;
@@ -680,6 +682,7 @@ type
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
@@ -2057,6 +2060,8 @@ begin
   FRotationAccelerate := true;
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
+  FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
+  FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2110,6 +2115,7 @@ begin
   FreeAndNil(FInput_ScaleSmaller);
   FreeAndNil(FInput_Home);
   FreeAndNil(FInput_StopRotating);
+  FreeAndNil(FPinchGestureRecognizer);
   inherited;
 end;
 
@@ -2428,6 +2434,8 @@ begin
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
+  if FPinchGestureRecognizer.Press(Event) then Exit(ExclusiveEvents);
+
   if Event.EventType <> itMouseWheel then
   begin
     if Input_StopRotating.IsEvent(Event) then
@@ -2455,6 +2463,14 @@ begin
     if Zoom(Event.MouseWheelScroll / ZoomScale) then
        Result := ExclusiveEvents;
   end;
+end;
+
+function TExamineCamera.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if FPinchGestureRecognizer.Release(Event) then Exit(ExclusiveEvents);
 end;
 
 function TExamineCamera.Zoom(const Factor: Single): boolean;
@@ -2555,6 +2571,8 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+
+  if FPinchGestureRecognizer.Motion(Event) then Exit(ExclusiveEvents);
 
   if Container <> nil then
     MoveDivConst := Container.Dpi else
@@ -2660,6 +2678,40 @@ begin
     FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst));
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
+  end;
+end;
+
+procedure TExamineCamera.OnGestureRecognized(Sender: TObject);
+var
+  Recognizer: TCastlePinchPanGestureRecognizer;
+  Factor, Size, MoveDivConst, ZoomScale: Single;
+begin
+  Recognizer := Sender as TCastlePinchPanGestureRecognizer;
+  if Recognizer = nil then Exit;
+
+  if Container <> nil then
+    MoveDivConst := Container.Dpi else
+    MoveDivConst := 100;
+
+  if Recognizer.Gesture = gtPinch then
+  begin
+    if Recognizer.PinchScaleFactor > 1.0 then
+      Factor := 80 * (Recognizer.PinchScaleFactor - 1.0)
+    else
+      Factor := -80 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+    if Turntable then
+      ZoomScale := 30
+    else
+      ZoomScale := 10;
+    Zoom(Factor / ZoomScale);
+  end;
+
+  if Recognizer.Gesture = gtPan then
+  begin
+    Size := FModelBox.AverageSize;
+    FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst));
+    FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst));
+    ScheduleVisibleChange;
   end;
 end;
 
