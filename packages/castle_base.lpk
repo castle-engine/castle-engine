@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="5"/>
-    <Files Count="660">
+    <Files Count="662">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2714,6 +2714,14 @@ end;"/>
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item660>
+      <Item661>
+        <Filename Value="../src/ui/opengl/castlecontrols_switchcontrol.inc"/>
+        <Type Value="Include"/>
+      </Item661>
+      <Item662>
+        <Filename Value="../src/ui/opengl/castlecontrols_tableview.inc"/>
+        <Type Value="Include"/>
+      </Item662>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

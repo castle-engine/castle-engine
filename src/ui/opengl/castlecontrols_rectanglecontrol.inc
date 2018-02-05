@@ -15,12 +15,15 @@
 
 {$ifdef read_interface}
 
-  { Fill a rectangle on screen with given color. }
+  { Fill a rectangle on screen with given color or theme image. }
   TCastleRectangleControl = class(TUIControlSizeable)
   strict private
     FColor: TCastleColor;
+    FThemeImage: TThemeImage;
+    FUseThemeImage: boolean;
     FInterceptInput: boolean;
     procedure SetColor(const Value: TCastleColor);
+    procedure SetThemeImage(const Value: TThemeImage);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -30,6 +33,9 @@
 
     { Rectangle color. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Fill rectangle with theme image instead of plain color. }
+    property ThemeImage: TThemeImage read FThemeImage write SetThemeImage;
 
     { Prevents passing mouse/keyboard events to the controls underneath.
       More precisely, when this property is @true, then the
@@ -49,13 +55,26 @@ constructor TCastleRectangleControl.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := White;
+  FThemeImage := tiWindow;
+  FUseThemeImage := false;
 end;
 
 procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
 begin
-  if not TCastleColor.PerfectlyEquals(FColor, Value) then
+  if (not TCastleColor.PerfectlyEquals(FColor, Value)) or (FUseThemeImage = true) then
   begin
     FColor := Value;
+    FUseThemeImage := false;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleRectangleControl.SetThemeImage(const Value: TThemeImage);
+begin
+  if (FThemeImage <> Value) or (FUseThemeImage = false) then
+  begin
+    FThemeImage := Value;
+    FUseThemeImage := true;
     VisibleChange;
   end;
 end;
@@ -63,7 +82,10 @@ end;
 procedure TCastleRectangleControl.Render;
 begin
   inherited;
-  DrawRectangle(ScreenRect, Color);
+  if FUseThemeImage then
+    Theme.Draw(ScreenRect, ThemeImage, UIScale)
+  else
+    DrawRectangle(ScreenRect, Color);
 end;
 
 function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;
