@@ -91,6 +91,7 @@ type
     FBuggyDepth32: boolean;
     FBuggyGLSLFrontFacing: boolean;
     FBuggyGLSLReadVarying: boolean;
+    FBuggyPureShaderPipeline: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -203,6 +204,10 @@ type
 
     { Do not read varying values in vertex shader, treat them as write-only. }
     property BuggyGLSLReadVarying: boolean read FBuggyGLSLReadVarying;
+
+    { Various problems when trying to use shaders to render everything.
+      See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
+    property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
   end;
 
 var
@@ -591,6 +596,14 @@ begin
     {$ifdef ANDROID}
     (VendorType = gvImaginationTechnologies) and
     (Major = 2)
+    {$else} false
+    {$endif};
+
+  FBuggyPureShaderPipeline :=
+    {$ifdef MSWINDOWS}
+    ( (VendorType = gvIntel) and
+      not VendorVersionAtLeast(9, 0, 0)
+    )
     {$else} false
     {$endif};
 end;

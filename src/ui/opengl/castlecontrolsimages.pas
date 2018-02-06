@@ -85,6 +85,12 @@ var
   ScrollbarSlider: TRGBAlphaImage;
 
 var
+  Checkmark: TGrayscaleAlphaImage;
+
+var
+  Disclosure: TGrayscaleAlphaImage;
+
+var
   PanelSeparator: TGrayscaleImage;
 
 var
@@ -189,6 +195,12 @@ initialization
   ScrollbarSlider := TRGBAlphaImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
   Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
   ScrollbarSlider.URL := 'embedded-image:/ScrollbarSlider';
+  Checkmark := TGrayscaleAlphaImage.Create(CheckmarkWidth, CheckmarkHeight, CheckmarkDepth);
+  Move(CheckmarkPixels, Checkmark.RawPixels^, SizeOf(CheckmarkPixels));
+  Checkmark.URL := 'embedded-image:/Checkmark';
+  Disclosure := TGrayscaleAlphaImage.Create(DisclosureWidth, DisclosureHeight, DisclosureDepth);
+  Move(DisclosurePixels, Disclosure.RawPixels^, SizeOf(DisclosurePixels));
+  Disclosure.URL := 'embedded-image:/Disclosure';
   PanelSeparator := TGrayscaleImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   PanelSeparator.URL := 'embedded-image:/PanelSeparator';
@@ -233,6 +245,8 @@ finalization
   FreeAndNil(Crosshair1);
   FreeAndNil(Crosshair2);
   FreeAndNil(ScrollbarSlider);
+  FreeAndNil(Checkmark);
+  FreeAndNil(Disclosure);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

@@ -342,6 +342,11 @@ type
     function Middle: TVector2; deprecated 'use Center';
     function Center: TVector2;
 
+    { Return rectangle with given width and height centered
+      in the middle of this rectangle. The given W, H may be smaller or larger
+      than this rectangle sizes. }
+    function CenterInside(const W, H: Single): TFloatRectangle;
+
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
       This adds a margin of Delta pixels around all sides of the rectangle,
@@ -940,6 +945,14 @@ end;
 function TFloatRectangle.Middle: TVector2;
 begin
   Result := Center;
+end;
+
+function TFloatRectangle.CenterInside(const W, H: Single): TFloatRectangle;
+begin
+  Result.Left   := Left   + (Width  - W) / 2;
+  Result.Bottom := Bottom + (Height - H) / 2;
+  Result.Width  := W;
+  Result.Height := H;
 end;
 
 function TFloatRectangle.Grow(const DeltaX, DeltaY: Single): TFloatRectangle;

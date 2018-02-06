@@ -117,14 +117,14 @@ begin
           '    Use this instead of "compile" only if there''s some good reason' +NL+
           '    you don''t want to use CastleEngineManifest.xml to your project.' +NL+
           NL+
-          'auto-compress-textures:' +NL+
+          'auto-generate-textures:' +NL+
           '    Create GPU-compressed versions of textures,' +NL+
           '    for the textures mentioned in <auto_compressed_textures>' +NL+
           '    inside the file data/material_properties.xml.' +NL+
           NL+
-          'auto-compress-clean:' +NL+
+          'auto-generate-clean:' +NL+
           '    Clear "auto_compressed" subdirectories, that should contain only' +NL+
-          '    the output created by "auto-compress-textures" target.' +NL+
+          '    the output created by "auto-generate-textures" target.' +NL+
           NL+
           'generate-program:' +NL+
           '    Generate lpr and lpi files to edit and run this project in Lazarus.' +NL+

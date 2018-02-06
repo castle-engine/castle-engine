@@ -545,6 +545,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.Draw3x3 and TGLImage.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -725,10 +726,16 @@ type
       The coordinates and sizes are carefully checked, so that we do not
       try to take some pixels outside of the source or destination image.
 
-      Note that this method of drawing image-on-image is not GPU-accelerated
-      in any way. It may be slow (esp. for larger source images),
-      and should be avoided for often occuring events (e.g. think twice
-      before using this method at every mouse move, or at every frame draw).
+      @italic(Warning: It is not efficient to use this drawing method.)
+      This drawing is performed on CPU and cannot be fast.
+      If possible, use instead @link(TGLImage.DrawFrom),
+      that performs image-on-image drawing using GPU,
+      or just draw @link(TGLImage) straight to the screen by @link(TGLImage.Draw).
+      See examples/images_videos/draw_images_on_gpu.lpr for an example of
+      @link(TGLImage.DrawFrom).
+      Using this method makes most sense in image manipulation tools,
+      or during the loading / preparation stage of your game,
+      not during actual game.
 
       @italic(Note for descendants implementors:)
       The default implementation of this function in TCastleImage
