@@ -24,6 +24,7 @@
     FInterceptInput: boolean;
     procedure SetColor(const Value: TCastleColor);
     procedure SetThemeImage(const Value: TThemeImage);
+    procedure SetUseThemeImage(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -34,8 +35,11 @@
     { Rectangle color. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
 
-    { Fill rectangle with theme image instead of plain color. }
+    { Fill rectangle with theme image. You have to set @link(UseThemeImage) to true to take effect. }
     property ThemeImage: TThemeImage read FThemeImage write SetThemeImage;
+
+    { Use theme image for drawing instead of color. }
+    property UseThemeImage: boolean read FUseThemeImage write SetUseThemeImage default false;
 
     { Prevents passing mouse/keyboard events to the controls underneath.
       More precisely, when this property is @true, then the
@@ -61,20 +65,27 @@ end;
 
 procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
 begin
-  if (not TCastleColor.PerfectlyEquals(FColor, Value)) or FUseThemeImage then
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    FUseThemeImage := false;
     VisibleChange;
   end;
 end;
 
 procedure TCastleRectangleControl.SetThemeImage(const Value: TThemeImage);
 begin
-  if (FThemeImage <> Value) or (not FUseThemeImage) then
+  if FThemeImage <> Value then
   begin
     FThemeImage := Value;
-    FUseThemeImage := true;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleRectangleControl.SetUseThemeImage(const Value: boolean);
+begin
+  if FUseThemeImage <> Value then
+  begin
+    FUseThemeImage := Value;
     VisibleChange;
   end;
 end;
@@ -83,7 +94,7 @@ procedure TCastleRectangleControl.Render;
 begin
   inherited;
   if FUseThemeImage then
-    Theme.Draw(ScreenRect, ThemeImage, UIScale)
+    Theme.Draw(ScreenRect, ThemeImage, UIScale, Color)
   else
     DrawRectangle(ScreenRect, Color);
 end;
