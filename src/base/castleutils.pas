@@ -204,7 +204,10 @@ initialization
     (see initialization of lazarus/components/lazutils/fpcadds.pas in Lazarus sources) }
   SetMultiByteConversionCodePage(CP_UTF8);
   // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
+
+{$IFDEF FPC}
   SetMultiByteRTLFileSystemCodePage(CP_UTF8);
+ {$ENDIF}
 finalization
   FinalizationOSSpecific;
 end.

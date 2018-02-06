@@ -39,7 +39,7 @@
 { Compiler version check ----------------------------------------------------- }
 
 {$ifndef FPC}
-  {$if CompilerVersion < 30}
+  {$if CompilerVersion < 28}
     // 30 is Delphi 10 Seattle, see http://delphi.wikia.com/wiki/CompilerVersion_Constant
     {$error Use FPC (Free Pascal Compiler) or Delphi >= 10 to compile Castle Game Engine. The older Delphi versions are not supported. Patches to fix older Delphi versions are welcome, although some really old Delphi versions may be out of reach (e.g. we need Delphi >= 2009 for generics).}
   {$endif}
@@ -115,7 +115,9 @@
 
 { Define CPU32/64, like FPC. }
 {$ifndef FPC}
+  {$ifdef CPUX86} {$define CPU32} {$endif}
   {$ifdef CPU32BITS} {$define CPU32} {$endif}
+  {$ifdef CPUX64} {$define CPU64} {$endif}
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
 {$endif}
 
