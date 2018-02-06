@@ -46,6 +46,9 @@ type
       @link(TWalkCamera.MouseLook) is used. }
     ciMouseDragging,
 
+    { Touch gestures, like multi-touch pinch or pan gesture. }
+    ciGesture,
+
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
@@ -178,7 +181,7 @@ type
       { Default value for TCamera.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
-      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse];
+      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse, ciGesture];
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
@@ -2429,12 +2432,14 @@ var
 begin
   Result := inherited;
   if Result or
-     (not (ciNormal in Input)) or
      Animation or
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
-  if FPinchGestureRecognizer.Press(Event) then Exit(ExclusiveEvents);
+  if (ciGesture in Input) and FPinchGestureRecognizer.Press(Event) then
+    Exit(ExclusiveEvents);
+
+  if not (ciNormal in Input) then Exit;
 
   if Event.EventType <> itMouseWheel then
   begin
@@ -2470,7 +2475,8 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if FPinchGestureRecognizer.Release(Event) then Exit(ExclusiveEvents);
+  if (ciGesture in Input) and FPinchGestureRecognizer.Release(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TExamineCamera.Zoom(const Factor: Single): boolean;
@@ -2572,7 +2578,8 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if FPinchGestureRecognizer.Motion(Event) then Exit(ExclusiveEvents);
+  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event) then
+    Exit(ExclusiveEvents);
 
   if Container <> nil then
     MoveDivConst := Container.Dpi else
