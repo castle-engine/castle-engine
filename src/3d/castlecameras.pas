@@ -2516,6 +2516,7 @@ var
   ModsDown: TModifierKeys;
   DoZooming, DoMoving: boolean;
   MoveDivConst: Single;
+  Dpi: Integer;
 
   function DragRotation: TQuaternion;
 
@@ -2578,12 +2579,15 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event) then
+  if Container <> nil then
+    Dpi := Container.Dpi
+  else
+    Dpi := 100;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
     Exit(ExclusiveEvents);
 
-  if Container <> nil then
-    MoveDivConst := Container.Dpi else
-    MoveDivConst := 100;
+  MoveDivConst := Dpi;
 
   { Shortcuts: I'll try to make them intelligent, which means
     "mostly matching shortcuts in other programs" (like Blender) and
