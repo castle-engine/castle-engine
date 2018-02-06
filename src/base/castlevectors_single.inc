@@ -1336,7 +1336,7 @@ end;
 function PointsDistance2DSqr(const V1, V2: TVector3; const IgnoreIndex: Integer): Single;
 begin
 {$IFNDEF FPC}
-  result := 0; // Make the Delphi Compiler Happy
+  Result := 0; // Make the Delphi Compiler Happy
 {$ENDIF}
   case IgnoreIndex of
     0: Result := Sqr(V2.Data[1] - V1.Data[1]) + Sqr(V2.Data[2] - V1.Data[2]);

@@ -2175,7 +2175,7 @@ var
   R: {$ifdef FPC} TRegExpr {$else} TRegEx {$endif};
   C: TRegExprCounter;
   {$ifndef FPC}
-    P : TMatchEvaluator;
+  P : TMatchEvaluator;
   {$endif}
 begin
   {$ifdef FPC}
@@ -2189,10 +2189,9 @@ begin
     try
       C.Index := Index;
       {$ifdef FPC}
-      Result := R.Replace(NamePattern, @C.ReplaceCallback);
+      Result := R.Replace(NamePattern, {$ifdef CASTLE_OBJFPC}@{$endif} C.ReplaceCallback);
       {$else}
-        // Fix for delphi < Tokio
-        // needs a extra Variable for the call
+        // Fix for delphi < Tokio, needs an extra Variable for the call
          P := C.ReplaceCallback;
          Result :=  r.Replace(NamePattern, P);
       {$endif}
