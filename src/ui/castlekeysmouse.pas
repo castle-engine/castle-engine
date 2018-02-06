@@ -1144,10 +1144,12 @@ begin
   if Event.FingerIndex = 0 then
   begin
     FFinger0StartPos := Event.Position;
+    FFinger0Pos := Event.Position;
     FFinger0Pressed := true;
   end
   else if Event.FingerIndex = 1 then begin
     FFinger1StartPos := Event.Position;
+    FFinger1Pos := Event.Position;
     FFinger1Pressed := true;
   end;
   Result := FFinger0Pressed and FFinger1Pressed;

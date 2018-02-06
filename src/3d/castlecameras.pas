@@ -2703,9 +2703,9 @@ begin
   if Recognizer.Gesture = gtPinch then
   begin
     if Recognizer.PinchScaleFactor > 1.0 then
-      Factor := 80 * (Recognizer.PinchScaleFactor - 1.0)
+      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
     else
-      Factor := -80 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
     if Turntable then
       ZoomScale := 30
     else
