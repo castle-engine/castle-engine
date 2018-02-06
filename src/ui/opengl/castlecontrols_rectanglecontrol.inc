@@ -61,7 +61,7 @@ end;
 
 procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
 begin
-  if (not TCastleColor.PerfectlyEquals(FColor, Value)) or (FUseThemeImage = true) then
+  if (not TCastleColor.PerfectlyEquals(FColor, Value)) or FUseThemeImage then
   begin
     FColor := Value;
     FUseThemeImage := false;
@@ -71,7 +71,7 @@ end;
 
 procedure TCastleRectangleControl.SetThemeImage(const Value: TThemeImage);
 begin
-  if (FThemeImage <> Value) or (FUseThemeImage = false) then
+  if (FThemeImage <> Value) or (not FUseThemeImage) then
   begin
     FThemeImage := Value;
     FUseThemeImage := true;
