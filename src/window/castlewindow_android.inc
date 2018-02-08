@@ -79,7 +79,7 @@ private
     FingerCount = 20;
 
   var
-    FScreenWidth, FScreenHeight: Integer;
+    FScreenWidth, FScreenHeight, FScreenStatusBarHeight: Integer;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
@@ -111,6 +111,7 @@ begin
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
+  Application.FScreenStatusBarHeight := Round(24 * Window.Dpi / 96); // TODO
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
   Window.FLeft := 0;
   Window.FTop := 0;
@@ -765,6 +766,11 @@ begin
   if FScreenHeight = 0 then
     WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
   Result := FScreenHeight;
+end;
+
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := FScreenStatusBarHeight;
 end;
 
 function TCastleApplication.BackendName: string;

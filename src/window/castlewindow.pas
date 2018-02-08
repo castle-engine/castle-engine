@@ -609,6 +609,7 @@ type
     function Width: Integer; override;
     function Height: Integer; override;
     function Rect: TRectangle; override;
+    function ScaledStatusBarHeight: Integer; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Integer; override;
@@ -2640,6 +2641,7 @@ type
 
     function ScreenHeight: integer;
     function ScreenWidth: integer;
+    function ScreenStatusBarScaledHeight: integer;
 
     { List of all open windows.
       @groupBegin }
@@ -2952,6 +2954,11 @@ end;
 function TWindowContainer.Rect: TRectangle;
 begin
   Result := Parent.Rect;
+end;
+
+function TWindowContainer.ScaledStatusBarHeight: Integer;
+begin
+  Result := Application.ScreenStatusBarScaledHeight;
 end;
 
 function TWindowContainer.GetMousePosition: TVector2;

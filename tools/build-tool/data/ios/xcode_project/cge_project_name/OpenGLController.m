@@ -83,6 +83,13 @@
 }
 
 //-----------------------------------------------------------------
+- (int)statusBarHeight
+{
+    CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
+    return MIN(statusBarSize.width, statusBarSize.height);
+}
+
+//-----------------------------------------------------------------
 - (void)setupGL
 {
     [EAGLContext setCurrentContext:self.context];
@@ -117,7 +124,7 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
+    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [self statusBarHeight] * m_fScale, (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
 
     [self update];
 }
@@ -142,7 +149,7 @@
     {
 	m_oldViewWidth  = newViewWidth;
 	m_oldViewHeight = newViewHeight;
-	CGEApp_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
+	CGEApp_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale, [self statusBarHeight] * m_fScale);
     }
 
     // send accumulated touch positions (sending them right away jams the engine)

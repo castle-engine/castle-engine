@@ -974,6 +974,11 @@ begin
   Result := Screen.Height;
 end;
 
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := 0;
+end;
+
 function TCastleApplication.BackendName: string;
 begin
   Result := 'LCL';

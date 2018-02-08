@@ -1833,6 +1833,11 @@ begin
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := 0;
+end;
+
 function TCastleApplication.BackendName: string;
 begin
   Result := 'GTK+';

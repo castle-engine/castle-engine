@@ -1619,6 +1619,11 @@ begin
     result := GetSystemMetrics(SM_CYSCREEN);
 end;
 
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := 0;
+end;
+
 function TCastleApplication.BackendName: string;
 begin
   Result := 'WinAPI';

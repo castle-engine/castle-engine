@@ -823,6 +823,12 @@ begin
   InitializeXDisplay;
   Result := XDisplayHeight(XDisplay, XScreen);
 end;
+
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := 0;
+end;
+
 {$endif}
 
 { TCastleWindow -------------------------------------------------------------- }

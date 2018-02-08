@@ -373,6 +373,11 @@ type
       and it's simply equal to @name when UI scaling is not used. }
     function Rect: TRectangle; virtual;
 
+    { Translucent status bar height in the container, in pixels.
+      This is expressed in real device pixels.
+      Prefer using @link(StatusBarHeight) instead of this. }
+    function ScaledStatusBarHeight: Integer; virtual;
+
     { Container width as seen by controls with UI scaling.
       In other words, this is the real @link(Width) with UI scaling
       reversed (divided). Suitable to adjust size of your UI controls
@@ -400,6 +405,14 @@ type
     { Container rectangle as seen by controls with UI scaling.
       @seealso UnscaledWidth }
     function UnscaledRect: TRectangle;
+
+    { Translucent status bar height inside the container as seen by controls
+      with UI scaling.
+
+      Status bar occupies the top part of the container height. Invisible
+      status bar returns height equal zero.
+      @seealso UnscaledWidth }
+    function StatusBarHeight: Cardinal;
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
@@ -2706,6 +2719,11 @@ begin
   end;
 end;
 
+function TUIContainer.StatusBarHeight: Cardinal;
+begin
+  Result := Round(ScaledStatusBarHeight / FCalculatedUIScale);
+end;
+
 procedure TUIContainer.SaveScreen(const URL: string);
 var
   Image: TRGBImage;
@@ -2731,6 +2749,11 @@ end;
 function TUIContainer.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
+end;
+
+function TUIContainer.ScaledStatusBarHeight: Integer;
+begin
+  Result := 0;
 end;
 
 procedure TUIContainer.Invalidate;

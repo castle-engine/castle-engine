@@ -240,6 +240,11 @@ begin
   Result := 200;
 end;
 
+function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+begin
+  Result := 0;
+end;
+
 function TCastleApplication.BackendName: string;
 begin
   { TODO }
