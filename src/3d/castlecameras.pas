@@ -2582,7 +2582,7 @@ begin
   if Container <> nil then
     Dpi := Container.Dpi
   else
-    Dpi := 100;
+    Dpi := DefaultDpi;
 
   if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
     Exit(ExclusiveEvents);
