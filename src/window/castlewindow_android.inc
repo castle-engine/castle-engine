@@ -79,7 +79,8 @@ private
     FingerCount = 20;
 
   var
-    FScreenWidth, FScreenHeight, FScreenStatusBarHeight: Integer;
+    FScreenWidth, FScreenHeight: Integer;
+    FScreenStatusBarHeight: Cardinal;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
@@ -768,7 +769,7 @@ begin
   Result := FScreenHeight;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
 begin
   Result := FScreenStatusBarHeight;
 end;

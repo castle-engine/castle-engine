@@ -974,7 +974,7 @@ begin
   Result := Screen.Height;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
 begin
   Result := 0;
 end;

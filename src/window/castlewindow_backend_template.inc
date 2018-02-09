@@ -240,7 +240,7 @@ begin
   Result := 200;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
 begin
   Result := 0;
 end;

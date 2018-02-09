@@ -376,7 +376,7 @@ type
     { Translucent status bar height in the container, in pixels.
       This is expressed in real device pixels.
       Prefer using @link(StatusBarHeight) instead of this. }
-    function ScaledStatusBarHeight: Integer; virtual;
+    function ScaledStatusBarHeight: Cardinal; virtual;
 
     { Container width as seen by controls with UI scaling.
       In other words, this is the real @link(Width) with UI scaling
@@ -2751,7 +2751,7 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-function TUIContainer.ScaledStatusBarHeight: Integer;
+function TUIContainer.ScaledStatusBarHeight: Cardinal;
 begin
   Result := 0;
 end;

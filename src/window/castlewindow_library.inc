@@ -40,7 +40,7 @@ public
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
-  FScreenStatusBarHeight: Integer;
+  FScreenStatusBarHeight: Cardinal;
   procedure WarningToCallback(Sender: TObject; const Category, S: string);
 {$endif read_application_interface}
 
@@ -298,10 +298,8 @@ begin
   Result := FScreenHeight;
 end;
 
-function TCastleApplication.ScreenStatusBarScaledHeight: integer;
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
 begin
-  if FScreenStatusBarHeight = 0 then
-    WritelnWarning('Window', 'Application.ScreenStatusBarHeight is queried before window is open, returns zero');
   Result := FScreenStatusBarHeight;
 end;
 
