@@ -334,7 +334,13 @@ type
 
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
+    function Child(const ChildName: string; const Required: boolean = true): TDOMElement;
+
+    { Same as @link(Child). }
     function ChildElement(const ChildName: string; const Required: boolean = true): TDOMElement;
+
+    { Create a new child element under this element, and return it. }
+    function CreateChild(const ChildName: string): TDOMElement;
 
     { Iterator over all children elements. Use like this:
 
@@ -940,6 +946,12 @@ end;
 
 function TDOMElementHelper.ChildElement(const ChildName: string;
   const Required: boolean): TDOMElement;
+begin
+  Result := Child(ChildName, Required);
+end;
+
+function TDOMElementHelper.Child(const ChildName: string;
+  const Required: boolean): TDOMElement;
 var
   Children: TDOMNodeList;
   Node: TDOMNode;
@@ -1003,6 +1015,12 @@ begin
           [TagName, (Node as TDOMElement).TagName]);
     end;
   end;
+end;
+
+function TDOMElementHelper.CreateChild(const ChildName: string): TDOMElement;
+begin
+  Result := OwnerDocument.CreateElement(ChildName);
+  AppendChild(Result);
 end;
 
 function TDOMElementHelper.ChildrenIterator: TXMLElementIterator;
