@@ -82,12 +82,9 @@ begin
   BackRect := BaseRect;
   BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height div 2;
   BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) div 2);
-  Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
-  Theme.GLImages[tiProgressBar].IgnoreTooLargeCorners := true;
+  Theme.Draw(BackRect, tiSwitchControl, UIScale);
   if IsOn then
-    Theme.Draw(BackRect, tiProgressFill, UIScale)
-  else
-    Theme.Draw(BackRect, tiProgressBar, UIScale);
+    Theme.Draw(BackRect, tiSwitchControlFill, UIScale);
 
   // handle
   HandleRect := BaseRect;

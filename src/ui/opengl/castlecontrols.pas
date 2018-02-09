@@ -37,6 +37,7 @@ type
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
     tiCrosshair1, tiCrosshair2, tiCheckmark, tiDisclosure,
+    tiSwitchControl, tiSwitchControlFill,
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)

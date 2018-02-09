@@ -159,9 +159,13 @@ begin
   FImages[tiPanelSeparator] := PanelSeparator;
   FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
   FImages[tiProgressBar] := ProgressBar;
-  FCorners[tiProgressBar] := Vector4Integer(7, 7, 7, 7);
+  FCorners[tiProgressBar] := Vector4Integer(2, 2, 2, 2);
   FImages[tiProgressFill] := ProgressFill;
-  FCorners[tiProgressFill] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiProgressFill] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiSwitchControl] := ProgressBar;      // reuse same images as ProgressBar
+  FCorners[tiSwitchControl] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiSwitchControlFill] := ProgressFill;
+  FCorners[tiSwitchControlFill] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonNormal] := ButtonNormal;
   FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonDisabled] := ButtonDisabled;
