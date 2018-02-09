@@ -21,13 +21,20 @@
   TCastleTableViewCellAccessoryType = (tvcaNone, tvcaCheckmark, tvcaDisclosureIndicator);
 
   { Cell inside @link(TCastleTableView). Do not create the cells by yourself,
-    use TableView datasource to fill data. }
+    use TableView datasource to fill data.
+
+    Cell is organized as:
+    ---------------------------------------------------------------------
+    | ImageIcon | TextLabel | ...... | AccessoryControl | AccessoryType |
+    ---------------------------------------------------------------------
+    }
   TCastleTableViewCell = class(TCastleRectangleControl)
     strict private
       FTextLabel: TCastleLabel;
       FTag: Integer;
+      FImageIcon: TCastleImageControl;
       FAccessoryType: TCastleTableViewCellAccessoryType;
-      FAccessoryTypeImage: TCastleImageControl;
+      FAccessoryTypeImage: TCastleImageControl;   // image representing the AccessoryType
       FAccessoryControl: TUIControl;
 
       procedure SetAccessoryControl(AControl: TUIControl);
@@ -42,6 +49,8 @@
 
       { Use TextLabel.Caption to set the text visible on the cell. }
       property TextLabel: TCastleLabel read FTextLabel;
+      { Define the (square) image shown at the left cell border. }
+      property ImageIcon: TCastleImageControl read FImageIcon;
       { Decoration shown at the right cell border. }
       property AccessoryType: TCastleTableViewCellAccessoryType
                               read FAccessoryType write FAccessoryType default tvcaNone;
@@ -117,9 +126,12 @@ constructor TCastleTableViewCell.Create(AOwner: TComponent);
 begin
   inherited;
   FTextLabel := TCastleLabel.Create(Self);
-  FTextLabel.Anchor(hpLeft, 5);
   FTextLabel.Anchor(vpMiddle);
   InsertFront(FTextLabel);
+
+  FImageIcon := TCastleImageControl.Create(Self);
+  FImageIcon.Anchor(vpMiddle);
+  InsertFront(FImageIcon);
 
   FAccessoryTypeImage := nil;
   FAccessoryControl := nil;
@@ -135,6 +147,7 @@ end;
 procedure TCastleTableViewCell.MakeEmpty;
 begin
   TextLabel.Caption := '';
+  ImageIcon.Image := nil;
   AccessoryType := tvcaNone;
   AccessoryControl := nil;
   Tag := 0;
@@ -164,7 +177,7 @@ end;
 
 procedure TCastleTableViewCell.ReflectUIControls;
 var
-  NextRight, Spacing: Integer;
+  NextLeft, NextRight, Spacing: Integer;
 begin
   if FAccessoryType = tvcaNone then
   begin
@@ -194,6 +207,7 @@ begin
   end;
 
   // update horizontal positions
+  NextLeft := 5;
   NextRight := -5;
   Spacing := 8;
 
@@ -203,13 +217,20 @@ begin
     NextRight := NextRight - FAccessoryTypeImage.CalculatedWidth - Spacing;
   end;
 
-  if (FAccessoryControl <> nil) and (FAccessoryControl.Exists) then
+  if (FAccessoryControl <> nil) and FAccessoryControl.Exists then
   begin
     FAccessoryControl.Anchor(hpRight, NextRight);
     NextRight := NextRight - FAccessoryControl.CalculatedWidth - Spacing;
   end;
 
-  FTextLabel.MaxWidth := CalculatedWidth - 5 + NextRight;
+  if (FImageIcon.Image <> nil) and FImageIcon.Exists then
+  begin
+    FImageIcon.Anchor(hpLeft, NextLeft);
+    NextLeft := NextLeft + FImageIcon.CalculatedWidth + Spacing;
+  end;
+
+  FTextLabel.Anchor(hpLeft, NextLeft);
+  FTextLabel.MaxWidth := CalculatedWidth - NextLeft + NextRight;
 end;
 
 constructor TCastleTableView.Create(AOwner: TComponent);
