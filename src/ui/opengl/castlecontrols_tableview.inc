@@ -24,9 +24,11 @@
     use TableView datasource to fill data.
 
     Cell is organized as:
+    @preformatted(
     ---------------------------------------------------------------------
-    | ImageIcon | TextLabel | ...... | AccessoryControl | AccessoryType |
+    | ImageIcon | TextLabel ......   | AccessoryControl | AccessoryType |
     ---------------------------------------------------------------------
+    )
     }
   TCastleTableViewCell = class(TCastleRectangleControl)
     strict private
