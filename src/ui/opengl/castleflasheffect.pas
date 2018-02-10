@@ -53,6 +53,12 @@ type
 
     procedure Flash(const AColor: TCastleColor; const ADark: boolean);
     procedure Reset;
+
+    { Is the effect in-progress.
+      This is temporarily @true after calling @link(Flash).
+      It automatically ends (switches to @false) after the @link(Duration)
+      has passed, and when you call @link(Reset) explicitly. }
+    function Active: boolean;
   published
     { Rectangle where the effect will be drawn.
 
@@ -222,7 +228,7 @@ var
   DestinationFactor: TBlendingDestinationFactor;
 begin
   inherited;
-  if FIntensity > 0 then
+  if Active then
   begin
     if FDark then
     begin
@@ -258,6 +264,11 @@ end;
 procedure TCastleFlashEffect.Reset;
 begin
   FIntensity := 0;
+end;
+
+function TCastleFlashEffect.Active: boolean;
+begin
+  Result := FIntensity > 0;
 end;
 
 end.
