@@ -1019,7 +1019,7 @@ end;
 
 function TDOMElementHelper.CreateChild(const ChildName: string): TDOMElement;
 begin
-  Result := OwnerDocument.CreateElement(ChildName);
+  Result := OwnerDocument.CreateElement(UTF8Decode(ChildName));
   AppendChild(Result);
 end;
 

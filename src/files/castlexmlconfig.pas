@@ -385,6 +385,8 @@ type
     procedure NotModified;
     procedure MarkModified;
 
+    function Document: TDOMDocument;
+
     { Listeners, automatically called at the @link(Load) or @link(Save)
       calls.
 
@@ -918,7 +920,7 @@ var
   SeekPos: Integer;
   PathComponent: string;
 begin
-  Result := Doc.DocumentElement;
+  Result := Document.DocumentElement;
   SeekPos := 1;
   while Result <> nil do
   begin
@@ -937,7 +939,7 @@ var
   PathComponent: string;
   NewResult: TDOMElement;
 begin
-  Result := Doc.DocumentElement;
+  Result := Document.DocumentElement;
   SeekPos := 1;
   { only exits by break, for consistency with PathElement implementation above }
   while true do
@@ -948,7 +950,7 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Doc.CreateElement(UTF8Decode(PathComponent));
+      NewResult := Document.CreateElement(UTF8Decode(PathComponent));
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;
@@ -1012,6 +1014,11 @@ end;
 procedure TCastleConfig.MarkModified;
 begin
   FModified := true;
+end;
+
+function TCastleConfig.Document: TDOMDocument;
+begin
+  Result := Doc;
 end;
 
 { loading and saving --------------------------------------------------------- }
