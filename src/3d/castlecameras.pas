@@ -4407,12 +4407,17 @@ function TWalkCamera.Motion(const Event: TInputMotion): boolean;
         Exit;
 
       if MouseChange[0] <> 0 then
+      begin
         RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
+        Result := ExclusiveEvents;
+      end;
+
       if MouseChange[1] <> 0 then
       begin
         if InvertVerticalMouseLook then
           MouseChange[1] := -MouseChange[1];
         RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
+        Result := ExclusiveEvents;
       end;
     end;
 
@@ -4441,7 +4446,6 @@ begin
     (not Animation) then
   begin
     HandleMouseLook;
-    Result := ExclusiveEvents;
     Exit;
   end;
 
