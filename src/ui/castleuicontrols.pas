@@ -225,6 +225,7 @@ type
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
+    FIsMousePositionForMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
@@ -487,9 +488,21 @@ type
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal for implementing mouse look in cameras. }
-    function IsMousePositionForMouseLook: boolean;
-    { Internal for implementing mouse look in cameras. }
+    { Internal for implementing mouse look in cameras. @exclude
+
+      This used to be a function that returns is
+      MousePosition perfectly equal to (Width div 2, Height div 2).
+      But this is unreliable on Windows 10, where SetCursorPos seems
+      to work with some noticeable delay, so IsMousePositionForMouseLook
+      was too often considered false.
+
+      So now we just track are we after MakeMousePositionForMouseLook
+      (and not after something that moves the cursor wildly, like
+      switching windows with Alt+Tab). }
+    property IsMousePositionForMouseLook: boolean
+      read FIsMousePositionForMouseLook
+      write FIsMousePositionForMouseLook;
+    { Internal for implementing mouse look in cameras. @exclude }
     procedure MakeMousePositionForMouseLook;
 
     { Force passing events to given control first,
@@ -2576,41 +2589,36 @@ begin
   Result := TChildrenControls(FControls);
 end;
 
-function TUIContainer.IsMousePositionForMouseLook: boolean;
-var
-  P: TVector2;
-begin
-  P := MousePosition;
-  Result := (P[0] = Width div 2) and (P[1] = Height div 2);
-end;
-
 procedure TUIContainer.MakeMousePositionForMouseLook;
+var
+  Middle: TVector2;
 begin
-  { Paranoidally check is position different, to avoid setting
-    MousePosition in every Update. Setting MousePosition should be optimized
-    for this case (when position is already set), but let's check anyway.
+  if Focused then
+  begin
+    Middle := Vector2(Width div 2, Height div 2);
 
-    This also avoids infinite loop, when setting MousePosition,
-    getting Motion event, setting MousePosition, getting Motion event...
-    in a loop.
-    Not really likely (as messages will be queued, and some
-    MousePosition setting will finally just not generate event Motion),
-    but I want to safeguard anyway. }
+    { Check below is MousePosition different than Middle, to avoid setting
+      MousePosition in every Update. Setting MousePosition should be optimized
+      for this case (when position is already set), but let's check anyway.
 
-{
-  WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
-    [MousePosition[0],
-     MousePosition[1],
-     BoolToStr(IsMousePositionForMouseLook, true),
-     Single(Width div 2),
-     Single(Height div 2)]));
-}
+      This also avoids infinite loop, when setting MousePosition,
+      getting Motion event, setting MousePosition, getting Motion event...
+      in a loop.
+      Not really likely (as messages will be queued, and some
+      MousePosition setting will finally just not generate event Motion),
+      but I want to safeguard anyway. }
 
-  if (not IsMousePositionForMouseLook) and Focused then
-    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
-      seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
-      we will never be able to position mouse exactly at half pixel. }
-    MousePosition := Vector2(Width div 2, Height div 2);
+    if (not IsMousePositionForMouseLook) or
+       (not TVector2.PerfectlyEquals(MousePosition, Middle)) then
+    begin
+      { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
+        seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
+        we will never be able to position mouse exactly at half pixel. }
+      MousePosition := Middle;
+
+      IsMousePositionForMouseLook := true;
+    end;
+  end;
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);

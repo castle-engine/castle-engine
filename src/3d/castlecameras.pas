@@ -4347,60 +4347,64 @@ begin
   begin
     FMouseLook := Value;
     if FMouseLook then
-      Cursor := mcForceNone else
+      Cursor := mcForceNone
+    else
       Cursor := mcDefault;
+    { do not trust that MousePosition is suitable for next mouse look }
+    if Container <> nil then
+      Container.IsMousePositionForMouseLook := false;
   end;
 end;
 
 function TWalkCamera.Motion(const Event: TInputMotion): boolean;
-var
-  MouseChange: TVector2;
-begin
-  Result := inherited;
-  if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (ciNormal in Input) and MouseLook and Container.Focused and
-    ContainerSizeKnown and (not Animation) then
+  procedure HandleMouseLook;
+  var
+    Middle, MouseChange: TVector2;
   begin
-    { Note that setting MousePosition may (but doesn't have to)
-      generate another Motion in the container to destination position.
-      This can cause some problems:
+    { 1. Note that setting MousePosition may (but doesn't have to)
+         generate another Motion in the container to destination position.
 
-      1. Consider this:
+         Subtracting Middle (instead of Container.Position, previous
+         known mouse position) solves it. This way
 
-         - player moves mouse to MiddleX-10
-         - Motion is generated, I rotate camera by "-10" horizontally
-         - Setting MousePosition sets mouse to the Middle,
-           but this time no Motion is generated
-         - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TCastleWindowCustom thinks that the mouse
-           is still positioned on Middle-10, and I will get "+20" move
-           for player (while I should get only "+10")
+         - The Motion caused by MakeMousePositionForMouseLook will not do
+           anything bad, as MouseChange wil be 0 then.
 
-         Fine solution for this would be to always subtract
-         MiddleWidth and MiddleHeight below
-         (instead of previous values, OldX and OldY).
-         But this causes another problem:
+         - In case MakeMousePositionForMouseLook does not cause Motion,
+           we will not measure the changes as too much. Consider this:
 
-      2. What if player switches to another window, moves the mouse,
-         than goes alt+tab back to our window ? Next mouse move will
-         be stupid, because it's really *not* from the middle of the screen.
+            - player moves mouse to MiddleX-10
+            - Motion is generated, I rotate camera by "-10" horizontally
+            - Setting MousePosition sets mouse to the Middle,
+              but this time no Motion is generated
+            - player moved mouse to MiddleX+10. Although mouse was
+              positioned on Middle, TCastleWindowCustom thinks that the mouse
+              is still positioned on Middle-10, and I will get "+20" move
+              for player (while I should get only "+10")
 
-      The solution for both problems: you have to check that previous
-      position, OldX and OldY, are indeed equal to
-      MiddleWidth and MiddleHeight. This way we know that
-      this is good move, that qualifies to perform mouse move.
+      2. Another problem is when player switches to another window, moves the mouse,
+         than goes Alt+Tab back to our window.
+         Next mouse move would cause huge change,
+         because it's really *not* from the middle of the screen.
 
-      And inside, we can calculate the difference
-      by subtracing new - old position, knowing that old = middle this
-      will always be Ok.
+         Solution to this is to track that previous position was set
+         by MakeMousePositionForMouseLook.
+         This is done by IsMousePositionForMouseLook. }
 
-      Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
-      we actually depend on the fact that MouseLook checks and works
-      only if mouse position is at the middle. }
     if Container.IsMousePositionForMouseLook then
     begin
-      MouseChange := Event.Position - Container.MousePosition;
+      Middle := Vector2(ContainerWidth div 2, ContainerHeight div 2);
+      MouseChange := Event.Position - Middle;
+
+      { Only make RotateHorizontal/Vertical if the mouse move does not seem
+        too wild. This prevents taking into account MousePosition that is wild,
+        and visible after Alt+Tabbing back to this window.
+        Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
+        100% reliable, see IsMousePositionForMouseLook comments. }
+      if (Abs(MouseChange.X) > ContainerWidth / 3) or
+         (Abs(MouseChange.Y) > ContainerHeight / 3) then
+        Exit;
 
       if MouseChange[0] <> 0 then
         RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
@@ -4410,11 +4414,34 @@ begin
           MouseChange[1] := -MouseChange[1];
         RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
       end;
-
-      Result := ExclusiveEvents;
     end;
 
     Container.MakeMousePositionForMouseLook;
+  end;
+
+  procedure HandleMouseDrag;
+  var
+    MouseChange: TVector2;
+  begin
+    MouseChange := Event.Position - Container.MousePosition;
+    if MouseChange[0] <> 0 then
+      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
+    if MouseChange[1] <> 0 then
+      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+  end;
+
+begin
+  Result := inherited;
+  if Result or (Event.FingerIndex <> 0) then Exit;
+
+  if (ciNormal in Input) and
+    MouseLook and
+    Container.Focused and
+    ContainerSizeKnown and
+    (not Animation) then
+  begin
+    HandleMouseLook;
+    Result := ExclusiveEvents;
     Exit;
   end;
 
@@ -4425,11 +4452,7 @@ begin
     (not Animation) and
     (not MouseLook) then
   begin
-    MouseChange := Event.Position - Container.MousePosition;
-    if MouseChange[0] <> 0 then
-      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
-    if MouseChange[1] <> 0 then
-      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+    HandleMouseDrag;
     Result := ExclusiveEvents;
   end;
 end;

@@ -1603,6 +1603,15 @@ begin
     ChangeDisplaySettings(nil, 0);
 
   fappActive := value;
+
+  { in this simple case, this can just control Container.Focused }
+  if OpenWindowsCount = 1 then
+  begin
+    OpenWindows[0].FFocused := Value;
+    { right after changing Focused, it's safest to consider mouse position
+      not suitable for mouse look }
+    OpenWindows[0].Container.IsMousePositionForMouseLook := false;
+  end;
 end;
 
 function TCastleApplication.ScreenWidth: integer;

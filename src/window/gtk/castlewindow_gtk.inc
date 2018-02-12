@@ -698,8 +698,9 @@ function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
   { reset FMousePosition, since mouse position is unknown now,
-    and do not activate mouse look at next frame (IsMousePositionForMouseLook should be false). }
+    and do not activate mouse look at next frame. }
   FMousePosition := Vector2(-1, -1);
+  Container.IsMousePositionForMouseLook := false;
   FFocused := true;
   Result := g_false;
 SIGNAL_WINDOW_END;
