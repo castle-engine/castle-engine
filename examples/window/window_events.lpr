@@ -122,11 +122,14 @@ end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  Notifications.Show(Format('Motion : old pos %f %f, new pos %f %f',
+  Notifications.Show(Format('Motion : old pos %f %f, new pos %f %f, delta %f %f',
     [ Event.OldPosition[0],
       Event.OldPosition[1],
       Event.Position[0],
-      Event.Position[1] ]));
+      Event.Position[1],
+      Event.Position[0] - Event.OldPosition[0],
+      Event.Position[1] - Event.OldPosition[1]
+    ]));
 end;
 
 begin
