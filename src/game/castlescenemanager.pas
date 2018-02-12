@@ -1611,7 +1611,10 @@ begin
       dragging will not simultaneously also affect the camera (which would be very
       disorienting). }
     Result := Camera.Motion(Event);
-    if not Result then
+
+    { Do PointingDeviceMove, which updates MouseRayHit, even when Camera.Motion
+      is true. On Windows 10 with MouseLook, Camera.Motion is always true. }
+    //if not Result then
     begin
       Camera.CustomRay(ScreenRect, Event.Position, FProjection, RayOrigin, RayDirection);
       { TODO: do Result := PointingDeviceMove below? }
