@@ -545,6 +545,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.Draw3x3 and TGLImage.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -725,10 +726,16 @@ type
       The coordinates and sizes are carefully checked, so that we do not
       try to take some pixels outside of the source or destination image.
 
-      Note that this method of drawing image-on-image is not GPU-accelerated
-      in any way. It may be slow (esp. for larger source images),
-      and should be avoided for often occuring events (e.g. think twice
-      before using this method at every mouse move, or at every frame draw).
+      @italic(Warning: It is not efficient to use this drawing method.)
+      This drawing is performed on CPU and cannot be fast.
+      If possible, use instead @link(TGLImage.DrawFrom),
+      that performs image-on-image drawing using GPU,
+      or just draw @link(TGLImage) straight to the screen by @link(TGLImage.Draw).
+      See examples/images_videos/draw_images_on_gpu.lpr for an example of
+      @link(TGLImage.DrawFrom).
+      Using this method makes most sense in image manipulation tools,
+      or during the loading / preparation stage of your game,
+      not during actual game.
 
       @italic(Note for descendants implementors:)
       The default implementation of this function in TCastleImage
@@ -757,6 +764,41 @@ type
     procedure DrawTo(Destination: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend);
     { @groupEnd }
+
+    { Draw the Source image on this image,
+      dividing the source image into 3x3 parts for corners,
+      sides, and inside.
+
+      The source image is divided into 3 * 3 = 9 parts:
+
+      @unorderedList(
+        @item(4 corners, used to fill the corners of the DestinationRect.
+          They are not stretched.)
+        @item(4 sides, used to fill the sides of the DestinationRect
+          between the corners. They are scaled in one dimension, to fill
+          the space between corners completely.)
+        @item(the inside. Used to fill the rectangular inside.
+          Scaled in both dimensions as necessary.)
+      )
+
+      The size of corners is specified in the SourceCorners parameter,
+      in the order: top, right, bottom, left.
+      (It's the same order as e.g. CSS margins.)
+
+      @italic(Warning: It is not efficient to use this drawing method.)
+      This drawing is performed on CPU and cannot be fast.
+      If possible, use instead @link(TGLImage),
+      and either draw it to the screen by @link(TGLImage.Draw3x3),
+      or draw it to another @link(TGLImage) by combining @link(TGLImage.Draw3x3)
+      with @link(TGLImage.RenderToImageBegin).
+      Using this method makes most sense in image manipulation tools,
+      or during the loading / preparation stage of your game,
+      not during actual game.
+    }
+    procedure DrawFrom3x3(const DestinationRect: TRectangle;
+      const Source: TCastleImage; const SourceCorners: TVector4Integer;
+      const DrawMode: TDrawMode;
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
@@ -2601,6 +2643,15 @@ begin
   end else
     raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
       [Source.ClassName, ClassName]);
+
+  { TODO: one day, this should just call
+      DrawFrom(Source, 0, 0, Source.Width, Source.Height, dmOverwrite);
+    instead of raising EImageAssignmentError.
+
+    TCastleImage.Assign will not even need to be virtual then.
+
+    However, for now, DrawFrom and friends do not handle the Z coordinate
+    (they only draw from/to Z = 0). }
 end;
 
 procedure TCastleImage.SaveToPascalCode(const ImageName: string;
@@ -2674,6 +2725,101 @@ begin
   { default implementation returns a copy.
     This is OK for images without alpha channel. }
   Result := MakeCopy;
+end;
+
+procedure TCastleImage.DrawFrom3x3(const DestinationRect: TRectangle;
+  const Source: TCastleImage; const SourceCorners: TVector4Integer;
+  const DrawMode: TDrawMode; const Interpolation: TResizeInterpolation);
+
+  procedure Draw(
+    const DestX, DestY, DestWidth, DestHeight: Integer;
+    const SourceX, SourceY, SourceWidth, SourceHeight: Integer);
+  var
+    Temp: TCastleImage;
+  begin
+    if (DestWidth = SourceWidth) and (DestHeight = SourceHeight) then
+      { Optimized version -- no need to scale.
+        This should happen at least for 4 corners. }
+      DrawFrom(Source, DestX, DestY, SourceX, SourceY, SourceWidth, SourceHeight, DrawMode)
+    else
+    begin
+      // create Temp with the same type as Source, to make Draw with dmOverwrite fast
+      Temp := TCastleImageClass(Source.ClassType).Create(SourceWidth, SourceHeight);
+      try
+        Temp.DrawFrom(Source, 0, 0, SourceX, SourceY, SourceWidth, SourceHeight, dmOverwrite);
+        Temp.Resize(DestWidth, DestHeight, Interpolation);
+        DrawFrom(Temp, DestX, DestY, 0, 0, DestWidth, DestHeight, DrawMode);
+      finally FreeAndNil(Temp) end;
+    end;
+  end;
+
+var
+  CornerTop, CornerRight, CornerBottom, CornerLeft: Integer;
+  DestWidth, DestHeight: Integer;
+  XDestLeft, XDestRight, YDestBottom, YDestTop,
+    HorizontalDestSize, VerticalDestSize: Integer;
+  XSourceLeft, XSourceRight, YSourceBottom, YSourceTop,
+    HorizontalSourceSize, VerticalSourceSize: Integer;
+begin
+  CornerTop := SourceCorners[0];
+  CornerRight := SourceCorners[1];
+  CornerBottom := SourceCorners[2];
+  CornerLeft := SourceCorners[3];
+
+  DestWidth := DestinationRect.Width;
+  DestHeight := DestinationRect.Height;
+
+  if not ( (CornerLeft + CornerRight < Source.Width) and
+           (CornerLeft + CornerRight < DestWidth) and
+           (CornerBottom + CornerTop < Source.Height) and
+           (CornerBottom + CornerTop < DestHeight)) then
+  begin
+    if Log then
+      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %f %f',
+        [CornerTop, CornerRight, CornerBottom, CornerLeft,
+         Source.Width, Source.Height,
+         DestWidth, DestHeight]);
+    Exit;
+  end;
+
+  XDestLeft := DestinationRect.Left;
+  XSourceLeft := 0;
+  XDestRight := DestinationRect.Left + DestWidth - CornerRight;
+  XSourceRight :=                   Source.Width - CornerRight;
+
+  YDestBottom := DestinationRect.Bottom;
+  YSourceBottom := 0;
+  YDestTop := DestinationRect.Bottom + DestHeight - CornerTop;
+  YSourceTop :=                     Source.Height - CornerTop;
+
+  { 4 corners }
+  Draw(XDestLeft  , YDestBottom  , CornerLeft, CornerBottom,
+       XSourceLeft, YSourceBottom, CornerLeft, CornerBottom);
+  Draw(XDestRight  , YDestBottom  , CornerRight, CornerBottom,
+       XSourceRight, YSourceBottom, CornerRight, CornerBottom);
+  Draw(XDestRight  , YDestTop  , CornerRight, CornerTop,
+       XSourceRight, YSourceTop, CornerRight, CornerTop);
+  Draw(XDestLeft  , YDestTop  , CornerLeft, CornerTop,
+       XSourceLeft, YSourceTop, CornerLeft, CornerTop);
+
+  { 4 sides }
+  HorizontalDestSize    := DestWidth    - CornerLeft - CornerRight;
+  HorizontalSourceSize  := Source.Width - CornerLeft - CornerRight;
+  VerticalDestSize    := DestHeight    - CornerTop - CornerBottom;
+  VerticalSourceSize  := Source.Height - CornerTop - CornerBottom;
+
+  Draw(XDestLeft   + CornerLeft, YDestBottom  , HorizontalDestSize,   CornerBottom,
+       XSourceLeft + CornerLeft, YSourceBottom, HorizontalSourceSize, CornerBottom);
+  Draw(XDestLeft   + CornerLeft, YDestTop  , HorizontalDestSize,   CornerTop,
+       XSourceLeft + CornerLeft, YSourceTop, HorizontalSourceSize, CornerTop);
+
+  Draw(XDestLeft   , YDestBottom   + CornerBottom, CornerLeft, VerticalDestSize,
+        XSourceLeft, YSourceBottom + CornerBottom, CornerLeft, VerticalSourceSize);
+  Draw(XDestRight   , YDestBottom   + CornerBottom, CornerRight, VerticalDestSize,
+        XSourceRight, YSourceBottom + CornerBottom, CornerRight, VerticalSourceSize);
+
+  Draw(DestinationRect.Left + CornerLeft, DestinationRect.Bottom + CornerBottom, HorizontalDestSize, VerticalDestSize,
+                              CornerLeft,                          CornerBottom, HorizontalSourceSize, VerticalSourceSize);
 end;
 
 { TGPUCompressedImage ----------------------------------------------------------------- }

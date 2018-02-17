@@ -79,7 +79,7 @@ uses
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
-  TestCastleGLFonts,
+  TestCastleFonts,
   TestCastleWindowOpen
   {$endif} {$endif}
 

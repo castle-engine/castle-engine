@@ -35,7 +35,7 @@ Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes,
+CastleWindowModes, CastleMessages,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -328,9 +328,10 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
   end;
 
   type
-    { This is useful to deconstruct WParam and LParam. It will work faster
-      than any LoWord/HiWord functions in Windows unit, and it allows you
-      to specify signedness of values as you wish. }
+    { This is useful to deconstruct WParam and LParam.
+      It will work faster than any LoWord/HiWord functions in Windows unit,
+      it avoids any range-check errors,
+      it allows to specify signedness of values as you wish. }
     TWinParam = packed record
       case Integer of
         0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
@@ -443,7 +444,7 @@ begin
   case uMsg of
     WM_ACTIVATE:
       if not InCloseBackend then
-        if LoWord(wParm) = WA_INACTIVE then
+        if TWinParam(wParm).LoWord = WA_INACTIVE then
           { When user switches to another program, fake that we release all keys/mouse.
             Otherwise we could miss some key up / mouse up, when user releases it over
             another program/window.
@@ -490,7 +491,7 @@ begin
         { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
           take care of requesting window redraw after window resize. }
         if (wParm = SIZE_MAXIMIZED) or (wParm = SIZE_RESTORED) then
-          DoResize(LoWord(lParm), HiWord(lParm), false);
+          DoResize(TWinParam(lParm).LoWord, TWinParam(lParm).HiWord, false);
         Exit;
       end;
     WM_MOVE:
@@ -645,9 +646,9 @@ begin
     WM_RBUTTONUP  : begin HandleMouseUp(mbRight ); Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }
-      if HiWord(wParm) = 0 then
+      if TWinParam(wParm).HiWord = 0 then
       begin
-        DoMenuClick(MenuItemFromSmallId(LoWord(wParm)));
+        DoMenuClick(MenuItemFromSmallId(TWinParam(wParm).LoWord));
         Exit;
       end;
 
@@ -688,8 +689,8 @@ begin
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
       begin
-        if HiWord(WParm) <> 0 then
-          DoMouseWheel(SmallInt(HiWord(WParm)) / 120, uMsg = WM_MOUSEWHEEL);
+        if TWinParam(WParm).HiSmallInt <> 0 then
+          DoMouseWheel(TWinParam(WParm).HiSmallInt / 120, uMsg = WM_MOUSEWHEEL);
         Exit;
       end;
   end;
@@ -1293,6 +1294,7 @@ begin
     Color := ColorRefToVector3(Struct.rgbResult);
 end;
 
+(*
 const
   MessageTypeToWin: array [TWindowMessageType] of LongWord =
   ( MB_ICONINFORMATION,
@@ -1307,9 +1309,15 @@ const
     'Question',
     'Error',
     'Information');
+*)
 
 procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
+  CastleMessages.MessageOK(Self, S);
+
+  // WinAPI MessageBox is unreliable to display over a fullscreen window.
+  // See also e.g. https://gamedev.stackexchange.com/questions/892/display-a-message-box-over-a-full-screen-directx-application
+  (*
   MessageBox(H_Wnd, PChar(S),
     { Always pass meaningfull caption. Passing nil here causes Windows to
       always display localized "Error" on caption, which looks nonsensible
@@ -1319,17 +1327,24 @@ begin
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
     MB_APPLMODAL);
+  *)
 end;
 
 function TCastleWindowCustom.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
+  Result := CastleMessages.MessageYesNo(Self, S);
+
+  // WinAPI MessageBox is unreliable to display over a fullscreen window.
+  // See also e.g. https://gamedev.stackexchange.com/questions/892/display-a-message-box-over-a-full-screen-directx-application
+  (*
   Result := MessageBox(H_Wnd, PChar(S),
     PChar(MessageTypeToCaption[MessageType]),
     MB_YESNO or MessageTypeToWin[MessageType] or
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
     MB_APPLMODAL) = IDYES;
+  *)
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
@@ -1588,6 +1603,15 @@ begin
     ChangeDisplaySettings(nil, 0);
 
   fappActive := value;
+
+  { in this simple case, this can just control Container.Focused }
+  if OpenWindowsCount = 1 then
+  begin
+    OpenWindows[0].FFocused := Value;
+    { right after changing Focused, it's safest to consider mouse position
+      not suitable for mouse look }
+    OpenWindows[0].Container.IsMousePositionForMouseLook := false;
+  end;
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -1602,6 +1626,11 @@ begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else
     result := GetSystemMetrics(SM_CYSCREEN);
+end;
+
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
+begin
+  Result := 0;
 end;
 
 function TCastleApplication.BackendName: string;

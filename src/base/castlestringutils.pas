@@ -2174,6 +2174,9 @@ function FormatNameCounter(const NamePattern: string;
 var
   R: {$ifdef FPC} TRegExpr {$else} TRegEx {$endif};
   C: TRegExprCounter;
+  {$ifndef FPC}
+  P : TMatchEvaluator;
+  {$endif}
 begin
   {$ifdef FPC}
   R := TRegExpr.Create;
@@ -2185,7 +2188,13 @@ begin
     C := TRegExprCounter.Create;
     try
       C.Index := Index;
+      {$ifdef FPC}
       Result := R.Replace(NamePattern, {$ifdef CASTLE_OBJFPC}@{$endif} C.ReplaceCallback);
+      {$else}
+        // Fix for delphi < Tokio, needs an extra Variable for the call
+         P := C.ReplaceCallback;
+         Result :=  r.Replace(NamePattern, P);
+      {$endif}
       ReplacementsDone := C.ReplacementsDone;
     finally FreeAndNil(C) end;
   finally FreeAndNil(R) end;

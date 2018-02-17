@@ -159,6 +159,8 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/images_videos/drawing_modes_test \
+  examples/images_videos/draw_images_on_gpu \
+  examples/images_videos/test_castleimage_draw3x3 \
   examples/joystick/joystick_demo \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \

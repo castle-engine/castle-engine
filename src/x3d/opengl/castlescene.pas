@@ -1615,6 +1615,9 @@ procedure TCastleScene.LocalRenderOutside(
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
+
+            (* Old idea, may be resurrected one day:
+
             { rmSolidColor still does backface culling.
               This is very good in this case. When rmSolidColor and weSilhouette,
               and objects are solid (so backface culling is used) we can
@@ -1623,9 +1626,17 @@ procedure TCastleScene.LocalRenderOutside(
               in case of rmSolidColor will single solid color, and it will
               improve the silhouette look, since front-face edges will not be
               rendered at all (no need to even hide them by glPolygonOffset,
-              which is somewhat sloppy). }
+              which is somewhat sloppy).
+
+              TODO: this is probably incorrect now, that some meshes
+              may have FrontFaceCcw = false.
+              What we really would like to is to negate the FrontFaceCcw
+              interpretation inside this RenderWireframe call.
+            }
             if Attributes.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
+            *)
+
             RenderWireframe(true);
           glPopAttrib;
         end;

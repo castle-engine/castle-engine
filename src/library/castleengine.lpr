@@ -85,7 +85,7 @@ begin
     Window := TCastleWindowTouch.Create(nil);
     Application.MainWindow := Window;
 
-    CGEApp_Open(InitialWidth, InitialHeight, Dpi, ApplicationConfigDirectory);
+    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi, ApplicationConfigDirectory);
 
     Crosshair := TCrosshairManager.Create;
   except
@@ -125,7 +125,7 @@ procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Resize') then exit;
-    CGEApp_Resize(uiViewWidth, uiViewHeight);
+    CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;

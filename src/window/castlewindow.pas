@@ -609,6 +609,7 @@ type
     function Width: Integer; override;
     function Height: Integer; override;
     function Rect: TRectangle; override;
+    function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Integer; override;
@@ -623,8 +624,38 @@ type
   {$I castlewindow_backend.inc}
   {$undef read_interface_types}
 
-  { Window with an OpenGL context.
-    See CastleWindow unit description for more info and examples of use. }
+  { Window to render everything (3D or 2D) with Castle Game Engine.
+    Add the user-interface controls to the
+    @link(TCastleWindowCustom.Controls) property, in particular
+    you can add there scene manager instances (like @link(TCastleSceneManager)
+    and @link(T2DSceneManager)) to render 3D or 2D game worlds.
+
+    Note that the screen contents at the beginning are undefined.
+    So as the first control on @link(TCastleWindowCustom.Controls),
+    you must place something that fills the whole screen.
+    For example:
+
+    @unorderedList(
+      @item(use @link(TCastleSimpleBackground),)
+
+      @item(or use @link(TCastleRectangleControl) with
+        @link(TUIControlSizeable.FullSize FullSize) = @true,)
+
+      @item(or use @link(TCastleSceneManager) with
+        @link(TUIControlSizeable.FullSize) = @true and
+        @link(TCastleAbstractViewport.Transparent) = @false,)
+
+      @item(eventually you can also call @link(CastleGLUtils.GLClear)
+        at the beginning of your rendering in @link(OnRender).
+        But this is the least advised method, as @link(OnRender)
+        is performed after drawing all other controls,
+        so doing @link(CastleGLUtils.GLClear) there would force you to make
+        all your drawing in @link(OnRender).)
+    )
+
+    If you're looking for an analogous Lazarus component
+    (that does basically the same, but can be placed on a Lazarus form)
+    see @link(TCastleControlCustom) component. }
   TCastleWindowCustom = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of TCastleWindowCustom class.
@@ -1166,7 +1197,7 @@ type
       read FFullScreen write SetFullScreen default false;
 
     { Deprecated, instead just do @code(FullScreen := not FullScreen). }
-    procedure SwapFullScreen; deprecated;
+    procedure SwapFullScreen; deprecated 'use "FullScreen := not FullScreen"';
 
     { Should we request and use the double buffer.
       After every draw, we automatically swap buffers (if DoubleBuffer)
@@ -2331,19 +2362,26 @@ type
     for callbacks, and TCastleWindowCustom or TCastleWindow as window class. }
   TCastleWindowBase = TUIContainer deprecated;
 
-  { Window with an OpenGL context, most comfortable to render 3D worlds
-    with 2D controls above. Add your 3D stuff to the scene manager
-    available in @link(SceneManager) property. Add your 2D stuff
+
+  { Window to render everything (3D or 2D) with Castle Game Engine,
+    with a default @link(TCastleSceneManager) instance already created for you.
+    This is the simplest way to render a 3D world with 2D controls above.
+    Add your 3D stuff to the scene manager
+    available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
     to the @link(TCastleWindowCustom.Controls) property (from ancestor TCastleWindowCustom).
 
-    You can directly access the SceneManager and configure it however you like.
+    You can directly access the @link(SceneManager) and configure it however you like.
 
     You have comfortable @link(Load) method that simply loads a single 3D model
     to your world.
 
+    Note that if you don't plan to use the default @link(SceneManager)
+    instance, then you should better create @link(TCastleWindowCustom) instead
+    of this class.
+
     If you're looking for analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
-    see TCastleControl component. }
+    see @link(TCastleControl) component. }
   TCastleWindow = class(TCastleWindowCustom)
   private
     FSceneManager: TGameSceneManager;
@@ -2603,6 +2641,7 @@ type
 
     function ScreenHeight: integer;
     function ScreenWidth: integer;
+    function ScreenStatusBarScaledHeight: Cardinal;
 
     { List of all open windows.
       @groupBegin }
@@ -2915,6 +2954,11 @@ end;
 function TWindowContainer.Rect: TRectangle;
 begin
   Result := Parent.Rect;
+end;
+
+function TWindowContainer.ScaledStatusBarHeight: Cardinal;
+begin
+  Result := Application.ScreenStatusBarScaledHeight;
 end;
 
 function TWindowContainer.GetMousePosition: TVector2;
@@ -3294,6 +3338,8 @@ begin
 
   for mb := Low(mb) to High(mb) do if mb in MousePressed then
     DoMouseUp(MousePosition, mb);
+
+  Container.IsMousePositionForMouseLook := false;
 end;
 
 function TCastleWindowCustom.GetColorBits: Cardinal;

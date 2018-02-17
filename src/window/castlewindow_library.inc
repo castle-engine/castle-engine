@@ -40,14 +40,15 @@ public
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
+  FScreenStatusBarHeight: Cardinal;
   procedure WarningToCallback(Sender: TObject; const Category, S: string);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Close; cdecl;
-procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
 procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
@@ -297,6 +298,11 @@ begin
   Result := FScreenHeight;
 end;
 
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
+begin
+  Result := FScreenStatusBarHeight;
+end;
+
 function TCastleApplication.BackendName: string;
 begin
   Result := 'Library (Using Existing OpenGL Context)';
@@ -347,7 +353,7 @@ begin
     raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
 end;
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     CheckMainWindow;
@@ -364,6 +370,7 @@ begin
     WritelnLog('Library set application config directory to URL: %s', [ApplicationConfigOverride]);
     Application.FScreenWidth := InitialWidth;
     Application.FScreenHeight := InitialHeight;
+    Application.FScreenStatusBarHeight := InitialStatusBarHeight;
     //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
     Application.MainWindow.FLeft := 0;
     Application.MainWindow.FTop := 0;
@@ -389,12 +396,13 @@ begin
   end;
 end;
 
-procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
 begin
   try
     CheckMainWindow;
     Application.FScreenWidth  := uiViewWidth;
     Application.FScreenHeight := uiViewHeight;
+    Application.FScreenStatusBarHeight := uiStatusBarHeight;
     Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
   except
     on E: TObject do WritelnWarning('CGEApp_Resize', ExceptMessage(E));

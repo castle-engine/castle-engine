@@ -25,7 +25,7 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 
 procedure RunAndroidPackage(const Project: TCastleProject);
 
@@ -398,27 +398,29 @@ var
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      try
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      finally
+        { Gradle deamon is automatically initialized since Gradle version 3.0
+          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
+          but it prevents removing the castle-engine-output/android/project/ .
+          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
+          again in the same directory, because it cannot remove the
+          "castle-engine-output/android/project/" at the beginning.
 
-      { Gradle deamon is automatically initialized since Gradle version 3.0
-        (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-        but it prevents removing the castle-engine-output/android/project/ .
-        E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-        again in the same directory, because it cannot remove the
-        "castle-engine-output/android/project/" at the beginning.
+          It seems the current directory of Java (Gradle) process is inside
+          castle-engine-output/android/project/, and Windows doesn't allow to remove such
+          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
+          also fails with
 
-        It seems the current directory of Java (Gradle) process is inside
-        castle-engine-output/android/project/, and Windows doesn't allow to remove such
-        directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-        also fails with
+            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
 
-          rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
+          This may be related to
+          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
 
-        This may be related to
-        https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-        The solution for now is to kill the daemon afterwards. }
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+          The solution for now is to kill the daemon afterwards. }
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+      end;
 
       {$else}
       if FileExists(AndroidProjectPath + 'gradlew') then
@@ -465,12 +467,12 @@ begin
   Writeln('Build ' + ApkName);
 end;
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 var
   ApkDebugName, ApkReleaseName, ApkName: string;
 begin
-  ApkReleaseName := Name + '-' + PackageModeToName[cmRelease] + '.apk';
-  ApkDebugName   := Name + '-' + PackageModeToName[cmDebug  ] + '.apk';
+  ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
+  ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
   if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
     raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);

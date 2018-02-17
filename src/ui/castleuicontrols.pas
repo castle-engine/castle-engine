@@ -225,6 +225,7 @@ type
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
+    FIsMousePositionForMouseLook: boolean;
     procedure ControlsVisibleChange(Sender: TObject);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
@@ -373,6 +374,11 @@ type
       and it's simply equal to @name when UI scaling is not used. }
     function Rect: TRectangle; virtual;
 
+    { Translucent status bar height in the container, in pixels.
+      This is expressed in real device pixels.
+      Prefer using @link(StatusBarHeight) instead of this. }
+    function ScaledStatusBarHeight: Cardinal; virtual;
+
     { Container width as seen by controls with UI scaling.
       In other words, this is the real @link(Width) with UI scaling
       reversed (divided). Suitable to adjust size of your UI controls
@@ -400,6 +406,14 @@ type
     { Container rectangle as seen by controls with UI scaling.
       @seealso UnscaledWidth }
     function UnscaledRect: TRectangle;
+
+    { Translucent status bar height inside the container as seen by controls
+      with UI scaling.
+
+      Status bar occupies the top part of the container height. Invisible
+      status bar returns height equal zero.
+      @seealso UnscaledWidth }
+    function StatusBarHeight: Cardinal;
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
@@ -474,9 +488,21 @@ type
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal for implementing mouse look in cameras. }
-    function IsMousePositionForMouseLook: boolean;
-    { Internal for implementing mouse look in cameras. }
+    { Internal for implementing mouse look in cameras. @exclude
+
+      This used to be a function that returns is
+      MousePosition perfectly equal to (Width div 2, Height div 2).
+      But this is unreliable on Windows 10, where SetCursorPos seems
+      to work with some noticeable delay, so IsMousePositionForMouseLook
+      was too often considered false.
+
+      So now we just track are we after MakeMousePositionForMouseLook
+      (and not after something that moves the cursor wildly, like
+      switching windows with Alt+Tab). }
+    property IsMousePositionForMouseLook: boolean
+      read FIsMousePositionForMouseLook
+      write FIsMousePositionForMouseLook;
+    { Internal for implementing mouse look in cameras. @exclude }
     procedure MakeMousePositionForMouseLook;
 
     { Force passing events to given control first,
@@ -2563,41 +2589,36 @@ begin
   Result := TChildrenControls(FControls);
 end;
 
-function TUIContainer.IsMousePositionForMouseLook: boolean;
-var
-  P: TVector2;
-begin
-  P := MousePosition;
-  Result := (P[0] = Width div 2) and (P[1] = Height div 2);
-end;
-
 procedure TUIContainer.MakeMousePositionForMouseLook;
+var
+  Middle: TVector2;
 begin
-  { Paranoidally check is position different, to avoid setting
-    MousePosition in every Update. Setting MousePosition should be optimized
-    for this case (when position is already set), but let's check anyway.
+  if Focused then
+  begin
+    Middle := Vector2(Width div 2, Height div 2);
 
-    This also avoids infinite loop, when setting MousePosition,
-    getting Motion event, setting MousePosition, getting Motion event...
-    in a loop.
-    Not really likely (as messages will be queued, and some
-    MousePosition setting will finally just not generate event Motion),
-    but I want to safeguard anyway. }
+    { Check below is MousePosition different than Middle, to avoid setting
+      MousePosition in every Update. Setting MousePosition should be optimized
+      for this case (when position is already set), but let's check anyway.
 
-{
-  WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
-    [MousePosition[0],
-     MousePosition[1],
-     BoolToStr(IsMousePositionForMouseLook, true),
-     Single(Width div 2),
-     Single(Height div 2)]));
-}
+      This also avoids infinite loop, when setting MousePosition,
+      getting Motion event, setting MousePosition, getting Motion event...
+      in a loop.
+      Not really likely (as messages will be queued, and some
+      MousePosition setting will finally just not generate event Motion),
+      but I want to safeguard anyway. }
 
-  if (not IsMousePositionForMouseLook) and Focused then
-    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
-      seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
-      we will never be able to position mouse exactly at half pixel. }
-    MousePosition := Vector2(Width div 2, Height div 2);
+    if (not IsMousePositionForMouseLook) or
+       (not TVector2.PerfectlyEquals(MousePosition, Middle)) then
+    begin
+      { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
+        seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
+        we will never be able to position mouse exactly at half pixel. }
+      MousePosition := Middle;
+
+      IsMousePositionForMouseLook := true;
+    end;
+  end;
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
@@ -2706,6 +2727,11 @@ begin
   end;
 end;
 
+function TUIContainer.StatusBarHeight: Cardinal;
+begin
+  Result := Round(ScaledStatusBarHeight / FCalculatedUIScale);
+end;
+
 procedure TUIContainer.SaveScreen(const URL: string);
 var
   Image: TRGBImage;
@@ -2731,6 +2757,11 @@ end;
 function TUIContainer.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
+end;
+
+function TUIContainer.ScaledStatusBarHeight: Cardinal;
+begin
+  Result := 0;
 end;
 
 procedure TUIContainer.Invalidate;

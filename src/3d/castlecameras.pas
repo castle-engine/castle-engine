@@ -46,6 +46,9 @@ type
       @link(TWalkCamera.MouseLook) is used. }
     ciMouseDragging,
 
+    { Touch gestures, like multi-touch pinch or pan gesture. }
+    ciGesture,
+
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
@@ -178,7 +181,7 @@ type
       { Default value for TCamera.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
-      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse];
+      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse, ciGesture];
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
@@ -625,6 +628,7 @@ type
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3;
     FTurntable: boolean;
+    FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -639,6 +643,7 @@ type
     procedure SetTranslation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
+    procedure OnGestureRecognized(Sender: TObject);
 
     function GetInput_MoveXInc: TInputShortcut;
     function GetInput_MoveXDec: TInputShortcut;
@@ -680,6 +685,7 @@ type
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
@@ -2057,6 +2063,8 @@ begin
   FRotationAccelerate := true;
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
+  FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
+  FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2110,6 +2118,7 @@ begin
   FreeAndNil(FInput_ScaleSmaller);
   FreeAndNil(FInput_Home);
   FreeAndNil(FInput_StopRotating);
+  FreeAndNil(FPinchGestureRecognizer);
   inherited;
 end;
 
@@ -2423,10 +2432,14 @@ var
 begin
   Result := inherited;
   if Result or
-     (not (ciNormal in Input)) or
      Animation or
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Press(Event) then
+    Exit(ExclusiveEvents);
+
+  if not (ciNormal in Input) then Exit;
 
   if Event.EventType <> itMouseWheel then
   begin
@@ -2455,6 +2468,15 @@ begin
     if Zoom(Event.MouseWheelScroll / ZoomScale) then
        Result := ExclusiveEvents;
   end;
+end;
+
+function TExamineCamera.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Release(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TExamineCamera.Zoom(const Factor: Single): boolean;
@@ -2494,6 +2516,7 @@ var
   ModsDown: TModifierKeys;
   DoZooming, DoMoving: boolean;
   MoveDivConst: Single;
+  Dpi: Integer;
 
   function DragRotation: TQuaternion;
 
@@ -2557,8 +2580,14 @@ begin
   if Result then Exit;
 
   if Container <> nil then
-    MoveDivConst := Container.Dpi else
-    MoveDivConst := 100;
+    Dpi := Container.Dpi
+  else
+    Dpi := DefaultDpi;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
+    Exit(ExclusiveEvents);
+
+  MoveDivConst := Dpi;
 
   { Shortcuts: I'll try to make them intelligent, which means
     "mostly matching shortcuts in other programs" (like Blender) and
@@ -2660,6 +2689,40 @@ begin
     FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst));
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
+  end;
+end;
+
+procedure TExamineCamera.OnGestureRecognized(Sender: TObject);
+var
+  Recognizer: TCastlePinchPanGestureRecognizer;
+  Factor, Size, MoveDivConst, ZoomScale: Single;
+begin
+  Recognizer := Sender as TCastlePinchPanGestureRecognizer;
+  if Recognizer = nil then Exit;
+
+  if Container <> nil then
+    MoveDivConst := Container.Dpi else
+    MoveDivConst := 100;
+
+  if Recognizer.Gesture = gtPinch then
+  begin
+    if Recognizer.PinchScaleFactor > 1.0 then
+      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
+    else
+      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+    if Turntable then
+      ZoomScale := 30
+    else
+      ZoomScale := 10;
+    Zoom(Factor / ZoomScale);
+  end;
+
+  if Recognizer.Gesture = gtPan then
+  begin
+    Size := FModelBox.AverageSize;
+    FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst));
+    FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst));
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -4284,74 +4347,105 @@ begin
   begin
     FMouseLook := Value;
     if FMouseLook then
-      Cursor := mcForceNone else
+      Cursor := mcForceNone
+    else
       Cursor := mcDefault;
+    { do not trust that MousePosition is suitable for next mouse look }
+    if Container <> nil then
+      Container.IsMousePositionForMouseLook := false;
   end;
 end;
 
 function TWalkCamera.Motion(const Event: TInputMotion): boolean;
-var
-  MouseChange: TVector2;
-begin
-  Result := inherited;
-  if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (ciNormal in Input) and MouseLook and Container.Focused and
-    ContainerSizeKnown and (not Animation) then
+  procedure HandleMouseLook;
+  var
+    Middle, MouseChange: TVector2;
   begin
-    { Note that setting MousePosition may (but doesn't have to)
-      generate another Motion in the container to destination position.
-      This can cause some problems:
+    { 1. Note that setting MousePosition may (but doesn't have to)
+         generate another Motion in the container to destination position.
 
-      1. Consider this:
+         Subtracting Middle (instead of Container.Position, previous
+         known mouse position) solves it. This way
 
-         - player moves mouse to MiddleX-10
-         - Motion is generated, I rotate camera by "-10" horizontally
-         - Setting MousePosition sets mouse to the Middle,
-           but this time no Motion is generated
-         - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TCastleWindowCustom thinks that the mouse
-           is still positioned on Middle-10, and I will get "+20" move
-           for player (while I should get only "+10")
+         - The Motion caused by MakeMousePositionForMouseLook will not do
+           anything bad, as MouseChange wil be 0 then.
 
-         Fine solution for this would be to always subtract
-         MiddleWidth and MiddleHeight below
-         (instead of previous values, OldX and OldY).
-         But this causes another problem:
+         - In case MakeMousePositionForMouseLook does not cause Motion,
+           we will not measure the changes as too much. Consider this:
 
-      2. What if player switches to another window, moves the mouse,
-         than goes alt+tab back to our window ? Next mouse move will
-         be stupid, because it's really *not* from the middle of the screen.
+            - player moves mouse to MiddleX-10
+            - Motion is generated, I rotate camera by "-10" horizontally
+            - Setting MousePosition sets mouse to the Middle,
+              but this time no Motion is generated
+            - player moved mouse to MiddleX+10. Although mouse was
+              positioned on Middle, TCastleWindowCustom thinks that the mouse
+              is still positioned on Middle-10, and I will get "+20" move
+              for player (while I should get only "+10")
 
-      The solution for both problems: you have to check that previous
-      position, OldX and OldY, are indeed equal to
-      MiddleWidth and MiddleHeight. This way we know that
-      this is good move, that qualifies to perform mouse move.
+      2. Another problem is when player switches to another window, moves the mouse,
+         than goes Alt+Tab back to our window.
+         Next mouse move would cause huge change,
+         because it's really *not* from the middle of the screen.
 
-      And inside, we can calculate the difference
-      by subtracing new - old position, knowing that old = middle this
-      will always be Ok.
+         Solution to this is to track that previous position was set
+         by MakeMousePositionForMouseLook.
+         This is done by IsMousePositionForMouseLook. }
 
-      Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
-      we actually depend on the fact that MouseLook checks and works
-      only if mouse position is at the middle. }
     if Container.IsMousePositionForMouseLook then
     begin
-      MouseChange := Event.Position - Container.MousePosition;
+      Middle := Vector2(ContainerWidth div 2, ContainerHeight div 2);
+      MouseChange := Event.Position - Middle;
+
+      { Only make RotateHorizontal/Vertical if the mouse move does not seem
+        too wild. This prevents taking into account MousePosition that is wild,
+        and visible after Alt+Tabbing back to this window.
+        Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
+        100% reliable, see IsMousePositionForMouseLook comments. }
+      if (Abs(MouseChange.X) > ContainerWidth / 3) or
+         (Abs(MouseChange.Y) > ContainerHeight / 3) then
+        Exit;
 
       if MouseChange[0] <> 0 then
+      begin
         RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
+        Result := ExclusiveEvents;
+      end;
+
       if MouseChange[1] <> 0 then
       begin
         if InvertVerticalMouseLook then
           MouseChange[1] := -MouseChange[1];
         RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
+        Result := ExclusiveEvents;
       end;
-
-      Result := ExclusiveEvents;
     end;
 
     Container.MakeMousePositionForMouseLook;
+  end;
+
+  procedure HandleMouseDrag;
+  var
+    MouseChange: TVector2;
+  begin
+    MouseChange := Event.Position - Container.MousePosition;
+    if MouseChange[0] <> 0 then
+      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
+    if MouseChange[1] <> 0 then
+      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+  end;
+
+begin
+  Result := inherited;
+  if Result or (Event.FingerIndex <> 0) then Exit;
+
+  if (ciNormal in Input) and
+    MouseLook and
+    Container.Focused and
+    ContainerSizeKnown and
+    (not Animation) then
+  begin
+    HandleMouseLook;
     Exit;
   end;
 
@@ -4362,11 +4456,7 @@ begin
     (not Animation) and
     (not MouseLook) then
   begin
-    MouseChange := Event.Position - Container.MousePosition;
-    if MouseChange[0] <> 0 then
-      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
-    if MouseChange[1] <> 0 then
-      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+    HandleMouseDrag;
     Result := ExclusiveEvents;
   end;
 end;

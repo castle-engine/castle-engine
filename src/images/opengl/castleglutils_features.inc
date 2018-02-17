@@ -597,8 +597,11 @@ begin
 
   EnableFixedFunction :=
     {$ifdef OpenGLES} false
+    {$else}
+    (Shaders <> gsStandard) or
     // checking for VertexBufferObject also makes sure that BuggyVBO = false
-    {$else} (Shaders <> gsStandard) or (not VertexBufferObject)
+    (not VertexBufferObject) or
+    GLVersion.BuggyPureShaderPipeline
     {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it

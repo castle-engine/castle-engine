@@ -26,18 +26,18 @@ var
 implementation
 
 uses SysUtils, Classes, CastleControls, CastleImages, CastleLog, CastleColors,
-  CastleFilesUtils, CastleKeysMouse, CastleVectors, CastleApplicationProperties;
+  CastleFilesUtils, CastleKeysMouse, CastleVectors, CastleApplicationProperties,
+  CastleGLImages, CastleRectangles;
 
 var
   ImageControl: TCastleImageControl;
-  Brushes: array [0..6] of TRGBAlphaImage;
+  Brushes: array [0..6] of TGLImage;
 
 procedure ApplicationInitialize;
 
-  function LoadBrush(const Name: string): TRGBAlphaImage;
+  function LoadBrush(const Name: string): TGLImage;
   begin
-    Result := LoadImage(ApplicationData('brush_' + Name + '.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
-    Result.PremultiplyAlpha; // makes drawing this image much faster
+    Result := TGLImage.Create(ApplicationData('brush_' + Name + '.png'));
   end;
 
 begin
@@ -80,28 +80,19 @@ procedure WindowResize(Container: TUIContainer);
 var
   NewImage: TRGBImage;
 begin
-  if ImageControl.Image = nil then
-  begin
-    NewImage := TRGBImage.Create(Container.Width, Container.Height);
-    NewImage.Clear(Black);
-    ImageControl.Image := NewImage;
-  end else
-  if (ImageControl.Image.Width <> Container.Width) or
+  if (ImageControl.Image = nil) or
+     (ImageControl.Image.Width <> Container.Width) or
      (ImageControl.Image.Height <> Container.Height) then
   begin
     NewImage := TRGBImage.Create(Container.Width, Container.Height);
     NewImage.Clear(Black);
-    { CopyFrom will take care to only copy the relevant part.
-      Where previous ImageControl.Image was larger, it will be cut off.
-      Where previous ImageControl.Image was smaller, the black color will remain. }
-    NewImage.DrawFrom(ImageControl.Image, 0, 0);
     ImageControl.Image := NewImage;
   end;
 end;
 
 procedure Draw(const Position: TVector2; const BrushIndex: TFingerIndex);
 var
-  Brush: TCastleImage;
+  Brush: TGLImage;
   X, Y: Integer;
 begin
   { not enough brushes, this means your touch device supports > High(Brushes) + 1
@@ -111,8 +102,16 @@ begin
   Brush := Brushes[BrushIndex];
   X := Round(Position[0]) - Brush.Width div 2;
   Y := Round(Position[1]) - Brush.Height div 2;
-  Brush.DrawTo(ImageControl.Image, X, Y, dmAdd);
-  ImageControl.ImageChanged;
+
+  { Old approach: drawing on CPU
+    (assumes is a TRGBAlphaImage with PremultiplyAlpha done). }
+  // Brush.DrawTo(ImageControl.Image, X, Y, dmAdd);
+  // ImageControl.ImageChanged;
+
+  { New approach: fast image-to-image drawing on GPU. }
+  ImageControl.DrawableImage.DrawFrom(Brush,
+    FloatRectangle(X, Y, Brush.Width, Brush.Height),
+    FloatRectangle(Brush.Rect));
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
@@ -125,8 +124,6 @@ procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
 begin
   if Event.Pressed <> [] then
     Draw(Event.Position, Event.FingerIndex);
-  { We show Touches state in every frame, so redraw at every Motion event. }
-  Window.Invalidate;
 end;
 
 procedure ApplicationFinalize;
