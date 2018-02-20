@@ -47,10 +47,11 @@ type
     FAutomaticTouchInterface: boolean;
     FControl: array [boolean { right side? }] of TCastleTouchControl;
     FTouchInterface: TTouchInterface;
-    FAutomaticWalkTouchCtl: TTouchInterface;
+    FAutomaticWalkTouchCtl, FAutomaticExamineTouchCtl: TTouchInterface;
     procedure SetTouchInterface(const Value: TTouchInterface);
     procedure SetAutomaticTouchInterface(const Value: boolean);
     procedure SetAutomaticWalkTouchCtl(const Value: TTouchInterface);
+    procedure SetAutomaticExamineTouchCtl(const Value: TTouchInterface);
     { Sets touch controls depending on the current navigation mode.
       Should be called each time after navigation mode changed. }
     procedure UpdateAutomaticTouchInterface;
@@ -62,6 +63,7 @@ type
   public
     const
       DefaultAutomaticWalkTouchCtl = tiCtlWalkDragRotate;
+      DefaultAutomaticExamineTouchCtl = tiCtlPanXYDragRotate;
 
     { Configure touch controls to be displayed on the window.
       This automatically manages under the hood 0, 1 or 2
@@ -87,6 +89,13 @@ type
     property AutomaticWalkTouchCtl: TTouchInterface
       read FAutomaticWalkTouchCtl write SetAutomaticWalkTouchCtl
       default DefaultAutomaticWalkTouchCtl;
+    { When using AutomaticTouchInterface = @true,
+      which touch interface should be used in examine camera
+      (since examine camera can use multi-touch gesture instead).
+      Select between tiCtlPanXYDragRotate (default) or tiNone.}
+    property AutomaticExamineTouchCtl: TTouchInterface
+      read FAutomaticExamineTouchCtl write SetAutomaticExamineTouchCtl
+      default DefaultAutomaticExamineTouchCtl;
   end;
 
 const
@@ -104,6 +113,7 @@ constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
   inherited;
   FAutomaticWalkTouchCtl := DefaultAutomaticWalkTouchCtl;
+  FAutomaticExamineTouchCtl := DefaultAutomaticExamineTouchCtl;
 end;
 
 procedure TCastleWindowTouch.DoUpdate;
@@ -202,8 +212,8 @@ begin
       ntNone:      TouchInterface := tiNone;
       ntWalk:      TouchInterface := FAutomaticWalkTouchCtl;
       ntFly:       TouchInterface := tiCtlFlyCtlWalkDragRotate;
-      ntExamine:   TouchInterface := tiCtlPanXYDragRotate;
-      ntTurntable: TouchInterface := tiCtlPanXYDragRotate;
+      ntExamine:   TouchInterface := FAutomaticExamineTouchCtl;
+      ntTurntable: TouchInterface := FAutomaticExamineTouchCtl;
       else raise EInternalError.Create('TCastleWindowTouch.UpdateAutomaticTouchInterface not implemented for this NavigationType value');
     end;
   end;
@@ -225,6 +235,15 @@ begin
   if FAutomaticWalkTouchCtl <> Value then
   begin
     FAutomaticWalkTouchCtl := Value;
+    UpdateAutomaticTouchInterface;
+  end;
+end;
+
+procedure TCastleWindowTouch.SetAutomaticExamineTouchCtl(const Value: TTouchInterface);
+begin
+  if FAutomaticExamineTouchCtl <> Value then
+  begin
+    FAutomaticExamineTouchCtl := Value;
     UpdateAutomaticTouchInterface;
   end;
 end;
