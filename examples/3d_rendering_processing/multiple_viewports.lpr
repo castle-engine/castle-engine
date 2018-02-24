@@ -342,7 +342,7 @@ end;
 
   In a cross-platform application, everything above (including
   the ApplicationInitialize) would be in a cross-platform unit.
-  See https://castle-engine.sourceforge.io/manual_cross_platform.php . }
+  See https://castle-engine.io/manual_cross_platform.php . }
 begin
   Window := TCastleWindow.Create(Application);
   Window.StencilBits := 8;

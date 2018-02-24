@@ -1,7 +1,7 @@
 # -*- mode: shell-script -*-
 #
 # Specification of Castle Game Engine X3D extensions.
-# See https://castle-engine.sourceforge.io/x3d_extensions.php .
+# See https://castle-engine.io/x3d_extensions.php .
 # This file is in the format understood by
 # our ../x3d-nodes-to-pascal/x3d-nodes-to-pascal.lpr
 # and by White Dune scripts.
@@ -107,14 +107,14 @@ ProjectedTextureCoordinate : X3DTextureCoordinateNode {
   SFNode     [in,out]      projector   NULL        # [SpotLight, DirectionalLight, X3DViewpointNode]
 }
 
-# See https://castle-engine.sourceforge.io/x3d_extensions_screen_effects.php
+# See https://castle-engine.io/x3d_extensions_screen_effects.php
 ScreenEffect : X3DChildNode {
   SFBool     [in,out]      enabled     TRUE
   SFBool     [in,out]      needsDepth  FALSE
   MFNode     [in,out]      shaders     []        # [X3DShaderNode]
 }
 
-# See https://castle-engine.sourceforge.io/x3d_implementation_interpolation.php
+# See https://castle-engine.io/x3d_implementation_interpolation.php
 ColorSetInterpolator : X3DInterpolatorNode {
   MFColor  [in,out]  keyValue           []
   MFColor  [out]     value_changed
@@ -125,7 +125,7 @@ VectorInterpolator : X3DInterpolatorNode {
   MFFloat  [out]     value_changed
 }
 
-# See https://castle-engine.sourceforge.io/compositing_shaders.php
+# See https://castle-engine.io/compositing_shaders.php
 Effect : X3DChildNode {
   SFString   []            language    ""      # ["CG"|"GLSL"|"HLSL"] ; allowed values like ComposedShader.language
   SFBool     [in,out]      enabled     TRUE
@@ -138,20 +138,20 @@ Effect : X3DChildNode {
   fieldType [in,out] fieldName
 }
 
-# See https://castle-engine.sourceforge.io/compositing_shaders.php
+# See https://castle-engine.io/compositing_shaders.php
 EffectPart : X3DNode, X3DUrlObject {
   # for XML encoding, default containerField: parts
   MFString []       url      []         # (may be changed to [in,out] one day)
   SFString []       type     "VERTEX"   # ["VERTEX"|"FRAGMENT"]
 }
 
-# See https://castle-engine.sourceforge.io/compositing_shaders.php
+# See https://castle-engine.io/compositing_shaders.php
 ShaderTexture : X3DTextureNode {
   MFNode   []       effects         []          # [Effect]; defined in X3DTextureNode
   SFString []       defaultTexCoord "BOUNDS2D"  # ["BOUNDS2D"|"BOUNDS3D"]
 }
 
-# See https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_blending
+# See https://castle-engine.io/x3d_extensions.php#section_ext_blending
 BlendMode {
   SFString   [in,out]      srcFactor   "src_alpha"  # [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
   SFString   [in,out]      destFactor  "one_minus_src_alpha"  # [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
@@ -159,7 +159,7 @@ BlendMode {
   SFFloat    [in,out]      colorTransparency  0
 }
 
-# See https://castle-engine.sourceforge.io/x3d_implementation_eventutilities_extensions.php
+# See https://castle-engine.io/x3d_implementation_eventutilities_extensions.php
 Toggler  : X3DChildNode {
   SFBool     [in,out]      status      FALSE
   SFBool     [in,out]      notStatus   TRUE

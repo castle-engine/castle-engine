@@ -353,6 +353,7 @@ end;
 function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
 begin
   Result :=
+    (URN = 'urn:castle-engine.io:node:' + ClassX3DType) or
     (URN = 'urn:castle-engine.sourceforge.io:node:' + ClassX3DType) or
     (URN = 'urn:castle-engine.sourceforge.net:node:' + ClassX3DType) or
     (URN = 'urn:vrmlengine.sourceforge.net:node:' + ClassX3DType);

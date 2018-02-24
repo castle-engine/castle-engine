@@ -15,7 +15,7 @@
 
 { Define and display a 3D object with custom shaders in Object Pascal code.
   In CGE, you can build and edit X3D scene graph using Object Pascal,
-  see https://castle-engine.sourceforge.io/manual_scene.php#section_building_and_editing .
+  see https://castle-engine.io/manual_scene.php#section_building_and_editing .
 
   See also other X3D-build code, e.g. build_3d_object_by_code.lpr, build_3d_tunnel.lpr ,
   ExportToX3D in ../terrain/terrain.lpr (uses shaders too)...
@@ -40,7 +40,7 @@ begin
   { Note: if you're looking instead at a way to enhance the default shaders
     (not replace them), use the Effect and EffectPart
     nodes instead of ComposedShader and ShaderPart.
-    See https://castle-engine.sourceforge.io/compositing_shaders.php . }
+    See https://castle-engine.io/compositing_shaders.php . }
 
   VertexShader := TShaderPartNode.Create;
   VertexShader.ShaderType := stVertex;

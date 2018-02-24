@@ -1,6 +1,6 @@
 # External Libraries used by Castle Game Engine
 
-This directory contains various precompiled libraries used by the Castle Game Engine https://castle-engine.sourceforge.io/ .
+This directory contains various precompiled libraries used by the Castle Game Engine https://castle-engine.io/ .
 
 They are especially useful on Windows, where searching (or compiling yourself) these DLL files would be quite bothersome. On Linux and macOS, these libraries are usually easier to install using a package manager. The README.txt files inside each subdirectory should specify the exact sources of each file.
 

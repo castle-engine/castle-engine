@@ -2148,7 +2148,7 @@ type
         @item(Handle @--no-limit-fps: disables
           @link(TCastleApplication.LimitFps Application.LimitFps),
           allows to observe maximum FPS, see
-          http://castle-engine.sourceforge.io/manual_optimization.php )
+          http://castle-engine.io/manual_optimization.php )
       )
 
       Multiple options of the same kind are allowed, for example two options

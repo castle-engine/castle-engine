@@ -96,4 +96,4 @@ A whole lot of things should be done to turn this into a real game:
   when player does something (open door).
 
 Michalis Kamburelis
-https://castle-engine.sourceforge.io/
+https://castle-engine.io/

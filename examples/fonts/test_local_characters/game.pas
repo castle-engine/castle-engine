@@ -79,7 +79,7 @@ var
 begin
   try
     { Load from TTF font with support for international characters.
-      See https://castle-engine.sourceforge.io/manual_text.php
+      See https://castle-engine.io/manual_text.php
 
       Note that in case of EFreeTypeLibraryNotFound in TTextureFontData.Create,
       no state is modified (MyFontData and MyFont stay unchanged). }

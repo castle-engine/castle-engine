@@ -356,7 +356,7 @@ const
     'didn''t found it in spritesheet.' + NL +
     NL +
     'Developed using Castle Game Engine.' + NL +
-    'See http://castle-engine.sourceforge.io/ for latest versions' + NL +
+    'See http://castle-engine.io/ for latest versions' + NL +
     'of this program, sources and documentation.'
   ;
 

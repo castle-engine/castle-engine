@@ -311,7 +311,7 @@ type
       like "update" calls, and it doesn't take into account that frames are possibly
       not rendered all the time (when AutoRedisplay = @false).
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what FPS mean and how they should be interpreted.
 
       @seealso RealFps }
@@ -336,7 +336,7 @@ type
       Use the WasSleeping to detect this, and potentially hide the display
       of RealFps from user.
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what FPS mean and how they should be interpreted.
 
       @seealso OnlyRenderFps }
@@ -350,7 +350,7 @@ type
       and it basically indicates that the @link(RealFps) value is not a useful
       indicator of your application speed.
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what this means. }
     property WasSleeping: boolean read FWasSleeping;
 
