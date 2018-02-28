@@ -383,7 +383,7 @@ uses URIParser, Math,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
   CastleApplicationProperties
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging, Crt {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 
@@ -616,7 +616,7 @@ begin
        allowing to show user progress bar during this loop. }
     repeat
       ApplicationProperties._Update; // process CastleMessages
-      Delay(200)
+      Sleep(200)
     until Finished;
   finally
     Messaging.OnReceive.Remove(@HandleDownloadMessages);

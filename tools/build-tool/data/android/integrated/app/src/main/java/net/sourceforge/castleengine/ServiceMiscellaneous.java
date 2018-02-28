@@ -88,7 +88,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
         getActivity().startActivity(intent);
     }
 
-    private void DownloadDataFromUrl(String urlToDownload)
+    private void downloadDataFromUrl(String urlToDownload)
     {
         final URL url;
         try {
@@ -157,7 +157,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("download-url")) {
-            DownloadDataFromUrl(parts[1]);
+            downloadDataFromUrl(parts[1]);
             return true;
         } else
         {
