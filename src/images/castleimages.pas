@@ -545,7 +545,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
-      deprecated 'This method is seldom useful, and it is confused with TCastleImage.Draw3x3 and TGLImage.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.Draw3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -788,8 +788,8 @@ type
       @italic(Warning: It is not efficient to use this drawing method.)
       This drawing is performed on CPU and cannot be fast.
       If possible, use instead @link(TGLImage),
-      and either draw it to the screen by @link(TGLImage.Draw3x3),
-      or draw it to another @link(TGLImage) by combining @link(TGLImage.Draw3x3)
+      and either draw it to the screen by @link(TGLImageCore.Draw3x3),
+      or draw it to another @link(TGLImage) by combining @link(TGLImageCore.Draw3x3)
       with @link(TGLImage.RenderToImageBegin).
       Using this method makes most sense in image manipulation tools,
       or during the loading / preparation stage of your game,

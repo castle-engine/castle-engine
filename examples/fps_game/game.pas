@@ -294,7 +294,7 @@ begin
       You could change the image by assigning Theme.Images[tiActiveFrame]
       (and choosing one of your own images or one of the predefined images
       in CastleControlsImages, see main program code for example),
-      or by creating and using TGLImage.Draw3x3 or TGLImage.Draw directly. }
+      or by creating and using TGLImageCore.Draw3x3 or TGLImage.Draw directly. }
     Theme.Draw(Rectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
 
