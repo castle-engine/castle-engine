@@ -70,12 +70,9 @@ clean: clean-cache
 
 # upload ---------------------------------------------------------------------
 
-SF_USERNAME=kambi
-SF_HOST=web.sourceforge.net
-SF_PATH=/home/project-web/castle-engine/htdocs/apidoc/
-
-SF_CONNECT=$(SF_USERNAME),castle-engine@$(SF_HOST):$(SF_PATH)
-SCP_OPTIONS=
+SSH_USERNAME=michalis
+SSH_HOST=castle-engine.io
+SSH_PATH=/home/michalis/cge-html/apidoc/
 
 # Prepare and upload all the stuff referenced under
 # [http://castle-engine.sourceforge.net/reference.php].
@@ -85,6 +82,6 @@ SCP_OPTIONS=
 upload: clean html
 	rm -Rf ../reference/html
 	mv ../reference/ html
-	tar czvf html.tar.gz html
-	scp $(SCP_OPTIONS) -r html.tar.gz $(SF_CONNECT)
-	./sf_upload_finalize.sh $(SF_USERNAME) $(SF_PATH)
+	tar czf html.tar.gz html
+	scp -r html.tar.gz $(SSH_USERNAME)@$(SSH_HOST):$(SSH_PATH)
+	./ssh_upload_finalize.sh $(SSH_USERNAME) $(SSH_HOST) $(SSH_PATH)
