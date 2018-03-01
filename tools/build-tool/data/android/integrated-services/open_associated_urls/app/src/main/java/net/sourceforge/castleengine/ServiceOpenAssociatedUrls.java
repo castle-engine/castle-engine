@@ -90,19 +90,22 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
                 String name = uri.getLastPathSegment();
 
                 Log.i(TAG, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
-                /*
-                // open directly from http:
-                messageSend(new String[]{"open_associated_url", uri.toString()});
-                /*/
-                try {
-                    String importfilepath = urlDocumentsDir.getAbsolutePath() + "/" + name;
-                    DownloadDataFromUrl(new URL(uri.toString()), importfilepath);
-                }
-                catch (Exception e)
+                if (getActivity().isServiceAvailable("download_urls"))
                 {
-                    Log.e(TAG, "URL exception: " + e.getMessage());
+                    // open directly from http
+                    messageSend(new String[]{"open_associated_url", uri.toString()});
                 }
-                //*/
+                else
+                {
+                    // download and open as local file
+                    try {
+                        String importfilepath = urlDocumentsDir.getAbsolutePath() + "/" + name;
+                        DownloadDataFromUrl(new URL(uri.toString()), importfilepath);
+                    }
+                    catch (Exception e) {
+                        Log.e(TAG, "URL exception: " + e.getMessage());
+                    }
+                }
             }
         }
     }
