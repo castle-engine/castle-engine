@@ -16,6 +16,8 @@ import java.net.URL;
 
 public class ServiceDownloadUrls extends ServiceAbstract
 {
+    private static final String TAG = "${NAME}.castleengine.ServiceDownloadUrls";
+
     public ServiceDownloadUrls(MainActivity activity)
     {
         super(activity);
@@ -82,7 +84,7 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     });
                 }
                 catch (Exception e) {
-                    Log.e("DL_URL", "downloadDataFromUrl exception: " + e.getMessage());
+                    Log.e(TAG, "downloadDataFromUrl exception: " + e.getMessage());
                     messageSend(new String[]{"download-error", e.getMessage()});
                 }
             }

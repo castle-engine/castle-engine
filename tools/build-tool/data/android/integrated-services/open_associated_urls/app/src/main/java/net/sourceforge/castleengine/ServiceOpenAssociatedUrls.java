@@ -21,7 +21,7 @@ import java.net.URL;
 
 public class ServiceOpenAssociatedUrls extends ServiceAbstract
 {
-    private static final String TAG = "ASSOC_URL";
+    private static final String TAG = "${NAME}.castleengine.ServiceOpenAssociatedUrls";
 
     public String getName()
     {

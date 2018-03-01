@@ -19,7 +19,7 @@ import java.util.Locale;
 
 public class ServicePhotoService extends ServiceAbstract
 {
-    private static final String TAG = "PHOTO";
+    private static final String TAG = "${NAME}.castleengine.ServicePhotoService";
 
     public String getName()
     {
@@ -60,7 +60,7 @@ public class ServicePhotoService extends ServiceAbstract
                 Toast.makeText(getActivity(), "Image saved", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
-                Log.w("ExternalStorage", "Error writing screenshot", e);
+                Log.w(TAG, "Error writing screenshot", e);
             }
 
             return true;
