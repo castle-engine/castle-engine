@@ -847,10 +847,13 @@ end;
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl, ErrorMessage: string;
+  Success: boolean;
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
+  Success := false;
+  ErrorMessage := '';
 
   for I := 0 to FdUrl.Count - 1 do
     if FdUrl.Items[I] = '' then
@@ -873,14 +876,21 @@ begin
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
+        Success := true;
         Break;
       except
         on E: Exception do
-          { Remember that WritelnWarning *may* raise an exception. }
-          WritelnWarning('Texture', Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
+          { Silence the Exception, continue trying to load more textures. }
+          ErrorMessage := ErrorMessage + NL + '  ' + Format(SLoadError,
+            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]);
       end;
     end;
+
+  if Success then
+    WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
+      ErrorMessage)
+  else
+    WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
 end;
 
 function TImageTextureNode.TextureDescription: string;
