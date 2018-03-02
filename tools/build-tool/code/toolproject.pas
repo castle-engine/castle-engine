@@ -595,6 +595,10 @@ constructor TCastleProject.Create(const APath: string);
             finally FreeAndNil(ChildElements) end;
           end;
         end;
+
+        if FAndroidServices.HasService('open_associated_urls') then
+          FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
       finally FreeAndNil(Doc) end;
     end;
 

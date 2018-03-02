@@ -117,16 +117,6 @@ public class MainActivity extends NativeActivity
         super.onBackPressed();
     }
 
-    boolean isServiceAvailable(String serviceName)
-    {
-        for (ServiceAbstract service : services) {
-            if (service.getName().equals(serviceName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Send a message to native code.
      * Services (except ServiceMessaging) may call this
