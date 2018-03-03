@@ -1157,8 +1157,12 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { Window DPI. Defaults to 96, so it is recommended to set to correct value
-      on higher density displays. }
+    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch,
+      thus it depends on both the screen resolution
+      and on the physical size of the device.
+
+      Some platforms leave it at default 96 (DefaultDpi constant).
+      For now, only Android and iOS platforms expose the actual DPI here. }
     property Dpi: integer read FDpi write FDpi default DefaultDpi;
 
     { Window position on the screen. If one (or both) of them is equal
