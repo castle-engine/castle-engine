@@ -858,9 +858,10 @@ begin
   for I := 0 to FdUrl.Count - 1 do
     if FdUrl.Items[I] = '' then
     begin
-      { Empty URL would be expanded by PathFromBaseUrl to directory
+      { Special error message in this case, otherwise empty URL
+        would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [X3DType]));
+      ErrorMessage := ErrorMessage + NL + '  Empty URL ignored';
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
@@ -890,7 +891,10 @@ begin
     WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
       ErrorMessage)
   else
+  if ErrorMessage <> '' then
     WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
+  { Note that when Success = false but ErrorMessage = '', then we're quiet
+    about it. This happens when Urls.Count = 0. }
 end;
 
 function TImageTextureNode.TextureDescription: string;
