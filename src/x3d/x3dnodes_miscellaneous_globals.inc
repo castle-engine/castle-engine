@@ -227,6 +227,56 @@ var
     you should always use relative paths. }
   WarnAboutAbsoluteFilenames: boolean = true;
 
+  (*Whether to resolve relative URLs within X3D prototypes with respect
+    to the file that instantiated the prototype (false, default, compatible with Instant Player)
+    or to the file that defined the prototype (true, compatible with BS Contact).
+
+    This is unfortunately ambiguous in the X3D specification, and various
+    other X3D browsers behave differently.
+
+    Consider you have an X3D file like this:
+
+    @preformatted(
+    EXTENRPROTO MyObject [ field MFString urlTexture ] "textures/library.wrl#MyObject"
+    MyObject { urlTexture "textures/myfile.png" }
+    MyObject { urlTexture "myfile.png" }
+    )
+
+    And next to this file, in a subfolder, you have these files:
+
+    @preformatted(
+    textures/library.wrl
+    textures/myfile.png
+    )
+
+    Which declaration of @code(MyObject) is correct?
+
+    @unorderedList(
+      @item(When this is false, you should write @code(MyObject { urlTexture "myfile.png" }).
+        The URL is resolved with respect to the file that contains
+        the ImageTexture node, which is "textures/library.wrl".)
+
+      @item(When this is true, you should write @code(MyObject { urlTexture "textures/myfile.png" }).
+        The URL is resolved with respect to the file that instantiates
+        the prototype.
+
+        Note that our implementation of this case is a bit incomplete.
+        It works for most nodes (ImageTexture / AudioClip / ShaderPart / ...),
+        but it does not work for the Inline node,
+        and for URLs in recursive EXTERNPROTO.
+        So URLs in Inline nodes, or in EXTERNPROTO, are always resolved
+        like RebaseRelativeUrlsInPrototypes = false.
+      )
+    )
+
+    See the X3D specification
+    http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/networking.html#RelativeURLs
+    (unfortunately, it does not clarify this case definitively).
+    See our testcase in
+    https://github.com/castle-engine/demo-models/tree/master/prototypes/relative_urls_test
+  *)
+  RebaseRelativeUrlsInPrototypes: boolean = false;
+
 { Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);

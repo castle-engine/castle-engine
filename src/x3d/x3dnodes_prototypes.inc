@@ -609,14 +609,8 @@ begin
   if not Child.NeedsInstantiateIsClause then Exit;
   Child.NeedsInstantiateIsClause := false;
 
-  { Copy our BaseUrl to the expanded prototype node.
-    This way URLs specified within the prototype (or as prototype parameters)
-    are resolved with respect to the file containing EXTERNPROTO declaration.
-    See X3D specification
-    http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/networking.html#RelativeURLs
-    and tests in
-    demo-models/prototypes/relative_urls_test/ }
-  Child.BaseUrl := BaseUrl;
+  if RebaseRelativeUrlsInPrototypes then
+    Child.BaseUrl := BaseUrl;
 
   for I := 0 to Child.FieldsCount - 1 do
     ExpandField(Child.Fields[I]);
