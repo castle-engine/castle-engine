@@ -18,14 +18,14 @@
   { Touch-friendly checkbox control with representing on/off state. }
   TCastleSwitchControl = class(TUIControl)
   strict private
-    FIsOn: boolean;
+    FChecked: boolean;
     FEnabled: boolean;
     FPressed: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnChange: TNotifyEvent;
 
-    procedure SetIsOn(const Value: boolean);
+    procedure SetChecked(const Value: boolean);
     procedure SetEnabled(const Value: boolean);
 
   public
@@ -37,9 +37,11 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
+    property IsOn: boolean read FChecked write SetChecked default false;
+      deprecated 'use Checked instead, consistent with LCL TCheckBox.Checked';
   published
     { Switch state. }
-    property IsOn: boolean read FIsOn write SetIsOn default false;
+    property Checked: boolean read FChecked write SetChecked default false;
     property Enabled: boolean read FEnabled write SetEnabled default true;
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
@@ -56,7 +58,7 @@
 constructor TCastleSwitchControl.Create(AOwner: TComponent);
 begin
   inherited;
-  FIsOn := false;
+  FChecked := false;
   FEnabled := true;
   FPressed := false;
   FOnChange := nil;
@@ -83,13 +85,13 @@ begin
   BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height div 2;
   BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) div 2);
   Theme.Draw(BackRect, tiSwitchControl, UIScale);
-  if IsOn then
+  if Checked then
     Theme.Draw(BackRect, tiSwitchControlFill, UIScale);
 
   // handle
   HandleRect := BaseRect;
   HandleRect.Width := BaseRect.Width div 3; //HandleRect.Height;
-  if IsOn then
+  if Checked then
     HandleRect.Left := BaseRect.Right - HandleRect.Width;
 
   if FPressed then
@@ -118,11 +120,11 @@ begin
   end;
 end;
 
-procedure TCastleSwitchControl.SetIsOn(const Value: boolean);
+procedure TCastleSwitchControl.SetChecked(const Value: boolean);
 begin
-  if FIsOn <> Value then
+  if FChecked <> Value then
   begin
-    FIsOn := Value;
+    FChecked := Value;
     VisibleChange;
   end;
 end;
@@ -138,7 +140,7 @@ function TCastleSwitchControl.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   FPressed := false;
-  FIsOn := not FIsOn;
+  FChecked := not FChecked;
   VisibleChange;
 
   if Assigned(FOnChange) then
