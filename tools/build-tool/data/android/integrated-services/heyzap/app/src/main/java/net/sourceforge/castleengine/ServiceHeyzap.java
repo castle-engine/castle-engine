@@ -16,7 +16,7 @@ import com.heyzap.sdk.ads.BannerAdView;
  */
 public class ServiceHeyzap extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceHeyzap";
+    private static final String CATEGORY = "ServiceHeyzap";
 
     private boolean initialized, scheduledStart, scheduledResume;
     private boolean fullScreenAdVisible;
@@ -142,7 +142,7 @@ public class ServiceHeyzap extends ServiceAbstract
         IncentivizedAd.setOnStatusListener(videoListener);
         IncentivizedAd.fetch();
 
-        Log.i(TAG, "Heyzap initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
+        logInfo(CATEGORY, "Heyzap initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
 
         if (scheduledStart) {
@@ -238,7 +238,7 @@ public class ServiceHeyzap extends ServiceAbstract
         if (initialized) {
             fullScreenAdVisible = true;
             InterstitialAd.display(getActivity());
-            Log.i(TAG, "Interstitial showing");
+            logInfo(CATEGORY, "Interstitial showing");
         } else {
             // pretend that ad was displayed, in case native app waits for it
             fullScreenAdClosed(false);
@@ -252,9 +252,9 @@ public class ServiceHeyzap extends ServiceAbstract
             if (VideoAd.isAvailable()) {
                 VideoAd.display(getActivity());
                 VideoAd.fetch();
-                Log.i(TAG, "Video showing");
+                logInfo(CATEGORY, "Video showing");
             } else {
-                Log.i(TAG, "Video not in cache yet, just skip it");
+                logInfo(CATEGORY, "Video not in cache yet, just skip it");
                 // pretend that ad was displayed, in case native app waits for it
                 fullScreenAdClosed(false);
             }
@@ -271,9 +271,9 @@ public class ServiceHeyzap extends ServiceAbstract
             if (IncentivizedAd.isAvailable()) {
                 IncentivizedAd.display(getActivity());
                 IncentivizedAd.fetch();
-                Log.i(TAG, "Incentivized showing");
+                logInfo(CATEGORY, "Incentivized showing");
             } else {
-                Log.i(TAG, "Incentivized not in cache yet, just skip it");
+                logInfo(CATEGORY, "Incentivized not in cache yet, just skip it");
                 // pretend that ad was displayed, in case native app waits for it
                 fullScreenAdClosed(false);
             }

@@ -494,7 +494,7 @@ end;
 
 procedure RunAndroidPackage(const Project: TCastleProject);
 var
-  ActivityName: string;
+  ActivityName, LogTag: string;
 begin
   if Project.AndroidProjectType = apBase then
     ActivityName := 'android.app.NativeActivity'
@@ -504,15 +504,16 @@ begin
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Run successful.');
-  if (FindExe('bash') <> '') and
-     (FindExe('grep') <> '') then
-  begin
-    Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
-    { run through ExecuteProcess, because we don't want to capture output,
-      we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', '"' + AdbExe + '" logcat | grep --text "' + Project.Name + '"']);
-  end else
-    Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
+
+  LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
+
+  Writeln('Running "adb logcat -s ' + LogTag + ':V".');
+  Writeln('We are assuming that your ApplicationName is "' + Project.Name + '".');
+  Writeln('Break this process with Ctrl+C.');
+
+  { run through ExecuteProcess, because we don't want to capture output,
+    we want to immediately pass it to user }
+  ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 end.

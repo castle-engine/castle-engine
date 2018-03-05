@@ -36,7 +36,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceGooglePlayGames";
+    private static final String CATEGORY = "ServiceGooglePlayGames";
 
     private static final int REQUEST_SIGN_IN = 9001;
     private static final int REQUEST_ACHIEVEMENTS = 9101;
@@ -70,7 +70,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
 
         String appId = getActivity().getResources().getString(R.string.app_id);
         if (appId.equals("")) {
-            Log.e(TAG, "You must define Google Play Games id of your game in CastleEngineManifest.xml, like <google_play_services app_id=\"xxxx\" />. You get this id after creating Google Game Services for your game in Google Developer Console. Without this, GooglePlayGames integration cannot be initialized.");
+            logError(CATEGORY, "You must define Google Play Games id of your game in CastleEngineManifest.xml, like <google_play_services app_id=\"xxxx\" />. You get this id after creating Google Game Services for your game in Google Developer Console. Without this, GooglePlayGames integration cannot be initialized.");
             return;
         }
 
@@ -121,11 +121,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     private boolean checkGamesConnection()
     {
         if (initialized && mGoogleApiClient == null) {
-            Log.w(TAG, "initialized is true, but mGoogleApiClient == null");
+            logWarning(CATEGORY, "initialized is true, but mGoogleApiClient == null");
             initialized = false;
         }
         if (initialized && mStatus == STATUS_SIGNED_IN && !mGoogleApiClient.isConnected()) {
-            Log.w(TAG, "mStatus == STATUS_SIGNED_IN, but mGoogleApiClient.isConnected() == false");
+            logWarning(CATEGORY, "mStatus == STATUS_SIGNED_IN, but mGoogleApiClient.isConnected() == false");
             mStatus = STATUS_SIGNED_OUT;
         }
         return initialized && mStatus == STATUS_SIGNED_IN;
@@ -151,7 +151,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     @Override
     public void onConnected(Bundle connectionHint)
     {
-        Log.i(TAG, "onConnected (Google Games connected OK!)");
+        logInfo(CATEGORY, "onConnected (Google Games connected OK!)");
 
         Games.setViewForPopups(mGoogleApiClient, getActivity().findViewById(android.R.id.content));
 
@@ -163,11 +163,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             if (checkGamesConnection()) {
                 Games.Leaderboards.submitScore(mGoogleApiClient,
                     mScoreToSendWhenConnectedLeaderboard, mScoreToSendWhenConnected);
-                Log.i(TAG, "Submitting scheduled score " + mScoreToSendWhenConnected);
+                logInfo(CATEGORY, "Submitting scheduled score " + mScoreToSendWhenConnected);
                 mScoreToSendWhenConnected = 0;
                 mScoreToSendWhenConnectedLeaderboard = null;
             } else {
-                Log.e(TAG, "Cannot submit scheduled score, we are not connected inside onConnected - weird, unless the connection broke immediately");
+                logError(CATEGORY, "Cannot submit scheduled score, we are not connected inside onConnected - weird, unless the connection broke immediately");
             }
         }
 
@@ -207,18 +207,18 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
         if (result.hasResolution()) {
             try {
                 result.startResolutionForResult(activity, requestCode);
-                Log.i(TAG, "Connection failure: doing startResolutionForResult");
+                logInfo(CATEGORY, "Connection failure: doing startResolutionForResult");
                 return true;
             } catch (IntentSender.SendIntentException e) {
                 // The intent was canceled before it was sent.  Return to the default
                 // state and attempt to connect to get an updated ConnectionResult.
                 client.connect();
-                Log.i(TAG, "Connection failure: doing startResolutionForResult but failed, so doing simple client.connect");
+                logInfo(CATEGORY, "Connection failure: doing startResolutionForResult but failed, so doing simple client.connect");
                 return false;
             }
         } else {
             // not resolvable... so show an error message
-            Log.w(TAG, "Connection failure: There was an issue with sign-in to Google Games, please try again later.");
+            logWarning(CATEGORY, "Connection failure: There was an issue with sign-in to Google Games, please try again later.");
             return false;
         }
     }
@@ -226,7 +226,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
     {
-        Log.w(TAG, "onConnectionFailed");
+        logWarning(CATEGORY, "onConnectionFailed");
 
         if (mResolvingConnectionFailure) {
             // already resolving
@@ -261,7 +261,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     @Override
     public void onConnectionSuspended(int i)
     {
-        Log.i(TAG, "onConnectionSuspended, attempting to reconnect");
+        logInfo(CATEGORY, "onConnectionSuspended, attempting to reconnect");
         setStatus(STATUS_SIGNING_IN);
         // Attempt to reconnect
         mGoogleApiClient.connect();
@@ -270,7 +270,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == REQUEST_SIGN_IN) {
-            Log.i(TAG, "Received activity result: Google Play Games SIGN_IN");
+            logInfo(CATEGORY, "Received activity result: Google Play Games SIGN_IN");
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
             if (resultCode == Activity.RESULT_OK) {
@@ -281,14 +281,14 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                        and new Google Play Services. The services do some wild things
                        there anyway: OpenSnapshotResult result code is sometimes 16
                        (which is not documented as valid result code). */
-                    Log.w(TAG, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
+                    logWarning(CATEGORY, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
                     // stoppping signing-in
                     if (mStatus == STATUS_SIGNING_IN) {
                         setStatus(STATUS_SIGNED_OUT);
                     }
                 }
             } else {
-                Log.w(TAG, "Unable to sign in to Google Games.");
+                logWarning(CATEGORY, "Unable to sign in to Google Games.");
                 // stoppping signing-in
                 if (mStatus == STATUS_SIGNING_IN) {
                     setStatus(STATUS_SIGNED_OUT);
@@ -310,11 +310,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                     if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
                         messageSend(new String[]{"chosen-save-game-new"});
                     } else {
-                        Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
+                        logWarning(CATEGORY, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
                         messageSend(new String[]{"chosen-save-game-cancel"});
                     }
                 } else {
-                    Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent is null");
+                    logWarning(CATEGORY, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent is null");
                     messageSend(new String[]{"chosen-save-game-cancel"});
                 }
             } else {
@@ -363,7 +363,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                 public void onResult(Status status)
                 {
                     if (!status.isSuccess()) {
-                        Log.w(TAG, "Failed to sign out from Games. Droppping mGoogleApiClient anyway.");
+                        logWarning(CATEGORY, "Failed to sign out from Games. Droppping mGoogleApiClient anyway.");
                     }
                     if (mGoogleApiClient != null) {
                         mGoogleApiClient.disconnect();
@@ -379,7 +379,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             getActivity().startActivityForResult(Games.Achievements.getAchievementsIntent(
                 mGoogleApiClient), REQUEST_ACHIEVEMENTS);
         } else {
-            Log.i(TAG, "Not connected to Google Games -> connecting, in response to showAchievements");
+            logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showAchievements");
             signInClicked(new OnConnectedFinish () {
                 public void run() { showAchievements(); }
             });
@@ -395,7 +395,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
         if (checkGamesConnection()) {
             Games.Achievements.unlock(mGoogleApiClient, achievementId);
         } else {
-            Log.w(TAG, "Achievement unlocked, but not connected to Google Games, ignoring");
+            logWarning(CATEGORY, "Achievement unlocked, but not connected to Google Games, ignoring");
         }
     }
 
@@ -418,7 +418,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                 title, allowAddButton, allowDelete, realMaxNumberOfSaveGamesToShow);
             getActivity().startActivityForResult(savedGamesIntent, REQUEST_SAVED_GAMES);
         } else {
-            Log.i(TAG, "Not connected to Google Games -> connecting, in response to showSaveGames");
+            logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showSaveGames");
             signInClicked(new OnConnectedFinish () {
                 public void run() { showSaveGames(title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow); }
             });
@@ -435,7 +435,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     /* Make a log, and messageSend, that loading savegame failed. */
     private final void saveGameLoadingError(String errorStr)
     {
-        Log.e(TAG, errorStr);
+        logError(CATEGORY, errorStr);
         messageSend(new String[]{"save-game-loaded", "false", errorStr});
     }
 
@@ -520,7 +520,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                             try {
                                 snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
                             } catch (UnsupportedEncodingException e) {
-                                Log.e(TAG, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
+                                logError(CATEGORY, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
                             }
 
                             // Create the change operation
@@ -532,12 +532,12 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                             // Commit the operation
                             commitAndCloseWatchingResult(snapshot, metadataChange);
                         } else {
-                            Log.e(TAG, "Error while opening a save game for writing (" +
+                            logError(CATEGORY, "Error while opening a save game for writing (" +
                               result.getStatus().getStatusCode() + "): " +
                               result.getStatus().getStatusMessage());
                         }
                     } else {
-                        Log.e(TAG, "Google Play Games disconneted while trying to save savegame");
+                        logError(CATEGORY, "Google Play Games disconneted while trying to save savegame");
                     }
 
                     return null;
@@ -552,7 +552,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                     Snapshots.CommitSnapshotResult result = pending.await();
 
                     if (!result.getStatus().isSuccess()) {
-                        Log.e(TAG, "Google Play Games error when saving the game (" +
+                        logError(CATEGORY, "Google Play Games error when saving the game (" +
                             result.getStatus().getStatusCode() + "): " +
                             result.getStatus().getStatusMessage());
                     }
@@ -567,7 +567,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
 
             task.execute();
         } else {
-            Log.e(TAG, "Not connected to Google Play Games, cannot save savegame.");
+            logError(CATEGORY, "Not connected to Google Play Games, cannot save savegame.");
         }
     }
 
@@ -577,7 +577,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             getActivity().startActivityForResult(Games.Leaderboards.getLeaderboardIntent(
                 mGoogleApiClient, leaderboardId), REQUEST_LEADERBOARD);
         } else {
-            Log.i(TAG, "Not connected to Google Games -> connecting, in response to showLeaderboard");
+            logInfo(CATEGORY, "Not connected to Google Games -> connecting, in response to showLeaderboard");
             signInClicked(new OnConnectedFinish () {
                 public void run() { showLeaderboard(leaderboardId); }
             });
@@ -594,7 +594,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                 mScoreToSendWhenConnected = score;
                 mScoreToSendWhenConnectedLeaderboard = leaderboardId;
             }
-            Log.w(TAG, "Not connected to Google Games, scheduling leaderboard score submission for later");
+            logWarning(CATEGORY, "Not connected to Google Games, scheduling leaderboard score submission for later");
         }
     }
 
@@ -610,7 +610,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                     public void onResult(LoadPlayerScoreResult result)
                     {
                         if (!result.getStatus().isSuccess()) {
-                            Log.w(TAG, "Failed to get own leaderboard score.");
+                            logWarning(CATEGORY, "Failed to get own leaderboard score.");
                             return;
                         }
                         long myScore =
@@ -620,7 +620,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                     }
                 });
         } else {
-            Log.w(TAG, "Not connected to Google Games, cannot get leaderboard position");
+            logWarning(CATEGORY, "Not connected to Google Games, cannot get leaderboard position");
         }
     }
 

@@ -16,7 +16,7 @@ import com.gameanalytics.sdk.*;
  */
 public class ServiceGameAnalytics extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceGameAnalytics";
+    private static final String CATEGORY = "ServiceGameAnalytics";
     // Enable log when implementing the SDK - remember to turn it off in production!
     // Watch by "adb logcat | grep --text -i gameanalytics"
     private final boolean debug = false;
@@ -62,7 +62,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
         // Initialize
         GameAnalytics.initializeWithGameKey(getActivity(), gameKey, secretKey);
 
-        Log.i(TAG, "GameAnalytics initialized with application version " + version);
+        logInfo(CATEGORY, "GameAnalytics initialized with application version " + version);
 
         initialized = true;
     }
@@ -145,7 +145,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
 			case 1: gaStatus = GAProgressionStatus.Fail; break;
 			case 2: gaStatus = GAProgressionStatus.Complete; break;
             default:
-                Log.w(TAG, "Invalid analytics-send-progress status " + status);
+                logWarning(CATEGORY, "Invalid analytics-send-progress status " + status);
                 return;
         }
         GameAnalytics.addProgressionEventWithProgressionStatus(gaStatus, world, level, phase, score);

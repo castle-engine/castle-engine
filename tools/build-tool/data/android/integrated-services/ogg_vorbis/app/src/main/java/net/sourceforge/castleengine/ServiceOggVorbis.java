@@ -6,7 +6,7 @@ package net.sourceforge.castleengine;
  */
 public class ServiceOggVorbis extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceOggVorbis";
+    private static final String CATEGORY = "ServiceOggVorbis";
 
     public ServiceOggVorbis(MainActivity activity)
     {

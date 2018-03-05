@@ -16,7 +16,7 @@ import java.io.OutputStream;
 
 public class ServiceOpenAssociatedUrls extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceOpenAssociatedUrls";
+    private static final String CATEGORY = "ServiceOpenAssociatedUrls";
 
     public String getName()
     {
@@ -60,7 +60,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
             {
                 String name = getContentName(resolver, uri);
 
-                Log.i(TAG, "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                logInfo(CATEGORY, "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 try
                 {
                     InputStream input = resolver.openInputStream(uri);
@@ -70,21 +70,21 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
                 }
                 catch (Exception e)
                 {
-                    Log.e(TAG, "resolver.openInputStream exception: " + e.getMessage());
+                    logError(CATEGORY, "resolver.openInputStream exception: " + e.getMessage());
                 }
             }
             else if (scheme.compareTo(ContentResolver.SCHEME_FILE) == 0)
             {
                 String name = uri.getLastPathSegment();
 
-                Log.i(TAG, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                logInfo(CATEGORY, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 messageSend(new String[]{"open_associated_url", uri.toString()});
             }
             else if (scheme.compareTo("http") == 0 || scheme.compareTo("https") == 0 || scheme.compareTo("ftp") == 0)
             {
                 String name = uri.getLastPathSegment();
 
-                Log.i(TAG, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                logInfo(CATEGORY, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 // open directly from http, let it download in CastleDownload.pas
                 messageSend(new String[]{"open_associated_url", uri.toString()});
             }
@@ -124,7 +124,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
         }
         catch (Exception e)
         {
-            Log.e(TAG, "InputStreamToFile exception: " + e.getMessage());
+            logError(CATEGORY, "InputStreamToFile exception: " + e.getMessage());
         }
     }
 }

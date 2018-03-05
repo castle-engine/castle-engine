@@ -15,7 +15,7 @@ import com.chartboost.sdk.Model.CBError.CBImpressionError;
  */
 public class ServiceChartboost extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceChartboost";
+    private static final String CATEGORY = "ServiceChartboost";
 
     private boolean initialized, scheduledStart, scheduledResume;
 
@@ -47,14 +47,14 @@ public class ServiceChartboost extends ServiceAbstract
         public void didCloseInterstitial(String location)
         {
             super.didCloseInterstitial(location);
-            Log.i(TAG, "Chartbooost Interstitial Close, location: "+ (location != null ? location : "null"));
+            logInfo(CATEGORY, "Chartbooost Interstitial Close, location: "+ (location != null ? location : "null"));
             fullScreenAdClosed(true, true);
         }
 
         @Override
         public void didDismissInterstitial(String location) {
             super.didDismissInterstitial(location);
-            Log.i(TAG, "Chartbooost Interstitial Dismiss, location: "+ (location != null ? location : "null"));
+            logInfo(CATEGORY, "Chartbooost Interstitial Dismiss, location: "+ (location != null ? location : "null"));
             // react to dismiss (this actually happens before ad is closed,
             // it's when user switches out of our app).
             // Needed, since we don't get Closed callback
@@ -64,7 +64,7 @@ public class ServiceChartboost extends ServiceAbstract
 
         @Override
         public void didFailToLoadInterstitial(String location, CBImpressionError error) {
-            Log.i(TAG, "Chartbooost Interstitial FAIL TO LOAD, location: " +
+            logInfo(CATEGORY, "Chartbooost Interstitial FAIL TO LOAD, location: " +
                 (location != null ? location : "null") + ", error: " + error.name());
             fullScreenAdClosed(false, false);
         }
@@ -72,13 +72,13 @@ public class ServiceChartboost extends ServiceAbstract
         @Override
         public void didClickInterstitial(String location) {
             super.didClickInterstitial(location);
-            Log.i(TAG, "Chartbooost Interstitial Click, location: "+ (location != null ? location : "null"));
+            logInfo(CATEGORY, "Chartbooost Interstitial Click, location: "+ (location != null ? location : "null"));
         }
 
         @Override
         public void didDisplayInterstitial(String location) {
             super.didDisplayInterstitial(location);
-            Log.i(TAG, "Chartbooost Interstitial Display, location: " +  (location != null ? location : "null"));
+            logInfo(CATEGORY, "Chartbooost Interstitial Display, location: " +  (location != null ? location : "null"));
         }
     };
 
@@ -102,7 +102,7 @@ public class ServiceChartboost extends ServiceAbstract
         //Chartboost.setLoggingLevel(Level.ALL); // not on prod!
         Chartboost.setDelegate(delegate);
         Chartboost.onCreate(getActivity());
-        Log.i(TAG, "Chartboost initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
+        logInfo(CATEGORY, "Chartboost initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
 
         if (scheduledStart) {
@@ -182,9 +182,9 @@ public class ServiceChartboost extends ServiceAbstract
     {
         if (initialized) {
             if (!Chartboost.hasInterstitial(CBLocation.LOCATION_DEFAULT)) {
-                Log.i(TAG, "Interstitial not in cache yet, will wait for it");
+                logInfo(CATEGORY, "Interstitial not in cache yet, will wait for it");
             }
-            Log.i(TAG, "Interstitial showing");
+            logInfo(CATEGORY, "Interstitial showing");
             Chartboost.showInterstitial(CBLocation.LOCATION_DEFAULT);
         } else {
             // pretend that ad was displayed, in case native app waits for it
