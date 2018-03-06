@@ -34,7 +34,7 @@ const
 
 var
   Window: TCastleWindowCustom;
-  SceneManager: T2DSceneManager;
+  SceneManager: TCastle2DSceneManager;
   Status: TCastleLabel;
   Level: TCastleScene;
   Plane: TCastleScene;
@@ -165,11 +165,10 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  SceneManager := T2DSceneManager.Create(Application);
+  SceneManager := TCastle2DSceneManager.Create(Application);
   SceneManager.FullSize := true;
   SceneManager.ProjectionHeight := 100; // matches height in Blender
   SceneManager.ProjectionAutoSize := false;
-  SceneManager.Transparent := false;
   // easy way to make the simulation feel more dynamic
   SceneManager.TimeScale := 1.5;
   Window.Controls.InsertFront(SceneManager);

@@ -1157,7 +1157,7 @@ type
 
       @bold(You should not usually use this directly.
       Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
       @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
       @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
@@ -1171,7 +1171,7 @@ type
 
       @bold(You should not usually use this directly.
       Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
       @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
       @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
@@ -1192,7 +1192,7 @@ type
 
       @bold(You should not usually use this directly.
       Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
       @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
       @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
@@ -1206,7 +1206,7 @@ type
 
       @bold(You should not usually use this directly.
       Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
       @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
       @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
@@ -1227,7 +1227,7 @@ type
 
       @bold(You should not usually use this directly.
       Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
       @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
       @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }

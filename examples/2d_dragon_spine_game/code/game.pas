@@ -58,9 +58,9 @@ var
 { main game stuff ------------------------------------------------------------ }
 
 var
-  SceneManager: T2DSceneManager;
-  Background: T2DScene;
-  Dragon: T2DScene;
+  SceneManager: TCastle2DSceneManager;
+  Background: TCastle2DScene;
+  Dragon: TCastle2DScene;
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
   ShowAchievements: TCastleButton;
@@ -89,9 +89,9 @@ procedure AddBackgroundItems;
   procedure AddItem(const X, Y, Z, Scale: Single; const Path: string;
     const RunAnimation: boolean = true);
   var
-    Scene: T2DScene;
+    Scene: TCastle2DScene;
   begin
-    Scene := T2DScene.Create(Application);
+    Scene := TCastle2DScene.Create(Application);
     Scene.Load(ApplicationData(Path));
     Scene.ProcessEvents := true;
     if RunAnimation then
@@ -141,9 +141,7 @@ begin
   GameService := TGameService.Create(nil);
   GameService.Initialize;
 
-  SceneManager := T2DSceneManager.Create(Application);
-  { show SceneManager.BackgroundColor underneath scene manager }
-  SceneManager.Transparent := false;
+  SceneManager := TCastle2DSceneManager.Create(Application);
   Window.Controls.InsertFront(SceneManager);
 
   { add to scene manager an X3D scene with background and trees.
@@ -155,7 +153,7 @@ begin
     like TCastleSimpleBackground or TCastleImageControl instead of X3D model.
     Or you could load a scene from any format --- e.g. your background
     could also be a Spine scene. }
-  Background := T2DScene.Create(Application);
+  Background := TCastle2DScene.Create(Application);
   SceneManager.Items.Add(Background);
   SceneManager.MainScene := Background;
   Background.Load(ApplicationData('background.x3dv'));
@@ -177,7 +175,7 @@ begin
   SceneManager.ProjectionHeight := Background.BoundingBox.Data[1][1];
   SceneManager.ProjectionSpan := 10000.0;
 
-  Dragon := T2DScene.Create(Application);
+  Dragon := TCastle2DScene.Create(Application);
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
@@ -231,7 +229,7 @@ end;
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
 procedure CalculateCamera(out Pos, Dir, Up: TVector3);
 const
-  { Initial camera. Like initialized by T2DSceneManager,
+  { Initial camera. Like initialized by TCastle2DSceneManager,
     but shifted to the right, to see the middle of the background scene
     where we can see the castle and dragon at initial position. }
   Camera2DPos: TVector3 = (Data: (2100, 0, 0));
@@ -264,7 +262,7 @@ begin
   begin
     Pos[0] := Dragon.Translation[0]
       { subtract half of the screen, because camera is at the left screen corner
-        when using default 2D projection of T2DSceneManager. }
+        when using default 2D projection of TCastle2DSceneManager. }
       - 0.5 * SceneManager.CurrentProjectionWidth;
     { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
       we need to offset the above calculation }
