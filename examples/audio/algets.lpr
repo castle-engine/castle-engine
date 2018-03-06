@@ -21,7 +21,7 @@
   You can run this with an optional command-line option:
   an URL of any sound file we can load
   (WAV and OggVorbis for now, see
-  https://castle-engine.sourceforge.io/x3d_implementation_sound.php ).
+  https://castle-engine.io/x3d_implementation_sound.php ).
   Then the sound file will be loaded as OpenAL sound,
   and some additional tests will be performed. }
 program algets;

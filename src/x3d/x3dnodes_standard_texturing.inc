@@ -847,17 +847,21 @@ end;
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl, ErrorMessage: string;
+  Success: boolean;
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
+  Success := false;
+  ErrorMessage := '';
 
   for I := 0 to FdUrl.Count - 1 do
     if FdUrl.Items[I] = '' then
     begin
-      { Empty URL would be expanded by PathFromBaseUrl to directory
+      { Special error message in this case, otherwise empty URL
+        would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [X3DType]));
+      ErrorMessage := ErrorMessage + NL + '  Empty URL ignored';
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
@@ -873,14 +877,24 @@ begin
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
+        Success := true;
         Break;
       except
         on E: Exception do
-          { Remember that WritelnWarning *may* raise an exception. }
-          WritelnWarning('Texture', Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
+          { Silence the Exception, continue trying to load more textures. }
+          ErrorMessage := ErrorMessage + NL + '  ' + Format(SLoadError,
+            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]);
       end;
     end;
+
+  if Success then
+    WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
+      ErrorMessage)
+  else
+  if ErrorMessage <> '' then
+    WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
+  { Note that when Success = false but ErrorMessage = '', then we're quiet
+    about it. This happens when Urls.Count = 0. }
 end;
 
 function TImageTextureNode.TextureDescription: string;

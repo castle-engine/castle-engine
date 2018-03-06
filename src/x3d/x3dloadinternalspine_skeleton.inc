@@ -151,11 +151,15 @@ begin
     CurrentSkin := Skins.Find(SkinName, true);
   if CurrentSkin = nil then
   begin
-    { prefer non-default skin, if exists, since default skin may miss some
-      attachments, see goblins.json example }
-    if Skins.Count > 1 then
-      CurrentSkin := Skins[1] else
-      CurrentSkin := DefaultSkin;
+    { Old version:
+      prefer non-default skin, if exists, since default skin may miss some
+      attachments, see goblins.json example. }
+    // if Skins.Count > 1 then
+    //   CurrentSkin := Skins[1] else
+    { New version: use DefaultSkin by default, this is more intuitive
+      and naturally expected
+      (see e.g. hero default/girl skins in "The Unholy Society"). }
+    CurrentSkin := DefaultSkin;
   end;
   if Log then
     SkinLog;

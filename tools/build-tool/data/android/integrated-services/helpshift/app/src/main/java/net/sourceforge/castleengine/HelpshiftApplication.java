@@ -17,7 +17,7 @@ import com.helpshift.exceptions.InstallException;
 
 public class HelpshiftApplication extends Application
 {
-    private static final String TAG = "${NAME}.castleengine.HelpshiftApplication";
+    private static final String CATEGORY = "HelpshiftApplication";
 
     private boolean helpshiftInitialized = false;
 
@@ -41,7 +41,7 @@ public class HelpshiftApplication extends Application
                 config);
             helpshiftInitialized = true;
         } catch (InstallException e) {
-            Log.e(TAG, "InstallException at initializing Helpshift: " + e.getMessage());
+            logError(CATEGORY, "InstallException at initializing Helpshift: " + e.getMessage());
         }
     }
 }

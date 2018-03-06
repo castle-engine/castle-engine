@@ -111,6 +111,9 @@ type
     function FindReadable: TCastleImage;
   end;
 
+const
+  MaxAndroidTagLength = 23;
+
 implementation
 
 uses Classes, Process, SysUtils,

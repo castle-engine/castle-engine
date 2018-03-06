@@ -1,7 +1,7 @@
 # Overview
 
 Terrain generation and visualization toy using Castle Game Engine
-( https://castle-engine.sourceforge.io/ ).
+( https://castle-engine.io/ ).
 
 Compile using Castle Game Engine build tool
 ( https://github.com/castle-engine/castle-engine/wiki/Build-Tool ).

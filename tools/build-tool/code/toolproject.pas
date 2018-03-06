@@ -595,6 +595,10 @@ constructor TCastleProject.Create(const APath: string);
             finally FreeAndNil(ChildElements) end;
           end;
         end;
+
+        if FAndroidServices.HasService('open_associated_urls') then
+          FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
+
       finally FreeAndNil(Doc) end;
     end;
 
@@ -1527,6 +1531,7 @@ begin
   Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
   Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
   Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES'    , AssociateDocumentTypes.ToIntentFilter);
+  Macros.Add('ANDROID_LOG_TAG'                     , Copy(Name, 1, MaxAndroidTagLength));
 
   for I := 0 to AndroidServices.Count - 1 do
     for ServiceParameterPair in AndroidServices[I].Parameters do

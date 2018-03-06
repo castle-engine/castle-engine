@@ -80,7 +80,7 @@ begin
   begin
     { Do not show this on touch device, as mouse look navigation
       cannot work with a touch device.
-      See also https://castle-engine.sourceforge.io/manual_cross_platform.php }
+      See also https://castle-engine.io/manual_cross_platform.php }
     ToggleMouseLookButton := TCastleButton.Create(Application);
     ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
     ToggleMouseLookButton.Toggle := true;
@@ -94,7 +94,7 @@ begin
       (or Window.Close, or anything similar) doesn't make sense on mobile devices.
       Users do not press "exit" button on mobile devices, they just switch
       to home/other application.
-      See also https://castle-engine.sourceforge.io/manual_cross_platform.php }
+      See also https://castle-engine.io/manual_cross_platform.php }
     ExitButton := TCastleButton.Create(Application);
     ExitButton.Caption := 'Exit (Escape)';
     ExitButton.OnClick := @ExitButtonClick;
@@ -294,7 +294,7 @@ begin
       You could change the image by assigning Theme.Images[tiActiveFrame]
       (and choosing one of your own images or one of the predefined images
       in CastleControlsImages, see main program code for example),
-      or by creating and using TGLImage.Draw3x3 or TGLImage.Draw directly. }
+      or by creating and using TGLImageCore.Draw3x3 or TGLImage.Draw directly. }
     Theme.Draw(Rectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
 

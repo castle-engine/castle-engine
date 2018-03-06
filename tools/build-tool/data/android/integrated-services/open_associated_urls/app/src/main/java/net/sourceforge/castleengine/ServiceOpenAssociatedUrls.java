@@ -6,22 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 
 public class ServiceOpenAssociatedUrls extends ServiceAbstract
 {
-    private static final String TAG = "ASSOC_URL";
+    private static final String CATEGORY = "ServiceOpenAssociatedUrls";
 
     public String getName()
     {
@@ -65,7 +60,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
             {
                 String name = getContentName(resolver, uri);
 
-                Log.i(TAG, "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                logInfo(CATEGORY, "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 try
                 {
                     InputStream input = resolver.openInputStream(uri);
@@ -75,34 +70,23 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
                 }
                 catch (Exception e)
                 {
-                    Log.e(TAG, "resolver.openInputStream exception: " + e.getMessage());
+                    logError(CATEGORY, "resolver.openInputStream exception: " + e.getMessage());
                 }
             }
             else if (scheme.compareTo(ContentResolver.SCHEME_FILE) == 0)
             {
                 String name = uri.getLastPathSegment();
 
-                Log.i(TAG, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                logInfo(CATEGORY, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
                 messageSend(new String[]{"open_associated_url", uri.toString()});
             }
             else if (scheme.compareTo("http") == 0 || scheme.compareTo("https") == 0 || scheme.compareTo("ftp") == 0)
             {
                 String name = uri.getLastPathSegment();
 
-                Log.i(TAG, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
-                /*
-                // open directly from http:
+                logInfo(CATEGORY, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
+                // open directly from http, let it download in CastleDownload.pas
                 messageSend(new String[]{"open_associated_url", uri.toString()});
-                /*/
-                try {
-                    String importfilepath = urlDocumentsDir.getAbsolutePath() + "/" + name;
-                    DownloadDataFromUrl(new URL(uri.toString()), importfilepath);
-                }
-                catch (Exception e)
-                {
-                    Log.e(TAG, "URL exception: " + e.getMessage());
-                }
-                //*/
             }
         }
     }
@@ -140,37 +124,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
         }
         catch (Exception e)
         {
-            Log.e(TAG, "InputStreamToFile exception: " + e.getMessage());
+            logError(CATEGORY, "InputStreamToFile exception: " + e.getMessage());
         }
-    }
-
-    private void DownloadDataFromUrl(final URL url, final String file)
-    {
-        Thread thread = new Thread(new Runnable(){
-            @Override
-            public void run(){
-                try {
-                    InputStream inStream = url.openStream();
-
-                    DataInputStream stream = new DataInputStream(inStream);
-                    BufferedInputStream bufferedReader = new BufferedInputStream(stream);
-
-                    InputStreamToFile(bufferedReader, file);
-
-                    stream.close();
-
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {   // run in main thread
-                        @Override
-                        public void run() {
-                            messageSend(new String[]{"open_associated_url", "file://" + file});
-                        }
-                    });
-                }
-                catch (Exception e) {
-                    Log.e(TAG, "DownloadDataFromUrl exception: " + e.getMessage());
-                }
-            }
-        });
-        thread.start();
     }
 }

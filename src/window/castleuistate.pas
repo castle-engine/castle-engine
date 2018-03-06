@@ -29,7 +29,7 @@ type
 
   { UI state, to manage the state of your game UI.
     See also
-    https://castle-engine.sourceforge.io/manual_2d_user_interface.php#section_ui_state
+    https://castle-engine.io/manual_2d_user_interface.php#section_ui_state
     for an overview of using TUIState.
 
     In simple cases, only one state is @italic(current) at a given time,

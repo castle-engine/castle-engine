@@ -373,7 +373,7 @@ bool Init()
         CGE_LoadLibrary();
         // Note: the log output is in
         // c:/Users/<username>/AppData/Local/cpp_winapi_library_tester/cpp_winapi_library_tester.log
-        // See https://castle-engine.sourceforge.io/manual_log.php
+        // See https://castle-engine.io/manual_log.php
         CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, 96, applicationConfigDirectory);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         CGE_SetUserInterface(true);

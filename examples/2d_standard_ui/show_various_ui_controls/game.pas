@@ -40,6 +40,7 @@ var
   Touch: TCastleTouchControl;
   SliderRotation: TCastleFloatSlider;
   Rect1, Rect2, Rect3, Rect4, Circle1, Circle2, Circle3, Circle4: TCastleShape;
+  Switch: TCastleSwitchControl;
 
 type
   TClicksHandler = class
@@ -305,6 +306,12 @@ begin
   Circle4.OutlineThick := true;
   Circle4.OutlineWidth := 1;
   Window.Controls.InsertFront(Circle4);
+
+  Switch := TCastleSwitchControl.Create(Window);
+  Switch.Anchor(vpTop);
+  Switch.Anchor(hpRight);
+  //Switch.Checked := true;
+  Window.Controls.InsertFront(Switch);
 end;
 
 initialization

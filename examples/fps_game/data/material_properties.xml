@@ -27,7 +27,7 @@
     with compressed textures. You will need to install first:
     - build tool: https://github.com/castle-engine/castle-engine/wiki/Build-Tool
     - one of the supported tools to compress to DXTn, see
-      https://castle-engine.sourceforge.io/creating_data_material_properties.php#section_texture_compression
+      https://castle-engine.io/creating_data_material_properties.php#section_texture_compression
       We advice the "NVidia Texture Tools" (libnvtt-bin package on Linux).
 
     The Castle Game Engine will automatically use the compressed textures.

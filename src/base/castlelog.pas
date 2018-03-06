@@ -39,7 +39,7 @@ type
 
 { Initialize logging.
   The default log output is documented on
-  https://castle-engine.sourceforge.io/manual_log.php .
+  https://castle-engine.io/manual_log.php .
 
   @param(ALogStream Where to generate the log.
 

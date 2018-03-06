@@ -11,7 +11,7 @@ import com.helpshift.support.Support;
  */
 public class ServiceHelpshift extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceHelpshift";
+    private static final String CATEGORY = "ServiceHelpshift";
 
     public String getName()
     {

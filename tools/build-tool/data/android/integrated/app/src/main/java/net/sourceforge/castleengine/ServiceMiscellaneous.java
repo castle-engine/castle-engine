@@ -3,7 +3,6 @@ package net.sourceforge.castleengine;
 
 import android.view.View;
 import android.os.Build;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.net.Uri;

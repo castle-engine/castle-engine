@@ -196,6 +196,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/listen_on_x3d_events \
   examples/3d_rendering_processing/cars_demo \
   examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
+  examples/3d_rendering_processing/show_bounding_rect_in_2d \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal \
   examples/3d_sound_game/lets_take_a_walk \

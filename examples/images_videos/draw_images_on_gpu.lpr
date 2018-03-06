@@ -40,7 +40,7 @@ begin
 
     { All of the TGLImage drawing must happen when OpenGL context is active,
       so after Window.Open.
-      In a cross-platform application (https://castle-engine.sourceforge.io/manual_cross_platform.php),
+      In a cross-platform application (https://castle-engine.io/manual_cross_platform.php),
       you would do this in Application.OnInitialize. }
 
     SourceImage := TGLImage.Create(ApplicationData(

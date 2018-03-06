@@ -15,7 +15,7 @@
 */
 
 /* Facebook SDK https://developers.facebook.com/docs/ios/
-   integration with Castle Game Engine https://castle-engine.sourceforge.io/ .
+   integration with Castle Game Engine https://castle-engine.io/ .
 */
 
 #import "../ServiceAbstract.h"

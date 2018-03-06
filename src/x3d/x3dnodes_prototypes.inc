@@ -609,6 +609,9 @@ begin
   if not Child.NeedsInstantiateIsClause then Exit;
   Child.NeedsInstantiateIsClause := false;
 
+  if RebaseRelativeUrlsInPrototypes then
+    Child.BaseUrl := BaseUrl;
+
   for I := 0 to Child.FieldsCount - 1 do
     ExpandField(Child.Fields[I]);
 
@@ -622,7 +625,7 @@ function TX3DPrototypeNode.PrepareInstantiateIsClause(
   Node, Child: TX3DNode): Pointer;
 begin
   Result := nil;
-  if not Child.NeedsInstantiateIsClause then
+  if not (Child.NeedsInstantiateIsClause or (Child is TInlineNode)) then
   begin
     Child.NeedsInstantiateIsClause := true;
     Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.PrepareInstantiateIsClause);

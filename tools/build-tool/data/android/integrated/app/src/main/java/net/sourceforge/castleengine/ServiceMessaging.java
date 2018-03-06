@@ -13,7 +13,7 @@ import android.util.Log;
  */
 public class ServiceMessaging extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceMessaging";
+    private static final String CATEGORY = "ServiceMessaging";
 
     public String getName()
     {
@@ -74,7 +74,7 @@ public class ServiceMessaging extends ServiceAbstract
             if (toNative.size() != 0) {
                 toNativeStr = toNative.get(0);
                 if (debug) {
-                    Log.i(TAG, "JNI: Java posting a message to the native code: " + toNativeStr);
+                    logInfo(CATEGORY, "JNI: Java posting a message to the native code: " + toNativeStr);
                 }
                 somethingHappened = true;
                 toNative.remove(0);
@@ -83,12 +83,12 @@ public class ServiceMessaging extends ServiceAbstract
             String message = getActivity().jniMessage(toNativeStr);
             if (message != null && message.length() != 0) {
                 if (debug) {
-                    Log.i(TAG, "JNI: Java received message from native code: " + message);
+                    logInfo(CATEGORY, "JNI: Java received message from native code: " + message);
                 }
                 somethingHappened = true;
                 String[] parts = splitString(message, MESSAGE_DELIMITER_CODE);
                 if (!getActivity().messageReceived(parts)) {
-                    Log.w(TAG, "Message unhandled: " + glueStringArray(parts, 0, "\n"));
+                    logWarning(CATEGORY, "Message unhandled: " + glueStringArray(parts, 0, "\n"));
                 }
             }
 
