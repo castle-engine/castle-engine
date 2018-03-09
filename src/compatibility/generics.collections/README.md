@@ -21,6 +21,10 @@ See:
 - https://svn.freepascal.org/svn/fpc/trunk/packages/rtl-generics/
   (You can do "svn checkout ..." on this URL to easily download whole directory.)
 
+(Note: We do not use "git submodules" to include one repository inside another,
+because git submodules are not automatically cloned, and we need this to work
+for all new users that get our code from GitHub.)
+
 ## How to use
 
 Both the original version in
