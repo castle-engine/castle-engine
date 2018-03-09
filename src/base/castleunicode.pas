@@ -31,7 +31,7 @@ type
   TUnicodeCharList = class(TCardinalList)
   public
     { Add a single Unicode character. }
-    procedure Add(const C: TUnicodeChar); overload;
+    procedure Add(const C: TUnicodeChar); reintroduce; overload;
     { Add all characters from SampleText.
       Useful to fill TUnicodeCharList
       when you have a sample text of international letters. }

@@ -43,7 +43,7 @@ type
       value, and add it to Items.
       FieldOrEvent is added to FieldOrEvents list, so we keep
       all information. }
-    procedure Add(FieldOrEvent: TX3DFieldOrEvent);
+    procedure Add(FieldOrEvent: TX3DFieldOrEvent); reintroduce;
 
     procedure BeforeExecute;
     procedure AfterExecute(const Time: TX3DTime);

@@ -410,7 +410,7 @@
       already is a selected item in this group. If the added
       item already has Item.Checked = @false then for sure
       it will not be changed (SelectedIndex can be left as -1). }
-    procedure Add(Item: TMenuItemRadio);
+    procedure Add(Item: TMenuItemRadio); reintroduce;
 
     procedure Remove(Item: TMenuItemRadio);
 

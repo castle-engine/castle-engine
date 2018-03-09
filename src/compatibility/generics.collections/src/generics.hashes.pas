@@ -14,6 +14,14 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+    Acknowledgment
+
+    Thanks to Sphere 10 Software (http://sphere10.com) for sponsoring
+    many new types and major refactoring of entire library.
+
+    Thanks to mORMot (http://synopse.info) project for the best implementations
+    of hashing functions like crc32c and xxHash32 :)
+
  **********************************************************************}
 
 unit Generics.Hashes;
@@ -64,6 +72,14 @@ function SimpleChecksumHash(AKey: Pointer; ALength: SizeInt): UInt32;
 // https://code.google.com/p/hedgewars/source/browse/hedgewars/adler32.pas
 function Adler32(AKey: Pointer; ALength: SizeInt): UInt32;
 function sdbm(AKey: Pointer; ALength: SizeInt): UInt32;
+function xxHash32(crc: cardinal; P: Pointer; len: integer): cardinal;
+
+type
+  THasher = function(crc: cardinal; buf: Pointer; len: cardinal): cardinal;
+
+var
+  crc32c: THasher;
+  mORMotHasher: THasher;
 
 implementation
 
@@ -911,5 +927,657 @@ begin
   Result := Int32(c);
 end;
 
+{$ifdef CPU64}
+  {$define PUREPASCAL}
+  {$ifdef CPUX64}
+    {$define CPUINTEL}
+    {$ASMMODE INTEL}
+  {$endif CPUX64}
+{$else}
+  {$ifdef CPUX86}
+    {$define CPUINTEL}
+    {$ASMMODE INTEL}
+  {$else CPUX86}
+  {$define PUREPASCAL}
+  {$endif}
+{$endif CPU64}
+
+{$ifdef CPUARM} // circumvent FPC issue on ARM
+function ToByte(value: cardinal): cardinal; inline;
+begin
+  result := value and $ff;
+end;
+{$else}
+type ToByte = byte;
+{$endif}
+
+{$ifdef CPUINTEL} // use optimized x86/x64 asm versions for xxHash32
+
+{$ifdef CPUX86}
+function xxHash32(crc: cardinal; P: Pointer; len: integer): cardinal;
+asm
+        xchg    edx, ecx
+        push    ebp
+        push    edi
+        lea     ebp, [ecx+edx]
+        push    esi
+        push    ebx
+        sub     esp, 8
+        cmp     edx, 15
+        mov     ebx, eax
+        mov     dword ptr [esp], edx
+        lea     eax, [ebx+165667B1H]
+        jbe     @2
+        lea     eax, [ebp-10H]
+        lea     edi, [ebx+24234428H]
+        lea     esi, [ebx-7A143589H]
+        mov     dword ptr [esp+4H], ebp
+        mov     edx, eax
+        lea     eax, [ebx+61C8864FH]
+        mov     ebp, edx
+@1:     mov     edx, dword ptr [ecx]
+        imul    edx, edx, -2048144777
+        add     edi, edx
+        rol     edi, 13
+        imul    edi, edi, -1640531535
+        mov     edx, dword ptr [ecx+4]
+        imul    edx, edx, -2048144777
+        add     esi, edx
+        rol     esi, 13
+        imul    esi, esi, -1640531535
+        mov     edx, dword ptr [ecx+8]
+        imul    edx, edx, -2048144777
+        add     ebx, edx
+        rol     ebx, 13
+        imul    ebx, ebx, -1640531535
+        mov     edx, dword ptr [ecx+12]
+        lea     ecx, [ecx+16]
+        imul    edx, edx, -2048144777
+        add     eax, edx
+        rol     eax, 13
+        imul    eax, eax, -1640531535
+        cmp     ebp, ecx
+        jnc     @1
+        rol     edi, 1
+        rol     esi, 7
+        rol     ebx, 12
+        add     esi, edi
+        mov     ebp, dword ptr [esp+4H]
+        ror     eax, 14
+        add     ebx, esi
+        add     eax, ebx
+@2:     lea     esi, [ecx+4H]
+        add     eax, dword ptr [esp]
+        cmp     ebp, esi
+        jc      @4
+        mov     ebx, esi
+        nop
+@3:     imul    edx, dword ptr [ebx-4H], -1028477379
+        add     ebx, 4
+        add     eax, edx
+        ror     eax, 15
+        imul    eax, eax, 668265263
+        cmp     ebp, ebx
+        jnc     @3
+        lea     edx, [ebp-4H]
+        sub     edx, ecx
+        mov     ecx, edx
+        and     ecx, 0FFFFFFFCH
+        add     ecx, esi
+@4:     cmp     ebp, ecx
+        jbe     @6
+@5:     movzx   edx, byte ptr [ecx]
+        add     ecx, 1
+        imul    edx, edx, 374761393
+        add     eax, edx
+        rol     eax, 11
+        imul    eax, eax, -1640531535
+        cmp     ebp, ecx
+        jnz     @5
+        nop
+@6:     mov     edx, eax
+        add     esp, 8
+        shr     edx, 15
+        xor     eax, edx
+        imul    eax, eax, -2048144777
+        pop     ebx
+        pop     esi
+        mov     edx, eax
+        shr     edx, 13
+        xor     eax, edx
+        imul    eax, eax, -1028477379
+        pop     edi
+        pop     ebp
+        mov     edx, eax
+        shr     edx, 16
+        xor     eax, edx
+end;
+{$endif CPUX86}
+
+{$ifdef CPUX64}
+function xxHash32(crc: cardinal; P: Pointer; len: integer): cardinal;
+asm
+        {$ifdef LINUX} // crc=rdi P=rsi len=rdx
+        mov     r8, rdi
+        mov     rcx, rsi
+        {$else} // crc=r8 P=rcx len=rdx
+        mov     r10, r8
+        mov     r8, rcx
+        mov     rcx, rdx
+        mov     rdx, r10
+        push    rsi   // Win64 expects those registers to be preserved
+        push    rdi
+        {$endif}
+        // P=r8 len=rcx crc=rdx
+        push    rbx
+        lea     r10, [rcx+rdx]
+        cmp     rdx, 15
+        lea     eax, [r8+165667B1H]
+        jbe     @2
+        lea     rsi, [r10-10H]
+        lea     ebx, [r8+24234428H]
+        lea     edi, [r8-7A143589H]
+        lea     eax, [r8+61C8864FH]
+@1:     imul    r9d, dword ptr [rcx], -2048144777
+        add     rcx, 16
+        imul    r11d, dword ptr [rcx-0CH], -2048144777
+        add     ebx, r9d
+        lea     r9d, [r11+rdi]
+        rol     ebx, 13
+        rol     r9d, 13
+        imul    ebx, ebx, -1640531535
+        imul    edi, r9d, -1640531535
+        imul    r9d, dword ptr [rcx-8H], -2048144777
+        add     r8d, r9d
+        imul    r9d, dword ptr [rcx-4H], -2048144777
+        rol     r8d, 13
+        imul    r8d, r8d, -1640531535
+        add     eax, r9d
+        rol     eax, 13
+        imul    eax, eax, -1640531535
+        cmp     rsi, rcx
+        jnc     @1
+        rol     edi, 7
+        rol     ebx, 1
+        rol     r8d, 12
+        mov     r9d, edi
+        ror     eax, 14
+        add     r9d, ebx
+        add     r8d, r9d
+        add     eax, r8d
+@2:     lea     r9, [rcx+4H]
+        add     eax, edx
+        cmp     r10, r9
+        jc      @4
+        mov     r8, r9
+@3:     imul    edx, dword ptr [r8-4H], -1028477379
+        add     r8, 4
+        add     eax, edx
+        ror     eax, 15
+        imul    eax, eax, 668265263
+        cmp     r10, r8
+        jnc     @3
+        lea     rdx, [r10-4H]
+        sub     rdx, rcx
+        mov     rcx, rdx
+        and     rcx, 0FFFFFFFFFFFFFFFCH
+        add     rcx, r9
+@4:     cmp     r10, rcx
+        jbe     @6
+@5:     movzx   edx, byte ptr [rcx]
+        add     rcx, 1
+        imul    edx, edx, 374761393
+        add     eax, edx
+        rol     eax, 11
+        imul    eax, eax, -1640531535
+        cmp     r10, rcx
+        jnz     @5
+@6:     mov     edx, eax
+        shr     edx, 15
+        xor     eax, edx
+        imul    eax, eax, -2048144777
+        mov     edx, eax
+        shr     edx, 13
+        xor     eax, edx
+        imul    eax, eax, -1028477379
+        mov     edx, eax
+        shr     edx, 16
+        xor     eax, edx
+        pop     rbx
+        {$ifndef LINUX}
+        pop     rdi
+        pop     rsi
+        {$endif}
+end;
+{$endif CPUX64}
+
+{$else not CPUINTEL}
+const
+  PRIME32_1 = 2654435761;
+  PRIME32_2 = 2246822519;
+  PRIME32_3 = 3266489917;
+  PRIME32_4 = 668265263;
+  PRIME32_5 = 374761393;
+
+// RolDWord is an intrinsic function under FPC :)
+function Rol13(value: cardinal): cardinal; inline;
+begin
+  result := RolDWord(value, 13);
+end;
+
+function xxHash32(crc: cardinal; P: Pointer; len: integer): cardinal;
+var c1, c2, c3, c4: cardinal;
+    PLimit, PEnd: PAnsiChar;
+begin
+  PEnd := P + len;
+  if len >= 16 then begin
+    PLimit := PEnd - 16;
+    c3 := crc;
+    c2 := c3 + PRIME32_2;
+    c1 := c2 + PRIME32_1;
+    c4 := c3 - PRIME32_1;
+    repeat
+      c1 := PRIME32_1 * Rol13(c1 + PRIME32_2 * PCardinal(P)^);
+      c2 := PRIME32_1 * Rol13(c2 + PRIME32_2 * PCardinal(P+4)^);
+      c3 := PRIME32_1 * Rol13(c3 + PRIME32_2 * PCardinal(P+8)^);
+      c4 := PRIME32_1 * Rol13(c4 + PRIME32_2 * PCardinal(P+12)^);
+      inc(P, 16);
+    until not (P <= PLimit);
+    result := RolDWord(c1, 1) + RolDWord(c2, 7) + RolDWord(c3, 12) + RolDWord(c4, 18);
+  end else
+    result := crc + PRIME32_5;
+  inc(result, len);
+  while P <= PEnd - 4 do begin
+    inc(result, PCardinal(P)^ * PRIME32_3);
+    result := RolDWord(result, 17) * PRIME32_4;
+    inc(P, 4);
+  end;
+  while P < PEnd do begin
+    inc(result, PByte(P)^ * PRIME32_5);
+    result := RolDWord(result, 11) * PRIME32_1;
+    inc(P);
+  end;
+  result := result xor (result shr 15);
+  result := result * PRIME32_2;
+  result := result xor (result shr 13);
+  result := result * PRIME32_3;
+  result := result xor (result shr 16);
+end;
+{$endif CPUINTEL}
+
+{$ifdef CPUINTEL}
+
+type
+ TRegisters = record
+   eax,ebx,ecx,edx: cardinal;
+ end;
+
+{$ifdef CPU64}
+procedure GetCPUID(Param: Cardinal; var Registers: TRegisters); nostackframe; assembler;
+asm
+        {$ifdef win64}
+        mov     eax, ecx
+        mov     r9, rdx
+        {$else}
+        mov     eax, edi
+        mov     r9, rsi
+        {$endif win64}
+        mov     r10, rbx // preserve rbx
+        xor     ebx, ebx
+        xor     ecx, ecx
+        xor     edx, edx
+        cpuid
+        mov     TRegisters(r9).&eax, eax
+        mov     TRegisters(r9).&ebx, ebx
+        mov     TRegisters(r9).&ecx, ecx
+        mov     TRegisters(r9).&edx, edx
+        mov     rbx, r10
+end;
+
+function crc32csse42(crc: cardinal; buf: Pointer; len: cardinal): cardinal; nostackframe; assembler;
+asm // ecx=crc, rdx=buf, r8=len (Linux: edi,rsi,rdx)
+        {$ifdef win64}
+        mov     eax, ecx
+        {$else}
+        mov     eax, edi
+        mov     r8, rdx
+        mov     rdx, rsi
+        {$endif win64}
+        not     eax
+        test    rdx, rdx
+        jz      @0
+        test    r8, r8
+        jz      @0
+@7:     test    dl, 7
+        jz      @8 // align to 8 bytes boundary
+        crc32   eax, byte ptr[rdx]
+        inc     rdx
+        dec     r8
+        jz      @0
+        test    dl, 7
+        jnz     @7
+@8:     mov     rcx, r8
+        shr     r8, 3
+        jz      @2
+@1:
+        crc32   rax, qword [rdx] // hash 8 bytes per loop
+        dec     r8
+        lea     rdx, [rdx + 8]
+        jnz     @1
+@2:     and     ecx, 7
+        jz      @0
+        cmp     ecx, 4
+        jb      @4
+        crc32   eax, dword ptr[rdx]
+        sub     ecx, 4
+        lea     rdx, [rdx + 4]
+        jz      @0
+@4:     crc32   eax, byte ptr[rdx]
+        dec     ecx
+        jz      @0
+        crc32   eax, byte ptr[rdx + 1]
+        dec     ecx
+        jz      @0
+        crc32   eax, byte ptr[rdx + 2]
+@0:     not     eax
+end;
+{$endif CPU64}
+
+{$ifdef CPUX86}
+procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+asm
+        push    esi
+        push    edi
+        mov     esi, edx
+        mov     edi, eax
+        pushfd
+        pop     eax
+        mov     edx, eax
+        xor     eax, $200000
+        push    eax
+        popfd
+        pushfd
+        pop     eax
+        xor     eax, edx
+        jz      @nocpuid
+        push    ebx
+        mov     eax, edi
+        xor     ecx, ecx
+        cpuid
+        mov     TRegisters(esi).&eax, eax
+        mov     TRegisters(esi).&ebx, ebx
+        mov     TRegisters(esi).&ecx, ecx
+        mov     TRegisters(esi).&edx, edx
+        pop     ebx
+@nocpuid:
+        pop     edi
+        pop     esi
+end;
+
+function crc32csse42(crc: cardinal; buf: Pointer; len: cardinal): cardinal;
+asm // eax=crc, edx=buf, ecx=len
+        not     eax
+        test    ecx, ecx
+        jz      @0
+        test    edx, edx
+        jz      @0
+@3:     test    edx, 3
+        jz      @8 // align to 4 bytes boundary
+        crc32   eax, byte ptr[edx]
+        inc     edx
+        dec     ecx
+        jz      @0
+        test    edx, 3
+        jnz     @3
+@8:     push    ecx
+        shr     ecx, 3
+        jz      @2
+@1:
+        crc32   eax, dword ptr[edx]
+        crc32   eax, dword ptr[edx + 4]
+        dec     ecx
+        lea     edx, [edx + 8]
+        jnz     @1
+@2:     pop     ecx
+        and     ecx, 7
+        jz      @0
+        cmp     ecx, 4
+        jb      @4
+        crc32   eax, dword ptr[edx]
+        sub     ecx, 4
+        lea     edx, [edx + 4]
+        jz      @0
+@4:
+        crc32   eax, byte ptr[edx]
+        dec     ecx
+        jz      @0
+        crc32   eax, byte ptr[edx + 1]
+        dec     ecx
+        jz      @0
+        crc32   eax, byte ptr[edx + 2]
+@0:     not     eax
+end;
+{$endif CPUX86}
+
+type
+  /// the potential features, retrieved from an Intel CPU
+  // - see https://en.wikipedia.org/wiki/CPUID#EAX.3D1:_Processor_Info_and_Feature_Bits
+  TIntelCpuFeature =
+   ( { in EDX }
+   cfFPU, cfVME, cfDE, cfPSE, cfTSC, cfMSR, cfPAE, cfMCE,
+   cfCX8, cfAPIC, cf_d10, cfSEP, cfMTRR, cfPGE, cfMCA, cfCMOV,
+   cfPAT, cfPSE36, cfPSN, cfCLFSH, cf_d20, cfDS, cfACPI, cfMMX,
+   cfFXSR, cfSSE, cfSSE2, cfSS, cfHTT, cfTM, cfIA64, cfPBE,
+   { in ECX }
+   cfSSE3, cfCLMUL, cfDS64, cfMON, cfDSCPL, cfVMX, cfSMX, cfEST,
+   cfTM2, cfSSSE3, cfCID, cfSDBG, cfFMA, cfCX16, cfXTPR, cfPDCM,
+   cf_c16, cfPCID, cfDCA, cfSSE41, cfSSE42, cfX2A, cfMOVBE, cfPOPCNT,
+   cfTSC2, cfAESNI, cfXS, cfOSXS, cfAVX, cfF16C, cfRAND, cfHYP,
+   { extended features in EBX, ECX }
+   cfFSGS, cf_b01, cfSGX, cfBMI1, cfHLE, cfAVX2, cf_b06, cfSMEP,
+   cfBMI2, cfERMS, cfINVPCID, cfRTM, cfPQM, cf_b13, cfMPX, cfPQE,
+   cfAVX512F, cfAVX512DQ, cfRDSEED, cfADX, cfSMAP, cfAVX512IFMA, cfPCOMMIT, cfCLFLUSH,
+   cfCLWB, cfIPT, cfAVX512PF, cfAVX512ER, cfAVX512CD, cfSHA, cfAVX512BW, cfAVX512VL,
+   cfPREFW1, cfAVX512VBMI, cfUMIP, cfPKU, cfOSPKE, cf_c05, cf_c06, cf_c07,
+   cf_c08, cf_c09, cf_c10, cf_c11, cf_c12, cf_c13, cfAVX512VPC, cf_c15,
+   cf_cc16, cf_c17, cf_c18, cf_c19, cf_c20, cf_c21, cfRDPID, cf_c23,
+   cf_c24, cf_c25, cf_c26, cf_c27, cf_c28, cf_c29, cfSGXLC, cf_c31,
+   cf_d0, cf_d1, cfAVX512NNI, cfAVX512MAS, cf_d4, cf_d5, cf_d6, cf_d7);
+
+  /// all features, as retrieved from an Intel CPU
+  TIntelCpuFeatures = set of TIntelCpuFeature;
+
+var
+  /// the available CPU features, as recognized at program startup
+  CpuFeatures: TIntelCpuFeatures;
+
+procedure TestIntelCpuFeatures;
+var regs: TRegisters;
+begin
+  regs.edx := 0;
+  regs.ecx := 0;
+  GetCPUID(1,regs);
+  PIntegerArray(@CpuFeatures)^[0] := regs.edx;
+  PIntegerArray(@CpuFeatures)^[1] := regs.ecx;
+  GetCPUID(7,regs);
+  PIntegerArray(@CpuFeatures)^[2] := regs.ebx;
+  PIntegerArray(@CpuFeatures)^[3] := regs.ecx;
+  PByte(@PIntegerArray(@CpuFeatures)^[4])^ := regs.edx;
+//  assert(sizeof(CpuFeatures)=4*4+1);
+  {$ifdef Darwin}
+  {$ifdef CPU64}
+  // SSE42 asm does not (yet) work on Darwin x64 ...
+  Exclude(CpuFeatures, cfSSE42);
+  {$endif}
+  {$endif}
+end;
+{$endif CPUINTEL}
+
+var
+  crc32ctab: array[0..{$ifdef PUREPASCAL}3{$else}7{$endif},byte] of cardinal;
+
+function crc32cfast(crc: cardinal; buf: Pointer; len: cardinal): cardinal;
+{$ifdef PUREPASCAL}
+begin
+  result := not crc;
+  if (buf<>nil) and (len>0) then begin
+    repeat
+      if PtrUInt(buf) and 3=0 then // align to 4 bytes boundary
+        break;
+      result := crc32ctab[0,ToByte(result xor cardinal(buf^))] xor (result shr 8);
+      dec(len);
+      inc(buf);
+    until len=0;
+    while len>=4 do begin
+      result := result xor PCardinal(buf)^;
+      inc(buf,4);
+      result := crc32ctab[3,ToByte(result)] xor
+                crc32ctab[2,ToByte(result shr 8)] xor
+                crc32ctab[1,ToByte(result shr 16)] xor
+                crc32ctab[0,result shr 24];
+      dec(len,4);
+    end;
+    while len>0 do begin
+      result := crc32ctab[0,ToByte(result xor cardinal(buf^))] xor (result shr 8);
+      dec(len);
+      inc(buf);
+    end;
+  end;
+  result := not result;
+end;
+{$else}
+// adapted from fast Aleksandr Sharahov version
+asm
+        test    edx, edx
+        jz      @ret
+        neg     ecx
+        jz      @ret
+        not     eax
+        push    ebx
+@head:  test    dl, 3
+        jz      @aligned
+        movzx   ebx, byte[edx]
+        inc     edx
+        xor     bl, al
+        shr     eax, 8
+        xor     eax, dword ptr[ebx * 4 + crc32ctab]
+        inc     ecx
+        jnz     @head
+        pop     ebx
+        not     eax
+        ret
+@ret:   rep     ret
+@aligned:
+        sub     edx, ecx
+        add     ecx, 8
+        jg      @bodydone
+        push    esi
+        push    edi
+        mov     edi, edx
+        mov     edx, eax
+@bodyloop:
+        mov     ebx, [edi + ecx - 4]
+        xor     edx, [edi + ecx - 8]
+        movzx   esi, bl
+        mov     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 3]
+        movzx   esi, bh
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 2]
+        shr     ebx, 16
+        movzx   esi, bl
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 1]
+        movzx   esi, bh
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 0]
+        movzx   esi, dl
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 7]
+        movzx   esi, dh
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 6]
+        shr     edx, 16
+        movzx   esi, dl
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 5]
+        movzx   esi, dh
+        xor     eax, dword ptr[esi * 4 + crc32ctab + 1024 * 4]
+        add     ecx, 8
+        jg      @done
+        mov     ebx, [edi + ecx - 4]
+        xor     eax, [edi + ecx - 8]
+        movzx   esi, bl
+        mov     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 3]
+        movzx   esi, bh
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 2]
+        shr     ebx, 16
+        movzx   esi, bl
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 1]
+        movzx   esi, bh
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 0]
+        movzx   esi, al
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 7]
+        movzx   esi, ah
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 6]
+        shr     eax, 16
+        movzx   esi, al
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 5]
+        movzx   esi, ah
+        xor     edx, dword ptr[esi * 4 + crc32ctab + 1024 * 4]
+        add     ecx, 8
+        jle     @bodyloop
+        mov     eax, edx
+@done:  mov     edx, edi
+        pop     edi
+        pop     esi
+@bodydone:
+        sub     ecx, 8
+        jl      @tail
+        pop     ebx
+        not     eax
+        ret
+@tail:  movzx   ebx, byte[edx + ecx]
+        xor     bl, al
+        shr     eax, 8
+        xor     eax, dword ptr[ebx * 4 + crc32ctab]
+        inc     ecx
+        jnz     @tail
+        pop     ebx
+        not     eax
+end;
+{$endif PUREPASCAL}
+
+procedure InitializeCrc32ctab;
+var
+  i, n: integer;
+  crc: cardinal;
+begin
+  // initialize tables for crc32cfast() and SymmetricEncrypt/FillRandom
+  for i := 0 to 255 do begin
+    crc := i;
+    for n := 1 to 8 do
+      if (crc and 1)<>0 then // polynom is not the same as with zlib's crc32()
+        crc := (crc shr 1) xor $82f63b78 else
+        crc := crc shr 1;
+    crc32ctab[0,i] := crc;
+  end;
+  for i := 0 to 255 do begin
+    crc := crc32ctab[0,i];
+    for n := 1 to high(crc32ctab) do begin
+      crc := (crc shr 8) xor crc32ctab[0,ToByte(crc)];
+      crc32ctab[n,i] := crc;
+    end;
+  end;
+end;
+
+begin
+  {$ifdef CPUINTEL}
+  TestIntelCpuFeatures;
+  if cfSSE42 in CpuFeatures then
+  begin
+    crc32c := @crc32csse42;
+    mORMotHasher := @crc32csse42;
+  end
+  else
+  {$endif CPUINTEL}
+  begin
+    InitializeCrc32ctab;
+    crc32c := @crc32cfast;
+    mORMotHasher := @xxHash32;
+  end;
 end.
 

@@ -85,7 +85,7 @@
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
     procedure SaveToStream(Writer: TX3DWriter);
-    procedure Add(Item: TX3DFileItem);
+    procedure Add(Item: TX3DFileItem); reintroduce;
   end;
 
 {$endif read_interface}

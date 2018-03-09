@@ -16,6 +16,14 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+    Acknowledgment
+
+    Thanks to Sphere 10 Software (http://sphere10.com) for sponsoring
+    many new types and major refactoring of entire library
+
+    Thanks to mORMot (http://synopse.info) project for the best implementations
+    of hashing functions like crc32c and xxHash32 :)
+
  **********************************************************************}
 
 {$WARNINGS OFF}
@@ -44,8 +52,7 @@ type
     PKey = ^TKey;
     PValue = ^TValue;
     THashFactoryClass = THashFactory;
-  public
-    FItemsLength: SizeInt;
+  protected
     FEqualityComparer: IEqualityComparer<TKey>;
     FKeys: TEnumerable<TKey>;
     FValues: TEnumerable<TValue>;
@@ -63,8 +70,6 @@ type
     property LoadFactor: single read GetLoadFactor;
     property Capacity: SizeInt read GetCapacity write SetCapacity;
 
-    property Count: SizeInt read FItemsLength;
-
     procedure Clear; virtual; abstract;
     procedure Add(constref APair: TPair<TKey, TValue>); virtual; abstract;
   strict private // bug #24283. workaround for this class because can't inherit from TEnumerable
@@ -78,6 +83,10 @@ type
     constructor Create(const AComparer: IEqualityComparer<TKey>); overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>); virtual; overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); virtual; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>); virtual; overload;
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); virtual; overload;
+    {$ENDIF}
 
     destructor Destroy; override;
   private
@@ -88,11 +97,15 @@ type
 
     procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); virtual;
     procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); virtual;
-    procedure PairNotify(constref APair: TPair<TKey, TValue>; ACollectionNotification: TCollectionNotification); inline;
+    procedure PairNotify(constref APair: TDictionaryPair; ACollectionNotification: TCollectionNotification); inline;
     procedure SetValue(var AValue: TValue; constref ANewValue: TValue);
   public
     property OnKeyNotify: TCollectionNotifyEvent<TKey> read FOnKeyNotify write FOnKeyNotify;
     property OnValueNotify: TCollectionNotifyEvent<TValue> read FOnValueNotify write FOnValueNotify;
+  protected // FItemsLength must be declared at the end of TCustomDictionary
+    FItemsLength: SizeInt;
+  public
+    property Count: SizeInt read FItemsLength;
   end;
 
   { TCustomDictionaryEnumerator }
@@ -110,25 +123,50 @@ type
 
   { TDictionaryEnumerable }
 
-  TDictionaryEnumerable<TDictionaryEnumerator: TObject; // ... inherits from TCustomDictionaryEnumerator. workaround...
-    T, CUSTOM_DICTIONARY_CONSTRAINTS> = class abstract(TEnumerable<T>)
+  TDictionaryEnumerable<TDictionaryEnumerator: TObject; TDictionaryPointersEnumerator, // ... inherits from TCustomDictionaryEnumerator. workaround...
+    T, CUSTOM_DICTIONARY_CONSTRAINTS> = class abstract(TEnumerableWithPointers<T>)
   private
     FDictionary: TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>;
     function GetCount: SizeInt;
+  protected
+    function GetPtrEnumerator: TEnumerator<PT>; override;
+    function DoGetEnumerator: TDictionaryEnumerator; override;
   public
     constructor Create(ADictionary: TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>);
-    function DoGetEnumerator: TDictionaryEnumerator; override;
     function ToArray: TArray<T>; override; final;
     property Count: SizeInt read GetCount;
   end;
 
   // more info : http://en.wikipedia.org/wiki/Open_addressing
 
-  { TDictionaryEnumerable }
+  { TOpenAddressingEnumerator }
 
   TOpenAddressingEnumerator<T, OPEN_ADDRESSING_CONSTRAINTS> = class abstract(TCustomDictionaryEnumerator<T, CUSTOM_DICTIONARY_CONSTRAINTS>)
   protected
     function DoMoveNext: Boolean; override;
+  end;
+
+  TOpenAddressingPointersEnumerator<TItem, PDictionaryPair> = class abstract(TEnumerator<PDictionaryPair>)
+  private var
+    FItems: ^TArray<TItem>;
+    FIndex: SizeInt;
+  protected
+    function DoMoveNext: boolean; override;
+    function DoGetCurrent: PDictionaryPair; override;
+    function GetCurrent: PDictionaryPair; virtual;
+  public
+    constructor Create(var AItems);
+  end;
+
+  TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair> = record
+  private type
+    PArray = ^TArray<TItem>;
+    function Items: PArray; inline;
+    function GetCount: SizeInt; inline;
+  public
+    function GetEnumerator: TPointersEnumerator;
+    function ToArray: TArray<PDictionaryPair>;
+    property Count: SizeInt read GetCount;
   end;
 
   TOnGetMemoryLayoutKeyPosition = procedure(Sender: TObject; AKeyPos: UInt32) of object;
@@ -142,12 +180,16 @@ type
     end;
 
     TItemsArray = array of TItem;
-  private var
-    FItemsThreshold: SizeInt;
+    TPointersEnumerator = class(TOpenAddressingPointersEnumerator<TItem, PDictionaryPair>);
+    TPointersCollection = TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>;
+  public type
+    PPointersCollection = ^TPointersCollection;
+  private var // FItems must be declared as first field 
     FItems: TItemsArray;
+    FItemsThreshold: SizeInt;
 
     procedure Resize(ANewSize: SizeInt);
-    function PrepareAddingItem: SizeInt;
+    procedure PrepareAddingItem;
   protected
     function RealItemsLength: SizeInt; virtual;
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
@@ -166,21 +208,32 @@ type
         function GetCurrent: TValue; override;
       end;
 
+      TPValueEnumerator = class(TOpenAddressingEnumerator<PValue, OPEN_ADDRESSING_CONSTRAINTS>)
+      protected
+        function GetCurrent: PValue; override;
+      end;
+
       TKeyEnumerator = class(TOpenAddressingEnumerator<TKey, OPEN_ADDRESSING_CONSTRAINTS>)
       protected
         function GetCurrent: TKey; override;
       end;
 
-      // Collections
-      TValueCollection = class(TDictionaryEnumerable<TValueEnumerator, TValue, CUSTOM_DICTIONARY_CONSTRAINTS>);
+      TPKeyEnumerator = class(TOpenAddressingEnumerator<PKey, OPEN_ADDRESSING_CONSTRAINTS>)
+      protected
+        function GetCurrent: PKey; override;
+      end;
 
-      TKeyCollection = class(TDictionaryEnumerable<TKeyEnumerator, TKey, CUSTOM_DICTIONARY_CONSTRAINTS>);
+      // Collections
+      TValueCollection = class(TDictionaryEnumerable<TValueEnumerator, TPValueEnumerator, TValue, CUSTOM_DICTIONARY_CONSTRAINTS>);
+
+      TKeyCollection = class(TDictionaryEnumerable<TKeyEnumerator, TPKeyEnumerator, TKey, CUSTOM_DICTIONARY_CONSTRAINTS>);
 
     // bug #24283 - workaround related to lack of DoGetEnumerator
     function GetEnumerator: TPairEnumerator; reintroduce;
   private
     function GetKeys: TKeyCollection;
     function GetValues: TValueCollection;
+    function GetPointers: PPointersCollection; inline;
   private
     function GetItem(const AKey: TKey): TValue; inline;
     procedure SetItem(const AKey: TKey; const AValue: TValue); inline;
@@ -217,6 +270,7 @@ type
     property Items[Index: TKey]: TValue read GetItem write SetItem; default;
     property Keys: TKeyCollection read GetKeys;
     property Values: TValueCollection read GetValues;
+    property Ptr: PPointersCollection read GetPointers;
 
     procedure GetMemoryLayout(const AOnGetMemoryLayoutKeyPosition: TOnGetMemoryLayoutKeyPosition);
   end;
@@ -296,12 +350,21 @@ type
     constructor Create(ACapacity: SizeInt; const AComparer: IEqualityComparer<TKey>); override; overload;
     constructor Create(const AComparer: IEqualityComparer<TKey>); reintroduce; overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); override; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); override; overload;
+    {$ENDIF}
   public // bug #26181 (redundancy of constructors)
     constructor Create(ACapacity: SizeInt); override; overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>); override; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>); override; overload;
+    {$ENDIF}
     constructor Create(ACapacity: SizeInt; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
     constructor Create(const AComparer: IExtendedEqualityComparer<TKey>); overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
+    {$ENDIF}
   end;
 
   TDeamortizedDArrayCuckooMapEnumerator<T, CUCKOO_CONSTRAINTS> = class abstract(TCustomDictionaryEnumerator<T, CUSTOM_DICTIONARY_CONSTRAINTS>)
@@ -319,6 +382,32 @@ type
     constructor Create(ADictionary: TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>);
   end;
 
+  TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair> = class abstract(TEnumerator<PDictionaryPair>)
+  private var // FItems must be declared as first field and FQueue as second
+    FItems: ^TItemsDArray;
+    FQueue: TQueueDictionary;
+    FIndex: SizeInt;
+    FMainIndex: SizeInt;
+  protected
+    function DoMoveNext: boolean; override;
+    function DoGetCurrent: PDictionaryPair; override;
+    function GetCurrent: PDictionaryPair; virtual;
+  public
+    constructor Create(var AItems; AQueue: TQueueDictionary; ACount: SizeInt);
+  end;
+
+  TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair> = record
+  private type
+    PArray = ^TItemsDArray;
+    function Items: PArray; inline;
+    function GetCount: SizeInt; inline;
+    function GetQueue: TQueueDictionary; inline;
+  public
+    function GetEnumerator: TPointersEnumerator;
+    function ToArray: TArray<PDictionaryPair>;
+    property Count: SizeInt read GetCount;
+  end;
+
   // more info :
   // http://arxiv.org/abs/0903.0391
 
@@ -334,7 +423,7 @@ type
     end;
     TValueForQueue = TItem;
 
-    TQueueDictionary = class(TOpenAddressingLP<TKey, TValueForQueue, TDelphiHashFactory, TLinearProbing>)
+    TQueueDictionary = class(TOpenAddressingLP<TKey, TValueForQueue, TDefaultHashFactory, TLinearProbing>)
     private type // for workaround Lazarus bug #25613
       _TItem = record
         Hash: UInt32;
@@ -355,16 +444,20 @@ type
     end;
 
     // cycle-detection mechanism class
-    TCDM = class(TOpenAddressingSH<TKey, TEmptyRecord, TDelphiHashFactory, TLinearProbing>);
+    TCDM = class(TOpenAddressingSH<TKey, TEmptyRecord, TDefaultHashFactory, TLinearProbing>);
     TItemsArray = array of TItem;
     TItemsDArray = array[0..Pred(TCuckooCfg.D)] of TItemsArray;
+    TPointersEnumerator = class(TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>);
+    TPointersCollection = TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>;
+  public type
+    PPointersCollection = ^TPointersCollection;
   private var
+    FItems: TItemsDArray;
     FQueue: TQueueDictionary;  // probably can be optimized - hash TItem give information from TItem.Hash for cuckoo ...
       // currently is kept in "TQueueDictionary = class(TOpenAddressingSH<TKey, TItem, ...>"
 
     FCDM: TCDM; // cycle-detection mechanism
     FItemsThreshold: SizeInt;
-    FItems: TItemsDArray;
   // sadly there is bug #24848 for class var ...
   {class} var
     CUCKOO_SIGN, CUCKOO_INDEX_SIZE, CUCKOO_HASH_SIGN: UInt32;
@@ -373,7 +466,7 @@ type
 
     procedure Resize(ANewSize: SizeInt);
     procedure Rehash(ASizePow2: SizeInt);
-    function PrepareAddingItem: SizeInt;
+    procedure PrepareAddingItem;
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function Lookup(constref AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; inline; overload;
@@ -391,28 +484,39 @@ type
         function GetCurrent: TValue; override;
       end;
 
+      TPValueEnumerator = class(TDeamortizedDArrayCuckooMapEnumerator<PValue, CUCKOO_CONSTRAINTS>)
+      protected
+        function GetCurrent: PValue; override;
+      end;
+
       TKeyEnumerator = class(TDeamortizedDArrayCuckooMapEnumerator<TKey, CUCKOO_CONSTRAINTS>)
       protected
         function GetCurrent: TKey; override;
       end;
 
-      // Collections
-      TValueCollection = class(TDictionaryEnumerable<TValueEnumerator, TValue, CUSTOM_DICTIONARY_CONSTRAINTS>);
+      TPKeyEnumerator = class(TDeamortizedDArrayCuckooMapEnumerator<PKey, CUCKOO_CONSTRAINTS>)
+      protected
+        function GetCurrent: PKey; override;
+      end;
 
-      TKeyCollection = class(TDictionaryEnumerable<TKeyEnumerator, TKey, CUSTOM_DICTIONARY_CONSTRAINTS>);
+      // Collections
+      TValueCollection = class(TDictionaryEnumerable<TValueEnumerator, TPValueEnumerator, TValue, CUSTOM_DICTIONARY_CONSTRAINTS>);
+
+      TKeyCollection = class(TDictionaryEnumerable<TKeyEnumerator, TPKeyEnumerator, TKey, CUSTOM_DICTIONARY_CONSTRAINTS>);
 
     // bug #24283 - workaround related to lack of DoGetEnumerator
     function GetEnumerator: TPairEnumerator; reintroduce;
   private
     function GetKeys: TKeyCollection;
     function GetValues: TValueCollection;
+    function GetPointers: PPointersCollection; inline;
   private
     function GetItem(const AKey: TKey): TValue; inline;
     procedure SetItem(const AKey: TKey; const AValue: TValue); overload; inline;
     procedure SetItem(constref AValue: TValue; const AHashListOrIndex: PUInt32; ALookupResult: SizeInt); overload;
 
     procedure AddItem(constref AItems: TItemsDArray; constref AKey: TKey; constref AValue: TValue; const AHashList: PUInt32); overload;
-    procedure DoAdd(constref AKey: TKey; constref AValue: TValue; const AHashList: PUInt32); overload; inline;
+    procedure DoAdd(const AKey: TKey; const AValue: TValue; const AHashList: PUInt32); overload; inline;
     function DoRemove(const AHashListOrIndex: PUInt32; ALookupResult: SizeInt;
       ACollectionNotification: TCollectionNotification): TValue;
 
@@ -428,15 +532,24 @@ type
     constructor Create(ACapacity: SizeInt; const AComparer: IEqualityComparer<TKey>); override; overload;
     constructor Create(const AComparer: IEqualityComparer<TKey>); reintroduce; overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); override; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>; const AComparer: IEqualityComparer<TKey>); override; overload;
+    {$ENDIF}
   public
     // TODO: function TryFlushQueue(ACount: SizeInt): SizeInt;
 
     constructor Create; override; overload;
     constructor Create(ACapacity: SizeInt); override; overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>); override; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>); override; overload;
+    {$ENDIF}
     constructor Create(ACapacity: SizeInt; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
     constructor Create(const AComparer: IExtendedEqualityComparer<TKey>); overload;
     constructor Create(ACollection: TEnumerable<TDictionaryPair>; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
+    {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+    constructor Create(ACollection: TEnumerableWithPointers<TDictionaryPair>; const AComparer: IExtendedEqualityComparer<TKey>); virtual; overload;
+    {$ENDIF}
     destructor Destroy; override;
 
     procedure Add(constref APair: TPair<TKey, TValue>); override; overload;
@@ -454,6 +567,7 @@ type
     property Items[Index: TKey]: TValue read GetItem write SetItem; default;
     property Keys: TKeyCollection read GetKeys;
     property Values: TValueCollection read GetValues;
+    property Ptr: PPointersCollection read GetPointers;
 
     property QueueCount: SizeInt read GetQueueCount;
     procedure GetMemoryLayout(const AOnGetMemoryLayoutKeyPosition: TOnGetMemoryLayoutKeyPosition);
@@ -497,17 +611,17 @@ type
 
   // useful generics overloads
   TOpenAddressingLP<TKey, TValue, THashFactory> = class(TOpenAddressingLP<TKey, TValue, THashFactory, TLinearProbing>);
-  TOpenAddressingLP<TKey, TValue>  = class(TOpenAddressingLP<TKey, TValue, TDelphiHashFactory, TLinearProbing>);
+  TOpenAddressingLP<TKey, TValue>  = class(TOpenAddressingLP<TKey, TValue, TDefaultHashFactory, TLinearProbing>);
 
   TObjectOpenAddressingLP<TKey, TValue, THashFactory> = class(TObjectOpenAddressingLP<TKey, TValue, THashFactory, TLinearProbing>);
-  TObjectOpenAddressingLP<TKey, TValue> = class(TObjectOpenAddressingLP<TKey, TValue, TDelphiHashFactory, TLinearProbing>);
+  TObjectOpenAddressingLP<TKey, TValue> = class(TObjectOpenAddressingLP<TKey, TValue, TDefaultHashFactory, TLinearProbing>);
 
   // Linear Probing with Tombstones (LPT)
   TOpenAddressingLPT<TKey, TValue, THashFactory> = class(TOpenAddressingSH<TKey, TValue, THashFactory, TLinearProbing>);
-  TOpenAddressingLPT<TKey, TValue> = class(TOpenAddressingSH<TKey, TValue, TDelphiHashFactory, TLinearProbing>);
+  TOpenAddressingLPT<TKey, TValue> = class(TOpenAddressingSH<TKey, TValue, TDefaultHashFactory, TLinearProbing>);
 
   TOpenAddressingQP<TKey, TValue, THashFactory> = class(TOpenAddressingQP<TKey, TValue, THashFactory, TQuadraticProbing>);
-  TOpenAddressingQP<TKey, TValue> = class(TOpenAddressingQP<TKey, TValue, TDelphiHashFactory, TQuadraticProbing>);
+  TOpenAddressingQP<TKey, TValue> = class(TOpenAddressingQP<TKey, TValue, TDefaultHashFactory, TQuadraticProbing>);
 
   TOpenAddressingDH<TKey, TValue, THashFactory> = class(TOpenAddressingDH<TKey, TValue, THashFactory, TDoubleHashing>);
   TOpenAddressingDH<TKey, TValue> = class(TOpenAddressingDH<TKey, TValue, TDelphiDoubleHashFactory, TDoubleHashing>);
@@ -539,6 +653,3 @@ type
 
   THashMap<TKey, TValue> = class(TCuckooD4<TKey, TValue>);
   TObjectHashMap<TKey, TValue> = class(TObjectCuckooD4<TKey, TValue>);
-
-var
-  EmptyRecord: TEmptyRecord;
