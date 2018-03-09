@@ -1773,7 +1773,7 @@ type
 
     { When generating to DDS (that has reverted row order with respect to OpenGL),
       most of the compressed textures should be stored as flipped.
-      When reading, we except them to be already flipped.
+      When reading, we expect them to be already flipped.
       When loading to OpenGL, they will effectively be flipped again
       (since OpenGL expects bottom-to-top order, while we load it
       image in top-to-bottom order), thus making the image correct.
