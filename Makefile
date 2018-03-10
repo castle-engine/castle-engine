@@ -206,6 +206,7 @@ EXAMPLES_BASE_NAMES := \
   examples/2d_standard_ui/edit_test/edit_test \
   examples/2d_standard_ui/timer_test/timer_test \
   examples/2d_standard_ui/zombie_fighter/zombie_fighter \
+  examples/2d_standard_ui/quick_2d_game/quick_2d_game \
   examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
   tools/image-to-pascal/image-to-pascal \
   tools/texture-font-to-pascal/texture-font-to-pascal \
@@ -222,6 +223,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/two_controls/two_controls \
+  examples/lazarus/quick_2d_game/quick_2d_game_lazarus \
   tests/test_castle_game_engine \
   src/library/castleengine \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
