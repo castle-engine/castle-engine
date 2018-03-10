@@ -887,12 +887,14 @@ begin
       end;
     end;
 
-  if Success then
-    WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
-      ErrorMessage)
-  else
   if ErrorMessage <> '' then
-    WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
+  begin
+    if Success then
+      WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
+        ErrorMessage)
+    else
+      WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
+  end;
   { Note that when Success = false but ErrorMessage = '', then we're quiet
     about it. This happens when Urls.Count = 0. }
 end;
