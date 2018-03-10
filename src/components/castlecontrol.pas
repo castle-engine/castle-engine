@@ -505,9 +505,6 @@ type
 
     You can directly access the @link(SceneManager) and configure it however you like.
 
-    You have comfortable @link(Load) method that simply loads a single model
-    to your world.
-
     Note that if you don't plan to use the default @link(SceneManager)
     instance, then you should better create @link(TCastleControlCustom) instead
     of this class.
