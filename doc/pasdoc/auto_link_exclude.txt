@@ -20,6 +20,7 @@ background
 barycentric
 between
 bind
+black
 blending
 blue
 body
@@ -51,6 +52,7 @@ closed
 collidable
 collision
 color
+colors
 comments
 compose
 compression
@@ -81,6 +83,7 @@ destroy
 device
 devices
 dft
+dimensions
 direction
 dirty
 disable
@@ -376,6 +379,7 @@ walk
 water
 waypoints
 weights
+white
 whitespaces
 width
 window
