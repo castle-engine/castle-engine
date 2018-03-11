@@ -143,7 +143,7 @@ begin
   begin
     TextureElement := TexturesElement.CreateChild('texture');
     TextureElement.AttributeSet('url', T.Url);
-    TextureElement.AttributeSet('hash', T.Hash);
+    TextureElement.AttributeSet('last_processed_content_hash', T.Hash);
   end;
 
   URLWriteXML(Doc, Url);
@@ -172,7 +172,7 @@ begin
       T := TTexture.Create;
       Textures.Add(T);
       T.Url := I.Current.AttributeString('url');
-      T.Hash := I.Current.AttributeString('hash');
+      T.Hash := I.Current.AttributeString('last_processed_content_hash');
     end;
   finally FreeAndNil(I) end;
 end;
