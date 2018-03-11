@@ -899,25 +899,19 @@ type
 
   { Possible compression of textures for GPU. }
   TTextureCompression = (
-    { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
+    { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
       It is also supported by a small number of Android devices.
 
-      tcDxt1_RGB and tcDxt1_RGBA are the same compression method,
-      except in tcDxt1_RGB the alpha information is ignored while rendering,
-      while in tcDxt1_RGBA the rendering assumes we have simple yes/no alpha.
-
-      The difference is equivalent to OpenGL differences in treating
-      @unorderedList(
-        @itemSpacing compact
-        @item GL_COMPRESSED_RGB_S3TC_DXT1_EXT and
-        @item GL_COMPRESSED_RGBA_S3TC_DXT1_EXT.
-      )
-    }
+      Note that the tcDxt1_RGB and tcDxt1_RGBA are the same compression method.
+      Their behaviour only differs when rendering:
+      in case of tcDxt1_RGB, the alpha information is not used,
+      while in case of tcDxt1_RGBA, the renderer is using alpha-testing. }
     tcDxt1_RGB,
 
-    { S3TC DXT1 compression, @bold(for RGB images with no alpha or simple yes/no alpha).
+    { S3TC DXT1 compression, @bold(for RGBA images with simple yes/no alpha channel).
+      The renderer will use alpha-testing when rendering such images.
       See above tcDxt1_RGB description for details. }
     tcDxt1_RGBA,
 
@@ -927,7 +921,7 @@ type
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
     tcDxt3,
 
-    { S3TC DXT3 compression, @bold(for RGBA images with full alpha channel),
+    { S3TC DXT5 compression, @bold(for RGBA images with full alpha channel),
       best for images with smooth alpha transitions.
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
@@ -936,10 +930,7 @@ type
     { PowerVR texture compression (PVRTC) format.
       Supported by some Android and iOS devices,
       using PowerVR GPU by Imagination Technologies.
-      See http://en.wikipedia.org/wiki/PVRTC .
-
-      To generate such textures, PowerVR provides a nice tool PVRTexTool,
-      see http://community.imgtec.com/developers/powervr/tools/pvrtextool/ . }
+      See http://en.wikipedia.org/wiki/PVRTC . }
     tcPvrtc1_4bpp_RGB,
     tcPvrtc1_2bpp_RGB,
     tcPvrtc1_4bpp_RGBA,
@@ -947,7 +938,7 @@ type
     tcPvrtc2_4bpp,
     tcPvrtc2_2bpp,
 
-    { ATI texture compression format, @bold(without alpha).
+    { ATI texture compression format, @bold(for RGB images without alpha).
       Supported by some Android devices (Adreno GPU from Qualcomm).
 
       There is no perfect program to generate such texture, unfortunately.
