@@ -402,6 +402,43 @@ type
     { Set TimeSensor.Loop to be @false, to force not looping. }
     paNotLooping);
 
+  { Parameters to use when playing animation,
+    see @link(TCastleSceneCore.PlayAnimation). }
+  TPlayAnimationParameters = class
+    { Animation name.
+      You have to set at least this field, otherwise calling
+      @link(TCastleSceneCore.PlayAnimation) with this is useless. }
+    Name: string;
+
+    { Should we play in a loop.
+      By default paNotLooping, which means: play once. }
+    Looping: TPlayAnimationLooping;
+
+    { Does animation play forward, default @true. }
+    Forward: boolean;
+
+    { Notification when the animation finished playing,
+      which happens if the animation was non-looping and it reached the end,
+      or another animation was started by @link(TCastleSceneCore.PlayAnimation).
+
+      This will never fire if the animation did not exist
+      (@link(PlayAnimation) returned @false).
+      It also may never fire if the scene was destroyed or rebuilt
+      (@link(TCastleSceneCore.ChangedAll)) during the animation playing.
+
+      Listening on this notification is usually simpler
+      and more reliable then explicitly adding a notification
+      to TTimeSensorNode.EventIsActive, e.g. by
+      @code(CurrentAnimation.EventIsActive.AddNotification).
+      It avoids corner cases when PlayAnimation restarts playing the current
+      animation. This notification will happen when the animation that you
+      caused (by the call to @link(TCastleSceneCore.PlayAnimation)) stops,
+      not at other times. }
+    StopNotification: TNotifyEvent;
+
+    constructor Create;
+  end;
+
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
     @link(TCastleScene), which is a descendant of this class that adds rendering
@@ -468,10 +505,12 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     PlayingAnimationNode, FCurrentAnimation: TTimeSensorNode;
+    PlayingAnimationStopNotification: TNotifyEvent;
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLooping: TPlayAnimationLooping;
     NewPlayingAnimationForward: boolean;
+    NewPlayingAnimationStopNotification: TNotifyEvent;
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
@@ -514,6 +553,10 @@ type
       const OldBox, NewBox: TBox3D): boolean;
 
     procedure SetRootNode(const Value: TX3DRootNode);
+
+    { Always assigned to PlayingAnimationNode.EventIsActive. }
+    procedure PlayingAnimationIsActive(
+      Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -1742,15 +1785,8 @@ type
     function HasAnimation(const AnimationName: string): boolean;
 
     { TimeSensor of this animation. @nil if this name not found.
-      Use this for example to watch when the animation ends playing,
-      like
-
-      @longCode(#
-        Scene.AnimationTimeSensor('my_animation').EventIsActive.AddNotification(
-          @AnimationIsActiveChanged);
-      #)
-
-      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
+      See e.g. examples/3d_rendering_processing/listen_on_x3d_events.lpr
+      for an example of using this. }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
 
     { TimeSensor of this animation, by animation index (index
@@ -1780,7 +1816,15 @@ type
       You can specify whether the animation loops.
       Using Looping = paDefault means that we read from the model format whether
       the animation should loop (some model formats support it,
-      like X3D or castle-anim-frames).
+      like X3D or castle-anim-frames), or use the previous looping value
+      (if you already called PlayAnimation on this animation with paLooping
+      or paNotLooping). Use paLooping or paNotLooping to
+      force a specific looping behavior.
+
+      If you use an overloaded version with the TPlayAnimationParameters,
+      note that you can (and usually should) free the TPlayAnimationParameters
+      instance right after calling this method. We do not keep reference to
+      the TPlayAnimationParameters instance, and we do not free it ourselves.
 
       Notes:
 
@@ -1839,9 +1883,10 @@ type
         )
       )
     }
+    function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean;
+      const Forward: boolean = true): boolean; overload;
 
     { Call right after calling @link(PlayAnimation) (before any update event
       took place) to force setting initial animation frame @italic(now). }
@@ -2499,6 +2544,15 @@ begin
   inherited Clear;
 end;
 
+{ TPlayAnimationParameters --------------------------------------------------- }
+
+constructor TPlayAnimationParameters.Create;
+begin
+  inherited;
+  Looping := paNotLooping;
+  Forward := true;
+end;
+
 { TCastleSceneCore ----------------------------------------------------------- }
 
 constructor TCastleSceneCore.Create(AOwner: TComponent);
@@ -3134,7 +3188,12 @@ begin
   ScheduledHumanoidAnimateSkin.Count := 0;
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
+
+  { clear animation stuff, since any TTimeSensorNode may be freed soon }
+  if PlayingAnimationNode <> nil then
+    PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
   PlayingAnimationNode := nil;
+  PlayingAnimationStopNotification := nil;
   FCurrentAnimation := nil;
   NewPlayingAnimationNode := nil;
   NewPlayingAnimationUse := false;
@@ -5636,9 +5695,10 @@ procedure TCastleSceneCore.InternalSetTime(
 
   { Apply NewPlayingAnimation* stuff.
 
-    Call outside of AnimateOnlyWhenVisible check, to do it even when object is not visible.
-    Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
-    (although it would be Ok in practice too?) }
+    Call outside of AnimateOnlyWhenVisible check, to do it even when object
+    is not visible.  Otherwise stop/start time would be delayed too until
+    it becomes visible, which is not perfect (although it would be Ok
+    in practice too?) }
   procedure UpdateNewPlayingAnimation;
   begin
     if NewPlayingAnimationUse then
@@ -5693,7 +5753,15 @@ procedure TCastleSceneCore.InternalSetTime(
           sending elapsedTime events. }
 
         PlayingAnimationNode.Enabled := false;
+
+        if Assigned(PlayingAnimationStopNotification) then
+        begin
+          PlayingAnimationStopNotification(Self);
+          PlayingAnimationStopNotification := nil;
+        end;
+        PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
       end;
+      Assert(PlayingAnimationStopNotification = nil);
 
       { If calling PlayAnimation on already-playing node,
         we have to make sure it actually starts playing from the start.
@@ -5726,6 +5794,9 @@ procedure TCastleSceneCore.InternalSetTime(
         { Enable the "ignore" mechanism again, to follow X3D spec. }
         Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
         Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
+
+        PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
+        PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
       end;
     end;
   end;
@@ -6950,9 +7021,23 @@ function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping;
   const Forward: boolean): boolean;
 var
+  Params: TPlayAnimationParameters;
+begin
+  Params := TPlayAnimationParameters.Create;
+  try
+    Params.Name := AnimationName;
+    Params.Looping := Looping;
+    Params.Forward := Forward;
+    Result := PlayAnimation(Params);
+  finally FreeAndNil(Params) end;
+end;
+
+function TCastleSceneCore.PlayAnimation(
+  const Parameters: TPlayAnimationParameters): boolean;
+var
   Index: Integer;
 begin
-  Index := FAnimationsList.IndexOf(AnimationName);
+  Index := FAnimationsList.IndexOf(Parameters.Name);
   Result := Index <> -1;
   if Result then
   begin
@@ -6975,9 +7060,26 @@ begin
     }
     FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationNode := FCurrentAnimation;
-    NewPlayingAnimationLooping := Looping;
-    NewPlayingAnimationForward := Forward;
+    NewPlayingAnimationLooping := Parameters.Looping;
+    NewPlayingAnimationForward := Parameters.Forward;
+    NewPlayingAnimationStopNotification := Parameters.StopNotification;
     NewPlayingAnimationUse := true;
+  end;
+end;
+
+procedure TCastleSceneCore.PlayingAnimationIsActive(
+  Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+var
+  Val: boolean;
+begin
+  Val := (Value as TSFBool).Value;
+  if (not Val) and Assigned(PlayingAnimationStopNotification) then
+  begin
+    PlayingAnimationStopNotification(Self);
+    { Always after calling PlayingAnimationStopNotification,
+      make it nil, to not call it 2nd time when PlayAnimation plays another
+      animation. }
+    PlayingAnimationStopNotification := nil;
   end;
 end;
 
