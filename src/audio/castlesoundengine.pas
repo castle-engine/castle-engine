@@ -582,7 +582,7 @@ type
 
       We set the sound properties and start playing it.
 
-      Both spatialized (3D) and not sounds are possible.
+      Both spatialized (3D) and not spatialized sounds are possible.
       See the @link(TSoundParameters) for a full list of sound parameters.
       You can pass all the sound parameters as a @link(TSoundParameters) instance.
       You can destroy the @link(TSoundParameters) instance right after calling
