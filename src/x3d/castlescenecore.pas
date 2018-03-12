@@ -403,6 +403,9 @@ type
     paNotLooping
   ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
 
+  TStopAnimationEvent = procedure (const Scene: TCastleSceneCore;
+    const Animation: TTimeSensorNode) of object;
+
   { Parameters to use when playing animation,
     see @link(TCastleSceneCore.PlayAnimation). }
   TPlayAnimationParameters = class
@@ -434,7 +437,7 @@ type
       animation. This notification will happen when the animation that you
       caused (by the call to @link(TCastleSceneCore.PlayAnimation)) stops,
       not at other times. }
-    StopNotification: TNotifyEvent;
+    StopNotification: TStopAnimationEvent;
 
     constructor Create;
   end;
@@ -505,12 +508,12 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     PlayingAnimationNode, FCurrentAnimation: TTimeSensorNode;
-    PlayingAnimationStopNotification: TNotifyEvent;
+    PlayingAnimationStopNotification: TStopAnimationEvent;
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLoop: boolean;
     NewPlayingAnimationForward: boolean;
-    NewPlayingAnimationStopNotification: TNotifyEvent;
+    NewPlayingAnimationStopNotification: TStopAnimationEvent;
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
@@ -5758,7 +5761,7 @@ procedure TCastleSceneCore.InternalSetTime(
 
         if Assigned(PlayingAnimationStopNotification) then
         begin
-          PlayingAnimationStopNotification(Self);
+          PlayingAnimationStopNotification(Self, PlayingAnimationNode);
           PlayingAnimationStopNotification := nil;
         end;
         PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
@@ -7111,7 +7114,7 @@ begin
   Val := (Value as TSFBool).Value;
   if (not Val) and Assigned(PlayingAnimationStopNotification) then
   begin
-    PlayingAnimationStopNotification(Self);
+    PlayingAnimationStopNotification(Self, PlayingAnimationNode);
     { Always after calling PlayingAnimationStopNotification,
       make it nil, to not call it 2nd time when PlayAnimation plays another
       animation. }
