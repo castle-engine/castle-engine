@@ -103,7 +103,7 @@ begin
   Scene := TCastle2DScene.Create(Application);
   Scene.Load('../2d_dragon_spine_game/data/dragon/dragon.json');
   Scene.ProcessEvents := true;
-  Scene.PlayAnimation('flying', paLooping);
+  Scene.PlayAnimation('flying', true);
   SceneManager.Items.Add(Scene);
 
   SceneDebugVisualizationRoot := TX3DRootNode.Create;

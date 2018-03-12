@@ -69,13 +69,6 @@ type
       when Time is < 0, we show the first frame,
       and when Time is > @link(Duration), we show the last frame forever.
 
-      This looping (or not looping) is done regardless of whether the 3D model
-      wants (or not) looping. For example, in case of castle-anim-frames files,
-      we ignore their loop boolean attribute.
-      In case of X3D, we ignore TimeSensor.loop field.
-      In other words, any looping settings inside 3D model are ignored.
-      You control looping fully by the Loop parameter to this method.
-
       This returns the scene (TCastleScene) with state reflecting given time
       (TimeSensor forced to given time). }
     function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
@@ -459,7 +452,6 @@ var
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 var
-  Looping: TPlayAnimationLooping;
   GoodAnimationName: string;
   ActualTime: TFloatTime;
   ForceNecessary: boolean;
@@ -478,10 +470,6 @@ begin
       GoodAnimationName := AnimationName
     else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
-    if Loop then
-      Looping := paLooping
-    else
-      Looping := paNotLooping;
 
     // if Defined and (Duration = 0) then
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',
@@ -507,7 +495,7 @@ begin
       LastForcedAnimationName := AnimationName;
       LastForcedLoop := Loop;
       LastForcedActualTime := ActualTime;
-      Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+      Result.ForceAnimationPose(GoodAnimationName, Time, Loop);
     end;
 
     {$ifdef STATISTICS_FORCING_OPTIMIZATION}

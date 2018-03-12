@@ -400,7 +400,8 @@ type
     { Set TimeSensor.Loop to be @true, to force looping. }
     paLooping,
     { Set TimeSensor.Loop to be @false, to force not looping. }
-    paNotLooping);
+    paNotLooping
+  ) deprecated 'use PlayAnimation with "Loop: boolean" parameter instead of TPlayAnimationLooping';
 
   { Parameters to use when playing animation,
     see @link(TCastleSceneCore.PlayAnimation). }
@@ -410,9 +411,8 @@ type
       @link(TCastleSceneCore.PlayAnimation) with this is useless. }
     Name: string;
 
-    { Should we play in a loop.
-      By default paNotLooping, which means: play once. }
-    Looping: TPlayAnimationLooping;
+    { Should we play in a loop, default @false which means to play just once. }
+    Loop: boolean;
 
     { Does animation play forward, default @true. }
     Forward: boolean;
@@ -508,7 +508,7 @@ type
     PlayingAnimationStopNotification: TNotifyEvent;
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
-    NewPlayingAnimationLooping: TPlayAnimationLooping;
+    NewPlayingAnimationLoop: boolean;
     NewPlayingAnimationForward: boolean;
     NewPlayingAnimationStopNotification: TNotifyEvent;
     FAnimationPrefix: string;
@@ -1804,8 +1804,13 @@ type
       and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
     function ForceAnimationPose(const AnimationName: string;
       const TimeInAnimation: TFloatTime;
+      const Loop: boolean;
+      const Forward: boolean = true): boolean; overload;
+    function ForceAnimationPose(const AnimationName: string;
+      const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping;
-      const Forward: boolean = true): boolean;
+      const Forward: boolean = true): boolean; overload;
+      deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
     { Play a named animation (animation listed by the @link(AnimationsList) method).
       This also stops previously playing named animation, if any.
@@ -1813,13 +1818,7 @@ type
       Playing an already-playing animation is guaranteed to start it from
       the beginning.
 
-      You can specify whether the animation loops.
-      Using Looping = paDefault means that we read from the model format whether
-      the animation should loop (some model formats support it,
-      like X3D or castle-anim-frames), or use the previous looping value
-      (if you already called PlayAnimation on this animation with paLooping
-      or paNotLooping). Use paLooping or paNotLooping to
-      force a specific looping behavior.
+      You can specify whether the animation should loop.
 
       If you use an overloaded version with the TPlayAnimationParameters,
       note that you can (and usually should) free the TPlayAnimationParameters
@@ -1885,8 +1884,11 @@ type
     }
     function PlayAnimation(const Parameters: TPlayAnimationParameters): boolean; overload;
     function PlayAnimation(const AnimationName: string;
+      const Loop: boolean; const Forward: boolean = true): boolean; overload;
+    function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping;
       const Forward: boolean = true): boolean; overload;
+      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
 
     { Call right after calling @link(PlayAnimation) (before any update event
       took place) to force setting initial animation frame @italic(now). }
@@ -2549,7 +2551,7 @@ end;
 constructor TPlayAnimationParameters.Create;
 begin
   inherited;
-  Looping := paNotLooping;
+  Loop := false;
   Forward := true;
 end;
 
@@ -5744,7 +5746,7 @@ procedure TCastleSceneCore.InternalSetTime(
             X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
             (bug reproduction: escape_universe, meteorite_1 dying).
             Although we remove this problem by NeverIgnore hack.
-          - Also, it's bad to unconditionally set "Loop" value.
+          - (Obsolete argument:) Also, it's bad to unconditionally set "Loop" value.
             If user is using paDefault for animation, (s)he expects
             that PlayAnimation doesn't change it ever.
 
@@ -5775,10 +5777,7 @@ procedure TCastleSceneCore.InternalSetTime(
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin
-        case NewPlayingAnimationLooping of
-          paLooping   : PlayingAnimationNode.Loop := true;
-          paNotLooping: PlayingAnimationNode.Loop := false;
-        end;
+        PlayingAnimationNode.Loop := NewPlayingAnimationLoop;
         PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
         PlayingAnimationNode.Enabled := true;
 
@@ -6974,20 +6973,36 @@ function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
   const Looping: TPlayAnimationLooping;
   const Forward: boolean): boolean;
 var
+  Loop: boolean;
+  TimeNode: TTimeSensorNode;
+begin
+  // calculate Loop
+  case Looping of
+    paLooping   : Loop := true;
+    paNotLooping: Loop := false;
+    else
+    begin
+      TimeNode := AnimationTimeSensor(AnimationName);
+      Loop := (TimeNode <> nil) and TimeNode.Loop;
+    end;
+  end;
+
+  Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
+end;
+
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+  const TimeInAnimation: TFloatTime;
+  const Loop: boolean;
+  const Forward: boolean): boolean;
+var
   Index: Integer;
   TimeNode: TTimeSensorNode;
-  Loop: boolean;
 begin
   Index := FAnimationsList.IndexOf(AnimationName);
   Result := Index <> -1;
   if Result then
   begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
-    case Looping of
-      paLooping   : Loop := true;
-      paNotLooping: Loop := false;
-      else          Loop := TimeNode.Loop;
-    end;
     Inc(ForceImmediateProcessing);
     try
       TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
@@ -6998,19 +7013,13 @@ begin
 end;
 
 procedure TCastleSceneCore.ForceInitialAnimationPose;
-var
-  Loop: boolean;
 begin
   if NewPlayingAnimationUse then
   begin
     Inc(ForceImmediateProcessing);
     try
-      case NewPlayingAnimationLooping of
-        paLooping   : Loop := true;
-        paNotLooping: Loop := false;
-        else          Loop := NewPlayingAnimationNode.Loop;
-      end;
-      NewPlayingAnimationNode.FakeTime(0, Loop, NewPlayingAnimationForward, NextEventTime);
+      NewPlayingAnimationNode.FakeTime(0,
+        NewPlayingAnimationLoop, NewPlayingAnimationForward, NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
     end;
@@ -7022,11 +7031,38 @@ function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Forward: boolean): boolean;
 var
   Params: TPlayAnimationParameters;
+  Loop: boolean;
+  TimeNode: TTimeSensorNode;
+begin
+  // calculate Loop
+  case Looping of
+    paLooping   : Loop := true;
+    paNotLooping: Loop := false;
+    else
+    begin
+      TimeNode := AnimationTimeSensor(AnimationName);
+      Loop := (TimeNode <> nil) and TimeNode.Loop;
+    end;
+  end;
+
+  Params := TPlayAnimationParameters.Create;
+  try
+    Params.Name := AnimationName;
+    Params.Loop := Loop;
+    Params.Forward := Forward;
+    Result := PlayAnimation(Params);
+  finally FreeAndNil(Params) end;
+end;
+
+function TCastleSceneCore.PlayAnimation(const AnimationName: string;
+  const Loop: boolean; const Forward: boolean): boolean;
+var
+  Params: TPlayAnimationParameters;
 begin
   Params := TPlayAnimationParameters.Create;
   try
     Params.Name := AnimationName;
-    Params.Looping := Looping;
+    Params.Loop := Loop;
     Params.Forward := Forward;
     Result := PlayAnimation(Params);
   finally FreeAndNil(Params) end;
@@ -7060,7 +7096,7 @@ begin
     }
     FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationNode := FCurrentAnimation;
-    NewPlayingAnimationLooping := Parameters.Looping;
+    NewPlayingAnimationLoop := Parameters.Loop;
     NewPlayingAnimationForward := Parameters.Forward;
     NewPlayingAnimationStopNotification := Parameters.StopNotification;
     NewPlayingAnimationUse := true;

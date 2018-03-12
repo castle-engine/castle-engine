@@ -95,7 +95,7 @@ procedure AddBackgroundItems;
     Scene.Load(ApplicationData(Path));
     Scene.ProcessEvents := true;
     if RunAnimation then
-      Scene.PlayAnimation('animation', paLooping);
+      Scene.PlayAnimation('animation', true);
     Scene.Scale := Vector3(Scale, Scale, Scale);
     Scene.Translation := Vector3(X, Y, Z);
     { do not capture mouse picking on this item,
@@ -179,7 +179,7 @@ begin
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
-  Dragon.PlayAnimation('idle', paLooping);
+  Dragon.PlayAnimation('idle', true);
   Dragon.Pickable := false;
   Dragon.Scale := Vector3(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
@@ -313,14 +313,14 @@ begin
     Dragon.Translation := T;
 
     { check did we reach the target. Note that we can compare floats
-      using exact "=" operator (no need to use FloatsEqual), because
+      using exact "=" operator (no need to use SameValue), because
       our Min/Maxes above make sure that we will reach the *exact* target
       at some point. }
     if (T[0] = DragonFlyingTarget[0]) and
        (T[1] = DragonFlyingTarget[1]) then
     begin
       DragonFlying := false;
-      Dragon.PlayAnimation('idle', paLooping);
+      Dragon.PlayAnimation('idle', true);
     end;
 
     if (T[0] < 1000) and not AchievementSeeLeftSubmitted then
@@ -366,7 +366,7 @@ begin
        (Background.PointingDeviceOverItem <> nil) then
     begin
       if not DragonFlying then
-        Dragon.PlayAnimation('flying', paLooping);
+        Dragon.PlayAnimation('flying', true);
       DragonFlying := true;
       DragonFlyingTarget := Vector2(
         { ignore 3rd dimension from Background.PointingDeviceOverPoint }

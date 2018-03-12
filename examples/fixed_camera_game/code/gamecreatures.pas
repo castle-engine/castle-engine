@@ -308,7 +308,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     Scene := Kind.Animations[FState].Animation;
     Result := Scene;
     Scene.ForceAnimationPose('animation',
-      LifeTime - CurrentStateStartTime, paLooping);
+      LifeTime - CurrentStateStartTime, true);
   end;
 
   procedure UpdateChild;
