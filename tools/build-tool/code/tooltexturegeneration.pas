@@ -319,7 +319,20 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
          So, don't do this! Allow rectangular PVRTC textures!
        }
        // '-squarecanvas', '+' ,
-       '-flip', 'y', // TODO: use this only when TextureCompressionInfo[C].DDSFlipped
+
+       { TODO: use "-flip y" only when
+         - TextureCompressionInfo[C].DDSFlipped (it is false for DXTn)
+         - OutputFile is DDS.
+
+         If OutputFile is KTX, then always use
+         '-flip' 'y,flag'
+         which means that file should be ordered bottom-to-top (and marked as such
+         in the KTX header). This means it can be read in an efficient way.
+         Using KTX requires some improvements to castle_engine_auto_generated.xml
+         first (to mark that we were able to generate KTX).
+       }
+       '-flip', 'y',
+
        '-i', InputFile,
        '-o', OutputFile]);
   end;
