@@ -57,6 +57,7 @@ examples/2d_standard_ui/show_various_ui_controls/libshow_various_ui_controls_and
 examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls
 examples/2d_standard_ui/timer_test/timer_test
 examples/2d_standard_ui/zombie_fighter/zombie_fighter
+examples/2d_standard_ui/quick_2d_game/quick_2d_game
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code
@@ -127,6 +128,9 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/lazarus/quick_2d_game/lib/
+examples/lazarus/quick_2d_game/quick_2d_game_lazarus
+examples/lazarus/quick_2d_game/quick_2d_game_lazarus.res
 examples/mobile/drawing_toy/drawing_toy
 examples/mobile/drawing_toy/libdrawing_toy.so
 examples/mobile/simple_3d_demo/libsimple_3d_demo.so

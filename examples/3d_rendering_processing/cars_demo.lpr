@@ -133,7 +133,7 @@ begin
   CarScene.Load(ApplicationData('car.x3d'));
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
-  CarScene.PlayAnimation('wheels_turning', paLooping);
+  CarScene.PlayAnimation('wheels_turning', true);
 
   for I := Low(CarTransforms) to High(CarTransforms) do
   begin

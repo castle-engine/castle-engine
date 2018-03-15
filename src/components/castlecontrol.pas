@@ -42,57 +42,40 @@ type
   TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
   TControlInputMotionEvent = procedure (Sender: TObject; const Event: TInputMotion) of object;
 
-  { OpenGL control with extensions for "Castle Game Engine",
-    including @link(Controls) list for TUIControl instances.
+  { Control to render everything (3D or 2D) with Castle Game Engine.
+    Add the user-interface controls to the
+    @link(Controls) property, in particular
+    you can add there scene manager instances (like @link(TCastleSceneManager)
+    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
+    Use events like @link(OnUpdate) to process your game world.
+
     You can use a descendant of this called TCastleControl to have even
     more comfort: TCastleControl gives you a ready
     @link(TCastleControl.SceneManager) for your world.
 
-    This extends TOpenGLControl, adding various features:
+    Note that the screen contents at the beginning are undefined.
+    So as the first control on @link(Controls),
+    you must place something that fills the whole screen.
+    For example:
 
     @unorderedList(
-      @item(@link(Controls) list where you can easily add TUIControl instances
-        (like TCastleOnScreenMenu, TCastleButton and more).
-        We will pass events to these controls, draw them etc.)
+      @item(use @link(TCastleSimpleBackground),)
 
-      @item(Continously called @link(OnUpdate) event, and automatic handling
-        of calling @link(TInputListener.Update) for all @link(Controls).
-        This is something different than LCL "idle" event,
-        as it's guaranteed to be run continously, even when your application
-        is clogged with events (like when using TWalkCamera.MouseLook).
+      @item(or use @link(TCastleRectangleControl) with
+        @link(TUIControlSizeable.FullSize FullSize) = @true,)
 
-        Note: As we need to continously call the "update" event (to update animations
-        and more), we listen on the Lazarus Application "idle" event,
-        and tell it that we're never "done" with our work.
-        We do this only when at least one instance of TCastleControlCustom
-        is created, and never at design-time.
-        This means that your own "idle" events (registered through LCL
-        TApplicationProperties.OnIdle or Application.AddOnIdleHandler)
-        may be never executed, because really the application is never idle.
+      @item(or use @link(TCastleSceneManager) with
+        @link(TUIControlSizeable.FullSize) = @true and
+        @link(TCastleAbstractViewport.Transparent) = @false,)
 
-        If you want to reliably do some continuous work, use Castle Game Engine
-        features to do it. There are various alternative ways:
-
-        @unorderedList(
-          @item(Register an event on @link(OnUpdate) of this component,)
-          @item(Add custom @link(TUIControl) instance to the @link(Controls) list
-            with overridden @link(TInputListener.Update) method,)
-          @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
-            ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
-            unit.)
-        )
-
-        TODO: Try an alternative implementation using TTimer with Interval=1.
-      )
-
-      @item(Automatically initializes Castle Game Engine stuff
-        when context is created (GLVersion, GLFeatures and more).)
-
-      @item(Measures application speed, see the @link(Fps).)
-
-      @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
-        and mouse position @link(MousePosition).)
-    ) }
+      @item(eventually you can also call @link(CastleGLUtils.GLClear)
+        at the beginning of your rendering in @link(OnRender).
+        But this is the least advised method, as @link(OnRender)
+        is performed after drawing all other controls,
+        so doing @link(CastleGLUtils.GLClear) there would force you to make
+        all your drawing in @link(OnRender).)
+    )
+  }
   TCastleControlCustom = class(TCustomOpenGLControl)
   private
     type
@@ -173,6 +156,9 @@ type
     destructor Destroy; override;
 
     { List of user-interface controls currently active.
+      You can add your TUIControl instances
+      (like TCastleSceneManager, TCastleButton and much more) to this list.
+      We will pass events to these controls, draw them etc.
       See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
@@ -277,8 +263,9 @@ type
 
     property Container: TContainer read FContainer;
 
-    { Event called when the OpenGL context is created,
-      you can initialize things that require OpenGL context now.
+    { Event called when the OpenGL context is created.
+
+      You can initialize things that require OpenGL context now.
       Often you do not need to use this callback (engine components will
       automatically create/release OpenGL resource when necessary),
       unless you deal with lower-level OpenGL resource managing (e.g. using
@@ -293,7 +280,11 @@ type
       is usually easier, as you add/remove them from controls whenever
       you want (e.g. you add them in ApplicationInitialize),
       and underneath they create/release/create again the OpenGL resources
-      when necessary. }
+      when necessary.
+
+      Note that we automatically initialize necessary Castle Game Engine resources
+      when context is created (@link(GLVersion), @link(GLFeatures) and more).
+    }
     property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
 
     { Event called when the context is closed, right before the OpenGL context
@@ -385,9 +376,34 @@ type
     property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
 
     { Continously occuring event.
-      This event is called at least as regularly as redraw,
-      so it is continously called even when your game
-      is overwhelmed by messages (like mouse moves) and redraws. }
+      This event is called roughly as regularly as redraw,
+      and you should use this to update your game state.
+
+      Note that this is different than LCL "idle" event,
+      as it's guaranteed to be run continously, even when your application
+      is clogged with events (like when using TWalkCamera.MouseLook).
+
+      Note: As we need to continously call the "update" event (to update animations
+      and more), we listen on the Lazarus Application "idle" event,
+      and tell it that we're never "done" with our work.
+      We do this only when at least one instance of TCastleControlCustom
+      is created, and never at design-time.
+      This means that your own "idle" events (registered through LCL
+      TApplicationProperties.OnIdle or Application.AddOnIdleHandler)
+      may be never executed, because really the application is never idle.
+
+      If you want to reliably do some continuous work, use Castle Game Engine
+      features to do it. There are various alternative ways:
+
+      @unorderedList(
+        @item(Register an event on @link(OnUpdate) of this component,)
+        @item(Add custom @link(TUIControl) instance to the @link(Controls) list
+          with overridden @link(TInputListener.Update) method,)
+        @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
+          ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
+          unit.)
+      )
+    }
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
 
     { Should we automatically redraw the window all the time,
@@ -413,16 +429,23 @@ type
   TControlGameSceneManager = class(TGameSceneManager)
   end;
 
-  { Render 3D world and GUI controls.
-    Add your game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
-    to the scene manager available in @link(SceneManager) property.
-    Add your GUI stuff to the @link(TCastleControlCustom.Controls) property
-    (from ancestor TCastleControlCustom).
+  { Control to render everything (3D or 2D) with Castle Game Engine,
+    with a default @link(TCastleSceneManager) instance already created for you.
+    This is the simplest way to render a 3D world with 2D controls above.
+    Add your
+    game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
+    to the scene manager
+    available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
+    to the @link(TCastleControlCustom.Controls) property (from ancestor TCastleControlCustom).
 
-    You can directly access the SceneManager and configure it however you like.
+    You can directly access the @link(SceneManager) and configure it however you like.
 
-    You have comfortable @link(Load) method that simply loads a single 3D model
-    to your world. }
+    You have comfortable @link(Load) method that simply loads a single model
+    to your world.
+
+    Note that if you don't plan to use the default @link(SceneManager)
+    instance, then you should better create @link(TCastleControlCustom) instead
+    of this class. }
   TCastleControl = class(TCastleControlCustom)
   private
     FSceneManager: TControlGameSceneManager;
@@ -464,25 +487,32 @@ type
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
   end;
 
-  { Same as T2DSceneManager, redefined only to work as a sub-component
+  { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
     correctly and you cannot edit the events of CastleControl1.SceneManager
     subcomponent. }
-  TControl2DSceneManager = class(T2DSceneManager)
+  TControl2DSceneManager = class(TCastle2DSceneManager)
   end;
 
-  { Render 2D game world and GUI.
-    Add your game stuff, like @link(T2DScene), to the scene manager available
-    in @link(SceneManager) property. Add your GUI stuff
-    to the @link(TCastleControlCustom.Controls) property (from ancestor
-    TCastleControlCustom).
+  { Control to render 2D games with Castle Game Engine,
+    with a default @link(TCastleSceneManager) instance already created for you.
+    This is the simplest way to render a game world with 2D controls above.
+    Add your
+    game stuff (like @link(TCastle2DScene))
+    to the scene manager
+    available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
+    to the @link(TCastleControlCustom.Controls) property (from ancestor TCastleControlCustom).
 
-    You can directly access the SceneManager and configure it however you like.
+    You can directly access the @link(SceneManager) and configure it however you like.
+
+    Note that if you don't plan to use the default @link(SceneManager)
+    instance, then you should better create @link(TCastleControlCustom) instead
+    of this class.
 
     The difference between this and @link(TCastleControl) is that this provides
-    a scene manager descending from @link(T2DSceneManager), which is a little more
-    comfortable for typical 2D games. See @link(T2DSceneManager) description
-    for details. In principle, you can use any of these control classes
+    a scene manager descending from @link(TCastle2DSceneManager), which is a little more
+    comfortable for typical 2D games. See @link(TCastle2DSceneManager) description
+    for details. But in principle, you can use any of these control classes
     to develop any mix of 3D or 2D game. }
   TCastle2DControl = class(TCastleControlCustom)
   private
@@ -527,6 +557,8 @@ uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
+
+// TODO: Try an alternative OnUpdate implementation using TTimer with Interval=1.
 
 { globals -------------------------------------------------------------------- }
 

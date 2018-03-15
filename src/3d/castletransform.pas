@@ -183,7 +183,7 @@ type
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
-    procedure Add(const Item: TCastleTransform);
+    procedure Add(const Item: TCastleTransform); reintroduce;
   end;
 
   { Statistics about what was rendered during last frame.

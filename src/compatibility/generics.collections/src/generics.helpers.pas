@@ -20,6 +20,8 @@ unit Generics.Helpers;
 
 {$MODE DELPHI}{$H+}
 {$MODESWITCH TYPEHELPERS}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
 
 interface
 

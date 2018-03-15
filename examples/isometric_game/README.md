@@ -6,8 +6,8 @@ Everything is just drawn as 2D, using our TGLImage.
 
 This could be made much more impressive by:
 
-- Using T2DSceneManager for a game world,
-  and using inside T2DScene with (possibly animated) models.
+- Using TCastle2DSceneManager for a game world,
+  and using inside TCastle2DScene with (possibly animated) models.
 - And by providing more impressive game assets :)
 - And by designing some interesting map (the current map is just a test).
 
@@ -84,7 +84,7 @@ A whole lot of things should be done to turn this into a real game:
 - Collisions. Right now you can move freely everywhere,
   pass through walls etc.
 - Player's sprite should animate (making steps) when moving.
-  Maybe using TSprite, maybe using T2DScene inside T2DSceneManager.
+  Maybe using TSprite, maybe using TCastle2DScene inside TCastle2DSceneManager.
 - Creatures (probably sharing most of the current TPlayer class code,
   to make them move smoothly, be shown from various directions,
   show animations of moving). Fighting and/or talking and/or trading

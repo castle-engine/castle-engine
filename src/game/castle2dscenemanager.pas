@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager (T2DSceneManager) and scene (T2DScene) best suited for 2D worlds. }
+{ Scene manager (TCastle2DSceneManager) and scene (TCastle2DScene) best suited for 2D worlds. }
 unit Castle2DSceneManager;
 
 {$I castleconf.inc}
@@ -74,7 +74,7 @@ type
         like TCastleImage or TCastleSimpleBackground.
       )
     ) }
-  T2DSceneManager = class(TCastleSceneManager)
+  TCastle2DSceneManager = class(TCastleSceneManager)
   private
     FProjectionAutoSize: boolean;
     FProjectionHeight, FProjectionWidth: Single;
@@ -150,14 +150,19 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure AssignDefaultCamera; override;
+  end;
+
+  T2DSceneManager = class(TCastle2DSceneManager)
+  public
+    constructor Create(AOwner: TComponent); override;
   published
     property Transparent default true;
-  end;
+  end deprecated 'use TCastle2DSceneManager instead (and note that it has different default Transparent value)';
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
     good when your transparent objects have proper order along the Z axis
     (useful e.g. for Spine animations). }
-  T2DScene = class(TCastleScene)
+  TCastle2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -165,19 +170,20 @@ type
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
-    function Clone(const AOwner: TComponent): T2DScene;
+    function Clone(const AOwner: TComponent): TCastle2DScene;
   end;
+
+  T2DScene = TCastle2DScene deprecated 'use TCastle2DScene';
 
 implementation
 
 uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
 
-{ T2DSceneManager -------------------------------------------------------- }
+{ TCastle2DSceneManager -------------------------------------------------------- }
 
-constructor T2DSceneManager.Create(AOwner: TComponent);
+constructor TCastle2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
-  Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;
   FProjectionHeight := 0;
@@ -188,7 +194,7 @@ begin
   AssignDefaultCamera;
 end;
 
-procedure T2DSceneManager.AssignDefaultCamera;
+procedure TCastle2DSceneManager.AssignDefaultCamera;
 begin
   { Set Camera explicitly, otherwise SetNavigationType below could call
     ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
@@ -204,7 +210,7 @@ begin
   Camera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
 end;
 
-function T2DSceneManager.CalculateProjection: TProjection;
+function TCastle2DSceneManager.CalculateProjection: TProjection;
 var
   ControlWidth, ControlHeight: Integer;
 begin
@@ -248,17 +254,25 @@ begin
   Result.ProjectionFarFinite := Result.ProjectionFar;
 end;
 
-{ T2DScene --------------------------------------------------------------- }
+{ T2DSceneManager ------------------------------------------------------------ }
 
-constructor T2DScene.Create(AOwner: TComponent);
+constructor T2DSceneManager.Create(AOwner: TComponent);
+begin
+  inherited;
+  Transparent := true;
+end;
+
+{ TCastle2DScene --------------------------------------------------------------- }
+
+constructor TCastle2DScene.Create(AOwner: TComponent);
 begin
   inherited;
   Attributes.BlendingSort := bs2D;
 end;
 
-function T2DScene.Clone(const AOwner: TComponent): T2DScene;
+function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;
 begin
-  Result := T2DScene.Create(AOwner);
+  Result := TCastle2DScene.Create(AOwner);
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;

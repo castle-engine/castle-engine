@@ -68,6 +68,11 @@
   padding: 19px;
 }
 
+/* Disable the max-width 100% rule which breaks these images. */
+.pasdoc-container img {
+  max-width: none !important;
+}
+
 /* Adjusted original pasdoc.css below ---------------------------------------- */
 
 .pasdoc-container table.container {

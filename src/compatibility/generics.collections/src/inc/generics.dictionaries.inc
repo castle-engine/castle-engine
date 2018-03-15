@@ -16,6 +16,14 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+    Acknowledgment
+
+    Thanks to Sphere 10 Software (http://sphere10.com) for sponsoring
+    many new types and major refactoring of entire library
+
+    Thanks to mORMot (http://synopse.info) project for the best implementations
+    of hashing functions like crc32c and xxHash32 :)
+
  **********************************************************************}
 
 { TPair<TKey,TValue> }
@@ -29,7 +37,7 @@ end;
 
 { TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS> }
 
-procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.PairNotify(constref APair: TPair<TKey, TValue>;
+procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.PairNotify(constref APair: TDictionaryPair;
   ACollectionNotification: TCollectionNotification);
 begin
   KeyNotify(APair.Key, ACollectionNotification);
@@ -88,15 +96,34 @@ begin
   Create(ACollection, TEqualityComparer<TKey>.Default(THashFactory));
 end;
 
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>);
+begin
+  Create(ACollection, TEqualityComparer<TKey>.Default(THashFactory));
+end;
+{$ENDIF}
+
 constructor TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.Create(ACollection: TEnumerable<TDictionaryPair>;
   const AComparer: IEqualityComparer<TKey>); overload;
 var
-  LItem: TPair<TKey, TValue>;
+  LItem: TDictionaryPair;
 begin
   Create(AComparer);
   for LItem in ACollection do
     Add(LItem);
 end;
+
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>;
+  const AComparer: IEqualityComparer<TKey>); overload;
+var
+  LItem: PDictionaryPair;
+begin
+  Create(AComparer);
+  for LItem in ACollection.Ptr^ do
+    Add(LItem^);
+end;
+{$ENDIF}
 
 destructor TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.Destroy;
 begin
@@ -143,27 +170,32 @@ begin
   Result := GetCurrent;
 end;
 
-{ TDictionaryEnumerable<TDictionaryEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS> }
+{ TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS> }
 
-constructor TDictionaryEnumerable<TDictionaryEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.Create(
+function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetPtrEnumerator: TEnumerator<PT>;
+begin
+  Result := TDictionaryPointersEnumerator.Create(FDictionary);
+end;
+
+constructor TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.Create(
   ADictionary: TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>);
 begin
   FDictionary := ADictionary;
 end;
 
-function TDictionaryEnumerable<TDictionaryEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.
+function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.
   DoGetEnumerator: TDictionaryEnumerator;
 begin
   Result := TDictionaryEnumerator(TDictionaryEnumerator.NewInstance);
   TCustomDictionaryEnumerator<T, CUSTOM_DICTIONARY_CONSTRAINTS>(Result).Create(FDictionary);
 end;
 
-function TDictionaryEnumerable<TDictionaryEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetCount: SizeInt;
+function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.GetCount: SizeInt;
 begin
   Result := TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>(FDictionary).Count;
 end;
 
-function TDictionaryEnumerable<TDictionaryEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.ToArray: TArray<T>;
+function TDictionaryEnumerable<TDictionaryEnumerator, TDictionaryPointersEnumerator, T, CUSTOM_DICTIONARY_CONSTRAINTS>.ToArray: TArray<T>;
 begin
   Result := ToArrayImpl(FDictionary.Count);
 end;
@@ -191,6 +223,89 @@ begin
   end;
 
   Result := True;
+end;
+
+{ TOpenAddressingPointersEnumerator<TItem, PDictionaryPair> }
+
+function TOpenAddressingPointersEnumerator<TItem, PDictionaryPair>.DoMoveNext: boolean;
+var
+  LLength: SizeInt;
+begin
+  Inc(FIndex);
+
+  LLength := Length(FItems^);
+
+  if FIndex >= LLength then
+    Exit(False);
+
+  // maybe related to bug #24098
+  // compiler error for (TDictionary<DICTIONARY_CONSTRAINTS>(FDictionary).FItems[FIndex].Hash and UInt32.GetSignMask) = 0
+  while (FItems^[FIndex].Hash and UInt32.GetSignMask) = 0 do
+  begin
+    Inc(FIndex);
+    if FIndex = LLength then
+      Exit(False);
+  end;
+
+  Result := True;
+end;
+
+function TOpenAddressingPointersEnumerator<TItem, PDictionaryPair>.DoGetCurrent: PDictionaryPair;
+begin
+  Result := GetCurrent;
+end;
+
+function TOpenAddressingPointersEnumerator<TItem, PDictionaryPair>.GetCurrent: PDictionaryPair;
+begin
+  Result := @FItems^[FIndex].Pair;
+end;
+
+constructor TOpenAddressingPointersEnumerator<TItem, PDictionaryPair>.Create(var AItems);
+begin
+  FIndex := -1;
+  FItems := @AItems;
+end;
+
+{ TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair> }
+
+function TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>.Items: PArray;
+begin
+  Result := PArray(@((@Self)^));
+end;
+
+function TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>.GetCount: SizeInt;
+begin
+  Result := PSizeInt(PByte(@((@Self)^))-SizeOf(SizeInt))^;
+end;
+
+function TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>.GetEnumerator: TPointersEnumerator;
+begin
+  Result := TPointersEnumerator(TPointersEnumerator.NewInstance);
+  TPointersEnumerator(Result).Create(Items^);
+end;
+
+function TOpenAddressingPointersCollection<TPointersEnumerator, TItem, PDictionaryPair>.ToArray: TArray<PDictionaryPair>;
+{begin
+  Result := ToArrayImpl(FList.Count);
+end;}
+var
+  i: SizeInt;
+  LEnumerator: TPointersEnumerator;
+begin
+  SetLength(Result, GetCount);
+
+  try
+    LEnumerator := GetEnumerator;
+
+    i := 0;
+    while LEnumerator.MoveNext do
+    begin
+      Result[i] := LEnumerator.Current;
+      Inc(i);
+    end;
+  finally
+    LEnumerator.Free;
+  end;
 end;
 
 { TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS> }
@@ -224,7 +339,7 @@ begin
   Result := FindBucketIndex(FItems, AKey, LHash);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem: SizeInt;
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem;
 begin
   if RealItemsLength > FItemsThreshold then
     Rehash(Length(FItems) shl 1)
@@ -235,9 +350,6 @@ begin
   end
   else if FItemsLength = $40000001 then // High(TIndex) ... Error: Type mismatch
     OutOfMemoryError;
-
-  Result := FItemsLength;
-  Inc(FItemsLength);
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASize: SizeInt);
@@ -255,7 +367,15 @@ begin
   AItem.Pair.Key := AKey;
   AItem.Pair.Value := AValue;
 
+  // ! very important. FItemsLength must be increased after above code (because constref has meaning)
+  Inc(FItemsLength);
+
   PairNotify(AItem.Pair, cnAdded);
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetPointers: PPointersCollection;
+begin
+  Result := PPointersCollection(@FItems);
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Add(constref AKey: TKey; constref AValue: TValue);
@@ -302,7 +422,7 @@ var
   LIndex: SizeInt;
 begin
   LIndex := FindBucketIndex(AKey);
-  if LIndex  < 0 then
+  if LIndex < 0 then
     Exit;
 
   DoRemove(LIndex, cnRemoved);
@@ -313,7 +433,7 @@ var
   LIndex: SizeInt;
 begin
   LIndex := FindBucketIndex(AKey);
-  if LIndex  < 0 then
+  if LIndex < 0 then
     Exit(Default(TPair<TKey, TValue>));
 
   Result.Key := AKey;
@@ -555,11 +675,25 @@ begin
   Result := TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>(FDictionary).FItems[FIndex].Pair.Value;
 end;
 
+{ TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TPValueEnumerator }
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TPValueEnumerator.GetCurrent: PValue;
+begin
+  Result := @(TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>(FDictionary).FItems[FIndex].Pair.Value);
+end;
+
 { TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TKeyEnumerator }
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TKeyEnumerator.GetCurrent: TKey;
 begin
   Result := TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>(FDictionary).FItems[FIndex].Pair.Key;
+end;
+
+{ TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TPKeyEnumerator }
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TPKeyEnumerator.GetCurrent: PKey;
+begin
+  Result := @(TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>(FDictionary).FItems[FIndex].Pair.Key);
 end;
 
 { TOpenAddressingLP<DICTIONARY_CONSTRAINTS> }
@@ -885,6 +1019,13 @@ constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: T
 begin
 end;
 
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>;
+  const AComparer: IEqualityComparer<TKey>);
+begin
+end;
+{$ENDIF}
+
 constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACapacity: SizeInt);
 begin
   Create(ACapacity, TExtendedEqualityComparer<TKey>.Default(THashFactory));
@@ -894,6 +1035,13 @@ constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: T
 begin
   Create(ACollection, TExtendedEqualityComparer<TKey>.Default(THashFactory));
 end;
+
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>);
+begin
+  Create(ACollection, TExtendedEqualityComparer<TKey>.Default(THashFactory));
+end;
+{$ENDIF}
 
 constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACapacity: SizeInt;
   const AComparer: IExtendedEqualityComparer<TKey>);
@@ -911,12 +1059,24 @@ end;
 constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: TEnumerable<TDictionaryPair>;
   const AComparer: IExtendedEqualityComparer<TKey>);
 var
-  LItem: TPair<TKey, TValue>;
+  LItem: TDictionaryPair;
 begin
   Create(AComparer);
   for LItem in ACollection do
     Add(LItem);
 end;
+
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>;
+  const AComparer: IExtendedEqualityComparer<TKey>);
+var
+  LItem: PDictionaryPair;
+begin
+  Create(AComparer);
+  for LItem in ACollection.Ptr^ do
+    Add(LItem^);
+end;
+{$ENDIF}
 
 procedure TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASize: SizeInt);
 begin
@@ -1073,6 +1233,126 @@ begin
   Result := True;
 end;
 
+{ TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair> }
+
+function TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>.DoMoveNext: boolean;
+var
+  LLength: SizeInt;
+  LArray: TItemsArray;
+begin
+  Inc(FIndex);
+
+  if (FMainIndex = TCuckooCfg.D) then // queue
+  begin
+    LLength := Length(FQueue.FItems);
+    if FIndex >= LLength then
+      Exit(False);
+
+    while ((FQueue.FItems[FIndex].Hash)
+      and UInt32.GetSignMask) = 0 do
+    begin
+      Inc(FIndex);
+      if FIndex = LLength then
+        Exit(False);
+    end;
+  end
+  else // d-array
+  begin
+    LArray := FItems^[FMainIndex];
+    LLength := Length(LArray);
+    if FIndex >= LLength then
+    begin
+      Inc(FMainIndex);
+      FIndex := -1;
+      Exit(DoMoveNext);
+    end;
+
+    while (((LArray[FIndex]).Hash) and UInt32.GetSignMask) = 0 do
+    begin
+      Inc(FIndex);
+      if FIndex = LLength then
+      begin
+        Inc(FMainIndex);
+        FIndex := -1;
+        Exit(DoMoveNext);
+      end;
+    end;
+  end;
+
+  Result := True;
+end;
+
+function TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>.DoGetCurrent: PDictionaryPair;
+begin
+  Result := GetCurrent;
+end;
+
+function TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>.GetCurrent: PDictionaryPair;
+begin
+  if FMainIndex = TCuckooCfg.D then
+    Result := @(FQueue.FItems[FIndex].Pair.Value.Pair)
+  else
+    Result := @((FItems^[FMainIndex])[FIndex].Pair);
+end;
+
+constructor TDeamortizedDArrayPointersEnumerator<TCuckooCfg, TItemsArray, TItemsDArray, TQueueDictionary, PDictionaryPair>.Create(var AItems; AQueue: TQueueDictionary; ACount: SizeInt);
+begin
+  FIndex := -1;
+  if ACount = 0 then
+    FMainIndex := TCuckooCfg.D
+  else
+    FMainIndex := 0;
+  FQueue := AQueue;
+  FItems := @AItems;
+end;
+
+{ TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItem, TQueueDictionary, PDictionaryPair> }
+
+function TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>.Items: PArray;
+begin
+  Result := PArray(@((@Self)^));
+end;
+
+function TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>.GetCount: SizeInt;
+begin
+  Result := SizeInt((@PByte(@((@Self)^))[-SizeOf(SizeInt)])^);
+end;
+
+function TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>.GetQueue: TQueueDictionary;
+begin
+  Result := TQueueDictionary((@PByte(@((@Self)^))[SizeOf(TItemsDArray)])^);
+end;
+
+function TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>.GetEnumerator: TPointersEnumerator;
+begin
+  Result := TPointersEnumerator(TPointersEnumerator.NewInstance);
+  TPointersEnumerator(Result).Create(Items^, GetQueue, GetCount);
+end;
+
+function TDeamortizedDArrayPointersCollection<TPointersEnumerator, TItemsDArray, TQueueDictionary, PDictionaryPair>.ToArray: TArray<PDictionaryPair>;
+{begin
+  Result := ToArrayImpl(FList.Count);
+end;}
+var
+  i: SizeInt;
+  LEnumerator: TPointersEnumerator;
+begin
+  SetLength(Result, GetCount);
+
+  try
+    LEnumerator := GetEnumerator;
+
+    i := 0;
+    while LEnumerator.MoveNext do
+    begin
+      Result[i] := LEnumerator.Current;
+      Inc(i);
+    end;
+  finally
+    LEnumerator.Free;
+  end;
+end;
+
 { TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS> }
 
 function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TQueueDictionary.Rehash(ASizePow2: SizeInt;
@@ -1133,7 +1413,7 @@ end;
 
 function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TQueueDictionary.Pop: Pointer;
 var
-  AIndex, LGap: SizeInt;
+  AIndex: SizeInt;
   //LResult: TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TItem; !!!bug #25917
 begin
   AIndex := FIdx.DoRemove(FIdx.Count - 1, cnExtracted);
@@ -1173,6 +1453,13 @@ constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: 
 begin
 end;
 
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>;
+  const AComparer: IEqualityComparer<TKey>);
+begin
+end;
+{$ENDIF}
+
 constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create;
 begin
   Create(0);
@@ -1187,6 +1474,13 @@ constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: 
 begin
   Create(ACollection, TExtendedEqualityComparer<TKey>.Default(THashFactory));
 end;
+
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>);
+begin
+  Create(ACollection, TExtendedEqualityComparer<TKey>.Default(THashFactory));
+end;
+{$ENDIF}
 
 constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACapacity: SizeInt;
   const AComparer: IExtendedEqualityComparer<TKey>);
@@ -1217,12 +1511,24 @@ end;
 constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: TEnumerable<TDictionaryPair>;
   const AComparer: IExtendedEqualityComparer<TKey>);
 var
-  LItem: TPair<TKey, TValue>;
+  LItem: TDictionaryPair;
 begin
   Create(AComparer);
   for LItem in ACollection do
     Add(LItem);
 end;
+
+{$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
+constructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(ACollection: TEnumerableWithPointers<TDictionaryPair>;
+  const AComparer: IExtendedEqualityComparer<TKey>);
+var
+  LItem: PDictionaryPair;
+begin
+  Create(AComparer);
+  for LItem in ACollection.Ptr^ do
+    Add(LItem^);
+end;
+{$ENDIF}
 
 destructor TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Destroy;
 begin
@@ -1243,6 +1549,11 @@ begin
   if not Assigned(FValues) then
     FValues := TValueCollection.Create(Self);
   Result := TValueCollection(FValues);
+end;
+
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.GetPointers: PPointersCollection;
+begin
+  Result := PPointersCollection(@FItems);
 end;
 
 function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Lookup(constref AKey: TKey;
@@ -1310,7 +1621,7 @@ begin
   Result := LR_NIL;
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.PrepareAddingItem: SizeInt;
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.PrepareAddingItem;
 var
   i: SizeInt;
 begin
@@ -1324,9 +1635,6 @@ begin
   end
   else if FItemsLength = $40000001 then // High(TIndex) ... Error: Type mismatch
     OutOfMemoryError;
-
-  Result := FItemsLength;
-  Inc(FItemsLength);
 end;
 
 procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.UpdateItemsThreshold(ASize: SizeInt);
@@ -1348,7 +1656,7 @@ var
   y: boolean = false;
   b: UInt32;
   LIndex: UInt32;
-  i, j, LLengthMask: SizeInt;
+  i, LLengthMask: SizeInt;
   LTempItem: TItem;
   LHashList: array[0..1] of UInt32;
   LHashListParams: array[0..3] of UInt16 absolute LHashList;
@@ -1411,10 +1719,11 @@ begin
     FQueue.InsertIntoHead(@LNewItem);
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.DoAdd(constref AKey: TKey; constref AValue: TValue;
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.DoAdd(const AKey: TKey; const AValue: TValue;
   const AHashList: PUInt32);
 begin
   AddItem(FItems, AKey, AValue, AHashList);
+  Inc(FItemsLength);
   KeyNotify(AKey, cnAdded);
   ValueNotify(AValue, cnAdded);
 end;
@@ -1545,10 +1854,8 @@ end;
 procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Rehash(ASizePow2: SizeInt);
 var
   LNewItems: TItemsDArray;
-  LHash: UInt32;
-  LIndex: SizeInt;
   i, j: SizeInt;
-  LItem, LNewItem: PItem;
+  LItem: PItem;
   LOldQueue: TQueueDictionary;
 var
   LHashList: array[0..1] of UInt32;
@@ -1688,6 +1995,8 @@ end;
 procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TrimExcess;
 begin
   SetCapacity(Succ(FItemsLength));
+  FQueue.TrimExcess;
+  FQueue.FIdx.TrimExcess;
 end;
 
 procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.SetItem(constref AValue: TValue;
@@ -1711,7 +2020,6 @@ var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
   LLookupResult: SizeInt;
-  LIndex: UInt32;
 begin
   LHashListOrIndex := @LHashList[0];
   LLookupResult := Lookup(AKey, LHashListOrIndex);
@@ -1747,16 +2055,17 @@ var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
   LLookupResult: SizeInt;
-  LIndex: UInt32;
 begin
   LHashListOrIndex := @LHashList[0];
   LLookupResult := Lookup(AKey, LHashListOrIndex);
 
   if LLookupResult = LR_NIL then
-  begin
-    PrepareAddingItem;
-    DoAdd(AKey, AValue, LHashListOrIndex);
-  end
+    Add(AKey, AValue)
+    // more optimal version for AddOrSetValue has some bug : see Test_CuckooD2_Notification
+    //begin
+    //  PrepareAddingItem;
+    //  DoAdd(AKey, AValue, LHashListOrIndex);
+    //end
   else
     SetItem(AValue, LHashListOrIndex, LLookupResult);
 end;
@@ -1832,6 +2141,16 @@ begin
     Result := TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FItems[FMainIndex][FIndex].Pair.Value;
 end;
 
+{ TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPValueEnumerator }
+
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPValueEnumerator.GetCurrent: PValue;
+begin
+  if FMainIndex = TCuckooCfg.D then
+    Result := @(TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FQueue.FItems[FIndex].Pair.Value.Pair.Value)
+  else
+    Result := @(TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FItems[FMainIndex][FIndex].Pair.Value);
+end;
+
 { TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TKeyEnumerator }
 
 function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TKeyEnumerator.GetCurrent: TKey;
@@ -1840,6 +2159,16 @@ begin
     Result := TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FQueue.FItems[FIndex].Pair.Value.Pair.Key
   else
     Result := TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FItems[FMainIndex][FIndex].Pair.Key;
+end;
+
+{ TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPKeyEnumerator }
+
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TPKeyEnumerator.GetCurrent: TKey;
+begin
+  if FMainIndex = TCuckooCfg.D then
+    Result := @(TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FQueue.FItems[FIndex].Pair.Value.Pair.Key)
+  else
+    Result := @(TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>(FDictionary).FItems[FMainIndex][FIndex].Pair.Key);
 end;
 
 { TObjectDictionary<DICTIONARY_CONSTRAINTS> }

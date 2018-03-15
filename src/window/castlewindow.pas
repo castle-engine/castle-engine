@@ -628,7 +628,7 @@ type
     Add the user-interface controls to the
     @link(TCastleWindowCustom.Controls) property, in particular
     you can add there scene manager instances (like @link(TCastleSceneManager)
-    and @link(T2DSceneManager)) to render 3D or 2D game worlds.
+    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
 
     Note that the screen contents at the beginning are undefined.
     So as the first control on @link(TCastleWindowCustom.Controls),
@@ -2366,11 +2366,12 @@ type
     for callbacks, and TCastleWindowCustom or TCastleWindow as window class. }
   TCastleWindowBase = TUIContainer deprecated;
 
-
   { Window to render everything (3D or 2D) with Castle Game Engine,
     with a default @link(TCastleSceneManager) instance already created for you.
     This is the simplest way to render a 3D world with 2D controls above.
-    Add your 3D stuff to the scene manager
+    Add your
+    game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
+    to the scene manager
     available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
     to the @link(TCastleWindowCustom.Controls) property (from ancestor TCastleWindowCustom).
 

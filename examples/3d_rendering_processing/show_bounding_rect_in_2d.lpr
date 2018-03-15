@@ -76,9 +76,9 @@ end;
 
 var
   Window: TCastleWindowCustom;
-  SceneManager: T2DSceneManager;
-  Scene: T2DScene;
-  SceneDebugVisualization: T2DScene;
+  SceneManager: TCastle2DSceneManager;
+  Scene: TCastle2DScene;
+  SceneDebugVisualization: TCastle2DScene;
   RectCoords: TCoordinateNode;
   SceneDebugVisualizationRoot: TX3DRootNode;
 
@@ -93,26 +93,24 @@ begin
   Window := TCastleWindowCustom.Create(Application);
   Window.Open;
 
-  Window.Controls.InsertFront(TCastleSimpleBackground.Create(Application));
-
-  SceneManager := T2DSceneManager.Create(Application);
+  SceneManager := TCastle2DSceneManager.Create(Application);
   SceneManager.FullSize := true;
   SceneManager.ProjectionAutoSize := false;
   SceneManager.ProjectionHeight := 6000;
   SceneManager.ProjectionOriginCenter := true;
   Window.Controls.InsertFront(SceneManager);
 
-  Scene := T2DScene.Create(Application);
+  Scene := TCastle2DScene.Create(Application);
   Scene.Load('../2d_dragon_spine_game/data/dragon/dragon.json');
   Scene.ProcessEvents := true;
-  Scene.PlayAnimation('flying', paLooping);
+  Scene.PlayAnimation('flying', true);
   SceneManager.Items.Add(Scene);
 
   SceneDebugVisualizationRoot := TX3DRootNode.Create;
   SceneDebugVisualizationRoot.AddChildren(CreateRectangleNode(
     Scene.BoundingBox.RectangleXY, YellowRGB, 2, RectCoords));
 
-  SceneDebugVisualization := T2DScene.Create(Application);
+  SceneDebugVisualization := TCastle2DScene.Create(Application);
   SceneDebugVisualization.Load(SceneDebugVisualizationRoot, true);
   SceneManager.Items.Add(SceneDebugVisualization);
 
