@@ -799,6 +799,10 @@ type
       const Source: TCastleImage; const SourceCorners: TVector4Integer;
       const DrawMode: TDrawMode;
       const Interpolation: TResizeInterpolation = riBilinear);
+    procedure DrawFrom3x3(const DestinationLeft, DestinationBottom,
+      DestinationWidth, DestinationHeight: integer; const Source: TCastleImage;
+      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer;
+      const DrawMode: TDrawMode; const Interpolation: TResizeInterpolation);
 
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
@@ -2721,6 +2725,17 @@ end;
 procedure TCastleImage.DrawFrom3x3(const DestinationRect: TRectangle;
   const Source: TCastleImage; const SourceCorners: TVector4Integer;
   const DrawMode: TDrawMode; const Interpolation: TResizeInterpolation);
+begin
+  DrawFrom3x3(DestinationRect.Left, DestinationRect.Bottom,
+    DestinationRect.Width, DestinationRect.Height,
+    Source, SourceCorners[0], SourceCorners[1],
+    SourceCorners[2], SourceCorners[3], DrawMode, Interpolation);
+end;
+
+procedure TCastleImage.DrawFrom3x3(const DestinationLeft, DestinationBottom,
+  DestinationWidth, DestinationHeight: integer; const Source: TCastleImage;
+  const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer;
+  const DrawMode: TDrawMode; const Interpolation: TResizeInterpolation);
 
   procedure Draw(
     const DestX, DestY, DestWidth, DestHeight: Integer;
@@ -2745,43 +2760,33 @@ procedure TCastleImage.DrawFrom3x3(const DestinationRect: TRectangle;
   end;
 
 var
-  CornerTop, CornerRight, CornerBottom, CornerLeft: Integer;
-  DestWidth, DestHeight: Integer;
   XDestLeft, XDestRight, YDestBottom, YDestTop,
     HorizontalDestSize, VerticalDestSize: Integer;
   XSourceLeft, XSourceRight, YSourceBottom, YSourceTop,
     HorizontalSourceSize, VerticalSourceSize: Integer;
 begin
-  CornerTop := SourceCorners[0];
-  CornerRight := SourceCorners[1];
-  CornerBottom := SourceCorners[2];
-  CornerLeft := SourceCorners[3];
-
-  DestWidth := DestinationRect.Width;
-  DestHeight := DestinationRect.Height;
-
   if not ( (CornerLeft + CornerRight < Source.Width) and
-           (CornerLeft + CornerRight < DestWidth) and
+           (CornerLeft + CornerRight < DestinationWidth) and
            (CornerBottom + CornerTop < Source.Height) and
-           (CornerBottom + CornerTop < DestHeight)) then
+           (CornerBottom + CornerTop < DestinationHeight)) then
   begin
     if Log then
       WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Source.Width, Source.Height,
-         DestWidth, DestHeight]);
+         DestinationWidth, DestinationHeight]);
     Exit;
   end;
 
-  XDestLeft := DestinationRect.Left;
+  XDestLeft := DestinationLeft;
   XSourceLeft := 0;
-  XDestRight := DestinationRect.Left + DestWidth - CornerRight;
+  XDestRight := DestinationLeft + DestinationWidth - CornerRight;
   XSourceRight :=                   Source.Width - CornerRight;
 
-  YDestBottom := DestinationRect.Bottom;
+  YDestBottom := DestinationBottom;
   YSourceBottom := 0;
-  YDestTop := DestinationRect.Bottom + DestHeight - CornerTop;
-  YSourceTop :=                     Source.Height - CornerTop;
+  YDestTop := DestinationBottom + DestinationHeight - CornerTop;
+  YSourceTop :=                   Source.Height - CornerTop;
 
   { 4 corners }
   Draw(XDestLeft  , YDestBottom  , CornerLeft, CornerBottom,
@@ -2794,10 +2799,10 @@ begin
        XSourceLeft, YSourceTop, CornerLeft, CornerTop);
 
   { 4 sides }
-  HorizontalDestSize    := DestWidth    - CornerLeft - CornerRight;
-  HorizontalSourceSize  := Source.Width - CornerLeft - CornerRight;
-  VerticalDestSize    := DestHeight    - CornerTop - CornerBottom;
-  VerticalSourceSize  := Source.Height - CornerTop - CornerBottom;
+  HorizontalDestSize    := DestinationWidth - CornerLeft - CornerRight;
+  HorizontalSourceSize  := Source.Width     - CornerLeft - CornerRight;
+  VerticalDestSize    := DestinationHeight  - CornerTop - CornerBottom;
+  VerticalSourceSize  := Source.Height      - CornerTop - CornerBottom;
 
   Draw(XDestLeft   + CornerLeft, YDestBottom  , HorizontalDestSize,   CornerBottom,
        XSourceLeft + CornerLeft, YSourceBottom, HorizontalSourceSize, CornerBottom);
@@ -2809,8 +2814,8 @@ begin
   Draw(XDestRight   , YDestBottom   + CornerBottom, CornerRight, VerticalDestSize,
         XSourceRight, YSourceBottom + CornerBottom, CornerRight, VerticalSourceSize);
 
-  Draw(DestinationRect.Left + CornerLeft, DestinationRect.Bottom + CornerBottom, HorizontalDestSize, VerticalDestSize,
-                              CornerLeft,                          CornerBottom, HorizontalSourceSize, VerticalSourceSize);
+  Draw(DestinationLeft + CornerLeft, DestinationBottom + CornerBottom, HorizontalDestSize, VerticalDestSize,
+                         CornerLeft,                     CornerBottom, HorizontalSourceSize, VerticalSourceSize);
 end;
 
 { TGPUCompressedImage ----------------------------------------------------------------- }
