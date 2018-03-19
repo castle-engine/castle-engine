@@ -137,6 +137,7 @@ examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 examples/mobile/simple_3d_demo/simple_3d_demo
 examples/mobile/simple_3d_demo/simple_3d_demo_standalone
 examples/mobile/test_bump_mapping/test_bump_mapping
+examples/play_animation/play_animation
 examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 examples/physics/physics_3d_demo/physics_3d_demo
 examples/plugin/cge_3d_viewer/cge_3d_viewer
