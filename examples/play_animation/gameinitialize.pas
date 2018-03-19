@@ -205,28 +205,28 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  Y := -10;
+  Y := -Margin;
 
   ButtonOpen3D := TCastleButton.Create(Application);
   ButtonOpen3D.Caption := 'Load sample 3D model';
   ButtonOpen3D.OnClick := @TEventsHandler(nil).ButtonOpen3DClick;
-  ButtonOpen3D.Anchor(hpLeft, 10);
+  ButtonOpen3D.Anchor(hpLeft, Margin);
   ButtonOpen3D.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpen3D);
-  Y -= ButtonOpen3D.CalculatedHeight + 10;
+  Y -= ButtonOpen3D.CalculatedHeight + Margin;
 
   ButtonOpen2D := TCastleButton.Create(Application);
   ButtonOpen2D.Caption := 'Load sample 2D model';
   ButtonOpen2D.OnClick := @TEventsHandler(nil).ButtonOpen2DClick;
-  ButtonOpen2D.Anchor(hpLeft, 10);
+  ButtonOpen2D.Anchor(hpLeft, Margin);
   ButtonOpen2D.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpen2D);
-  Y -= ButtonOpen2D.CalculatedHeight + 10;
+  Y -= ButtonOpen2D.CalculatedHeight + Margin;
 
   ButtonOpenDialog := TCastleButton.Create(Application);
   ButtonOpenDialog.Caption := 'Open any model on disk';
   ButtonOpenDialog.OnClick := @TEventsHandler(nil).ButtonOpenDialogClick;
-  ButtonOpenDialog.Anchor(hpLeft, 10);
+  ButtonOpenDialog.Anchor(hpLeft, Margin);
   ButtonOpenDialog.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpenDialog);
 
