@@ -698,7 +698,9 @@ begin
   { Tests:
   if not ValuePossiblyChanged then
     writeln('ignored field ', Name, ' change, since values the same'); }
-  if ValuePossiblyChanged then
+  if ValuePossiblyChanged and
+    // do not send Changed if it will be send later by InternalAffectedPartial
+    not ((PartialReceived <> nil) and PartialReceived.ToBeApplied) then
     Changed;
 end;
 
@@ -1058,6 +1060,8 @@ begin
     PartialReceived.Partial := 0;
     FreeAndNil(PartialReceived.PartialValue);
     Assert(not PartialReceived.ToBeApplied); // we have destroyed PartialReceived.PartialValue
+
+    Changed;
   end;
 end;
 
