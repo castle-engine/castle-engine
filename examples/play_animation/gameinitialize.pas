@@ -198,6 +198,11 @@ procedure ApplicationInitialize;
 var
   Y: Integer;
 begin
+  { This is an optimization useful when you animate a hierarchy of Transform
+    nodes (which often happens in case of Spine animation).
+    The animation blending should work the same, regardless if this is false or true. }
+  // OptimizeExtensiveTransformations := true;
+
   { Assign Window callbacks }
   Window.FpsShowOnCaption := true;
 
