@@ -106,6 +106,39 @@
         }
         Partial: Single;
 
+        { Should the PartialValue, SettledValue be used to determine
+          field value this frame.
+
+          Why do we need this?
+
+            Checking this in InternalAffectedPartial avoids processing the field
+            twice, in case it was added twice to PartialSend.AffectedFields
+            (easily possible if it was under the influence of both old and new
+            animations).
+
+          Why not using Partial <> 0 for this?
+
+            Because sometimes Partial may be 0.
+
+            When starting a 1st animation, and it has TransitionDuration <> 0,
+            then the SetTime in HandleChangeTimeStopStart
+            activates the sensor, and the next SetTime (from Update)
+            may produce PartialReceived instance with PartialReceived.Partial = 0.
+
+            We *want* to apply this PartialReceived.Partial with 0.
+            Otherwise, the field value would be set immediately to the 1st pose
+            of new animation, disregarding smooth animation blending.
+
+            Testcase: examples/play_animation/ , switch to sample 3D,
+            increase transition = max, play "idle".
+            When "Partial <> 0" is used instead of ToBeApplied,
+            the 1st frame of "idle" quickly blinks at the beginning.
+
+            We could hack it by not doing SetTime in HandleChangeTimeStopStart,
+            but it's better to behave reliably in this case (Partial = 0) alwatys.
+        }
+        ToBeApplied: boolean;
+
         { Accumulated (this frame) partial values. }
         PartialValue: TX3DField;
 
@@ -981,6 +1014,7 @@ procedure TX3DField.AssignValue(Source: TX3DField);
         PartialReceived.PartialValue, Source);
     end;
     PartialReceived.Partial += PartialSend.Partial;
+    PartialReceived.ToBeApplied := true;
     // note that we can add duplicates to PartialSend.AffectedFields, that's OK
     PartialSend.AffectedFields.Add(Self);
   end;
@@ -1008,14 +1042,12 @@ procedure TX3DField.InternalAffectedPartial;
 begin
   { About PartialReceived <> nil: usually PartialReceived <> nil now,
     but in some corner-cases it may be nil: if it was freed by
-    "fade-in/out overridden by another animation that is not fading-in/out".
+    "fade-in/out overridden by another animation that is not fading-in/out".. }
 
-    About PartialReceived.Partial <> 0: checking it also avoids processing the field
-    twice, if it was twice on TPartialSend.AffectedFields. }
-
-  if (PartialReceived <> nil) and (PartialReceived.Partial <> 0) then
+  if (PartialReceived <> nil) and PartialReceived.ToBeApplied then
   begin
     AssignLerp(PartialReceived.Partial, PartialReceived.SettledValue, PartialReceived.PartialValue);
+    PartialReceived.ToBeApplied := false;
     PartialReceived.Partial := 0;
     FreeAndNil(PartialReceived.PartialValue);
   end;

@@ -4318,7 +4318,9 @@ var
     Handler := GetInternalTimeDependentHandler(ANode);
     if Handler = nil then Exit; {< ANode not time-dependent. }
 
-    { Although (de)activation of time-dependent nodes will be also caught
+    { Why do we want to call Handler.SetTime now?
+
+      Although (de)activation of time-dependent nodes will be also caught
       by the nearest IncreaseTime run, it's good to explicitly
       call SetTime to catch it here.
 
@@ -4334,19 +4336,6 @@ var
       Note that we don't reset time here (ResetTime = false), otherwise
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv. }
-
-    { TODO: Do not call SetTime at all, otherwise starting a 1st animation
-      with TransitionDuration <> 0 would initially blink with final animation pose.
-      The exact cause unknown yet -- this first Handler.SetTime sets only
-      IsActive := true, and it seems to confuse the next Handler.SetTime done
-      by Update.
-
-      Testcase: examples/play_animation/ , switch to sample 3D,
-      increase transition = max, play "idle".
-    }
-    if (PlayingAnimationTransitionDuration <> 0) and
-       (Handler.Node = PlayingAnimationNode) then
-      Exit;
 
     Handler.SetTime(Time, 0, false);
 
