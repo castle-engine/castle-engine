@@ -152,7 +152,13 @@ end;
 
 class procedure TEventsHandler.ButtonOpen3DClick(Sender: TObject);
 begin
-  Open('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
+  { TODO: Unfortunately, it cannot work for castle-anim-frames now.
+    This awaits other castle-anim-frames improvements (internal conversion
+    of frames into interpolators). }
+  //Open('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
+
+  // It works with CoordinateInterpolator in single X3D file, though
+  Open('../resource_animations/data/knight_single_x3d/knight.x3dv');
 end;
 
 class procedure TEventsHandler.ButtonOpen2DClick(Sender: TObject);
@@ -166,7 +172,7 @@ var
 begin
   Url := Scene.Url;
   if Window.FileDialog('Open model', Url, true, Load3D_FileFilters) then
-    Scene.Load(Url);
+    Open(Url);
 end;
 
 class procedure TEventsHandler.ButtonPlayAnimationClick(Sender: TObject);
@@ -180,6 +186,7 @@ begin
     Params.Name := AnimationName;
     Params.Forward := SwitchForward.Checked;
     Params.Loop := SwitchLoop.Checked;
+    Params.TransitionDuration := SliderTransition.Value;
     Scene.PlayAnimation(Params);
   finally FreeAndNil(Params) end;
 end;

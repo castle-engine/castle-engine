@@ -413,20 +413,20 @@ begin
     // Interpolator nodes containing no keys in the key field
     // shall not produce any events.
     Exit;
-  end else
-  begin
-    Assert(Value is TSFFloat, 'EventSet_FractionReceive (for single-value field) can only process SFFloat input events');
-    Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for single-value field) cannot handle fraction = NaN');
-    Range := KeyRange((Value as TSFFloat).Value, T);
-    if Range = 0 then
-      OutputValue := KeyValue(0)
-    else
-    if Range = KeyCount then
-      OutputValue := KeyValue(KeyCount - 1)
-    else
-      OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
   end;
-  EventValue_Changed.Send(OutputValue, Time);
+
+  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for single-value field) can only process SFFloat input events');
+  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for single-value field) cannot handle fraction = NaN');
+  Range := KeyRange((Value as TSFFloat).Value, T);
+  if Range = 0 then
+    OutputValue := KeyValue(0)
+  else
+  if Range = KeyCount then
+    OutputValue := KeyValue(KeyCount - 1)
+  else
+    OutputValue := InterpolatorLerp(T, KeyValue(Range - 1), KeyValue(Range));
+
+  EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
 
 procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
@@ -532,19 +532,19 @@ begin
     // Moreover, "div KeyCount" would cause errors if we would try
     // to get some KeyValue or KeyValueLerp.
     Exit;
-  end else
-  begin
-    Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
-    Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
-    Range := KeyRange((Value as TSFFloat).Value, T);
-    if Range = 0 then
-      OutputValue := KeyValue(0, KeyCount)
-    else
-    if Range = KeyCount then
-      OutputValue := KeyValue(KeyCount - 1, KeyCount)
-    else
-      OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
   end;
+
+  Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
+  Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
+  Range := KeyRange((Value as TSFFloat).Value, T);
+  if Range = 0 then
+    OutputValue := KeyValue(0, KeyCount)
+  else
+  if Range = KeyCount then
+    OutputValue := KeyValue(KeyCount - 1, KeyCount)
+  else
+    OutputValue := KeyValueLerp(T, Range - 1, Range, KeyCount);
+  OutputValue.InternalPartialSend := Value.InternalPartialSend;
   try
     EventValue_Changed.Send(OutputValue, Time);
   finally

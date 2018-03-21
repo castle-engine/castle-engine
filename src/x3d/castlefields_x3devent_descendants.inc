@@ -30,28 +30,28 @@
   TSFBoolEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: boolean; const Time: TX3DTime); overload;
+    procedure Send(const Value: boolean; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: boolean); overload;
   end;
 
   TSFDoubleEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: Double); overload;
   end;
 
   TSFTimeEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TFloatTime; const Time: TX3DTime); overload;
+    procedure Send(const Value: TFloatTime; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TFloatTime); overload;
   end;
 
   TSFFloatEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: Single; const Time: TX3DTime); overload;
+    procedure Send(const Value: Single; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: Single); overload;
   end;
 
@@ -63,42 +63,42 @@
   TSFLongEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: LongInt; const Time: TX3DTime); overload;
+    procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: LongInt); overload;
   end;
 
   TSFInt32Event = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: LongInt; const Time: TX3DTime); overload;
+    procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: LongInt); overload;
   end;
 
   TSFMatrix3dEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix3Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix3Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix3Double); overload;
   end;
 
   TSFMatrix3fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix3); overload;
   end;
 
   TSFMatrix4dEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix4Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix4Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix4Double); overload;
   end;
 
   TSFMatrix4fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix4); overload;
   end;
 
@@ -110,70 +110,70 @@
   TSFRotationEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4); overload;
   end;
 
   TSFStringEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: string; const Time: TX3DTime); overload;
+    procedure Send(const Value: string; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: string); overload;
   end;
 
   TSFVec2dEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector2Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector2Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector2Double); overload;
   end;
 
   TSFVec2fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector2; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector2; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector2); overload;
   end;
 
   TSFVec3dEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector3Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector3Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3Double); overload;
   end;
 
   TSFVec3fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3); overload;
   end;
 
   TSFVec4dEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector4Double; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector4Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4Double); overload;
   end;
 
   TSFVec4fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4); overload;
   end;
 
   TSFColorEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3); overload;
   end;
 
   TSFColorRGBAEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TCastleColor; const Time: TX3DTime); overload;
+    procedure Send(const Value: TCastleColor; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TCastleColor); overload;
   end;
 
@@ -300,11 +300,11 @@ begin
   inherited Create(AParentNode, AName, TSFBool, AInEvent);
 end;
 
-procedure TSFBoolEvent.Send(const Value: boolean; const Time: TX3DTime);
+procedure TSFBoolEvent.Send(const Value: boolean; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFBool).Value := Value;
   try
     Send(Field, Time);
@@ -325,11 +325,11 @@ begin
   inherited Create(AParentNode, AName, TSFDouble, AInEvent);
 end;
 
-procedure TSFDoubleEvent.Send(const Value: Double; const Time: TX3DTime);
+procedure TSFDoubleEvent.Send(const Value: Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFDouble).Value := Value;
   try
     Send(Field, Time);
@@ -350,11 +350,11 @@ begin
   inherited Create(AParentNode, AName, TSFTime, AInEvent);
 end;
 
-procedure TSFTimeEvent.Send(const Value: TFloatTime; const Time: TX3DTime);
+procedure TSFTimeEvent.Send(const Value: TFloatTime; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFTime).Value := Value;
   try
     Send(Field, Time);
@@ -375,11 +375,11 @@ begin
   inherited Create(AParentNode, AName, TSFFloat, AInEvent);
 end;
 
-procedure TSFFloatEvent.Send(const Value: Single; const Time: TX3DTime);
+procedure TSFFloatEvent.Send(const Value: Single; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFFloat).Value := Value;
   try
     Send(Field, Time);
@@ -407,11 +407,11 @@ begin
   inherited Create(AParentNode, AName, TSFLong, AInEvent);
 end;
 
-procedure TSFLongEvent.Send(const Value: LongInt; const Time: TX3DTime);
+procedure TSFLongEvent.Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFLong).Value := Value;
   try
     Send(Field, Time);
@@ -432,11 +432,11 @@ begin
   inherited Create(AParentNode, AName, TSFInt32, AInEvent);
 end;
 
-procedure TSFInt32Event.Send(const Value: LongInt; const Time: TX3DTime);
+procedure TSFInt32Event.Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFInt32).Value := Value;
   try
     Send(Field, Time);
@@ -457,11 +457,11 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix3d, AInEvent);
 end;
 
-procedure TSFMatrix3dEvent.Send(const Value: TMatrix3Double; const Time: TX3DTime);
+procedure TSFMatrix3dEvent.Send(const Value: TMatrix3Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFMatrix3d).Value := Value;
   try
     Send(Field, Time);
@@ -482,11 +482,11 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix3f, AInEvent);
 end;
 
-procedure TSFMatrix3fEvent.Send(const Value: TMatrix3; const Time: TX3DTime);
+procedure TSFMatrix3fEvent.Send(const Value: TMatrix3; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFMatrix3f).Value := Value;
   try
     Send(Field, Time);
@@ -507,11 +507,11 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix4d, AInEvent);
 end;
 
-procedure TSFMatrix4dEvent.Send(const Value: TMatrix4Double; const Time: TX3DTime);
+procedure TSFMatrix4dEvent.Send(const Value: TMatrix4Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFMatrix4d).Value := Value;
   try
     Send(Field, Time);
@@ -532,11 +532,11 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix4f, AInEvent);
 end;
 
-procedure TSFMatrix4fEvent.Send(const Value: TMatrix4; const Time: TX3DTime);
+procedure TSFMatrix4fEvent.Send(const Value: TMatrix4; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFMatrix4f).Value := Value;
   try
     Send(Field, Time);
@@ -564,11 +564,11 @@ begin
   inherited Create(AParentNode, AName, TSFRotation, AInEvent);
 end;
 
-procedure TSFRotationEvent.Send(const Value: TVector4; const Time: TX3DTime);
+procedure TSFRotationEvent.Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFRotation).Value := Value;
   try
     Send(Field, Time);
@@ -589,11 +589,11 @@ begin
   inherited Create(AParentNode, AName, TSFString, AInEvent);
 end;
 
-procedure TSFStringEvent.Send(const Value: string; const Time: TX3DTime);
+procedure TSFStringEvent.Send(const Value: string; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFString).Value := Value;
   try
     Send(Field, Time);
@@ -614,11 +614,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec2d, AInEvent);
 end;
 
-procedure TSFVec2dEvent.Send(const Value: TVector2Double; const Time: TX3DTime);
+procedure TSFVec2dEvent.Send(const Value: TVector2Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec2d).Value := Value;
   try
     Send(Field, Time);
@@ -639,11 +639,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec2f, AInEvent);
 end;
 
-procedure TSFVec2fEvent.Send(const Value: TVector2; const Time: TX3DTime);
+procedure TSFVec2fEvent.Send(const Value: TVector2; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec2f).Value := Value;
   try
     Send(Field, Time);
@@ -664,11 +664,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec3d, AInEvent);
 end;
 
-procedure TSFVec3dEvent.Send(const Value: TVector3Double; const Time: TX3DTime);
+procedure TSFVec3dEvent.Send(const Value: TVector3Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec3d).Value := Value;
   try
     Send(Field, Time);
@@ -689,11 +689,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec3f, AInEvent);
 end;
 
-procedure TSFVec3fEvent.Send(const Value: TVector3; const Time: TX3DTime);
+procedure TSFVec3fEvent.Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec3f).Value := Value;
   try
     Send(Field, Time);
@@ -714,11 +714,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec4d, AInEvent);
 end;
 
-procedure TSFVec4dEvent.Send(const Value: TVector4Double; const Time: TX3DTime);
+procedure TSFVec4dEvent.Send(const Value: TVector4Double; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec4d).Value := Value;
   try
     Send(Field, Time);
@@ -739,11 +739,11 @@ begin
   inherited Create(AParentNode, AName, TSFVec4f, AInEvent);
 end;
 
-procedure TSFVec4fEvent.Send(const Value: TVector4; const Time: TX3DTime);
+procedure TSFVec4fEvent.Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFVec4f).Value := Value;
   try
     Send(Field, Time);
@@ -764,11 +764,11 @@ begin
   inherited Create(AParentNode, AName, TSFColor, AInEvent);
 end;
 
-procedure TSFColorEvent.Send(const Value: TVector3; const Time: TX3DTime);
+procedure TSFColorEvent.Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFColor).Value := Value;
   try
     Send(Field, Time);
@@ -789,11 +789,11 @@ begin
   inherited Create(AParentNode, AName, TSFColorRGBA, AInEvent);
 end;
 
-procedure TSFColorRGBAEvent.Send(const Value: TCastleColor; const Time: TX3DTime);
+procedure TSFColorRGBAEvent.Send(const Value: TCastleColor; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFColorRGBA).Value := Value;
   try
     Send(Field, Time);

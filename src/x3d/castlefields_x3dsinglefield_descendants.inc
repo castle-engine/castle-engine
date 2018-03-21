@@ -108,7 +108,7 @@
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
-    procedure Send(const AValue: boolean); overload;
+    procedure Send(const AValue: boolean; const PartialSend: TPartialSend = nil); overload;
   end;
 
   { VRML 1.0 (deprecated) field representing an enumerated value,
@@ -758,12 +758,13 @@ begin
   Result := 'SFBool';
 end;
 
-procedure TSFBool.Send(const AValue: Boolean);
+procedure TSFBool.Send(const AValue: Boolean; const PartialSend: TPartialSend);
 var
   FieldValue: TX3DField;
 begin
   FieldValue := TSFBool.Create(ParentNode, false, X3DName, AValue);
   try
+    FieldValue.InternalPartialSend := PartialSend;
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;

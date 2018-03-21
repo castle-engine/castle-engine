@@ -182,7 +182,8 @@
   end;
 
   TSFNodeEventHelper = class helper for TSFNodeEvent
-    procedure Send(const Value: TX3DNode; const Time: TX3DTime); overload;
+    procedure Send(const Value: TX3DNode; const Time: TX3DTime;
+      const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TX3DNode); overload;
   end;
 
@@ -571,11 +572,12 @@ end;
 
 { TSFNodeEventHelper --------------------------------------------------------- }
 
-procedure TSFNodeEventHelper.Send(const Value: TX3DNode; const Time: TX3DTime);
+procedure TSFNodeEventHelper.Send(const Value: TX3DNode; const Time: TX3DTime;
+  const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
-  Field := CreateTemp;
+  Field := CreateTemp(PartialSend);
   (Field as TSFNode).Value := Value;
   try
     Self.Send(Field, Time);

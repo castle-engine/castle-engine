@@ -10,7 +10,7 @@ NavigationInfo {
 		"EXAMINE",
 		"ANY",
 	]
-	headlight FALSE
+	headlight TRUE
 	avatarSize [
 		0.25, 1.75, 0.75,
 	]

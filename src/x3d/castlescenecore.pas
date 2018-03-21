@@ -439,6 +439,10 @@ type
       not at other times. }
     StopNotification: TStopAnimationEvent;
 
+    { Time, in seconds, when this animation fades-in (and the previous
+      animation, if any, fades-out). }
+    TransitionDuration: TFloatTime;
+
     constructor Create;
   end;
 
@@ -507,13 +511,31 @@ type
       animated with it's own OrientationInterpolator). }
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
-    PlayingAnimationNode, FCurrentAnimation: TTimeSensorNode;
-    PlayingAnimationStopNotification: TStopAnimationEvent;
+    { NewPlayingAnimationXxx describe scheduled animation to change.
+      They are set by PlayAnimation, and used by UpdateNewPlayingAnimation. }
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLoop: boolean;
     NewPlayingAnimationForward: boolean;
     NewPlayingAnimationStopNotification: TStopAnimationEvent;
+    NewPlayingAnimationTransitionDuration: TFloatTime;
+
+    { PlayingAnimationXxx are changed in UpdateNewPlayingAnimation,
+      when the new animation actually starts
+      (the X3D TimeSensor gets event to start). }
+    PlayingAnimationNode: TTimeSensorNode;
+    PlayingAnimationStartTime: TFloatTime;
+    PlayingAnimationStopNotification: TStopAnimationEvent;
+    PlayingAnimationTransitionDuration: TFloatTime;
+
+    PreviousPlayingAnimation: TTimeSensorNode;
+    PreviousPlayingAnimationLoop: boolean;
+    PreviousPlayingAnimationForward: boolean;
+    PreviousPlayingAnimationTimeInAnimation: TFloatTime;
+
+    PreviousPartialAffectedFields: TX3DFieldList;
+
+    FCurrentAnimation: TTimeSensorNode;
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
@@ -529,6 +551,18 @@ type
     { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
+
+    { Perform animation fade-in and fade-out by initializing
+      TInternalTimeDependentHandler.PartialSend before
+      TInternalTimeDependentHandler.SetTime. }
+    procedure PartialSendBegin(const TimeHandler: TInternalTimeDependentHandler);
+
+    { Finalize what PartialSendBegin started,
+      after TInternalTimeDependentHandler.SetTime was called. }
+    procedure PartialSendEnd(const TimeHandler: TInternalTimeDependentHandler);
+
+    { Call this if during this frame, TimeHandler.PartialSend always remained @nil. }
+    procedure NoPartialSend;
 
     { Recalculate and update LODTree.Level.
       Also sends level_changed when needed.
@@ -2651,6 +2685,7 @@ begin
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeStaticCollisions);
   FreeAndNil(FAnimationsList);
+  FreeAndNil(PreviousPartialAffectedFields);
 
   if OwnsRootNode then
     FreeAndNil(FRootNode) else
@@ -3202,6 +3237,8 @@ begin
   FCurrentAnimation := nil;
   NewPlayingAnimationNode := nil;
   NewPlayingAnimationUse := false;
+  PreviousPlayingAnimation := nil;
+  FreeAndNil(PreviousPartialAffectedFields);
 
   if not InternalChangedAll then
   begin
@@ -4297,6 +4334,19 @@ var
       Note that we don't reset time here (ResetTime = false), otherwise
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv. }
+
+    { TODO: Do not call SetTime at all, otherwise starting a 1st animation
+      with TransitionDuration <> 0 would initially blink with final animation pose.
+      The exact cause unknown yet -- this first Handler.SetTime sets only
+      IsActive := true, and it seems to confuse the next Handler.SetTime done
+      by Update.
+
+      Testcase: examples/play_animation/ , switch to sample 3D,
+      increase transition = max, play "idle".
+    }
+    if (PlayingAnimationTransitionDuration <> 0) and
+       (Handler.Node = PlayingAnimationNode) then
+      Exit;
 
     Handler.SetTime(Time, 0, false);
 
@@ -5777,12 +5827,30 @@ procedure TCastleSceneCore.InternalSetTime(
       if PlayingAnimationNode = NewPlayingAnimationNode then
         PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
 
+      { set PreviousPlayingAnimationXxx }
+      PreviousPlayingAnimation := PlayingAnimationNode;
+      if PreviousPlayingAnimation <> nil then
+      begin
+        PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
+        PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
+        PreviousPlayingAnimationTimeInAnimation :=
+          PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
+      end;
+
       PlayingAnimationNode := NewPlayingAnimationNode;
+
       if PlayingAnimationNode <> nil then
       begin
         PlayingAnimationNode.Loop := NewPlayingAnimationLoop;
         PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
         PlayingAnimationNode.Enabled := true;
+
+        { Assign these before PartialSendBegin/End during StartTime assignment. }
+        PlayingAnimationTransitionDuration := NewPlayingAnimationTransitionDuration;
+        { save current Time to own variable,
+          do not trust PlayingAnimationNode.StartTime to remain reliable,
+          it can be changed by user later. }
+        PlayingAnimationStartTime := Time;
 
         { Disable the "ignore" mechanism, otherwise
           setting startTime on a running TimeSensor would be ignored.
@@ -5790,6 +5858,7 @@ procedure TCastleSceneCore.InternalSetTime(
         Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
         Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
 
+        { Assign StopTime and StartTime. }
         PlayingAnimationNode.StopTime := 0;
         PlayingAnimationNode.StartTime := Time;
 
@@ -5806,17 +5875,32 @@ procedure TCastleSceneCore.InternalSetTime(
   { Call SetTime on all TimeDependentHandlers. }
   procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
   var
-    SomethingVisibleChanged: boolean;
+    SomethingVisibleChanged, SomePartialSend: boolean;
     I: Integer;
+    T: TFloatTime;
+    TimeHandler: TInternalTimeDependentHandler;
   begin
     SomethingVisibleChanged := false;
+    T := Time;
+    SomePartialSend := false;
 
     for I := 0 to TimeDependentHandlers.Count - 1 do
     begin
-      if TimeDependentHandlers[I].SetTime(Time, TimeIncrease + ExtraTimeIncrease, ResetTime) and
-        (TimeDependentHandlers[I].Node is TMovieTextureNode) then
+      TimeHandler := TimeDependentHandlers[I];
+
+      PartialSendBegin(TimeHandler);
+      if TimeHandler.PartialSend <> nil then
+        SomePartialSend := true;
+
+      if TimeHandler.SetTime(T, TimeIncrease + ExtraTimeIncrease, ResetTime) and
+        (TimeHandler.Node is TMovieTextureNode) then
         SomethingVisibleChanged := true;
+
+      PartialSendEnd(TimeHandler);
     end;
+
+    if not SomePartialSend then
+      NoPartialSend;
 
     { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
     if SomethingVisibleChanged then
@@ -5966,6 +6050,109 @@ begin
   SP := TimePlayingSpeed * SecondsPassed;
   if TimePlaying and (SP <> 0) then
     IncreaseTime(SP);
+end;
+
+procedure TCastleSceneCore.PartialSendBegin(const TimeHandler: TInternalTimeDependentHandler);
+var
+  T: TFloatTime;
+  PartialSend: TPartialSend;
+begin
+  T := Time;
+
+  if (PlayingAnimationTransitionDuration <> 0) { often early exit } and
+     (TimeHandler.Node = PlayingAnimationNode) and
+     (T >= PlayingAnimationStartTime) { only sanity check } and
+     (T < PlayingAnimationStartTime + PlayingAnimationTransitionDuration) then
+  begin
+    PartialSend := TPartialSend.Create;
+    TimeHandler.PartialSend := PartialSend;
+
+    if PreviousPlayingAnimation <> nil then
+    begin
+      PartialSend.Partial := 1 - (T - PlayingAnimationStartTime) /
+        PlayingAnimationTransitionDuration;
+
+      { First fade-out previous animation.
+        Note that
+        - PreviousPlayingAnimation may be equal to PlayingAnimationNode
+          (in case when PlayAnimation starts the same animation from beginning)
+          and we still must work correctly.
+        - We do not use FadingOutAnimation.InternalTimeDependentHandler.SetTime,
+          as we do not want to activate/deactivate PreviousPlayingAnimation
+          time sensor,
+          and we do not want to look at enabled state of time sensor.
+      }
+      PreviousPlayingAnimation.FakeTime(PreviousPlayingAnimationTimeInAnimation
+        + (T - PlayingAnimationStartTime),
+        PreviousPlayingAnimationLoop,
+        PreviousPlayingAnimationForward,
+        NextEventTime,
+        PartialSend);
+    end;
+
+    { calculate Result.Partial that should be passed
+      to PlayingAnimationNode }
+    PartialSend.Partial := (T - PlayingAnimationStartTime) /
+      PlayingAnimationTransitionDuration;
+  end else
+    TimeHandler.PartialSend := nil;
+end;
+
+procedure TCastleSceneCore.PartialSendEnd(const TimeHandler: TInternalTimeDependentHandler);
+
+  function FieldsEqual(const L1, L2: TX3DFieldList): boolean;
+  var
+    I: Integer;
+  begin
+    Result := L1.Count = L2.Count;
+    if Result then
+      for I := 0 to L1.Count - 1 do
+        if L1[I] <> L2[I] then
+          Exit(false);
+  end;
+
+var
+  F: TX3DField;
+  AffectedFields: TX3DFieldList;
+begin
+  if TimeHandler.PartialSend <> nil then
+  begin
+    AffectedFields := TimeHandler.PartialSend.AffectedFields;
+    TimeHandler.PartialSend.AffectedFields := nil; // do not free by TPartialSend.Destroy
+    FreeAndNil(TimeHandler.PartialSend);
+
+    { call InternalAffectedPartial on all AffectedFields, to correctly update
+      their values. }
+    for F in AffectedFields do
+      F.InternalAffectedPartial;
+
+    { call InternalRemovePartial on all fields affected in previous frame,
+      but not affected this frame. }
+    if PreviousPartialAffectedFields <> nil then
+    begin
+      { optimize the most common case, when PreviousPartialAffectedFields
+        is equal to AffectedFields. }
+      if not FieldsEqual(PreviousPartialAffectedFields, AffectedFields) then
+        for F in PreviousPartialAffectedFields do
+          if not AffectedFields.Contains(F) then
+            F.InternalRemovePartial;
+      FreeAndNil(PreviousPartialAffectedFields);
+    end;
+
+    PreviousPartialAffectedFields := AffectedFields;
+  end;
+end;
+
+procedure TCastleSceneCore.NoPartialSend;
+var
+  F: TX3DField;
+begin
+  if PreviousPartialAffectedFields <> nil then
+  begin
+    for F in PreviousPartialAffectedFields do
+      F.InternalRemovePartial;
+    FreeAndNil(PreviousPartialAffectedFields);
+  end;
 end;
 
 { changes schedule ----------------------------------------------------------- }
@@ -7102,6 +7289,7 @@ begin
     NewPlayingAnimationLoop := Parameters.Loop;
     NewPlayingAnimationForward := Parameters.Forward;
     NewPlayingAnimationStopNotification := Parameters.StopNotification;
+    NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
     NewPlayingAnimationUse := true;
   end;
 end;
