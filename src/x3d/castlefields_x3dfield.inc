@@ -106,6 +106,12 @@
         }
         Partial: Single;
 
+        { Accumulated (this frame) partial values. }
+        PartialValue: TX3DField;
+
+        { Last known value when animation blending did not occur. }
+        SettledValue: TX3DField;
+
         { Should the PartialValue, SettledValue be used to determine
           field value this frame.
 
@@ -136,14 +142,11 @@
 
             We could hack it by not doing SetTime in HandleChangeTimeStopStart,
             but it's better to behave reliably in this case (Partial = 0) alwatys.
+
+          This is now just a shortcut for "PartialValue <> nil", as this satisfies
+          our needs.
         }
-        ToBeApplied: boolean;
-
-        { Accumulated (this frame) partial values. }
-        PartialValue: TX3DField;
-
-        { Last known value when animation blending did not occur. }
-        SettledValue: TX3DField;
+        function ToBeApplied: boolean;
 
         destructor Destroy; override;
       end;
@@ -613,6 +616,11 @@ end;
 
 { TX3DField.TPartialReceived --------------------------------------------------------------- }
 
+function TX3DField.TPartialReceived.ToBeApplied: boolean;
+begin
+  Result := PartialValue <> nil;
+end;
+
 destructor TX3DField.TPartialReceived.Destroy;
 begin
   FreeAndNil(SettledValue);
@@ -1013,8 +1021,8 @@ procedure TX3DField.AssignValue(Source: TX3DField);
         1 - PartialReceived.Partial / (PartialReceived.Partial + PartialSend.Partial),
         PartialReceived.PartialValue, Source);
     end;
+    Assert(PartialReceived.ToBeApplied); // we have initialized PartialReceived.PartialValue
     PartialReceived.Partial += PartialSend.Partial;
-    PartialReceived.ToBeApplied := true;
     // note that we can add duplicates to PartialSend.AffectedFields, that's OK
     PartialSend.AffectedFields.Add(Self);
   end;
@@ -1047,9 +1055,9 @@ begin
   if (PartialReceived <> nil) and PartialReceived.ToBeApplied then
   begin
     AssignLerp(PartialReceived.Partial, PartialReceived.SettledValue, PartialReceived.PartialValue);
-    PartialReceived.ToBeApplied := false;
     PartialReceived.Partial := 0;
     FreeAndNil(PartialReceived.PartialValue);
+    Assert(not PartialReceived.ToBeApplied); // we have destroyed PartialReceived.PartialValue
   end;
 end;
 
