@@ -20,7 +20,7 @@ interface
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleWindow, CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
   CastleApplicationProperties, CastleVectors;
@@ -57,6 +57,7 @@ class procedure TEventsHandler.Open(const Url: string);
     W, H: Integer;
     AnimationName: string;
     Button: TCastleButton;
+    ScrollView: TCastleScrollView;
   begin
     FreeAndNil(AnimationsPanel);
 
@@ -65,6 +66,11 @@ class procedure TEventsHandler.Open(const Url: string);
     AnimationsPanel.Anchor(vpTop, -Margin);
     AnimationsPanel.Color := Vector4(1, 1, 1, 0.1);
 
+    { We place TCastleScrollView inside AnimationsPanel,
+      in case we have too many animations to fit. }
+    ScrollView := TCastleScrollView.Create(AnimationsPanel);
+    AnimationsPanel.InsertFront(ScrollView);
+
     W := 0;
     H := Margin;
 
@@ -72,13 +78,13 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Forward:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(Lab);
+    ScrollView.ScrollArea.InsertFront(Lab);
 
     SwitchForward := TCastleSwitchControl.Create(AnimationsPanel);
     SwitchForward.Checked := true;
     SwitchForward.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
     SwitchForward.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(SwitchForward);
+    ScrollView.ScrollArea.InsertFront(SwitchForward);
 
     H += Lab.CalculatedHeight + Margin;
     MaxVar(W, Lab.CalculatedWidth + SwitchForward.CalculatedWidth + 3 * Margin);
@@ -87,13 +93,13 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Loop:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(Lab);
+    ScrollView.ScrollArea.InsertFront(Lab);
 
     SwitchLoop := TCastleSwitchControl.Create(AnimationsPanel);
     SwitchLoop.Checked := true;
     SwitchLoop.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
     SwitchLoop.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(SwitchLoop);
+    ScrollView.ScrollArea.InsertFront(SwitchLoop);
 
     H += Lab.CalculatedHeight + Margin;
     MaxVar(W, Lab.CalculatedWidth + SwitchLoop.CalculatedWidth + 3 * Margin);
@@ -102,14 +108,14 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Transition:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(Lab);
+    ScrollView.ScrollArea.InsertFront(Lab);
 
     SliderTransition := TCastleFloatSlider.Create(AnimationsPanel);
     SliderTransition.Min := 0;
     SliderTransition.Max := 5;
     SliderTransition.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
     SliderTransition.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(SliderTransition);
+    ScrollView.ScrollArea.InsertFront(SliderTransition);
 
     H += Lab.CalculatedHeight + Margin;
     MaxVar(W, Lab.CalculatedWidth + SliderTransition.CalculatedWidth + 3 * Margin);
@@ -118,7 +124,7 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Click to play animation...';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
-    AnimationsPanel.InsertFront(Lab);
+    ScrollView.ScrollArea.InsertFront(Lab);
 
     H += Lab.CalculatedHeight + Margin;
     MaxVar(W, Lab.CalculatedWidth + 2 * Margin);
@@ -130,14 +136,20 @@ class procedure TEventsHandler.Open(const Url: string);
       Button.Anchor(hpLeft, Margin);
       Button.Anchor(vpTop, -H);
       Button.OnClick := @TEventsHandler(nil).ButtonPlayAnimationClick;
-      AnimationsPanel.InsertFront(Button);
+      ScrollView.ScrollArea.InsertFront(Button);
 
       H += Button.CalculatedHeight + Margin;
       MaxVar(W, Button.CalculatedWidth + 2 * Margin);
     end;
 
-    AnimationsPanel.Width := W;
-    AnimationsPanel.Height := H;
+    ScrollView.ScrollArea.Width := W;
+    ScrollView.ScrollArea.Height := H;
+
+    ScrollView.Width := W;
+    ScrollView.Height := Min(H, Window.Container.UnscaledHeight - 2 * Margin);
+
+    AnimationsPanel.Width := ScrollView.Width;
+    AnimationsPanel.Height := ScrollView.Height;
     Window.Controls.InsertFront(AnimationsPanel);
   end;
 
