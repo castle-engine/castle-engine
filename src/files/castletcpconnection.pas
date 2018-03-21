@@ -4,22 +4,23 @@ unit castletcpconnection;
 
 interface
 
-
 uses
-  SysUtils
+  Classes, SysUtils
   {$ifdef ANDROID},
     CastleMessaging, CastleStringUtils
   {$endif};
 
-
 type
-  TRecieveMessage = procedure(const AMessage: String) of object;
+  TMessageRecieved = procedure(const AMessage: String) of object;
+  TProcedureObject = procedure of object;
 
 {$ifdef ANDROID}
 type
   TAndroidTCPConnectionService = class
     protected
-      FRecieveMessage: TRecieveMessage;
+      FMessageRecieved: TMessageRecieved;
+      FConnected: TProcedureObject;
+      FIsConnected: Boolean;
       function MessageFilter (const Received: TCastleStringList): Boolean;
     public
       constructor Create;
@@ -29,13 +30,21 @@ type
       procedure CreateClient (const AHost: String; const APort: Word);
       procedure SendMessage (const AMessage: String);
     public
-      property RecieveMessage: TRecieveMessage write FRecieveMessage;
+      property OnMessageRecieved: TMessageRecieved write FMessageRecieved;
+      property OnConnected: TProcedureObject write FConnected;
+      property IsConnected: Boolean read FIsConnected;
   end;
 {$endif}
 
 implementation
 
 {$ifdef ANDROID}
+uses
+  CastleApplicationProperties;
+{$endif}
+
+{$ifdef ANDROID}
+
 constructor TAndroidTCPConnectionService.Create;
 begin
   Messaging.OnReceive.Add(@MessageFilter);
@@ -53,7 +62,13 @@ begin
   Result := false;
   if (Received.Count = 2) and (Received[0] = 'tcp_message') then
   begin
-    FRecieveMessage(Received[1]);
+    FMessageRecieved(Received[1]);
+    Result := true;
+  end
+  else if (Received.Count = 1) and (Received[0] = 'tcp_connected') then
+  begin
+    FIsConnected := true;
+    FConnected;
     Result := true;
   end;
 end;

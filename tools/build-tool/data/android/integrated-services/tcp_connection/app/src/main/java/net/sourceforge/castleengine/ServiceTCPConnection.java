@@ -7,6 +7,7 @@ import android.content.Context;
 
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class ServiceTCPConnection extends ServiceAbstract
 {
@@ -14,6 +15,7 @@ public class ServiceTCPConnection extends ServiceAbstract
 
     private PrintWriter writer = null;
     private Boolean running = false;
+    private List<String> messageList = Collections.synchronizedList(new ArrayList<String>());
 
     public ServiceTCPConnection(MainActivity activity)
     {
@@ -39,12 +41,12 @@ public class ServiceTCPConnection extends ServiceAbstract
             }
             else if (parts[1].equals("server")) //server port
             {
-                CreateServer(Integer.parseInt(parts[2]));
+                CreateSocketAndListener(true, null, Integer.parseInt(parts[2]));
                 return true;
             }
             else if (parts[1].equals("client")) //client host port
             {
-                CreateClient(parts[2], Integer.parseInt(parts[3]));
+                CreateSocketAndListener(false, parts[2], Integer.parseInt(parts[3]));
                 return true;
             }
             else if (parts[1].equals("close")) //close
@@ -62,20 +64,7 @@ public class ServiceTCPConnection extends ServiceAbstract
         }
     }
 
-    private void CreateServer (int port) throws IOException 
-    {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket clientSocket = serverSocket.accept();
-            CreateSocketAndListener(clientSocket); 
-    }
-
-    private void CreateClient (String host, int port) throws IOException 
-    {
-        Socket clientSocket = new Socket(host, port);
-        CreateSocketAndListener(clientSocket);
-    }
-
-    private void CreateSocketAndListener (final Socket clientSocket) throws IOException 
+    private void CreateSocketAndListener (final Boolean isServer, final String host, final int port) throws IOException 
     {
         running = true;
 
@@ -86,26 +75,56 @@ public class ServiceTCPConnection extends ServiceAbstract
                 {
                     try
                     {
+                        Socket clientSocket;
+
+                        if (isServer)
+                        {
+                            ServerSocket serverSocket = new ServerSocket(port);
+                            clientSocket = serverSocket.accept();
+                        }
+                        else
+                            clientSocket = new Socket(host, port);
+
+                        clientSocket.setSoTimeout(200);
+
                         writer = new PrintWriter(clientSocket.getOutputStream(), true);
-                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                        String fromServer;
-                        String fromUser;
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+                        MessageSendSynchronised(new String[]{"tcp_connected"});
 
                         String inputLine;
 
                         while (running)
                         {
-                            if ((inputLine = in.readLine()) != null)
+                            try
                             {
-                                MessageSendSynchronised(inputLine);
+                                if ((inputLine = reader.readLine()) != null)
+                                {
+                                    MessageSendSynchronised(new String[]{"tcp_message", inputLine});
+                                }
                             }
+                            catch (SocketTimeoutException e)
+                            {
+                                //Thrown when timeout is rechead. This is normal. 
+                            }
+
+                            synchronized (messageList)
+                            {
+                                for (String message:messageList)
+                                {
+                                    writer.println(message);
+                                    messageList.remove(message);
+                                }
+                            }
+                            
                         }
+
+                        clientSocket.close();
                     }
                     catch (IOException e)
                     {
                         System.err.println(e);
                     }
-
                     writer = null;
                 }
             }
@@ -116,17 +135,22 @@ public class ServiceTCPConnection extends ServiceAbstract
 
     private void SendMessage (String message)
     {
-        writer.println(message);
+        synchronized (messageList)
+        {
+            messageList.add(message);
+        }
+        //if (writer != null)
+        //    writer.println(message);
     }
 
-    private void MessageSendSynchronised (final String message)
+    private void MessageSendSynchronised (final String[] message)
     {
         new Handler(Looper.getMainLooper()).post(new Runnable() // run in main thread
             {   
                 @Override
                 public void run()
                 {
-                    messageSend(new String[]{"tcp_message", message});
+                    messageSend(message);
                 }
             }
         );
