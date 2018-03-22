@@ -146,6 +146,24 @@ type
     property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
+  TSynchronisedStringList = class (TStringList)
+    protected
+      FCriticalSection: TCriticalSection;
+      function Get(Index: Integer): string; override;
+      function GetCount: Integer; override;
+    public
+      constructor Create; override;
+      destructor Destroy; override;
+      function Add(const S: string): Integer; override;
+      procedure Clear; override;
+      procedure Delete(Index: Integer); override;
+      procedure Exchange(Index1, Index2: Integer); override;
+      function Find(const S: string; Out Index: Integer): Boolean; virtual;
+      function IndexOf(const S: string): Integer; override;
+      procedure Insert(Index: Integer; const S: string); override;
+      procedure Sort; virtual;
+    end;
+
 type
   { }
   TSearchOptions = set of (soMatchCase, soWholeWord, soBackwards);
@@ -1150,6 +1168,94 @@ end;
 procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
 begin
   AddOrSetValue(AKey, AValue);
+end;
+
+{ TSynchronisedStringList ----------------------------------------------------- }
+
+constructor TSynchronisedStringList.Create;
+begin
+  inherited;
+
+  FCriticalSection := TCriticalSection.Create;
+end;
+
+destructor TSynchronisedStringList.Destroy;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+
+  FCriticalSection.Free;
+end;
+
+function TSynchronisedStringList.Get(Index: Integer): string;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+function TSynchronisedStringList.GetCount: Integer;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+function TSynchronisedStringList.Add(const S: string): Integer;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Clear;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Delete(Index: Integer);
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Exchange(Index1: Integer; Index2: Integer);
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+function TSynchronisedStringList.Find(const S: string; out Index: Integer): Boolean;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+function TSynchronisedStringList.IndexOf(const S: string): Integer;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Insert(Index: Integer; const S: string);
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Sort;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
 end;
 
 { routines ------------------------------------------------------------------- }
