@@ -8,14 +8,14 @@ import android.content.Context;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class ServiceTCPConnection extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceTCPConnection";
 
-    private PrintWriter writer = null;
-    private Boolean running = false;
-    private List<String> messageList = Collections.synchronizedList(new ArrayList<String>());
+    private ConcurrentHashMap<String, Boolean> activeMap = new ConcurrentHashMap<String, Boolean>();
+    private ConcurrentHashMap<String, List<String>> messageMap = new ConcurrentHashMap<String, List<String>>();
 
     public ServiceTCPConnection(MainActivity activity)
     {
@@ -30,28 +30,34 @@ public class ServiceTCPConnection extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if ((parts.length < 2) || (parts.length > 4) || !parts[0].equals("tcp_connection"))
+        if ((parts.length < 3) || (parts.length > 5) || !parts[0].equals("tcp_connection")) //tcp_connection key action param1 (param2)
             return false;
         try
         {
-            if (parts[1].equals("send")) //send message
+            if (parts[2].equals("send")) //send message
             {
-                SendMessage(parts[2]);
+                SendMessage(parts[1], parts[3]);
                 return true;
             }
-            else if (parts[1].equals("server")) //server port
+            else if (parts[2].equals("server")) //server port
             {
-                CreateSocketAndListener(true, null, Integer.parseInt(parts[2]));
+                if (!messageMap.containsKey(parts[1]))
+                    CreateSocketAndListener(parts[1], true, null, Integer.parseInt(parts[3]));
+
                 return true;
             }
-            else if (parts[1].equals("client")) //client host port
+            else if (parts[2].equals("client")) //client host port
             {
-                CreateSocketAndListener(false, parts[2], Integer.parseInt(parts[3]));
+                if (!messageMap.containsKey(parts[1]))
+                    CreateSocketAndListener(parts[1], false, parts[3], Integer.parseInt(parts[4]));
+
                 return true;
             }
-            else if (parts[1].equals("close")) //close
+            else if (parts[2].equals("close")) //close
             {
-                running = false;
+                activeMap.replace(parts[1], false);
+                messageMap.remove(parts[1]);
+
                 return true;
             }
             else
@@ -60,15 +66,18 @@ public class ServiceTCPConnection extends ServiceAbstract
         catch (IOException e)
         {
             System.err.println(e);
-            return false;
+            return true;
         }
     }
 
-    private void CreateSocketAndListener (final Boolean isServer, final String host, final int port) throws IOException 
+    private void CreateSocketAndListener (final String key, final Boolean isServer, final String host, final int port) throws IOException 
     {
-        running = true;
+        final List<String> messageList = Collections.synchronizedList(new ArrayList<String>());
 
-        Thread thread = new Thread(new Runnable()
+        messageMap.put(key, messageList);
+        activeMap.put(key, true);
+
+        (new Thread(new Runnable()
             {
                 @Override
                 public void run()
@@ -85,16 +94,16 @@ public class ServiceTCPConnection extends ServiceAbstract
                         else
                             clientSocket = new Socket(host, port);
 
-                        clientSocket.setSoTimeout(200);
+                        clientSocket.setSoTimeout(100);
 
-                        writer = new PrintWriter(clientSocket.getOutputStream(), true);
+                        PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
                         BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
                         MessageSendSynchronised(new String[]{"tcp_connected"});
 
                         String inputLine;
 
-                        while (running)
+                        while (activeMap.get(key))
                         {
                             try
                             {
@@ -120,27 +129,26 @@ public class ServiceTCPConnection extends ServiceAbstract
                         }
 
                         clientSocket.close();
+
+                        activeMap.remove(key);
                     }
                     catch (IOException e)
                     {
                         System.err.println(e);
                     }
-                    writer = null;
                 }
             }
-        );
-
-        thread.start();
+        )).start();
     }
 
-    private void SendMessage (String message)
+    private void SendMessage (String key, String message)
     {
-        synchronized (messageList)
-        {
-            messageList.add(message);
-        }
-        //if (writer != null)
-        //    writer.println(message);
+        List<String> messageList;
+        if ((messageList = messageMap.get(key)) != null)
+            synchronized (messageList)
+            {
+                messageList.add(message);
+            }
     }
 
     private void MessageSendSynchronised (final String[] message)
