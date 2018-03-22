@@ -43,7 +43,7 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, SyncObjs,
   CastleUtils;
 
 type
@@ -153,16 +153,16 @@ type
       function GetCount: Integer; override;
       procedure Put(Index: Integer; const S: string); override;
     public
-      constructor Create; override;
+      constructor Create;
       destructor Destroy; override;
       function Add(const S: string): Integer; override;
       procedure Clear; override;
       procedure Delete(Index: Integer); override;
       procedure Exchange(Index1, Index2: Integer); override;
-      function Find(const S: string; Out Index: Integer): Boolean; virtual;
+      function Find(const S: string; Out Index: Integer): Boolean; override;
       function IndexOf(const S: string): Integer; override;
       procedure Insert(Index: Integer; const S: string); override;
-      procedure Sort; virtual;
+      procedure Sort; override;
       procedure Enter; virtual;
       procedure Leave; virtual;
     end;
@@ -1177,8 +1177,6 @@ end;
 
 constructor TSynchronisedStringList.Create;
 begin
-  inherited;
-
   FCriticalSection := TCriticalSection.Create;
 end;
 
@@ -1194,18 +1192,18 @@ end;
 function TSynchronisedStringList.Get(Index: Integer): string;
 begin
   FCriticalSection.Enter;
-  inherited;
+  Result := inherited;
   FCriticalSection.Leave;
 end;
 
 function TSynchronisedStringList.GetCount: Integer;
 begin
   FCriticalSection.Enter;
-  inherited;
+  Result := inherited;
   FCriticalSection.Leave;
 end;
 
-procedure Put(Index: Integer; const S: string); override;
+procedure TSynchronisedStringList.Put(Index: Integer; const S: string);
 begin
   FCriticalSection.Enter;
   inherited;
@@ -1215,7 +1213,7 @@ end;
 function TSynchronisedStringList.Add(const S: string): Integer;
 begin
   FCriticalSection.Enter;
-  inherited;
+  Result := inherited;
   FCriticalSection.Leave;
 end;
 
@@ -1243,14 +1241,14 @@ end;
 function TSynchronisedStringList.Find(const S: string; out Index: Integer): Boolean;
 begin
   FCriticalSection.Enter;
-  inherited;
+  Result := inherited;
   FCriticalSection.Leave;
 end;
 
 function TSynchronisedStringList.IndexOf(const S: string): Integer;
 begin
   FCriticalSection.Enter;
-  inherited;
+  Result := inherited;
   FCriticalSection.Leave;
 end;
 
