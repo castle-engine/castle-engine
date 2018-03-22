@@ -440,7 +440,8 @@ type
     StopNotification: TStopAnimationEvent;
 
     { Time, in seconds, when this animation fades-in (and the previous
-      animation, if any, fades-out). }
+      animation, if any, fades-out).
+      See https://castle-engine.io/wp/2018/03/21/animation-blending/ }
     TransitionDuration: TFloatTime;
 
     constructor Create;
@@ -1849,20 +1850,30 @@ type
       const Forward: boolean = true): boolean; overload;
       deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
-    { Play a named animation (animation listed by the @link(AnimationsList) method).
-      This also stops previously playing named animation, if any.
-      Returns whether such animation was found.
+    { Play a named animation.
+      Calling this method also stops previously playing named animation, if any.
+      Returns boolean whether such animation name was found.
+      To get the list of available animations, see @link(AnimationsList).
+
+      This is the simplest way to play animations using Castle Game Engine.
+      For a nice overview about using PlayAnimation, see the manual
+      https://castle-engine.io/manual_scene.php , section "Play animation".
+
       Playing an already-playing animation is guaranteed to start it from
       the beginning.
 
-      You can specify whether the animation should loop.
+      You can specify whether the animation should loop,
+      whether to play it forward or backward,
+      whether to do animation blending and some other options:
+      see @link(TPlayAnimationParameters).
 
       If you use an overloaded version with the TPlayAnimationParameters,
       note that you can (and usually should) free the TPlayAnimationParameters
       instance right after calling this method. We do not keep reference to
       the TPlayAnimationParameters instance, and we do not free it ourselves.
 
-      Notes:
+      Some obscure notes (you usually @italic(do not need to know the details
+      below)):
 
       @unorderedList(
         @item(Calling this method @italic(does not change the scene immediately).
