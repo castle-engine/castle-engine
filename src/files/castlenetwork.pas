@@ -17,22 +17,7 @@ type
   TMessageRecieved = procedure(const AMessage: String) of object;
   TProcedureObject = procedure of object;
 
-type
-  TSynchronisedObjectList<T: class> = class(TObjectList<T>)
-  protected
-    FCriticalSection: TCriticalSection;
-  public
-    constructor Create(AOwnsObjects: Boolean = true); overload;
-    destructor Destroy; override;
-    function Add(constref AValue: T): SizeInt; override;
-    function Remove(constref AValue: T): SizeInt; override;
-    function IndexOf(constref AValue: T): SizeInt; override;
-    procedure Clear; reintroduce;
-    procedure Enter; virtual;
-    procedure Leave; virtual;
-  end;
-
-  TSynchronisedStringList = specialize TSynchronisedObjectList<String>;
+  TSynchronisedStringList = specialize TThreadList<String>;
 
 {$ifndef ANDROID}
   type
@@ -291,63 +276,10 @@ uses
 {$endif}
 
 //
-//TSynchronisedObjectList
 //
 
-constructor TSynchronisedObjectList<T>.Create (AOwnsObjects: Boolean);
 begin
-  inherited;
-
-  FCriticalSection := TCriticalSection.Create;
 end;
-
-destructor TSynchronisedObjectList<T>.Destroy;
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-
-  FCriticalSection.Free;
-end;
-
-function TSynchronisedObjectList<T>.Add (constref AValue: T): SizeInt;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedObjectList<T>.Remove (constref AValue: T): SizeInt;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedObjectList<T>.IndexOf(constref AValue: T): SizeInt; override;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedObjectList<T>.Clear; virtual;
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedObjectList<T>.Enter; virtual;
-begin
-  FCriticalSection.Enter;
-end;
-
-procedure TSynchronisedObjectList<T>.Leave; virtual;
-begin
-  FCriticalSection.Leave;
-end;
-
 
 //
 //TCastleSocket
