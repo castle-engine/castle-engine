@@ -151,6 +151,7 @@ type
       FCriticalSection: TCriticalSection;
       function Get(Index: Integer): string; override;
       function GetCount: Integer; override;
+      procedure Put(Index: Integer; const S: string); override;
     public
       constructor Create; override;
       destructor Destroy; override;
@@ -162,6 +163,8 @@ type
       function IndexOf(const S: string): Integer; override;
       procedure Insert(Index: Integer; const S: string); override;
       procedure Sort; virtual;
+      procedure Enter; virtual;
+      procedure Leave; virtual;
     end;
 
 type
@@ -1202,6 +1205,13 @@ begin
   FCriticalSection.Leave;
 end;
 
+procedure Put(Index: Integer; const S: string); override;
+begin
+  FCriticalSection.Enter;
+  inherited;
+  FCriticalSection.Leave;
+end;
+
 function TSynchronisedStringList.Add(const S: string): Integer;
 begin
   FCriticalSection.Enter;
@@ -1255,6 +1265,16 @@ procedure TSynchronisedStringList.Sort;
 begin
   FCriticalSection.Enter;
   inherited;
+  FCriticalSection.Leave;
+end;
+
+procedure TSynchronisedStringList.Enter;
+begin
+  FCriticalSection.Enter;
+end;
+
+procedure TSynchronisedStringList.Leave;
+begin
   FCriticalSection.Leave;
 end;
 
