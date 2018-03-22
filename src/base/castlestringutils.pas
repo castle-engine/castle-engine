@@ -43,7 +43,7 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, SyncObjs,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
@@ -145,27 +145,6 @@ type
       that only allows setting when the key already exists. }
     property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
-
-  TSynchronisedStringList = class (TStringList)
-    protected
-      FCriticalSection: TCriticalSection;
-      function Get(Index: Integer): string; override;
-      function GetCount: Integer; override;
-      procedure Put(Index: Integer; const S: string); override;
-    public
-      constructor Create;
-      destructor Destroy; override;
-      function Add(const S: string): Integer; override;
-      procedure Clear; override;
-      procedure Delete(Index: Integer); override;
-      procedure Exchange(Index1, Index2: Integer); override;
-      function Find(const S: string; Out Index: Integer): Boolean; override;
-      function IndexOf(const S: string): Integer; override;
-      procedure Insert(Index: Integer; const S: string); override;
-      procedure Sort; override;
-      procedure Enter; virtual;
-      procedure Leave; virtual;
-    end;
 
 type
   { }
@@ -1171,109 +1150,6 @@ end;
 procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
 begin
   AddOrSetValue(AKey, AValue);
-end;
-
-{ TSynchronisedStringList ----------------------------------------------------- }
-
-constructor TSynchronisedStringList.Create;
-begin
-  FCriticalSection := TCriticalSection.Create;
-end;
-
-destructor TSynchronisedStringList.Destroy;
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-
-  FCriticalSection.Free;
-end;
-
-function TSynchronisedStringList.Get(Index: Integer): string;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedStringList.GetCount: Integer;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Put(Index: Integer; const S: string);
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedStringList.Add(const S: string): Integer;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Clear;
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Delete(Index: Integer);
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Exchange(Index1: Integer; Index2: Integer);
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedStringList.Find(const S: string; out Index: Integer): Boolean;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-function TSynchronisedStringList.IndexOf(const S: string): Integer;
-begin
-  FCriticalSection.Enter;
-  Result := inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Insert(Index: Integer; const S: string);
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Sort;
-begin
-  FCriticalSection.Enter;
-  inherited;
-  FCriticalSection.Leave;
-end;
-
-procedure TSynchronisedStringList.Enter;
-begin
-  FCriticalSection.Enter;
-end;
-
-procedure TSynchronisedStringList.Leave;
-begin
-  FCriticalSection.Leave;
 end;
 
 { routines ------------------------------------------------------------------- }
