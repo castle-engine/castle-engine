@@ -66,15 +66,14 @@ public class ServiceTCPConnection extends ServiceAbstract
         }
         else if (parts[2].equals("close")) //close clientid
         {
-            if (parts[3] == "all")
+            if (parts[3].equals("all"))
             {
                 ConcurrentHashMap<String, Boolean> tempMap = activeMap.get(parts[1]).activeMap;
                 synchronized (tempMap)
                 {
-                    Enumeration<String> e = tempMap.keys();
-                    while (e.hasMoreElements())
+                    for (String mapKey : tempMap.keySet())
                     {
-                        tempMap.replace(e.nextElement(), false);
+                        tempMap.replace(mapKey, false);
                     }
                 }
                 activeMap.get(parts[1]).active = false;
@@ -113,7 +112,7 @@ public class ServiceTCPConnection extends ServiceAbstract
                             ServerSocket serverSocket = new ServerSocket(port);
                             while (activeMap.get(key).active)
                             {
-                                CreateListenerThread(serverSocket.accept(), Integer.toString(listenerId), socketMessageMap, socketActiveMap);
+                                CreateListenerThread(serverSocket.accept(), key + Integer.toString(listenerId), socketMessageMap, socketActiveMap);
                                 listenerId++;
                             }   
 
@@ -122,11 +121,11 @@ public class ServiceTCPConnection extends ServiceAbstract
                             activeMap.remove(key);                       
                         }
                         else
-                            CreateListenerThread(new Socket(host, port), "client", socketMessageMap, socketActiveMap);
+                            CreateListenerThread(new Socket(host, port), key + "client", socketMessageMap, socketActiveMap);
                     }
                     catch (IOException e)
                     {
-                        System.err.println(e);
+                        Log.d("ServiceTCPConnection", e.toString());
                     }
                 }
             }
@@ -170,7 +169,11 @@ public class ServiceTCPConnection extends ServiceAbstract
                             {
                                 if ((inputLine = reader.readLine()) != null)
                                 {
-                                    MessageSendSynchronised(new String[]{"tcp_message", inputLine});
+                                    MessageSendSynchronised(new String[]{"tcp_message", inputLine, listenerId});
+                                }
+                                else
+                                {
+                                    throw new IOException("Connection closed gracefully.");
                                 }
                             }
                             catch (SocketTimeoutException e)
@@ -186,17 +189,25 @@ public class ServiceTCPConnection extends ServiceAbstract
                                     writer.println(message);
                                 }
                             }
-                            
                         }
-
-                        listenerSocket.close();
-
-                        socketActiveMap.remove(listenerId);
                     }
                     catch (IOException e)
                     {
-                        System.err.println(e);
+                        Log.d("ServiceTCPConnection", e.toString());
                     }
+
+                    MessageSendSynchronised(new String[]{"tcp_disconnected", listenerId});
+
+                    try
+                    {
+                        listenerSocket.close();
+                    }
+                    catch (IOException e)
+                    {
+                        Log.d("ServiceTCPConnection", e.toString());
+                    }
+
+                    socketActiveMap.remove(listenerId);
                 }
             }
         )).start();
@@ -204,12 +215,29 @@ public class ServiceTCPConnection extends ServiceAbstract
 
     private void SendMessage (String key, String message, String clientId)
     {
-        List<String> messageList;
-        if ((messageList = messageMap.get(key).get(clientId)) != null)
-            synchronized (messageList)
+        if (clientId.equals("all"))
+        {
+            ConcurrentHashMap<String, List<String>> tempMap = messageMap.get(key);
+            synchronized (tempMap)
             {
-                messageList.add(message);
+                for (List<String> messageList : tempMap.values())
+                {
+                    synchronized (messageList)
+                    {
+                        messageList.add(message);
+                    }
+                }
             }
+        } 
+        else
+        {
+            List<String> messageList;
+            if ((messageList = messageMap.get(key).get(clientId)) != null)
+                synchronized (messageList)
+                {
+                    messageList.add(message);
+                }
+        }
     }
 
     private void MessageSendSynchronised (final String[] message)
