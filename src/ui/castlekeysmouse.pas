@@ -25,223 +25,422 @@ interface
 uses Classes, CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;
 
 type
-  { Keys on keyboard.
-    Do not ever use values K_Reserved_Xxx (they are declared here only to avoid
-    using assignments, which would prevent FPC from allowing TKey to index arrays).
+  { Keys on the keyboard.
 
-    Some properties of K_Xxx constants that are guaranteed:
+    Some properties of keyXxx constants that are guaranteed:
 
     @unorderedList(
-      @item(K_None means "no key". It's guaranteed that it's always equal to zero.)
+      @item(keyNone means "no key". It's guaranteed that it's always equal to zero.)
 
-      @item(Letters (constants K_A .. K_Z) are guaranteed to be always equal to
-        TKey('A') .. TKey('Z') and digits (constants K_0 .. K_9) are
+      @item(Letters (constants keyA .. keyZ) are guaranteed to be always equal to
+        TKey('A') .. TKey('Z') and digits (constants key0 .. key9) are
         guaranteed to be always equal to TKey('0') .. TKey('9').
         That is, their ordinal values are equal to their ASCII codes,
         and they are always ordered.
 
-        Also K_F1 .. K_F12 (function keys) are guaranteed to be always nicely ordered
-        (i.e. K_F2 = K_F1 + 1, K_F3 = K_F2 + 1 and so on).
+        Also keyF1 .. keyF12 (function keys) are guaranteed to be always nicely ordered
+        (i.e. keyF2 = keyF1 + 1, keyF3 = keyF2 + 1 and so on).
 
-        Also K_Escape, K_BackSpace, K_Tab, K_Enter are guaranteed to be always equal
+        Also keyEscape, keyBackSpace, keyTab, keyEnter are guaranteed to be always equal
         to CharEscape, CharBackSpace, CharTab, CharEnter (well, typecasted to
         TKey type).)
-    ) }
+    )
+
+    Do not ever use keyReserved_Xxx for any purpose, they may be used
+    for something in next CGE versions.
+  }
   TKey = (
-    K_None,
-    K_PrintScreen,
-    K_CapsLock,
-    K_ScrollLock,
-    K_NumLock,
-    K_Pause,
-    K_Apostrophe,
-    K_Semicolon,
-    K_BackSpace, //< = Ord(CharBackSpace) = 8
-    K_Tab, //< = Ord(CharTab) = 9
-    K_Slash,
-    K_BackQuote,
-    K_Minus,
-    K_Enter, //< = Ord(CharEnter) = 13
-    K_Equal,
-    K_BackSlash,
-    K_Shift,
-    K_Ctrl,
-    K_Alt,
-    K_Plus,
-    K_Reserved_20,
-    K_Reserved_21,
-    K_Reserved_22,
-    K_Reserved_23,
-    K_Reserved_24,
-    K_Reserved_25,
-    K_Reserved_26,
-    K_Escape, //< = Ord(CharEscape) = 27
-    K_Reserved_28,
-    K_Reserved_29,
-    K_Reserved_30,
-    K_Reserved_31,
-    K_Space, //< = Ord(' ') = 32
-    K_PageUp,
-    K_PageDown,
-    K_End,
-    K_Home,
-    K_Left,
-    K_Up,
-    K_Right,
-    K_Down,
-    K_Reserved_41,
-    K_Reserved_42,
-    K_Reserved_43,
-    K_Reserved_44,
-    K_Insert,
-    K_Delete,
-    K_Reserved_47,
-    K_0, //< = Ord('0') = 48
-    K_1, //< = Ord('1')
-    K_2, //< = Ord('2')
-    K_3, //< = Ord('3')
-    K_4, //< = Ord('4')
-    K_5, //< = Ord('5')
-    K_6, //< = Ord('6')
-    K_7, //< = Ord('7')
-    K_8, //< = Ord('8')
-    K_9, //< = Ord('9') = 57
-    K_Reserved_58,
-    K_Reserved_59,
-    K_Reserved_60,
-    K_Reserved_61,
-    K_Reserved_62,
-    K_Reserved_63,
-    K_Reserved_64,
-    K_A, //< = Ord('A') = 65
-    K_B, //< = Ord('B')
-    K_C, //< = Ord('C')
-    K_D, //< = Ord('D')
-    K_E, //< = Ord('E')
-    K_F, //< = Ord('F')
-    K_G, //< = Ord('G')
-    K_H, //< = Ord('H')
-    K_I, //< = Ord('I')
-    K_J, //< = Ord('J')
-    K_K, //< = Ord('K')
-    K_L, //< = Ord('L')
-    K_M, //< = Ord('M')
-    K_N, //< = Ord('N')
-    K_O, //< = Ord('O')
-    K_P, //< = Ord('P')
-    K_Q, //< = Ord('Q')
-    K_R, //< = Ord('R')
-    K_S, //< = Ord('S')
-    K_T, //< = Ord('T')
-    K_U, //< = Ord('U')
-    K_V, //< = Ord('V')
-    K_W, //< = Ord('W')
-    K_X, //< = Ord('X')
-    K_Y, //< = Ord('Y')
-    K_Z, //< = Ord('Z') = 90
-    K_LeftBracket,
-    K_Reserved_92,
-    K_RightBracket,
-    K_Reserved_94,
-    K_Reserved_95,
-    K_Reserved_96,
-    K_Reserved_97,
-    K_Reserved_98,
-    K_Reserved_99,
-    K_Reserved_100,
-    K_Reserved_101,
-    K_Reserved_102,
-    K_Reserved_103,
-    K_Reserved_104,
-    K_Reserved_105,
-    K_Reserved_106,
-    K_Numpad_Plus ,
-    K_Reserved_108,
-    K_Numpad_Minus,
-    K_Reserved_110,
-    K_Reserved_111,
-    K_F1,
-    K_F2,
-    K_F3,
-    K_F4,
-    K_F5,
-    K_F6,
-    K_F7,
-    K_F8,
-    K_F9,
-    K_F10,
-    K_F11,
-    K_F12,
-    K_Reserved_124,
-    K_Reserved_125,
-    K_Reserved_126,
-    K_Reserved_127,
-    K_Reserved_128,
-    K_Reserved_129,
-    K_Reserved_130,
-    K_Reserved_131,
-    K_Reserved_132,
-    K_Reserved_133,
-    K_Reserved_134,
-    K_Reserved_135,
-    K_Reserved_136,
-    K_Reserved_137,
-    K_Reserved_138,
-    K_Reserved_139,
-    K_Numpad_0,
-    K_Numpad_1,
-    K_Numpad_2,
-    K_Numpad_3,
-    K_Numpad_4,
-    K_Numpad_5,
-    K_Numpad_6,
-    K_Numpad_7,
-    K_Numpad_8,
-    K_Numpad_9,
-    K_Numpad_End,
-    K_Numpad_Down,
-    K_Numpad_PageDown,
-    K_Numpad_Left,
-    K_Numpad_Begin,
-    K_Numpad_Right,
-    K_Numpad_Home,
-    K_Numpad_Up,
-    K_Numpad_PageUp,
-    K_Numpad_Insert,
-    K_Numpad_Delete,
-    K_Numpad_Enter,
-    K_Numpad_Multiply,
-    K_Numpad_Divide,
-    K_Reserved_164,
-    K_Reserved_165,
-    K_Reserved_166,
-    K_Reserved_167,
-    K_Reserved_168,
-    K_Reserved_169,
-    K_Reserved_170,
-    K_Reserved_171,
-    K_Reserved_172,
-    K_Reserved_173,
-    K_Reserved_174,
-    K_Reserved_175,
-    K_Reserved_176,
-    K_Reserved_177,
-    K_Reserved_178,
-    K_Reserved_179,
-    K_Reserved_180,
-    K_Reserved_181,
-    K_Reserved_182,
-    K_Reserved_183,
-    K_Reserved_184,
-    K_Reserved_185,
-    K_Reserved_186,
-    K_Reserved_187,
-    K_Comma,
-    K_Reserved_189,
-    K_Period,
-    K_Reserved_191
+    keyNone,
+    keyPrintScreen,
+    keyCapsLock,
+    keyScrollLock,
+    keyNumLock,
+    keyPause,
+    keyApostrophe,
+    keySemicolon,
+    keyBackSpace, //< = Ord(CharBackSpace) = 8
+    keyTab, //< = Ord(CharTab) = 9
+    keySlash,
+    keyBackQuote,
+    keyMinus,
+    keyEnter, //< = Ord(CharEnter) = 13
+    keyEqual,
+    keyBackSlash,
+    keyShift,
+    keyCtrl,
+    keyAlt,
+    keyPlus,
+    keyReserved_20,
+    keyReserved_21,
+    keyReserved_22,
+    keyReserved_23,
+    keyReserved_24,
+    keyReserved_25,
+    keyReserved_26,
+    keyEscape, //< = Ord(CharEscape) = 27
+    keyReserved_28,
+    keyReserved_29,
+    keyReserved_30,
+    keyReserved_31,
+    keySpace, //< = Ord(' ') = 32
+    keyPageUp,
+    keyPageDown,
+    keyEnd,
+    keyHome,
+    keyLeft,
+    keyUp,
+    keyRight,
+    keyDown,
+    keyReserved_41,
+    keyReserved_42,
+    keyReserved_43,
+    keyReserved_44,
+    keyInsert,
+    keyDelete,
+    keyReserved_47,
+    key0, //< = Ord('0') = 48
+    key1, //< = Ord('1')
+    key2, //< = Ord('2')
+    key3, //< = Ord('3')
+    key4, //< = Ord('4')
+    key5, //< = Ord('5')
+    key6, //< = Ord('6')
+    key7, //< = Ord('7')
+    key8, //< = Ord('8')
+    key9, //< = Ord('9') = 57
+    keyReserved_58,
+    keyReserved_59,
+    keyReserved_60,
+    keyReserved_61,
+    keyReserved_62,
+    keyReserved_63,
+    keyReserved_64,
+    keyA, //< = Ord('A') = 65
+    keyB, //< = Ord('B')
+    keyC, //< = Ord('C')
+    keyD, //< = Ord('D')
+    keyE, //< = Ord('E')
+    keyF, //< = Ord('F')
+    keyG, //< = Ord('G')
+    keyH, //< = Ord('H')
+    keyI, //< = Ord('I')
+    keyJ, //< = Ord('J')
+    keyK, //< = Ord('K')
+    keyL, //< = Ord('L')
+    keyM, //< = Ord('M')
+    keyN, //< = Ord('N')
+    keyO, //< = Ord('O')
+    keyP, //< = Ord('P')
+    keyQ, //< = Ord('Q')
+    keyR, //< = Ord('R')
+    keyS, //< = Ord('S')
+    keyT, //< = Ord('T')
+    keyU, //< = Ord('U')
+    keyV, //< = Ord('V')
+    keyW, //< = Ord('W')
+    keyX, //< = Ord('X')
+    keyY, //< = Ord('Y')
+    keyZ, //< = Ord('Z') = 90
+    keyLeftBracket,
+    keyReserved_92,
+    keyRightBracket,
+    keyReserved_94,
+    keyReserved_95,
+    keyReserved_96,
+    keyReserved_97,
+    keyReserved_98,
+    keyReserved_99,
+    keyReserved_100,
+    keyReserved_101,
+    keyReserved_102,
+    keyReserved_103,
+    keyReserved_104,
+    keyReserved_105,
+    keyReserved_106,
+    keyNumpadPlus ,
+    keyReserved_108,
+    keyNumpadMinus,
+    keyReserved_110,
+    keyReserved_111,
+    keyF1,
+    keyF2,
+    keyF3,
+    keyF4,
+    keyF5,
+    keyF6,
+    keyF7,
+    keyF8,
+    keyF9,
+    keyF10,
+    keyF11,
+    keyF12,
+    keyReserved_124,
+    keyReserved_125,
+    keyReserved_126,
+    keyReserved_127,
+    keyReserved_128,
+    keyReserved_129,
+    keyReserved_130,
+    keyReserved_131,
+    keyReserved_132,
+    keyReserved_133,
+    keyReserved_134,
+    keyReserved_135,
+    keyReserved_136,
+    keyReserved_137,
+    keyReserved_138,
+    keyReserved_139,
+    keyNumpad0,
+    keyNumpad1,
+    keyNumpad2,
+    keyNumpad3,
+    keyNumpad4,
+    keyNumpad5,
+    keyNumpad6,
+    keyNumpad7,
+    keyNumpad8,
+    keyNumpad9,
+    keyNumpadEnd,
+    keyNumpadDown,
+    keyNumpadPageDown,
+    keyNumpadLeft,
+    keyNumpadBegin,
+    keyNumpadRight,
+    keyNumpadHome,
+    keyNumpadUp,
+    keyNumpadPageUp,
+    keyNumpadInsert,
+    keyNumpadDelete,
+    keyNumpadEnter,
+    keyNumpadMultiply,
+    keyNumpadDivide,
+    keyReserved_164,
+    keyReserved_165,
+    keyReserved_166,
+    keyReserved_167,
+    keyReserved_168,
+    keyReserved_169,
+    keyReserved_170,
+    keyReserved_171,
+    keyReserved_172,
+    keyReserved_173,
+    keyReserved_174,
+    keyReserved_175,
+    keyReserved_176,
+    keyReserved_177,
+    keyReserved_178,
+    keyReserved_179,
+    keyReserved_180,
+    keyReserved_181,
+    keyReserved_182,
+    keyReserved_183,
+    keyReserved_184,
+    keyReserved_185,
+    keyReserved_186,
+    keyReserved_187,
+    keyComma,
+    keyReserved_189,
+    keyPeriod,
+    keyReserved_191
   );
 
+{ Old key names (K_Xxx instead of keyXxx). }
+
+const
+  K_None                       = keyNone;
+  K_PrintScreen                = keyPrintScreen;
+  K_CapsLock                   = keyCapsLock;
+  K_ScrollLock                 = keyScrollLock;
+  K_NumLock                    = keyNumLock;
+  K_Pause                      = keyPause;
+  K_Apostrophe                 = keyApostrophe;
+  K_Semicolon                  = keySemicolon;
+  K_BackSpace                  = keyBackSpace;
+  K_Tab                        = keyTab;
+  K_Slash                      = keySlash;
+  K_BackQuote                  = keyBackQuote;
+  K_Minus                      = keyMinus;
+  K_Enter                      = keyEnter;
+  K_Equal                      = keyEqual;
+  K_BackSlash                  = keyBackSlash;
+  K_Shift                      = keyShift;
+  K_Ctrl                       = keyCtrl;
+  K_Alt                        = keyAlt;
+  K_Plus                       = keyPlus;
+  K_Reserved_20                = keyReserved_20;
+  K_Reserved_21                = keyReserved_21;
+  K_Reserved_22                = keyReserved_22;
+  K_Reserved_23                = keyReserved_23;
+  K_Reserved_24                = keyReserved_24;
+  K_Reserved_25                = keyReserved_25;
+  K_Reserved_26                = keyReserved_26;
+  K_Escape                     = keyEscape;
+  K_Reserved_28                = keyReserved_28;
+  K_Reserved_29                = keyReserved_29;
+  K_Reserved_30                = keyReserved_30;
+  K_Reserved_31                = keyReserved_31;
+  K_Space                      = keySpace;
+  K_PageUp                     = keyPageUp;
+  K_PageDown                   = keyPageDown;
+  K_End                        = keyEnd;
+  K_Home                       = keyHome;
+  K_Left                       = keyLeft;
+  K_Up                         = keyUp;
+  K_Right                      = keyRight;
+  K_Down                       = keyDown;
+  K_Reserved_41                = keyReserved_41;
+  K_Reserved_42                = keyReserved_42;
+  K_Reserved_43                = keyReserved_43;
+  K_Reserved_44                = keyReserved_44;
+  K_Insert                     = keyInsert;
+  K_Delete                     = keyDelete;
+  K_Reserved_47                = keyReserved_47;
+  K_0                          = key0;
+  K_1                          = key1;
+  K_2                          = key2;
+  K_3                          = key3;
+  K_4                          = key4;
+  K_5                          = key5;
+  K_6                          = key6;
+  K_7                          = key7;
+  K_8                          = key8;
+  K_9                          = key9;
+  K_Reserved_58                = keyReserved_58;
+  K_Reserved_59                = keyReserved_59;
+  K_Reserved_60                = keyReserved_60;
+  K_Reserved_61                = keyReserved_61;
+  K_Reserved_62                = keyReserved_62;
+  K_Reserved_63                = keyReserved_63;
+  K_Reserved_64                = keyReserved_64;
+  K_A                          = keyA;
+  K_B                          = keyB;
+  K_C                          = keyC;
+  K_D                          = keyD;
+  K_E                          = keyE;
+  K_F                          = keyF;
+  K_G                          = keyG;
+  K_H                          = keyH;
+  K_I                          = keyI;
+  K_J                          = keyJ;
+  K_K                          = keyK;
+  K_L                          = keyL;
+  K_M                          = keyM;
+  K_N                          = keyN;
+  K_O                          = keyO;
+  K_P                          = keyP;
+  K_Q                          = keyQ;
+  K_R                          = keyR;
+  K_S                          = keyS;
+  K_T                          = keyT;
+  K_U                          = keyU;
+  K_V                          = keyV;
+  K_W                          = keyW;
+  K_X                          = keyX;
+  K_Y                          = keyY;
+  K_Z                          = keyZ;
+  K_LeftBracket                = keyLeftBracket;
+  K_Reserved_92                = keyReserved_92;
+  K_RightBracket               = keyRightBracket;
+  K_Reserved_94                = keyReserved_94;
+  K_Reserved_95                = keyReserved_95;
+  K_Reserved_96                = keyReserved_96;
+  K_Reserved_97                = keyReserved_97;
+  K_Reserved_98                = keyReserved_98;
+  K_Reserved_99                = keyReserved_99;
+  K_Reserved_100               = keyReserved_100;
+  K_Reserved_101               = keyReserved_101;
+  K_Reserved_102               = keyReserved_102;
+  K_Reserved_103               = keyReserved_103;
+  K_Reserved_104               = keyReserved_104;
+  K_Reserved_105               = keyReserved_105;
+  K_Reserved_106               = keyReserved_106;
+  K_Numpad_Plus                = keyNumpadPlus;
+  K_Reserved_108               = keyReserved_108;
+  K_Numpad_Minus               = keyNumpadMinus;
+  K_Reserved_110               = keyReserved_110;
+  K_Reserved_111               = keyReserved_111;
+  K_F1                         = keyF1;
+  K_F2                         = keyF2;
+  K_F3                         = keyF3;
+  K_F4                         = keyF4;
+  K_F5                         = keyF5;
+  K_F6                         = keyF6;
+  K_F7                         = keyF7;
+  K_F8                         = keyF8;
+  K_F9                         = keyF9;
+  K_F10                        = keyF10;
+  K_F11                        = keyF11;
+  K_F12                        = keyF12;
+  K_Reserved_124               = keyReserved_124;
+  K_Reserved_125               = keyReserved_125;
+  K_Reserved_126               = keyReserved_126;
+  K_Reserved_127               = keyReserved_127;
+  K_Reserved_128               = keyReserved_128;
+  K_Reserved_129               = keyReserved_129;
+  K_Reserved_130               = keyReserved_130;
+  K_Reserved_131               = keyReserved_131;
+  K_Reserved_132               = keyReserved_132;
+  K_Reserved_133               = keyReserved_133;
+  K_Reserved_134               = keyReserved_134;
+  K_Reserved_135               = keyReserved_135;
+  K_Reserved_136               = keyReserved_136;
+  K_Reserved_137               = keyReserved_137;
+  K_Reserved_138               = keyReserved_138;
+  K_Reserved_139               = keyReserved_139;
+  K_Numpad_0                   = keyNumpad0;
+  K_Numpad_1                   = keyNumpad1;
+  K_Numpad_2                   = keyNumpad2;
+  K_Numpad_3                   = keyNumpad3;
+  K_Numpad_4                   = keyNumpad4;
+  K_Numpad_5                   = keyNumpad5;
+  K_Numpad_6                   = keyNumpad6;
+  K_Numpad_7                   = keyNumpad7;
+  K_Numpad_8                   = keyNumpad8;
+  K_Numpad_9                   = keyNumpad9;
+  K_Numpad_End                 = keyNumpadEnd;
+  K_Numpad_Down                = keyNumpadDown;
+  K_Numpad_PageDown            = keyNumpadPageDown;
+  K_Numpad_Left                = keyNumpadLeft;
+  K_Numpad_Begin               = keyNumpadBegin;
+  K_Numpad_Right               = keyNumpadRight;
+  K_Numpad_Home                = keyNumpadHome;
+  K_Numpad_Up                  = keyNumpadUp;
+  K_Numpad_PageUp              = keyNumpadPageUp;
+  K_Numpad_Insert              = keyNumpadInsert;
+  K_Numpad_Delete              = keyNumpadDelete;
+  K_Numpad_Enter               = keyNumpadEnter;
+  K_Numpad_Multiply            = keyNumpadMultiply;
+  K_Numpad_Divide              = keyNumpadDivide;
+  K_Reserved_164               = keyReserved_164;
+  K_Reserved_165               = keyReserved_165;
+  K_Reserved_166               = keyReserved_166;
+  K_Reserved_167               = keyReserved_167;
+  K_Reserved_168               = keyReserved_168;
+  K_Reserved_169               = keyReserved_169;
+  K_Reserved_170               = keyReserved_170;
+  K_Reserved_171               = keyReserved_171;
+  K_Reserved_172               = keyReserved_172;
+  K_Reserved_173               = keyReserved_173;
+  K_Reserved_174               = keyReserved_174;
+  K_Reserved_175               = keyReserved_175;
+  K_Reserved_176               = keyReserved_176;
+  K_Reserved_177               = keyReserved_177;
+  K_Reserved_178               = keyReserved_178;
+  K_Reserved_179               = keyReserved_179;
+  K_Reserved_180               = keyReserved_180;
+  K_Reserved_181               = keyReserved_181;
+  K_Reserved_182               = keyReserved_182;
+  K_Reserved_183               = keyReserved_183;
+  K_Reserved_184               = keyReserved_184;
+  K_Reserved_185               = keyReserved_185;
+  K_Reserved_186               = keyReserved_186;
+  K_Reserved_187               = keyReserved_187;
+  K_Comma                      = keyComma;
+  K_Reserved_189               = keyReserved_189;
+  K_Period                     = keyPeriod;
+  K_Reserved_191               = keyReserved_191;
+
+type
   TKeysBooleans = array [TKey] of Boolean;
   PKeysBooleans = ^TKeysBooleans;
   TKeysBytes = array [Byte] of TKey;
@@ -290,8 +489,8 @@ type
     mcHand);
 
 const
-  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right',
-                                                    'extra1', 'extra2');
+  MouseButtonStr: array [TMouseButton] of string = (
+    'left', 'middle', 'right', 'extra1', 'extra2');
 
 type
   { Modifier keys are keys that, when pressed, modify the meaning of
@@ -321,7 +520,7 @@ type
         PressedCharacterToKey[PressedKeyToCharacter[Key]] = Key and
         PressedKeyToCharacter[PressedCharacterToKey[C]] = C
       for all keys and characters, assuming that
-      PressedCharacterToKey[C] <> K_None and
+      PressedCharacterToKey[C] <> keyNone and
       PressedKeyToCharacter[Key] <> #0 (which indicate that no character
       is pressed / no character is pressed corresponding to this key).
 
@@ -341,7 +540,7 @@ type
     { Check is a key (TKey) pressed.
 
       This array is read-only from outside of this class!
-      Always Keys[K_None] = false. }
+      Always Keys[keyNone] = false. }
     Keys: TKeysBooleans;
 
     { Check is a character pressed.
@@ -363,25 +562,25 @@ type
 
       Returns the same values as are in the @link(Keys) table.
       Although this is more comfortable: it's a default property of this class,
-      so you can write simply @code(KeysPressed[K_X]) instead of
-      @code(KeysPressed.Keys[K_X]). }
+      so you can write simply @code(KeysPressed[keyX]) instead of
+      @code(KeysPressed.Keys[keyX]). }
     property Items [Key: TKey]: boolean read GetItems; default;
 
     { Check which modifier keys are pressed.
-      The result it based on current Keys[K_Ctrl], Keys[K_Shift] etc. values. }
+      The result it based on current Keys[keyCtrl], Keys[keyShift] etc. values. }
     function Modifiers: TModifierKeys;
 
     { Call when key is pressed.
       Pass TKey, and corresponding character (Char).
 
-      Pass Key = K_None if this is not
+      Pass Key = keyNone if this is not
       representable as TKey, pass CharKey = #0 if this is not representable
-      as char. But never pass both Key = K_None and CharKey = #0
+      as char. But never pass both Key = keyNone and CharKey = #0
       (this would have no meaning). }
     procedure KeyDown(const Key: TKey; const CharKey: char);
 
     { Call when key is released.
-      Never pass Key = K_None here.
+      Never pass Key = keyNone here.
 
       It returns which character was released as a consequence of this
       key release. }
@@ -397,9 +596,9 @@ function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys = [];
   const CtrlIsCommand: boolean = false): string;
 
 const
-  ModifierKeyToKey: array[TModifierKey]of TKey = (K_Ctrl, K_Shift, K_Alt);
+  ModifierKeyToKey: array[TModifierKey]of TKey = (keyCtrl, keyShift, keyAlt);
 
-{ @abstract(This "packs" values like KeysDown[K_Ctrl], KeysDown[K_Shift] etc.
+{ @abstract(This "packs" values like KeysDown[keyCtrl], KeysDown[keyShift] etc.
   -- KeysDown for all TModifierKey.)
 
   Version with TKeysPressed parameter returns [] (empty set)
@@ -462,8 +661,8 @@ type
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
-      Either Key <> K_None or KeyCharacter <> #0 in this case.
-      When EventType <> itKey, then Key = K_None and KeyCharacter = #0.
+      Either Key <> keyNone or KeyCharacter <> #0 in this case.
+      When EventType <> itKey, then Key = keyNone and KeyCharacter = #0.
 
       Both Key and KeyCharacter represent the same action. Sometimes one,
       sometimes the other is useful.
@@ -471,10 +670,10 @@ type
       @bold(Not all key presses can be represented as TKey value.)
       For example, pressing '(' (opening parenthesis), which is done on most
       keyboards by pressing shift + zero, does not have any TKey value.
-      So it will generate event with Key = K_None, but KeyCharacter = '('.
+      So it will generate event with Key = keyNone, but KeyCharacter = '('.
 
       @bold(Likewise, not all key presses can be represented as char value.)
-      For example "up arrow" (Key = K_Up) doesn't have a char code
+      For example "up arrow" (Key = keyUp) doesn't have a char code
       (it will have KeyCharacter = #0).
 
       KeyCharacter is influenced by some other keys state,
@@ -549,7 +748,7 @@ type
     { @groupEnd }
 
     { Check is event type correct, and then check if event Key or KeyCharacter
-      matches. Always false for AKey = K_None or AKeyCharacter = #0.
+      matches. Always false for AKey = keyNone or AKeyCharacter = #0.
       @groupBegin }
     function IsKey(const AKey: TKey): boolean; overload;
     function IsKey(const AKeyCharacter: char): boolean; overload;
@@ -865,8 +1064,8 @@ const
 function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys;
   const CtrlIsCommand: boolean): string;
 begin
-  { early exit, key K_None means "no key", Modifiers are ignored }
-  if Key = K_None then Exit(KeyToStrTable[Key]);
+  { early exit, key keyNone means "no key", Modifiers are ignored }
+  if Key = keyNone then Exit(KeyToStrTable[Key]);
 
   Result := '';
 
@@ -993,15 +1192,15 @@ end;
 
 procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char);
 begin
-  if Key <> K_None then
+  if Key <> keyNone then
     Keys[Key] := true;
 
-  if (Key <> K_None) and
+  if (Key <> keyNone) and
      (CharKey <> #0) and
      (PressedKeyToCharacter[Key] = #0) then
   begin
     { update Characters and PressedXxx mapping arrays }
-    if PressedCharacterToKey[CharKey] = K_None then
+    if PressedCharacterToKey[CharKey] = keyNone then
     begin
       Assert(not Characters[CharKey]);
       Characters[CharKey] := true;
@@ -1012,7 +1211,7 @@ begin
       Assert(PressedKeyToCharacter[PressedCharacterToKey[CharKey]] = CharKey);
 
       PressedKeyToCharacter[PressedCharacterToKey[CharKey]] := #0;
-      PressedCharacterToKey[CharKey] := K_None;
+      PressedCharacterToKey[CharKey] := keyNone;
     end;
 
     PressedKeyToCharacter[Key] := CharKey;
@@ -1029,7 +1228,7 @@ begin
     { update Characters and PressedXxx mapping arrays }
     Assert(Characters[CharKey]);
     Characters[CharKey] := false;
-    PressedCharacterToKey[CharKey] := K_None;
+    PressedCharacterToKey[CharKey] := keyNone;
     PressedKeyToCharacter[Key] := #0;
   end;
 
@@ -1055,7 +1254,7 @@ end;
 
 function TInputPressRelease.IsKey(const AKey: TKey): boolean;
 begin
-  Result := (AKey <> K_None) and (EventType = itKey) and (Key = AKey);
+  Result := (AKey <> keyNone) and (EventType = itKey) and (Key = AKey);
 end;
 
 function TInputPressRelease.IsKey(const AKeyCharacter: char): boolean;
