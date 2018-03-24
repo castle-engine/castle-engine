@@ -34,7 +34,7 @@ public class ServiceTCPConnection extends ServiceAbstract
         public Boolean active = true;
         public ConcurrentHashMap<String, Boolean> activeMap = null;
 
-        public ServerTuple (ConcurrentHashMap<String, Boolean> setActiveMap)
+        public ServerTuple(ConcurrentHashMap<String, Boolean> setActiveMap)
         {
             activeMap = setActiveMap;
         }
@@ -43,18 +43,18 @@ public class ServiceTCPConnection extends ServiceAbstract
     private ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>> messageMap = new ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>>();
     private ConcurrentHashMap<String, ServerTuple> activeMap = new ConcurrentHashMap<String, ServerTuple>();
 
-    public ServiceTCPConnection (MainActivity activity)
+    public ServiceTCPConnection(MainActivity activity)
     {
         super(activity);
     }
 
-    public String getName ()
+    public String getName()
     {
         return "tcp_connection";
     }
 
     @Override
-    public boolean messageReceived (String[] parts)
+    public boolean messageReceived(String[] parts)
     {
         if ((parts.length < 3) || (parts.length > 5) || !parts[0].equals("tcp_connection")) //tcp_connection key action param1 (param2)
             return false;
@@ -105,7 +105,7 @@ public class ServiceTCPConnection extends ServiceAbstract
             return false;
     }
 
-    private void CreateSocket (final String key, final Boolean isServer, final String host, final int port)
+    private void CreateSocket(final String key, final Boolean isServer, final String host, final int port)
     {
         final ConcurrentHashMap<String, List<String>> socketMessageMap = new ConcurrentHashMap<String, List<String>>();
         final ConcurrentHashMap<String, Boolean> socketActiveMap = new ConcurrentHashMap<String, Boolean>();
@@ -155,8 +155,8 @@ public class ServiceTCPConnection extends ServiceAbstract
         return result;
     }
 
-    private void CreateListenerThread (final Socket listenerSocket, final String listenerId,
-                                       final ConcurrentHashMap<String, List<String>> socketMessageMap, final ConcurrentHashMap<String, Boolean> socketActiveMap)
+    private void CreateListenerThread(final Socket listenerSocket, final String listenerId,
+                                      final ConcurrentHashMap<String, List<String>> socketMessageMap, final ConcurrentHashMap<String, Boolean> socketActiveMap)
     {
         final List<String> listenerMessageList = Collections.synchronizedList(new ArrayList<String>());
         socketMessageMap.put(listenerId, listenerMessageList);
@@ -228,7 +228,7 @@ public class ServiceTCPConnection extends ServiceAbstract
         )).start();
     }
 
-    private void SendMessage (String key, String message, String clientId)
+    private void SendMessage(String key, String message, String clientId)
     {
         if (clientId.equals("all"))
         {
@@ -255,7 +255,7 @@ public class ServiceTCPConnection extends ServiceAbstract
         }
     }
 
-    private void MessageSendSynchronised (final String[] message)
+    private void MessageSendSynchronised(final String[] message)
     {
         new Handler(Looper.getMainLooper()).post(new Runnable() // run in main thread
             {   
