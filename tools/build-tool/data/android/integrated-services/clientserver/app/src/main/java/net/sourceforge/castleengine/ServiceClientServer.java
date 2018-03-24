@@ -25,9 +25,9 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ServiceTCPConnection extends ServiceAbstract
+public class ServiceClientServer extends ServiceAbstract
 {
-    private static final String CATEGORY = "ServiceTCPConnection";
+    private static final String CATEGORY = "ServiceClientServer";
 
     private class ServerTuple
     {
@@ -43,20 +43,20 @@ public class ServiceTCPConnection extends ServiceAbstract
     private ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>> messageMap = new ConcurrentHashMap<String, ConcurrentHashMap<String, List<String>>>();
     private ConcurrentHashMap<String, ServerTuple> activeMap = new ConcurrentHashMap<String, ServerTuple>();
 
-    public ServiceTCPConnection(MainActivity activity)
+    public ServiceClientServer(MainActivity activity)
     {
         super(activity);
     }
 
     public String getName()
     {
-        return "tcp_connection";
+        return "serviceclientserver";
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if ((parts.length < 3) || (parts.length > 5) || !parts[0].equals("tcp_connection")) //tcp_connection key action param1 (param2)
+        if ((parts.length < 4) || (parts.length > 6) || !parts[0].equals("serviceclientserver")) //serviceclientserver key action param1 (param2) (param3)
             return false;
 
         if (parts[2].equals("send")) //send message clientid
@@ -65,17 +65,17 @@ public class ServiceTCPConnection extends ServiceAbstract
 
             return true;
         }
-        else if (parts[2].equals("server")) //server port
+        else if (parts[2].equals("server")) //server protocol port
         {
             if (!messageMap.containsKey(parts[1]))
-                CreateSocket(parts[1], true, null, Integer.parseInt(parts[3]));
+                CreateSocket(parts[1], true, null, Integer.parseInt(parts[4]));
 
             return true;
         }
-        else if (parts[2].equals("client")) //client host port
+        else if (parts[2].equals("client")) //client protocol host port
         {
             if (!messageMap.containsKey(parts[1]))
-                CreateSocket(parts[1], false, parts[3], Integer.parseInt(parts[4]));
+                CreateSocket(parts[1], false, parts[4], Integer.parseInt(parts[5]));
 
             return true;
         }
@@ -140,7 +140,7 @@ public class ServiceTCPConnection extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceTCPConnection", e.toString());
+                        Log.d("ServiceClientServer", e.toString());
                     }
                 }
             }
@@ -174,7 +174,7 @@ public class ServiceTCPConnection extends ServiceAbstract
                         PrintWriter writer = new PrintWriter(listenerSocket.getOutputStream(), true);
                         BufferedReader reader = new BufferedReader(new InputStreamReader(listenerSocket.getInputStream()));
 
-                        MessageSendSynchronised(new String[]{"tcp_connected", listenerId});
+                        MessageSendSynchronised(new String[]{"serviceclientserver", "connected", listenerId});
 
                         String inputLine;
 
@@ -184,7 +184,7 @@ public class ServiceTCPConnection extends ServiceAbstract
                             {
                                 if ((inputLine = reader.readLine()) != null)
                                 {
-                                    MessageSendSynchronised(new String[]{"tcp_message", inputLine, listenerId});
+                                    MessageSendSynchronised(new String[]{"serviceclientserver", "message", inputLine, listenerId});
                                 }
                                 else
                                 {
@@ -208,10 +208,10 @@ public class ServiceTCPConnection extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceTCPConnection", e.toString());
+                        Log.d("ServiceClientServer", e.toString());
                     }
 
-                    MessageSendSynchronised(new String[]{"tcp_disconnected", listenerId});
+                    MessageSendSynchronised(new String[]{"serviceclientserver", "disconnected", listenerId});
 
                     try
                     {
@@ -219,7 +219,7 @@ public class ServiceTCPConnection extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceTCPConnection", e.toString());
+                        Log.d("ServiceClientServer", e.toString());
                     }
 
                     socketActiveMap.remove(listenerId);

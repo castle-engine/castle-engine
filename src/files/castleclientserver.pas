@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit castlenetwork;
+unit castleclientserver;
 
 {$I castleconf.inc}
 
@@ -261,26 +261,26 @@ uses
     LConnectionStatus: Boolean;
   begin
     Result := false;
-    if (Received.Count = 3) and (Received[0] = 'tcp_message') then //tcp_message message clientid
+    if (Received.Count = 4) and (Received[0] = 'serviceclientserver') and (Received[1] = 'message') then //"serviceclientserver" "message" message clientid
     begin
       if Assigned(FMessageRecieved) then
-        FMessageRecieved(Received[1], TClientConnection.Create(Received[2]));
+        FMessageRecieved(Received[2], TClientConnection.Create(Received[3]));
       Result := true;
     end
-    else if (Received.Count = 2) and (Received[0] = 'tcp_connected') then //tcp_connected clientid
+    else if (Received.Count = 3) and (Received[0] = 'serviceclientserver') and (Received[1] = 'connected') then //"serviceclientserver" "connected" clientid
     begin
-      FConnectedDictionary.AddOrSetValue(Received[1], true);
+      FConnectedDictionary.AddOrSetValue(Received[2], true);
       if Assigned(FOnConnected) then
-        FOnConnected(TClientConnection.Create(Received[1]));
+        FOnConnected(TClientConnection.Create(Received[2]));
       Result := true;
     end
-    else if (Received.Count = 2) and (Received[0] = 'tcp_disconnected') then //tcp_disconnected clientid
+    else if (Received.Count = 3) and (Received[0] = 'serviceclientserver') and (Received[1] = 'disconnected') then //serviceclientserver "disconnected" clientid
     begin
       LConnectionStatus := false;
-      if Assigned(FOnDisconnected) and FConnectedDictionary.TryGetValue(Received[1], LConnectionStatus) and LConnectionStatus then
-        FOnDisconnected(TClientConnection.Create(Received[1])); //Only fire the event if the connection wasn't closed by us.
+      if Assigned(FOnDisconnected) and FConnectedDictionary.TryGetValue(Received[2], LConnectionStatus) and LConnectionStatus then
+        FOnDisconnected(TClientConnection.Create(Received[2])); //Only fire the event if the connection wasn't closed by us.
 
-      FConnectedDictionary.Remove(Received[1]);
+      FConnectedDictionary.Remove(Received[2]);
 
       if FConnectedDictionary.Count = 0 then
         FIsActive := false;
@@ -293,7 +293,7 @@ uses
   begin
     if not FIsActive then
     begin
-      Messaging.Send(['tcp_connection', FKey, 'server', IntToStr(APort)]);
+      Messaging.Send(['serviceclientserver', FKey, 'server', 'tcp', IntToStr(APort)]);
       FIsActive := true;
     end;
   end;
@@ -302,7 +302,7 @@ uses
   begin
     if not FIsActive then
     begin
-      Messaging.Send(['tcp_connection', FKey, 'client', AHost, IntToStr(APort)]);
+      Messaging.Send(['serviceclientserver', FKey, 'client', 'tcp', AHost, IntToStr(APort)]);
       FIsActive := true;
     end;
   end;
@@ -315,7 +315,7 @@ uses
   procedure TAndroidTCPConnectionService.SendMessage(const AMessage: String; AClient: TClientConnection);
   begin
     if FIsActive then
-      Messaging.Send(['tcp_connection', FKey, 'send', AMessage, AClient.ID]);
+      Messaging.Send(['serviceclientserver', FKey, 'send', AMessage, AClient.ID]);
   end;
 
   procedure TAndroidTCPConnectionService.Close;
@@ -328,7 +328,7 @@ uses
     if FIsActive then
     begin
       FConnectedDictionary.AddOrSetValue(AClient.ID, false);
-      Messaging.Send(['tcp_connection', FKey, 'close', AClient.ID]);
+      Messaging.Send(['serviceclientserver', FKey, 'close', AClient.ID]);
     end;
   end;
 
