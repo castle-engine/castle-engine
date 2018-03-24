@@ -103,7 +103,11 @@ type
 
     { How long a given message should be visible on the screen, in seconds.
       Message stops being visible when this timeout passed,
-      or when we need more space for new messages (see MaxMessages). }
+      or when we need more space for new messages (see MaxMessages).
+
+      Note that the @link(Fade) time is already included in this value,
+      so a message is normally visible only for the @code(Timeout - Fade) seconds,
+      and then it starts fading out. }
     property Timeout: Single
       read FTimeout write FTimeout default DefaultTimeout;
 
