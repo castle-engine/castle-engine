@@ -28,24 +28,24 @@ uses
   {$endif};
 
 type
-  TClientConnection = class
-  protected
+  TClientConnection = record
+  private
     {$ifndef ANDROID}
       Context: TIdContext;
     {$else}
       ID: String;
     {$endif}
   public
-    constructor Create({$ifdef ANDROID}AID: String{$else}AContext: TIdContext{$endif}); virtual;
+    constructor Create({$ifdef ANDROID}AID: String{$else}AContext: TIdContext{$endif});
   end;
 
   TProcedureObject = procedure of object;
 
   TConnectionEvent = procedure of object;
-  TClientConnectionEvent = procedure(const AClientConnection: TClientConnection) of object;
+  TClientConnectionEvent = procedure(AClientConnection: TClientConnection) of object;
 
   TMessageRecievedEvent = procedure(const AMessage: String) of object;
-  TClientMessageRecievedEvent = procedure(const AMessage: String; const AClientConnection: TClientConnection) of object;
+  TClientMessageRecievedEvent = procedure(const AMessage: String; AClientConnection: TClientConnection) of object;
 
   TSynchronisedStringList = specialize TThreadList<String>;
 
@@ -89,15 +89,18 @@ type
         destructor Destroy; override;
       public
         procedure CreateServer(const APort: Word);
-        procedure CreateClien(const AHost: String; const APort: Word);
-        procedure SendMssage(const AMessage: String; const AClient: TClientConnection = nil);
-        procedure Close(const AClient: TClientConnection = nil);
+        procedure CreateClient(const AHost: String; const APort: Word);
+        procedure SendMessage(const AMessage: String); overload;
+        procedure SendMessage(const AMessage: String; AClient: TClientConnection); overload;
+        procedure Close; overload;
+        procedure Close(AClient: TClientConnection); overload;
       public
         property OnConnected: TClientConnectionEvent write FOnConnected;
         property OnDisconnected: TClientConnectionEvent write FOnDisconnected;
         property OnMessageRecieved: TClientMessageRecievedEvent write FMessageRecieved;
       public
-        function IsConnected(const AClient: TClientConnection = nil): Boolean;
+        function IsConnected: Boolean; overload;
+        function IsConnected(AClient: TClientConnection): Boolean; overload;
     end;
 {$else}
   type
@@ -159,11 +162,12 @@ type
   public
     procedure Start; virtual;
     procedure Stop; virtual;
-    procedure Disconnect(const AClient: TClientConnection); virtual;
-    procedure SendToClient(const AMessage: String; const AClient: TClientConnection); virtual;
+    procedure Disconnect(AClient: TClientConnection); virtual;
+    procedure SendToClient(const AMessage: String; AClient: TClientConnection); virtual;
     procedure SendToAll(const AMessage: String); virtual;
   public
-    function IsConnected(const AClient: TClientConnection = nil): Boolean; virtual;
+    function IsConnected: Boolean; overload; virtual;
+    function IsConnected(AClient: TClientConnection): Boolean; overload; virtual;
   public
     property OnConnected: TClientConnectionEvent read FOnConnected write FOnConnected;
     property OnDisconnected: TClientConnectionEvent read FOnDisconnected write FOnDisconnected;
@@ -174,9 +178,9 @@ type
   strict protected
     FHostname: String;
     {$ifdef ANDROID}
-      procedure ClientOnClientConnected(const AClientConnection: TClientConnection);
-      procedure ClientOnClientDisconnected(const AClientConnection: TClientConnection);
-      procedure ClientOnMessageRecieved(const AMessage: String; const AClientConnection: TClientConnection);
+      procedure ClientOnClientConnected(AClientConnection: TClientConnection);
+      procedure ClientOnClientDisconnected(AClientConnection: TClientConnection);
+      procedure ClientOnMessageRecieved(const AMessage: String; AClientConnection: TClientConnection);
     {$else}
       FClient: TIdTCPClient;
       FClientThread: TCastleTCPClientThread;
@@ -303,48 +307,41 @@ uses
     end;
   end;
 
-  procedure TAndroidTCPConnectionService.SendMessage(const AMessage: String; const AClient: TClientConnection = nil);
-  var
-    AClientID: String;
+  procedure TAndroidTCPConnectionService.SendMessage(const AMessage: String);
+  begin
+    SendMessage(AMessage, TClientConnection.Create('all'));
+  end;
+
+  procedure TAndroidTCPConnectionService.SendMessage(const AMessage: String; AClient: TClientConnection);
+  begin
+    if FIsActive then
+      Messaging.Send(['tcp_connection', FKey, 'send', AMessage, AClient.ID]);
+  end;
+
+  procedure TAndroidTCPConnectionService.Close;
+  begin
+    Close(TClientConnection.Create('all'));
+  end;
+
+  procedure TAndroidTCPConnectionService.Close(AClient: TClientConnection);
   begin
     if FIsActive then
     begin
-      if Assigned(AClient) then
-        AClientID := AClient.ID
-      else
-        AClientID := 'all';
-
-      Messaging.Send(['tcp_connection', FKey, 'send', AMessage, AClientID]);
+      FConnectedDictionary.AddOrSetValue(AClient.ID, false);
+      Messaging.Send(['tcp_connection', FKey, 'close', AClient.ID]);
     end;
   end;
 
-  procedure TAndroidTCPConnectionService.Close(const AClient: TClientConnection = nil);
-  var
-    AClientID: String;
+  function TAndroidTCPConnectionService.IsConnected: Boolean;
   begin
-    if FIsActive then
-    begin
-      if Assigned(AClient) then
-        AClientID := AClient.ID
-      else
-        AClientID := 'all';
-
-      FConnectedDictionary.AddOrSetValue(AClientID, false);
-      Messaging.Send(['tcp_connection', FKey, 'close', AClientID]);
-    end;
+    Result := IsConnected(TClientConnection.Create('client'));
   end;
 
-  function TAndroidTCPConnectionService.IsConnected(const AClient: TClientConnection = nil): Boolean;
-  var
-    AClientID: String;
+  function TAndroidTCPConnectionService.IsConnected(AClient: TClientConnection): Boolean;
   begin
-    if Assigned(AClient) then
-      AClientID := AClient.ID
-    else
-      AClientID := 'client';
-
     Result := false;
-    FConnectedDictionary.TryGetValue(AClientID, Result);
+    if FIsActive then
+      FConnectedDictionary.TryGetValue(AClient.ID, Result);
   end;
 {$endif}
 
@@ -507,17 +504,17 @@ begin
   {$endif}
 end;
 
-procedure TCastleTCPServer.Disconnect(const AClient: TClientConnection);
+procedure TCastleTCPServer.Disconnect(AClient: TClientConnection);
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close(AClient);
   {$else}
-    AClient.Context.Data := AClient.Context;
+    AClient.Context.Data := AClient.Context; //Prevents the OnDisconnect event to fire after disconnect on our site.
     AClient.Context.Connection.Disconnect;
   {$endif}
 end;
 
-procedure TCastleTCPServer.SendToClient(const AMessage: String; const AClient: TClientConnection);
+procedure TCastleTCPServer.SendToClient(const AMessage: String; AClient: TClientConnection);
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.SendMessage(AMessage, AClient);
@@ -541,21 +538,23 @@ begin
   {$endif}
 end;
 
-function TCastleTCPServer.IsConnected(const AClient: TClientConnection = nil): Boolean;
+function TCastleTCPServer.IsConnected: Boolean;
+begin
+  {$ifdef ANDROID}
+    Result := FTCPConnectionService.IsConnected;
+  {$else}
+    Result := FClientConnectionsList.LockList.Count > 0;
+    FClientConnectionsList.UnlockList;
+  {$endif}
+end;
+
+function TCastleTCPServer.IsConnected(AClient: TClientConnection): Boolean;
 begin
   {$ifdef ANDROID}
     Result := FTCPConnectionService.IsConnected(AClient);
   {$else}
-    if Assigned(AClient) then
-    begin
-      Result := FClientConnectionsList.LockList.IndexOf(AClient.Context) > -1;
-      FClientConnectionsList.UnlockList;
-    end
-    else
-    begin
-      Result := FClientConnectionsList.LockList.Count > 0;
-      FClientConnectionsList.UnlockList;
-    end;
+    Result := FClientConnectionsList.LockList.IndexOf(AClient.Context) > -1;
+    FClientConnectionsList.UnlockList;
   {$endif}
 end;
 
@@ -703,19 +702,19 @@ begin
 end;
 
 {$ifdef ANDROID}
-  procedure TCastleTCPClient.ClientOnClientConnected(const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnClientConnected(AClientConnection: TClientConnection);
   begin
     if Assigned(FOnConnected) then
       FOnConnected();
   end;
 
-  procedure TCastleTCPClient.ClientOnClientDisconnected(const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnClientDisconnected(AClientConnection: TClientConnection);
   begin
     if Assigned(FOnDisconnected) then
       FOnDisconnected();
   end;
 
-  procedure TCastleTCPClient.ClientOnMessageRecieved(const AMessage: String; const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnMessageRecieved(const AMessage: String; AClientConnection: TClientConnection);
   begin
     if Assigned(FOnMessageRecieved) then
       FOnMessageRecieved(AMessage);
