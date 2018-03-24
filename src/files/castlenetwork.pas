@@ -101,7 +101,7 @@ type
     end;
 {$else}
   type
-    TCastleClientThread = class (TThread)
+    TCastleTCPClientThread = class (TThread)
       strict protected
         FClient: TIdTCPClient;
         FOnConnected: TProcedureObject;
@@ -134,7 +134,7 @@ type
     destructor Destroy; override;
   end;
 
-  TCastleServer = class (TCastleSocket)
+  TCastleTCPServer = class (TCastleSocket)
   strict protected
     {$ifndef ANDROID}
       FServer: TIdTCPServer;
@@ -170,7 +170,7 @@ type
     property OnMessageRecieved: TClientMessageRecievedEvent read FOnMessageRecieved write FOnMessageRecieved;
   end;
 
-  TCastleClient = class (TCastleSocket)
+  TCastleTCPClient = class (TCastleSocket)
   strict protected
     FHostname: String;
     {$ifdef ANDROID}
@@ -179,7 +179,7 @@ type
       procedure ClientOnMessageRecieved (const AMessage: String; const AClientConnection: TClientConnection);
     {$else}
       FClient: TIdTCPClient;
-      FClientThread: TCastleClientThread;
+      FClientThread: TCastleTCPClientThread;
       procedure ClientOnMessageRecieved;
     {$endif}
   strict protected
@@ -349,11 +349,11 @@ uses
 {$endif}
 
 //
-//TCastleClientThread
+//TCastleTCPClientThread
 //
 
 {$ifndef ANDROID}
-  constructor TCastleClientThread.Create (const AClient: TIdTCPClient; const AOnMessageRecieved, AOnConnected, AOnDisconnected: TProcedureObject);
+  constructor TCastleTCPClientThread.Create (const AClient: TIdTCPClient; const AOnMessageRecieved, AOnConnected, AOnDisconnected: TProcedureObject);
   begin
     FClient := AClient;
     FOnMessageRecieved := AOnMessageRecieved;
@@ -366,14 +366,14 @@ uses
     inherited Create(false);
   end;
 
-  destructor TCastleClientThread.Destroy;
+  destructor TCastleTCPClientThread.Destroy;
   begin
     FMessageList.Free;
 
     inherited;
   end;
 
-  procedure TCastleClientThread.Execute;
+  procedure TCastleTCPClientThread.Execute;
   var
     LMessage: String;
   begin
@@ -442,10 +442,10 @@ begin
 end;
 
 //
-//TCastleServer
+//TCastleTCPServer
 //
 
-constructor TCastleServer.Create;
+constructor TCastleTCPServer.Create;
 begin
   inherited;
 
@@ -462,7 +462,7 @@ begin
   {$endif}
 end;
 
-destructor TCastleServer.Destroy;
+destructor TCastleTCPServer.Destroy;
 begin
   {$ifndef ANDROID}
     FServer.Free;
@@ -475,7 +475,7 @@ begin
   inherited;
 end;
 
-procedure TCastleServer.Start;
+procedure TCastleTCPServer.Start;
 {$ifdef UNIX}{$ifndef ANDROID}
   var
     Binding: TIdSocketHandle;
@@ -498,7 +498,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleServer.Stop;
+procedure TCastleTCPServer.Stop;
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close;
@@ -507,7 +507,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleServer.Disconnect (const AClient: TClientConnection);
+procedure TCastleTCPServer.Disconnect (const AClient: TClientConnection);
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close(AClient);
@@ -517,7 +517,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleServer.SendToClient (const AMessage: String; const AClient: TClientConnection);
+procedure TCastleTCPServer.SendToClient (const AMessage: String; const AClient: TClientConnection);
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.SendMessage(AMessage, AClient);
@@ -526,7 +526,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleServer.SendToAll (const AMessage: String);
+procedure TCastleTCPServer.SendToAll (const AMessage: String);
 {$ifndef ANDROID}
   var
     LContext: TIdContext;
@@ -541,7 +541,7 @@ begin
   {$endif}
 end;
 
-function TCastleServer.IsConnected (const AClient: TClientConnection = nil): Boolean;
+function TCastleTCPServer.IsConnected (const AClient: TClientConnection = nil): Boolean;
 begin
   {$ifdef ANDROID}
     Result := FTCPConnectionService.IsConnected(AClient);
@@ -560,7 +560,7 @@ begin
 end;
 
 {$ifndef ANDROID}
-  procedure TCastleServer.ServerOnConnect (AContext: TIdContext);
+  procedure TCastleTCPServer.ServerOnConnect (AContext: TIdContext);
   begin
     FClientConnectedList.Add(AContext);
     FClientConnectionsList.Add(AContext);
@@ -571,7 +571,7 @@ end;
       TThread.Queue(nil, @ServerOnClientConnected);
   end;
 
-  procedure TCastleServer.ServerOnDisconnect (AContext: TIdContext);
+  procedure TCastleTCPServer.ServerOnDisconnect (AContext: TIdContext);
   begin
     FClientConnectionsList.Remove(AContext);
     FClientDisconnectedList.Add(AContext);
@@ -580,7 +580,7 @@ end;
       TThread.Synchronize(nil, @ServerOnClientDisconnected); //Disconnect must be synchronized, not queued, because else the queued message gets losed.
   end;
 
-  procedure TCastleServer.ServerOnExecute (AContext: TIdContext);
+  procedure TCastleTCPServer.ServerOnExecute (AContext: TIdContext);
   var
     LMessageClientRecord: TMessageClientRecord;
   begin
@@ -596,7 +596,7 @@ end;
     end;
   end;
 
-  procedure TCastleServer.ServerOnClientConnected;
+  procedure TCastleTCPServer.ServerOnClientConnected;
   var
     LContext: TIdContext;
   begin
@@ -609,7 +609,7 @@ end;
     end;  
   end;
 
-  procedure TCastleServer.ServerOnClientDisconnected;
+  procedure TCastleTCPServer.ServerOnClientDisconnected;
   var
     LContext: TIdContext;
   begin
@@ -622,7 +622,7 @@ end;
     end;  
   end;
 
-  procedure TCastleServer.ServerOnMessageRecieved;
+  procedure TCastleTCPServer.ServerOnMessageRecieved;
   var
     LMessageClientRecord: TMessageClientRecord;
   begin
@@ -637,10 +637,10 @@ end;
 {$endif}
 
 //
-//TCastleClient
+//TCastleTCPClient
 //
 
-constructor TCastleClient.Create;
+constructor TCastleTCPClient.Create;
 begin
   inherited;
 
@@ -650,7 +650,7 @@ begin
   {$endif}
 end;
 
-destructor TCastleClient.Destroy;
+destructor TCastleTCPClient.Destroy;
 begin
   {$ifndef ANDROID}
     FClientThread.FreeClientOnTerminate := true;
@@ -660,7 +660,7 @@ begin
   inherited;
 end;
 
-procedure TCastleClient.Connect;
+procedure TCastleTCPClient.Connect;
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.OnConnected := @ClientOnClientConnected;
@@ -671,11 +671,11 @@ begin
     FClient.Port := FPort;
     FClient.Host := FHostname;
 
-    FClientThread := TCastleClientThread.Create(FClient, @ClientOnMessageRecieved, FOnConnected, FOnDisconnected);
+    FClientThread := TCastleTCPClientThread.Create(FClient, @ClientOnMessageRecieved, FOnConnected, FOnDisconnected);
   {$endif}
 end;
 
-procedure TCastleClient.Disconnect;
+procedure TCastleTCPClient.Disconnect;
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.Close;
@@ -684,7 +684,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleClient.Send(const AMessage: String);
+procedure TCastleTCPClient.Send(const AMessage: String);
 begin
   {$ifdef ANDROID}
     FTCPConnectionService.SendMessage(AMessage);
@@ -693,7 +693,7 @@ begin
   {$endif}
 end;
 
-function TCastleClient.IsConnected: Boolean;
+function TCastleTCPClient.IsConnected: Boolean;
 begin
   {$ifdef ANDROID}
     Result := FTCPConnectionService.IsConnected;
@@ -703,25 +703,25 @@ begin
 end;
 
 {$ifdef ANDROID}
-  procedure TCastleClient.ClientOnClientConnected (const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnClientConnected (const AClientConnection: TClientConnection);
   begin
     if Assigned(FOnConnected) then
       FOnConnected();
   end;
 
-  procedure TCastleClient.ClientOnClientDisconnected (const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnClientDisconnected (const AClientConnection: TClientConnection);
   begin
     if Assigned(FOnDisconnected) then
       FOnDisconnected();
   end;
 
-  procedure TCastleClient.ClientOnMessageRecieved (const AMessage: String; const AClientConnection: TClientConnection);
+  procedure TCastleTCPClient.ClientOnMessageRecieved (const AMessage: String; const AClientConnection: TClientConnection);
   begin
     if Assigned(FOnMessageRecieved) then
       FOnMessageRecieved(AMessage);
   end;
 {$else}
-  procedure TCastleClient.ClientOnMessageRecieved;
+  procedure TCastleTCPClient.ClientOnMessageRecieved;
   var
     LMessage: String;
   begin
