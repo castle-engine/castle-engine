@@ -28,6 +28,7 @@ import java.util.concurrent.*;
 public class ServiceClientServer extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceClientServer";
+    private static final String NAME = "client-server";
 
     private class ServerTuple
     {
@@ -50,13 +51,13 @@ public class ServiceClientServer extends ServiceAbstract
 
     public String getName()
     {
-        return "serviceclientserver";
+        return NAME;
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if ((parts.length < 4) || (parts.length > 6) || !parts[0].equals("serviceclientserver")) //serviceclientserver key action param1 (param2) (param3)
+        if ((parts.length < 4) || (parts.length > 6) || !parts[0].equals(NAME)) //client-server key action param1 (param2) (param3)
             return false;
 
         if (parts[2].equals("send")) //send message clientid
@@ -174,7 +175,7 @@ public class ServiceClientServer extends ServiceAbstract
                         PrintWriter writer = new PrintWriter(listenerSocket.getOutputStream(), true);
                         BufferedReader reader = new BufferedReader(new InputStreamReader(listenerSocket.getInputStream()));
 
-                        MessageSendSynchronised(new String[]{"serviceclientserver", "connected", listenerId});
+                        MessageSendSynchronised(new String[]{NAME, "connected", listenerId});
 
                         String inputLine;
 
@@ -184,7 +185,7 @@ public class ServiceClientServer extends ServiceAbstract
                             {
                                 if ((inputLine = reader.readLine()) != null)
                                 {
-                                    MessageSendSynchronised(new String[]{"serviceclientserver", "message", inputLine, listenerId});
+                                    MessageSendSynchronised(new String[]{NAME, "message", inputLine, listenerId});
                                 }
                                 else
                                 {
@@ -211,7 +212,7 @@ public class ServiceClientServer extends ServiceAbstract
                         Log.d("ServiceClientServer", e.toString());
                     }
 
-                    MessageSendSynchronised(new String[]{"serviceclientserver", "disconnected", listenerId});
+                    MessageSendSynchronised(new String[]{NAME, "disconnected", listenerId});
 
                     try
                     {

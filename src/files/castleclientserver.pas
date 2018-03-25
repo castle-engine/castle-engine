@@ -83,6 +83,8 @@ type
 
     TAndroidTCPConnectionService = class
       strict protected
+        const AndroidServiceName = 'client-server';
+      strict protected
         FMessageRecieved: TClientMessageRecievedEvent;
         FOnConnected: TClientConnectionEvent;
         FOnDisconnected: TClientConnectionEvent;
@@ -267,20 +269,20 @@ uses
     LConnectionStatus: Boolean;
   begin
     Result := false;
-    if (Received.Count = 4) and (Received[0] = 'serviceclientserver') and (Received[1] = 'message') then //"serviceclientserver" "message" message clientid
+    if (Received.Count = 4) and (Received[0] = AndroidServiceName) and (Received[1] = 'message') then //"client-server" "message" message clientid
     begin
       if Assigned(FMessageRecieved) then
         FMessageRecieved(Received[2], TClientConnection.Create(Received[3]));
       Result := true;
     end
-    else if (Received.Count = 3) and (Received[0] = 'serviceclientserver') and (Received[1] = 'connected') then //"serviceclientserver" "connected" clientid
+    else if (Received.Count = 3) and (Received[0] = AndroidServiceName) and (Received[1] = 'connected') then //"client-server" "connected" clientid
     begin
       FConnectedDictionary.AddOrSetValue(Received[2], true);
       if Assigned(FOnConnected) then
         FOnConnected(TClientConnection.Create(Received[2]));
       Result := true;
     end
-    else if (Received.Count = 3) and (Received[0] = 'serviceclientserver') and (Received[1] = 'disconnected') then //serviceclientserver "disconnected" clientid
+    else if (Received.Count = 3) and (Received[0] = AndroidServiceName) and (Received[1] = 'disconnected') then //client-server "disconnected" clientid
     begin
       LConnectionStatus := false;
       if Assigned(FOnDisconnected) and FConnectedDictionary.TryGetValue(Received[2], LConnectionStatus) and LConnectionStatus then
@@ -299,7 +301,7 @@ uses
   begin
     if not FIsActive then
     begin
-      Messaging.Send(['serviceclientserver', FKey, 'server', 'tcp', IntToStr(APort)]);
+      Messaging.Send([AndroidServiceName, FKey, 'server', 'tcp', IntToStr(APort)]);
       FIsActive := true;
     end;
   end;
@@ -308,7 +310,7 @@ uses
   begin
     if not FIsActive then
     begin
-      Messaging.Send(['serviceclientserver', FKey, 'client', 'tcp', AHost, IntToStr(APort)]);
+      Messaging.Send([AndroidServiceName, FKey, 'client', 'tcp', AHost, IntToStr(APort)]);
       FIsActive := true;
     end;
   end;
@@ -321,7 +323,7 @@ uses
   procedure TAndroidTCPConnectionService.SendMessage(const AMessage: String; AClient: TClientConnection);
   begin
     if FIsActive then
-      Messaging.Send(['serviceclientserver', FKey, 'send', AMessage, AClient.ID]);
+      Messaging.Send([AndroidServiceName, FKey, 'send', AMessage, AClient.ID]);
   end;
 
   procedure TAndroidTCPConnectionService.Close;
@@ -334,7 +336,7 @@ uses
     if FIsActive then
     begin
       FConnectedDictionary.AddOrSetValue(AClient.ID, false);
-      Messaging.Send(['serviceclientserver', FKey, 'close', AClient.ID]);
+      Messaging.Send([AndroidServiceName, FKey, 'close', AClient.ID]);
     end;
   end;
 
