@@ -895,8 +895,8 @@ procedure TConverterNode.EventInReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
-      convert... Conversion must be done along the route, when destination
+    { TODO: we cannot convert here (as we don't know to what we should
+      convert...) Conversion must be done along the route, when destination
       is known. }
     EventOut.Send(Value, Time);
 end;
@@ -1144,10 +1144,10 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    FdnotStatus.Send(not FdStatus.Value);
-    EventChanged.Send(true, Time);
-    if FdStatus.Value then EventOn.Send(true, Time);
-    if not FdStatus.Value then EventOff.Send(true, Time);
+    FdnotStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
+    EventChanged.Send(true, Time, Value.InternalPartialSend);
+    if FdStatus.Value then EventOn.Send(true, Time, Value.InternalPartialSend);
+    if not FdStatus.Value then EventOff.Send(true, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -1160,10 +1160,10 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    FdStatus.Send(not FdnotStatus.Value);
-    EventChanged.Send(true, Time);
-    if FdStatus.Value then EventOn.Send(true, Time);
-    if not FdStatus.Value then EventOff.Send(true, Time);
+    FdStatus.Send(not FdnotStatus.Value, Value.InternalPartialSend);
+    EventChanged.Send(true, Time, Value.InternalPartialSend);
+    if FdStatus.Value then EventOn.Send(true, Time, Value.InternalPartialSend);
+    if not FdStatus.Value then EventOff.Send(true, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -1171,21 +1171,21 @@ procedure TTogglerNode.EventToggleReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(not FdStatus.Value);
+    FdStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventSetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(true);
+    FdStatus.Send(true, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventResetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(false);
+    FdStatus.Send(false, Value.InternalPartialSend);
 end;
 
 { TCommonSurfaceShaderInfo --------------------------------------------------- }

@@ -44,7 +44,8 @@
       last send. Value -1 means that SendValueChanged was not yet called,
       this is the default value (after construction). }
     property CurrentKeyRange: Integer read FCurrentKeyRange;
-    procedure SetCurrentKeyRange(const Value: Integer; const Time: TX3DTime);
+    procedure SetCurrentKeyRange(const Value: Integer; const Time: TX3DTime;
+      const PartialSend: TPartialSend);
 
     { Override this is descendants to actually send value_changed event
       witk keyValue[ValueIndex]. You are guaranteed that ValueIndex
@@ -53,7 +54,7 @@
       (although spec requires that key and keyValue fields have the same size,
       we have to protect against invalid files). }
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TX3DTime); virtual; abstract;
+      const Time: TX3DTime; const PartialSend: TPartialSend); virtual; abstract;
   public
     procedure CreateNode; override;
 
@@ -120,7 +121,7 @@
   TBooleanSequencerNode = class(TAbstractSequencerNode)
   strict protected
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TX3DTime); override;
+      const Time: TX3DTime; const PartialSend: TPartialSend); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -183,7 +184,7 @@
   TIntegerSequencerNode = class(TAbstractSequencerNode)
   strict protected
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TX3DTime); override;
+      const Time: TX3DTime; const PartialSend: TPartialSend); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -288,14 +289,14 @@ begin
 end;
 
 procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;
-  const Time: TX3DTime);
+  const Time: TX3DTime; const PartialSend: TPartialSend);
 begin
   if (FCurrentKeyRange <> Value) or FdForceContinousValue_Changed.Value then
   begin
     Assert(Value >= -1);
     Assert(Value < FdKey.Count);
     FCurrentKeyRange := Value;
-    SendValueChanged(Value, Time);
+    SendValueChanged(Value, Time, PartialSend);
   end;
 end;
 
@@ -322,7 +323,7 @@ begin
       Dec(NewKeyRange);
 
     { Set CurrentKeyRange and eventually send value_changed }
-    SetCurrentKeyRange(NewKeyRange, Time);
+    SetCurrentKeyRange(NewKeyRange, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -344,7 +345,7 @@ begin
       NewKeyRange := 0;
 
     { Set CurrentKeyRange and eventually send value_changed }
-    SetCurrentKeyRange(NewKeyRange, Time);
+    SetCurrentKeyRange(NewKeyRange, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -366,7 +367,7 @@ begin
       NewKeyRange := KeyCount - 1;
 
     { Set CurrentKeyRange and eventually send value_changed }
-    SetCurrentKeyRange(NewKeyRange, Time);
+    SetCurrentKeyRange(NewKeyRange, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -404,10 +405,10 @@ var
 begin
   B := (Value as TSFBool).Value;
   if B then
-    EventInputTrue.Send(B, Time)
+    EventInputTrue.Send(B, Time, Value.InternalPartialSend)
   else
-    EventInputFalse.Send(B, Time);
-  EventInputNegate.Send(not B, Time);
+    EventInputFalse.Send(B, Time, Value.InternalPartialSend);
+  EventInputNegate.Send(not B, Time, Value.InternalPartialSend);
 end;
 
 class function TBooleanFilterNode.ClassX3DType: string;
@@ -446,12 +447,12 @@ begin
 end;
 
 procedure TBooleanSequencerNode.SendValueChanged(const ValueIndex: Integer;
-  const Time: TX3DTime);
+  const Time: TX3DTime; const PartialSend: TPartialSend);
 begin
   if FdKeyValue.Count <> FdKey.Count then
     WritelnWarning('VRML/X3D', 'BooleanSequencer node: key and keyValue fields should have the same size');
   if ValueIndex < FdKeyValue.Count then
-    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
+    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time, PartialSend);
 end;
 
 procedure TBooleanToggleNode.CreateNode;
@@ -475,7 +476,7 @@ var
 begin
   B := (Value as TSFBool).Value;
   if B then
-    FdToggle.Send(not FdToggle.Value);
+    FdToggle.Send(not FdToggle.Value, Value.InternalPartialSend);
 end;
 
 class function TBooleanToggleNode.ClassX3DType: string;
@@ -506,7 +507,7 @@ end;
 procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  EventTriggerTrue.Send(true, Time);
+  EventTriggerTrue.Send(true, Time, Value.InternalPartialSend);
 end;
 
 class function TBooleanTriggerNode.ClassX3DType: string;
@@ -546,12 +547,12 @@ begin
 end;
 
 procedure TIntegerSequencerNode.SendValueChanged(const ValueIndex: Integer;
-  const Time: TX3DTime);
+  const Time: TX3DTime; const PartialSend: TPartialSend);
 begin
   if FdKeyValue.Count <> FdKey.Count then
     WritelnWarning('VRML/X3D', 'IntegerSequencer node: key and keyValue fields should have the same size');
   if ValueIndex < FdKeyValue.Count then
-    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
+    EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time, PartialSend);
 end;
 
 procedure TIntegerTriggerNode.CreateNode;
@@ -577,7 +578,7 @@ end;
 procedure TIntegerTriggerNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  EventtriggerValue.Send(FdintegerKey.Value, Time);
+  EventtriggerValue.Send(FdintegerKey.Value, Time, Value.InternalPartialSend);
 end;
 
 class function TIntegerTriggerNode.ClassX3DType: string;
@@ -619,7 +620,7 @@ end;
 procedure TTimeTriggerNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  EventTriggerTime.Send(Time.Seconds, Time);
+  EventTriggerTime.Send(Time.Seconds, Time, Value.InternalPartialSend);
 end;
 
 procedure RegisterEventUtilitiesNodes;

@@ -283,6 +283,8 @@ type
 
     { Common part of the two rectangles. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
+
+    function Equals(const R: TRectangle): boolean;
   end;
 
   { 2D rectangle with @bold(float) coordinates.
@@ -882,6 +884,19 @@ begin
     end else
       Result := TRectangle.Empty;
   end;
+end;
+
+function TRectangle.Equals(const R: TRectangle): boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (Left   = R.Left) and
+      (Bottom = R.Bottom) and
+      (Width  = R.Width) and
+      (Height = R.Height);
 end;
 
 { TFloatRectangle ----------------------------------------------------------------- }

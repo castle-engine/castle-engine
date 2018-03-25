@@ -115,13 +115,15 @@ type
     DistortFieldOfViewY, DistortViewAspect: Single;
     SickProjectionTime: TFloatTime;
 
+    function FillsWholeContainer: boolean;
+
     procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
-      and takes care to apply Scissor if not FullSize,
+      and takes care to apply Scissor if not FillsWholeContainer,
       and calls RenderFromViewEverything.
 
       Takes care of using ScreenEffects. For this,
@@ -778,7 +780,7 @@ type
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
 
-    { Viewports are by default full size (fill the parent container completely). }
+    { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
   end;
 
@@ -1379,6 +1381,14 @@ begin
   FreeAndNil(FPrepareParams);
 
   inherited;
+end;
+
+function TCastleAbstractViewport.FillsWholeContainer: boolean;
+begin
+  if Container = nil then
+    Result := FullSize
+  else
+    Result := ScreenRect.Equals(Container.Rect);
 end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
@@ -2295,7 +2305,7 @@ begin
   end;
 
   { Restore glViewport set by ApplyProjection }
-  if not FullSize then
+  if not FillsWholeContainer then
     glViewport(ScreenRect);
 
   { the last effect gets a texture, and renders straight into screen }
@@ -2475,7 +2485,7 @@ begin
     { We have to adjust glViewport.
       It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
-    if not FullSize then
+    if not FillsWholeContainer then
       glViewport(Rectangle(0, 0, SR.Width, SR.Height));
 
     ScreenEffectRTT.RenderBegin;
@@ -2540,13 +2550,13 @@ begin
   if not RenderWithScreenEffects then
   begin
     { Rendering directly to the screen, when no screen effects are used. }
-    if not FullSize then
+    if not FillsWholeContainer then
       { Use Scissor to limit what RenderContext.Clear clears. }
       RenderContext.ScissorEnable(ScreenRect);
 
     RenderFromViewEverything;
 
-    if not FullSize then
+    if not FillsWholeContainer then
       RenderContext.ScissorDisable;
   end;
 end;

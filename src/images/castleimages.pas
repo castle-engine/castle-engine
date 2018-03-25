@@ -545,7 +545,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
-      deprecated 'This method is seldom useful, and it is confused with TCastleImage.Draw3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -2766,7 +2766,7 @@ begin
            (CornerBottom + CornerTop < DestHeight)) then
   begin
     if Log then
-      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %f %f',
+      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Source.Width, Source.Height,
          DestWidth, DestHeight]);
