@@ -13,7 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-unit castleclientserver;
+{ Client and server for network communication using TCP (TCastleTCPClient, TCastleTCPServer). 
+  Use this in your games for easy client/server communication. 
+  On Android, it requires adding a service client_server (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine). 
+  On other platforms, it requires having Indy (http://www.indyproject.org/) available 
+  (note that Indy is not distributed together with Castle Game Engine, 
+  you need to download it yourself, and point the compiler to find Indy sources). }
+unit CastleClientServer;
 
 {$I castleconf.inc}
 
