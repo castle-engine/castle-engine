@@ -141,7 +141,7 @@ public class ServiceClientServer extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceClientServer", e.toString());
+                       logError(CATEGORY, e.toString());
                     }
                 }
             }
@@ -209,7 +209,7 @@ public class ServiceClientServer extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceClientServer", e.toString());
+                        logInfo(CATEGORY, e.toString());
                     }
 
                     MessageSendSynchronised(new String[]{NAME, "disconnected", listenerId});
@@ -220,7 +220,7 @@ public class ServiceClientServer extends ServiceAbstract
                     }
                     catch (IOException e)
                     {
-                        Log.d("ServiceClientServer", e.toString());
+                        logInfo(CATEGORY, "Tried to close connection: " + e.toString());
                     }
 
                     socketActiveMap.remove(listenerId);
