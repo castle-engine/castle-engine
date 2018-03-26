@@ -46,6 +46,7 @@
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    procedure SetFocused(const Value: boolean); override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
@@ -359,6 +360,18 @@ begin
     Result := true // always capture
   else
     Result := inherited CapturesEventsAtPosition(Position);
+end;
+
+procedure TCastleEdit.SetFocused(const Value: boolean);
+begin
+  inherited;
+
+  {$ifdef ANDROID}
+  if Value then
+    Messaging.Send(['change-keyboard-state', 'on'])
+  else
+    Messaging.Send(['change-keyboard-state', 'off']);
+  {$endif}
 end;
 
 {$endif read_implementation}
