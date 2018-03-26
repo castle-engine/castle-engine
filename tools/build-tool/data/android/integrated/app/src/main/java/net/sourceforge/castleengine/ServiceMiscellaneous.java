@@ -4,9 +4,13 @@ package net.sourceforge.castleengine;
 import android.view.View;
 import android.os.Build;
 import android.content.Intent;
+import android.content.Context;
 import android.content.res.TypedArray;
 import android.net.Uri;
 import android.widget.Toast;
+import android.app.Service;
+import android.view.inputmethod.InputMethodManager;
+import android.view.KeyEvent;
 
 /**
  * Integration of various Android small stuff with
@@ -76,6 +80,16 @@ public class ServiceMiscellaneous extends ServiceAbstract
         getActivity().startActivity(intent);
     }
 
+    private InputMethodManager im = (InputMethodManager) getActivity().getSystemService(Service.INPUT_METHOD_SERVICE);;
+
+    private void changeKeyboardState(String keyboardState)
+    {
+        if (keyboardState.equals("on"))
+			im.toggleSoftInput(0, InputMethodManager.SHOW_IMPLICIT);
+        else if (keyboardState.equals("off"))
+			im.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+    }
+
     @Override
     public boolean messageReceived(String[] parts)
     {
@@ -89,6 +103,10 @@ public class ServiceMiscellaneous extends ServiceAbstract
         } else
         if (parts.length == 2 && parts[0].equals("on-screen-notification")) {
             Toast.makeText(getActivity().getApplicationContext(), parts[1], Toast.LENGTH_SHORT).show();
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("change-keyboard-state")) {
+            changeKeyboardState(parts[1]);
             return true;
         } else
         {
