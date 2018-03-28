@@ -68,9 +68,12 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Get a @italic(required) integer attribute, raise exception if missing or invalid.
-      @raises(EMissingAttribute If the attribute is missing or empty.)
+    { Integer values reading/writing to config file.
+      @raises(EMissingAttribute Raised by GetInteger(string) (overloaded
+      version without the ADefaultValue parameter) if the attribute is missing.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
+    function GetInteger(const APath: string;
+      const ADefaultValue: Integer): Integer; overload;
     function GetInteger(const APath: String): Integer; overload;
 
     { Get a @italic(required) boolean attribute, raise exception if missing or invalid.
@@ -126,7 +129,7 @@ type
     { @groupEnd }
 
     { Int64 values reading/writing to config file.
-      @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
+      @raises(EMissingAttribute Raised by GetInt64(string) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.) }
     function GetInt64(const APath: string;
       const ADefaultValue: Int64): Int64; overload;
@@ -505,6 +508,15 @@ begin
   FreeAndNil(FOnLoad);
   FreeAndNil(FOnSave);
   inherited;
+end;
+
+function TCastleConfig.GetInteger(const APath: string;
+  const ADefaultValue: Integer): Integer;
+var
+  ResultString: string;
+begin
+  ResultString := GetValue(APath, IntToStr(ADefaultValue));
+  Result := StrToIntDef(ResultString, ADefaultValue);
 end;
 
 function TCastleConfig.GetInteger(const APath: String): Integer;
