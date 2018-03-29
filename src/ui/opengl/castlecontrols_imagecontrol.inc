@@ -82,6 +82,7 @@
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -361,11 +362,11 @@ end;
 
 procedure TCastleImageControl.Render;
 var
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
   if FGLImage = nil then Exit;
-  SR := ScreenRect;
+  SR := ScreenFloatRect;
   if FCorners.IsZero then
     FGLImage.Draw(SR) else
   begin
@@ -378,21 +379,26 @@ begin
 end;
 
 function TCastleImageControl.Rect: TRectangle;
+begin
+  Result := FloatRect.Round;
+end;
+
+function TCastleImageControl.FloatRect: TFloatRectangle;
 var
-  NewWidth, NewHeight, NewLeft, NewBottom: Integer;
+  NewWidth, NewHeight, NewLeft, NewBottom: Single;
   ApplyScaling: boolean;
 begin
   ApplyScaling := true;
   if not Stretch then
   begin
     if FImage <> nil then
-      Result := Rectangle(Left, Bottom, FImage.Width, FImage.Height) else
-      Result := Rectangle(Left, Bottom, 0, 0);
+      Result := FloatRectangle(Left, Bottom, FImage.Width, FImage.Height) else
+      Result := FloatRectangle(Left, Bottom, 0, 0);
   end else
   begin
     if FullSize then
     begin
-      Result := ParentRect;
+      Result := ParentFloatRect;
       ApplyScaling := false;
     end else
     if (ProportionalScaling in [psFit, psEnclose]) and (FImage <> nil) then
@@ -400,17 +406,17 @@ begin
       if (ProportionalScaling = psFit) =
          (Width / Height > FImage.Width / FImage.Height) then
       begin
-        NewWidth := FImage.Width * Height div FImage.Height;
-        NewLeft := Left + (Width - NewWidth) div 2;
-        Result := Rectangle(NewLeft, Bottom, NewWidth, Height);
+        NewWidth := FImage.Width * Height / FImage.Height;
+        NewLeft := Left + (Width - NewWidth) / 2;
+        Result := FloatRectangle(NewLeft, Bottom, NewWidth, Height);
       end else
       begin
-        NewHeight := FImage.Height * Width div FImage.Width;
-        NewBottom := Bottom + (Height - NewHeight) div 2;
-        Result := Rectangle(Left, NewBottom, Width, NewHeight);
+        NewHeight := FImage.Height * Width / FImage.Width;
+        NewBottom := Bottom + (Height - NewHeight) / 2;
+        Result := FloatRectangle(Left, NewBottom, Width, NewHeight);
       end;
     end else
-      Result := Rectangle(Left, Bottom, Width, Height);
+      Result := FloatRectangle(Left, Bottom, Width, Height);
   end;
 
   if ApplyScaling then

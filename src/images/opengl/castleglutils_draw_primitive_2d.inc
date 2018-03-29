@@ -85,6 +85,10 @@ procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
+procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
 
 { Draw a rectangle frame.
 
@@ -433,6 +437,15 @@ begin
 
   DrawPrimitive2D(pmTriangleFan, RectanglePoint,
     Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
+end;
+
+procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
+begin
+  DrawRectangle(R.Round, Color,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
 end;
 
 procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;

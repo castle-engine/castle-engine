@@ -359,6 +359,32 @@ type
     function Grow(const Delta: Single): TFloatRectangle; overload;
     function Grow(const DeltaX, DeltaY: Single): TFloatRectangle; overload;
 
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Left). }
+    function AlignCore(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Single = 0): Single; overload;
+    function Align(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Single = 0): TFloatRectangle; overload;
+
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Bottom). }
+    function AlignCore(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Single = 0): Single; overload;
+    function Align(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Single = 0): TFloatRectangle; overload;
+
     function ToString: string;
 
     { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
@@ -382,6 +408,9 @@ type
     { Convert from a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
     class function FromX3DVector(const V: TVector4): TFloatRectangle; static;
+
+    { Round rectangle coordinates, converting TFloatRectangle to TRectangle. }
+    function Round: TRectangle;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
@@ -1020,6 +1049,68 @@ begin
 end;
 }
 
+function TFloatRectangle.AlignCore(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Single = 0): Single;
+begin
+  Result := OtherRect.Left + X;
+  case ThisPosition of
+    hpLeft  : ;
+    hpMiddle: Result := Result - Width / 2;
+    hpRight : Result := Result - Width;
+  end;
+  case OtherPosition of
+    hpLeft  : ;
+    hpMiddle: Result := Result + OtherRect.Width / 2;
+    hpRight : Result := Result + OtherRect.Width;
+  end;
+end;
+
+function TFloatRectangle.AlignCore(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Single = 0): Single;
+begin
+  Result := OtherRect.Bottom + Y;
+  case ThisPosition of
+    vpBottom: ;
+    vpMiddle: Result := Result - Height / 2;
+    vpTop   : Result := Result - Height;
+  end;
+  case OtherPosition of
+    vpBottom: ;
+    vpMiddle: Result := Result + OtherRect.Height / 2;
+    vpTop   : Result := Result + OtherRect.Height;
+  end;
+end;
+
+function TFloatRectangle.Align(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Single = 0): TFloatRectangle;
+begin
+  Result.Left := AlignCore(ThisPosition, OtherRect, OtherPosition, X);
+  Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TFloatRectangle.Align(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Single = 0): TFloatRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := AlignCore(ThisPosition, OtherRect, OtherPosition, Y);
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
 function TFloatRectangle.ToString: string;
 begin
   Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
@@ -1191,6 +1282,18 @@ begin
   Result.Bottom := V.Data[1];
   Result.Width  := V.Data[2] - V.Data[0];
   Result.Height := V.Data[3] - V.Data[1];
+end;
+
+function TFloatRectangle.Round: TRectangle;
+begin
+  if IsEmpty then
+    Result := TRectangle.Empty
+  else
+    Result := Rectangle(
+      System.Round(Left),
+      System.Round(Bottom),
+      System.Round(Width),
+      System.Round(Height));
 end;
 
 class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
