@@ -366,6 +366,8 @@ type
     GroupEffects: TX3DNodeList;
     Lighting, ColorPerVertex: boolean;
 
+    function UseSeparateDiffuseTexture: boolean;
+
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
@@ -402,6 +404,8 @@ type
 
     { Camera * scene transformation (without the shape transformation). }
     SceneModelView: TMatrix4;
+
+    SeparateDiffuseTexture: boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -1711,6 +1715,7 @@ begin
   DynamicUniforms.Clear;
   TextureMatrix.Clear;
   NeedsCameraInverseMatrix := false;
+  SeparateDiffuseTexture := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2004,6 +2009,11 @@ begin
       EnableEffect(TEffectNode(Effects[I]));
 end;
 
+function TShader.UseSeparateDiffuseTexture: boolean;
+begin
+  Result := SeparateDiffuseTexture and PhongShading and Lighting;
+end;
+
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
   const ShapeNiceName: string);
 var
@@ -2091,13 +2101,17 @@ var
      {$I variance_shadow_map_common.fs.inc});
   {$endif}
   var
-    UniformsDeclare: string;
+    UniformsDeclare, TextureApplyPoint: string;
     I: Integer;
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
-    PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
+
+    TextureApplyPoint := Iff(UseSeparateDiffuseTexture,
+      'separate_diffuse_apply_texture', 'texture_apply');
+    PlugDirectly(Source[stFragment], 0, '/* PLUG: ' + TextureApplyPoint,
       TextureColorDeclare + TextureApply, false);
+
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
     PlugDirectly(Source[stGeometry], 0, '/* PLUG-DECLARATIONS'         , GeometryVertexDeclare, false);
@@ -2486,9 +2500,10 @@ begin
 
   if GLVersion.BuggyGLSLFrontFacing then
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
-
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
+  if UseSeparateDiffuseTexture then
+    Define('CASTLE_SEPARATE_DIFFUSE_TEXTURE', stFragment);
 
   if Log and LogShaders then
     DoLogShaders;
@@ -2561,6 +2576,7 @@ function TShader.CodeHash: TShaderCodeHash;
   procedure CodeHashFinalize;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
+    FCodeHash.AddInteger((Ord(UseSeparateDiffuseTexture) + 1) * 151);
   end;
 
 begin
