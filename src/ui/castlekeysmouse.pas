@@ -693,6 +693,15 @@ type
     KeyCharacter: char;
     { @groupEnd }
 
+    { Was this key already pressed before this event.
+      May be @true only for key events, and only on press (not on release).
+      Alllows to recognize "key repeat" that occurs when you press a key
+      for some time. The keyboard generates "key down" events then
+      (with delay and frequency depending on keyboard settings).
+      Sometimes they are useful, sometimes not -- so you can recognize
+      them using this field. }
+    KeyRepeated: boolean;
+
     { When EventType is itMouseButton, this is the mouse button pressed or released.
       Always mbLeft for touch device press/release events.
 
@@ -1275,15 +1284,20 @@ end;
 function TInputPressRelease.ToString: string;
 begin
   case EventType of
-    itKey: Result := Format('key %s, character %s (code %d)',
+    itKey:
+      Result := Format('key %s, character %s (code %d)',
       [ KeyToStr(Key), CharToNiceStr(KeyCharacter), Ord(KeyCharacter)]);
-    itMouseButton: Result := 'mouse ' + MouseButtonStr[MouseButton];
-    itMouseWheel: Result := Format('mouse wheel %s (amount %f, vertical: %s)',
+    itMouseButton:
+      Result := 'mouse ' + MouseButtonStr[MouseButton];
+    itMouseWheel:
+      Result := Format('mouse wheel %s (amount %f, vertical: %s)',
       [ MouseWheelDirectionStr[MouseWheel],
         MouseWheelScroll,
         BoolToStr(MouseWheelVertical, true) ]);
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
   end;
+  if KeyRepeated then
+    Result := Result + ', key repeated';
 end;
 
 function TInputPressRelease.Description: string;

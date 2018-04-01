@@ -3506,8 +3506,17 @@ procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char);
 
 var
   MatchingMI: TMenuItem;
+  KeyRepeated: boolean;
   Event: TInputPressRelease;
 begin
+  KeyRepeated :=
+    // Key or CharKey non-empty
+    ((Key <> keyNone) or (CharKey <> #0)) and
+    // Key already pressed
+    ((Key = keyNone) or Pressed.Keys[Key]) and
+    // CharKey already pressed
+    ((CharKey = #0) or Pressed.Characters[CharKey]);
+
   Pressed.KeyDown(Key, CharKey);
 
   MatchingMI := SeekMatchingMenuItem;
@@ -3521,6 +3530,7 @@ begin
   begin
     MakeCurrent;
     Event := InputKey(MousePosition, Key, CharKey);
+    Event.KeyRepeated := KeyRepeated;
     Container.EventPress(Event);
 
     if Event.IsKey(Close_CharKey) then

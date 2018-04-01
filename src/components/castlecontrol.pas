@@ -961,16 +961,27 @@ procedure TCastleControlCustom.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
+  KeyRepeated: boolean;
+  Event: TInputPressRelease;
 begin
   KeyLCLToCastle(Key, Shift, MyKey, Ch);
+
+  KeyRepeated :=
+    // MyKey or Ch non-empty
+    ((MyKey <> keyNone) or (Ch <> #0)) and
+    // MyKey already pressed
+    ((MyKey = keyNone) or Pressed.Keys[MyKey]) and
+    // Ch already pressed
+    ((Ch = #0) or Pressed.Characters[Ch]);
+
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventPress }
 
-  { Do not change focus by arrow keys, this would breaks our handling of arrows
+  { Do not change focus by arrow keys, this would break our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these
-    keys as focus-changing (actually, Lazarus tells widget managet that these
+    keys as focus-changing (actually, Lazarus tells widget manager that these
     are already handled) by setting them to zero.
     Note: our MyKey/Ch (passed to KeyDownEvent) are calculated earlier,
     so they will correctly capture arrow keys. }
@@ -983,8 +994,12 @@ begin
   inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if Container.EventPress(InputKey(MousePosition, MyKey, Ch)) then
+  begin
+    Event := InputKey(MousePosition, MyKey, Ch);
+    Event.KeyRepeated := KeyRepeated;
+    if Container.EventPress(Event) then
       Key := 0; // handled
+  end;
 end;
 
 procedure TCastleControlCustom.KeyUp(var Key: Word; Shift: TShiftState);
