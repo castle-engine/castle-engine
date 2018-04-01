@@ -34,12 +34,13 @@
     or straight TCastleImageControl.Image.
 
     We automatically use alpha test or alpha blending based
-    on loaded image alpha channel (see TGLImageCore.Alpha).
+    on loaded image alpha channel (see @link(TGLImageCore.Alpha)).
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TUIControl)
   strict private
     FURL: string;
-    FImage: TCastleImage;
+    FImage: TEncodedImage;
+    FImageLoadedFromCache: boolean;
     FGLImage: TGLImage;
     FAlphaChannel: TAutoAlphaChannel;
     FStretch: boolean;
@@ -56,11 +57,12 @@
     FRotation: Single;
     FClip: boolean;
     FClipLine: TVector3;
+    FCache: boolean;
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetRotation(const AValue: Single);
     procedure SetURL(const Value: string);
-    procedure SetImage(const Value: TCastleImage);
+    procedure SetImage(Value: TEncodedImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
@@ -75,6 +77,8 @@
     procedure SetSmoothScaling(const Value: boolean);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
+    { Free FImage and make it @nil. }
+    procedure FreeImage;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -89,11 +93,11 @@
       or you can set this property directly if you loaded/created the image contents
       yourself.
 
-      Note that by default the TCastleImage instance assigned here is owned
+      Note that by default the TEncodedImage instance assigned here is owned
       by this component (see @link(OwnsImage)).
-      So if you set this property to your custom TCastleImage instance you should
+      So if you set this property to your custom TEncodedImage instance you should
       leave memory management of this instance to this component.
-      You can either create a copy by TCastleImage.MakeCopy
+      You can either create a copy by TEncodedImage.MakeCopy
       if you want to give here only a copy, or you can change @link(OwnsImage)
       to @false.
 
@@ -102,7 +106,7 @@
       to update the actual rendered image.
       The control size will be updated immediately (taking into account current
       @link(Stretch) and related properties values). }
-    property Image: TCastleImage read FImage write SetImage;
+    property Image: TEncodedImage read FImage write SetImage;
 
     { Image used to draw this on GPU.
       In most circumstances, you should deal with @link(Image) instead
@@ -233,6 +237,47 @@
 
     property Proportional: boolean read GetProportional write SetProportional
       stored false default false; deprecated 'use ProportionalScaling';
+
+    { If @true, the images are loaded and freed using the cache.
+      That is, the TEncodedImage in @link(Image) is loaded and freed using
+      @link(TTextureImageCache.TextureImage_IncReference TextureCache.TextureImage_IncReference)
+      and
+      @link(TTextureImageCache.TextureImage_DecReference TextureCache.TextureImage_DecReference)
+      instead of @link(LoadEncodedImage) and @code(FreeAndNil).
+
+      This can save memory and loading time a lot, if you reuse the same
+      image in many TCastleControlImage instances. The limitation is
+      that you shouldn't change the @link(Image) contents
+      (e.g. changing @link(TCastleImage.Colors)), or you will change
+      all shared images.
+
+      This is also useful to "preload" images before creating multiple
+      complicated complicated UI using TCastleImageControl. Like this:
+
+      @longCode(#
+        CachedImage := TextureCache.TextureImage_IncReference('my_image.png');
+        // now creating TCastleImageControl with this image
+        // and cache will be very fast
+        ImageControl := TCastleImageControl.Create(Application);
+        ImageControl.Cache := true:
+        ImageControl.URL := 'my_image.png'; // use already cached URL
+        // somewhere much layer
+        TextureCache.TextureImage_DecReference(CachedImage);
+      #)
+
+      This also affects releasing your custom images,
+      if you assign @link(Image) property (instead of @link(URL))
+      and leave @link(OwnsImage) as @true.
+      Be sure in such case that your image was loaded from cache too.
+
+      Right now we don't cache and share the @link(TGLImage) contents,
+      so the memory on GPU is not shared, but this may change at some point
+      to also be shared.
+
+      Right now, this should be set before assigning Image or URL,
+      otherwise the image will not be loaded/freed using the cache.
+      This may change at some point. }
+    property Cache: boolean read FCache write FCache;
   end;
 
 {$endif read_interface}
@@ -254,11 +299,21 @@ end;
 
 destructor TCastleImageControl.Destroy;
 begin
-  if OwnsImage then
-    FreeAndNil(FImage) else
-    FImage := nil;
+  FreeImage;
   FreeAndNil(FGLImage);
   inherited;
+end;
+
+procedure TCastleImageControl.FreeImage;
+begin
+  if OwnsImage then
+  begin
+    if FImageLoadedFromCache then
+      TextureCache.TextureImage_DecReference(FImage)
+    else
+      FreeAndNil(FImage);
+  end else
+    FImage := nil;
 end;
 
 procedure TCastleImageControl.SetSmoothScaling(const Value: boolean);
@@ -303,7 +358,12 @@ end;
 procedure TCastleImageControl.SetURL(const Value: string);
 begin
   if Value <> '' then
-    Image := LoadImage(Value) else
+  begin
+    if Cache then
+      Image := TextureCache.TextureImage_IncReference(Value)
+    else
+      Image := LoadEncodedImage(Value);
+  end else
     Image := nil;
 
   { only once new Image is successfully loaded, change property value.
@@ -350,14 +410,31 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetImage(const Value: TCastleImage);
+procedure TCastleImageControl.SetImage(Value: TEncodedImage);
 begin
   if FImage <> Value then
   begin
-    if OwnsImage then FreeAndNil(FImage);
+    FreeImage;
+
     FImage := Value;
+    { Note that we must change FImageLoadedFromCache *after* FreeImage,
+      not before, as previous FImageLoadedFromCache is used in FreeImage. }
+    FImageLoadedFromCache := (FImage <> nil) and Cache;
+
     ImageChanged;
-  end;
+  end else
+
+  { Special situation occurs when Value = FImage,
+    but Value comes from TextureCache.TextureImage_IncReference.
+    We need to release reference then, otherwise doing this:
+
+      ImageControl.Cache := true;
+      ImageControl.URL := 'blah.png';
+      ImageControl.URL := 'blah.png';
+
+    .. would always cause memory leak. }
+  if Cache and (Value <> nil) and OwnsImage then
+    TextureCache.TextureImage_DecReference(Value);
 end;
 
 procedure TCastleImageControl.Render;

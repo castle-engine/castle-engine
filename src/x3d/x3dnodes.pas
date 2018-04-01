@@ -669,6 +669,7 @@ procedure X3DNodesFinalization;
 begin
   FreeAndNil(VRML1DefaultState);
   FreeAndNil(TraverseSingleStack);
+  TextureCache := nil;
   FreeAndNil(X3DCache);
 
   FreeAndNil(NodesManager);
@@ -731,6 +732,7 @@ initialization
   RegisterParticleSystemsNodes;
 
   X3DCache := TX3DNodesCache.Create;
+  TextureCache := X3DCache;
   VRML1DefaultState := TVRML1State.Create;
   VRML1DefaultState.CreateNodes;
   TraverseSingleStack := TX3DGraphTraverseStateStack.Create;

@@ -1682,7 +1682,7 @@ function LoadEncodedImage(URL: string;
 { saving image --------------------------------------------------------------- }
 
 type
-  { }
+  { Raised by SaveImage when it's not possible to save image. }
   EImageSaveError = class(Exception);
 
 { Save image to a file. Takes URL as parameter, you can give @code(file) URL

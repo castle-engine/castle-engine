@@ -138,10 +138,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const URL: string; out Composite: TCompositeImage;
+    function TextureImage_IncReference(const URL: string;
+      out Composite: TCompositeImage;
       out AlphaChannel: TAlphaChannel): TEncodedImage; overload;
     function TextureImage_IncReference(const URL: string;
       out AlphaChannel: TAlphaChannel): TEncodedImage; overload;
+    function TextureImage_IncReference(const URL: string): TEncodedImage; overload;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage); overload;
     procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
@@ -192,6 +194,10 @@ var
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogTextureCache: boolean = false;
+
+  { Cache of texture images, equal to X3DCache
+    and automatically initialized / finalized if you use X3DNodes unit. }
+  TextureCache: TTexturesVideosCache;
 
 implementation
 
@@ -356,6 +362,13 @@ var
   Dummy: TCompositeImage;
 begin
   Result := TextureImage_IncReference(URL, Dummy, AlphaChannel);
+end;
+
+function TTexturesVideosCache.TextureImage_IncReference(const URL: string): TEncodedImage;
+var
+  DummyAlphaChannel: TAlphaChannel;
+begin
+  Result := TextureImage_IncReference(URL, DummyAlphaChannel);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
