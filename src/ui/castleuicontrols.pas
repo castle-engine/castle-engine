@@ -950,6 +950,10 @@ type
       useful for implementing overridden @code(Rect) methods. }
     function LeftBottomScaled: TVector2Integer;
 
+    { The left-bottom corner scaled by UIScale,
+      useful for implementing overridden @code(FloatRect) methods. }
+    function FloatLeftBottomScaled: TVector2;
+
     procedure UIScaleChanged; virtual;
 
     //procedure DoCursorChange; override;
@@ -1193,6 +1197,17 @@ type
       in local coordinates (relative to parent 2D control).
       See @link(Rect) for more comments.
 
+      Using the float-based rectangles and coordinates (like FloatRect,
+      CalculatedFloatRect, TCastleButton.FloatWidth, TCastleButton.FloatWidth)
+      instead of integer-based (like Rect,
+      CalculatedRect, TCastleButton.Width, TCastleButton.Width) is better
+      in case you use UI scaling (@link(TUIContainer.UIScaling)).
+      It may sound counter-intuitive, but calculating everything using
+      floats results in more precision and better speed
+      (because we avoid various rounding in the middle of calculations).
+      Without UI scaling, it doesn't matter, use whichever ones are more
+      comfortable.
+
       @italic(Notes for descendants implementors:)
 
       By default, in this class, this just returns @link(Rect) converted to floats.
@@ -1240,6 +1255,7 @@ type
 
       @seealso Rect }
     function CalculatedRect: TRectangle;
+    function CalculatedFloatRect: TFloatRectangle;
 
     { Calculated width of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1258,6 +1274,7 @@ type
 
       @seealso CalculatedRect }
     function CalculatedWidth: Cardinal;
+    function CalculatedFloatWidth: Single;
 
     { Calculated height of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1276,6 +1293,7 @@ type
 
       @seealso CalculatedRect }
     function CalculatedHeight: Cardinal;
+    function CalculatedFloatHeight: Single;
 
     { Position and size of this control, assuming it exists, in screen (container)
       coordinates. }
@@ -3100,6 +3118,11 @@ begin
     Round(UIScale * Left), Round(UIScale * Bottom));
 end;
 
+function TUIControl.FloatLeftBottomScaled: TVector2;
+begin
+  Result := Vector2(UIScale * Left, UIScale * Bottom);
+end;
+
 procedure TUIControl.UIScaleChanged;
 begin
 end;
@@ -3330,29 +3353,44 @@ begin
   Result := FloatRectangle(Rect);
 end;
 
+function TUIControl.CalculatedFloatRect: TFloatRectangle;
+begin
+  Result := FloatRectWithAnchors(true).ScaleAround0(1 / UIScale);
+end;
+
 function TUIControl.CalculatedRect: TRectangle;
 begin
-  Result := RectWithAnchors(true).ScaleAround0(1 / UIScale);
+  Result := CalculatedFloatRect.Round;
+end;
+
+function TUIControl.CalculatedFloatWidth: Single;
+begin
+  { Naive implementation:
+  Result := CalculatedFloatRect.Width; }
+
+  { Optimized implementation, knowing that FloatRectWithAnchors(true) does not
+    change FloatRect.Width:
+  Result := FloatRect.ScaleAround0(1 / UIScale).Width; }
+
+  { Optimized implementation: }
+  Result := FloatRect.Width * (1 / UIScale);
+  //Assert(Result = CalculatedRect.Width);
 end;
 
 function TUIControl.CalculatedWidth: Cardinal;
 begin
-  { Naive implementation:
-  Result := CalculatedRect.Width; }
+  Result := Round(CalculatedFloatWidth);
+end;
 
-  { Optimized implementation, knowing that RectWithAnchors(true) does not
-    change Rect.Width:
-  Result := Rect.ScaleAround0(1 / UIScale).Width; }
-
-  { Optimized implementation using ScaleWidthAround0: }
-  Result := Rect.ScaleWidthAround0(1 / UIScale);
-  //Assert(Result = CalculatedRect.Width);
+function TUIControl.CalculatedFloatHeight: Single;
+begin
+  Result := FloatRect.Height * (1 / UIScale);
+  //Assert(Result = CalculatedFloatRect.Height);
 end;
 
 function TUIControl.CalculatedHeight: Cardinal;
 begin
-  Result := Rect.ScaleHeightAround0(1 / UIScale);
-  //Assert(Result = CalculatedRect.Height);
+  Result := Round(CalculatedFloatHeight);
 end;
 
 (*

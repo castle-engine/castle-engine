@@ -46,8 +46,7 @@
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
     FFullSize: boolean;
-    FWidth: Cardinal;
-    FHeight: Cardinal;
+    FFloatWidth, FFloatHeight: Single;
     FColor: TCastleColor;
     FCorners: TVector4Integer;
     FOwnsImage: boolean;
@@ -67,8 +66,12 @@
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
     procedure SetStretch(const Value: boolean);
+    function GetWidth: Cardinal;
+    function GetHeight: Cardinal;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
+    procedure SetFloatWidth(const Value: Single);
+    procedure SetFloatHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
@@ -228,8 +231,10 @@
 
       @groupBegin }
     property Stretch: boolean read FStretch write SetStretch default false;
-    property Width: Cardinal read FWidth write SetWidth default 0;
-    property Height: Cardinal read FHeight write SetHeight default 0;
+    property Width: Cardinal read GetWidth write SetWidth default 0;
+    property Height: Cardinal read GetHeight write SetHeight default 0;
+    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
+    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
     property FullSize: boolean read FFullSize write SetFullSize default false;
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
@@ -450,9 +455,6 @@ begin
     FGLImage.ScaleCorners := UIScale;
     FGLImage.Draw3x3(SR, FCorners);
   end;
-  { Useful to debug that ProportionalScaling works.
-  if Stretch and not FullSize then
-    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame, UIScale); }
 end;
 
 function TCastleImageControl.Rect: TRectangle;
@@ -462,7 +464,7 @@ end;
 
 function TCastleImageControl.FloatRect: TFloatRectangle;
 var
-  NewWidth, NewHeight, NewLeft, NewBottom: Single;
+  NewFloatWidth, NewFloatHeight, NewLeft, NewBottom: Single;
   ApplyScaling: boolean;
 begin
   ApplyScaling := true;
@@ -481,19 +483,19 @@ begin
     if (ProportionalScaling in [psFit, psEnclose]) and (FImage <> nil) then
     begin
       if (ProportionalScaling = psFit) =
-         (Width / Height > FImage.Width / FImage.Height) then
+         (FloatWidth / FloatHeight > FImage.Width / FImage.Height) then
       begin
-        NewWidth := FImage.Width * Height / FImage.Height;
-        NewLeft := Left + (Width - NewWidth) / 2;
-        Result := FloatRectangle(NewLeft, Bottom, NewWidth, Height);
+        NewFloatWidth := FImage.Width * FloatHeight / FImage.Height;
+        NewLeft := Left + (FloatWidth - NewFloatWidth) / 2;
+        Result := FloatRectangle(NewLeft, Bottom, NewFloatWidth, FloatHeight);
       end else
       begin
-        NewHeight := FImage.Height * Width / FImage.Width;
-        NewBottom := Bottom + (Height - NewHeight) / 2;
-        Result := FloatRectangle(Left, NewBottom, Width, NewHeight);
+        NewFloatHeight := FImage.Height * FloatWidth / FImage.Width;
+        NewBottom := Bottom + (FloatHeight - NewFloatHeight) / 2;
+        Result := FloatRectangle(Left, NewBottom, FloatWidth, NewFloatHeight);
       end;
     end else
-      Result := FloatRectangle(Left, Bottom, Width, Height);
+      Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
   end;
 
   if ApplyScaling then
@@ -608,22 +610,42 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetWidth(const Value: Cardinal);
+procedure TCastleImageControl.SetFloatWidth(const Value: Single);
 begin
-  if FWidth <> Value then
+  if FFloatWidth <> Value then
   begin
-    FWidth := Value;
+    FFloatWidth := Value;
     VisibleChange;
   end;
 end;
 
-procedure TCastleImageControl.SetHeight(const Value: Cardinal);
+procedure TCastleImageControl.SetFloatHeight(const Value: Single);
 begin
-  if FHeight <> Value then
+  if FFloatHeight <> Value then
   begin
-    FHeight := Value;
+    FFloatHeight := Value;
     VisibleChange;
   end;
+end;
+
+function TCastleImageControl.GetWidth: Cardinal;
+begin
+  Result := Round(FloatWidth);
+end;
+
+function TCastleImageControl.GetHeight: Cardinal;
+begin
+  Result := Round(FloatHeight);
+end;
+
+procedure TCastleImageControl.SetWidth(const Value: Cardinal);
+begin
+  FloatWidth := Value;
+end;
+
+procedure TCastleImageControl.SetHeight(const Value: Cardinal);
+begin
+  FloatHeight := Value;
 end;
 
 procedure TCastleImageControl.SetFullSize(const Value: boolean);

@@ -395,6 +395,16 @@ type
 
     function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): boolean;
 
+    { Scale rectangle position and size around it's own @link(Center) point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched. }
+    function ScaleAroundCenter(const Factor: Single): TFloatRectangle;
+
     { Scale rectangle position and size around the (0,0) point. }
     function ScaleAround0(const Factor: Single): TFloatRectangle;
 
@@ -1200,6 +1210,29 @@ begin
     Sqr(DiscCenter.Data[0] - ClosestCornerX) +
     Sqr(DiscCenter.Data[1] - ClosestCornerY) <=
     Sqr(Radius);
+end;
+
+function TFloatRectangle.ScaleAroundCenter(const Factor: Single): TFloatRectangle;
+begin
+  if Width >= 0 then
+  begin
+    Result.Width  := Width  * Factor;
+    Result.Left   := Left   + (Width  - Result.Width ) / 2;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height >= 0 then
+  begin
+    Result.Height := Height * Factor;
+    Result.Bottom := Bottom + (Height - Result.Height) / 2;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 function TFloatRectangle.ScaleAround0(const Factor: Single): TFloatRectangle;
