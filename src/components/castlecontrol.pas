@@ -1137,7 +1137,7 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
     a small delay). So we use MaxDesiredFPS to cap it. }
   procedure AggressiveUpdate;
   const
-    MaxDesiredFPS = DefaultLimitFPS;
+    MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
   var
     DesiredFPS: Single;
   begin
