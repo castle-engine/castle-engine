@@ -132,9 +132,9 @@ begin
       rendering with rmDepth will not initialize some material stuff. }
     Attributes.Mode := rmDepth;
 
-    RenderContext.ColorMask := false;
+    RenderContext.ColorChannels := [];
     inherited;
-    RenderContext.ColorMask := true;
+    RenderContext.ColorChannels := [0..3];
 
     { Render the 2D image covering the location.
 

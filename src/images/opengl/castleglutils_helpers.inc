@@ -572,16 +572,21 @@ begin
   end;
 end;
 
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
-var
-  B: TGLboolean;
+function BoolToGL(const Value: boolean): TGLboolean;
 begin
-  if Writeable then
-    B := GL_TRUE
+  if Value then
+    Result := GL_TRUE
   else
-    B := GL_FALSE;
-  glDepthMask(B);
-  glColorMask(B, B, B, B);
+    Result := GL_FALSE;
+end;
+
+procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+begin
+  glDepthMask(BoolToGL(Writeable));
+  if Writeable then
+    RenderContext.ColorChannels := [0..3]
+  else
+    RenderContext.ColorChannels := [];
 end;
 
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
