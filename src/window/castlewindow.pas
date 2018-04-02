@@ -505,6 +505,7 @@ uses {$define read_interface_uses}
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
   CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
+  CastleApplicationProperties,
   { Castle Game Engine units depending on VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
@@ -539,7 +540,8 @@ const
 
   DefaultFpsCaptionUpdateDelay = 1.0;
 
-  DefaultLimitFPS = 100.0;
+  DefaultLimitFPS = TCastleApplicationProperties.DefaultLimitFPS
+    deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
 
 type
   { Development notes:
@@ -2150,7 +2152,7 @@ type
 
         @itemLabel poLimitFps
         @item(Handle @--no-limit-fps: disables
-          @link(TCastleApplication.LimitFps Application.LimitFps),
+          @link(TCastleApplicationProperties.LimitFps ApplicationProperties.LimitFps),
           allows to observe maximum FPS, see
           http://castle-engine.io/manual_optimization.php )
       )
@@ -2481,7 +2483,6 @@ type
       Update in TCastleWindowCustom.MakeCurrent, also TCastleWindowCustom.Close. }
     Current: TCastleWindowCustom;
     LastLimitFPSTime: TTimerResult;
-    FLimitFPS: Single;
     FMainWindow: TCastleWindowCustom;
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
@@ -2583,6 +2584,9 @@ type
 
     function GetTouchDevice: boolean;
     procedure SetTouchDevice(const Value: boolean);
+    function GetLimitFPS: Single;
+    procedure SetLimitFPS(const Value: Single);
+    function GetMainContainer: TUIContainer;
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2849,26 +2853,9 @@ type
       )
     }
     procedure ParseStandardParameters;
-  published
-    { Limit the number of (real) frames per second, to not hog the CPU.
-      Set to zero to not limit.
 
-      To be more precise, this limits the number of TCastleApplication.ProcessMessage
-      calls per second, in situations when we do not have to process any user input.
-      So we limit not only rendering (TCastleWindowCustom.OnRender)
-      but also other animation processing (TCastleWindowCustom.OnUpdate) calls per second.
-      See TCastleApplication.ProcessMessage.
-
-      In case of CastleWindow backends when we have to fight with event clogging
-      (right now only LCL backend, used by default only on macOS)
-      this is also the "desired number of FPS": we make sure that even
-      when application is clogged with events (like when dragging with mouse),
-      we call update (TCastleWindowCustom.OnUpdate) and (if necessary)
-      draw (TCastleWindowCustom.OnRender and related) at least as often.
-      When LimitFPS is used for this purpose ("desired number of FPS"),
-      it is also capped (by MaxDesiredFPS = 100.0). }
-    property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
-
+    property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
+      deprecated 'use ApplicationProperties.LimitFps';
     property Version: string read GetVersion write SetVersion;
       deprecated 'use ApplicationProperties.Version';
     property TouchDevice: boolean read GetTouchDevice write SetTouchDevice;
@@ -2916,8 +2903,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleLog, CastleGLVersion, CastleURIUtils,
-  CastleControls, CastleApplicationProperties, CastleMessaging,
+uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -4001,7 +3987,7 @@ var
 begin
   Include(ProcData^.SpecifiedOptions, poLimitFps);
   case OptionNum of
-    0: application.LimitFps := 0;
+    0: ApplicationProperties.LimitFps := 0;
   end;
 end;
 
@@ -4662,13 +4648,15 @@ begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
-  FLimitFPS := DefaultLimitFPS;
   FDefaultWindowClass := TCastleWindowCustom;
   CreateBackend;
+  OnMainContainer := @GetMainContainer;
 end;
 
 destructor TCastleApplication.Destroy;
 begin
+  OnMainContainer := nil;
+
   { Close any windows possibly open now.
     This is necessary --- after destroying Application there would be really
     no way for them to close properly (that is, TCastleWindowCustom.CloseBackend
@@ -4687,6 +4675,24 @@ begin
   DestroyBackend;
   FreeAndNil(FOpenWindows);
   inherited;
+end;
+
+function TCastleApplication.GetLimitFPS: Single;
+begin
+  Result := ApplicationProperties.LimitFPS;
+end;
+
+procedure TCastleApplication.SetLimitFPS(const Value: Single);
+begin
+  ApplicationProperties.LimitFPS := Value;
+end;
+
+function TCastleApplication.GetMainContainer: TUIContainer;
+begin
+  if MainWindow <> nil then
+    Result := MainWindow.Container
+  else
+    Result := nil;
 end;
 
 procedure TCastleApplication.CastleEngineInitialize;
@@ -4962,7 +4968,7 @@ var
   NowTime: TTimerResult;
   TimeRemainingFloat: Single;
 begin
-  if LimitFPS > 0 then
+  if ApplicationProperties.LimitFPS > 0 then
   begin
     NowTime := Timer;
 
@@ -4980,7 +4986,7 @@ begin
 
     TimeRemainingFloat :=
       { how long we should wait between _LimitFPS calls }
-      1 / LimitFPS -
+      1 / ApplicationProperties.LimitFPS -
       { how long we actually waited between _LimitFPS calls }
       TimerSeconds(NowTime, LastLimitFPSTime);
     { Don't do Sleep with too small values.

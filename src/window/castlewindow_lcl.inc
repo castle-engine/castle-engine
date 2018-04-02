@@ -682,9 +682,10 @@ procedure TCastleWindowCustom.AggressiveUpdate;
 var
   DesiredFPS: Single;
 begin
-  if Application.LimitFPS <= 0 then
-    DesiredFPS := MaxDesiredFPS else
-    DesiredFPS := Min(MaxDesiredFPS, Application.LimitFPS);
+  if ApplicationProperties.LimitFPS <= 0 then
+    DesiredFPS := MaxDesiredFPS
+  else
+    DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
   if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
     DoUpdate;

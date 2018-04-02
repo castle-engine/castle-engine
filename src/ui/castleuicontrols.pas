@@ -1669,6 +1669,19 @@ const
   vpMiddle = CastleRectangles.vpMiddle;
   vpTop    = CastleRectangles.vpTop   ;
 
+type
+  { Internal for communication with CastleWindow or CastleControl,
+    useful by CastleUIState.
+    See @link(OnMainContainer).
+    @exclude }
+  TOnMainContainer = function: TUIContainer of object;
+
+var
+  { Internal for communication with CastleWindow or CastleControl,
+    useful by CastleUIState.
+    @exclude }
+  OnMainContainer: TOnMainContainer = nil;
+
 implementation
 
 uses CastleLog;
