@@ -368,7 +368,7 @@ var
     if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
     begin
       { fast case: single line, and no need to use TRichText in this case }
-      Font.Print(Round(TextLeft), Round(TextBottom), TextColor, Caption);
+      Font.Print(TextLeft, TextBottom, TextColor, Caption);
     end else
     begin
       { calculate TextX }
@@ -382,8 +382,8 @@ var
       LineSpacingScaled := UIScale * LineSpacing;
       TextToRender := GetTextToRender;
       try
-        TextToRender.Print(Round(TextX), Round(TextBottom),
-          TextColor, Round(LineSpacingScaled), TextAlignment);
+        TextToRender.Print(TextX, TextBottom,
+          TextColor, LineSpacingScaled, TextAlignment);
       finally FreeAndNil(TextToRender) end;
     end;
   end;
