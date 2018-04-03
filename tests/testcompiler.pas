@@ -23,6 +23,7 @@ uses
 type
   TTestCompiler = class(TTestCase)
     procedure TestIs;
+    procedure TestSinglePrecision;
   end;
 
 implementation
@@ -61,6 +62,14 @@ begin
     AssertFalse(O is TFruit);
     AssertFalse(O is TApple);
   finally FreeAndNil(O) end;
+end;
+
+procedure TTestCompiler.TestSinglePrecision;
+var
+  I: Integer;
+begin
+  for I := -32000 to 32000 do
+    AssertEquals(I, Round(Single(I)));
 end;
 
 initialization
