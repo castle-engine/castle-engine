@@ -1490,10 +1490,14 @@ type
     or as a container for UI children. }
   TUIControlSizeable = class(TUIControl)
   strict private
-    FWidth, FHeight: Cardinal;
+    FFloatWidth, FFloatHeight: Single;
     FFullSize: boolean;
+    function GetWidth: Cardinal;
+    function GetHeight: Cardinal;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
+    procedure SetFloatWidth(const Value: Single);
+    procedure SetFloatHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -1520,8 +1524,10 @@ type
 
       @groupBegin }
     property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Width: Cardinal read FWidth write SetWidth default 0;
-    property Height: Cardinal read FHeight write SetHeight default 0;
+    property Width: Cardinal read GetWidth write SetWidth default 0;
+    property Height: Cardinal read GetHeight write SetHeight default 0;
+    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
+    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
     { @groupEnd }
   end;
 
@@ -3619,7 +3625,7 @@ begin
   if FullSize then
     Result := ParentFloatRect else
   begin
-    Result := FloatRectangle(Left, Bottom, Width, Height);
+    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
     // applying UIScale on this is easy...
     Result := Result.ScaleAround0(UIScale);
   end;
@@ -3630,20 +3636,40 @@ begin
   Result := FloatRect.Round;
 end;
 
+function TUIControlSizeable.GetWidth: Cardinal;
+begin
+  Result := Round(FloatWidth);
+end;
+
+function TUIControlSizeable.GetHeight: Cardinal;
+begin
+  Result := Round(FloatHeight);
+end;
+
 procedure TUIControlSizeable.SetWidth(const Value: Cardinal);
 begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange(true);
-  end;
+  FloatWidth := Value;
 end;
 
 procedure TUIControlSizeable.SetHeight(const Value: Cardinal);
 begin
-  if FHeight <> Value then
+  FloatHeight := Value;
+end;
+
+procedure TUIControlSizeable.SetFloatWidth(const Value: Single);
+begin
+  if FFloatWidth <> Value then
   begin
-    FHeight := Value;
+    FFloatWidth := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetFloatHeight(const Value: Single);
+begin
+  if FFloatHeight <> Value then
+  begin
+    FFloatHeight := Value;
     VisibleChange(true);
   end;
 end;
