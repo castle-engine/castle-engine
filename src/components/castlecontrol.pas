@@ -1250,6 +1250,21 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
+function TCastleControlCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleControlCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleControlCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
+end;
+
 function TCastleControlCustom.Rect: TRectangle;
 begin
   Result := Container.Rect;
@@ -1349,21 +1364,6 @@ end;
 procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
-end;
-
-function TCastleControlCustom.MousePressed: TMouseButtons;
-begin
-  Result := Container.MousePressed;
-end;
-
-function TCastleControlCustom.Pressed: TKeysPressed;
-begin
-  Result := Container.Pressed;
-end;
-
-function TCastleControlCustom.Fps: TFramesPerSecond;
-begin
-  Result := Container.Fps;
 end;
 
 { TCastle2DControl ----------------------------------------------------------- }
