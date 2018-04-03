@@ -1208,6 +1208,8 @@ type
       Without UI scaling, it doesn't matter, use whichever ones are more
       comfortable.
 
+      Using the float-based coordinates is also natural for animations.
+
       @italic(Notes for descendants implementors:)
 
       By default, in this class, this just returns @link(Rect) converted to floats.
@@ -1413,7 +1415,24 @@ type
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
 
+    { Position from the left side of the screen.
+
+      Note: it's often more flexible to use anchors instead of this property.
+      For example, instead of setting @code(Control.Left := 10),
+      you can call @code(Control.Anchor(hpLeft, 10)).
+      Do not do both -- or they will be summed.
+      Using anchors is often more flexible, as various sides of child and parent
+      may be anchored, and with a float shift. }
     property Left: Integer read FLeft write SetLeft stored false default 0;
+
+    { Position from the bottom side of the screen.
+
+      Note: it's often more flexible to use anchors instead of this property.
+      For example, instead of setting @code(Control.Bottom := 10),
+      you can call @code(Control.Anchor(hpBottom, 10)).
+      Do not do both -- or they will be summed.
+      Using anchors is often more flexible, as various sides of child and parent
+      may be anchored, and with a float shift. }
     property Bottom: Integer read FBottom write SetBottom default 0;
 
     { Automatically adjust horizontal position to align us to
