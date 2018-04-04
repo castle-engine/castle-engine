@@ -46,6 +46,9 @@ type
     { Possible values of @link(TRenderContext.DepthRange). }
     TDepthRange = (drFull, drNear, drFar);
 
+    TColorChannel = 0..3;
+    TColorChannels = set of TColorChannel;
+
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
@@ -81,7 +84,7 @@ type
       FProjectionMatrix: TMatrix4;
       FDepthRange: TDepthRange;
       FCullFace, FFrontFaceCcw: boolean;
-      FColorMask: boolean;
+      FColorChannels: TColorChannels;
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
       procedure SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -90,7 +93,9 @@ type
       procedure SetDepthRange(const Value: TDepthRange);
       procedure SetCullFace(const Value: boolean);
       procedure SetFrontFaceCcw(const Value: boolean);
+      function GetColorMask: boolean;
       procedure SetColorMask(const Value: boolean);
+      procedure SetColorChannels(const Value: TColorChannels);
   private
     FEnabledScissors: TScissorList;
   public
@@ -158,8 +163,38 @@ type
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
-    { When this is @false, the color buffer is untouched by rendering. }
-    property ColorMask: boolean read FColorMask write SetColorMask default true;
+    { Which color buffer channels are touched by rendering. }
+    property ColorMask: boolean
+      read GetColorMask write SetColorMask default true;
+      deprecated 'use ColorChannels';
+
+    { Which color buffer channels are touched by rendering.
+      This affects all rendering, including @link(TGLImage.Draw).
+
+      Note that this state may be internally modified by various engine rendering
+      functions too, e.g. by @link(TCastleScene.Render), depending on rendering
+      attributes.
+      So it is only reliable for you to modify this temporarily,
+      and during your own rendering.
+      E.g. change ColorChannels right before and right after calling a couple of
+      @link(TGLImage.Draw). Always restore it afterwards to default [0..3].
+
+      Example uses:
+
+      @unorderedList(
+        @item(
+          Set this to ccNone to temporarily turn off writing to the color buffer.
+          This is useful e.g. if you only want to write
+          to the delph and stencil buffer.)
+        @item(
+          Set this to [0..2] to temporarily turn off writing to the alpha channel,
+          or to [3] to temporarily turn off writing to the RGB channels.)
+        @item(
+          Set this [0..3] to go back to default (write all channels).)
+      )
+    }
+    property ColorChannels: TColorChannels
+      read FColorChannels write SetColorChannels default [0..3];
   end;
 
 var
@@ -234,7 +269,7 @@ begin
   FDepthRange := drFull;
   FCullFace := false;
   FFrontFaceCcw := true;
-  FColorMask := true;
+  FColorChannels := [0..3];
 end;
 
 destructor TRenderContext.Destroy;
@@ -414,18 +449,33 @@ begin
   end;
 end;
 
+function TRenderContext.GetColorMask: boolean;
+begin
+  Result := ColorChannels <> [];
+end;
+
 procedure TRenderContext.SetColorMask(const Value: boolean);
+begin
+  if Value then
+    ColorChannels := [0..3]
+  else
+    ColorChannels := [];
+end;
+
+procedure TRenderContext.SetColorChannels(const Value: TColorChannels);
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if FColorMask <> Value then
+  if FColorChannels <> Value then
   begin
-    FColorMask := Value;
-    if Value then
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
-    else
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    FColorChannels := Value;
+    glColorMask(
+      BoolToGL(0 in FColorChannels),
+      BoolToGL(1 in FColorChannels),
+      BoolToGL(2 in FColorChannels),
+      BoolToGL(3 in FColorChannels)
+    );
   end;
 end;
 

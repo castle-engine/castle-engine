@@ -39,6 +39,15 @@
 '  return tex_coord;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
+'#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
+'void separate_diffuse_apply_texture(inout vec4 fragment_color,' + LineEnding +
+'  const in vec4 vertex_eye,' + LineEnding +
+'  const in vec3 normal_eye)' + LineEnding +
+'{' + LineEnding +
+'  /* PLUG: separate_diffuse_apply_texture (fragment_color, normal_eye) */' + LineEnding +
+'}' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec3 normal_eye_fragment = normalize(castle_normal_eye);' + LineEnding +

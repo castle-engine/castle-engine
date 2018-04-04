@@ -117,6 +117,10 @@
         This parameter does @italic(not) scale the place where image is displayed,
         to do this just scale the given Rect parameter yourself.)
     }
+    procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
+      const UIScale: Single = 1.0);
+    procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
+      const UIScale: Single; const Color: TCastleColor);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -281,18 +285,30 @@ begin
     FreeAndNil(FGLImages[ImageType]);
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single);
 begin
   Draw(Rect, ImageType, UIScale, White);
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single; const Color: TCastleColor);
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single);
+begin
+  Draw(FloatRectangle(Rect), ImageType, UIScale);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single; const Color: TCastleColor);
+begin
+  Draw(FloatRectangle(Rect), ImageType, UIScale, Color);
 end;
 
 procedure TCastleTheme.SetMessageFont(const Value: TCastleFont);

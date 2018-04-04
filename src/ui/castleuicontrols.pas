@@ -904,10 +904,10 @@ type
     FParent: TUIControl; //< null means that parent is our owner
     FHasHorizontalAnchor: boolean;
     FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
-    FHorizontalAnchorDelta: Integer;
+    FHorizontalAnchorDelta: Single;
     FHasVerticalAnchor: boolean;
     FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
-    FVerticalAnchorDelta: Integer;
+    FVerticalAnchorDelta: Single;
     FEnableUIScaling: boolean;
     FKeepInFront, FCapturesEvents: boolean;
     procedure SetExists(const Value: boolean);
@@ -933,14 +933,15 @@ type
     procedure SetHasHorizontalAnchor(const Value: boolean);
     procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorParent(const Value: THorizontalPosition);
-    procedure SetHorizontalAnchorDelta(const Value: Integer);
+    procedure SetHorizontalAnchorDelta(const Value: Single);
     procedure SetHasVerticalAnchor(const Value: boolean);
     procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
-    procedure SetVerticalAnchorDelta(const Value: Integer);
+    procedure SetVerticalAnchorDelta(const Value: Single);
     procedure SetEnableUIScaling(const Value: boolean);
     { Like @link(Rect) but with anchors effect applied. }
     function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TRectangle;
+    function FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -948,6 +949,10 @@ type
     { The left-bottom corner scaled by UIScale,
       useful for implementing overridden @code(Rect) methods. }
     function LeftBottomScaled: TVector2Integer;
+
+    { The left-bottom corner scaled by UIScale,
+      useful for implementing overridden @code(FloatRect) methods. }
+    function FloatLeftBottomScaled: TVector2;
 
     procedure UIScaleChanged; virtual;
 
@@ -1188,6 +1193,38 @@ type
     }
     function Rect: TRectangle; virtual;
 
+    { Position and size of this control, assuming it exists,
+      in local coordinates (relative to parent 2D control).
+      See @link(Rect) for more comments.
+
+      Using the float-based rectangles and coordinates (like FloatRect,
+      CalculatedFloatRect, TCastleButton.FloatWidth, TCastleButton.FloatWidth)
+      instead of integer-based (like Rect,
+      CalculatedRect, TCastleButton.Width, TCastleButton.Width) is better
+      in case you use UI scaling (@link(TUIContainer.UIScaling)).
+      It may sound counter-intuitive, but calculating everything using
+      floats results in more precision and better speed
+      (because we avoid various rounding in the middle of calculations).
+      Without UI scaling, it doesn't matter, use whichever ones are more
+      comfortable.
+
+      Using the float-based coordinates is also natural for animations.
+
+      @italic(Notes for descendants implementors:)
+
+      By default, in this class, this just returns @link(Rect) converted to floats.
+      The reason for this is historical: originally, our TUIControl API focused
+      on expressing positions and rectangles as integers.
+
+      Override this to return a float-based rectangle, which is better
+      for calculations when we use UI scaling (using float-based rectangles
+      avoids having to round values to integers in mid-calculation).
+      When you override this, you should also override @link(Rect)
+      to just return @code(FloatRect.Round). See e.g.
+      TCastleImageControl.Rect and TCastleImageControl.FloatRect
+      implementations. }
+    function FloatRect: TFloatRectangle; virtual;
+
     { Final position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control),
       @italic(without UI scaling).
@@ -1220,6 +1257,7 @@ type
 
       @seealso Rect }
     function CalculatedRect: TRectangle;
+    function CalculatedFloatRect: TFloatRectangle;
 
     { Calculated width of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1238,6 +1276,7 @@ type
 
       @seealso CalculatedRect }
     function CalculatedWidth: Cardinal;
+    function CalculatedFloatWidth: Single;
 
     { Calculated height of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1256,15 +1295,17 @@ type
 
       @seealso CalculatedRect }
     function CalculatedHeight: Cardinal;
+    function CalculatedFloatHeight: Single;
 
     { Position and size of this control, assuming it exists, in screen (container)
       coordinates. }
     function ScreenRect: TRectangle;
+    function ScreenFloatRect: TFloatRectangle;
 
     { How to translate local coords to screen.
       If you use UI scaling, this works in final coordinates
       (after scaling, real pixels on screen). }
-    function LocalToScreenTranslation: TVector2Integer;
+    function LocalToScreenTranslation: TVector2;
 
     { Rectangle filling the parent control (or coordinates), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
@@ -1272,13 +1313,14 @@ type
       This is already scaled by UI scaling, since it's derived from @link(Rect)
       size that should also be already scaled. }
     function ParentRect: TRectangle;
+    function ParentFloatRect: TFloatRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
       @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
       @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
-      const AHorizontalAnchorDelta: Integer = 0); overload;
+      const AHorizontalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
@@ -1286,14 +1328,14 @@ type
       @link(HorizontalAnchorDelta). }
     procedure Anchor(
       const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
-      const AHorizontalAnchorDelta: Integer = 0); overload;
+      const AHorizontalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
       @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
       @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
-      const AVerticalAnchorDelta: Integer = 0); overload;
+      const AVerticalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
@@ -1301,7 +1343,7 @@ type
       @link(VerticalAnchorDelta). }
     procedure Anchor(
       const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
-      const AVerticalAnchorDelta: Integer = 0); overload;
+      const AVerticalAnchorDelta: Single = 0); overload;
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
@@ -1373,7 +1415,24 @@ type
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
 
+    { Position from the left side of the screen.
+
+      Note: it's often more flexible to use anchors instead of this property.
+      For example, instead of setting @code(Control.Left := 10),
+      you can call @code(Control.Anchor(hpLeft, 10)).
+      Do not do both -- or they will be summed.
+      Using anchors is often more flexible, as various sides of child and parent
+      may be anchored, and with a float shift. }
     property Left: Integer read FLeft write SetLeft stored false default 0;
+
+    { Position from the bottom side of the screen.
+
+      Note: it's often more flexible to use anchors instead of this property.
+      For example, instead of setting @code(Control.Bottom := 10),
+      you can call @code(Control.Anchor(hpBottom, 10)).
+      Do not do both -- or they will be summed.
+      Using anchors is often more flexible, as various sides of child and parent
+      may be anchored, and with a float shift. }
     property Bottom: Integer read FBottom write SetBottom default 0;
 
     { Automatically adjust horizontal position to align us to
@@ -1395,7 +1454,7 @@ type
       read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
     { Delta between our border and parent,
       only used if @link(HasHorizontalAnchor). }
-    property HorizontalAnchorDelta: Integer
+    property HorizontalAnchorDelta: Single
       read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
 
     { Automatically adjust vertical position to align us to
@@ -1417,7 +1476,7 @@ type
       read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
     { Delta between our border and parent,
       only used if @link(HasVerticalAnchor). }
-    property VerticalAnchorDelta: Integer
+    property VerticalAnchorDelta: Single
       read FVerticalAnchorDelta write SetVerticalAnchorDelta default 0;
 
     { Enable or disable UI scaling for this particular control.
@@ -1450,10 +1509,14 @@ type
     or as a container for UI children. }
   TUIControlSizeable = class(TUIControl)
   strict private
-    FWidth, FHeight: Cardinal;
+    FFloatWidth, FFloatHeight: Single;
     FFullSize: boolean;
+    function GetWidth: Cardinal;
+    function GetHeight: Cardinal;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
+    procedure SetFloatWidth(const Value: Single);
+    procedure SetFloatHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -1465,6 +1528,7 @@ type
       @link(Left), @link(Bottom), @link(Width), @link(Height)
       (when @link(FullSize) is @false). }
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
   published
     { Control size.
 
@@ -1479,8 +1543,10 @@ type
 
       @groupBegin }
     property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Width: Cardinal read FWidth write SetWidth default 0;
-    property Height: Cardinal read FHeight write SetHeight default 0;
+    property Width: Cardinal read GetWidth write SetWidth default 0;
+    property Height: Cardinal read GetHeight write SetHeight default 0;
+    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
+    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
     { @groupEnd }
   end;
 
@@ -1627,6 +1693,19 @@ const
   vpBottom = CastleRectangles.vpBottom;
   vpMiddle = CastleRectangles.vpMiddle;
   vpTop    = CastleRectangles.vpTop   ;
+
+type
+  { Internal for communication with CastleWindow or CastleControl,
+    useful by CastleUIState.
+    See @link(OnMainContainer).
+    @exclude }
+  TOnMainContainer = function: TUIContainer of object;
+
+var
+  { Internal for communication with CastleWindow or CastleControl,
+    useful by CastleUIState.
+    @exclude }
+  OnMainContainer: TOnMainContainer = nil;
 
 implementation
 
@@ -3077,6 +3156,11 @@ begin
     Round(UIScale * Left), Round(UIScale * Bottom));
 end;
 
+function TUIControl.FloatLeftBottomScaled: TVector2;
+begin
+  Result := Vector2(UIScale * Left, UIScale * Bottom);
+end;
+
 procedure TUIControl.UIScaleChanged;
 begin
 end;
@@ -3302,29 +3386,49 @@ begin
   Result := Rectangle(LeftBottomScaled, 0, 0);
 end;
 
+function TUIControl.FloatRect: TFloatRectangle;
+begin
+  Result := FloatRectangle(Rect);
+end;
+
+function TUIControl.CalculatedFloatRect: TFloatRectangle;
+begin
+  Result := FloatRectWithAnchors(true).ScaleAround0(1 / UIScale);
+end;
+
 function TUIControl.CalculatedRect: TRectangle;
 begin
-  Result := RectWithAnchors(true).ScaleAround0(1 / UIScale);
+  Result := CalculatedFloatRect.Round;
+end;
+
+function TUIControl.CalculatedFloatWidth: Single;
+begin
+  { Naive implementation:
+  Result := CalculatedFloatRect.Width; }
+
+  { Optimized implementation, knowing that FloatRectWithAnchors(true) does not
+    change FloatRect.Width:
+  Result := FloatRect.ScaleAround0(1 / UIScale).Width; }
+
+  { Optimized implementation: }
+  Result := FloatRect.Width * (1 / UIScale);
+  //Assert(Result = CalculatedRect.Width);
 end;
 
 function TUIControl.CalculatedWidth: Cardinal;
 begin
-  { Naive implementation:
-  Result := CalculatedRect.Width; }
+  Result := Round(CalculatedFloatWidth);
+end;
 
-  { Optimized implementation, knowing that RectWithAnchors(true) does not
-    change Rect.Width:
-  Result := Rect.ScaleAround0(1 / UIScale).Width; }
-
-  { Optimized implementation using ScaleWidthAround0: }
-  Result := Rect.ScaleWidthAround0(1 / UIScale);
-  //Assert(Result = CalculatedRect.Width);
+function TUIControl.CalculatedFloatHeight: Single;
+begin
+  Result := FloatRect.Height * (1 / UIScale);
+  //Assert(Result = CalculatedFloatRect.Height);
 end;
 
 function TUIControl.CalculatedHeight: Cardinal;
 begin
-  Result := Rect.ScaleHeightAround0(1 / UIScale);
-  //Assert(Result = CalculatedRect.Height);
+  Result := Round(CalculatedFloatHeight);
 end;
 
 (*
@@ -3337,52 +3441,62 @@ end;
 *)
 
 function TUIControl.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TRectangle;
+begin
+  Result := FloatRectWithAnchors(CalculateEvenWithoutContainer).Round;
+end;
+
+function TUIControl.FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
-  PR: TRectangle;
+  PR: TFloatRectangle;
 begin
   if (not ContainerSizeKnown) and
      (not CalculateEvenWithoutContainer) then
     { Don't call virtual Rect in this state, Rect implementations
       typically assume that ParentRect is sensible.
       This is crucial, various programs will crash without it. }
-    Exit(TRectangle.Empty);
+    Exit(TFloatRectangle.Empty);
 
-  Result := Rect;
+  Result := FloatRect;
 
   { apply anchors }
   if HasHorizontalAnchor or HasVerticalAnchor then
-    PR := ParentRect;
+    PR := ParentFloatRect;
   if HasHorizontalAnchor then
     Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
-      Round(UIScale * HorizontalAnchorDelta));
+      UIScale * HorizontalAnchorDelta);
   if HasVerticalAnchor then
     Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
-      Round(UIScale * VerticalAnchorDelta));
+      UIScale * VerticalAnchorDelta);
 end;
 
 function TUIControl.ScreenRect: TRectangle;
-var
-  T: TVector2Integer;
 begin
-  Result := RectWithAnchors;
+  Result := ScreenFloatRect.Round;
+end;
+
+function TUIControl.ScreenFloatRect: TFloatRectangle;
+var
+  T: TVector2;
+begin
+  Result := FloatRectWithAnchors;
   { transform local to screen space }
   T := LocalToScreenTranslation;
   Result.Left := Result.Left + T[0];
   Result.Bottom := Result.Bottom + T[1];
 end;
 
-function TUIControl.LocalToScreenTranslation: TVector2Integer;
+function TUIControl.LocalToScreenTranslation: TVector2;
 var
-  RA: TRectangle;
+  RA: TFloatRectangle;
 begin
   if Parent <> nil then
   begin
     Result := Parent.LocalToScreenTranslation;
-    RA := Parent.RectWithAnchors;
+    RA := Parent.FloatRectWithAnchors;
     Result.Data[0] := Result.Data[0] + RA.Left;
     Result.Data[1] := Result.Data[1] + RA.Bottom;
   end else
-    Result := TVector2Integer.Zero;
+    Result := TVector2.Zero;
 end;
 
 function TUIControl.ParentRect: TRectangle;
@@ -3394,6 +3508,17 @@ begin
     Result.Bottom := 0;
   end else
     Result := ContainerRect;
+end;
+
+function TUIControl.ParentFloatRect: TFloatRectangle;
+begin
+  if Parent <> nil then
+  begin
+    Result := Parent.FloatRect;
+    Result.Left := 0;
+    Result.Bottom := 0;
+  end else
+    Result := FloatRectangle(ContainerRect);
 end;
 
 procedure TUIControl.SetHasHorizontalAnchor(const Value: boolean);
@@ -3423,7 +3548,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchorDelta(const Value: Integer);
+procedure TUIControl.SetHorizontalAnchorDelta(const Value: Single);
 begin
   if FHorizontalAnchorDelta <> Value then
   begin
@@ -3459,7 +3584,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchorDelta(const Value: Integer);
+procedure TUIControl.SetVerticalAnchorDelta(const Value: Single);
 begin
   if FVerticalAnchorDelta <> Value then
   begin
@@ -3469,7 +3594,7 @@ begin
 end;
 
 procedure TUIControl.Anchor(const AHorizontalAnchor: THorizontalPosition;
-  const AHorizontalAnchorDelta: Integer);
+  const AHorizontalAnchorDelta: Single);
 begin
   HasHorizontalAnchor := true;
   HorizontalAnchorSelf := AHorizontalAnchor;
@@ -3479,7 +3604,7 @@ end;
 
 procedure TUIControl.Anchor(
   const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
-  const AHorizontalAnchorDelta: Integer);
+  const AHorizontalAnchorDelta: Single);
 begin
   HasHorizontalAnchor := true;
   HorizontalAnchorSelf := AHorizontalAnchorSelf;
@@ -3488,7 +3613,7 @@ begin
 end;
 
 procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
-  const AVerticalAnchorDelta: Integer);
+  const AVerticalAnchorDelta: Single);
 begin
   HasVerticalAnchor := true;
   VerticalAnchorSelf := AVerticalAnchor;
@@ -3498,7 +3623,7 @@ end;
 
 procedure TUIControl.Anchor(
   const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
-  const AVerticalAnchorDelta: Integer);
+  const AVerticalAnchorDelta: Single);
 begin
   HasVerticalAnchor := true;
   VerticalAnchorSelf := AVerticalAnchorSelf;
@@ -3514,31 +3639,56 @@ begin
   FFullSize := false;
 end;
 
-function TUIControlSizeable.Rect: TRectangle;
+function TUIControlSizeable.FloatRect: TFloatRectangle;
 begin
   if FullSize then
-    Result := ParentRect else
+    Result := ParentFloatRect else
   begin
-    Result := Rectangle(Left, Bottom, Width, Height);
+    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
     // applying UIScale on this is easy...
     Result := Result.ScaleAround0(UIScale);
   end;
 end;
 
+function TUIControlSizeable.Rect: TRectangle;
+begin
+  Result := FloatRect.Round;
+end;
+
+function TUIControlSizeable.GetWidth: Cardinal;
+begin
+  Result := Round(FloatWidth);
+end;
+
+function TUIControlSizeable.GetHeight: Cardinal;
+begin
+  Result := Round(FloatHeight);
+end;
+
 procedure TUIControlSizeable.SetWidth(const Value: Cardinal);
 begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange(true);
-  end;
+  FloatWidth := Value;
 end;
 
 procedure TUIControlSizeable.SetHeight(const Value: Cardinal);
 begin
-  if FHeight <> Value then
+  FloatHeight := Value;
+end;
+
+procedure TUIControlSizeable.SetFloatWidth(const Value: Single);
+begin
+  if FFloatWidth <> Value then
   begin
-    FHeight := Value;
+    FFloatWidth := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetFloatHeight(const Value: Single);
+begin
+  if FFloatHeight <> Value then
+  begin
+    FFloatHeight := Value;
     VisibleChange(true);
   end;
 end;

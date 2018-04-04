@@ -27,7 +27,8 @@ uses
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, CastleSceneManager,
-  CastleGLImages, CastleGLContainer, Castle2DSceneManager;
+  CastleGLImages, CastleGLContainer, Castle2DSceneManager,
+  CastleApplicationProperties;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -36,7 +37,8 @@ uses
 {$endif}
 
 const
-  DefaultLimitFPS = 100.0;
+  DefaultLimitFPS = TCastleApplicationProperties.DefaultLimitFPS
+    deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
 
 type
   TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
@@ -135,6 +137,7 @@ type
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
+    class function GetMainContainer: TUIContainer;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -152,6 +155,11 @@ type
 
     property GLInitialized: boolean read FGLInitialized;
   public
+    class var
+      { Central control where user-interface states (TUIState) are added.
+        You do not need to set this if you don't use TUIState. }
+      MainControl: TCastleControlCustom;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -525,35 +533,17 @@ type
 
 procedure Register;
 
-var
-  { Limit the number of (real) frames per second inside TCastleControl
-    rendering, to not hog the CPU.
-    Set to zero to not limit.
-
-    See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
-    parameter, and see TCastleApplication.LimitFPS documentation.
-
-    The mechanism does mean sleeping in your process, so it's a global
-    thing, not just a property of TCastleControl.
-    However, the mechanism is activated only when some TCastleControl
-    component is used, and only when LCL idle is fired (so we have no pending
-    events, as LCL idle is "lazy" and fires only when process is really idle),
-    and not at Lazarus design time.
-
-    When we may be clogged with events (like when using mouse look)
-    this has an additional meaning:
-    it is then used to force TCastleControl.DoUpdate and (if needed) repaint
-    at least this often. So it is not only a limit,
-    it's more like "the desired number of FPS".
-    Although it's capped by MaxDesiredFPS (100), which is applied when
-    LimitFPS > MaxDesiredFPS or when LimitFPS = 0 (which means "infinity"). }
-  LimitFPS: Single = DefaultLimitFPS;
+function GetLimitFPS: Single;
+  deprecated 'use ApplicationProperties.LimitFPS';
+procedure SetLimitFPS(const Value: Single);
+  deprecated 'use ApplicationProperties.LimitFPS';
+property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
 
 implementation
 
 uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
   CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
-  CastleLCLUtils, CastleApplicationProperties, CastleControls;
+  CastleLCLUtils, CastleControls;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -601,7 +591,7 @@ var
   NowTime: TTimerResult;
   TimeRemainingFloat: Single;
 begin
-  if LimitFPS > 0 then
+  if ApplicationProperties.LimitFPS > 0 then
   begin
     NowTime := Timer;
 
@@ -619,7 +609,7 @@ begin
 
     TimeRemainingFloat :=
       { how long I should wait between _LimitFPS calls }
-      1 / LimitFPS -
+      1 / ApplicationProperties.LimitFPS -
       { how long I actually waited between _LimitFPS calls }
       TimerSeconds(NowTime, LastLimitFPSTime);
     { Don't do Sleep with too small values.
@@ -632,6 +622,16 @@ begin
     end else
       LastLimitFPSTime := NowTime;
   end;
+end;
+
+function GetLimitFPS: Single;
+begin
+  Result := ApplicationProperties.LimitFPS;
+end;
+
+procedure SetLimitFPS(const Value: Single);
+begin
+  ApplicationProperties.LimitFPS := Value;
 end;
 
 { TCastleApplicationIdle -------------------------------------------------- }
@@ -961,16 +961,27 @@ procedure TCastleControlCustom.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
+  KeyRepeated: boolean;
+  Event: TInputPressRelease;
 begin
   KeyLCLToCastle(Key, Shift, MyKey, Ch);
+
+  KeyRepeated :=
+    // MyKey or Ch non-empty
+    ((MyKey <> keyNone) or (Ch <> #0)) and
+    // MyKey already pressed
+    ((MyKey = keyNone) or Pressed.Keys[MyKey]) and
+    // Ch already pressed
+    ((Ch = #0) or Pressed.Characters[Ch]);
+
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventPress }
 
-  { Do not change focus by arrow keys, this would breaks our handling of arrows
+  { Do not change focus by arrow keys, this would break our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these
-    keys as focus-changing (actually, Lazarus tells widget managet that these
+    keys as focus-changing (actually, Lazarus tells widget manager that these
     are already handled) by setting them to zero.
     Note: our MyKey/Ch (passed to KeyDownEvent) are calculated earlier,
     so they will correctly capture arrow keys. }
@@ -983,8 +994,12 @@ begin
   inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if Container.EventPress(InputKey(MousePosition, MyKey, Ch)) then
+  begin
+    Event := InputKey(MousePosition, MyKey, Ch);
+    Event.KeyRepeated := KeyRepeated;
+    if Container.EventPress(Event) then
       Key := 0; // handled
+  end;
 end;
 
 procedure TCastleControlCustom.KeyUp(var Key: Word; Shift: TShiftState);
@@ -1122,13 +1137,14 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
     a small delay). So we use MaxDesiredFPS to cap it. }
   procedure AggressiveUpdate;
   const
-    MaxDesiredFPS = DefaultLimitFPS;
+    MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
   var
     DesiredFPS: Single;
   begin
-    if LimitFPS <= 0 then
-      DesiredFPS := MaxDesiredFPS else
-      DesiredFPS := Min(MaxDesiredFPS, LimitFPS);
+    if ApplicationProperties.LimitFPS <= 0 then
+      DesiredFPS := MaxDesiredFPS
+    else
+      DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
     if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
     begin
       DoUpdate;
@@ -1234,6 +1250,21 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
+function TCastleControlCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleControlCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleControlCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
+end;
+
 function TCastleControlCustom.Rect: TRectangle;
 begin
   Result := Container.Rect;
@@ -1242,6 +1273,14 @@ end;
 function TCastleControlCustom.Controls: TChildrenControls;
 begin
   Result := Container.Controls;
+end;
+
+class function TCastleControlCustom.GetMainContainer: TUIContainer;
+begin
+  if MainControl <> nil then
+    Result := MainControl.Container
+  else
+    Result := nil;
 end;
 
 { TCastleControl ----------------------------------------------------------- }
@@ -1327,21 +1366,6 @@ begin
   SceneManager.OnCameraChanged := Value;
 end;
 
-function TCastleControlCustom.MousePressed: TMouseButtons;
-begin
-  Result := Container.MousePressed;
-end;
-
-function TCastleControlCustom.Pressed: TKeysPressed;
-begin
-  Result := Container.Pressed;
-end;
-
-function TCastleControlCustom.Fps: TFramesPerSecond;
-begin
-  Result := Container.Fps;
-end;
-
 { TCastle2DControl ----------------------------------------------------------- }
 
 constructor TCastle2DControl.Create(AOwner: TComponent);
@@ -1387,6 +1411,8 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
+  OnMainContainer := @TCastleControl(nil).GetMainContainer;
 finalization
+  OnMainContainer := nil;
   FreeAndNil(ControlsList);
 end.

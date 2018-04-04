@@ -89,7 +89,7 @@ type
     property Italic: boolean read FItalic write FItalic default false;
 
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
@@ -229,8 +229,8 @@ type
     destructor Destroy; override;
     function Width: Cardinal;
     procedure Wrap(const MaxWidth: Cardinal);
-    procedure Print(const X0, Y0: Integer; const Color: TCastleColor;
-      const LineSpacing: Integer;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
+      const LineSpacingFloat: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft;
       MaxDisplayChars: Integer = -1);
     function DisplayChars: Cardinal;
@@ -382,7 +382,7 @@ begin
     SubFont.PopProperties;
 end;
 
-procedure TFontFamily.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TFontFamily.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
   SubFontCustomizeBegin;
@@ -1137,10 +1137,13 @@ begin
   FreeAndNil(State);
 end;
 
-procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
-  const LineSpacing: Integer;
+procedure TRichText.Print(const X, Y: Single; const Color: TCastleColor;
+  const LineSpacingFloat: Single;
   const TextHorizontalAlignment: THorizontalPosition;
   MaxDisplayChars: Integer);
+var
+  X0, Y0: Integer;
+  LineSpacing: Integer;
 
   function XPos(const Line: Integer): Integer;
   begin
@@ -1164,6 +1167,13 @@ var
   State: TTextLine.TPrintState;
   I: Integer;
 begin
+  { Inside, it's all still calculated using integers.
+    And it has to be for now, until we also change change all text
+    sizes calculations to use floats. }
+  X0 := Round(X);
+  Y0  := Round(Y);
+  LineSpacing := Round(LineSpacingFloat);
+
   { force calculating FWidth for all lines }
   if TextHorizontalAlignment in [hpMiddle, hpRight] then
     Width;

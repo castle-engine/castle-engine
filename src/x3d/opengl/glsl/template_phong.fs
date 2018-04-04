@@ -37,6 +37,15 @@ vec2 texture_coord_shifted(in vec2 tex_coord)
   return tex_coord;
 }
 
+#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
+void separate_diffuse_apply_texture(inout vec4 fragment_color,
+  const in vec4 vertex_eye,
+  const in vec3 normal_eye)
+{
+  /* PLUG: separate_diffuse_apply_texture (fragment_color, normal_eye) */
+}
+#endif
+
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(castle_normal_eye);

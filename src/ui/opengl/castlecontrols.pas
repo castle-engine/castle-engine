@@ -103,7 +103,7 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10,
+  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
   CastleApplicationProperties, CastleMessaging;
 
 {$define read_implementation}

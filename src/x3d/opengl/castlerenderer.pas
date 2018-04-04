@@ -192,6 +192,7 @@ type
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
+    FSeparateDiffuseTexture: boolean;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
   protected
@@ -423,6 +424,26 @@ type
 
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
+
+    { Set to @true to make diffuse texture affect only material diffuse color
+      when the shape is lit and shading is Phong.
+      This affects both textures from X3D Appearance.material,
+      and textures from CommonSurfaceShader.diffuseTexture.
+      This is more correct (following X3D lighting equations),
+      and is more impressive (e.g. specular highlights may be better visible,
+      as they are not darkened by a dark diffuse texture).
+
+      For historic reasons and for Gouraud shading, by default, this is @false.
+      Which means that "diffuse texture" is actually used to multiply
+      a complete result of the lighting calculation.
+      This is not correct, but it is necessary for Gouraud shading,
+      and it is also depended upon by some applications (since the "diffuse texture"
+      effectively multiplies all factors, so it also multiplies
+      e.g. emissive factor for "pure emissive materials",
+      which may be useful sometimes). }
+    property SeparateDiffuseTexture: boolean
+      read FSeparateDiffuseTexture
+      write FSeparateDiffuseTexture default false;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -2596,6 +2617,7 @@ begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
+  Shader.SeparateDiffuseTexture := Attributes.SeparateDiffuseTexture;
 
   { calculate PhongShading }
   PhongShading := Attributes.PhongShading;

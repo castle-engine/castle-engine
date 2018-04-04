@@ -37,6 +37,7 @@ unit Generics.Collections;
 {$HINTS OFF}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
+{$NOTES OFF}
 
 interface
 

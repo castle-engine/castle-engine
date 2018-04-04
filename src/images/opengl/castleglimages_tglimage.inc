@@ -394,6 +394,8 @@ type
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
       const Corner: TVector4Integer); overload;
+    procedure Draw3x3(const ScreenRect: TFloatRectangle;
+      const Corner: TVector4Integer); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -1438,6 +1440,14 @@ begin
 end;
 
 procedure TGLImageCore.Draw3x3(const ScreenRect: TRectangle;
+  const Corner: TVector4Integer);
+begin
+  Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
+    ScreenRect.Width, ScreenRect.Height,
+    Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImageCore.Draw3x3(const ScreenRect: TFloatRectangle;
   const Corner: TVector4Integer);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,

@@ -186,6 +186,9 @@ begin
     C.MouseLook := not C.MouseLook;
   end;
 
+  if Event.IsKey(K_F6) then
+    SceneManager.Items.EnablePhysics := not SceneManager.Items.EnablePhysics;
+
   if Event.IsMouseButton(mbLeft) then
   begin
     RigidBody := TRigidBody.Create(BoxTemplate);

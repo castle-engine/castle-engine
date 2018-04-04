@@ -512,6 +512,9 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
   end;
 
 begin
+  if (Transform.World <> nil) and (not Transform.World.EnablePhysics) then
+    Exit;
+
   InitializeTransform(Transform);
   UpdateCollides(Transform);
   if Dynamic then
@@ -621,7 +624,7 @@ var
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
 begin
-  if FKraftEngine <> nil then
+  if EnablePhysics and (FKraftEngine <> nil) then
   begin
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?

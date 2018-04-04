@@ -107,7 +107,10 @@ type
     class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
-    { Container on which state works. By default, this is Application.MainWindow.
+    { Container on which state works. By default, this is
+      @link(TCastleApplication.MainWindow Application.MainWindow)
+      if you use CastleWindow or
+      @link(TCastleControl.MainControl) if you use CastleControl.
       When the state is current, then @link(Container) property (from
       ancestor, see TUIControl.Container) is equal to this. }
     function StateContainer: TUIContainer; virtual;
@@ -239,7 +242,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
+  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -391,9 +394,11 @@ begin
     Result := FStartContainer
   else
   begin
-    if Application.MainWindow = nil then
-      raise Exception.Create('Assign Application.MainWindow before starting TUIState');
-    Result := Application.MainWindow.Container;
+    if not Assigned(OnMainContainer) then
+      raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TUIState');
+    Result := OnMainContainer();
+    if Result = nil then
+      raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TUIState');
   end;
 end;
 
