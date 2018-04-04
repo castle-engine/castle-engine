@@ -366,10 +366,7 @@ procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
 
-  if Value then
-    Messaging.Send(['change-keyboard-state', 'on'])
-  else
-    Messaging.Send(['change-keyboard-state', 'off']);
+  Messaging.Send(['change-keyboard-state', BoolToStr(Value)])
 end;
 
 {$endif read_implementation}

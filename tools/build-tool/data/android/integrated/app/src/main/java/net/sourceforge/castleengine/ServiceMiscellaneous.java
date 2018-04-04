@@ -82,11 +82,11 @@ public class ServiceMiscellaneous extends ServiceAbstract
 
     private InputMethodManager im = (InputMethodManager) getActivity().getSystemService(Service.INPUT_METHOD_SERVICE);;
 
-    private void changeKeyboardState(String keyboardState)
+    private void changeKeyboardState(Boolean keyboardState)
     {
-        if (keyboardState.equals("on"))
+        if (keyboardState)
 			im.toggleSoftInput(0, InputMethodManager.SHOW_IMPLICIT);
-        else if (keyboardState.equals("off"))
+        else
 			im.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
     }
 
@@ -106,7 +106,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("change-keyboard-state")) {
-            changeKeyboardState(parts[1]);
+            changeKeyboardState(stringToBoolean(parts[1]));
             return true;
         } else
         {
