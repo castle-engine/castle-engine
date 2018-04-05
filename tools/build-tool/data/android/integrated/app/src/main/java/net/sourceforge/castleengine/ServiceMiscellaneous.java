@@ -85,9 +85,9 @@ public class ServiceMiscellaneous extends ServiceAbstract
     private void changeKeyboardState(Boolean keyboardState)
     {
         if (keyboardState)
-			im.toggleSoftInput(0, InputMethodManager.SHOW_IMPLICIT);
+            im.toggleSoftInput(0, InputMethodManager.SHOW_IMPLICIT);
         else
-			im.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+            im.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
     }
 
     @Override
