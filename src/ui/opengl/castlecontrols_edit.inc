@@ -27,6 +27,7 @@
     FMaxLength: Cardinal;
     FAllowedChars: TSetOfChars;
     FCaptureAllInput: boolean;
+    FAutoOnScreenKeyboard: Boolean;
     Scissor: TScissor;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
@@ -77,6 +78,7 @@
     const
       DefaultWidth = 100;
       DefaultPadding = 4;
+      DefaultAutoOnScreenKeyboard = false;
 
     { Width, in pixels.
 
@@ -113,6 +115,9 @@
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
+
+    { When true, it shows the software keyboard on Android. }
+    property AutoOnScreenKeyboard: Boolean read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard default DefaultAutoOnScreenKeyboard;
   end;
 
 {$endif read_interface}
@@ -135,6 +140,7 @@ begin
   FFrame := true;
   FAllowedChars := AllChars;
   FMaxLength := 0;
+  FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
 end;
 
@@ -366,7 +372,8 @@ procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
 
-  Messaging.Send(['change-keyboard-state', BoolToStr(Value)])
+  if FAutoOnScreenKeyboard then
+    Messaging.Send(['change-keyboard-state', BoolToStr(Value)])
 end;
 
 {$endif read_implementation}
