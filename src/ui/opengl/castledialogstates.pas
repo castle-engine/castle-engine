@@ -206,7 +206,10 @@ type
       read FPopOnAnswered write FPopOnAnswered default true;
 
     { Force state to use indicated TUIContainer to insert itself and get screenshot.
-      By default it uses Application.MainWindow. }
+      By default it uses
+      @link(TCastleApplication.MainWindow Application.MainWindow)
+      if you use CastleWindow or
+      @link(TCastleControl.MainControl) if you use CastleControl. }
     property OverrrideContainer: TUIContainer
       read FOverrrideContainer write FOverrrideContainer;
   end;

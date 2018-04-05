@@ -1823,6 +1823,7 @@ type
     TimeAccumulator: TFloatTime;
     FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraKnown: boolean;
+    FEnablePhysics: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1921,6 +1922,11 @@ type
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
+
+    { Yoo can temporarily disable physics (no transformations will be updated
+      by the physics engine) by setting this property to @false. }
+    property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
+      default true;
   end;
 
   {$define read_interface}
@@ -3375,6 +3381,7 @@ end;
 constructor TSceneManagerWorld.Create(AOwner: TComponent);
 begin
   inherited;
+  FEnablePhysics := true;
   { everything inside is part of this world }
   AddToWorld(Self);
 end;

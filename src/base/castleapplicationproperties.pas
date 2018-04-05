@@ -59,9 +59,13 @@ type
     FOnWarning: TWarningEventList;
     FVersion: string;
     FTouchDevice: boolean;
+    FLimitFPS: Single;
     function GetApplicationName: string;
     procedure SetApplicationName(const Value: string);
   public
+    const
+      DefaultLimitFPS = 100.0;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -119,6 +123,44 @@ type
       #)
     }
     property TouchDevice: boolean read FTouchDevice write FTouchDevice;
+
+    { Limit the number of (real) frames per second, to not hog the CPU.
+      Set to zero to not limit.
+
+      The mechanism is implemented by occasionally sleeping
+      (when we see that we render way faster than we need to).
+      So it's a global thing, not just a property of TCastleWindow or TCastleControl.
+
+      In some cases, this also means the "desired number of FPS".
+      This happens when we may be clogged with events
+      (which is especially possible in case of mouse look,
+      when we use CastleControl, or when we use CastleWindow with LCL backend).
+      In such cases we try hard to call "update" and (if necessary) "render"
+      events at least as often as LimitFPS.
+      When LimitFPS is used for this purpose ("desired number of FPS, not just a limit"),
+      it is also capped (by 100.0).
+
+      @unorderedList(
+        @item(Comments specifically about CastleWindow:
+
+          To be more precise, this limits the number of TCastleApplication.ProcessMessage
+          calls per second, in situations when we do not have to process any user input.
+          So we limit not only rendering (TCastleWindowCustom.OnRender)
+          but also other animation processing (TCastleWindowCustom.OnUpdate) calls per second.
+          See TCastleApplication.ProcessMessage.
+
+          See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
+          parameter, and see TCastleApplication.LimitFPS documentation.)
+
+        @item(Comments specifically about CastleControl:
+
+          This mechanism is activated only when some TCastleControl
+          component is used, and only when LCL idle is fired (so we have no pending
+          events, as LCL idle is "lazy" and fires only when process is really idle),
+          and not at Lazarus design time.)
+      )
+    }
+    property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
@@ -297,6 +339,7 @@ begin
     {$ifdef ANDROID} true {$else}
     {$ifdef IOS}     true {$else}
                      false {$endif} {$endif};
+  FLimitFPS := DefaultLimitFPS;
 end;
 
 destructor TCastleApplicationProperties.Destroy;

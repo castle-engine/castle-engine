@@ -98,12 +98,12 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
 
-    procedure Print(const X, Y: Integer; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+    procedure Print(const X, Y: Single; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
     procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
 
     { Print text, aligning within given rectangle.
@@ -437,7 +437,7 @@ type
     procedure Load(const Data: TTextureFontData;
       const OwnsData: boolean = false);
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
@@ -489,7 +489,7 @@ type
     procedure Load(AImage: TCastleImage;
       const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
@@ -530,7 +530,7 @@ type
     property SourceFont: TCastleFont read FSourceFont write SetSourceFont;
 
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
@@ -611,7 +611,7 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleFont.Print(const X, Y: Integer; const S: string);
+procedure TCastleFont.Print(const X, Y: Single; const S: string);
 begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
@@ -1104,7 +1104,7 @@ const
     So it costs 32 bytes per item. }
   MinimumGlyphsAllocated = 100;
 
-procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TTextureFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 var
   ScreenX, ScreenY: Single;
@@ -1367,7 +1367,7 @@ begin
   inherited;
 end;
 
-procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TSimpleTextureFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 var
   GlyphsToRender: Integer;
@@ -1393,8 +1393,8 @@ var
   end;
 
 var
-  ImageX, ImageY: Single;
-  CharIndex, ScreenX, ScreenY: Integer;
+  ImageX, ImageY, ScreenX, ScreenY: Single;
+  CharIndex: Integer;
   C: TUnicodeChar;
   TextPtr: PChar;
   I, CharLen: Integer;
@@ -1545,7 +1545,7 @@ begin
     FSourceFont.GLContextClose;
 end;
 
-procedure TCustomizedFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TCustomizedFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
   if Size <> 0 then

@@ -33,10 +33,16 @@
 -dCASTLE_WINDOW_LCL"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine - CastleWindow and units using it.
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (X3D, Collada, Spine...), we are cross-platform (desktop, mobile), we have an optimized renderer with many cool graphic effects (shadows, mirror, bump mapping...). See https://castle-engine.io/features.php for a complete list of features.
+
+This package, alternative_castle_window_based_on_lcl.lpk, contains the CastleWindow unit version using Lazarus LCL as a backend.
+
+It is practically only useful on Mac OS X (Darwin) systems. On other systems, you should use castle_window.lpk, that includes CastleWindow unit with the default backend.
+
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
-    <License Value="GNU GPL >= 2
-(or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
+    <License Value="GNU LGPL with static linking exception >= 2.
+This is the same license as used by Lazarus LCL and FPC RTL.
+See https://castle-engine.io/license.php for details."/>
     <Version Major="6" Minor="5"/>
     <Files Count="14">
       <Item1>
@@ -67,6 +73,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
         <UnitName Value="CastleWindowRecentFiles"/>
       </Item7>
+      <Item8>
+        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Type Value="Include"/>
+      </Item8>
       <Item9>
         <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
@@ -75,19 +85,15 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item10>
+      <Item11>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item11>
       <Item12>
         <Filename Value="../src/window/unix/castleinternalxlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalXlib"/>
       </Item12>
-      <Item11>
-        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
-        <Type Value="Include"/>
-      </Item11>
-      <Item8>
-        <Filename Value="../src/window/castlewindow_lcl.inc"/>
-        <Type Value="Include"/>
-      </Item8>
       <Item13>
         <Filename Value="../src/window/castleuistate.pas"/>
         <UnitName Value="CastleUIState"/>
