@@ -31,7 +31,7 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, DOM, XMLWrite,
   CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
@@ -264,6 +264,42 @@ var
     end;
   end;
 
+  procedure GenerateLocalisation;
+  var
+    LocalisedAppName: TLocalisedAppName;
+    Doc: TXMLDocument;
+    RootNode, StringNode: TDOMNode;
+    Language, StringsPath: String;
+  begin
+    if not Assigned(Project.ListLocalisedAppName) then Exit;
+
+    for LocalisedAppName in Project.ListLocalisedAppName do
+    begin
+      Doc := TXMLDocument.Create;
+      try
+        RootNode := Doc.CreateElement('resources');
+        Doc.Appendchild(RootNode);
+        RootNode:= Doc.DocumentElement;
+
+        StringNode := Doc.CreateElement('string');
+        TDOMElement(StringNode).SetAttribute('name', 'app_name');
+        StringNode.AppendChild(Doc.CreateTextNode(DOMString(LocalisedAppName.AppName)));
+        RootNode.AppendChild(StringNode);
+
+        if LocalisedAppName.Language = 'default' then
+          Language := ''
+        else
+          Language := '-' + LocalisedAppName.Language;
+
+        StringsPath := AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + Language + PathDelim + 'strings.xml';
+        CheckForceDirectories(ExtractFilePath(StringsPath));
+        WriteXMLFile(Doc, StringsPath);
+      finally
+        Doc.Free;
+      end;
+    end;
+  end;
+
   procedure GenerateLibrary;
   begin
     PackageSmartCopyFile(Project.AndroidLibraryFile,
@@ -454,6 +490,7 @@ begin
   GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
+  GenerateLocalisation;
   GenerateLibrary;
   RunNdkBuild;
   RunGradle(PackageMode);
