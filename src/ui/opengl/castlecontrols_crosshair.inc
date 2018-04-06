@@ -59,7 +59,7 @@ end;
 procedure TCastleCrosshair.SetShape(const Value: TCastleCrosshairShape);
 begin
   FShape := Value;
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
 function TCastleCrosshair.ImageType: TThemeImage;

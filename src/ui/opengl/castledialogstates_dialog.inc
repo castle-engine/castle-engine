@@ -235,7 +235,7 @@ begin
   FInputText := value;
   if Container <> nil then
   begin
-    VisibleChange;
+    VisibleChange([chRectangle]);
     UpdateSizes;
   end;
 end;
@@ -364,7 +364,7 @@ begin
   LifeTime += SecondsPassed;
   { when we have input text, we display blinking caret, so keep redrawing }
   if DrawInputText then
-    VisibleChange;
+    VisibleChange([chRender]);
 end;
 
 procedure TStateDialog.TDialog.Render;

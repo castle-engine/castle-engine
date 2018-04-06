@@ -699,7 +699,7 @@ begin
 
   MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 function TCastleOnScreenMenu.AllowSuspendForInput: boolean;
@@ -724,7 +724,7 @@ end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
 begin
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChangedByUser;

@@ -155,7 +155,7 @@ begin
   if FText <> Value then
   begin
     FText := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -164,7 +164,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FFocusedColor, Value) then
   begin
     FFocusedColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -173,7 +173,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FUnfocusedColor, Value) then
   begin
     FUnfocusedColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -182,7 +182,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FBackgroundColor, Value) then
   begin
     FBackgroundColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -191,7 +191,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -200,7 +200,7 @@ begin
   if FPadding <> Value then
   begin
     FPadding := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -209,7 +209,7 @@ begin
   if FPaddingHorizontal <> Value then
   begin
     FPaddingHorizontal := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -218,7 +218,7 @@ begin
   if FPaddingVertical <> Value then
   begin
     FPaddingVertical := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -227,7 +227,7 @@ begin
   if FFrame <> Value then
   begin
     FFrame := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 

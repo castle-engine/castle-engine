@@ -279,7 +279,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
-    procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
@@ -545,7 +546,7 @@ type
       An exception to this is assigning events to the camera instance.
       The scene manager or viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnHeight, TCamera.OnCursorChange.
+      TWalkCamera.OnHeight.
       We will handle them in a proper way. Do not assign them yourself.
 
       @italic(Comments for TCastleViewport only:)
@@ -900,7 +901,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
 
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -1098,8 +1100,7 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
 
-    { Called on any camera change. Exactly when TCamera generates it's
-      OnVisibleChange event. }
+    { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
     { Called when bound Viewpoint node changes.
@@ -1260,7 +1261,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
@@ -1416,7 +1418,6 @@ begin
     if (FCamera <> nil) and not (csDestroying in FCamera.ComponentState) then
     begin
       FCamera.OnVisibleChange := nil;
-      FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
@@ -1435,7 +1436,6 @@ begin
         to override TCastleWindowCustom / TCastleControlCustom that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
-      FCamera.OnCursorChange := @RecalculateCursor;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -1692,7 +1692,8 @@ begin
 
   if (GetMouseRayHit <> nil) and
      (GetMouseRayHit.Count <> 0) then
-    Cursor := GetMouseRayHit.First.Item.Cursor else
+    Cursor := GetMouseRayHit.First.Item.Cursor
+  else
     Cursor := mcDefault;
 end;
 
@@ -2641,7 +2642,7 @@ begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
     FScreenSpaceAmbientOcclusion := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -3071,7 +3072,8 @@ end;
 
 procedure TCastleSceneManager.GLContextClose;
 begin
-  Items.GLContextClose;
+  if Items <> nil then
+    Items.GLContextClose;
 
   FreeAndNil(FShadowVolumeRenderer);
 
@@ -3518,7 +3520,7 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
       ScheduledVisibleChangeNotificationChanges := [];
 
       { pass visible change notification "upward" (as a TUIControl, to container) }
-      VisibleChange;
+      VisibleChange([chRender]);
       { pass visible change notification "downward", to all children TCastleTransform }
       Items.VisibleChangeNotification(Changes);
     end;
@@ -3542,27 +3544,33 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
+procedure TCastleSceneManager.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
 var
   Pos, Dir, Up: TVector3;
 begin
-  (ACamera as TCamera).GetView(Pos, Dir, Up);
-
-  if ACamera = Camera then
+  if chCamera in Changes then
   begin
-    { Call CameraChanged for all Items, not just MainScene.
-      This allows ProximitySensor and Billboard and such nodes
-      to work in all 3D scenes, not just in MainScene. }
-    Items.CameraChanged(Camera);
-    { ItemsVisibleChange will also cause our own VisibleChange. }
-    ItemsVisibleChange(Items, CameraToChanges);
-  end else
-    VisibleChange;
+    if Sender = Camera then
+    begin
+      { Call CameraChanged for all Items, not just MainScene.
+        This allows ProximitySensor and Billboard and such nodes
+        to work in all 3D scenes, not just in MainScene. }
+      Items.CameraChanged(Camera);
+      { ItemsVisibleChange will also cause our own VisibleChange. }
+      ItemsVisibleChange(Items, CameraToChanges);
+    end else
+      VisibleChange(Changes, true);
 
-  SoundEngine.UpdateListener(Pos, Dir, Up);
+    (Sender as TCamera).GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
 
-  if Assigned(OnCameraChanged) then
-    OnCameraChanged(ACamera);
+    if Assigned(OnCameraChanged) then
+      OnCameraChanged(Sender);
+  end;
+
+  if chCursor in Changes then
+    RecalculateCursor(Sender);
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
@@ -3753,9 +3761,10 @@ begin
     raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
 end;
 
-procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
+procedure TCastleViewport.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
 begin
-  VisibleChange;
+  VisibleChange(Changes, true);
 end;
 
 function TCastleViewport.CameraMoveAllowed(ACamera: TWalkCamera;

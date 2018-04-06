@@ -248,7 +248,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -257,7 +257,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -266,7 +266,7 @@ begin
   if FCaption <> Value then
   begin
     FCaption := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -381,7 +381,7 @@ begin
   if FMin <> AMin then
   begin
     FMin := AMin;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -390,7 +390,7 @@ begin
   if FMax <> AMax then
   begin
     FMax := AMax;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -399,7 +399,7 @@ begin
   if FValue <> AValue then
   begin
     FValue := AValue;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -536,7 +536,7 @@ begin
   if FMin <> AMin then
   begin
     FMin := AMin;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -545,7 +545,7 @@ begin
   if FMax <> AMax then
   begin
     FMax := AMax;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -554,7 +554,7 @@ begin
   if FValue <> AValue then
   begin
     FValue := AValue;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

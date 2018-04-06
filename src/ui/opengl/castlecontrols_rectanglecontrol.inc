@@ -68,7 +68,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -77,7 +77,7 @@ begin
   if FThemeImage <> Value then
   begin
     FThemeImage := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -86,7 +86,7 @@ begin
   if FUseThemeImage <> Value then
   begin
     FUseThemeImage := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

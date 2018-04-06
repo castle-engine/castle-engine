@@ -118,7 +118,7 @@ begin
   if FShapeType <> Value then
   begin
     FShapeType := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -127,7 +127,7 @@ begin
   if FFilled <> Value then
   begin
     FFilled := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -136,7 +136,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -145,7 +145,7 @@ begin
   if FOutline <> Value then
   begin
     FOutline := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -154,7 +154,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FOutlineColor, Value) then
   begin
     FOutlineColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -163,7 +163,7 @@ begin
   if FOutlineWidth <> Value then
   begin
     FOutlineWidth := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -172,7 +172,7 @@ begin
   if FOutlineThick <> Value then
   begin
     FOutlineThick := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

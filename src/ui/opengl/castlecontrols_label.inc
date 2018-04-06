@@ -311,7 +311,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -320,7 +320,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -329,7 +329,7 @@ begin
   if FFullSize <> Value then
   begin
     FFullSize := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -338,7 +338,7 @@ begin
   if FAutoSize <> Value then
   begin
     FAutoSize := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -357,7 +357,7 @@ begin
   if FAlignment <> Value then
   begin
     FAlignment := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -366,7 +366,7 @@ begin
   if FVerticalAlignment <> Value then
   begin
     FVerticalAlignment := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -375,7 +375,7 @@ begin
   if FMaxDisplayChars <> Value then
   begin
     FMaxDisplayChars := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 

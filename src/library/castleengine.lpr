@@ -517,8 +517,7 @@ begin
             Crosshair.CrosshairCtl.Shape := csCross;
           Crosshair.UpdateCrosshairImage;
           Window.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
-        end else
-          Crosshair.CrosshairCtl.VisibleChange;
+        end;
       end;
 
       5: begin    // ecgevarWalkTouchCtl

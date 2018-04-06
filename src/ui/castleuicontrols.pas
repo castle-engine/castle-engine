@@ -117,6 +117,7 @@ type
   end;
 
   TUIControlList = class;
+  TInputListener = class;
 
   { Possible values for TUIContainer.UIScaling. }
   TUIScaling = (
@@ -162,6 +163,45 @@ type
       @link(TUIContainer.Dpi) is a real value (right now: iOS). }
     usExplicitScale
   );
+
+  { Things that can cause @link(TInputListener.VisibleChange) notification. }
+  TUIControlChange = (
+    { The look of this control changed.
+      This concerns all the things that affect what @link(TUIControl.Render) does.
+
+      Note that changing chRectangle implies that the look changed too.
+      So when chRectangle is in Changes, you should always behave
+      like chRender is also in Changes, regardless if it's there or not. }
+    chRender,
+
+    { The rectangle (size or position) of the control changed.
+      This concerns all the things that affect @link(TUIControl.Rect),
+      @link(TUIControl.FloatRect) or our position inside parent (anchors).
+
+      Note that this is not (necessarily) called when the screen position changed
+      just because the parent screen position changed.
+      We only notify when the size or position changed with respect to the parent.
+
+      Note that changing chRectangle implies that the look changed too.
+      So when chRectangle is in Changes, you should always behave
+      like chRender is also in Changes, regardless if it's there or not. }
+    chRectangle,
+
+    chCursor,
+
+    { Used by @link(TCamera) descendants to notify that the current
+      camera view (position, direction, up and everything related to it) changed. }
+    chCamera,
+
+    chExists,
+
+    { A child control was added or removed. }
+    chChildren
+  );
+  TUIControlChanges = set of TUIControlChange;
+  TUIControlChangeEvent = procedure(const Sender: TInputListener;
+    const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean)
+    of object;
 
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TUIControl, that is the basis
@@ -226,7 +266,8 @@ type
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
     FIsMousePositionForMouseLook: boolean;
-    procedure ControlsVisibleChange(Sender: TObject);
+    procedure ControlsVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
     function UseForceCaptureInput: boolean;
@@ -470,12 +511,17 @@ type
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual; abstract;
     { @groupEnd }
 
-    { Called by controls within this container when something could
+    { This is internal, and public only for historic reasons.
+      @exclude
+
+      Called by controls within this container when something could
       change the container focused control (in @link(TUIContainer.Focus))
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
       In practice, called when TUIControl.Cursor or
       @link(TUIControl.CapturesEventsAtPosition) (and so also
       @link(TUIControl.ScreenRect)) results change.
+
+      In practice, it's called through VisibleChange now.
 
       This recalculates the focused control and the final cursor of
       the container, looking at Container's Controls,
@@ -585,7 +631,7 @@ type
   { Base class for things that listen to user input. }
   TInputListener = class(TComponent)
   private
-    FOnVisibleChange: TNotifyEvent;
+    FOnVisibleChange: TUIControlChangeEvent;
     FContainer: TUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
@@ -604,6 +650,7 @@ type
     { Called when @link(Cursor) changed.
       In TUIControl class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
+      deprecated 'better override VisibleChange and watch for chCursor in Changes';
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -741,26 +788,26 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); virtual;
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
+    { Called always when something important inside this control (or it's children)
+      changed. To be more precise, this is called when something mentioned among
+      the @link(TUIControlChange) enumerated items changed.
 
-      In this class this simply calls OnVisibleChange (if assigned).
+      This is always called with Changes <> [] (non-empty set). }
+    procedure VisibleChange(const Changes: TUIControlChanges;
+      const ChangeInitiatedByChildren: boolean = false); overload; virtual;
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false); overload; virtual;
+      deprecated 'use VisibleChange overload with (TUIControlChanges,boolean) parameters';
 
-      @param(RectOrCursorChanged Set to @true if the final control size
-        or position on the screen, or cursor, changed. This simply causes a call
-        to @link(TUIContainer.UpdateFocusAndMouseCursor).) }
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); virtual;
+    { Called always when something important inside this control (or it's children)
+      changed. See @link(Changed) for details about when and how this is called.
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
-
-      Be careful when handling this event, various changes may cause this,
-      so be prepared to handle OnVisibleChange at every time.
-
-      @seealso VisibleChange }
-    property OnVisibleChange: TNotifyEvent
+      Be careful when handling this event. Various changes may cause this,
+      so be prepared to handle it at any moment, even in the middle when UI control
+      is changing. It may also occur very often.
+      It's usually safest to only set a boolean flag like
+      "something should be recalculated" when this event happens,
+      and do the actual recalculation later. }
+    property OnVisibleChange: TUIControlChangeEvent
       read FOnVisibleChange write FOnVisibleChange;
 
     { Allow window containing this control to suspend waiting for user input.
@@ -814,6 +861,7 @@ type
       so you should not use it in your own programs. }
     property OnCursorChange: TNotifyEvent
       read FOnCursorChange write FOnCursorChange;
+      deprecated 'use OnVisibleChange (or override VisibleChange) and watch for Changes that include chCursor';
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing
@@ -960,6 +1008,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure VisibleChange(const Changes: TUIControlChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
 
     property Controls [Index: Integer]: TUIControl read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -2606,9 +2656,21 @@ begin
     OnMotion(Self, Event);
 end;
 
-procedure TUIContainer.ControlsVisibleChange(Sender: TObject);
+procedure TUIContainer.ControlsVisibleChange(const Sender: TInputListener;
+  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
 begin
-  Invalidate;
+  { We abort when ChangeInitiatedByChildren = true,
+    because this event will be also called with ChangeInitiatedByChildren = false
+    for every possible change.
+    So this makes a possible optimization for some TUIContainer descendants:
+    no need to call Invalidate so many times. }
+
+  if not ChangeInitiatedByChildren then
+  begin
+    Invalidate;
+    if [chRectangle, chCursor, chExists, chChildren] * Changes <> [] then
+      UpdateFocusAndMouseCursor;
+  end;
 end;
 
 procedure TUIContainer.EventBeforeRender;
@@ -2946,10 +3008,35 @@ end;
 
 procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = false);
 begin
+end;
+
+procedure TInputListener.VisibleChange(const Changes: TUIControlChanges;
+  const ChangeInitiatedByChildren: boolean);
+begin
+  Assert(Changes <> [], 'Never call VisibleChange with an empty set');
+
+  { Debug:
+  Writeln(ClassName, '.VisibleChange: [',
+    Iff(chRender    in Changes, 'chRender, '   , ''),
+    Iff(chRectangle in Changes, 'chRectangle, ', ''),
+    Iff(chCursor    in Changes, 'chCursor, '   , ''),
+    Iff(chCamera    in Changes, 'chCamera, '   , ''),
+    Iff(chExists    in Changes, 'chExists, '   , ''),
+    Iff(chChildren  in Changes, 'chChildren, ' , ''),
+    ']'
+  ); }
+
+  if not ChangeInitiatedByChildren then
+  begin
+    {$warnings off}
+    VisibleChange([chRectangle, chCursor] * Changes <> []);
+    {$warnings on}
+  end;
+
+  if Container <> nil then
+    Container.ControlsVisibleChange(Self, Changes, ChangeInitiatedByChildren);
   if Assigned(OnVisibleChange) then
-    OnVisibleChange(Self);
-  if RectOrCursorChanged and (Container <> nil) then
-    Container.UpdateFocusAndMouseCursor;
+    OnVisibleChange(Self, Changes, ChangeInitiatedByChildren);
 end;
 
 function TInputListener.AllowSuspendForInput: boolean;
@@ -3015,14 +3102,18 @@ begin
   if Value <> FCursor then
   begin
     FCursor := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange([chCursor]);
+    {$warnings off} // keep deprecated method working
     DoCursorChange;
+    {$warnings on}
   end;
 end;
 
 procedure TInputListener.DoCursorChange;
 begin
+  {$warnings off} // keep deprecated event working
   if Assigned(OnCursorChange) then OnCursorChange(Self);
+  {$warnings on}
 end;
 
 procedure TInputListener.SetContainer(const Value: TUIContainer);
@@ -3239,12 +3330,20 @@ begin
   FFocused := Value;
 end;
 
+procedure TUIControl.VisibleChange(const Changes: TUIControlChanges;
+  const ChangeInitiatedByChildren: boolean);
+begin
+  inherited;
+  if Parent <> nil then
+    Parent.VisibleChange(Changes, true);
+end;
+
 procedure TUIControl.SetExists(const Value: boolean);
 begin
   if FExists <> Value then
   begin
     FExists := Value;
-    VisibleChange(true);
+    VisibleChange([chExists]);
   end;
 end;
 
@@ -3326,7 +3425,7 @@ begin
   if FLeft <> Value then
   begin
     FLeft := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3335,7 +3434,7 @@ begin
   if FBottom <> Value then
   begin
     FBottom := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3526,7 +3625,7 @@ begin
   if FHasHorizontalAnchor <> Value then
   begin
     FHasHorizontalAnchor := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3535,7 +3634,7 @@ begin
   if FHorizontalAnchorSelf <> Value then
   begin
     FHorizontalAnchorSelf := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3544,7 +3643,7 @@ begin
   if FHorizontalAnchorParent <> Value then
   begin
     FHorizontalAnchorParent := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3553,7 +3652,7 @@ begin
   if FHorizontalAnchorDelta <> Value then
   begin
     FHorizontalAnchorDelta := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3562,7 +3661,7 @@ begin
   if FHasVerticalAnchor <> Value then
   begin
     FHasVerticalAnchor := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3571,7 +3670,7 @@ begin
   if FVerticalAnchorSelf <> Value then
   begin
     FVerticalAnchorSelf := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3580,7 +3679,7 @@ begin
   if FVerticalAnchorParent <> Value then
   begin
     FVerticalAnchorParent := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3589,7 +3688,7 @@ begin
   if FVerticalAnchorDelta <> Value then
   begin
     FVerticalAnchorDelta := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3680,7 +3779,7 @@ begin
   if FFloatWidth <> Value then
   begin
     FFloatWidth := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3689,7 +3788,7 @@ begin
   if FFloatHeight <> Value then
   begin
     FFloatHeight := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3698,7 +3797,7 @@ begin
   if FFullSize <> Value then
   begin
     FFullSize := Value;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -3877,8 +3976,14 @@ begin
   if (FContainer <> nil) and
      (FContainer.FControls <> nil) then
   begin
-    FContainer.UpdateFocusAndMouseCursor;
-    FContainer.Invalidate;
+    if (FParent <> nil) and not (csDestroying in FParent.ComponentState) then
+      FParent.VisibleChange([chChildren])
+    else
+    begin
+      { if this is top-most control inside Container,
+        we need to call ControlsVisibleChange directly. }
+      Container.ControlsVisibleChange(C, [chChildren], false);
+    end;
   end;
 end;
 
@@ -3919,20 +4024,6 @@ end;
 procedure TChildrenControls.RegisterContainer(
   const C: TUIControl; const AContainer: TUIContainer);
 begin
-  { Make sure AContainer.ControlsVisibleChange (which in turn calls Invalidate)
-    will be called when a control calls OnVisibleChange.
-
-    We only change OnVisibleChange from @nil to it's own internal callback
-    (when adding a control), and from it's own internal callback to @nil
-    (when removing a control).
-    This means that if user code will assign OnVisibleChange callback to some
-    custom method --- we will not touch it anymore. That's safer.
-    Athough in general user code should not change OnVisibleChange for controls
-    on this list, to keep automatic Invalidate working. }
-  if not Assigned(C.OnVisibleChange) then
-    C.OnVisibleChange :=
-      {$ifdef CASTLE_OBJFPC}@{$endif} AContainer.ControlsVisibleChange;
-
   { Register AContainer to be notified of control destruction. }
   C.FreeNotification(AContainer);
 
@@ -3954,16 +4045,10 @@ end;
 
 procedure TChildrenControls.UnregisterContainer(
   const C: TUIControl; const AContainer: TUIContainer);
-var
-  MyMethod: TNotifyEvent;
 begin
   if AContainer.GLInitialized and
      (C.DisableContextOpenClose = 0) then
     C.GLContextClose;
-
-  MyMethod := {$ifdef CASTLE_OBJFPC}@{$endif} AContainer.ControlsVisibleChange;
-  if CompareMethods(TMethod(C.OnVisibleChange), TMethod(MyMethod)) then
-    C.OnVisibleChange := nil;
 
   C.RemoveFreeNotification(AContainer);
   AContainer.DetachNotification(C);

@@ -217,7 +217,7 @@ begin
   if CollectHistory then
     History.AddRange(S);
 
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleNotifications.Show(const s: string);
@@ -236,7 +236,7 @@ begin
   Messages.Clear;
   if CollectHistory then
     History.Clear;
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
 function TCastleNotifications.Rect: TRectangle;
@@ -278,7 +278,7 @@ begin
     if TimerSeconds(TimerNow, Messages[I].Time) > Timeout then
     begin { delete messages 0..I }
       Messages.DeleteFirst(I + 1);
-      VisibleChange;
+      VisibleChange([chRectangle]);
       break;
     end else
     if TimerSeconds(TimerNow, Messages[I].Time) > TimeoutToFade then
@@ -287,7 +287,7 @@ begin
       C[3] := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
         TimeoutToFade, Timeout, 1, 0);
       Messages[I].Color := C;
-      VisibleChange;
+      VisibleChange([chRectangle]);
     end;
 end;
 

@@ -275,7 +275,7 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     if ScrollbarActive <> NewScrollbarActive then
     begin
       ScrollbarActive := NewScrollbarActive;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 

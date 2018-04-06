@@ -263,7 +263,7 @@ begin
     end;
   end;
 
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 end.
