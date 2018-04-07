@@ -32,7 +32,7 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 implementation
 
 uses SysUtils, Classes, DOM, XMLWrite,
-  CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
@@ -269,10 +269,33 @@ var
     LocalisedAppName: TLocalisedAppName;
     Doc: TXMLDocument;
     RootNode, StringNode: TDOMNode;
+    I: TXMLElementIterator;
     Language, StringsPath: String;
   begin
     if not Assigned(Project.ListLocalisedAppName) then Exit;
 
+    //Change default app_name to translatable:
+    StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
+    URLReadXML(Doc, StringsPath);
+    try
+      I := Doc.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          if (I.Current.TagName = 'string') and (I.Current.GetAttribute('name') = 'app_name') then
+          begin
+            I.Current.SetAttribute('translatable', 'true');
+            Break; //There can only be one string 'app_name', so we don't need to continue the loop.
+          end;
+      finally
+        I.Free;
+      end;
+
+      WriteXMLFile(Doc, StringsPath);
+    finally
+      Doc.Free;
+    end;
+
+    //Write strings for every chosen language:
     for LocalisedAppName in Project.ListLocalisedAppName do
     begin
       Doc := TXMLDocument.Create;
@@ -291,7 +314,9 @@ var
         else
           Language := '-' + LocalisedAppName.Language;
 
-        StringsPath := AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + Language + PathDelim + 'strings.xml';
+        StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim +
+                                            'values' + Language + PathDelim + 'strings.xml';
+
         CheckForceDirectories(ExtractFilePath(StringsPath));
         WriteXMLFile(Doc, StringsPath);
       finally
