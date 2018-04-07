@@ -32,7 +32,7 @@ end;
 
 var
   Window: TCastleWindowCustom;
-  DestImageInitial: TCastleImage;
+  DestImageInitial, DestImageFinal: TCastleImage;
 begin
   try
     Window := TCastleWindowCustom.Create(Application);
@@ -69,6 +69,16 @@ begin
     DestImage.RenderToImageEnd;
 
     Window.OnRender := @Render;
+
+    { Instead of using DestImage for drawing, you can also get it's contents
+      back to normal (non-GPU) memory using DestImage.GetContents.
+      This is reasonable if you have to save it back to disk
+      (otherwise, you should avoid it, and work with GPU-only DestImage
+      for maximum speed). }
+    DestImageFinal := DestImage.GetContents(TRGBAlphaImage);
+    try
+      SaveImage(DestImageFinal, 'test.png');
+    finally FreeAndNil(DestImageFinal) end;
 
     Application.Run;
   finally
