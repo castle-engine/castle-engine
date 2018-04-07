@@ -266,6 +266,7 @@ type
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
     FIsMousePositionForMouseLook: boolean;
+    FFocusAndMouseCursorValid: boolean;
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
@@ -2009,8 +2010,8 @@ begin
     some control is removed, we're paranoid here about checking csDestroying. }
 
   { FNewFocus is only used by this method. It is only managed by TUIControl
-    to avoid constructing/destructing it in every TUIContainer.UpdateFocusAndMouseCursor
-    call. }
+    to avoid constructing/destructing it in every
+    TUIContainer.UpdateFocusAndMouseCursor call. }
   FNewFocus.Clear;
   AnythingForcesNoneCursor := false;
 
@@ -2046,6 +2047,7 @@ begin
   FNewFocus := Tmp;
 
   InternalCursor := CalculateMouseCursor;
+  FFocusAndMouseCursorValid := true;
 end;
 
 function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
@@ -2263,74 +2265,87 @@ procedure TUIContainer.EventUpdate;
     end;
   end;
 
+  procedure Update3dMouse;
+  const
+    Mouse3dPollDelay = 0.05;
+  var
+    Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
+    Mouse3dPollSpeed: Single;
+  begin
+    if Assigned(Mouse3D) and Mouse3D.Loaded then
+    begin
+      Mouse3dPollTimer := Mouse3dPollTimer - Fps.SecondsPassed;
+      if Mouse3dPollTimer < 0 then
+      begin
+        { get values from sensor }
+        Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
+        Tx := 0; { make sure they are initialized }
+        Ty := 0;
+        Tz := 0;
+        TLength := 0;
+        Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+        Rx := 0; { make sure they are initialized }
+        Ry := 0;
+        Rz := 0;
+        RAngle := 0;
+        Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
+
+        { send to all 2D controls, including viewports }
+        EventSensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+        EventSensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+
+        { set timer.
+          The "repeat ... until" below should not be necessary under normal
+          circumstances, as Mouse3dPollDelay should be much larger than typical
+          frequency of how often this is checked. But we do it for safety
+          (in case something else, like AI or collision detection,
+          slows us down *a lot*). }
+        repeat
+          Mouse3dPollTimer := Mouse3dPollTimer + Mouse3dPollDelay;
+        until Mouse3dPollTimer > 0;
+      end;
+    end;
+  end;
+
+  procedure UpdateJoysticks;
+  var
+    I, J: Integer;
+  begin
+    if Assigned(Joysticks) then
+    begin
+      Joysticks.Poll;
+
+      for I := 0 to Joysticks.JoyCount - 1 do
+      begin
+        for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
+        begin
+          //Joysticks.Down(I, J);
+          //Joysticks.Up(I, J);
+          if Joysticks.Press(I, J) then
+            EventJoyButtonPress(I, J);
+        end;
+        for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
+        begin
+          if Joysticks.AxisPos(I, J) <> 0 then
+            EventJoyAxisMove(I, J);
+        end;
+      end;
+    end;
+  end;
+
 var
-  I, J: Integer;
+  I: Integer;
   HandleInput: boolean;
-  Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
-  Mouse3dPollSpeed: Single;
-const
-  Mouse3dPollDelay = 0.05;
 begin
   Fps._UpdateBegin;
 
   UpdateTooltip;
 
-  { 3D Mouse }
-  if Assigned(Mouse3D) and Mouse3D.Loaded then
-  begin
-    Mouse3dPollTimer := Mouse3dPollTimer - Fps.SecondsPassed;
-    if Mouse3dPollTimer < 0 then
-    begin
-      { get values from sensor }
-      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-      Tx := 0; { make sure they are initialized }
-      Ty := 0;
-      Tz := 0;
-      TLength := 0;
-      Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
-      Rx := 0; { make sure they are initialized }
-      Ry := 0;
-      Rz := 0;
-      RAngle := 0;
-      Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
+  if not FFocusAndMouseCursorValid then
+    UpdateFocusAndMouseCursor; // sets FFocusAndMouseCursorValid to true
 
-      { send to all 2D controls, including viewports }
-      EventSensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-      EventSensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
-
-      { set timer.
-        The "repeat ... until" below should not be necessary under normal
-        circumstances, as Mouse3dPollDelay should be much larger than typical
-        frequency of how often this is checked. But we do it for safety
-        (in case something else, like AI or collision detection,
-        slows us down *a lot*). }
-      repeat
-        Mouse3dPollTimer := Mouse3dPollTimer + Mouse3dPollDelay;
-      until Mouse3dPollTimer > 0;
-    end;
-  end;
-
-  { Joysticks }
-  if Assigned(Joysticks) then
-  begin
-    Joysticks.Poll;
-
-    for I := 0 to Joysticks.JoyCount - 1 do
-    begin
-      for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
-      begin
-        //Joysticks.Down(I, J);
-        //Joysticks.Up(I, J);
-        if Joysticks.Press(I, J) then
-          EventJoyButtonPress(I, J);
-      end;
-      for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
-      begin
-        if Joysticks.AxisPos(I, J) <> 0 then
-          EventJoyAxisMove(I, J);
-      end;
-    end;
-  end;
+  Update3dMouse;
+  UpdateJoysticks;
 
   HandleInput := true;
 
@@ -2669,7 +2684,7 @@ begin
   begin
     Invalidate;
     if [chRectangle, chCursor, chExists, chChildren] * Changes <> [] then
-      UpdateFocusAndMouseCursor;
+      FFocusAndMouseCursorValid := false;
   end;
 end;
 

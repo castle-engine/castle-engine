@@ -729,10 +729,10 @@ var
 begin
   NewCursor := CursorCastleToLCL[Value];
 
-  { check explicitly "Cursor <> NewCursor" --- we will call UpdateFocusAndMouseCursor
-    very often (in each mouse move), and we don't want to depend on LCL
-    optimizing "Cursor := Cursor" to avoid some potentially expensive window
-    manager call. }
+  { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
+    too often. The SetInternalCursor may be called very often (in each mouse move).
+    (It is probably already optimized in LCL,
+    and in window manager too, but it's safer to not depend on it). }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
 end;

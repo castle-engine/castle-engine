@@ -938,9 +938,10 @@ function TCastleButton.FloatRect: TFloatRectangle;
       MinWidthScaled          := MinWidth          * UIScale;
       MinHeightScaled         := MinHeight         * UIScale;
 
-      { We modify FFinalScaledWidth, FFinalScaledHeight,
-        and avoid causing UpdateFocusAndMouseCursor too many times.
-        We'll call it at the end explicitly, with VisibleChange([chRectangle]);. }
+      { We modify fields FFinalScaledWidth, FFinalScaledHeight,
+        to avoid calling VisibleChange too many times
+        (although it should be optimized, but better play it safe).
+        We'll call it at the end explicitly, with VisibleChange([chRectangle]). }
       if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
       if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
       if (FImage <> nil) or
