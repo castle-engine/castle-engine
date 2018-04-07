@@ -19,6 +19,7 @@
   TCastleLabel = class(TUIControlFont)
   strict private
     FText: TStrings;
+    FLocalisationID: String;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
     FColor: TCastleColor;
@@ -39,9 +40,11 @@
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
+    procedure SetLocalisationID(const Value: String);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
+    procedure UpdateLocalisedCaption;
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -96,6 +99,9 @@
       #)
     }
     property Caption: string read GetCaption write SetCaption stored false;
+
+    { Localisation ID to load a localised caption. }
+    property LocalisationID: string read FLocalisationID write SetLocalisationID;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -184,6 +190,9 @@ end;
 destructor TCastleLabel.Destroy;
 begin
   FreeAndNil(FText);
+
+  Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
+
   inherited;
 end;
 
@@ -352,6 +361,20 @@ begin
   Text.Text := Value;
 end;
 
+procedure TCastleLabel.SetLocalisationID(const Value: String);
+begin
+  if Value <> FLocalisationID then
+  begin
+    if FLocalisationID = '' then
+      Localisation.OnUpdateLocalisation.Add(@UpdateLocalisedCaption)
+    else if Value = '' then
+      Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
+
+    FLocalisationID := Value;
+    UpdateLocalisedCaption;
+  end;
+end;
+
 procedure TCastleLabel.SetAlignment(const Value: THorizontalPosition);
 begin
   if FAlignment <> Value then
@@ -377,6 +400,11 @@ begin
     FMaxDisplayChars := Value;
     VisibleChange;
   end;
+end;
+
+procedure TCastleLabel.UpdateLocalisedCaption;
+begin
+  Caption := Localisation[LocalisationID];
 end;
 
 function TCastleLabel.DisplayChars: Cardinal;
