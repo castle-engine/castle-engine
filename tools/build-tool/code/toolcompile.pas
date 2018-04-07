@@ -461,16 +461,27 @@ begin
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
 
-    // do not show Warning: Symbol "TArrayHelper$1" is experimental
-    // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
-    // TODO: This is a pity, we also hide useful warnings this way.
-    if FPCVer.AtLeast(3, 1, 1) then
-      FpcOptions.Add('-vm05063');
     // do not show
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crcBD4794B2" with abstract method "DoMoveNext"
     // TODO: This is a pity, we also hide useful warnings this way.
     FpcOptions.Add('-vm04046');
+
+    if FPCVer.AtLeast(3, 1, 1) then
+    begin
+      // do not show Warning: Symbol "TArrayHelper$1" is experimental
+      // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
+      // TODO: This is a pity, we also hide useful warnings this way.
+      FpcOptions.Add('-vm05063');
+
+      // do not show
+      // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
+      FpcOptions.Add('-vm5071');
+
+      // do not show
+      // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
+      FpcOptions.Add('-vm6058');
+    end;
 
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
