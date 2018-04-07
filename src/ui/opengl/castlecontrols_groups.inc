@@ -33,7 +33,7 @@
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
   public
     const
-      DefaultPadding = 0;
+      DefaultPadding = 10;
       DefaultSpacing = 10;
 
     constructor Create(AOwner: TComponent); override;
