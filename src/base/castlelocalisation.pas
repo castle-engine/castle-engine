@@ -11,6 +11,9 @@ uses
 type
   TLanguage = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
 
+  TOnUpdateLocalisationEvent = procedure of object;
+  TOnUpdateLocalisationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalisationEvent>;
+
 type
   TCastleLocalisation = class
     protected
@@ -18,6 +21,7 @@ type
     protected
       FLanguage: TLanguage;
       FLanguageURL: String;
+      FOnUpdateLocalisationEventList: TOnUpdateLocalisationEventList;
       function Get(AKey: String): String;
     public
       constructor Create; virtual;
@@ -26,6 +30,7 @@ type
       procedure LoadLanguage(const ALanguageURL: String);
     public
       property Items[AKey: String]: String read Get; default;
+      property OnUpdateLocalisation: TOnUpdateLocalisationEventList read FOnUpdateLocalisationEventList;
   end;
 
 {$ifdef ANDROID}
@@ -74,11 +79,13 @@ var
 constructor TCastleLocalisation.Create;
 begin
   FLanguage := TLanguage.Create;
+  FOnUpdateLocalisationEventList := TOnUpdateLocalisationEventList.Create;
 end;
 
 destructor TCastleLocalisation.Destroy;
 begin
   FreeAndNil(FLanguage);
+  FreeAndNil(FOnUpdateLocalisationEventList);
 end;
 
 /////////////////////
@@ -165,6 +172,9 @@ begin
     LanguageXML.Free;
   end;
 
+  //Tell every registered object to update its localisation:
+  for LOnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
+    LOnUpdateLocalisationEvent();
 end;
 
 initialization
