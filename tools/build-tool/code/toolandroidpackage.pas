@@ -281,9 +281,9 @@ var
       I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
-          if (I.Current.TagName = 'string') and (I.Current.GetAttribute('name') = 'app_name') then
+          if (I.Current.TagName = 'string') and (I.Current.AttributeString('name') = 'app_name') then
           begin
-            I.Current.SetAttribute('translatable', 'true');
+            I.Current.AttributeSet('translatable', 'true');
             Break; //There can only be one string 'app_name', so we don't need to continue the loop.
           end;
       finally
@@ -305,8 +305,8 @@ var
         RootNode:= Doc.DocumentElement;
 
         StringNode := Doc.CreateElement('string');
-        TDOMElement(StringNode).SetAttribute('name', 'app_name');
-        StringNode.AppendChild(Doc.CreateTextNode(DOMString(LocalisedAppName.AppName)));
+        TDOMElement(StringNode).AttributeSet('name', 'app_name');
+        StringNode.AppendChild(Doc.CreateTextNode(UTF8Decode(LocalisedAppName.AppName)));
         RootNode.AppendChild(StringNode);
 
         if LocalisedAppName.Language = 'default' then
