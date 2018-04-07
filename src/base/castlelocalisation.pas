@@ -1,17 +1,20 @@
 unit CastleLocalisation;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
 uses
-  Classes, Generics.Collections;
+  Classes, Generics.Collections, {$ifdef ANDROID}JNI,{$endif}
+  CastleStringUtils;
 
 type
-  TLanguage = specialize TDictionary<String, String>;
+  TLanguage = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
 
 type
   TCastleLocalisation = class
+    protected
+      const DefaultLanguage = 'en';
     protected
       FLanguage: TLanguage;
       FLanguageURL: String;
@@ -19,20 +22,50 @@ type
     public
       constructor Create; virtual;
       destructor Destroy; override;
+      function SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
       procedure LoadLanguage(const ALanguageURL: String);
     public
       property Items[AKey: String]: String read Get; default;
   end;
 
-function Localisation: TCastleLocalisation; //Singleton.
+{$ifdef ANDROID}
+  { Export this function from your Android library. }
+  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
+{$endif}
+
+var
+  Localisation: TCastleLocalisation; //Singleton.
 
 implementation
 
 {$warnings off}
-uses
-  SysUtils, DOM, XMLRead,
-  CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
+  uses
+    SysUtils, StrUtils, DOM, XMLRead, {$ifdef MSWINDOWS}Windows,{$endif}
+    CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
 {$warnings on}
+
+var
+  MobileSystemLanguage: String;
+
+{$ifdef ANDROID}
+  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
+  var
+    JavaToNativeStr: PChar;
+    Dummy: JBoolean;
+  begin
+    Result := Env^^.NewStringUTF(Env, nil);
+
+    if (JavaToNative <> nil) and (Env^^.GetStringUTFLength(Env, JavaToNative) <> 0) then
+    begin
+      Dummy := 0;
+      JavaToNativeStr := Env^^.GetStringUTFChars(Env, JavaToNative,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
+      try
+        MobileSystemLanguage := AnsiString(JavaToNativeStr); // will copy characters
+      finally
+        Env^^.ReleaseStringUTFChars(Env, JavaToNative, JavaToNativeStr) end;
+    end;
+  end;
+{$endif ANDROID}
 
 //////////////////////////
 //Constructor/Destructor//
@@ -45,7 +78,7 @@ end;
 
 destructor TCastleLocalisation.Destroy;
 begin
-  FLanguage.Free;
+  FreeAndNil(FLanguage);
 end;
 
 /////////////////////
@@ -62,12 +95,41 @@ end;
 ////Public////
 //////////////
 
+function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
+  {$ifdef MSWINDOWS}
+    function GetLocaleInformation(Flag: integer): string;
+    var
+      pcLCA: array[0..20] of char;
+    begin
+      if (GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0) then
+      begin
+        pcLCA[0] := #0;
+      end;
+      Result := pcLCA;
+    end;
+  {$endif}
+begin
+  {$ifdef MSWINDOWS}
+    Result := GetLocaleInformation(LOCALE_SISO639LANGNAME);
+  {$else}
+    {$ifdef ANDROID}
+      Result := MobileSystemLanguage;
+    {$else}
+      Result := Copy(GetEnvironmentVariable('LANG'), 1, 2);
+    {$endif}
+  {$endif}
+
+  if Result = '' then
+    Result := ADefaultLanguage;
+end;
+
 procedure TCastleLocalisation.LoadLanguage(const ALanguageURL: String);
 var
   FileURLAbsolute: string;
   Stream: TStream;
   LanguageXML: TXMLDocument;
   I: TXMLElementIterator;
+  LOnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
 begin
   if FLanguageURL = ALanguageURL then Exit;
   FLanguageURL := ALanguageURL;
@@ -102,23 +164,13 @@ begin
   finally
     LanguageXML.Free;
   end;
+
 end;
 
-//////////
-//Global//
-//////////
-
-var
-  FLocalisation: TCastleLocalisation; //Singleton!
-
-function Localisation: TCastleLocalisation;
-begin
-  if not Assigned(FLocalisation) then
-    FLocalisation := TCastleLocalisation.Create;
-  Result := FLocalisation;
-end;
+initialization
+  Localisation := TCastleLocalisation.Create;
 
 finalization
-  FreeAndNil(FLocalisation);
+  FreeAndNil(Localisation);
 
 end.
