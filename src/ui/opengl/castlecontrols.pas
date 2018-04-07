@@ -34,7 +34,7 @@ type
     tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
     tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
+    tiSlider, tiSliderPosition, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
     tiCrosshair1, tiCrosshair2, tiCheckmark, tiDisclosure,
     tiSwitchControl, tiSwitchControlFill,
@@ -90,6 +90,7 @@ type
   {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
+  {$I castlecontrols_groups.inc}
   // Add more UI controls include files here.
 
   // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
@@ -125,6 +126,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
+{$I castlecontrols_groups.inc}
 {$I castlecontrols_theme.inc}
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
