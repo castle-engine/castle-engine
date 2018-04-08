@@ -54,7 +54,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

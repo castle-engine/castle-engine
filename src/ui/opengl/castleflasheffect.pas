@@ -190,7 +190,7 @@ begin
     end else
       FreeAndNil(FGLImageAsGrayscale); // make sure to free FGLImageAsGrayscale when FImageAsGrayscale is nil
 
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

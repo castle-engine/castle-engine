@@ -537,7 +537,7 @@ begin
     begin
       FPressed := true;
       { We base our Render on Pressed value. }
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
     // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
     ClickStarted := true;
@@ -557,7 +557,7 @@ begin
     if not Toggle then FPressed := false;
     ClickStarted := false;
     { We base our Render on Pressed value. }
-    VisibleChange;
+    VisibleChange([chRender]);
 
     { This is normal behavior of buttons: to click them, you have to make
       mouse down on the button, and then release mouse while still over
@@ -584,7 +584,7 @@ function TCastleButton.Motion(const Event: TInputMotion): boolean;
     if not Toggle then FPressed := false;
     ClickStarted := false;
     { We base our Render on Pressed value. }
-    VisibleChange;
+    VisibleChange([chRender]);
     { Without ReleaseCapture, the parent (like TCastleScrollView) would still
       not receive the following motion events. }
     Container.ReleaseCapture(Self);
@@ -780,7 +780,7 @@ begin
     end;
 
     { We base our Render on Pressed and Focused value. }
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 
   inherited;
@@ -791,7 +791,7 @@ begin
   if FTextAlignment <> Value then
   begin
     FTextAlignment := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -820,7 +820,7 @@ begin
     if not Toggle then
       raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -830,7 +830,7 @@ begin
   begin
     FImageLayout := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -860,7 +860,7 @@ begin
   begin
     FFloatWidth := Value;
     FFinalScaledValid := false;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -870,7 +870,7 @@ begin
   begin
     FFloatHeight := Value;
     FFinalScaledValid := false;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -880,7 +880,7 @@ begin
   begin
     FMinWidth := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -890,7 +890,7 @@ begin
   begin
     FMinHeight := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -900,7 +900,7 @@ begin
   begin
     FImageMargin := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -909,7 +909,7 @@ begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -938,9 +938,10 @@ function TCastleButton.FloatRect: TFloatRectangle;
       MinWidthScaled          := MinWidth          * UIScale;
       MinHeightScaled         := MinHeight         * UIScale;
 
-      { We modify FFinalScaledWidth, FFinalScaledHeight,
-        and avoid causing UpdateFocusAndMouseCursor too many times.
-        We'll call it at the end explicitly, with VisibleChange(true). }
+      { We modify fields FFinalScaledWidth, FFinalScaledHeight,
+        to avoid calling VisibleChange too many times
+        (although it should be optimized, but better play it safe).
+        We'll call it at the end explicitly, with VisibleChange([chRectangle]). }
       if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
       if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
       if (FImage <> nil) or
@@ -978,7 +979,7 @@ function TCastleButton.FloatRect: TFloatRectangle;
         MaxVar(FFinalScaledHeight, MinHeightScaled);
 
       if AutoSizeWidth or AutoSizeHeight then
-        VisibleChange(true);
+        VisibleChange([chRectangle]);
     end;
   end;
 

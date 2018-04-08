@@ -190,6 +190,8 @@ begin
   FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
   FImages[tiLabel] := FrameWhiteBlack;
   FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiGroup] := FrameWhiteBlack;
+  FCorners[tiGroup] := Vector4Integer(2, 2, 2, 2);
   FImages[tiActiveFrame] := FrameWhite;
   FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;

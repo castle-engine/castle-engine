@@ -1816,7 +1816,7 @@ begin
       it reports this by setting AL error (instead of ALC one)
       to "invalid value". Although (after fixes to detect OpenALSampleImplementation
       at runtime and change constants values) this shouldn't happen anymore
-      it you pass normal consts to this function. }
+      if you pass correct consts to this function. }
     CheckAL('alcGetString');
   except
     on E: EALCError do result := '('+E.Message+')';

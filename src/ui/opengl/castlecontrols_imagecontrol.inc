@@ -329,7 +329,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.SmoothScaling := Value;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -342,7 +342,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.Clip := Value;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -355,7 +355,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.ClipLine := Value;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -384,7 +384,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.CenterX := FCenterX;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -397,7 +397,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.CenterY := FCenterY;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -410,7 +410,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.Rotation := FRotation;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -536,7 +536,7 @@ begin
       end;
     end else
       FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -548,7 +548,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.Alpha := Value;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -571,7 +571,7 @@ begin
   if FStretch <> Value then
   begin
     FStretch := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -593,7 +593,7 @@ begin
   if FProportionalScaling <> Value then
   begin
     FProportionalScaling := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -605,7 +605,7 @@ begin
     if FGLImage <> nil then
     begin
       FGLImage.Color := Value;
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
   end;
 end;
@@ -615,7 +615,7 @@ begin
   if FFloatWidth <> Value then
   begin
     FFloatWidth := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -624,7 +624,7 @@ begin
   if FFloatHeight <> Value then
   begin
     FFloatHeight := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -653,7 +653,7 @@ begin
   if FFullSize <> Value then
   begin
     FFullSize := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 

@@ -1084,7 +1084,7 @@ var
   TransformData: TTransformData;
 begin
   TransformData.Transform := State.Transform;
-  TransformData.InverseTransform := State.InvertedTransform;;
+  TransformData.InverseTransform := State.InvertedTransform;
   TransformData.Center := Center;
   TransformData.Rotation := Rotation;
   TransformData.Scale := Scale;

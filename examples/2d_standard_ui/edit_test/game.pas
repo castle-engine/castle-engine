@@ -29,9 +29,6 @@ uses SysUtils, Classes,
   CastleControls, CastleUtils, CastleColors, CastleUIControls,
   CastleApplicationProperties;
 
-const
-  Margin = 10;
-
 var
   Edit1, Edit2, EditNumbers: TCastleEdit;
   ButtonCopyText: TCastleButton;
@@ -48,9 +45,10 @@ end;
 
 procedure ApplicationInitialize;
 var
+  Group: TCastleVerticalGroup;
   Label1, Label2, Label3: TCastleLabel;
   SimpleBackground: TCastleSimpleBackground;
-  Y: Integer;
+  Spacer: TUIControlSizeable;
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
@@ -60,67 +58,62 @@ begin
   SimpleBackground.Color := White;
   Window.Controls.InsertFront(SimpleBackground);
 
-  Y := -Margin;
+  Group := TCastleVerticalGroup.Create(Application);
+  Group.Anchor(vpTop);
+  Group.Anchor(hpLeft);
+  Group.Alignment := hpLeft;
+  Window.Controls.InsertFront(Group);
 
   Label1 := TCastleLabel.Create(Application);
-  Label1.Anchor(vpTop, Y);
-  Label1.Anchor(hpLeft, Margin);
   Label1.Caption := 'Type something in the box below';
   Label1.Color := Black;
-  Window.Controls.InsertFront(Label1);
-  Y -= Label1.CalculatedHeight + Margin;
+  Group.InsertFront(Label1);
 
   Edit1 := TCastleEdit.Create(Application);
-  Edit1.Anchor(vpTop, Y);
-  Edit1.Anchor(hpLeft, Margin);
   Edit1.Text := 'Start text:';
-  Window.Controls.InsertFront(Edit1);
-  Y -= Edit1.CalculatedHeight + Margin;
+  Group.InsertFront(Edit1);
 
   ButtonCopyText := TCastleButton.Create(Application);
-  ButtonCopyText.Anchor(vpTop, Y);
-  ButtonCopyText.Anchor(hpLeft, Margin);
   ButtonCopyText.AutoSizeWidth := false;
   ButtonCopyText.Caption := 'Copy text from one edit box to another';
   ButtonCopyText.OnClick := @TEventHandler(nil).ButtonCopyTextClick;
-  Window.Controls.InsertFront(ButtonCopyText);
-  Y -= ButtonCopyText.CalculatedHeight + Margin + 20 { extra margin };
+  Group.InsertFront(ButtonCopyText);
+
+  Spacer := TUIControlSizeable.Create(Application);
+  Spacer.FloatWidth := 1;
+  Spacer.FloatHeight := 20;
+  Group.InsertFront(Spacer);
 
   Label2 := TCastleLabel.Create(Application);
-  Label2.Anchor(vpTop, Y);
-  Label2.Anchor(hpLeft, Margin);
   Label2.Caption := 'Another edit box, with larger font:';
   Label2.Color := Black;
-  Window.Controls.InsertFront(Label2);
-  Y -= Label2.CalculatedHeight + Margin;
+  Group.InsertFront(Label2);
 
   Edit2 := TCastleEdit.Create(Application);
-  Edit2.Anchor(vpTop, Y);
-  Edit2.Anchor(hpLeft, Margin);
   Edit2.FontSize := 40;
   // Edit2.CaptureAllInput := true;
   Edit2.PaddingVertical := 10;
-  Window.Controls.InsertFront(Edit2);
-  Y -= Edit2.CalculatedHeight + Margin + 20 { extra margin };
+  Group.InsertFront(Edit2);
+
+  Spacer := TUIControlSizeable.Create(Application);
+  Spacer.FloatWidth := 1;
+  Spacer.FloatHeight := 20;
+  Group.InsertFront(Spacer);
 
   Label3 := TCastleLabel.Create(Application);
-  Label3.Anchor(vpTop, Y);
-  Label3.Anchor(hpLeft, Margin);
   Label3.Caption := 'An edit box that only allows to input 9 digits:';
   Label3.Color := Black;
-  Window.Controls.InsertFront(Label3);
-  Y -= Label3.CalculatedHeight + Margin;
+  Group.InsertFront(Label3);
 
   EditNumbers := TCastleEdit.Create(Application);
-  EditNumbers.Anchor(vpTop, Y);
-  EditNumbers.Anchor(hpLeft, Margin);
   EditNumbers.AllowedChars := ['0'..'9'];
   EditNumbers.MaxLength := 9;
-  Window.Controls.InsertFront(EditNumbers);
-  Y -= EditNumbers.CalculatedHeight + Margin;
+  Group.InsertFront(EditNumbers);
 end;
 
 procedure WindowResize(Container: TUIContainer);
+const
+  Margin = 10;
 begin
   Edit1.Width := Container.UnscaledWidth - 2 * Margin;
   Edit2.Width := Container.UnscaledWidth - 2 * Margin;

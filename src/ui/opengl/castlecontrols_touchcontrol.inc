@@ -87,7 +87,7 @@ begin
   if FScale <> Value then
   begin
     FScale := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -115,6 +115,11 @@ begin
   begin
     FPosition := Value;
     case Position of
+      tpManual:
+        begin
+          Anchor(hpLeft, 0);
+          Anchor(vpBottom, 0);
+        end;
       tpLeft:
         begin
           Anchor(hpLeft, CtlBorder);
@@ -126,7 +131,7 @@ begin
           Anchor(vpBottom, CtlBorder);
         end;
     end;
-    VisibleChange;
+    // VisibleChange([chRectangle]); // no need to call this, Anchor already called it
   end;
 end;
 
@@ -189,7 +194,7 @@ begin
   begin
     FTouchMode := Value;
     { we may swap outer image depending on the TouchMode in some later version }
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -214,7 +219,7 @@ begin
 
     FDragging := -1;
     FLeverOffset := TVector2.Zero;
-    VisibleChange; { repaint with lever back in the center }
+    VisibleChange([chRender]); { repaint with lever back in the center }
   end;
 end;
 
@@ -225,7 +230,7 @@ begin
   if (not Result) and (FDragging = Event.FingerIndex) then
   begin
     FLeverOffset := FLeverOffset + Event.Position - Event.OldPosition;
-    VisibleChange;
+    VisibleChange([chRender]);
     Result := ExclusiveEvents;
   end;
 end;

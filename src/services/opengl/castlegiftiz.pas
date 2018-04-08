@@ -145,7 +145,7 @@ begin
       CustomBackgroundNormal := ImageWarning;
     end else
       WritelnWarning('Giftiz', 'Invalid button state ' + Received[1]);
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

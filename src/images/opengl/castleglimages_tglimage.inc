@@ -507,6 +507,11 @@ type
       This provides a functionality similar to desktop OpenGL glClipPlane
       (working on all platforms -- desktop, mobile). }
     property ClipLine: TVector3 read FClipLine write FClipLine;
+
+    { Get the image contents from GPU to CPU.
+      @raises(ECannotSaveTextureContents If we cannot get texture contents
+        (not supported on OpenGLES).) }
+    function GetContents(const ImageClass: TCastleImageClass): TCastleImage;
   end;
 
   TGLRenderToTexture = class;
@@ -1596,6 +1601,15 @@ end;
 function TGLImageCore.GetHeight: Cardinal;
 begin
   Result := FHeight;
+end;
+
+function TGLImageCore.GetContents(const ImageClass: TCastleImageClass): TCastleImage;
+begin
+  PrepareResources;
+  if Texture = 0 then
+    raise ECannotSaveTextureContents.Create('TGLImageCore texture was not created for some reason');
+  Result := ImageClass.Create(Width, Height);
+  SaveTextureContents(Result, Texture);
 end;
 
 { TGLImage ------------------------------------------------------------ }

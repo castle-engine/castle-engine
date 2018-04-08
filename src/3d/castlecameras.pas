@@ -189,15 +189,8 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
-
-      In case of the TCamera class, we assume that changes
-      to the @link(TCamera.Matrix), and other properties (for example even
-      changes to TWalkCamera.MoveSpeed), are "visible",
-      and they also result in this event. }
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
+    procedure VisibleChange(const Changes: TUIControlChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
 
     { Current camera matrix. You should multiply every 3D point of your
       scene by this matrix, which usually simply means that you should
@@ -752,7 +745,8 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
 
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
+    procedure VisibleChange(const Changes: TUIControlChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
     function GetNavigationType: TNavigationType; override;
 
     { TODO: Input_Xxx not published, although setting them in object inspector
@@ -1726,7 +1720,8 @@ begin
   MouseDraggingStarted := -1;
 end;
 
-procedure TCamera.VisibleChange(const RectOrCursorChanged: boolean);
+procedure TCamera.VisibleChange(const Changes: TUIControlChanges;
+  const ChangeInitiatedByChildren: boolean);
 begin
   RecalculateFrustum;
   inherited;
@@ -1743,7 +1738,8 @@ end;
 procedure TCamera.ScheduleVisibleChange;
 begin
   if VisibleChangeSchedule = 0 then
-    VisibleChange else
+    VisibleChange([chCamera])
+  else
     IsVisibleChangeScheduled := true;
 end;
 
@@ -1758,7 +1754,7 @@ begin
       BeginVisibleChangeSchedule. And BeginVisibleChangeSchedule must start
       with good state, see assertion there. }
     IsVisibleChangeScheduled := false;
-    VisibleChange;
+    VisibleChange([chCamera]);
   end;
 end;
 
@@ -2506,7 +2502,7 @@ begin
       Exit(false);
     end;
 
-    VisibleChange
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -2733,7 +2729,8 @@ begin
   AUp  := FUp;
 end;
 
-procedure TExamineCamera.VisibleChange(const RectOrCursorChanged: boolean);
+procedure TExamineCamera.VisibleChange(const Changes: TUIControlChanges;
+  const ChangeInitiatedByChildren: boolean);
 var
   M: TMatrix4;
 begin

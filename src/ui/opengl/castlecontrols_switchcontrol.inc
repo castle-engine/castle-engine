@@ -116,7 +116,7 @@ begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -125,7 +125,7 @@ begin
   if FChecked <> Value then
   begin
     FChecked := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -141,7 +141,7 @@ begin
   Result := inherited;
   FPressed := false;
   FChecked := not FChecked;
-  VisibleChange;
+  VisibleChange([chRender]);
 
   if Assigned(FOnChange) then
     FOnChange(Self);
