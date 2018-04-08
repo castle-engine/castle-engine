@@ -1,0 +1,31 @@
+#: game:text3d
+msgid "I am 3D Text"
+msgstr "Ich bin 3D-Text"
+
+#: game:captionbuttonswitchenglish
+msgid "English"
+msgstr "Englisch"
+
+#: game:captionbuttonswitchgerman
+msgid "German"
+msgstr "Deutsche"
+
+#: game:captionbuttonswitchpolish
+msgid "Polish"
+msgstr "Polieren"
+
+#: game:captionbuttonmessage
+msgid "Show Message"
+msgstr "Zeige Nachricht"
+
+#: game:edittextinitial
+msgid "Initial Edit Contents"
+msgstr "Anfänglicher Inhalt bearbeiten"
+
+#: game:captionlabel
+msgid "My Label"
+msgstr "Mein Etikett"
+
+#: game:messagetext
+msgid "I am a message!"
+msgstr "Ich bin eine Nachricht!"

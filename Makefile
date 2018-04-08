@@ -214,7 +214,8 @@ EXAMPLES_BASE_NAMES := \
   tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
-  examples/random_generator/random_threads_test
+  examples/random_generator/random_threads_test \
+  examples/localization/localization_test
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
