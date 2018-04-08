@@ -292,7 +292,7 @@ begin
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
-function Vector3FromStr(const s: string): TVector3;
+function Vector3FromStr(const S: string): TVector3;
 var
   SPosition: Integer;
 begin
@@ -317,7 +317,7 @@ begin
   Result.Data[1] := StrToFloat(NextToken(S, SPosition));
   Result.Data[2] := StrToFloat(NextToken(S, SPosition));
   Result.Data[3] := StrToFloat(NextToken(S, SPosition));
-  if NextToken(s, SPosition) <> '' then
+  if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
