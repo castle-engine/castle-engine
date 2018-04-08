@@ -18,18 +18,14 @@ unit Game;
 
 interface
 
-uses CastleWindow;
-
-var
-  Window: TCastleWindowCustom;
-
 implementation
 
 uses SysUtils, Classes,
-  CastleControls, CastleUtils, CastleColors, CastleUIControls,
+  CastleWindow, CastleControls, CastleUtils, CastleColors, CastleUIControls,
   CastleApplicationProperties;
 
 var
+  Window: TCastleWindowCustom;
   Edit1, Edit2, EditNumbers: TCastleEdit;
   ButtonCopyText: TCastleButton;
 

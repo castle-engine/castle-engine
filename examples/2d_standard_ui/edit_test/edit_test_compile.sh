@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f timer_test.lpr ]; then cd ../../../; fi
+if [ -f edit_test.lpr ]; then cd ../../../; fi
 
 fpc -dRELEASE @castle-fpc.cfg examples/2d_standard_ui/edit_test/edit_test.lpr

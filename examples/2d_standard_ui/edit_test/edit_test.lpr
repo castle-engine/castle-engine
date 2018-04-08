@@ -22,5 +22,5 @@
 
 uses CastleWindow, Game;
 begin
-  Window.OpenAndRun;
+  Application.MainWindow.OpenAndRun;
 end.
