@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils;
+  CastleURIUtils, CastleLog, CastleStringUtils, CastleLocalisation;
 
 type
   TCastleLabel = class;
@@ -74,6 +74,7 @@ type
 
   {$define read_interface}
   {$I castlecontrols_uicontrolfont.inc}
+  {$I castlecontrols_uicontrollocalised.inc}
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
@@ -104,11 +105,12 @@ implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
-  CastleApplicationProperties, CastleMessaging, CastleLocalisation;
+  CastleApplicationProperties, CastleMessaging;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow uicontrolfont.inc to access internals
 {$I castlecontrols_uicontrolfont.inc}
+{$I castlecontrols_uicontrollocalised.inc}
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}
