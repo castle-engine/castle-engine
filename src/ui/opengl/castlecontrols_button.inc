@@ -25,7 +25,7 @@
     You will also usually want to adjust position (TCastleButton.Left,
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
-  TCastleButton = class(TUIControlFont)
+  TCastleButton = class(TUIControlLocalised)
   strict private
     FFloatWidth, FFloatHeight: Single;
     FFinalScaledValid: boolean;
@@ -37,7 +37,6 @@
     FFinalScaledWidth, FFinalScaledHeight: Float;
     FOnClick: TNotifyEvent;
     FCaption: string;
-    FLocalisationID: String;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
     TextWidth, TextHeight: Cardinal;
     FPressed: boolean;
@@ -77,7 +76,6 @@
     FLineSpacing: Integer;
     FHtml: boolean;
     procedure SetCaption(const Value: string);
-    procedure SetLocalisationID(const Value: String);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
@@ -268,9 +266,6 @@
       The text may be multiline (use the LineEnding or NL constants to mark newlines). }
     property Caption: string read FCaption write SetCaption;
 
-    { Localisation ID to load a localised caption. }
-    property LocalisationID: string read FLocalisationID write SetLocalisationID;
-
     { Can the button be permanently pressed. Good for making a button
       behave like a checkbox, that is indicate a boolean state.
       When @link(Toggle) is @true, you can set the @link(Pressed) property,
@@ -321,6 +316,7 @@
 constructor TCastleButton.Create(AOwner: TComponent);
 begin
   inherited;
+
   FAutoSize := true;
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;
@@ -336,6 +332,8 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+
+  OnUpdateLocalised := @UpdateLocalisedCaption;
 end;
 
 destructor TCastleButton.Destroy;
@@ -351,8 +349,6 @@ begin
   FreeAndNil(FGLCustomBackgroundDisabled);
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
-
-  Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
 
   inherited;
 end;
@@ -624,20 +620,6 @@ begin
   begin
     FCaption := Value;
     UpdateTextSize;
-  end;
-end;
-
-procedure TCastleButton.SetLocalisationID(const Value: String);
-begin
-  if Value <> FLocalisationID then
-  begin
-    if FLocalisationID = '' then
-      Localisation.OnUpdateLocalisation.Add(@UpdateLocalisedCaption)
-    else if Value = '' then
-      Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
-
-    FLocalisationID := Value;
-    UpdateLocalisedCaption;
   end;
 end;
 

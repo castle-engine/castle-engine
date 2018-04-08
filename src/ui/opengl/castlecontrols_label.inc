@@ -16,10 +16,9 @@
 {$ifdef read_interface}
 
   { Label with possibly multiline text, in an optional box. }
-  TCastleLabel = class(TUIControlFont)
+  TCastleLabel = class(TUIControlLocalised)
   strict private
     FText: TStrings;
-    FLocalisationID: String;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
     FColor: TCastleColor;
@@ -40,7 +39,6 @@
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
-    procedure SetLocalisationID(const Value: String);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
@@ -99,9 +97,6 @@
       #)
     }
     property Caption: string read GetCaption write SetCaption stored false;
-
-    { Localisation ID to load a localised caption. }
-    property LocalisationID: string read FLocalisationID write SetLocalisationID;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -177,6 +172,7 @@
 constructor TCastleLabel.Create(AOwner: TComponent);
 begin
   inherited;
+
   FText := TStringList.Create;
   FColor := White;
   FFrame := false;
@@ -185,13 +181,13 @@ begin
   FAutoSize := true;
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
+
+  OnUpdateLocalised := @UpdateLocalisedCaption;
 end;
 
 destructor TCastleLabel.Destroy;
 begin
   FreeAndNil(FText);
-
-  Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
 
   inherited;
 end;
@@ -359,20 +355,6 @@ end;
 procedure TCastleLabel.SetCaption(const Value: string);
 begin
   Text.Text := Value;
-end;
-
-procedure TCastleLabel.SetLocalisationID(const Value: String);
-begin
-  if Value <> FLocalisationID then
-  begin
-    if FLocalisationID = '' then
-      Localisation.OnUpdateLocalisation.Add(@UpdateLocalisedCaption)
-    else if Value = '' then
-      Localisation.OnUpdateLocalisation.Remove(@UpdateLocalisedCaption);
-
-    FLocalisationID := Value;
-    UpdateLocalisedCaption;
-  end;
 end;
 
 procedure TCastleLabel.SetAlignment(const Value: THorizontalPosition);

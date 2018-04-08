@@ -16,9 +16,10 @@
 {$ifdef read_interface}
 
   { Edit box to input 1 line of text. }
-  TCastleEdit = class(TUIControlFont)
+  TCastleEdit = class(TUIControlLocalised)
   strict private
     FText: string;
+    FLastLocalisedText: String;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FFrame: boolean;
@@ -38,6 +39,7 @@
     procedure SetPaddingHorizontal(const Value: Integer);
     procedure SetPaddingVertical(const Value: Integer);
     procedure SetFrame(const Value: boolean);
+    procedure UpdateLocalisedText;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -142,6 +144,8 @@ begin
   FMaxLength := 0;
   FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
+
+  OnUpdateLocalised := @UpdateLocalisedText;
 end;
 
 destructor TCastleEdit.Destroy;
@@ -230,6 +234,15 @@ begin
     VisibleChange;
   end;
 end;
+
+procedure TCastleEdit.UpdateLocalisedText;
+begin
+  if Text = FLastLocalisedText then //Only localise if the text hasn't been changed manually.
+  begin
+    FLastLocalisedText := Localisation[LocalisationID];
+    Text := FLastLocalisedText;
+end;
+  end;
 
 function TCastleEdit.Rect: TRectangle;
 var
