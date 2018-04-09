@@ -106,7 +106,7 @@ type
     function CurrentFilter: TTextureFilter;
   private
     StaticResourcesReady: boolean; static;
-    Texture: TGLTextureId;
+    FTexture: TGLTextureId;
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
@@ -512,6 +512,15 @@ type
       @raises(ECannotSaveTextureContents If we cannot get texture contents
         (not supported on OpenGLES).) }
     function GetContents(const ImageClass: TCastleImageClass): TCastleImage;
+
+    { Internal OpenGL texture identifier.
+
+      You cannot free it (e.g. by glFreeTexture), and you cannot change it's
+      parameters (because TGLImageCore assumes it controls all the texture
+      parameters). For normal drawing, you do not need this (use @link(Draw)
+      or other rendering routines in this class), but it may be useful to
+      integrate with external rendering systems. }
+    property Texture: TGLTextureId read FTexture;
   end;
 
   TGLRenderToTexture = class;
@@ -825,16 +834,16 @@ procedure TGLImageCore.GLContextOpen(const AImage: TEncodedImage);
 begin
   if AImage <> nil then
   begin
-    if Texture = 0 then
-      glGenTextures(1, @Texture);
-    LoadGLGeneratedTexture(Texture, AImage, CurrentFilter,
+    if FTexture = 0 then
+      glGenTextures(1, @FTexture);
+    LoadGLGeneratedTexture(FTexture, AImage, CurrentFilter,
       Texture2DClampToEdge, nil, true);
   end;
 end;
 
 procedure TGLImageCore.GLContextClose;
 begin
-  glFreeTexture(Texture);
+  glFreeTexture(FTexture);
 end;
 
 procedure TGLImageCore.Load(const AImage: TEncodedImage);
@@ -1158,13 +1167,13 @@ begin
        (ScreenRects^[0].Height = 0))) then
     Exit;
 
-  if Texture = 0 then
+  if FTexture = 0 then
     raise Exception.Create('TGLImageCore resources are not ready when trying to render. This probably means that you created TGLImageCore when OpenGL context was not created yet. The simplest solution is to use TGLImage instead');
   if not StaticResourcesReady then
     raise Exception.Create('TGLImageCore static resources are not ready when trying to render. This probably means that OpenGL context was freed, but TGLImageCore was not recreated');
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, Texture);
+  glBindTexture(GL_TEXTURE_2D, FTexture);
   GLEnableTexture(et2D);
 
   { calculate Indexes contents, only used when Count <> 1 }
@@ -1576,9 +1585,9 @@ begin
   if FSmoothScaling <> Value then
   begin
     FSmoothScaling := Value;
-    if Texture <> 0 then { if GL resources available now --- this is needed for TGLImage }
+    if FTexture <> 0 then { if GL resources available now --- this is needed for TGLImage }
     begin
-      glBindTexture(GL_TEXTURE_2D, Texture);
+      glBindTexture(GL_TEXTURE_2D, FTexture);
       SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
     end;
   end;
@@ -1606,10 +1615,10 @@ end;
 function TGLImageCore.GetContents(const ImageClass: TCastleImageClass): TCastleImage;
 begin
   PrepareResources;
-  if Texture = 0 then
+  if FTexture = 0 then
     raise ECannotSaveTextureContents.Create('TGLImageCore texture was not created for some reason');
   Result := ImageClass.Create(Width, Height);
-  SaveTextureContents(Result, Texture);
+  SaveTextureContents(Result, FTexture);
 end;
 
 { TGLImage ------------------------------------------------------------ }
@@ -1698,7 +1707,7 @@ begin
   // we load on demand, so do PrepareResources always
   PrepareResources;
   // PrepareResources, done while GL context is active, must make it true
-  Assert(Texture <> 0);
+  Assert(FTexture <> 0);
   inherited;
 end;
 
@@ -1711,7 +1720,7 @@ begin
     { initialize OpenGL resources on-demand }
     if not StaticResourcesReady then
       StaticGLContextOpen;
-    if Texture = 0 then
+    if FTexture = 0 then
       GLContextOpen(FImage);
   end;
 end;
@@ -1728,13 +1737,13 @@ procedure TGLImage.RenderToImageBegin;
   begin
     FRenderToImage := TGLRenderToTexture.Create(Width, Height);
     FRenderToImage.Buffer := tbColor;
-    FRenderToImage.SetTexture(Texture, GL_TEXTURE_2D);
+    FRenderToImage.SetTexture(FTexture, GL_TEXTURE_2D);
     FRenderToImage.GLContextOpen;
   end;
 
 begin
   PrepareResources;
-  Assert(Texture <> 0);
+  Assert(FTexture <> 0);
 
   if (FRenderToImage = nil) or
      (FRenderToImage.Width <> Width) or
@@ -1790,7 +1799,7 @@ begin
   // we load on demand, so do PrepareResources always
   PrepareResources;
   // PrepareResources, done while GL context is active, must make it true
-  Assert(Texture <> 0);
+  Assert(FTexture <> 0);
   inherited;
 end;
 
@@ -1806,7 +1815,7 @@ begin
     if not StaticResourcesReady then
       StaticGLContextOpen;
 
-    if Texture = 0 then
+    if FTexture = 0 then
     begin
       Image := LoadEncodedImage(FURL, PixelsImageClasses);
       try
