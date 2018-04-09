@@ -25,9 +25,9 @@ This translates all strings in `resourcestring` declarations.
 
     * For each new language, create a new file like `po_files/game.pl.po` (`pl` for a Polish translation, `de` for German, `en` for English etc.).
 
-	* You can start by just copying `game.pl.po` from `game.pot`.
+        * You can start by just copying `game.pl.po` from `game.pot`.
 
-	* Or you can start by `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+        * Or you can start by `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
 
     * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
 
