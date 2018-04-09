@@ -7,31 +7,37 @@ This translates all strings in `resourcestring` declarations.
 
 # Creating translations
 
-Create initial `game.pot` file, using strings from the source code:
+1. Place everything you may need to translate as a `resourcestring` in Pascal. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
 
-* Place everything you may need to translate as a `resourcestring` in Pascal. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
+2. Create initial `game.pot` file.
 
-* Compile the game (`castle-engine compile`).
+    _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
 
-* Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
+    The `game.pot` can serve a basis for translations. You can create it using strings from the source code:
 
-* Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
+    * Compile the game (`castle-engine compile`).
 
-To translate to a new language:
+    * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
 
-* Create a file like `po_files/game.pl.po` for Polish translation (`pl` is a Polish idenfier, your would use `de` for German, `en` for English etc.).
-    * You can start by just copying `game.pl.po` from `game.pot`.
-    * Or you can start by `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+    * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
 
-* Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
+3. To translate to a new language:
 
-* Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
+    * For each new language, create a new file like `po_files/game.pl.po` (`pl` for a Polish translation, `de` for German, `en` for English etc.).
+
+	* You can start by just copying `game.pl.po` from `game.pot`.
+
+	* Or you can start by `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+
+    * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
+
+    * Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
 
 In code:
 
 * Call in Pascal `TranslateResourceStrings(URIToFilenameSafe(ApplicationData('locale/game.pl.mo')));` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
 
-* Then, assign the strings to the approproate properties of appropriate objects, like `TCastleLabel.Caption`.
+* Assign the resourcestrings to the approproate properties of appropriate objects, like `TCastleLabel.Caption`.
 
 It's probably easiest to just call `TranslateResourceStrings` once, at the very beginning of your application (at the beginning of `Application.OnInitialize` handler). And then construct UI as usual (just use `resourcestring`s). If the user wants to change the language, it's easiest to just say _"Please restart the application in order for the language change to take effect."_.
 
