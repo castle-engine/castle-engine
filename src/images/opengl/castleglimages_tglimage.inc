@@ -696,7 +696,7 @@ type
       creates a TGLRenderToTexture descendant suitable for rendering to this texture.
       It is automatically released on certain events,
       you can also explicitly release it by @link(RenderToImageFree). }
-    procedure RenderToImageBegin;
+    procedure RenderToImageBegin(const SetViewport: boolean = true);
     procedure RenderToImageEnd;
     procedure RenderToImageFree;
 
@@ -1731,7 +1731,7 @@ begin
   RenderToImageFree;
 end;
 
-procedure TGLImage.RenderToImageBegin;
+procedure TGLImage.RenderToImageBegin(const SetViewport: boolean);
 
   procedure RenderToImageCreate;
   begin
@@ -1754,6 +1754,13 @@ begin
   end;
 
   FRenderToImage.RenderBegin;
+
+  if SetViewport then
+  begin
+    CastleGLUtils.glViewport(Rectangle(0, 0, Width, Height));
+    Viewport2DSize[0] := Width;
+    Viewport2DSize[1] := Height;
+  end;
 end;
 
 procedure TGLImage.RenderToImageEnd;
