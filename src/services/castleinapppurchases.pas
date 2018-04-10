@@ -187,7 +187,7 @@ type
       when user buys a "chest of gold", and "chest of gold"
       is non-consumable (you can only own it once, and then you just own it forever),
       then store the fact that you "already increased gold because of the chest ownership"
-      in the user persistent data (see https://castle-engine.sourceforge.io/manual_user_prefs.php).
+      in the user persistent data (see https://castle-engine.io/manual_user_prefs.php).
       Do not just increase the "gold owned" at every call of this method.
 
       If the product is a @bold(consumable), which means it has a one-time use

@@ -237,10 +237,10 @@
 
     { The normal map of this appearance.
 
-      See https://castle-engine.sourceforge.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
+      See https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
       This is a deprecated method of using bump mapping, a better method is to
       use CommonSurfaceShader:
-      https://castle-engine.sourceforge.io/x3d_implementation_texturing_extensions.php#section_ext_common_surface_shader .
+      https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_common_surface_shader .
 
       This is a comfortable property for getting and setting the appropriate
       X3D field, checking class types along the way and setting the value

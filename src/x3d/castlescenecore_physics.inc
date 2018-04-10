@@ -37,7 +37,7 @@
       @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
-      https://castle-engine.sourceforge.io/x3d_implementation_navigation.php ). }
+      https://castle-engine.io/x3d_implementation_navigation.php ). }
     Scene: TCastleSceneCore;
   end;
 
@@ -68,7 +68,7 @@
       @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
-      https://castle-engine.sourceforge.io/x3d_implementation_navigation.php ). }
+      https://castle-engine.io/x3d_implementation_navigation.php ). }
     Scene: TCastleSceneCore;
   end;
 *)

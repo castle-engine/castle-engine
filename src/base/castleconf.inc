@@ -46,7 +46,7 @@
 {$endif}
 
 {$ifdef VER2}
-  {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php}
+  {$fatal FPC 2.x is not supported anymore, see https://castle-engine.io/fpc_and_lazarus.php}
 {$endif}
 
 { Configure syntax ----------------------------------------------------------- }
@@ -292,7 +292,7 @@
       ../../tools/build-tool/data/external_libraries/ to your project exe dir,
       or to place these DLLs in a directory listed on the PATH environment variable.
 
-    - For macOS, see https://castle-engine.sourceforge.io/macosx_requirements.php .
+    - For macOS, see https://castle-engine.io/macosx_requirements.php .
 
   - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
     unit that allows static linking to png, see castleinternalpng_static.inc.
