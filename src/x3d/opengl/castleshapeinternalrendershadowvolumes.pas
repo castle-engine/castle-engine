@@ -44,7 +44,7 @@ type
       Usually, most models are mostly 2-manifold (only the real border
       edges are, well, in BorderEdges), and this works great.
       See "VRML engine documentation" on
-      [http://castle-engine.sourceforge.net/engine_doc.php],
+      [https://castle-engine.io/engine_doc.php],
       chapter "Shadows", for description and pictures of possible artifacts
       when trying to use this on models that are not 2-manifold.)
 

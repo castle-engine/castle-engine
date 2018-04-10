@@ -58,7 +58,7 @@ function ScreenEffectFragment(const Depth: boolean): string;
 
 type
   { GLSL shader program specialized for rendering screen effects.
-    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php
+    See https://castle-engine.io/x3d_extensions_screen_effects.php
     about screen effects.
 
     Do not use the ancestor AttachVertexShader and AttachFragmentShader
@@ -81,7 +81,7 @@ type
     property UniformNotFoundAction default uaIgnore;
 
     { Attach GLSL code for the screen effect (executed as part of fragment shader).
-      See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php . }
+      See https://castle-engine.io/x3d_extensions_screen_effects.php . }
     property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
 
     procedure Link; override;
@@ -108,7 +108,7 @@ begin
         '#define MULTI_SAMPLING' +NL +
         '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
     if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
+      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see https://castle-engine.io/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
         [GLFeatures.CurrentMultiSampling]));
   end;
   Result += {$I screen_effect_library.glsl.inc} + NL;

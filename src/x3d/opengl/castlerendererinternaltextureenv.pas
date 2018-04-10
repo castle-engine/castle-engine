@@ -201,7 +201,7 @@ procedure ModeFromString(const S: string;
         "REPLACE" takes the Arg2, that's an error, it takes
         from Arg1 to be consistent with other spec words.
         I wrote some remarks about this on
-        http://castle-engine.sourceforge.net/x3d_implementation_status.php }
+        https://castle-engine.io/x3d_implementation_status.php }
 
       Combine := coReplace;
       CurrentTextureArgument := ta0;

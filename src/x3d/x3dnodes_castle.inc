@@ -14,11 +14,11 @@
 }
 
 { Nodes that are defined specifically by Castle Game Engine.
-  See [http://castle-engine.sourceforge.net/x3d_extensions.php]. } { }
+  See [https://castle-engine.io/x3d_extensions.php]. } { }
 
 {$ifdef read_interface}
   { Headlight configuration, allows to customize headlight look and shape.
-    See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php#section_ext_headlight . }
+    See https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight . }
   TKambiHeadLightNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
@@ -69,7 +69,7 @@
   end;
 
   { Customize blending (partial transparency) mode.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending .
+    See https://castle-engine.io/x3d_extensions.php#section_ext_blending .
 
     This is an extension, not present in standard X3D.
     It is compatible with modelled after, and compatible with,
@@ -111,7 +111,7 @@
   end;
 
   { Embed a scene from another file, and replace some of it's nodes.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_kambi_inline . }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_kambi_inline . }
   TKambiInlineNode = class(TInlineNode)
   strict private
     { This is internal only for DoReplaceNodes, initialized in AfterLoadInlined. }
@@ -140,7 +140,7 @@
     opStaticCollisions);
 
   { Navigation information with some Castle Game Engine extensions.
-    See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php . }
+    See https://castle-engine.io/x3d_implementation_navigation_extensions.php . }
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
   public
     procedure CreateNode; override;
@@ -198,7 +198,7 @@
   end;
 
   { Generate texture by rendering a depth (shadow) map.
-    See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php }
+    See https://castle-engine.io/x3d_extensions_shadow_maps.php }
   TGeneratedShadowMapNode = class(TAbstractTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
@@ -239,7 +239,7 @@
   end;
 
   { Generate texture coordinates by projection.
-    See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php }
+    See https://castle-engine.io/x3d_extensions_shadow_maps.php }
   TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -254,7 +254,7 @@
   end;
 
   { Screen-space shader effect.
-    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php . }
+    See https://castle-engine.io/x3d_extensions_screen_effects.php . }
   TScreenEffectNode = class(TAbstractChildNode)
   strict private
     FShader: TObject;
@@ -307,7 +307,7 @@
     (regardless if we're on primitives or not). }
 
   { Generated texture coordinates for multi-texturing.
-    See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_tex_coord]. }
+    See [https://castle-engine.io/x3d_extensions.php#section_ext_tex_coord]. }
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassX3DType: string; override;
@@ -319,7 +319,7 @@
   TEffectPartNode = class;
 
   { Shader effect, that can be composed with other effect or standard rendering.
-    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
+    See https://castle-engine.io/compositing_shaders.php . }
   TEffectNode = class(TAbstractChildNode)
   strict private
     function GetLanguage: TShaderLanguage;
@@ -343,7 +343,7 @@
   end;
 
   { Part of a shader effect, used with @link(TEffectNode).
-    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
+    See https://castle-engine.io/compositing_shaders.php . }
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
   strict private
     ContentsCached: boolean;
@@ -384,7 +384,7 @@
   end;
 
   { Procedural texture defined by shaders.
-    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
+    See https://castle-engine.io/compositing_shaders.php . }
   TShaderTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;

@@ -160,7 +160,7 @@ var
     from this module. If you want to change them inside VRML/X3D
     file (for example, to affect only part of the scene), use the
     Triangulation node, see
-    http://castle-engine.sourceforge.net/x3d_implementation_geometry3d_extensions.php#section_triangulation
+    https://castle-engine.io/x3d_implementation_geometry3d_extensions.php#section_triangulation
 
     These variables @italic(must) always honour
     @link(MinTriangulationSlices),

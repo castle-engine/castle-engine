@@ -23,7 +23,7 @@
 
   The chapter "Reading, writing, processing VRML scene graph"
   in the documentation on
-  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
+  [https://castle-engine.io/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
   is almost completely devoted to documenting the design of this single unit.
 
   @bold(Various uses of this unit:)
@@ -38,7 +38,7 @@
       When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
       So we're able to save exactly the same VRML/X3D graph
       back to another file. See also
-      [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
+      [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
       This allows writing various VRML/X3D
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
@@ -89,7 +89,7 @@
     @item(Normal VRML/X3D nodes are defined by classses
       named like @code(TXxxNode). These nodes can be specified inside the VRML/X3D
       files. See VRML/X3D specifications, and also our extensions specification,
-      on [http://castle-engine.sourceforge.net/vrml_x3d.php].
+      on [https://castle-engine.io/vrml_x3d.php].
 
       There are also abstract node classes. Their definitions are helpful
       for handling some functionality common to many descendants,
@@ -134,14 +134,14 @@
 
       Every correct VRML / X3D file in classic and XML encoding should be parsed
       by this unit.
-      See [http://castle-engine.sourceforge.net/x3d_implementation_status.php]
+      See [https://castle-engine.io/x3d_implementation_status.php]
       for much more detailed information about supported features.)
 
     @item(
       Also many Inventor 1.0 files are correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#ext_iv_in_vrml].)
+      [https://castle-engine.io/x3d_extensions.php#ext_iv_in_vrml].)
 
     @item(
       Note that structures in this unit are @italic(not) focused
@@ -152,7 +152,7 @@
 
       Internally, we do not convert VRML 1.0-specific constructs
       to VRML 2.0/X3D constructs (or the other way around).
-      See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
+      See [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
       for more in-depth explanation of how, and why, we handle both
       old-style (Inventor, VRML 1.0) and new-style (VRML 2.0, X3D)
       syntax.)

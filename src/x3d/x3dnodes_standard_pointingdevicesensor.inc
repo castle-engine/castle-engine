@@ -608,7 +608,7 @@ begin
 
         About using local coordinates with axisRotation:
         That's more difficult, see
-        http://castle-engine.sourceforge.net/x3d_implementation_pointingdevicesensor.php }
+        https://castle-engine.io/x3d_implementation_pointingdevicesensor.php }
       EventTrackPoint_changed.Send(
         InvertedTransform.MultPoint(Intersection), Time);
     except

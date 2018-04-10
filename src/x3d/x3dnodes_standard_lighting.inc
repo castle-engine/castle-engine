@@ -80,7 +80,7 @@
 
     strict private FFdProjectionNear: TSFFloat;
     { projectionNear / projectionFar / up are Kambi extensions, see
-      [http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php#section_light_parameters] }
+      [https://castle-engine.io/x3d_extensions_shadow_maps.php#section_light_parameters] }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
 
     strict private FFdProjectionFar: TSFFloat;
@@ -104,7 +104,7 @@
       should not be used in general).
 
       Use this only if you you know that light node occurs only once within the scene
-      (see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps]).
+      (see [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps]).
       Or if you're fine with just getting an undefined transformation,
       for any of the light instances.
 
@@ -1095,7 +1095,7 @@ begin
     GL_SPOT_EXPONENT is an exponent for cosinus.
     beamWidth says to use constant intensity within beamWidth angle,
     and linear drop off to cutOffAngle.
-    See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
+    See [https://castle-engine.io/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
     for more discussion. }
 
   if FdBeamWidth.Value >= FdCutOffAngle.Value then

@@ -297,7 +297,7 @@ type
 
   { Helper structure to keep octree limits. Useful to implement
     VRML/X3D extension
-    [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties]. }
+    [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties]. }
   TOctreeLimits = record
     MaxDepth: integer;
     LeafCapacity: Integer;

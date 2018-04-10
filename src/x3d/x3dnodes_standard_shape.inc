@@ -89,7 +89,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Whether to render this shape.
-      See http://castle-engine.sourceforge.net/x3d_implementation_shape_extensions.php }
+      See https://castle-engine.io/x3d_implementation_shape_extensions.php }
     strict private FFdRender: TSFBool;
     public property FdRender: TSFBool read FFdRender;
 
@@ -333,7 +333,7 @@
     FNode: TX3DNode;
   strict protected
     { Calculate physical material properties using standard VRML material
-      fields. See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_material_phong_brdf_fields].
+      fields. See [https://castle-engine.io/x3d_extensions.php#section_ext_material_phong_brdf_fields].
 
       These should be used by descendants implementation,
       for example CalculateReflSpecular should be used by descendant

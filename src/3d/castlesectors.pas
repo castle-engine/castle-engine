@@ -16,7 +16,7 @@
 { Sectors and waypoints, to improve creature AI in 3D levels.
   For user-oriented description what are sectors and waypoints,
   see "The Castle" developer docs,
-  [http://castle-engine.sourceforge.net/castle-development.php]. }
+  [https://castle-engine.io/castle-development.php]. }
 unit CastleSectors;
 
 {$I castleconf.inc}

@@ -61,7 +61,7 @@
 
   { Interpolate (animate) a set of 2D positions,
     using cubic Bezier curve instead of linear interpolation.
-    See http://castle-engine.sourceforge.net/x3d_implementation_interpolation_extensions.php . }
+    See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezier2DOrientationInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -87,7 +87,7 @@
 
   { Interpolate (animate) a set of 3D positions,
     using cubic Bezier curve instead of linear interpolation.
-    See http://castle-engine.sourceforge.net/x3d_implementation_interpolation_extensions.php . }
+    See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezierPositionInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;

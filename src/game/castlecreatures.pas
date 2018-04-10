@@ -163,7 +163,7 @@ type
       instance. You can use a special creature placeholder with
       a specific starting life value
       (see TGameSceneManager.LoadLevel for placeholders docs,
-      and see http://castle-engine.sourceforge.net/castle-development.php
+      and see https://castle-engine.io/castle-development.php
       about the creature placeholders).
       Or you can use CreateCreature overloaded version that takes extra MaxLife
       parameter.

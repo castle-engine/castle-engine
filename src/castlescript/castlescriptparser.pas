@@ -15,7 +15,7 @@
 
 (*
   @abstract(Parser for CastleScript language, see
-  [http://castle-engine.sourceforge.net/castle_script.php].)
+  [https://castle-engine.io/castle_script.php].)
 
   Can parse whole program in CastleScript language, is also prepared
   to parse only a single expression (usefull for cases when I need
@@ -50,7 +50,7 @@ type
 
   The end result is that this is perfect for describing things
   like function expressions, ideal e.g. for
-  [http://castle-engine.sourceforge.net/glplotter_and_gen_function.php].
+  [https://castle-engine.io/glplotter_and_gen_function.php].
 
   @param(Variables contains a list of named values you want
     to allow in this expression.

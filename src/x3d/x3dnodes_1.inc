@@ -2173,7 +2173,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 end;
@@ -2195,7 +2195,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 
@@ -2226,7 +2226,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 

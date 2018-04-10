@@ -387,7 +387,7 @@ var
     This prevents using up all the memory by accidentaly trying to read
     a long movie. Remember that our current implementation is @bold(not)
     suited for long movies, it will load very slowly and consume a lot of memory.
-    See http://castle-engine.sourceforge.net/x3d_implementation_texturing.php
+    See https://castle-engine.io/x3d_implementation_texturing.php
     notes about MovieTexture.
 
     By default this is equal to 1 minute, for 25 frames-per-second movie.

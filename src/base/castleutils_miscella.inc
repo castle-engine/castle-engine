@@ -96,7 +96,7 @@ function SFPCVersion: string;
 function SCompilerDescription: string;
 
 { Print some common info for programs released on
-  [http://castle-engine.sourceforge.net/].
+  [https://castle-engine.io/].
   This is useful only for programs released on this WWW page by Michalis.
   Resulting string is multiline.
 

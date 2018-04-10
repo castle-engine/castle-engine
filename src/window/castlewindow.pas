@@ -1548,7 +1548,7 @@ type
       showing anything on the desktop. This can be used for rendering
       and capturing OpenGL stuff without showing it on the desktop.
       One example is the @--screenshot option of view3dscene, see
-      [http://castle-engine.sourceforge.net/view3dscene.php#section_screenshot].
+      [https://castle-engine.io/view3dscene.php#section_screenshot].
 
       If you implement such thing, remember that you should not render
       and capture the normal front or back buffer contents.
@@ -2082,7 +2082,7 @@ type
 
     { Parse some command-line options and remove them from @link(Parameters)
       list. AllowedOptions specify which command-line options are handled.
-      See [http://castle-engine.sourceforge.net/opengl_options.php] for
+      See [https://castle-engine.io/opengl_options.php] for
       documentaion what these options actually do from user's point of view.
 
       @definitionList(

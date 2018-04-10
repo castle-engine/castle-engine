@@ -386,7 +386,7 @@ end;
   http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
   But we cannot use GTK 2.16 (e.g. Debian stable still only has
   GTK 2.12 on 2010-05;
-  on http://castle-engine.sourceforge.net/view3dscene.php#section_depends
+  on https://castle-engine.io/view3dscene.php#section_depends
   we promise GTK 2.6 should work).
 
   So we implement it ourselves, following ideas from

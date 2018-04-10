@@ -699,7 +699,7 @@ type
       to something else.
 
       Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
+      [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
 
       @groupBegin }
     function TriangleOctreeLimits: POctreeLimits;
@@ -719,7 +719,7 @@ type
       to something else.
 
       Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties]. }
+      [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties]. }
     function ShapeOctreeLimits: POctreeLimits;
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
@@ -1445,7 +1445,7 @@ type
       at load to a current time (seconds since Unix epoch ---
       that's what X3D standard says to use, although you can change
       it by KambiNavigationInfo.timeOriginAtLoad,
-      see http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php#section_ext_time_origin_at_load ).
+      see https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_time_origin_at_load ).
       You can perform this "time reset" yourself by @link(ResetTimeAtLoad)
       or @link(ResetTime). }
     function Time: TFloatTime; override;
@@ -1473,7 +1473,7 @@ type
 
       This honours VRML/X3D specification about VRML/X3D time origin,
       and our extension
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
+      [https://castle-engine.io/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
 
     { Initial world time, set by the last ResetTimeAtLoad call. }
@@ -1523,7 +1523,7 @@ type
 
     { Register compiled script handler, for VRML/X3D Script node with
       "compiled:" protocol.
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled]. }
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled]. }
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
@@ -1613,7 +1613,7 @@ type
 
       The main light is simply one with both @code(shadowVolumes) and
       @code(shadowVolumesMain) fields set to @true. See
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
+      [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]
       for more info.
       If no light with shadowVolumes = shadowVolumesMain = TRUE
       is present then this function returns @false,
@@ -1989,7 +1989,7 @@ type
 
       Note that this is not the only way to make shadow maps.
       VRML/X3D author can always make shadow maps by using lower-level nodes, see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps].
+      [https://castle-engine.io/x3d_extensions.php#section_ext_shadow_maps].
       When using these lower-level nodes, this property does not matter
       This property (and related ones
       like ShadowMapsDefaultSize)
@@ -4677,7 +4677,7 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 
             Just let programmer change per-shape properties if he wants,
             or user to change this per-shape by
-            [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
+            [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
           }
 
           SI.Current.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
@@ -5653,7 +5653,7 @@ procedure TCastleSceneCore.InternalSetTime(
           It will work assuming you never reset time to something < 1.
           (If you do reset time to something very small, then typical TimeSensors will
           have problems anyway,
-          see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ).
+          see https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php ).
 
             PlayingAnimationNode.StartTime := 0;
             PlayingAnimationNode.StopTime := 1;

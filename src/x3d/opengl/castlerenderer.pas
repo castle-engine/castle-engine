@@ -20,7 +20,7 @@
   TODO: this unit should be renamed to Internal at some point.
 
   The overview of the renderer can also be found in engine documentation
-  [http://castle-engine.sourceforge.net/engine_doc.php]
+  [https://castle-engine.io/engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
 
   @bold(Usage:)
@@ -244,7 +244,7 @@ type
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
-      field (see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_radiance_transfer])
+      field (see [https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer])
       then this is used to calculate the color of each vertex.
 
       Note that this is evaluated when object is rendered.
@@ -368,7 +368,7 @@ type
 
       @italic(Avoid using this.) It's not easy to create portable shaders,
       that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
-      http://castle-engine.sourceforge.net/compositing_shaders.php which still allow you
+      https://castle-engine.io/compositing_shaders.php which still allow you
       to write GLSL effects, but they are integrated into standard shader code. }
     property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
 
