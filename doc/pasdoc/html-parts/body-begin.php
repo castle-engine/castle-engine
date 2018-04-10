@@ -1,5 +1,9 @@
 <?php
 
+/* hack to force using https://castle-engine.io/ address,
+   not http, in generated HTML. */
+$_SERVER['HTTPS'] = 'on';
+
 global $castle_php_relative_path;
 $castle_php_relative_path = '../../../../cge-www/htdocs/';
 
