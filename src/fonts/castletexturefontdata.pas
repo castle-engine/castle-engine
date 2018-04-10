@@ -330,7 +330,7 @@ begin
   FontId := FontMgr.RequestFont(FileName);
 
   if IsCachedFile then
-    DeleteFile(FileName);
+    CheckDeleteFile(FileName, true);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then
