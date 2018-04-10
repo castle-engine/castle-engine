@@ -2,6 +2,10 @@
 
 <?php
 
+/* hack to force using https://castle-engine.io/ address,
+   not http, in generated HTML. */
+$_SERVER['HTTPS'] = 'on';
+
 global $castle_php_relative_path;
 $castle_php_relative_path = '../../../../cge-www/htdocs/';
 
@@ -44,3 +48,5 @@ echo_google_analytics_tracking();
 </script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="<?php echo CURRENT_URL; ?>kambi-php-lib/bootstrap/js/bootstrap.min.js"></script>
+<!-- JS using jquery -->
+<script type="text/javascript" src="<?php echo CURRENT_URL; ?>castle-engine.js">
