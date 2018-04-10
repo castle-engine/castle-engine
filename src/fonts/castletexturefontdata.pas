@@ -326,7 +326,9 @@ begin
     finally
       Cache.Free;
     end;
-  end;
+  end
+  else IsCachedFile := false;
+
   FontId := FontMgr.RequestFont(FileName);
 
   if IsCachedFile then
