@@ -743,7 +743,7 @@ type
     procedure PrepareResources; override;
     procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
       const Count: Integer); override;
-  end;
+  end deprecated 'use TGLImage. Loading image on-demand did not prove to be much useful, using TGLImage is simpler.';
 
 { Draw the image on 2D screen. Note that if you want to use this
   many times, it will be much faster to create TGLImage instance.
