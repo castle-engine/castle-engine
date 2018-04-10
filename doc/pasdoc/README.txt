@@ -1,10 +1,10 @@
 The script here generates the API documentation
-for Castle Game Engine (http://castle-engine.sourceforge.net/)
+for Castle Game Engine (https://castle-engine.io/)
 using PasDoc (http://pasdoc.sourceforge.net/).
 
 The online version of this documentation is already generated for you:
 
-- On http://castle-engine.sourceforge.net/apidoc/html/ , for the last stable
+- On https://castle-engine.io/apidoc/html/ , for the last stable
   engine release.
 
 - Or on http://michalis.ii.uni.wroc.pl/cge-www-preview/apidoc/html/ ,
