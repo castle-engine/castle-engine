@@ -108,7 +108,7 @@ type
       end;
 
     { Load animation data from castle-anim-frames file (in a given URL) to a set of variables.
-      See [http://castle-engine.sourceforge.net/castle_animation_frames.php]
+      See [https://castle-engine.io/castle_animation_frames.php]
       for a specification of the file format.
 
       If you want a comfortable way to load castle-anim-frames from a file,

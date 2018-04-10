@@ -42,7 +42,7 @@
 
   When reading and writing image files, we understand various image
   formats. See glViewImage documentation
-  ( http://castle-engine.sourceforge.net/glviewimage.php )
+  ( https://castle-engine.io/glviewimage.php )
   for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
@@ -1838,7 +1838,7 @@ var
   The URL processing is automatically registered by
   @link(TMaterialProperties MaterialProperties)
   to automatically use GPU compressed textures.
-  See http://castle-engine.sourceforge.net/creating_data_material_properties.php .
+  See https://castle-engine.io/creating_data_material_properties.php .
   You can also use it yourself, instead or in addition
   to @link(TMaterialProperties MaterialProperties) processing.
 

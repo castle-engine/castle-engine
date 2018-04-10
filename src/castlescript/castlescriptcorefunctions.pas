@@ -323,7 +323,7 @@ type
   end;
 
   { CastleScript function @code(shortcut),
-    see [http://castle-engine.sourceforge.net/castle_script.php#function_shortcut]. }
+    see [https://castle-engine.io/castle_script.php#function_shortcut]. }
   TCasScriptShortcut = class(TCasScriptFunction)
   public
     class function ShortName: string; override;

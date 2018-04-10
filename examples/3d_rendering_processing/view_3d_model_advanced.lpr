@@ -67,7 +67,7 @@ begin
   { Enable rendering models using shadow volumes. This requires some special
     code, as OpenGL must be prepared in a special way to enable it,
     and some GPUs (really ancient ones) may simply not support it.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows
+    See https://castle-engine.io/x3d_extensions.php#section_ext_shadows
     for documentation how to prepare your model to have shadow volumes,
     and for links to demo models using shadow volumes.
 

@@ -1,5 +1,4 @@
-(See also
-http://castle-engine.sourceforge.net/engine.php#section_license)
+(See also https://castle-engine.io/license.php )
 
 The core of "Castle Game Engine" (almost everything that can be found
 in this directory, castle_game_engine) may be used on the terms of:

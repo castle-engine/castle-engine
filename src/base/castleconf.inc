@@ -70,7 +70,7 @@
 
 { Configurable: define CASTLE_ENGINE_LGPL to compile only
   components available on permissive LGPL (see
-  http://castle-engine.sourceforge.net/engine.php#section_license) }
+  https://castle-engine.io/engine.php#section_license) }
 { $define CASTLE_ENGINE_LGPL}
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
@@ -343,7 +343,7 @@
 
 { If defined, the compiled code will have embedded all the variations
   of basic fonts for the X3D Text node
-  (see [http://castle-engine.sourceforge.net/x3d_implementation_text.php]).
+  (see [https://castle-engine.io/x3d_implementation_text.php]).
   This is comfortable (the FontStyle font works, with 3 * 4 font variations,
   out of the box), but it increases your exe size --- possibly without a reason,
   if you don't use FontStyle X3D node.

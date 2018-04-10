@@ -51,7 +51,7 @@ type
         (this is actually built-in in our modified TXMLConfig).)
     )
 
-    See http://castle-engine.sourceforge.net/tutorial_user_prefs.php
+    See https://castle-engine.io/tutorial_user_prefs.php
     for more documentation. }
   TCastleConfig = class(TXMLConfig)
   private
@@ -438,7 +438,7 @@ type
           to just load a file from the local filesystem.
           It can also be a full-blown URL, with a 'file://' protocol,
           or 'http://', or other supported protocols, see
-          http://castle-engine.sourceforge.net/tutorial_network.php )
+          https://castle-engine.io/tutorial_network.php )
 
         @item(The overloaded @code(Load) version with TStream loads from a stream.
           URL is set to PretendURL (just pass empty string if you don't

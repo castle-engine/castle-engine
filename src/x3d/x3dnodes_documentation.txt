@@ -1,6 +1,6 @@
 # TAbstractX3DViewpointNode.GravityUp
 Specify the gravity vector explicitly.
-See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php .
+See https://castle-engine.io/x3d_implementation_navigation_extensions.php .
 @deprecated
 
 # TTransformNode.Center

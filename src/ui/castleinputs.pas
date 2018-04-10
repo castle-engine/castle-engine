@@ -119,7 +119,7 @@ type
     input shortcut (with Group <> igLocal, see CastleInputs unit documentation):
     it is used for config file entries and for the CastleScript
     @code(shortcut()) function
-    [castle-engine.sourceforge.net/castle_script.php#function_shortcut] .
+    [https://castle-engine.io/castle_script.php#function_shortcut] .
     Any valid Pascal identifier will be Ok for these purposes. }
   TInputShortcut = class(TComponent)
   private

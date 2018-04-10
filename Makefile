@@ -74,7 +74,7 @@ build-using-fpmake:
 # So it does not copy .ppu/.o files, it does not change your /etc/fpc.cfg
 # or ~/.fpc.cfg. There are many ways how to install unit files,
 # we leave this step up to you.
-# See http://castle-engine.sourceforge.net/engine.php for documentation.
+# See https://castle-engine.io/engine.php for documentation.
 #
 # Below we only take care of installing the tools.
 # By default they are installed system-wide to /usr/local ,

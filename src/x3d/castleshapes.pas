@@ -600,7 +600,7 @@ type
 
     { Check is shape a shadow caster. Looks at Shape's
       Appearance.shadowCaster field (see
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_caster). }
+      https://castle-engine.io/x3d_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
 
     { Triangulate shape. Calls TriangleEvent callback for each triangle.
