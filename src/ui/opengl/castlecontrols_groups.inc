@@ -93,7 +93,7 @@
   published
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
-      read FAlignment write FAlignment default hpMiddle;
+      read FAlignment write FAlignment default hpLeft;
     property TopToBottom: boolean read FTopToBottom write SetTopToBottom
       default true;
   end;
@@ -243,7 +243,7 @@ end;
 constructor TCastleVerticalGroup.Create(AOwner: TComponent);
 begin
   inherited;
-  FAlignment := hpMiddle;
+  FAlignment := hpLeft;
   FTopToBottom := true;
 end;
 

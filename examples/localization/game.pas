@@ -146,7 +146,6 @@ begin
 
   BottomGroup := TCastleVerticalGroup.Create(Application);
   BottomGroup.TopToBottom := false;
-  BottomGroup.Alignment := hpLeft;
   BottomGroup.Anchor(vpBottom, 10);
   BottomGroup.Anchor(hpLeft, 10);
   BottomGroup.Frame := true;
