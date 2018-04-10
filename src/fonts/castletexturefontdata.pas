@@ -300,6 +300,7 @@ var
   C: TUnicodeChar;
   TemporaryCharacters: boolean;
   Cache: TStream;
+  CacheURL: String;
   IsCachedFile: Boolean;
 begin
   inherited Create;
@@ -318,9 +319,9 @@ begin
   begin
     Cache := Download(URL);
     try
-      FileName := ApplicationConfig('cache_' + ExtractURIName(URL));
-      StreamSaveToFile(Cache, FileName);
-      FileName := URIDeleteProtocol(FileName);
+      CacheURL := ApplicationConfig('cache_' + ExtractURIName(URL));
+      StreamSaveToFile(Cache, CacheURL);
+      FileName := URIDeleteProtocol(CacheURL);
       IsCachedFile := true;
     finally
       Cache.Free;
