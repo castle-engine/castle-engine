@@ -321,7 +321,7 @@ begin
     try
       CacheURL := ApplicationConfig('cache_' + ExtractURIName(URL));
       StreamSaveToFile(Cache, CacheURL);
-      FileName := URIDeleteProtocol(CacheURL);
+      FileName := URIToFilenameSafe(CacheURL);
       IsCachedFile := true;
     finally
       Cache.Free;
