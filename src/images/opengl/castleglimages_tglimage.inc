@@ -24,24 +24,41 @@ type
     @link(TCastleWindowCustom.OnRender) or
     @link(TCastleControlCustom.OnRender).
 
+    See the manual about drawing using TGLImage:
+    https://castle-engine.io/manual_quick_2d_game.php ,
+    https://castle-engine.io/manual_2d_ui_custom_drawn.php .
+    See the description how to render 2D stuff using Castle Game Engine:
+    https://github.com/castle-engine/castle-engine/wiki/2D-Games .
+
     An alternative way to show a 2D image is to use the full-featured
     2D control @link(TCastleImageControl). This will perform the drawing
     by itself, you only add it to
     @link(TCastleWindowCustom.Controls) or
     @link(TCastleControlCustom.Controls).
 
-    @bold(An instance of this class can only exist when the OpenGL context is open.)
-    So usually you create this in @link(TUIControl.GLContextOpen)
-    and destroy in @link(TUIControl.GLContextClose).
-    Or create in @link(TCastleWindowCustom.OnOpen) and destroy
-    in @link(TCastleWindowCustom.OnClose).
-    @bold(Use the descendant class @link(TGLImage) for more comfort.
-    The @link(TGLImage) instance can be created / destroyed at any moment,
-    regardless of the OpenGL context. This is especially important
-    on platforms when the OpenGL context may get lost at any moment,
-    like on Android.) }
+    @bold(You should always create an instance of @link(TGLImage),
+    never an instance of TGLImageCore. The class TGLImageCore is separate
+    from @link(TGLImage) only for backward compatibility.
+    We will merge @link(TGLImage) and @link(TGLImageCore)
+    into one class at some point, with the functionality of @link(TGLImage).) }
   TGLImageCore = class(TNoParameterlessContructor)
   strict private
+
+    { Explanation of how TGLImageCore and TGLImage differs
+      (removed from docs, I wanted to keep them simple):
+
+      An instance of TGLImageCore class can only exist when the OpenGL context is open.
+      So usually you create this in @link(TUIControl.GLContextOpen)
+      and destroy in @link(TUIControl.GLContextClose).
+      Or create in @link(TCastleWindowCustom.OnOpen) and destroy
+      in @link(TCastleWindowCustom.OnClose).
+      Use the descendant class @link(TGLImage) for more comfort.
+      The @link(TGLImage) instance can be created / destroyed at any moment,
+      regardless of the OpenGL context. This is especially important
+      on platforms when the OpenGL context may get lost at any moment,
+      like on Android.
+    }
+
     type
       TPoint = packed record
         Position: TVector2SmallInt;
@@ -141,8 +158,10 @@ type
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
       const ASmoothScaling: boolean); overload;
+      deprecated 'use TGLImage.Create, do not construct TGLImageCore';
 
-    constructor Create(const Image: TEncodedImage); overload; deprecated 'use TGLImage.Create(Image, ASmoothScaling, AOwnsImage) and specify ASmoothScaling explicitly';
+    constructor Create(const Image: TEncodedImage); overload;
+      deprecated 'use TGLImage.Create(Image, ASmoothScaling, AOwnsImage) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -162,6 +181,7 @@ type
     }
     constructor Create(const URL: string;
       const ASmoothScaling: boolean = true); overload;
+      deprecated 'use TGLImage.Create, do not construct TGLImageCore';
 
     { Load image from disk, and prepare for drawing.
 
@@ -204,6 +224,7 @@ type
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear); overload;
+      deprecated 'use TGLImage.Create, do not construct TGLImageCore';
 
     { Load image from disk, and prepare for drawing.
 
@@ -237,6 +258,7 @@ type
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean); overload;
+      deprecated 'use TGLImage.Create, do not construct TGLImageCore';
 
     destructor Destroy; override;
 
@@ -786,13 +808,17 @@ end;
 
 constructor TGLImageCore.Create(const Image: TEncodedImage);
 begin
+  {$warnings off} // calling deprecated from deprecated
   Create(Image, false);
+  {$warnings on}
 end;
 
 constructor TGLImageCore.Create(const URL: string;
   const ASmoothScaling: boolean);
 begin
+  {$warnings off} // calling deprecated from deprecated
   Create(URL, [], ASmoothScaling);
+  {$warnings on}
 end;
 
 constructor TGLImageCore.Create(const URL: string;
@@ -806,7 +832,9 @@ begin
     Image := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
     Image := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
+    {$warnings off} // calling deprecated from deprecated
     Create(Image, false);
+    {$warnings on}
   finally FreeAndNil(Image) end;
 end;
 
@@ -820,7 +848,9 @@ begin
     Image := LoadEncodedImage(URL, PixelsImageClasses) else
     Image := LoadEncodedImage(URL, LoadAsClass);
   try
+    {$warnings off} // calling deprecated from deprecated
     Create(Image, ASmoothScaling);
+    {$warnings on}
   finally FreeAndNil(Image) end;
 end;
 
@@ -1626,7 +1656,11 @@ end;
 constructor TGLImage.Create(const AImage: TEncodedImage;
   const ASmoothScaling, AOwnsImage: boolean);
 begin
+  // this is valid, we will merge TGLImage.Create and TGLImageCore.Create some day
+  {$warnings off}
   inherited Create(AImage, ASmoothScaling);
+  {$warnings on}
+
   // note that above Create will call virtual Load() which will already set our FImage
   FOwnsImage := AOwnsImage;
   ApplicationProperties.OnGLContextCloseObject.Add(
@@ -1786,7 +1820,9 @@ end;
 constructor TGLImageOnDemand.Create(const AURL: string;
   const ASmoothScaling: boolean);
 begin
+  {$warnings off} // calling deprecated from deprecated
   inherited Create(nil, ASmoothScaling);
+  {$warnings on}
   FURL := AURL;
   ApplicationProperties.OnGLContextCloseObject.Add(
     {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
@@ -1855,9 +1891,9 @@ end;
 
 procedure ImageDraw(const Image: TCastleImage);
 var
-  GLImage: TGLImageCore;
+  GLImage: TGLImage;
 begin
-  GLImage := TGLImageCore.Create(Image, false);
+  GLImage := TGLImage.Create(Image, false, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

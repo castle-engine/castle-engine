@@ -36,7 +36,7 @@ type
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
     FImage, FImageAsGrayscale: TCastleImage;
-    FGLImage, FGLImageAsGrayscale: TGLImageCore;
+    FGLImage, FGLImageAsGrayscale: TGLImage;
     FOwnsImage: boolean;
     procedure SetImage(const Value: TCastleImage);
     procedure ImageChanged;
@@ -157,6 +157,12 @@ end;
 
 procedure TCastleFlashEffect.GLContextOpen;
 begin
+  { TODO: After migrating TGLImageCore -> TGLImage,
+    there is no longer a need to create/destroy TGLImage instances
+    in GLContextOpen/GLContextClose.
+    We can instead create/destroy them in constructor/destructor,
+    and simplify this implementation. }
+
   inherited;
   ImageChanged;
 end;
@@ -177,7 +183,7 @@ begin
       if FGLImage <> nil then
         FGLImage.Load(FImage)
       else
-        FGLImage := TGLImageCore.Create(FImage, true);
+        FGLImage := TGLImage.Create(FImage, true, false);
     end else
       FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
 
@@ -186,7 +192,7 @@ begin
       if FGLImageAsGrayscale <> nil then
         FGLImageAsGrayscale.Load(FImageAsGrayscale)
       else
-        FGLImageAsGrayscale := TGLImageCore.Create(FImageAsGrayscale, true);
+        FGLImageAsGrayscale := TGLImage.Create(FImageAsGrayscale, true, false);
     end else
       FreeAndNil(FGLImageAsGrayscale); // make sure to free FGLImageAsGrayscale when FImageAsGrayscale is nil
 
@@ -222,7 +228,7 @@ end;
 
 procedure TCastleFlashEffect.Render;
 var
-  FinalImage: TGLImageCore;
+  FinalImage: TGLImage;
   FinalColor: TCastleColor;
   SourceFactor: TBlendingSourceFactor;
   DestinationFactor: TBlendingDestinationFactor;

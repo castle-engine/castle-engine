@@ -1343,9 +1343,7 @@ type
 
     { OpenGL context is created, initialize things that require OpenGL
       context. Often you do not need to use this callback (engine components will
-      automatically create/release OpenGL resource when necessary),
-      unless you deal with lower-level OpenGL resource managing (e.g. using
-      TGLImageCore).
+      automatically create/release OpenGL resource when necessary).
       You usually will also want to implement Window.OnClose callback that
       should release stuff you create here.
 
@@ -2071,9 +2069,9 @@ type
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImageCore; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TGLImageCore; overload;
+      const SmoothScaling: boolean = false): TGLImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -3175,7 +3173,7 @@ begin
 
     try
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
-        TGLImageCore.Create from Application.OnInitialize work Ok. }
+        TGLImage from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
       RenderLoadingBackground;
@@ -3712,14 +3710,14 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImageCore;
+function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TGLImageCore;
+  const SmoothScaling: boolean): TGLImage;
 begin
   if Closed then
     raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
