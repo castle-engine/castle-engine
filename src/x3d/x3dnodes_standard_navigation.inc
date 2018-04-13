@@ -81,7 +81,7 @@
 
       Additionally, as an extension, we also look at FdDirection and FdUp
       and FdGravityUp vectors. See
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_cameras_alt_orient
+      https://castle-engine.io/x3d_extensions.php#section_ext_cameras_alt_orient
 
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);

@@ -778,7 +778,7 @@ function SPercentReplace(const InitialFormat: string;
   had to be broken anyway (after Castle Game Engine 4.0.1, you have to fix
   URLs to image sequences anyway, as @code(%4d) must mean letter "M").
 
-  See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_movie_from_image_sequence
+  See https://castle-engine.io/x3d_extensions.php#section_ext_movie_from_image_sequence
   for an example when this is useful.
 
   @groupBegin }

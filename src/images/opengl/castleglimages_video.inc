@@ -81,10 +81,10 @@ type
     function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
   end;
 
-  { Video expressed as a series of TGLImageCore, to play as 2D GUI control. }
+  { Video expressed as a series of TGLImage, to play as 2D GUI control. }
   TGLVideo2D = class(TGLVideo)
   private
-    FItems: array of TGLImageCore;
+    FItems: array of TGLImage;
   public
     constructor Create(Video: TVideo;
       const SmoothScaling: boolean = true); overload;
@@ -96,7 +96,7 @@ type
       const Interpolation: TResizeInterpolation = riBilinear); overload;
     destructor Destroy; override;
 
-    function GLImageFromTime(const Time: TFloatTime): TGLImageCore;
+    function GLImageFromTime(const Time: TFloatTime): TGLImage;
   end;
 
 {$endif read_interface}
@@ -171,7 +171,7 @@ begin
 
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
-    FItems[I] := TGLImageCore.Create(Video.Items[I], SmoothScaling);
+    FItems[I] := TGLImage.Create(Video.Items[I], SmoothScaling, false);
 end;
 
 constructor TGLVideo2D.Create(const URL: string;
@@ -209,7 +209,7 @@ begin
   inherited;
 end;
 
-function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImageCore;
+function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;

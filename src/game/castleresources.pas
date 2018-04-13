@@ -74,7 +74,7 @@ type
     function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
     { Scene URL, only when each animation is inside a separate 3D file.
-      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
     property URL: string read FURL write FURL;
 
@@ -87,7 +87,7 @@ type
       animation model (from @link(URL)) or, when not defined,
       inside whole resource model (from @link(T3DResource.ModelURL)).
 
-      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
     property AnimationName: string read FAnimationName write FAnimationName;
     property TimeSensor: string read FAnimationName write FAnimationName;
@@ -285,7 +285,7 @@ type
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
       see "Which way is up" section in the engine tutorial
-      [http://castle-engine.sourceforge.net/tutorial_up.php].
+      [https://castle-engine.io/tutorial_up.php].
 
       Currently, falling down of creatures and items just uses this constant speed.
       In the future, we plan to add properties to control mass and air friction
@@ -326,7 +326,7 @@ type
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
-      [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      [https://castle-engine.io/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
     property ModelURL: string read FModelURL write FModelURL;
   end;

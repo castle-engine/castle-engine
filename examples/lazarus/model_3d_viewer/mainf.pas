@@ -186,7 +186,7 @@ end;
 
 procedure TMain.MenuWebsiteClick(Sender: TObject);
 begin
-  if not OpenURL('http://castle-engine.sourceforge.net/') then
+  if not OpenURL('https://castle-engine.io/') then
     MessageDlg('WWW browser not found on your system.', mtError, [mbClose], 0);
 end;
 

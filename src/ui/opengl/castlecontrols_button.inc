@@ -49,7 +49,7 @@
       FGLCustomBackgroundPressed,
       FGLCustomBackgroundDisabled,
       FGLCustomBackgroundFocused,
-      FGLCustomBackgroundNormal: TGLImageCore;
+      FGLCustomBackgroundNormal: TGLImage;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
       FOwnsCustomBackgroundDisabled,
@@ -391,7 +391,7 @@ var
 var
   ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Single;
   Background: TThemeImage;
-  CustomBackgroundImage: TGLImageCore;
+  CustomBackgroundImage: TGLImage;
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
@@ -501,17 +501,23 @@ end;
 
 procedure TCastleButton.GLContextOpen;
 begin
+  { TODO: After migrating TGLImageCore -> TGLImage,
+    there is no longer a need to create/destroy TGLImage instances
+    in GLContextOpen/GLContextClose.
+    We can instead create/destroy them in constructor/destructor,
+    and simplify this implementation. }
+
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImageCore.Create(FImage, true);
+    FGLImage := TGLImage.Create(FImage, true, false);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
-    FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
+    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
   if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
-    FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
+    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
-    FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
+    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
   UpdateTextSize;
 end;
 
@@ -698,8 +704,10 @@ begin
 
     FImage := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImageCore.Create(FImage, true);
+      FGLImage := TGLImage.Create(FImage, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -714,8 +722,10 @@ begin
 
     FCustomBackgroundPressed := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
-      FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
+      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -730,8 +740,10 @@ begin
 
     FCustomBackgroundDisabled := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
-      FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
+      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -746,8 +758,10 @@ begin
 
     FCustomBackgroundFocused := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
-      FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
+      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -762,8 +776,10 @@ begin
 
     FCustomBackgroundNormal := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
-      FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
+      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
 
     FFinalScaledValid := false;
   end;

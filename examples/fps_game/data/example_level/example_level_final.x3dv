@@ -93,7 +93,7 @@ Background {
 #   cutOffAngle 1
 #
 #   # Uncomment lines below to get shadow by shadow maps.
-#   # See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php
+#   # See https://castle-engine.io/x3d_extensions_shadow_maps.php
 #   # for a full documentation.
 #   # In a very trivial cases, it's enough to just say "shadows TRUE",
 #   # although you may want to adjust other settings.
@@ -109,7 +109,7 @@ Background {
 #   # }
 #
 #   # Uncomment lines below to get shadow by shadow volumes.
-#   # See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows .
+#   # See https://castle-engine.io/x3d_extensions.php#section_ext_shadows .
 #   # There are advantages and disadvantages to both shadow approaches.
 #   # Also our shadow volumes implementation is a little limited now: only 1 light.
 #   # Only 2-manifold objects cast shadows by shadow volumes, which include

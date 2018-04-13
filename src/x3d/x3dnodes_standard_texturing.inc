@@ -57,7 +57,7 @@
 
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
-      (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
+      (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ) }
     function AlphaChannelFinal: TAlphaChannel;
 
     strict private FFdAlphaChannel: TSFStringEnum;

@@ -84,7 +84,7 @@ begin
     P.ExternalURL
     {$else}
     P.HomepageURL
-    {$endif} := 'http://castle-engine.sourceforge.net/';
+    {$endif} := 'https://castle-engine.io/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
 

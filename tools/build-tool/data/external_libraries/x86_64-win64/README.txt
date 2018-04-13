@@ -1,6 +1,6 @@
 Libraries (DLL files) for Windows 64-bit, to be distributed
 together with Windows 64-bit programs using the Castle Game Engine
-( http://castle-engine.sourceforge.net/ ).
+( https://castle-engine.io/ ).
 
 You need to distribute these files together with your Windows programs,
 alongside the exe file. You can use our build tool (see

@@ -35,10 +35,10 @@ type
     For their meaning, see the X3D specification about
     TextureCoordinateGenerator.mode values.
     We also add some extensions, see
-    [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_tex_coord_worldspace] and
-    [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_tex_coord_bounds].
+    [https://castle-engine.io/x3d_extensions.php#section_ext_tex_coord_worldspace] and
+    [https://castle-engine.io/x3d_extensions.php#section_ext_tex_coord_bounds].
     We also support ProjectedTextureCoordinate, see
-    [http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php#section_ext_texture_gen_projective].
+    [https://castle-engine.io/x3d_extensions_shadow_maps.php#section_ext_texture_gen_projective].
 
     Special value tgExplicit means that texture coordinates are not generated. }
   TTextureCoordinateGeneration = (

@@ -376,7 +376,7 @@ type
 
       Note that when using CastleLevels, then the headBobbing defined
       inside VRML/X3D file (see
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_head_bobbing )
+      https://castle-engine.io/x3d_extensions.php#section_ext_head_bobbing )
       is ignored. Instead, Player properties control TWalkCamera.HeadBobbing
       and TWalkCamera.HeadBobbingTime. }
     property HeadBobbing: Single

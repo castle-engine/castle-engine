@@ -328,7 +328,7 @@ begin
     glBlendFunc parameters), and they will work even on ancient GPUs.
 
     To create more fancy effects, you can use our GLSL screen effects API.
-    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php .
+    See https://castle-engine.io/x3d_extensions_screen_effects.php .
     They can be even set up completely in VRML/X3D file (no need for ObjectPascal
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
@@ -455,7 +455,7 @@ begin
   { Load user preferences file.
     You can use it for your own user persistent data
     (preferences or savegames), see
-    http://castle-engine.sourceforge.net/tutorial_user_prefs.php . }
+    https://castle-engine.io/tutorial_user_prefs.php . }
   //UserConfig.Load;
 
   { Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
@@ -632,7 +632,7 @@ initialization
   ApplicationProperties.ApplicationName := 'fps_game';
 
   { Enable log.
-    See http://castle-engine.sourceforge.net/tutorial_log.php
+    See https://castle-engine.io/tutorial_log.php
     to know where it's going. }
   InitializeLog;
 

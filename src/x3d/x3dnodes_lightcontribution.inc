@@ -12,7 +12,7 @@
 
     @item(
       For VRML 1.0, we have to calculate ambientFactor in a little different way:
-      see [http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation],
+      see [https://castle-engine.io/x3d_extensions.php#ext_light_attenuation],
       when light's ambientIntensity is < 0 then we just return 0 and
       otherwise we use material's ambientColor.)
 

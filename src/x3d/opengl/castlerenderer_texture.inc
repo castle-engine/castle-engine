@@ -608,7 +608,7 @@ procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   replace material color (see "Lighting model" spec) *in case of RGB
   (not grayscale) textures*. We contradict spec, instead modulating
   with material color because of GL_MODULATE below. See
-  http://castle-engine.sourceforge.net/x3d_multi_texturing.php#section_default_texture_mode .
+  https://castle-engine.io/x3d_multi_texturing.php#section_default_texture_mode .
 
   For alpha channel: specification says clearly that texture alpha
   should replace (never modulate) alpha channel, if only texture

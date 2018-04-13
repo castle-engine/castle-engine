@@ -275,7 +275,7 @@ end;
 function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImageCore;
 begin
   if FGLImages[ImageType] = nil then
-    FGLImages[ImageType] := TGLImageCore.Create(FImages[ImageType], true);
+    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true, false);
   Result := FGLImages[ImageType];
 end;
 

@@ -1,5 +1,5 @@
 { Simple program that uses CastleScript to create an image
-  [http://castle-engine.sourceforge.net/caste_script.php].
+  [https://castle-engine.io/caste_script.php].
   CastleScript allows you to load an existing image, or start from scratch,
   and perform basic image processing. After the script executed,
   we will save image to file.

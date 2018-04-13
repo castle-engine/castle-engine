@@ -275,9 +275,7 @@ type
 
       You can initialize things that require OpenGL context now.
       Often you do not need to use this callback (engine components will
-      automatically create/release OpenGL resource when necessary),
-      unless you deal with lower-level OpenGL resource managing (e.g. using
-      TGLImageCore).
+      automatically create/release OpenGL resource when necessary).
       You usually will also want to implement OnClose callback that
       should release stuff you create here.
 

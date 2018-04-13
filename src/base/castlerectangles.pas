@@ -689,7 +689,10 @@ end;
 
 function TRectangle.ToString: string;
 begin
-  Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TRectangle: Empty'
+  else
+    Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
 end;
 
 function TRectangle.Center: TVector2Integer;
@@ -1123,7 +1126,10 @@ end;
 
 function TFloatRectangle.ToString: string;
 begin
-  Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TFloatRectangle: Empty'
+  else
+    Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
 end;
 
 function TFloatRectangle.Translate(const V: TVector2): TFloatRectangle;

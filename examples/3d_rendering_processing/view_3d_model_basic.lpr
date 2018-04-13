@@ -24,7 +24,7 @@
   (if a scene uses mouse/key sensors), allows you to navigate within it
   (with navigation mode adjusted to NavigationInfo.type, see view3dscene docs
   for keys/mouse to control Walk/Examine navigation
-  [http://castle-engine.sourceforge.net/view3dscene.php]), with collision
+  [https://castle-engine.io/view3dscene.php]), with collision
   detection and generally with *everything* working. }
 program view_3d_model_basic;
 

@@ -18,7 +18,7 @@
 
   Run with $1 = 3d model to open.
   Navigate by mouse/keys like in view3dscene (see
-  http://castle-engine.sourceforge.net/view3dscene.php).
+  https://castle-engine.io/view3dscene.php).
 
   Keys s / S scale shadow more / less (for more/less dramatic effect;
   the default scale is anyway 2 times larger than what math suggests,

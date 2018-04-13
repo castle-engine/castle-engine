@@ -473,7 +473,7 @@ type
 
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php]).
+      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
       and ScreenEffectsNeedDepth to add screen effects by code.
       Each viewport may have it's own, different screen effects.
@@ -618,7 +618,7 @@ type
       is 2-manifold, that is has a correctly closed volume.
       Also you need a light source
       marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]
       for details. }
     property ShadowVolumes: boolean
       read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
@@ -1234,7 +1234,7 @@ type
 
     @unorderedList(
       @item(Explanation with an example:
-        http://castle-engine.sourceforge.net/tutorial_2d_user_interface.php#section_viewport)
+        https://castle-engine.io/tutorial_2d_user_interface.php#section_viewport)
       @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
       @item(Example in engine sources: examples/fps_game/)
     )

@@ -20,7 +20,7 @@
   in the center of the window.
 
   Accepts command-line options from
-  http://castle-engine.sourceforge.net/openal.php }
+  https://castle-engine.io/openal.php }
 program doppler_demo;
 
 uses SysUtils, CastleVectors, CastleWindow, CastleColors, CastleGLUtils,
