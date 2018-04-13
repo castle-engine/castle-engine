@@ -28,17 +28,20 @@ var i, ix, iy: Integer;
 begin
   Rnd := TCastleRandom.Create;
   try
+    { testing overall homogeneity }
     for ix := 0 to Image1.Width do
       for iy := 0 to Image1.Height div 2 do
         with Image1.Canvas do begin
-          Brush.Color := Round(Rnd.random(255))+256*Round(Rnd.Random(255))+65536*Round(Rnd.Random(255));
+          Brush.Color := Round(Rnd.random(255)) + 256 * Round(Rnd.Random(255))
+            + 65536 * Round(Rnd.Random(255));
           FillRect(ix, iy, ix + 1, iy + 1);
         end;
-    Image1.Canvas.Brush.Color := 255 + 255*256 + 255*65536;
+    { testing individual values homogeneity }
+    Image1.Canvas.Brush.Color := 255 + 255 * 256 + 255 * 65536;
     for i := 0 to 10000 do
     begin
       ix := Rnd.Random(Image1.Width);
-      iy := Rnd.Random(Image1.Height div 2) + Height div 2;
+      iy := Rnd.Random(Image1.Height div 2) + Image1.Height div 2;
       Image1.Canvas.FillRect(ix, iy, ix + 1, iy + 1);
     end;
   finally
