@@ -14,6 +14,14 @@ msgstr "Deutsche"
 msgid "Polish"
 msgstr "Polieren"
 
+#: game:captionbuttonswitchrussian
+msgid "Russian"
+msgstr "Russisch"
+
+#: game:captionbuttonswitchukrainian
+msgid "Ukrainian"
+msgstr "Ukrainisch"
+
 #: game:captionbuttonmessage
 msgid "Show Message"
 msgstr "Zeige Nachricht"
