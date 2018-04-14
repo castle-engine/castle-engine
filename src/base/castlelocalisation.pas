@@ -111,8 +111,8 @@ end;
 
 function TCastleLocalisation.Get(AKey: String): String;
 begin
-  Result := AKey; //When no translation is found, return the key.
-  FLanguage.TryGetValue(AKey, Result);
+  if not FLanguage.TryGetValue(AKey, Result) then
+    Result := AKey; //When no translation is found, return the key.
 end;
 
 //////////////
