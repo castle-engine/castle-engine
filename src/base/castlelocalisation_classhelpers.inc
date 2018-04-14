@@ -15,59 +15,152 @@
 
 {$ifdef read_interface}
 
+  type
+    TLocalisationHelperFields = class
+      FOnUpdateLocalised: TOnUpdateLocalisationEvent;
+      FLastLocalisedText: String;
+    end;
+
   { Base class for all user interface controls using the localisation.
     Allows to automatically localise the text of the control and adjust to language changes. }
-  TUIControlLocalised = class helper for TUIControlFont
-  strict private
-    FOnUpdateLocalised: TOnUpdateLocalisationEvent;
-    procedure SetOnUpdateLocalised(const AOnUpdateLocalised: TOnUpdateLocalisationEvent);
-  strict protected
-    FLocalisationID: String;
-    procedure SetLocalisationID(const ALocalisationID: String);
-  public
-    destructor Destroy; override;
-    { Localisation ID to load a localised caption. }
-    property LocalisationID: string read FLocalisationID write SetLocalisationID;
-    property OnUpdateLocalised: TOnUpdateLocalisationEvent write SetOnUpdateLocalised;
-  end;
+  type
+    TUIControlFontHelperLocalised = class helper for TUIControlFont
+    strict private
+      procedure SetOnUpdateLocalised(const AOnUpdateLocalised: TOnUpdateLocalisationEvent);
+    protected
+      function Fields: TLocalisationHelperFields; inline;
+    strict protected
+      function GetLocalisationID: String;
+      procedure SetLocalisationID(const ALocalisationID: String);
+    public
+      constructor Create(AOwner: TComponent);
+      procedure BeforeDestruction;
+      { Localisation ID to load a localised caption. }
+      property LocalisationID: string read GetLocalisationID write SetLocalisationID;
+      property OnUpdateLocalised: TOnUpdateLocalisationEvent write SetOnUpdateLocalised;
+    end;
+
+    TCastleLabelHelperLocalised = class helper for TCastleLabel
+    strict private
+      procedure UpdateLocalisedCaption;
+    public
+      constructor Create(AOwner: TComponent);
+    end;
+
+    TCastleButtonHelperLocalised = class helper for TCastleButton
+    strict private
+      procedure UpdateLocalisedCaption;
+    public
+      constructor Create(AOwner: TComponent);
+    end;
+
+    TCastleEditHelperLocalised = class helper for TCastleEdit
+    strict private
+      procedure UpdateLocalisedText;
+    public
+      constructor Create(AOwner: TComponent);
+    end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TUIControlLocalised -------------------------------------------------------- }
+{ TUIControlFontHelperLocalised ----------------------------------------------------- }
 
-destructor TUIControlLocalised.Destroy;
+constructor TUIControlFontHelperLocalised.Create(AOwner: TComponent);
 begin
-  if Assigned(FOnUpdateLocalised) then
-    Localisation.OnUpdateLocalisation.Remove(FOnUpdateLocalised);
+  inherited;
+
+  Tag := PtrUInt(TLocalisationHelperFields.Create);
+end;
+
+procedure TUIControlFontHelperLocalised.BeforeDestruction;
+begin
+  if Assigned(Fields.FOnUpdateLocalised) then
+    Localisation.OnUpdateLocalisation.Remove(Fields.FOnUpdateLocalised);
 
   inherited;
 end;
 
-procedure TUIControlLocalised.SetOnUpdateLocalised(const AOnUpdateLocalised: TOnUpdateLocalisationEvent);
+procedure TUIControlFontHelperLocalised.SetOnUpdateLocalised(const AOnUpdateLocalised: TOnUpdateLocalisationEvent);
 begin
-  FOnUpdateLocalised := AOnUpdateLocalised;
-  if FLocalisationID <> '' then
+  Fields.FOnUpdateLocalised := AOnUpdateLocalised;
+  if Name <> '' then
     AOnUpdateLocalised();
 end;
 
-procedure TUIControlLocalised.SetLocalisationID(const ALocalisationID: String);
+function TUIControlFontHelperLocalised.Fields: TLocalisationHelperFields;
 begin
-  if ALocalisationID <> FLocalisationID then
-  begin
-    if Assigned(FOnUpdateLocalised) then
-    begin
-      if FLocalisationID = '' then
-        Localisation.OnUpdateLocalisation.Add(FOnUpdateLocalised)
-      else if ALocalisationID = '' then
-        Localisation.OnUpdateLocalisation.Remove(FOnUpdateLocalised);
+  Result := TLocalisationHelperFields(Tag);
+end;
 
-      FLocalisationID := ALocalisationID;
-      FOnUpdateLocalised;
+function TUIControlFontHelperLocalised.GetLocalisationID: String;
+begin
+  Result := Name;
+end;
+
+procedure TUIControlFontHelperLocalised.SetLocalisationID(const ALocalisationID: String);
+begin
+  if ALocalisationID <> Name then
+  begin
+    if Assigned(Fields.FOnUpdateLocalised) then
+    begin
+      if Name = '' then
+        Localisation.OnUpdateLocalisation.Add(Fields.FOnUpdateLocalised)
+      else if ALocalisationID = '' then
+        Localisation.OnUpdateLocalisation.Remove(Fields.FOnUpdateLocalised);
+
+      Name := ALocalisationID;
+      Fields.FOnUpdateLocalised;
     end
     else
-      FLocalisationID := ALocalisationID;
+      Name := ALocalisationID;
+  end;
+end;
+
+{ TCastleLabelHelperLocalised ----------------------------------------------------- }
+
+constructor TCastleLabelHelperLocalised.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  OnUpdateLocalised := @UpdateLocalisedCaption;
+end;
+
+procedure TCastleLabelHelperLocalised.UpdateLocalisedCaption;
+begin
+  Caption := Localisation[LocalisationID];
+end;
+
+{ TCastleButtonHelperLocalised ----------------------------------------------------- }
+
+constructor TCastleButtonHelperLocalised.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  OnUpdateLocalised := @UpdateLocalisedCaption;
+end;
+
+procedure TCastleButtonHelperLocalised.UpdateLocalisedCaption;
+begin
+  Caption := Localisation[LocalisationID];
+end;
+
+{ TCastleEditHelperLocalised ----------------------------------------------------- }
+
+constructor TCastleEditHelperLocalised.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  OnUpdateLocalised := @UpdateLocalisedText;
+end;
+
+procedure TCastleEditHelperLocalised.UpdateLocalisedText;
+begin
+  if Text = Fields.FLastLocalisedText then //Only localise if the text hasn't been changed manually.
+  begin
+    Fields.FLastLocalisedText := Localisation[LocalisationID];
+    Text := Fields.FLastLocalisedText;
   end;
 end;
 

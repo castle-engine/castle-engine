@@ -23,7 +23,8 @@ interface
 
 uses
   Classes, Generics.Collections, {$ifdef ANDROID}JNI,{$endif}
-  CastleStringUtils;
+  CastleStringUtils,
+  CastleControls;
 
 type
   TLanguage = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
@@ -70,9 +71,9 @@ implementation
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
 {$warnings on}
 
-{$define read_interface}
+{$define read_implementation}
 {$I castlelocalisation_classhelpers.inc}
-{$undef read_interface}
+{$undef read_implementation}
 
 var
   MobileSystemLanguage: String;
