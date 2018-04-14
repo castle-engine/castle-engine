@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eu
 
-# Include all the special Polish and German chars to include in a font.
-SAMPLE_TEXT='ŚĆĘĄŹŁŻÓŃśćęąźłżóń'
+# Include all the special Polish, German, Russian and Ukrainian chars to include in a font.
+SAMPLE_TEXT='ŚĆĘĄŹŁŻÓŃśćęąźłżóńйцукенгшщзхъфывапролджэячсмитьбюёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁїієЇІЄ'
 
 # Note that we create font with a large size (50),
 # this makes it look good in the 3D view when the letters are huge.

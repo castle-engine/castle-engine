@@ -42,6 +42,8 @@ resourcestring
   CaptionButtonSwitchEnglish = 'English';
   CaptionButtonSwitchGerman = 'German';
   CaptionButtonSwitchPolish = 'Polish';
+  CaptionButtonSwitchRussian = 'Russian';
+  CaptionButtonSwitchUkrainian = 'Ukrainian';
   CaptionButtonMessage = 'Show Message';
   EditTextInitial = 'Initial Edit Contents';
   CaptionLabel = 'My Label';
@@ -63,7 +65,8 @@ type
     { Things that contain text (and need to be modified by SwitchLanguage). }
     TextNode: TTextNode;
     Edit: TCastleEdit;
-    ButtonSwitchEnglish, ButtonSwitchGerman, ButtonSwitchPolish: TCastleButton;
+    ButtonSwitchEnglish, ButtonSwitchGerman, ButtonSwitchPolish,
+      ButtonSwitchRussian, ButtonSwitchUkrainian: TCastleButton;
     ButtonMessage: TCastleButton;
     Lab: TCastleLabel;
 
@@ -80,6 +83,8 @@ type
     procedure ClickButtonEnglish(Sender: TObject);
     procedure ClickButtonGerman(Sender: TObject);
     procedure ClickButtonPolish(Sender: TObject);
+    procedure ClickButtonRussian(Sender: TObject);
+    procedure ClickButtonUkrainian(Sender: TObject);
   public
     { Animate text rotation. }
     procedure Update(const SecondsPassed: TFloatTime);
@@ -170,6 +175,16 @@ begin
   ButtonSwitchPolish.OnClick := @ClickButtonPolish;
   ButtonsToSwitchLanguage.InsertFront(ButtonSwitchPolish);
 
+  ButtonSwitchRussian := TCastleButton.Create(Application);
+  ButtonSwitchRussian.Caption := CaptionButtonSwitchRussian;
+  ButtonSwitchRussian.OnClick := @ClickButtonRussian;
+  ButtonsToSwitchLanguage.InsertFront(ButtonSwitchRussian);
+
+  ButtonSwitchUkrainian := TCastleButton.Create(Application);
+  ButtonSwitchUkrainian.Caption := CaptionButtonSwitchUkrainian;
+  ButtonSwitchUkrainian.OnClick := @ClickButtonUkrainian;
+  ButtonsToSwitchLanguage.InsertFront(ButtonSwitchUkrainian);
+
   ButtonMessage := TCastleButton.Create(Application);
   ButtonMessage.Caption := CaptionButtonMessage;
   ButtonMessage.OnClick := @ClickButtonMessage;
@@ -221,6 +236,8 @@ begin
   ButtonSwitchEnglish.Caption := CaptionButtonSwitchEnglish;
   ButtonSwitchGerman.Caption := CaptionButtonSwitchGerman;
   ButtonSwitchPolish.Caption := CaptionButtonSwitchPolish;
+  ButtonSwitchRussian.Caption := CaptionButtonSwitchRussian;
+  ButtonSwitchUkrainian.Caption := CaptionButtonSwitchUkrainian;
   ButtonMessage.Caption := CaptionButtonMessage;
   Lab.Caption := CaptionLabel;
 
@@ -241,6 +258,16 @@ end;
 procedure TApplicationLogic.ClickButtonPolish(Sender: TObject);
 begin
   SwitchLanguage('pl');
+end;
+
+procedure TApplicationLogic.ClickButtonRussian(Sender: TObject);
+begin
+  SwitchLanguage('ru');
+end;
+
+procedure TApplicationLogic.ClickButtonUkrainian(Sender: TObject);
+begin
+  SwitchLanguage('ua');
 end;
 
 { ----------------------------------------------------------------------------

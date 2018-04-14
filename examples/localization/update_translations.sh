@@ -10,5 +10,7 @@ do_language ()
 do_language en
 do_language de
 do_language pl
+do_language ru
+do_language ua
 
 echo 'Everything done OK.'
