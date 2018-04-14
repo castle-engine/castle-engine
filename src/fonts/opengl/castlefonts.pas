@@ -1176,8 +1176,10 @@ begin
   if Outline <> 0 then
   begin
     GlyphsToRender := 0;
-    ScreenX := X;
-    ScreenY := Y;
+    { While Round() below is not needed, it improves the quality of rendered
+      text. Compare e.g. view3dscene button captions. }
+    ScreenX := Round(X);
+    ScreenY := Round(Y);
     if TargetImage <> nil then
       FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
@@ -1222,8 +1224,10 @@ begin
   end;
 
   GlyphsToRender := 0;
-  ScreenX := X;
-  ScreenY := Y;
+  { While Round() below is not needed, it improves the quality of rendered
+    text. }
+  ScreenX := Round(X);
+  ScreenY := Round(Y);
   if TargetImage <> nil then
     FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
