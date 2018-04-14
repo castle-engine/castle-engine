@@ -33,7 +33,6 @@
   TCastleTableViewCell = class(TCastleRectangleControl)
     strict private
       FTextLabel: TCastleLabel;
-      FTag: Integer;
       FImageIcon: TCastleImageControl;
       FAccessoryType: TCastleTableViewCellAccessoryType;
       FAccessoryTypeImage: TCastleImageControl;   // image representing the AccessoryType
@@ -59,8 +58,6 @@
       { Any custom control added at the right cell border (e.g. SwitchControl, ImageControl) }
       property AccessoryControl: TUIControl
                               read FAccessoryControl write SetAccessoryControl default nil;
-      { Custom data. }
-      property Tag: Integer read FTag write FTag default 0;
   end;
 
   TCastleTableViewCellList = specialize TObjectList<TCastleTableViewCell>;
