@@ -64,7 +64,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       function SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
-      procedure Add(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+      procedure AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
     public
       property LanguageURL: String read FLanguageURL write LoadLanguage;
       property Items[AKey: String]: String read Get; default;
@@ -80,7 +80,7 @@ var
   Localisation: TCastleLocalisation; //Singleton.
 
 {$define read_interface}
-{$I castlelocalisation_caslecore.inc}
+{$I castlelocalisation_castlecore.inc}
 {$undef read_interface}
 
 implementation
@@ -92,7 +92,7 @@ implementation
 {$warnings on}
 
 {$define read_implementation}
-{$I castlelocalisation_caslecore.inc}
+{$I castlelocalisation_castlecore.inc}
 {$undef read_implementation}
 
 var
@@ -247,11 +247,27 @@ begin
     Result := ADefaultLanguage;
 end;
 
-procedure TCastleLocalisation.Add(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+procedure TCastleLocalisation.AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+var
+  IsNewEntry: Boolean;
 begin
-  FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
-  FOnUpdateLocalisationEventList.Add(@ALocalisationComponent.OnUpdateLocalisation);
-  ALocalisationComponent.FreeNotification(Self);
+  if ALocalisationID = '' then
+    Exit;
+
+  IsNewEntry := true;
+  try
+    FLocalisationIDList.Add(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
+  except
+    //There is an exception raised if the value already exists.
+    IsNewEntry := false;
+    FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
+  end;
+
+  if IsNewEntry then
+  begin
+    FOnUpdateLocalisationEventList.Add(@ALocalisationComponent.OnUpdateLocalisation);
+    ALocalisationComponent.FreeNotification(Self);
+  end;
 
   ALocalisationComponent.OnUpdateLocalisation(Items[ALocalisationID]);
 end;
