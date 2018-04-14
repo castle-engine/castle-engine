@@ -190,9 +190,9 @@ type
       (from the line FirstToBreak).
 
       @groupBegin }
-    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: integer); overload;
-    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: integer); overload;
-    procedure BreakLines(broken: TStrings; MaxLineWidth: Integer; FirstToBreak: integer); overload;
+    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(broken: TStrings; MaxLineWidth: Single; FirstToBreak: integer); overload;
     { @groupEnd }
 
     { Largest width of the line of text in given list.
@@ -668,7 +668,7 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;
-  broken: TStrings; MaxLineWidth: integer);
+  broken: TStrings; MaxLineWidth: Single);
 var
   unbrokenlist: TStringList;
 begin
@@ -680,7 +680,7 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(unbroken, broken: TStrings;
-  MaxLineWidth: integer);
+  MaxLineWidth: Single);
 var
   i, FirstToBreak: Integer;
 begin
@@ -690,7 +690,7 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(broken: TStrings;
-  MaxLineWidth: Integer; FirstToBreak: integer);
+  MaxLineWidth: Single; FirstToBreak: integer);
 var
   I: Integer;
   LineWidth, LineWidthBytes: Integer;

@@ -38,7 +38,7 @@
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
-    TextWidth, TextHeight: Cardinal;
+    TextWidth, TextHeight: Single;
     FPressed: boolean;
     FImage,
       FCustomBackgroundPressed,
@@ -73,7 +73,7 @@
     FEnabled: boolean;
     FEnableParentDragging: boolean;
     FTextAlignment: THorizontalPosition;
-    FLineSpacing: Integer;
+    FLineSpacing: Single;
     FHtml: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
@@ -98,7 +98,7 @@
     procedure SetImageMargin(const Value: Cardinal);
     procedure SetEnabled(const Value: boolean);
     procedure SetTextAlignment(const Value: THorizontalPosition);
-    procedure SetLineSpacing(const Value: Integer);
+    procedure SetLineSpacing(const Value: Single);
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
   protected
@@ -199,7 +199,7 @@
 
     { For multi-line @link(Caption), the extra spacing between lines.
       May also be negative to squeeze lines tighter. }
-    property LineSpacing: Integer read FLineSpacing write SetLineSpacing
+    property LineSpacing: Single read FLineSpacing write SetLineSpacing
       default DefaultLineSpacing;
 
     { Enable HTML tags in the @link(Caption).
@@ -374,7 +374,7 @@ var
       { calculate TextX }
       case TextAlignment of
         hpLeft  : TextX := TextLeft;
-        hpMiddle: TextX := TextLeft + TextWidth div 2;
+        hpMiddle: TextX := TextLeft + TextWidth / 2;
         hpRight : TextX := TextLeft + TextWidth;
         else raise EInternalError.Create('TCastleButton.Render: Alignment?');
       end;
@@ -665,7 +665,7 @@ end;
 
 procedure TCastleButton.UpdateTextSize;
 var
-  LineSpacingScaled: Integer;
+  LineSpacingScaled: Single;
   TextToRender: TRichText;
 begin
   if Font <> nil then
@@ -677,7 +677,7 @@ begin
       TextHeight := Font.RowHeight;
     end else
     begin
-      LineSpacingScaled := Round(UIScale * LineSpacing);
+      LineSpacingScaled := UIScale * LineSpacing;
       TextToRender := GetTextToRender;
       try
         TextWidth := TextToRender.Width;
@@ -811,7 +811,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetLineSpacing(const Value: Integer);
+procedure TCastleButton.SetLineSpacing(const Value: Single);
 begin
   if FLineSpacing <> Value then
   begin

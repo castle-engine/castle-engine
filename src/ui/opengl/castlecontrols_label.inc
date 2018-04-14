@@ -19,13 +19,13 @@
   TCastleLabel = class(TUIControlFont)
   strict private
     FText: TStrings;
-    FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
+    FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FLineSpacing: Single;
     FColor: TCastleColor;
     FHtml: boolean;
     FFrame: boolean;
     FFrameColor: TCastleColor;
-    FMaxWidth: Integer;
+    FMaxWidth: Single;
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
@@ -108,11 +108,11 @@
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
       total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
-    property PaddingHorizontal: Integer
+    property PaddingHorizontal: Single
       read FPaddingHorizontal write FPaddingHorizontal default 0;
-    property PaddingVertical: Integer
+    property PaddingVertical: Single
       read FPaddingVertical write FPaddingVertical default 0;
-    property Padding: Integer
+    property Padding: Single
       read FPadding write FPadding default 0;
     { @groupEnd }
 
@@ -143,7 +143,7 @@
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
       (together with @link(PaddingHorizontal)) inside MaxWidth. }
-    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 0;
+    property MaxWidth: Single read FMaxWidth write FMaxWidth default 0;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition

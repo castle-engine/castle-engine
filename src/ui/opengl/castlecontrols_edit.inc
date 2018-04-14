@@ -19,7 +19,7 @@
   TCastleEdit = class(TUIControlFont)
   strict private
     FText: string;
-    FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
+    FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FFrame: boolean;
     FWidth: Cardinal;
@@ -34,15 +34,16 @@
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetBackgroundColor(const Value: TCastleColor);
     procedure SetWidth(const Value: Cardinal);
-    procedure SetPadding(const Value: Integer);
-    procedure SetPaddingHorizontal(const Value: Integer);
-    procedure SetPaddingVertical(const Value: Integer);
+    procedure SetPadding(const Value: Single);
+    procedure SetPaddingHorizontal(const Value: Single);
+    procedure SetPaddingVertical(const Value: Single);
     procedure SetFrame(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -99,11 +100,11 @@
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
       total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
-    property PaddingHorizontal: Integer
+    property PaddingHorizontal: Single
       read FPaddingHorizontal write SetPaddingHorizontal default 0;
-    property PaddingVertical: Integer
+    property PaddingVertical: Single
       read FPaddingVertical write SetPaddingVertical default 0;
-    property Padding: Integer
+    property Padding: Single
       read FPadding write SetPadding default DefaultPadding;
     { @groupEnd }
 
@@ -195,7 +196,7 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetPadding(const Value: Integer);
+procedure TCastleEdit.SetPadding(const Value: Single);
 begin
   if FPadding <> Value then
   begin
@@ -204,7 +205,7 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetPaddingHorizontal(const Value: Integer);
+procedure TCastleEdit.SetPaddingHorizontal(const Value: Single);
 begin
   if FPaddingHorizontal <> Value then
   begin
@@ -213,7 +214,7 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetPaddingVertical(const Value: Integer);
+procedure TCastleEdit.SetPaddingVertical(const Value: Single);
 begin
   if FPaddingVertical <> Value then
   begin
@@ -232,30 +233,37 @@ begin
 end;
 
 function TCastleEdit.Rect: TRectangle;
+begin
+  Result := FloatRect.Round;
+end;
+
+function TCastleEdit.FloatRect: TFloatRectangle;
 var
-  PaddingVerticalScaled, HeightScaled: Integer;
+  PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
   FrameCorners: TVector4Integer;
 begin
   US := UIScale;
-  PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+  PaddingVerticalScaled := US * (PaddingVertical + Padding);
 
   HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
   if Frame then
   begin
     FrameCorners := Theme.Corners[tiEdit];
-    HeightScaled := HeightScaled + Round(US * FrameCorners[0]) + Round(US * FrameCorners[2]);
+    HeightScaled := HeightScaled +
+      US * FrameCorners[0] +
+      US * FrameCorners[2];
   end;
 
-  Result := Rectangle(LeftBottomScaled, Round(Width * US), HeightScaled);
+  Result := FloatRectangle(FloatLeftBottomScaled, Width * US, HeightScaled);
 end;
 
 procedure TCastleEdit.Render;
 const
   CaretSpeed = 1; //< how many blinks per second
 var
-  SR, RectInside: TRectangle;
-  PaddingHorizontalScaled, PaddingVerticalScaled: Integer;
+  SR, RectInside: TFloatRectangle;
+  PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US: Single;
   FrameCorners: TVector4Integer;
   CaretVisible: boolean;
@@ -264,7 +272,7 @@ var
 begin
   inherited;
 
-  SR := ScreenRect;
+  SR := ScreenFloatRect;
   US := UIScale;
   RectInside := SR;
 
@@ -286,8 +294,8 @@ begin
   DrawRectangle(RectInside, BackgroundColor);
 
   { make smaller RectInside, by padding }
-  PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
-  PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+  PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
+  PaddingVerticalScaled := US * (PaddingVertical + Padding);
   RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
 
   S := Text;
@@ -300,7 +308,7 @@ begin
   end else
     Color := UnfocusedColor;
 
-  Scissor.Rect := RectInside;
+  Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
 
   Font.Print(RectInside.Left, RectInside.Bottom + Font.Descend, Color, S);

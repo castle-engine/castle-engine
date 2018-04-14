@@ -30,11 +30,11 @@ type
   TCastleInspectorControl = class(TUIControlFont)
   private
     FColor: TCastleColor;
-    FPadding: Integer;
+    FPadding: Single;
     FText: TStringList;
     FControlsUnderMouse: TUIControlList;
     FControlsInitialized: boolean;
-    FRectWhenControlsInitialized: TRectangle;
+    FRectWhenControlsInitialized: TFloatRectangle;
     FShowNotExisting: boolean;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
@@ -45,6 +45,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -54,7 +55,7 @@ type
     property Color: TCastleColor read FColor write FColor;
   published
     { Padding between rect borders and text. }
-    property Padding: Integer read FPadding write FPadding
+    property Padding: Single read FPadding write FPadding
       default DefaultPadding;
     property HasHorizontalAnchor stored false;
     property HasVerticalAnchor stored false;
@@ -75,7 +76,7 @@ begin
   inherited;
   FColor := White;
   FPadding := DefaultPadding;
-  FRectWhenControlsInitialized := TRectangle.Empty;
+  FRectWhenControlsInitialized := TFloatRectangle.Empty;
   Anchor(hpLeft);
   Anchor(vpBottom);
   KeepInFront := true;
@@ -92,16 +93,21 @@ begin
 end;
 
 function TCastleInspectorControl.Rect: TRectangle;
+begin
+  Result := FloatRect.Round;
+end;
+
+function TCastleInspectorControl.FloatRect: TFloatRectangle;
 var
   US: Single;
-  PaddingScaled: Integer;
+  PaddingScaled: Single;
 begin
   if FControlsInitialized then
   begin
     US := UIScale;
-    PaddingScaled := Round(US * Padding);
-    FRectWhenControlsInitialized := Rectangle(
-      LeftBottomScaled,
+    PaddingScaled := US * Padding;
+    FRectWhenControlsInitialized := FloatRectangle(
+      FloatLeftBottomScaled,
       Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
       Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
   end;
@@ -155,14 +161,15 @@ procedure TCastleInspectorControl.Render;
 
 var
   US: Single;
-  SR: TRectangle;
-  PaddingScaled, I: Integer;
+  SR: TFloatRectangle;
+  PaddingScaled: Single;
+  I: Integer;
   C: TCastleColor;
 begin
   inherited;
-  SR := ScreenRect;
+  SR := ScreenFloatRect;
   US := UIScale;
-  PaddingScaled := Round(US * Padding);
+  PaddingScaled := US * Padding;
 
   if FText.Count <> 0 then
   begin
@@ -175,7 +182,7 @@ begin
 
     for I := 0 to FControlsUnderMouse.Count - 1 do
     begin
-      SR := FControlsUnderMouse[I].ScreenRect;
+      SR := FControlsUnderMouse[I].ScreenFloatRect;
       if SR.IsEmpty then Continue;
       C := ControlColor(FControlsUnderMouse[I]);
       DrawRectangle(SR, InvertColorRGB(C));
