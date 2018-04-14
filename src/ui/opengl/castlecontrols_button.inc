@@ -34,7 +34,7 @@
       FloatRect, ScreenFloatRect, CalculatedFloatWidth, CalculatedFloatHeight
       or other methods that wrap FloatRect.
       This makes sure that FFinalScaledValid is honored. }
-    FFinalScaledWidth, FFinalScaledHeight: Float;
+    FFinalScaledWidth, FFinalScaledHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;

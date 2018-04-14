@@ -248,20 +248,20 @@ type
         (RowHeight + LineSpacing) is > 0.)
 
       @groupBegin }
-    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
       const Strs: TStrings; const Html: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
-    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
       const Strs: array of string; const Html: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     procedure PrintStrings(const Strs: array of string;
-      const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -296,19 +296,19 @@ type
       @groupBegin }
     function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
       const Html: boolean = false): Integer;
-    function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
-      const S: string; const MaxLineWidth: Integer;
+    function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
+      const S: string; const MaxLineWidth: Single;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const Html: boolean = false): Integer;
     function PrintBrokenString(const S: string;
-      const MaxLineWidth, X0, Y0: Integer;
+      const MaxLineWidth, X0, Y0: Single;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
+      const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
     property Scale: Single read FScale write SetScale;
@@ -780,22 +780,22 @@ begin
   end;
 end;
 
-procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
+procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 
-  function XPos(const Line: Integer; const S: string): Integer;
+  function XPos(const Line: Integer; const S: string): Single;
   begin
     case TextHorizontalAlignment of
       hpLeft  : Result := X0;
-      hpMiddle: Result := X0 - TextWidth(S) div 2;
+      hpMiddle: Result := X0 - TextWidth(S) / 2;
       hpRight : Result := X0 - TextWidth(S);
       else raise EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
     end;
   end;
 
-  function YPos(const Line: Integer): Integer;
+  function YPos(const Line: Integer): Single;
   begin
     Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
   end;
@@ -822,9 +822,9 @@ begin
   end;
 end;
 
-procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
+procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: array of string;
-  const Html: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 var
   SList: TStringList;
@@ -837,8 +837,8 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Integer;
-  const X0: Integer; const Y0: Integer);
+  const Html: boolean; const LineSpacing: Single;
+  const X0: Single; const Y0: Single);
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
   {$warnings off}
@@ -847,8 +847,8 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
-  const Html: boolean; const LineSpacing: Integer; const X0: Integer;
-  const Y0: Integer);
+  const Html: boolean; const LineSpacing: Single; const X0: Single;
+  const Y0: Single);
 var
   SList: TStringList;
 begin
@@ -862,9 +862,9 @@ begin
   {$warnings on}
 end;
 
-function TCastleFont.PrintBrokenString(X0, Y0: Integer;
-  const Color: TCastleColor; const S: string; const MaxLineWidth: Integer;
-  const PositionsFirst: boolean; const LineSpacing: Integer;
+function TCastleFont.PrintBrokenString(X0, Y0: Single;
+  const Color: TCastleColor; const S: string; const MaxLineWidth: Single;
+  const PositionsFirst: boolean; const LineSpacing: Single;
   const Html: boolean): Integer;
 var
   Text: TRichText;
@@ -881,13 +881,13 @@ end;
 
 function TCastleFont.PrintBrokenString(const Rect: TRectangle;
   const Color: TCastleColor; const S: string;
-  const LineSpacing: Integer;
+  const LineSpacing: Single;
   const AlignHorizontal: THorizontalPosition;
   const AlignVertical: TVerticalPosition;
   const Html: boolean): Integer;
 var
   Text: TRichText;
-  X0, Y0, BrokenHeight: Integer;
+  X0, Y0, BrokenHeight: Single;
 begin
   Text := TRichText.Create(Self, S, Html);
   try
@@ -903,7 +903,7 @@ begin
     BrokenHeight := Text.Count * (LineSpacing + RowHeight);
     case AlignVertical of
       vpBottom: Y0 := Rect.Bottom;
-      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
+      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
       vpTop   : Y0 := Rect.Top - BrokenHeight;
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
     end;
@@ -913,9 +913,9 @@ begin
 end;
 
 function TCastleFont.PrintBrokenString(const S: string;
-  const MaxLineWidth, X0, Y0: Integer;
+  const MaxLineWidth, X0, Y0: Single;
   const PositionsFirst: boolean;
-  const LineSpacing: Integer): Integer; deprecated;
+  const LineSpacing: Single): Integer; deprecated;
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
   {$warnings off}
