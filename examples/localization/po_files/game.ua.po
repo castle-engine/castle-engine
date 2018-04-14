@@ -12,7 +12,7 @@ msgstr "Німецька"
 
 #: game:captionbuttonswitchpolish
 msgid "Polish"
-msgstr "Польска"
+msgstr "Польська"
 
 #: game:captionbuttonswitchrussian
 msgid "Russian"
