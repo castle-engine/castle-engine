@@ -564,7 +564,6 @@ type
     FRenderToImage: TGLRenderToTexture;
     HasViewportToRestore: boolean;
     ViewportToRestore: TRectangle;
-    Viewport2DSizeToRestore: TVector2;
     procedure SetImage(const AImage: TEncodedImage);
     procedure GLContextCloseEvent(Sender: TObject);
   public
@@ -1265,7 +1264,14 @@ begin
       SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
     Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
-    Prog.UniformViewportSize.SetValue(Viewport2DSize);
+
+    if (RenderContext.Viewport.Left <> 0) or
+       (RenderContext.Viewport.Bottom <> 0) then
+      WritelnWarning('Drawing TGLImage when viewport (left,bottom) is not (0,0) is undefined now');
+    Prog.UniformViewportSize.SetValue(Vector2(
+      RenderContext.Viewport.Width,
+      RenderContext.Viewport.Height));
+
     if ColorTreatment <> ctPureTexture then
       Prog.UniformColor.SetValue(Color);
     if Clip then
@@ -1796,11 +1802,7 @@ begin
   begin
     HasViewportToRestore := true;
     ViewportToRestore := RenderContext.Viewport;
-    Viewport2DSizeToRestore := Viewport2DSize;
-
     RenderContext.Viewport := Rectangle(0, 0, Width, Height);
-    Viewport2DSize[0] := Width;
-    Viewport2DSize[1] := Height;
   end;
 end;
 
@@ -1811,7 +1813,6 @@ begin
   if HasViewportToRestore then
   begin
     RenderContext.Viewport := ViewportToRestore;
-    Viewport2DSize := Viewport2DSizeToRestore;
     HasViewportToRestore := false;
   end;
 end;

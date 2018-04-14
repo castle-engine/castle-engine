@@ -3069,8 +3069,6 @@ procedure TCastleWindowCustom.OpenCore;
     WindowRect := Rect;
 
     RenderContext.Viewport := WindowRect;
-    Viewport2DSize[0] := WindowRect.Width;
-    Viewport2DSize[1] := WindowRect.Height;
     OrthoProjection(FloatRectangle(WindowRect));
 
     { Not only is RenderContext.Clear faster than DrawRectangle(WindowRect,...).
