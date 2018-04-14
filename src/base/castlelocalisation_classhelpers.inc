@@ -17,7 +17,7 @@
 
   { Base class for all user interface controls using the localisation.
     Allows to automatically localise the text of the control and adjust to language changes. }
-  TUIControlLocalised = class(TUIControlFont)
+  TUIControlLocalised = class helper for TUIControlFont
   strict private
     FOnUpdateLocalised: TOnUpdateLocalisationEvent;
     procedure SetOnUpdateLocalised(const AOnUpdateLocalised: TOnUpdateLocalisationEvent);

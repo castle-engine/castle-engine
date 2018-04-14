@@ -58,6 +58,10 @@ type
 var
   Localisation: TCastleLocalisation; //Singleton.
 
+{$define read_interface}
+{$I castlelocalisation_classhelpers.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -65,6 +69,10 @@ implementation
     SysUtils, StrUtils, DOM, XMLRead, {$ifdef MSWINDOWS}Windows,{$endif}
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
 {$warnings on}
+
+{$define read_interface}
+{$I castlelocalisation_classhelpers.inc}
+{$undef read_interface}
 
 var
   MobileSystemLanguage: String;
