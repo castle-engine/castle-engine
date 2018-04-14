@@ -18,37 +18,57 @@
 unit CastleLocalisation;
 
 {$I castleconf.inc}
+{$interfaces corba}
 
 interface
 
 uses
-  Classes, Generics.Collections, {$ifdef ANDROID}JNI,{$endif}
+  Classes, SysUtils, Generics.Collections, {$ifdef ANDROID}JNI,{$endif}
   CastleStringUtils,
-  CastleControls;
+  CastleControls, CastleOnScreenMenu;
 
 type
   TLanguage = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
 
-  TOnUpdateLocalisationEvent = procedure of object;
+  TOnLocalisationUpdatedEvent = procedure of object;
+  TOnLocalisationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalisationUpdatedEvent>;
+
+  TOnUpdateLocalisationEvent = procedure(ALocalisedText: String) of object;
   TOnUpdateLocalisationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalisationEvent>;
 
+  TLocalisationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalisationEvent, String>;
+
 type
-  TCastleLocalisation = class
+  { Interface for all user components using the localisation.
+    Allows to automatically localise and adjust a TComponent to language changes. }
+  ICastleLocalisation = interface
+    ['{4fa1cb64-f806-2409-07cc-ca1a77e5c0e4}']
+    procedure OnUpdateLocalisation(ALocalisedText: String);
+    procedure FreeNotification(AComponent: TComponent);
+  end;
+
+type
+  TCastleLocalisation = class (TComponent)
     protected
       const DefaultLanguage = 'en';
     protected
       FLanguage: TLanguage;
       FLanguageURL: String;
+      FLocalisationIDList: TLocalisationIDList;
       FOnUpdateLocalisationEventList: TOnUpdateLocalisationEventList;
+      FOnLocalisationUpdatedEventList: TOnLocalisationUpdatedEventList;
       function Get(AKey: String): String;
+      procedure LoadLanguage(const ALanguageURL: String);
+      procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     public
-      constructor Create; virtual;
+      constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       function SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
-      procedure LoadLanguage(const ALanguageURL: String);
+      procedure Add(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
     public
+      property LanguageURL: String read FLanguageURL write LoadLanguage;
       property Items[AKey: String]: String read Get; default;
-      property OnUpdateLocalisation: TOnUpdateLocalisationEventList read FOnUpdateLocalisationEventList;
+      property OnUpdateLocalisation: TOnLocalisationUpdatedEventList read FOnLocalisationUpdatedEventList;
   end;
 
 {$ifdef ANDROID}
@@ -60,19 +80,19 @@ var
   Localisation: TCastleLocalisation; //Singleton.
 
 {$define read_interface}
-{$I castlelocalisation_classhelpers.inc}
+{$I castlelocalisation_caslecore.inc}
 {$undef read_interface}
 
 implementation
 
 {$warnings off}
   uses
-    SysUtils, StrUtils, DOM, XMLRead, {$ifdef MSWINDOWS}Windows,{$endif}
+    StrUtils, DOM, XMLRead, {$ifdef MSWINDOWS}Windows,{$endif}
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
 {$warnings on}
 
 {$define read_implementation}
-{$I castlelocalisation_classhelpers.inc}
+{$I castlelocalisation_caslecore.inc}
 {$undef read_implementation}
 
 var
@@ -102,16 +122,24 @@ var
 //Constructor/Destructor//
 //////////////////////////
 
-constructor TCastleLocalisation.Create;
+constructor TCastleLocalisation.Create(AOwner: TComponent);
 begin
+  inherited;
+
   FLanguage := TLanguage.Create;
+  FLocalisationIDList := TLocalisationIDList.Create;
+  FOnLocalisationUpdatedEventList := TOnLocalisationUpdatedEventList.Create;
   FOnUpdateLocalisationEventList := TOnUpdateLocalisationEventList.Create;
 end;
 
 destructor TCastleLocalisation.Destroy;
 begin
-  FreeAndNil(FLanguage);
   FreeAndNil(FOnUpdateLocalisationEventList);
+  FreeAndNil(FOnLocalisationUpdatedEventList);
+  FreeAndNil(FLocalisationIDList);
+  FreeAndNil(FLanguage);
+
+  inherited;
 end;
 
 /////////////////////
@@ -124,45 +152,14 @@ begin
     Result := AKey; //When no translation is found, return the key.
 end;
 
-//////////////
-////Public////
-//////////////
-
-function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
-  {$ifdef MSWINDOWS}
-    function GetLocaleInformation(Flag: integer): string;
-    var
-      pcLCA: array[0..20] of char;
-    begin
-      if (GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0) then
-      begin
-        pcLCA[0] := #0;
-      end;
-      Result := pcLCA;
-    end;
-  {$endif}
-begin
-  {$ifdef MSWINDOWS}
-    Result := GetLocaleInformation(LOCALE_SISO639LANGNAME);
-  {$else}
-    {$ifdef ANDROID}
-      Result := MobileSystemLanguage;
-    {$else}
-      Result := Copy(GetEnvironmentVariable('LANG'), 1, 2);
-    {$endif}
-  {$endif}
-
-  if Result = '' then
-    Result := ADefaultLanguage;
-end;
-
 procedure TCastleLocalisation.LoadLanguage(const ALanguageURL: String);
 var
-  FileURLAbsolute: string;
+  FileURLAbsolute: String;
   Stream: TStream;
   LanguageXML: TXMLDocument;
   I: TXMLElementIterator;
   LOnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
+  LLocalisedText: String;
 begin
   if FLanguageURL = ALanguageURL then Exit;
   FLanguageURL := ALanguageURL;
@@ -200,11 +197,67 @@ begin
 
   //Tell every registered object to update its localisation:
   for LOnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
-    LOnUpdateLocalisationEvent();
+  begin
+    FLocalisationIDList.TryGetValue(LOnUpdateLocalisationEvent, LLocalisedText);
+    LOnUpdateLocalisationEvent(Items[LLocalisedText]);
+  end;
+end;
+
+procedure TCastleLocalisation.Notification(AComponent: TComponent; Operation: TOperation);
+var
+  LCastleLocalisationComponent: ICastleLocalisation;
+begin
+  if Operation = opRemove then
+  begin
+    LCastleLocalisationComponent := AComponent as ICastleLocalisation;
+    FOnUpdateLocalisationEventList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
+    FLocalisationIDList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
+  end;
+end;
+
+//////////////
+////Public////
+//////////////
+
+function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
+  {$ifdef MSWINDOWS}
+    function GetLocaleInformation(Flag: integer): string;
+    var
+      pcLCA: array[0..20] of char;
+    begin
+      if (GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0) then
+      begin
+        pcLCA[0] := #0;
+      end;
+      Result := pcLCA;
+    end;
+  {$endif}
+begin
+  {$ifdef MSWINDOWS}
+    Result := GetLocaleInformation(LOCALE_SISO639LANGNAME);
+  {$else}
+    {$ifdef ANDROID}
+      Result := MobileSystemLanguage;
+    {$else}
+      Result := Copy(GetEnvironmentVariable('LANG'), 1, 2);
+    {$endif}
+  {$endif}
+
+  if Result = '' then
+    Result := ADefaultLanguage;
+end;
+
+procedure TCastleLocalisation.Add(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+begin
+  FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
+  FOnUpdateLocalisationEventList.Add(@ALocalisationComponent.OnUpdateLocalisation);
+  ALocalisationComponent.FreeNotification(Self);
+
+  ALocalisationComponent.OnUpdateLocalisation(Items[ALocalisationID]);
 end;
 
 initialization
-  Localisation := TCastleLocalisation.Create;
+  Localisation := TCastleLocalisation.Create(nil);
 
 finalization
   FreeAndNil(Localisation);
