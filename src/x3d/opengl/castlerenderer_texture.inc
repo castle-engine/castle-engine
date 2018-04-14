@@ -1374,7 +1374,7 @@ begin
 
   RenderToTexture.RenderBegin;
 
-    glViewport(Rectangle(0, 0, Width, Height));
+    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
     SavedProjectionMatrix := RenderContext.ProjectionMatrix;
     RenderContext.ProjectionMatrix := NewProjectionMatrix;
@@ -1925,7 +1925,7 @@ begin
 
   RenderToTexture.RenderBegin;
 
-    glViewport(Rectangle(0, 0, Size, Size));
+    RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
     SavedProjectionMatrix := RenderContext.ProjectionMatrix;
     RenderContext.ProjectionMatrix := NewProjectionMatrix;

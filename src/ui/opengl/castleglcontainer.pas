@@ -113,7 +113,7 @@ begin
 
   glDisable(GL_DEPTH_TEST);
 
-  CastleGLUtils.glViewport(ViewportRect);
+  RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
   if GLFeatures.EnableFixedFunction then

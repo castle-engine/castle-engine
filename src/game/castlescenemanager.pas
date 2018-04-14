@@ -1769,7 +1769,7 @@ begin
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
   Viewport := ScreenRect;
-  glViewport(Viewport);
+  RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
 
@@ -2273,7 +2273,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
     { Note that there's no need to worry about Rect.Left or Rect.Bottom,
       here or inside RenderWithScreenEffectsCore, because we're already within
-      glViewport that takes care of this. }
+      RenderContext.Viewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
     AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
@@ -2305,9 +2305,9 @@ begin
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
   end;
 
-  { Restore glViewport set by ApplyProjection }
+  { Restore RenderContext.Viewport set by ApplyProjection }
   if not FillsWholeContainer then
-    glViewport(ScreenRect);
+    RenderContext.Viewport := ScreenRect;
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
@@ -2483,11 +2483,11 @@ begin
             BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
-    { We have to adjust glViewport.
+    { We have to adjust RenderContext.Viewport.
       It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
     if not FillsWholeContainer then
-      glViewport(Rectangle(0, 0, SR.Width, SR.Height));
+      RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);

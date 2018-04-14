@@ -532,9 +532,9 @@ begin
         if FullScreen and (MainMenu <> nil) and MainMenuVisible then
           FTop += GetSystemMetrics(SM_CYMENU);
 
-        { TODO: przerobic to na glViewport ? po co wywolywac tu OnResize ktore
-          moze robic tu mnostwo rzeczy ktore przeciez nie sa potrzebne, bo tak
-          naprawde nie zmienil sie size tylko position ? }
+        { Only position actually changed, not size.
+          TODO: Do we really need to call DoResize, OnResize?
+          Do we need to call glViewport? }
         DoResize(fWidth, fHeight, false);
         Exit;
       end;

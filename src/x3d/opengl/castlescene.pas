@@ -2042,7 +2042,7 @@ begin
   end;
 
   if NeedsRestoreViewport then
-    glViewport(OriginalViewport);
+    RenderContext.Viewport := OriginalViewport;
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;

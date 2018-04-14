@@ -85,6 +85,7 @@ type
       FDepthRange: TDepthRange;
       FCullFace, FFrontFaceCcw: boolean;
       FColorChannels: TColorChannels;
+      FViewport: TRectangle;
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
       procedure SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -96,6 +97,7 @@ type
       function GetColorMask: boolean;
       procedure SetColorMask(const Value: boolean);
       procedure SetColorChannels(const Value: TColorChannels);
+      procedure SetViewport(const Value: TRectangle);
   private
     FEnabledScissors: TScissorList;
   public
@@ -195,6 +197,9 @@ type
     }
     property ColorChannels: TColorChannels
       read FColorChannels write SetColorChannels default [0..3];
+
+    { Setting this sets OpenGL glViewport. }
+    property Viewport: TRectangle read FViewport write SetViewport;
   end;
 
 var
@@ -270,6 +275,7 @@ begin
   FCullFace := false;
   FFrontFaceCcw := true;
   FColorChannels := [0..3];
+  FViewport := TRectangle.Empty;
 end;
 
 destructor TRenderContext.Destroy;
@@ -476,6 +482,19 @@ begin
       BoolToGL(2 in FColorChannels),
       BoolToGL(3 in FColorChannels)
     );
+  end;
+end;
+
+procedure TRenderContext.SetViewport(const Value: TRectangle);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if not FViewport.Equals(Value) then
+  begin
+    FViewport := Value;
+    {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
+      .glViewport(Value.Left, Value.Bottom, Value.Width, Value.Height);
   end;
 end;
 

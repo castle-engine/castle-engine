@@ -36,6 +36,9 @@ var
 begin
   try
     Window := TCastleWindowCustom.Create(Application);
+    // uncomment these to test that viewport setting in RenderToImageBegin works
+    // Window.Width := 100;
+    // Window.Height := 100;
     Window.Open;
 
     { All of the TGLImage drawing must happen when OpenGL context is active,

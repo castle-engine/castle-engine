@@ -562,6 +562,9 @@ type
     FImage: TEncodedImage;
     FOwnsImage: boolean;
     FRenderToImage: TGLRenderToTexture;
+    HasViewportToRestore: boolean;
+    ViewportToRestore: TRectangle;
+    Viewport2DSizeToRestore: TVector2;
     procedure SetImage(const AImage: TEncodedImage);
     procedure GLContextCloseEvent(Sender: TObject);
   public
@@ -718,7 +721,7 @@ type
       creates a TGLRenderToTexture descendant suitable for rendering to this texture.
       It is automatically released on certain events,
       you can also explicitly release it by @link(RenderToImageFree). }
-    procedure RenderToImageBegin(const SetViewport: boolean = true);
+    procedure RenderToImageBegin(const SetAndRestoreViewport: boolean = true);
     procedure RenderToImageEnd;
     procedure RenderToImageFree;
 
@@ -1765,7 +1768,7 @@ begin
   RenderToImageFree;
 end;
 
-procedure TGLImage.RenderToImageBegin(const SetViewport: boolean);
+procedure TGLImage.RenderToImageBegin(const SetAndRestoreViewport: boolean);
 
   procedure RenderToImageCreate;
   begin
@@ -1789,9 +1792,13 @@ begin
 
   FRenderToImage.RenderBegin;
 
-  if SetViewport then
+  if SetAndRestoreViewport then
   begin
-    CastleGLUtils.glViewport(Rectangle(0, 0, Width, Height));
+    HasViewportToRestore := true;
+    ViewportToRestore := RenderContext.Viewport;
+    Viewport2DSizeToRestore := Viewport2DSize;
+
+    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
     Viewport2DSize[0] := Width;
     Viewport2DSize[1] := Height;
   end;
@@ -1800,6 +1807,13 @@ end;
 procedure TGLImage.RenderToImageEnd;
 begin
   FRenderToImage.RenderEnd;
+
+  if HasViewportToRestore then
+  begin
+    RenderContext.Viewport := ViewportToRestore;
+    Viewport2DSize := Viewport2DSizeToRestore;
+    HasViewportToRestore := false;
+  end;
 end;
 
 procedure TGLImage.RenderToImageFree;

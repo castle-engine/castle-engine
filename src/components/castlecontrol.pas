@@ -1204,7 +1204,7 @@ begin
       Container.EventRender;
       DoOnPaint; // call OnPaint, like it would be a top-most TUIControl
       if GLVersion.BuggySwapNonStandardViewport then
-        glViewport(Rect);
+        RenderContext.Viewport := Rect;
       SwapBuffers;
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere

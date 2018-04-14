@@ -119,6 +119,7 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 {$endif}
 
 procedure GLViewport(const Rect: TRectangle);
+  deprecated 'use RenderContext.Viewport';
 
 var
   { Current color, set by glColorv and used for TCastleFont font printing
@@ -387,8 +388,7 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTe
 
 procedure GLViewport(const Rect: TRectangle);
 begin
-  {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
-    .glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
+  RenderContext.Viewport := Rect;
 end;
 
 { Various helpers ------------------------------------------------------------ }

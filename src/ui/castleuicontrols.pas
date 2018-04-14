@@ -1082,7 +1082,7 @@ type
       OpenGL state always set:
 
       @unorderedList(
-        @item(glViewport is set to include whole container.)
+        @item(Viewport is set to include whole container.)
 
         @item(Depth test is off.)
 

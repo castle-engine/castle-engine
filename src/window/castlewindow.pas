@@ -1333,11 +1333,7 @@ type
 
           You have to be prepared for this, handling OnResize and adjusting
           stuff like OpenGL viewport and projection matrix.)
-      )
-
-      Note that the we call the first glViewport automatically in @link(Open).
-      So in typical cases, you don't have to call glViewport ever yourself,
-      when ResizeAllowed <> raAllowed. }
+      ) }
     property ResizeAllowed: TResizeAllowed
       read FResizeAllowed write FResizeAllowed default raAllowed;
 
@@ -2873,7 +2869,7 @@ function Application: TCastleApplication;
 
   It does
   @longCode(#
-    glViewport(Window.Rect);
+    RenderContext.Viewport := Window.Rect;
     OrthoProjection(0, Window.Width, 0, Window.Height);
   #) }
 procedure Resize2D(Container: TUIContainer);
@@ -3072,7 +3068,7 @@ procedure TCastleWindowCustom.OpenCore;
   begin
     WindowRect := Rect;
 
-    glViewport(WindowRect);
+    RenderContext.Viewport := WindowRect;
     Viewport2DSize[0] := WindowRect.Width;
     Viewport2DSize[1] := WindowRect.Height;
     OrthoProjection(FloatRectangle(WindowRect));
@@ -3134,7 +3130,7 @@ begin
       it will still be correctly understood. }
     OpenBackend;
 
-    { Do MakeCurrent before glViewport and EventOpen. }
+    { Do MakeCurrent before setting RenderContext.Viewport and EventOpen. }
     MakeCurrent;
 
     GLInformationInitialize;
@@ -3159,10 +3155,10 @@ begin
       Exit;
     end;
 
-    { synchronize glViewport with our Width/Height (note that, because
+    { synchronize RenderContext.Viewport with our Width/Height (note that, because
       of ResizeAllowed and MinWidth etc. that can be different than actual window
       sizes). }
-    glViewport(Rect);
+    RenderContext.Viewport := Rect;
 
     {$ifndef OpenGLES}
     if ( (AntiAliasing = aa2SamplesNicer) or
@@ -3451,7 +3447,7 @@ begin
     if Closed then Exit; { check, in case window got closed in the event }
 
     if GLVersion.BuggySwapNonStandardViewport then
-      glViewport(Rect);
+      RenderContext.Viewport := Rect;
 
     if DoubleBuffer then SwapBuffers else glFlush;
     if AutoRedisplay then Invalidate;
@@ -5169,7 +5165,7 @@ end;
 
 procedure Resize2D(Container: TUIContainer);
 begin
-  glViewport(Container.Rect);
+  RenderContext.Viewport := Container.Rect;
   OrthoProjection(FloatRectangle(Container.Rect));
 end;
 
