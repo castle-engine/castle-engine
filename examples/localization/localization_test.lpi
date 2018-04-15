@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -14,9 +14,6 @@
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -24,9 +21,10 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
@@ -36,11 +34,21 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="3">
       <Unit0>
         <Filename Value="localization_test.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="game.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Game"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="font_dejavusans.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Font_DejaVuSans"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

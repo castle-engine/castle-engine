@@ -47,7 +47,7 @@ That said, if you put some more work, you can allow to dynamically switch the la
 
 Note that we also adjust font in this application.
 The default font contains only basic ASCII (English) characters,
-so we load a font with additional German and Polish characters.
+so we load a font with additional German, Polish, Russian and Ukrainian characters.
 See https://castle-engine.io/manual_text.php about loading fonts
 in Castle Game Engine.
 
