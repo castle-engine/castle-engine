@@ -23,18 +23,21 @@ unit CastleLocalisation;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections,
+  Classes, Generics.Collections,
   CastleSystemLanguage,
   CastleStringUtils,
   CastleControls, CastleOnScreenMenu;
 
 type
-  TLanguage = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
+  TLanguageDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
+
+  TFileLoaderAction = procedure(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
+  TFileLoaderDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
 
   TOnLocalisationUpdatedEvent = procedure of object;
   TOnLocalisationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalisationUpdatedEvent>;
 
-  TOnUpdateLocalisationEvent = procedure(ALocalisedText: String) of object;
+  TOnUpdateLocalisationEvent = procedure(const ALocalisedText: String) of object;
   TOnUpdateLocalisationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalisationEvent>;
 
   TLocalisationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalisationEvent, String>;
@@ -44,15 +47,16 @@ type
     Allows to automatically localise and adjust a TComponent to language changes. }
   ICastleLocalisation = interface
     ['{4fa1cb64-f806-2409-07cc-ca1a77e5c0e4}']
-    procedure OnUpdateLocalisation(ALocalisedText: String);
+    procedure OnUpdateLocalisation(const ALocalisedText: String);
     procedure FreeNotification(AComponent: TComponent);
   end;
 
 type
   TCastleLocalisation = class (TComponent)
     protected
-      FLanguage: TLanguage;
+      FLanguageDictionary: TLanguageDictionary;
       FLanguageURL: String;
+      FFileLoaderDictionary: TFileLoaderDictionary;
       FLocalisationIDList: TLocalisationIDList;
       FOnUpdateLocalisationEventList: TOnUpdateLocalisationEventList;
       FOnLocalisationUpdatedEventList: TOnLocalisationUpdatedEventList;
@@ -66,8 +70,9 @@ type
       function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
       procedure AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
     public
-      property LanguageURL: String read FLanguageURL write LoadLanguage;
       property Items[AKey: String]: String read Get; default;
+      property LanguageURL: String read FLanguageURL write LoadLanguage;
+      property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
       property OnUpdateLocalisation: TOnLocalisationUpdatedEventList read FOnLocalisationUpdatedEventList;
   end;
 
@@ -75,18 +80,21 @@ var
   Localisation: TCastleLocalisation; //Singleton.
 
 {$define read_interface}
+{$I castlelocalisation_fileloader.inc}
 {$I castlelocalisation_castlecore.inc}
 {$undef read_interface}
 
 implementation
 
-{$warnings off}
-  uses
-    StrUtils, DOM, XMLRead,
+uses
+  SysUtils, StrUtils,
+  {$warnings off}
+    DOM, XMLRead,
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
-{$warnings on}
+  {$warnings on}
 
 {$define read_implementation}
+{$I castlelocalisation_fileloader.inc}
 {$I castlelocalisation_castlecore.inc}
 {$undef read_implementation}
 
@@ -98,7 +106,8 @@ constructor TCastleLocalisation.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FLanguage := TLanguage.Create;
+  FLanguageDictionary := TLanguageDictionary.Create;
+  FFileLoaderDictionary := TFileLoaderDictionary.Create;
   FLocalisationIDList := TLocalisationIDList.Create;
   FOnLocalisationUpdatedEventList := TOnLocalisationUpdatedEventList.Create;
   FOnUpdateLocalisationEventList := TOnUpdateLocalisationEventList.Create;
@@ -109,7 +118,8 @@ begin
   FreeAndNil(FOnUpdateLocalisationEventList);
   FreeAndNil(FOnLocalisationUpdatedEventList);
   FreeAndNil(FLocalisationIDList);
-  FreeAndNil(FLanguage);
+  FreeAndNil(FFileLoaderDictionary);
+  FreeAndNil(FLanguageDictionary);
 
   inherited;
 end;
@@ -120,58 +130,33 @@ end;
 
 function TCastleLocalisation.Get(AKey: String): String;
 begin
-  if not FLanguage.TryGetValue(AKey, Result) then
+  if not FLanguageDictionary.TryGetValue(AKey, Result) then
     Result := AKey; //When no translation is found, return the key.
 end;
 
 procedure TCastleLocalisation.LoadLanguage(const ALanguageURL: String);
 var
-  FileURLAbsolute: String;
-  Stream: TStream;
-  LanguageXML: TXMLDocument;
-  I: TXMLElementIterator;
-  LOnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
-  LLocalisedText: String;
+  FileLoaderAction: TFileLoaderAction;
+  LocalisedText: String;
+  OnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
 begin
   if FLanguageURL = ALanguageURL then Exit;
   FLanguageURL := ALanguageURL;
 
-  FLanguage.Clear;
+  FLanguageDictionary.Clear;
 
   if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localisation.
 
-  FileURLAbsolute := AbsoluteURI(ALanguageURL); //This should be an absolute URL so we doesn't depend on the current directory.
+  FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
+  Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
 
-  Stream := Download(FileURLAbsolute);
-  try
-    ReadXMLFile(LanguageXML, Stream, FileURLAbsolute);
-  finally
-    Stream.Free;
-  end;
-
-  try
-    Check(LanguageXML.DocumentElement.TagName = 'strings', 'Root node of local/index.xml must be <strings>');
-
-    I := LanguageXML.DocumentElement.ChildrenIterator;
-    try
-      while I.GetNext do
-      begin
-        Check(I.Current.TagName = 'string', 'Each child of local/index.xml root node must be the <string> element');
-
-        FLanguage.AddOrSetValue(I.Current.AttributeString('key'), I.Current.AttributeString('value'));
-      end;
-    finally
-      I.Free;
-    end;
-  finally
-    LanguageXML.Free;
-  end;
+  FileLoaderAction(AbsoluteURI(ALanguageURL), FLanguageDictionary);
 
   //Tell every registered object to update its localisation:
-  for LOnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
+  for OnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
   begin
-    FLocalisationIDList.TryGetValue(LOnUpdateLocalisationEvent, LLocalisedText);
-    LOnUpdateLocalisationEvent(Items[LLocalisedText]);
+    FLocalisationIDList.TryGetValue(OnUpdateLocalisationEvent, LocalisedText);
+    OnUpdateLocalisationEvent(Items[LocalisedText]);
   end;
 end;
 
@@ -230,6 +215,7 @@ end;
 
 initialization
   Localisation := TCastleLocalisation.Create(nil);
+  ActivateAllFileLoader;
 
 finalization
   FreeAndNil(Localisation);

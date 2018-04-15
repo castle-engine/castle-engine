@@ -18,24 +18,24 @@
   type
     TCastleLabelLocalisable = class (TCastleLabel, ICastleLocalisation)
     public
-      procedure OnUpdateLocalisation(ALocalisedText: String);
+      procedure OnUpdateLocalisation(const ALocalisedText: String);
     end;
 
     TCastleButtonLocalisable = class (TCastleButton, ICastleLocalisation)
     public
-      procedure OnUpdateLocalisation(ALocalisedText: String);
+      procedure OnUpdateLocalisation(const ALocalisedText: String);
     end;
 
     TCastleMenuButtonLocalisable = class (TCastleMenuButton, ICastleLocalisation)
     public
-      procedure OnUpdateLocalisation(ALocalisedText: String);
+      procedure OnUpdateLocalisation(const ALocalisedText: String);
     end;
 
     TCastleEditLocalisable = class (TCastleEdit, ICastleLocalisation)
     private
       FLastLocalisedText: String;
     public
-      procedure OnUpdateLocalisation(ALocalisedText: String);
+      procedure OnUpdateLocalisation(const ALocalisedText: String);
     end;
 
 {$endif read_interface}
@@ -44,28 +44,28 @@
 
 { TCastleLabelLocalisable ----------------------------------------------------- }
 
-procedure TCastleLabelLocalisable.OnUpdateLocalisation(ALocalisedText: String);
+procedure TCastleLabelLocalisable.OnUpdateLocalisation(const ALocalisedText: String);
 begin
   Caption := ALocalisedText;
 end;
 
 { TCastleButtonLocalisable ----------------------------------------------------- }
 
-procedure TCastleButtonLocalisable.OnUpdateLocalisation(ALocalisedText: String);
+procedure TCastleButtonLocalisable.OnUpdateLocalisation(const ALocalisedText: String);
 begin
   Caption := ALocalisedText;
 end;
 
 { TCastleMenuButtonLocalisable ----------------------------------------------------- }
 
-procedure TCastleMenuButtonLocalisable.OnUpdateLocalisation(ALocalisedText: String);
+procedure TCastleMenuButtonLocalisable.OnUpdateLocalisation(const ALocalisedText: String);
 begin
   Caption := ALocalisedText;
 end;
 
 { TCastleEditLocalisable ----------------------------------------------------- }
 
-procedure TCastleEditLocalisable.OnUpdateLocalisation(ALocalisedText: String);
+procedure TCastleEditLocalisable.OnUpdateLocalisation(const ALocalisedText: String);
 begin
   if Text = FLastLocalisedText then //Only localise if the text hasn't been changed manually.
   begin
