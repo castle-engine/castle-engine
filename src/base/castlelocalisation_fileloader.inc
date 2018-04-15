@@ -15,9 +15,13 @@
 
 {$ifdef read_interface}
 
+  {$I castlelocalisation_genericcollection.inc}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+  {$I castlelocalisation_genericcollection.inc}
 
   procedure LoadLanguageFileXML(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
   var
