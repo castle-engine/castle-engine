@@ -1031,7 +1031,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(Key: TKey; CharKey: char);
+    procedure DoKeyDown(Key: TKey; CharKey: char; StringKey: string);
     procedure DoKeyUp(key: TKey);
     { Do MakeCurrent,
          EventMotion,
@@ -3454,7 +3454,7 @@ begin
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowCustom.DoRender'); {$endif}
 end;
 
-procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char);
+procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char; StringKey: string);
 
   function SeekMatchingMenuItem: TMenuItem;
 
@@ -3495,7 +3495,7 @@ begin
     // CharKey already pressed
     ((CharKey = #0) or Pressed.Characters[CharKey]);
 
-  Pressed.KeyDown(Key, CharKey);
+  Pressed.KeyDown(Key, CharKey, StringKey);
 
   MatchingMI := SeekMatchingMenuItem;
   if (MainMenu <> nil) and
@@ -3507,7 +3507,7 @@ begin
   end else
   begin
     MakeCurrent;
-    Event := InputKey(MousePosition, Key, CharKey);
+    Event := InputKey(MousePosition, Key, CharKey, StringKey);
     Event.KeyRepeated := KeyRepeated;
     Container.EventPress(Event);
 
@@ -3528,7 +3528,7 @@ begin
     Assert(Key <> K_None);
     Pressed.KeyUp(Key, C);
     MakeCurrent;
-    Container.EventRelease(InputKey(MousePosition, Key, C));
+    Container.EventRelease(InputKey(MousePosition, Key, C, C));
   end;
 end;
 
