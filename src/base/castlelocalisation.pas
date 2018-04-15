@@ -209,6 +209,8 @@ var
 begin
   if Operation = opRemove then
   begin
+    AComponent.RemoveFreeNotification(Self);
+
     LCastleLocalisationComponent := AComponent as ICastleLocalisation;
     FOnUpdateLocalisationEventList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
     FLocalisationIDList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
