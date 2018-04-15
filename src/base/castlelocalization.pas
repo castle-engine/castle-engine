@@ -140,13 +140,14 @@ var
   Stream: TStream;
   LocalizedText: String;
   OnUpdateLocalizationEvent: TOnUpdateLocalizationEvent;
+  OnLocalizationUpdatedEvent: TOnLocalizationUpdatedEvent;
 begin
   if FLanguageURL = ALanguageURL then Exit;
   FLanguageURL := ALanguageURL;
 
   FLanguageDictionary.Clear;
 
-  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localization.
+  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localisation.
 
   FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
   Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
@@ -158,12 +159,16 @@ begin
     Stream.Free;
   end;
 
-  //Tell every registered object to update its localization:
+  //Tell every registered object to update its localisation:
   for OnUpdateLocalizationEvent in FOnUpdateLocalizationEventList do
   begin
     FLocalizationIDList.TryGetValue(OnUpdateLocalizationEvent, LocalizedText);
     OnUpdateLocalizationEvent(Items[LocalizedText]);
   end;
+
+  //Tell every custom object to update its localisation:
+  for OnLocalizationUpdatedEvent in FOnLocalizationUpdatedEventList do
+    OnLocalizationUpdatedEvent();
 end;
 
 procedure TCastleLocalization.Notification(AComponent: TComponent; Operation: TOperation);
