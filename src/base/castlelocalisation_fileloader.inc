@@ -17,6 +17,18 @@
 
   {$I castlelocalisation_genericcollection.inc}
 
+  type
+    TFileLoaderJSONEntry = class(TCollectionItem)
+    private
+      FKey: String;
+      FValue: String;
+    published //Properties are case-sensitive in JSON!
+      property key: String read FKey write FKey;
+      property value: String read FValue write FValue;
+    end;
+
+    TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -55,9 +67,49 @@
     end;
   end;
 
+  procedure LoadLanguageFileJSON(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
+  var
+    Stream: TStream;
+    StringStream: TStringStream;
+    DeStreamer: TJSONDeStreamer;
+    LanguageJSON: TFileLoaderJSONList;
+    i: Integer;
+  begin
+    Stream := Download(APathURL);
+    try
+      StringStream := TStringStream.Create;
+      try
+        StringStream.CopyFrom(Stream, Stream.Size);
+        FreeAndNil(Stream); //Saves RAM.
+
+        DeStreamer := TJSONDeStreamer.Create(nil);
+        try
+          LanguageJSON := TFileLoaderJSONList.Create;
+          try
+            DeStreamer.JSONToObject(StringStream.DataString, LanguageJSON);
+            FreeAndNil(StringStream);
+            FreeAndNil(DeStreamer);
+
+            for i := 0 to LanguageJSON.Count - 1 do
+              ALanguageDictionary.AddOrSetValue(LanguageJSON[i].Key, LanguageJSON[i].Value);
+          finally
+            LanguageJSON.Free;
+          end;
+        finally
+          DeStreamer.Free;
+        end;
+      finally
+        StringStream.Free;
+      end;
+    finally
+      Stream.Free;
+    end;
+  end;
+
   procedure ActivateAllFileLoader;
   begin
     Localisation.FileLoader.Add('.xml', @LoadLanguageFileXML);
+    Localisation.FileLoader.Add('.json', @LoadLanguageFileJSON);
   end;
 
 {$endif read_implementation}
