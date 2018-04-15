@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Label with possibly multiline text, in an optional box. }
-  TCastleLabel = class(TUIControlLocalised)
+  TCastleLabel = class(TUIControlFont)
   strict private
     FText: TStrings;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
@@ -42,7 +42,6 @@
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
-    procedure UpdateLocalisedCaption;
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -181,8 +180,6 @@ begin
   FAutoSize := true;
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
-
-  OnUpdateLocalised := @UpdateLocalisedCaption;
 end;
 
 destructor TCastleLabel.Destroy;
@@ -382,11 +379,6 @@ begin
     FMaxDisplayChars := Value;
     VisibleChange;
   end;
-end;
-
-procedure TCastleLabel.UpdateLocalisedCaption;
-begin
-  Caption := Localisation[LocalisationID];
 end;
 
 function TCastleLabel.DisplayChars: Cardinal;

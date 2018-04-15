@@ -25,7 +25,7 @@
     You will also usually want to adjust position (TCastleButton.Left,
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
-  TCastleButton = class(TUIControlLocalised)
+  TCastleButton = class(TUIControlFont)
   strict private
     FFloatWidth, FFloatHeight: Single;
     FFinalScaledValid: boolean;
@@ -81,7 +81,6 @@
     procedure SetAutoSizeHeight(const Value: boolean);
     { Recalculate TextWidth, TextHeight, and set FFinalScaledValid to false. }
     procedure UpdateTextSize;
-    procedure UpdateLocalisedCaption;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
     procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
@@ -332,8 +331,6 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
-
-  OnUpdateLocalised := @UpdateLocalisedCaption;
 end;
 
 destructor TCastleButton.Destroy;
@@ -685,11 +682,6 @@ begin
 
     FFinalScaledValid := false;
   end;
-end;
-
-procedure TCastleButton.UpdateLocalisedCaption;
-begin
-  Caption := Localisation[LocalisationID];
 end;
 
 procedure TCastleButton.UIScaleChanged;
