@@ -432,7 +432,6 @@ constructor TCastleProject.Create(const APath: string);
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    I: TXMLElementIterator;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -533,6 +532,22 @@ constructor TCastleProject.Create(const APath: string);
           finally FreeAndNil(ChildElements) end;
         end;
 
+        Element := Doc.DocumentElement.ChildElement('localization', false);
+        if Element <> nil then
+        begin
+          FListLocalisedAppName := TListLocalisedAppName.Create;
+          ChildElements := Element.ChildrenIterator;
+          try
+            while ChildElements.GetNext do
+            begin
+              Check(ChildElements.Current.TagName = 'caption', 'Each child of the localization node must be an <caption> element.');
+              FListLocalisedAppName.Add(TLocalisedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
+            end;
+          finally
+            FreeAndNil(ChildElements);
+          end;
+        end;
+
         FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
         FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
         FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
@@ -563,22 +578,6 @@ constructor TCastleProject.Create(const APath: string);
           ChildElement := Element.ChildElement('services', false);
           if ChildElement <> nil then
             FAndroidServices.ReadCastleEngineManifest(ChildElement);
-
-          ChildElement := Element.ChildElement('localisation', false);
-          if ChildElement <> nil then
-          begin
-            FListLocalisedAppName := TListLocalisedAppName.Create;
-            I := ChildElement.ChildrenIterator;
-            try
-              while I.GetNext do
-              begin
-                Check(I.Current.TagName = 'appname', 'Each child of the localisation node must be an <appname> element.');
-                FListLocalisedAppName.Add(TLocalisedAppName.Create(I.Current.AttributeString('lang'), I.Current.AttributeString('value')));
-              end;
-            finally
-              I.Free;
-            end;
-          end;
         end;
 
         Element := Doc.DocumentElement.ChildElement('ios', false);
