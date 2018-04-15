@@ -514,6 +514,7 @@ function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var Key: TKey;
     CharKey: char;
+    StringKey: string;
 SIGNAL_WINDOW_BEGIN
  case Event^.KeyVal of
   GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
@@ -525,6 +526,7 @@ SIGNAL_WINDOW_BEGIN
   else
   begin
    Key := GdkKeysymToKey(Event^.KeyVal);
+   StringKey := Event^._string;
 
    {$ifdef MSWINDOWS}
    { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
@@ -547,7 +549,7 @@ SIGNAL_WINDOW_BEGIN
     CharKey := Event^._string[0] else
     CharKey := #0;
 
-   if (Key <> K_None) or (Event^._string <> '') then DoKeyDown(Key, CharKey, Event^._string);
+   if (Key <> K_None) or (StringKey <> '') then DoKeyDown(Key, CharKey, StringKey);
   end;
  end;
 
