@@ -264,15 +264,15 @@ var
     end;
   end;
 
-  procedure GenerateLocalisation;
+  procedure GenerateLocalization;
   var
-    LocalisedAppName: TLocalisedAppName;
+    LocalizedAppName: TLocalizedAppName;
     Doc: TXMLDocument;
     RootNode, StringNode: TDOMNode;
     I: TXMLElementIterator;
     Language, StringsPath: String;
   begin
-    if not Assigned(Project.ListLocalisedAppName) then Exit;
+    if not Assigned(Project.ListLocalizedAppName) then Exit;
 
     //Change default app_name to translatable:
     StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
@@ -296,7 +296,7 @@ var
     end;
 
     //Write strings for every chosen language:
-    for LocalisedAppName in Project.ListLocalisedAppName do
+    for LocalizedAppName in Project.ListLocalizedAppName do
     begin
       Doc := TXMLDocument.Create;
       try
@@ -306,13 +306,13 @@ var
 
         StringNode := Doc.CreateElement('string');
         TDOMElement(StringNode).AttributeSet('name', 'app_name');
-        StringNode.AppendChild(Doc.CreateTextNode(UTF8Decode(LocalisedAppName.AppName)));
+        StringNode.AppendChild(Doc.CreateTextNode(UTF8Decode(LocalizedAppName.AppName)));
         RootNode.AppendChild(StringNode);
 
-        if LocalisedAppName.Language = 'default' then
+        if LocalizedAppName.Language = 'default' then
           Language := ''
         else
-          Language := '-' + LocalisedAppName.Language;
+          Language := '-' + LocalizedAppName.Language;
 
         StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim +
                                             'values' + Language + PathDelim + 'strings.xml';
@@ -515,7 +515,7 @@ begin
   GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
-  GenerateLocalisation;
+  GenerateLocalization;
   GenerateLibrary;
   RunNdkBuild;
   RunGradle(PackageMode);

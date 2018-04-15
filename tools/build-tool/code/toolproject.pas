@@ -35,13 +35,13 @@ type
   ECannotGuessManifest = class(Exception);
 
 type
-  TLocalisedAppName = record
+  TLocalizedAppName = record
     Language: String;
     AppName: String;
     constructor Create(ALanguage, AAppName: String);
   end;
 
-  TListLocalisedAppName = specialize TList<TLocalisedAppName>;
+  TListLocalizedAppName = specialize TList<TLocalizedAppName>;
 
 type
   TCastleProject = class
@@ -69,7 +69,7 @@ type
     FAndroidProjectType: TAndroidProjectType;
     FAndroidServices, FIOSServices: TServiceList;
     FAssociateDocumentTypes: TAssociatedDocTypeList;
-    FListLocalisedAppName: TListLocalisedAppName;
+    FListLocalizedAppName: TListLocalizedAppName;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
@@ -178,7 +178,7 @@ type
     property AndroidServices: TServiceList read FAndroidServices;
     property IOSServices: TServiceList read FIOSServices;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
-    property ListLocalisedAppName: TListLocalisedAppName read FListLocalisedAppName;
+    property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -256,9 +256,9 @@ begin
   Result := AnsiCompareFileName(S1, S2) = 0;
 end;
 
-{ TLocalisedAppName ---------------------------------------------------------- }
+{ TLocalizedAppName ---------------------------------------------------------- }
 
-constructor TLocalisedAppName.Create(ALanguage, AAppName: String);
+constructor TLocalizedAppName.Create(ALanguage, AAppName: String);
 begin
   Language := ALanguage;
   AppName := AAppName;
@@ -535,13 +535,13 @@ constructor TCastleProject.Create(const APath: string);
         Element := Doc.DocumentElement.ChildElement('localization', false);
         if Element <> nil then
         begin
-          FListLocalisedAppName := TListLocalisedAppName.Create;
+          FListLocalizedAppName := TListLocalizedAppName.Create;
           ChildElements := Element.ChildrenIterator;
           try
             while ChildElements.GetNext do
             begin
               Check(ChildElements.Current.TagName = 'caption', 'Each child of the localization node must be an <caption> element.');
-              FListLocalisedAppName.Add(TLocalisedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
+              FListLocalizedAppName.Add(TLocalizedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
             end;
           finally
             FreeAndNil(ChildElements);

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
 
-  {$I castlelocalisation_genericcollection.inc}
+  {$I castlelocalization_genericcollection.inc}
 
   type
     TFileLoaderJSONEntry = class(TCollectionItem)
@@ -43,7 +43,7 @@
 
 {$ifdef read_implementation}
 
-  {$I castlelocalisation_genericcollection.inc}
+  {$I castlelocalization_genericcollection.inc}
 
   { TMOFileIterable }
 
@@ -156,10 +156,10 @@
 
   procedure ActivateAllFileLoader;
   begin
-    Localisation.FileLoader.Add('.xml', @LoadLanguageFileXML);
-    Localisation.FileLoader.Add('.json', @LoadLanguageFileJSON);
-    Localisation.FileLoader.Add('.mo', @LoadLanguageFileMO);
-    Localisation.FileLoader.Add('.csv', @LoadLanguageFileCSV);
+    Localization.FileLoader.Add('.xml', @LoadLanguageFileXML);
+    Localization.FileLoader.Add('.json', @LoadLanguageFileJSON);
+    Localization.FileLoader.Add('.mo', @LoadLanguageFileMO);
+    Localization.FileLoader.Add('.csv', @LoadLanguageFileCSV);
   end;
 
 {$endif read_implementation}

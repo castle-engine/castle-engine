@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Localisation system for handling localisation.
-  Use this in your games for easy localisation. }
-unit CastleLocalisation;
+{ Localization system for handling localization.
+  Use this in your games for easy localization. }
+unit CastleLocalization;
 
 {$I castleconf.inc}
 {$interfaces corba}
@@ -34,32 +34,32 @@ type
   TFileLoaderAction = procedure(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   TFileLoaderDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
 
-  TOnLocalisationUpdatedEvent = procedure of object;
-  TOnLocalisationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalisationUpdatedEvent>;
+  TOnLocalizationUpdatedEvent = procedure of object;
+  TOnLocalizationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalizationUpdatedEvent>;
 
-  TOnUpdateLocalisationEvent = procedure(const ALocalisedText: String) of object;
-  TOnUpdateLocalisationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalisationEvent>;
+  TOnUpdateLocalizationEvent = procedure(const ALocalizedText: String) of object;
+  TOnUpdateLocalizationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalizationEvent>;
 
-  TLocalisationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalisationEvent, String>;
+  TLocalizationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
 
 type
   { Interface for all user components using the localisation.
     Allows to automatically localise and adjust a TComponent to language changes. }
-  ICastleLocalisation = interface
+  ICastleLocalization = interface
     ['{4fa1cb64-f806-2409-07cc-ca1a77e5c0e4}']
-    procedure OnUpdateLocalisation(const ALocalisedText: String);
+    procedure OnUpdateLocalization(const ALocalizedText: String);
     procedure FreeNotification(AComponent: TComponent);
   end;
 
 type
-  TCastleLocalisation = class (TComponent)
+  TCastleLocalization = class (TComponent)
     protected
       FLanguageDictionary: TLanguageDictionary;
       FLanguageURL: String;
       FFileLoaderDictionary: TFileLoaderDictionary;
-      FLocalisationIDList: TLocalisationIDList;
-      FOnUpdateLocalisationEventList: TOnUpdateLocalisationEventList;
-      FOnLocalisationUpdatedEventList: TOnLocalisationUpdatedEventList;
+      FLocalizationIDList: TLocalizationIDList;
+      FOnUpdateLocalizationEventList: TOnUpdateLocalizationEventList;
+      FOnLocalizationUpdatedEventList: TOnLocalizationUpdatedEventList;
       function Get(AKey: String): String;
       procedure LoadLanguage(const ALanguageURL: String);
       procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -68,20 +68,20 @@ type
       destructor Destroy; override;
       function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
       function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
-      procedure AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+      procedure AddOrSet(ALocalizationComponent: ICastleLocalization; ALocalizationID: String);
     public
       property Items[AKey: String]: String read Get; default;
       property LanguageURL: String read FLanguageURL write LoadLanguage;
       property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
-      property OnUpdateLocalisation: TOnLocalisationUpdatedEventList read FOnLocalisationUpdatedEventList;
+      property OnUpdateLocalization: TOnLocalizationUpdatedEventList read FOnLocalizationUpdatedEventList;
   end;
 
 var
-  Localisation: TCastleLocalisation; //Singleton.
+  Localization: TCastleLocalization; //Singleton.
 
 {$define read_interface}
-{$I castlelocalisation_fileloader.inc}
-{$I castlelocalisation_castlecore.inc}
+{$I castlelocalization_fileloader.inc}
+{$I castlelocalization_castlecore.inc}
 {$undef read_interface}
 
 implementation
@@ -94,30 +94,30 @@ uses
   {$warnings on}
 
 {$define read_implementation}
-{$I castlelocalisation_fileloader.inc}
-{$I castlelocalisation_castlecore.inc}
+{$I castlelocalization_fileloader.inc}
+{$I castlelocalization_castlecore.inc}
 {$undef read_implementation}
 
 //////////////////////////
 //Constructor/Destructor//
 //////////////////////////
 
-constructor TCastleLocalisation.Create(AOwner: TComponent);
+constructor TCastleLocalization.Create(AOwner: TComponent);
 begin
   inherited;
 
   FLanguageDictionary := TLanguageDictionary.Create;
   FFileLoaderDictionary := TFileLoaderDictionary.Create;
-  FLocalisationIDList := TLocalisationIDList.Create;
-  FOnLocalisationUpdatedEventList := TOnLocalisationUpdatedEventList.Create;
-  FOnUpdateLocalisationEventList := TOnUpdateLocalisationEventList.Create;
+  FLocalizationIDList := TLocalizationIDList.Create;
+  FOnLocalizationUpdatedEventList := TOnLocalizationUpdatedEventList.Create;
+  FOnUpdateLocalizationEventList := TOnUpdateLocalizationEventList.Create;
 end;
 
-destructor TCastleLocalisation.Destroy;
+destructor TCastleLocalization.Destroy;
 begin
-  FreeAndNil(FOnUpdateLocalisationEventList);
-  FreeAndNil(FOnLocalisationUpdatedEventList);
-  FreeAndNil(FLocalisationIDList);
+  FreeAndNil(FOnUpdateLocalizationEventList);
+  FreeAndNil(FOnLocalizationUpdatedEventList);
+  FreeAndNil(FLocalizationIDList);
   FreeAndNil(FFileLoaderDictionary);
   FreeAndNil(FLanguageDictionary);
 
@@ -128,25 +128,25 @@ end;
 //Private/Protected//
 /////////////////////
 
-function TCastleLocalisation.Get(AKey: String): String;
+function TCastleLocalization.Get(AKey: String): String;
 begin
   if not FLanguageDictionary.TryGetValue(AKey, Result) then
     Result := AKey; //When no translation is found, return the key.
 end;
 
-procedure TCastleLocalisation.LoadLanguage(const ALanguageURL: String);
+procedure TCastleLocalization.LoadLanguage(const ALanguageURL: String);
 var
   FileLoaderAction: TFileLoaderAction;
   Stream: TStream;
-  LocalisedText: String;
-  OnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
+  LocalizedText: String;
+  OnUpdateLocalizationEvent: TOnUpdateLocalizationEvent;
 begin
   if FLanguageURL = ALanguageURL then Exit;
   FLanguageURL := ALanguageURL;
 
   FLanguageDictionary.Clear;
 
-  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localisation.
+  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localization.
 
   FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
   Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
@@ -158,25 +158,25 @@ begin
     Stream.Free;
   end;
 
-  //Tell every registered object to update its localisation:
-  for OnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
+  //Tell every registered object to update its localization:
+  for OnUpdateLocalizationEvent in FOnUpdateLocalizationEventList do
   begin
-    FLocalisationIDList.TryGetValue(OnUpdateLocalisationEvent, LocalisedText);
-    OnUpdateLocalisationEvent(Items[LocalisedText]);
+    FLocalizationIDList.TryGetValue(OnUpdateLocalizationEvent, LocalizedText);
+    OnUpdateLocalizationEvent(Items[LocalizedText]);
   end;
 end;
 
-procedure TCastleLocalisation.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleLocalization.Notification(AComponent: TComponent; Operation: TOperation);
 var
-  LCastleLocalisationComponent: ICastleLocalisation;
+  LCastleLocalizationComponent: ICastleLocalization;
 begin
   if Operation = opRemove then
   begin
     AComponent.RemoveFreeNotification(Self);
 
-    LCastleLocalisationComponent := AComponent as ICastleLocalisation;
-    FOnUpdateLocalisationEventList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
-    FLocalisationIDList.Remove(@LCastleLocalisationComponent.OnUpdateLocalisation);
+    LCastleLocalizationComponent := AComponent as ICastleLocalization;
+    FOnUpdateLocalizationEventList.Remove(@LCastleLocalizationComponent.OnUpdateLocalization);
+    FLocalizationIDList.Remove(@LCastleLocalizationComponent.OnUpdateLocalization);
   end;
 end;
 
@@ -184,40 +184,40 @@ end;
 ////Public////
 //////////////
 
-function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
+function TCastleLocalization.SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
 begin
   Result := CastleSystemLanguage.SystemLanguage(ADefaultLanguage);
 end;
 
-function TCastleLocalisation.SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String;
+function TCastleLocalization.SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String;
 begin
   Result := CastleSystemLanguage.SystemLocal(ADefaultLocal);
 end;
 
-procedure TCastleLocalisation.AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
+procedure TCastleLocalization.AddOrSet(ALocalizationComponent: ICastleLocalization; ALocalizationID: String);
 var
   IsNewEntry: Boolean;
 begin
-  if ALocalisationID = '' then
+  if ALocalizationID = '' then
     Exit;
 
-  IsNewEntry := FLocalisationIDList.ContainsKey(@ALocalisationComponent.OnUpdateLocalisation);
-  FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
+  IsNewEntry := FLocalizationIDList.ContainsKey(@ALocalizationComponent.OnUpdateLocalization);
+  FLocalizationIDList.AddOrSetValue(@ALocalizationComponent.OnUpdateLocalization, ALocalizationID);
 
   if IsNewEntry then
   begin
-    FOnUpdateLocalisationEventList.Add(@ALocalisationComponent.OnUpdateLocalisation);
-    ALocalisationComponent.FreeNotification(Self);
+    FOnUpdateLocalizationEventList.Add(@ALocalizationComponent.OnUpdateLocalization);
+    ALocalizationComponent.FreeNotification(Self);
   end;
 
-  ALocalisationComponent.OnUpdateLocalisation(Items[ALocalisationID]);
+  ALocalizationComponent.OnUpdateLocalization(Items[ALocalizationID]);
 end;
 
 initialization
-  Localisation := TCastleLocalisation.Create(nil);
+  Localization := TCastleLocalization.Create(nil);
   ActivateAllFileLoader;
 
 finalization
-  FreeAndNil(Localisation);
+  FreeAndNil(Localization);
 
 end.
