@@ -201,7 +201,7 @@ begin
   if ALocalizationID = '' then
     Exit;
 
-  IsNewEntry := FLocalizationIDList.ContainsKey(@ALocalizationComponent.OnUpdateLocalization);
+  IsNewEntry := not FLocalizationIDList.ContainsKey(@ALocalizationComponent.OnUpdateLocalization);
   FLocalizationIDList.AddOrSetValue(@ALocalizationComponent.OnUpdateLocalization, ALocalizationID);
 
   if IsNewEntry then
