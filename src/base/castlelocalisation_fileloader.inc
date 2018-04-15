@@ -29,11 +29,35 @@
 
     TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
 
+    TMOFileIterable = class(TMOFile)
+    protected
+      function GetKey(AIndex: Cardinal): String;
+      function GetValue(AIndex: Cardinal): String;
+    public
+      property Count: Cardinal read StringCount;
+      property Keys[AIndex: Cardinal]: String read GetKey;
+      property Values[AIndex: Cardinal]: String read GetValue;
+    end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
   {$I castlelocalisation_genericcollection.inc}
+
+  { TMOFileIterable }
+
+  function TMOFileIterable.GetKey(AIndex: Cardinal): String;
+  begin
+      Result := OrigStrings^[AIndex];
+  end;
+
+  function TMOFileIterable.GetValue(AIndex: Cardinal): String;
+  begin
+      Result := TranslStrings^[AIndex];
+  end;
+
+  { LoadLanguageFiles }
 
   procedure LoadLanguageFileXML(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   var
@@ -95,10 +119,25 @@
     end;
   end;
 
+  procedure LoadLanguageFileMO(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
+  var
+    LanguageMO: TMOFileIterable;
+    i: Integer;
+  begin
+    LanguageMO := TMOFileIterable.Create(AFileStream);
+    try
+      for i := 0 to LanguageMO.Count - 1 do
+        ALanguageDictionary.AddOrSetValue(LanguageMO.Keys[i], LanguageMO.Values[i]);
+    finally
+      LanguageMO.Free;
+    end;
+  end;
+
   procedure ActivateAllFileLoader;
   begin
     Localisation.FileLoader.Add('.xml', @LoadLanguageFileXML);
     Localisation.FileLoader.Add('.json', @LoadLanguageFileJSON);
+    Localisation.FileLoader.Add('.mo', @LoadLanguageFileMO);
   end;
 
 {$endif read_implementation}

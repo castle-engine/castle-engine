@@ -23,7 +23,7 @@ unit CastleLocalisation;
 interface
 
 uses
-  Classes, Generics.Collections,
+  Classes, GetText, Generics.Collections,
   CastleSystemLanguage,
   CastleStringUtils,
   CastleControls, CastleOnScreenMenu;
