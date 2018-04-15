@@ -133,11 +133,33 @@
     end;
   end;
 
+  procedure LoadLanguageFileCSV(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
+  var
+    Parser: TCSVParser;
+    Key: String;
+  begin
+    Parser := TCSVParser.Create;
+    try
+      Parser.SetSource(AFileStream);
+      Key := '';
+      while Parser.ParseNextCell do
+      begin
+        if Parser.CurrentCol mod 2 = 0 then
+          Key := Parser.CurrentCellText
+        else
+          ALanguageDictionary.AddOrSetValue(Key, Parser.CurrentCellText);
+      end;
+    finally
+      Parser.Free;
+    end;
+  end;
+
   procedure ActivateAllFileLoader;
   begin
     Localisation.FileLoader.Add('.xml', @LoadLanguageFileXML);
     Localisation.FileLoader.Add('.json', @LoadLanguageFileJSON);
     Localisation.FileLoader.Add('.mo', @LoadLanguageFileMO);
+    Localisation.FileLoader.Add('.csv', @LoadLanguageFileCSV);
   end;
 
 {$endif read_implementation}

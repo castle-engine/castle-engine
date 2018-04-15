@@ -89,7 +89,7 @@ implementation
 uses
   SysUtils, StrUtils,
   {$warnings off}
-    DOM, XMLRead, fpjsonrtti,
+    DOM, XMLRead, fpjsonrtti, CSVDocument,
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
   {$warnings on}
 
