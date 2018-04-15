@@ -35,18 +35,12 @@
 
   {$I castlelocalisation_genericcollection.inc}
 
-  procedure LoadLanguageFileXML(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
+  procedure LoadLanguageFileXML(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   var
-    Stream: TStream;
     LanguageXML: TXMLDocument;
     I: TXMLElementIterator;
   begin
-    Stream := Download(APathURL);
-    try
-      ReadXMLFile(LanguageXML, Stream, APathURL);
-    finally
-      Stream.Free;
-    end;
+    ReadXMLFile(LanguageXML, AFileStream);
 
     try
       Check(LanguageXML.DocumentElement.TagName = 'strings', 'Root node of local/index.xml must be <strings>');
@@ -67,42 +61,37 @@
     end;
   end;
 
-  procedure LoadLanguageFileJSON(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
+  procedure LoadLanguageFileJSON(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   var
-    Stream: TStream;
     StringStream: TStringStream;
     DeStreamer: TJSONDeStreamer;
     LanguageJSON: TFileLoaderJSONList;
     i: Integer;
   begin
-    Stream := Download(APathURL);
+    StringStream := TStringStream.Create;
     try
-      StringStream := TStringStream.Create;
+      StringStream.CopyFrom(AFileStream, AFileStream.Size);
+
+      DeStreamer := TJSONDeStreamer.Create(nil);
       try
-        StringStream.CopyFrom(Stream, Stream.Size);
-        FreeAndNil(Stream); //Saves RAM.
-
-        DeStreamer := TJSONDeStreamer.Create(nil);
+        LanguageJSON := TFileLoaderJSONList.Create;
         try
-          LanguageJSON := TFileLoaderJSONList.Create;
-          try
-            DeStreamer.JSONToObject(StringStream.DataString, LanguageJSON);
-            FreeAndNil(StringStream);
-            FreeAndNil(DeStreamer);
+          DeStreamer.JSONToObject(StringStream.DataString, LanguageJSON);
 
-            for i := 0 to LanguageJSON.Count - 1 do
-              ALanguageDictionary.AddOrSetValue(LanguageJSON[i].Key, LanguageJSON[i].Value);
-          finally
-            LanguageJSON.Free;
-          end;
+          //Save RAM:
+          FreeAndNil(StringStream);
+          FreeAndNil(DeStreamer);
+
+          for i := 0 to LanguageJSON.Count - 1 do
+            ALanguageDictionary.AddOrSetValue(LanguageJSON[i].Key, LanguageJSON[i].Value);
         finally
-          DeStreamer.Free;
+          LanguageJSON.Free;
         end;
       finally
-        StringStream.Free;
+        DeStreamer.Free;
       end;
     finally
-      Stream.Free;
+      StringStream.Free;
     end;
   end;
 

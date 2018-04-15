@@ -31,7 +31,7 @@ uses
 type
   TLanguageDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
 
-  TFileLoaderAction = procedure(const APathURL: String; const ALanguageDictionary: TLanguageDictionary);
+  TFileLoaderAction = procedure(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
   TFileLoaderDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
 
   TOnLocalisationUpdatedEvent = procedure of object;
@@ -137,6 +137,7 @@ end;
 procedure TCastleLocalisation.LoadLanguage(const ALanguageURL: String);
 var
   FileLoaderAction: TFileLoaderAction;
+  Stream: TStream;
   LocalisedText: String;
   OnUpdateLocalisationEvent: TOnUpdateLocalisationEvent;
 begin
@@ -150,7 +151,12 @@ begin
   FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
   Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
 
-  FileLoaderAction(AbsoluteURI(ALanguageURL), FLanguageDictionary);
+  Stream := Download(AbsoluteURI(ALanguageURL));
+  try
+    FileLoaderAction(Stream, FLanguageDictionary);
+  finally
+    Stream.Free;
+  end;
 
   //Tell every registered object to update its localisation:
   for OnUpdateLocalisationEvent in FOnUpdateLocalisationEventList do
