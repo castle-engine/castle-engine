@@ -201,14 +201,8 @@ begin
   if ALocalisationID = '' then
     Exit;
 
-  IsNewEntry := true;
-  try
-    FLocalisationIDList.Add(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
-  except
-    //There is an exception raised if the value already exists.
-    IsNewEntry := false;
-    FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
-  end;
+  IsNewEntry := FLocalisationIDList.ContainsKey(@ALocalisationComponent.OnUpdateLocalisation);
+  FLocalisationIDList.AddOrSetValue(@ALocalisationComponent.OnUpdateLocalisation, ALocalisationID);
 
   if IsNewEntry then
   begin
