@@ -577,7 +577,7 @@ type
       representable as TKey, pass CharKey = #0 if this is not representable
       as char. But never pass both Key = keyNone and CharKey = #0
       (this would have no meaning). }
-    procedure KeyDown(const Key: TKey; const CharKey: char);
+    procedure KeyDown(const Key: TKey; const CharKey: char; const StringKey: string);
 
     { Call when key is released.
       Never pass Key = keyNone here.
@@ -681,6 +681,8 @@ type
       (all dependent on your system settings, we don't deal with it in our engine,
       we merely take what system gives us). For example, you can get "a" or "A"
       depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
+      KeyString is an extended version of KeyCharacter and is a UTF8 symbol
+      of the pressed key (e.g. a letter of non-ASCII locale).
 
       When the user holds the key pressed, we will get consecutive
       key down events. Under some OSes, you will also get consecutive
@@ -691,6 +693,7 @@ type
       @groupBegin }
     Key: TKey;
     KeyCharacter: char;
+    KeyString: string;
     { @groupEnd }
 
     { Was this key already pressed before this event.
@@ -781,7 +784,7 @@ type
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
+  const Key: TKey; const KeyCharacter: Char; const KeyString: string): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
@@ -1199,7 +1202,7 @@ begin
   Result := ModifiersDown(Keys);
 end;
 
-procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char);
+procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char; const StringKey: string);
 begin
   if Key <> keyNone then
     Keys[Key] := true;
@@ -1306,13 +1309,14 @@ begin
 end;
 
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
+  const Key: TKey; const KeyCharacter: Char; const KeyString: string): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itKey;
   Result.Key := Key;
   Result.KeyCharacter := KeyCharacter;
+  Result.KeyString := KeyString;
 end;
 
 function InputMouseButton(const Position: TVector2;

@@ -547,7 +547,7 @@ SIGNAL_WINDOW_BEGIN
     CharKey := Event^._string[0] else
     CharKey := #0;
 
-   if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+   if (Key <> K_None) or (Event^._string <> '') then DoKeyDown(Key, CharKey, Event^._string);
   end;
  end;
 
