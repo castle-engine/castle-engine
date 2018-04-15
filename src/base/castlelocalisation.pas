@@ -23,7 +23,8 @@ unit CastleLocalisation;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, {$ifdef ANDROID}JNI,{$endif}
+  Classes, SysUtils, Generics.Collections,
+  CastleSystemLanguage,
   CastleStringUtils,
   CastleControls, CastleOnScreenMenu;
 
@@ -50,8 +51,6 @@ type
 type
   TCastleLocalisation = class (TComponent)
     protected
-      const DefaultLanguage = 'en';
-    protected
       FLanguage: TLanguage;
       FLanguageURL: String;
       FLocalisationIDList: TLocalisationIDList;
@@ -63,18 +62,14 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      function SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
+      function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
+      function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
       procedure AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);
     public
       property LanguageURL: String read FLanguageURL write LoadLanguage;
       property Items[AKey: String]: String read Get; default;
       property OnUpdateLocalisation: TOnLocalisationUpdatedEventList read FOnLocalisationUpdatedEventList;
   end;
-
-{$ifdef ANDROID}
-  { Export this function from your Android library. }
-  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
-{$endif}
 
 var
   Localisation: TCastleLocalisation; //Singleton.
@@ -87,36 +82,13 @@ implementation
 
 {$warnings off}
   uses
-    StrUtils, DOM, XMLRead, {$ifdef MSWINDOWS}Windows,{$endif}
+    StrUtils, DOM, XMLRead,
     CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
 {$warnings on}
 
 {$define read_implementation}
 {$I castlelocalisation_castlecore.inc}
 {$undef read_implementation}
-
-var
-  MobileSystemLanguage: String;
-
-{$ifdef ANDROID}
-  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
-  var
-    JavaToNativeStr: PChar;
-    Dummy: JBoolean;
-  begin
-    Result := Env^^.NewStringUTF(Env, nil);
-
-    if (JavaToNative <> nil) and (Env^^.GetStringUTFLength(Env, JavaToNative) <> 0) then
-    begin
-      Dummy := 0;
-      JavaToNativeStr := Env^^.GetStringUTFChars(Env, JavaToNative,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
-      try
-        MobileSystemLanguage := AnsiString(JavaToNativeStr); // will copy characters
-      finally
-        Env^^.ReleaseStringUTFChars(Env, JavaToNative, JavaToNativeStr) end;
-    end;
-  end;
-{$endif ANDROID}
 
 //////////////////////////
 //Constructor/Destructor//
@@ -221,32 +193,14 @@ end;
 ////Public////
 //////////////
 
-function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = DefaultLanguage): String;
-  {$ifdef MSWINDOWS}
-    function GetLocaleInformation(Flag: integer): string;
-    var
-      pcLCA: array[0..20] of char;
-    begin
-      if (GetLocaleInfo(LOCALE_SYSTEM_DEFAULT, Flag, pcLCA, 19) <= 0) then
-      begin
-        pcLCA[0] := #0;
-      end;
-      Result := pcLCA;
-    end;
-  {$endif}
+function TCastleLocalisation.SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
 begin
-  {$ifdef MSWINDOWS}
-    Result := GetLocaleInformation(LOCALE_SISO639LANGNAME);
-  {$else}
-    {$ifdef ANDROID}
-      Result := MobileSystemLanguage;
-    {$else}
-      Result := Copy(GetEnvironmentVariable('LANG'), 1, 2);
-    {$endif}
-  {$endif}
+  Result := CastleSystemLanguage.SystemLanguage(ADefaultLanguage);
+end;
 
-  if Result = '' then
-    Result := ADefaultLanguage;
+function TCastleLocalisation.SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String;
+begin
+  Result := CastleSystemLanguage.SystemLocal(ADefaultLocal);
 end;
 
 procedure TCastleLocalisation.AddOrSet(ALocalisationComponent: ICastleLocalisation; ALocalisationID: String);

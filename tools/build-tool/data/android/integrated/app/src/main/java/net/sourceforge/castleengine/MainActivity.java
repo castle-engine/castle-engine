@@ -33,7 +33,7 @@ public class MainActivity extends NativeActivity
             service.onCreate();
         }
 
-       jniLanguage(Locale.getDefault().getLanguage());
+       jniLanguage(Locale.getDefault().toString());
     }
 
     @Override
