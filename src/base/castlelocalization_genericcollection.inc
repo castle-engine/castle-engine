@@ -18,26 +18,26 @@
   type
     generic TGenericCollection<T> = class(TCollection)
     private
-      function GetItems(Index: integer): T;
-      procedure SetItems(Index: integer; AValue: T);
+      function GetItems(AIndex: Integer): T;
+      procedure SetItems(AIndex: Integer; AValue: T);
     public
       constructor Create;
       function Add: T;
-      property Items[Index: integer]: T read GetItems write SetItems; default;
+      property Items[AIndex: Integer]: T read GetItems write SetItems; default;
     end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-  function TGenericCollection.GetItems(Index: integer): T;
+  function TGenericCollection.GetItems(AIndex: Integer): T;
   begin
-    Result := T(inherited Items[Index]);
+    Result := T(inherited Items[AIndex]);
   end;
   
-  procedure TGenericCollection.SetItems(Index: integer; AValue: T);
+  procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
   begin
-    Items[Index].Assign(AValue);
+    Items[AIndex].Assign(AValue);
   end;
   
   constructor TGenericCollection.Create;
