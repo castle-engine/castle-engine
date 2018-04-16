@@ -67,8 +67,7 @@ var
 function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
 begin
   Result := SystemLocal(ADefaultLanguage);
-  if Length(Result) > 2 then
-    Result := Copy(Result, 1, 2);
+  Delete(Result, 3, Length(Result)); //Removes the local info behind the language code.
 end;
 
 function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String;
@@ -87,8 +86,9 @@ begin
   if Result = '' then
     Result := ADefaultLocal
   else
-  if Length(Result) > 5 then //Because on Unix, for example, the encoding is put behind the local info. 
-    Result := Copy(Result, 1, 5);
+    Delete(Result, 6, Length(Result)); //There can be more than the language code and the local info in the result string.
+                                       //For example, on Debian based systems there can be the encoding as suffix. ("en_GB.UTF-8")
+                                       //So if we really only want the langauge code and the local info, we have to delete everything behind it.
 end;
 
 end.
