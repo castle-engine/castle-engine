@@ -661,28 +661,26 @@ type
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
-      Either Key <> keyNone or KeyCharacter <> #0 in this case.
-      When EventType <> itKey, then Key = keyNone and KeyCharacter = #0.
+      Either Key <> keyNone or KeyString <> '' in this case.
+      When EventType <> itKey, then Key = keyNone and KeyString = ''.
 
-      Both Key and KeyCharacter represent the same action. Sometimes one,
+      Both Key and KeyString represent the same action. Sometimes one,
       sometimes the other is useful.
 
       @bold(Not all key presses can be represented as TKey value.)
       For example, pressing '(' (opening parenthesis), which is done on most
       keyboards by pressing shift + zero, does not have any TKey value.
-      So it will generate event with Key = keyNone, but KeyCharacter = '('.
+      So it will generate event with Key = keyNone, but KeyString = '('.
 
       @bold(Likewise, not all key presses can be represented as char value.)
       For example "up arrow" (Key = keyUp) doesn't have a char code
-      (it will have KeyCharacter = #0).
+      (it will have KeyString = '').
 
-      *KeyCharacter is influenced by some other keys state,
+      KeyString is an UTF8 symbol and is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
       (all dependent on your system settings, we don't deal with it in our engine,
       we merely take what system gives us). For example, you can get "a" or "A"
       depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
-      KeyString is an extended version of KeyCharacter and is a UTF8 symbol
-      of the pressed key (e.g. a letter of non-ASCII locale).
 
       When the user holds the key pressed, we will get consecutive
       key down events. Under some OSes, you will also get consecutive
@@ -769,9 +767,9 @@ type
 
     { Textual description of this event. }
     function ToString: string;
-    { Character corresponding to keypress event
-      Returns #0 if the event was not a keyboard event or
-      keypress event wasn't a simple keyboard event (e.g. a UTF8 character) }
+    { Character corresponding to EventType = itKey
+      Returns #0 if the event was not a keyboard event or keypress event
+      wasn't a simple keyboard event (e.g. a Cyrillic or Arabic character) }
     function KeyCharacter: char;
     { @deprecated Deprecated name for ToString. }
     function Description: string; deprecated;
