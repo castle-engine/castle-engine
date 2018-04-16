@@ -14,7 +14,10 @@
 }
 
 { Localization system for handling localization.
-  Use this in your games for easy localization. }
+  Use this in your games for easy localization.
+  Note that this is not the only way to localize your Castle Game Engine games.
+  You can as well use resourcestrings and standard FPC GetText unit directly,
+  as shown in the example code in "examples/localization". }
 unit CastleLocalization;
 
 {$I castleconf.inc}
