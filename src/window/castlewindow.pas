@@ -1031,7 +1031,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(Key: TKey; CharKey: char; StringKey: string);
+    procedure DoKeyDown(Key: TKey; StringKey: string);
     procedure DoKeyUp(key: TKey);
     { Do MakeCurrent,
          EventMotion,
@@ -3454,7 +3454,9 @@ begin
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowCustom.DoRender'); {$endif}
 end;
 
-procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char; StringKey: string);
+procedure TCastleWindowCustom.DoKeyDown(Key: TKey; StringKey: string);
+var
+  Event: TInputPressRelease;
 
   function SeekMatchingMenuItem: TMenuItem;
 
@@ -3472,7 +3474,7 @@ procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char; StringKey: str
         end;
       end else
       if (Entry is TMenuItem) and
-         TMenuItem(Entry).KeyMatches(Key, CharKey, Pressed.Modifiers) then
+         TMenuItem(Entry).KeyMatches(Key, Event.KeyCharacter, Pressed.Modifiers) then
         Result := TMenuItem(Entry);
     end;
 
@@ -3485,17 +3487,19 @@ procedure TCastleWindowCustom.DoKeyDown(Key: TKey; CharKey: char; StringKey: str
 var
   MatchingMI: TMenuItem;
   KeyRepeated: boolean;
-  Event: TInputPressRelease;
 begin
+  {we need to create event beforehand to correctly convert StringKey to CharKey)}
+  Event := InputKey(MousePosition, Key, StringKey);
+
   KeyRepeated :=
     // Key or CharKey non-empty
-    ((Key <> keyNone) or (CharKey <> #0)) and
+    ((Key <> keyNone) or (Event.KeyCharacter <> #0)) and
     // Key already pressed
     ((Key = keyNone) or Pressed.Keys[Key]) and
     // CharKey already pressed
-    ((CharKey = #0) or Pressed.Characters[CharKey]);
+    ((Event.KeyCharacter = #0) or Pressed.Characters[Event.KeyCharacter]);
 
-  Pressed.KeyDown(Key, CharKey, StringKey);
+  Pressed.KeyDown(Key, Event.KeyCharacter);
 
   MatchingMI := SeekMatchingMenuItem;
   if (MainMenu <> nil) and
@@ -3507,7 +3511,6 @@ begin
   end else
   begin
     MakeCurrent;
-    Event := InputKey(MousePosition, Key, CharKey, StringKey);
     Event.KeyRepeated := KeyRepeated;
     Container.EventPress(Event);
 
@@ -3528,7 +3531,7 @@ begin
     Assert(Key <> K_None);
     Pressed.KeyUp(Key, C);
     MakeCurrent;
-    Container.EventRelease(InputKey(MousePosition, Key, C, C));
+    Container.EventRelease(InputKey(MousePosition, Key, C));
   end;
 end;
 

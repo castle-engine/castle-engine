@@ -577,7 +577,7 @@ type
       representable as TKey, pass CharKey = #0 if this is not representable
       as char. But never pass both Key = keyNone and CharKey = #0
       (this would have no meaning). }
-    procedure KeyDown(const Key: TKey; const CharKey: char; const StringKey: string);
+    procedure KeyDown(const Key: TKey; const CharKey: char);
 
     { Call when key is released.
       Never pass Key = keyNone here.
@@ -676,7 +676,7 @@ type
       For example "up arrow" (Key = keyUp) doesn't have a char code
       (it will have KeyCharacter = #0).
 
-      KeyCharacter is influenced by some other keys state,
+      *KeyCharacter is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
       (all dependent on your system settings, we don't deal with it in our engine,
       we merely take what system gives us). For example, you can get "a" or "A"
@@ -692,7 +692,6 @@ type
       the key is (still) pressed down.
       @groupBegin }
     Key: TKey;
-    KeyCharacter: char;
     KeyString: string;
     { @groupEnd }
 
@@ -770,6 +769,10 @@ type
 
     { Textual description of this event. }
     function ToString: string;
+    { Character corresponding to keypress event
+      Returns #0 if the event was not a keyboard event or
+      keypress event wasn't a simple keyboard event (e.g. a UTF8 character) }
+    function KeyCharacter: char;
     { @deprecated Deprecated name for ToString. }
     function Description: string; deprecated;
   end;
@@ -784,7 +787,7 @@ type
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char; const KeyString: string): TInputPressRelease;
+  const Key: TKey; const KeyString: string): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
@@ -1202,7 +1205,7 @@ begin
   Result := ModifiersDown(Keys);
 end;
 
-procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char; const StringKey: string);
+procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char);
 begin
   if Key <> keyNone then
     Keys[Key] := true;
@@ -1303,19 +1306,40 @@ begin
     Result := Result + ', key repeated';
 end;
 
+function TInputPressRelease.KeyCharacter: char;
+begin
+  {$ifdef MSWINDOWS}
+  { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
+    GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
+  if Key = K_Escape then
+  Result := CharEscape else
+  if Key = K_Enter then
+  Result := CharEnter else
+  {$endif}
+  { It seems that GTK 2 doesn't translate backspace and tab to
+    appropriate chars. So I'm fixing it here. }
+  if Key = K_Tab then
+  Result := CharTab else
+  if Key = K_BackSpace then
+  Result := CharBackSpace else
+
+  if Length(Self.KeyString) = 1 then
+   Result := Self.KeyString[1] else
+   Result := #0;
+end;
+
 function TInputPressRelease.Description: string;
 begin
   Result := ToString;
 end;
 
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char; const KeyString: string): TInputPressRelease;
+  const Key: TKey; const KeyString: string): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itKey;
   Result.Key := Key;
-  Result.KeyCharacter := KeyCharacter;
   Result.KeyString := KeyString;
 end;
 

@@ -78,7 +78,7 @@ begin
  if OldState and (not NewState) then 
   DoKeyUp(ModifierKeyToKey[ModKey]) else
  if (not OldState) and NewState then
-  DoKeyDown(ModifierKeyToKey[ModKey], #0, #0);
+  DoKeyDown(ModifierKeyToKey[ModKey], '');
 end;
 
 {$endif read_implementation}

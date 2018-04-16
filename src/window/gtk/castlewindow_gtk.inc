@@ -513,7 +513,6 @@ SIGNAL_WINDOW_END;
 function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var Key: TKey;
-    CharKey: char;
     StringKey: string;
 SIGNAL_WINDOW_BEGIN
  case Event^.KeyVal of
@@ -528,28 +527,7 @@ SIGNAL_WINDOW_BEGIN
    Key := GdkKeysymToKey(Event^.KeyVal);
    StringKey := Event^._string;
 
-   {$ifdef MSWINDOWS}
-   { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
-     GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
-   if Key = K_Escape then
-    CharKey := CharEscape else
-   if Key = K_Enter then
-    CharKey := CharEnter else
-   {$endif}
-   { It seems that GTK 2 doesn't translate backspace and tab to
-     appropriate chars. So I'm fixing it here. }
-   if Key = K_Tab then
-    CharKey := CharTab else
-   if Key = K_BackSpace then
-    CharKey := CharBackSpace else
-   { note: testing is Event.Length = 1 not only makes sure that we can
-     safely take Event.TheString[0] as a whole CharKey,
-     but it also makes sure that this is not something MBCS encoded. }
-   if Event^.Length = 1 then
-    CharKey := Event^._string[0] else
-    CharKey := #0;
-
-   if (Key <> K_None) or (StringKey <> '') then DoKeyDown(Key, CharKey, StringKey);
+   if (Key <> K_None) or (StringKey <> '') then DoKeyDown(Key, StringKey);
   end;
  end;
 

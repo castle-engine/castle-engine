@@ -587,12 +587,12 @@ end;
 
 procedure TStateDialogInput.ButtonOKClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Enter, CharEnter, CharEnter));
+  Press(InputKey(Container.MousePosition, K_Enter, CharEnter));
 end;
 
 procedure TStateDialogInput.ButtonCancelClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Escape, CharEscape, CharEscape));
+  Press(InputKey(Container.MousePosition, K_Escape, CharEscape));
 end;
 
 function TStateDialogInput.Press(const Event: TInputPressRelease): boolean;
