@@ -562,6 +562,22 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
+{ ---------------------------------------------------------------------------- }
+{ @section(Generics) }
+
+type
+  { A generic version of TCollection.
+    Main usage is preventing code redundancy when working with JSON serialisation. }
+  generic TGenericCollection<T> = class(TCollection)
+  private
+    function GetItems(AIndex: Integer): T;
+    procedure SetItems(AIndex: Integer; AValue: T);
+  public
+    constructor Create;
+    function Add: T;
+    property Items[AIndex: Integer]: T read GetItems write SetItems; default;
+  end;
+
 {$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
@@ -1433,6 +1449,28 @@ begin
   for I := Count - 1 downto 0 do
     if Assigned(Items[I]) then
       Items[I](Sender);
+end;
+
+{ TGenericCollection -------------------------------------------------------- }
+
+function TGenericCollection.GetItems(AIndex: Integer): T;
+begin
+  Result := T(inherited Items[AIndex]);
+end;
+
+procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
+begin
+  Items[AIndex].Assign(AValue);
+end;
+
+constructor TGenericCollection.Create;
+begin
+  inherited Create(T);
+end;
+
+function TGenericCollection.Add: T;
+begin
+  Result := T(inherited Add);
 end;
 
 { DumpStack ------------------------------------------------------------------ }

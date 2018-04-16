@@ -15,8 +15,6 @@
 
 {$ifdef read_interface}
 
-  {$I castlelocalization_genericcollection.inc}
-
   type
     TFileLoaderJSONEntry = class(TCollectionItem)
     private
@@ -42,8 +40,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-  {$I castlelocalization_genericcollection.inc}
 
   { TMOFileIterable }
 

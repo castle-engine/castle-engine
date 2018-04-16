@@ -28,7 +28,7 @@ interface
 uses
   Classes, GetText, Generics.Collections,
   CastleSystemLanguage,
-  CastleStringUtils,
+  CastleStringUtils, CastleClassUtils,
   CastleControls, CastleOnScreenMenu;
 
 type
