@@ -18,7 +18,7 @@
 unit CastleLocalization;
 
 {$I castleconf.inc}
-{$interfaces corba}
+{$ifdef FPC}{$interfaces corba}{$endif}
 
 interface
 
