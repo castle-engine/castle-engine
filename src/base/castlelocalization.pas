@@ -32,17 +32,23 @@ uses
   CastleControls, CastleOnScreenMenu;
 
 type
+  { Dictionary (LocalizationID/TranslatedText as String/String) for storing all translated strings of the current language. }
   TLanguageDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>;
 
+  { Procedure of a file loader called by CastleLocalization to fill the language dictionary from a file stream. }
   TFileLoaderAction = procedure(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
+  { Dictionaty (FileExtension/FileLoaderAction as String/TFileLoaderAction) to connect the known file loaders with it's file extensions.}
   TFileLoaderDictionary = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TFileLoaderAction>;
 
+  { Called by CastleLocalization to all subscribed procedures when a new language is set. }
   TOnLocalizationUpdatedEvent = procedure of object;
   TOnLocalizationUpdatedEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnLocalizationUpdatedEvent>;
 
+  { Called by CastleLocalization to all subscribed components when a new language is set. }
   TOnUpdateLocalizationEvent = procedure(const ALocalizedText: String) of object;
   TOnUpdateLocalizationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalizationEvent>;
 
+  { List (dictionary) for the localisation IDs of all subscribed components. }
   TLocalizationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
 
 type
@@ -55,6 +61,7 @@ type
   end;
 
 type
+  { Main comonent for localisation, singleton as Localization. }
   TCastleLocalization = class (TComponent)
     protected
       FLanguageDictionary: TLanguageDictionary;
@@ -69,18 +76,29 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+      { Returns the current system language as language code.
+        For example: en, de, pl }
       function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
+      { Returns the current system local as langauge code and local info.
+        For example: en_US, en_GB, es_ES }
       function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
+      { Adds a new component to the automised localisation list or, if it already is listed, updates it's localisation ID. }
       procedure AddOrSet(ALocalizationComponent: ICastleLocalization; ALocalizationID: String);
     public
       property Items[AKey: String]: String read Get; default;
+      { The URL to the language file that shall be loaded for localisation. }
       property LanguageURL: String read FLanguageURL write LoadLanguage;
+      { A list (dictionary) of file loaders.
+        You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
       property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
+      { A list of subscribed procedures of that each will be called when the langauge changes.
+        You can add procedure to this to localise images or such that is no descendent of TComponent. }
       property OnUpdateLocalization: TOnLocalizationUpdatedEventList read FOnLocalizationUpdatedEventList;
   end;
 
 var
-  Localization: TCastleLocalization; //Singleton.
+  { Singleton for TCastleLocalization. }
+  Localization: TCastleLocalization;
 
 {$define read_interface}
 {$I castlelocalization_castlecore.inc}

@@ -29,6 +29,7 @@ uses
   CastleXMLUtils;
 
 type
+  { Represents a single translated string in the language JSON file. }
   TFileLoaderJSONEntry = class(TCollectionItem)
   private
     FKey: String;
@@ -38,8 +39,10 @@ type
     property value: String read FValue write FValue;
   end;
 
+  { Represents the full language JSON file containing all translated strings. }
   TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
 
+  { TMOFile descendent that allows iterating through all strings. }
   TMOFileIterable = class(TMOFile)
   protected
     function GetKey(AIndex: Cardinal): String;
@@ -50,6 +53,7 @@ type
     property Values[AIndex: Cardinal]: String read GetValue;
   end;
 
+{ Called by CastleLocalization to load all standard file loader. }
 procedure ActivateAllFileLoader;
 
 implementation

@@ -16,21 +16,25 @@
 {$ifdef read_interface}
 
   type
+    { A descendent of TCastleLabel that can be localised with CastleLocalization. }
     TCastleLabelLocalizable = class (TCastleLabel, ICastleLocalization)
     public
       procedure OnUpdateLocalization(const ALocalizedText: String);
     end;
 
+    { A descendent of TCastleButton that can be localised with CastleLocalization. }
     TCastleButtonLocalizable = class (TCastleButton, ICastleLocalization)
     public
       procedure OnUpdateLocalization(const ALocalizedText: String);
     end;
 
+    { A descendent of TCastleMenuButton that can be localised with CastleLocalization. }
     TCastleMenuButtonLocalizable = class (TCastleMenuButton, ICastleLocalization)
     public
       procedure OnUpdateLocalization(const ALocalizedText: String);
     end;
 
+    { A descendent of TCastleEdit that can be localised with CastleLocalization. }
     TCastleEditLocalizable = class (TCastleEdit, ICastleLocalization)
     private
       FLastLocalizedText: String;
