@@ -26,9 +26,9 @@ unit CastleLocalization;
 interface
 
 uses
-  Classes, GetText, Generics.Collections,
+  Classes, Generics.Collections,
   CastleSystemLanguage,
-  CastleStringUtils, CastleClassUtils,
+  CastleStringUtils,
   CastleControls, CastleOnScreenMenu;
 
 type
@@ -83,7 +83,6 @@ var
   Localization: TCastleLocalization; //Singleton.
 
 {$define read_interface}
-{$I castlelocalization_fileloader.inc}
 {$I castlelocalization_castlecore.inc}
 {$undef read_interface}
 
@@ -91,13 +90,10 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  {$warnings off}
-    DOM, XMLRead, fpjsonrtti, CSVDocument,
-    CastleXMLUtils, CastleURIUtils, CastleUtils, CastleDownload;
-  {$warnings on}
+  CastleURIUtils, CastleUtils, CastleDownload,
+  CastleLocalizationFileLoader;
 
 {$define read_implementation}
-{$I castlelocalization_fileloader.inc}
 {$I castlelocalization_castlecore.inc}
 {$undef read_implementation}
 
