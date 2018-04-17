@@ -377,6 +377,18 @@ type
     procedure Writeln(const S: string; const Args: array of const); overload;
   end;
 
+  TStringsHelper = class helper for TStrings
+    { Load the contents from URL.
+      Uses Castle Game Engine @link(Download) to get the contents,
+      then uses standard LoadFromStream to load them. }
+    procedure LoadFromURL(const URL: string);
+
+    { Save the contents to URL.
+      Uses standard SaveToStream combined with
+      Castle Game Engine @link(URLSaveStream) to save the contents. }
+    procedure SaveToURL(const URL: string);
+  end;
+
 implementation
 
 uses URIParser, Math,
@@ -1053,6 +1065,28 @@ end;
 procedure TTextWriter.Writeln(const S: string; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
+end;
+
+{ TStringsHelper ---------------------------------------------------------- }
+
+procedure TStringsHelper.LoadFromURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := Download(URL);
+  try
+    LoadFromStream(Stream);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TStringsHelper.SaveToURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    SaveToStream(Stream);
+  finally FreeAndNil(Stream) end;
 end;
 
 end.
