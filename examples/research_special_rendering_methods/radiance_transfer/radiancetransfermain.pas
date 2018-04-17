@@ -111,7 +111,8 @@ begin
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Center,
       @DrawLight, 100, 100, LightIntensityScale);
 
-    { no need to reset glViewport, inheried TCastleSceneManager.Render calls
+    { no need to reset RenderContext.Viewport
+      inheried TCastleSceneManager.Render calls
       ApplyProjection that will already do it. }
   end;
 

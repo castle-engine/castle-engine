@@ -23,7 +23,7 @@
   strict private
     { Background image. }
     FBackground: TCastleImage;
-    FGLBackground: TGLImageCore;
+    FGLBackground: TGLImage;
     FYPosition: Single;
     FProgress: TProgress;
     procedure SetBackground(const Value: TCastleImage);
@@ -230,15 +230,21 @@ begin
       context is active => FGLBackground is assigned too. }
     FreeAndNil(FGLBackground);
     if GLInitialized and (FBackground <> nil) then
-      FGLBackground := TGLImageCore.Create(FBackground, true);
+      FGLBackground := TGLImage.Create(FBackground, true, false);
   end;
 end;
 
 procedure TCastleProgressBar.GLContextOpen;
 begin
+  { TODO: After migrating TGLImageCore -> TGLImage,
+    there is no longer a need to create/destroy TGLImage instances
+    in GLContextOpen/GLContextClose.
+    We can instead create/destroy them in constructor/destructor,
+    and simplify this implementation. }
+
   inherited;
   if (FGLBackground = nil) and (FBackground <> nil) then
-    FGLBackground := TGLImageCore.Create(FBackground, true);
+    FGLBackground := TGLImage.Create(FBackground, true, false);
 end;
 
 procedure TCastleProgressBar.GLContextClose;

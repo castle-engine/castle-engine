@@ -77,8 +77,8 @@ type
     FOnClick: TNotifyEvent;
     FCurrentItem: Integer;
     { Calculated menu items positions and sizes, by RecalculateSize. }
-    FRectangles: TRectangleList;
-    FWidth, FHeight: Cardinal; //< calculated necessary size
+    FRectangles: TFloatRectangleList;
+    FWidth, FHeight: Single; //< calculated necessary size
     FKeyNextItem: TKey;
     FKeyPreviousItem: TKey;
     FKeySelectItem: TKey;
@@ -88,14 +88,14 @@ type
     FCurrentItemColor: TCastleColor;
     FNonCurrentItemColor: TCastleColor;
     FNonFocusableItemColor: TCastleColor;
-    MaxItemWidth: Integer;
-    FRegularSpaceBetweenItems: Cardinal;
+    MaxItemWidth: Single;
+    FRegularSpaceBetweenItems: Single;
     FDrawBackgroundRectangle: boolean;
     FDrawFocusedBorder: boolean;
     FBackgroundOpacityFocused, FBackgroundOpacityNotFocused: Single;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
-    procedure SetRegularSpaceBetweenItems(const Value: Cardinal);
+    procedure SetRegularSpaceBetweenItems(const Value: Single);
     function FindChildIndex(const ScreenPosition: TVector2): Integer;
   protected
     procedure UIScaleChanged; override;
@@ -164,6 +164,7 @@ type
     procedure Resize; override;
 
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure Render; override;
 
@@ -229,7 +230,7 @@ type
       Note that this is used only at RecalculateSize call.
       So when some variable affecting the implementation of this changes,
       you should call RecalculateSize again. }
-    function SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal; virtual;
+    function SpaceBetweenItems(const NextItemIndex: Cardinal): Single; virtual;
 
     { Called when user will select CurrentItem.
       @seealso Click }
@@ -256,7 +257,7 @@ type
 
       If you want more control over it (if you want to add more/less
       space between some menu items), override SpaceBetweenItems method. }
-    property RegularSpaceBetweenItems: Cardinal
+    property RegularSpaceBetweenItems: Single
       read FRegularSpaceBetweenItems write SetRegularSpaceBetweenItems
       default DefaultRegularSpaceBetweenItems;
 
@@ -325,7 +326,7 @@ constructor TCastleOnScreenMenu.Create(AOwner: TComponent);
 begin
   inherited;
   FCurrentItem := 0;
-  FRectangles := TRectangleList.Create;
+  FRectangles := TFloatRectangleList.Create;
   BackgroundOpacityNotFocused := DefaultBackgroundOpacityNotFocused;
   BackgroundOpacityFocused    := DefaultBackgroundOpacityFocused;
 
@@ -421,7 +422,7 @@ begin
   end;
 end;
 
-function TCastleOnScreenMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
+function TCastleOnScreenMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Single;
 begin
   Result := RegularSpaceBetweenItems;
 end;
@@ -431,17 +432,17 @@ const
 
 procedure TCastleOnScreenMenu.RecalculateSize;
 
-  function ChildHeight(const Index: Integer): Integer;
+  function ChildHeight(const Index: Integer): Single;
   var
     C: TUIControl;
   begin
     C := Controls[Index];
     // ChildHeight assumes that TCastleLabel(C).AutoSize = true
     Assert((not (C is TCastleLabel)) or (TCastleLabel(C).AutoSize = true));
-    Result := C.Rect.Height;
+    Result := C.FloatRect.Height;
     { add accessory (slider etc.) height inside the menu item }
     if C.ControlsCount <> 0 then
-      MaxVar(Result, C.Controls[0].Rect.Height);
+      MaxVar(Result, C.Controls[0].FloatRect.Height);
   end;
 
 const
@@ -449,14 +450,14 @@ const
   ItemPaddingHorizontal = 5;
 var
   I: Integer;
-  WholeItemWidth, MaxAccessoryWidth: Integer;
-  ItemsBelowHeight: Cardinal;
-  MarginBeforeAccessoryScaled, PaddingScaled: Integer;
+  WholeItemWidth, MaxAccessoryWidth: Single;
+  ItemsBelowHeight: Single;
+  MarginBeforeAccessoryScaled, PaddingScaled: Single;
   C: TUIControl;
-  R: TRectangle;
+  R: TFloatRectangle;
 begin
-  MarginBeforeAccessoryScaled := Round(UIScale * MarginBeforeAccessory);
-  PaddingScaled := Round(UIScale * Padding);
+  MarginBeforeAccessoryScaled := UIScale * MarginBeforeAccessory;
+  PaddingScaled := UIScale * Padding;
 
   { calculate MaxItemWidth, MaxAccessoryWidth }
 
@@ -470,10 +471,10 @@ begin
       TCastleLabel(C).AutoSize := true; // later we'll turn it back to false
       TCastleLabel(C).PaddingHorizontal := 0; // later we'll turn it back to nonzero
     end;
-    MaxVar(MaxItemWidth, C.Rect.Width);
+    MaxVar(MaxItemWidth, C.FloatRect.Width);
     { add accessory (slider etc.) width inside the menu item }
     if C.ControlsCount <> 0 then
-      MaxVar(MaxAccessoryWidth, C.Controls[0].Rect.Width);
+      MaxVar(MaxAccessoryWidth, C.Controls[0].FloatRect.Width);
   end;
 
   { calculate FWidth and FHeight }
@@ -487,10 +488,10 @@ begin
   begin
     FHeight += ChildHeight(I);
     if I > 0 then
-      FHeight += Round(UIScale * SpaceBetweenItems(I));
+      FHeight += UIScale * SpaceBetweenItems(I);
   end;
 
-  FWidth += 2 * PaddingScaled + 2 * Round(UIScale * ItemPaddingHorizontal);
+  FWidth += 2 * PaddingScaled + 2 * UIScale * ItemPaddingHorizontal;
   FHeight += 2 * PaddingScaled;
 
   { calculate children Widths and Heights }
@@ -499,9 +500,10 @@ begin
   for I := 0 to ControlsCount - 1 do
   begin
     if MaxAccessoryWidth <> 0 then
-      WholeItemWidth := MaxItemWidth + MarginBeforeAccessoryScaled + MaxAccessoryWidth else
-      WholeItemWidth := Controls[I].Rect.Width;
-    FRectangles.Add(Rectangle(0, 0, WholeItemWidth, ChildHeight(I)));
+      WholeItemWidth := MaxItemWidth + MarginBeforeAccessoryScaled + MaxAccessoryWidth
+    else
+      WholeItemWidth := Controls[I].FloatRect.Width;
+    FRectangles.Add(FloatRectangle(0, 0, WholeItemWidth, ChildHeight(I)));
   end;
 
   { Calculate positions of all rectangles. }
@@ -518,22 +520,22 @@ begin
     FRectangles.L[I].Bottom := PaddingScaled + ItemsBelowHeight;
     R := FRectangles.L[I];
 
-    // divide by UIScale, because TCastleLabel.Rect will multiply by it...
-    C.Left   := Round(R.Left / UIScale);
-    C.Bottom := Round(R.Bottom / UIScale);
+    // divide by UIScale, because TCastleLabel.FloatRect will multiply by it...
+    C.Anchor(hpLeft  , R.Left / UIScale);
+    C.Anchor(vpBottom, R.Bottom / UIScale);
     if C is TCastleLabel then
     begin
       TCastleLabel(C).AutoSize := false;
       TCastleLabel(C).PaddingHorizontal := ItemPaddingHorizontal;
-      TCastleLabel(C).Width  := Round(R.Width / UIScale) + ItemPaddingHorizontal * 2;
-      TCastleLabel(C).Height := Round(R.Height / UIScale);
+      TCastleLabel(C).FloatWidth  := R.Width / UIScale + ItemPaddingHorizontal * 2;
+      TCastleLabel(C).FloatHeight := R.Height / UIScale;
     end;
     if I > 0 then
-      ItemsBelowHeight += Cardinal(R.Height + Round(UIScale * SpaceBetweenItems(I)));
+      ItemsBelowHeight += R.Height + UIScale * SpaceBetweenItems(I);
 
     if C.ControlsCount <> 0 then
       // divide by UIScale, because TCastleLabel.Rect will multiply by it...
-      C.Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
+      C.Controls[0].Anchor(hpLeft, (MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
   end;
 end;
 
@@ -699,7 +701,7 @@ begin
 
   MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 function TCastleOnScreenMenu.AllowSuspendForInput: boolean;
@@ -724,7 +726,7 @@ end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
 begin
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChangedByUser;
@@ -741,7 +743,12 @@ end;
 
 function TCastleOnScreenMenu.Rect: TRectangle;
 begin
-  Result := Rectangle(LeftBottomScaled, FWidth, FHeight);
+  Result := FloatRect.Round;
+end;
+
+function TCastleOnScreenMenu.FloatRect: TFloatRectangle;
+begin
+  Result := FloatRectangle(FloatLeftBottomScaled, FWidth, FHeight);
 end;
 
 function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2): boolean;
@@ -749,7 +756,7 @@ begin
   Result := CaptureAllEvents or (inherited CapturesEventsAtPosition(Position));
 end;
 
-procedure TCastleOnScreenMenu.SetRegularSpaceBetweenItems(const Value: Cardinal);
+procedure TCastleOnScreenMenu.SetRegularSpaceBetweenItems(const Value: Single);
 begin
   if FRegularSpaceBetweenItems <> Value then
   begin

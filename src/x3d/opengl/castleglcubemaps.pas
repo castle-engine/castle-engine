@@ -37,8 +37,8 @@ type
   to OpenGL catches values in 0..1 range, but SH vector can express
   values from any range).
 
-  This changes glViewport, so be sure to reset glViewport to something
-  normal after calling this.
+  This changes RenderContext.Viewport,
+  so be sure to reset RenderContext.Viewport to something normal after calling this.
 
   The maps will be drawn in the color buffer (from positions MapScreenX, Y),
   so will actually be visible (call this before RenderContext.Clear or such if you
@@ -68,8 +68,8 @@ procedure SHVectorGLCapture(
   The classes of these images will also matter --- e.g. use TGrayscaleImage
   to capture scene as grayscale, use TRGBImage for RGB colors.
 
-  This changes glViewport, so be sure to reset glViewport to something
-  normal after calling this.
+  This changes RenderContext.Viewport,
+  so be sure to reset RenderContext.Viewport to something normal after calling this.
 
   ProjectionNear, ProjectionFar parameters will be used to set GL
   projection matrix. ProjectionFar may be equal to ZFarInfinity,
@@ -133,7 +133,7 @@ procedure SHVectorGLCapture(
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
 
-    glViewport(Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize));
+    RenderContext.Viewport := Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
     {$ifndef OpenGLES}
     // TODO-es
@@ -218,7 +218,7 @@ var
   begin
     RenderToTexture.RenderBegin;
 
-      glViewport(Rectangle(0, 0, Width, Height));
+      RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
       RenderingCamera.Target := rtCubeMapEnvironment;
       SetRenderingCamera(CapturePoint, Side);
@@ -289,7 +289,7 @@ procedure GLCaptureCubeMapTexture(
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
-      glViewport(Rectangle(0, 0, Size, Size));
+      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
       RenderingCamera.Target := rtCubeMapEnvironment;
       SetRenderingCamera(CapturePoint, Side);

@@ -1,7 +1,7 @@
 { Simple command-line calculator.
 
   Calculates value of 1st param, e.g. '1 + 2' or 'sin(5)' etc.
-  See [http://castle-engine.sourceforge.net/castle_script.php]
+  See [https://castle-engine.io/castle_script.php]
   for expression syntax. }
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}

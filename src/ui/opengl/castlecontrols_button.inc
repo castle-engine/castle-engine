@@ -34,11 +34,11 @@
       FloatRect, ScreenFloatRect, CalculatedFloatWidth, CalculatedFloatHeight
       or other methods that wrap FloatRect.
       This makes sure that FFinalScaledValid is honored. }
-    FFinalScaledWidth, FFinalScaledHeight: Float;
+    FFinalScaledWidth, FFinalScaledHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
-    TextWidth, TextHeight: Cardinal;
+    TextWidth, TextHeight: Single;
     FPressed: boolean;
     FImage,
       FCustomBackgroundPressed,
@@ -49,7 +49,7 @@
       FGLCustomBackgroundPressed,
       FGLCustomBackgroundDisabled,
       FGLCustomBackgroundFocused,
-      FGLCustomBackgroundNormal: TGLImageCore;
+      FGLCustomBackgroundNormal: TGLImage;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
       FOwnsCustomBackgroundDisabled,
@@ -73,7 +73,7 @@
     FEnabled: boolean;
     FEnableParentDragging: boolean;
     FTextAlignment: THorizontalPosition;
-    FLineSpacing: Integer;
+    FLineSpacing: Single;
     FHtml: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
@@ -98,7 +98,7 @@
     procedure SetImageMargin(const Value: Cardinal);
     procedure SetEnabled(const Value: boolean);
     procedure SetTextAlignment(const Value: THorizontalPosition);
-    procedure SetLineSpacing(const Value: Integer);
+    procedure SetLineSpacing(const Value: Single);
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
   protected
@@ -199,7 +199,7 @@
 
     { For multi-line @link(Caption), the extra spacing between lines.
       May also be negative to squeeze lines tighter. }
-    property LineSpacing: Integer read FLineSpacing write SetLineSpacing
+    property LineSpacing: Single read FLineSpacing write SetLineSpacing
       default DefaultLineSpacing;
 
     { Enable HTML tags in the @link(Caption).
@@ -375,7 +375,7 @@ var
       { calculate TextX }
       case TextAlignment of
         hpLeft  : TextX := TextLeft;
-        hpMiddle: TextX := TextLeft + TextWidth div 2;
+        hpMiddle: TextX := TextLeft + TextWidth / 2;
         hpRight : TextX := TextLeft + TextWidth;
         else raise EInternalError.Create('TCastleButton.Render: Alignment?');
       end;
@@ -392,7 +392,7 @@ var
 var
   ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Single;
   Background: TThemeImage;
-  CustomBackgroundImage: TGLImageCore;
+  CustomBackgroundImage: TGLImage;
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
@@ -502,17 +502,23 @@ end;
 
 procedure TCastleButton.GLContextOpen;
 begin
+  { TODO: After migrating TGLImageCore -> TGLImage,
+    there is no longer a need to create/destroy TGLImage instances
+    in GLContextOpen/GLContextClose.
+    We can instead create/destroy them in constructor/destructor,
+    and simplify this implementation. }
+
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImageCore.Create(FImage, true);
+    FGLImage := TGLImage.Create(FImage, true, false);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
-    FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
+    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
   if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
-    FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
+    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
-    FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
+    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
   UpdateTextSize;
 end;
 
@@ -538,7 +544,7 @@ begin
     begin
       FPressed := true;
       { We base our Render on Pressed value. }
-      VisibleChange;
+      VisibleChange([chRender]);
     end;
     // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
     ClickStarted := true;
@@ -558,7 +564,7 @@ begin
     if not Toggle then FPressed := false;
     ClickStarted := false;
     { We base our Render on Pressed value. }
-    VisibleChange;
+    VisibleChange([chRender]);
 
     { This is normal behavior of buttons: to click them, you have to make
       mouse down on the button, and then release mouse while still over
@@ -585,7 +591,7 @@ function TCastleButton.Motion(const Event: TInputMotion): boolean;
     if not Toggle then FPressed := false;
     ClickStarted := false;
     { We base our Render on Pressed value. }
-    VisibleChange;
+    VisibleChange([chRender]);
     { Without ReleaseCapture, the parent (like TCastleScrollView) would still
       not receive the following motion events. }
     Container.ReleaseCapture(Self);
@@ -660,7 +666,7 @@ end;
 
 procedure TCastleButton.UpdateTextSize;
 var
-  LineSpacingScaled: Integer;
+  LineSpacingScaled: Single;
   TextToRender: TRichText;
 begin
   if Font <> nil then
@@ -672,7 +678,7 @@ begin
       TextHeight := Font.RowHeight;
     end else
     begin
-      LineSpacingScaled := Round(UIScale * LineSpacing);
+      LineSpacingScaled := UIScale * LineSpacing;
       TextToRender := GetTextToRender;
       try
         TextWidth := TextToRender.Width;
@@ -699,8 +705,10 @@ begin
 
     FImage := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImageCore.Create(FImage, true);
+      FGLImage := TGLImage.Create(FImage, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -715,8 +723,10 @@ begin
 
     FCustomBackgroundPressed := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
-      FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
+      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -731,8 +741,10 @@ begin
 
     FCustomBackgroundDisabled := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
-      FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
+      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -747,8 +759,10 @@ begin
 
     FCustomBackgroundFocused := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
-      FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
+      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -763,8 +777,10 @@ begin
 
     FCustomBackgroundNormal := Value;
 
+    { TODO: After migrating TGLImageCore -> TGLImage,
+      this can be simplified. We can create TGLImage regardless if GLInitialized. }
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
-      FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
+      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
 
     FFinalScaledValid := false;
   end;
@@ -781,7 +797,7 @@ begin
     end;
 
     { We base our Render on Pressed and Focused value. }
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 
   inherited;
@@ -792,11 +808,11 @@ begin
   if FTextAlignment <> Value then
   begin
     FTextAlignment := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
-procedure TCastleButton.SetLineSpacing(const Value: Integer);
+procedure TCastleButton.SetLineSpacing(const Value: Single);
 begin
   if FLineSpacing <> Value then
   begin
@@ -821,7 +837,7 @@ begin
     if not Toggle then
       raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -831,7 +847,7 @@ begin
   begin
     FImageLayout := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -861,7 +877,7 @@ begin
   begin
     FFloatWidth := Value;
     FFinalScaledValid := false;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -871,7 +887,7 @@ begin
   begin
     FFloatHeight := Value;
     FFinalScaledValid := false;
-    VisibleChange(true);
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -881,7 +897,7 @@ begin
   begin
     FMinWidth := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -891,7 +907,7 @@ begin
   begin
     FMinHeight := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -901,7 +917,7 @@ begin
   begin
     FImageMargin := Value;
     FFinalScaledValid := false;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -910,7 +926,7 @@ begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -939,9 +955,10 @@ function TCastleButton.FloatRect: TFloatRectangle;
       MinWidthScaled          := MinWidth          * UIScale;
       MinHeightScaled         := MinHeight         * UIScale;
 
-      { We modify FFinalScaledWidth, FFinalScaledHeight,
-        and avoid causing UpdateFocusAndMouseCursor too many times.
-        We'll call it at the end explicitly, with VisibleChange(true). }
+      { We modify fields FFinalScaledWidth, FFinalScaledHeight,
+        to avoid calling VisibleChange too many times
+        (although it should be optimized, but better play it safe).
+        We'll call it at the end explicitly, with VisibleChange([chRectangle]). }
       if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
       if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
       if (FImage <> nil) or
@@ -979,7 +996,7 @@ function TCastleButton.FloatRect: TFloatRectangle;
         MaxVar(FFinalScaledHeight, MinHeightScaled);
 
       if AutoSizeWidth or AutoSizeHeight then
-        VisibleChange(true);
+        VisibleChange([chRectangle]);
     end;
   end;
 

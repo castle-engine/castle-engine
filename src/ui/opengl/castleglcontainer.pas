@@ -113,7 +113,7 @@ begin
 
   glDisable(GL_DEPTH_TEST);
 
-  CastleGLUtils.glViewport(ViewportRect);
+  RenderContext.Viewport := ViewportRect;
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
   if GLFeatures.EnableFixedFunction then
@@ -231,10 +231,6 @@ procedure TGLContainer.EventRender;
 var
   SomeControlHasRenderStyle2D, Dummy: boolean;
 begin
-  { Required to make DrawRectangle and TGLImageCore.Draw correct. }
-  Viewport2DSize[0] := Width;
-  Viewport2DSize[1] := Height;
-
   RenderEverything(rs3D, SomeControlHasRenderStyle2D);
   if SomeControlHasRenderStyle2D then
     RenderEverything(rs2D, Dummy);
@@ -260,10 +256,6 @@ begin
     Control.GLContextOpen;
   Control.Resize;
   Control.BeforeRender;
-
-  { Required to make DrawRectangle and TGLImageCore.Draw correct. }
-  Viewport2DSize[0] := ViewportRect.Width;
-  Viewport2DSize[1] := ViewportRect.Height;
 
   SomeControlHasRenderStyle2D := false;
   RenderControlCore(Control, ViewportRect, SomeControlHasRenderStyle2D, rs3D);

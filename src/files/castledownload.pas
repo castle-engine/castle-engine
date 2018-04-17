@@ -88,8 +88,8 @@ type
 
   It also automatically supports protocols to embed script contents:
   ecmascript, javascript (see VRML and X3D specifications),
-  castlescript, kambiscript (see http://castle-engine.sourceforge.net/castle_script.php),
-  compiled (http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled).
+  castlescript, kambiscript (see https://castle-engine.io/castle_script.php),
+  compiled (https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled).
   The MIME type for these is implied by the protocol (like "application/javascript"
   for ecmascript/javascript), and the returned stream simply contains
   script code.
@@ -298,7 +298,7 @@ type
     instance, or you can read an URL. Reading from URL supports all kinds
     of URL protocols supportted by @link(Download),
     including @code(file), @code(http) and Android @code(assets)
-    (see http://castle-engine.sourceforge.net/tutorial_network.php ).
+    (see https://castle-engine.io/tutorial_network.php ).
 
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).
@@ -375,6 +375,18 @@ type
     procedure Write(const S: string; const Args: array of const); overload;
     procedure Writeln(const S: string = ''); overload;
     procedure Writeln(const S: string; const Args: array of const); overload;
+  end;
+
+  TStringsHelper = class helper for TStrings
+    { Load the contents from URL.
+      Uses Castle Game Engine @link(Download) to get the contents,
+      then uses standard LoadFromStream to load them. }
+    procedure LoadFromURL(const URL: string);
+
+    { Save the contents to URL.
+      Uses standard SaveToStream combined with
+      Castle Game Engine @link(URLSaveStream) to save the contents. }
+    procedure SaveToURL(const URL: string);
   end;
 
 implementation
@@ -1053,6 +1065,28 @@ end;
 procedure TTextWriter.Writeln(const S: string; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
+end;
+
+{ TStringsHelper ---------------------------------------------------------- }
+
+procedure TStringsHelper.LoadFromURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := Download(URL);
+  try
+    LoadFromStream(Stream);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TStringsHelper.SaveToURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    SaveToStream(Stream);
+  finally FreeAndNil(Stream) end;
 end;
 
 end.

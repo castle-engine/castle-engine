@@ -74,7 +74,7 @@ build-using-fpmake:
 # So it does not copy .ppu/.o files, it does not change your /etc/fpc.cfg
 # or ~/.fpc.cfg. There are many ways how to install unit files,
 # we leave this step up to you.
-# See http://castle-engine.sourceforge.net/engine.php for documentation.
+# See https://castle-engine.io/engine.php for documentation.
 #
 # Below we only take care of installing the tools.
 # By default they are installed system-wide to /usr/local ,
@@ -214,7 +214,8 @@ EXAMPLES_BASE_NAMES := \
   tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
-  examples/random_generator/random_threads_test
+  examples/random_generator/random_threads_test \
+  examples/localization/localization_test
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \

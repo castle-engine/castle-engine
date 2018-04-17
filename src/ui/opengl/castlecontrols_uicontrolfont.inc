@@ -160,7 +160,7 @@ end;
 
 procedure TUIControlFont.TooltipRender;
 var
-  X, Y: Integer;
+  X, Y: Single;
   TooltipRect: TRectangle;
 begin
   if TooltipLabel = nil then
@@ -181,8 +181,8 @@ begin
   TooltipRect := TooltipLabel.Rect;
 
   { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
-  X := Round(Container.TooltipPosition[0] / TooltipLabel.UIScale);
-  Y := Round(Container.TooltipPosition[1] / TooltipLabel.UIScale);
+  X := Container.TooltipPosition[0] / TooltipLabel.UIScale;
+  Y := Container.TooltipPosition[1] / TooltipLabel.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
   MinVar(X, ContainerWidth - TooltipRect.Width);
@@ -190,8 +190,8 @@ begin
   MaxVar(X, 0);
   MaxVar(Y, 0);
 
-  TooltipLabel.Left := X;
-  TooltipLabel.Bottom := Y;
+  TooltipLabel.Anchor(hpLeft, X);
+  TooltipLabel.Anchor(vpBottom, Y);
 
   { just explicitly call Render method of TooltipLabel }
   TooltipLabel.Render;

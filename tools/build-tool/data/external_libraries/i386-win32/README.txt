@@ -1,5 +1,5 @@
 Libraries (dll files) required by Castle Game Engine
-( http://castle-engine.sourceforge.net/ ) programs on Windows 32-bit (i386).
+( https://castle-engine.io/ ) programs on Windows 32-bit (i386).
 
 You need to distribute them together with your Windows 32-bit programs,
 alongside the exe file. You can use our build tool (see
@@ -9,7 +9,7 @@ to easily package your programs together with their dependendent libraries.
 Note that not all programs require all the libraries.
 For example, OpenAL and OggVorbis is only used if you want 3D sound.
 FreeType is only used if you want to read font files (like .ttf).
-See http://castle-engine.sourceforge.net/apidoc/html/index.html
+See https://castle-engine.io/apidoc/html/index.html
 for details what is required for what purpose.
 
 Sources of these DLLs:

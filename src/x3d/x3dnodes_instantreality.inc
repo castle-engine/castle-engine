@@ -21,7 +21,7 @@
   { Transform children by an explicit 4x4 matrix.
 
     This is an extension, not present in the X3D standard.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_matrix_transform .
+    See https://castle-engine.io/x3d_extensions.php#section_ext_matrix_transform .
     It is compatible with InstantReality,
     see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
@@ -44,7 +44,7 @@
   TMatrixTransformNode_2 = TMatrixTransformNode;
 
   { Teapot geometry, useful for testing purposes.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_teapot . }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_teapot . }
   TTeapotNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -76,7 +76,7 @@
   end;
 
   { X3D events logging.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_logger . }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   strict private
     WriteStream: TStream;

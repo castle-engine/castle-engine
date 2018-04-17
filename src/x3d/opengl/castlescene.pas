@@ -196,7 +196,7 @@ type
     { Blending function parameters, used when @link(Blending).
       Note that this is only a default, VRML/X3D model can override this
       for specific shapes by using our extension BlendMode node.
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_blending].
       @groupBegin }
     property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -560,7 +560,7 @@ type
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
       shadowVolumes = TRUE (see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]).
+      [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]).
 
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
@@ -2042,7 +2042,7 @@ begin
   end;
 
   if NeedsRestoreViewport then
-    glViewport(OriginalViewport);
+    RenderContext.Viewport := OriginalViewport;
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;

@@ -627,7 +627,7 @@ type
       )
 
       More user-oriented documentation for the above options is here:
-      [http://castle-engine.sourceforge.net/openal_notes.php#section_options] }
+      [https://castle-engine.io/openal_notes.php#section_options] }
     procedure ParseParameters;
 
     { Help string for options parsed by ParseParameters.
@@ -857,7 +857,7 @@ type
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
       pointing to an XML file describing your sounds.
-      See http://castle-engine.sourceforge.net/creating_data_sound.php and
+      See https://castle-engine.io/creating_data_sound.php and
       engine examples for details (@code(examples/audio/sample_sounds.xml)
       contains an example file with lots of comments).
 
@@ -1743,7 +1743,7 @@ function TSoundEngine.Devices: TSoundDeviceList;
 
         This is so unstable, that I think that I do a service
         for users by *not* listing aRts in available OpenAL
-        devices. It's listed on [http://castle-engine.sourceforge.net/openal_notes.php]
+        devices. It's listed on [https://castle-engine.io/openal_notes.php]
         and that's enough.
 
       Add(SampleImpALCDeviceName('arts'), 'aRts (analog Real time synthesizer)');
@@ -1816,7 +1816,7 @@ begin
       it reports this by setting AL error (instead of ALC one)
       to "invalid value". Although (after fixes to detect OpenALSampleImplementation
       at runtime and change constants values) this shouldn't happen anymore
-      it you pass normal consts to this function. }
+      if you pass correct consts to this function. }
     CheckAL('alcGetString');
   except
     on E: EALCError do result := '('+E.Message+')';

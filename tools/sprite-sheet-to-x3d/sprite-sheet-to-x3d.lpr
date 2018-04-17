@@ -171,7 +171,7 @@ begin
   end;
   Root := TX3DRootNode.Create;
   Root.Meta['generator'] :=
-      'sprite-sheet-to-x3d, http://castle-engine.sourceforge.net';
+      'sprite-sheet-to-x3d, https://castle-engine.io';
   Root.Meta['source'] := SSName + SSExt;
   try
     Shape:= TShapeNode.Create;

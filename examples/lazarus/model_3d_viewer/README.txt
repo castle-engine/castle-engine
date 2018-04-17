@@ -22,14 +22,14 @@ Compiling:
 Usage:
 
 - Open any 3D file supported by view3dscene (X3D, VRML 1.0/2.0, Collada, 3DS ---
-  see view3dscene docs [http://castle-engine.sourceforge.net/view3dscene.php]).
+  see view3dscene docs [https://castle-engine.io/view3dscene.php]).
   You can open using "File -> Open" menu item
   or just pass filename on command-line.
 
 - Navigation in the scene follows NavigationInfo.type encoded in VRML/X3D.
   (if none, Examine will be used).
   See view3dscene docs for keys to control Walk/Examine navigation
-  [http://castle-engine.sourceforge.net/view3dscene.php], or just try
+  [https://castle-engine.io/view3dscene.php], or just try
   moving with arrows, mouse etc.
   Remember that you must have focus on 3D area to use them ---
   press Escape (menu item "View -> Switch focus to 3D area") when needed.

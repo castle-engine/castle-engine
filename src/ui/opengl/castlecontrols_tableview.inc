@@ -31,36 +31,33 @@
     )
     }
   TCastleTableViewCell = class(TCastleRectangleControl)
-    strict private
-      FTextLabel: TCastleLabel;
-      FTag: Integer;
-      FImageIcon: TCastleImageControl;
-      FAccessoryType: TCastleTableViewCellAccessoryType;
-      FAccessoryTypeImage: TCastleImageControl;   // image representing the AccessoryType
-      FAccessoryControl: TUIControl;
+  strict private
+    FTextLabel: TCastleLabel;
+    FImageIcon: TCastleImageControl;
+    FAccessoryType: TCastleTableViewCellAccessoryType;
+    FAccessoryTypeImage: TCastleImageControl;   // image representing the AccessoryType
+    FAccessoryControl: TUIControl;
 
-      procedure SetAccessoryControl(AControl: TUIControl);
+    procedure SetAccessoryControl(AControl: TUIControl);
 
-    private
-      procedure ReflectUIControls;
+  private
+    procedure ReflectUIControls;
 
-    public
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
-      procedure MakeEmpty;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure MakeEmpty;
 
-      { Use TextLabel.Caption to set the text visible on the cell. }
-      property TextLabel: TCastleLabel read FTextLabel;
-      { Define the (square) image shown at the left cell border. }
-      property ImageIcon: TCastleImageControl read FImageIcon;
-      { Decoration shown at the right cell border. }
-      property AccessoryType: TCastleTableViewCellAccessoryType
-                              read FAccessoryType write FAccessoryType default tvcaNone;
-      { Any custom control added at the right cell border (e.g. SwitchControl, ImageControl) }
-      property AccessoryControl: TUIControl
-                              read FAccessoryControl write SetAccessoryControl default nil;
-      { Custom data. }
-      property Tag: Integer read FTag write FTag default 0;
+    { Use TextLabel.Caption to set the text visible on the cell. }
+    property TextLabel: TCastleLabel read FTextLabel;
+    { Define the (square) image shown at the left cell border. }
+    property ImageIcon: TCastleImageControl read FImageIcon;
+    { Decoration shown at the right cell border. }
+    property AccessoryType: TCastleTableViewCellAccessoryType
+                            read FAccessoryType write FAccessoryType default tvcaNone;
+    { Any custom control added at the right cell border (e.g. SwitchControl, ImageControl) }
+    property AccessoryControl: TUIControl
+                            read FAccessoryControl write SetAccessoryControl default nil;
   end;
 
   TCastleTableViewCellList = specialize TObjectList<TCastleTableViewCell>;
@@ -68,12 +65,12 @@
   { Data source used in @link(TCastleTableView). Implement this interface to
     populate data into the TableView. }
   ICastleTableViewDataSource = interface
-      { Return number of cells (rows). }
-      function TableViewNumberOfRows(Sender: TCastleTableView): Integer;
-      { Called when TableView needs the contents for the cell. TableView manages
-        its cells automatically. For example set Cell.TextLabel.Caption to
-        define the text displayed in the cell. }
-      procedure TableViewUpdateCell(Cell: TCastleTableViewCell; Row: Integer; Sender: TCastleTableView);
+    { Return number of cells (rows). }
+    function TableViewNumberOfRows(Sender: TCastleTableView): Integer;
+    { Called when TableView needs the contents for the cell. TableView manages
+      its cells automatically. For example set Cell.TextLabel.Caption to
+      define the text displayed in the cell. }
+    procedure TableViewUpdateCell(Cell: TCastleTableViewCell; Row: Integer; Sender: TCastleTableView);
   end;
 
   TTableViewDidSelectCellEvent = procedure(Row: Integer; Sender: TCastleTableView) of object;
@@ -84,38 +81,38 @@
     care of the rest. TableView control descends from @link(TCastleScrollView),
     so it shows the scrollbar when needed. }
   TCastleTableView = class(TCastleScrollView)
-    strict private
-      FDataSource: ICastleTableViewDataSource;
-      FCells: TCastleTableViewCellList;
-      FCellHeight: Integer;
+  strict private
+    FDataSource: ICastleTableViewDataSource;
+    FCells: TCastleTableViewCellList;
+    FCellHeight: Integer;
 
-      FOnDidSelectCell: TTableViewDidSelectCellEvent;
+    FOnDidSelectCell: TTableViewDidSelectCellEvent;
 
-      FPressPos: TVector2;
-      FMotionIsClick: boolean;
-    public
-      const
-        DefaultCellHeight = 50;
+    FPressPos: TVector2;
+    FMotionIsClick: boolean;
+  public
+    const
+      DefaultCellHeight = 50;
 
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
-      procedure ReloadData;
-      procedure SetDataSource(ADataSource: ICastleTableViewDataSource);
+    procedure ReloadData;
+    procedure SetDataSource(ADataSource: ICastleTableViewDataSource);
 
-      function Press(const Event: TInputPressRelease): boolean; override;
-      function Release(const Event: TInputPressRelease): boolean; override;
-      function Motion(const Event: TInputMotion): boolean; override;
-      procedure Update(const SecondsPassed: Single;
-        var HandleInput: boolean); override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
 
-      { TableView needs data source set in order to show some contents. }
-      property DataSource: ICastleTableViewDatasource read FDataSource write SetDataSource;
-      { Event called when cell was selected by user. }
-      property OnSelectCell: TTableViewDidSelectCellEvent
-                             read FOnDidSelectCell write FOnDidSelectCell;
-      { Height of all cells. }
-      property CellHeight: Integer read FCellHeight write FCellHeight default DefaultCellHeight;
+    { TableView needs data source set in order to show some contents. }
+    property DataSource: ICastleTableViewDatasource read FDataSource write SetDataSource;
+    { Event called when cell was selected by user. }
+    property OnSelectCell: TTableViewDidSelectCellEvent
+                           read FOnDidSelectCell write FOnDidSelectCell;
+    { Height of all cells. }
+    property CellHeight: Integer read FCellHeight write FCellHeight default DefaultCellHeight;
   end;
 
 {$endif read_interface}

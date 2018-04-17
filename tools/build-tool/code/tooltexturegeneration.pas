@@ -17,7 +17,7 @@
 unit ToolTextureGeneration;
 
 { Unfortunately, AMDCompressCLI output is broken now.
-  See http://castle-engine.sourceforge.net/creating_data_material_properties.php . }
+  See https://castle-engine.io/creating_data_material_properties.php . }
 { $define USE_AMDCompress}
 
 interface

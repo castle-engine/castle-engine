@@ -138,7 +138,7 @@ procedure TFocusedFrame.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
     { The TFocusedFrame.Render is based on Focused value. }
-    VisibleChange;
+    VisibleChange([chRender]);
 
   inherited;
 end;

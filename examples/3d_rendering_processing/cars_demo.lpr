@@ -15,8 +15,8 @@
 
 { Demo of TCastleScene, scene manager and related functionality.
   Follow the relevant tutorial pages
-  http://castle-engine.sourceforge.net/tutorial_load_3d.php
-  http://castle-engine.sourceforge.net/tutorial_scene.php
+  https://castle-engine.io/tutorial_load_3d.php
+  https://castle-engine.io/tutorial_scene.php
 }
 program cars_demo;
 

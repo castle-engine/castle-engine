@@ -211,13 +211,6 @@ procedure GLBlendRectangle(const Rect: TRectangle;
 procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor);
 
-var
-  { Viewport size for 2D rendering functions, like @link(DrawRectangle),
-    @link(DrawPrimitive2D) and TGLImageCore.Draw.
-    The container (like TCastleWindowCustom or TCastleControlCustom)
-    must take care to set this before rendering. }
-  Viewport2DSize: TVector2;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -378,7 +371,15 @@ begin
   begin
     TGLSLProgram.Current := Primitive2DRes.Prog;
     Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
-    Primitive2DRes.UniformViewportSize.SetValue(Viewport2DSize);
+
+    if (RenderContext.Viewport.Left <> 0) or
+       (RenderContext.Viewport.Bottom <> 0) then
+      WritelnWarning('Drawing DrawPrimitive2D (DrawRectangle etc.) when viewport (left,bottom) is not (0,0) is undefined now');
+    Primitive2DRes.UniformViewportSize.SetValue(Vector2(
+      RenderContext.Viewport.Width,
+      RenderContext.Viewport.Height
+    ));
+
     Primitive2DRes.UniformColor.SetValue(Color);
   end else
   begin

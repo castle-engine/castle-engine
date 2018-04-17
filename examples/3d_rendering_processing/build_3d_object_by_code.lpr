@@ -19,7 +19,7 @@
   Check out latest X3D specification,
   http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html,
   and our
-  http://castle-engine.sourceforge.net/x3d_implementation_status.php
+  https://castle-engine.io/x3d_implementation_status.php
   for a complete list of supported VRML/X3D nodes. }
 
 uses SysUtils, CastleVectors, X3DNodes;

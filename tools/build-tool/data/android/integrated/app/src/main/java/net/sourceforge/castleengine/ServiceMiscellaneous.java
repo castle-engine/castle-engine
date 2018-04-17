@@ -80,7 +80,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
         getActivity().startActivity(intent);
     }
 
-    private InputMethodManager im = (InputMethodManager) getActivity().getSystemService(Service.INPUT_METHOD_SERVICE);;
+    private InputMethodManager im = (InputMethodManager) getActivity().getSystemService(Service.INPUT_METHOD_SERVICE);
 
     private void changeKeyboardState(Boolean keyboardState)
     {

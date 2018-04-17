@@ -2,9 +2,7 @@
 
 .PHONY: default html pdf ps rtf latex
 
-# html and pdf are two most useful versions of documentation,
-# shown on [http://castle-engine.sourceforge.net/reference.php]
-# Later: pdf now removed, useless and ugly.
+# html is shown on https://castle-engine.io/apidoc/html/
 default: html
 
 # Run "make" in logo/ first,
@@ -75,7 +73,7 @@ SSH_HOST=castle-engine.io
 SSH_PATH=/home/michalis/cge-html/apidoc/
 
 # Prepare and upload all the stuff referenced under
-# [http://castle-engine.sourceforge.net/reference.php].
+# https://castle-engine.io/apidoc/html/ .
 # Uploads as tar.gz and unpacks on server, this is *much* faster than
 # uploading separate HTML files.
 .PHONY: upload

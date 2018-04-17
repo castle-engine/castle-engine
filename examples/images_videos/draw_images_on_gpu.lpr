@@ -32,10 +32,13 @@ end;
 
 var
   Window: TCastleWindowCustom;
-  DestImageInitial: TCastleImage;
+  DestImageInitial, DestImageFinal: TCastleImage;
 begin
   try
     Window := TCastleWindowCustom.Create(Application);
+    // uncomment these to test that viewport setting in RenderToImageBegin works
+    // Window.Width := 100;
+    // Window.Height := 100;
     Window.Open;
 
     { All of the TGLImage drawing must happen when OpenGL context is active,
@@ -69,6 +72,16 @@ begin
     DestImage.RenderToImageEnd;
 
     Window.OnRender := @Render;
+
+    { Instead of using DestImage for drawing, you can also get it's contents
+      back to normal (non-GPU) memory using DestImage.GetContents.
+      This is reasonable if you have to save it back to disk
+      (otherwise, you should avoid it, and work with GPU-only DestImage
+      for maximum speed). }
+    DestImageFinal := DestImage.GetContents(TRGBAlphaImage);
+    try
+      SaveImage(DestImageFinal, 'test.png');
+    finally FreeAndNil(DestImageFinal) end;
 
     Application.Run;
   finally

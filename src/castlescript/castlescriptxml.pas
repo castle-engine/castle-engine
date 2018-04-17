@@ -60,7 +60,7 @@ type
 
     { Read from Element attribute value as a Float expression, and returns @true.
       The expression can be anything in CastleScript
-      http://castle-engine.sourceforge.net/castle_script.php ,
+      https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloat) to easily allow
       mathematical exressions in XML attributes.
@@ -72,7 +72,7 @@ type
       raises EDOMAttributeMissing if missing.
 
       The expression can be anything in CastleScript
-      http://castle-engine.sourceforge.net/castle_script.php ,
+      https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloat) to easily allow
       mathematical exressions in XML attributes.
@@ -83,7 +83,7 @@ type
     { Retrieves from Element given attribute as a Float expression, or a default value.
 
       The expression can be anything in CastleScript
-      http://castle-engine.sourceforge.net/castle_script.php ,
+      https://castle-engine.io/castle_script.php ,
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloatDef) to easily allow
       mathematical exressions in XML attributes. }

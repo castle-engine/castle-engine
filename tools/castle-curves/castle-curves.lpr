@@ -71,7 +71,7 @@ var
 const
   Version = '2.0.0';
   CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
-  DonateURL = 'http://castle-engine.sourceforge.net/donate.php';
+  DonateURL = 'https://castle-engine.io/donate.php';
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
   Curves[SelectedCurve] changes. It is always called from

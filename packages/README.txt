@@ -83,7 +83,7 @@ Mini-FAQ about these packages:
 
   In practice, use this only for macOS, see
 
-    http://castle-engine.sourceforge.net/macosx_requirements.php
+    https://castle-engine.io/macosx_requirements.php
 
   In principle you can use this for other systems as well (Linux, Windows and such),
   but the standard castle_window.lpk package will usually give you a better

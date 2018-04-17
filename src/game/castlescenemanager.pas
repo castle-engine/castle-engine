@@ -279,7 +279,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
-    procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
@@ -472,7 +473,7 @@ type
 
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php]).
+      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
       and ScreenEffectsNeedDepth to add screen effects by code.
       Each viewport may have it's own, different screen effects.
@@ -545,7 +546,7 @@ type
       An exception to this is assigning events to the camera instance.
       The scene manager or viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnHeight, TCamera.OnCursorChange.
+      TWalkCamera.OnHeight.
       We will handle them in a proper way. Do not assign them yourself.
 
       @italic(Comments for TCastleViewport only:)
@@ -617,7 +618,7 @@ type
       is 2-manifold, that is has a correctly closed volume.
       Also you need a light source
       marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]
       for details. }
     property ShadowVolumes: boolean
       read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
@@ -900,7 +901,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
 
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -1098,8 +1100,7 @@ type
       Freeing MainScene will automatically set this to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
 
-    { Called on any camera change. Exactly when TCamera generates it's
-      OnVisibleChange event. }
+    { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
     { Called when bound Viewpoint node changes.
@@ -1233,7 +1234,7 @@ type
 
     @unorderedList(
       @item(Explanation with an example:
-        http://castle-engine.sourceforge.net/tutorial_2d_user_interface.php#section_viewport)
+        https://castle-engine.io/tutorial_2d_user_interface.php#section_viewport)
       @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
       @item(Example in engine sources: examples/fps_game/)
     )
@@ -1260,7 +1261,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
@@ -1416,7 +1418,6 @@ begin
     if (FCamera <> nil) and not (csDestroying in FCamera.ComponentState) then
     begin
       FCamera.OnVisibleChange := nil;
-      FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
@@ -1435,7 +1436,6 @@ begin
         to override TCastleWindowCustom / TCastleControlCustom that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
-      FCamera.OnCursorChange := @RecalculateCursor;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -1692,7 +1692,8 @@ begin
 
   if (GetMouseRayHit <> nil) and
      (GetMouseRayHit.Count <> 0) then
-    Cursor := GetMouseRayHit.First.Item.Cursor else
+    Cursor := GetMouseRayHit.First.Item.Cursor
+  else
     Cursor := mcDefault;
 end;
 
@@ -1768,7 +1769,7 @@ begin
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
   Viewport := ScreenRect;
-  glViewport(Viewport);
+  RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
 
@@ -2272,7 +2273,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
     { Note that there's no need to worry about Rect.Left or Rect.Bottom,
       here or inside RenderWithScreenEffectsCore, because we're already within
-      glViewport that takes care of this. }
+      RenderContext.Viewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
     AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
@@ -2304,9 +2305,9 @@ begin
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
   end;
 
-  { Restore glViewport set by ApplyProjection }
+  { Restore RenderContext.Viewport set by ApplyProjection }
   if not FillsWholeContainer then
-    glViewport(ScreenRect);
+    RenderContext.Viewport := ScreenRect;
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
@@ -2482,11 +2483,11 @@ begin
             BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
-    { We have to adjust glViewport.
+    { We have to adjust RenderContext.Viewport.
       It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
     if not FillsWholeContainer then
-      glViewport(Rectangle(0, 0, SR.Width, SR.Height));
+      RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
@@ -2641,7 +2642,7 @@ begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
     FScreenSpaceAmbientOcclusion := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -3071,7 +3072,8 @@ end;
 
 procedure TCastleSceneManager.GLContextClose;
 begin
-  Items.GLContextClose;
+  if Items <> nil then
+    Items.GLContextClose;
 
   FreeAndNil(FShadowVolumeRenderer);
 
@@ -3518,7 +3520,7 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
       ScheduledVisibleChangeNotificationChanges := [];
 
       { pass visible change notification "upward" (as a TUIControl, to container) }
-      VisibleChange;
+      VisibleChange([chRender]);
       { pass visible change notification "downward", to all children TCastleTransform }
       Items.VisibleChangeNotification(Changes);
     end;
@@ -3542,27 +3544,33 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
+procedure TCastleSceneManager.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
 var
   Pos, Dir, Up: TVector3;
 begin
-  (ACamera as TCamera).GetView(Pos, Dir, Up);
-
-  if ACamera = Camera then
+  if chCamera in Changes then
   begin
-    { Call CameraChanged for all Items, not just MainScene.
-      This allows ProximitySensor and Billboard and such nodes
-      to work in all 3D scenes, not just in MainScene. }
-    Items.CameraChanged(Camera);
-    { ItemsVisibleChange will also cause our own VisibleChange. }
-    ItemsVisibleChange(Items, CameraToChanges);
-  end else
-    VisibleChange;
+    if Sender = Camera then
+    begin
+      { Call CameraChanged for all Items, not just MainScene.
+        This allows ProximitySensor and Billboard and such nodes
+        to work in all 3D scenes, not just in MainScene. }
+      Items.CameraChanged(Camera);
+      { ItemsVisibleChange will also cause our own VisibleChange. }
+      ItemsVisibleChange(Items, CameraToChanges);
+    end else
+      VisibleChange(Changes, true);
 
-  SoundEngine.UpdateListener(Pos, Dir, Up);
+    (Sender as TCamera).GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
 
-  if Assigned(OnCameraChanged) then
-    OnCameraChanged(ACamera);
+    if Assigned(OnCameraChanged) then
+      OnCameraChanged(Sender);
+  end;
+
+  if chCursor in Changes then
+    RecalculateCursor(Sender);
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
@@ -3753,9 +3761,10 @@ begin
     raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
 end;
 
-procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
+procedure TCastleViewport.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
 begin
-  VisibleChange;
+  VisibleChange(Changes, true);
 end;
 
 function TCastleViewport.CameraMoveAllowed(ACamera: TWalkCamera;

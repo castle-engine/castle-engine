@@ -1447,7 +1447,15 @@ var
   I: Integer;
 begin
   for I := Count - 1 downto 0 do
-    if Assigned(Items[I]) then
+
+    { TODO: The test "I < Count" is a quick fix for the problem that when
+      TCastleApplicationProperties._GLContextClose calls
+      FOnGLContextCloseObject.ExecuteBackward(Self),
+      some "on close" callbacks modify the FOnGLContextCloseObject list.
+      We should introduce a reliable way to handle this, but for now the test
+      at least prevents a crash in this case. }
+
+    if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
 end;
 

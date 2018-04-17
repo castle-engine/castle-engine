@@ -275,9 +275,7 @@ type
 
       You can initialize things that require OpenGL context now.
       Often you do not need to use this callback (engine components will
-      automatically create/release OpenGL resource when necessary),
-      unless you deal with lower-level OpenGL resource managing (e.g. using
-      TGLImageCore).
+      automatically create/release OpenGL resource when necessary).
       You usually will also want to implement OnClose callback that
       should release stuff you create here.
 
@@ -729,10 +727,10 @@ var
 begin
   NewCursor := CursorCastleToLCL[Value];
 
-  { check explicitly "Cursor <> NewCursor" --- we will call UpdateFocusAndMouseCursor
-    very often (in each mouse move), and we don't want to depend on LCL
-    optimizing "Cursor := Cursor" to avoid some potentially expensive window
-    manager call. }
+  { Check explicitly "Cursor <> NewCursor", to avoid changing LCL property Cursor
+    too often. The SetInternalCursor may be called very often (in each mouse move).
+    (It is probably already optimized in LCL,
+    and in window manager too, but it's safer to not depend on it). }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
 end;
@@ -1206,7 +1204,7 @@ begin
       Container.EventRender;
       DoOnPaint; // call OnPaint, like it would be a top-most TUIControl
       if GLVersion.BuggySwapNonStandardViewport then
-        glViewport(Rect);
+        RenderContext.Viewport := Rect;
       SwapBuffers;
       // it seems calling Invalidate from Paint doesn't work, so we'll
       // have to do it elsewhere

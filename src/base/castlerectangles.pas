@@ -359,6 +359,38 @@ type
     function Grow(const Delta: Single): TFloatRectangle; overload;
     function Grow(const DeltaX, DeltaY: Single): TFloatRectangle; overload;
 
+    { Returns the rectangle with a number of pixels from given
+      side removed. Returns an empty rectangle if you try to remove too much.
+      @groupBegin }
+    function RemoveLeft(W: Single): TFloatRectangle;
+    function RemoveBottom(H: Single): TFloatRectangle;
+    function RemoveRight(W: Single): TFloatRectangle;
+    function RemoveTop(H: Single): TFloatRectangle;
+    { @groupEnd }
+
+    { Returns the rectangle with a number of pixels on given side added.
+      @groupBegin }
+    function GrowLeft(const W: Single): TFloatRectangle;
+    function GrowBottom(const H: Single): TFloatRectangle;
+    function GrowRight(const W: Single): TFloatRectangle;
+    function GrowTop(const H: Single): TFloatRectangle;
+    { @groupEnd }
+
+    { Returns the given side of the rectangle, cut down to given number of pixels
+      from given side. This is similar to RemoveXxx methods, but here you specify
+      which side to keep, as opposed to RemoveXxx methods where you specify which
+      side you remove.
+
+      If the requested size is larger than current size (for example,
+      W > Width for LeftPart) then the unmodified rectangle is returned.
+
+      @groupBegin }
+    function LeftPart(W: Single): TFloatRectangle;
+    function BottomPart(H: Single): TFloatRectangle;
+    function RightPart(W: Single): TFloatRectangle;
+    function TopPart(H: Single): TFloatRectangle;
+    { @groupEnd }
+
     { Align this rectangle within other rectangle by calculating new value
       for @link(Left). }
     function AlignCore(
@@ -689,7 +721,10 @@ end;
 
 function TRectangle.ToString: string;
 begin
-  Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TRectangle: Empty'
+  else
+    Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
 end;
 
 function TRectangle.Center: TVector2Integer;
@@ -1037,6 +1072,92 @@ begin
   Result := Grow(Delta, Delta);
 end;
 
+function TFloatRectangle.RemoveLeft(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Left := Result.Left + W;
+  Result.Width := Result.Width - W;
+end;
+
+function TFloatRectangle.RemoveBottom(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Bottom := Result.Bottom + H;
+  Result.Height := Result.Height - H;
+end;
+
+function TFloatRectangle.RemoveRight(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Width := Result.Width - W;
+end;
+
+function TFloatRectangle.RemoveTop(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Height := Result.Height - H;
+end;
+
+function TFloatRectangle.GrowLeft(const W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Left := Result.Left - Integer(W);
+  Result.Width := Result.Width + W;
+end;
+
+function TFloatRectangle.GrowBottom(const H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Height := Result.Height + H;
+end;
+
+function TFloatRectangle.GrowRight(const W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Width := Result.Width + W;
+end;
+
+function TFloatRectangle.GrowTop(const H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Height := Result.Height + H;
+end;
+
+function TFloatRectangle.LeftPart(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Width := W;
+end;
+
+function TFloatRectangle.BottomPart(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Height := H;
+end;
+
+function TFloatRectangle.RightPart(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Left := Result.Left + Width - W;
+  Result.Width := W;
+end;
+
+function TFloatRectangle.TopPart(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Bottom := Result.Bottom + Height - H;
+  Result.Height := H;
+end;
+
 function TFloatRectangle.GetRight: Single;
 begin
   Result := Left + Width;
@@ -1123,7 +1244,10 @@ end;
 
 function TFloatRectangle.ToString: string;
 begin
-  Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TFloatRectangle: Empty'
+  else
+    Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
 end;
 
 function TFloatRectangle.Translate(const V: TVector2): TFloatRectangle;

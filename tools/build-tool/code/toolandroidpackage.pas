@@ -209,6 +209,9 @@ var
       if (depOggVorbis in Project.Dependencies) and
          not Project.AndroidServices.HasService('ogg_vorbis') then
         ExtractService('ogg_vorbis');
+      if (depFreeType in Project.Dependencies) and
+         not Project.AndroidServices.HasService('freetype') then
+        ExtractService('freetype');
     end;
   end;
 

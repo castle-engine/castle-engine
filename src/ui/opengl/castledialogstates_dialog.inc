@@ -41,7 +41,7 @@
       Else broken InputText. }
     Broken_InputText: TStringList;
 
-    MaxLineWidth: integer;
+    MaxLineWidth: Single;
     { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
     AllScrolledLinesCount: integer;
@@ -57,16 +57,16 @@
     FHtml: boolean;
     ScrollView: TCastleScrollView;
 
-    function BoxMarginScaled: Integer;
-    function WindowMarginScaled: Integer;
-    function ButtonHorizontalMarginScaled: Integer;
+    function BoxMarginScaled: Single;
+    function WindowMarginScaled: Single;
+    function ButtonHorizontalMarginScaled: Single;
 
     procedure SetInputText(const Value: string);
 
     { Calculate height in pixels needed to draw Buttons.
       Returns 0 if there are no Buttons. }
-    function ButtonsHeightScaled: Integer;
-    function ButtonsHeight: Integer;
+    function ButtonsHeightScaled: Single;
+    function ButtonsHeight: Single;
     procedure UpdateSizes;
   public
     { Set this to @true to signal that modal dialog window should be closed.
@@ -76,6 +76,7 @@
 
     { The whole rectangle where we draw dialog box. }
     function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -115,7 +116,7 @@ type
   TCaretMode = (cmNone, cmVisible, cmInvisible);
 
   { Render a Text line, and move Y up to the line above. }
-  procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
+  procedure DrawString(X: Single; var Y: Single; const Color: TCastleColor;
     Text: string; const TextAlign: THorizontalPosition;
     const Caret: TCaretMode);
   var
@@ -126,7 +127,7 @@ type
       CaretWidth := 0;
     { change X only locally, to take TextAlign into account }
     case TextAlign of
-      hpMiddle: X += (Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) div 2;
+      hpMiddle: X += (Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) / 2;
       hpRight : X +=  Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth);
     end;
     if Caret = cmVisible then
@@ -137,7 +138,7 @@ type
   end;
 
   { Render all lines in S, and move Y up to the line above. }
-  procedure DrawStrings(const X: Integer; var Y: Integer;
+  procedure DrawStrings(const X: Single; var Y: Single;
     const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
     const AddCaret: boolean);
   const
@@ -161,7 +162,7 @@ type
   end;
 
 var
-  TextX, TextY: Integer;
+  TextX, TextY: Single;
   SR: TRectangle;
 begin
   inherited;
@@ -235,27 +236,27 @@ begin
   FInputText := value;
   if Container <> nil then
   begin
-    VisibleChange;
+    VisibleChange([chRectangle]);
     UpdateSizes;
   end;
 end;
 
-function TStateDialog.TDialog.ButtonsHeightScaled: Integer;
+function TStateDialog.TDialog.ButtonsHeightScaled: Single;
 var
   Button: TCastleButton;
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Round(Button.CalculatedHeight * UIScale) + 2 * BoxMarginScaled);
+    MaxVar(Result, Button.CalculatedFloatHeight * UIScale + 2 * BoxMarginScaled);
 end;
 
-function TStateDialog.TDialog.ButtonsHeight: Integer;
+function TStateDialog.TDialog.ButtonsHeight: Single;
 var
   Button: TCastleButton;
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Button.CalculatedHeight + 2 * BoxMargin);
+    MaxVar(Result, Button.CalculatedFloatHeight + 2 * BoxMargin);
 end;
 
 procedure TStateDialog.TDialog.Resize;
@@ -269,7 +270,8 @@ procedure TStateDialog.TDialog.UpdateSizes;
   { Reposition Buttons. }
   procedure UpdateButtons;
   var
-    X, Y, I: Integer;
+    X, Y: Single;
+    I: Integer;
     Button: TCastleButton;
   begin
     if Length(Buttons) <> 0 then
@@ -281,15 +283,15 @@ procedure TStateDialog.TDialog.UpdateSizes;
         Button := Buttons[I];
         Button.Anchor(vpBottom, Y);
         Button.Anchor(hpRight, X);
-        X -= Button.CalculatedWidth + ButtonHorizontalMargin;
+        X -= Button.CalculatedFloatWidth + ButtonHorizontalMargin;
       end;
     end;
   end;
 
 var
-  BreakWidth, ButtonsWidth: integer;
+  BreakWidth, ButtonsWidth: Single;
   Button: TCastleButton;
-  PR: TRectangle;
+  PR: TFloatRectangle;
 begin
   { TODO: Using PR variable, otherwise on iOS directly writing ParentRect.Width
     causes range check error. Investigating,
@@ -302,14 +304,14 @@ begin
 
     Using PR.Width always works OK.
   }
-  PR := ParentRect;
+  PR := ParentFloatRect;
 
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
     ScrollBarWidthScaled to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
   BreakWidth := Max(0, PR.Width - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - Round(ScrollView.ScrollBarWidth * UIScale));
+    - WindowMarginScaled * 2 - ScrollView.ScrollBarWidth * UIScale);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
@@ -322,7 +324,7 @@ begin
 
   ButtonsWidth := 0;
   for Button in Buttons do
-    ButtonsWidth += Round(Button.CalculatedWidth * UIScale) + ButtonHorizontalMarginScaled;
+    ButtonsWidth += Button.CalculatedWidth * UIScale + ButtonHorizontalMarginScaled;
   if ButtonsWidth > 0 then
     ButtonsWidth -= ButtonHorizontalMarginScaled; // extract margin from last button
   MaxVar(MaxLineWidth, ButtonsWidth);
@@ -344,15 +346,16 @@ begin
   { Now we have MaxLineWidth and AllScrolledLinesCount calculated,
     so our Rect and ScreenRect return valid values. }
 
-  ScrollView.Left := 0;
-  ScrollView.Bottom := ButtonsHeight;
-  ScrollView.Width := CalculatedWidth;
-  ScrollView.Height := CalculatedHeight - ButtonsHeight;
+  ScrollView.Anchor(hpLeft, 0);
+  ScrollView.Anchor(vpBottom, ButtonsHeight);
+  ScrollView.FloatWidth := CalculatedFloatWidth;
+  ScrollView.FloatHeight := CalculatedFloatHeight - ButtonsHeight;
 
   { add Font.Descend, to be able to see the descend of the bottom line when Scroll is ScrollMax. }
-  ScrollView.ScrollArea.Height :=
-    Round((Font.RowHeight * AllScrolledLinesCount + Font.Descend) / UIScale) + 2 * BoxMargin;
-  ScrollView.ScrollArea.Width := CalculatedWidth;
+  ScrollView.ScrollArea.FloatHeight :=
+    (Font.RowHeight * AllScrolledLinesCount + Font.Descend) / UIScale
+    + 2 * BoxMargin;
+  ScrollView.ScrollArea.FloatWidth := CalculatedFloatWidth;
 
   UpdateButtons;
 end;
@@ -364,7 +367,7 @@ begin
   LifeTime += SecondsPassed;
   { when we have input text, we display blinking caret, so keep redrawing }
   if DrawInputText then
-    VisibleChange;
+    VisibleChange([chRender]);
 end;
 
 procedure TStateDialog.TDialog.Render;
@@ -380,12 +383,18 @@ begin
 end;
 
 function TStateDialog.TDialog.Rect: TRectangle;
-var
-  PR: TRectangle;
 begin
-  PR := ParentRect;
-  Result := Rectangle(0, 0,
-    Min(MaxLineWidth + BoxMarginScaled * 2 + Round(ScrollView.ScrollBarWidth * UIScale),
+  Result := FloatRect.Round;
+end;
+
+function TStateDialog.TDialog.FloatRect: TFloatRectangle;
+var
+  PR: TFloatRectangle;
+begin
+  PR := ParentFloatRect;
+  Result := FloatRectangle(0, 0,
+    Min(MaxLineWidth + BoxMarginScaled * 2 +
+      ScrollView.ScrollBarWidth * UIScale,
       PR.Width  - WindowMarginScaled * 2),
     Min(Font.RowHeight * AllScrolledLinesCount + Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
       { adding here + 2 is a hack to make sure that TCastleScrollView will
@@ -402,19 +411,19 @@ begin
       PR.Height - WindowMarginScaled * 2));
 end;
 
-function TStateDialog.TDialog.BoxMarginScaled: Integer;
+function TStateDialog.TDialog.BoxMarginScaled: Single;
 begin
-  Result := Round(BoxMargin * UIScale);
+  Result := BoxMargin * UIScale;
 end;
 
-function TStateDialog.TDialog.WindowMarginScaled: Integer;
+function TStateDialog.TDialog.WindowMarginScaled: Single;
 begin
-  Result := Round(WindowMargin * UIScale);
+  Result := WindowMargin * UIScale;
 end;
 
-function TStateDialog.TDialog.ButtonHorizontalMarginScaled: Integer;
+function TStateDialog.TDialog.ButtonHorizontalMarginScaled: Single;
 begin
-  Result := Round(ButtonHorizontalMargin * UIScale);
+  Result := ButtonHorizontalMargin * UIScale;
 end;
 
 {$endif read_implementation}

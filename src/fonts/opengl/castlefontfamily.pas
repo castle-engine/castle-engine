@@ -228,7 +228,7 @@ type
       const S: string; const Html: boolean);
     destructor Destroy; override;
     function Width: Cardinal;
-    procedure Wrap(const MaxWidth: Cardinal);
+    procedure Wrap(const MaxWidth: Single);
     procedure Print(const X, Y: Single; const Color: TCastleColor;
       const LineSpacingFloat: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft;
@@ -1217,7 +1217,7 @@ begin
   finally EndProcessing(State) end;
 end;
 
-procedure TRichText.Wrap(const MaxWidth: Cardinal);
+procedure TRichText.Wrap(const MaxWidth: Single);
 var
   I, J: Integer;
   LineWidth: Integer;
@@ -1234,7 +1234,7 @@ begin
       LineWidth := 0;
       for J := 0 to Line.Count - 1 do
       begin
-        NewLine := Line[J].Wrap(FFont, State, LineWidth, MaxWidth, Line, J);
+        NewLine := Line[J].Wrap(FFont, State, LineWidth, Ceil(MaxWidth), Line, J);
         if NewLine <> nil then
         begin
           { next I loop iteration will break the next line,
