@@ -57,6 +57,7 @@
     FClip: boolean;
     FClipLine: TVector3;
     FCache: boolean;
+    FCustomShader: TGLSLProgram;
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetRotation(const AValue: Single);
@@ -80,6 +81,7 @@
     procedure SetSmoothScaling(const Value: boolean);
     procedure SetClip(const Value: boolean);
     procedure SetClipLine(const Value: TVector3);
+    procedure SetCustomShader(const Value: TGLSLProgram);
     { Free FImage and make it @nil. }
     procedure FreeImage;
   public
@@ -283,6 +285,10 @@
       otherwise the image will not be loaded/freed using the cache.
       This may change at some point. }
     property Cache: boolean read FCache write FCache;
+
+    { Custom GLSL shading code.
+      See TGLImage.CustomShader for explanation. }
+    property CustomShader: TGLSLProgram read FCustomShader write SetCustomShader;
   end;
 
 {$endif read_interface}
@@ -533,6 +539,7 @@ begin
         FGLImage.Clip := FClip;
         FGLImage.ClipLine := FClipLine;
         FGLImage.Alpha := AlphaChannel;
+        FGLImage.CustomShader := CustomShader;
       end;
     end else
       FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
@@ -654,6 +661,19 @@ begin
   begin
     FFullSize := Value;
     VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleImageControl.SetCustomShader(const Value: TGLSLProgram);
+begin
+  if FCustomShader <> Value then
+  begin
+    FCustomShader := Value;
+    if FGLImage <> nil then
+    begin
+      FGLImage.CustomShader := Value;
+      VisibleChange([chRender]);
+    end;
   end;
 end;
 

@@ -77,10 +77,14 @@ type
           for alpha use constant color.a * texture.
           Useful when texture has no alpha information. }
         ctColorMultipliesTextureAlpha);
+
       TImageProgram = record
         Prog: TGLSLProgram;
         UniformViewportSize, UniformColor, UniformClipLine: TGLSLUniform;
         AttribVertex, AttribTexCoord: TGLSLAttribute;
+        procedure InitializeUniformsAttributes(
+          const ClipLineShader: boolean;
+          const ColorTreatment: TColorTreatment);
       end;
 
     var
@@ -116,6 +120,7 @@ type
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingConstantColor: TVector4;
+    FCustomShader: TGLSLProgram;
     function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -543,6 +548,28 @@ type
       or other rendering routines in this class), but it may be useful to
       integrate with external rendering systems. }
     property Texture: TGLTextureId read FTexture;
+
+    { Use a custom shader for image rendering.
+
+      The shader must define the same uniform variables and attributes
+      as the standard TGLImage shader, like viewport_size, vertex, tex_coord.
+      See for example our default shader code:
+      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/image.vs
+      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/image.fs .
+
+      See also example examples/images_videos/image_render_custom_shader.lpr .
+
+      Note that some uniforms/attributes are only used in some cases.
+      For example, when TGLImage.Color is White (1, 1, 1, 1), then we don't pass "color" uniform.
+      When TGLImage.Clip is @false, then we don't pass "clip_line" uniform.
+      When assigning your custom shader, you take responsibility of setting
+      the shader that matches the current TGLImage properties.
+
+      You can (and should, if possible) reuse a single TGLSLProgram instance
+      for many TGLImageCore and TCastleImageControl instances
+      (as TGLImageCore.CustomShader and TCastleImageControl.CustomShader).
+      You can also use your own uniforms in your shader code, of course. }
+    property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
   end;
 
   TGLRenderToTexture = class;
@@ -782,6 +809,25 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 
 {$ifdef read_implementation}
 
+{ TGLImageCore.TImageProgram ------------------------------------------------- }
+
+procedure TGLImageCore.TImageProgram.InitializeUniformsAttributes(
+  const ClipLineShader: boolean;
+  const ColorTreatment: TColorTreatment);
+begin
+  UniformViewportSize := Prog.Uniform('viewport_size');
+  if ColorTreatment <> ctPureTexture then
+    UniformColor := Prog.Uniform('color')
+  else
+    UniformColor := TGLSLUniform.NotExisting;
+  if ClipLineShader then
+    UniformClipLine := Prog.Uniform('clip_line')
+  else
+    UniformClipLine := TGLSLUniform.NotExisting;
+  AttribVertex := Prog.Attribute('vertex');
+  AttribTexCoord := Prog.Attribute('tex_coord');
+end;
+
 { TGLImageCore ------------------------------------------------------------------- }
 
 constructor TGLImageCore.Create(const Image: TEncodedImage;
@@ -949,17 +995,7 @@ begin
             NewProgram.Prog.AttachVertexShader(VS);
             NewProgram.Prog.AttachFragmentShader(FS);
             NewProgram.Prog.Link;
-
-            NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
-            if ColorTreatment <> ctPureTexture then
-              NewProgram.UniformColor := NewProgram.Prog.Uniform('color') else
-              NewProgram.UniformColor := TGLSLUniform.NotExisting;
-            if ClipLineShader then
-              NewProgram.UniformClipLine := NewProgram.Prog.Uniform('clip_line') else
-              NewProgram.UniformClipLine := TGLSLUniform.NotExisting;
-
-            NewProgram.AttribVertex := NewProgram.Prog.Attribute('vertex');
-            NewProgram.AttribTexCoord := NewProgram.Prog.Attribute('tex_coord');
+            NewProgram.InitializeUniformsAttributes(ClipLineShader, ColorTreatment);
 
             Programs[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
           end;
@@ -1258,7 +1294,16 @@ begin
       ColorTreatment := ctColorMultipliesTexture else
       ColorTreatment := ctPureTexture;
 
-    Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
+    if CustomShader <> nil then
+    begin
+      Prog.Prog := CustomShader;
+      { TODO: This will be speed up some day, by either caching
+        of TGLSLProgram.Attribute or TGLSLProgram.Uniform,
+        or by doing this at each property change (SetCustomShader, SetClip etc.). }
+      Prog.InitializeUniformsAttributes(Clip, ColorTreatment);
+    end else
+      Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
+
     TGLSLProgram.Current := Prog.Prog;
     Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));

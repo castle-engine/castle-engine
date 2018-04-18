@@ -117,6 +117,7 @@ examples/images_videos/image_identify
 examples/images_videos/image_paint
 examples/images_videos/simple_video_editor
 examples/images_videos/test_castleimage_draw3x3
+examples/images_videos/image_render_custom_shader
 examples/isometric_game/isometric_game
 examples/joystick/joystick_demo
 examples/lazarus/load_model_and_camera_manually/lib/
