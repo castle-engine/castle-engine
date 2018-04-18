@@ -444,6 +444,15 @@ type
       See https://castle-engine.io/wp/2018/03/21/animation-blending/ }
     TransitionDuration: TFloatTime;
 
+    { Start new animation at given moment in animation.
+      Allows to start animation from the middle, not necessarily from the start.
+
+      Note that animation blending (TransitionDuration) starts
+      from the moment you called the PlayAnimation, i.e. from InitialTime,
+      not from 0. In other words, animation will enter smoothly (cross-fade),
+      regardless of InitialTime. }
+    InitialTime: TFloatTime;
+
     constructor Create;
   end;
 
@@ -520,6 +529,7 @@ type
     NewPlayingAnimationForward: boolean;
     NewPlayingAnimationStopNotification: TStopAnimationEvent;
     NewPlayingAnimationTransitionDuration: TFloatTime;
+    NewPlayingAnimationInitialTime: TFloatTime;
 
     { PlayingAnimationXxx are changed in UpdateNewPlayingAnimation,
       when the new animation actually starts
@@ -1939,7 +1949,9 @@ type
       deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
 
     { Call right after calling @link(PlayAnimation) (before any update event
-      took place) to force setting initial animation frame @italic(now). }
+      took place) to force setting initial animation frame @italic(now).
+      This sets first animation frame,
+      unless you used TPlayAnimationParameters.InitialTime <> 0. }
     procedure ForceInitialAnimationPose;
 
     { Duration, in seconds, of the named animation
@@ -5860,7 +5872,7 @@ procedure TCastleSceneCore.InternalSetTime(
 
         { Assign StopTime and StartTime. }
         PlayingAnimationNode.StopTime := 0;
-        PlayingAnimationNode.StartTime := Time;
+        PlayingAnimationNode.StartTime := Time - NewPlayingAnimationInitialTime;
 
         { Enable the "ignore" mechanism again, to follow X3D spec. }
         Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
@@ -7208,8 +7220,11 @@ begin
   begin
     Inc(ForceImmediateProcessing);
     try
-      NewPlayingAnimationNode.FakeTime(0,
-        NewPlayingAnimationLoop, NewPlayingAnimationForward, NextEventTime);
+      NewPlayingAnimationNode.FakeTime(
+        NewPlayingAnimationInitialTime,
+        NewPlayingAnimationLoop,
+        NewPlayingAnimationForward,
+        NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
     end;
@@ -7290,6 +7305,7 @@ begin
     NewPlayingAnimationForward := Parameters.Forward;
     NewPlayingAnimationStopNotification := Parameters.StopNotification;
     NewPlayingAnimationTransitionDuration := Parameters.TransitionDuration;
+    NewPlayingAnimationInitialTime := Parameters.InitialTime;
     NewPlayingAnimationUse := true;
   end;
 end;
