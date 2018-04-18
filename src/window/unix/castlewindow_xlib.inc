@@ -462,12 +462,15 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
   procedure X_KeyPress(const event: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char;
+    CharKey: PChar;
+    EventString: string;
     Key: TKey;
   begin
     { calculate k, CharKey }
-    if XLookupString(@event, @CharKey, 1, @k, nil) = 0 then
-      CharKey := #0;
+    if Xutf8LookupString(@event, CharKey, 1, @k, nil) = 0 then
+      EventString := ''
+    else
+      EventString := CharKey;
 
     { maybe do DoKeyDown }
     case k of
@@ -479,7 +482,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
       else begin
         Key := Application.KeySymToKey(k);
-        if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+        if (Key <> K_None) or (EventString <> '') then DoKeyDown(Key, EventString);
       end;
     end;
   end;
@@ -487,7 +490,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
   procedure X_KeyRelease(const event: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char;
+    CharKey: PChar; //we don't use it further anywhere
     Key: TKey;
   begin
     { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
@@ -496,7 +499,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       pressed forever until window unfocused... }
 
     { calculate k, CharKey }
-    XLookupString(@event, @CharKey, 1, @k, nil);
+    Xutf8LookupString(@event, CharKey, 1, @k, nil);
 
     { maybe do DoKeyUp }
     case k of
