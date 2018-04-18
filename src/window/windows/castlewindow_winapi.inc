@@ -358,7 +358,8 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
   var
     Key: TKey;
     CharMsg: TMsg;
-    CharKey: char;
+    KeyChar: WideChar;
+    KeyString: string;
   begin
     { WM_CHAR is placed in our message queue by TranslateMessage.
       Always in WM_KEYDOWN we do this PeekMessage(..., WM_CHAR, WM_CHAR, PM_REMOVE).
@@ -367,9 +368,33 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
          WM_KEYDOWN message is not translatable as WM_CHAR) OR
       2. we have exactly one WM_CHAR message in our queue, and this is WM_CHAR
          message corresponding to current WM_KEYDOWN message. }
+
     if PeekMessage(@CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
-      CharKey := Chr(CharMsg.wParam) else
-      CharKey := #0;
+    begin
+      { Now we do some unsafe magic.
+        MultiByteToWideChar converts wParam:longint to a KeyChar:WideChar
+        which should be UTF-16. "Should" doesn't mean it is.
+        First problem here is that not all characters can fit into UTF-16.
+        Second problem is that we suggest longint 4 bytes long and WideChar 2 bytes lnog
+        which actually might be wrong in some specific cases.
+        Third, we suggest that system-wide default encoding CP_ACP is the default
+        for current thread, however CP_THREAD_ACP should be used better,
+        thou it is unavailable in defines.inc }
+      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, 4, @KeyChar, 2);
+      { Now, hopefully convert WideChar to UTF8Char }
+      KeyString := UTF8Encode(KeyChar);
+      { This is a bugfix with Ukrainian "i" letter which always messes up encodings :)
+        I just replace it by English "i" here,
+        however, I'm really if this is a good idea,
+        as this will make the words spell wrong (English letter instead of Ukrainian)
+        and will mess up with automatic word processing, e.g. spellchecking.
+        It seems that the character actually gets converted correctly, but
+        Windows functions (e.g. output to console window) don't understand it }
+      {if CharMsg.wParam = 179 then
+        KeyString := 'i';}
+    end
+    else
+      KeyString := '';
 
     Key := VirtualKeyToKey(wParm);
 
@@ -384,7 +409,7 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
       to left/right bracket. }
     if Key = K_None then
     begin
-      case CharKey of
+      case KeyString of
         '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := K_LeftBracket ; end;
         ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := K_RightBracket; end;
         '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := K_Apostrophe  ; end;
@@ -395,7 +420,7 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
       end;
     end;
 
-    if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+    if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
   end;
 
   procedure Handle_WM_KEYUP;
