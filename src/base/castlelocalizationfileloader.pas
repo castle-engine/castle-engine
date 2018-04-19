@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections,
   {$warnings off}
-    DOM, XMLRead, fpjsonrtti, CSVDocument, GetText,
+    DOM, XMLRead, fpjson, fpjsonrtti, CSVDocument, GetText,
   {$warnings on}
   CastleUtils, CastleClassUtils,
   CastleXMLUtils;
@@ -53,7 +53,8 @@ type
     property Values[AIndex: Cardinal]: String read GetValue;
   end;
 
-{ Called by CastleLocalization to load all standard file loader. }
+{ Called by CastleLocalization to load all standard file loader.
+  See Castle examples or documentation for detailed description of the file formats. }
 procedure ActivateAllFileLoader;
 
 implementation
@@ -101,7 +102,7 @@ begin
   end;
 end;
 
-procedure LoadLanguageFileJSON(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
+procedure LoadLanguageFileJSONObj(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
 var
   StringStream: TStringStream;
   DeStreamer: TJSONDeStreamer;
@@ -129,6 +130,30 @@ begin
       end;
     finally
       DeStreamer.Free;
+    end;
+  finally
+    StringStream.Free;
+  end;
+end;
+
+procedure LoadLanguageFileJSON(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
+var
+  StringStream: TStringStream;
+  Data: TJSONData;
+  i: Integer;
+  Key: String;
+begin
+  StringStream := TStringStream.Create;
+  try
+    StringStream.CopyFrom(AFileStream, AFileStream.Size);
+
+    Data := GetJSON(StringStream.DataString);
+    FreeAndNil(StringStream); //Save RAM.
+
+    for i := 0 to Data.Count - 1 do
+    begin
+      Key := TJSONObject(Data).Names[i];
+      ALanguageDictionary.AddOrSetValue(Key, Data.FindPath(Key).AsString);
     end;
   finally
     StringStream.Free;
@@ -174,6 +199,7 @@ procedure ActivateAllFileLoader;
 begin
   Localization.FileLoader.Add('.xml', @LoadLanguageFileXML);
   Localization.FileLoader.Add('.json', @LoadLanguageFileJSON);
+  Localization.FileLoader.Add('.jsonobj', @LoadLanguageFileJSONObj);
   Localization.FileLoader.Add('.mo', @LoadLanguageFileMO);
   Localization.FileLoader.Add('.csv', @LoadLanguageFileCSV);
 end;
