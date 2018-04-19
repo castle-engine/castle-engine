@@ -3492,8 +3492,8 @@ begin
   Event := InputKey(MousePosition, Key, StringKey);
 
   KeyRepeated :=
-    // Key or CharKey non-empty
-    ((Key <> keyNone) or (Event.KeyCharacter <> #0)) and
+    // Key or KeyString non-empty
+    ((Key <> keyNone) or (Event.KeyString <> '')) and
     // Key already pressed
     ((Key = keyNone) or Pressed.Keys[Key]) and
     // CharKey already pressed
