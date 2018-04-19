@@ -359,11 +359,11 @@ begin
     Result := ExclusiveEvents;
   end else
   if (Event.EventType = itKey) and
-     (Event.KeyCharacter <> #0) and
+     (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
      ((MaxLength = 0) or (Length(Text) < MaxLength)) then
   begin
-    Text := Text + Event.KeyCharacter;
+    Text := Text + Event.KeyString;
     Result := ExclusiveEvents;
   end;
 end;

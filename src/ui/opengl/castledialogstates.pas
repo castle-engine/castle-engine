@@ -664,11 +664,11 @@ begin
     Result := true;
   end else
   if (Event.EventType = itKey) and
-     (Event.KeyCharacter <> #0) and
+     (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
      ((MaxLength = 0) or (Length(InputText) < MaxLength)) then
   begin
-    InputText := InputText + Event.KeyCharacter;
+    InputText := InputText + Event.KeyString;
     Result := true;
   end;
 end;
