@@ -378,7 +378,7 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
         Second, we suggest that system-wide default encoding CP_ACP is the default
         for current thread, however CP_THREAD_ACP should be used better,
         thou it is unavailable in defines.inc }
-      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, Length(CharMsg.wParam), @KeyChar, Length(KeyChar));
+      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, SizeOf(CharMsg.wParam), @KeyChar, SizeOf(KeyChar));
       { Now, hopefully convert WideChar to UTF8Char }
       KeyString := UTF8Encode(KeyChar);
       { This is a bugfix with Ukrainian "i" letter which always messes up encodings :)
