@@ -28,7 +28,6 @@ interface
 uses
   Classes, Generics.Collections,
   CastleSystemLanguage,
-  CastleStringUtils,
   CastleControls, CastleOnScreenMenu;
 
 type
@@ -107,7 +106,7 @@ var
 implementation
 
 uses
-  SysUtils, StrUtils,
+  SysUtils,
   CastleURIUtils, CastleUtils, CastleDownload,
   CastleLocalizationFileLoader;
 
@@ -188,6 +187,7 @@ begin
     OnLocalizationUpdatedEvent();
 end;
 
+{$NOTES OFF} //If not disabled, it will say LCastleLocalizationComponent was assigned but never used... but it IS used...
 procedure TCastleLocalization.Notification(AComponent: TComponent; Operation: TOperation);
 var
   LCastleLocalizationComponent: ICastleLocalization;
@@ -201,6 +201,7 @@ begin
     FLocalizationIDList.Remove(@LCastleLocalizationComponent.OnUpdateLocalization);
   end;
 end;
+{$NOTES ON}
 
 //////////////
 ////Public////
