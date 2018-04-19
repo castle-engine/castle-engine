@@ -224,10 +224,10 @@ begin
     FOnUpdateLocalizationEventList.Add(AOnUpdateLocalizationEvent);
 end;
 
-procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent);
+procedure TCastleLocalization.RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent);
 begin
-  FOnUpdateLocalizationEventList.Remove(@ALocalizationComponent.OnUpdateLocalization);
-  FLocalizationIDList.Remove(@ALocalizationComponent.OnUpdateLocalization);
+  FOnUpdateLocalizationEventList.Remove(AOnUpdateLocalizationEvent);
+  FLocalizationIDList.Remove(AOnUpdateLocalizationEvent);
 end;
 
 //////////////
