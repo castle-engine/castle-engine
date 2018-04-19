@@ -5,6 +5,7 @@
     <string key="LabelTop" value="English and XML" />
     <string key="ButtonEnglishXML" value="English XML" />
     <string key="ButtonEnglishJSON" value="English JSON" />
+    <string key="ButtonEnglishJSONObj" value="English JSONObj"/>
     <string key="ButtonEnglishCSV" value="English CSV" />
     <string key="ButtonEnglishMO" value="English MO" />
     <string key="ButtonGermanXML" value="German XML" />

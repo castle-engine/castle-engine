@@ -10,6 +10,9 @@ msgstr "English XML"
 msgid "ButtonEnglishJSON"
 msgstr "English JSON"
 
+msgid "ButtonEnglishJSONObj"
+msgstr "English JSONObj"
+
 msgid "ButtonEnglishCSV"
 msgstr "English CSV"
 

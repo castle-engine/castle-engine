@@ -1,0 +1,34 @@
+[
+    {
+        "key": "LangCode",
+        "value": "en"
+    },
+    {
+        "key": "LabelTop",
+        "value": "English and JSONObj"
+    },
+    {
+        "key": "ButtonEnglishXML",
+        "value": "English XML"
+    },
+    {
+        "key": "ButtonEnglishJSON",
+        "value": "English JSON"
+    },
+    {
+        "key": "ButtonEnglishJSONObj",
+        "value": "English JSONObj"
+    },
+    {
+        "key": "ButtonEnglishCSV",
+        "value": "English CSV"
+    },
+    {
+        "key": "ButtonEnglishMO",
+        "value": "English MO"
+    },
+    {
+        "key": "ButtonGermanXML",
+        "value": "German XML"
+    }
+]

@@ -1,30 +1,10 @@
-[
-    {
-        "key": "LangCode",
-        "value": "en"
-    },
-    {
-        "key": "LabelTop",
-        "value": "English and JSON"
-    },
-    {
-        "key": "ButtonEnglishXML",
-        "value": "English XML"
-    },
-    {
-        "key": "ButtonEnglishJSON",
-        "value": "English JSON"
-    },
-    {
-        "key": "ButtonEnglishCSV",
-        "value": "English CSV"
-    },
-    {
-        "key": "ButtonEnglishMO",
-        "value": "English MO"
-    },
-    {
-        "key": "ButtonGermanXML",
-        "value": "German XML"
-    }
-]
+{
+    "LangCode": "en",
+    "LabelTop": "English and JSON",
+    "ButtonEnglishXML": "English XML",
+    "ButtonEnglishJSON": "English JSON",
+    "ButtonEnglishJSONObj": "English JSONObj",
+    "ButtonEnglishCSV": "English CSV",
+    "ButtonEnglishMO": "English MO",
+    "ButtonGermanXML": "German XML"
+}

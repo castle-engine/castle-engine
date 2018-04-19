@@ -85,20 +85,27 @@ begin
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -310);
+  MyButton.LanguageFile := 'en.jsonobj';
+  Localization.AddOrSet(MyButton, 'ButtonEnglishJSONObj');
+  Window.Controls.InsertFront(MyButton);
+
+  MyButton := TLanguageButton.Create(Application);
+  MyButton.Anchor(hpMiddle);
+  MyButton.Anchor(vpTop, -360);
   MyButton.LanguageFile := 'en.csv';
   Localization.AddOrSet(MyButton, 'ButtonEnglishCSV');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -360);
+  MyButton.Anchor(vpTop, -410);
   MyButton.LanguageFile := 'en.mo';
   Localization.AddOrSet(MyButton, 'ButtonEnglishMO');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -410);
+  MyButton.Anchor(vpTop, -460);
   MyButton.LanguageFile := 'de.xml';
   Localization.AddOrSet(MyButton, 'ButtonGermanXML');
   Window.Controls.InsertFront(MyButton);
