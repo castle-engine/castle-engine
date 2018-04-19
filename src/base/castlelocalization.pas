@@ -51,11 +51,18 @@ type
   TLocalizationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
 
 type
+  { Interface for custom user classes using the localisation.
+    In contrast to ICastleLocalization, the class doesn't need to be an inheritant from TComponent.
+    Useful for lightweight custom classes that need localisation and implement adding and removing from TCastleLocalization by themselves. }
+  ICastleLocalizationCustom = interface
+    ['{d4cdfeb4-32c9-2409-07cc-00aa862851a4}']
+    procedure OnUpdateLocalization(const ALocalizedText: String);
+  end;
+
   { Interface for all user components using the localisation.
     Allows to automatically localise and adjust a TComponent to language changes. }
-  ICastleLocalization = interface
+  ICastleLocalization = interface (ICastleLocalizationCustom)
     ['{4fa1cb64-f806-2409-07cc-ca1a77e5c0e4}']
-    procedure OnUpdateLocalization(const ALocalizedText: String);
     procedure FreeNotification(AComponent: TComponent);
   end;
 
@@ -72,6 +79,8 @@ type
       function Get(AKey: String): String;
       procedure LoadLanguage(const ALanguageURL: String);
       procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+      function AddOrSet(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent; const ALocalizationID: String): Boolean; overload; inline;
+      procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent); inline;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -81,8 +90,12 @@ type
       { Returns the current system local as langauge code and local info.
         For example: en_US, en_GB, es_ES }
       function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
-      { Adds a new component to the automised localisation list or, if it already is listed, updates it's localisation ID. }
-      procedure AddOrSet(ALocalizationComponent: ICastleLocalization; ALocalizationID: String);
+      { Adds a new component to the automised localisation list or, if it already is listed, updates it's localisation ID.
+        If ALocalizationID is empty, the element is removed from the localisation list. }
+      procedure AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String); overload;
+      { Adds a new custom localisation class to the automised localisation list or, if it already is listed, updates it's localisation ID.
+        If ALocalizationID is empty, the element is removed from the localisation list. }
+      procedure AddOrSet(ALocalizationComponent: ICastleLocalizationCustom; const ALocalizationID: String); overload;
     public
       property Items[AKey: String]: String read Get; default;
       { The URL to the language file that shall be loaded for localisation. }
@@ -91,7 +104,7 @@ type
         You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
       property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
       { A list of subscribed procedures of that each will be called when the langauge changes.
-        You can add procedure to this to localise images or such that is no descendent of TComponent. }
+        You can add a procedure to this to localise images or such that is no descendent of TComponent. }
       property OnUpdateLocalization: TOnLocalizationUpdatedEventList read FOnLocalizationUpdatedEventList;
   end;
 
@@ -197,11 +210,25 @@ begin
     AComponent.RemoveFreeNotification(Self);
 
     LCastleLocalizationComponent := AComponent as ICastleLocalization;
-    FOnUpdateLocalizationEventList.Remove(@LCastleLocalizationComponent.OnUpdateLocalization);
-    FLocalizationIDList.Remove(@LCastleLocalizationComponent.OnUpdateLocalization);
+    RemoveFromUpdateList(@LCastleLocalizationComponent.OnUpdateLocalization);
   end;
 end;
 {$NOTES ON}
+
+function TCastleLocalization.AddOrSet(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent; const ALocalizationID: String): Boolean;
+begin
+  Result := not FLocalizationIDList.ContainsKey(AOnUpdateLocalizationEvent);
+  FLocalizationIDList.AddOrSetValue(AOnUpdateLocalizationEvent, ALocalizationID);
+
+  if Result then
+    FOnUpdateLocalizationEventList.Add(AOnUpdateLocalizationEvent);
+end;
+
+procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent);
+begin
+  FOnUpdateLocalizationEventList.Remove(@ALocalizationComponent.OnUpdateLocalization);
+  FLocalizationIDList.Remove(@ALocalizationComponent.OnUpdateLocalization);
+end;
 
 //////////////
 ////Public////
@@ -217,23 +244,29 @@ begin
   Result := CastleSystemLanguage.SystemLocal(ADefaultLocal);
 end;
 
-procedure TCastleLocalization.AddOrSet(ALocalizationComponent: ICastleLocalization; ALocalizationID: String);
-var
-  IsNewEntry: Boolean;
+procedure TCastleLocalization.AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String);
 begin
   if ALocalizationID = '' then
-    Exit;
-
-  IsNewEntry := not FLocalizationIDList.ContainsKey(@ALocalizationComponent.OnUpdateLocalization);
-  FLocalizationIDList.AddOrSetValue(@ALocalizationComponent.OnUpdateLocalization, ALocalizationID);
-
-  if IsNewEntry then
+    RemoveFromUpdateList(@ALocalizationComponent.OnUpdateLocalization)
+  else
   begin
-    FOnUpdateLocalizationEventList.Add(@ALocalizationComponent.OnUpdateLocalization);
-    ALocalizationComponent.FreeNotification(Self);
-  end;
+    if AddOrSet(@ALocalizationComponent.OnUpdateLocalization, ALocalizationID) then
+      ALocalizationComponent.FreeNotification(Self);
 
-  ALocalizationComponent.OnUpdateLocalization(Items[ALocalizationID]);
+    ALocalizationComponent.OnUpdateLocalization(Items[ALocalizationID]);
+  end;
+end;
+
+procedure TCastleLocalization.AddOrSet(ALocalizationComponent: ICastleLocalizationCustom; const ALocalizationID: String);
+begin
+  if ALocalizationID = '' then
+    RemoveFromUpdateList(@ALocalizationComponent.OnUpdateLocalization)
+  else
+  begin
+    AddOrSet(@ALocalizationComponent.OnUpdateLocalization, ALocalizationID);
+
+    ALocalizationComponent.OnUpdateLocalization(Items[ALocalizationID]);
+  end;
 end;
 
 initialization
