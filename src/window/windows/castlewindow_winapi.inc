@@ -375,12 +375,10 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
         MultiByteToWideChar converts wParam:longint to a KeyChar:WideChar
         which should be UTF-16. "Should" doesn't mean it is.
         First problem here is that not all characters can fit into UTF-16.
-        Second problem is that we suggest longint 4 bytes long and WideChar 2 bytes lnog
-        which actually might be wrong in some specific cases.
-        Third, we suggest that system-wide default encoding CP_ACP is the default
+        Second, we suggest that system-wide default encoding CP_ACP is the default
         for current thread, however CP_THREAD_ACP should be used better,
         thou it is unavailable in defines.inc }
-      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, 4, @KeyChar, 2);
+      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, Length(CharMsg.wParam), @KeyChar, Length(KeyChar));
       { Now, hopefully convert WideChar to UTF8Char }
       KeyString := UTF8Encode(KeyChar);
       { This is a bugfix with Ukrainian "i" letter which always messes up encodings :)
