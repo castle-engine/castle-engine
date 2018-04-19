@@ -459,15 +459,15 @@ end;
 
 function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
-  procedure X_KeyPress(const event: TXKeyEvent);
+  procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: PChar;
+    CharKey: char;
     EventString: string;
     Key: TKey;
   begin
     { calculate k, CharKey }
-    if Xutf8LookupString(@event, CharKey, 1, @k, nil) = 0 then
+    if XLookupString(@xEvent, @CharKey, 1, @k, nil) = 0 then
       EventString := ''
     else
       EventString := CharKey;
@@ -487,10 +487,10 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     end;
   end;
 
-  procedure X_KeyRelease(const event: TXKeyEvent);
+  procedure X_KeyRelease(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: PChar; //we don't use it further anywhere
+    CharKey: char; //we don't use it further anywhere
     Key: TKey;
   begin
     { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
@@ -499,7 +499,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       pressed forever until window unfocused... }
 
     { calculate k, CharKey }
-    Xutf8LookupString(@event, CharKey, 1, @k, nil);
+    XLookupString(@xEvent, @CharKey, 1, @k, nil);
 
     { maybe do DoKeyUp }
     case k of
@@ -516,7 +516,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     end;
   end;
 
-  procedure X_ConfigureNotify(const event: TXConfigureEvent);
+  procedure X_ConfigureNotify(const xEvent: TXConfigureEvent);
   var
     dummy_win: TWindow;
   begin
@@ -535,7 +535,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
     { TODO: for now, Left and Top indicate corner of the window *with frame*
       (while they should indicate corner of GL area only, according to interface). }
-    DoResize(event.width, event.height, false);
+    DoResize(xEvent.width, xEvent.height, false);
   end;
 
   function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
@@ -545,17 +545,17 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       Button1 : mbtn := mbLeft;
       Button2 : mbtn := mbMiddle;
       Button3 : mbtn := mbRight;
-      else result := false;
+      else Result := false;
     end;
   end;
 
-  procedure X_ButtonPress(const event: TXButtonPressedEvent);
+  procedure X_ButtonPress(const xEvent: TXButtonPressedEvent);
   var
     btn: TMouseButton;
   begin
-    if xbtnToMouseButton(event.button, btn) then
-      DoMouseDown(Vector2(Event.x, Height - 1 - Event.y), btn, 0) else
-    case Event.Button of
+    if xbtnToMouseButton(xEvent.button, btn) then
+      DoMouseDown(Vector2(xEvent.x, Height - 1 - xEvent.y), btn, 0) else
+    case xEvent.Button of
       Button4: DoMouseWheel( 1, true);
       Button5: DoMouseWheel(-1, true);
       6: DoMouseWheel( 1, false); { not sure if this is possible }
@@ -563,15 +563,15 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     end;
   end;
 
-  procedure X_ButtonRelease(const event: TXButtonReleasedEvent);
+  procedure X_ButtonRelease(const xEvent: TXButtonReleasedEvent);
   var
     btn: TMouseButton;
   begin
-    if xbtnToMouseButton(event.button, btn) then
-      DoMouseUp(Vector2(Event.x, Height - 1 - Event.y), btn, 0)
+    if xbtnToMouseButton(xEvent.button, btn) then
+      DoMouseUp(Vector2(xEvent.x, Height - 1 - xEvent.y), btn, 0)
   end;
 
-  procedure X_MotionNotify(const event: TXMotionEvent);
+  procedure X_MotionNotify(const xEvent: TXMotionEvent);
   begin
     { We could refresh MousePressed now. But no need for now?
     mousePressed:=[];
@@ -580,11 +580,11 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
     }
     DoMotion(InputMotion(MousePosition,
-      Vector2(Event.x, Height - 1 - Event.y),
+      Vector2(xEvent.x, Height - 1 - xEvent.y),
       MousePressed, 0));
   end;
 
-  procedure X_FocusOut(const event: TXFocusOutEvent);
+  procedure X_FocusOut(const xEvent: TXFocusOutEvent);
   begin
     { Clear KeysDown and MousePressed information.
       Otherwise, we could miss the keyup or mouseup event, if user pressed
@@ -595,21 +595,21 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
 begin
   Result := true;
-  case event._type of
+  case Event._type of
     Expose: { XExposeEvent }
-       if event.xexpose.count = 0 then Invalidate;
+       if Event.xexpose.count = 0 then Invalidate;
     (*MapNotify: needRedisplay := true; { XMapEvent } <- unused *)
-    KeyPress: X_KeyPress(event.xkey);  { XKeyEvent }
-    KeyRelease: X_KeyRelease(event.xkey);
-    ButtonPress: X_ButtonPress(event.xbutton); { XButtonPressEvent }
-    ButtonRelease: X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
-    MotionNotify: X_MotionNotify(event.xmotion); { XPointerMovedEvent }
-    ConfigureNotify: X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
+    KeyPress: X_KeyPress(Event.xkey);  { XKeyEvent }
+    KeyRelease: X_KeyRelease(Event.xkey);
+    ButtonPress: X_ButtonPress(Event.xbutton); { XButtonPressEvent }
+    ButtonRelease: X_ButtonRelease(Event.xbutton); { XButtonReleaseEvent }
+    MotionNotify: X_MotionNotify(Event.xmotion); { XPointerMovedEvent }
+    ConfigureNotify: X_ConfigureNotify(Event.xconfigure); { XConfigureEvent }
     ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
       if (event.xclient.data.l[0] = Integer(Application.WMDeleteWindow)) then
        DoCloseQuery;
-    ReparentNotify : parentwinXID := event.xreparent.parent;
-    FocusOut: X_FocusOut(event.xfocus);
+    ReparentNotify : parentwinXID := Event.xreparent.parent;
+    FocusOut: X_FocusOut(Event.xfocus);
     else Result := false;
   end;
 end;
@@ -628,12 +628,12 @@ begin
   for i := 0 to OpenWindowsCount-1 do
     if OpenWindows[i].WindowXID = seekWindowXID then
       Exit(OpenWindows[i]);
-  result := nil;
+  Result := nil;
 end;
 
 function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
-  result := K_None;
+  Result := K_None;
   if ksym <> NoSymbol then
     case ksym and $FF00 of
       { Note that KeySym*ToKey values may be K_None, and so we may return K_None. }
