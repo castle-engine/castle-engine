@@ -428,10 +428,10 @@ constructor TGLMode.Create(AWindow: TCastleWindowCustom);
         Window.Container.EventRelease(InputMouseButton(Window.MousePosition, Button, 0));
     for Key := Low(Key) to High(Key) do
       if Window.Pressed[Key] then
-        Window.Container.EventRelease(InputKey(Window.MousePosition, Key, ''));
+        Window.Container.EventRelease(InputKey(Window.MousePosition, Key, '', ModifiersDown(Window.Container.Pressed)));
     for C := Low(C) to High(C) do
       if Window.Pressed.Characters[C] then
-        Window.Container.EventRelease(InputKey(Window.MousePosition, K_None, C));
+        Window.Container.EventRelease(InputKey(Window.MousePosition, K_None, C, ModifiersDown(Window.Container.Pressed)));
   end;
 
 begin

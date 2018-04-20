@@ -3489,7 +3489,7 @@ var
   KeyRepeated: boolean;
 begin
   {we need to create event beforehand to correctly convert StringKey to CharKey)}
-  Event := InputKey(MousePosition, Key, StringKey);
+  Event := InputKey(MousePosition, Key, StringKey, ModifiersDown(Container.Pressed));
 
   KeyRepeated :=
     // Key or KeyString non-empty
@@ -3531,7 +3531,7 @@ begin
     Assert(Key <> K_None);
     Pressed.KeyUp(Key, C);
     MakeCurrent;
-    Container.EventRelease(InputKey(MousePosition, Key, C));
+    Container.EventRelease(InputKey(MousePosition, Key, C, ModifiersDown(Container.Pressed)));
   end;
 end;
 

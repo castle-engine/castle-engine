@@ -682,6 +682,9 @@ type
       we merely take what system gives us). For example, you can get "a" or "A"
       depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
 
+      ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)
+      which were pressed at the moment of the Event.
+
       When the user holds the key pressed, we will get consecutive
       key down events. Under some OSes, you will also get consecutive
       key up events, but it's not guaranteed (on some OSes, you may
@@ -691,6 +694,7 @@ type
       @groupBegin }
     Key: TKey;
     KeyString: string;
+    ModifiersDown: TModifierKeys;
     { @groupEnd }
 
     { Was this key already pressed before this event.
@@ -785,7 +789,7 @@ type
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyString: string): TInputPressRelease;
+  const Key: TKey; const KeyString: string; const ModifiersDown: TModifierKeys): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
@@ -1337,12 +1341,13 @@ begin
 end;
 
 function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyString: string): TInputPressRelease;
+  const Key: TKey; const KeyString: string; const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itKey;
   Result.Key := Key;
+  Result.ModifiersDown := ModifiersDown;
   Result.KeyString := KeyString;
 end;
 
