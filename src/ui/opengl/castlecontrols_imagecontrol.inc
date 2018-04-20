@@ -41,29 +41,38 @@
     FURL: string;
     FImage: TEncodedImage;
     FImageLoadedFromCache: boolean;
-    FGLImage: TGLImage;
-    FAlphaChannel: TAutoAlphaChannel;
+    FDrawableImage: TGLImage;
+    FOwnsImage: boolean;
+    FOwnsDrawableImage: boolean;
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
     FFullSize: boolean;
     FFloatWidth, FFloatHeight: Single;
-    FColor: TCastleColor;
     FCorners: TVector4Integer;
-    FOwnsImage: boolean;
-    FSmoothScaling: boolean;
-    FCenterX: Single;
-    FCenterY: Single;
-    FRotation: Single;
-    FClip: boolean;
-    FClipLine: TVector3;
     FCache: boolean;
-    FCustomShader: TGLSLProgram;
-    procedure SetCenterX(const AValue: Single);
-    procedure SetCenterY(const AValue: Single);
-    procedure SetRotation(const AValue: Single);
+
+    { Properties simply synchronized with the same properties of FDrawableImage. }
+    function GetCenterX: Single;
+    function GetCenterY: Single;
+    function GetRotation: Single;
+    function GetAlphaChannel: TAutoAlphaChannel;
+    function GetColor: TCastleColor;
+    function GetSmoothScaling: boolean;
+    function GetClip: boolean;
+    function GetClipLine: TVector3;
+    function GetCustomShader: TGLSLProgram;
+    procedure SetCenterX(const Value: Single);
+    procedure SetCenterY(const Value: Single);
+    procedure SetRotation(const Value: Single);
+    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetSmoothScaling(const Value: boolean);
+    procedure SetClip(const Value: boolean);
+    procedure SetClipLine(const Value: TVector3);
+    procedure SetCustomShader(const Value: TGLSLProgram);
+
     procedure SetURL(const Value: string);
     procedure SetImage(Value: TEncodedImage);
-    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
     procedure SetStretch(const Value: boolean);
@@ -77,19 +86,17 @@
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
     procedure SetProportional(const Value: boolean);
-    procedure SetColor(const Value: TCastleColor);
-    procedure SetSmoothScaling(const Value: boolean);
-    procedure SetClip(const Value: boolean);
-    procedure SetClipLine(const Value: TVector3);
-    procedure SetCustomShader(const Value: TGLSLProgram);
-    { Free FImage and make it @nil. }
+
+    { Free FImage if needed, and make it @nil. }
     procedure FreeImage;
+    { Free FDrawableImage if needed, and make it @nil. }
+    procedure FreeDrawableImage;
+    procedure SetDrawableImage(const Value: TGLImage);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
-    procedure GLContextClose; override;
     function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure ImageChanged;
@@ -107,30 +114,62 @@
       to @false.
 
       It is allowed to modify the contents or even size of this image.
-      Just make sure to call ImageChanged after the modifications are done
+      Just make sure to call @link(ImageChanged) after the modifications are done
       to update the actual rendered image.
       The control size will be updated immediately (taking into account current
       @link(Stretch) and related properties values). }
     property Image: TEncodedImage read FImage write SetImage;
 
-    { Image used to draw this on GPU.
-      In most circumstances, you should deal with @link(Image) instead
-      (changing it will automatically update @name).
-      But in special cases it may make sense to use this,
-      e.g. for fast image-to-image drawing using @link(TGLImage.DrawFrom).
-
-      This is non-nil only when OpenGL context is initialized,
-      and @link(Image) is assigned. }
-    property DrawableImage: TGLImage read FGLImage;
-
     { Whether the memory management of assigned @link(Image) is automatic.
       See @link(Image) documentation for details. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default true;
 
+    { Image used for drawing.
+      In most circumstances, you should treat it as an internal property,
+      automatically managed by this class. You do not need to explicitly
+      use it in any way.
+      Usually you should change the @link(Image) instead, if you want to change
+      the image at runtime.
+
+      But in special cases it may make sense to change the DrawableImage explicitly.
+      E.g. you can change it's contents using fast image-to-image
+      drawing using @link(TGLImage.DrawFrom).
+      Or you can set a new instance of TGLImage here.
+      Be sure to adjust @link(OwnsDrawableImage) as needed.
+
+      If you set this property manually, to your own @link(TGLImage) instance:
+
+      @unorderedList(
+        @item(Make sure that @link(TGLImage.OwnsImage) is always @false.
+          We depend on it, otherwise it would conflict with
+          our own memory management controlled by @link(OwnsImage) and @link(Cache).)
+
+        @item(The TGLImage.Image should be equal to our current @link(Image)
+          (which can be @nil). Although this is not strictly necessary now.)
+
+        @item(Note that various properties of this class are actually references
+          to analogous properties of @link(TGLImage). E.g. getting/setting our
+          @link(Rotation) just gets/sets @link(TGLImage.Rotation).
+          So if you directly change the DrawableImage, you're also changing
+          these properties.)
+      )
+
+      Note that when OpenGL(ES) context is lost and recreated (which can
+      happen at any moment on mobile devices), the contents of this are
+      reinitialized from @link(Image). This functionality is actually
+      provided by the @link(TGLImage) itself. }
+    property DrawableImage: TGLImage read FDrawableImage write SetDrawableImage;
+
+    { Whether we should automatically free the @link(DrawableImage) instance.
+      Note that this is restored to @true when we need to recreate the
+      TGLImage internally, e.g. when @link(Image) instance changed
+      (when even size changed, we have to recreate TGLImage). }
+    property OwnsDrawableImage: boolean read FOwnsDrawableImage write FOwnsDrawableImage default true;
+
     { Color tint of the image. This simply multiplies the image RGBA components,
       just like @link(TGLImageCore.Color). By default this is opaque white,
       which means that image colors are unchanged. }
-    property Color: TCastleColor read FColor write SetColor;
+    property Color: TCastleColor read GetColor write SetColor;
 
     { Corners of the image that are not stretched even
       in case @link(Stretch) is used.
@@ -139,16 +178,16 @@
     property Corners: TVector4Integer read FCorners write FCorners;
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterX: Single read FCenterX write SetCenterX default 0.5;
+    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
 
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterY: Single read FCenterY write SetCenterY default 0.5;
+    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
 
     { Rotation in radians. Default value 0. }
-    property Rotation: Single read FRotation write SetRotation default 0;
+    property Rotation: Single read GetRotation write SetRotation default 0;
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read FClip write SetClip;
+    property Clip: boolean read GetClip write SetClip;
 
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
@@ -157,20 +196,25 @@
       The equation is calculated in the final scaled screen coordinates
       (not in the local, unscaled pixels). Adjust it to match the ScreenRect
       if necessary, to make it work with UI scaling. }
-    property ClipLine: TVector3 read FClipLine write SetClipLine;
+    property ClipLine: TVector3 read GetClipLine write SetClipLine;
+
+    { Custom GLSL shading code.
+      See TGLImage.CustomShader for explanation. }
+    property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
     property URL: string read FURL write SetURL;
     { Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
+
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
       together with current @link(Color) determine how
       the alpha of image is treated (opaque, alpha test, alpha blending).
       Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
-      read FAlphaChannel write SetAlphaChannel default acAuto;
+      read GetAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
     property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
 
@@ -178,7 +222,7 @@
       or not (nearest-pixel filtering).
       See @link(TGLImageCore.SmoothScaling). }
     property SmoothScaling: boolean
-      read FSmoothScaling write SetSmoothScaling default true;
+      read GetSmoothScaling write SetSmoothScaling default true;
 
     { Size of the image control.
 
@@ -285,10 +329,6 @@
       otherwise the image will not be loaded/freed using the cache.
       This may change at some point. }
     property Cache: boolean read FCache write FCache;
-
-    { Custom GLSL shading code.
-      See TGLImage.CustomShader for explanation. }
-    property CustomShader: TGLSLProgram read FCustomShader write SetCustomShader;
   end;
 
 {$endif read_interface}
@@ -300,18 +340,15 @@
 constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
-  FColor := White;
   FOwnsImage := true;
-  FSmoothScaling := true;
-  FCenterX := 0.5;
-  FCenterY := 0.5;
-  FRotation := 0;
+  FOwnsDrawableImage := true;
+  FDrawableImage := TGLImage.Create(FImage, true { default SmoothScaling }, false);
 end;
 
 destructor TCastleImageControl.Destroy;
 begin
   FreeImage;
-  FreeAndNil(FGLImage);
+  FreeDrawableImage;
   inherited;
 end;
 
@@ -327,42 +364,53 @@ begin
     FImage := nil;
 end;
 
+procedure TCastleImageControl.FreeDrawableImage;
+begin
+  if OwnsDrawableImage then
+    FreeAndNil(FDrawableImage)
+  else
+    FDrawableImage := nil;
+end;
+
+function TCastleImageControl.GetSmoothScaling: boolean;
+begin
+  Result := FDrawableImage.SmoothScaling;
+end;
+
 procedure TCastleImageControl.SetSmoothScaling(const Value: boolean);
 begin
-  if FSmoothScaling <> Value then
+  if SmoothScaling <> Value then
   begin
-    FSmoothScaling := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.SmoothScaling := Value;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.SmoothScaling := Value;
+    VisibleChange([chRender]);
   end;
+end;
+
+function TCastleImageControl.GetClip: boolean;
+begin
+  Result := FDrawableImage.Clip;
 end;
 
 procedure TCastleImageControl.SetClip(const Value: boolean);
 begin
-  if FClip <> Value then
+  if Clip <> Value then
   begin
-    FClip := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.Clip := Value;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.Clip := Value;
+    VisibleChange([chRender]);
   end;
+end;
+
+function TCastleImageControl.GetClipLine: TVector3;
+begin
+  Result := FDrawableImage.ClipLine;
 end;
 
 procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
-  if not TVector3.PerfectlyEquals(FClipLine, Value) then
+  if not TVector3.PerfectlyEquals(ClipLine, Value) then
   begin
-    FClipLine := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.ClipLine := Value;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.ClipLine := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -382,42 +430,45 @@ begin
   FURL := Value;
 end;
 
-procedure TCastleImageControl.SetCenterX(const AValue: Single);
+function TCastleImageControl.GetCenterX: Single;
 begin
-  if FCenterX <> AValue then
+  Result := FDrawableImage.CenterX;
+end;
+
+procedure TCastleImageControl.SetCenterX(const Value: Single);
+begin
+  if CenterX <> Value then
   begin
-    FCenterX := AValue;
-    if FGLImage <> nil then
-    begin
-      FGLImage.CenterX := FCenterX;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.CenterX := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
-procedure TCastleImageControl.SetCenterY(const AValue: Single);
+function TCastleImageControl.GetCenterY: Single;
 begin
-  if FCenterY <> AValue then
+  Result := FDrawableImage.CenterY;
+end;
+
+procedure TCastleImageControl.SetCenterY(const Value: Single);
+begin
+  if CenterY <> Value then
   begin
-    FCenterY := AValue;
-    if FGLImage <> nil then
-    begin
-      FGLImage.CenterY := FCenterY;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.CenterY := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
-procedure TCastleImageControl.SetRotation(const AValue: Single);
+function TCastleImageControl.GetRotation: Single;
 begin
-  if FRotation <> AValue then
+  Result := FDrawableImage.Rotation;
+end;
+
+procedure TCastleImageControl.SetRotation(const Value: Single);
+begin
+  if Rotation <> Value then
   begin
-    FRotation := AValue;
-    if FGLImage <> nil then
-    begin
-      FGLImage.Rotation := FRotation;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.Rotation := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -448,18 +499,26 @@ begin
     TextureCache.TextureImage_DecReference(Value);
 end;
 
+procedure TCastleImageControl.GLContextOpen;
+begin;
+  inherited;
+  { Calling this is not strictly necessary. It means we load the OpenGL
+    resources *now*, instead of on-demand right before 1st render. }
+  FDrawableImage.PrepareResources;
+end;
+
 procedure TCastleImageControl.Render;
 var
   SR: TFloatRectangle;
 begin
   inherited;
-  if FGLImage = nil then Exit;
+  if (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0) then Exit;
   SR := ScreenFloatRect;
   if FCorners.IsZero then
-    FGLImage.Draw(SR) else
+    FDrawableImage.Draw(SR) else
   begin
-    FGLImage.ScaleCorners := UIScale;
-    FGLImage.Draw3x3(SR, FCorners);
+    FDrawableImage.ScaleCorners := UIScale;
+    FDrawableImage.Draw3x3(SR, FCorners);
   end;
 end;
 
@@ -476,9 +535,7 @@ begin
   ApplyScaling := true;
   if not Stretch then
   begin
-    if FImage <> nil then
-      Result := FloatRectangle(Left, Bottom, FImage.Width, FImage.Height) else
-      Result := FloatRectangle(Left, Bottom, 0, 0);
+    Result := FloatRectangle(Left, Bottom, FDrawableImage.Width, FDrawableImage.Height);
   end else
   begin
     if FullSize then
@@ -486,17 +543,19 @@ begin
       Result := ParentFloatRect;
       ApplyScaling := false;
     end else
-    if (ProportionalScaling in [psFit, psEnclose]) and (FImage <> nil) then
+    if (ProportionalScaling in [psFit, psEnclose]) and
+       (FDrawableImage.Width <> 0) and
+       (FDrawableImage.Height <> 0) then
     begin
       if (ProportionalScaling = psFit) =
-         (FloatWidth / FloatHeight > FImage.Width / FImage.Height) then
+         (FloatWidth / FloatHeight > FDrawableImage.Width / FDrawableImage.Height) then
       begin
-        NewFloatWidth := FImage.Width * FloatHeight / FImage.Height;
+        NewFloatWidth := FDrawableImage.Width * FloatHeight / FDrawableImage.Height;
         NewLeft := Left + (FloatWidth - NewFloatWidth) / 2;
         Result := FloatRectangle(NewLeft, Bottom, NewFloatWidth, FloatHeight);
       end else
       begin
-        NewFloatHeight := FImage.Height * FloatWidth / FImage.Width;
+        NewFloatHeight := FDrawableImage.Height * FloatWidth / FDrawableImage.Width;
         NewBottom := Bottom + (FloatHeight - NewFloatHeight) / 2;
         Result := FloatRectangle(Left, NewBottom, FloatWidth, NewFloatHeight);
       end;
@@ -509,54 +568,23 @@ begin
     Result := Result.ScaleAround0(UIScale);
 end;
 
-procedure TCastleImageControl.GLContextOpen;
-begin
-  inherited;
-  if FGLImage = nil then
-    ImageChanged;
-end;
-
-procedure TCastleImageControl.GLContextClose;
-begin
-  FreeAndNil(FGLImage);
-  inherited;
-end;
-
 procedure TCastleImageControl.ImageChanged;
 begin
-  if GLInitialized then
-  begin
-    if FImage <> nil then
-    begin
-      if FGLImage <> nil then
-        FGLImage.Load(FImage) else
-      begin
-        FGLImage := TGLImage.Create(FImage, FSmoothScaling, false);
-        FGLImage.Color := Color;
-        FGLImage.CenterX := FCenterX;
-        FGLImage.CenterY := FCenterY;
-        FGLImage.Rotation := FRotation;
-        FGLImage.Clip := FClip;
-        FGLImage.ClipLine := FClipLine;
-        FGLImage.Alpha := AlphaChannel;
-        FGLImage.CustomShader := CustomShader;
-      end;
-    end else
-      FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
-    VisibleChange([chRectangle]);
-  end;
+  FDrawableImage.Load(FImage);
+  VisibleChange([chRectangle]);
+end;
+
+function TCastleImageControl.GetAlphaChannel: TAutoAlphaChannel;
+begin
+  Result := FDrawableImage.Alpha;
 end;
 
 procedure TCastleImageControl.SetAlphaChannel(const Value: TAutoAlphaChannel);
 begin
-  if FAlphaChannel <> Value then
-  Begin
-    FAlphaChannel := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.Alpha := Value;
-      VisibleChange([chRender]);
-    end;
+  if AlphaChannel <> Value then
+  begin
+    FDrawableImage.Alpha := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -604,16 +632,17 @@ begin
   end;
 end;
 
+function TCastleImageControl.GetColor: TCastleColor;
+begin
+  Result := FDrawableImage.Color;
+end;
+
 procedure TCastleImageControl.SetColor(const Value: TCastleColor);
 begin
-  if not TCastleColor.PerfectlyEquals(FColor, Value) then
+  if not TCastleColor.PerfectlyEquals(Color, Value) then
   begin
-    FColor := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.Color := Value;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.Color := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -664,16 +693,27 @@ begin
   end;
 end;
 
+function TCastleImageControl.GetCustomShader: TGLSLProgram;
+begin
+  Result := FDrawableImage.CustomShader;
+end;
+
 procedure TCastleImageControl.SetCustomShader(const Value: TGLSLProgram);
 begin
-  if FCustomShader <> Value then
+  if CustomShader <> Value then
   begin
-    FCustomShader := Value;
-    if FGLImage <> nil then
-    begin
-      FGLImage.CustomShader := Value;
-      VisibleChange([chRender]);
-    end;
+    FDrawableImage.CustomShader := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetDrawableImage(const Value: TGLImage);
+begin
+  if FDrawableImage <> Value then
+  begin
+    FreeDrawableImage;
+    FDrawableImage := Value;
+    VisibleChange([chRender]);
   end;
 end;
 

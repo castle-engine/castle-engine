@@ -597,9 +597,11 @@ type
     { Prepare image for drawing.
 
       @param(Image Initial image contents.
-        The @code(Image) instance passed here must exist throughout the whole lifetime
-        of this TGLImage instance (so don't free it earlier). It can be automatically
-        freed by us, if OwnsImage = @true.)
+        The @code(Image) instance passed here must exist throughout
+        the whole lifetime of this TGLImage instance (so don't free it earlier).
+        It can be automatically freed by us, if OwnsImage = @true.
+
+        It can be @nil.)
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
