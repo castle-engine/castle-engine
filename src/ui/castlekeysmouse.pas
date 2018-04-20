@@ -1310,20 +1310,25 @@ begin
   { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
     GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
   if Key = K_Escape then
-  Result := CharEscape else
+    Result := CharEscape
+  else
   if Key = K_Enter then
-  Result := CharEnter else
+    Result := CharEnter
+  else
   {$endif}
   { It seems that GTK 2 doesn't translate backspace and tab to
     appropriate chars. So I'm fixing it here. }
   if Key = K_Tab then
-  Result := CharTab else
+    Result := CharTab
+  else
   if Key = K_BackSpace then
-  Result := CharBackSpace else
+    Result := CharBackSpace
+  else
 
-  if Length(Self.KeyString) = 1 then
-   Result := Self.KeyString[1] else
-   Result := #0;
+  if Length(KeyString) = 1 then
+    Result := KeyString[1]
+  else
+    Result := #0;
 end;
 
 function TInputPressRelease.Description: string;
