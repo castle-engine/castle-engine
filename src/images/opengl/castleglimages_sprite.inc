@@ -83,6 +83,7 @@ type
     function GetCenter: TVector2;
     function GetPosition: TVector2Integer;
     function GetRotation: Single;
+    function GetColor: TCastleColor;
     procedure SetTime(AValue: TFloatTime);
     procedure SetCenter(AValue: TVector2);
     procedure SetCenterX(AValue: Single);
@@ -92,6 +93,7 @@ type
     procedure SetFrame(AValue: Cardinal);
     procedure SetPosition(APosition: TVector2Integer);
     procedure SetRotation(AValue: Single);
+    procedure SetColor(AValue: TCastleColor);
   public
     { Constructor.
       @param(URL URL of source image.)
@@ -213,6 +215,9 @@ type
 
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
+
+    { Color multiplier of the sprite, see @link(TGLImage.Color) }
+    property Color: TCastleColor read GetColor write SetColor;
 
     { Total number of frames. Readonly. Defined at creation. }
     property Frames: Cardinal read FFrames;
@@ -383,6 +388,11 @@ begin
   Result := FImage.Rotation;
 end;
 
+function TSprite.GetColor: TCastleColor;
+begin
+  Result := FImage.Color;
+end;
+
 procedure TSprite.SetTime(AValue: TFloatTime);
 var
   Anim: TSpriteAnimation;
@@ -497,6 +507,12 @@ procedure TSprite.SetRotation(AValue: Single);
 begin
   FImage.Rotation := AValue;
 end;
+
+procedure TSprite.SetColor(AValue: TCastleColor);
+begin
+  FImage.Color := AValue;
+end;
+
 
 constructor TSprite.CreateFrameSize(const AImage: TGLImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
