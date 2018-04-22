@@ -661,26 +661,30 @@ type
     EventType: TInputPressReleaseType;
 
     { When EventType is itKey, this is the key pressed or released.
-      Either Key <> keyNone or KeyCharacter <> #0 in this case.
-      When EventType <> itKey, then Key = keyNone and KeyCharacter = #0.
+      Either Key <> keyNone or KeyString <> '' in this case.
+      When EventType <> itKey, then Key = keyNone and KeyString = ''.
 
-      Both Key and KeyCharacter represent the same action. Sometimes one,
+      Both Key and KeyString represent the same action. Sometimes one,
       sometimes the other is useful.
 
       @bold(Not all key presses can be represented as TKey value.)
       For example, pressing '(' (opening parenthesis), which is done on most
       keyboards by pressing shift + zero, does not have any TKey value.
-      So it will generate event with Key = keyNone, but KeyCharacter = '('.
+      So it will generate event with Key = keyNone, but KeyString = '('.
 
-      @bold(Likewise, not all key presses can be represented as char value.)
-      For example "up arrow" (Key = keyUp) doesn't have a char code
-      (it will have KeyCharacter = #0).
+      @bold(Likewise, not all key presses can be represented as UTF8 char or
+      simple char.) For example "up arrow" (Key = keyUp) doesn't have a char code
+      (it will have KeyString = '' and KeyCharacter = #0).
 
-      KeyCharacter is influenced by some other keys state,
+      KeyString is a string (encoded using UTF-8, like all strings
+      in Castle Game Engine) and is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
       (all dependent on your system settings, we don't deal with it in our engine,
       we merely take what system gives us). For example, you can get "a" or "A"
       depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
+
+      ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)
+      which were pressed at the moment of the Event.
 
       When the user holds the key pressed, we will get consecutive
       key down events. Under some OSes, you will also get consecutive
@@ -690,7 +694,8 @@ type
       the key is (still) pressed down.
       @groupBegin }
     Key: TKey;
-    KeyCharacter: char;
+    KeyString: string;
+    ModifiersDown: TModifierKeys;
     { @groupEnd }
 
     { Was this key already pressed before this event.
@@ -767,6 +772,11 @@ type
 
     { Textual description of this event. }
     function ToString: string;
+    { Character corresponding to EventType = itKey.
+      Returns #0 if the event was not a keyboard event or it cannot be
+      represented as a simple 8-bit character (e.g. it is a Cyrillic or Arabic
+      character, or it is a special key like "up arrow"). }
+    function KeyCharacter: char;
     { @deprecated Deprecated name for ToString. }
     function Description: string; deprecated;
   end;
@@ -780,8 +790,8 @@ type
 
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
-function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
+function InputKey(const Position: TVector2; const Key: TKey;
+  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
@@ -1300,19 +1310,47 @@ begin
     Result := Result + ', key repeated';
 end;
 
+function TInputPressRelease.KeyCharacter: char;
+begin
+  {$ifdef MSWINDOWS}
+  { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
+    GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
+  if Key = K_Escape then
+    Result := CharEscape
+  else
+  if Key = K_Enter then
+    Result := CharEnter
+  else
+  {$endif}
+  { It seems that GTK 2 doesn't translate backspace and tab to
+    appropriate chars. So I'm fixing it here. }
+  if Key = K_Tab then
+    Result := CharTab
+  else
+  if Key = K_BackSpace then
+    Result := CharBackSpace
+  else
+
+  if Length(KeyString) = 1 then
+    Result := KeyString[1]
+  else
+    Result := #0;
+end;
+
 function TInputPressRelease.Description: string;
 begin
   Result := ToString;
 end;
 
-function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
+function InputKey(const Position: TVector2; const Key: TKey;
+  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itKey;
   Result.Key := Key;
-  Result.KeyCharacter := KeyCharacter;
+  Result.ModifiersDown := ModifiersDown;
+  Result.KeyString := KeyString;
 end;
 
 function InputMouseButton(const Position: TVector2;

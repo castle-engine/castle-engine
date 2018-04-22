@@ -587,12 +587,12 @@ end;
 
 procedure TStateDialogInput.ButtonOKClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Enter, CharEnter));
+  Press(InputKey(Container.MousePosition, K_Enter, CharEnter, []));
 end;
 
 procedure TStateDialogInput.ButtonCancelClick(Sender: TObject);
 begin
-  Press(InputKey(Container.MousePosition, K_Escape, CharEscape));
+  Press(InputKey(Container.MousePosition, K_Escape, CharEscape, []));
 end;
 
 function TStateDialogInput.Press(const Event: TInputPressRelease): boolean;
@@ -664,11 +664,11 @@ begin
     Result := true;
   end else
   if (Event.EventType = itKey) and
-     (Event.KeyCharacter <> #0) and
+     (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
      ((MaxLength = 0) or (Length(InputText) < MaxLength)) then
   begin
-    InputText := InputText + Event.KeyCharacter;
+    InputText := InputText + Event.KeyString;
     Result := true;
   end;
 end;
