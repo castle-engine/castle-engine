@@ -672,11 +672,12 @@ type
       keyboards by pressing shift + zero, does not have any TKey value.
       So it will generate event with Key = keyNone, but KeyString = '('.
 
-      @bold(Likewise, not all key presses can be represented as char value.)
-      For example "up arrow" (Key = keyUp) doesn't have a char code
-      (it will have KeyString = '').
+      @bold(Likewise, not all key presses can be represented as UTF8 char or
+      simple char.) For example "up arrow" (Key = keyUp) doesn't have a char code
+      (it will have KeyString = '' and KeyCharacter = #0).
 
-      KeyString is an UTF8 symbol and is influenced by some other keys state,
+      KeyString is a string (encoded using UTF-8, like all strings
+      in Castle Game Engine) and is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
       (all dependent on your system settings, we don't deal with it in our engine,
       we merely take what system gives us). For example, you can get "a" or "A"
@@ -771,9 +772,10 @@ type
 
     { Textual description of this event. }
     function ToString: string;
-    { Character corresponding to EventType = itKey
-      Returns #0 if the event was not a keyboard event or keypress event
-      wasn't a simple keyboard event (e.g. a Cyrillic or Arabic character) }
+    { Character corresponding to EventType = itKey.
+      Returns #0 if the event was not a keyboard event or it cannot be
+      represented as a simple 8-bit character (e.g. it is a Cyrillic or Arabic
+      character, or it is a special key like "up arrow"). }
     function KeyCharacter: char;
     { @deprecated Deprecated name for ToString. }
     function Description: string; deprecated;
@@ -788,8 +790,8 @@ type
 
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
-function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyString: string; const ModifiersDown: TModifierKeys): TInputPressRelease;
+function InputKey(const Position: TVector2; const Key: TKey;
+  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
@@ -1340,8 +1342,8 @@ begin
   Result := ToString;
 end;
 
-function InputKey(const Position: TVector2;
-  const Key: TKey; const KeyString: string; const ModifiersDown: TModifierKeys): TInputPressRelease;
+function InputKey(const Position: TVector2; const Key: TKey;
+  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;

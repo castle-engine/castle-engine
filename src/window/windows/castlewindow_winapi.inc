@@ -381,15 +381,6 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
       MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, SizeOf(CharMsg.wParam), @KeyChar, SizeOf(KeyChar));
       { Now, hopefully convert WideChar to UTF8Char }
       KeyString := UTF8Encode(KeyChar);
-      { This is a bugfix with Ukrainian "i" letter which always messes up encodings :)
-        I just replace it by English "i" here,
-        however, I'm really if this is a good idea,
-        as this will make the words spell wrong (English letter instead of Ukrainian)
-        and will mess up with automatic word processing, e.g. spellchecking.
-        It seems that the character actually gets converted correctly, but
-        Windows functions (e.g. output to console window) don't understand it }
-      {if CharMsg.wParam = 179 then
-        KeyString := 'i';}
     end
     else
       KeyString := '';

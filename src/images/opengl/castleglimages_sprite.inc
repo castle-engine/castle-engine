@@ -513,7 +513,6 @@ begin
   FImage.Color := AValue;
 end;
 
-
 constructor TSprite.CreateFrameSize(const AImage: TGLImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
