@@ -427,7 +427,7 @@ type
 
     { Set to @true to make diffuse texture affect only material diffuse color
       when the shape is lit and shading is Phong.
-      This affects both textures from X3D Appearance.material,
+      This affects both textures from X3D Appearance.texture,
       and textures from CommonSurfaceShader.diffuseTexture.
       This is more correct (following X3D lighting equations),
       and is more impressive (e.g. specular highlights may be better visible,
