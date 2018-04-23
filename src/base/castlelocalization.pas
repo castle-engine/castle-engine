@@ -87,9 +87,9 @@ type
       { Returns the current system language as language code.
         For example: en, de, pl }
       function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
-      { Returns the current system local as langauge code and local info.
+      { Returns the current system locale as langauge code and locale info.
         For example: en_US, en_GB, es_ES }
-      function SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String; inline;
+      function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
       { Adds a new component to the automised localisation list or, if it already is listed, updates it's localisation ID.
         If ALocalizationID is empty, the element is removed from the localisation list. }
       procedure AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String); overload;
@@ -239,9 +239,9 @@ begin
   Result := CastleSystemLanguage.SystemLanguage(ADefaultLanguage);
 end;
 
-function TCastleLocalization.SystemLocal(const ADefaultLocal: String = SystemDefaultLocal): String;
+function TCastleLocalization.SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String;
 begin
-  Result := CastleSystemLanguage.SystemLocal(ADefaultLocal);
+  Result := CastleSystemLanguage.SystemLocale(ADefaultLocale);
 end;
 
 procedure TCastleLocalization.AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String);
