@@ -159,7 +159,8 @@ examples/research_special_rendering_methods/radiance_transfer/show_sh
 examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
 examples/resource_animations/resource_animations
-examples/localization/localization_test
+examples/localization/gettext/localization_test
+examples/localization/custom/localization
 examples/space_filling_curve/draw_space_filling_curve
 examples/terrain/terrain
 examples/tiled/tiled_demo

@@ -26,7 +26,7 @@ uses SysUtils, Classes, GetText,
   CastleControls, CastleUtils, CastleColors, CastleUIControls, CastleVectors,
   CastleApplicationProperties, X3DNodes, CastleFonts, CastleTimeUtils,
   CastleTextureFontData, CastleScene, CastleSceneManager, CastleMessages,
-  CastleLog, CastleFilesUtils, CastleURIUtils,
+  CastleLog, CastleFilesUtils, CastleURIUtils, CastleSystemLanguage,
   Font_DejaVuSans;
 
 var
@@ -199,8 +199,10 @@ begin
   Lab.Caption := CaptionLabel;
   BottomGroup.InsertFront(Lab);
 
-  // TODO: here you should use current user preferred locale
-  Language := 'en';
+  Language := SystemLanguage;
+  { if we don't have a translation file for this language, fallback to English }
+  if not URIFileExists(ApplicationData('locale/game.' + Language + '.mo')) then
+    Language := SystemDefaultLanguage;
 
   SwitchLanguage(Language);
 end;
