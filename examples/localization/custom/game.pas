@@ -110,7 +110,7 @@ begin
   Localization.AddOrSet(MyButton, 'ButtonGermanXML');
   Window.Controls.InsertFront(MyButton);
 
-  Localization.LanguageURL := ApplicationData('en.xml');;
+  Localization.LanguageURL := ApplicationData('en.xml');
 end;
 
 constructor TLanguageButton.Create(AOwner: TComponent);
@@ -140,6 +140,4 @@ initialization
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
-finalization
-  Window.Free;
 end.
