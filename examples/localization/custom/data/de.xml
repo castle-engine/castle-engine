@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<strings>
+    <string key="LangCode" value="de" />
+    <string key="LabelTop" value="Deutsch und XML" />
+    <string key="ButtonEnglishXML" value="Englisch XML" />
+    <string key="ButtonEnglishJSON" value="Englisch JSON" />
+    <string key="ButtonEnglishJSONObj" value="Englisch JSONObj"/>
+    <string key="ButtonEnglishCSV" value="Englisch CSV" />
+    <string key="ButtonEnglishMO" value="Englisch MO" />
+    <string key="ButtonGermanXML" value="Deutsch XML" />
+</strings>

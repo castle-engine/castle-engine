@@ -178,6 +178,7 @@
 constructor TCastleLabel.Create(AOwner: TComponent);
 begin
   inherited;
+
   FText := TStringList.Create;
   FColor := White;
   FFrame := false;
@@ -191,6 +192,7 @@ end;
 destructor TCastleLabel.Destroy;
 begin
   FreeAndNil(FText);
+
   inherited;
 end;
 

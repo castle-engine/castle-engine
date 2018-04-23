@@ -16,9 +16,11 @@
 { Project information (from CastleEngineManifest.xml) and operations. }
 unit ToolProject;
 
+{$modeswitch advancedrecords}
+
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
 
@@ -32,6 +34,16 @@ type
 
   ECannotGuessManifest = class(Exception);
 
+type
+  TLocalizedAppName = record
+    Language: String;
+    AppName: String;
+    constructor Create(ALanguage, AAppName: String);
+  end;
+
+  TListLocalizedAppName = specialize TList<TLocalizedAppName>;
+
+type
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -57,6 +69,7 @@ type
     FAndroidProjectType: TAndroidProjectType;
     FAndroidServices, FIOSServices: TServiceList;
     FAssociateDocumentTypes: TAssociatedDocTypeList;
+    FListLocalizedAppName: TListLocalizedAppName;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
@@ -165,6 +178,7 @@ type
     property AndroidServices: TServiceList read FAndroidServices;
     property IOSServices: TServiceList read FIOSServices;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
+    property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -240,6 +254,14 @@ end;
 function AnsiSameFileName(const S1, S2: string): boolean;
 begin
   Result := AnsiCompareFileName(S1, S2) = 0;
+end;
+
+{ TLocalizedAppName ---------------------------------------------------------- }
+
+constructor TLocalizedAppName.Create(ALanguage, AAppName: String);
+begin
+  Language := ALanguage;
+  AppName := AAppName;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -508,6 +530,22 @@ constructor TCastleProject.Create(const APath: string);
               LaunchImages.Add(ChildElement.AttributeString('path'));
             end;
           finally FreeAndNil(ChildElements) end;
+        end;
+
+        Element := Doc.DocumentElement.ChildElement('localization', false);
+        if Element <> nil then
+        begin
+          FListLocalizedAppName := TListLocalizedAppName.Create;
+          ChildElements := Element.ChildrenIterator;
+          try
+            while ChildElements.GetNext do
+            begin
+              Check(ChildElements.Current.TagName = 'caption', 'Each child of the localization node must be an <caption> element.');
+              FListLocalizedAppName.Add(TLocalizedAppName.Create(ChildElements.Current.AttributeString('lang'), ChildElements.Current.AttributeString('value')));
+            end;
+          finally
+            FreeAndNil(ChildElements);
+          end;
         end;
 
         FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;

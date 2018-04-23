@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f localization_test.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/localization/localization_test.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/localization/gettext/localization_test.lpr

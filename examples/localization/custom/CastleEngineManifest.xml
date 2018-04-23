@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project
+  name="castle_localization"
+  caption="Localization with Castle"
+  qualified_name="io.castleengine.localization.castlelocalization"
+  executable_name="castle_localization"
+  game_units="Game"
+  author="Benedikt Magnus"
+  screen_orientation="portrait">
+  <localization>
+    <caption lang="en" value="Localization with CastleLocalization" />
+    <caption lang="de" value="Lokalisation mit CastleLocalization" />
+  </localization>
+  <version value="0.1" code="1" />
+  <android project_type="integrated">
+  </android>
+</project>

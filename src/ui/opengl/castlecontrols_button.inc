@@ -315,6 +315,7 @@
 constructor TCastleButton.Create(AOwner: TComponent);
 begin
   inherited;
+
   FAutoSize := true;
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;

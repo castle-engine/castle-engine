@@ -216,7 +216,8 @@ EXAMPLES_BASE_NAMES := \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test \
-  examples/localization/localization_test
+  examples/localization/gettext/localization_test \
+  examples/localization/custom/localization
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \

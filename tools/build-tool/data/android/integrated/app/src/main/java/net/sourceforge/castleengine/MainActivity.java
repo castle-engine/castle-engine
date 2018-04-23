@@ -3,6 +3,7 @@ package net.sourceforge.castleengine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.NativeActivity;
@@ -31,6 +32,8 @@ public class MainActivity extends NativeActivity
         for (ServiceAbstract service : services) {
             service.onCreate();
         }
+
+       jniLanguage(Locale.getDefault().toString());
     }
 
     @Override
@@ -163,6 +166,7 @@ public class MainActivity extends NativeActivity
     /* JNI ------------------------------------------------------------------- */
 
     public native String jniMessage(String javaToNative);
+    public native String jniLanguage(String javaToNative);
 
     public static final void safeLoadLibrary(String libName)
     {

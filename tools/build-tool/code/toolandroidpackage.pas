@@ -31,8 +31,8 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, Classes,
-  CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
+uses SysUtils, Classes, DOM, XMLWrite,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
@@ -267,6 +267,67 @@ var
     end;
   end;
 
+  procedure GenerateLocalization;
+  var
+    LocalizedAppName: TLocalizedAppName;
+    Doc: TXMLDocument;
+    RootNode, StringNode: TDOMNode;
+    I: TXMLElementIterator;
+    Language, StringsPath: String;
+  begin
+    if not Assigned(Project.ListLocalizedAppName) then Exit;
+
+    //Change default app_name to translatable:
+    StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
+    URLReadXML(Doc, StringsPath);
+    try
+      I := Doc.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          if (I.Current.TagName = 'string') and (I.Current.AttributeString('name') = 'app_name') then
+          begin
+            I.Current.AttributeSet('translatable', 'true');
+            Break; //There can only be one string 'app_name', so we don't need to continue the loop.
+          end;
+      finally
+        I.Free;
+      end;
+
+      WriteXMLFile(Doc, StringsPath);
+    finally
+      Doc.Free;
+    end;
+
+    //Write strings for every chosen language:
+    for LocalizedAppName in Project.ListLocalizedAppName do
+    begin
+      Doc := TXMLDocument.Create;
+      try
+        RootNode := Doc.CreateElement('resources');
+        Doc.Appendchild(RootNode);
+        RootNode:= Doc.DocumentElement;
+
+        StringNode := Doc.CreateElement('string');
+        TDOMElement(StringNode).AttributeSet('name', 'app_name');
+        StringNode.AppendChild(Doc.CreateTextNode(UTF8Decode(LocalizedAppName.AppName)));
+        RootNode.AppendChild(StringNode);
+
+        if LocalizedAppName.Language = 'default' then
+          Language := ''
+        else
+          Language := '-' + LocalizedAppName.Language;
+
+        StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim +
+                                            'values' + Language + PathDelim + 'strings.xml';
+
+        CheckForceDirectories(ExtractFilePath(StringsPath));
+        WriteXMLFile(Doc, StringsPath);
+      finally
+        Doc.Free;
+      end;
+    end;
+  end;
+
   procedure GenerateLibrary;
   begin
     PackageSmartCopyFile(Project.AndroidLibraryFile,
@@ -457,6 +518,7 @@ begin
   GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
+  GenerateLocalization;
   GenerateLibrary;
   RunNdkBuild;
   RunGradle(PackageMode);
