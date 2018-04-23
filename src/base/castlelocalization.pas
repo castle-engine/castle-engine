@@ -47,19 +47,19 @@ type
   TOnUpdateLocalizationEvent = procedure(const ALocalizedText: String) of object;
   TOnUpdateLocalizationEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TOnUpdateLocalizationEvent>;
 
-  { List (dictionary) for the localisation IDs of all subscribed components. }
+  { List (dictionary) for the localization IDs of all subscribed components. }
   TLocalizationIDList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TOnUpdateLocalizationEvent, String>;
 
 type
-  { Interface for custom user classes using the localisation.
+  { Interface for custom user classes using the localization.
     In contrast to ICastleLocalization, the class doesn't need to be an inheritant from TComponent.
-    Useful for lightweight custom classes that need localisation and implement adding and removing from TCastleLocalization by themselves. }
+    Useful for lightweight custom classes that need localization and implement adding and removing from TCastleLocalization by themselves. }
   ICastleLocalizationCustom = interface
     ['{d4cdfeb4-32c9-2409-07cc-00aa862851a4}']
     procedure OnUpdateLocalization(const ALocalizedText: String);
   end;
 
-  { Interface for all user components using the localisation.
+  { Interface for all user components using the localization.
     Allows to automatically localise and adjust a TComponent to language changes. }
   ICastleLocalization = interface (ICastleLocalizationCustom)
     ['{4fa1cb64-f806-2409-07cc-ca1a77e5c0e4}']
@@ -67,7 +67,7 @@ type
   end;
 
 type
-  { Main comonent for localisation, singleton as Localization. }
+  { Main comonent for localization, singleton as @link(Localization). }
   TCastleLocalization = class (TComponent)
     protected
       FLanguageDictionary: TLanguageDictionary;
@@ -90,15 +90,15 @@ type
       { Returns the current system locale as langauge code and locale info.
         For example: en_US, en_GB, es_ES }
       function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
-      { Adds a new component to the automised localisation list or, if it already is listed, updates it's localisation ID.
-        If ALocalizationID is empty, the element is removed from the localisation list. }
+      { Adds a new component to the automised localization list or, if it already is listed, updates it's localization ID.
+        If ALocalizationID is empty, the element is removed from the localization list. }
       procedure AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String); overload;
-      { Adds a new custom localisation class to the automised localisation list or, if it already is listed, updates it's localisation ID.
-        If ALocalizationID is empty, the element is removed from the localisation list. }
+      { Adds a new custom localization class to the automised localization list or, if it already is listed, updates it's localization ID.
+        If ALocalizationID is empty, the element is removed from the localization list. }
       procedure AddOrSet(ALocalizationComponent: ICastleLocalizationCustom; const ALocalizationID: String); overload;
     public
       property Items[AKey: String]: String read Get; default;
-      { The URL to the language file that shall be loaded for localisation. }
+      { The URL to the language file that shall be loaded for localization. }
       property LanguageURL: String read FLanguageURL write LoadLanguage;
       { A list (dictionary) of file loaders.
         You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
@@ -176,7 +176,7 @@ begin
 
   FLanguageDictionary.Clear;
 
-  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localisation.
+  if ALanguageURL = '' then Exit; //If there's no language XML file, then that's it, no more localization.
 
   FFileLoaderDictionary.TryGetValue(ExtractFileExt(ALanguageURL), FileLoaderAction);
   Check(Assigned(FileLoaderAction), 'There is no file loader associated with the extension of the given file.');
@@ -188,14 +188,14 @@ begin
     Stream.Free;
   end;
 
-  //Tell every registered object to update its localisation:
+  //Tell every registered object to update its localization:
   for OnUpdateLocalizationEvent in FOnUpdateLocalizationEventList do
   begin
     FLocalizationIDList.TryGetValue(OnUpdateLocalizationEvent, LocalizedText);
     OnUpdateLocalizationEvent(Items[LocalizedText]);
   end;
 
-  //Tell every custom object to update its localisation:
+  //Tell every custom object to update its localization:
   for OnLocalizationUpdatedEvent in FOnLocalizationUpdatedEventList do
     OnLocalizationUpdatedEvent();
 end;
