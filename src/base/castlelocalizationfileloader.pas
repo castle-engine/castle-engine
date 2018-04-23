@@ -109,7 +109,7 @@ var
   LanguageJSON: TFileLoaderJSONList;
   i: Integer;
 begin
-  StringStream := TStringStream.Create;
+  StringStream := TStringStream.Create('');
   try
     StringStream.CopyFrom(AFileStream, AFileStream.Size);
 
@@ -143,7 +143,7 @@ var
   i: Integer;
   Key: String;
 begin
-  StringStream := TStringStream.Create;
+  StringStream := TStringStream.Create('');
   try
     StringStream.CopyFrom(AFileStream, AFileStream.Size);
 
