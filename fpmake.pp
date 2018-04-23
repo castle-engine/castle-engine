@@ -151,6 +151,8 @@ begin
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
+    P.Targets.AddUnit('castlelocalization.pas');
+    P.Targets.AddUnit('castlelocalizationfileloader.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
@@ -161,6 +163,7 @@ begin
     P.Targets.AddUnit('castlerendererbasetypes.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
+    P.Targets.AddUnit('castlesystemlanguage.pas');
     P.Targets.AddUnit('castletimeutils.pas');
     P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
