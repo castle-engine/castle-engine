@@ -1471,7 +1471,7 @@ type
 
     { Transformation (from local to outside) as a matrix.
       This matrix represents a concise version of properties like @link(Translation),
-      @link(Rotation), @link(Scale). It does not takie into account the
+      @link(Rotation), @link(Scale). It does not take into account the
       transformation of parent TCastleTransform (for this, use @link(WorldTransform)). }
     function Transform: TMatrix4;
 
@@ -1954,7 +1954,7 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleQuaternions;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}

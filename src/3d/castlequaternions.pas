@@ -59,6 +59,7 @@ type
 
     { Calculate matrix doing rotation described by unit quaternion. }
     function ToRotationMatrix: TMatrix4;
+    function ToRotationMatrix3: TMatrix3;
 
     { Rotate a point, treating this quaternion as a representation of 3D rotation.
       For this operation to make sense in 3D, this must be a "unit" quaternion
@@ -135,6 +136,16 @@ function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion; overload;
 function QuatFromAxisAngle(const AxisAngle: TVector4;
   const NormalizeAxis: boolean = false): TQuaternion; overload;
+
+{ Initialize rotation quaternion from a 3x3 matrix that contains only rotation. }
+function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
+
+{ Decompose a matrix that is composition of 3D translation, rotation and scale.
+  The returned Rotation is expressed as an axis-angle (first 3 components
+  are axis, last component is an angle in radians),
+  as usual in our engine (see e.g. @link(TCastleTransform.Rotation)). }
+procedure MatrixDecompose(const Matrix: TMatrix4;
+  out Translation: TVector3; out Rotation: TVector4; out Scale: TVector3);
 
 { Interpolate between two rotations, along the shortest path on the unit sphere,
   with constant speed.
@@ -285,6 +296,39 @@ begin
     Data.Real);
 end;
 
+function QuatToRotationMatrix3(const X, Y, Z, W: Single): TMatrix3;
+var
+  XX, YY, ZZ: Single;
+begin
+  XX := Sqr(X);
+  YY := Sqr(Y);
+  ZZ := Sqr(Z);
+
+  { row 0 }
+  Result.Data[0, 0] := 1 - 2 * (YY + ZZ);
+  Result.Data[1, 0] := 2 * ( X * Y - W * Z );
+  Result.Data[2, 0] := 2 * ( X * Z + W * Y );
+
+  { row 1 }
+  Result.Data[0, 1] := 2 * ( X * Y + W * Z );
+  Result.Data[1, 1] := 1 - 2 * (XX + ZZ);
+  Result.Data[2, 1] := 2 * ( Y * Z - W * X );
+
+  { row 2 }
+  Result.Data[0, 2] := 2 * ( X * Z - W * Y );
+  Result.Data[1, 2] := 2 * ( Y * Z + W * X );
+  Result.Data[2, 2] := 1 - 2 * (XX + YY);
+end;
+
+function TQuaternion.ToRotationMatrix3: TMatrix3;
+begin
+  Result := QuatToRotationMatrix3(
+    Data.Vector.Data[0],
+    Data.Vector.Data[1],
+    Data.Vector.Data[2],
+    Data.Real);
+end;
+
 procedure TQuaternion.Normalize;
 begin
   NormalizeMe;
@@ -370,6 +414,81 @@ var
   Axis: TVector3 absolute AxisAngle;
 begin
   Result := QuatFromAxisAngle(Axis, AxisAngle.Data[3], NormalizeAxis);
+end;
+
+function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
+var
+  Trace, S: Single;
+begin
+  { Thanks go to Martin John Baker explanation and example code:
+    http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+    See also Kraft QuaternionFromMatrix4x4 implementation.
+  }
+
+  Trace := Matrix.Data[0, 0] + Matrix.Data[1, 1] + Matrix.Data[2, 2];
+  if Trace > 0 then
+  begin
+    S := Sqrt(Trace + 1.0) * 2; // S=4*qw
+    Result.Data.Vector4[3] := 0.25 * S;
+    Result.Data.Vector4[0] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4[1] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4[2] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+  end else
+  if (Matrix.Data[0, 0] > Matrix.Data[1, 1]) and (Matrix.Data[0, 0] > Matrix.Data[2, 2]) then
+  begin
+    S := Sqrt(1.0 + Matrix.Data[0, 0] - Matrix.Data[1, 1] - Matrix.Data[2, 2]) * 2; // S=4*qx
+    Result.Data.Vector4[3] := (Matrix.Data[1, 2] - Matrix.Data[2, 1]) / S;
+    Result.Data.Vector4[0] := 0.25 * S;
+    Result.Data.Vector4[1] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4[2] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+  end else
+  if (Matrix.Data[1, 1] > Matrix.Data[2, 2]) then
+  begin
+    S := Sqrt(1.0 + Matrix.Data[1, 1] - Matrix.Data[0, 0] - Matrix.Data[2, 2]) * 2; // S=4*qy
+    Result.Data.Vector4[3] := (Matrix.Data[2, 0] - Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4[0] := (Matrix.Data[1, 0] + Matrix.Data[0, 1]) / S;
+    Result.Data.Vector4[1] := 0.25 * S;
+    Result.Data.Vector4[2] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+  end else
+  begin
+    S := Sqrt(1.0 + Matrix.Data[2, 2] - Matrix.Data[0, 0] - Matrix.Data[1, 1]) * 2; // S=4*qz
+    Result.Data.Vector4[3] := (Matrix.Data[0, 1] - Matrix.Data[1, 0]) / S;
+    Result.Data.Vector4[0] := (Matrix.Data[2, 0] + Matrix.Data[0, 2]) / S;
+    Result.Data.Vector4[1] := (Matrix.Data[2, 1] + Matrix.Data[1, 2]) / S;
+    Result.Data.Vector4[2] := 0.25 * S;
+  end;
+
+  Result.NormalizeMe;
+end;
+
+procedure MatrixDecompose(const Matrix: TMatrix4;
+  out Translation: TVector3; out Rotation: TVector4; out Scale: TVector3);
+var
+  I, J: Integer;
+  Column: TVector3;
+  RotationMatrix: TMatrix3;
+  Quaternion: TQuaternion;
+begin
+  { See
+    https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati/1463487#1463487
+  }
+
+  // calculate Translation
+  Translation.Init(Matrix.Data[3, 0], Matrix.Data[3, 1], Matrix.Data[3, 2]);
+
+  // calculate Scale
+  for I := 0 to 2 do
+  begin
+    Column.Init(Matrix.Data[I, 0], Matrix.Data[I, 1], Matrix.Data[I, 2]);
+    Scale.Data[I] := Column.Length;
+  end;
+
+  // calculate Rotation
+  for I := 0 to 2 do
+    for J := 0 to 2 do
+      RotationMatrix.Data[I, J] := Matrix.Data[I, J] / Scale.Data[I];
+  Quaternion := QuatFromRotationMatrix(RotationMatrix);
+  Rotation := Quaternion.ToAxisAngle;
 end;
 
 { For SLerp and NLerp implementations, see
