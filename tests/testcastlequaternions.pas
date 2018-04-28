@@ -27,9 +27,12 @@ type
   published
     procedure TestRotationMatrix;
     procedure TestDecompose;
+    procedure TestDecomposeCastleTransform;
   end;
 
 implementation
+
+uses CastleTransform;
 
 procedure TTestCastleQuaternions.TestRotationMatrix;
 var
@@ -79,6 +82,32 @@ begin
   // Writeln(Translation.ToString);
   // Writeln(Rotation.ToString);
   // Writeln(Scale.ToString);
+end;
+
+procedure TTestCastleQuaternions.TestDecomposeCastleTransform;
+var
+  M: TMatrix4;
+  Translation, Scale: TVector3;
+  Rotation: TVector4;
+  Transform: TCastleTransform;
+begin
+  M :=
+    TranslationMatrix(Vector3(1, 2, 3)) *
+    RotationMatrixRad(6.66, Vector3(5, 6, 7).Normalize) *
+    ScalingMatrix(Vector3(9, 8, 7)) *
+    TranslationMatrix(Vector3(10, 20, 30)) *
+    RotationMatrixRad(6.66, Vector3(50, 60, 70).Normalize) *
+    ScalingMatrix(Vector3(9, 8, 7));
+
+  MatrixDecompose(M, Translation, Rotation, Scale);
+
+  Transform := TCastleTransform.Create(nil);
+  try
+    Transform.Translation := Translation;
+    Transform.Rotation := Rotation;
+    Transform.Scale := Scale;
+    AssertMatrixEquals(Transform.Transform, M, 5);
+  finally FreeAndNil(Transform) end;
 end;
 
 initialization
