@@ -76,7 +76,10 @@ var
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton.
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
+{$warnings on}
 
 { TWindowProgressInterface  ------------------------------------------------ }
 

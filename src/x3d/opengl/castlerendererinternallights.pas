@@ -80,9 +80,12 @@ type
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily still uses RenderingCamera singleton
 uses SysUtils, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleUtils, CastleRenderingCamera;
+{$warnings on}
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 

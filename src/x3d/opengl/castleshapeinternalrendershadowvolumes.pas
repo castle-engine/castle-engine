@@ -64,9 +64,13 @@ type
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep it working for backward compatibility.
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes, CastleRenderingCamera;
+  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes;
+{$warnings on}
 
 {$ifndef OpenGLES}
 { Rendering in this unit for now uses fixed-function pipeline,

@@ -20,10 +20,9 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
-  CastleRenderingCamera, CastleGLImages, CastleTransform, CastleGLUtils;
+  CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean); experimental;
@@ -52,12 +51,10 @@ procedure SHVectorGLCapture(
 
 { Capture cube map by rendering environment from CapturePoint.
 
-  Environment is rendered by Render callback
-  that must honour camera described in RenderingCamera object.
-  RenderingCamera.Target will be set to rtCubeMapEnvironment.
-  RenderingCamera camera will be set to appropriate views
-  from the CapturePoint. You should at least load RenderingCamera.Matrix
-  to OpenGL modelview matrix before rendering your 3D scene.
+  Environment is rendered by the Render callback.
+  It will be called with custom TRenderingCamera instance,
+  with TRenderingCamera.Target set to rtCubeMapEnvironment,
+  and matrix set to appropriate view from the CapturePoint.
 
   Cube map is recorded in six images you provide in the Images parameter.
   These must be already created TCastleImage instances, with the exact same size.
@@ -195,14 +192,14 @@ begin
   end;
 end;
 
-procedure SetRenderingCamera(
+procedure SetRenderingCamera(const RenderingCamera: TRenderingCamera;
   const CapturePoint: TVector3;
   const Side: TCubeMapSide);
 begin
   RenderingCamera.FromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    RenderContext.ProjectionMatrix, nil);
+    RenderContext.ProjectionMatrix);
 end;
 
 procedure GLCaptureCubeMapImages(
@@ -215,14 +212,19 @@ var
   RenderToTexture: TGLRenderToTexture;
 
   procedure DrawMap(Side: TCubeMapSide);
+  var
+    RenderingCamera: TRenderingCamera;
   begin
     RenderToTexture.RenderBegin;
 
       RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
-      RenderingCamera.Target := rtCubeMapEnvironment;
-      SetRenderingCamera(CapturePoint, Side);
-      Render;
+      RenderingCamera := TRenderingCamera.Create;
+      try
+        RenderingCamera.Target := rtCubeMapEnvironment;
+        SetRenderingCamera(RenderingCamera, CapturePoint, Side);
+        Render(RenderingCamera);
+      finally FreeAndNil(RenderingCamera) end;
 
       SaveScreen_NoFlush(Images[Side], 0, 0, RenderToTexture.ColorBuffer);
 
@@ -285,15 +287,20 @@ procedure GLCaptureCubeMapTexture(
   RenderToTexture: TGLRenderToTexture);
 
   procedure DrawMap(Side: TCubeMapSide);
+  var
+    RenderingCamera: TRenderingCamera;
   begin
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
       RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
-      RenderingCamera.Target := rtCubeMapEnvironment;
-      SetRenderingCamera(CapturePoint, Side);
-      Render;
+      RenderingCamera := TRenderingCamera.Create;
+      try
+        RenderingCamera.Target := rtCubeMapEnvironment;
+        SetRenderingCamera(RenderingCamera, CapturePoint, Side);
+        Render(RenderingCamera);
+      finally FreeAndNil(RenderingCamera) end;
 
     RenderToTexture.RenderEnd(Side < High(Side));
   end;

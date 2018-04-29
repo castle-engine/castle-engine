@@ -815,7 +815,7 @@ const
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog,
-  CastleStringUtils, CastleRenderingCamera, CastleApplicationProperties,
+  CastleStringUtils, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes;
 
 var
@@ -1141,10 +1141,10 @@ var
   var
     CameraMatrix: PMatrix4;
   begin
-    if RenderingCamera.RotationOnly then
-      CameraMatrix := @RenderingCamera.RotationMatrix
+    if Params.RenderingCamera.RotationOnly then
+      CameraMatrix := @Params.RenderingCamera.RotationMatrix
     else
-      CameraMatrix := @RenderingCamera.Matrix;
+      CameraMatrix := @Params.RenderingCamera.Matrix;
 
     if Params.TransformIdentity then
       Result := CameraMatrix^
@@ -1194,7 +1194,7 @@ var
         should have a map "target->oq state" for various rendering targets. }
 
       if Attributes.ReallyUseOcclusionQuery and
-         (RenderingCamera.Target = rtScreen) then
+         (Params.RenderingCamera.Target = rtScreen) then
       begin
         SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
       end else
@@ -1333,7 +1333,7 @@ begin
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
-       (RenderingCamera.Target = rtScreen) and
+       (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
@@ -1657,12 +1657,12 @@ procedure TCastleScene.LocalRenderOutside(
   begin
     { For shadow maps, speed up rendering by using only features that affect
       depth output. Also set up specialized shaders. }
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       SavedMode := Attributes.Mode;
       Attributes.Mode := rmDepth;
 
-      if RenderingCamera.Target = rtVarianceShadowMap then
+      if Params.RenderingCamera.Target = rtVarianceShadowMap then
       begin
         VarianceShadowMapsProgram.Initialize(
           '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
@@ -1684,7 +1684,7 @@ procedure TCastleScene.LocalRenderOutside(
 
     RenderWithWireframeEffect;
 
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       Attributes.Mode := SavedMode;
       Attributes.CustomShader          := SavedShaders.Shader;

@@ -540,10 +540,13 @@ type
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily still uses RenderingCamera singleton
 uses SysUtils, StrUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleLog, Castle3D, CastleGLVersion, CastleRenderingCamera,
-  CastleScreenEffects, CastleInternalX3DLexer;
+  CastleGLUtils, CastleLog, Castle3D, CastleGLVersion,
+  CastleRenderingCamera, CastleScreenEffects, CastleInternalX3DLexer;
+{$warnings on}
 
 { String helpers ------------------------------------------------------------- }
 

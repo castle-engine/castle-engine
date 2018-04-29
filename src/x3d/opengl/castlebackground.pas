@@ -21,7 +21,7 @@ unit CastleBackground;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
-  CastleColors, CastleGLUtils;
+  CastleColors, CastleGLUtils, CastleTransform;
 
 type
   { Background for 3D world.
@@ -76,7 +76,8 @@ type
     destructor Destroy; override;
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
-    procedure Render(const Wireframe: boolean);
+    procedure Render(const RenderingCamera: TRenderingCamera;
+      const Wireframe: boolean);
     procedure UpdateTransform(const Transform: TMatrix4);
     procedure FreeResources;
   end;
@@ -534,12 +535,14 @@ begin
   Scene.Load(RootNode, true);
 end;
 
-procedure TBackground.Render(const Wireframe: boolean);
+procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean);
 begin
   Params.InShadow := false;
   { since we constructed Scene ourselves,
     we know it only has ShadowVolumesReceivers=true shapes }
   Params.ShadowVolumesReceivers := true;
+  Params.RenderingCamera := RenderingCamera;
 
   if Wireframe then
     Scene.Attributes.WireframeEffect := weWireframeOnly else

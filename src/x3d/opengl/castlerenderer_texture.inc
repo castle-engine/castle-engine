@@ -1349,6 +1349,7 @@ var
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   Pos, Dir, Up: TVector3;
+  Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
 
@@ -1368,22 +1369,24 @@ begin
 
   TextureNode.EventRendering.Send(true);
 
-  RenderingCamera.Target := rfOffScreen;
-  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix,
-    Viewpoint);
+  Camera := TRenderingCamera.Create;
+  try
+    Camera.Target := rfOffScreen;
+    Camera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
-  RenderToTexture.RenderBegin;
+    RenderToTexture.RenderBegin;
 
-    RenderContext.Viewport := Rectangle(0, 0, Width, Height);
+      RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    RenderContext.ProjectionMatrix := NewProjectionMatrix;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-    Render;
+      Render(Camera);
 
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
-  RenderToTexture.RenderEnd;
+    RenderToTexture.RenderEnd;
+  finally FreeAndNil(Camera) end;
 
   { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
     cannot have mipmaps regenerated. On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
@@ -1908,57 +1911,63 @@ procedure TGLGeneratedShadowMap.Update(
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedDepthRange: TDepthRange;
+  Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
 
   { Render view for shadow map }
   NewProjectionMatrix := Light.ProjectionMatrix;
 
-  if VarianceShadowMaps then
-    RenderingCamera.Target := rtVarianceShadowMap else
-    RenderingCamera.Target := rtShadowMap;
+  Camera := TRenderingCamera.Create;
+  try
+    if VarianceShadowMaps then
+      Camera.Target := rtVarianceShadowMap
+    else
+      Camera.Target := rtShadowMap;
 
-  RenderingCamera.FromMatrix(
-    Light.ModelviewMatrix,
-    Light.ModelviewRotationMatrix,
-    NewProjectionMatrix, nil);
+    Camera.FromMatrix(
+      Light.ModelviewMatrix,
+      Light.ModelviewRotationMatrix,
+      NewProjectionMatrix);
 
-  RenderToTexture.RenderBegin;
+    RenderToTexture.RenderBegin;
 
-    RenderContext.Viewport := Rectangle(0, 0, Size, Size);
+      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    RenderContext.ProjectionMatrix := NewProjectionMatrix;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-      { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
-      SavedDepthRange := RenderContext.DepthRange;
-      RenderContext.DepthRange := drFull;
+        { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
+        SavedDepthRange := RenderContext.DepthRange;
+        RenderContext.DepthRange := drFull;
 
-      {$ifndef OpenGLES} // TODO-es
-      glPushAttrib(GL_POLYGON_BIT);
-        { enable polygon offset for everything (whole scene).
+        {$ifndef OpenGLES} // TODO-es
+        glPushAttrib(GL_POLYGON_BIT);
+          { enable polygon offset for everything (whole scene).
 
-          VarianceShadowMaps notes: can offset be avoided in this case?
-          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
-          offset is still needed for VSM. Without offset, VSM has some noise,
-          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
-        glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-        glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-        glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-        glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
-      {$endif}
+            VarianceShadowMaps notes: can offset be avoided in this case?
+            Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+            offset is still needed for VSM. Without offset, VSM has some noise,
+            and sunny_street demos have noise on walls. With offset, VSM is perfect. }
+          glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+          glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+        {$endif}
 
-        Render;
+          Render(Camera);
 
-      {$ifndef OpenGLES} // TODO-es
-      glPopAttrib;
-      {$endif}
+        {$ifndef OpenGLES} // TODO-es
+        glPopAttrib;
+        {$endif}
 
-      RenderContext.DepthRange := SavedDepthRange;
+        RenderContext.DepthRange := SavedDepthRange;
 
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
-  RenderToTexture.RenderEnd;
+    RenderToTexture.RenderEnd;
+
+  finally FreeAndNil(Camera) end;
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;

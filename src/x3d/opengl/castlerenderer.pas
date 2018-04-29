@@ -1041,9 +1041,14 @@ var
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep it working for backward compatibility.
 uses Math,
-  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  CastleStringUtils, CastleGLVersion, CastleLog,
+  CastleRenderingCamera,
   X3DCameraUtils, CastleProjection, CastleRectangles;
+{$warnings on}
 
 {$define read_implementation}
 

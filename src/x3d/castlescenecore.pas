@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
-  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
+  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles,
   CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
 type
@@ -837,8 +837,6 @@ type
 
     procedure SetAnimateSkipTicks(const Value: Cardinal);
 
-    procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
-      Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
 
     { Get camera position in current scene local coordinates.
@@ -919,6 +917,8 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
+
+    procedure LocalRender(const Params: TRenderParams); override;
   public
     { Nonzero value prevents rendering of this scene,
       and generally means that our state isn't complete.
@@ -5244,19 +5244,12 @@ begin
         - update camera information on all Billboard nodes,
         - LOD nodes. }
       UpdateCameraEvents;
-
-      RenderingCamera.OnChanged.Add(@RenderingCameraChanged);
     end else
     begin
       ScriptsFinalize;
       PointingDeviceClear;
 
       FProcessEvents := Value;
-
-      { ProcessEvents := false may get called from destructor,
-        after CastleRenderingCamera finalization }
-      if RenderingCamera <> nil then
-        RenderingCamera.OnChanged.Remove(@RenderingCameraChanged);
     end;
   end;
 end;
@@ -6787,48 +6780,6 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TCastleSceneCore.RenderingCameraChanged(
-  const RenderingCamera: TRenderingCamera;
-  Viewpoint: TAbstractViewpointNode);
-begin
-  { Although we register this callback only when ProcessEvents,
-    so we could assume here that ProcessEvents is already true...
-    But, just in case, check ProcessEvents again (in case in the future
-    there will be some queue of events and they could arrive with delay). }
-
-  if (Viewpoint = nil) and
-     (ViewpointStack.Top <> nil) and
-     (ViewpointStack.Top is TAbstractViewpointNode) then
-    Viewpoint := TAbstractViewpointNode(ViewpointStack.Top);
-
-  if ProcessEvents and
-     (Viewpoint <> nil) and
-     ( (RenderingCamera.Target = rtScreen) or
-       Viewpoint.FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
-  begin
-    BeginChangesSchedule;
-    try
-      if Viewpoint.EventCameraMatrix.SendNeeded then
-        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, NextEventTime);
-
-      if Viewpoint.EventCameraInverseMatrix.SendNeeded then
-      begin
-        RenderingCamera.InverseMatrixNeeded;
-        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, NextEventTime);
-      end;
-
-      if Viewpoint.EventCameraRotationMatrix.SendNeeded then
-        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, NextEventTime);
-
-      if Viewpoint.EventCameraRotationInverseMatrix.SendNeeded then
-      begin
-        RenderingCamera.RotationInverseMatrixNeeded;
-        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, NextEventTime);
-      end;
-    finally EndChangesSchedule end;
-  end;
-end;
-
 procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
   const ProgressStep: boolean; const Params: TPrepareParams);
 
@@ -7369,6 +7320,47 @@ begin
   Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
+end;
+
+procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
+
+  procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera);
+  var
+    Viewpoint: TAbstractViewpointNode;
+  begin
+    Viewpoint := ViewpointStack.Top;
+
+    if ProcessEvents and
+       (Viewpoint <> nil) and
+       ( (RenderingCamera.Target = rtScreen) or
+         Viewpoint.FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
+    begin
+      BeginChangesSchedule;
+      try
+        if Viewpoint.EventCameraMatrix.SendNeeded then
+          Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, NextEventTime);
+
+        if Viewpoint.EventCameraInverseMatrix.SendNeeded then
+        begin
+          RenderingCamera.InverseMatrixNeeded;
+          Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, NextEventTime);
+        end;
+
+        if Viewpoint.EventCameraRotationMatrix.SendNeeded then
+          Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, NextEventTime);
+
+        if Viewpoint.EventCameraRotationInverseMatrix.SendNeeded then
+        begin
+          RenderingCamera.RotationInverseMatrixNeeded;
+          Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, NextEventTime);
+        end;
+      finally EndChangesSchedule end;
+    end;
+  end;
+
+begin
+  inherited;
+  RenderingCameraChanged(Params.RenderingCamera);
 end;
 
 end.

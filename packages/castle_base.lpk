@@ -2236,7 +2236,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleRayTracer"/>
       </Item539>
       <Item540>
-        <Filename Value="../src/x3d/castlerenderingcamera.pas"/>
+        <Filename Value="../src/3d/castlerenderingcamera.pas"/>
         <UnitName Value="CastleRenderingCamera"/>
       </Item540>
       <Item541>

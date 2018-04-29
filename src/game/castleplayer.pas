@@ -463,7 +463,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleResources, CastleRenderingCamera;
+  CastleGLImages, CastleConfig, CastleResources;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -1394,12 +1394,12 @@ begin
     But it has to be implemented in more extensible manner in the future.
     It should also enable X3D layers. }
 
-  if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
     RenderContext.DepthRange := drNear;
 
   inherited;
 
-  if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
     RenderContext.DepthRange := drFar;
 end;
 
