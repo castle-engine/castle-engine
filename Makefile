@@ -180,24 +180,25 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
   examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
-  examples/3d_rendering_processing/triangulate_demo \
-  examples/3d_rendering_processing/placeholder_names \
-  examples/3d_rendering_processing/multiple_viewports \
-  examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
-  examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
-  examples/3d_rendering_processing/view_3d_model_advanced \
-  examples/3d_rendering_processing/scene_manager_demos \
-  examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
   examples/3d_rendering_processing/build_3d_tunnel \
-  examples/3d_rendering_processing/combine_multiple_x3d_into_one \
-  examples/3d_rendering_processing/display_box_custom_shaders \
-  examples/3d_rendering_processing/listen_on_x3d_events \
+  examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
   examples/3d_rendering_processing/cars_demo \
+  examples/3d_rendering_processing/combine_multiple_x3d_into_one \
+  examples/3d_rendering_processing/detect_scene_clicks \
+  examples/3d_rendering_processing/display_box_custom_shaders \
+  examples/3d_rendering_processing/fog_culling \
+  examples/3d_rendering_processing/listen_on_x3d_events \
+  examples/3d_rendering_processing/multiple_viewports \
+  examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
+  examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/show_bounding_rect_in_2d \
+  examples/3d_rendering_processing/triangulate_demo \
+  examples/3d_rendering_processing/view_3d_model_advanced \
+  examples/3d_rendering_processing/view_3d_model_basic \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal \
   examples/3d_sound_game/lets_take_a_walk \
