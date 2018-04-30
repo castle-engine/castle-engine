@@ -59,13 +59,16 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   TopMostScene: TCastleTransform;
 begin
-  if Window.SceneManager.MouseRayHit <> nil then
-    TopMostScene := Window.SceneManager.MouseRayHit.First.Item
-  else
-    TopMostScene := nil;
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    if Window.SceneManager.MouseRayHit <> nil then
+      TopMostScene := Window.SceneManager.MouseRayHit.First.Item
+    else
+      TopMostScene := nil;
 
-  if TopMostScene <> nil then
-    Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag));
+    if TopMostScene <> nil then
+      Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag));
+  end;
 end;
 
 function CreateMainSceneNode: TX3DRootNode;
