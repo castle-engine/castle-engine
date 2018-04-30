@@ -1126,7 +1126,7 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, nil, Width, Height, false);
+      TextureNode, TextureWrap, smNone, Width, Height, false);
   end else
   begin
     InitialImage := TRGBImage.Create(Width, Height);
@@ -1851,7 +1851,7 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size,
+      TextureNode, TextureWrap, TextureNode.CompareMode, Size, Size,
       VisualizeDepthMap);
   end;
 

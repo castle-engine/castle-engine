@@ -656,14 +656,12 @@ type
       const TextureGLName: TGLuint);
 
     { Required GLFeatures.TextureDepth before calling this.
-
-      For interpreating DepthCompareField, ARB_shadow will be needed
-      (but we'll make nice warning if it's not available).
-      DepthCompareField may be @nil, then it's equivalent to "NONE". }
+      For interpreating CompareMode, ARB_shadow will be needed
+      (but we'll make nice warning if it's not available). }
     function TextureDepth_IncReference(
       Node: TAbstractTextureNode;
       const TextureWrap: TTextureWrap2D;
-      DepthCompareField: TSFString;
+      CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
       const VisualizeDepthMap: boolean): TGLuint;
 
@@ -1473,7 +1471,7 @@ end;
 function TGLRendererContextCache.TextureDepth_IncReference(
   Node: TAbstractTextureNode;
   const TextureWrap: TTextureWrap2D;
-  DepthCompareField: TSFString;
+  CompareMode: TShadowMapCompareMode;
   const Width, Height: Cardinal;
   const VisualizeDepthMap: boolean): TGLuint;
 var
@@ -1526,33 +1524,33 @@ begin
 
   if GLFeatures.ARB_shadow then
   begin
-    if DepthCompareField <> nil then
-    begin
-      if VisualizeDepthMap or (DepthCompareField.Value = 'NONE') then
-      begin
-        { Using Attributes.VisualizeDepthMap effectively forces
-          every shadow map's compareMode to be NONE.
-          Although on some GPUs (Radeon X1600 (fglrx, chantal))
-          setting compareMode to NONE is not needed (one can use them
-          as sampler2D in shaders anyway, and extract depth as grayscale),
-          on other GPUs (NVidia GeForce 450 (kocury)) it is needed
-          (otherwise depth map only returns 0/1 values, not grayscale).
-          Spec suggests it should be needed. }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
-      end else
-      if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
-      begin
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
-      end else
-      if DepthCompareField.Value = 'COMPARE_R_GEQUAL' then
-      begin
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
-      end else
-        WritelnWarning('VRML/X3D', Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
-    end else
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+    if VisualizeDepthMap then
+      CompareMode := smNone;
+    case CompareMode of
+      smNone:
+        begin
+          { Using Attributes.VisualizeDepthMap effectively forces
+            every shadow map's compareMode to be NONE.
+            Although on some GPUs (Radeon X1600 (fglrx, chantal))
+            setting compareMode to NONE is not needed (one can use them
+            as sampler2D in shaders anyway, and extract depth as grayscale),
+            on other GPUs (NVidia GeForce 450 (kocury)) it is needed
+            (otherwise depth map only returns 0/1 values, not grayscale).
+            Spec suggests it should be needed. }
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+        end;
+      smCompareRLEqual:
+        begin
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+        end;
+      smCompareRGEqual:
+        begin
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
+        end;
+      else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
+    end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
@@ -3252,6 +3250,42 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       (Node is TIndexedLineSetNode));
   end;
 
+  procedure EnableOneShadowMap(const Texture: TGeneratedShadowMapNode;
+    var TexCoordsNeeded: Cardinal; const Shader: TShader);
+  var
+    GLTexture: TGLTextureNode;
+  begin
+    if Texture.CompareMode <> smNone then
+    begin
+      GLTexture := GLTextureNodes.TextureNode(Texture);
+      if GLTexture <> nil then
+        GLTexture.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+    end;
+  end;
+
+  procedure EnableShadowMaps(const Texture: TAbstractTextureNode;
+    var TexCoordsNeeded: Cardinal; const Shader: TShader);
+  var
+    I: Integer;
+    ChildNode: TX3DNode;
+  begin
+    if Texture is TGeneratedShadowMapNode then
+    begin
+      EnableOneShadowMap(TGeneratedShadowMapNode(Texture), TexCoordsNeeded, Shader);
+    end else
+    if Texture is TMultiTextureNode then
+      for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
+      begin
+        { TODO: This is not really correct, the texture unit number
+          (TexCoordsNeeded) may not correspond to the texture coordinate number
+          where the ProjectedTextureCoordinate node is. }
+
+        ChildNode := TMultiTextureNode(Texture).FdTexture[I];
+        if ChildNode is TGeneratedShadowMapNode then
+          EnableOneShadowMap(TGeneratedShadowMapNode(ChildNode), TexCoordsNeeded, Shader);
+      end;
+  end;
+
   procedure RenderTexturesBegin;
   var
     TextureNode: TAbstractTextureNode;
@@ -3304,6 +3338,19 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       if GLTextureNode <> nil then
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
+
+      if (Shape.Node <> nil) and
+         (Shape.Node.Appearance <> nil) and
+         (Shape.Node.Appearance.Texture <> nil) and
+         (TextureNode <> Shape.Node.Appearance.Texture) then
+      begin
+        { This means that Shape.State.DiffuseAlphaTexture comes
+          from CommonSurfaceShader (or a weird mix of VRML 1.0 and X3D which
+          is undefined).
+          Make sure to still enable shadow maps from Shape.Appearance.Texture
+          then. }
+        EnableShadowMaps(Shape.Node.Appearance.Texture, TexCoordsNeeded, Shader);
+      end;
 
       { If there is special texture like a normalmap, enable it. }
       BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
