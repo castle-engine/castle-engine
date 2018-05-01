@@ -182,19 +182,26 @@ function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
     end;
   #)
 
+  When AllowCancel, user can always press Escape
+  to easily cancel the dialog. Regardless if CharEscape is among ButtonChars.
+  We return CharEscape then.
+
   @groupBegin }
 function MessageChoice(Window: TCastleWindowCustom; const s: string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): char; overload;
+  const Html: boolean = false;
+  const AllowCancel: boolean = false): char; overload;
 function MessageChoice(Window: TCastleWindowCustom; const SArray: array of string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): char; overload;
+  const Html: boolean = false;
+  const AllowCancel: boolean = false): char; overload;
 function MessageChoice(Window: TCastleWindowCustom; TextList: TStringList;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): char; overload;
+  const Html: boolean = false;
+  const AllowCancel: boolean = false): char; overload;
 { @groupEnd }
 
 { Ask user to press any key, return this key as Keys.TKey.
@@ -538,14 +545,14 @@ function MessageChoice(Window: TCastleWindowCustom;
   const s: string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html: boolean): char;
+  const Html, AllowCancel: boolean): char;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, s);
-    Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html);
+    Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.free end;
 end;
 
@@ -553,21 +560,21 @@ function MessageChoice(Window: TCastleWindowCustom;
   const SArray: array of string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html: boolean): char; overload;
+  const Html, AllowCancel: boolean): char; overload;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     AddStrArrayToStrings(SArray, TextList);
-    Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html);
+    Result := MessageChoice(Window, TextList, ButtonCaptions, ButtonChars, Alignment, Html, AllowCancel);
   finally TextList.Free end;
 end;
 
 function MessageChoice(Window: TCastleWindowCustom; TextList: TStringList;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html: boolean): char; overload;
+  const Html, AllowCancel: boolean): char; overload;
 var
   State: TStateDialogChoice;
   I: Integer;
@@ -585,6 +592,7 @@ begin
     SetLength(State.ButtonChars, High(ButtonChars) + 1);
     for I := 0 to High(ButtonChars) do
       State.ButtonChars[I] := ButtonChars[I];
+    State.AllowCancel := AllowCancel;
     MessageCore(Window, State);
     Result := State.Answer;
   finally FreeAndNil(State) end;

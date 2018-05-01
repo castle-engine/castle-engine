@@ -253,6 +253,7 @@ type
   public
     ButtonCaptions: array of string;
     ButtonChars: array of char;
+    AllowCancel: boolean;
     function Press(const Event: TInputPressRelease): boolean; override;
     { User answer to the dialog question, defined when @link(Answered).
       This is one of the ButtonChars. }
@@ -556,9 +557,15 @@ begin
     begin
       FAnswer := C;
       DoAnswered;
-      Result := true;
-      Break;
+      Exit(true);
     end;
+
+  if AllowCancel and Event.IsKey(CharEscape) then
+  begin
+    FAnswer := CharEscape;
+    DoAnswered;
+    Exit(true);
+  end;
 end;
 
 { TStateDialogInput ---------------------------------------------------------- }
