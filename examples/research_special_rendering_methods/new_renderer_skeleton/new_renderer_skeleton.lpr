@@ -40,7 +40,7 @@
 
 uses SysUtils, TypInfo, Classes,
   CastleVectors, CastleCameras, X3DNodes, CastleSceneCore, CastleShapes,
-  CastleTransform, CastleRenderingCamera, CastleProjection, CastleFrustum,
+  CastleTransform, CastleProjection, CastleFrustum,
   CastleGeometryArrays;
 
 var
@@ -118,10 +118,10 @@ procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
   var
     CameraMatrix: PMatrix4;
   begin
-    if RenderingCamera.RotationOnly then
-      CameraMatrix := @RenderingCamera.RotationMatrix
+    if Params.RenderingCamera.RotationOnly then
+      CameraMatrix := @Params.RenderingCamera.RotationMatrix
     else
-      CameraMatrix := @RenderingCamera.Matrix;
+      CameraMatrix := @Params.RenderingCamera.Matrix;
 
     if Params.TransformIdentity then
       Result := CameraMatrix^
@@ -218,23 +218,27 @@ begin
     Scene.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
     Scene.PrepareResources([], false, nil);
 
-    { TODO: Creating TRenderParams explicitly, and with abstract methods (BaseLights).
+    { Prepare rendering parameters
+      (this is done by TCastleSceneManager in normal circumstances).
+
+      TODO: Creating TRenderParams explicitly, and with abstract methods (BaseLights).
       Ignore this temporarily, you don't need BaseLights to test your new renderer
       (BaseLights are only used for a configurable headlight, and for shining
       lights from one TCastleScene over another TCastleScene). }
     Params := TRenderParams.Create;
-    Params.Frustum := @RenderingCamera.Frustum;
+    Params.RenderingCamera := TRenderingCamera.Create;
+    Params.RenderingCamera.Target := rtScreen;
+    Params.RenderingCamera.FromCameraObject(Camera);
+    Params.Frustum := @Params.RenderingCamera.Frustum;
 
     while not Application.Quit do
     begin
       { TODO: Clear the screen contents (color, depth) now. }
 
-      { Prepare projection, camera matrix, rendering parameters
+      { Prepare projection
         (this is done by TCastleSceneManager in normal circumstances). }
       ProjectionMatrix := PerspectiveProjectionMatrixDeg(
         60, Window.Width / Window.Height, 0.1, 1000);
-      RenderingCamera.Matrix := Camera.Matrix;
-      RenderingCamera.RotationMatrix := Camera.RotationMatrix;
 
       { In a real rendering, Scene.Render may be called more than once
         per frame, with different values of
