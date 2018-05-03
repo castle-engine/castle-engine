@@ -392,27 +392,6 @@ type
     fcBoth
   );
 
-  { Basic non-abstact implementation of render params for calling
-    TCastleTransform.LocalRender.
-
-    @exclude
-    @bold(This is exposed here only to support some experiments with non-standard
-    rendering in engine example programs. Do not use this in your own code.)
-    This can be used when you have to call TCastleTransform.LocalRender,
-    but you don't use scene manager.
-    Usually this should not be needed.
-    This class may be removed at some point!
-    You should always try to use TCastleSceneManager to manage and render
-    3D stuff in new programs, and then TCastleSceneManager will take care of creating
-    proper render params instance for you. }
-  TBasicRenderParams = class(TRenderParams)
-  public
-    FBaseLights: TLightInstancesList;
-    constructor Create;
-    destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
-  end;
-
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
@@ -784,8 +763,30 @@ type
     procedure ViewChangedSuddenly;
   end;
 
-type
   TTriangle4List = specialize TStructList<TTriangle4>;
+
+  { @exclude Internal.
+
+    Basic non-abstact implementation of render params for calling
+    TCastleTransform.LocalRender.
+
+    @bold(This is exposed here only to support some experiments with non-standard
+    rendering in engine example programs. Do not use this in your own code.)
+
+    This can be used when you have to call TCastleTransform.LocalRender,
+    but you don't use scene manager.
+    Usually this should not be needed.
+    This class may be removed at some point!
+    You should always try to use TCastleSceneManager to manage and render
+    3D stuff in new programs, and then TCastleSceneManager will take care of creating
+    proper render params instance for you. }
+  TBasicRenderParams = class(TRenderParams)
+  public
+    FBaseLights: TLightInstancesList;
+    constructor Create;
+    destructor Destroy; override;
+    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
+  end;
 
 procedure Register;
 
@@ -844,33 +845,6 @@ end;
 procedure TGLSceneShape.SchedulePrepareResources;
 begin
   TCastleScene(ParentScene).PreparedShapesResources := false;
-end;
-
-{ TBasicRenderParams --------------------------------------------------------- }
-
-constructor TBasicRenderParams.Create;
-begin
-  inherited;
-  FBaseLights := TLightInstancesList.Create;
-  InShadow := false;
-  { Transparent and ShadowVolumesReceivers do not have good default values.
-    User of TBasicRenderParams should call Render method with
-    all 4 combinations of them, to really render everything correctly.
-    We just set them here to capture most 3D objects
-    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  ShadowVolumesReceivers := true;
-  Transparent := false;
-end;
-
-destructor TBasicRenderParams.Destroy;
-begin
-  FreeAndNil(FBaseLights);
-  inherited;
-end;
-
-function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
-begin
-  Result := FBaseLights;
 end;
 
 { TCastleScene.TCustomShaders ------------------------------------------------ }
@@ -2373,6 +2347,34 @@ begin
   for I := 0 to Count - 1 do
     if Items[I] <> nil then
       Items[I].ViewChangedSuddenly;
+end;
+
+{ TBasicRenderParams --------------------------------------------------------- }
+
+constructor TBasicRenderParams.Create;
+begin
+  inherited;
+  FBaseLights := TLightInstancesList.Create;
+  InShadow := false;
+  { Transparent and ShadowVolumesReceivers do not have good default values.
+    User of TBasicRenderParams should call Render method with
+    all 4 combinations of them, to really render everything correctly.
+    We just set them here to capture most 3D objects
+    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
+  ShadowVolumesReceivers := true;
+  Transparent := false;
+  CastleRenderingCamera := CastleRenderingCamera.RenderingCamera;
+end;
+
+destructor TBasicRenderParams.Destroy;
+begin
+  FreeAndNil(FBaseLights);
+  inherited;
+end;
+
+function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
+begin
+  Result := FBaseLights;
 end;
 
 initialization
