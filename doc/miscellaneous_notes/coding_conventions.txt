@@ -1,27 +1,33 @@
 - Submitting code:
   It's best to use GitHub's pull requests.
 
-  - Clone the https://github.com/castle-engine/castle-engine/
-    (or just make a new branch inside it, if you have write-access to CGE repository.)
-  - Work on your private clone/branch, comming and pushing.
-  - When read, submit a pull request using on
-    https://github.com/castle-engine/castle-engine/pulls
+    1. Fork the https://github.com/castle-engine/castle-engine/ . This is done by clicking on the appropriate button on GitHub.
 
-  You will find a lot of instructions how to use this on GitHub
-  (and other places Google can find).
+    2. Clone your fork (i.e. download it to your local computer).
 
-  Advantages:
-  This allows you to comfortably work on your pull request, committing and pushing
-  and showing your changes to anyone.
-  This allows us to use code review features of GitHub, that are comfortable to comment
-  on your code changes.
-  This allows to submit and merge the changes 100% automatically,
-  using the command-line or web interface, so it's usually less error-prone.
+    3. Optional: Create a new branch in your fork, just for this specific feature, e.g. doing `git checkout -b my-new-feature`. This allows to separate your work on various CGE features.
+
+    4. Work on your feature, commiting and pushing as usual, to your branch in your fork.
+
+    5. When ready, submit a pull request using https://github.com/castle-engine/castle-engine/pulls
+
+  See GitHub documentation (and other sites) for information about pull requests:
+  https://yangsu.github.io/pull-request-tutorial/
+  https://help.github.com/articles/about-pull-requests/
+
+  Advantages of pull requests:
+
+    - They allow you to comfortably work on your pull request, committing and pushing and showing your changes to anyone. There is no need to ask for any permission to do this. (But, if you want, you can of course let us know about your work, see https://castle-engine.io/talk.php . We may be able to advice on a best way to add something to CGE.)
+
+    - This allow us to use "code review" features of GitHub. They are comfortable to comment on your code changes.
+
+    - They allow everyone to submit, review and merge the changes relatively easily. And all operations can be done using the command-line or web interface, so it's comfortable / easy / flexible for everyone.
 
   Alternative:
-  Simply send a traditional ".patch" file, done by "git diff"
-  (versus GIT repository on https://github.com/castle-engine/castle-engine/ )
-  or "svn diff" (versus SVN repository on https://sourceforge.net/projects/castle-engine/ ).
+  Simply send a traditional ".patch" file, done by "git diff" or "svn diff"
+  (you can access https://github.com/castle-engine/castle-engine/
+  as a GIT or SVN repository.)
+  You can attach it to https://github.com/castle-engine/castle-engine/issues .
 
 - In general, we follow the standard Lazarus and Delphi coding conventions,
   used throughout most modern Object Pascal code.
@@ -36,8 +42,8 @@
   In particular:
   - Indent by 2 spaces.
   - Use CamelCase for everything,
-    - including constants, so MyConstant instead of MY_CONSTANT,
-    - and local variables, even "I" instead of "i".
+    - including constants (so write `MyConstant` instead of `MY_CONSTANT`)
+    - including local variables, even 1-letter variable names (so write `I` instead of `i`).
   - Put "begin" on a separate line.
     I.e. do not mimic C "K & R" style
     (https://en.wikipedia.org/wiki/Indent_style#K.26R) in Pascal:
@@ -55,7 +61,7 @@
       Writeln(I);
     end;
     ~~~~
-    To avoid verbosity, it's OK to omit begin/end for statements:
+    To look simpler, it's OK to omit begin/end when they would surround only 1 statement:
     ~~~~
     // THIS IS EVEN BETTER:
     for I := 1 to 10 do
@@ -116,7 +122,7 @@
   - Never use tabs (convert to spaces).
   - Never leave trailing whitespace at the end of lines (in the long run,
     it causes unnecessary diffs when someone removes it).
-  - Never use "with".
+  - Never use "with" keyword.
     Using "with" makes the code very difficult to read,
     as some of the symbols inside the "with A do begin .... end" clause
     are bound to A, and some are not, but it's completely invisible
@@ -211,9 +217,9 @@
   *.inc are files to be included in other Pascal source files using $I
         (short for $Include).
   *.dpr are main program files.
-        This changes in CGE >= 6.3.
-        In CGE < 6.3, program files had .lpr extension, since we used only Lazarus.
-        In CGE >= 6.3, we use both Lazarus and Delphi.
+        This changes in CGE >= 6.5.
+        In CGE < 6.5, program files had .lpr extension, since we used only Lazarus.
+        In CGE >= 6.5, we use both Lazarus and Delphi.
         While Lazarus accepts either .dpr or .lpr extension for the program file,
         Delphi tolerates only .dpr extension. So we have to (unfortunately)
         adjust to Delphi, and just use .dpr.
@@ -356,12 +362,12 @@
 
   There are many situations where optimizing is not a good idea,
   because it will not change the "bottleneck" code (which means that the speed / memory use
-  of something else is so large (in comparison) that it completely "shadows"
+  of something else is so large (in comparison) that it completely "masks"
   the thing that you optimize, making it irrelevant).
   In such cases, optimization is actually harmful, because the code quality
   goes down --- the optimized code is *usually* longer and/or more convoluted.
 
-  (Exception: in the rare cases when the optimized code is shorter and cleaner,
+  (Exception: in the rare cases when the optimized code is also shorter and cleaner,
   you have a full green light to do it *just because the code quality is better*.)
 
   Bottom line:
@@ -373,14 +379,22 @@
     speed or memory use of real applications.
     First test/think whether it's worthwhile to optimize this piece of code.
 
-  As you can see, I'm biased to "think more about code quality",
-  mostly because I see many people (including myself) to often think to little
-  of code quality (and fall into the trap "let's optimize this").
+  As you can see, I put more emphasis on thinking about code quality
+  than optimization.
+  That is because I see many people (including myself sometimes) often make
+  the mistake of not caring about code quality enough,
+  and instead rushing to make an optimization (that lowers code quality for
+  little-to-no gain to the final applications).
 
-  Of course, there is a balance. We want the code to be fast and use little memory
+  Of course, this does not mean we don't want to optimize.
+  If just means that we require justification for each optimization,
+  the optimization must have a noticeable effect on some real-world use-case.
+  We want the code to be fast and use little memory
   -- there are various ways to achieve this, often using smart algoriths on CPU,
   and/or thinking about how the CPU cache is used,
   and/or delivering data in better chunks to GPU.
+  Low-level optimization of some local routine is not always the most effective
+  approach.
 
   There is also a dreaded "death by 1000 cuts" that we want to avoid,
   which is sometimes caused by missing a number of small optimizations that
