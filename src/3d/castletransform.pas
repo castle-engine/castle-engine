@@ -1861,11 +1861,7 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep TBasicRenderParams working for backward compatibility.
-uses CastleLog, CastleQuaternions, CastleRenderingCamera;
-{$warnings on}
+uses CastleLog, CastleQuaternions;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}

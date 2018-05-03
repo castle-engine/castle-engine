@@ -815,9 +815,13 @@ const
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes;
+  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes;
+{$warnings on}
 
 var
   TemporaryAttributeChange: Cardinal = 0;
@@ -2363,7 +2367,8 @@ begin
     (as using TBasicRenderParams for anything is a discouraged hack anyway). }
   ShadowVolumesReceivers := true;
   Transparent := false;
-  CastleRenderingCamera := CastleRenderingCamera.RenderingCamera;
+  RenderingCamera := CastleRenderingCamera.RenderingCamera;
+  Frustum := @RenderingCamera.Frustum;
 end;
 
 destructor TBasicRenderParams.Destroy;
