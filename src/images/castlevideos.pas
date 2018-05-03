@@ -679,7 +679,7 @@ procedure TVideo.SaveToFile(const URL: string);
     Index, ReplacementsDone: Cardinal;
     S: string;
   begin
-    Write(Output, 'Removing temporary image files "', FileName, '" ...');
+    WritelnLog('Removing temporary image files "' + FileName + '" ...');
     FormatNameCounter(FileName, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
@@ -694,7 +694,7 @@ procedure TVideo.SaveToFile(const URL: string);
       if not DeleteFile(FileName) then
         WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [FileName]));
     end;
-    Writeln('done.');
+    WritelnLog('Done removing temporary image files.');
   end;
 
   procedure SaveToFfmpeg(const FileName: string);
@@ -721,8 +721,8 @@ procedure TVideo.SaveToFile(const URL: string);
         So it's Ok that we also output something, stdout is required
         by ffmpeg anyway... }
 
-      Writeln(Output, 'FFMpeg found, executing...');
-      Writeln(Output, Executable + ' -f image2 -i "' + TemporaryImagesPattern +
+      WritelnLog('FFMpeg found, executing...');
+      WritelnLog(Executable + ' -f image2 -i "' + TemporaryImagesPattern +
         '" -y -qscale 1 "' + FileName + '"');
 
       ExecuteProcess(Executable,
@@ -999,10 +999,7 @@ procedure FfmpegExecute(const Executable: string;
 var
   S, Parameter: string;
 begin
-  { ffmpeg call will output some things on stdout anyway.
-    So it's Ok that we also output something, stdout is required
-    by ffmpeg anyway... }
-  Writeln(Output, 'FFMpeg found, executing...');
+  WritelnLog('FFMpeg found, executing...');
   { Only for the sake of logging we glue Parameters together.
     For actual execution, we pass Parameters as an array, which is *much*
     safer (no need to worry whether Parameter contains " inside etc.) }
@@ -1015,7 +1012,7 @@ begin
     else
       S := S + Parameter;
   end;
-  Writeln(Output, S);
+  WritelnLog(S);
   ExecuteProcess(Executable, Parameters);
 end;
 
