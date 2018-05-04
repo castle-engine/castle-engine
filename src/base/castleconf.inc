@@ -46,7 +46,10 @@
 {$endif}
 
 {$ifdef VER2}
-  {$fatal FPC 2.x is not supported anymore, see https://castle-engine.io/fpc_and_lazarus.php}
+  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
+{$endif}
+{$ifdef VER3_0_0}
+  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
 {$endif}
 
 { Configure syntax ----------------------------------------------------------- }
