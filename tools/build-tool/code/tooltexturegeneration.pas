@@ -595,7 +595,7 @@ begin
   Write(Format(
     'Automatic texture generation completed:' + NL +
     '  %d textures considered to be compressed and/or downscaled.' + NL +
-    '  Hashes calculation time in %f seconds.' + NL +
+    '  Hashes calculation time: %f seconds.' + NL +
     '  Compressions done: %d in %f seconds.' + NL +
     '  Downscaling done: %d in %f seconds.' + NL +
     '  DXTn auto-detection done: %d in %f seconds.' + NL,
