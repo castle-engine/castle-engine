@@ -42,22 +42,25 @@ type
 
   (*Load functions from dynamic libraries.
 
-    I wrote my own class to handle dynamic libraries because:
+    This class allows to load functions from dynamic libraries (.dll on Windows,
+    .so on most Unix platforms, .dylib on macOS and iOS).
+
+    Features:
 
     @unorderedList(
-      @item(I wanted to have @link(Load) and @link(Symbol) functions that
+      @item(The @link(Load) and @link(Symbol) functions
         @italic(by default do error checking) (and raise necessary exceptions).)
 
-      @item(I wanted to have a field SymbolErrorBehaviour --- this lets me to
-        specify, @italic(once for all subsequent Symbol calls),
-        what error checking I want.
+      @item(The field SymbolErrorBehaviour allows to
+        specify @italic(once for all subsequent Symbol calls)
+        what error checking we want.
         Default is to check errors and raise exceptions.
         There is also a very usefull value reWarnAndContinue:
         it allows you to run program @italic(once) and see all symbols that
         are missing from dynamic library.)
 
-      @item(Also, the interface of this is OS-independent and works for
-        both FPC and Delphi, so you can avoid ugly $ifdefs in your code.)
+      @item(The interface of this is OS-independent and works for
+        both FPC and Delphi.)
     )
 
     Typical usage:
@@ -66,20 +69,17 @@ type
       var
         ALLibrary: TDynLib = nil;
       initialization
-        ALLibrary := TDynLib.Load('libopenal.so');
+        ALLibrary := TDynLib.Load('libopenal.so.1');
         { ... some calls to ALLibrary.Symbol() ... }
       finalization
         FreeAndNil(ALLibrary);
       end.
     #)
 
-    It is important that ALLibrary is initialized to nil (actually, writing
-    " = nil" is not necessary for a global variable) and that in finalization
-    you use Free(AndNil). This allows you to exit gracefully if library does not
+    It is important that ALLibrary is initialized to nil and that in finalization
+    you use FreeAndNil. This allows you to exit gracefully if library does not
     exist on the system and @link(Load) will raise an exception: ALLibrary will
-    stay then as nil and FreeAndNil(ALLibrary) will be a valid NOP.
-    Using FreeAndNil(ALLibrary) instead of ALLibrary.Free is just a good
-    practice.
+    stay then as nil.
   *)
   TDynLib = class
   private
