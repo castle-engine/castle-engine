@@ -42,12 +42,11 @@ type
     property Enabled: boolean read FEnabled write SetEnabled;
   end;
 
-  type
-    { Possible values of @link(TRenderContext.DepthRange). }
-    TDepthRange = (drFull, drNear, drFar);
+  { Possible values of @link(TRenderContext.DepthRange). }
+  TDepthRange = (drFull, drNear, drFar);
 
-    TColorChannel = 0..3;
-    TColorChannels = set of TColorChannel;
+  TColorChannel = 0..3;
+  TColorChannels = set of TColorChannel;
 
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
@@ -213,7 +212,7 @@ var
 procedure GLClear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor); deprecated 'use RenderContext.Clear';
 
-{ Projection matrix -------------------------------------------------------- }
+{ Projection matrix -------------------------------------------------------- } { }
 
 {$ifdef CASTLE_OBJFPC}
 function GetProjectionMatrix: TMatrix4;
@@ -222,14 +221,7 @@ procedure SetProjectionMatrix(const Value: TMatrix4);
   deprecated 'use RenderContext.ProjectionMatrix';
 
 { Current projection matrix.
-
-  For OpenGLES, this is merely a global ProjectionMatrix variable.
-  It must be passed to shaders used by TCastleScene rendering
-  to honour the projection.
-
-  For desktop OpenGL, setting this also sets fixed-function projection matrix.
-  The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
-  then changed back to GL_MODELVIEW. }
+  @deprecated Use RenderContext.ProjectionMatrix instead. }
 property ProjectionMatrix: TMatrix4
   read GetProjectionMatrix write SetProjectionMatrix;
 {$endif}
@@ -249,13 +241,14 @@ function OrthoProjection(const Dimensions: TFloatRectangle;
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
-{ depth range ---------------------------------------------------------------- }
+{ depth range ---------------------------------------------------------------- } { }
 
 {$ifdef CASTLE_OBJFPC}
 function GetDepthRange: TDepthRange;
   deprecated 'use RenderContext.DepthRange';
 procedure SetDepthRange(const Value: TDepthRange);
   deprecated 'use RenderContext.DepthRange';
+{ @deprecated Use @link(RenderContext.DepthRange) instead. }
 property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
 {$endif CASTLE_OBJFPC}
 
