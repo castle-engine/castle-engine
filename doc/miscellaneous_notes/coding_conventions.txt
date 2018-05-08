@@ -42,8 +42,11 @@
   In particular:
   - Indent by 2 spaces.
   - Use CamelCase for everything,
-    - including constants (so write `MyConstant` instead of `MY_CONSTANT`)
-    - including local variables, even 1-letter variable names (so write `I` instead of `i`).
+    - including constants (so write `MyConstant` instead of e.g. `MY_CONSTANT`)
+    - including local variables.
+        Even 1-letter variable names (so write `I` instead of `i`).
+    - including type names.
+        Even the type names that are Pascal keywords and are sometimes written all-lowercase (so write `String` / `Boolean` instead of `string` / `boolean`). Note: this rule was changed during CGE 6.5 development. So you will find a lot of code using lowercase `string` now in engine sources, but new code should use `String`. We will not be picky about this rule during pull requests (for now --- until we do a global rename and change them all to `String`).
   - Put "begin" on a separate line.
     I.e. do not mimic C "K & R" style
     (https://en.wikipedia.org/wiki/Indent_style#K.26R) in Pascal:
