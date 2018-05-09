@@ -4311,7 +4311,7 @@ begin
     FFullScreenWanted := Value;
 
     if FDuringOpen and Value then
-      WriteLnWarning('Window', 'TCastleWindowCustom.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen). Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
+      WriteLnWarning('Window', 'TCastleWindowCustom.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen later). Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
 
     { When the window is Closed, updating FFullScreenBackend is trivial
       and can be done automatically. Otherwise, it is delated
