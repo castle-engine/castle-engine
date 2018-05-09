@@ -83,7 +83,7 @@ private
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
   procedure AggressiveUpdate;
-  procedure UpdateFullScreen;
+  procedure UpdateFullScreenForm;
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
@@ -433,7 +433,7 @@ begin
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
   Form.Cursor := CursorCastleToLCL[InternalCursor]; // SetCursor may also change it later
 
-  UpdateFullScreen;
+  UpdateFullScreenForm;
 
   Form.OnCloseQuery := @FormCloseQuery;
   { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
@@ -510,7 +510,7 @@ end;
 const
   BorderNone = Controls.bsNone;
 
-procedure TCastleWindowCustom.UpdateFullScreen;
+procedure TCastleWindowCustom.UpdateFullScreenForm;
 begin
   if FullScreen then
   begin
@@ -525,13 +525,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
-  if FFullScreen <> Value then
+  if FFullScreenBackend <> FFullScreenWanted then
   begin
-    FFullScreen := Value;
+    FFullScreenBackend := FFullScreenWanted;
     if not Closed then
-      UpdateFullScreen;
+      UpdateFullScreenForm;
   end;
 end;
 

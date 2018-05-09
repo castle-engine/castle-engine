@@ -680,7 +680,12 @@ type
     FOnCloseQuery: TContainerEvent;
     FOnTimer: TContainerEvent;
     FOnDropFiles: TDropFilesFunc;
-    FFullScreen, FDoubleBuffer: boolean;
+    { FFullScreenWanted is the value set by FullScreen property by the user.
+      FFullScreenBackend is the last value of FullScreen known to the backend
+      (GTK, WinAPI etc.) }
+    FFullScreenWanted, FFullScreenBackend: boolean;
+    FDoubleBuffer: boolean;
+    FDuringOpen: boolean;
     FResizeAllowed: TResizeAllowed;
     FFocused: boolean;
     FMousePosition: TVector2;
@@ -733,7 +738,6 @@ type
     procedure SetPublicCaption(const Value: string);
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
     function GetWholeCaption: string;
-    procedure SetFullScreen(const Value: boolean);
     function GetRenderStyle: TRenderStyle;
     procedure SetRenderStyle(const Value: TRenderStyle);
     procedure SetCursor(const Value: TMouseCursor);
@@ -767,12 +771,17 @@ type
     procedure SetTop(const Value: Integer);
     procedure SetResizeAllowed(const Value: TResizeAllowed);
 
-    { Set FullScreen value in a dumb (but always reliable) way:
-      when it changes, just close, negate FFullScreen and reopen the window.
-      This will work, as long as OpenBackend honors the FullScreen setting. }
-    procedure SimpleSetFullScreen(const Value: boolean);
+    { Update FFullScreenBackend to FFullScreenWanted by closing and reopening
+      the window (if needed, i.e. if FFullScreenBackend <> FFullScreenWanted). }
+    procedure SimpleUpdateFullScreenBackend;
+
+    { Set FFullScreenBackend to FFullScreenWanted.
+      Every backend must implement this. In the simplest case,
+      just call SimpleUpdateFullScreenBackend. }
+    procedure UpdateFullScreenBackend;
 
     procedure SetMousePosition(const Value: TVector2);
+    procedure SetFullScreenWanted(const Value: Boolean);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -781,8 +790,11 @@ type
       in OpenBackend:
 
         Width, Height, Left, Top
-        Cursor, CustomCursor, FullScreen (remember that changes to this after OpenBackend
-          should also be allowed)
+        Cursor, CustomCursor,
+        FullScreen
+          (Note that FFullScreenWanted and FFullScreenBackend are always
+          equal at this point, so you can read any of these fields.
+          You can also just read FullScreen property.)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
           the window may / may not be resized)
@@ -1178,29 +1190,48 @@ type
     property Top :integer read FTop write SetTop default WindowPositionCenter;
     { @groupEnd }
 
-    { Whether the window is fullscreen.
-      This forces @link(Width) and @link(Height) and position and window style
-      to fill the whole screen.
+    { Is the window fullscreen.
 
-      Note that we always set fullscreen UI (no border, size matching
-      Application.ScreenWidth and Application.ScreenHeight), ignoring
-      the window size constraints like MinWidth, MaxWidth, MinHeight, MaxHeight
-      and ResizeAllowed. For example we do not check does Application.ScreenWidth
-      fit inside MinWidth and MaxWidth. It's assumed that you really want
-      to set/unset the fullscreen UI if you change this property.
-      However, the sizes known to your application (stored in @link(Width), @link(Height))
+      A fullscreen window has @link(Width), @link(Height), @link(Left), @link(Top)
+      set to fill the whole screen.
+      The window style is also, if possible, borderless.
+
+      The window size constraints (like MinWidth, MaxWidth, MinHeight, MaxHeight
+      and ResizeAllowed) are ignored, that is: we do not check whether
+      screen size fits inside MinWidth and MaxWidth. If this is @true,
+      the window is always fullscreen.
+      However, the sizes visible to your application
+      (exposed in properties @link(Width), @link(Height))
       are still constrained by MinWidth, MaxWidth, MinHeight, MaxHeight
       and ResizeAllowed.
 
-      You can change this always, even on already open window.
-      Just note that some backends don't allow to switch this without
-      destroying / recreating the OpenGL context. So be prepared that changing FullScreen
-      may result in OnClose + OnOpen sequence, so make sure that closing and opening
-      recreates the whole necessary OpenGL state exactly as it was. This is usually
-      natural, all our TUIControl automatically work with this,
-      so this is only a concern if you do some direct OpenGL tricks. }
+      It is best to change this before the window is open.
+      If you use a cross-platform game unit (see
+      https://castle-engine.io/manual_cross_platform.php and
+      example in examples/portable_game_skeleton/ ) then it is best to place
+      @code(Window.FullScreen := true) inside the unit initialization section.
+
+      You can also change this property after the window is open.
+      But note that:
+
+      @unorderedList(
+        @item(Some backends require closing + reopening the window to make it
+          fullscreen. So be prepared that changing FullScreen
+          may result in OnClose + OnOpen events, and all OpenGL resources
+          are reloaded. In most cases, engine takes care of everything
+          automatically (all TCastleScene, TUIControl, TGLImage and other
+          resources are automatically reloaded), just be aware that
+          this operation may take a bit of time.
+        )
+
+        @item(For safety (because of the above limitation), changing
+          this property does not have an immediate effect on the window.
+          The actual fullscreen change will happen a bit later, from the message loop.
+        )
+      )
+    }
     property FullScreen: boolean
-      read FFullScreen write SetFullScreen default false;
+      read FFullScreenWanted write SetFullScreenWanted default false;
 
     { Deprecated, instead just do @code(FullScreen := not FullScreen). }
     procedure SwapFullScreen; deprecated 'use "FullScreen := not FullScreen"';
@@ -3089,14 +3120,13 @@ procedure TCastleWindowCustom.OpenCore;
     if DoubleBuffer then SwapBuffers else glFlush;
   end;
 
-begin
-  if not FClosed then Exit;
+  { Do the job of OpenCore, do not protect from possible exceptions raised inside. }
+  procedure OpenUnprotected;
+  begin
+    { Once context is initialized, then Android activity is initialized,
+      or iOS called CGEApp_Open -> so it's safe to access files. }
+    ApplicationProperties._FileAccessSafe := true;
 
-  { Once context is initialized, then Android activity is initialized,
-    or iOS called CGEApp_Open -> so it's safe to access files. }
-  ApplicationProperties._FileAccessSafe := true;
-
-  try
     { Adjust Left/Top/Width/Height as needed.
 
       Note: calculations below try to correct window geometry but they
@@ -3166,7 +3196,7 @@ begin
     {$endif}
 
     try
-      { make ApplicationProperties.IsGLContextOpen true now, to allow creating
+      { Make ApplicationProperties.IsGLContextOpen true now, to allow creating
         TGLImage from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
@@ -3175,11 +3205,11 @@ begin
       Application.CastleEngineInitialize;
       if Closed then Exit;
 
-      { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
-        MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
-        zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
-        moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
-        CastleMessages.MessageOk. }
+      { Call first EventOpen and then EventResize.
+        Note that DoOpen and DoResize must be done after the OpenGL context
+        is initialized and everything is ready.
+        Even the 1st OnOpen / OnResize event may call Application.ProcessMessages,
+        e.g. because user calls CastleMessages.MessageOk. }
       EventOpenCalled := true;
       Container.EventOpen(Application.OpenWindowsCount);
 
@@ -3202,9 +3232,21 @@ begin
     { to be SURE that current window's gl context is active,
       even if someone in EventOpen changed current gl context }
     MakeCurrent;
-  except
-    Close; raise;
+
+    UpdateFullScreenBackend;
   end;
+
+begin
+  if not FClosed then Exit;
+
+  FDuringOpen := true;
+  try
+    try
+      OpenUnprotected;
+    except
+      Close; raise;
+    end;
+  finally FDuringOpen := false end;
 end;
 
 procedure TCastleWindowCustom.Open(const Retry: TGLContextRetryOpenFunc);
@@ -3603,6 +3645,8 @@ begin
     LastFpsOutputTime := Timer;
     SetCaption(cpFps, ' - FPS: ' + Fps.ToString);
   end;
+
+  UpdateFullScreenBackend;
 end;
 
 procedure TCastleWindowCustom.DoTimer;
@@ -4260,17 +4304,34 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SimpleSetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.SetFullScreenWanted(const Value: Boolean);
 begin
-  if FFullScreen <> Value then
+  if FFullScreenWanted <> Value then
   begin
-    FFullScreen := Value;
+    FFullScreenWanted := Value;
+
+    if FDuringOpen and Value then
+      WriteLnWarning('Window', 'TCastleWindowCustom.FullScreen is changed during the initial Application.OnInitialize / OnOpen / OnResize events. This works, but is unoptimal (the window will start non-fullscreen and will only change to fullscreen). Usually you should rather initialize "Window.FullScreen" in the main unit "initialization" section.');
+
+    { When the window is Closed, updating FFullScreenBackend is trivial
+      and can be done automatically. Otherwise, it is delated
+      to UpdateFullScreenBackend call. }
+    if Closed then
+      FFullScreenBackend := Value;
+  end;
+end;
+
+procedure TCastleWindowCustom.SimpleUpdateFullScreenBackend;
+begin
+  if FFullScreenBackend <> FFullScreenWanted then
+  begin
+    FFullScreenBackend := FFullScreenWanted;
     if not Closed then
     begin
       Close(false);
-      if Value then
+      if FFullScreenBackend then
       begin
-        { Value is true, so we change FFullScreen from false to true.
+        { FFullScreenBackend is true, so we changed it from false to true.
           Save BeforeFullScreen* now. }
         BeforeFullScreenGeometryKnown := true;
         BeforeFullScreenLeft := Left;
@@ -4279,7 +4340,7 @@ begin
         BeforeFullScreenHeight := Height;
       end else
       begin
-        { We change FFullScreen from true to false.
+        { We change FFullScreenBackend from true to false.
           Set window geometry. Note that BeforeFullScreenGeometryKnown may be false,
           if the window was initially opened in FullScreen mode, in which case
           we just set default sensible geometry. }

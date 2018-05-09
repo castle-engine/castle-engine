@@ -1361,9 +1361,9 @@ begin
   *)
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
-  SimpleSetFullScreen(Value);
+  SimpleUpdateFullScreenBackend;
 end;
 
 { TWinApiClipboard ----------------------------------------------------------- }

@@ -126,7 +126,9 @@ begin
   FTop := PluginWindow.Y;
   FWidth := PluginWindow.Width;
   FHeight := PluginWindow.Height;
-  Fullscreen := false;
+  // plugin is never fullscreen
+  FFullScreenWanted := false;
+  FFullScreenBackend := false;
   {$endif}
 
   Application.InitializeXDisplay;
@@ -139,7 +141,7 @@ begin
 
   ContextCreateBegin(Attr, AttrValueMask);
 
-  if fullscreen then
+  if FullScreen then
   begin
     Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
@@ -171,7 +173,7 @@ begin
     {$ifndef OpenGLES} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
     AttrValueMask, @Attr);
 
-  if FFullscreen and Visible then
+  if FullScreen and Visible then
   begin
     { XMapWindow must be called before doing all the "grab" operations.
       This also means that this whole piece of code cannot be done
@@ -184,19 +186,18 @@ begin
        GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) = GrabSuccess,
        'cannot grab the pointer');
 
-    { W fullscreen nie realizujemy sizeHints (ktore zapewniaja realizacje
-      funkcji ResizeAllowed <> raAllowed). ALE w fullscreen nigdy okno nie moze
-      byc resized (wiec nie potrzeba nam sizeHints zeby to powiedziec...)
-      wiec ok.
+    { In FullScreen we don't use SizeHints.
+      We don't need them anyway, as in fullscreen the window can never by resized.
 
-      Podobnie, w fullscreen nie realizujemy WMDeleteWindow ktore zapewnia
-      realizacje uslugi OnCloseQuery. ALE w fullscreen user nie moze
-      powiedziec window-managerowi ze chce zamknac to okno skoro window
-      manager niemal nie wie o istnieniu naszego okna (grabbed klawisze,
-      mysz, nasze okno bez ramki) wiec ok. }
-    { TODO: kiedy juz zrobisz fullscreen bez Grabow i override_redirecta
-      to chyba WM_DELETE_WINDOW pojdzie do fullscreen ?}
-    { TODO: zrobic fullscreen bez Grabow (i ew. override_redirect) }
+      Also, in FullScreen we do not use WMDeleteWindow that allows to implement
+      OnCloseQuery. But in FullScreen (with override_redirect) user cannot
+      tell the window manager "I want to close this window",
+      there are no window decorations and all keys (including Alt+F4) are grabbed.
+      So we don't need WMDeleteWindow anyway.
+
+      TODO:
+      - Implement FullScreen without grabbing the keys and override_redirect.
+      - When this is done, WMDeleteWindow should be used with fullscreen too. }
   end else
   begin
     { only set window title and handle wm_delete_events if in windowed mode }
@@ -271,7 +272,7 @@ var
 begin
   ContextDestroy;
 
-  if FFullscreen and Visible then
+  if FFullScreenBackend and Visible then
   begin
     XUnGrabPointer(Application.XDisplay, CurrentTime);
     XUnGrabKeyboard(Application.XDisplay, CurrentTime);
@@ -614,9 +615,9 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
-  SimpleSetFullScreen(Value);
+  SimpleUpdateFullScreenBackend;
 end;
 
 { TCastleApplication ------------------------------------------------------- }

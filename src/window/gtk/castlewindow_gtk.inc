@@ -1535,15 +1535,18 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
-  if FFullScreen <> Value then
+  if FFullScreenBackend <> FFullScreenWanted then
   begin
-    FFullScreen := Value;
+    FFullScreenBackend := FFullScreenWanted;
     if not Closed then
-      if Value then
-        gtk_window_fullscreen(WindowGtk) else
+    begin
+      if FFullScreenBackend then
+        gtk_window_fullscreen(WindowGtk)
+      else
         gtk_window_unfullscreen(WindowGtk);
+    end;
   end;
 end;
 

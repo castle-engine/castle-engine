@@ -172,10 +172,10 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
   { TODO: call LibraryCallbackProc to switch fullscreen mode }
-  FFullScreen := Value;
+  FFullScreenBackend := FFullScreenWanted;
 end;
 
 { LibraryXxx methods --------------------------------------------------------- }

@@ -566,9 +566,9 @@ begin
     FMousePosition := Value;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
-  FFullScreen := Value; //< does nothing on Android
+  FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;
 
 { TCastleApplication ---------------------------------------------------------- }

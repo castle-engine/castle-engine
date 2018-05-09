@@ -150,10 +150,10 @@ begin
     { TODO };
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.UpdateFullScreenBackend;
 begin
   { This is the simplest implementation of this method: }
-  SimpleSetFullScreen(Value);
+  SimpleUpdateFullScreenBackend;
   { Some backends may provide a better way of doing this.
     Remove the above line then, and put better implementation here. }
 end;
