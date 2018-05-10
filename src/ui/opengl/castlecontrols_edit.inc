@@ -381,7 +381,7 @@ begin
   inherited;
 
   if FAutoOnScreenKeyboard then
-    Messaging.Send(['change-keyboard-state', BoolToStr(Value)])
+    Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
 end;
 
 {$endif read_implementation}
