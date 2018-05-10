@@ -58,10 +58,10 @@ public abstract class ServiceAbstract
 
     protected static boolean stringToBoolean(String value)
     {
-        if (value.equals("true")) {
+        if (value.equals("-1") || (value.equals("1") || value.equals("True") || value.equals("true")) {
             return true;
         } else
-        if (value.equals("false")) {
+        if (value.equals("0") || value.equals("False") || value.equals("false")) {
             return false;
         } else {
             logWarning(CATEGORY, "Invalid boolean value in message: " + value);
