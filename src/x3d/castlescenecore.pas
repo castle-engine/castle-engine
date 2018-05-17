@@ -5581,7 +5581,7 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
         to false) was not called yet. }
 
       if NewViewpoint <> nil then
-        NewViewpoint.EventSet_Bind.Send(true, NextEventTime);
+        NewViewpoint.Bound := true;
     end;
   end;
 
@@ -6923,8 +6923,8 @@ begin
     end;
 
     if FViewpointsArray[Idx] = FViewpointStack.Top then
-      FViewpointsArray[Idx].EventSet_Bind.Send(false, NextEventTime);
-    FViewpointsArray[Idx].EventSet_Bind.Send(true, NextEventTime);
+      FViewpointsArray[Idx].Bound := false;
+    FViewpointsArray[Idx].Bound := true;
 
     if not Animated then
       ForceTeleportTransitions := OldForceTeleport;

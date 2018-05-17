@@ -246,7 +246,7 @@ begin
       Scene.Update(1, FakeRemoveMe);
 
       Viewpoint := FindViewpointByDescription('City plan');
-      Viewpoint.EventSet_Bind.Send(true);
+      Viewpoint.Bound := true;
 
       Scene.CameraChanged(SceneManager.Camera);
       FakeRemoveMe := rtNone;

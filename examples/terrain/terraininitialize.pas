@@ -421,10 +421,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     FogNode: TFogNode;
   begin
     FogNode := EnvironmentScene.Node('MainFog') as TFogNode;
-    if EnvironmentScene.FogStack.Top = FogNode then
-      FogNode.EventSet_Bind.Send(false)
-    else
-      FogNode.EventSet_Bind.Send(true);
+    FogNode.Bound := not FogNode.Bound;
   end;
 
 var

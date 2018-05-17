@@ -379,8 +379,9 @@
       (not by Appearance node). }
     function FontTextureNode: TAbstractTexture2DNode; virtual;
 
-    { Are faces convex. This knowledge is used when calculating normal vectors
-      by CastleInternalNormals. }
+    { Are faces guaranteed to be convex.
+      If your faces may be concave, you must set this to @false,
+      otherwise the results (rendering and collisions) may be incorrect. }
     property Convex: boolean read GetConvex write SetConvex;
 
     { Is backface culling used. }
