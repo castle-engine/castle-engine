@@ -199,6 +199,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
+  examples/3d_rendering_processing/switch_projection \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal \
   examples/3d_sound_game/lets_take_a_walk \

@@ -52,11 +52,14 @@ type
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
-  { Event for TCastleSceneManager.OnMoveAllowed. }
+  { Event for @link(TCastleSceneManager.OnMoveAllowed). }
   TWorldMoveAllowedEvent = procedure (Sender: TCastleSceneManager;
     var Allowed: boolean;
     const OldPosition, NewPosition: TVector3;
     const BecauseOfGravity: boolean) of object;
+
+  { Event for @link(TCastleAbstractViewport.OnProjection). }
+  TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
@@ -85,6 +88,7 @@ type
     FInternalWalkCamera: TWalkCamera;
     FWithinSetNavigationType: boolean;
     LastPressEvent: TInputPressRelease;
+    FOnProjection: TProjectionEvent;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -159,11 +163,22 @@ type
       or orthogonal and exact field of view parameters.
       Used by our Render method.
 
-      The default implementation is TCastleAbstractViewport
-      calculates projection based on MainScene currently bound Viewpoint,
-      NavigationInfo and used @link(Camera).
-      If scene manager's MainScene is not assigned, we use some default
-      sensible perspective projection. }
+      The default implementation of this method in TCastleAbstractViewport
+      calculates projection based on the @link(Camera) parameters,
+      and based on the currently bound Viewpoint/OrthoViewpoint, NavigationInfo
+      nodes in @link(TCastleSceneManager.MainScene).
+      If the scene manager's MainScene is not assigned, or it doesn't have
+      a Viewpoint/OrthoViewpoint node, we use a default perspective projection.
+
+      Note that the TCastle2DSceneManager overrides this method
+      to calculate always orthographic projection, using it's own properties
+      like @link(TCastle2DSceneManager.ProjectionAutoSize),
+      @link(TCastle2DSceneManager.ProjectionWidth),
+      @link(TCastle2DSceneManager.ProjectionHeight).
+      It doesn't look at MainScene settings or Viewpoint/OrthoViewpoint nodes.
+
+      You can override this method, or assign the @link(OnProjection) event
+      to adjust the projection settings. }
     function CalculateProjection: TProjection; virtual;
 
     { Render one pass, with current camera and parameters.
@@ -311,8 +326,10 @@ type
       var HandleInput: boolean); override;
 
     { Current projection parameters,
-      calculated by last @link(CalculateProjection) call.
-      @bold(Read only), change these parameters only by overriding CalculateProjection. }
+      calculated by last @link(CalculateProjection) call,
+      adjusted by @link(OnProjection).
+      @bold(This is read only). To change the projection parameters,
+      override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
 
     { Return current camera. Automatically creates it if missing. }
@@ -776,6 +793,11 @@ type
 
     { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
+
+    { Adjust the projection parameters. This event is called before every render.
+      See the @link(CalculateProjection) for a description how to default
+      projection parameters are calculated. }
+    property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
   end;
 
   TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
@@ -1769,6 +1791,8 @@ begin
   RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
+  if Assigned(OnProjection) then
+    OnProjection(FProjection);
 
   { take into account Distort* properties }
   AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
@@ -1795,18 +1819,7 @@ var
   Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
 
-  procedure DoPerspective;
-  begin
-    { Only perspective projection supports z far in infinity. }
-    if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-      Result.ProjectionFar := ZFarInfinity;
-
-    { Note that Result.PerspectiveAngles is already calculated here,
-      because we calculate correct PerspectiveAngles regardless
-      of whether we actually apply perspective or orthogonal projection. }
-  end;
-
-  procedure DoOrthographic;
+  procedure CalculateDimensions;
   var
     FieldOfView: TSingleList;
     MaxSize: Single;
@@ -1852,7 +1865,6 @@ var
   PerspectiveFieldOfView: Single;
   PerspectiveFieldOfViewForceVertical: boolean;
   PerspectiveAnglesRad: TVector2;
-  ProjectionType: TProjectionType;
 begin
   Box := GetItems.BoundingBox;
   Viewport := ScreenRect;
@@ -1900,7 +1912,8 @@ begin
     Result.ProjectionFar := DefaultVisibilityLimit;
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := Box.AverageSize(false,
-      { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
+      { When box is empty (or has 0 sizes), ProjectionFar is not simply
+        "any dummy value".
         It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }
       Result.ProjectionNear) * 20.0;
@@ -1913,22 +1926,24 @@ begin
     in Examine mode will be some day implemented (VRML/X3D spec require this). }
 
   if ViewpointNode <> nil then
-    ProjectionType := ViewpointNode.ProjectionType
+    Result.ProjectionType := ViewpointNode.ProjectionType
   else
-    ProjectionType := ptPerspective;
+    Result.ProjectionType := ptPerspective;
 
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
   Result.ProjectionFarFinite := Result.ProjectionFar;
 
-  Result.ProjectionType := ProjectionType;
+ { We need infinite ZFar in case of shadow volumes.
+   But only perspective projection supports ZFar in infinity. }
+  if (Result.ProjectionType = ptPerspective) and
+     GLFeatures.ShadowVolumesPossible and
+     ShadowVolumes then
+    Result.ProjectionFar := ZFarInfinity;
 
-  case ProjectionType of
-    ptPerspective: DoPerspective;
-    ptOrthographic: DoOrthographic;
-    ptFrustum: raise EInternalError.Create('TCastleAbstractViewport.CalculateProjection: X3D Viewpoint node should not be able to specify ptFrustum projection');
-    else raise EInternalError.Create('TCastleAbstractViewport.Projection-ProjectionType?');
-  end;
+  { Calculate Result.Dimensions regardless of Result.ProjectionType,
+    this way OnProjection can easily change projectio type to orthographic. }
+  CalculateDimensions;
 end;
 
 function TCastleAbstractViewport.Background: TBackground;
