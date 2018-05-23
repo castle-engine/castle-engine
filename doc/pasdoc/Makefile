@@ -15,9 +15,12 @@ default: html
 
 html:
 	./mk_docs.sh html
-	rm -Rf ../reference/html
+	rm -Rf ../reference/
 	mv html ../reference/
-	cp logo/castle_game_engine_icon.png ../reference/
+	cp -R logo/castle_game_engine_icon.png \
+	      html-parts/images/ \
+	      html-parts/castle-engine-website-base/ \
+	      ../reference/
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf

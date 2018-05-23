@@ -39,6 +39,23 @@ Run "make html" here.
   On Windows you will need to additionally install Cygwin (http://cygwin.com/)
   or MinGW (http://www.mingw.org/).
 
+- Note that the html-parts/ subdirectory here contains some files
+  (HTMLs, and some images/CSS/JS in subdirectories)
+  copied (or generated from) our actual website on https://castle-engine.io/ .
+  For your comfort, these files are already present inside html-parts/ here,
+  committed. They will be automatically used as necessary.
+
+  If you would like to regenerate them, do
+
+    cd html-parts
+    make clean
+    make
+
+  Be aware that you will need to have command-line PHP for this,
+  and you will need our website sources from
+  https://github.com/castle-engine/cge-www to be present (cloned such that
+  cge-www and castle-engine repos are siblings).
+
 ------------------------------------------------------------------------------
 How to write documentation for the engine:
 
