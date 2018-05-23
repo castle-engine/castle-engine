@@ -1,0 +1,786 @@
+@media only screen and (max-width : 767px) {
+    .sidebar {
+        /* vertical margin between sidebar and content,
+           on small devices when sidebar is at bottom */
+        margin-top: 1em;
+    }
+}
+
+@media only screen and (min-width : 768px) {
+    .content-near-sidebar {
+        /* horizontal margin from sidebar */
+        /* padding-left: 2em; */
+    }
+}
+
+.fixed-width-content {
+    /* Like Wordpress .wrap */
+    width: 1200px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.media-responsive,
+/* all images, movies responsive */
+img, iframe {
+  max-width: 100%;
+}
+
+
+.features-page h1,
+.features-page h2,
+.features-page h3 {
+  /* text-align: center; */
+  border-bottom: thin solid #DDD;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+object.movie_thumbnail {
+  width: 200px;
+  height: 167px;
+}
+
+div.thumbs_cell_with_text_or_movie {
+  width: 210px;
+  background: #DDD;
+  margin: 0em;
+  padding: 0.2em;
+  font-size: small;
+  text-align: center;
+}
+
+/* Our <pre> must break, otherwise our right sidebar is shifted and looks bad */
+pre {
+  white-space: pre-wrap;
+}
+
+/* Override Bootstrap default:
+   Remove "Courier New", add "Liberation Mono".
+   "Courier New" bold width doesn't match regular "Courier New",
+   this hurts our CommonSurfaceShader view on x3d_implementation_texturing_extensions.php .
+   It is also not nice on Linux according to
+   https://github.com/twbs/bootstrap/issues/18609
+*/
+code, kbd, pre, samp {
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+}
+
+a.kscript_func_docs { text-decoration: underline; }
+
+code { background-color: #f0f0f0; }
+/* Override above rule for x3d_component_intro. These <code> are in practice
+   surrounded by <b> now. */
+div.x3d_component_intro code { background-color: transparent; }
+
+pre.plug_declaration { border: thin solid #333; padding: 0.2em; }
+
+span.js_link { text-decoration: underline; color: #00F; cursor: pointer; }
+
+/* Style for note_box and note_title shamelessly stolen from CSS
+   of the Subversion book. (from .sidebar and .sidebar .title) */
+.note_box
+{
+    border-top: dotted 1px black;
+    border-left: dotted 1px black;
+    border-right: solid 2px black;
+    border-bottom: solid 2px black;
+    background: rgb(240,220,170);
+    padding: 0 0.12in;
+    margin: 0.5in;
+}
+
+.note_box .note_title {
+  text-align: center;
+  font-size: 125%;
+}
+
+/* Tables with key controls should be done with
+   <table class="key_list"> */
+table.key_list {
+  width: 90%;
+  border: thin solid;
+  border-collapse: separate;
+}
+table.key_list th { background: #eeeee0; border: thin solid white; }
+table.key_list td { background: #ddddd0; border: thin solid white; width: 50%; }
+
+/* Adapted from my pasdoc.css */
+table.thin_borders { border-collapse: collapse; }
+table.thin_borders td { border: 1pt solid #d3d3d3; padding: 0.3em; }
+table.thin_borders th { border: 1pt solid #d3d3d3; padding: 0.3em; }
+
+dl.command_line_options_list > dt {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* Leave default font-family for dt, and default font-weight.
+   Use span with command_line_option class inside dt. */
+dl.command_line_options_list_custom > dt {
+  font-weight: normal;
+}
+span.command_line_option {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* div.latest_update_description {
+  margin-left: 3em;
+  border: 1px solid gray;
+  padding: 0.5em;
+} */
+
+dt { font-weight: bold; }
+
+.panel-footer {
+    font-size: smaller;
+    margin-top: 2rem;
+}
+
+span.version_number { font-size: small }
+
+.rss_link {
+  float: right;
+  background: red;
+  padding: 0.3em;
+  border: thin outset black;
+}
+.rss_link a {
+  color: white;
+  font-weight: bold
+}
+
+pre.vrml_extension_spec { }
+
+dl.vrml_ver_differences > dt {
+  font-weight: normal;
+  font-style: italic;
+}
+
+.program_image_link,
+.main_link {
+  /* background: #e8d59a; */
+  /* background: #efdfae; */
+  border-width: thin;
+  border-style: solid;
+  border-radius: 4px;
+  border-color: #dcdcdc;
+  text-align: center;
+  padding: 0.5em;
+  width: 100%;
+  margin: 20px 0;
+}
+.program_image_link img,
+.main_link img {
+  border: none;
+  max-width: 100%; /* force scaling down on narrow window width, for 3-column layout of all_programs.php */
+}
+
+@media only screen and (min-width : 768px) {
+    .program_image_link {
+      min-height: 450px;
+    }
+}
+
+/* Small devices (tablets, 768px and up), see http://getbootstrap.com/css/ */
+/* @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) { */
+/* @media (min-width: 768px) and (max-width: 992px) { */
+/*   .program_image_link { */
+/*     min-height: 0 !important; */
+/*   } */
+/* } */
+
+.program_image_link_title { font-size: larger; }
+
+a.screenshot       img { border: 2pt solid #EEE; }
+a.screenshot:hover img { border: 2pt solid #888; }
+
+.table_of_contents a       { text-decoration: none; border-bottom: 1px dotted; }
+.table_of_contents a:hover { text-decoration: none; border-bottom: 1px solid;
+  background: #FF8;
+}
+
+/*.table_of_contents {
+  border-top: dotted 1px black;
+  border-left: dotted 1px black;
+  border-right: solid 2px black;
+  border-bottom: solid 2px black;
+  background: rgb(240,220,170);
+  padding: 0 0.12in;
+  margin: 0.5in;
+}
+*/
+
+.main-subtitle { color: #777; }
+
+.main-page-thumbnail {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.donate-photo {
+    float: right;
+    width: 300px;
+    max-width: 50%;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+}
+.donate-photo img {
+    width: 100%;
+}
+
+.preview-warning {
+    margin-left: 2rem;
+    margin-right: 2rem;
+}
+
+a.download_code {
+    text-decoration: underline;
+}
+
+/* main page stuff ----------------------------------------------------------- */
+
+.centered-wrapper {
+    text-align: center;
+}
+.centered {
+    display: inline-block;
+    text-align: left;
+}
+.centered-download-wrapper {
+    text-align: center;
+    margin-top: 1em;
+}
+.centered-download-wrapper .download {
+    display: inline-block;
+}
+.download-hints {
+    margin-top: 0.5em;
+}
+.download-hints p {
+    font-size: 87% !important;
+}
+
+/* news on main page --------------------------------------------------------- */
+
+.news-row-wrapper {
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+.news-row-wrapper .col-sm-3 {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+@media only screen and (max-width : 767px) {
+    .news-row-wrapper .col-sm-3 {
+        padding-bottom: 1em;
+    }
+}
+.news-row-wrapper .row-title {
+    border-top: thin solid #dcdcdc;
+    margin-bottom: 1em;
+    padding-left: 15px;
+    padding-top: 0.5em;
+    font-size: larger;
+    font-weight: bold;
+}
+.news-row-wrapper .row-title,
+.news-row-wrapper .row {
+    width: 1200px;
+    max-width: 100%;
+    display: inline-block;
+    text-align: left;
+}
+.news-row-wrapper img.wp-post-image {
+    display: block;
+    width: 100%;
+    height: auto; /* otherwise, the HTML contains an explicit height in pixels of the original image */
+}
+.news-row-wrapper a {
+    display: block;
+    color: black;
+    border-width: thin;
+    border-style: solid;
+    /* border-radius: 4px; */
+    border-color: #dcdcdc;
+
+    /* http://www.cssmatic.com/box-shadow */
+    -webkit-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.25);
+    -moz-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.25);
+    box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.25);
+}
+.news-row-wrapper a:hover,
+.news-row-wrapper a:focus {
+    /* background: #efe; */
+    text-decoration: none;
+    -webkit-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.5);
+    box-shadow: 0px 4px 5px 1px rgba(0,0,0,0.5);
+}
+.news-row-wrapper span.news_title {
+    color: #337ab7;
+    font-weight: bold;
+    text-decoration: none;
+}
+.news-row-wrapper a:hover span.news_title,
+.news-row-wrapper a:focus span.news_title {
+    color: #409ae7;
+}
+.news-row-wrapper .news_title_wrapper,
+.news-row-wrapper .news_date_wrapper {
+    padding: 0.25em 0.75em;
+}
+@media only screen and (min-width : 768px) {
+    .news-row-wrapper .news_title_wrapper {
+        /* in usual cases, it will make columns equal height */
+        min-height: 4em;
+    }
+}
+
+/*
+from
+https://scotch.io/bar-talk/different-tricks-on-how-to-make-bootstrap-columns-all-the-same-height
+@media only screen and (min-width : 768px) {
+    .news-row-wrapper .row {
+        display: table;
+    }
+    .news-row-wrapper .row [class*="col-"] {
+        float: none;
+        display: table-cell;
+        vertical-align: top;
+    }
+}
+*/
+
+/* x3d specification-like table ---------------------------------------------- */
+
+/* Table like X3D specification, used for multi-texturing clarifications
+   on x3d_implementation_texturing.php */
+table.specification { border-collapse:collapse; }
+table.specification th {
+  border-style:groove;
+  font-weight:bold;
+  border-width:medium;
+  padding:8px;
+  /* white-space:nowrap; */
+}
+table.specification td {
+  border-style:groove;
+  font-weight:normal;
+  border-width:medium;
+  padding:8px;
+  /* white-space:nowrap; */
+}
+
+table.x3dtests {
+  border-collapse: collapse;
+}
+table.x3dtests td {
+  border: thin solid #888;
+  padding:8px;
+}
+table.x3dtests td.x3dtests-links {
+  padding:0px;
+  /* white-space: nowrap; */
+}
+table.x3dtests td.x3dtests-links ul {
+  padding: 0 0 0 1em;
+  margin: 0;
+  font-size: smaller;
+}
+table.x3dtests tr.x3dtests-results td {
+  font-size: smaller;
+  padding: 0.1em;
+}
+table.x3dtests .x3dtests-screens {
+  width: 210px;
+}
+
+div.sidebar_title {
+  font-size: medium; font-weight: bold;
+  margin-bottom: 0.1em;
+}
+
+table.nist_test_suite { border-collapse:collapse; border: thin solid #999; }
+table.nist_test_suite td { border: thin solid #999; }
+table.nist_test_suite th { border: thin solid #999; }
+td.pass    { background-color:rgb(50%,100%,50%); }
+td.fail    { background-color:rgb(100%,50%,50%); }
+td.invalid { background-color:rgb(75%,75%,75%); }
+td.testnr  { white-space: nowrap; }
+
+/* view3dscene page stuff */
+hr.ruler_between_sections { width: 100%; }
+dl.params_list dt  {
+  font-weight: normal; font-family: monospace;
+  margin-top: 1em;
+}
+
+/* index page stuff */
+div.main_list_item {
+  font-family: serif;
+  font-weight: bolder;
+  font-size: large;
+
+  background: #ddddd0;
+
+  padding: 0.1em;
+}
+
+/* Don't set it float here, we may want to use it with various float values
+   or without float. */
+div.useful_link {
+  display: inline-block;
+  background: #EEE;
+  /* #ffff91; */
+  border: thin solid black;
+  padding: 0.3em;
+}
+
+div.x3d_component_intro {
+  display: block;
+  border: thin solid #333;
+  background: #fff4d2;
+  padding: 0.3em;
+}
+
+div.x3d_component_intro p.paragraph_first { margin-top: 0px; }
+div.x3d_component_intro p.paragraph_last { margin-bottom: 0px; }
+div.x3d_component_intro p.paragraph_first code { font-weight: bold; }
+
+dd { margin-left: 2em; }
+
+/* news --------------------------------------------------------------------- */
+
+span.old_news_date { font-weight: bold; }
+div.old_news_item { border-bottom: medium groove #555; }
+
+span.news_title { font-weight: bold; text-decoration: underline; }
+span.news_date {
+    color: #767676;
+    font-size: 1.0rem;
+    padding-bottom: 0.25em;
+}
+
+/* commented, size of this is set by "h2" class */
+/* span.news_title { font-size: larger; } */
+
+/* normal underline, with color same as link color
+   (otherwise, Bootstrap causes a black underline under a blue link) */
+span.news_title a { text-decoration: underline; }
+
+/* turn off normal link decoration inside news_title */
+span.news_title.only_anchor a {
+  color: black;
+  text-decoration: none;
+}
+span.news_title.only_anchor {
+  text-decoration: none;
+}
+
+.castle_rss_link {
+  float: right;
+  background: red;
+  padding: 0.3em;
+  border: thin outset black;
+  margin: 1em;
+}
+
+.castle_rss_link a {
+  color: white;
+  font-weight: bold
+}
+
+/* based on Bootstrap panel-footer */
+.panel-follow-us-old {
+  background-color: #f5f5f5;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
+  font-size: larger;
+}
+
+/* based on Bootstrap panel-footer */
+.panel-follow-us {
+  background-color: #f5f5f5;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
+  font-size: 1.5rem;
+}
+
+/* header ------------------------------------------------------------------- */
+
+.header_breadcrumbs {
+  color: #222;
+  padding: 0.4em;
+}
+.header_breadcrumbs a       { color: #5EB2E5; }
+.header_breadcrumbs a:hover { color: #39C; }
+
+.nav-tabs {
+  /* Separate brand from menu items on navbar */
+  clear: left;
+}
+/* Extra padding for navbar-collapse not needed, as we already have padding
+   from container-fluid.
+   This customization is necessary because of above "clear: both" on nav-tabs. */
+.navbar-collapse {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.nav-tabs.navbar-right {
+  border-bottom: 0 none;
+  /* In default bootstrap, it is aligned to right only when
+     "min-width: @grid-float-breakpoint".
+     We want it always, as we don't use collapsing, so @grid-float-breakpoint
+     doesn't apply to us. */
+  float: right;
+}
+.patreon-logo {
+  height: 45px;
+  margin-top: 5px;
+}
+
+/* --------------------------------------------------------------------------- */
+
+div.quote {
+  margin-left: 1em;
+  background: #FFD;
+  border: dotted 1px black;
+}
+
+.github-ribbon img {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  border: 0;
+  z-index: 100;
+}
+
+.has-github-ribbon .thumbnails-align-right {
+  margin-top: 60px;
+}
+
+.engine-icon {
+  float: right;
+  clear: right;
+  margin-top: 1em;
+}
+.has-github-ribbon .engine-icon {
+  margin-top: 60px;
+}
+
+/* books (manual and such) ------------------------------------------------- */
+
+.book-header {
+  width: 100%;
+  border: thin solid #ffeaa9;
+  background: #fff4d2;
+  padding: 0.3em;
+}
+
+.book-header .book-previous {
+  text-align: left;
+  float: left;
+  width: 40%;
+}
+.book-header .book-next {
+  text-align: right;
+  float: right;
+  width: 40%;
+}
+.book-header .book-title {
+  margin-left: 40%;
+  margin-right: 40%;
+  text-align: center;
+  font-weight: bold;
+}
+
+.footer-table td {
+  vertical-align: top;
+}
+
+/* google search box --------------------------------------------------------- */
+
+.google-search-container {
+  position: relative; /* to position gsc-search-button vs this */
+  width: 50%;
+  max-width: 400px;
+  float: right;
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+}
+
+.has-github-ribbon .google-search-container {
+  margin-right: 140px; /* margin from GitHub ribbon */
+}
+
+.google-search-container .gsc-search-button {
+  position: absolute;
+  right: 0;
+  top: -1px;
+}
+
+.gsc-search-box-tools .gsc-search-box .gsc-input {
+  padding-right: 0px !important;
+}
+
+.cse .gsc-control-cse, .gsc-control-cse {
+  padding: 0 !important;
+}
+.form.gsc-search-box {
+  margin: 0 !important;
+}
+.gsc-control-cse {
+  background-color: transparent !important;
+  border-style: none !important;
+}
+
+.gsc-control-cse, .gsc-control-cse .gsc-table-result {
+  font-size: normal !important;
+}
+
+.google-search-results-container .gsc-expansionArea {
+  border-bottom: thin solid #aaaaaa;
+}
+
+/* Restore normal CSS behaviour, overriding Bootstrap weirdness */
+.google-search-container {
+  line-height: normal;
+}
+.google-search-container {
+  box-sizing: content-box !important;
+}
+.google-search-container div {
+  box-sizing: content-box !important;
+}
+.gsc-search-button {
+  box-sizing: content-box !important;
+}
+
+/* Others ------------------------------------------------------------------- */
+
+#disqus_thread {
+  max-width: 800px;
+  /* margin-left: auto; */
+  /* margin-right: auto; */
+}
+
+.main-widgets {
+  float: left;
+  width: 300px;
+}
+
+.bottom-widget {
+  margin: 0.5em 0;
+}
+
+.kscript_func_docs .type { color: blue; }
+
+.xml_highlight_comment { color: #808080; font-style: italic; }
+
+/* div.thumbnails ------------------------------------------------------------ */
+
+div.thumbnails-align-left {
+    text-align: left;
+}
+div.thumbnails-align-right {
+    text-align: right;
+}
+div.thumbnails-align-center {
+    text-align: center;
+}
+div.thumbnails {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+div.thumbnails a {
+    display: inline-block;
+}
+
+@media screen and ( min-width: 600px ) {
+    table.thumbnails {
+        /* Avoids wide thumbnail column until images load */
+        max-width: 250px;
+    }
+    table.thumbnails-align-right {
+        /* this is added to work nicely with Flattr images,
+           that are on some pages (like castle.php) directly above this table
+           and also aligned to the right. */
+        clear: right;
+        float: right;
+
+        margin-left: 1rem;
+        margin-bottom: 1rem;
+    }
+    table.thumbnails-align-left {
+        clear: left;
+        float: left;
+    }
+}
+
+@media screen and ( max-width: 600px ) {
+    table.thumbnails {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    table.thumbnails::after {
+        clear: both;
+    }
+    table.thumbnails a.screenshot {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 210px;
+    }
+    table.thumbnails img {
+        /* images are very small, this looks bad */
+        /* width: 100%; */
+        max-width: 100%;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   download and jumbotron (but not specific to main page) */
+
+div.download {
+  display: inline-block;
+}
+
+.download_title { font-weight: bold; }
+
+div.download table td { text-align: center;
+  padding-left: 1em; padding-right: 1em; }
+div.download table a { display: block; text-decoration: none; }
+div.download table a img { border: 0px none; }
+
+div.download .download_platform {
+  display: inline-block;
+  margin: 1em;
+}
+
+.centered-download-wrapper .btn-primary {
+  width: 80%;
+}
+
+.jumbotron .btn-patreon {
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 1em;
+  display: block;
+  width: 80%;
+}
