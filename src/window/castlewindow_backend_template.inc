@@ -104,6 +104,18 @@ end;
 procedure TCastleWindowCustom.OpenBackend;
 begin
   { TODO (create OpenGL context, show window with this context) }
+
+  { Update position/size in case window is fullscreen.
+    If the backend always creates a fullscreen window for some reason
+    (e.g. typical on mobile), then you can remove the condition
+    "if FullScreen then" and just do this always, regardless of FullScreen value. }
+  if FullScreen then
+  begin
+    FLeft := 0;
+    FTop := 0;
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  end;
+
   Application.OpenWindowsAdd(Self);
 end;
 
