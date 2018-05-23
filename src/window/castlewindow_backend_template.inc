@@ -203,13 +203,35 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  Result := { TODO: should we continue? (no quit requested) } true;
+  Result := not Terminated;
+
+  { TODO:
+    This should process *one* window system message, if it's available in the queue.
+    Like a key press, mouse clicks etc.
+    Call DoKeyDown, DoMouseDown and other DoXxx methods when these events occur.
+    Be sure to recheck the "Terminated" state after calling any DoXxx method,
+    doing something like "if Terminated then Exit(false);".
+
+    UpdateAndRenderEverything should only be called if no message was in the queue.
+  }
+
+  if Result then
+  begin
+    UpdateAndRenderEverything;
+    Result := not Terminated;
+  end;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  Result := { TODO: should we continue? (no quit requested) } true;
-  // a simplest implementation is just to process 1 message: ProcessMessage(false, false)
+  { This implementation is valid for start: }
+  Result := ProcessMessage(false, false);
+
+  { In general, ProcessAllMessages should make sure that all messages
+    are handled, calling "ProcessMessage(false, false)" as long as some
+    message exists in window system queue.
+    Then it should call UpdateAndRenderEverything.
+    See the GTK backend for example. }
 end;
 
 procedure TCastleApplication.Run;
