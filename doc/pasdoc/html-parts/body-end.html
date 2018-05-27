@@ -1,6 +1,9 @@
+
 </div> <!-- .pasdoc-container -->
 
-</div>
+</div> <!-- behave like castle_footer when $castle_sidebar is empty -->
+
+
   <div class="panel-footer">
     <p><span class="page_copyright">Copyright <a href="http://michalis.ii.uni.wroc.pl/~michalis/">Michalis Kamburelis</a> and Paweł Wojciechowicz from <a href="https://cat-astrophe-games.com/">Cat-astrophe Games</a>.
     This documentation itself is also open-source,
@@ -43,4 +46,13 @@
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="castle-engine-website-base/bootstrap/js/bootstrap.min.js"></script>
 <!-- JS using jquery -->
-<script type="text/javascript" src="castle-engine-website-base/castle-engine.js">
+<script type="text/javascript" src="castle-engine-website-base/castle-engine.js"></script>
+
+<script type='text/javascript'>
+var cgeCurrentVersion = '6.5 (unstable)';
+var cgeVersions = [
+    {id: '6.4', url: 'https://castle-engine.io/apidoc/html/'},
+    {id: '6.5 (unstable)', url: 'https://castle-engine.io/apidoc-unstable/html/'}
+];
+</script>
+<script type="text/javascript" src="cge-pasdoc.js"></script>
