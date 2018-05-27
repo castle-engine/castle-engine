@@ -79,7 +79,7 @@ var cgeVersions = [
 $cgeVersionsStr = '';
 foreach ($cgeVersions as $versionId => $versionInfo) {
     $versionUrl = $versionInfo['url'];
-    $cgeVersionsStr .= "    {id: '$versionId', url: '$versionUrl'},\n";
+    $cgeVersionsStr .= "    {'id': '$versionId', 'url': '$versionUrl'},\n";
 }
 $cgeVersionsStr = trim($cgeVersionsStr, "\n,"); // remove last comma
 echo $cgeVersionsStr . "
