@@ -26,6 +26,13 @@
    files).
 */
 
+.cge-version-form {
+  margin-top: 2em;
+}
+.cge-version-form label {
+  font-weight: normal;
+}
+
 /* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> */
 .pasdoc-container code {
   background: transparent;

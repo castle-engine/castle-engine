@@ -5,4 +5,7 @@
   not by including this file.
 
   The version number is expressed as an include file only
-  to be available also for ../../fpmake.pp . }
+  to be available also for
+  - ../../fpmake.pp .
+  - ../../doc/pasdoc/html-parts/body-end.php
+}
