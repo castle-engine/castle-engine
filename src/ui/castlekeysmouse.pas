@@ -559,11 +559,11 @@ type
     Characters: TCharactersBooleans;
 
     { Check is a key (TKey) pressed.
-
       Returns the same values as are in the @link(Keys) table.
-      Although this is more comfortable: it's a default property of this class,
-      so you can write simply @code(KeysPressed[keyX]) instead of
-      @code(KeysPressed.Keys[keyX]). }
+      It's a default property of this class,
+      so you can write e.g.
+      @code(Window.Pressed[keyX]) instead of
+      @code(Window.Pressed.Keys[keyX]). }
     property Items [Key: TKey]: boolean read GetItems; default;
 
     { Check which modifier keys are pressed.
