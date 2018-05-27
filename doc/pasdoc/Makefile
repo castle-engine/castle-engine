@@ -88,4 +88,5 @@ upload: clean html
 	mv ../reference/ html
 	tar czf html.tar.gz html
 	scp -r html.tar.gz $(SSH_USERNAME)@$(SSH_HOST):$(SSH_PATH)
+	rm -f html.tar.gz
 	./ssh_upload_finalize.sh $(SSH_USERNAME) $(SSH_HOST) $(SSH_PATH)
