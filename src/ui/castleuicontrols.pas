@@ -800,7 +800,7 @@ type
       deprecated 'use VisibleChange overload with (TUIControlChanges,boolean) parameters';
 
     { Called always when something important inside this control (or it's children)
-      changed. See @link(Changed) for details about when and how this is called.
+      changed. See @link(VisibleChange) for details about when and how this is called.
 
       Be careful when handling this event. Various changes may cause this,
       so be prepared to handle it at any moment, even in the middle when UI control

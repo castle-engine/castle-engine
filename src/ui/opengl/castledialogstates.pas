@@ -209,7 +209,7 @@ type
       By default it uses
       @link(TCastleApplication.MainWindow Application.MainWindow)
       if you use CastleWindow or
-      @link(TCastleControl.MainControl) if you use CastleControl. }
+      @link(TCastleControlCustom.MainControl) if you use CastleControl. }
     property OverrrideContainer: TUIContainer
       read FOverrrideContainer write FOverrrideContainer;
   end;

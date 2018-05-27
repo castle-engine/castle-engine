@@ -173,7 +173,7 @@ type
       This affects all rendering, including @link(TGLImage.Draw).
 
       Note that this state may be internally modified by various engine rendering
-      functions too, e.g. by @link(TCastleScene.Render), depending on rendering
+      functions too, e.g. by @link(TCastleScene.LocalRender), depending on rendering
       attributes.
       So it is only reliable for you to modify this temporarily,
       and during your own rendering.
@@ -248,7 +248,7 @@ function GetDepthRange: TDepthRange;
   deprecated 'use RenderContext.DepthRange';
 procedure SetDepthRange(const Value: TDepthRange);
   deprecated 'use RenderContext.DepthRange';
-{ @deprecated Use @link(RenderContext.DepthRange) instead. }
+{ @deprecated Use @link(TRenderContext.DepthRange RenderContext.DepthRange) instead. }
 property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
 {$endif CASTLE_OBJFPC}
 

@@ -216,7 +216,7 @@ type
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
 
-    { Color multiplier of the sprite, see @link(TGLImage.Color) }
+    { Color multiplier of the sprite, see @link(TGLImageCore.Color) }
     property Color: TCastleColor read GetColor write SetColor;
 
     { Total number of frames. Readonly. Defined at creation. }

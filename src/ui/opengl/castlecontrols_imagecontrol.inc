@@ -148,8 +148,9 @@
           (which can be @nil). Although this is not strictly necessary now.)
 
         @item(Note that various properties of this class are actually references
-          to analogous properties of @link(TGLImage). E.g. getting/setting our
-          @link(Rotation) just gets/sets @link(TGLImage.Rotation).
+          to analogous properties of @link(TGLImage) or @link(TGLImageCore).
+          E.g. getting/setting our
+          @link(Rotation) just gets/sets @link(TGLImageCore.Rotation).
           So if you directly change the DrawableImage, you're also changing
           these properties.)
       )
@@ -291,9 +292,9 @@
 
     { If @true, the images are loaded and freed using the cache.
       That is, the TEncodedImage in @link(Image) is loaded and freed using
-      @link(TTextureImageCache.TextureImage_IncReference TextureCache.TextureImage_IncReference)
+      @link(TTexturesVideosCache.TextureImage_IncReference TextureCache.TextureImage_IncReference)
       and
-      @link(TTextureImageCache.TextureImage_DecReference TextureCache.TextureImage_DecReference)
+      @link(TTexturesVideosCache.TextureImage_DecReference TextureCache.TextureImage_DecReference)
       instead of @link(LoadEncodedImage) and @code(FreeAndNil).
 
       This can save memory and loading time a lot, if you reuse the same

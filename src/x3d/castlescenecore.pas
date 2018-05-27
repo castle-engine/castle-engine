@@ -425,7 +425,7 @@ type
       or another animation was started by @link(TCastleSceneCore.PlayAnimation).
 
       This will never fire if the animation did not exist
-      (@link(PlayAnimation) returned @false).
+      (@link(TCastleSceneCore.PlayAnimation) returned @false).
       It also may never fire if the scene was destroyed or rebuilt
       (@link(TCastleSceneCore.ChangedAll)) during the animation playing.
 

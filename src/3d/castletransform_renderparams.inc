@@ -166,7 +166,7 @@
 
     Information that a TCastleTransform object needs to render.
     Read-only for @link(TCastleTransform.LocalRender)
-    (except Statistics, which should be updated during rendering).
+    (except @link(Statistics), which should be updated during rendering).
 
     @bold(This is mostly an internal class).
 
