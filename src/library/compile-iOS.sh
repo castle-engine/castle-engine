@@ -25,7 +25,7 @@ FPC_ARM64_COMPILER="fpc -Paarch64"
 FPC_CONFIG="-dRELEASE"
 
 # You can pass additional FPC parameters as this script parameters
-# So you can call, for example, 'compile-iOS.sh -dCASTLE_ENGINE_LGPL'
+# So you can call, for example, 'compile-iOS.sh -dSOME_SYMBOL'
 FPC_CONFIG="${FPC_CONFIG} $@"
 
 # Functions ------------------------------------------------------------------

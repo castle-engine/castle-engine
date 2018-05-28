@@ -71,11 +71,6 @@
 
 { Define various necessary things -------------------------------------------- }
 
-{ Configurable: define CASTLE_ENGINE_LGPL to compile only
-  components available on permissive LGPL (see
-  https://castle-engine.io/engine.php#section_license) }
-{ $define CASTLE_ENGINE_LGPL}
-
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
 

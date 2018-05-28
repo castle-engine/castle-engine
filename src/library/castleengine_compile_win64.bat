@@ -3,7 +3,7 @@
 setlocal
 
 :: You can pass additional FPC parameters as this script parameters
-:: So you can call, for example, 'castleengine_compile_win64.bat -dCASTLE_ENGINE_LGPL'
+:: So you can call, for example, 'castleengine_compile_win64.bat -dSOME_SYMBOL'
 set FPC_CONFIG=%*
 
 :: First auto-detect fpc.exe location

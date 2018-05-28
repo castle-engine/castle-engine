@@ -79,7 +79,7 @@ begin
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
-    P.License := 'GNU GPL >= 2 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)';
+    P.License := 'LGPL >= 2 (with static linking exception)';
     {$ifdef VER2_2_2}
     P.ExternalURL
     {$else}
