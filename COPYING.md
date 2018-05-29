@@ -1,8 +1,8 @@
-"Castle Game Engine" is an open-source game engine.
+"Castle Game Engine" is a free software, open source game engine.
 
 You can use it to develop commercial (including closed-source) games and applications.
 
-# Summary (easy to understand, although not legally binding)
+# Summary
 
 - "Castle Game Engine" is covered by the "LGPL with static linking exception" license.
 
@@ -12,7 +12,13 @@ You can use it to develop commercial (including closed-source) games and applica
 
 - If you modify the "Castle Game Engine" units, you need to share your modifications.
 
-- Some of the examples data and tools (in particular, the upcoming castle-editor) are covered by a more strict GPL license. Which means that, if you modify them or even just link them together with your own units to form a larger application, then you need to share the code of your application, as the complete work must be covered also by the GPL license.
+- The code is covered by our copyrights. E.g. if you distribute the "Castle Game Engine" sources yourself (modified or not), you must clearly specify our copyrights to the original code.
+
+- Some of the examples graphic data, and some tools (in particular, the upcoming castle-editor), are covered by a more strict GPL license. To put it simply, you *cannot* make a closed-source fork of our (upcoming) "Castle Game Engine" visual editor.
+
+The above is a quick summary of our licensing terms.
+
+Please note that the text above is not "legally binding". E.g. _"the need to share your modifications"_ mentioned above is a simplification of the license terms. The precise license requirements discuss (non-internal) distribution of the application and other details. The exact legal text of the licenses is linked below, and they are analyzed in depth in many places on the Internet.
 
 # Engine core (LGPL)
 
@@ -40,6 +46,8 @@ By "engine core" we mean everything that can be found in this directory (GitHub 
 # Visual editor (castle-editor), some example data, some website data (GPL)
 
 The items listed below are covered by a more strict GNU General Public License (version 2 or above, whichever you like). See the file `COPYING.GPL2.txt` for the exact license text. See http://www.gnu.org/copyleft/gpl.html for more information about this license (including translations of it to various languages) and philosophy of the free software.
+
+In short, it means that: If you use the items listed below (modified or not) to create your own application, then you need to share the code of your entire application, as the complete work must be covered also by the GPL license.
 
 The items covered by the GPL license are:
 
