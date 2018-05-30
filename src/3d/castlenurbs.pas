@@ -316,7 +316,7 @@ begin
   Result := GetPoint(Basis, KnotInterval);
 
   if Tangent <> nil then
-    Tangent^ := GetTangent(Result);
+    Tangent^ := GetTangent(Result).Normalize;
 end;
 
 function NurbsSurfacePoint(const Points: TVector3List;
@@ -365,6 +365,41 @@ function NurbsSurfacePoint(const Points: TVector3List;
     end;
   end;
 
+  { Calculate UTangent by simply sampling an adjacent point. }
+  function GetUTangent(const Here: TVector3): TVector3;
+  var
+    UTangentShift: Single;
+    UShiftedHere: TVector3;
+  begin
+    UTangentShift := (UKnot.Last - UKnot.First) * 0.01;
+    if U < (UKnot.First + UKnot.Last) / 2 then
+    begin
+      UShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U + UTangentShift, V, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      Result := UShiftedHere - Here;
+    end else
+    begin
+      UShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U - UTangentShift, V, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      Result := Here - UShiftedHere;
+    end;
+  end;
+
+  function GetVTangent(const Here: TVector3): TVector3;
+  var
+    VTangentShift: Single;
+    VShiftedHere: TVector3;
+  begin
+    VTangentShift := (VKnot.Last - VKnot.First) * 0.01;
+    if V < (VKnot.First + VKnot.Last) / 2 then
+    begin
+      VShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U, V + VTangentShift, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      Result := VShiftedHere - Here;
+    end else
+    begin
+      VShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U, V - VTangentShift, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      Result := Here - VShiftedHere;
+    end;
+  end;
+
 var
   UKnotInterval, VKnotInterval: Integer;
   UBasis, VBasis: TDoubleArray;
@@ -381,7 +416,8 @@ begin
 
   Result := GetPoint(UBasis, VBasis, UKnotInterval, VKnotInterval);
 
-  // TODO: normal
+  if Normal <> nil then
+    Normal^ := TVector3.CrossProduct(GetUTangent(Result), GetVTangent(Result)).Normalize;
 end;
 
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
