@@ -248,10 +248,10 @@ begin
 
       if High - Low <= 1 then
       begin
-        if U < Knot[High] then
+        if U <= Knot[High] then
           Result := Low
         else
-          Result := High;
+          Result := High; // Does this ever occur? It seems not?
         Break;
       end else
       begin
@@ -260,6 +260,8 @@ begin
       end;
     end;
   end;
+
+  Assert(Result < ControlPointCount);
 
   Assert(Between(U, Knot[Result], Knot[Result + 1]));
   LastFindKnotSpanResult := Result;
