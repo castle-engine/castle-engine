@@ -14,7 +14,8 @@
 }
 
 { Common utilities for NURBS curves and surfaces. }
-unit CastleNURBS;
+unit CastleNURBS
+  deprecated 'soon this unit will be renamed to CastleInternalNurbs; you should use NURBS only through the X3D nodes, like TNurbsCurveNode or TNurbsPatchSurfaceNode';
 
 {$I castleconf.inc}
 
