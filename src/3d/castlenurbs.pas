@@ -53,14 +53,13 @@ type
   TNurbsCurveCalculator = class
   strict private
     { Remember the curve parameters passed to constructor. }
-    Points: PVector3Array;
-    PointsCount: Cardinal;
+    Points: TVector3List;
     Order: Cardinal;
     Knot, Weight: TDoubleList;
 
     BasisCalculator: TNurbsBasisCalculator;
   public
-    constructor Create(const APoints: PVector3Array; const APointsCount: Cardinal;
+    constructor Create(const APoints: TVector3List;
       const AOrder: Cardinal; const AKnot, AWeight: TDoubleList);
     destructor Destroy; override;
 
@@ -106,33 +105,25 @@ function ActualTessellation(const Tessellation: Integer;
 
   Requires:
   @unorderedList(
-    @item PointsCount > 0 (not exactly 0).
+    @item Points.Count > 0 (not exactly 0).
     @item Order >= 2 (X3D and VRML 97 spec require this too).
     @item Knot must have exactly PointsCount + Order items.
     @item U is between Knot.First and Knot.Last.
   )
 
-  Weight will be used only if it has the same length as PointsCount.
+  Weight will be used only if it has the same length as Points.Count.
   Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
   (this follows X3D spec).
 
   Tangent, if non-nil, will be set to the direction at given point of the
   curve, pointing from the smaller to larger knot values.
   It will be normalized. This can be directly useful to generate
-  orientations by X3D NurbsOrientationInterpolator node.
-
-  @groupBegin }
-function NurbsCurvePoint(const Points: PVector3Array;
-  const PointsCount: Cardinal; const U: Single;
-  const Order: Cardinal;
-  const Knot, Weight: TDoubleList;
-  const Tangent: PVector3): TVector3;
+  orientations by X3D NurbsOrientationInterpolator node. }
 function NurbsCurvePoint(const Points: TVector3List;
   const U: Single;
   const Order: Cardinal;
   const Knot, Weight: TDoubleList;
   const Tangent: PVector3): TVector3;
-{ @groupEnd }
 
 { Return point on NURBS surface.
 
@@ -313,17 +304,16 @@ end;
 { TNurbsCurveCalculator ------------------------------------------------------ }
 
 constructor TNurbsCurveCalculator.Create(
-  const APoints: PVector3Array; const APointsCount: Cardinal;
+  const APoints: TVector3List;
   const AOrder: Cardinal; const AKnot, AWeight: TDoubleList);
 begin
   inherited Create;
   Points      := APoints;
-  PointsCount := APointsCount;
   Order       := AOrder;
   Knot        := AKnot;
   Weight      := AWeight;
 
-  BasisCalculator := TNurbsBasisCalculator.Create(PointsCount, Order, Knot);
+  BasisCalculator := TNurbsBasisCalculator.Create(Points.Count, Order, Knot);
 end;
 
 destructor TNurbsCurveCalculator.Destroy;
@@ -345,14 +335,14 @@ function TNurbsCurveCalculator.GetPoint(const U: Single; const Tangent: PVector3
     WeightSum := 0;
     Result := TVector3.Zero;
 
-    if Weight.Count <> PointsCount then
+    if Weight.Count <> Points.Count then
     begin
       { Optimized version in case all weights = 1.
         In this case, WeightSum would always be 1, so we can avoid calculating it completely. }
       for I := 0 to Order - 1 do
       begin
         Index := KnotInterval - (Order - 1) + I;
-        Result := Result + Basis[I] * Points^[Index];
+        Result := Result + Basis[I] * Points.List^[Index];
       end;
     end else
     begin
@@ -362,7 +352,7 @@ function TNurbsCurveCalculator.GetPoint(const U: Single; const Tangent: PVector3
         WeightSum := WeightSum + Basis[I] * Weight.List^[Index];
         { Note that Points are already "pre-multiplied" by weights,
           see https://castle-engine.io/x3d_implementation_nurbs.php#section_homogeneous_coordinates }
-        Result := Result + Basis[I] * Points^[Index];
+        Result := Result + Basis[I] * Points.List^[Index];
       end;
       Assert(not IsZero(WeightSum));
       Result := Result / WeightSum;
@@ -378,11 +368,11 @@ function TNurbsCurveCalculator.GetPoint(const U: Single; const Tangent: PVector3
     TangentShift := (Knot.Last - Knot.First) * 0.01;
     if U < (Knot.First + Knot.Last) / 2 then
     begin
-      ShiftedHere := NurbsCurvePoint(Points, PointsCount, U + TangentShift, Order, Knot, Weight, nil);
+      ShiftedHere := GetPoint(U + TangentShift, nil);
       Result := ShiftedHere - Here;
     end else
     begin
-      ShiftedHere := NurbsCurvePoint(Points, PointsCount, U - TangentShift, Order, Knot, Weight, nil);
+      ShiftedHere := GetPoint(U - TangentShift, nil);
       Result := Here - ShiftedHere;
     end;
   end;
@@ -391,7 +381,7 @@ var
   KnotInterval: Integer;
   Basis: TDoubleArray;
 begin
-  Assert(Knot.Count = PointsCount + Order);
+  Assert(Knot.Count = Points.Count + Order);
 
   Basis := BasisCalculator.GetBasis(U, KnotInterval);
   Result := GetPointCore(Basis, KnotInterval);
@@ -479,11 +469,11 @@ function TNurbsSurfaceCalculator.GetPoint(const U, V: Single; const Normal: PVec
     UTangentShift := (UKnot.Last - UKnot.First) * 0.01;
     if U < (UKnot.First + UKnot.Last) / 2 then
     begin
-      UShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U + UTangentShift, V, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      UShiftedHere := GetPoint(U + UTangentShift, V, nil);
       Result := UShiftedHere - Here;
     end else
     begin
-      UShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U - UTangentShift, V, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      UShiftedHere := GetPoint(U - UTangentShift, V, nil);
       Result := Here - UShiftedHere;
     end;
   end;
@@ -496,11 +486,11 @@ function TNurbsSurfaceCalculator.GetPoint(const U, V: Single; const Normal: PVec
     VTangentShift := (VKnot.Last - VKnot.First) * 0.01;
     if V < (VKnot.First + VKnot.Last) / 2 then
     begin
-      VShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U, V + VTangentShift, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      VShiftedHere := GetPoint(U, V + VTangentShift, nil);
       Result := VShiftedHere - Here;
     end else
     begin
-      VShiftedHere := NurbsSurfacePoint(Points, UDimension, VDimension, U, V - VTangentShift, UOrder, VOrder, UKnot, VKnot, Weight, nil);
+      VShiftedHere := GetPoint(U, V - VTangentShift, nil);
       Result := Here - VShiftedHere;
     end;
   end;
@@ -539,21 +529,10 @@ function NurbsCurvePoint(const Points: TVector3List;
   const Order: Cardinal;
   const Knot, Weight: TDoubleList;
   const Tangent: PVector3): TVector3;
-begin
-  Result := NurbsCurvePoint(PVector3Array(Points.List), Points.Count,
-    U, Order, Knot, Weight, Tangent);
-end;
-
-function NurbsCurvePoint(const Points: PVector3Array;
-  const PointsCount: Cardinal; const U: Single;
-  const Order: Cardinal;
-  const Knot, Weight: TDoubleList;
-  const Tangent: PVector3): TVector3;
 var
   Calculator: TNurbsCurveCalculator;
 begin
-  Calculator := TNurbsCurveCalculator.Create(Points, PointsCount,
-    Order, Knot, Weight);
+  Calculator := TNurbsCurveCalculator.Create(Points, Order, Knot, Weight);
   try
     Result := Calculator.GetPoint(U, Tangent);
   finally FreeAndNil(Calculator) end;

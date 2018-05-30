@@ -781,6 +781,7 @@ var
   I: Integer;
   Increase: Double;
   Knot: TDoubleList;
+  NurbsCalculator: TNurbsCurveCalculator;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -809,11 +810,12 @@ begin
 
   { calculate result Coordinate.point field }
   ResultCoord.FdPoint.Items.Count := Tess;
-  for I := 0 to Tess - 1 do
-    ResultCoord.FdPoint.Items.List^[I] :=
-      NurbsCurvePoint(ControlPoint,
-        Knot.First + Increase * I,
-        Order, Knot, Weight, nil);
+  NurbsCalculator := TNurbsCurveCalculator.Create(ControlPoint, Order, Knot, Weight);
+  try
+    for I := 0 to Tess - 1 do
+      ResultCoord.FdPoint.Items.List^[I] := NurbsCalculator.GetPoint(
+        Knot.First + Increase * I, nil);
+  finally FreeAndNil(NurbsCalculator) end;
 
   { set LineSet.vertexCount (otherwise it's coord will be ignored) }
   LS.FdVertexCount.Items.Add(Tess);
@@ -1129,6 +1131,7 @@ var
   UKnot, VKnot: TDoubleList;
   ResultTexCoord: TVector2List;
   Normal: TVector3;
+  NurbsCalculator: TNurbsSurfaceCalculator;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -1214,26 +1217,26 @@ begin
   ResultNormal := (QS.FdNormal.Value as TNormalNode).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
-  { calculate result Coordinate.point and Normal.vector field }
-  for I := 0 to UTess - 1 do
-    for J := 0 to VTess - 1 do
-    begin
-      ResultCoord.List^[I + J * UTess] :=
-        NurbsSurfacePoint(ControlPoint,
-          UDimension,
-          VDimension,
-          UKnot.First + UIncrease * I,
-          VKnot.First + VIncrease * J,
-          UOrder,
-          VOrder,
-          UKnot,
-          VKnot,
-          Weight,
-          @Normal);
-      if Ccw then
-        ResultNormal.List^[I + J * UTess] := Normal else
-        ResultNormal.List^[I + J * UTess] := -Normal;
-    end;
+  NurbsCalculator := TNurbsSurfaceCalculator.Create(ControlPoint,
+    UDimension, VDimension,
+    UOrder, VOrder,
+    UKnot, VKnot,
+    Weight);
+  try
+    { calculate result Coordinate.point and Normal.vector field }
+    for I := 0 to UTess - 1 do
+      for J := 0 to VTess - 1 do
+      begin
+        ResultCoord.List^[I + J * UTess] :=
+          NurbsCalculator.GetPoint(
+            UKnot.First + UIncrease * I,
+            VKnot.First + VIncrease * J,
+            @Normal);
+        if Ccw then
+          ResultNormal.List^[I + J * UTess] := Normal else
+          ResultNormal.List^[I + J * UTess] := -Normal;
+      end;
+  finally FreeAndNil(NurbsCalculator) end;
 
   { For now, don't use normal values --- they are nonsense at the edges
     of the surface? See nurbs_curve_interpolators.x3dv for demo. }
