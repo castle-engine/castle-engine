@@ -74,7 +74,7 @@ function NurbsCurvePoint(const Points: TVector3List;
     @item Each xKnot must have exactly xDimension + Order items.
   )
 
-  Weight will be used only if it has the same length as PointsCount.
+  Weight will be used only if it has the same length as UDimension * VDimension.
   Otherwise, weight = 1.0 (that is, defining non-rational curve) will be used
   (this follows X3D spec).
 
@@ -159,156 +159,164 @@ begin
     U, Order, Knot, Weight, Tangent);
 end;
 
+{ In which knot interval is the given point.
+  The result is guaranteed to be in [Order - 1...ControlPointCount - 1] range. }
+function FindKnotSpan(const U: Double;
+  const ControlPointCount: Integer;
+  const Order: Cardinal; const Knot: TDoubleList): Integer;
+var
+  Low, High: Integer;
+begin
+  if U >= Knot.Last then
+    Result := ControlPointCount - 1
+  else
+  begin
+    Low := Order - 1;
+    High := ControlPointCount - 1;
+    Result := (Low + High) div 2;
+    while (U < Knot[Result]) or (U > Knot[Result + 1]) do
+    begin
+      if U < Knot[Result] then
+        High := Result
+      else
+        Low := Result;
+
+      if High - Low <= 1 then
+      begin
+        if U < Knot[High] then
+          Result := Low
+        else
+          Result := High;
+        Break;
+      end else
+      begin
+        Assert(Result <> (Low + High) div 2, 'FindKnotSpan would enter infinite loop');
+        Result := (Low + High) div 2;
+      end;
+    end;
+    Assert(Between(U, Knot[Result], Knot[Result + 1]));
+  end;
+end;
+
+type
+  TDoubleArray = array of Double;
+
+{ Calculate the basis functions (N) values for U.
+
+  The algorithm follows the "Inverted Triangular Scheme" described in
+  http://isd.ktu.lt/it2010/material/Proceedings/1_AI_7.pdf ,
+  called NurbsBasis in the pseudo-code there.
+  Terminology note: Degree (denoted "p" in the above paper)
+  is our Order ‑ 1. }
+function NurbsBasis(const U: Double;
+  const KnotInterval: Integer; const Order: Cardinal;
+  const Knot: TDoubleList): TDoubleArray;
+var
+  Left, Right: TDoubleArray;
+  J, R: Integer;
+  Saved, Tmp: Double;
+begin
+  SetLength(Result, Order);
+  SetLength(Left, Order);
+  SetLength(Right, Order);
+  Result[0] := 1;
+  // Note that Left[0] and Right[0] are never accessed, their values don't matter
+  for J := 1 to Order - 1 do
+  begin
+    Saved := 0;
+    Left[J] := U - Knot[KnotInterval + 1 - J];
+    Right[J] := Knot[KnotInterval + J] - U;
+
+    { Note that our Knots are not normalized now (not in 0..1 range),
+      we could fix it here by doing
+
+        Left[J] := MapRange01(U - Knot[KnotInterval + 1 - J], Knot.First, Knot.Last);
+        Right[J] := MapRange01(Knot[KnotInterval + J] - U, Knot.First, Knot.Last);
+
+      but it doesn't seem necessary. }
+
+    for R := 0 to J - 1 do
+    begin
+      Assert(not IsZero(Right[R + 1] + Left[J - R]));
+      Tmp := Result[R] / (Right[R + 1] + Left[J - R]);
+      Result[R] := Saved + Right[R + 1] * Tmp;
+      Saved := Left[J - R] * Tmp;
+    end;
+    Result[J] := Saved;
+  end;
+end;
+
 function NurbsCurvePoint(const Points: PVector3Array;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
   Tangent: PVector3): TVector3;
 
-  { In which knot internal is the given point. }
-  function FindKnotSpan(const U: Double;
-    const ControlPointCount: Integer;
-    const Knot: TDoubleList): Integer;
+  { Get a single point on NURBS curve, having calculated the Basis values.
+    The algorithm follows the GetPoint0 described in
+    http://isd.ktu.lt/it2010/material/Proceedings/1_AI_7.pdf . }
+  function GetPoint(const Basis: TDoubleArray; const KnotInterval: Integer): TVector3;
   var
-    Low, High: Integer;
-  begin
-    if U >= Knot.Last then
-      Result := ControlPointCount - 1
-    else
-    begin
-      Low := Order - 2;
-      High := ControlPointCount - 1;
-      Result := (Low + High) div 2;
-      while (U < Knot[Result]) or (U > Knot[Result + 1]) do
-      begin
-        if U < Knot[Result] then
-          High := Result
-        else
-          Low := Result;
-
-        if High - Low <= 1 then
-        begin
-          if U < Knot[High] then
-            Result := Low
-          else
-            Result := High;
-          Break;
-        end else
-        begin
-          Assert(Result <> (Low + High) div 2, 'FindKnotSpan would enter infinite loop');
-          Result := (Low + High) div 2;
-        end;
-      end;
-      Assert(Between(U, Knot[Result], Knot[Result + 1]));
-    end;
-  end;
-
-  { The algorithm follows the "Inverted Triangular Scheme" described in
-    http://isd.ktu.lt/it2010/material/Proceedings/1_AI_7.pdf
-
-    Terminology note: Degree (denoted "p" in the above paper)
-    is our Order ‑ 1.
-  }
-
-  type
-    TDoubleArray = array of Double;
-
-  { Calculate the basis functions (N) values for U. }
-  function Basis_ITS0(const KnotInterval: Integer; const Order: Cardinal;
-    const U: Double): TDoubleArray;
-  var
-    Left, Right: TDoubleArray;
-    J, R: Integer;
-    Saved, Tmp: Double;
-  begin
-    SetLength(Result, Order);
-    SetLength(Left, Order);
-    SetLength(Right, Order);
-    Result[0] := 1;
-    // Note that Left[0] and Right[0] are never accessed, their values don't matter
-    for J := 1 to Order - 1 do
-    begin
-      Saved := 0;
-      Left[J] := U - Knot[KnotInterval + 1 - J];
-      Right[J] := Knot[KnotInterval + J] - U;
-
-      { Note that our Knots are not normalized now (not in 0..1 range),
-        we could fix it here by doing
-
-          Left[J] := MapRange01(U - Knot[KnotInterval + 1 - J], Knot.First, Knot.Last);
-          Right[J] := MapRange01(Knot[KnotInterval + J] - U, Knot.First, Knot.Last);
-
-        but it doesn't seem necessary. }
-
-      for R := 0 to J - 1 do
-      begin
-        Assert(not IsZero(Right[R + 1] + Left[J - R]));
-        Tmp := Result[R] / (Right[R + 1] + Left[J - R]);
-        Result[R] := Saved + Right[R + 1] * Tmp;
-        Saved := Left[J - R] * Tmp;
-      end;
-      Result[J] := Saved;
-    end;
-  end;
-
-  function GetPoint0(const N: TDoubleArray; const KnotInterval: Integer): TVector3;
-  var
-    NSum: Double;
+    WeightSum: Double;
     I, Index: Integer;
   begin
-    NSum := 0;
+    WeightSum := 0;
     Result := TVector3.Zero;
 
     if Weight.Count <> PointsCount then
     begin
       { Optimized version in case all weights = 1.
-        In this case, NSum would always be 1, so we can avoid calculating it completely. }
+        In this case, WeightSum would always be 1, so we can avoid calculating it completely. }
       for I := 0 to Order - 1 do
       begin
         Index := KnotInterval - (Order - 1) + I;
-        Result := Result + N[I] * Points^[Index];
+        Result := Result + Basis[I] * Points^[Index];
       end;
     end else
     begin
       for I := 0 to Order - 1 do
       begin
         Index := KnotInterval - (Order - 1) + I;
-        NSum := NSum + N[I] * Weight.List^[Index];
+        WeightSum := WeightSum + Basis[I] * Weight.List^[Index];
         { Note that Points are already "pre-multiplied" by weights,
           see https://castle-engine.io/x3d_implementation_nurbs.php#section_homogeneous_coordinates }
-        Result := Result + N[I] * Points^[Index];
+        Result := Result + Basis[I] * Points^[Index];
       end;
-      Assert(not IsZero(NSum));
-      Result := Result / NSum;
+      Assert(not IsZero(WeightSum));
+      Result := Result / WeightSum;
+    end;
+  end;
+
+  { Calculate Tangent by simply sampling an adjacent point. }
+  function GetTangent(const Here: TVector3): TVector3;
+  var
+    TangentShift: Single;
+    ShiftedHere: TVector3;
+  begin
+    TangentShift := (Knot.Last - Knot.First) * 0.01;
+    if U < (Knot.First + Knot.Last) / 2 then
+    begin
+      ShiftedHere := NurbsCurvePoint(Points, PointsCount, U + TangentShift, Order, Knot, Weight, nil);
+      Result := ShiftedHere - Here;
+    end else
+    begin
+      ShiftedHere := NurbsCurvePoint(Points, PointsCount, U - TangentShift, Order, Knot, Weight, nil);
+      Result := Here - ShiftedHere;
     end;
   end;
 
 var
   KnotInterval: Integer;
-  N: TDoubleArray;
-  TangentShift: Single;
-  ShiftedResult: TVector3;
+  Basis: TDoubleArray;
 begin
   Assert(Knot.Count = PointsCount + Order);
 
-  KnotInterval := FindKnotSpan(U, PointsCount, Knot);
-  N := Basis_ITS0(KnotInterval, Order, U);
-  Result := GetPoint0(N, KnotInterval);
+  KnotInterval := FindKnotSpan(U, PointsCount, Order, Knot);
+  Basis := NurbsBasis(U, KnotInterval, Order, Knot);
+  Result := GetPoint(Basis, KnotInterval);
 
-  { calculate Tangent by simply sampling an adjacent point }
   if Tangent <> nil then
-  begin
-    TangentShift := (Knot.Last - Knot.First) * 0.01;
-    if U < (Knot.First + Knot.Last) / 2 then
-    begin
-      ShiftedResult := NurbsCurvePoint(Points, PointsCount, U + TangentShift, Order, Knot, Weight, nil);
-      Tangent^ := ShiftedResult - Result;
-    end else
-    begin
-      ShiftedResult := NurbsCurvePoint(Points, PointsCount, U - TangentShift, Order, Knot, Weight, nil);
-      Tangent^ := Result - ShiftedResult;
-    end;
-  end;
+    Tangent^ := GetTangent(Result);
 end;
 
 function NurbsSurfacePoint(const Points: TVector3List;
@@ -317,9 +325,63 @@ function NurbsSurfacePoint(const Points: TVector3List;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDoubleList;
   Normal: PVector3): TVector3;
+
+  { Get a single point on NURBS surface.
+    The algorithm is a slightly extended version of the GetPoint
+    inside NurbsCurvePoint. For a difference in equations between curve and surface,
+    see https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline . }
+  function GetPoint(const UBasis, VBasis: TDoubleArray;
+    const UKnotInterval, VKnotInterval: Integer): TVector3;
+  var
+    WeightSum: Double;
+    I, J, UIndex, VIndex: Integer;
+  begin
+    WeightSum := 0;
+    Result := TVector3.Zero;
+
+    if Weight.Count <> UDimension * VDimension then
+    begin
+      { Optimized version in case all weights = 1.
+        In this case, WeightSum would always be 1, so we can avoid calculating it completely. }
+      for I := 0 to UOrder - 1 do
+        for J := 0 to VOrder - 1 do
+        begin
+          UIndex := UKnotInterval - (UOrder - 1) + I;
+          VIndex := VKnotInterval - (VOrder - 1) + J;
+          Result := Result + UBasis[I] * VBasis[J] * Points.List^[UIndex + VIndex * UDimension];
+        end;
+    end else
+    begin
+      for I := 0 to UOrder - 1 do
+        for J := 0 to VOrder - 1 do
+        begin
+          UIndex := UKnotInterval - (UOrder - 1) + I;
+          VIndex := VKnotInterval - (VOrder - 1) + J;
+          WeightSum := WeightSum + UBasis[I] * VBasis[J] * Weight.List^[UIndex + VIndex * UDimension];
+          Result := Result + UBasis[I] * VBasis[J] * Points.List^[UIndex + VIndex * UDimension];
+        end;
+      Assert(not IsZero(WeightSum));
+      Result := Result / WeightSum;
+    end;
+  end;
+
+var
+  UKnotInterval, VKnotInterval: Integer;
+  UBasis, VBasis: TDoubleArray;
 begin
-  Result := TVector3.Zero;
-  // TODO
+  Assert(UKnot.Count = UDimension + UOrder);
+  Assert(VKnot.Count = VDimension + VOrder);
+  Assert(Points.Count = UDimension * VDimension);
+
+  UKnotInterval := FindKnotSpan(U, UDimension, UOrder, UKnot);
+  UBasis := NurbsBasis(U, UKnotInterval, UOrder, UKnot);
+
+  VKnotInterval := FindKnotSpan(V, VDimension, VOrder, VKnot);
+  VBasis := NurbsBasis(V, VKnotInterval, VOrder, VKnot);
+
+  Result := GetPoint(UBasis, VBasis, UKnotInterval, VKnotInterval);
+
+  // TODO: normal
 end;
 
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
