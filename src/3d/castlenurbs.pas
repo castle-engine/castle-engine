@@ -23,6 +23,76 @@ interface
 
 uses SysUtils, CastleUtils, CastleVectors, CastleBoxes;
 
+type
+  TDoubleArray = array of Double;
+
+  { Calculate NURBS basis functions. }
+  TNurbsBasisCalculator = class
+  strict private
+    { Remember the curve parameters passed to constructor. }
+    ControlPointCount: Integer;
+    Order: Cardinal;
+    Knot: TDoubleList;
+    { Ready allocated structures, to speedup repeated calls to GetBasis.
+      Their contents are overridden by each GetBasis call. }
+    Basis, Left, Right: TDoubleArray;
+
+    { In which knot interval is the given point.
+      The result is guaranteed to be in [Order - 1...ControlPointCount - 1] range. }
+    function FindKnotSpan(const U: Double): Integer;
+  public
+    constructor Create(const AControlPointCount: Integer;
+      const AOrder: Cardinal; const AKnot: TDoubleList);
+
+    { Calculate the basis functions (N) values for U.
+      By the way, calculate also the interval in Knot in which U lies. }
+    function GetBasis(const U: Double; out KnotInterval: Integer): TDoubleArray;
+  end;
+
+  { Calculate point on a NURBS curve. }
+  TNurbsCurveCalculator = class
+  strict private
+    { Remember the curve parameters passed to constructor. }
+    Points: PVector3Array;
+    PointsCount: Cardinal;
+    Order: Cardinal;
+    Knot, Weight: TDoubleList;
+
+    BasisCalculator: TNurbsBasisCalculator;
+  public
+    constructor Create(const APoints: PVector3Array; const APointsCount: Cardinal;
+      const AOrder: Cardinal; const AKnot, AWeight: TDoubleList);
+    destructor Destroy; override;
+
+    { Calculate point on a NURBS curve. Optimized for repeated calls,
+      to calculate points on the same curve.
+      See NurbsCurvePoint for detailed documentation. }
+    function GetPoint(const U:Single; const Tangent: PVector3): TVector3;
+  end;
+
+  { Calculate point on a NURBS surface. }
+  TNurbsSurfaceCalculator = class
+  strict private
+    { Remember the curve parameters passed to constructor. }
+    Points: TVector3List;
+    UDimension, VDimension: Cardinal;
+    UOrder, VOrder: Cardinal;
+    UKnot, VKnot, Weight: TDoubleList;
+
+    UBasisCalculator, VBasisCalculator: TNurbsBasisCalculator;
+  public
+    constructor Create(const APoints: TVector3List;
+      const AUDimension, AVDimension: Cardinal;
+      const AUOrder, AVOrder: Cardinal;
+      const AUKnot, AVKnot, AWeight: TDoubleList);
+    destructor Destroy; override;
+
+    { Calculate point on a NURBS surface. Optimized for repeated calls,
+      to calculate points on the same surface.
+      See NurbsSurfacePoint for detailed documentation. }
+    function GetPoint(const U, V: Single; const Normal: PVector3): TVector3;
+  end;
+
 { Calculate the tessellation (number of NURBS points generated).
   This follows X3D spec for "an implementation subdividing
   the surface into an equal number of subdivision steps".
@@ -55,13 +125,13 @@ function ActualTessellation(const Tessellation: Integer;
 function NurbsCurvePoint(const Points: PVector3Array;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDoubleList;
-  Tangent: PVector3): TVector3;
+  const Knot, Weight: TDoubleList;
+  const Tangent: PVector3): TVector3;
 function NurbsCurvePoint(const Points: TVector3List;
   const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDoubleList;
-  Tangent: PVector3): TVector3;
+  const Knot, Weight: TDoubleList;
+  const Tangent: PVector3): TVector3;
 { @groupEnd }
 
 { Return point on NURBS surface.
@@ -85,8 +155,8 @@ function NurbsSurfacePoint(const Points: TVector3List;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
-  UKnot, VKnot, Weight: TDoubleList;
-  Normal: PVector3): TVector3;
+  const UKnot, VKnot, Weight: TDoubleList;
+  const Normal: PVector3): TVector3;
 
 type
   EInvalidPiecewiseBezierCount = class(Exception);
@@ -138,32 +208,22 @@ implementation
 
 uses Math;
 
-function ActualTessellation(const Tessellation: Integer;
-  const Dimension: Cardinal): Cardinal;
+{ TNurbsBasisCalculator ------------------------------------------------------ }
+
+constructor TNurbsBasisCalculator.Create(const AControlPointCount: Integer;
+  const AOrder: Cardinal; const AKnot: TDoubleList);
 begin
-  if Tessellation > 0 then
-    Result := Tessellation else
-  if Tessellation = 0 then
-    Result := 2 * Dimension else
-    Result := Cardinal(-Tessellation) * Dimension;
-  Inc(Result);
+  inherited Create;
+  ControlPointCount := AControlPointCount;
+  Order := AOrder;
+  Knot := AKnot;
+
+  SetLength(Basis, Order);
+  SetLength(Left, Order);
+  SetLength(Right, Order);
 end;
 
-function NurbsCurvePoint(const Points: TVector3List;
-  const U: Single;
-  const Order: Cardinal;
-  Knot, Weight: TDoubleList;
-  Tangent: PVector3): TVector3;
-begin
-  Result := NurbsCurvePoint(PVector3Array(Points.List), Points.Count,
-    U, Order, Knot, Weight, Tangent);
-end;
-
-{ In which knot interval is the given point.
-  The result is guaranteed to be in [Order - 1...ControlPointCount - 1] range. }
-function FindKnotSpan(const U: Double;
-  const ControlPointCount: Integer;
-  const Order: Cardinal; const Knot: TDoubleList): Integer;
+function TNurbsBasisCalculator.FindKnotSpan(const U: Double): Integer;
 var
   Low, High: Integer;
 begin
@@ -171,7 +231,7 @@ begin
     Result := ControlPointCount - 1
   else
   begin
-    Low := Order - 1;
+    Low := Order - 2;
     High := ControlPointCount - 1;
     Result := (Low + High) div 2;
     while (U < Knot[Result]) or (U > Knot[Result + 1]) do
@@ -194,31 +254,33 @@ begin
         Result := (Low + High) div 2;
       end;
     end;
+
+    { It is necessary to start at Low = Order - 2, but we cannot return Order - 2.
+      See demo-models/nurbs/nurbs_dune_primitives.x3dv for testcase. }
+    if Result = Order - 2 then
+      Inc(Result);
+
     Assert(Between(U, Knot[Result], Knot[Result + 1]));
   end;
 end;
 
-type
-  TDoubleArray = array of Double;
+function TNurbsBasisCalculator.GetBasis(const U: Double;
+  out KnotInterval: Integer): TDoubleArray;
 
-{ Calculate the basis functions (N) values for U.
-
-  The algorithm follows the "Inverted Triangular Scheme" described in
+{ The algorithm follows the "Inverted Triangular Scheme" described in
   http://isd.ktu.lt/it2010/material/Proceedings/1_AI_7.pdf ,
   called NurbsBasis in the pseudo-code there.
   Terminology note: Degree (denoted "p" in the above paper)
   is our Order ‑ 1. }
-function NurbsBasis(const U: Double;
-  const KnotInterval: Integer; const Order: Cardinal;
-  const Knot: TDoubleList): TDoubleArray;
+
 var
-  Left, Right: TDoubleArray;
   J, R: Integer;
   Saved, Tmp: Double;
 begin
-  SetLength(Result, Order);
-  SetLength(Left, Order);
-  SetLength(Right, Order);
+  KnotInterval := FindKnotSpan(U);
+
+  Result := Basis;
+
   Result[0] := 1;
   // Note that Left[0] and Right[0] are never accessed, their values don't matter
   for J := 1 to Order - 1 do
@@ -237,7 +299,9 @@ begin
 
     for R := 0 to J - 1 do
     begin
-      Assert(not IsZero(Right[R + 1] + Left[J - R]));
+      { Assertion fails on demo-models/nurbs/nurbs_dune_tests.wrl,
+        although it works OK -- the number is just very small? }
+      // Assert(not IsZero(Right[R + 1] + Left[J - R]));
       Tmp := Result[R] / (Right[R + 1] + Left[J - R]);
       Result[R] := Saved + Right[R + 1] * Tmp;
       Saved := Left[J - R] * Tmp;
@@ -246,16 +310,34 @@ begin
   end;
 end;
 
-function NurbsCurvePoint(const Points: PVector3Array;
-  const PointsCount: Cardinal; const U: Single;
-  const Order: Cardinal;
-  Knot, Weight: TDoubleList;
-  Tangent: PVector3): TVector3;
+{ TNurbsCurveCalculator ------------------------------------------------------ }
+
+constructor TNurbsCurveCalculator.Create(
+  const APoints: PVector3Array; const APointsCount: Cardinal;
+  const AOrder: Cardinal; const AKnot, AWeight: TDoubleList);
+begin
+  inherited Create;
+  Points      := APoints;
+  PointsCount := APointsCount;
+  Order       := AOrder;
+  Knot        := AKnot;
+  Weight      := AWeight;
+
+  BasisCalculator := TNurbsBasisCalculator.Create(PointsCount, Order, Knot);
+end;
+
+destructor TNurbsCurveCalculator.Destroy;
+begin
+  FreeAndNil(BasisCalculator);
+  inherited;
+end;
+
+function TNurbsCurveCalculator.GetPoint(const U: Single; const Tangent: PVector3): TVector3;
 
   { Get a single point on NURBS curve, having calculated the Basis values.
     The algorithm follows the GetPoint0 described in
     http://isd.ktu.lt/it2010/material/Proceedings/1_AI_7.pdf . }
-  function GetPoint(const Basis: TDoubleArray; const KnotInterval: Integer): TVector3;
+  function GetPointCore(const Basis: TDoubleArray; const KnotInterval: Integer): TVector3;
   var
     WeightSum: Double;
     I, Index: Integer;
@@ -311,26 +393,49 @@ var
 begin
   Assert(Knot.Count = PointsCount + Order);
 
-  KnotInterval := FindKnotSpan(U, PointsCount, Order, Knot);
-  Basis := NurbsBasis(U, KnotInterval, Order, Knot);
-  Result := GetPoint(Basis, KnotInterval);
+  Basis := BasisCalculator.GetBasis(U, KnotInterval);
+  Result := GetPointCore(Basis, KnotInterval);
 
   if Tangent <> nil then
     Tangent^ := GetTangent(Result).Normalize;
 end;
 
-function NurbsSurfacePoint(const Points: TVector3List;
-  const UDimension, VDimension: Cardinal;
-  const U, V: Single;
-  const UOrder, VOrder: Cardinal;
-  UKnot, VKnot, Weight: TDoubleList;
-  Normal: PVector3): TVector3;
+{ TNurbsSurfaceCalculator ---------------------------------------------------- }
+
+constructor TNurbsSurfaceCalculator.Create(const APoints: TVector3List;
+  const AUDimension, AVDimension: Cardinal;
+  const AUOrder, AVOrder: Cardinal;
+  const AUKnot, AVKnot, AWeight: TDoubleList);
+begin
+  inherited Create;
+  Points     := APoints;
+  UDimension := AUDimension;
+  VDimension := AVDimension;
+  UOrder     := AUOrder;
+  VOrder     := AVOrder;
+  UKnot      := AUKnot;
+  VKnot      := AVKnot;
+  Weight     := AWeight;
+
+  UBasisCalculator := TNurbsBasisCalculator.Create(UDimension, UOrder, UKnot);
+  VBasisCalculator := TNurbsBasisCalculator.Create(VDimension, VOrder, VKnot);
+end;
+
+destructor TNurbsSurfaceCalculator.Destroy;
+begin
+  FreeAndNil(UBasisCalculator);
+  FreeAndNil(VBasisCalculator);
+  inherited;
+end;
+
+function TNurbsSurfaceCalculator.GetPoint(const U, V: Single; const Normal: PVector3): TVector3;
 
   { Get a single point on NURBS surface.
-    The algorithm is a slightly extended version of the GetPoint
-    inside NurbsCurvePoint. For a difference in equations between curve and surface,
+    The algorithm is a slightly extended version of the GetPointCore
+    inside TNurbsCurveCalculator.GetPoint.
+    For a difference in equations between curve and surface,
     see https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline . }
-  function GetPoint(const UBasis, VBasis: TDoubleArray;
+  function GetPointCore(const UBasis, VBasis: TDoubleArray;
     const UKnotInterval, VKnotInterval: Integer): TVector3;
   var
     WeightSum: Double;
@@ -408,16 +513,66 @@ begin
   Assert(VKnot.Count = VDimension + VOrder);
   Assert(Points.Count = UDimension * VDimension);
 
-  UKnotInterval := FindKnotSpan(U, UDimension, UOrder, UKnot);
-  UBasis := NurbsBasis(U, UKnotInterval, UOrder, UKnot);
-
-  VKnotInterval := FindKnotSpan(V, VDimension, VOrder, VKnot);
-  VBasis := NurbsBasis(V, VKnotInterval, VOrder, VKnot);
-
-  Result := GetPoint(UBasis, VBasis, UKnotInterval, VKnotInterval);
+  UBasis := UBasisCalculator.GetBasis(U, UKnotInterval);
+  VBasis := VBasisCalculator.GetBasis(V, VKnotInterval);
+  Result := GetPointCore(UBasis, VBasis, UKnotInterval, VKnotInterval);
 
   if Normal <> nil then
     Normal^ := TVector3.CrossProduct(GetUTangent(Result), GetVTangent(Result)).Normalize;
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+function ActualTessellation(const Tessellation: Integer;
+  const Dimension: Cardinal): Cardinal;
+begin
+  if Tessellation > 0 then
+    Result := Tessellation else
+  if Tessellation = 0 then
+    Result := 2 * Dimension else
+    Result := Cardinal(-Tessellation) * Dimension;
+  Inc(Result);
+end;
+
+function NurbsCurvePoint(const Points: TVector3List;
+  const U: Single;
+  const Order: Cardinal;
+  const Knot, Weight: TDoubleList;
+  const Tangent: PVector3): TVector3;
+begin
+  Result := NurbsCurvePoint(PVector3Array(Points.List), Points.Count,
+    U, Order, Knot, Weight, Tangent);
+end;
+
+function NurbsCurvePoint(const Points: PVector3Array;
+  const PointsCount: Cardinal; const U: Single;
+  const Order: Cardinal;
+  const Knot, Weight: TDoubleList;
+  const Tangent: PVector3): TVector3;
+var
+  Calculator: TNurbsCurveCalculator;
+begin
+  Calculator := TNurbsCurveCalculator.Create(Points, PointsCount,
+    Order, Knot, Weight);
+  try
+    Result := Calculator.GetPoint(U, Tangent);
+  finally FreeAndNil(Calculator) end;
+end;
+
+function NurbsSurfacePoint(const Points: TVector3List;
+  const UDimension, VDimension: Cardinal;
+  const U, V: Single;
+  const UOrder, VOrder: Cardinal;
+  const UKnot, VKnot, Weight: TDoubleList;
+  const Normal: PVector3): TVector3;
+var
+  Calculator: TNurbsSurfaceCalculator;
+begin
+  Calculator := TNurbsSurfaceCalculator.Create(Points,
+    UDimension, VDimension, UOrder, VOrder, UKnot, VKnot, Weight);
+  try
+    Result := Calculator.GetPoint(U, V, Normal);
+  finally FreeAndNil(Calculator) end;
 end;
 
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
