@@ -233,7 +233,7 @@ begin
     Exit(LastFindKnotSpanResult);
 
   if U >= Knot.Last then
-    Result := ControlPointCount
+    Result := ControlPointCount - 1
   else
   begin
     Low := Order - 1;
