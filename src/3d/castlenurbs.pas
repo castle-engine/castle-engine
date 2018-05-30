@@ -36,6 +36,12 @@ type
     { Ready allocated structures, to speedup repeated calls to GetBasis.
       Their contents are overridden by each GetBasis call. }
     Basis, Left, Right: TDoubleArray;
+    { Speedup FindKnotSpan by first trying out last result.
+      This optimizes a very often case, when we're repeatedly calling
+      GetBasis with a very similar U value (that falls within the same interval).
+      This typically happens when calculating a series of points on the NURBS
+      curve or surface. }
+    LastFindKnotSpanResult: Integer;
 
     { In which knot interval is the given point.
       The result is guaranteed to be in [Order - 1...ControlPointCount - 1] range. }
@@ -212,12 +218,20 @@ begin
   SetLength(Basis, Order);
   SetLength(Left, Order);
   SetLength(Right, Order);
+  LastFindKnotSpanResult := -1;
 end;
 
 function TNurbsBasisCalculator.FindKnotSpan(const U: Double): Integer;
 var
   Low, High: Integer;
 begin
+  { Use the last cached result, if still matching.
+    This eliminates the need for binary-search inside FindKnotSpan
+    in majority of cases. }
+  if (LastFindKnotSpanResult <> -1) and
+     Between(U, Knot[LastFindKnotSpanResult], Knot[LastFindKnotSpanResult + 1]) then
+    Exit(LastFindKnotSpanResult);
+
   if U >= Knot.Last then
     Result := ControlPointCount - 1
   else
@@ -250,9 +264,10 @@ begin
       See demo-models/nurbs/nurbs_dune_primitives.x3dv for testcase. }
     if Result = Order - 2 then
       Inc(Result);
-
-    Assert(Between(U, Knot[Result], Knot[Result + 1]));
   end;
+
+  Assert(Between(U, Knot[Result], Knot[Result + 1]));
+  LastFindKnotSpanResult := Result;
 end;
 
 function TNurbsBasisCalculator.GetBasis(const U: Double;
