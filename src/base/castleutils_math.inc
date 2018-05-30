@@ -97,7 +97,7 @@ function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS
 { @groupEnd }
 
 function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: cardinal): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -106,7 +106,7 @@ function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; 
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Integer ): Integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -116,7 +116,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -125,7 +125,7 @@ procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$i
 {$endif}
 
 procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
@@ -137,12 +137,12 @@ procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifde
   If Coord = 0, then it sets First = 1 and Second = 2.
   And so on --- for each Coord value, we set First and Second to the remaining
   indexes. }
-procedure RestOf3dCoords(coord: integer; out first, second: integer);
+procedure RestOf3dCoords(coord: Integer; out first, second: Integer);
 
 { Increase Value by Change, nicely wrapping in [0..MaxValue], accepting
   also negative Change. The final value is always in the [0..MaxValue] range,
   even when initial Value was outside. }
-function ChangeIntCycle(value, change, maxValue: integer): integer;
+function ChangeIntCycle(value, change, maxValue: Integer): Integer;
 
 { Linear interpolation between two values. Returns @code((1-A)*L + A*H).
   @groupBegin }
@@ -172,7 +172,7 @@ function BiggestPowerOf2(Value: Cardinal): Cardinal;
   Like BiggestPowerOf2, except that this returns which power of 2 it is,
   while BiggestPowerOf2 just returns exactly this power.
   Biggest2Exponent(0) = -1. }
-function Biggest2Exponent(Value: Cardinal): integer;
+function Biggest2Exponent(Value: Cardinal): Integer;
 
 { Smallest exponent such that 2^this exponent is >= Value.
   Smallest2Exponent(0) = -1 (this is different situation than
@@ -187,8 +187,8 @@ function Smallest2Power(Value: Cardinal): Cardinal;
 { Check is Value an exact power of 2. }
 function IsPowerOf2(Value: Cardinal): boolean;
 
-function DivRoundUp(Value, Divider: Cardinal): Cardinal; overload;
-function DivRoundUp(Value, Divider: Integer): Integer; overload;
+function DivRoundUp(const Value, Divider: Cardinal): Cardinal; overload;
+function DivRoundUp(const Value, Divider: Integer): Integer; overload;
 
 { Linearly map value from a one range to another.
 
@@ -216,21 +216,21 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
   )
 
   MapRangeClamped additionally at the end clamps the result to be within
-  [destBegin, destEnd] range (or [destEnd, destBegin] range,
-  in case destEnd < destBegin).
+  [DestBegin, DestEnd] range (or [DestEnd, DestBegin] range,
+  in case DestEnd < DestBegin).
 
   @groupBegin }
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float; overload;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float; overload;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float; overload;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float; overload;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float; overload;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float; overload;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float; overload;
 { @groupEnd }
 
-{ Random float value in the given range,
+{ Random Float value in the given range,
   result is between RangeBegin and RangeEnd.
   Always pass arguments such that RangeBegin < RangeEnd. }
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single; overload;
@@ -247,7 +247,7 @@ function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64; overload;
 function RandomBoolean: boolean;
 
 { Random -1 or +1. }
-function RandomPlusMinus: integer;
+function RandomPlusMinus: Integer;
 
 { Angle between a 2D line segments and OX axis. Angle 0 means that Y1 = Y2
   and X2 > X1, then the angle increases as you rotate CCW. In radians. }
@@ -277,7 +277,7 @@ function SmallFactorial(n: Integer): Int64;
 procedure CastleDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
 
-{ Like DivMod (return result of integer division and a remainder),
+{ Like DivMod (return result of Integer division and a remainder),
   but always return Remainder >= 0.
 
   This is useful in case when Dividend < 0.
@@ -292,7 +292,7 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
   (without floating-point help). }
 function CeilDiv(const A, B: Cardinal): Cardinal;
 
-{ Calculate integer division and modulo on two float arguments.
+{ Calculate Integer division and modulo on two Float arguments.
   Requires that A >= 0 and B > 0, and the Result is always >= 0.
 
   Tries to secure against floating point imprecision.
@@ -301,7 +301,7 @@ function CeilDiv(const A, B: Cardinal): Cardinal;
 procedure FloatDivMod(const A, B: Double;
   out DivResult: Int64; out Remainder: Double);
 
-{ Calculate float modulo of division on two float arguments.
+{ Calculate Float modulo of division on two Float arguments.
   Works for any A (lesser than zero too). Assumes that B > 0.
 
   Tries to secure against floating point imprecision.
@@ -363,7 +363,7 @@ type
 procedure SwapValues(var a, b: Byte);     var Tmp: Byte;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Int64);    var Tmp: Int64;    begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: QWord);    var Tmp: QWord;    begin Tmp := A; A := B; B := Tmp; end;
-procedure SwapValues(var a, b: Integer);  var Tmp: integer;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Integer);  var Tmp: Integer;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Cardinal); var Tmp: Cardinal; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single);   var Tmp: Single;   begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Double);   var Tmp: Double;   begin Tmp := A; A := B; B := Tmp; end;
@@ -435,7 +435,7 @@ begin
 end;
 
 function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
@@ -466,7 +466,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: integer): integer;
+function Clamped(const a, vBegin, vEnd: Integer): Integer;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -515,7 +515,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: integer;  const vBegin, vEnd: integer);
+procedure ClampVar(var a: Integer;  const vBegin, vEnd: Integer);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -553,7 +553,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure Clamp(var a: integer;  const vBegin, vEnd: integer);
+procedure Clamp(var a: Integer;  const vBegin, vEnd: Integer);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -585,13 +585,13 @@ begin
 end;
 {$endif}
 
-procedure RestOf3dCoords(coord: integer; out first, second: integer);
+procedure RestOf3dCoords(coord: Integer; out first, second: Integer);
 begin
  if coord = 0 then first := 1 else first := 0;
  if coord = 2 then second := 1 else second := 2;
 end;
 
-function ChangeIntCycle(value, change, maxValue: integer): integer;
+function ChangeIntCycle(value, change, maxValue: Integer): Integer;
 begin
   Inc(maxValue);
   Result := (value + change) mod maxValue;
@@ -624,7 +624,7 @@ begin
   while (result <> 0) and ((result and Value) = 0) do result := result shr 1;
 end;
 
-function Biggest2Exponent(Value: Cardinal): integer;
+function Biggest2Exponent(Value: Cardinal): Integer;
 begin
   result := -1;
   while Value <> 0 do
@@ -670,80 +670,84 @@ begin
   result := false;
 end;
 
-function DivRoundUp(Value, Divider: Cardinal): Cardinal;
+function DivRoundUp(const Value, Divider: Cardinal): Cardinal;
 begin
   Result := (Value + Divider - 1) div Divider;
 end;
 
-function DivRoundUp(Value, Divider: Integer): Integer;
+function DivRoundUp(const Value, Divider: Integer): Integer;
 begin
   Result := (Value + Divider - 1) div Divider;
 end;
 
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
-  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
   { Map range 0..1 to DestBegin .. DestEnd }
-  Result := Result * (destEnd - destBegin) + destBegin;
+  Result := Result * (DestEnd - DestBegin) + DestBegin;
 end;
 
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
-  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
   { Map range 0..1 to DestBegin .. DestEnd }
-  Result := Result * (destEnd - destBegin) + destBegin;
+  Result := Result * (DestEnd - DestBegin) + DestBegin;
 end;
 
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float;
 {$I norqcheckbegin.inc}
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
-  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
   { Map range 0..1 to DestBegin .. DestEnd }
-  Result := Result * (destEnd - destBegin) + destBegin;
+  Result := Result * (DestEnd - DestBegin) + DestBegin;
 end;
 {$I norqcheckend.inc}
 
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
+function MapRange(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
-  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  Result := (SourceVal - SourceBegin) / (SourceEnd - SourceBegin);
   { Map range 0..1 to DestBegin .. DestEnd }
-  Result := Result * (destEnd - destBegin) + destBegin;
+  Result := Result * (DestEnd - DestBegin) + DestBegin;
 end;
 
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Integer): Float;
 begin
-  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
-  if destEnd < destBegin then
-    SwapValues(destBegin, destEnd);
-  Result := Clamped(Result, destBegin, destEnd);
+  Result := MapRange(SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd);
+  if DestEnd < DestBegin then
+    Result := Clamped(Result, DestEnd, DestBegin)
+  else
+    Result := Clamped(Result, DestBegin, DestEnd);
 end;
 
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Int64  ): Float;
 begin
-  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
-  if destEnd < destBegin then
-    SwapValues(destBegin, destEnd);
-  Result := Clamped(Result, destBegin, destEnd);
+  Result := MapRange(SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd);
+  if DestEnd < DestBegin then
+    Result := Clamped(Result, DestEnd, DestBegin)
+  else
+    Result := Clamped(Result, DestBegin, DestEnd);
 end;
 
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: QWord  ): Float;
 begin
-  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
-  if destEnd < destBegin then
-    SwapValues(destBegin, destEnd);
-  Result := Clamped(Result, destBegin, destEnd);
+  Result := MapRange(SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd);
+  if DestEnd < DestBegin then
+    Result := Clamped(Result, DestEnd, DestBegin)
+  else
+    Result := Clamped(Result, DestBegin, DestEnd);
 end;
 
-function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
+function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd: Float  ): Float;
 begin
-  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
-  if destEnd < destBegin then
-    SwapValues(destBegin, destEnd);
-  Result := Clamped(Result, destBegin, destEnd);
+  Result := MapRange(SourceVal, SourceBegin, SourceEnd, DestBegin, DestEnd);
+  if DestEnd < DestBegin then
+    Result := Clamped(Result, DestEnd, DestBegin)
+  else
+    Result := Clamped(Result, DestBegin, DestEnd);
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
@@ -959,7 +963,7 @@ function IntSqrt(const Value: Cardinal): Cardinal;
 { See http://en.wikipedia.org/wiki/Integer_square_root.
 
   This isn't nice impl, as it uses floating-point numbers to calculate
-  integer function... However, doing it on ints, doesn't make this
+  Integer function... However, doing it on ints, doesn't make this
   process terminate nicely. Hacks like in primes.cpp from
   http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
   don't calculate floor sqrt properly (e.g. for 8 return 3).
