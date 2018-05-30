@@ -233,11 +233,11 @@ begin
     Exit(LastFindKnotSpanResult);
 
   if U >= Knot.Last then
-    Result := ControlPointCount - 1
+    Result := ControlPointCount
   else
   begin
-    Low := Order - 2;
-    High := ControlPointCount - 1;
+    Low := Order - 1;
+    High := ControlPointCount;
     Result := (Low + High) div 2;
     while (U < Knot[Result]) or (U > Knot[Result + 1]) do
     begin
@@ -259,11 +259,6 @@ begin
         Result := (Low + High) div 2;
       end;
     end;
-
-    { It is necessary to start at Low = Order - 2, but we cannot return Order - 2.
-      See demo-models/nurbs/nurbs_dune_primitives.x3dv for testcase. }
-    if Result = Order - 2 then
-      Inc(Result);
   end;
 
   Assert(Between(U, Knot[Result], Knot[Result + 1]));
