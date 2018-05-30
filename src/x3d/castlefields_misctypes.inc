@@ -36,6 +36,8 @@
     events and such) when given item cannot be found. }
   EX3DNotFound = class(EX3DError);
 
+  EInvalidNurbs = class(EX3DError);
+
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
 
   { Possible things that happen when given field is changed.

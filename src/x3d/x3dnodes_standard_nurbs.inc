@@ -202,6 +202,18 @@
       (set Order = 4 for a typical cubic Bezier curve). }
     procedure PiecewiseBezier;
 
+    { Get the position of a point on the curve.
+
+      The returned position is in the local transformation space of this shape.
+      This method is guaranteed to work the same,
+      regardless if this node is part of any TX3DRootNode and TCastleSceneCore
+      or not.
+
+      @param U The place on a curve, in [0..1] range.
+      @param(Tangent Optional. If non-nil, will be set to the tangent,
+        that is, direction in 3D in which the curve is going.) }
+    function Point(const U: Single; const Tangent: PVector3 = nil): TVector3;
+
     {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
   end;
   TNurbsCurveNode_3 = TNurbsCurveNode;
@@ -899,6 +911,34 @@ begin
     ControlPointCount := TCoordinateNode(ControlPoint).FdPoint.Count;
     NurbsKnotIfNeeded(FdKnot.Items, ControlPointCount, Order, nkPiecewiseBezier);
   end;
+end;
+
+function TNurbsCurveNode.Point(const U: Single; const Tangent: PVector3): TVector3;
+var
+  ControlPointList: TVector3List;
+  CurrentKnot: TDoubleList;
+begin
+  if ControlPoint is TCoordinateNode then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
+    raise EInvalidNurbs.Create('Only NURBS with Coordinate node are supported');
+
+  if ControlPointList.Count = 0 then
+    raise EInvalidNurbs.Create('Only NURBS with at least 1 controlPoint are supported');
+
+  if Order < 2 then
+    raise EInvalidNurbs.Create('NURBS order must be >= 2');
+
+  { calculate correct CurrentKnot vector }
+  CurrentKnot := TDoubleList.Create;
+  CurrentKnot.Assign(FdKnot.Items);
+  NurbsKnotIfNeeded(CurrentKnot, ControlPointList.Count, Order, nkEndpointUniform);
+
+  Result := NurbsCurvePoint(ControlPointList,
+    MapRange(U, 0, 1, CurrentKnot.First, CurrentKnot.Last),
+    Order, CurrentKnot, FdWeight.Items, Tangent);
+
+  FreeAndNil(CurrentKnot);
 end;
 
 procedure TNurbsCurve2DNode.CreateNode;
