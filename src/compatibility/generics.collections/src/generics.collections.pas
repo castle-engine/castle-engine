@@ -1465,7 +1465,7 @@ end;
 procedure TList<T>.SetItem(AIndex: SizeInt; const AValue: T);
 begin
   if (AIndex < 0) or (AIndex >= Count) then
-    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
+    raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);   
   Notify(FItems[AIndex], cnRemoved);
   FItems[AIndex] := AValue;
   Notify(AValue, cnAdded);
@@ -2883,12 +2883,15 @@ begin
     Result := Compare(ANode.Key,AInsertNode.Key);
     if Result < 0 then
     begin
+      Result:=-1;
       if AInsertNode.Left = nil then
         Exit;
       AInsertNode := AInsertNode.Left;
     end
     else
     begin
+      if Result > 0 then
+        Result:=1;
       if AInsertNode.Right = nil then
         Exit;
       AInsertNode := AInsertNode.Right;

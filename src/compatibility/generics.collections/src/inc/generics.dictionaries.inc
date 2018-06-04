@@ -2179,7 +2179,7 @@ begin
   inherited;
 
   if (doOwnsKeys in FOwnerships) and (ACollectionNotification = cnRemoved) then
-    TObject(AKey).Free;
+    TObject((@AKey)^).Free;
 end;
 
 procedure TObjectDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ValueNotify(constref AValue: TValue;
@@ -2188,7 +2188,7 @@ begin
   inherited;
 
   if (doOwnsValues in FOwnerships) and (ACollectionNotification = cnRemoved) then
-    TObject(AValue).Free;
+    TObject((@AValue)^).Free;
 end;
 
 constructor TObjectDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Create(
@@ -2227,7 +2227,7 @@ begin
   inherited;
 
   if (doOwnsKeys in FOwnerships) and (ACollectionNotification = cnRemoved) then
-    TObject(AKey).Free;
+    TObject((@AKey)^).Free;
 end;
 
 procedure TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.ValueNotify(
@@ -2236,7 +2236,7 @@ begin
   inherited;
 
   if (doOwnsValues in FOwnerships) and (ACollectionNotification = cnRemoved) then
-    TObject(AValue).Free;
+    TObject((@AValue)^).Free;
 end;
 
 constructor TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.Create(AOwnerships: TDictionaryOwnerships);
