@@ -920,7 +920,8 @@ procedure PngInitialization;
 
 implementation
 
-uses SysUtils, CastleDynLib;
+uses SysUtils, CastleDynLib
+  {$ifdef DARWIN}, { for BundlePath } CastleFilesUtils {$endif};
 
 var
   PngLibrary: TDynLib;
