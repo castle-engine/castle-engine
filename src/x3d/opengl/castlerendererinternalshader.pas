@@ -245,6 +245,8 @@ type
     UniformName: string;
     UniformValue: LongInt;
 
+    class var TextureEnvWarningDone: Boolean;
+
     { Mix texture colors into fragment color, based on TTextureEnv specification. }
     class function TextureEnvMix(const AEnv: TTextureEnv;
       const FragmentColor, CurrentTexture: string;
@@ -1391,6 +1393,16 @@ end;
 class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
   const FragmentColor, CurrentTexture: string;
   const ATextureUnit: Cardinal): string;
+
+  procedure Warn(const S: string; const Args: array of const);
+  begin
+    if not TextureEnvWarningDone then
+    begin
+      TextureEnvWarningDone := true;
+      WritelnWarning('MultiTexture mixing', Format(S, Args));
+    end;
+  end;
+
 var
   { GLSL code to get Arg2 (what is coming from MultiTexture.source) }
   Arg2: string;
@@ -1409,7 +1421,24 @@ begin
   { assume AEnv.Source[cRGB] = csPreviousTexture }
   Arg2 := FragmentColor;
 
+  if AEnv.Combine[cRGB] <> AEnv.Combine[cAlpha] then
+    Warn('Not supported in GLSL pipeline: Combine for RGB and alpha different', []);
+  if AEnv.Source[cRGB] <> AEnv.Source[cAlpha] then
+    Warn('Not supported in GLSL pipeline: Source for RGB and alpha different', []);
+
+  { By default, set up simplest modulate operation.
+    The "case AEnv.Combine[cRGB]" below may override this Result to something
+    better. }
+  Result := FragmentColor + ' *= ' + CurrentTexture + ';';
+
   case AEnv.Combine[cRGB] of
+    coModulate:
+      begin
+        if FragmentColor = Arg2 then
+          Result := FragmentColor + ' *= ' + CurrentTexture + ';'
+        else
+          Result := FragmentColor + ' = ' + CurrentTexture + ' * ' + Arg2 + ';';
+      end;
     coReplace:
       begin
         if AEnv.SourceArgument[cRGB] = ta0 then
@@ -1426,13 +1455,17 @@ begin
       end;
     coSubtract:
       Result := FragmentColor + ' = ' + CurrentTexture + ' - ' + Arg2 + ';';
-    else
-      begin
-        { assume coModulate }
-        if FragmentColor = Arg2 then
-          Result := FragmentColor + ' *= ' + CurrentTexture + ';' else
-          Result := FragmentColor + ' = ' + CurrentTexture + ' * ' + Arg2 + ';';
+    coInterpolate:
+      case AEnv.InterpolateAlphaSource of
+        csCurrentTexture:
+          Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + CurrentTexture + '.a);';
+        csPreviousTexture:
+          Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + FragmentColor + '.a);';
+        else
+          Warn('Not supported in GLSL pipeline: coInterpolate with InterpolateAlphaSource = %d', [Ord(AEnv.InterpolateAlphaSource)]);
       end;
+    else
+      Warn('Not supported in GLSL pipeline: combine value %d', [Ord(AEnv.Combine[cRGB])]);
   end;
 
   case AEnv.TextureFunction of
@@ -1440,15 +1473,15 @@ begin
     tfAlphaReplicate: Result += FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);';
   end;
 
-  { TODO: this handles only a subset of possible values:
-    - different combine values on RGB/alpha not handled yet.
-      We just check Env.Combine[cRGB], and assume it's equal Env.Combine[cAlpha].
-      Same for Env.Source: we assume Env.Source[cRGB] equal to Env.Source[cAlpha].
-    - Scale is ignored (assumed 1)
+  if AEnv.Scale[cRGB] <> 1 then
+    Warn('Not supported in GLSL pipeline: Scale RGB = %f', [AEnv.Scale[cRGB]]);
+  if AEnv.Scale[cAlpha] <> 1 then
+    Warn('Not supported in GLSL pipeline: Scale Alpha = %f', [AEnv.Scale[cAlpha]]);
+
+  { TODO:
     - CurrentTextureArgument, SourceArgument ignored (assumed ta0, ta1),
       except for GL_REPLACE case
-    - many Combine values ignored (treated like modulate),
-      and so also NeedsConstantColor and InterpolateAlphaSource are ignored.
+    - NeedsConstantColor ignored
   }
 end;
 
