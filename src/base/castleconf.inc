@@ -273,7 +273,7 @@
     warnings, see
     https://sourceforge.net/p/castle-engine/discussion/general/thread/2fd412b1/ .
 
-  - IF CASTLE_PNG_DYNAMIC is defined,
+  - If CASTLE_PNG_DYNAMIC is defined,
     we use libpng from a dynamic library (.so or .dll).
     This is a bit harder to set up for developer, but may result in drastically
     faster PNG loading (even 4x times).

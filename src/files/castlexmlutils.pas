@@ -333,7 +333,7 @@ type
 
     { Get child element with given ChildName.
 
-      For example use @code(LevelElement.ChildElement('items'))
+      For example use @code(LevelElement.Child('items'))
       to get the <items> element within <level> element, as in example below.
 
       @preformatted(
