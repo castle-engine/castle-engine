@@ -1454,6 +1454,7 @@ begin
 
   TryDeleteFile(ChangeFileExt(ExecutableName, ''));
   TryDeleteFile(ChangeFileExt(ExecutableName, '.exe'));
+  TryDeleteFile(ChangeFileExt(ExecutableName, '.log'));
 
   if AndroidSource <> '' then
     TryDeleteAbsoluteFile(AndroidLibraryFile);
