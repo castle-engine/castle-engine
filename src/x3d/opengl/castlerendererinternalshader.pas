@@ -1455,14 +1455,14 @@ begin
       end;
     coSubtract:
       Result := FragmentColor + ' = ' + CurrentTexture + ' - ' + Arg2 + ';';
-    coInterpolate:
-      case AEnv.InterpolateAlphaSource of
+    coBlend:
+      case AEnv.BlendAlphaSource of
         csCurrentTexture:
           Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + CurrentTexture + '.a);';
         csPreviousTexture:
           Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + FragmentColor + '.a);';
         else
-          Warn('Not supported in GLSL pipeline: coInterpolate with InterpolateAlphaSource = %d', [Ord(AEnv.InterpolateAlphaSource)]);
+          Warn('Not supported in GLSL pipeline: coBlend with BlendAlphaSource = %d', [Ord(AEnv.BlendAlphaSource)]);
       end;
     else
       Warn('Not supported in GLSL pipeline: combine value %d', [Ord(AEnv.Combine[cRGB])]);

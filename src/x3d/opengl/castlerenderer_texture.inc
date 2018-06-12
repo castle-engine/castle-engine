@@ -841,13 +841,13 @@ begin
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.SourceArgument[cAlpha]], GL_SRC_ALPHA);
             end;
 
-            if (Env.Combine[cRGB] = coInterpolate) or
-               (Env.Combine[cAlpha] = coInterpolate) then
+            if (Env.Combine[cRGB] = coBlend) or
+               (Env.Combine[cAlpha] = coBlend) then
             begin
               { Whole source2 (both RGB and alpha) is filled by alpha from color
-                specified by InterpolateAlphaSource. }
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.InterpolateAlphaSource]);
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.InterpolateAlphaSource]);
+                specified by BlendAlphaSource. }
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.BlendAlphaSource]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.BlendAlphaSource]);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
             end;
