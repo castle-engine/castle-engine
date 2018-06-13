@@ -1043,9 +1043,8 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep it working for backward compatibility.
 uses Math,
-  CastleStringUtils, CastleGLVersion, CastleLog,
-  CastleRenderingCamera,
-  X3DCameraUtils, CastleProjection, CastleRectangles;
+  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles;
 {$warnings on}
 
 {$define read_implementation}
@@ -3602,16 +3601,26 @@ var
   procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
   var
     GLNode: TGLRenderedTextureNode;
+    GeometryCoordsField: TMFVec3f;
+    GeometryCoords: TVector3List;
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
       begin
+        { calculate GeometryCoords }
+        GeometryCoords := nil;
+        if Shape.Geometry.InternalCoord(Shape.State, GeometryCoordsField) and
+           (GeometryCoordsField <> nil) then
+          GeometryCoords := GeometryCoordsField.Items;
+
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
-          CameraPosition, CameraDirection, CameraUp);
+          CameraPosition, CameraDirection, CameraUp,
+          Shape.State.Transform,
+          GeometryCoords);
 
         PostUpdate;
 

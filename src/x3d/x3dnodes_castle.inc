@@ -402,6 +402,16 @@
     {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
   end;
 
+  { Viewpoint for making planar reflections.
+    See TODO. }
+  TViewpointMirrorNode = class(TX3DNode)
+  public
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -958,6 +968,18 @@ begin
   Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
+{ TViewpointMirrorNode ----------------------------------------------------- }
+
+class function TViewpointMirrorNode.ClassX3DType: string;
+begin
+  Result := 'ViewpointMirror';
+end;
+
+class function TViewpointMirrorNode.URNMatching(const URN: string): boolean;
+begin
+  Result := URNMatchingCastle(URN, ClassX3DType);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -974,7 +996,8 @@ begin
     TMultiGeneratedTextureCoordinateNode,
     TEffectNode,
     TEffectPartNode,
-    TShaderTextureNode
+    TShaderTextureNode,
+    TViewpointMirrorNode
   ]);
 end;
 

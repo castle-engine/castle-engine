@@ -84,7 +84,7 @@ Teapot : X3DGeometryNode {
 RenderedTexture : X3DTextureNode {
   MFInt32    [in,out]      dimensions            128 128 4 1 1
   SFString   [in,out]      update                "NONE"           # ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
-  SFNode     [in,out]      viewpoint             NULL             # [X3DViewpointNode] (VRML 1.0 camera nodes also allowed)
+  SFNode     [in,out]      viewpoint             NULL             # [X3DViewpointNode, ViewpointMirror] (VRML 1.0 camera nodes also allowed)
   SFNode     []            textureProperties     NULL             # [TextureProperties]
   SFBool     []            repeatS               TRUE
   SFBool     []            repeatT               TRUE
@@ -170,4 +170,10 @@ Toggler  : X3DChildNode {
   SFBool     [out]         on                      # always sends TRUE
   SFBool     [out]         off                     # always sends TRUE
   SFBool     [in,out]      enabled     TRUE
+}
+
+ViewpointMirror {
+  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: default-container-field viewpoint
+  SFFloat   [in,out]      distanceFromShape 0.01
 }

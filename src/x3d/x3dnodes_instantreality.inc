@@ -916,7 +916,7 @@ procedure TRenderedTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode]);
+  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode, TViewpointMirrorNode]);
    FdViewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdViewpoint);
 

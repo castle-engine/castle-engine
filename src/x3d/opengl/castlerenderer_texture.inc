@@ -271,9 +271,11 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TAbstractViewpointNode;
-      CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3);
+      const CurrentViewpoint: TAbstractViewpointNode;
+      const CameraViewKnown: boolean;
+      const CameraPosition, CameraDirection, CameraUp: TVector3;
+      const GeometryTransform: TMatrix4;
+      const GeometryCoords: TVector3List);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -1210,14 +1212,13 @@ procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TAbstractViewpointNode;
-  CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3);
+  const CurrentViewpoint: TAbstractViewpointNode;
+  const CameraViewKnown: boolean;
+  const CameraPosition, CameraDirection, CameraUp: TVector3;
+  const GeometryTransform: TMatrix4;
+  const GeometryCoords: TVector3List);
 
-var
-  Viewpoint: TAbstractViewpointNode;
-
-  function GetProjectionMatrix: TMatrix4;
+  function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
     we have to calculate projection, given Viewpoint node.
 
@@ -1311,7 +1312,8 @@ var
     end;
   end;
 
-  procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3);
+  procedure GetRenderedTextureCamera(const Viewpoint: TAbstractViewpointNode;
+    out Pos, Dir, Up: TVector3);
   var
     { It's returned by Viewpoint.GetView, but we'll ignore it. }
     GravityUp: TVector3;
@@ -1346,27 +1348,94 @@ var
     end;
   end;
 
+  procedure GetMatricesForViewpoint(const Viewpoint: TAbstractViewpointNode;
+    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
+  var
+    Pos, Dir, Up: TVector3;
+  begin
+    ProjectionMatrix := GetProjectionMatrix(Viewpoint);
+
+    GetRenderedTextureCamera(Viewpoint, Pos, Dir, Up);
+    CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
+  end;
+
+  { Mirror Point with respect to the Plane. }
+  function Mirror(const Plane: TVector4; const Point: TVector3): TVector3;
+  var
+    OnPlane: TVector3;
+  begin
+    OnPlane := PointOnPlaneClosestToPoint(Plane, Point);
+    Result := 2 * OnPlane - Point;
+  end;
+
+  procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
+    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
+  var
+    Pos, Dir, Up, DirTarget, UpTarget: TVector3;
+    Plane: TVector4;
+    TransformedCoords: array [0..3] of TVector3;
+    I: Integer;
+  begin
+    if (GeometryCoords = nil) or
+       (GeometryCoords.Count <> 4) then
+    begin
+      WritelnWarning('ViewpointMirror can only be used with a quad, that is: a coordinate-based node with exactly 4 points');
+      GetMatricesForViewpoint(
+        CurrentViewpoint,
+        CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+
+    GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
+
+    { calculate Plane of the mirror }
+    for I := 0 to 3 do
+      TransformedCoords[I] := GeometryTransform.MultPoint(GeometryCoords.List^[I]);
+    // average two possible planes that define the mirror geometry
+    Plane := (
+      TrianglePlane(TransformedCoords[0], TransformedCoords[1], TransformedCoords[2]) +
+      TrianglePlane(TransformedCoords[0], TransformedCoords[2], TransformedCoords[3])
+    ) * 0.5;
+
+    ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
+      PointToPlaneDistance(Pos, Plane) + Viewpoint.DistanceFromShape,
+      ProjectionFar);
+
+    { reflect Pos, Dir, Up around Plane }
+    DirTarget := Pos + Dir;
+    UpTarget := Pos + Up;
+    Pos := Mirror(Plane, Pos);
+    Dir := Mirror(Plane, DirTarget) - Pos;
+    Up := Mirror(Plane, UpTarget) - Pos;
+
+    CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
+  end;
+
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
-  Pos, Dir, Up: TVector3;
   Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
 
   { calculate Viewpoint }
-  if (TextureNode.FdViewpoint.Value <> nil) and
-     (TextureNode.FdViewpoint.Value is TAbstractViewpointNode) then
-    Viewpoint := TAbstractViewpointNode(TextureNode.FdViewpoint.Value) else
-    Viewpoint := CurrentViewpoint;
+  if TextureNode.FdViewpoint.Value is TViewpointMirrorNode then
+    GetMatricesForViewpointMirror(
+      TViewpointMirrorNode(TextureNode.FdViewpoint.Value),
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+  else
+  if TextureNode.FdViewpoint.Value is TAbstractViewpointNode then
+    GetMatricesForViewpoint(
+      TAbstractViewpointNode(TextureNode.FdViewpoint.Value),
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+  else
+    GetMatricesForViewpoint(
+      CurrentViewpoint,
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
-  NewProjectionMatrix := GetProjectionMatrix;
   TextureNode.EventProjection.Send(NewProjectionMatrix);
-
-  GetRenderedTextureCamera(Pos, Dir, Up);
-  CameraMatrix := LookDirMatrix(Pos, Dir, Up);
-  CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   TextureNode.EventViewing.Send(CameraMatrix);
-
   TextureNode.EventRendering.Send(true);
 
   Camera := TRenderingCamera.Create;
