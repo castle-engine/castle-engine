@@ -275,7 +275,10 @@
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
       const GeometryTransform: TMatrix4;
-      const GeometryCoords: TVector3List);
+      const GeometryCoords: TVector3List;
+      { TODO: These should not be passed here directly, also preventing
+        multi-texturing setups from working. }
+      const GeometryTexCoords: TVector2List);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -1216,7 +1219,8 @@ procedure TGLRenderedTextureNode.Update(
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
   const GeometryTransform: TMatrix4;
-  const GeometryCoords: TVector3List);
+  const GeometryCoords: TVector3List;
+  const GeometryTexCoords: TVector2List);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
@@ -1348,6 +1352,7 @@ procedure TGLRenderedTextureNode.Update(
     end;
   end;
 
+  { Best plane for a set of points. }
   function PointsPlane(const Points: TVector3List; out Plane: TVector4): Boolean;
   var
     Normal: TVector3 absolute Plane;
@@ -1410,11 +1415,13 @@ procedure TGLRenderedTextureNode.Update(
   procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
-    Pos, Dir, Up, PosOnPlane, Side: TVector3;
+    Pos, Dir, Up, PosOnPlane, Side, Coord, PlaneCoord: TVector3;
+    PlaneCoordProjected: TVector2;
     Plane: TVector4;
     TransformedCoords: TVector3List;
     I: Integer;
     ZNear: Single;
+    FrustumDimensions: TFloatRectangle;
   begin
     if GeometryCoords = nil then
     begin
@@ -1458,11 +1465,48 @@ procedure TGLRenderedTextureNode.Update(
       CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
       CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
 
-      { TODO: frustum }
+      { calculate FrustumDimensions.
+
+        TODO: Also change TransformedCoords,
+        to project all points on Plane,
+        and shift to be specified relative to PosOnPlane.
+        This will be useful to later use to project texture coordinates. }
+      FrustumDimensions := TFloatRectangle.Empty;
+      for I := 0 to TransformedCoords.Count - 1 do
+      begin
+        Coord := TransformedCoords.List^[I];
+        PlaneCoord := PointOnPlaneClosestToPoint(Plane, Coord) - PosOnPlane;
+        PlaneCoordProjected := Vector2(
+          TVector3.DotProduct(PlaneCoord, Side),
+          TVector3.DotProduct(PlaneCoord, Up)
+        );
+        FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
+
+        // TODO: this is somewhat ugly, to reuse TransformedCoords memory
+        TransformedCoords.List^[I] := Vector3(
+          PlaneCoordProjected[0],
+          PlaneCoordProjected[1],
+          0);
+      end;
+
       { TODO: project tex coords }
       ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
-      ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
+      // ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
+      //   ZNear, ProjectionFar);
+      ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
         ZNear, ProjectionFar);
+
+      GeometryTexCoords.Count := TransformedCoords.Count;
+      for I := 0 to GeometryTexCoords.Count - 1 do
+      begin
+        PlaneCoordProjected := Vector2(
+          TransformedCoords.List^[I].Data[0],
+          TransformedCoords.List^[I].Data[1]);
+        GeometryTexCoords.List^[I] := Vector2(
+          (PlaneCoordProjected.Data[0] - FrustumDimensions.Left) / FrustumDimensions.Width,
+          (PlaneCoordProjected.Data[1] - FrustumDimensions.Bottom) / FrustumDimensions.Height
+        );
+      end;
     finally FreeAndNil(TransformedCoords) end;
   end;
 

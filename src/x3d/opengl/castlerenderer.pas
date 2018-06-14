@@ -3603,6 +3603,8 @@ var
     GLNode: TGLRenderedTextureNode;
     GeometryCoordsField: TMFVec3f;
     GeometryCoords: TVector3List;
+    GeometryTexCoordsNode: TX3DNode;
+    GeometryTexCoords: TVector2List;
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
@@ -3615,12 +3617,29 @@ var
            (GeometryCoordsField <> nil) then
           GeometryCoords := GeometryCoordsField.Items;
 
+        { calculate GeometryTexCoords }
+        GeometryTexCoords := nil;
+        if Shape.Geometry.InternalTexCoord(Shape.State, GeometryTexCoordsNode) and
+           (GeometryTexCoordsNode is TTextureCoordinateNode) then
+          GeometryTexCoords := TTextureCoordinateNode(GeometryTexCoordsNode).
+            FdPoint.Items;
+
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
           Shape.State.Transform,
-          GeometryCoords);
+          GeometryCoords,
+          GeometryTexCoords);
+
+        // TODO: This is a hack to make TViewpointMirrorNode updating tex coord working.
+        // TODO: This is ugly, and it also doesn't avoid initial useless
+        // warning in case TextureCoordinate count is incorrect.
+        // We need something like TextureCoordinateMirror that cooperates
+        // with indicated ViewpointMirror instead.
+        if (TexNode.FdViewpoint.Value is TViewpointMirrorNode) and
+           (GeometryTexCoordsNode <> nil) then
+          TTextureCoordinateNode(GeometryTexCoordsNode).FdPoint.Changed;
 
         PostUpdate;
 
