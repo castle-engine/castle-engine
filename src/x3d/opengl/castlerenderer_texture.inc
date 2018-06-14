@@ -1348,6 +1348,53 @@ procedure TGLRenderedTextureNode.Update(
     end;
   end;
 
+  function PointsPlane(const Points: TVector3List; out Plane: TVector4): Boolean;
+  var
+    Normal: TVector3 absolute Plane;
+    Tri: TTriangle3;
+    I: Integer;
+    PlaneShift: Single;
+    Point: TVector3;
+  begin
+    if Points.Count < 3 then Exit(false);
+
+    { Calculate plane Normal, averaging normals of all valid triangles.
+      Assumes polygon is convex. }
+
+    Normal := TVector3.Zero;
+
+    Tri[0] := Points.List^[0];
+    Tri[1] := Points.List^[1];
+    Tri[2] := Points.List^[2];
+    if Tri.IsValid then
+      Normal := Tri.Normal;
+
+    for I := 3 to Points.Count - 1 do
+    begin
+      Tri[1] := Tri[2];
+      Tri[2] := Points.List^[I];
+      if Tri.IsValid then
+        Normal := Normal + Tri.Normal;
+    end;
+
+    if Normal.IsPerfectlyZero then
+      Exit(false); // no valid triangle
+
+    { calculate Plane[3] by averaging possible shift for all Points }
+    PlaneShift := 0;
+    for Point in Points do
+    begin
+      PlaneShift := PlaneShift +
+        -Normal.Data[0] * Point.Data[0]
+        -Normal.Data[1] * Point.Data[1]
+        -Normal.Data[2] * Point.Data[2];
+    end;
+    PlaneShift := PlaneShift / Points.Count;
+
+    Plane[3] := PlaneShift;
+    Result := true;
+  end;
+
   procedure GetMatricesForViewpoint(const Viewpoint: TAbstractViewpointNode;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
@@ -1360,57 +1407,63 @@ procedure TGLRenderedTextureNode.Update(
     CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   end;
 
-  { Mirror Point with respect to the Plane. }
-  function Mirror(const Plane: TVector4; const Point: TVector3): TVector3;
-  var
-    OnPlane: TVector3;
-  begin
-    OnPlane := PointOnPlaneClosestToPoint(Plane, Point);
-    Result := 2 * OnPlane - Point;
-  end;
-
   procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
     out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
   var
-    Pos, Dir, Up, DirTarget, UpTarget: TVector3;
+    Pos, Dir, Up, PosOnPlane, Side: TVector3;
     Plane: TVector4;
-    TransformedCoords: array [0..3] of TVector3;
+    TransformedCoords: TVector3List;
     I: Integer;
+    ZNear: Single;
   begin
-    if (GeometryCoords = nil) or
-       (GeometryCoords.Count <> 4) then
+    if GeometryCoords = nil then
     begin
-      WritelnWarning('ViewpointMirror can only be used with a quad, that is: a coordinate-based node with exactly 4 points');
+      WritelnWarning('ViewpointMirror can only be used on node with coordinates');
       GetMatricesForViewpoint(
-        CurrentViewpoint,
-        CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
       Exit;
     end;
 
     GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
 
-    { calculate Plane of the mirror }
-    for I := 0 to 3 do
-      TransformedCoords[I] := GeometryTransform.MultPoint(GeometryCoords.List^[I]);
-    // average two possible planes that define the mirror geometry
-    Plane := (
-      TrianglePlane(TransformedCoords[0], TransformedCoords[1], TransformedCoords[2]) +
-      TrianglePlane(TransformedCoords[0], TransformedCoords[2], TransformedCoords[3])
-    ) * 0.5;
+    { calculate TransformedCoords }
+    TransformedCoords := TVector3List.Create;
+    try
+      TransformedCoords.Count := GeometryCoords.Count;
+      for I := 0 to GeometryCoords.Count - 1 do
+        TransformedCoords.List^[I] := GeometryTransform.MultPoint(GeometryCoords.List^[I]);
 
-    ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
-      PointToPlaneDistance(Pos, Plane) + Viewpoint.DistanceFromShape,
-      ProjectionFar);
+      { calculate Plane of the mirror }
+      if not PointsPlane(TransformedCoords, Plane) then
+      begin
+        WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
+        GetMatricesForViewpoint(
+          CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+        Exit;
+      end;
 
-    { reflect Pos, Dir, Up around Plane }
-    DirTarget := Pos + Dir;
-    UpTarget := Pos + Up;
-    Pos := Mirror(Plane, Pos);
-    Dir := Mirror(Plane, DirTarget) - Pos;
-    Up := Mirror(Plane, UpTarget) - Pos;
+      { reflect Pos, Dir, Up for mirror view }
+      PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
+      Pos := 2 * PosOnPlane - Pos; // mirror Pos versus Plane
+      Dir := PosOnPlane - Pos;
+      Assert(TransformedCoords.Count >= 3); // since PointsPlane result was true
+      Up := TransformedCoords[2] - TransformedCoords[1];
 
-    CameraMatrix := LookDirMatrix(Pos, Dir, Up);
-    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
+      { calculate Side, and make Dir, Up normalized and orthogonal }
+      Dir.NormalizeMe;
+      Up.NormalizeMe;
+      MakeVectorsOrthoOnTheirPlane(Up, Dir);
+      Side := TVector3.CrossProduct(Dir, Up);
+
+      CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
+      CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
+
+      { TODO: frustum }
+      { TODO: project tex coords }
+      ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
+      ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
+        ZNear, ProjectionFar);
+    finally FreeAndNil(TransformedCoords) end;
   end;
 
 var
