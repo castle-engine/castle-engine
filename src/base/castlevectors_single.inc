@@ -1443,22 +1443,31 @@ begin
   Result := (Vector1.Data[Coord] > 0) = (Vector2.Data[Coord] > 0);
 end;
 
-function PointOnPlaneClosestToPoint(const plane: TVector4; const point: TVector3): TVector3;
+function PointOnPlaneClosestToPoint(const Plane: TVector4; const Point: TVector3): TVector3;
 var
-  d: Single;
-  PlaneDir: TVector3 absolute plane;
+  D: Single;
+  PlaneDir: TVector3 absolute Plane;
 begin
-  (*licz punkt Pr - punkt na plaszczyznie plane bedacy rzutem prostopadlym
-    punktu pos na ta plaszczyzne. Pr = pos + d * PlaneDir.
-    plane.Data[0]*Pr.Data[0] + plane.Data[1]*Pr.Data[1] + plane.Data[2]*Pr.Data[2] + plane.Data[3] = 0,
-    mamy wiec
-    plane.Data[0]*(pos.Data[0] + d*plane.Data[0])+
-    plane.Data[1]*(pos.Data[1] + d*plane.Data[1])+
-    plane.Data[2]*(pos.Data[2] + d*plane.Data[2])+ plane.Data[3] = 0
-    Przeksztalcajac otrzymujemy rownanie na d.*)
-  d := -(plane.Data[0]*point.Data[0] + plane.Data[1]*point.Data[1] + plane.Data[2]*point.Data[2] + plane.Data[3])/
-      PlaneDir.LengthSqr;
-  Result := Point + PlaneDir * d;
+  { We know that
+
+      Result = Point + D * PlaneDir
+      dot(PlaneDir, Result) + Plane.W = 0
+
+    So
+
+      dot(PlaneDir, Point + D * PlaneDir) + Plane.W = 0
+
+    We can expand the dot definition for 3D now, and get an equation
+    to calculate D.
+  }
+
+  D := -(
+    Plane.Data[0] * Point.Data[0] +
+    Plane.Data[1] * Point.Data[1] +
+    Plane.Data[2] * Point.Data[2] +
+    Plane.Data[3] ) /
+    PlaneDir.LengthSqr;
+  Result := Point + PlaneDir * D;
 end;
 
 function PointToPlaneDistanceSqr(const Point: TVector3;

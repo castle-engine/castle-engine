@@ -754,6 +754,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Shader.EnableTexGen(TexUnit, tgObject, 1, TexCoord.GenerationBoundsVector[1]);
           Shader.EnableTexGen(TexUnit, tgObject, 2, TexCoord.GenerationBoundsVector[2]);
         end;
+      tgMirrorPlane:
+        begin
+          Shader.EnableTexGen(TexUnit, tgcMirrorPlane, false);
+          Shader.MirrorPlaneUniforms := Shape.MirrorPlaneUniforms;
+        end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
   end;

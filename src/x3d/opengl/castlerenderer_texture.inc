@@ -274,11 +274,10 @@
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
+      const ShapeBoundingBox: TBox3D;
       const GeometryTransform: TMatrix4;
       const GeometryCoords: TVector3List;
-      { TODO: These should not be passed here directly, also preventing
-        multi-texturing setups from working. }
-      const GeometryTexCoords: TVector2List);
+      var MirrorPlaneUniforms: TMirrorPlaneUniforms);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -1218,9 +1217,10 @@ procedure TGLRenderedTextureNode.Update(
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
+  const ShapeBoundingBox: TBox3D;
   const GeometryTransform: TMatrix4;
   const GeometryCoords: TVector3List;
-  const GeometryTexCoords: TVector2List);
+  var MirrorPlaneUniforms: TMirrorPlaneUniforms);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
@@ -1352,7 +1352,8 @@ procedure TGLRenderedTextureNode.Update(
     end;
   end;
 
-  { Best plane for a set of points. }
+  { Best plane for a set of points.
+    The plane direction (first 3 components) is guaranteed to be normalized. }
   function PointsPlane(const Points: TVector3List; out Plane: TVector4): Boolean;
   var
     Normal: TVector3 absolute Plane;
@@ -1418,10 +1419,9 @@ procedure TGLRenderedTextureNode.Update(
     Pos, Dir, Up, PosOnPlane, Side, Coord, PlaneCoord: TVector3;
     PlaneCoordProjected: TVector2;
     Plane: TVector4;
-    TransformedCoords: TVector3List;
-    I: Integer;
     ZNear: Single;
     FrustumDimensions: TFloatRectangle;
+    ShapeCorners: TBoxCorners;
   begin
     if GeometryCoords = nil then
     begin
@@ -1433,81 +1433,56 @@ procedure TGLRenderedTextureNode.Update(
 
     GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
 
-    { calculate TransformedCoords }
-    TransformedCoords := TVector3List.Create;
-    try
-      TransformedCoords.Count := GeometryCoords.Count;
-      for I := 0 to GeometryCoords.Count - 1 do
-        TransformedCoords.List^[I] := GeometryTransform.MultPoint(GeometryCoords.List^[I]);
+    { calculate Plane of the mirror }
+    if not PointsPlane(GeometryCoords, Plane) then
+    begin
+      WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
+      GetMatricesForViewpoint(
+        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+    Plane := PlaneTransform(Plane, GeometryTransform);
 
-      { calculate Plane of the mirror }
-      if not PointsPlane(TransformedCoords, Plane) then
-      begin
-        WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
-        GetMatricesForViewpoint(
-          CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
-        Exit;
-      end;
+    { reflect Pos, Dir, Up for mirror view }
+    PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
+    Pos := 2 * PosOnPlane - Pos; // mirror Pos versus Plane
+    Dir := PosOnPlane - Pos;
+    //Up := keep current Up
 
-      { reflect Pos, Dir, Up for mirror view }
-      PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
-      Pos := 2 * PosOnPlane - Pos; // mirror Pos versus Plane
-      Dir := PosOnPlane - Pos;
-      Assert(TransformedCoords.Count >= 3); // since PointsPlane result was true
-      Up := TransformedCoords[2] - TransformedCoords[1];
+    { calculate Side, and make Dir, Up normalized and orthogonal }
+    Dir.NormalizeMe;
+    //Up.NormalizeMe; // no need to
+    MakeVectorsOrthoOnTheirPlane(Up, Dir);
+    Side := TVector3.CrossProduct(Dir, Up);
 
-      { calculate Side, and make Dir, Up normalized and orthogonal }
-      Dir.NormalizeMe;
-      Up.NormalizeMe;
-      MakeVectorsOrthoOnTheirPlane(Up, Dir);
-      Side := TVector3.CrossProduct(Dir, Up);
+    CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
+    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
 
-      CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
-      CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
+    { calculate FrustumDimensions,
+      to include ShapeBoundingBox projected on the Plane. }
+    ShapeBoundingBox.Corners(ShapeCorners);
+    FrustumDimensions := TFloatRectangle.Empty;
+    for Coord in ShapeCorners do
+    begin
+      PlaneCoord := PointOnPlaneClosestToPoint(Plane, Coord) - PosOnPlane;
+      PlaneCoordProjected := Vector2(
+        TVector3.DotProduct(PlaneCoord, Side),
+        TVector3.DotProduct(PlaneCoord, Up)
+      );
+      FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
+    end;
 
-      { calculate FrustumDimensions.
+    ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
+    ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
+      ZNear, ProjectionFar);
 
-        TODO: Also change TransformedCoords,
-        to project all points on Plane,
-        and shift to be specified relative to PosOnPlane.
-        This will be useful to later use to project texture coordinates. }
-      FrustumDimensions := TFloatRectangle.Empty;
-      for I := 0 to TransformedCoords.Count - 1 do
-      begin
-        Coord := TransformedCoords.List^[I];
-        PlaneCoord := PointOnPlaneClosestToPoint(Plane, Coord) - PosOnPlane;
-        PlaneCoordProjected := Vector2(
-          TVector3.DotProduct(PlaneCoord, Side),
-          TVector3.DotProduct(PlaneCoord, Up)
-        );
-        FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
-
-        // TODO: this is somewhat ugly, to reuse TransformedCoords memory
-        TransformedCoords.List^[I] := Vector3(
-          PlaneCoordProjected[0],
-          PlaneCoordProjected[1],
-          0);
-      end;
-
-      { TODO: project tex coords }
-      ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
-      // ProjectionMatrix := PerspectiveProjectionMatrixDeg(60, Width / Height,
-      //   ZNear, ProjectionFar);
-      ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
-        ZNear, ProjectionFar);
-
-      GeometryTexCoords.Count := TransformedCoords.Count;
-      for I := 0 to GeometryTexCoords.Count - 1 do
-      begin
-        PlaneCoordProjected := Vector2(
-          TransformedCoords.List^[I].Data[0],
-          TransformedCoords.List^[I].Data[1]);
-        GeometryTexCoords.List^[I] := Vector2(
-          (PlaneCoordProjected.Data[0] - FrustumDimensions.Left) / FrustumDimensions.Width,
-          (PlaneCoordProjected.Data[1] - FrustumDimensions.Bottom) / FrustumDimensions.Height
-        );
-      end;
-    finally FreeAndNil(TransformedCoords) end;
+    if MirrorPlaneUniforms = nil then
+      MirrorPlaneUniforms := TMirrorPlaneUniforms.Create;
+    MirrorPlaneUniforms.NormalizedPlane := Plane;
+    MirrorPlaneUniforms.CameraPositionOnPlane := PosOnPlane;
+    MirrorPlaneUniforms.CameraSide := Side;
+    MirrorPlaneUniforms.CameraUp := Up;
+    MirrorPlaneUniforms.FrustumDimensions := FrustumDimensions;
   end;
 
 var

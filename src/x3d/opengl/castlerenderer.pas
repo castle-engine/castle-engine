@@ -126,7 +126,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  CastleRendererInternalTextureEnv;
+  CastleRendererInternalTextureEnv, CastleBoxes;
 
 {$define read_interface}
 
@@ -749,6 +749,11 @@ type
 
     { Assign this each time before passing this shape to RenderShape. }
     ModelView: TMatrix4;
+
+    { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
+    MirrorPlaneUniforms: TMirrorPlaneUniforms;
+
+    destructor Destroy; override;
   end;
 
   TGLRenderer = class
@@ -991,7 +996,7 @@ type
       The given camera position, direction, up should be in world space
       (that is, in TCastleSceneManager space,
       not in space local to this TCastleScene). }
-    procedure UpdateGeneratedTextures(Shape: TShape;
+    procedure UpdateGeneratedTextures(Shape: TX3DRendererShape;
       TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -2208,6 +2213,12 @@ begin
 end;
 
 { TX3DRendererShape --------------------------------------------------------- }
+
+destructor TX3DRendererShape.Destroy;
+begin
+  FreeAndNil(MirrorPlaneUniforms);
+  inherited;
+end;
 
 procedure TX3DRendererShape.LoadArraysToVbo;
 begin
@@ -3513,7 +3524,7 @@ begin
 end;
 {$endif}
 
-procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
+procedure TGLRenderer.UpdateGeneratedTextures(Shape: TX3DRendererShape;
   TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
@@ -3603,8 +3614,6 @@ var
     GLNode: TGLRenderedTextureNode;
     GeometryCoordsField: TMFVec3f;
     GeometryCoords: TVector3List;
-    GeometryTexCoordsNode: TX3DNode;
-    GeometryTexCoords: TVector2List;
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
@@ -3617,29 +3626,14 @@ var
            (GeometryCoordsField <> nil) then
           GeometryCoords := GeometryCoordsField.Items;
 
-        { calculate GeometryTexCoords }
-        GeometryTexCoords := nil;
-        if Shape.Geometry.InternalTexCoord(Shape.State, GeometryTexCoordsNode) and
-           (GeometryTexCoordsNode is TTextureCoordinateNode) then
-          GeometryTexCoords := TTextureCoordinateNode(GeometryTexCoordsNode).
-            FdPoint.Items;
-
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
+          Shape.BoundingBox,
           Shape.State.Transform,
           GeometryCoords,
-          GeometryTexCoords);
-
-        // TODO: This is a hack to make TViewpointMirrorNode updating tex coord working.
-        // TODO: This is ugly, and it also doesn't avoid initial useless
-        // warning in case TextureCoordinate count is incorrect.
-        // We need something like TextureCoordinateMirror that cooperates
-        // with indicated ViewpointMirror instead.
-        if (TexNode.FdViewpoint.Value is TViewpointMirrorNode) and
-           (GeometryTexCoordsNode <> nil) then
-          TTextureCoordinateNode(GeometryTexCoordsNode).FdPoint.Changed;
+          Shape.MirrorPlaneUniforms);
 
         PostUpdate;
 

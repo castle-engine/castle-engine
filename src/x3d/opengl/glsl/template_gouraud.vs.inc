@@ -27,6 +27,9 @@
 'attribute vec4 castle_ColorPerVertex;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
+'/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
+'/* CASTLE-COMMON-CODE */' + LineEnding +
+'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec4 vertex_object = castle_Vertex;' + LineEnding +

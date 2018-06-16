@@ -19,6 +19,9 @@ attribute vec4 castle_ColorPerVertex;
 varying vec4 castle_ColorPerVertexFragment;
 #endif
 
+/* Include fragment shader utilities used by both Gouraud and Phong shading. */
+/* CASTLE-COMMON-CODE */
+
 void main(void)
 {
   #ifdef COLOR_PER_VERTEX

@@ -266,7 +266,7 @@ type
     function Size: TVector3;
 
     { Calculate eight corners of the box.}
-    procedure Corners(var AllPoints: TBoxCorners);
+    procedure Corners(out AllPoints: TBoxCorners);
     procedure GetAllPoints(AllPoints: PVector3Array); deprecated 'use Corners';
 
     { Transform the Box by given matrix.
@@ -1037,7 +1037,7 @@ begin
   AllPoints^[7] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]);
 end;
 
-procedure TBox3D.Corners(var AllPoints: TBoxCorners);
+procedure TBox3D.Corners(out AllPoints: TBoxCorners);
 begin
   {$warnings off} // using deprecated knowingly
   GetAllPoints(@AllPoints);

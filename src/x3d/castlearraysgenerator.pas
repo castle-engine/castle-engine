@@ -1054,13 +1054,16 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         if S = 'BOUNDS' then
         begin
           if IsTexture3D then
-            Result := tgBounds3d else
+            Result := tgBounds3d
+          else
             Result := tgBounds2d;
         end else
         if S = 'BOUNDS2D' then
           Result := tgBounds2d else
         if S = 'BOUNDS3D' then
           Result := tgBounds3d else
+        if S = 'MIRROR-PLANE' then
+          Result := tgMirrorPlane else
         begin
           Result := tgCoord;
           WritelnWarning('VRML/X3D', Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',

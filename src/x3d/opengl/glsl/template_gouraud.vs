@@ -25,6 +25,9 @@ uniform vec4 castle_UnlitColor;
 attribute vec4 castle_ColorPerVertex;
 #endif
 
+/* Include fragment shader utilities used by both Gouraud and Phong shading. */
+/* CASTLE-COMMON-CODE */
+
 void main(void)
 {
   vec4 vertex_object = castle_Vertex;

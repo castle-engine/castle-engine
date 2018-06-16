@@ -52,7 +52,8 @@ type
     tgWorldSpaceNormal,
     tgCameraSpaceReflectionVector,
     tgWorldSpaceReflectionVector,
-    tgProjection);
+    tgProjection,
+    tgMirrorPlane);
 
   TProjectorMatrixFunction = function: TMatrix4 of object;
 
