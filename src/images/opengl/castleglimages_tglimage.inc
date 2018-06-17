@@ -93,11 +93,12 @@ type
     { Point VBO contents, reused in every Draw. }
     Points: array of TPoint; static;
     Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
-    TextureHasOnlyAlpha: boolean;
+    PointsVboSize, IndexesVboSize: Cardinal; static;
 
     { Used only in shader pipeline }
     Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
 
+    TextureHasOnlyAlpha: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAutoAlphaChannel;
@@ -1011,6 +1012,8 @@ var
 begin
   glFreeBuffer(PointsVbo);
   glFreeBuffer(IndexesVbo);
+  PointsVboSize := 0;
+  IndexesVboSize := 0;
 
   { free below regardless of EnableFixedFunction state,
     to avoid memory leaks in case we toggle EnableFixedFunction at runtime }
@@ -1224,6 +1227,23 @@ var
     end;
   end;
 
+  procedure LoadBuffer(const Target: TGLenum;
+    const Vbo: TGLuint; var VboCurrentSize: Cardinal;
+    const ContentsPtr: Pointer; const ContentsSize: Cardinal);
+  begin
+    glBindBuffer(Target, Vbo);
+    { Try using glBufferSubData if possible, manual suggests it's better
+      than repeatedly calling glBufferData.
+      The VBO size will only increase this way, but this is probably OK,
+      it's a single VBO for all our UI stuff. }
+    if VboCurrentSize < ContentsSize then
+    begin
+      glBufferData(Target, ContentsSize, ContentsPtr, GL_STREAM_DRAW);
+      VboCurrentSize := ContentsSize;
+    end else
+      glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
+  end;
+
 var
   ColorTreatment: TColorTreatment;
   Prog: TImageProgram;
@@ -1272,15 +1292,13 @@ begin
 
   if GLFeatures.VertexBufferObject then
   begin
-    glBindBuffer(GL_ARRAY_BUFFER, PointsVbo);
-    glBufferData(GL_ARRAY_BUFFER, Length(Points) * SizeOf(TPoint),
-      @Points[0], GL_STREAM_DRAW);
+    LoadBuffer(GL_ARRAY_BUFFER, PointsVbo, PointsVboSize,
+      @Points[0], Length(Points) * SizeOf(TPoint));
 
     if Count <> 1 then
     begin
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(Indexes[0]),
-        @Indexes[0], GL_STREAM_DRAW);
+      LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo, IndexesVboSize,
+        @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
     end;
   end;
 
