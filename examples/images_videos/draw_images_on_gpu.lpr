@@ -77,19 +77,18 @@ begin
       This makes sense, as the primary usage of TGLImage (and OpenGLES textures)
       is to load them to GPU, and then keep them on GPU, not get them back
       from GPU to normal memory. }
-    {$if not(defined(CASTLE_IOS) or defined(ANDROID))}
-
-    { Instead of using DestImage for drawing, you can also get it's contents
-      back to normal (non-GPU) memory using DestImage.GetContents.
-      This is reasonable if you have to save it back to disk
-      (otherwise, you should avoid it, and work with GPU-only DestImage
-      for maximum speed). }
-    DestImageFinal := DestImage.GetContents(TRGBAlphaImage);
-    try
-      SaveImage(DestImageFinal, 'test.png');
-    finally FreeAndNil(DestImageFinal) end;
-
-    {$endif}
+    if not Application.OpenGLES then
+    begin
+      { Instead of using DestImage for drawing, you can also get it's contents
+        back to normal (non-GPU) memory using DestImage.GetContents.
+        This is reasonable if you have to save it back to disk
+        (otherwise, you should avoid it, and work with GPU-only DestImage
+        for maximum speed). }
+      DestImageFinal := DestImage.GetContents(TRGBAlphaImage);
+      try
+        SaveImage(DestImageFinal, 'test.png');
+      finally FreeAndNil(DestImageFinal) end;
+    end;
 
     Application.Run;
   finally

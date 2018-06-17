@@ -2879,6 +2879,9 @@ type
     }
     procedure ParseStandardParameters;
 
+    { Are we using OpenGLES for rendering. }
+    function OpenGLES: Boolean;
+
     property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
       deprecated 'use ApplicationProperties.LimitFps';
     property Version: string read GetVersion write SetVersion;
@@ -5201,6 +5204,27 @@ begin
   if MainWindow <> nil then
     MainWindow.ParseParameters;
   Parameters.Parse(Options, @ApplicationOptionProc, Self);
+end;
+
+function TCastleApplication.OpenGLES: Boolean;
+begin
+  (* Note that CGE own code can just use
+       {$ifdef OpenGLES}
+     instead of runtime check
+       if Application.OpenGLES
+
+     However, for user code, we don't want to expose this as a define.
+     - Because user code can be compiled in various ways.
+       Our build tool can define some CGE-specific defines,
+       but user can also compile without our build tool.
+     - Some day, renderer selection may be possible at runtime.
+
+     So user code must use
+       if Application.OpenGLES
+     (or test with $ifdefs for specific platforms, like ANDROID or CASTLE_IOS.)
+  *)
+
+  Result := {$ifdef OpenGLES} true {$else} false {$endif};
 end;
 
 function TCastleApplication.GetVersion: string;
