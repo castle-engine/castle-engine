@@ -219,6 +219,8 @@ type
 
   TGLSLAttributeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TGLSLAttribute>;
 
+  TLocationCache = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TGLint>;
+
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
@@ -234,6 +236,8 @@ type
 
     FUniformNotFoundAction: TUniformNotFoundAction;
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
+
+    FUniformLocations, FAttributeLocations: TLocationCache;
 
     class var
       FCurrent: TGLSLProgram;
@@ -1243,6 +1247,9 @@ begin
 
   FUniformNotFoundAction := uaException;
   FUniformTypeMismatchAction := utGLError;
+
+  FUniformLocations := TLocationCache.Create;
+  FAttributeLocations := TLocationCache.Create;
 end;
 
 destructor TGLSLProgram.Destroy;
@@ -1262,6 +1269,8 @@ begin
   end;
 
   FreeAndNil(ShaderIds);
+  FreeAndNil(FUniformLocations);
+  FreeAndNil(FAttributeLocations);
 
   inherited;
 end;
@@ -1785,12 +1794,19 @@ begin
   Result.Owner := Self;
   Result.Name := Name;
 
-  case Support of
-    {$ifndef ForceStandardGLSLApi}
-    gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+  if not FUniformLocations.TryGetValue(Name, Result.Location) then
+  begin
+    case Support of
+      {$ifndef ForceStandardGLSLApi}
+      gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+      {$endif}
+      gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
+      else Result.Location := -1;
+    end;
+    {$ifdef CASTLE_LOG_GET_LOCATIONS}
+    WritelnLog('Doing (potentially expensive) glGetUniformLocation: ' + Name);
     {$endif}
-    gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
-    else Result.Location := -1; // whatever, should not be used
+    FUniformLocations.Add(Name, Result.Location);
   end;
 
   if Result.Location = -1 then
@@ -1942,12 +1958,19 @@ begin
   Result.Owner := Self;
   Result.Name := Name;
 
-  case Support of
-    {$ifndef ForceStandardGLSLApi}
-    gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+  if not FAttributeLocations.TryGetValue(Name, Result.Location) then
+  begin
+    case Support of
+      {$ifndef ForceStandardGLSLApi}
+      gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+      {$endif}
+      gsStandard: Result.Location := glGetAttribLocation(ProgramId, PCharOrNil(Name));
+      else Result.Location := -1;
+    end;
+    {$ifdef CASTLE_LOG_GET_LOCATIONS}
+    WritelnLog('Doing (potentially expensive) glGetAttribLocation: ' + Name);
     {$endif}
-    gsStandard: Result.Location := glGetAttribLocation(ProgramId, PCharOrNil(Name));
-    else Result.Location := -1;
+    FAttributeLocations.Add(Name, Result.Location);
   end;
 end;
 
