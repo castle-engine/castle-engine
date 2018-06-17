@@ -1299,9 +1299,6 @@ begin
     if CustomShader <> nil then
     begin
       Prog.Prog := CustomShader;
-      { TODO: This will be speed up some day, by either caching
-        of TGLSLProgram.Attribute or TGLSLProgram.Uniform,
-        or by doing this at each property change (SetCustomShader, SetClip etc.). }
       Prog.InitializeUniformsAttributes(Clip, ColorTreatment);
     end else
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
