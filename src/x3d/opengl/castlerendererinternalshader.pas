@@ -82,6 +82,41 @@ type
     procedure Link; override;
   end;
 
+  TLightUniforms = class
+    Number: Cardinal;
+    ShaderProgram: TGLSLProgram;
+
+    { Current values provided to OpenGL(ES) for these uniforms.
+
+      Note that they are initially filled with zero.
+
+      This is correct, as OpenGL and OpenGLES docs say:
+      """
+      All active uniform variables defined in a program object
+      are initialized to 0 when the program object is linked successfully.
+      """
+
+      https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glUniform.xhtml
+      https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glUniform.xhtml
+    }
+    Position: TVector3;
+    SpotCosCutoff: Single;
+    SpotDirection: TVector3;
+    SpotExponent: Single;
+    SpotCutoff: Single;
+    Attenuation: TVector3;
+    Ambient, Specular, Diffuse, DiffuseProduct: TVector4;
+
+    procedure SetUniform(const NamePattern: string;
+      var CurrentValue: Single; const NewValue: Single);
+    procedure SetUniform(const NamePattern: string;
+      var CurrentValue: TVector3; const NewValue: TVector3);
+    procedure SetUniform(const NamePattern: string;
+      var CurrentValue: TVector4; const NewValue: TVector4);
+  end;
+
+  TLightUniformsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLightUniforms>;
+
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
@@ -91,6 +126,9 @@ type
   private
     { Events where we registered our EventReceive method. }
     EventsObserved: TX3DEventList;
+
+    { Current state of lights uniforms for this shader. }
+    FLightUniformsList: TLightUniformsList;
 
     { Set uniform variable from VRML/X3D field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -899,6 +937,7 @@ end;
 
 procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
 var
+  Uniforms: TLightUniforms;
   Color3, AmbientColor3: TVector3;
   Color4, AmbientColor4: TVector4;
   Position: TVector4;
@@ -907,6 +946,15 @@ var
   LiSpot: TSpotLightNode;
   LightToEyeSpace: PMatrix4;
 begin
+  while Number >= AProgram.FLightUniformsList.Count do
+  begin
+    Uniforms := TLightUniforms.Create;
+    Uniforms.Number := AProgram.FLightUniformsList.Count;
+    Uniforms.ShaderProgram := AProgram;
+    AProgram.FLightUniformsList.Add(Uniforms);
+  end;
+  Uniforms := AProgram.FLightUniformsList[Number];
+
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
   Color4 := Vector4(Color3, 1);
@@ -938,7 +986,7 @@ begin
   { Note that we cut off last component of Node.Position,
     we don't need it. #defines tell the shader whether we deal with direcional
     or positional light. }
-  AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
+  Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
     Position.XYZ);
 
   if Node is TAbstractPositionalLightNode then
@@ -947,51 +995,51 @@ begin
     if LiPos is TSpotLightNode_1 then
     begin
       LiSpot1 := TSpotLightNode_1(Node);
-      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+      Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
         LiSpot1.SpotCosCutoff);
-      AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
+      Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
         LightToEyeSpace^.MultDirection(Light^.Direction));
       if LiSpot1.SpotExponent <> 0 then
       begin
-        AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
+        Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
           LiSpot1.SpotExponent);
       end;
     end else
     if LiPos is TSpotLightNode then
     begin
       LiSpot := TSpotLightNode(Node);
-      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+      Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
         LiSpot.SpotCosCutoff);
-      AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
+      Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
         LightToEyeSpace^.MultDirection(Light^.Direction));
       if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
       begin
-        AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),
+        Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
           LiSpot.FdCutOffAngle.Value);
       end;
     end;
 
     if LiPos.HasAttenuation then
-      AProgram.SetUniform(Format('castle_LightSource%dAttenuation', [Number]),
+      Uniforms.SetUniform('castle_LightSource%dAttenuation', Uniforms.Attenuation,
         LiPos.FdAttenuation.Value);
   end;
 
   if Node.FdAmbientIntensity.Value <> 0 then
-    AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
+    Uniforms.SetUniform('castle_SideLightProduct%dAmbient', Uniforms.Ambient,
       Shader.MaterialAmbient * AmbientColor4);
 
   if not ( (Shader.MaterialSpecular[0] = 0) and
            (Shader.MaterialSpecular[1] = 0) and
            (Shader.MaterialSpecular[2] = 0)) then
-    AProgram.SetUniform(Format('castle_SideLightProduct%dSpecular', [Number]),
+    Uniforms.SetUniform('castle_SideLightProduct%dSpecular', Uniforms.Specular,
       Shader.MaterialSpecular * Color4);
 
   { depending on COLOR_PER_VERTEX define, only one of these uniforms
     will be actually used. }
   if Shader.ColorPerVertex then
-    AProgram.SetUniform(Format('castle_LightSource%dDiffuse', [Number]),
+    Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse,
       Color4) else
-    AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
+    Uniforms.SetUniform('castle_SideLightProduct%dDiffuse', Uniforms.DiffuseProduct,
       Shader.MaterialDiffuse * Color4);
 end;
 
@@ -1031,6 +1079,38 @@ begin
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
 
+{ TLightUniforms ------------------------------------------------------- }
+
+procedure TLightUniforms.SetUniform(const NamePattern: string;
+  var CurrentValue: Single; const NewValue: Single);
+begin
+  if CurrentValue <> NewValue then
+  begin
+    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    CurrentValue := NewValue;
+  end;
+end;
+
+procedure TLightUniforms.SetUniform(const NamePattern: string;
+  var CurrentValue: TVector3; const NewValue: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(CurrentValue, NewValue) then
+  begin
+    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    CurrentValue := NewValue;
+  end;
+end;
+
+procedure TLightUniforms.SetUniform(const NamePattern: string;
+  var CurrentValue: TVector4; const NewValue: TVector4);
+begin
+  if not TVector4.PerfectlyEquals(CurrentValue, NewValue) then
+  begin
+    ShaderProgram.SetUniform(Format(NamePattern, [Number]), NewValue);
+    CurrentValue := NewValue;
+  end;
+end;
+
 { TX3DShaderProgram ------------------------------------------------------- }
 
 constructor TX3DShaderProgram.Create;
@@ -1038,6 +1118,7 @@ begin
   inherited;
   EventsObserved := TX3DEventList.Create(false);
   UniformsTextures := TX3DFieldList.Create(false);
+  FLightUniformsList := TLightUniformsList.Create(true);
 end;
 
 destructor TX3DShaderProgram.Destroy;
@@ -1051,6 +1132,7 @@ begin
     FreeAndNil(EventsObserved);
   end;
   FreeAndNil(UniformsTextures);
+  FreeAndNil(FLightUniformsList);
   inherited;
 end;
 
