@@ -1334,10 +1334,8 @@ begin
       @Points[0], Length(Points) * SizeOf(TPoint));
 
     if Count <> 1 then
-    begin
       LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
-    end;
   end;
 
   AlphaBegin;
@@ -1407,7 +1405,9 @@ begin
   begin
     if GLFeatures.VertexBufferObject then
     begin
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
+      { No need to call glBindBuffer below, it is already bound by
+        LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, ...) above. }
+      //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
       glDrawElements(GL_TRIANGLES, Length(Indexes),
         {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
     end else
