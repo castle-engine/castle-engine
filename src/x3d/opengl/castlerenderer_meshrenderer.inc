@@ -141,8 +141,10 @@ type
   end;
 
   TColorPerVertexCoordinateRenderer = class(TFogCoordinateRenderer)
+  {$ifndef OpenGLES}
   private
     MaterialFromColorEnabled: boolean;
+  {$endif}
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
