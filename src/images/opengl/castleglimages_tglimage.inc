@@ -1270,7 +1270,7 @@ var
       it's a single VBO for all our UI stuff. }
     if VboCurrentSize < ContentsSize then
     begin
-      glBufferData(Target, ContentsSize, ContentsPtr, GL_STREAM_DRAW);
+      glBufferData(Target, ContentsSize, ContentsPtr, GL_DYNAMIC_DRAW);
       VboCurrentSize := ContentsSize;
     end else
       glBufferSubData(Target, 0, ContentsSize, ContentsPtr);
