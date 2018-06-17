@@ -87,13 +87,37 @@ type
           const ColorTreatment: TColorTreatment);
       end;
 
+      TVboStorage = record
+        PointsVbo, IndexesVbo: TGLuint;
+        PointsVboSize, IndexesVboSize: Cardinal;
+      end;
+      PVboStorage = ^TVboStorage;
+
     var
-    { Static OpenGL resources, used by all TGLImageCore instances. }
-    PointsVbo, IndexesVbo: TGLuint; static;
+    { Static OpenGL resources, used by all TGLImageCore instances.
+      Instead of using the same TVboStorage for all TGLImage.Draw calls,
+      we rotate between a number of TVboStorage, each with it's own VBOs.
+
+      This way we minimize the overhead caused by updating VBO that is currently
+      drawn in parallel:
+      https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBufferSubData.xhtml
+      :
+
+      """
+      Consider using multiple buffer objects to avoid stalling
+      the rendering pipeline during data store updates.
+      If any rendering in the pipeline makes reference to data in
+      the buffer object being updated by glBufferSubData,
+      especially from the specific region being updated,
+      that rendering must drain from the pipeline before
+      the data store can be updated.
+      """
+    }
+    VboStorage: array [0..9] of TVboStorage; static;
+    VboStorageNext: Cardinal; static;
     { Point VBO contents, reused in every Draw. }
     Points: array of TPoint; static;
     Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
-    PointsVboSize, IndexesVboSize: Cardinal; static;
 
     { Used only in shader pipeline }
     Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
@@ -961,14 +985,18 @@ var
   ColorTreatment: TColorTreatment;
   NewProgram: TImageProgram;
   VS, FS: string;
+  I: Integer;
 begin
   // Some Intel GPUs may not support VBO
   if GLFeatures.VertexBufferObject then
   begin
-    if (PointsVbo = 0) then
-      glGenBuffers(1, @PointsVbo);
-    if (IndexesVbo = 0) then
-      glGenBuffers(1, @IndexesVbo);
+    for I := Low(VboStorage) to High(VboStorage) do
+    begin
+      if (VboStorage[I].PointsVbo = 0) then
+        glGenBuffers(1, @VboStorage[I].PointsVbo);
+      if (VboStorage[I].IndexesVbo = 0) then
+        glGenBuffers(1, @VboStorage[I].IndexesVbo);
+    end;
   end;
 
   if not GLFeatures.EnableFixedFunction then
@@ -1009,11 +1037,15 @@ class procedure TGLImageCore.StaticGLContextClose;
 var
   AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TGLImageCore.TColorTreatment;
+  I: Integer;
 begin
-  glFreeBuffer(PointsVbo);
-  glFreeBuffer(IndexesVbo);
-  PointsVboSize := 0;
-  IndexesVboSize := 0;
+  for I := Low(VboStorage) to High(VboStorage) do
+  begin
+    glFreeBuffer(VboStorage[I].PointsVbo);
+    glFreeBuffer(VboStorage[I].IndexesVbo);
+    VboStorage[I].PointsVboSize := 0;
+    VboStorage[I].IndexesVboSize := 0;
+  end;
 
   { free below regardless of EnableFixedFunction state,
     to avoid memory leaks in case we toggle EnableFixedFunction at runtime }
@@ -1248,6 +1280,7 @@ var
   ColorTreatment: TColorTreatment;
   Prog: TImageProgram;
   I: Integer;
+  Vbo: PVboStorage;
 begin
   if (Count = 0) or
      ((Count = 1) and
@@ -1292,12 +1325,17 @@ begin
 
   if GLFeatures.VertexBufferObject then
   begin
-    LoadBuffer(GL_ARRAY_BUFFER, PointsVbo, PointsVboSize,
+    Vbo := @VboStorage[VboStorageNext];
+    Inc(VboStorageNext);
+    if VboStorageNext = High(VboStorage) + 1 then
+      VboStorageNext := 0;
+
+    LoadBuffer(GL_ARRAY_BUFFER, Vbo^.PointsVbo, Vbo^.PointsVboSize,
       @Points[0], Length(Points) * SizeOf(TPoint));
 
     if Count <> 1 then
     begin
-      LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo, IndexesVboSize,
+      LoadBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo, Vbo^.IndexesVboSize,
         @Indexes[0], Length(Indexes) * SizeOf(Indexes[0]));
     end;
   end;
@@ -1369,7 +1407,7 @@ begin
   begin
     if GLFeatures.VertexBufferObject then
     begin
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo^.IndexesVbo);
       glDrawElements(GL_TRIANGLES, Length(Indexes),
         {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
     end else
