@@ -122,8 +122,6 @@ type
     FBlendingConstantColor: TVector4;
     FCustomShader: TGLSLProgram;
     function FinalAlpha: TAlphaChannel;
-    procedure AlphaBegin;
-    procedure AlphaEnd;
     procedure SetSmoothScaling(const Value: boolean);
     function CurrentFilter: TTextureFilter;
   private
@@ -1036,50 +1034,6 @@ begin
     Result := FAlpha;
 end;
 
-procedure TGLImageCore.AlphaBegin;
-begin
-  case FinalAlpha of
-    {$ifndef OpenGLES}
-    acTest:
-      if GLFeatures.EnableFixedFunction then
-      begin
-        glAlphaFunc(GL_GEQUAL, 0.5);
-        glEnable(GL_ALPHA_TEST);
-      end;
-    {$endif not OpenGLES}
-    acBlending:
-      begin
-        if GLFeatures.BlendConstant and
-          ( (BlendingSourceFactor in
-             [bsConstantColor, bsOneMinusConstantColor,
-              bsConstantAlpha, bsOneMinusConstantAlpha]) or
-            (BlendingDestinationFactor in
-             [bdConstantColor, bdOneMinusConstantColor,
-              bdConstantAlpha, bdOneMinusConstantAlpha]) ) then
-        begin
-          glBlendColor(
-            BlendingConstantColor[0],
-            BlendingConstantColor[1],
-            BlendingConstantColor[2],
-            BlendingConstantColor[3]);
-        end;
-
-        GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
-        glEnable(GL_BLEND);
-      end;
-  end;
-end;
-
-procedure TGLImageCore.AlphaEnd;
-begin
-  case FinalAlpha of
-    {$ifndef OpenGLES}
-    acTest: if GLFeatures.EnableFixedFunction then glDisable(GL_ALPHA_TEST);
-    {$endif not OpenGLES}
-    acBlending: glDisable(GL_BLEND);
-  end;
-end;
-
 procedure TGLImageCore.Draw;
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
@@ -1119,7 +1073,6 @@ begin
     FloatRectangle(ImageX, ImageY, ImageWidth, ImageHeight));
 end;
 
-
 procedure TGLImageCore.Draw(const ScreenRect: TRectangle);
 begin
   Draw(
@@ -1156,6 +1109,51 @@ end;
 
 procedure TGLImageCore.Draw(
   ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
+
+  procedure AlphaBegin;
+  begin
+    case FinalAlpha of
+      {$ifndef OpenGLES}
+      acTest:
+        if GLFeatures.EnableFixedFunction then
+        begin
+          glAlphaFunc(GL_GEQUAL, 0.5);
+          glEnable(GL_ALPHA_TEST);
+        end;
+      {$endif not OpenGLES}
+      acBlending:
+        begin
+          if GLFeatures.BlendConstant and
+            ( (BlendingSourceFactor in
+               [bsConstantColor, bsOneMinusConstantColor,
+                bsConstantAlpha, bsOneMinusConstantAlpha]) or
+              (BlendingDestinationFactor in
+               [bdConstantColor, bdOneMinusConstantColor,
+                bdConstantAlpha, bdOneMinusConstantAlpha]) ) then
+          begin
+            glBlendColor(
+              BlendingConstantColor[0],
+              BlendingConstantColor[1],
+              BlendingConstantColor[2],
+              BlendingConstantColor[3]);
+          end;
+
+          GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
+          glEnable(GL_BLEND);
+        end;
+    end;
+  end;
+
+  procedure AlphaEnd;
+  begin
+    case FinalAlpha of
+      {$ifndef OpenGLES}
+      acTest: if GLFeatures.EnableFixedFunction then glDisable(GL_ALPHA_TEST);
+      {$endif not OpenGLES}
+      acBlending: glDisable(GL_BLEND);
+    end;
+  end;
+
 var
   ShiftX, ShiftY: Single;
 
@@ -1424,12 +1422,25 @@ end;
 procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
 var
+  ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
+  DrawAddCount: Cardinal;
+
+  { Add the quad to draw to ScreenRects, ImageRects.
+    This looks and behaves like TGLImageCore.Draw,
+    but the actual drawing is delayed to later. }
+  procedure DrawAdd(const X, Y, DrawWidth, DrawHeight: Single;
+    const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+  begin
+    ScreenRects[DrawAddCount] := FloatRectangle(X, Y, DrawWidth, DrawHeight);
+    ImageRects[DrawAddCount] := FloatRectangle(ImageX, ImageY, ImageWidth, ImageHeight);
+    Inc(DrawAddCount);
+  end;
+
+var
   XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
     HorizontalScreenSize, VerticalScreenSize: Single;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
-  OldAlpha: TAutoAlphaChannel;
-  OptimizeAlpha: boolean;
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
   DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
 const
@@ -1466,18 +1477,6 @@ begin
   YScreenTop := Y + DrawHeight - DrawCornerTop;
   YImageTop  :=         Height -     CornerTop;
 
-  { For speed, we only apply AlphaBegin/End once.
-    In case of GLFeatures.EnableFixedFunction=false,
-    this optimization is only useful for acBlending,
-    and it would actually break the acTest case. }
-  OptimizeAlpha := GLFeatures.EnableFixedFunction or (FinalAlpha = acBlending);
-  if OptimizeAlpha then
-  begin
-    AlphaBegin;
-    OldAlpha := Alpha;
-    Alpha := acNone;
-  end;
-
   { setup rotations }
   if Rotation <> 0 then
   begin
@@ -1486,15 +1485,17 @@ begin
     ScreenCenterY := Y + FCenterY * DrawHeight;
   end;
 
+  DrawAddCount := 0;
+
   { 4 corners }
-  Draw(XScreenLeft, YScreenBottom, DrawCornerLeft, DrawCornerBottom,
-        XImageLeft,  YImageBottom,     CornerLeft,     CornerBottom);
-  Draw(XScreenRight, YScreenBottom, DrawCornerRight, DrawCornerBottom,
-        XImageRight,  YImageBottom,     CornerRight,     CornerBottom);
-  Draw(XScreenRight, YScreenTop, DrawCornerRight, DrawCornerTop,
-        XImageRight,  YImageTop,     CornerRight,     CornerTop);
-  Draw(XScreenLeft, YScreenTop, DrawCornerLeft, DrawCornerTop,
-        XImageLeft,  YImageTop,     CornerLeft,     CornerTop);
+  DrawAdd(XScreenLeft, YScreenBottom, DrawCornerLeft, DrawCornerBottom,
+           XImageLeft,  YImageBottom,     CornerLeft,     CornerBottom);
+  DrawAdd(XScreenRight, YScreenBottom, DrawCornerRight, DrawCornerBottom,
+           XImageRight,  YImageBottom,     CornerRight,     CornerBottom);
+  DrawAdd(XScreenRight, YScreenTop, DrawCornerRight, DrawCornerTop,
+           XImageRight,  YImageTop,     CornerRight,     CornerTop);
+  DrawAdd(XScreenLeft, YScreenTop, DrawCornerLeft, DrawCornerTop,
+           XImageLeft,  YImageTop,     CornerLeft,     CornerTop);
 
   { 4 sides }
   HorizontalScreenSize := DrawWidth - DrawCornerLeft - DrawCornerRight;
@@ -1502,15 +1503,15 @@ begin
   VerticalScreenSize := DrawHeight - DrawCornerTop - DrawCornerBottom;
   VerticalImageSize  :=     Height -     CornerTop -     CornerBottom;
 
-  Draw(XScreenLeft + DrawCornerLeft, YScreenBottom, HorizontalScreenSize, DrawCornerBottom,
-        XImageLeft +     CornerLeft,  YImageBottom,  HorizontalImageSize,     CornerBottom);
-  Draw(XScreenLeft + DrawCornerLeft, YScreenTop, HorizontalScreenSize, DrawCornerTop,
-        XImageLeft +     CornerLeft,  YImageTop,  HorizontalImageSize,     CornerTop);
+  DrawAdd(XScreenLeft + DrawCornerLeft, YScreenBottom, HorizontalScreenSize, DrawCornerBottom,
+           XImageLeft +     CornerLeft,  YImageBottom,  HorizontalImageSize,     CornerBottom);
+  DrawAdd(XScreenLeft + DrawCornerLeft, YScreenTop, HorizontalScreenSize, DrawCornerTop,
+           XImageLeft +     CornerLeft,  YImageTop,  HorizontalImageSize,     CornerTop);
 
-  Draw(XScreenLeft, YScreenBottom + DrawCornerBottom, DrawCornerLeft, VerticalScreenSize,
-        XImageLeft,  YImageBottom +     CornerBottom,     CornerLeft,  VerticalImageSize);
-  Draw(XScreenRight, YScreenBottom + DrawCornerBottom, DrawCornerRight, VerticalScreenSize,
-        XImageRight,  YImageBottom +     CornerBottom,     CornerRight,  VerticalImageSize);
+  DrawAdd(XScreenLeft, YScreenBottom + DrawCornerBottom, DrawCornerLeft, VerticalScreenSize,
+           XImageLeft,  YImageBottom +     CornerBottom,     CornerLeft,  VerticalImageSize);
+  DrawAdd(XScreenRight, YScreenBottom + DrawCornerBottom, DrawCornerRight, VerticalScreenSize,
+           XImageRight,  YImageBottom +     CornerBottom,     CornerRight,  VerticalImageSize);
 
   { inside }
   if CornerLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
@@ -1518,14 +1519,12 @@ begin
   if CornerRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
   if CornerBottom > 0 then EpsilonB := Epsilon else EpsilonB := 0;
 
-  Draw(X + DrawCornerLeft           , Y + DrawCornerBottom           , HorizontalScreenSize, VerticalScreenSize,
-               CornerLeft + EpsilonL,         CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
+  DrawAdd(X + DrawCornerLeft           , Y + DrawCornerBottom           , HorizontalScreenSize, VerticalScreenSize,
+                  CornerLeft + EpsilonL,         CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
 
-  if OptimizeAlpha then
-  begin
-    Alpha := OldAlpha;
-    AlphaEnd;
-  end;
+  Assert(DrawAddCount = 9);
+  Draw(@ScreenRects, @ImageRects, 9);
+
   UseScreenCenter := false;
 end;
 
@@ -1551,104 +1550,6 @@ begin
     ScreenRect.Width, ScreenRect.Height,
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
-
-(* Commented out for now: using Draw3x3 with
-   CornerTop = CornerBottom = 0 should have the same effect?
-
-procedure TGLImageCore.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
-  const SideRight, SideLeft: Integer);
-var
-  XScreenLeft, XScreenRight,
-    HorizontalScreenSize: Single;
-  XImageLeft, XImageRight,
-    HorizontalImageSize: Single;
-  OldAlpha: TAutoAlphaChannel;
-  OptimizeAlpha: boolean;
-  EpsilonR, EpsilonL: Single;
-  DrawSideLeft, DrawSideRight: Single;
-const
-  { We tweak texture coordinates a little, to avoid bilinear filtering
-    that would cause border colors to "bleed" over the texture inside.
-    Something minimally > 0.5 is necessary. }
-  Epsilon = 0.51;
-begin
-  DrawSideLeft   := SideLeft  * ScaleCorners;
-  DrawSideRight  := SideRight * ScaleCorners;
-
-  if not ( (    SideLeft +     SideRight <     Width) and
-           (DrawSideLeft + DrawSideRight < DrawWidth) ) then
-  begin
-    if Log and not IgnoreTooLargeCorners then
-      WritelnLog('Draw3x1', 'Image sides are too large to draw it: sides are %d %d, image width is %d, draw area width is %d',
-        [SideRight, SideLeft,
-         Width,
-         DrawWidth]);
-    Exit;
-  end;
-
-  XScreenLeft := X;
-  XImageLeft  := 0;
-  XScreenRight := X + DrawWidth - DrawSideRight;
-  XImageRight  :=         Width -     SideRight;
-
-  { For speed, we only apply AlphaBegin/End once.
-    In case of GLFeatures.EnableFixedFunction=false, this optimization is only useful
-    for acBlending, and it would actually break the acTest case. }
-  OptimizeAlpha := GLFeatures.EnableFixedFunction or (FinalAlpha = acBlending);
-  if OptimizeAlpha then
-  begin
-    AlphaBegin;
-    OldAlpha := Alpha;
-    Alpha := acNone;
-  end;
-
-  { setup rotations }
-  if Rotation <> 0 then
-  begin
-    UseScreenCenter := true; // only temporary for this Draw3x3 call
-    ScreenCenterX := X + FCenterX * DrawWidth;
-    ScreenCenterY := Y + FCenterY * DrawHeight;
-  end;
-
-  { 2 sides }
-  HorizontalScreenSize := DrawWidth - DrawSideLeft - DrawSideRight;
-  HorizontalImageSize  :=     Width -     SideLeft -     SideRight;
-
-  Draw(XScreenLeft, Y, DrawSideLeft, DrawHeight,
-        XImageLeft, 0,     SideLeft,     Height);
-  Draw(XScreenRight, Y, DrawSideRight, DrawHeight,
-        XImageRight, 0,     SideRight,     Height);
-
-  { inside }
-  if SideLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
-  if SideRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
-
-  Draw(X + SideLeft           , Y, HorizontalScreenSize, DrawHeight,
-           SideLeft + EpsilonL, 0, HorizontalImageSize - (EpsilonL+EpsilonR), Height);
-
-  if OptimizeAlpha then
-  begin
-    Alpha := OldAlpha;
-    AlphaEnd;
-  end;
-  UseScreenCenter := false;
-end;
-
-procedure TGLImageCore.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
-  const Side: TVector2Integer);
-begin
-  Draw3x1(X, Y, DrawWidth, DrawHeight, Side[0], Side[1]);
-end;
-
-procedure TGLImageCore.Draw3x1(const ScreenRect: TRectangle;
-  const Side: TVector2Integer);
-begin
-  Draw3x1(ScreenRect.Left, ScreenRect.Bottom,
-    ScreenRect.Width, ScreenRect.Height,
-    Side[0], Side[1]);
-end;
-
-*)
 
 function TGLImageCore.CurrentFilter: TTextureFilter;
 begin
