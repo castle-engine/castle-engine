@@ -69,7 +69,16 @@ type
     uaIgnore);
 
   { What to do when GLSL uniform variable is set (by TGLSLProgram.SetUniform)
-    to the type that doesn't match type declared in GLSL shader. }
+    to the type that doesn't match type declared in GLSL shader.
+
+    @deprecated
+    Do not use this.
+    It has no effect anymore. Checking the GLSL uniform types requires
+    doing glGetError after every uniform set, which is prohibitively slow.
+    One day we may implement a better way to do this (using the info
+    we get about uniforms in TGLSLProgram.DebugInfo) and then this will
+    be useful again.
+  }
   TUniformTypeMismatchAction = (
     { Do not catch uniform type mismatch, leaving it to OpenGL.
       This will cause OpenGL error "invalid operation" (possibly resulting
@@ -87,9 +96,6 @@ type
   TGLSLProgram = class;
 
   TGLSLUniform = record
-  strict private
-    procedure SetValueBegin(const ForceException: boolean);
-    procedure SetValueEnd(const ForceException: boolean);
   public
     Owner: TGLSLProgram;
     Name: string;
@@ -378,6 +384,7 @@ type
     property UniformTypeMismatchAction: TUniformTypeMismatchAction
       read FUniformTypeMismatchAction write FUniformTypeMismatchAction
       default utGLError;
+      deprecated 'do not use this, it is ignored (old implementation was prohibitively slow)';
 
     { Get the uniform instance. It can be used to make repeated
       @link(TGLSLUniform.SetValue) calls. You must link the program first.
@@ -647,47 +654,6 @@ end;
 
 { TGLSLUniform --------------------------------------------------------------- }
 
-procedure TGLSLUniform.SetValueBegin(const ForceException: boolean);
-begin
-  if (Owner.UniformTypeMismatchAction in [utWarning, utException]) or
-     ForceException then
-    CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
-
-  Owner.Enable;
-end;
-
-procedure TGLSLUniform.SetValueEnd(const ForceException: boolean);
-var
-  ErrorCode: TGLenum;
-
-  function ErrMessage: string;
-  begin
-    Result := Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. ',
-      [Name]) + GLErrorString(ErrorCode);
-  end;
-
-begin
-  if (Owner.UniformTypeMismatchAction in [utWarning, utException]) or
-     ForceException then
-  begin
-    { Invalid glUniform call, that specifies wrong uniform variable type,
-      may cause OpenGL error "invalid operation". We want to catch it.
-      We cleaned GL error at the SetValueBegin, so if there's an error
-      now --- we know it's because of glUniform. }
-    ErrorCode := glGetError();
-    if ErrorCode <> GL_NO_ERROR then
-    begin
-      { GL_OUT_OF_MEMORY has it's special treatment, to honour GLOutOfMemoryError. }
-      if ErrorCode = GL_OUT_OF_MEMORY then
-        GLOutOfMemory(Format('GPU out of memory. Detected when setting GLSL uniform variable "%s"',
-          [Name])) else
-      if ForceException or (Owner.UniformTypeMismatchAction = utException) then
-        raise EGLSLUniformNotFound.Create(ErrMessage) else
-        WritelnWarning('GLSL', ErrMessage);
-    end;
-  end;
-end;
-
 procedure TGLSLUniform.SetValue(const Value: boolean; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
@@ -703,157 +669,145 @@ begin
 
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Ord(Value));
     {$endif}
     gsStandard : glUniform1i   (Location, Ord(Value));
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLint; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Value);
     {$endif}
     gsStandard : glUniform1i   (Location, Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2Integer; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2iv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3Integer; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3iv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4Integer; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4iv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TGLfloat; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fARB(Location, Value);
     {$endif}
     gsStandard : glUniform1f   (Location, Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2fv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3fv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4fv   (Location, 1, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix2; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TBooleanList; const ForceException: boolean);
@@ -872,107 +826,99 @@ begin
     So convert to longints. }
   Ints := Value.ToLongInt;
   try
-    SetValueBegin(ForceException);
+    Owner.Enable;
     case Owner.Support of
       {$ifndef ForceStandardGLSLApi}
       gsExtension: glUniform1ivARB(Location, Value.Count, Ints.L);
       {$endif}
       gsStandard : glUniform1iv   (Location, Value.Count, Ints.L);
     end;
-    SetValueEnd(ForceException);
-  finally FreeAndNil(Ints) end;
+    finally FreeAndNil(Ints) end;
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TLongIntList; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1ivARB(Location, Value.Count, Value.L);
     {$endif}
     gsStandard : glUniform1iv   (Location, Value.Count, Value.L);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TSingleList; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fvARB(Location, Value.Count, Value.L);
     {$endif}
     gsStandard : glUniform1fv   (Location, Value.Count, Value.L);
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector2List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector3List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TVector4List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix3List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
-  SetValueEnd(ForceException);
 end;
 
 procedure TGLSLUniform.SetValue(const Value: TMatrix4List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
-  SetValueBegin(ForceException);
+  Owner.Enable;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
-  SetValueEnd(ForceException);
 end;
 
 { TGLSLAttribute ------------------------------------------------------------- }

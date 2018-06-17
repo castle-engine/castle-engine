@@ -2614,7 +2614,6 @@ begin
       TGLSLUniform.SetValue call, very very slow). We carefully code to
       always specify correct types for our uniform variables. }
   AProgram.UniformNotFoundAction := uaIgnore;
-  AProgram.UniformTypeMismatchAction := utGLError;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
@@ -2634,7 +2633,6 @@ begin
   AProgram.Link;
 
   AProgram.UniformNotFoundAction := uaIgnore;
-  AProgram.UniformTypeMismatchAction := utGLError;
 end;
 
 function TShader.CodeHash: TShaderCodeHash;
