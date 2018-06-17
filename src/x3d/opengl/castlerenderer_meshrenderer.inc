@@ -184,8 +184,6 @@ var
       Attribs := TGLSLAttributeList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
     begin
-      // TODO: would be faster to not query GLSLProgram.Attribute every frame,
-      // but save it in GLSLProgram.
       A := GLSLProgram.AttributeOptional(Arrays.Attribs[I].Name);
       if A.Location = -1 then
       begin
