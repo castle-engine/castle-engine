@@ -364,7 +364,7 @@ begin
     glBindBuffer(GL_ARRAY_BUFFER, Primitive2DRes.Vbo);
     { load only RequiredPointPtrSize, not Primitive2DRes.PointPtrAllocated which may be larger }
     Assert(Primitive2DRes.PointPtrAllocated >= RequiredPointPtrSize);
-    glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_DYNAMIC_DRAW);
   end;
 
   if not GLFeatures.EnableFixedFunction then
