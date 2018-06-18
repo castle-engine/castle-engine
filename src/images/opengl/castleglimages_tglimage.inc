@@ -112,6 +112,9 @@ type
       that rendering must drain from the pipeline before
       the data store can be updated.
       """
+
+      This makes a huge speedup for drawing UI on Raspberry Pi OpenGLES
+      without X.
     }
     VboStorage: array [0..9] of TVboStorage; static;
     VboStorageNext: Cardinal; static;
