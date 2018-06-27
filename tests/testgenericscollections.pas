@@ -32,6 +32,7 @@ type
     procedure TestRecordsList;
     procedure TestVectorsList;
     procedure TestMethodsList;
+    procedure TestTryGetValueNil;
   end;
 
 implementation
@@ -468,6 +469,32 @@ begin
   C1.Free;
   C2.Free;
   C3.Free;
+end;
+
+type
+  TStringStringMap = class(specialize TDictionary<string, string>)
+  end;
+
+procedure TTestGenericsCollections.TestTryGetValueNil;
+var
+  Map: TStringStringMap;
+  V: String;
+  B: Boolean;
+begin
+  Map := TStringStringMap.Create;
+  try
+    Map.AddOrSetValue('some key', 'some value');
+
+    B := Map.TryGetValue('some key', V);
+    AssertTrue(B);
+    AssertEquals('some value', V);
+
+    B := Map.TryGetValue('some other key', V);
+    AssertFalse(B);
+
+    B := Map.TryGetValue('', V);
+    AssertFalse(B);
+  finally FreeAndNil(Map) end;
 end;
 
 initialization
