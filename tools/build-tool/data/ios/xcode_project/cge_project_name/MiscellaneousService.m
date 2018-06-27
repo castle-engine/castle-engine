@@ -55,6 +55,46 @@
     [self.mainController presentViewController: activityVC animated: YES completion: nil];
 }
 
+- (void)debugScreenSizeShare
+{
+    CGFloat scale;
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)])
+        scale = [UIScreen mainScreen].scale; // check retina
+    else
+        scale = 1.0;
+
+    int w1 = self.mainController.view.bounds.size.width;
+    int h1 = self.mainController.view.bounds.size.height;
+
+
+    // methods from
+    // https://stackoverflow.com/questions/4779221/in-iphone-app-how-to-detect-the-screen-resolution-of-the-device
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    float w2 = screenBounds.size.width;
+    float h2 = screenBounds.size.height;
+
+    // according to https://stackoverflow.com/questions/4779221/in-iphone-app-how-to-detect-the-screen-resolution-of-the-device
+    // native bounds should be better?
+    // Native Bounds - Detect Screen size in Pixels.
+    CGRect nativeBounds = [[UIScreen mainScreen] nativeBounds];
+    float w3 = nativeBounds.size.width;
+    float h3 = nativeBounds.size.height;
+
+    NSString* screenSizeDetails = [NSString stringWithFormat:
+        @"[UIScreen mainScreen].scale = %f\nself.mainController.view.bounds.size.width / height = %d / %d\n[[UIScreen mainScreen] bounds].width / height = %f / %f\n[[UIScreen mainScreen] nativeBounds].width / height = %f / %f",
+        scale,
+        w1, h1,
+        w2, h2,
+        w3, h3
+    ];
+    NSLog(@"Screen size debug details follows");
+    NSLog(@"%@", screenSizeDetails);
+
+    [self shareText: @"Screen size debug details"
+        subject: @"Screen size debug details"
+        content: screenSizeDetails];
+}
+
 - (bool)messageReceived:(NSArray* )message
 {
     if (message.count == 2 &&
@@ -75,6 +115,12 @@
         [self shareText: [message objectAtIndex: 1]
             subject: [message objectAtIndex: 2]
             content: [message objectAtIndex: 3]];
+        return TRUE;
+    } else
+    if (message.count == 1 &&
+        [[message objectAtIndex: 0] isEqualToString:@"debug-screen-size-share"])
+    {
+        [self debugScreenSizeShare];
         return TRUE;
     }
 
