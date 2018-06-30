@@ -112,6 +112,7 @@ type
 
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLScreenEffect;
+    SSAOShaderInitialized: Boolean;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -120,10 +121,10 @@ type
     SickProjectionTime: TFloatTime;
 
     function FillsWholeContainer: boolean;
-
     procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
+    procedure SSAOShaderInitialize;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
@@ -500,7 +501,6 @@ type
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: boolean;
 
-    procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
     { Instance for headlight that should be used for this scene.
@@ -2584,6 +2584,9 @@ end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
@@ -2598,6 +2601,9 @@ end;
 
 function TCastleAbstractViewport.ScreenEffectsCount: Integer;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsCount else
     Result := 0;
@@ -2607,6 +2613,9 @@ end;
 
 function TCastleAbstractViewport.ScreenEffectsNeedDepth: boolean;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Exit(true);
   if GetMainScene <> nil then
@@ -2614,30 +2623,34 @@ begin
     Result := false;
 end;
 
-procedure TCastleAbstractViewport.GLContextOpen;
+procedure TCastleAbstractViewport.SSAOShaderInitialize;
 begin
-  inherited;
+  { Do not retry creating SSAOShader if SSAOShaderInitialize was already called.
+    Even if SSAOShader is nil (when SSAOShaderInitialize = true but
+    SSAOShader = nil it means that compiling SSAO shader fails on this GPU). }
+  if SSAOShaderInitialized then Exit;
 
-  if SSAOShader = nil then
+  // SSAOShaderInitialized = false implies SSAOShader = nil
+  Assert(SSAOShader = nil);
+
+  if GLFeatures.Shaders <> gsNone then
   begin
-    if GLFeatures.Shaders <> gsNone then
-    begin
-      try
-        SSAOShader := TGLSLScreenEffect.Create;
-        SSAOShader.NeedsDepth := true;
-        SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
-        SSAOShader.Link;
-      except
-        on E: EGLSLError do
-        begin
-          if Log then
-            WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
-          FreeAndNil(SSAOShader);
-          ScreenSpaceAmbientOcclusion := false;
-        end;
+    try
+      SSAOShader := TGLSLScreenEffect.Create;
+      SSAOShader.NeedsDepth := true;
+      SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
+      SSAOShader.Link;
+    except
+      on E: EGLSLError do
+      begin
+        if Log then
+          WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
+        FreeAndNil(SSAOShader);
+        ScreenSpaceAmbientOcclusion := false;
       end;
     end;
   end;
+  SSAOShaderInitialized := true;
 end;
 
 procedure TCastleAbstractViewport.GLContextClose;
@@ -2648,13 +2661,15 @@ begin
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   FreeAndNil(SSAOShader);
+  SSAOShaderInitialized := false;
   glFreeBuffer(ScreenPointVbo);
   inherited;
 end;
 
 function TCastleAbstractViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
 begin
-  Result := (SSAOShader<>nil);
+  SSAOShaderInitialize;
+  Result := (SSAOShader <> nil);
 end;
 
 procedure TCastleAbstractViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
