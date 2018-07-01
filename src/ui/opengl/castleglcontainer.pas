@@ -44,20 +44,52 @@ type
     procedure EventClose(const OpenWindowsCount: Cardinal); override;
 
     { Render a TUIControl (along with all it's children).
-      Use this to render the UI control off-screen, see e.g.
-      example render_3d_to_texture_and_use_as_quad.lpr.
 
-      This doesn't only call @link(TUIControl.Render Control.Render).
-      It also:
+      This method can be used to render UI control into an image,
+      @link(TGLImage), when it is surrounded by
+      @link(TGLImage.RenderToImageBegin)
+      and @link(TGLImage.RenderToImageEnd).
+      See example ../../../examples/3d_rendering_processing/render_3d_to_image.lpr.
+
+      It can also be used with more low-level @link(TGLRenderToTexture).
+      See example ../../../examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad.lpr.
+
+      This is a good method to render the UI control off-screen.
+      It can render any UI control, including e.g. TCastleSceneManager
+      with 3D stuff inside TCastleScene.
+
+      The contents of the @link(Controls) list doesn't matter for this method.
+      In particular, it doesn't matter if the Control (given as a parameter)
+      is present on the list of current @link(Controls).
+      This method explicitly renders the given Control parameter (and it's children),
+      nothing more, nothing less.
+
+      More details what this method does:
 
       @unorderedList(
         @item(Temporarily sets
           @link(TInputListener.Container Control.Container), if needed.)
 
-        @item(Calls
+        @item(Makes sure OpenGL resources of the control are initialized.
+          If needed, it calls
           @link(TUIControl.GLContextOpen Control.GLContextOpen) and
           @link(TUIControl.GLContextClose Control.GLContextClose)
-          around, if needed.)
+          around.
+          This is needed when you want to perform off-screen rendering,
+          but the control's OpenGL resources are not initialized yet,
+          e.g. because it is not present on the @link(Controls) list.
+
+          Note that doing this repeatedly may be a slowdown
+          (how much, it depends on the actual TUIControl
+          -- some controls do nothing in TUIControl.GLContextOpen,
+          some controls do a lot).
+          If you want to repeatedly call @link(RenderControl) on the
+          same Control, it is more efficient
+          to first explicitly create it's OpenGL resources,
+          e.g. by calling
+          @link(TUIControl.GLContextOpen Control.GLContextOpen) explicitly.
+          Or adding the control to the @link(Controls) list.
+        )
 
         @item(Calls @link(TInputListener.Resize Control.Resize),
           required by some controls (like scene manager) to know viewport size.)
@@ -86,7 +118,17 @@ type
   Make sure that the control is nicely positioned to fill the ViewportRect.
   Usually you want to adjust control size and position,
   and disable UI scaling (set TUIControl.EnableUIScaling = @false
-  if you use TUIContainer.UIScaling). }
+  if you use TUIContainer.UIScaling).
+
+  This is the @italic(easiest) way to make off-screen rendering,
+  i.e. to render 3D things (like TCastleScene or TCastleSceneManager)
+  into an image. This is @italic(not the fastest way), as it creates
+  new TGLRenderToTexture instance each time,
+  and it grabs the image contents to CPU.
+  If you want a faster approach, use @link(TGLContainer.RenderControl)
+  and render into @link(TGLImage) using @link(TGLImage.RenderToImageBegin)
+  and @link(TGLImage.RenderToImageEnd).
+}
 function RenderControlToImage(const Container: TGLContainer;
   const Control: TUIControl;
   const ViewportRect: TRectangle;
