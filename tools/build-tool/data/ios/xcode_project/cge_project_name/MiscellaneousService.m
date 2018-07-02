@@ -63,9 +63,14 @@
     else
         scale = 1.0;
 
+    CGFloat nativeScale;
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)])
+        nativeScale = [UIScreen mainScreen].nativeScale;
+    else
+        nativeScale = 1.0;
+
     int w1 = self.mainController.view.bounds.size.width;
     int h1 = self.mainController.view.bounds.size.height;
-
 
     // methods from
     // https://stackoverflow.com/questions/4779221/in-iphone-app-how-to-detect-the-screen-resolution-of-the-device
@@ -81,8 +86,9 @@
     float h3 = nativeBounds.size.height;
 
     NSString* screenSizeDetails = [NSString stringWithFormat:
-        @"[UIScreen mainScreen].scale = %f\nself.mainController.view.bounds.size.width / height = %d / %d\n[[UIScreen mainScreen] bounds].width / height = %f / %f\n[[UIScreen mainScreen] nativeBounds].width / height = %f / %f",
+        @"[UIScreen mainScreen].scale = %f\n[UIScreen mainScreen].nativeScale = %f\nself.mainController.view.bounds.size.width / height = %d / %d\n[[UIScreen mainScreen] bounds].width / height = %f / %f\n[[UIScreen mainScreen] nativeBounds].width / height = %f / %f",
         scale,
+        nativeScale,
         w1, h1,
         w2, h2,
         w3, h3

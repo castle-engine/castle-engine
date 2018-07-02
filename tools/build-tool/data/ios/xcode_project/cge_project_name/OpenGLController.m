@@ -23,8 +23,8 @@
 {
     CGFloat m_fScale;
     UITouch* m_arrTouches[MAX_TOUCHES];
-    int m_oldViewWidth;
-    int m_oldViewHeight;
+    int m_currentViewWidth;
+    int m_currentViewHeight;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -86,7 +86,7 @@
 - (int)statusBarHeight
 {
     CGSize statusBarSize = [[UIApplication sharedApplication] statusBarFrame].size;
-    return MIN(statusBarSize.width, statusBarSize.height);
+    return MIN(statusBarSize.width, statusBarSize.height) * m_fScale;
 }
 
 //-----------------------------------------------------------------
@@ -94,8 +94,18 @@
 {
     [EAGLContext setCurrentContext:self.context];
 
+    /* We need to look at scale, to apply Retina.
+
+       Moreover, iPhone 8 Plus does more tricks,
+       and we need to look at nativeScale.
+       See https://www.paintcodeapp.com/news/iphone-6-screens-demystified
+       for explanation what is happening under the hood.
+
+       (Using [[UIScreen mainScreen] nativeBounds] also gets correct size,
+       but not adjusted to orientation.)
+    */
     if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)])
-        m_fScale = [UIScreen mainScreen].scale; // check retina
+        m_fScale = [UIScreen mainScreen].nativeScale;
     else
         m_fScale = 1.0;
 
@@ -116,15 +126,15 @@
         dpi = 163;*/
     unsigned dpi = 96; // CastleWindow.DefaultDpi
 
-    m_oldViewWidth  = self.view.bounds.size.width;
-    m_oldViewHeight = self.view.bounds.size.height;
+    m_currentViewWidth  = self.view.bounds.size.width  * m_fScale;
+    m_currentViewHeight = self.view.bounds.size.height * m_fScale;
 
     // Get a directory where we can write files,
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [self statusBarHeight] * m_fScale, (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
+    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
 
     [self update];
 }
@@ -142,14 +152,14 @@
 - (void)update
 {
     // update the viewport size, if changed
-    int newViewWidth  = self.view.bounds.size.width;
-    int newViewHeight = self.view.bounds.size.height;
-    if (m_oldViewWidth  != newViewWidth ||
-        m_oldViewHeight != newViewHeight)
+    int newViewWidth  = self.view.bounds.size.width  * m_fScale;
+    int newViewHeight = self.view.bounds.size.height * m_fScale;
+    if (m_currentViewWidth  != newViewWidth ||
+        m_currentViewHeight != newViewHeight)
     {
-	m_oldViewWidth  = newViewWidth;
-	m_oldViewHeight = newViewHeight;
-	CGEApp_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale, [self statusBarHeight] * m_fScale);
+	m_currentViewWidth  = newViewWidth;
+	m_currentViewHeight = newViewHeight;
+	CGEApp_Resize(newViewWidth, newViewHeight, [self statusBarHeight]);
     }
 
     // send accumulated touch positions (sending them right away jams the engine)
@@ -176,8 +186,9 @@
 //-----------------------------------------------------------------
 - (void)RecalcTouchPosForCGE:(CGPoint *)pt
 {
-    pt->x*=m_fScale; pt->y*=m_fScale;
-    pt->y = self.view.bounds.size.height*m_fScale - 1 - pt->y;
+    pt->x *= m_fScale;
+    pt->y *= m_fScale;
+    pt->y = m_currentViewHeight - 1 - pt->y;
 }
 
 //-----------------------------------------------------------------
