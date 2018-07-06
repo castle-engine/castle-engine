@@ -32,11 +32,17 @@
     function GetNormalizeVelocity: boolean;
     procedure SetNormalizeVelocity(const Value: boolean);
   public
+    { X3D field "closed". }
     property Closed: boolean read GetClosed write SetClosed;
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: array of Single);
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: TSingleList);
+    { Set X3D field "keyVelocity". }
     procedure SetKeyVelocity(const Value: array of Single);
+    { Set X3D field "keyVelocity". }
     procedure SetKeyVelocity(const Value: TSingleList);
+    { X3D field "normalizeVelocity". }
     property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}

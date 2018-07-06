@@ -27,19 +27,22 @@
 {$ifdef read_interface}
 
   strict private
-    function GetViewpoint: TAbstractX3DViewpointNode;
-    procedure SetViewpoint(const Value: TAbstractX3DViewpointNode);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public
+    { Set X3D field "dimensions". }
     procedure SetDimensions(const Value: array of LongInt);
+    { Set X3D field "dimensions". }
     procedure SetDimensions(const Value: TLongIntList);
-    property Viewpoint: TAbstractX3DViewpointNode read GetViewpoint write SetViewpoint;
+    { X3D field "textureProperties". }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
+    { X3D field "repeatR". }
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    { Set X3D field "depthMap". }
     procedure SetDepthMap(const Value: array of boolean);
+    { Set X3D field "depthMap". }
     procedure SetDepthMap(const Value: TBooleanList);
 
 {$endif read_interface}
@@ -56,19 +59,6 @@ end;
 procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
 begin
   FdDimensions.Send(Value);
-end;
-
-function TRenderedTextureNode.GetViewpoint: TAbstractX3DViewpointNode;
-begin
-  if FdViewpoint.Value is TAbstractX3DViewpointNode then
-    Result := TAbstractX3DViewpointNode(FdViewpoint.Value)
-  else
-    Result := nil;
-end;
-
-procedure TRenderedTextureNode.SetViewpoint(const Value: TAbstractX3DViewpointNode);
-begin
-  FdViewpoint.Send(Value);
 end;
 
 function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;

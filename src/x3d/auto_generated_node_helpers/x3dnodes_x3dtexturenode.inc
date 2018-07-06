@@ -30,7 +30,9 @@
     function GetCrossOrigin: string;
     procedure SetCrossOrigin(const Value: string);
   public
+    { Set X3D field "effects". }
     procedure SetEffects(const Value: array of TEffectNode);
+    { X3D field "crossOrigin". }
     property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
 
 {$endif read_interface}

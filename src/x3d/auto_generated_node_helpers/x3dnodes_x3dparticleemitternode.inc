@@ -36,9 +36,13 @@
     function GetSurfaceArea: Single;
     procedure SetSurfaceArea(const Value: Single);
   public
+    { X3D field "speed". }
     property Speed: Single read GetSpeed write SetSpeed;
+    { X3D field "variation". }
     property Variation: Single read GetVariation write SetVariation;
+    { X3D field "mass". }
     property Mass: Single read GetMass write SetMass;
+    { X3D field "surfaceArea". }
     property SurfaceArea: Single read GetSurfaceArea write SetSurfaceArea;
 
 {$endif read_interface}

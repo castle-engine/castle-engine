@@ -27,7 +27,9 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "clipBoundary". }
     procedure SetClipBoundary(const Value: array of Single);
+    { Set X3D field "clipBoundary". }
     procedure SetClipBoundary(const Value: TSingleList);
 
 {$endif read_interface}

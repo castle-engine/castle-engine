@@ -27,6 +27,7 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "children". }
     procedure SetChildren(const Value: array of TAbstractChildNode);
 
 {$endif read_interface}

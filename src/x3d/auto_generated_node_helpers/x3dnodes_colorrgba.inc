@@ -27,7 +27,9 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "color". }
     procedure SetColor(const Value: array of TCastleColor);
+    { Set X3D field "color". }
     procedure SetColor(const Value: TVector4List);
 
 {$endif read_interface}

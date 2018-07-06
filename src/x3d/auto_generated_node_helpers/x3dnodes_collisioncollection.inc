@@ -44,15 +44,25 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
+    { Set X3D field "appliedParameters". }
     procedure SetAppliedParameters(const Value: array of string);
+    { Set X3D field "appliedParameters". }
     procedure SetAppliedParameters(const Value: TCastleStringList);
+    { X3D field "bounce". }
     property Bounce: Single read GetBounce write SetBounce;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "frictionCoefficients". }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
+    { X3D field "minBounceSpeed". }
     property MinBounceSpeed: Single read GetMinBounceSpeed write SetMinBounceSpeed;
+    { X3D field "slipFactors". }
     property SlipFactors: TVector2 read GetSlipFactors write SetSlipFactors;
+    { X3D field "softnessConstantForceMix". }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
+    { X3D field "softnessErrorCorrection". }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
+    { X3D field "surfaceSpeed". }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
 {$endif read_interface}

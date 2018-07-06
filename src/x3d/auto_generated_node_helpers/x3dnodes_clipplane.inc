@@ -32,7 +32,9 @@
     function GetPlane: TVector4;
     procedure SetPlane(const Value: TVector4);
   public
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "plane". }
     property Plane: TVector4 read GetPlane write SetPlane;
 
 {$endif read_interface}

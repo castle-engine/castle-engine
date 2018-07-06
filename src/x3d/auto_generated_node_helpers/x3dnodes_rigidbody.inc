@@ -66,29 +66,53 @@
     function GetUseGlobalGravity: boolean;
     procedure SetUseGlobalGravity(const Value: boolean);
   public
+    { X3D field "angularDampingFactor". }
     property AngularDampingFactor: Single read GetAngularDampingFactor write SetAngularDampingFactor;
+    { X3D field "angularVelocity". }
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
+    { X3D field "autoDamp". }
     property AutoDamp: boolean read GetAutoDamp write SetAutoDamp;
+    { X3D field "autoDisable". }
     property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
+    { X3D field "centerOfMass". }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
+    { X3D field "disableAngularSpeed". }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
+    { X3D field "disableLinearSpeed". }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
+    { X3D field "disableTime". }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "finiteRotationAxis". }
     property FiniteRotationAxis: TVector3 read GetFiniteRotationAxis write SetFiniteRotationAxis;
+    { X3D field "fixed". }
     property Fixed: boolean read GetFixed write SetFixed;
+    { Set X3D field "forces". }
     procedure SetForces(const Value: array of TVector3);
+    { Set X3D field "forces". }
     procedure SetForces(const Value: TVector3List);
+    { Set X3D field "geometry". }
     procedure SetGeometry(const Value: array of TAbstractNBodyCollidableNode);
+    { X3D field "inertia". }
     property Inertia: TMatrix3 read GetInertia write SetInertia;
+    { X3D field "linearDampingFactor". }
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
+    { X3D field "linearVelocity". }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    { X3D field "mass". }
     property Mass: Single read GetMass write SetMass;
+    { X3D field "orientation". }
     property Orientation: TVector4 read GetOrientation write SetOrientation;
+    { X3D field "position". }
     property Position: TVector3 read GetPosition write SetPosition;
+    { Set X3D field "torques". }
     procedure SetTorques(const Value: array of TVector3);
+    { Set X3D field "torques". }
     procedure SetTorques(const Value: TVector3List);
+    { X3D field "useFiniteRotation". }
     property UseFiniteRotation: boolean read GetUseFiniteRotation write SetUseFiniteRotation;
+    { X3D field "useGlobalGravity". }
     property UseGlobalGravity: boolean read GetUseGlobalGravity write SetUseGlobalGravity;
 
 {$endif read_interface}

@@ -32,9 +32,13 @@
     function GetRotateYUp: boolean;
     procedure SetRotateYUp(const Value: boolean);
   public
+    { X3D field "geoCoords". }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: array of string);
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: TCastleStringList);
+    { X3D field "rotateYUp". }
     property RotateYUp: boolean read GetRotateYUp write SetRotateYUp;
 
 {$endif read_interface}

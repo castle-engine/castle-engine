@@ -30,8 +30,11 @@
     function GetMode: string;
     procedure SetMode(const Value: string);
   public
+    { X3D field "mode". }
     property Mode: string read GetMode write SetMode;
+    { Set X3D field "parameter". }
     procedure SetParameter(const Value: array of Single);
+    { Set X3D field "parameter". }
     procedure SetParameter(const Value: TSingleList);
 
 {$endif read_interface}

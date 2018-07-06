@@ -48,22 +48,39 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
+    { X3D field "center". }
     property Center: TVector3 read GetCenter write SetCenter;
+    { Set X3D field "info". }
     procedure SetInfo(const Value: array of string);
+    { Set X3D field "info". }
     procedure SetInfo(const Value: TCastleStringList);
+    { Set X3D field "joints". }
     procedure SetJoints(const Value: array of THAnimJointNode);
+    { X3D field "name". }
     property NameField: string read GetNameField write SetNameField;
+    { X3D field "rotation". }
     property Rotation: TVector4 read GetRotation write SetRotation;
+    { X3D field "scale". }
     property Scale: TVector3 read GetScale write SetScale;
+    { X3D field "scaleOrientation". }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    { Set X3D field "segments". }
     procedure SetSegments(const Value: array of THAnimSegmentNode);
+    { Set X3D field "sites". }
     procedure SetSites(const Value: array of THAnimSiteNode);
+    { Set X3D field "skin". }
     procedure SetSkin(const Value: array of TAbstractChildNode);
+    { X3D field "skinNormal". }
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
+    { X3D field "translation". }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+    { X3D field "version". }
     property Version: string read GetVersion write SetVersion;
+    { Set X3D field "viewpoints". }
     procedure SetViewpoints(const Value: array of THAnimSiteNode);
+    { X3D field "bboxCenter". }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    { X3D field "bboxSize". }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

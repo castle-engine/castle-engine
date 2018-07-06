@@ -30,6 +30,7 @@
     function GetSize: TVector2;
     procedure SetSize(const Value: TVector2);
   public
+    { X3D field "size". }
     property Size: TVector2 read GetSize write SetSize;
 
 {$endif read_interface}

@@ -32,11 +32,17 @@
     function GetDepth: Single;
     procedure SetDepth(const Value: Single);
   public
+    { Set X3D field "string". }
     procedure SetString(const Value: array of string);
+    { Set X3D field "string". }
     procedure SetString(const Value: TCastleStringList);
+    { Set X3D field "length". }
     procedure SetLength(const Value: array of Single);
+    { Set X3D field "length". }
     procedure SetLength(const Value: TSingleList);
+    { X3D field "maxExtent". }
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
+    { X3D field "depth". }
     property Depth: Single read GetDepth write SetDepth;
 
 {$endif read_interface}

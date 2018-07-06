@@ -36,9 +36,13 @@
     function GetBias: Single;
     procedure SetBias(const Value: Single);
   public
+    { X3D field "size". }
     property Size: Integer read GetSize write SetSize;
+    { X3D field "light". }
     property Light: TAbstractLightNode read GetLight write SetLight;
+    { X3D field "scale". }
     property Scale: Single read GetScale write SetScale;
+    { X3D field "bias". }
     property Bias: Single read GetBias write SetBias;
 
 {$endif read_interface}

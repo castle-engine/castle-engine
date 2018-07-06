@@ -27,7 +27,9 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "index". }
     procedure SetIndex(const Value: array of LongInt);
+    { Set X3D field "index". }
     procedure SetIndex(const Value: TLongIntList);
 
 {$endif read_interface}

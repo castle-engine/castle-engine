@@ -30,6 +30,7 @@
     function GetShape: TShapeNode;
     procedure SetShape(const Value: TShapeNode);
   public
+    { X3D field "shape". }
     property Shape: TShapeNode read GetShape write SetShape;
 
 {$endif read_interface}

@@ -30,6 +30,7 @@
     function GetOffset: TVector4;
     procedure SetOffset(const Value: TVector4);
   public
+    { X3D field "offset". }
     property Offset: TVector4 read GetOffset write SetOffset;
 
 {$endif read_interface}

@@ -32,9 +32,13 @@
     function GetBody2: TRigidBodyNode;
     procedure SetBody2(const Value: TRigidBodyNode);
   public
+    { X3D field "body1". }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
+    { X3D field "body2". }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
+    { Set X3D field "forceOutput". }
     procedure SetForceOutput(const Value: array of string);
+    { Set X3D field "forceOutput". }
     procedure SetForceOutput(const Value: TCastleStringList);
 
 {$endif read_interface}

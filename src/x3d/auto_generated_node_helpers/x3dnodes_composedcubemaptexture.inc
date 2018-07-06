@@ -42,12 +42,19 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    { X3D field "back". }
     property Back: TAbstractTexture2DNode read GetBack write SetBack;
+    { X3D field "bottom". }
     property Bottom: TAbstractTexture2DNode read GetBottom write SetBottom;
+    { X3D field "front". }
     property Front: TAbstractTexture2DNode read GetFront write SetFront;
+    { X3D field "left". }
     property Left: TAbstractTexture2DNode read GetLeft write SetLeft;
+    { X3D field "right". }
     property Right: TAbstractTexture2DNode read GetRight write SetRight;
+    { X3D field "top". }
     property Top: TAbstractTexture2DNode read GetTop write SetTop;
+    { X3D field "textureProperties". }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}

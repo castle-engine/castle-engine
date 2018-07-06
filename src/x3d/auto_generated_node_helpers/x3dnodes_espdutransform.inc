@@ -128,65 +128,125 @@
     function GetRtpHeaderExpected: boolean;
     procedure SetRtpHeaderExpected(const Value: boolean);
   public
+    { X3D field "address". }
     property Address: string read GetAddress write SetAddress;
+    { X3D field "applicationID". }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+    { X3D field "articulationParameterCount". }
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
+    { Set X3D field "articulationParameterDesignatorArray". }
     procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+    { Set X3D field "articulationParameterDesignatorArray". }
     procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+    { Set X3D field "articulationParameterChangeIndicatorArray". }
     procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+    { Set X3D field "articulationParameterChangeIndicatorArray". }
     procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+    { Set X3D field "articulationParameterIdPartAttachedToArray". }
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+    { Set X3D field "articulationParameterIdPartAttachedToArray". }
     procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+    { Set X3D field "articulationParameterTypeArray". }
     procedure SetArticulationParameterTypeArray(const Value: array of LongInt);
+    { Set X3D field "articulationParameterTypeArray". }
     procedure SetArticulationParameterTypeArray(const Value: TLongIntList);
+    { Set X3D field "articulationParameterArray". }
     procedure SetArticulationParameterArray(const Value: array of Single);
+    { Set X3D field "articulationParameterArray". }
     procedure SetArticulationParameterArray(const Value: TSingleList);
+    { X3D field "center". }
     property Center: TVector3 read GetCenter write SetCenter;
+    { X3D field "collisionType". }
     property CollisionType: Integer read GetCollisionType write SetCollisionType;
+    { X3D field "deadReckoning". }
     property DeadReckoning: Integer read GetDeadReckoning write SetDeadReckoning;
+    { X3D field "detonationLocation". }
     property DetonationLocation: TVector3 read GetDetonationLocation write SetDetonationLocation;
+    { X3D field "detonationRelativeLocation". }
     property DetonationRelativeLocation: TVector3 read GetDetonationRelativeLocation write SetDetonationRelativeLocation;
+    { X3D field "detonationResult". }
     property DetonationResult: Integer read GetDetonationResult write SetDetonationResult;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "entityCategory". }
     property EntityCategory: Integer read GetEntityCategory write SetEntityCategory;
+    { X3D field "entityCountry". }
     property EntityCountry: Integer read GetEntityCountry write SetEntityCountry;
+    { X3D field "entityDomain". }
     property EntityDomain: Integer read GetEntityDomain write SetEntityDomain;
+    { X3D field "entityExtra". }
     property EntityExtra: Integer read GetEntityExtra write SetEntityExtra;
+    { X3D field "entityID". }
     property EntityID: Integer read GetEntityID write SetEntityID;
+    { X3D field "entityKind". }
     property EntityKind: Integer read GetEntityKind write SetEntityKind;
+    { X3D field "entitySpecific". }
     property EntitySpecific: Integer read GetEntitySpecific write SetEntitySpecific;
+    { X3D field "entitySubCategory". }
     property EntitySubCategory: Integer read GetEntitySubCategory write SetEntitySubCategory;
+    { X3D field "eventApplicationID". }
     property EventApplicationID: Integer read GetEventApplicationID write SetEventApplicationID;
+    { X3D field "eventEntityID". }
     property EventEntityID: Integer read GetEventEntityID write SetEventEntityID;
+    { X3D field "eventNumber". }
     property EventNumber: Integer read GetEventNumber write SetEventNumber;
+    { X3D field "eventSiteID". }
     property EventSiteID: Integer read GetEventSiteID write SetEventSiteID;
+    { X3D field "fired1". }
     property Fired1: boolean read GetFired1 write SetFired1;
+    { X3D field "fired2". }
     property Fired2: boolean read GetFired2 write SetFired2;
+    { X3D field "fireMissionIndex". }
     property FireMissionIndex: Integer read GetFireMissionIndex write SetFireMissionIndex;
+    { X3D field "firingRange". }
     property FiringRange: Single read GetFiringRange write SetFiringRange;
+    { X3D field "firingRate". }
     property FiringRate: Integer read GetFiringRate write SetFiringRate;
+    { X3D field "forceID". }
     property ForceID: Integer read GetForceID write SetForceID;
+    { X3D field "fuse". }
     property Fuse: Integer read GetFuse write SetFuse;
+    { X3D field "linearVelocity". }
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    { X3D field "linearAcceleration". }
     property LinearAcceleration: TVector3 read GetLinearAcceleration write SetLinearAcceleration;
+    { X3D field "marking". }
     property Marking: string read GetMarking write SetMarking;
+    { X3D field "multicastRelayHost". }
     property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    { X3D field "multicastRelayPort". }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
+    { X3D field "munitionApplicationID". }
     property MunitionApplicationID: Integer read GetMunitionApplicationID write SetMunitionApplicationID;
+    { X3D field "munitionEndPoint". }
     property MunitionEndPoint: TVector3 read GetMunitionEndPoint write SetMunitionEndPoint;
+    { X3D field "munitionEntityID". }
     property MunitionEntityID: Integer read GetMunitionEntityID write SetMunitionEntityID;
+    { X3D field "munitionQuantity". }
     property MunitionQuantity: Integer read GetMunitionQuantity write SetMunitionQuantity;
+    { X3D field "munitionSiteID". }
     property MunitionSiteID: Integer read GetMunitionSiteID write SetMunitionSiteID;
+    { X3D field "munitionStartPoint". }
     property MunitionStartPoint: TVector3 read GetMunitionStartPoint write SetMunitionStartPoint;
+    { X3D field "port". }
     property Port: Integer read GetPort write SetPort;
+    { X3D field "readInterval". }
     property ReadInterval: TFloatTime read GetReadInterval write SetReadInterval;
+    { X3D field "rotation". }
     property Rotation: TVector4 read GetRotation write SetRotation;
+    { X3D field "scale". }
     property Scale: TVector3 read GetScale write SetScale;
+    { X3D field "scaleOrientation". }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    { X3D field "siteID". }
     property SiteID: Integer read GetSiteID write SetSiteID;
+    { X3D field "translation". }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+    { X3D field "warhead". }
     property Warhead: Integer read GetWarhead write SetWarhead;
+    { X3D field "writeInterval". }
     property WriteInterval: TFloatTime read GetWriteInterval write SetWriteInterval;
+    { X3D field "rtpHeaderExpected". }
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
 {$endif read_interface}

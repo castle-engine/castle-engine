@@ -46,22 +46,39 @@
     function GetTransSpecularExp: Single;
     procedure SetTransSpecularExp(const Value: Single);
   public
+    { X3D field "ambientIntensity". }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
+    { X3D field "diffuseColor". }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
+    { X3D field "emissiveColor". }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
+    { X3D field "shininess". }
     property Shininess: Single read GetShininess write SetShininess;
+    { X3D field "specularColor". }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
+    { X3D field "transparency". }
     property Transparency: Single read GetTransparency write SetTransparency;
+    { X3D field "mirror". }
     property Mirror: Single read GetMirror write SetMirror;
+    { Set X3D field "reflSpecular". }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB);
+    { Set X3D field "reflSpecular". }
     procedure SetReflSpecular(const Value: TVector3List);
+    { Set X3D field "reflDiffuse". }
     procedure SetReflDiffuse(const Value: array of TCastleColorRGB);
+    { Set X3D field "reflDiffuse". }
     procedure SetReflDiffuse(const Value: TVector3List);
+    { Set X3D field "transSpecular". }
     procedure SetTransSpecular(const Value: array of TCastleColorRGB);
+    { Set X3D field "transSpecular". }
     procedure SetTransSpecular(const Value: TVector3List);
+    { Set X3D field "transDiffuse". }
     procedure SetTransDiffuse(const Value: array of TCastleColorRGB);
+    { Set X3D field "transDiffuse". }
     procedure SetTransDiffuse(const Value: TVector3List);
+    { X3D field "reflSpecularExp". }
     property ReflSpecularExp: Single read GetReflSpecularExp write SetReflSpecularExp;
+    { X3D field "transSpecularExp". }
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
 
 {$endif read_interface}

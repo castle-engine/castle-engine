@@ -148,13 +148,13 @@ begin
       EventInOrOut := 'out';
     if Node.IsInterface then
       OutputInterface +=
-        '    { Event ' + EventInOrOut + ' } { }' + NL +
+        '    { X3D ' + EventInOrOut + ' event "' + Field.X3DName + '". }' + NL +
         '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL else
     begin
       OutputInterface +=
         NL +
-        '    { Event ' + EventInOrOut + ' } { }' + NL +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    { X3D ' + EventInOrOut + ' event "' + Field.X3DName + '". }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       OutputImplementation +=
@@ -166,11 +166,13 @@ begin
   begin
     if Node.IsInterface then
       OutputInterface +=
+        '    { X3D field "' + Field.X3DName + '". }' + NL +
         '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL else
     begin
       OutputInterface +=
         NL +
         '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    { X3D field "' + Field.X3DName + '". }' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary' + NL;
@@ -877,6 +879,7 @@ begin
           '    function Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
           '    procedure Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL;
         OutputPublicInterface +=
+          '    { X3D field "' + Field.X3DName + '". }' + NL +
           '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
         OutputImplementation +=
           'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
@@ -896,6 +899,7 @@ begin
       if Field.X3DType = 'MFNode' then
       begin
         OutputPublicInterface +=
+          '    { Set X3D field "' + Field.X3DName + '". }' + NL +
           '    procedure Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL;
         OutputImplementation +=
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL +
@@ -920,6 +924,7 @@ begin
         '    function Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
         '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL;
       OutputPublicInterface +=
+        '    { X3D field "' + Field.X3DName + '". }' + NL +
         '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
       OutputImplementation +=
         'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
@@ -940,6 +945,7 @@ begin
       for SetterType in SetterTypes do
       begin
         OutputPublicInterface +=
+          '    { Set X3D field "' + Field.X3DName + '". }' + NL +
           '    procedure Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL;
         OutputImplementation +=
           'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL +

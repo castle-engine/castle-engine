@@ -30,10 +30,15 @@
     function GetMaxExtent: Single;
     procedure SetMaxExtent(const Value: Single);
   public
+    { Set X3D field "length". }
     procedure SetLength(const Value: array of Single);
+    { Set X3D field "length". }
     procedure SetLength(const Value: TSingleList);
+    { X3D field "maxExtent". }
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
+    { Set X3D field "string". }
     procedure SetString(const Value: array of string);
+    { Set X3D field "string". }
     procedure SetString(const Value: TCastleStringList);
 
 {$endif read_interface}

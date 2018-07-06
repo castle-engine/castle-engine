@@ -32,7 +32,9 @@
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
+    { X3D field "radius". }
     property Radius: Single read GetRadius write SetRadius;
+    { X3D field "slices". }
     property Slices: Integer read GetSlices write SetSlices;
 
 {$endif read_interface}

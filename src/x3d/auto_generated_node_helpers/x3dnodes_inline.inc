@@ -34,10 +34,15 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
+    { X3D field "load". }
     property Load: boolean read GetLoad write SetLoad;
+    { Set X3D field "url". }
     procedure SetUrl(const Value: array of string);
+    { Set X3D field "url". }
     procedure SetUrl(const Value: TCastleStringList);
+    { X3D field "bboxCenter". }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    { X3D field "bboxSize". }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

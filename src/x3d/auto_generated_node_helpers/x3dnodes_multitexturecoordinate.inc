@@ -27,6 +27,7 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "texCoord". }
     procedure SetTexCoord(const Value: array of TAbstractTextureCoordinateNode);
 
 {$endif read_interface}

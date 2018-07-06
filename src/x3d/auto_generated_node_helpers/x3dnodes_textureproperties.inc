@@ -48,15 +48,25 @@
     function GetGuiTexture: boolean;
     procedure SetGuiTexture(const Value: boolean);
   public
+    { X3D field "anisotropicDegree". }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
+    { X3D field "borderColor". }
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
+    { X3D field "borderWidth". }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
+    { X3D field "boundaryModeS". }
     property BoundaryModeS: string read GetBoundaryModeS write SetBoundaryModeS;
+    { X3D field "boundaryModeT". }
     property BoundaryModeT: string read GetBoundaryModeT write SetBoundaryModeT;
+    { X3D field "boundaryModeR". }
     property BoundaryModeR: string read GetBoundaryModeR write SetBoundaryModeR;
+    { X3D field "textureCompression". }
     property TextureCompression: string read GetTextureCompression write SetTextureCompression;
+    { X3D field "texturePriority". }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
+    { X3D field "generateMipMaps". }
     property GenerateMipMaps: boolean read GetGenerateMipMaps write SetGenerateMipMaps;
+    { X3D field "guiTexture". }
     property GuiTexture: boolean read GetGuiTexture write SetGuiTexture;
 
 {$endif read_interface}

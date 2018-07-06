@@ -36,9 +36,13 @@
     function GetColorTransparency: Single;
     procedure SetColorTransparency(const Value: Single);
   public
+    { X3D field "srcFactor". }
     property SrcFactor: string read GetSrcFactor write SetSrcFactor;
+    { X3D field "destFactor". }
     property DestFactor: string read GetDestFactor write SetDestFactor;
+    { X3D field "color". }
     property Color: TCastleColorRGB read GetColor write SetColor;
+    { X3D field "colorTransparency". }
     property ColorTransparency: Single read GetColorTransparency write SetColorTransparency;
 
 {$endif read_interface}

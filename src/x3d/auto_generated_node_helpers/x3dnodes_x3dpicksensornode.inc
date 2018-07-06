@@ -30,8 +30,11 @@
     function GetPickingGeometry: TAbstractGeometryNode;
     procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
   public
+    { Set X3D field "objectType". }
     procedure SetObjectType(const Value: array of string);
+    { Set X3D field "objectType". }
     procedure SetObjectType(const Value: TCastleStringList);
+    { X3D field "pickingGeometry". }
     property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
 
 {$endif read_interface}

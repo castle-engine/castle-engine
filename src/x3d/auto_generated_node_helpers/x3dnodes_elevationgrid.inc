@@ -52,20 +52,35 @@
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    { Set X3D field "attrib". }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+    { X3D field "color". }
     property Color: TAbstractColorNode read GetColor write SetColor;
+    { X3D field "fogCoord". }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+    { X3D field "normal". }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    { X3D field "texCoord". }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
+    { X3D field "ccw". }
     property Ccw: boolean read GetCcw write SetCcw;
+    { X3D field "colorPerVertex". }
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    { X3D field "creaseAngle". }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    { Set X3D field "height". }
     procedure SetHeight(const Value: array of Single);
+    { Set X3D field "height". }
     procedure SetHeight(const Value: TSingleList);
+    { X3D field "normalPerVertex". }
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    { X3D field "xDimension". }
     property XDimension: Integer read GetXDimension write SetXDimension;
+    { X3D field "xSpacing". }
     property XSpacing: Single read GetXSpacing write SetXSpacing;
+    { X3D field "zDimension". }
     property ZDimension: Integer read GetZDimension write SetZDimension;
+    { X3D field "zSpacing". }
     property ZSpacing: Single read GetZSpacing write SetZSpacing;
 
 {$endif read_interface}

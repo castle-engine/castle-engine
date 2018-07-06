@@ -30,8 +30,11 @@
     function GetSurface: TAbstractGeometryNode;
     procedure SetSurface(const Value: TAbstractGeometryNode);
   public
+    { Set X3D field "coordIndex". }
     procedure SetCoordIndex(const Value: array of LongInt);
+    { Set X3D field "coordIndex". }
     procedure SetCoordIndex(const Value: TLongIntList);
+    { X3D field "surface". }
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;
 
 {$endif read_interface}

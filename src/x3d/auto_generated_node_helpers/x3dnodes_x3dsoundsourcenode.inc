@@ -32,7 +32,9 @@
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
   public
+    { X3D field "description". }
     property Description: string read GetDescription write SetDescription;
+    { X3D field "pitch". }
     property Pitch: Single read GetPitch write SetPitch;
 
 {$endif read_interface}

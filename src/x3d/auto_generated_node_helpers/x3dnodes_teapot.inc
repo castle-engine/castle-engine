@@ -32,7 +32,9 @@
     function GetManifold: boolean;
     procedure SetManifold(const Value: boolean);
   public
+    { X3D field "size". }
     property Size: TVector3 read GetSize write SetSize;
+    { X3D field "manifold". }
     property Manifold: boolean read GetManifold write SetManifold;
 
 {$endif read_interface}

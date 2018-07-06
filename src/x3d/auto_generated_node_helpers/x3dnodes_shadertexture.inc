@@ -27,6 +27,7 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "effects". }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}

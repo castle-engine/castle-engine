@@ -30,8 +30,11 @@
     function GetPickable: boolean;
     procedure SetPickable(const Value: boolean);
   public
+    { Set X3D field "objectType". }
     procedure SetObjectType(const Value: array of string);
+    { Set X3D field "objectType". }
     procedure SetObjectType(const Value: TCastleStringList);
+    { X3D field "pickable". }
     property Pickable: boolean read GetPickable write SetPickable;
 
 {$endif read_interface}

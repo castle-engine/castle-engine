@@ -30,6 +30,7 @@
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public
+    { X3D field "whichChoice". }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;
 
 {$endif read_interface}

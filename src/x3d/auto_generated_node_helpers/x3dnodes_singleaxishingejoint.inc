@@ -40,11 +40,17 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
+    { X3D field "anchorPoint". }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+    { X3D field "axis". }
     property Axis: TVector3 read GetAxis write SetAxis;
+    { X3D field "maxAngle". }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
+    { X3D field "minAngle". }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
+    { X3D field "stopBounce". }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
+    { X3D field "stopErrorCorrection". }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;
 
 {$endif read_interface}

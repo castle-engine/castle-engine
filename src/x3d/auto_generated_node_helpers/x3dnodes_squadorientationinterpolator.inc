@@ -30,8 +30,11 @@
     function GetNormalizeVelocity: boolean;
     procedure SetNormalizeVelocity(const Value: boolean);
   public
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: array of TVector4);
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: TVector4List);
+    { X3D field "normalizeVelocity". }
     property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}

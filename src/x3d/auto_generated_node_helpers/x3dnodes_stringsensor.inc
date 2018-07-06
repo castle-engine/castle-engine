@@ -30,6 +30,7 @@
     function GetDeletionAllowed: boolean;
     procedure SetDeletionAllowed(const Value: boolean);
   public
+    { X3D field "deletionAllowed". }
     property DeletionAllowed: boolean read GetDeletionAllowed write SetDeletionAllowed;
 
 {$endif read_interface}

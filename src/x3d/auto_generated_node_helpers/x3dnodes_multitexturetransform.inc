@@ -27,6 +27,7 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "textureTransform". }
     procedure SetTextureTransform(const Value: array of TAbstractTextureTransformNode);
 
 {$endif read_interface}

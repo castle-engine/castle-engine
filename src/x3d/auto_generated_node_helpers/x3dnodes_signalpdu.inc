@@ -66,26 +66,47 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
+    { X3D field "address". }
     property Address: string read GetAddress write SetAddress;
+    { X3D field "applicationID". }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+    { Set X3D field "data". }
     procedure SetData(const Value: array of LongInt);
+    { Set X3D field "data". }
     procedure SetData(const Value: TLongIntList);
+    { X3D field "dataLength". }
     property DataLength: Integer read GetDataLength write SetDataLength;
+    { X3D field "encodingScheme". }
     property EncodingScheme: Integer read GetEncodingScheme write SetEncodingScheme;
+    { X3D field "entityID". }
     property EntityID: Integer read GetEntityID write SetEntityID;
+    { X3D field "multicastRelayHost". }
     property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    { X3D field "multicastRelayPort". }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
+    { X3D field "port". }
     property Port: Integer read GetPort write SetPort;
+    { X3D field "radioID". }
     property RadioID: Integer read GetRadioID write SetRadioID;
+    { X3D field "readInterval". }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
+    { X3D field "rtpHeaderExpected". }
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+    { X3D field "sampleRate". }
     property SampleRate: Integer read GetSampleRate write SetSampleRate;
+    { X3D field "samples". }
     property Samples: Integer read GetSamples write SetSamples;
+    { X3D field "siteID". }
     property SiteID: Integer read GetSiteID write SetSiteID;
+    { X3D field "tdlType". }
     property TdlType: Integer read GetTdlType write SetTdlType;
+    { X3D field "whichGeometry". }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
+    { X3D field "writeInterval". }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
+    { X3D field "bboxCenter". }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    { X3D field "bboxSize". }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

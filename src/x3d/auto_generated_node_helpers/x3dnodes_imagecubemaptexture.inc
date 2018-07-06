@@ -30,8 +30,11 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    { Set X3D field "url". }
     procedure SetUrl(const Value: array of string);
+    { Set X3D field "url". }
     procedure SetUrl(const Value: TCastleStringList);
+    { X3D field "textureProperties". }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}

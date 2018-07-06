@@ -30,6 +30,7 @@
     function GetGeometry: TAbstractGeometryNode;
     procedure SetGeometry(const Value: TAbstractGeometryNode);
   public
+    { X3D field "geometry". }
     property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
 {$endif read_interface}

@@ -27,6 +27,7 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "programs". }
     procedure SetPrograms(const Value: array of TShaderProgramNode);
 
 {$endif read_interface}

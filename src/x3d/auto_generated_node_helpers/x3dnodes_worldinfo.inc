@@ -30,8 +30,11 @@
     function GetTitle: string;
     procedure SetTitle(const Value: string);
   public
+    { Set X3D field "info". }
     procedure SetInfo(const Value: array of string);
+    { Set X3D field "info". }
     procedure SetInfo(const Value: TCastleStringList);
+    { X3D field "title". }
     property Title: string read GetTitle write SetTitle;
 
 {$endif read_interface}

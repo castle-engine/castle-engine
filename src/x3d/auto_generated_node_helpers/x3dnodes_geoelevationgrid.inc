@@ -56,23 +56,41 @@
     function GetZSpacing: Double;
     procedure SetZSpacing(const Value: Double);
   public
+    { X3D field "color". }
     property Color: TAbstractColorNode read GetColor write SetColor;
+    { X3D field "normal". }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    { X3D field "texCoord". }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
+    { X3D field "yScale". }
     property YScale: Single read GetYScale write SetYScale;
+    { X3D field "ccw". }
     property Ccw: boolean read GetCcw write SetCcw;
+    { X3D field "colorPerVertex". }
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    { X3D field "creaseAngle". }
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
+    { X3D field "geoGridOrigin". }
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
+    { X3D field "geoOrigin". }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: array of string);
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: TCastleStringList);
+    { Set X3D field "height". }
     procedure SetHeight(const Value: array of Double);
+    { Set X3D field "height". }
     procedure SetHeight(const Value: TDoubleList);
+    { X3D field "normalPerVertex". }
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    { X3D field "xDimension". }
     property XDimension: Integer read GetXDimension write SetXDimension;
+    { X3D field "xSpacing". }
     property XSpacing: Double read GetXSpacing write SetXSpacing;
+    { X3D field "zDimension". }
     property ZDimension: Integer read GetZDimension write SetZDimension;
+    { X3D field "zSpacing". }
     property ZSpacing: Double read GetZSpacing write SetZSpacing;
 
 {$endif read_interface}

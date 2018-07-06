@@ -34,10 +34,15 @@
     function GetInternal: boolean;
     procedure SetInternal(const Value: boolean);
   public
+    { X3D field "coord". }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+    { X3D field "direction". }
     property Direction: TVector3 read GetDirection write SetDirection;
+    { Set X3D field "coordIndex". }
     procedure SetCoordIndex(const Value: array of LongInt);
+    { Set X3D field "coordIndex". }
     procedure SetCoordIndex(const Value: TLongIntList);
+    { X3D field "internal". }
     property Internal: boolean read GetInternal write SetInternal;
 
 {$endif read_interface}

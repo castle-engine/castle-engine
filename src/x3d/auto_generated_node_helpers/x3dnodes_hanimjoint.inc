@@ -42,23 +42,41 @@
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
+    { X3D field "center". }
     property Center: TVector3 read GetCenter write SetCenter;
+    { Set X3D field "displacers". }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
+    { X3D field "limitOrientation". }
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
+    { Set X3D field "llimit". }
     procedure SetLlimit(const Value: array of Single);
+    { Set X3D field "llimit". }
     procedure SetLlimit(const Value: TSingleList);
+    { X3D field "name". }
     property NameField: string read GetNameField write SetNameField;
+    { X3D field "rotation". }
     property Rotation: TVector4 read GetRotation write SetRotation;
+    { X3D field "scale". }
     property Scale: TVector3 read GetScale write SetScale;
+    { X3D field "scaleOrientation". }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    { Set X3D field "skinCoordIndex". }
     procedure SetSkinCoordIndex(const Value: array of LongInt);
+    { Set X3D field "skinCoordIndex". }
     procedure SetSkinCoordIndex(const Value: TLongIntList);
+    { Set X3D field "skinCoordWeight". }
     procedure SetSkinCoordWeight(const Value: array of Single);
+    { Set X3D field "skinCoordWeight". }
     procedure SetSkinCoordWeight(const Value: TSingleList);
+    { Set X3D field "stiffness". }
     procedure SetStiffness(const Value: array of Single);
+    { Set X3D field "stiffness". }
     procedure SetStiffness(const Value: TSingleList);
+    { X3D field "translation". }
     property Translation: TVector3 read GetTranslation write SetTranslation;
+    { Set X3D field "ulimit". }
     procedure SetUlimit(const Value: array of Single);
+    { Set X3D field "ulimit". }
     procedure SetUlimit(const Value: TSingleList);
 
 {$endif read_interface}

@@ -34,8 +34,11 @@
     function GetVisibilityRange: Single;
     procedure SetVisibilityRange(const Value: Single);
   public
+    { X3D field "color". }
     property Color: TCastleColorRGB read GetColor write SetColor;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "visibilityRange". }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
 
 {$endif read_interface}

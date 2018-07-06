@@ -27,7 +27,9 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "key". }
     procedure SetKey(const Value: array of Single);
+    { Set X3D field "key". }
     procedure SetKey(const Value: TSingleList);
 
 {$endif read_interface}

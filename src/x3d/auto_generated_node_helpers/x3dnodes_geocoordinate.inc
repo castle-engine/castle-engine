@@ -30,10 +30,15 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    { Set X3D field "point". }
     procedure SetPoint(const Value: array of TVector3Double);
+    { Set X3D field "point". }
     procedure SetPoint(const Value: TVector3DoubleList);
+    { X3D field "geoOrigin". }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: array of string);
+    { Set X3D field "geoSystem". }
     procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}

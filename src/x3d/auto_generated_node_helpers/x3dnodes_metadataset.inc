@@ -32,7 +32,9 @@
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
+    { X3D field "name". }
     property NameField: string read GetNameField write SetNameField;
+    { X3D field "reference". }
     property Reference: string read GetReference write SetReference;
 
 {$endif read_interface}

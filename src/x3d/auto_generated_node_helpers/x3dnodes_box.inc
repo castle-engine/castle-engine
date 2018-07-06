@@ -34,8 +34,11 @@
     function GetDivisions: Integer;
     procedure SetDivisions(const Value: Integer);
   public
+    { X3D field "size". }
     property Size: TVector3 read GetSize write SetSize;
+    { X3D field "ccw". }
     property Ccw: boolean read GetCcw write SetCcw;
+    { X3D field "divisions". }
     property Divisions: Integer read GetDivisions write SetDivisions;
 
 {$endif read_interface}

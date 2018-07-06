@@ -30,8 +30,11 @@
     function GetNameField: string;
     procedure SetNameField(const Value: string);
   public
+    { X3D field "name". }
     property NameField: string read GetNameField write SetNameField;
+    { Set X3D field "visible". }
     procedure SetVisible(const Value: array of boolean);
+    { Set X3D field "visible". }
     procedure SetVisible(const Value: TBooleanList);
 
 {$endif read_interface}

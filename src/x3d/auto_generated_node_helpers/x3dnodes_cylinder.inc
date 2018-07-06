@@ -42,12 +42,19 @@
     function GetStacks: Integer;
     procedure SetStacks(const Value: Integer);
   public
+    { X3D field "bottom". }
     property Bottom: boolean read GetBottom write SetBottom;
+    { X3D field "height". }
     property Height: Single read GetHeight write SetHeight;
+    { X3D field "radius". }
     property Radius: Single read GetRadius write SetRadius;
+    { X3D field "side". }
     property Side: boolean read GetSide write SetSide;
+    { X3D field "top". }
     property Top: boolean read GetTop write SetTop;
+    { X3D field "slices". }
     property Slices: Integer read GetSlices write SetSlices;
+    { X3D field "stacks". }
     property Stacks: Integer read GetStacks write SetStacks;
 
 {$endif read_interface}

@@ -34,9 +34,13 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
   public
+    { Set X3D field "attrib". }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+    { X3D field "color". }
     property Color: TAbstractColorNode read GetColor write SetColor;
+    { X3D field "coord". }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+    { X3D field "fogCoord". }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 
 {$endif read_interface}

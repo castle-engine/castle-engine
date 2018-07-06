@@ -30,6 +30,7 @@
     function GetDescription: string;
     procedure SetDescription(const Value: string);
   public
+    { X3D field "description". }
     property Description: string read GetDescription write SetDescription;
 
 {$endif read_interface}

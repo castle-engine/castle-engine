@@ -42,12 +42,19 @@
     function GetProjectionAngle: Single;
     procedure SetProjectionAngle(const Value: Single);
   public
+    { X3D field "attenuation". }
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
+    { X3D field "beamWidth". }
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
+    { X3D field "cutOffAngle". }
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
+    { X3D field "direction". }
     property Direction: TVector3 read GetDirection write SetDirection;
+    { X3D field "location". }
     property Location: TVector3 read GetLocation write SetLocation;
+    { X3D field "radius". }
     property Radius: Single read GetRadius write SetRadius;
+    { X3D field "projectionAngle". }
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
 
 {$endif read_interface}

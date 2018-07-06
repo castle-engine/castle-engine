@@ -36,15 +36,25 @@
     function GetVisibilityLimit: Single;
     procedure SetVisibilityLimit(const Value: Single);
   public
+    { Set X3D field "avatarSize". }
     procedure SetAvatarSize(const Value: array of Single);
+    { Set X3D field "avatarSize". }
     procedure SetAvatarSize(const Value: TSingleList);
+    { X3D field "headlight". }
     property Headlight: boolean read GetHeadlight write SetHeadlight;
+    { X3D field "speed". }
     property Speed: Single read GetSpeed write SetSpeed;
+    { X3D field "transitionTime". }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
+    { Set X3D field "transitionType". }
     procedure SetTransitionType(const Value: array of string);
+    { Set X3D field "transitionType". }
     procedure SetTransitionType(const Value: TCastleStringList);
+    { Set X3D field "type". }
     procedure SetType(const Value: array of string);
+    { Set X3D field "type". }
     procedure SetType(const Value: TCastleStringList);
+    { X3D field "visibilityLimit". }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
 
 {$endif read_interface}

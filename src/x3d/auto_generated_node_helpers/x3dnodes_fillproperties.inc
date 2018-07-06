@@ -36,9 +36,13 @@
     function GetHatchStyle: Integer;
     procedure SetHatchStyle(const Value: Integer);
   public
+    { X3D field "filled". }
     property Filled: boolean read GetFilled write SetFilled;
+    { X3D field "hatchColor". }
     property HatchColor: TCastleColorRGB read GetHatchColor write SetHatchColor;
+    { X3D field "hatched". }
     property Hatched: boolean read GetHatched write SetHatched;
+    { X3D field "hatchStyle". }
     property HatchStyle: Integer read GetHatchStyle write SetHatchStyle;
 
 {$endif read_interface}

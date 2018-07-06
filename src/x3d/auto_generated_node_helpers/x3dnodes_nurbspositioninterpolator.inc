@@ -32,11 +32,17 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    { X3D field "controlPoint". }
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+    { Set X3D field "knot". }
     procedure SetKnot(const Value: array of Double);
+    { Set X3D field "knot". }
     procedure SetKnot(const Value: TDoubleList);
+    { X3D field "order". }
     property Order: Integer read GetOrder write SetOrder;
+    { Set X3D field "weight". }
     procedure SetWeight(const Value: array of Double);
+    { Set X3D field "weight". }
     procedure SetWeight(const Value: TDoubleList);
 
 {$endif read_interface}

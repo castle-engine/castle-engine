@@ -44,13 +44,21 @@
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
+    { X3D field "timeOriginAtLoad". }
     property TimeOriginAtLoad: boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
+    { X3D field "octreeRendering". }
     property OctreeRendering: TKambiOctreePropertiesNode read GetOctreeRendering write SetOctreeRendering;
+    { X3D field "octreeDynamicCollisions". }
     property OctreeDynamicCollisions: TKambiOctreePropertiesNode read GetOctreeDynamicCollisions write SetOctreeDynamicCollisions;
+    { X3D field "octreeVisibleTriangles". }
     property OctreeVisibleTriangles: TKambiOctreePropertiesNode read GetOctreeVisibleTriangles write SetOctreeVisibleTriangles;
+    { X3D field "octreeStaticCollisions". }
     property OctreeStaticCollisions: TKambiOctreePropertiesNode read GetOctreeStaticCollisions write SetOctreeStaticCollisions;
+    { X3D field "headBobbing". }
     property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
+    { X3D field "headBobbingTime". }
     property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
+    { X3D field "headlightNode". }
     property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;
 
 {$endif read_interface}

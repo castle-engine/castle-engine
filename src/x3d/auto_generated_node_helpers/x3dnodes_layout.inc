@@ -27,17 +27,29 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "align". }
     procedure SetAlign(const Value: array of string);
+    { Set X3D field "align". }
     procedure SetAlign(const Value: TCastleStringList);
+    { Set X3D field "offset". }
     procedure SetOffset(const Value: array of Single);
+    { Set X3D field "offset". }
     procedure SetOffset(const Value: TSingleList);
+    { Set X3D field "offsetUnits". }
     procedure SetOffsetUnits(const Value: array of string);
+    { Set X3D field "offsetUnits". }
     procedure SetOffsetUnits(const Value: TCastleStringList);
+    { Set X3D field "scaleMode". }
     procedure SetScaleMode(const Value: array of string);
+    { Set X3D field "scaleMode". }
     procedure SetScaleMode(const Value: TCastleStringList);
+    { Set X3D field "size". }
     procedure SetSize(const Value: array of Single);
+    { Set X3D field "size". }
     procedure SetSize(const Value: TSingleList);
+    { Set X3D field "sizeUnits". }
     procedure SetSizeUnits(const Value: array of string);
+    { Set X3D field "sizeUnits". }
     procedure SetSizeUnits(const Value: TCastleStringList);
 
 {$endif read_interface}

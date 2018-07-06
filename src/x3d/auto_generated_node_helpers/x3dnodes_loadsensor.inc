@@ -30,6 +30,7 @@
     function GetTimeOut: TFloatTime;
     procedure SetTimeOut(const Value: TFloatTime);
   public
+    { X3D field "timeOut". }
     property TimeOut: TFloatTime read GetTimeOut write SetTimeOut;
 
 {$endif read_interface}

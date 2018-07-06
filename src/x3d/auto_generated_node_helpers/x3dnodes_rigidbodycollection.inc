@@ -54,20 +54,35 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
+    { X3D field "autoDisable". }
     property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
+    { Set X3D field "bodies". }
     procedure SetBodies(const Value: array of TRigidBodyNode);
+    { X3D field "constantForceMix". }
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
+    { X3D field "contactSurfaceThickness". }
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
+    { X3D field "disableAngularSpeed". }
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
+    { X3D field "disableLinearSpeed". }
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
+    { X3D field "disableTime". }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "errorCorrection". }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
+    { X3D field "gravity". }
     property Gravity: TVector3 read GetGravity write SetGravity;
+    { X3D field "iterations". }
     property Iterations: Integer read GetIterations write SetIterations;
+    { Set X3D field "joints". }
     procedure SetJoints(const Value: array of TAbstractRigidJointNode);
+    { X3D field "maxCorrectionSpeed". }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
+    { X3D field "preferAccuracy". }
     property PreferAccuracy: boolean read GetPreferAccuracy write SetPreferAccuracy;
+    { X3D field "collider". }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
 {$endif read_interface}

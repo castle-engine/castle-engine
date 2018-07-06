@@ -42,12 +42,19 @@
     function GetStop2ErrorCorrection: Single;
     procedure SetStop2ErrorCorrection(const Value: Single);
   public
+    { X3D field "anchorPoint". }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+    { X3D field "axis1". }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
+    { X3D field "axis2". }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
+    { X3D field "stopBounce1". }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
+    { X3D field "stop1ErrorCorrection". }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
+    { X3D field "stop2Bounce". }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
+    { X3D field "stop2ErrorCorrection". }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
 
 {$endif read_interface}

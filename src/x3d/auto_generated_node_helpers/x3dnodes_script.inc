@@ -32,7 +32,9 @@
     function GetMustEvaluate: boolean;
     procedure SetMustEvaluate(const Value: boolean);
   public
+    { X3D field "directOutput". }
     property DirectOutput: boolean read GetDirectOutput write SetDirectOutput;
+    { X3D field "mustEvaluate". }
     property MustEvaluate: boolean read GetMustEvaluate write SetMustEvaluate;
 
 {$endif read_interface}

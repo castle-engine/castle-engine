@@ -32,7 +32,9 @@
     function GetLinewidthScaleFactor: Single;
     procedure SetLinewidthScaleFactor(const Value: Single);
   public
+    { X3D field "applied". }
     property Applied: boolean read GetApplied write SetApplied;
+    { X3D field "linewidthScaleFactor". }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;
 
 {$endif read_interface}

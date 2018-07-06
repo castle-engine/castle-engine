@@ -27,7 +27,9 @@
 {$ifdef read_interface}
 
   public
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: array of boolean);
+    { Set X3D field "keyValue". }
     procedure SetKeyValue(const Value: TBooleanList);
 
 {$endif read_interface}

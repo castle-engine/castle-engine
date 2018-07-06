@@ -48,15 +48,25 @@
     function GetSpatialize: boolean;
     procedure SetSpatialize(const Value: boolean);
   public
+    { X3D field "direction". }
     property Direction: TVector3 read GetDirection write SetDirection;
+    { X3D field "intensity". }
     property Intensity: Single read GetIntensity write SetIntensity;
+    { X3D field "location". }
     property Location: TVector3 read GetLocation write SetLocation;
+    { X3D field "maxBack". }
     property MaxBack: Single read GetMaxBack write SetMaxBack;
+    { X3D field "maxFront". }
     property MaxFront: Single read GetMaxFront write SetMaxFront;
+    { X3D field "minBack". }
     property MinBack: Single read GetMinBack write SetMinBack;
+    { X3D field "minFront". }
     property MinFront: Single read GetMinFront write SetMinFront;
+    { X3D field "priority". }
     property Priority: Single read GetPriority write SetPriority;
+    { X3D field "source". }
     property Source: TAbstractSoundSourceNode read GetSource write SetSource;
+    { X3D field "spatialize". }
     property Spatialize: boolean read GetSpatialize write SetSpatialize;
 
 {$endif read_interface}

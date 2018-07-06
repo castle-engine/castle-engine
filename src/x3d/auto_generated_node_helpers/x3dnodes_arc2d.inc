@@ -34,8 +34,11 @@
     function GetStartAngle: Single;
     procedure SetStartAngle(const Value: Single);
   public
+    { X3D field "endAngle". }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
+    { X3D field "radius". }
     property Radius: Single read GetRadius write SetRadius;
+    { X3D field "startAngle". }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
 
 {$endif read_interface}

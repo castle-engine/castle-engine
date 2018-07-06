@@ -30,6 +30,7 @@
     function GetDuration: TFloatTime;
     procedure SetDuration(const Value: TFloatTime);
   public
+    { X3D field "duration". }
     property Duration: TFloatTime read GetDuration write SetDuration;
 
 {$endif read_interface}

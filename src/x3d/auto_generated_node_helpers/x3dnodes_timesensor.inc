@@ -32,7 +32,9 @@
     function GetFractionIncreasing: boolean;
     procedure SetFractionIncreasing(const Value: boolean);
   public
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
+    { X3D field "fractionIncreasing". }
     property FractionIncreasing: boolean read GetFractionIncreasing write SetFractionIncreasing;
 
 {$endif read_interface}

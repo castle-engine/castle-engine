@@ -34,8 +34,11 @@
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
   public
+    { X3D field "status". }
     property Status: boolean read GetStatus write SetStatus;
+    { X3D field "notStatus". }
     property NotStatus: boolean read GetNotStatus write SetNotStatus;
+    { X3D field "enabled". }
     property Enabled: boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}
