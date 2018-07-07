@@ -27,7 +27,7 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "parts". }
+    { Set X3D field "parts". } { }
     procedure SetParts(const Value: array of TShaderPartNode);
 
 {$endif read_interface}

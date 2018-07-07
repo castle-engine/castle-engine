@@ -40,17 +40,17 @@
     function GetGravityUp: TVector3;
     procedure SetGravityUp(const Value: TVector3);
   public
-    { X3D field "centerOfRotation". }
+    { X3D field "centerOfRotation". } { }
     property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
-    { X3D field "description". }
+    { X3D field "description". } { }
     property Description: string read GetDescription write SetDescription;
-    { X3D field "jump". }
+    { X3D field "jump". } { }
     property Jump: boolean read GetJump write SetJump;
-    { X3D field "retainUserOffsets". }
+    { X3D field "retainUserOffsets". } { }
     property RetainUserOffsets: boolean read GetRetainUserOffsets write SetRetainUserOffsets;
-    { X3D field "cameraMatrixSendAlsoOnOffscreenRendering". }
+    { X3D field "cameraMatrixSendAlsoOnOffscreenRendering". } { }
     property CameraMatrixSendAlsoOnOffscreenRendering: boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
-    { X3D field "gravityUp". }
+    { X3D field "gravityUp". } { }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
 {$endif read_interface}

@@ -34,11 +34,11 @@
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
   public
-    { X3D field "angle". }
+    { X3D field "angle". } { }
     property Angle: Single read GetAngle write SetAngle;
-    { X3D field "direction". }
+    { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
-    { X3D field "position". }
+    { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
 
 {$endif read_interface}

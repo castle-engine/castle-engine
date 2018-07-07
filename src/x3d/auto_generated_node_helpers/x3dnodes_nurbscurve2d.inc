@@ -34,19 +34,19 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
-    { X3D field "tessellation". }
+    { X3D field "tessellation". } { }
     property Tessellation: Integer read GetTessellation write SetTessellation;
-    { Set X3D field "weight". }
+    { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Double);
-    { Set X3D field "weight". }
+    { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList);
-    { X3D field "closed". }
+    { X3D field "closed". } { }
     property Closed: boolean read GetClosed write SetClosed;
-    { Set X3D field "knot". }
+    { Set X3D field "knot". } { }
     procedure SetKnot(const Value: array of Double);
-    { Set X3D field "knot". }
+    { Set X3D field "knot". } { }
     procedure SetKnot(const Value: TDoubleList);
-    { X3D field "order". }
+    { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}

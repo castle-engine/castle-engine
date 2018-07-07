@@ -38,41 +38,41 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
-    { X3D field "center". }
+    { X3D field "center". } { }
     property Center: TVector3Double read GetCenter write SetCenter;
-    { Set X3D field "child1Url". }
+    { Set X3D field "child1Url". } { }
     procedure SetChild1Url(const Value: array of string);
-    { Set X3D field "child1Url". }
+    { Set X3D field "child1Url". } { }
     procedure SetChild1Url(const Value: TCastleStringList);
-    { Set X3D field "child2Url". }
+    { Set X3D field "child2Url". } { }
     procedure SetChild2Url(const Value: array of string);
-    { Set X3D field "child2Url". }
+    { Set X3D field "child2Url". } { }
     procedure SetChild2Url(const Value: TCastleStringList);
-    { Set X3D field "child3Url". }
+    { Set X3D field "child3Url". } { }
     procedure SetChild3Url(const Value: array of string);
-    { Set X3D field "child3Url". }
+    { Set X3D field "child3Url". } { }
     procedure SetChild3Url(const Value: TCastleStringList);
-    { Set X3D field "child4Url". }
+    { Set X3D field "child4Url". } { }
     procedure SetChild4Url(const Value: array of string);
-    { Set X3D field "child4Url". }
+    { Set X3D field "child4Url". } { }
     procedure SetChild4Url(const Value: TCastleStringList);
-    { X3D field "geoOrigin". }
+    { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
-    { X3D field "range". }
+    { X3D field "range". } { }
     property Range: Single read GetRange write SetRange;
-    { Set X3D field "rootUrl". }
+    { Set X3D field "rootUrl". } { }
     procedure SetRootUrl(const Value: array of string);
-    { Set X3D field "rootUrl". }
+    { Set X3D field "rootUrl". } { }
     procedure SetRootUrl(const Value: TCastleStringList);
-    { Set X3D field "rootNode". }
+    { Set X3D field "rootNode". } { }
     procedure SetRootNode(const Value: array of TAbstractChildNode);
-    { X3D field "bboxCenter". }
+    { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". }
+    { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

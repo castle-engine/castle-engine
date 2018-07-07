@@ -30,9 +30,9 @@
     function GetLayout: TAbstractLayoutNode;
     procedure SetLayout(const Value: TAbstractLayoutNode);
   public
-    { Set X3D field "children". }
+    { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
-    { X3D field "layout". }
+    { X3D field "layout". } { }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
 
 {$endif read_interface}

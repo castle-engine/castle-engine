@@ -44,27 +44,27 @@
     function GetNormalPerVertex: boolean;
     procedure SetNormalPerVertex(const Value: boolean);
   public
-    { Set X3D field "attrib". }
+    { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
-    { X3D field "color". }
+    { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
-    { X3D field "coord". }
+    { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
-    { X3D field "fogCoord". }
+    { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
-    { X3D field "normal". }
+    { X3D field "normal". } { }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
-    { X3D field "texCoord". }
+    { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
-    { X3D field "ccw". }
+    { X3D field "ccw". } { }
     property Ccw: boolean read GetCcw write SetCcw;
-    { X3D field "colorPerVertex". }
+    { X3D field "colorPerVertex". } { }
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
-    { X3D field "normalPerVertex". }
+    { X3D field "normalPerVertex". } { }
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
-    { Set X3D field "radianceTransfer". }
+    { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: array of TVector3);
-    { Set X3D field "radianceTransfer". }
+    { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: TVector3List);
 
 {$endif read_interface}

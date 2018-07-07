@@ -32,9 +32,9 @@
     function GetProxy: TAbstractChildNode;
     procedure SetProxy(const Value: TAbstractChildNode);
   public
-    { X3D field "enabled". }
+    { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
-    { X3D field "proxy". }
+    { X3D field "proxy". } { }
     property Proxy: TAbstractChildNode read GetProxy write SetProxy;
 
 {$endif read_interface}

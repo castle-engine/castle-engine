@@ -32,9 +32,9 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
-    { X3D field "layout". }
+    { X3D field "layout". } { }
     property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
-    { X3D field "viewport". }
+    { X3D field "viewport". } { }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
 {$endif read_interface}

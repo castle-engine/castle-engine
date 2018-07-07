@@ -38,31 +38,31 @@
     function GetEndCap: boolean;
     procedure SetEndCap(const Value: boolean);
   public
-    { X3D field "beginCap". }
+    { X3D field "beginCap". } { }
     property BeginCap: boolean read GetBeginCap write SetBeginCap;
-    { X3D field "ccw". }
+    { X3D field "ccw". } { }
     property Ccw: boolean read GetCcw write SetCcw;
-    { X3D field "convex". }
+    { X3D field "convex". } { }
     property Convex: boolean read GetConvex write SetConvex;
-    { X3D field "creaseAngle". }
+    { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
-    { Set X3D field "crossSection". }
+    { Set X3D field "crossSection". } { }
     procedure SetCrossSection(const Value: array of TVector2);
-    { Set X3D field "crossSection". }
+    { Set X3D field "crossSection". } { }
     procedure SetCrossSection(const Value: TVector2List);
-    { X3D field "endCap". }
+    { X3D field "endCap". } { }
     property EndCap: boolean read GetEndCap write SetEndCap;
-    { Set X3D field "orientation". }
+    { Set X3D field "orientation". } { }
     procedure SetOrientation(const Value: array of TVector4);
-    { Set X3D field "orientation". }
+    { Set X3D field "orientation". } { }
     procedure SetOrientation(const Value: TVector4List);
-    { Set X3D field "scale". }
+    { Set X3D field "scale". } { }
     procedure SetScale(const Value: array of TVector2);
-    { Set X3D field "scale". }
+    { Set X3D field "scale". } { }
     procedure SetScale(const Value: TVector2List);
-    { Set X3D field "spine". }
+    { Set X3D field "spine". } { }
     procedure SetSpine(const Value: array of TVector3);
-    { Set X3D field "spine". }
+    { Set X3D field "spine". } { }
     procedure SetSpine(const Value: TVector3List);
 
 {$endif read_interface}

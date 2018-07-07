@@ -100,77 +100,77 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
-    { X3D field "address". }
+    { X3D field "address". } { }
     property Address: string read GetAddress write SetAddress;
-    { X3D field "antennaLocation". }
+    { X3D field "antennaLocation". } { }
     property AntennaLocation: TVector3 read GetAntennaLocation write SetAntennaLocation;
-    { X3D field "antennaPatternLength". }
+    { X3D field "antennaPatternLength". } { }
     property AntennaPatternLength: Integer read GetAntennaPatternLength write SetAntennaPatternLength;
-    { X3D field "antennaPatternType". }
+    { X3D field "antennaPatternType". } { }
     property AntennaPatternType: Integer read GetAntennaPatternType write SetAntennaPatternType;
-    { X3D field "applicationID". }
+    { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
-    { X3D field "cryptoKeyID". }
+    { X3D field "cryptoKeyID". } { }
     property CryptoKeyID: Integer read GetCryptoKeyID write SetCryptoKeyID;
-    { X3D field "cryptoSystem". }
+    { X3D field "cryptoSystem". } { }
     property CryptoSystem: Integer read GetCryptoSystem write SetCryptoSystem;
-    { X3D field "entityID". }
+    { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
-    { X3D field "frequency". }
+    { X3D field "frequency". } { }
     property Frequency: Integer read GetFrequency write SetFrequency;
-    { X3D field "inputSource". }
+    { X3D field "inputSource". } { }
     property InputSource: Integer read GetInputSource write SetInputSource;
-    { X3D field "lengthOfModulationParameters". }
+    { X3D field "lengthOfModulationParameters". } { }
     property LengthOfModulationParameters: Integer read GetLengthOfModulationParameters write SetLengthOfModulationParameters;
-    { X3D field "modulationTypeDetail". }
+    { X3D field "modulationTypeDetail". } { }
     property ModulationTypeDetail: Integer read GetModulationTypeDetail write SetModulationTypeDetail;
-    { X3D field "modulationTypeMajor". }
+    { X3D field "modulationTypeMajor". } { }
     property ModulationTypeMajor: Integer read GetModulationTypeMajor write SetModulationTypeMajor;
-    { X3D field "modulationTypeSpreadSpectrum". }
+    { X3D field "modulationTypeSpreadSpectrum". } { }
     property ModulationTypeSpreadSpectrum: Integer read GetModulationTypeSpreadSpectrum write SetModulationTypeSpreadSpectrum;
-    { X3D field "modulationTypeSystem". }
+    { X3D field "modulationTypeSystem". } { }
     property ModulationTypeSystem: Integer read GetModulationTypeSystem write SetModulationTypeSystem;
-    { X3D field "multicastRelayHost". }
+    { X3D field "multicastRelayHost". } { }
     property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
-    { X3D field "multicastRelayPort". }
+    { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
-    { X3D field "port". }
+    { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
-    { X3D field "power". }
+    { X3D field "power". } { }
     property Power: Single read GetPower write SetPower;
-    { X3D field "radioEntityTypeCategory". }
+    { X3D field "radioEntityTypeCategory". } { }
     property RadioEntityTypeCategory: Integer read GetRadioEntityTypeCategory write SetRadioEntityTypeCategory;
-    { X3D field "radioEntityTypeCountry". }
+    { X3D field "radioEntityTypeCountry". } { }
     property RadioEntityTypeCountry: Integer read GetRadioEntityTypeCountry write SetRadioEntityTypeCountry;
-    { X3D field "radioEntityTypeDomain". }
+    { X3D field "radioEntityTypeDomain". } { }
     property RadioEntityTypeDomain: Integer read GetRadioEntityTypeDomain write SetRadioEntityTypeDomain;
-    { X3D field "radioEntityTypeKind". }
+    { X3D field "radioEntityTypeKind". } { }
     property RadioEntityTypeKind: Integer read GetRadioEntityTypeKind write SetRadioEntityTypeKind;
-    { X3D field "radioEntityTypeNomenclature". }
+    { X3D field "radioEntityTypeNomenclature". } { }
     property RadioEntityTypeNomenclature: Integer read GetRadioEntityTypeNomenclature write SetRadioEntityTypeNomenclature;
-    { X3D field "radioEntityTypeNomenclatureVersion". }
+    { X3D field "radioEntityTypeNomenclatureVersion". } { }
     property RadioEntityTypeNomenclatureVersion: Integer read GetRadioEntityTypeNomenclatureVersion write SetRadioEntityTypeNomenclatureVersion;
-    { X3D field "radioID". }
+    { X3D field "radioID". } { }
     property RadioID: Integer read GetRadioID write SetRadioID;
-    { X3D field "readInterval". }
+    { X3D field "readInterval". } { }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
-    { X3D field "relativeAntennaLocation". }
+    { X3D field "relativeAntennaLocation". } { }
     property RelativeAntennaLocation: TVector3 read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
-    { X3D field "rtpHeaderExpected". }
+    { X3D field "rtpHeaderExpected". } { }
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
-    { X3D field "siteID". }
+    { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
-    { X3D field "transmitFrequencyBandwidth". }
+    { X3D field "transmitFrequencyBandwidth". } { }
     property TransmitFrequencyBandwidth: Single read GetTransmitFrequencyBandwidth write SetTransmitFrequencyBandwidth;
-    { X3D field "transmitState". }
+    { X3D field "transmitState". } { }
     property TransmitState: Integer read GetTransmitState write SetTransmitState;
-    { X3D field "whichGeometry". }
+    { X3D field "whichGeometry". } { }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
-    { X3D field "writeInterval". }
+    { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    { X3D field "bboxCenter". }
+    { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". }
+    { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

@@ -27,7 +27,7 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "trimmingContour". }
+    { Set X3D field "trimmingContour". } { }
     procedure SetTrimmingContour(const Value: array of TContour2DNode);
 
 {$endif read_interface}

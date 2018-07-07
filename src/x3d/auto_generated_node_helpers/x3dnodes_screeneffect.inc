@@ -32,11 +32,11 @@
     function GetNeedsDepth: boolean;
     procedure SetNeedsDepth(const Value: boolean);
   public
-    { X3D field "enabled". }
+    { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
-    { X3D field "needsDepth". }
+    { X3D field "needsDepth". } { }
     property NeedsDepth: boolean read GetNeedsDepth write SetNeedsDepth;
-    { Set X3D field "shaders". }
+    { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
 {$endif read_interface}

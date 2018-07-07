@@ -30,7 +30,7 @@
     function GetToggle: boolean;
     procedure SetToggle(const Value: boolean);
   public
-    { X3D field "toggle". }
+    { X3D field "toggle". } { }
     property Toggle: boolean read GetToggle write SetToggle;
 
 {$endif read_interface}

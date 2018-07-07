@@ -54,31 +54,31 @@
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
-    { X3D field "ambientIntensity". }
+    { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
-    { X3D field "backAmbientIntensity". }
+    { X3D field "backAmbientIntensity". } { }
     property BackAmbientIntensity: Single read GetBackAmbientIntensity write SetBackAmbientIntensity;
-    { X3D field "backDiffuseColor". }
+    { X3D field "backDiffuseColor". } { }
     property BackDiffuseColor: TCastleColorRGB read GetBackDiffuseColor write SetBackDiffuseColor;
-    { X3D field "backEmissiveColor". }
+    { X3D field "backEmissiveColor". } { }
     property BackEmissiveColor: TCastleColorRGB read GetBackEmissiveColor write SetBackEmissiveColor;
-    { X3D field "backShininess". }
+    { X3D field "backShininess". } { }
     property BackShininess: Single read GetBackShininess write SetBackShininess;
-    { X3D field "backSpecularColor". }
+    { X3D field "backSpecularColor". } { }
     property BackSpecularColor: TCastleColorRGB read GetBackSpecularColor write SetBackSpecularColor;
-    { X3D field "backTransparency". }
+    { X3D field "backTransparency". } { }
     property BackTransparency: Single read GetBackTransparency write SetBackTransparency;
-    { X3D field "diffuseColor". }
+    { X3D field "diffuseColor". } { }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
-    { X3D field "emissiveColor". }
+    { X3D field "emissiveColor". } { }
     property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
-    { X3D field "shininess". }
+    { X3D field "shininess". } { }
     property Shininess: Single read GetShininess write SetShininess;
-    { X3D field "separateBackColor". }
+    { X3D field "separateBackColor". } { }
     property SeparateBackColor: boolean read GetSeparateBackColor write SetSeparateBackColor;
-    { X3D field "specularColor". }
+    { X3D field "specularColor". } { }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
-    { X3D field "transparency". }
+    { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}

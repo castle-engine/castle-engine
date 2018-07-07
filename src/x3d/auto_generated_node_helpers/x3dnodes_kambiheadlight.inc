@@ -42,19 +42,19 @@
     function GetSpotCutOffAngle: Single;
     procedure SetSpotCutOffAngle(const Value: Single);
   public
-    { X3D field "ambientIntensity". }
+    { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
-    { X3D field "attenuation". }
+    { X3D field "attenuation". } { }
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
-    { X3D field "color". }
+    { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    { X3D field "intensity". }
+    { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
-    { X3D field "spot". }
+    { X3D field "spot". } { }
     property Spot: boolean read GetSpot write SetSpot;
-    { X3D field "spotDropOffRate". }
+    { X3D field "spotDropOffRate". } { }
     property SpotDropOffRate: Single read GetSpotDropOffRate write SetSpotDropOffRate;
-    { X3D field "spotCutOffAngle". }
+    { X3D field "spotCutOffAngle". } { }
     property SpotCutOffAngle: Single read GetSpotCutOffAngle write SetSpotCutOffAngle;
 
 {$endif read_interface}

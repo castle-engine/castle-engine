@@ -34,11 +34,11 @@
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
   public
-    { X3D field "level". }
+    { X3D field "level". } { }
     property Level: Integer read GetLevel write SetLevel;
-    { X3D field "logFile". }
+    { X3D field "logFile". } { }
     property LogFile: string read GetLogFile write SetLogFile;
-    { X3D field "enabled". }
+    { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}

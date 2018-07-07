@@ -42,23 +42,23 @@
     function GetSubcategory: Integer;
     procedure SetSubcategory(const Value: Integer);
   public
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
-    { X3D field "category". }
+    { X3D field "category". } { }
     property Category: Integer read GetCategory write SetCategory;
-    { X3D field "country". }
+    { X3D field "country". } { }
     property Country: Integer read GetCountry write SetCountry;
-    { X3D field "domain". }
+    { X3D field "domain". } { }
     property Domain: Integer read GetDomain write SetDomain;
-    { X3D field "extra". }
+    { X3D field "extra". } { }
     property Extra: Integer read GetExtra write SetExtra;
-    { X3D field "kind". }
+    { X3D field "kind". } { }
     property Kind: Integer read GetKind write SetKind;
-    { X3D field "specific". }
+    { X3D field "specific". } { }
     property Specific: Integer read GetSpecific write SetSpecific;
-    { X3D field "subcategory". }
+    { X3D field "subcategory". } { }
     property Subcategory: Integer read GetSubcategory write SetSubcategory;
 
 {$endif read_interface}

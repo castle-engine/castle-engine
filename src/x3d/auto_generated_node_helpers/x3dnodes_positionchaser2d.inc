@@ -32,9 +32,9 @@
     function GetInitialValue: TVector2;
     procedure SetInitialValue(const Value: TVector2);
   public
-    { X3D field "initialDestination". }
+    { X3D field "initialDestination". } { }
     property InitialDestination: TVector2 read GetInitialDestination write SetInitialDestination;
-    { X3D field "initialValue". }
+    { X3D field "initialValue". } { }
     property InitialValue: TVector2 read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}

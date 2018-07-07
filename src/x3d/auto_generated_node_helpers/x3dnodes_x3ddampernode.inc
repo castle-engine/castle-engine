@@ -34,11 +34,11 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
-    { X3D field "tau". }
+    { X3D field "tau". } { }
     property Tau: TFloatTime read GetTau write SetTau;
-    { X3D field "tolerance". }
+    { X3D field "tolerance". } { }
     property Tolerance: Single read GetTolerance write SetTolerance;
-    { X3D field "order". }
+    { X3D field "order". } { }
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}

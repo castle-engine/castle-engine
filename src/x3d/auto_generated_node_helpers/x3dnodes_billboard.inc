@@ -30,7 +30,7 @@
     function GetAxisOfRotation: TVector3;
     procedure SetAxisOfRotation(const Value: TVector3);
   public
-    { X3D field "axisOfRotation". }
+    { X3D field "axisOfRotation". } { }
     property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;
 
 {$endif read_interface}

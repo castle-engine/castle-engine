@@ -32,23 +32,23 @@
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
   public
-    { X3D field "alpha". }
+    { X3D field "alpha". } { }
     property Alpha: Single read GetAlpha write SetAlpha;
-    { X3D field "color". }
+    { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    { Set X3D field "function". }
+    { Set X3D field "function". } { }
     procedure SetFunction(const Value: array of string);
-    { Set X3D field "function". }
+    { Set X3D field "function". } { }
     procedure SetFunction(const Value: TCastleStringList);
-    { Set X3D field "mode". }
+    { Set X3D field "mode". } { }
     procedure SetMode(const Value: array of string);
-    { Set X3D field "mode". }
+    { Set X3D field "mode". } { }
     procedure SetMode(const Value: TCastleStringList);
-    { Set X3D field "source". }
+    { Set X3D field "source". } { }
     procedure SetSource(const Value: array of string);
-    { Set X3D field "source". }
+    { Set X3D field "source". } { }
     procedure SetSource(const Value: TCastleStringList);
-    { Set X3D field "texture". }
+    { Set X3D field "texture". } { }
     procedure SetTexture(const Value: array of TAbstractTextureNode);
 
 {$endif read_interface}

@@ -32,13 +32,13 @@
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    { X3D field "name". }
+    { X3D field "name". } { }
     property NameField: string read GetNameField write SetNameField;
-    { X3D field "reference". }
+    { X3D field "reference". } { }
     property Reference: string read GetReference write SetReference;
-    { Set X3D field "value". }
+    { Set X3D field "value". } { }
     procedure SetValue(const Value: array of Double);
-    { Set X3D field "value". }
+    { Set X3D field "value". } { }
     procedure SetValue(const Value: TDoubleList);
 
 {$endif read_interface}

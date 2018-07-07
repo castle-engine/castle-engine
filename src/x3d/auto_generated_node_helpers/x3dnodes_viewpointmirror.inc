@@ -33,9 +33,9 @@
     procedure CreateNode; override;
 
     strict private FFdDistanceFromShape: TSFFloat;
-    { X3D field "distanceFromShape". }
+    { X3D field "distanceFromShape". } { }
     public property FdDistanceFromShape: TSFFloat read FFdDistanceFromShape;
-    { X3D field "distanceFromShape". }
+    { X3D field "distanceFromShape". } { }
     property DistanceFromShape: Single read GetDistanceFromShape write SetDistanceFromShape;
 
 {$endif read_interface}

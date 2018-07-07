@@ -68,45 +68,45 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
-    { X3D field "address". }
+    { X3D field "address". } { }
     property Address: string read GetAddress write SetAddress;
-    { X3D field "applicationID". }
+    { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
-    { X3D field "entityID". }
+    { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
-    { X3D field "multicastRelayHost". }
+    { X3D field "multicastRelayHost". } { }
     property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
-    { X3D field "multicastRelayPort". }
+    { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
-    { X3D field "port". }
+    { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
-    { X3D field "radioID". }
+    { X3D field "radioID". } { }
     property RadioID: Integer read GetRadioID write SetRadioID;
-    { X3D field "readInterval". }
+    { X3D field "readInterval". } { }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
-    { X3D field "receivedPower". }
+    { X3D field "receivedPower". } { }
     property ReceivedPower: Single read GetReceivedPower write SetReceivedPower;
-    { X3D field "receiverState". }
+    { X3D field "receiverState". } { }
     property ReceiverState: Integer read GetReceiverState write SetReceiverState;
-    { X3D field "rtpHeaderExpected". }
+    { X3D field "rtpHeaderExpected". } { }
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
-    { X3D field "siteID". }
+    { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
-    { X3D field "transmitterApplicationID". }
+    { X3D field "transmitterApplicationID". } { }
     property TransmitterApplicationID: Integer read GetTransmitterApplicationID write SetTransmitterApplicationID;
-    { X3D field "transmitterEntityID". }
+    { X3D field "transmitterEntityID". } { }
     property TransmitterEntityID: Integer read GetTransmitterEntityID write SetTransmitterEntityID;
-    { X3D field "transmitterRadioID". }
+    { X3D field "transmitterRadioID". } { }
     property TransmitterRadioID: Integer read GetTransmitterRadioID write SetTransmitterRadioID;
-    { X3D field "transmitterSiteID". }
+    { X3D field "transmitterSiteID". } { }
     property TransmitterSiteID: Integer read GetTransmitterSiteID write SetTransmitterSiteID;
-    { X3D field "whichGeometry". }
+    { X3D field "whichGeometry". } { }
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
-    { X3D field "writeInterval". }
+    { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    { X3D field "bboxCenter". }
+    { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". }
+    { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

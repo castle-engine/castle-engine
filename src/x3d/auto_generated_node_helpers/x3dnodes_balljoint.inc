@@ -30,7 +30,7 @@
     function GetAnchorPoint: TVector3;
     procedure SetAnchorPoint(const Value: TVector3);
   public
-    { X3D field "anchorPoint". }
+    { X3D field "anchorPoint". } { }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
 {$endif read_interface}

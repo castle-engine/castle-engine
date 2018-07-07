@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "summary". }
+    { Set X3D field "summary". } { }
     procedure SetSummary(const Value: array of string);
-    { Set X3D field "summary". }
+    { Set X3D field "summary". } { }
     procedure SetSummary(const Value: TCastleStringList);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}

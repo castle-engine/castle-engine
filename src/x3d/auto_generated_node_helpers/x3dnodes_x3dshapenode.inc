@@ -36,13 +36,13 @@
     function GetRender: boolean;
     procedure SetRender(const Value: boolean);
   public
-    { X3D field "bboxCenter". }
+    { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". }
+    { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
-    { X3D field "octreeTriangles". }
+    { X3D field "octreeTriangles". } { }
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
-    { X3D field "render". }
+    { X3D field "render". } { }
     property Render: boolean read GetRender write SetRender;
 
 {$endif read_interface}

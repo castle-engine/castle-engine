@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "vector". }
+    { Set X3D field "vector". } { }
     procedure SetVector(const Value: array of TVector3);
-    { Set X3D field "vector". }
+    { Set X3D field "vector". } { }
     procedure SetVector(const Value: TVector3List);
 
 {$endif read_interface}

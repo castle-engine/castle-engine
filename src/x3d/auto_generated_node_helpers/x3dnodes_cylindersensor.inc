@@ -38,15 +38,15 @@
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
   public
-    { X3D field "axisRotation". }
+    { X3D field "axisRotation". } { }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
-    { X3D field "diskAngle". }
+    { X3D field "diskAngle". } { }
     property DiskAngle: Single read GetDiskAngle write SetDiskAngle;
-    { X3D field "maxAngle". }
+    { X3D field "maxAngle". } { }
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
-    { X3D field "minAngle". }
+    { X3D field "minAngle". } { }
     property MinAngle: Single read GetMinAngle write SetMinAngle;
-    { X3D field "offset". }
+    { X3D field "offset". } { }
     property Offset: Single read GetOffset write SetOffset;
 
 {$endif read_interface}

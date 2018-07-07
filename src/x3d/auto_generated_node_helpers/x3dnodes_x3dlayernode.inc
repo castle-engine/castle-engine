@@ -32,9 +32,9 @@
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
-    { X3D field "isPickable". }
+    { X3D field "isPickable". } { }
     property IsPickable: boolean read GetIsPickable write SetIsPickable;
-    { X3D field "viewport". }
+    { X3D field "viewport". } { }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
 {$endif read_interface}

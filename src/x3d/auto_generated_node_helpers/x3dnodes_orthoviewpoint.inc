@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "fieldOfView". }
+    { Set X3D field "fieldOfView". } { }
     procedure SetFieldOfView(const Value: array of Single);
-    { Set X3D field "fieldOfView". }
+    { Set X3D field "fieldOfView". } { }
     procedure SetFieldOfView(const Value: TSingleList);
 
 {$endif read_interface}

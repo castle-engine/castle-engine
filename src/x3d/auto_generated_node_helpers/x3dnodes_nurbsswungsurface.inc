@@ -34,11 +34,11 @@
     function GetCcw: boolean;
     procedure SetCcw(const Value: boolean);
   public
-    { X3D field "profileCurve". }
+    { X3D field "profileCurve". } { }
     property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
-    { X3D field "trajectoryCurve". }
+    { X3D field "trajectoryCurve". } { }
     property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
-    { X3D field "ccw". }
+    { X3D field "ccw". } { }
     property Ccw: boolean read GetCcw write SetCcw;
 
 {$endif read_interface}

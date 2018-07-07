@@ -36,23 +36,23 @@
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
   public
-    { Set X3D field "attrib". }
+    { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
-    { X3D field "color". }
+    { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
-    { X3D field "coord". }
+    { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
-    { X3D field "fogCoord". }
+    { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
-    { Set X3D field "colorIndex". }
+    { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: array of LongInt);
-    { Set X3D field "colorIndex". }
+    { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
-    { X3D field "colorPerVertex". }
+    { X3D field "colorPerVertex". } { }
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
 
 {$endif read_interface}

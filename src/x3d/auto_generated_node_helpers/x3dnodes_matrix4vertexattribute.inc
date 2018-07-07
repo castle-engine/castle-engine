@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "value". }
+    { Set X3D field "value". } { }
     procedure SetValue(const Value: array of TMatrix4);
-    { Set X3D field "value". }
+    { Set X3D field "value". } { }
     procedure SetValue(const Value: TMatrix4List);
 
 {$endif read_interface}

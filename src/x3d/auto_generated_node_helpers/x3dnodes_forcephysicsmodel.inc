@@ -30,7 +30,7 @@
     function GetForce: TVector3;
     procedure SetForce(const Value: TVector3);
   public
-    { X3D field "force". }
+    { X3D field "force". } { }
     property Force: TVector3 read GetForce write SetForce;
 
 {$endif read_interface}

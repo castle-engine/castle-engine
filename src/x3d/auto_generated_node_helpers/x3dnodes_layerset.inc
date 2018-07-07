@@ -30,13 +30,13 @@
     function GetActiveLayer: Integer;
     procedure SetActiveLayer(const Value: Integer);
   public
-    { X3D field "activeLayer". }
+    { X3D field "activeLayer". } { }
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
-    { Set X3D field "layers". }
+    { Set X3D field "layers". } { }
     procedure SetLayers(const Value: array of TAbstractLayerNode);
-    { Set X3D field "order". }
+    { Set X3D field "order". } { }
     procedure SetOrder(const Value: array of LongInt);
-    { Set X3D field "order". }
+    { Set X3D field "order". } { }
     procedure SetOrder(const Value: TLongIntList);
 
 {$endif read_interface}

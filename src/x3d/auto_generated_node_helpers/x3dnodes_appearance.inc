@@ -40,23 +40,23 @@
     function GetBlendMode: TBlendModeNode;
     procedure SetBlendMode(const Value: TBlendModeNode);
   public
-    { X3D field "fillProperties". }
+    { X3D field "fillProperties". } { }
     property FillProperties: TFillPropertiesNode read GetFillProperties write SetFillProperties;
-    { X3D field "lineProperties". }
+    { X3D field "lineProperties". } { }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
-    { Set X3D field "shaders". }
+    { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
-    { X3D field "textureTransform". }
+    { X3D field "textureTransform". } { }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
-    { Set X3D field "receiveShadows". }
+    { Set X3D field "receiveShadows". } { }
     procedure SetReceiveShadows(const Value: array of TAbstractLightNode);
-    { X3D field "shadowCaster". }
+    { X3D field "shadowCaster". } { }
     property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
-    { X3D field "heightMapScale". }
+    { X3D field "heightMapScale". } { }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
-    { X3D field "blendMode". }
+    { X3D field "blendMode". } { }
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
-    { Set X3D field "effects". }
+    { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}

@@ -36,13 +36,13 @@
     function GetOffset: TVector3;
     procedure SetOffset(const Value: TVector3);
   public
-    { X3D field "axisRotation". }
+    { X3D field "axisRotation". } { }
     property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
-    { X3D field "maxPosition". }
+    { X3D field "maxPosition". } { }
     property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
-    { X3D field "minPosition". }
+    { X3D field "minPosition". } { }
     property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
-    { X3D field "offset". }
+    { X3D field "offset". } { }
     property Offset: TVector3 read GetOffset write SetOffset;
 
 {$endif read_interface}

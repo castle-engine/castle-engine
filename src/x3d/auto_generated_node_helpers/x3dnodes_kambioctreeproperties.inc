@@ -32,9 +32,9 @@
     function GetLeafCapacity: Integer;
     procedure SetLeafCapacity(const Value: Integer);
   public
-    { X3D field "maxDepth". }
+    { X3D field "maxDepth". } { }
     property MaxDepth: Integer read GetMaxDepth write SetMaxDepth;
-    { X3D field "leafCapacity". }
+    { X3D field "leafCapacity". } { }
     property LeafCapacity: Integer read GetLeafCapacity write SetLeafCapacity;
 
 {$endif read_interface}

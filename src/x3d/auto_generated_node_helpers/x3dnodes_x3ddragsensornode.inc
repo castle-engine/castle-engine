@@ -30,7 +30,7 @@
     function GetAutoOffset: boolean;
     procedure SetAutoOffset(const Value: boolean);
   public
-    { X3D field "autoOffset". }
+    { X3D field "autoOffset". } { }
     property AutoOffset: boolean read GetAutoOffset write SetAutoOffset;
 
 {$endif read_interface}

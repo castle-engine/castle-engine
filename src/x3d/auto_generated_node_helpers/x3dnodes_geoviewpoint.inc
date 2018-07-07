@@ -36,21 +36,21 @@
     function GetSpeedFactor: Single;
     procedure SetSpeedFactor(const Value: Single);
   public
-    { X3D field "fieldOfView". }
+    { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
-    { X3D field "headlight". }
+    { X3D field "headlight". } { }
     property Headlight: boolean read GetHeadlight write SetHeadlight;
-    { Set X3D field "navType". }
+    { Set X3D field "navType". } { }
     procedure SetNavType(const Value: array of string);
-    { Set X3D field "navType". }
+    { Set X3D field "navType". } { }
     procedure SetNavType(const Value: TCastleStringList);
-    { X3D field "geoOrigin". }
+    { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
-    { X3D field "speedFactor". }
+    { X3D field "speedFactor". } { }
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 
 {$endif read_interface}

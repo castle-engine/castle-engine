@@ -32,9 +32,9 @@
     function GetOuterRadius: Single;
     procedure SetOuterRadius(const Value: Single);
   public
-    { X3D field "innerRadius". }
+    { X3D field "innerRadius". } { }
     property InnerRadius: Single read GetInnerRadius write SetInnerRadius;
-    { X3D field "outerRadius". }
+    { X3D field "outerRadius". } { }
     property OuterRadius: Single read GetOuterRadius write SetOuterRadius;
 
 {$endif read_interface}

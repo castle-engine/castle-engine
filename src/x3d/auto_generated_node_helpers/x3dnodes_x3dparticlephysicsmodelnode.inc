@@ -30,7 +30,7 @@
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
   public
-    { X3D field "enabled". }
+    { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}

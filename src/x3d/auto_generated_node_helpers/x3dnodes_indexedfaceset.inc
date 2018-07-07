@@ -32,25 +32,25 @@
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
   public
-    { Set X3D field "colorIndex". }
+    { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: array of LongInt);
-    { Set X3D field "colorIndex". }
+    { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
-    { X3D field "convex". }
+    { X3D field "convex". } { }
     property Convex: boolean read GetConvex write SetConvex;
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
-    { X3D field "creaseAngle". }
+    { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
-    { Set X3D field "normalIndex". }
+    { Set X3D field "normalIndex". } { }
     procedure SetNormalIndex(const Value: array of LongInt);
-    { Set X3D field "normalIndex". }
+    { Set X3D field "normalIndex". } { }
     procedure SetNormalIndex(const Value: TLongIntList);
-    { Set X3D field "texCoordIndex". }
+    { Set X3D field "texCoordIndex". } { }
     procedure SetTexCoordIndex(const Value: array of LongInt);
-    { Set X3D field "texCoordIndex". }
+    { Set X3D field "texCoordIndex". } { }
     procedure SetTexCoordIndex(const Value: TLongIntList);
 
 {$endif read_interface}

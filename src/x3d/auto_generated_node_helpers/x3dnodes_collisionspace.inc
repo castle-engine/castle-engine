@@ -30,7 +30,7 @@
     function GetUseGeometry: boolean;
     procedure SetUseGeometry(const Value: boolean);
   public
-    { X3D field "useGeometry". }
+    { X3D field "useGeometry". } { }
     property UseGeometry: boolean read GetUseGeometry write SetUseGeometry;
 
 {$endif read_interface}

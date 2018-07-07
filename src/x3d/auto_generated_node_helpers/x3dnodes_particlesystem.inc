@@ -46,33 +46,33 @@
     function GetTexCoordRamp: TTextureCoordinateNode;
     procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
   public
-    { X3D field "createParticles". }
+    { X3D field "createParticles". } { }
     property CreateParticles: boolean read GetCreateParticles write SetCreateParticles;
-    { X3D field "enabled". }
+    { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
-    { X3D field "lifetimeVariation". }
+    { X3D field "lifetimeVariation". } { }
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
-    { X3D field "maxParticles". }
+    { X3D field "maxParticles". } { }
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
-    { X3D field "particleLifetime". }
+    { X3D field "particleLifetime". } { }
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
-    { X3D field "particleSize". }
+    { X3D field "particleSize". } { }
     property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
-    { X3D field "colorRamp". }
+    { X3D field "colorRamp". } { }
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
-    { Set X3D field "colorKey". }
+    { Set X3D field "colorKey". } { }
     procedure SetColorKey(const Value: array of Single);
-    { Set X3D field "colorKey". }
+    { Set X3D field "colorKey". } { }
     procedure SetColorKey(const Value: TSingleList);
-    { X3D field "emitter". }
+    { X3D field "emitter". } { }
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
-    { Set X3D field "physics". }
+    { Set X3D field "physics". } { }
     procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
-    { X3D field "texCoordRamp". }
+    { X3D field "texCoordRamp". } { }
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
-    { Set X3D field "texCoordKey". }
+    { Set X3D field "texCoordKey". } { }
     procedure SetTexCoordKey(const Value: array of Single);
-    { Set X3D field "texCoordKey". }
+    { Set X3D field "texCoordKey". } { }
     procedure SetTexCoordKey(const Value: TSingleList);
 
 {$endif read_interface}

@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "initialDestination". }
+    { Set X3D field "initialDestination". } { }
     procedure SetInitialDestination(const Value: array of TVector2);
-    { Set X3D field "initialDestination". }
+    { Set X3D field "initialDestination". } { }
     procedure SetInitialDestination(const Value: TVector2List);
-    { Set X3D field "initialValue". }
+    { Set X3D field "initialValue". } { }
     procedure SetInitialValue(const Value: array of TVector2);
-    { Set X3D field "initialValue". }
+    { Set X3D field "initialValue". } { }
     procedure SetInitialValue(const Value: TVector2List);
 
 {$endif read_interface}

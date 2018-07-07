@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}

@@ -30,7 +30,7 @@
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
-    { X3D field "collider". }
+    { X3D field "collider". } { }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
 {$endif read_interface}

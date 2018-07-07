@@ -58,39 +58,39 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
-    { Set X3D field "appliedParameters". }
+    { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: array of string);
-    { Set X3D field "appliedParameters". }
+    { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: TCastleStringList);
-    { X3D field "body1". }
+    { X3D field "body1". } { }
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
-    { X3D field "body2". }
+    { X3D field "body2". } { }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
-    { X3D field "bounce". }
+    { X3D field "bounce". } { }
     property Bounce: Single read GetBounce write SetBounce;
-    { X3D field "contactNormal". }
+    { X3D field "contactNormal". } { }
     property ContactNormal: TVector3 read GetContactNormal write SetContactNormal;
-    { X3D field "depth". }
+    { X3D field "depth". } { }
     property Depth: Single read GetDepth write SetDepth;
-    { X3D field "frictionCoefficients". }
+    { X3D field "frictionCoefficients". } { }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
-    { X3D field "frictionDirection". }
+    { X3D field "frictionDirection". } { }
     property FrictionDirection: TVector3 read GetFrictionDirection write SetFrictionDirection;
-    { X3D field "geometry1". }
+    { X3D field "geometry1". } { }
     property Geometry1: TAbstractNBodyCollidableNode read GetGeometry1 write SetGeometry1;
-    { X3D field "geometry2". }
+    { X3D field "geometry2". } { }
     property Geometry2: TAbstractNBodyCollidableNode read GetGeometry2 write SetGeometry2;
-    { X3D field "minbounceSpeed". }
+    { X3D field "minbounceSpeed". } { }
     property MinbounceSpeed: Single read GetMinbounceSpeed write SetMinbounceSpeed;
-    { X3D field "position". }
+    { X3D field "position". } { }
     property Position: TVector3 read GetPosition write SetPosition;
-    { X3D field "slipCoefficients". }
+    { X3D field "slipCoefficients". } { }
     property SlipCoefficients: TVector2 read GetSlipCoefficients write SetSlipCoefficients;
-    { X3D field "softnessConstantForceMix". }
+    { X3D field "softnessConstantForceMix". } { }
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
-    { X3D field "softnessErrorCorrection". }
+    { X3D field "softnessErrorCorrection". } { }
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
-    { X3D field "surfaceSpeed". }
+    { X3D field "surfaceSpeed". } { }
     property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
 {$endif read_interface}

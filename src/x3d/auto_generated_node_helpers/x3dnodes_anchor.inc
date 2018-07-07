@@ -30,15 +30,15 @@
     function GetDescription: string;
     procedure SetDescription(const Value: string);
   public
-    { X3D field "description". }
+    { X3D field "description". } { }
     property Description: string read GetDescription write SetDescription;
-    { Set X3D field "parameter". }
+    { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: array of string);
-    { Set X3D field "parameter". }
+    { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: TCastleStringList);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
-    { Set X3D field "url". }
+    { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}

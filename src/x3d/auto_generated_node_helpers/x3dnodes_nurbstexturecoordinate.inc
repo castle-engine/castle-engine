@@ -36,29 +36,29 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
-    { Set X3D field "controlPoint". }
+    { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: array of TVector2);
-    { Set X3D field "controlPoint". }
+    { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: TVector2List);
-    { Set X3D field "weight". }
+    { Set X3D field "weight". } { }
     procedure SetWeight(const Value: array of Single);
-    { Set X3D field "weight". }
+    { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TSingleList);
-    { X3D field "uDimension". }
+    { X3D field "uDimension". } { }
     property UDimension: Integer read GetUDimension write SetUDimension;
-    { Set X3D field "uKnot". }
+    { Set X3D field "uKnot". } { }
     procedure SetUKnot(const Value: array of Double);
-    { Set X3D field "uKnot". }
+    { Set X3D field "uKnot". } { }
     procedure SetUKnot(const Value: TDoubleList);
-    { X3D field "uOrder". }
+    { X3D field "uOrder". } { }
     property UOrder: Integer read GetUOrder write SetUOrder;
-    { X3D field "vDimension". }
+    { X3D field "vDimension". } { }
     property VDimension: Integer read GetVDimension write SetVDimension;
-    { Set X3D field "vKnot". }
+    { Set X3D field "vKnot". } { }
     procedure SetVKnot(const Value: array of Double);
-    { Set X3D field "vKnot". }
+    { Set X3D field "vKnot". } { }
     procedure SetVKnot(const Value: TDoubleList);
-    { X3D field "vOrder". }
+    { X3D field "vOrder". } { }
     property VOrder: Integer read GetVOrder write SetVOrder;
 
 {$endif read_interface}

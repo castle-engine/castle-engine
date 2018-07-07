@@ -36,13 +36,13 @@
     function GetTranslation: TVector2;
     procedure SetTranslation(const Value: TVector2);
   public
-    { X3D field "center". }
+    { X3D field "center". } { }
     property Center: TVector2 read GetCenter write SetCenter;
-    { X3D field "rotation". }
+    { X3D field "rotation". } { }
     property Rotation: Single read GetRotation write SetRotation;
-    { X3D field "scale". }
+    { X3D field "scale". } { }
     property Scale: TVector2 read GetScale write SetScale;
-    { X3D field "translation". }
+    { X3D field "translation". } { }
     property Translation: TVector2 read GetTranslation write SetTranslation;
 
 {$endif read_interface}

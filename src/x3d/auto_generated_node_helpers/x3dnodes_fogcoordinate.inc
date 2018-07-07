@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "depth". }
+    { Set X3D field "depth". } { }
     procedure SetDepth(const Value: array of Single);
-    { Set X3D field "depth". }
+    { Set X3D field "depth". } { }
     procedure SetDepth(const Value: TSingleList);
 
 {$endif read_interface}

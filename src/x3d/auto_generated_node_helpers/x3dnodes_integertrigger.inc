@@ -30,7 +30,7 @@
     function GetIntegerKey: Integer;
     procedure SetIntegerKey(const Value: Integer);
   public
-    { X3D field "integerKey". }
+    { X3D field "integerKey". } { }
     property IntegerKey: Integer read GetIntegerKey write SetIntegerKey;
 
 {$endif read_interface}

@@ -32,9 +32,9 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
-    { X3D field "size". }
+    { X3D field "size". } { }
     property Size: Integer read GetSize write SetSize;
-    { X3D field "textureProperties". }
+    { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}

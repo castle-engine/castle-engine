@@ -30,7 +30,7 @@
     function GetMatrix: TMatrix4;
     procedure SetMatrix(const Value: TMatrix4);
   public
-    { X3D field "matrix". }
+    { X3D field "matrix". } { }
     property Matrix: TMatrix4 read GetMatrix write SetMatrix;
 
 {$endif read_interface}

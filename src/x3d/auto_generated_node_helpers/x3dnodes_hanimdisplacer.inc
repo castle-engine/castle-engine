@@ -32,17 +32,17 @@
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
-    { Set X3D field "coordIndex". }
+    { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
-    { Set X3D field "displacements". }
+    { Set X3D field "displacements". } { }
     procedure SetDisplacements(const Value: array of TVector3);
-    { Set X3D field "displacements". }
+    { Set X3D field "displacements". } { }
     procedure SetDisplacements(const Value: TVector3List);
-    { X3D field "name". }
+    { X3D field "name". } { }
     property NameField: string read GetNameField write SetNameField;
-    { X3D field "weight". }
+    { X3D field "weight". } { }
     property Weight: Single read GetWeight write SetWeight;
 
 {$endif read_interface}

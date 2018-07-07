@@ -32,9 +32,9 @@
     function GetInitialValue: Single;
     procedure SetInitialValue(const Value: Single);
   public
-    { X3D field "initialDestination". }
+    { X3D field "initialDestination". } { }
     property InitialDestination: Single read GetInitialDestination write SetInitialDestination;
-    { X3D field "initialValue". }
+    { X3D field "initialValue". } { }
     property InitialValue: Single read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}

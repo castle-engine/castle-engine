@@ -38,15 +38,15 @@
     function GetStopTime: TFloatTime;
     procedure SetStopTime(const Value: TFloatTime);
   public
-    { X3D field "loop". }
+    { X3D field "loop". } { }
     property Loop: boolean read GetLoop write SetLoop;
-    { X3D field "pauseTime". }
+    { X3D field "pauseTime". } { }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
-    { X3D field "resumeTime". }
+    { X3D field "resumeTime". } { }
     property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
-    { X3D field "startTime". }
+    { X3D field "startTime". } { }
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
-    { X3D field "stopTime". }
+    { X3D field "stopTime". } { }
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
 
 {$endif read_interface}

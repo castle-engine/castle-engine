@@ -40,21 +40,21 @@
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
-    { X3D field "geoCenter". }
+    { X3D field "geoCenter". } { }
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
-    { X3D field "rotation". }
+    { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
-    { X3D field "scale". }
+    { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
-    { X3D field "scaleOrientation". }
+    { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
-    { X3D field "translation". }
+    { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
-    { X3D field "geoOrigin". }
+    { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: array of string);
-    { Set X3D field "geoSystem". }
+    { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}

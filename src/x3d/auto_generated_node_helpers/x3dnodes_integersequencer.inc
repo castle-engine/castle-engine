@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "keyValue". }
+    { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of LongInt);
-    { Set X3D field "keyValue". }
+    { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TLongIntList);
 
 {$endif read_interface}

@@ -32,11 +32,11 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
-    { Set X3D field "children". }
+    { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
-    { X3D field "bboxCenter". }
+    { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". }
+    { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}

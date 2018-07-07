@@ -52,31 +52,31 @@
     function GetDefaultShadowMap: TGeneratedShadowMapNode;
     procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
-    { X3D field "ambientIntensity". }
+    { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
-    { X3D field "color". }
+    { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
-    { X3D field "global". }
+    { X3D field "global". } { }
     property Global: boolean read GetGlobal write SetGlobal;
-    { X3D field "intensity". }
+    { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
-    { X3D field "on". }
+    { X3D field "on". } { }
     property IsOn: boolean read GetIsOn write SetIsOn;
-    { X3D field "shadows". }
+    { X3D field "shadows". } { }
     property Shadows: boolean read GetShadows write SetShadows;
-    { X3D field "shadowVolumes". }
+    { X3D field "shadowVolumes". } { }
     property ShadowVolumes: boolean read GetShadowVolumes write SetShadowVolumes;
-    { X3D field "shadowVolumesMain". }
+    { X3D field "shadowVolumesMain". } { }
     property ShadowVolumesMain: boolean read GetShadowVolumesMain write SetShadowVolumesMain;
-    { X3D field "projectionNear". }
+    { X3D field "projectionNear". } { }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
-    { X3D field "projectionFar". }
+    { X3D field "projectionFar". } { }
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
-    { X3D field "up". }
+    { X3D field "up". } { }
     property Up: TVector3 read GetUp write SetUp;
-    { X3D field "defaultShadowMap". }
+    { X3D field "defaultShadowMap". } { }
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
-    { Set X3D field "effects". }
+    { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}

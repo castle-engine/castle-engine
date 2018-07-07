@@ -27,9 +27,9 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "controlPoint". }
+    { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: array of TVector2Double);
-    { Set X3D field "controlPoint". }
+    { Set X3D field "controlPoint". } { }
     procedure SetControlPoint(const Value: TVector2DoubleList);
 
 {$endif read_interface}

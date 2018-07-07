@@ -27,11 +27,11 @@
 {$ifdef read_interface}
 
   public
-    { Set X3D field "replaceNames". }
+    { Set X3D field "replaceNames". } { }
     procedure SetReplaceNames(const Value: array of string);
-    { Set X3D field "replaceNames". }
+    { Set X3D field "replaceNames". } { }
     procedure SetReplaceNames(const Value: TCastleStringList);
-    { Set X3D field "replaceNodes". }
+    { Set X3D field "replaceNodes". } { }
     procedure SetReplaceNodes(const Value: array of TAbstractNode);
 
 {$endif read_interface}

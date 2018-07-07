@@ -36,15 +36,15 @@
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
   public
-    { X3D field "address". }
+    { X3D field "address". } { }
     property Address: string read GetAddress write SetAddress;
-    { X3D field "applicationID". }
+    { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
-    { Set X3D field "mapping". }
+    { Set X3D field "mapping". } { }
     procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
-    { X3D field "port". }
+    { X3D field "port". } { }
     property Port: Integer read GetPort write SetPort;
-    { X3D field "siteID". }
+    { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
 
 {$endif read_interface}

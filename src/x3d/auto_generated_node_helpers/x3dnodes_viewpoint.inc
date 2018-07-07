@@ -32,9 +32,9 @@
     function GetFieldOfViewForceVertical: boolean;
     procedure SetFieldOfViewForceVertical(const Value: boolean);
   public
-    { X3D field "fieldOfView". }
+    { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
-    { X3D field "fieldOfViewForceVertical". }
+    { X3D field "fieldOfViewForceVertical". } { }
     property FieldOfViewForceVertical: boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
 
 {$endif read_interface}

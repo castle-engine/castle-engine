@@ -32,9 +32,9 @@
     function GetInitialValue: TCastleColorRGB;
     procedure SetInitialValue(const Value: TCastleColorRGB);
   public
-    { X3D field "initialDestination". }
+    { X3D field "initialDestination". } { }
     property InitialDestination: TCastleColorRGB read GetInitialDestination write SetInitialDestination;
-    { X3D field "initialValue". }
+    { X3D field "initialValue". } { }
     property InitialValue: TCastleColorRGB read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}

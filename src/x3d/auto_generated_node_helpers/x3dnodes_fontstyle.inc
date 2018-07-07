@@ -40,17 +40,17 @@
     function GetTopToBottom: boolean;
     procedure SetTopToBottom(const Value: boolean);
   public
-    { X3D field "horizontal". }
+    { X3D field "horizontal". } { }
     property Horizontal: boolean read GetHorizontal write SetHorizontal;
-    { X3D field "language". }
+    { X3D field "language". } { }
     property Language: string read GetLanguage write SetLanguage;
-    { X3D field "leftToRight". }
+    { X3D field "leftToRight". } { }
     property LeftToRight: boolean read GetLeftToRight write SetLeftToRight;
-    { X3D field "size". }
+    { X3D field "size". } { }
     property Size: Single read GetSize write SetSize;
-    { X3D field "spacing". }
+    { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
-    { X3D field "topToBottom". }
+    { X3D field "topToBottom". } { }
     property TopToBottom: boolean read GetTopToBottom write SetTopToBottom;
 
 {$endif read_interface}

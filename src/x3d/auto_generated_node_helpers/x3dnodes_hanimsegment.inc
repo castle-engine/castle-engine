@@ -36,19 +36,19 @@
     function GetNameField: string;
     procedure SetNameField(const Value: string);
   public
-    { X3D field "centerOfMass". }
+    { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
-    { X3D field "coord". }
+    { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
-    { Set X3D field "displacers". }
+    { Set X3D field "displacers". } { }
     procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
-    { X3D field "mass". }
+    { X3D field "mass". } { }
     property Mass: Single read GetMass write SetMass;
-    { Set X3D field "momentsOfInertia". }
+    { Set X3D field "momentsOfInertia". } { }
     procedure SetMomentsOfInertia(const Value: array of Single);
-    { Set X3D field "momentsOfInertia". }
+    { Set X3D field "momentsOfInertia". } { }
     procedure SetMomentsOfInertia(const Value: TSingleList);
-    { X3D field "name". }
+    { X3D field "name". } { }
     property NameField: string read GetNameField write SetNameField;
 
 {$endif read_interface}

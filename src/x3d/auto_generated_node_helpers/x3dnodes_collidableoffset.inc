@@ -30,7 +30,7 @@
     function GetCollidable: TAbstractNBodyCollidableNode;
     procedure SetCollidable(const Value: TAbstractNBodyCollidableNode);
   public
-    { X3D field "collidable". }
+    { X3D field "collidable". } { }
     property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;
 
 {$endif read_interface}

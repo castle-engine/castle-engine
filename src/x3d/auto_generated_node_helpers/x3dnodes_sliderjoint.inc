@@ -38,15 +38,15 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
-    { X3D field "axis". }
+    { X3D field "axis". } { }
     property Axis: TVector3 read GetAxis write SetAxis;
-    { X3D field "maxSeparation". }
+    { X3D field "maxSeparation". } { }
     property MaxSeparation: Single read GetMaxSeparation write SetMaxSeparation;
-    { X3D field "minSeparation". }
+    { X3D field "minSeparation". } { }
     property MinSeparation: Single read GetMinSeparation write SetMinSeparation;
-    { X3D field "stopBounce". }
+    { X3D field "stopBounce". } { }
     property StopBounce: Single read GetStopBounce write SetStopBounce;
-    { X3D field "stopErrorCorrection". }
+    { X3D field "stopErrorCorrection". } { }
     property StopErrorCorrection: Single read GetStopErrorCorrection write SetStopErrorCorrection;
 
 {$endif read_interface}

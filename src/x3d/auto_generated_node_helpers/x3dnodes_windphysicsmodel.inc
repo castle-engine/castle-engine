@@ -36,13 +36,13 @@
     function GetTurbulence: Single;
     procedure SetTurbulence(const Value: Single);
   public
-    { X3D field "direction". }
+    { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
-    { X3D field "gustiness". }
+    { X3D field "gustiness". } { }
     property Gustiness: Single read GetGustiness write SetGustiness;
-    { X3D field "speed". }
+    { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
-    { X3D field "turbulence". }
+    { X3D field "turbulence". } { }
     property Turbulence: Single read GetTurbulence write SetTurbulence;
 
 {$endif read_interface}

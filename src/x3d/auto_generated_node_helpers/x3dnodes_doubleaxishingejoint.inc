@@ -56,33 +56,33 @@
     function GetSuspensionForce: Single;
     procedure SetSuspensionForce(const Value: Single);
   public
-    { X3D field "anchorPoint". }
+    { X3D field "anchorPoint". } { }
     property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
-    { X3D field "axis1". }
+    { X3D field "axis1". } { }
     property Axis1: TVector3 read GetAxis1 write SetAxis1;
-    { X3D field "axis2". }
+    { X3D field "axis2". } { }
     property Axis2: TVector3 read GetAxis2 write SetAxis2;
-    { X3D field "desiredAngularVelocity1". }
+    { X3D field "desiredAngularVelocity1". } { }
     property DesiredAngularVelocity1: Single read GetDesiredAngularVelocity1 write SetDesiredAngularVelocity1;
-    { X3D field "desiredAngularVelocity2". }
+    { X3D field "desiredAngularVelocity2". } { }
     property DesiredAngularVelocity2: Single read GetDesiredAngularVelocity2 write SetDesiredAngularVelocity2;
-    { X3D field "maxAngle1". }
+    { X3D field "maxAngle1". } { }
     property MaxAngle1: Single read GetMaxAngle1 write SetMaxAngle1;
-    { X3D field "maxTorque1". }
+    { X3D field "maxTorque1". } { }
     property MaxTorque1: Single read GetMaxTorque1 write SetMaxTorque1;
-    { X3D field "maxTorque2". }
+    { X3D field "maxTorque2". } { }
     property MaxTorque2: Single read GetMaxTorque2 write SetMaxTorque2;
-    { X3D field "minAngle1". }
+    { X3D field "minAngle1". } { }
     property MinAngle1: Single read GetMinAngle1 write SetMinAngle1;
-    { X3D field "stopBounce1". }
+    { X3D field "stopBounce1". } { }
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
-    { X3D field "stopConstantForceMix1". }
+    { X3D field "stopConstantForceMix1". } { }
     property StopConstantForceMix1: Single read GetStopConstantForceMix1 write SetStopConstantForceMix1;
-    { X3D field "stopErrorCorrection1". }
+    { X3D field "stopErrorCorrection1". } { }
     property StopErrorCorrection1: Single read GetStopErrorCorrection1 write SetStopErrorCorrection1;
-    { X3D field "suspensionErrorCorrection". }
+    { X3D field "suspensionErrorCorrection". } { }
     property SuspensionErrorCorrection: Single read GetSuspensionErrorCorrection write SetSuspensionErrorCorrection;
-    { X3D field "suspensionForce". }
+    { X3D field "suspensionForce". } { }
     property SuspensionForce: Single read GetSuspensionForce write SetSuspensionForce;
 
 {$endif read_interface}

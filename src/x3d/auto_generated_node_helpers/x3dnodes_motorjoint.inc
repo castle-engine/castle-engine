@@ -62,39 +62,39 @@
     function GetAutoCalc: boolean;
     procedure SetAutoCalc(const Value: boolean);
   public
-    { X3D field "axis1Angle". }
+    { X3D field "axis1Angle". } { }
     property Axis1Angle: Single read GetAxis1Angle write SetAxis1Angle;
-    { X3D field "axis1Torque". }
+    { X3D field "axis1Torque". } { }
     property Axis1Torque: Single read GetAxis1Torque write SetAxis1Torque;
-    { X3D field "axis2Angle". }
+    { X3D field "axis2Angle". } { }
     property Axis2Angle: Single read GetAxis2Angle write SetAxis2Angle;
-    { X3D field "axis2Torque". }
+    { X3D field "axis2Torque". } { }
     property Axis2Torque: Single read GetAxis2Torque write SetAxis2Torque;
-    { X3D field "axis3Angle". }
+    { X3D field "axis3Angle". } { }
     property Axis3Angle: Single read GetAxis3Angle write SetAxis3Angle;
-    { X3D field "axis3Torque". }
+    { X3D field "axis3Torque". } { }
     property Axis3Torque: Single read GetAxis3Torque write SetAxis3Torque;
-    { X3D field "enabledAxes". }
+    { X3D field "enabledAxes". } { }
     property EnabledAxes: Integer read GetEnabledAxes write SetEnabledAxes;
-    { X3D field "motor1Axis". }
+    { X3D field "motor1Axis". } { }
     property Motor1Axis: TVector3 read GetMotor1Axis write SetMotor1Axis;
-    { X3D field "motor2Axis". }
+    { X3D field "motor2Axis". } { }
     property Motor2Axis: TVector3 read GetMotor2Axis write SetMotor2Axis;
-    { X3D field "motor3Axis". }
+    { X3D field "motor3Axis". } { }
     property Motor3Axis: TVector3 read GetMotor3Axis write SetMotor3Axis;
-    { X3D field "stop1Bounce". }
+    { X3D field "stop1Bounce". } { }
     property Stop1Bounce: Single read GetStop1Bounce write SetStop1Bounce;
-    { X3D field "stop1ErrorCorrection". }
+    { X3D field "stop1ErrorCorrection". } { }
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
-    { X3D field "stop2Bounce". }
+    { X3D field "stop2Bounce". } { }
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
-    { X3D field "stop2ErrorCorrection". }
+    { X3D field "stop2ErrorCorrection". } { }
     property Stop2ErrorCorrection: Single read GetStop2ErrorCorrection write SetStop2ErrorCorrection;
-    { X3D field "stop3Bounce". }
+    { X3D field "stop3Bounce". } { }
     property Stop3Bounce: Single read GetStop3Bounce write SetStop3Bounce;
-    { X3D field "stop3ErrorCorrection". }
+    { X3D field "stop3ErrorCorrection". } { }
     property Stop3ErrorCorrection: Single read GetStop3ErrorCorrection write SetStop3ErrorCorrection;
-    { X3D field "autoCalc". }
+    { X3D field "autoCalc". } { }
     property AutoCalc: boolean read GetAutoCalc write SetAutoCalc;
 
 {$endif read_interface}

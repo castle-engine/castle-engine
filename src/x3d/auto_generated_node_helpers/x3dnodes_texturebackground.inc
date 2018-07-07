@@ -40,17 +40,17 @@
     function GetTopTexture: TAbstractTextureNode;
     procedure SetTopTexture(const Value: TAbstractTextureNode);
   public
-    { X3D field "backTexture". }
+    { X3D field "backTexture". } { }
     property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
-    { X3D field "bottomTexture". }
+    { X3D field "bottomTexture". } { }
     property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
-    { X3D field "frontTexture". }
+    { X3D field "frontTexture". } { }
     property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
-    { X3D field "leftTexture". }
+    { X3D field "leftTexture". } { }
     property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
-    { X3D field "rightTexture". }
+    { X3D field "rightTexture". } { }
     property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
-    { X3D field "topTexture". }
+    { X3D field "topTexture". } { }
     property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;
 
 {$endif read_interface}
