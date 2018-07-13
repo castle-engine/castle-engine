@@ -345,16 +345,22 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
     Result := { TODO-alt: (key = K_Alt) or }(key = VK_F10)
   end;
 
+  { Handle WinAPI WM_KEYDOWN message by calling DoKeyDown method.
+    We also handle (peek and remove) WM_CHAR message here. }
   procedure Handle_WM_KEYDOWN;
-  { Notka:
-    Windows wysyla nam WM_KEYDOWN co jakis czas dopoki user trzyma dany klawisz.
-    Czestotliwosc wysylania WM_KEYDOWN zalezy od ustawien autorepeat klawiatury.
-    To czy klawisz zostal wcisniety po raz pierwszy czy tez jest to jego auto-repeat
-    mozna ustalic badajac bit KEY_ALREADY_DOWN w lParm; ale nie robie tego, bo to
-    dziala ok. EventKeyDown jest wywolywane wielokrotnie gdy ktos trzyma wcisniety
-    klawisz. Mialem tutaj kiedys implementacje wlasnego autorepeata z wlasnym
-    KeyDownDelay ale byla niepotrzebna, przeciez Windows automatycznie robi
-    wszystko ok. }
+
+  { Note that WM_KEYDOWN is repeated when the user holds the key down.
+    The frequency of "key repeat" depends on user settings.
+
+    And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
+    This way our API (TUIControl.Press, TCastleWindowCustom.OnPress)
+    will generate repeated key presses.
+    This is documented and desired (e.g. for implementing UI like edit box).
+    User can check TInputPressRelease.KeyRepeated that is calculated
+    elsewhere. (We could also calculate TInputPressRelease.KeyRepeated here,
+    looking at KEY_ALREADY_DOWN bit in lParm, but it's not needed for now.)
+  }
+
   var
     Key: TKey;
     CharMsg: TMsg;
@@ -412,6 +418,7 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
     if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
   end;
 
+  { Handle WinAPI WM_KEYUP message by calling DoKeyUp method. }
   procedure Handle_WM_KEYUP;
   var
     Key: TKey;
