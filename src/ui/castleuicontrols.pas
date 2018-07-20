@@ -415,6 +415,7 @@ type
       is more natural when you use UI scaling (@link(UIScaling)),
       and it's simply equal to @name when UI scaling is not used. }
     function Rect: TRectangle; virtual;
+    function FloatRect: TFloatRectangle;
 
     { Translucent status bar height in the container, in pixels.
       This is expressed in real device pixels.
@@ -440,14 +441,17 @@ type
 
       @seealso UnscaledHeight }
     function UnscaledWidth: Cardinal;
+    function UnscaledFloatWidth: Single;
 
     { Container height as seen by controls with UI scaling.
       @seealso UnscaledWidth }
     function UnscaledHeight: Cardinal;
+    function UnscaledFloatHeight: Single;
 
     { Container rectangle as seen by controls with UI scaling.
       @seealso UnscaledWidth }
     function UnscaledRect: TRectangle;
+    function UnscaledFloatRect: TFloatRectangle;
 
     { Translucent status bar height inside the container as seen by controls
       with UI scaling.
@@ -2863,24 +2867,48 @@ begin
     RecursiveUIScaleChanged(Controls[I]);
 end;
 
+function TUIContainer.FloatRect: TFloatRectangle;
+begin
+  { FloatRect is mostly for consistency with TUIControl,
+    that has both Rect and FloatRect, and FloatRect is more adviced for calculations.
+    In case of TUIContainer, it doesn't really matter, both Rect and FloatRect
+    are good for calculations. }
+  Result := FloatRectangle(Rect);
+end;
+
+function TUIContainer.UnscaledFloatWidth: Single;
+begin
+  Result := Width / FCalculatedUIScale;
+end;
+
 function TUIContainer.UnscaledWidth: Cardinal;
 begin
-  Result := Round(Width / FCalculatedUIScale);
+  Result := Round(UnscaledFloatWidth);
+end;
+
+function TUIContainer.UnscaledFloatHeight: Single;
+begin
+  Result := Height / FCalculatedUIScale;
 end;
 
 function TUIContainer.UnscaledHeight: Cardinal;
 begin
-  Result := Round(Height / FCalculatedUIScale);
+  Result := Round(UnscaledFloatHeight);
+end;
+
+function TUIContainer.UnscaledFloatRect: TFloatRectangle;
+begin
+  Result := FloatRect;
+  if not Result.IsEmpty then
+  begin
+    Result.Width  := Result.Width  / FCalculatedUIScale;
+    Result.Height := Result.Height / FCalculatedUIScale;
+  end;
 end;
 
 function TUIContainer.UnscaledRect: TRectangle;
 begin
-  Result := Rect;
-  if not Result.IsEmpty then
-  begin
-    Result.Width  := Round(Result.Width  / FCalculatedUIScale);
-    Result.Height := Round(Result.Height / FCalculatedUIScale);
-  end;
+  Result := UnscaledFloatRect.Round;
 end;
 
 function TUIContainer.StatusBarHeight: Cardinal;
