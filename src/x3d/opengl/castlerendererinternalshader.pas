@@ -1502,6 +1502,63 @@ class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
 var
   { GLSL code to get Arg2 (what is coming from MultiTexture.source) }
   Arg2: string;
+
+  { Channels is either
+    - '' (set all RGBA of FragmentColor),
+    - '.rgb' (set only RGB oif FragmentColor),
+    - '.a' (set only RGB oif FragmentColor). }
+  function CombineCode(const Combine: TCombine;
+    const SourceArgument: TTextureEnvArgument;
+    const Channels: string): string;
+  var
+    FragmentColorCh, CurrentTextureCh, Arg2Ch: string;
+  begin
+    FragmentColorCh := FragmentColor + Channels;
+    CurrentTextureCh := CurrentTexture + Channels;
+    Arg2Ch := Arg2 + Channels;
+
+    { By default, set up simplest modulate operation.
+      The "case" below may override this to something better. }
+    Result := FragmentColorCh + ' *= ' + CurrentTextureCh + ';';
+
+    case Combine of
+      coModulate:
+        begin
+          if FragmentColor = Arg2 then
+            Result := FragmentColorCh + ' *= ' + CurrentTextureCh + ';'
+          else
+            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' * ' + Arg2Ch + ';';
+        end;
+      coReplace:
+        begin
+          if SourceArgument = ta0 then
+            { mode is SELECTARG2 }
+            Result := FragmentColorCh + ' = ' + Arg2Ch + ';' else
+            { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
+            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ';';
+        end;
+      coAdd:
+        begin
+          if FragmentColor = Arg2 then
+            Result := FragmentColorCh + ' += ' + CurrentTextureCh + ';' else
+            Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' + ' + Arg2Ch + ';';
+        end;
+      coSubtract:
+        Result := FragmentColorCh + ' = ' + CurrentTextureCh + ' - ' + Arg2Ch + ';';
+      coBlend:
+        case AEnv.BlendAlphaSource of
+          csCurrentTexture:
+            Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' + CurrentTextureCh + ', ' + CurrentTexture + '.a);';
+          csPreviousTexture:
+            Result := FragmentColorCh + ' = mix(' + FragmentColorCh + ', ' + CurrentTextureCh + ', ' + FragmentColor + '.a);';
+          else
+            Warn('Not supported in GLSL pipeline: coBlend with BlendAlphaSource = %d', [Ord(AEnv.BlendAlphaSource)]);
+        end;
+      else
+        Warn('Not supported in GLSL pipeline: combine value %d', [Ord(Combine)]);
+    end;
+  end;
+
 begin
   if AEnv.Disabled then Exit('');
 
@@ -1517,51 +1574,16 @@ begin
   { assume AEnv.Source[cRGB] = csPreviousTexture }
   Arg2 := FragmentColor;
 
-  if AEnv.Combine[cRGB] <> AEnv.Combine[cAlpha] then
-    Warn('Not supported in GLSL pipeline: Combine for RGB and alpha different', []);
-  if AEnv.Source[cRGB] <> AEnv.Source[cAlpha] then
-    Warn('Not supported in GLSL pipeline: Source for RGB and alpha different', []);
-
-  { By default, set up simplest modulate operation.
-    The "case AEnv.Combine[cRGB]" below may override this Result to something
-    better. }
-  Result := FragmentColor + ' *= ' + CurrentTexture + ';';
-
-  case AEnv.Combine[cRGB] of
-    coModulate:
-      begin
-        if FragmentColor = Arg2 then
-          Result := FragmentColor + ' *= ' + CurrentTexture + ';'
-        else
-          Result := FragmentColor + ' = ' + CurrentTexture + ' * ' + Arg2 + ';';
-      end;
-    coReplace:
-      begin
-        if AEnv.SourceArgument[cRGB] = ta0 then
-          { mode is SELECTARG2 }
-          Result := FragmentColor + ' = ' + Arg2 + ';' else
-          { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
-          Result := FragmentColor + ' = ' + CurrentTexture + ';';
-      end;
-    coAdd:
-      begin
-        if FragmentColor = Arg2 then
-          Result := FragmentColor + ' += ' + CurrentTexture + ';' else
-          Result := FragmentColor + ' = ' + CurrentTexture + ' + ' + Arg2 + ';';
-      end;
-    coSubtract:
-      Result := FragmentColor + ' = ' + CurrentTexture + ' - ' + Arg2 + ';';
-    coBlend:
-      case AEnv.BlendAlphaSource of
-        csCurrentTexture:
-          Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + CurrentTexture + '.a);';
-        csPreviousTexture:
-          Result := FragmentColor + ' = mix(' + FragmentColor + ', ' + CurrentTexture + ', ' + FragmentColor + '.a);';
-        else
-          Warn('Not supported in GLSL pipeline: coBlend with BlendAlphaSource = %d', [Ord(AEnv.BlendAlphaSource)]);
-      end;
-    else
-      Warn('Not supported in GLSL pipeline: combine value %d', [Ord(AEnv.Combine[cRGB])]);
+  if (AEnv.Combine       [cRGB] = AEnv.Combine       [cAlpha]) and
+     (AEnv.SourceArgument[cRGB] = AEnv.SourceArgument[cAlpha]) then
+  begin
+    { When Combine and SourceArgument are equal, do it easily on all RGBA. }
+    Result := CombineCode(AEnv.Combine[cRGB], AEnv.SourceArgument[cRGB], '');
+  end else
+  begin
+    Result :=
+      CombineCode(AEnv.Combine[cRGB]  , AEnv.SourceArgument[cRGB]  , '.rgb') + NL +
+      CombineCode(AEnv.Combine[cAlpha], AEnv.SourceArgument[cAlpha], '.a');
   end;
 
   case AEnv.TextureFunction of

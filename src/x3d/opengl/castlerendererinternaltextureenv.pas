@@ -265,6 +265,39 @@ procedure ModeFromString(const S: string;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
+    if LS = 'blenddiffusealpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      { Note that BlendAlphaSource is one variable, not split into RGB or alpha
+        parts. Fortunately, the BLEND* mode is either on RGBA or RGB,
+        it cannot be used on alpha channel only for now,
+        so we can keep BlendAlphaSource in one variable. }
+      BlendAlphaSource := csMaterial;
+    end else
+    if LS = 'blendtexturealpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csCurrentTexture;
+    end else
+    if LS = 'blendfactoralpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csConstant;
+      NeedsConstantColor := true;
+    end else
+    if LS = 'blendcurrentalpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csPreviousTexture;
+    end else
       SimpleModeFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale, 'RGB');
   end;
 
