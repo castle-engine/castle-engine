@@ -5089,6 +5089,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
     ErrMessage: string;
+    ContinueApp: Boolean;
   begin
     ErrMessage := ExceptMessage(ExceptObject, ExceptAddr) + NL + NL + DumpExceptionBackTraceToString;
     { in case the following code, trying to handle the exception with nice GUI,
@@ -5109,7 +5110,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
         Theme.InternalForceOpaqueBackground := true;
-        GuessedMainWindow.MessageOK(ErrMessage, mtError);
+        ContinueApp := GuessedMainWindow.MessageYesNo(
+          'An error occurred. Try to continue the application?' + NL + NL +
+          'Error details:' + NL + ErrMessage, mtError);
         Theme.InternalForceOpaqueBackground := false;
       except
         on E: TObject do
@@ -5118,8 +5121,21 @@ procedure TCastleApplication.HandleException(Sender: TObject);
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
           WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
+          { Setting ErrorAddr avoids HeapTrc outputting looong useless output
+            (since memory leaks are normal when you exit with Halt(...)
+            and no finalization blocks are run). }
+          ErrorAddr := OriginalAddr;
           Halt(1);
         end;
+      end;
+
+      if not ContinueApp then
+      begin
+        { Setting ErrorAddr avoids HeapTrc outputting looong useless output
+          (since memory leaks are normal when you exit with Halt(...)
+          and no finalization blocks are run). }
+        ErrorAddr := OriginalAddr;
+        Halt(1);
       end;
     end else
     begin
