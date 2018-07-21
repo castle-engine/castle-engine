@@ -636,7 +636,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
     Result := false;
     if Event.MouseButton = mbLeft then
     begin
-      NewItemIndex := FindChildIndex(Container.MousePosition);
+      NewItemIndex := FindChildIndex(Event.Position);
       if NewItemIndex <> -1 then
       begin
         if CurrentItem <> NewItemIndex then

@@ -315,14 +315,14 @@ begin
       itMouseButton:
         begin
           if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollbarFrame.Contains(Container.MousePosition) then
+            ScrollbarFrame.Contains(Event.Position) then
           begin
-            if Container.MousePosition[1] < ScrollbarSlider.Bottom then
+            if Event.Position[1] < ScrollbarSlider.Bottom then
             begin
               Scroll := Scroll + Height;
               TimeSinceDraggingStopped := 0;
             end else
-            if Container.MousePosition[1] >= ScrollbarSlider.Top then
+            if Event.Position[1] >= ScrollbarSlider.Top then
             begin
               Scroll := Scroll - Height;
               TimeSinceDraggingStopped := 0;
