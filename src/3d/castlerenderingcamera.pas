@@ -42,7 +42,9 @@ type
 
 const
   rtScreen             = CastleTransform.rtScreen            ;
+  {$warnings off}
   rfOffScreen          = CastleTransform.rfOffScreen         ;
+  {$warnings on}
   rtCubeMapEnvironment = CastleTransform.rtCubeMapEnvironment;
   rtShadowMap          = CastleTransform.rtShadowMap         ;
   rtVarianceShadowMap  = CastleTransform.rtVarianceShadowMap ;

@@ -1512,7 +1512,7 @@ begin
 
   Camera := TRenderingCamera.Create;
   try
-    Camera.Target := rfOffScreen;
+    Camera.Target := rfRenderedTexture;
     Camera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
     RenderToTexture.RenderBegin;

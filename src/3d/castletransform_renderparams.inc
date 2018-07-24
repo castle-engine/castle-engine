@@ -59,11 +59,11 @@
   TRenderTarget = (
     { Normal rendering. }
     rtScreen,
-    { Rendering color buffer contents to normal single 2D texture. }
-    rfOffScreen,
-    { Rendering color buffer contents to cube map texture. }
+    { Rendering color buffer contents to a texture inside RenderedTexture node. }
+    rfRenderedTexture,
+    { Rendering color buffer contents to a texture inside GeneratedCubeMap node. }
     rtCubeMapEnvironment,
-    { Rendering depth buffer contents to shadow map texture. }
+    { Rendering depth buffer contents to shadow map inside GeneratedShadowMap node. }
     rtShadowMap,
     { Rendering with a special VSM shader to capture shadow map texture
       (in the normal color buffer). }

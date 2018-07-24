@@ -1049,6 +1049,7 @@ implementation
 // to keep it working for backward compatibility.
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  CastleTransform,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles;
 {$warnings on}
 

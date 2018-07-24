@@ -1859,6 +1859,9 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
 
+const
+  rfOffScreen = rfRenderedTexture deprecated 'use rfRenderedTexture';
+
 implementation
 
 uses CastleLog, CastleQuaternions;
