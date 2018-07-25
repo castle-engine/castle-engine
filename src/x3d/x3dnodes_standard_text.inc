@@ -129,8 +129,6 @@
   end;
   TFontStyleNode_2 = TFontStyleNode deprecated 'use TFontStyleNode';
 
-  TPixelTextureNode = class;
-
   { Multiline text, visualized as a set of flat and textured polygons. }
   TTextNode = class(TAbstractGeometryNode)
   strict private
@@ -941,27 +939,6 @@ begin
   end;
 end;
 
-function CreateFontTextureNode(const Font: TTextureFontData;
-  const Blending: boolean): TPixelTextureNode;
-begin
-  Result := TPixelTextureNode.Create;
-  { although repeat=TRUE seems counter-intuitive, in fact:
-    - We *can* use it, since CastleTextureFontData surrounds each glyph from
-      the right and top with GlyphPadding, so we will not accidentally pick
-      other glyph by slightly going outside the texture area.
-    - We *want* to use it actually, for EXTRA_GLYPH_SPACE. This way glyphs
-      on the very left and bottom border of the font texture will also
-      have a transparent pixel row to the left / bottom. }
-  Result.RepeatS := true;
-  Result.RepeatT := true;
-  { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
-  Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
-  if Blending then
-    Result.AlphaChannelField := acBlending
-  else
-    Result.AlphaChannelField := acTest;
-end;
-
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 var
   Blending: boolean;
@@ -980,7 +957,7 @@ begin
       Blending := FontStyle.Blending
     else
       Blending := TFontStyleNode.DefaultBlending;
-    FFontTextureNode := CreateFontTextureNode(Font, Blending);
+    FFontTextureNode := X3DCache.LoadFontTexture(Font, Blending);
   end;
   Result := FFontTextureNode;
 end;

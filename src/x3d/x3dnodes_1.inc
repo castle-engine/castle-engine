@@ -943,7 +943,7 @@ begin
   except FreeAndNil(FaceSet); raise end;
 
   if FFontTextureNode = nil then
-    FFontTextureNode := CreateFontTextureNode(
+    FFontTextureNode := X3DCache.LoadFontTexture(
       State.VRML1State.FontStyle.Font,
       State.VRML1State.FontStyle.Blending);
 end;

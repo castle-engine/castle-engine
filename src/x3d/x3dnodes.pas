@@ -184,6 +184,7 @@ type
   {$I x3dnodes_x3dgraphtraversestate.inc}
   {$I x3dnodes_destructionnotification.inc}
   {$I x3dnodes_x3dnodescache.inc}
+  {$I x3dnodes_x3dfonttexturescache.inc}
   {$I x3dnodes_x3dnode.inc}
   {$I x3dnodes_generatedtextures.inc}
   {$I x3dnodes_x3dnodeclasseslist.inc}
@@ -295,6 +296,7 @@ uses
 {$I x3dnodes_x3dgraphtraversestate.inc}
 {$I x3dnodes_destructionnotification.inc}
 {$I x3dnodes_x3dnodescache.inc}
+{$I x3dnodes_x3dfonttexturescache.inc}
 {$I x3dnodes_x3dnodeclasseslist.inc}
 
 {$I x3dnodes_utils_extrusion.inc}
@@ -737,7 +739,7 @@ initialization
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
 
-  X3DCache := TX3DNodesCache.Create;
+  X3DCache := TX3DFontTexturesCache.Create;
   TextureCache := X3DCache;
   VRML1DefaultState := TVRML1State.Create;
   VRML1DefaultState.CreateNodes;

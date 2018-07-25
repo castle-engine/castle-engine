@@ -214,7 +214,7 @@ var
   AnyNodeDestructionNotifications: TNodeDestructionNotificationList;
 
   { Cache, for all the resources not tied with renderer context. }
-  X3DCache: TX3DNodesCache;
+  X3DCache: TX3DFontTexturesCache;
 
   { Should we emit a warning when loading data from
     an URI with an absolute filename, like @code(file:///c:/blah/myimage.png).
