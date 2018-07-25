@@ -3498,18 +3498,21 @@ function TRGBAlphaImage.ToRGBImage: TRGBImage;
 begin
   Result := TRGBImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToRGBImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
   Result := TGrayscaleImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 begin
   Result := TGrayscaleAlphaImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleAlphaImage]';
 end;
 
 procedure TRGBAlphaImage.PremultiplyAlpha;
@@ -3914,6 +3917,7 @@ var
   I: Cardinal;
 begin
   Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+  Result.URL := URL + '[ToGrayscaleAlphaImage]';
   pg := Pixels;
   pa := Result.Pixels;
 
