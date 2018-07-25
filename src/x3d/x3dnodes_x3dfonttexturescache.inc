@@ -55,7 +55,7 @@
 
 { TX3DFontTexturesCache ------------------------------------------------------------ }
 
-{$define DEBUG_FONT_TEXTURE_CACHE}
+{ $define DEBUG_FONT_TEXTURE_CACHE}
 
 constructor TX3DFontTexturesCache.Create;
 begin
