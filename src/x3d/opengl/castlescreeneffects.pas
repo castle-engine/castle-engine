@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles;
+  CastleRectangles, CastleScene;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -114,12 +114,16 @@ type
         TexCoord: TVector2;
       end;
     var
-      FScreenEffects: TGroupNode;
+      { Scene containing screen effects }
+      ScreenEffectsScene: TCastleScene;
+      ScreenEffectsRoot: TX3DRootNode;
+      FTimeScale: Single;
 
       { Valid only between Render and RenderOverChildren calls. }
       RenderScreenEffects: Boolean;
       OldViewport: TRectangle;
 
+      { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
         ScreenEffectTextureDest/Src/Depth/Target are non-zero and
         ScreenEffectRTT is non-nil.
@@ -140,8 +144,6 @@ type
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
-    { Prepare Node.Shader. }
-    procedure PrepareScreenEffect(const Node: TScreenEffectNode);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -149,13 +151,31 @@ type
     { Add or remove a ScreenEffect node that defines new shader screen effect.
       See https://castle-engine.io/x3d_extensions_screen_effects.php .
 
+      In the simple case, you can pass here an instance of TScreenEffectNode.
+      In a general case, you can passs here any X3D node you want,
+      just remember that only the TScreenEffectNode inside will be rendered.
+      You can e.g. pass a TGroupNode with TScreenEffectNode and TTimeSensorNode
+      as children,
+      and use TTimeSensorNode to provide time to your shader uniform parameter.
+      Or you can e.g. pass an X3D graph loaded from X3D file
+      using @link(X3DLoad.Load3D), this way you can define effects
+      inside an external X3D file, e.g. like this:
+
+      @longCode(#
+      SceneManager.AddScreenEffects(
+        Load3D(ApplicationData('screen_effects_scene.x3dv')));
+      #)
+
+      If you're looking for inspirations what to put in screen_effects_scene.x3dv,
+      see https://github.com/castle-engine/demo-models/tree/master/screen_effects .
+
       The memory management of the node added here is automatic:
       the added screen effect becomes owned by the internal X3D Group node.
       It's reference-count is increased at AddScreenEffect, and decreased
       at RemoveScreenEffect, and it is automatically freed when reference-count
       drops to zero.
 
-      This means that, if you create the TScreenEffectNode by code,
+      This means that, if you create the provided Node by code,
       and don't add it anywhere else, then the node will be freed
       automatically at our destructor (if you call AddScreenEffect
       and do not call RemoveScreenEffect on it),
@@ -168,16 +188,20 @@ type
       If you don't want this, use e.g. @link(TX3DNode.KeepExistingBegin)
       to manage the node free yourself.
     }
-    procedure AddScreenEffect(const Node: TScreenEffectNode);
-    procedure RemoveScreenEffect(const Node: TScreenEffectNode);
+    procedure AddScreenEffect(const Node: TAbstractChildNode);
+    procedure RemoveScreenEffect(const Node: TAbstractChildNode);
 
     procedure Render; override;
     procedure RenderOverChildren; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+
+    { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect. }
+    property TimeScale: Single read FTimeScale write FTimeScale default 1;
   end;
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleTransform;
 
 function ScreenEffectVertex: string;
 begin
@@ -224,125 +248,67 @@ end;
 constructor TCastleScreenEffects.Create(AOwner: TComponent);
 begin
   inherited;
-  FScreenEffects := TGroupNode.Create;
+  FTimeScale := 1;
 end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
-  FreeAndNil(FScreenEffects);
+  FreeAndNil(ScreenEffectsScene);
+  ScreenEffectsRoot := nil; // this becomes invalid when ScreenEffectsScene is freed
   inherited;
 end;
 
-procedure TCastleScreenEffects.AddScreenEffect(const Node: TScreenEffectNode);
+procedure TCastleScreenEffects.AddScreenEffect(const Node: TAbstractChildNode);
 begin
+  if ScreenEffectsScene = nil then
+  begin
+    ScreenEffectsRoot := TX3DRootNode.Create;
+
+    ScreenEffectsScene := TCastleScene.Create(nil);
+    ScreenEffectsScene.Load(ScreenEffectsRoot, true);
+    ScreenEffectsScene.ProcessEvents := true;
+
+    { We create TCastleScene that is used only for rendering screen effects.
+      This way we can make all "support" things for screen effects work,
+      e.g. textures will be initialized using CastleRenderer,
+      TimeSensor will work and can be fed into shader uniform etc. }
+  end;
+
   { Do not add using AddChildren, use FdChildren.Add, to enable multiple
     instances of this node on a list. }
-  FScreenEffects.FdChildren.Add(Node);
+  ScreenEffectsRoot.FdChildren.Add(Node);
+  ScreenEffectsRoot.FdChildren.Changed;
 end;
 
-procedure TCastleScreenEffects.RemoveScreenEffect(const Node: TScreenEffectNode);
+procedure TCastleScreenEffects.RemoveScreenEffect(const Node: TAbstractChildNode);
 begin
-  FScreenEffects.FdChildren.Remove(Node);
+  if ScreenEffectsRoot <> nil then
+  begin
+    ScreenEffectsRoot.FdChildren.Remove(Node);
+    ScreenEffectsRoot.FdChildren.Changed;
+  end;
 end;
 
 function TCastleScreenEffects.GetScreenEffectsCount: Cardinal;
 begin
-  // TODO: only enabled count (with Shader <> nil and Enabled, and call PrepareScreenEffect earlier)
-  Result := FScreenEffects.FdChildren.Count;
+  { TCastleScene already implemented logic to only count screen effects
+    that are enabled, and their GLSL code linked successfully.
+    Cool, we depend on it. }
+  if ScreenEffectsScene <> nil then
+    Result := ScreenEffectsScene.ScreenEffectsCount
+  else
+    Result := 0;
 end;
 
 function TCastleScreenEffects.GetScreenEffectsNeedDepth: Boolean;
-var
-  SE: TScreenEffectNode;
-  I: Integer;
 begin
-  Result := false;
-  for I := 0 to FScreenEffects.FdChildren.Count - 1 do
-  begin
-    SE := FScreenEffects.FdChildren.Items[I] as TScreenEffectNode;
-    if SE.Enabled and SE.NeedsDepth then
-      Result := true;
-  end;
+  Result := (ScreenEffectsScene <> nil) and
+    ScreenEffectsScene.ScreenEffectsNeedDepth;
 end;
 
 function TCastleScreenEffects.GetScreenEffect(const Index: Integer): TGLSLProgram;
-var
-  Node: TScreenEffectNode;
 begin
-  // TODO: get ith enabled (with Shader <> nil and Enabled, and call PrepareScreenEffect earlier)
-  Node := FScreenEffects.FdChildren.Items[Index] as TScreenEffectNode;
-  PrepareScreenEffect(Node);
-  Result := Node.Shader as TGLSLProgram;
-  Assert(Result <> nil); // TODO this can happen for now
-end;
-
-procedure TCastleScreenEffects.PrepareScreenEffect(const Node: TScreenEffectNode);
-var
-  ShaderProgram: TGLSLScreenEffect;
-  ScreenEffectShader: string;
-  ComposedShader: TComposedShaderNode;
-  Part: TShaderPartNode;
-  I: Integer;
-begin
-  if not Node.ShaderLoaded then
-  begin
-    Assert(Node.Shader = nil);
-    Node.ShaderLoaded := true;
-    if Node.FdEnabled.Value then
-    begin
-      { make sure that textures inside shaders are prepared }
-      // TODO: This doesn't initialize textures for program.
-      // PrepareIDeclsList(Node.FdShaders.Items, Node.StateForShaderPrepare);
-
-      // TODO: This uses Node.Shader as TGLSLScreenEffect,
-      // contrary to renderer using for TShader. This is dirty, and may cause
-      // problems when this is reused.
-
-      { calculate ComposedShader, send event isSelected }
-      for I := 0 to Node.FdShaders.Count - 1 do
-      begin
-        ComposedShader := Node.FdShaders.GLSLShader(I);
-        if ComposedShader <> nil then
-        begin
-          ComposedShader.EventIsSelected.Send(true);
-          Break;
-        end else
-        if Node.FdShaders[I] is TAbstractShaderNode then
-          TAbstractShaderNode(Node.FdShaders[I]).EventIsSelected.Send(false);
-      end;
-
-      if ComposedShader <> nil then
-      begin
-        { calculate ScreenEffectShader }
-        ScreenEffectShader := '';
-        for I := 0 to ComposedShader.FdParts.Count - 1 do
-        begin
-          if ComposedShader.FdParts[I] is TShaderPartNode then
-          begin
-            Part := TShaderPartNode(ComposedShader.FdParts[I]);
-            ScreenEffectShader := ScreenEffectShader + NL + Part.Contents;
-          end;
-        end;
-
-        // TODO: nothing frees it now.
-        ShaderProgram := TGLSLScreenEffect.Create;
-        ShaderProgram.ScreenEffectShader := ScreenEffectShader;
-        ShaderProgram.NeedsDepth := Node.NeedsDepth;
-
-        try
-          ShaderProgram.Link;
-        except on E: EGLSLError do
-          begin
-            FreeAndNil(ShaderProgram);
-            WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
-              [E.Message]));
-          end;
-        end;
-
-        Node.Shader := ShaderProgram;
-      end;
-    end;
-  end;
+  Result := ScreenEffectsScene.ScreenEffects(Index);
 end;
 
 procedure TCastleScreenEffects.Render;
@@ -701,6 +667,20 @@ begin
   inherited;
   if RenderScreenEffects then
     EndRenderingToTexture;
+end;
+
+procedure TCastleScreenEffects.Update(const SecondsPassed: Single; var HandleInput: boolean);
+var
+  RemoveItem: TRemoveType;
+begin
+  inherited;
+  if ScreenEffectsScene <> nil then
+  begin
+    RemoveItem := rtNone;
+    ScreenEffectsScene.Update(SecondsPassed * TimeScale, RemoveItem);
+    { We ignore RemoveItem --- ScreenEffectsScene cannot be removed.
+      Also, this is always TCastleScene that should not change RemoveItem ever. }
+  end;
 end;
 
 end.
