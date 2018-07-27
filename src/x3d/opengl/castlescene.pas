@@ -2092,6 +2092,17 @@ var
 begin
   Result := 0;
 
+  { This ties our scene to OpenGL (by calling Renderer.PrepareScreenEffect),
+    so we must be notified when OpenGL is closed.
+    Testcase: otherwise the noise1 texture of the screen effect in
+    "The Unholy Society" is not released from OpenGL, we get warning from
+    TextureMemoryProfiler. }
+  if not RegisteredGLContextCloseListener then
+  begin
+    RegisteredGLContextCloseListener := true;
+    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  end;
+
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
