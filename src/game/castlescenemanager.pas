@@ -3301,6 +3301,9 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
+    { call TCastleScreenEffects.PrepareResources. }
+    ChosenViewport.PrepareResources;
+
     if ChosenViewport.ContainerSizeKnown then
     begin
       { Apply projection now, as TCastleScene.GLProjection calculates

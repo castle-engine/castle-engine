@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleGLShaders, CastleUIControls, X3DNodes, CastleGLImages,
-  CastleRectangles, CastleScene;
+  CastleRectangles, CastleScene, CastleTransform, CastleCameras;
 
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
@@ -118,6 +118,9 @@ type
       ScreenEffectsScene: TCastleScene;
       ScreenEffectsRoot: TX3DRootNode;
       FTimeScale: Single;
+      { World to pass dummy camera position to ScreenEffectsScene. }
+      World: TSceneManagerWorld;
+      Camera: TWalkCamera;
 
       { Valid only between Render and RenderOverChildren calls. }
       RenderScreenEffects: Boolean;
@@ -180,28 +183,32 @@ type
       automatically at our destructor (if you call AddScreenEffect
       and do not call RemoveScreenEffect on it),
       or at RemoveScreenEffect call.
+      If you don't want this, use @link(TX3DNode.KeepExistingBegin)
+      to manage the node destruction yourself.
 
-      In general, the node may be shared by some scene
-      (TCastleScene with TX3DRootNode),
-      it may also be shared by a couple of TCastleScreenEffects instances,
-      and it will be correctly freed once.
-      If you don't want this, use e.g. @link(TX3DNode.KeepExistingBegin)
-      to manage the node free yourself.
+      Note that the given Node should not be used by other TCastlScene instances.
+      In general, a node should not be present in more than one TCastlScene instance,
+      and we already insert the node into an internal TCastlScene instance.
+      Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
     }
     procedure AddScreenEffect(const Node: TAbstractChildNode);
     procedure RemoveScreenEffect(const Node: TAbstractChildNode);
 
+    procedure BeforeRender; override;
     procedure Render; override;
     procedure RenderOverChildren; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
 
     { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect. }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
+
+    { Make the screen effects rendering resources ready (e.g. link shaders). }
+    procedure PrepareResources;
   end;
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleTransform;
+uses CastleUtils, CastleGLUtils, CastleLog;
 
 function ScreenEffectVertex: string;
 begin
@@ -253,8 +260,6 @@ end;
 
 destructor TCastleScreenEffects.Destroy;
 begin
-  FreeAndNil(ScreenEffectsScene);
-  ScreenEffectsRoot := nil; // this becomes invalid when ScreenEffectsScene is freed
   inherited;
 end;
 
@@ -264,20 +269,30 @@ begin
   begin
     ScreenEffectsRoot := TX3DRootNode.Create;
 
-    ScreenEffectsScene := TCastleScene.Create(nil);
-    ScreenEffectsScene.Load(ScreenEffectsRoot, true);
-    ScreenEffectsScene.ProcessEvents := true;
-
     { We create TCastleScene that is used only for rendering screen effects.
       This way we can make all "support" things for screen effects work,
       e.g. textures will be initialized using CastleRenderer,
       TimeSensor will work and can be fed into shader uniform etc. }
+    ScreenEffectsScene := TCastleScene.Create(Self);
+    ScreenEffectsScene.Name := 'ScreenEffectsScene';
+    ScreenEffectsScene.Load(ScreenEffectsRoot, true);
+    ScreenEffectsScene.ProcessEvents := true;
+
+    (* We use Camera and World to make some ProximitySensors working,
+       like a dummy "ProximitySensors { size 10000 10000 10000 }". *)
+    // TODO: creating class with abstract methods here
+    World := TSceneManagerWorld.Create(Self);
+    World.Add(ScreenEffectsScene);
+    Camera := TWalkCamera.Create(Self);
   end;
 
   { Do not add using AddChildren, use FdChildren.Add, to enable multiple
     instances of this node on a list. }
   ScreenEffectsRoot.FdChildren.Add(Node);
   ScreenEffectsRoot.FdChildren.Changed;
+
+  { Send CameraChanged to activate ProximitySensors inside new nodes. }
+  World.CameraChanged(Camera);
 end;
 
 procedure TCastleScreenEffects.RemoveScreenEffect(const Node: TAbstractChildNode);
@@ -681,6 +696,21 @@ begin
     { We ignore RemoveItem --- ScreenEffectsScene cannot be removed.
       Also, this is always TCastleScene that should not change RemoveItem ever. }
   end;
+end;
+
+procedure TCastleScreenEffects.PrepareResources;
+begin
+  if ScreenEffectsScene <> nil then
+    { We depend here on undocumented TCastleScene.PrepareResources behavior:
+      when there is no prRender, then PrepareParams (3rd argument below) is used,
+      and may be nil. }
+    ScreenEffectsScene.PrepareResources([prScreenEffects], false, nil);
+end;
+
+procedure TCastleScreenEffects.BeforeRender;
+begin
+  inherited;
+  PrepareResources;
 end;
 
 end.
