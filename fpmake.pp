@@ -273,7 +273,6 @@ begin
     P.Targets.AddUnit('castleglimages.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
-    P.Targets.AddUnit('castlescreeneffects.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'files');
     P.Targets.AddUnit('castleconfig.pas');
@@ -356,12 +355,13 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');
-    P.Targets.AddUnit('castlescene.pas');
-    P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
-    P.Targets.AddUnit('castlerendererinternalshader.pas');
-    P.Targets.AddUnit('castlerendererinternallights.pas');
-    P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
     P.Targets.AddUnit('castlerenderer.pas');
+    P.Targets.AddUnit('castlerendererinternallights.pas');
+    P.Targets.AddUnit('castlerendererinternalshader.pas');
+    P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
+    P.Targets.AddUnit('castlescene.pas');
+    P.Targets.AddUnit('castlescreeneffects.pas');
+    P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
 
     Run;
   end;

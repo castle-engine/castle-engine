@@ -797,7 +797,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item180>
       <Item181>
-        <Filename Value="../src/images/opengl/castlescreeneffects.pas"/>
+        <Filename Value="../src/x3d/opengl/castlescreeneffects.pas"/>
         <UnitName Value="CastleScreenEffects"/>
       </Item181>
       <Item182>

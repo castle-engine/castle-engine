@@ -282,7 +282,7 @@
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    { Shader and ShaderLoaded properties are internally manager by the renderer.
+    { Shader and ShaderLoaded properties are internally managed by the renderer.
       Right now, this means TCastleScene.
       Always when ShaderLoaded = @false then Shader is @nil.
       When ShaderLoaded = @true, the Shader may be non-nil (if was enabled

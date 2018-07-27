@@ -63,7 +63,7 @@ type
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TUIControlSizeable)
+  TCastleAbstractViewport = class(TCastleScreenEffects)
   private
     type
       TScreenPoint = packed record
