@@ -117,7 +117,7 @@ type
       { Scene containing screen effects }
       ScreenEffectsScene: TCastleScene;
       ScreenEffectsRoot: TX3DRootNode;
-      FTimeScale: Single;
+      FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TSceneManagerWorld;
       Camera: TWalkCamera;
@@ -165,7 +165,7 @@ type
       inside an external X3D file, e.g. like this:
 
       @longCode(#
-      SceneManager.AddScreenEffects(
+      SceneManager.AddScreenEffect(
         Load3D(ApplicationData('screen_effects_scene.x3dv')));
       #)
 
@@ -190,6 +190,9 @@ type
       In general, a node should not be present in more than one TCastlScene instance,
       and we already insert the node into an internal TCastlScene instance.
       Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
+
+      Note that you can enable/disable the effect using @link(TScreenEffectNode.Enabled),
+      you do not need to remove the node only to disable it.
     }
     procedure AddScreenEffect(const Node: TAbstractChildNode);
     procedure RemoveScreenEffect(const Node: TAbstractChildNode);
@@ -198,9 +201,15 @@ type
     procedure Render; override;
     procedure RenderOverChildren; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure GLContextClose; override;
 
-    { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect. }
-    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+    { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect.
+      May be 0 to stop time passing.
+      This has deliberately long name, instead of simple TimeScale,
+      to make it clear that it's completely independent from
+      @link(TCastleSceneManager.TimeScale). }
+    property ScreenEffectsTimeScale: Single
+      read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
 
     { Make the screen effects rendering resources ready (e.g. link shaders). }
     procedure PrepareResources;
@@ -255,7 +264,7 @@ end;
 constructor TCastleScreenEffects.Create(AOwner: TComponent);
 begin
   inherited;
-  FTimeScale := 1;
+  FScreenEffectsTimeScale := 1;
 end;
 
 destructor TCastleScreenEffects.Destroy;
@@ -423,8 +432,9 @@ var
     if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
     {$endif}
     begin
-      { TODO: NEAREST or LINEAR? Allow to config this and eventually change
-        before each screen effect? }
+      { TODO: NEAREST or LINEAR?
+        Allow to config this at each screen effect,
+        and optionally create another version? }
       SetTextureFilter(ScreenEffectTextureTarget, TextureFilter(minNearest, magNearest));
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
@@ -692,7 +702,7 @@ begin
   if ScreenEffectsScene <> nil then
   begin
     RemoveItem := rtNone;
-    ScreenEffectsScene.Update(SecondsPassed * TimeScale, RemoveItem);
+    ScreenEffectsScene.Update(SecondsPassed * ScreenEffectsTimeScale, RemoveItem);
     { We ignore RemoveItem --- ScreenEffectsScene cannot be removed.
       Also, this is always TCastleScene that should not change RemoveItem ever. }
   end;
@@ -711,6 +721,17 @@ procedure TCastleScreenEffects.BeforeRender;
 begin
   inherited;
   PrepareResources;
+end;
+
+procedure TCastleScreenEffects.GLContextClose;
+begin
+  glFreeTexture(ScreenEffectTextureDest);
+  glFreeTexture(ScreenEffectTextureSrc);
+  glFreeTexture(ScreenEffectTextureDepth);
+  ScreenEffectTextureTarget := 0; //< clear, for safety
+  FreeAndNil(ScreenEffectRTT);
+  glFreeBuffer(ScreenPointVbo);
+  inherited;
 end;
 
 end.
