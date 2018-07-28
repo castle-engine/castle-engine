@@ -29,6 +29,8 @@
 'uniform int screen_height;' + LineEnding +
 'uniform int screen_width;' + LineEnding +
 '' + LineEnding +
+'/* Library of integer-based functions ---------------------------------------- */' + LineEnding +
+'' + LineEnding +
 'ivec2 screen_position()' + LineEnding +
 '{' + LineEnding +
 '  return ivec2(' + LineEnding +
@@ -156,6 +158,131 @@
 '#else' + LineEnding +
 '  return texture2D(screen_depth,' + LineEnding +
 '    (vec2(position) + vec2(0.5)) / vec2(screen_width, screen_height)).r;' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
+'/* Library of float-based functions ------------------------------------------ */' + LineEnding +
+'' + LineEnding +
+'vec2 screenf_position()' + LineEnding +
+'{' + LineEnding +
+'  return tex_coord_frag *' + LineEnding +
+'    vec2(float(screen_width), float(screen_height));' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'float screenf_x()' + LineEnding +
+'{' + LineEnding +
+'  return tex_coord_frag.s * float(screen_width);' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'float screenf_y()' + LineEnding +
+'{' + LineEnding +
+'  return tex_coord_frag.t * float(screen_height);' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'vec4 screenf_get_color(vec2 position)' + LineEnding +
+'{' + LineEnding +
+'/* TODO: it would be nice to autogenerate this code */' + LineEnding +
+'#ifdef MULTI_SAMPLING_16' + LineEnding +
+'  return ( texelFetch(screen, ivec2(position), 0) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 1) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 2) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 3) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 4) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 5) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 6) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 7) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 8) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 9) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 10) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 11) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 12) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 13) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 14) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 15) ) / 16.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_8' + LineEnding +
+'  return ( texelFetch(screen, ivec2(position), 0) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 1) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 2) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 3) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 4) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 5) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 6) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 7) ) / 8.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_4' + LineEnding +
+'  return ( texelFetch(screen, ivec2(position), 0) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 1) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 2) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 3) ) / 4.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_2' + LineEnding +
+'  return ( texelFetch(screen, ivec2(position), 0) +' + LineEnding +
+'           texelFetch(screen, ivec2(position), 1) ) / 2.0;' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen, position / vec2(screen_width, screen_height));' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'#ifdef DEPTH' + LineEnding +
+'float screenf_get_depth(vec2 position)' + LineEnding +
+'{' + LineEnding +
+'/* TODO: it would be nice to autogenerate this code */' + LineEnding +
+'#ifdef MULTI_SAMPLING_16' + LineEnding +
+'  return ( texelFetch(screen_depth, ivec2(position), 0).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 1).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 2).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 3).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 4).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 5).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 6).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 7).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 8).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 9).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 10).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 11).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 12).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 13).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 14).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 15).r ) / 16.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_8' + LineEnding +
+'  return ( texelFetch(screen_depth, ivec2(position), 0).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 1).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 2).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 3).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 4).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 5).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 6).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 7).r ) / 8.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_4' + LineEnding +
+'  return ( texelFetch(screen_depth, ivec2(position), 0).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 1).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 2).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 3).r ) / 4.0;' + LineEnding +
+'#else' + LineEnding +
+'#ifdef MULTI_SAMPLING_2' + LineEnding +
+'  return ( texelFetch(screen_depth, ivec2(position), 0).r +' + LineEnding +
+'           texelFetch(screen_depth, ivec2(position), 1).r ) / 2.0;' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen_depth, position / vec2(screen_width, screen_height)).r;' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'float screenf_get_depth_fast(vec2 position)' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  return texelFetch(screen_depth, ivec2(position), 0).r;' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen_depth, position / vec2(screen_width, screen_height)).r;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '#endif' + LineEnding +
