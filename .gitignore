@@ -164,6 +164,7 @@ examples/research_special_rendering_methods/shadow_fields/shadow_fields
 examples/resource_animations/resource_animations
 examples/localization/gettext/localization_test
 examples/localization/custom/castle_localization
+examples/screen_effects_demo/screen_effects_demo
 examples/space_filling_curve/draw_space_filling_curve
 examples/terrain/terrain
 examples/tiled/tiled_demo
