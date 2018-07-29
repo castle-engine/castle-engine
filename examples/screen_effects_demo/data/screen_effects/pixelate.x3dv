@@ -4,6 +4,6 @@ PROFILE Interchange
 DEF PixelateScreenEffect ScreenEffect {
   shaders ComposedShader {
     language "GLSL"
-    parts ShaderPart { type "FRAGMENT" url "pixelate.fs" }
+    parts ShaderPart { type "FRAGMENT" url "pixelate_average_color.fs" }
   }
 }

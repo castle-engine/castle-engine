@@ -135,10 +135,6 @@ procedure ApplicationInitialize;
     FragmentShader := TShaderPartNode.Create;
     FragmentShader.ShaderType := stFragment;
     FragmentShader.Contents :=
-      'int screen_x();' + NL +
-      'int screen_y();' + NL +
-      'vec4 screen_get_color(ivec2 position);' + NL +
-      NL +
       'void main (void)' + NL +
       '{' + NL +
       '  vec4 left   = screen_get_color(ivec2(screen_x() - 1, screen_y()));' + NL +

@@ -1,5 +1,3 @@
-ivec2 screen_position();
-vec4 screen_get_color(ivec2 position);
 uniform sampler2D grainTexture;
 uniform float time;
 
