@@ -516,46 +516,47 @@ begin
         Exit;
       end;
     WM_MOVE:
-       {WM_MOVE zachowuje sie jakby bylo resize, bo po przesunieciu okna
-        takze jest wymagane glViewport. Nie jestem pewien czy jest to niedorobka
-        w implementacji openGL'a pod Windowsem czy jest to dopuszczalne - w kazdym
-        razie musimy tak robic, co latwo sprawdzic wywolujac OpenGL_windowed, przesuwajac
-        okno mysza a potem robiac glRedPixels (odczyta pixele z miejsca w ktorym BYLO
-        nasza okienko, czyli odczyta jakis kawalek desktopu, innych aplikacji itp.) }
+       { For some reason, you need to call glViewport at WM_MOVE
+         (when window moved) on Windows.
+         Otherwise moving a window, and doing glRedPixels, reads pixels
+         at *old window placement*. }
       begin
         fLeft := TWinParam(lParm).LoSmallint;
         fTop := TWinParam(lParm).HiSmallint;
 
-        { You know it, and I know it: WinAPI is so damn stupid and inconsistent.
-          What's up this time ? Well, I want to update Left and Top below to the position
+        { We need a hack in case of FullScreen and menu.
+
+          We want to update Left and Top below to the position
           on the screen of our client area. "Client area" means tha place where OpenGL
           context is --- it's the window without the border, title bar and menu bar
-          (if MainMenu <> nil). I need this, because
+          (if MainMenu <> nil). We need this, because
 
           1. Left and Top are said in unit's interface to work like that
-          2. SetMousePosition requires this. Otherwise positions set by SetMousePosition
-             and read by MousePosition properties would be slightly different.
-             And there are real cases when this is extremely important that they use
-             exactly the same coordinate systems --- see e.g. mouse look handling in
-             TCastleWindowCustom.EventMotion.
 
-          So what's the problem ? Well, if the window is not FullScreen, Left and Top
-          as recorded in lParm are exactly what I want. But when FullScreen, Left and Top
+          2. SetMousePosition requires this. Otherwise positions
+             set by SetMousePosition and read by MousePosition properties
+             would be slightly different.
+             And there are cases when it is important that they use
+             exactly the same coordinate systems --- e.g. mouse look handling.
+
+          When the window is not FullScreen, WinAPI behaves nice,
+          and Left and Top as recorded in lParm are exactly what I want.
+
+          But when the window is FullScreen, Left and Top
           are always 0, 0 --- which means that they don't take menu bar height into
-          account. The effect: mouse look + menu bar + fullscreen mode don't work
-          (i.e. user is unable to do mouse look, TCastleWindowCustom.EventMotion always
-          ignores it). Tested on view3dscene.
+          account. The effect: mouse look + menu bar + fullscreen mode don't work.
 
-          So I workaround this by adding CYMENU. This is not perfect, as this assumes
+          We workaround this by adding CYMENU. This is not perfect, as this assumes
           that menu bar will always be a single line.
-          Note that this is non-perfect also because WM_MOVE message may not get to
-          FullScreen window at all, so in OpenBackend I also do this trick. }
+          (This is also non-perfect anyway, because WM_MOVE message may not get to
+          FullScreen window at all, so in OpenBackend I also do this trick.) }
         if FullScreen and (MainMenu <> nil) and MainMenuVisible then
           FTop += GetSystemMetrics(SM_CYMENU);
 
-        { Only position actually changed, not size.
-          TODO: Do we really need to call DoResize, OnResize?
-          Do we need to call glViewport? }
+        { TODO: Only position actually changed, not size.
+          Do we really need to call DoResize, OnResize?
+          Maybe we should just call only glViewport,
+          using current RenderContext.Viewport? }
         DoResize(fWidth, fHeight, false);
         Exit;
       end;
@@ -564,13 +565,13 @@ begin
         result := WMSizingHandler(lParm, wParm, minWidth, minHeight, maxWidth, maxHeight);
         Exit;
       end;
-     { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProc.
-       WM_PAINT occurs also when there's a need to redraw window frame
-       (which we don't care about, we don't draw custom window frame).
+    { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProc.
+      WM_PAINT occurs also when there's a need to redraw window frame
+      (which we don't care about, we don't draw custom window frame).
 
-       If there's a need to actually redraw window contents,
-       then WM_PAINT will cause (immediately, it seems that DefWindowProc
-       will just call WndProc) WM_ERASEBKGND, and we want to capture WM_ERASEBKGND. }
+      If there's a need to actually redraw window contents,
+      then WM_PAINT will cause (immediately, it seems that DefWindowProc
+      will just call WndProc) WM_ERASEBKGND, and we want to capture WM_ERASEBKGND. }
     WM_ERASEBKGND:
       begin
         if IsWindowEnabled(H_Wnd) then
