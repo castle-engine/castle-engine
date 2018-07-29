@@ -64,17 +64,10 @@ begin
 end;
 
 destructor TX3DFontTexturesCache.Destroy;
-var
-  I: Integer;
 begin
   if CachedFontTextures <> nil then
   begin
-    // Assert(CachedFontTextures.Count = 0, ' Some references to font textures still exist when freeing TX3DFontTexturesCache');
-    { Right now, we are prepared that nothing calls FreeFontTexture,
-      we just free caches in destructor.
-      In a typical application, we don't have that much various fonts, so this shouldn't be a problem? }
-    for I := 0 to CachedFontTextures.Count - 1 do
-      FreeAndNil(CachedFontTextures[I].FontTexture);
+    Assert(CachedFontTextures.Count = 0, ' Some references to font textures still exist when freeing TX3DFontTexturesCache');
     FreeAndNil(CachedFontTextures);
   end;
   inherited;
@@ -152,6 +145,15 @@ begin
 
       if C.References = 1 then
       begin
+        { Simple FreeAndNil would also be OK, as this node should never
+          be a child of another node in X3D graph.
+          (Being a TTextNode.FontTextureNode value doesn't make it a normal child,
+          i.e. TX3DNode internal child-parent references are not set.)
+          But for safety we call FreeIfUnusedAndNil. }
+        //FreeIfUnusedAndNil(C.FontTexture);
+        { TODO: Contrary to above comment, we need to call FreeAndNil now,
+          otherwise it is leaking (which means that FreeIfUnusedAndNil doesn't
+          free it). Testcase: "The Unholy Society". Why? }
         FreeAndNil(C.FontTexture);
         CachedFontTextures.Delete(I);
         CheckEmpty;

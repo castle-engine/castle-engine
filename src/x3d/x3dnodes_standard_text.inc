@@ -507,15 +507,15 @@ end;
 
 destructor TTextNode.Destroy;
 begin
-  { actually FreeAndNil would also be OK, as this is never
-    a child of another node. But for safety... }
-  FreeIfUnusedAndNil(FFontTextureNode);
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
   inherited;
 end;
 
 procedure TTextNode.FontChanged;
 begin
-  FreeIfUnusedAndNil(FFontTextureNode);
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
 end;
 
 class function TTextNode.ClassX3DType: string;
