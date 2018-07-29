@@ -1,6 +1,3 @@
-// for modulo operation
-#extension GL_EXT_gpu_shader4 : enable
-
 const int box_size = 4;
 
 void main (void)
