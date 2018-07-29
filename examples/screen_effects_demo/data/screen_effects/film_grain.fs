@@ -2,9 +2,9 @@ uniform sampler2D grainTexture;
 uniform float time;
 
 /* Larger values -> grain is more noticeable, 0 = no grain is visible */
-const float strength = 0.04;
+const float strength = 0.10;
 /* Larger values -> grain is "smaller dots" */
-const float density = 10.0;
+const float density = 5.0;
 
 void main (void)
 {
@@ -34,7 +34,9 @@ void main (void)
     (texture2D(grainTexture, grainCoord / 1.1).r +
      texture2D(grainTexture, grainCoord / 3.3).r)
      - 1.0 /* -0.5 for each noise layer */
-  );
+  )
+  // on average, to not make the screen brighter
+  - strength / 2.0;
 
   gl_FragColor.rgb += vec3(grain);
 }
