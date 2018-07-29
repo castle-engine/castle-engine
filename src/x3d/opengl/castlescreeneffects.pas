@@ -179,6 +179,10 @@ type
 
       If you're looking for inspirations what to put in screen_effects_scene.x3dv,
       see https://github.com/castle-engine/demo-models/tree/master/screen_effects .
+      See also CGE example in "examples/screen_effects_demo/" directory
+      ( https://github.com/castle-engine/castle-engine/tree/master/examples/screen_effects_demo )
+      that shows more screen effects code,
+      and shows how to load or construct X3D node graph with ScreenEffect.
 
       The memory management of the node added here is automatic:
       the added screen effect becomes owned by the internal X3D Group node.
