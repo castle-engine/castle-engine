@@ -105,6 +105,15 @@ type
     @link(TCastleSceneManager) instance inside another @link(TCastleScreenEffects)
     instance. You can instead directly call @link(AddScreenEffect) on your
     @link(TCastleSceneManager) instance.
+
+    Note that the UI controls rendered for the screen effects
+    (our children and descendants) must always initialize and fill
+    colors of the entire rectangle (@link(ScreenRect)) of this control.
+    Otherwise, the results are undefined, as an internal texture that is used
+    for screen effects is initially undefined.
+    You may use e.g. TCastleSimpleBackground or TCastleRectangle
+    or TCastleSceneManager with TCastleSceneManager.Background:=true
+    to always reliably fill the background.
   }
   TCastleScreenEffects = class(TUIControlSizeable)
   strict private
@@ -124,7 +133,6 @@ type
 
       { Valid only between Render and RenderOverChildren calls. }
       RenderScreenEffects: Boolean;
-      OldViewport: TRectangle;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -524,11 +532,11 @@ var
             BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
-    { We have to adjust RenderContext.Viewport.
-      It will be restored from RenderOverChildren right before actually
-      rendering to screen. }
-    OldViewport := RenderContext.Viewport;
-    RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
+    RenderContext.Viewport := SR;
+    { Any subquequent changes to RenderContext.Viewport should by shifted,
+      such that point SR.LeftBottom is actually at (0,0). }
+    RenderContext.ViewportDelta := -SR.LeftBottom;
+    { Note: the effective glViewport is now Rectangle(0, 0, SR.Width, SR.Height). }
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
@@ -617,6 +625,17 @@ var
   begin
     { Render all except the last screen effects: from texture
       (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
+
+    { The effective glViewport should be now Rectangle(0, 0, SR.Width, SR.Height).
+      Although our "Render" implementation already set it
+      (somewhat indirectly, using ViewportDelta),
+      but something since then could have changed the Viewport
+      (e.g. ControlRenderBegin done right before C.RenderOverChildren in CastleGLContainer).
+      So set it as we need, again.
+      And this time we don't need to deal with ViewportDelta, just zero it. }
+    RenderContext.ViewportDelta := TVector2Integer.Zero;
+    RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
+
     for I := 0 to CurrentScreenEffectsCount - 2 do
     begin
       ScreenEffectRTT.RenderBegin;
@@ -627,10 +646,9 @@ var
       SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
     end;
 
-    { Restore RenderContext.Viewport }
-    RenderContext.Viewport := OldViewport;
-
     { the last effect gets a texture, and renders straight into screen }
+    RenderContext.ViewportDelta := TVector2Integer.Zero;
+    RenderContext.Viewport := ScreenRect;
     RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1));
   end;
 

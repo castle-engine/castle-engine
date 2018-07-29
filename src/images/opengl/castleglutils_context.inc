@@ -85,6 +85,7 @@ type
       FCullFace, FFrontFaceCcw: boolean;
       FColorChannels: TColorChannels;
       FViewport: TRectangle;
+      FViewportDelta: TVector2Integer;
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
       procedure SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -97,6 +98,8 @@ type
       procedure SetColorMask(const Value: boolean);
       procedure SetColorChannels(const Value: TColorChannels);
       procedure SetViewport(const Value: TRectangle);
+      procedure SetViewportDelta(const Value: TVector2Integer);
+      procedure UpdateViewport;
   private
     FEnabledScissors: TScissorList;
   public
@@ -197,8 +200,12 @@ type
     property ColorChannels: TColorChannels
       read FColorChannels write SetColorChannels default [0..3];
 
-    { Setting this sets OpenGL glViewport. }
+    { Controls OpenGL viewport. This is always shifted by ViewportDelta. }
     property Viewport: TRectangle read FViewport write SetViewport;
+
+    { Shifts the rectangle passed to @link(Viewport).
+      Only the @link(TCastleScreenEffects) should control this. }
+    property ViewportDelta: TVector2Integer read FViewportDelta write SetViewportDelta;
   end;
 
 var
@@ -478,6 +485,16 @@ begin
   end;
 end;
 
+procedure TRenderContext.UpdateViewport;
+begin
+  {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
+    .glViewport(
+      FViewport.Left   + FViewportDelta.X,
+      FViewport.Bottom + FViewportDelta.Y,
+      FViewport.Width,
+      FViewport.Height);
+end;
+
 procedure TRenderContext.SetViewport(const Value: TRectangle);
 begin
   if Self <> RenderContext then
@@ -486,8 +503,19 @@ begin
   if not FViewport.Equals(Value) then
   begin
     FViewport := Value;
-    {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
-      .glViewport(Value.Left, Value.Bottom, Value.Width, Value.Height);
+    UpdateViewport;
+  end;
+end;
+
+procedure TRenderContext.SetViewportDelta(const Value: TVector2Integer);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if not TVector2Integer.Equals(FViewportDelta, Value) then
+  begin
+    FViewportDelta := Value;
+    UpdateViewport;
   end;
 end;
 

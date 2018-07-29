@@ -2573,7 +2573,7 @@ begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FillsWholeContainer then
       { Use Scissor to limit what RenderContext.Clear clears. }
-      RenderContext.ScissorEnable(ScreenRect);
+      RenderContext.ScissorEnable(ScreenRect.Translate(RenderContext.ViewportDelta));
 
     RenderFromViewEverything(RenderingCamera);
 
