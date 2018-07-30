@@ -3039,24 +3039,8 @@ var
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
-
-          { Note: do *not* multiply
-
-              ClipPlane^.Transform * ClipPlane^.Node.Plane
-
-            The plane equation cannot be transformed like that,
-            it's not a 4D vertex / direction.
-
-            OpenGL does smart calculatations such that we can
-            provide modelview matrix, and then specify
-            plane equation in the local space.
-            See e.g. http://www2.imm.dtu.dk/~jab/texgen.pdf .
-            glClipPlane docs say that glClipPlane is multiplied by
-            the *inverse* of modelview. The wording is crucial here:
-            plane is multiplied by the matrix, not the other way around. }
-
           Shader.EnableClipPlane(ClipPlanesEnabled,
-            ClipPlane^.Transform, ClipPlane^.Node.FdPlane.Value);
+            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform));
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more
@@ -3077,6 +3061,10 @@ var
   end;
 
 begin
+  { This must be done before "glMultMatrix(Shape.State.Transform)" below,
+    as in case of fixed-function pipeline the ClipPlanesBegin
+    causes glClipPlane that sets clip plane assuming the current matrix
+    contains only camera. }
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
   {$ifndef OpenGLES}

@@ -466,10 +466,6 @@ begin
   end else
     MaxRenderbufferSize := 0;
 
-  { TODO: this should be completely configurable in shader pipeline.
-    Make it configurable at Attributes.MaxClipPlanes? }
-  MaxClipPlanes := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_CLIP_PLANES) {$endif};
-
   { calculate UseMultiTexturing: check extensions required for multitexturing.
 
     We used to require a couple of extensions for this:
@@ -603,6 +599,27 @@ begin
     (not VertexBufferObject) or
     GLVersion.BuggyPureShaderPipeline
     {$endif};
+
+  { Calculate MaxClipPlanes.
+    The logic follows various approaches to clip planes in TShader.EnableClipPlane.
+    TODO: If you later switch EnableFixedFunction to true,
+    our code doesn't recalculate this limit now. }
+  {$ifndef OpenGLES}
+  if EnableFixedFunction or (not Version_3_0) then
+    MaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES)
+  else
+    MaxClipPlanes := glGetInteger(GL_MAX_CLIP_DISTANCES);
+  {$else}
+  { Any value is in theory correct for OpenGLES.
+    The only limit is number of varying variables we can pass from vertex
+    to fragment shader, and fragment code speed.
+    With OpenGLES 2, the clipping requires
+    passing data to the fragment shader, and discarding fragments there.
+
+    We set 8, as it seems reasonable, and is the minimal guaranteed value
+    of GL_MAX_CLIP_DISTANCES. }
+  MaxClipPlanes := 8;
+  {$endif}
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
   GLFeatures := Self;
