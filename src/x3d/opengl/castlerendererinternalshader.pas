@@ -3123,7 +3123,8 @@ begin
   Assert(ClipPlanesCount = ClipPlaneIndex);
   Inc(ClipPlanesCount);
 
-  FCodeHash.AddInteger(2003 * (1 + ClipPlaneIndex));
+  { This effectively adds 2003 * ClipPlanesCount to hash. }
+  FCodeHash.AddInteger(2003);
 
   { Below we have THREE different implementations of clip planes:
     1. old desktop OpenGL (fast, but deprecated)
