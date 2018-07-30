@@ -453,7 +453,14 @@ type
     MaterialShininessExp: Single;
     MaterialUnlit: TVector4;
 
-    { Camera * scene transformation (without the shape transformation). }
+    { Camera * scene transformation (without the shape transformation).
+
+      In case GLFeatures.EnableFixedFunction = true, these are also the contents
+      of current OpenGL modelview matrix,
+      at TGLRenderer.RenderShapeClipPlanes and earlier.
+      At TGLRenderer.RenderShapeCreateMeshRenderer and later,
+      the OpenGL modelview matrix contains also shape transformation,
+      so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
 
     SeparateDiffuseTexture: boolean;
@@ -539,8 +546,12 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableTextureTransform(const TextureUnit: Cardinal;
       const Matrix: TMatrix4);
-    { Enable clip plane, with Plane equation given in world coordinates
-      (IOW, with "model matrix" applied, but "camera matrix" not applied).
+    { Enable clip plane.
+
+      The Plane equation must be given in "scene coordinates".
+      IOW, with shape transformation matrix (from X3D Transform nodes) applied,
+      but scene matrix (TCastleScene transformation) not applied,
+      and "camera matrix" not applied.
 
       The ClipPlaneIndex must always be one more than previous one
       on this TShape instance, since it's creation or Initialize call.
@@ -3162,7 +3173,7 @@ begin
     { We leave Uniform.Declaration empty,
       because we only declare them inside the necessary plug in EnableClipPlanes. }
     { Convert Plane from world space -> eye space. }
-    Uniform.Value := PlaneTransform(Plane, RenderingCamera.Matrix);
+    Uniform.Value := PlaneTransform(Plane, SceneModelView);
     DynamicUniforms.Add(Uniform);
   end else
 
@@ -3180,7 +3191,7 @@ begin
     { We leave Uniform.Declaration empty,
       because we only declare them inside the necessary plug in EnableClipPlanes. }
     { Convert Plane from world space -> eye space. }
-    Uniform.Value := PlaneTransform(Plane, RenderingCamera.Matrix);
+    Uniform.Value := PlaneTransform(Plane, SceneModelView);
     DynamicUniforms.Add(Uniform);
   end;
 end;

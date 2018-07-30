@@ -1442,6 +1442,11 @@ procedure TCastleScene.PrepareResources(
         while SI.GetNext do
         begin
           Shape := TGLShape(SI.Current);
+          { set sensible Shape.ModelView, otherwise it is zero
+            and TShader.EnableClipPlane will raise an exception since
+            PlaneTransform(Plane, SceneModelView); will fail,
+            with SceneModelView matrix = zero. }
+          Shape.ModelView := TMatrix4.Identity;
           Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
         end;
         Renderer.RenderEnd;
