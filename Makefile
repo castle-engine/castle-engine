@@ -234,7 +234,8 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   src/library/castleengine \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test \
-  tools/build-tool/code/castle-engine
+  tools/build-tool/code/castle-engine \
+  tools/castle-editor/code/castle-editor
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
