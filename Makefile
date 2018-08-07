@@ -186,6 +186,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/build_3d_tunnel \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
   examples/3d_rendering_processing/cars_demo \
+  examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/detect_scene_clicks \
   examples/3d_rendering_processing/display_box_custom_shaders \
