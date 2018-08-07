@@ -235,13 +235,15 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test \
   tools/build-tool/code/castle-engine \
-  tools/castle-editor/code/castle-editor
+  tools/castle-editor/code/castle_editor
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
-  $(EXAMPLES_LAZARUS_BASE_NAMES)
+  $(EXAMPLES_LAZARUS_BASE_NAMES) \
+  tools/castle-editor/castle-editor
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
-  $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES))
+  $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES)) \
+  tools/castle-editor/castle-editor.exe
 
 EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .app,$(EXAMPLES_LAZARUS_BASE_NAMES))
