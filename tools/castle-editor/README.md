@@ -27,13 +27,13 @@ You can browse the application files. Our "Files Browser" just displays the file
 
 * It only omits some known unimportant things, like temporary `castle-engine-output` directory. But it displays everything else.
 
-* Note that the `data/` subdirectory, that you will usually create in every non-trivial CGE project, is somewhat special. It is automatically detected (by it's name "data"), it automatically packaged (e.g. in Android apk), and it is used by `ApplicationData` function. You will place there 3D models, 2D images and everything else you load in game.
+* Note that the `data/` subdirectory, that you will usually create in every non-trivial CGE project, is somewhat special. It is automatically detected (by it's name `data`), it automatically packaged (e.g. in Android apk), and it is used by `ApplicationData` function. You will place there 3D models, 2D images and everything else you load in game.
 
-    It is some equivalent to Unity3d "Assets" subdirectory.
+    It is some equivalent to Unity3d `Assets/` subdirectory.
 
-* Note that your Pascal source code should be outside the "data/" subdirectory. Actually, your source code can be anywhere within the project, we don't have any requirement here. You can put it in "code/" subdirectory, "src/" subdirectory, no subdirectory (top level), wherever you like. If you really want, you can also place it in "data/" subdirectory, but it usually doesn't make sense (unless you want to distribute to end-users your source code this way).
+* Note that your Pascal source code should be outside the `data/` subdirectory. Actually, your source code can be anywhere within the project, we don't have any requirement here. You can put it in `code/` subdirectory, `src/` subdirectory, no subdirectory (top level), wherever you like. If you really want, you can also place it in `data/` subdirectory, but it usually doesn't make sense (unless you really want to distribute to end-users your source code this way).
 
-    This is in contrast to Unity3d (that requires putting source code also inside "Assets/" directory).
+    This is in contrast to Unity3d (that requires putting source code also inside `Assets/` directory).
 
 * On various 3D and 2D assets you can run view3dscene. On 2D images you can run glViewImage. On text files you can run a text editor (see above). We also want to auto-generate and show a quick previews of them inside the CGE editor.
 
