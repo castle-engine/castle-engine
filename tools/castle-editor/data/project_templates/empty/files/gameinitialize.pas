@@ -6,7 +6,7 @@
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
   is covered by the LGPL license variant, see the COPYING.txt file.) }
-unit GameInitialization;
+unit GameInitialize;
 
 interface
 
@@ -68,7 +68,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

@@ -44,7 +44,7 @@ implementation
 {$R *.lfm}
 
 uses LazFileUtils,
-  CastleURIUtils, CastleConfig, CastleUtils,
+  CastleURIUtils, CastleConfig, CastleUtils, CastleStringUtils,
   EditorUtils;
 
 procedure TNewProject.FormShow(Sender: TObject);
@@ -78,28 +78,46 @@ begin
 end;
 
 procedure TNewProject.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+const
+  AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+  ValidProjectNameChars = AlphaNum + ['_','-'];
+  InvalidProjectNameChars = AllChars - ValidProjectNameChars;
 var
   ProjectDir: String;
+  InvalidIndex: Integer;
+  ProjectName, ProjectLocation: TCaption;
 begin
   if ModalResult = mrOK then
   begin
-    if NewProject.EditLocation.Text = '' then
+    ProjectName := EditProjectName.Text;
+    ProjectLocation := EditLocation.Text;
+
+    InvalidIndex := CharsPos(InvalidProjectNameChars, ProjectName);
+    if InvalidIndex <> 0 then
+    begin
+      ErrorBox(Format('Project name contains invalid character "%s".',
+        [SReadableForm(ProjectName[InvalidIndex])]));
+      CanClose := false;
+      Exit;
+    end;
+
+    if ProjectLocation = '' then
     begin
       ErrorBox('No Project Location chosen.');
       CanClose := false;
       Exit;
     end;
 
-    ProjectDir := InclPathDelim(NewProject.EditLocation.Text) +
-      NewProject.EditProjectName.Text;
+    ProjectDir := InclPathDelim(ProjectLocation) + ProjectName;
     if DirectoryExists(ProjectDir) then
     begin
-      ErrorBox(Format('Directory "%s" already exists, cannot create a project there. Please pick a project name that does not correspond to an already-existing directory.', [ProjectDir]));
+      ErrorBox(Format('Directory "%s" already exists, cannot create a project there. Please pick a project name that does not correspond to an already-existing directory.',
+        [ProjectDir]));
       CanClose := false;
       Exit;
     end;
 
-    UserConfig.SetValue('new_project/default_dir', NewProject.EditLocation.Text);
+    UserConfig.SetValue('new_project/default_dir', ProjectLocation);
   end;
 end;
 
