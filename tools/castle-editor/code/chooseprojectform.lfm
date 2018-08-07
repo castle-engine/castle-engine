@@ -1,22 +1,26 @@
 object ChooseProject: TChooseProject
   Left = 601
-  Height = 589
+  Height = 733
   Top = 213
-  Width = 603
+  Width = 627
   AutoSize = True
   BorderStyle = bsSingle
   BorderWidth = 40
   Caption = 'Choose Project | Castle Game Engine Editor'
-  ClientHeight = 589
-  ClientWidth = 603
+  ClientHeight = 733
+  ClientWidth = 627
   DesignTimePPI = 140
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poDefault
   LCLVersion = '1.8.0.6'
   object ImageLogo: TImage
     AnchorSideRight.Side = asrBottom
     Left = 2
     Height = 268
     Top = 8
-    Width = 597
+    Width = 621
     Anchors = [akTop, akLeft, akRight]
     Center = True
     Picture.Data = {
@@ -455,7 +459,7 @@ object ChooseProject: TChooseProject
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ImageLogo
     AnchorSideTop.Side = asrBottom
-    Left = 109
+    Left = 121
     Height = 40
     Top = 286
     Width = 382
@@ -473,7 +477,7 @@ object ChooseProject: TChooseProject
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = LabelTitle
     AnchorSideTop.Side = asrBottom
-    Left = 219
+    Left = 231
     Height = 79
     Top = 336
     Width = 162
@@ -481,21 +485,50 @@ object ChooseProject: TChooseProject
     BorderSpacing.Top = 10
     BorderSpacing.InnerBorder = 20
     Caption = 'New Project'
+    OnClick = ButtonNewClick
     TabOrder = 0
   end
-  object ButtonLoad: TBitBtn
+  object ButtonOpen: TBitBtn
     AnchorSideLeft.Control = ImageLogo
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ButtonNew
     AnchorSideTop.Side = asrBottom
-    Left = 177
+    Left = 227
     Height = 79
     Top = 425
-    Width = 247
+    Width = 171
     AutoSize = True
     BorderSpacing.Top = 10
     BorderSpacing.InnerBorder = 20
-    Caption = ' Load Existing Project'
+    Caption = 'Open Project'
+    OnClick = ButtonOpenClick
     TabOrder = 1
+  end
+  object ButtonOpenRecent: TBitBtn
+    AnchorSideLeft.Control = ImageLogo
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = ButtonOpen
+    AnchorSideTop.Side = asrBottom
+    Left = 193
+    Height = 79
+    Top = 514
+    Width = 238
+    AutoSize = True
+    BorderSpacing.Top = 10
+    BorderSpacing.InnerBorder = 20
+    Caption = 'Open Recent Project'
+    OnClick = ButtonOpenRecentClick
+    TabOrder = 2
+  end
+  object OpenProject: TCastleOpenDialog
+    Title = 'Open existing project (select CastleEngineManifest.xml file)'
+    Filter = 'CastleEngineManifest.xml|CastleEngineManifest.xml|All files (*)|*'
+    FilterIndex = 0
+    left = 508
+    top = 470
+  end
+  object PopupMenuRecentProjects: TPopupMenu
+    left = 464
+    top = 552
   end
 end

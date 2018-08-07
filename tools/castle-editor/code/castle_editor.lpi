@@ -33,7 +33,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="5">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -46,6 +46,23 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ChooseProjectForm"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="projectutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ProjectUtils"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="newprojectform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewProject"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="NewProjectForm"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="editorutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EditorUtils"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
