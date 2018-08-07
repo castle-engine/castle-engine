@@ -182,8 +182,27 @@ type
     procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
 
     { Set keys/mouse buttons of this shortcut.
-      Sets both current and default properties. }
+
+      Sets both current and default properties (e.g. both @link(Key1) and
+      @link(DefaultKey1) to the same value).
+      Note that, right after using this method, saving the input to a config file
+      (using TInputShortcutList.SaveToConfig) will actually just "clear"
+      the input information from the config file (because we do not save
+      the value when it is equal to the default).
+      Use @link(AssignCurrent) to only assign the curent value, leaving default
+      untouched. }
     procedure Assign(
+      const AKey1: TKey;
+      const AKey2: TKey = K_None;
+      const ACharacter: Char = #0;
+      const AMouseButtonUse: boolean = false;
+      const AMouseButton: TMouseButton = mbLeft;
+      const AMouseWheel: TMouseWheelDirection = mwNone);
+
+    { Set keys/mouse buttons of this shortcut.
+      Sets only the "current" properties (e.g. it changes @link(Key1),
+      leaving @link(DefaultKey1) unmodified). }
+    procedure AssignCurrent(
       const AKey1: TKey;
       const AKey2: TKey = K_None;
       const ACharacter: Char = #0;
@@ -435,6 +454,22 @@ begin
   FDefaultMouseButton := AMouseButton;
   FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
+end;
+
+procedure TInputShortcut.AssignCurrent(const AKey1: TKey;
+  const AKey2: TKey;
+  const ACharacter: Char;
+  const AMouseButtonUse: boolean;
+  const AMouseButton: TMouseButton;
+  const AMouseWheel: TMouseWheelDirection);
+begin
+  FKey1 := AKey1;
+  FKey2 := AKey2;
+  FCharacter := ACharacter;
+  FMouseButtonUse := AMouseButtonUse;
+  FMouseButton := AMouseButton;
+  FMouseWheel := AMouseWheel;
+  Changed;
 end;
 
 procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
