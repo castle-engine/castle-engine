@@ -75,6 +75,6 @@ Lower priority:
 - Adjust form's `Caption`.
 - Adjust `TabStop` of all the controls inside, to make it comfortable to use keyboard.
 - Use `AutoSize` and anchoring on all controls, to work regardless of theme font size. Do not assume that a text will have the same size as you have designed --- people use various themes and font types. Lazarus applications have a native look, and are expected to adjust to user's theme preferences.
-- Consider using `AutoSize` on the form itself too
-- Adjust border from `bsSizeable` maybe (if it's a small form that doesn't need to be resized; for larger forms, it's safer to allow resizing)
-- Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible)
+- Consider using `AutoSize` on the form itself too.
+- Adjust `BorderStyle` from `bsSizeable` to `bsSingle` if it's a small form that doesn't need to be resized (for larger forms, it's safer to allow resizing, even if you think you know the best size -- in case user will view it on a smaller monitor).
+- Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible).
