@@ -293,6 +293,18 @@ type
 
     { Add to shortcut new key or mouse button or mouse wheel. }
     procedure Add(const NewEvent: TInputPressRelease);
+
+    { Load a particular input from a config file.
+      Use this to load what was previously saved with @link(SaveToConfig). }
+    procedure LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
+
+    { Save a particular input to a config file.
+      This creates an XML element named @link(Name) under the indicated ConfigPath
+      in the config file.
+
+      Note: It is often easier to group your controls in TInputShortcutList,
+      and call @link(TInputShortcutList.SaveToConfig) to save everything. }
+    procedure SaveToConfig(const Config: TCastleConfig; ConfigPath: String);
   published
     { Key/mouse properties on TInputShortcut are declared without
       "default" specifier, to always save them in Lazarus LFM file.
@@ -364,6 +376,8 @@ type
         Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
+  { Group of TInputShortcut, to easily manage (search, load, save...)
+    the inputs. }
   TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
@@ -376,12 +390,26 @@ type
     function SeekConflict(out ConflictDescription: string): boolean;
 
     { Load customized input shortcuts from a config file,
-      for example from @link(UserConfig). }
-    procedure LoadFromConfig(const Config: TCastleConfig);
+      for example from @link(UserConfig).
+
+      This should be used to load inputs previously saved with @link(SaveToConfig).
+      Provide the same value of ConfigPath as you used with @link(SaveToConfig). }
+    procedure LoadFromConfig(const Config: TCastleConfig; ConfigPath: String = '');
 
     { Save customized input shortcuts to a config file,
-      for example to a @link(UserConfig). }
-    procedure SaveToConfig(const Config: TCastleConfig);
+      for example to a @link(UserConfig).
+
+      This will create an XML element <input> under an indicated ConfigPath
+      in the config file. Be sure to save each unique TInputShortcutList
+      with a different ConfigPath, to not collide in the config file.
+
+      Note that we only save to config file the values when they differ
+      from default. E.g. TInputShortcut.Key1 will be explicitly saved
+      only if it is different than TInputShortcut.DefaultKey1.
+      Otherwise the information about this Key1 for this TInputShortcut
+      will be removed from the config file (to force using default next time
+      this config is loaded). }
+    procedure SaveToConfig(const Config: TCastleConfig; ConfigPath: String = '');
   end;
 
 var
@@ -693,6 +721,45 @@ begin
   end;
 end;
 
+procedure TInputShortcut.SaveToConfig(const Config: TCastleConfig; ConfigPath: String);
+begin
+  // add slash at the end of ConfigPath, if necessary
+  if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
+    ConfigPath := ConfigPath + '/';
+
+  Config.SetDeleteKey(ConfigPath + Name + '/key1',
+    Key1, DefaultKey1);
+  Config.SetDeleteKey(ConfigPath + Name + '/key2',
+    Key2, DefaultKey2);
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_use',
+    MouseButtonUse, DefaultMouseButtonUse);
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button',
+    Ord(MouseButton), Ord(DefaultMouseButton));
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_wheel',
+    Ord(MouseWheel), Ord(DefaultMouseWheel));
+end;
+
+procedure TInputShortcut.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
+begin
+  // add slash at the end of ConfigPath, if necessary
+  if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
+    ConfigPath := ConfigPath + '/';
+
+  Key1 := Config.GetKey(
+    ConfigPath + Name + '/key1', DefaultKey1);
+  Key2 := Config.GetKey(
+    ConfigPath + Name + '/key2', DefaultKey2);
+  MouseButtonUse := Config.GetValue(
+    ConfigPath + Name + '/mouse_button_use',
+    DefaultMouseButtonUse);
+  MouseButton := TMouseButton(Config.GetValue(
+    ConfigPath + Name + '/mouse_button',
+    Ord(DefaultMouseButton)));
+  MouseWheel := TMouseWheelDirection(Config.GetValue(
+    ConfigPath + Name + '/mouse_wheel',
+    Ord(DefaultMouseWheel)));
+end;
+
 { TInputShortcutList ----------------------------------------------------- }
 
 function TInputShortcutList.SeekMatchingShortcut(
@@ -711,29 +778,24 @@ end;
 
 procedure TInputShortcutList.RestoreDefaults;
 var
-  I: Integer;
+  I: TInputShortcut;
 begin
-  for I := 0 to Count - 1 do
-    Items[I].MakeDefault;
+  for I in Self do
+    I.MakeDefault;
 end;
 
-procedure TInputShortcutList.SaveToConfig(const Config: TCastleConfig);
+procedure TInputShortcutList.SaveToConfig(const Config: TCastleConfig; ConfigPath: String = '');
 var
-  I: Integer;
+  I: TInputShortcut;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    Config.SetDeleteKey('inputs/' + Items[I].Name + '/key1',
-      Items[I].Key1, Items[I].DefaultKey1);
-    Config.SetDeleteKey('inputs/' + Items[I].Name + '/key2',
-      Items[I].Key2, Items[I].DefaultKey2);
-    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button_use',
-      Items[I].MouseButtonUse, Items[I].DefaultMouseButtonUse);
-    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button',
-      Ord(Items[I].MouseButton), Ord(Items[I].DefaultMouseButton));
-    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_wheel',
-      Ord(Items[I].MouseWheel), Ord(Items[I].DefaultMouseWheel));
-  end;
+  // add slash at the end of ConfigPath, if necessary
+  if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
+    ConfigPath := ConfigPath + '/';
+
+  ConfigPath := ConfigPath + 'inputs/';
+
+  for I in Self do
+    I.SaveToConfig(Config, ConfigPath);
 end;
 
 function SortInputShortcut(constref A, B: TInputShortcut): Integer;
@@ -745,11 +807,11 @@ begin
     Result := A.Index - B.Index;
 end;
 
-procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig);
+procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 type
   TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
 var
-  I: Integer;
+  I: TInputShortcut;
   ConflictDescription: string;
   G: TInputGroup;
 begin
@@ -762,22 +824,14 @@ begin
   for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G].Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
 
-  for I := 0 to Count - 1 do
-  begin
-    Items[I].Key1 := Config.GetKey(
-      'inputs/' + Items[I].Name + '/key1', Items[I].DefaultKey1);
-    Items[I].Key2 := Config.GetKey(
-      'inputs/' + Items[I].Name + '/key2', Items[I].DefaultKey2);
-    Items[I].MouseButtonUse := Config.GetValue(
-      'inputs/' + Items[I].Name + '/mouse_button_use',
-      Items[I].DefaultMouseButtonUse);
-    Items[I].MouseButton := TMouseButton(Config.GetValue(
-      'inputs/' + Items[I].Name + '/mouse_button',
-      Ord(Items[I].DefaultMouseButton)));
-    Items[I].MouseWheel := TMouseWheelDirection(Config.GetValue(
-      'inputs/' + Items[I].Name + '/mouse_wheel',
-      Ord(Items[I].DefaultMouseWheel)));
-  end;
+  // add slash at the end of ConfigPath, if necessary
+  if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
+    ConfigPath := ConfigPath + '/';
+
+  ConfigPath := ConfigPath + 'inputs/';
+
+  for I in Self do
+    I.LoadFromConfig(Config, ConfigPath);
 
   if SeekConflict(ConflictDescription) then
   begin
