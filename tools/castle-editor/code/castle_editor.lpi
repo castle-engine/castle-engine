@@ -33,18 +33,18 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="7">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="chooseprojectform.pas"/>
+        <Filename Value="formchooseproject.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="ChooseProject"/>
+        <ComponentName Value="ChooseProjectForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="ChooseProjectForm"/>
+        <UnitName Value="FormChooseProject"/>
       </Unit1>
       <Unit2>
         <Filename Value="projectutils.pas"/>
@@ -52,11 +52,12 @@
         <UnitName Value="ProjectUtils"/>
       </Unit2>
       <Unit3>
-        <Filename Value="newprojectform.pas"/>
+        <Filename Value="formnewproject.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="NewProject"/>
+        <ComponentName Value="NewProjectForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="NewProjectForm"/>
+        <UnitName Value="FormNewProject"/>
       </Unit3>
       <Unit4>
         <Filename Value="editorutils.pas"/>
@@ -67,6 +68,14 @@
         <Filename Value="../../build-tool/code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="formproject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ProjectForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormProject"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -55,11 +55,15 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 ## TODO
 
 * build tool integration:
-    * In TChooseProject.ButtonNewClick, create lpi/lpr using build tool commands to generate
+    * show build tool progress at bottom, do not hang editor while waiting for build tool
+      Colorize
+      - For "run", always show log (on all platform), colorized (warnings at least)
+      - For "compile", detect FPC warnings, errors
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
-    * Allow to compile, run, package, choose platform
+    * Allow to auto-generate-textures, any other build tool command remains useful?
+    * Allow to choose platform
     * rerun generate-program each time? (mark them as some *DO NOT MODIFY THIS, THIS IS ONLY FOR LAZARUS* comment)
         Not really OK, in case we open program with hand-crafted program file.
 	Maybe only auto-generate in castle-engine-output,
@@ -83,10 +87,12 @@ Lower priority:
 
 ## Contributing: When creating a new Lazarus form, remember to...
 
-- Save form class `TFoo` in unit name `FooForm`.
+- Save form class `TFooForm` (so it will have singleton `FooForm`) in unit name `FormFoo`.
 - Adjust form's `Caption`.
 - Adjust `TabStop` of all the controls inside, to make it comfortable to use keyboard.
 - Use `AutoSize` and anchoring on all controls, to work regardless of theme font size. Do not assume that a text will have the same size as you have designed --- people use various themes and font types. Lazarus applications have a native look, and are expected to adjust to user's theme preferences.
 - Consider using `AutoSize` on the form itself too.
 - Adjust `BorderStyle` from `bsSizeable` to `bsSingle` if it's a small form that doesn't need to be resized (for larger forms, it's safer to allow resizing, even if you think you know the best size -- in case user will view it on a smaller monitor).
 - Adjust `Position` from "as designed" (usually "default" or "main form center" is more sensible).
+- Make sure closing the form with "X" (Alt + F4) works OK.
+- For a form you create manually, make sure it is freed at some point (preferably, not only at the end of application, if you can free it earlier; e.g. we don't want to have 100 of TProjectForm instances in memory after using the editor for a long time).

@@ -1,4 +1,4 @@
-object ChooseProject: TChooseProject
+object ChooseProjectForm: TChooseProjectForm
   Left = 601
   Height = 733
   Top = 213

@@ -1,0 +1,98 @@
+object ProjectForm: TProjectForm
+  Left = 363
+  Height = 618
+  Top = 196
+  Width = 1044
+  Caption = ' my-project | Castle Game Engine'
+  DesignTimePPI = 140
+  Menu = MainMenu1
+  OnCloseQuery = FormCloseQuery
+  Position = poMainFormCenter
+  LCLVersion = '1.8.0.6'
+  object MainMenu1: TMainMenu
+    left = 336
+    top = 97
+    object MenuItemFile: TMenuItem
+      Caption = 'File'
+      object MenuItemSwitchProject: TMenuItem
+        Caption = 'Switch Project'
+        OnClick = MenuItemSwitchProjectClick
+      end
+      object MenuItemQuit: TMenuItem
+        Caption = 'Quit'
+        ShortCut = 16465
+        OnClick = MenuItemQuitClick
+      end
+    end
+    object MenuItemRun: TMenuItem
+      Caption = 'Run'
+      object MenuItemCompile: TMenuItem
+        Caption = 'Compile'
+        ShortCut = 16504
+        OnClick = MenuItemCompileClick
+      end
+      object MenuItemCompileRun: TMenuItem
+        Caption = 'Compile And Run'
+        ShortCut = 120
+        OnClick = MenuItemCompileRunClick
+      end
+      object MenuItemOnlyRun: TMenuItem
+        Caption = 'Run (Without Compiling)'
+        ShortCut = 8312
+        OnClick = MenuItemOnlyRunClick
+      end
+      object MenuItemSeparator2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemClean: TMenuItem
+        Caption = 'Clean'
+        OnClick = MenuItemCleanClick
+      end
+      object MenuItem3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPackage: TMenuItem
+        Caption = 'Package'
+        OnClick = MenuItemPackageClick
+      end
+      object MenuItemSeparator3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemModeDebug: TMenuItem
+        Caption = 'Debug Mode'
+        GroupIndex = 1
+        RadioItem = True
+        ShowAlwaysCheckable = True
+        OnClick = MenuItemModeDebugClick
+      end
+      object MenuItemModeRelease: TMenuItem
+        Caption = 'Release Mode'
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = MenuItemModeReleaseClick
+      end
+    end
+    object MenuItemHelp: TMenuItem
+      Caption = 'Help'
+      object MenuItemCgeWww: TMenuItem
+        Caption = 'Website'
+        OnClick = MenuItemCgeWwwClick
+      end
+      object MenuItemManual: TMenuItem
+        Caption = 'Castle Game Engine Manual'
+        OnClick = MenuItemManualClick
+      end
+      object MenuItemReference: TMenuItem
+        Caption = 'API Reference'
+        OnClick = MenuItemReferenceClick
+      end
+      object MenuItemSeparator: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemAbout: TMenuItem
+        Caption = 'About Castle Game Engine Editor'
+        OnClick = MenuItemAboutClick
+      end
+    end
+  end
+end

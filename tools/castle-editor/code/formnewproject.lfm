@@ -1,4 +1,4 @@
-object NewProject: TNewProject
+object NewProjectForm: TNewProjectForm
   Left = 505
   Height = 604
   Top = 209

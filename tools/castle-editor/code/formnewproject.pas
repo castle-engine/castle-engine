@@ -1,4 +1,20 @@
-unit NewProjectForm;
+{
+  Copyright 2018-2018 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ New project form (@link(TNewProjectForm)). }
+unit FormNewProject;
 
 {$mode objfpc}{$H+}
 
@@ -10,10 +26,7 @@ uses
 
 type
   { Determine new project settings. }
-
-  { TNewProject }
-
-  TNewProject = class(TForm)
+  TNewProjectForm = class(TForm)
     ButtonPanel1: TButtonPanel;
     EditLocation: TEditButton;
     EditProjectName: TEdit;
@@ -37,7 +50,7 @@ type
   end;
 
 var
-  NewProject: TNewProject;
+  NewProjectForm: TNewProjectForm;
 
 implementation
 
@@ -47,7 +60,7 @@ uses LazFileUtils,
   CastleURIUtils, CastleConfig, CastleUtils, CastleStringUtils,
   EditorUtils;
 
-procedure TNewProject.FormShow(Sender: TObject);
+procedure TNewProjectForm.FormShow(Sender: TObject);
 var
   DefaultNewProjectDir, NewProjectDir: String;
 begin
@@ -64,12 +77,12 @@ begin
   EditProjectName.Text := 'my-new-project';
 end;
 
-procedure TNewProject.ButtonTemplateClick(Sender: TObject);
+procedure TNewProjectForm.ButtonTemplateClick(Sender: TObject);
 begin
   (Sender as TSpeedButton).Down := true;
 end;
 
-procedure TNewProject.EditLocationButtonClick(Sender: TObject);
+procedure TNewProjectForm.EditLocationButtonClick(Sender: TObject);
 begin
   // SelectDirectoryDialog1.InitialDir := EditLocation.Text; // not neeeded
   SelectDirectoryDialog1.FileName := EditLocation.Text;
@@ -77,7 +90,7 @@ begin
     EditLocation.Text := SelectDirectoryDialog1.FileName;
 end;
 
-procedure TNewProject.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 const
   AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
   ValidProjectNameChars = AlphaNum + ['_','-'];

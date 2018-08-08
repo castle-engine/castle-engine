@@ -44,7 +44,7 @@ function FileSize(const FileName: string): Int64;
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  var OutputString:string; var ExitStatus:integer);
+  out OutputString: string; out ExitStatus: integer);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -135,7 +135,9 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Options: array of string;var OutputString:string;var ExitStatus:integer);
+procedure MyRunCommandIndir(const CurDir: string;
+  const ExeName: string;const Options: array of string;
+  out OutputString: string; out ExitStatus: integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -144,6 +146,10 @@ var
   i : integer;
   numbytes,bytesread : integer;
 begin
+  // default out values
+  OutputString := '';
+  ExitStatus := 0;
+
   p:=TProcess.create(nil);
   p.Executable:=exename;
   if curdir<>'' then

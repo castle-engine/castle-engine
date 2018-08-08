@@ -7,8 +7,8 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, ChooseProjectForm, castle_components, ProjectUtils, NewProjectForm,
-  EditorUtils
+  Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
+  EditorUtils, FormProject
   { you can add units after this };
 
 {$R *.res}
@@ -16,8 +16,8 @@ uses
 begin
   RequireDerivedFormResource := True;
   Application.Initialize;
-  Application.CreateForm(TChooseProject, ChooseProject);
-  Application.CreateForm(TNewProject, NewProject);
+  Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
+  Application.CreateForm(TNewProjectForm, NewProjectForm);
   Application.Run;
 end.
 
