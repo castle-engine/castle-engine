@@ -70,6 +70,7 @@ begin
   MyInputs.Add(Input_MoveDown);
   MyInputs.Add(Input_MoveLeft);
   MyInputs.Add(Input_MoveRight);
+  MyInputs.Add(Input_DoSomethingCrazy);
 
   UserConfig.Load;
   MyInputs.LoadFromConfig(UserConfig, 'my_inputs');
