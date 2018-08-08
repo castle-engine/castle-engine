@@ -14,7 +14,7 @@
 }
 
 { An example how to create user-configurable input shortcuts
-  (own TInputShortcut instances)
+  (own TInputShortcut instances, saved and loaded to UserConfig file)
   and use them for a camera or for custom actions. }
 
 uses
