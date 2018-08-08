@@ -22,12 +22,15 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ProjectUtils;
+  ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
+  CastleControl;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    CastleControl1: TCastleControl;
     MainMenu1: TMainMenu;
+    MemoCommandOutput: TMemo;
     MenuItemModeRelease: TMenuItem;
     MenuItemPackage: TMenuItem;
     MenuItem3: TMenuItem;
@@ -48,6 +51,18 @@ type
     MenuItemRun: TMenuItem;
     MenuItemFile: TMenuItem;
     MenuItemQuit: TMenuItem;
+    PageControl1: TPageControl;
+    PanelAboveTabs: TPanel;
+    ShellListView1: TShellListView;
+    ShellTreeView1: TShellTreeView;
+    Splitter1: TSplitter;
+    Splitter2: TSplitter;
+    Splitter3: TSplitter;
+    Splitter4: TSplitter;
+    TabFiles: TTabSheet;
+    TabCommandOutput: TTabSheet;
+    TreeView1: TTreeView;
+    ValueListEditor1: TValueListEditor;
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
@@ -79,7 +94,8 @@ implementation
 {$R *.lfm}
 
 uses CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils,
+  CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
+  CastleScene,
   FormChooseProject, EditorUtils, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -168,7 +184,7 @@ end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String);
 var
-  BuildToolExe, BuildToolOutput, Command, ModeString: String;
+  BuildToolExe, BuildToolOutput, Command, ModeString, AllOutput: String;
   BuildToolStatus: integer;
 begin
   BuildToolExe := FindExe('castle-engine');
@@ -184,22 +200,62 @@ begin
     else raise EInternalError.Create('BuildMode?');
   end;
 
+  AllOutput := '';
+
   for Command in Commands do
   begin
+    AllOutput := AllOutput +
+      'Running "' + BuildToolExe + ' ' + ModeString + ' ' + Command + '"' +
+      LineEnding + LineEnding;
+
     MyRunCommandIndir(ProjectPath, BuildToolExe,
       [ModeString, Command], BuildToolOutput, BuildToolStatus);
+
+    AllOutput := AllOutput + BuildToolOutput +
+      LineEnding + LineEnding +
+      'Command finished with status ' + IntToStr(BuildToolStatus) + '.' +
+      LineEnding + LineEnding;
+
     if BuildToolStatus <> 0 then
     begin
-      ErrorBox(Format('Build tool failed with status code %d and output: "%s"',
-        [BuildToolStatus, BuildToolOutput]));
+      PageControl1.ActivePage := TabCommandOutput;
+      MemoCommandOutput.Lines.Text := AllOutput;
       Exit;
     end;
   end;
+
+  PageControl1.ActivePage := TabCommandOutput;
+  MemoCommandOutput.Lines.Text := AllOutput;
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
+
+  function CreateSceneRoot: TX3DRootNode;
+  var
+    Sphere: TSphereNode;
+    Box: TBoxNode;
+    SphereShape, BoxShape: TShapeNode;
+    SphereTransform, BoxTransform: TTransformNode;
+  begin
+    Result := TX3DRootNode.Create;
+
+    Sphere := TSphereNode.CreateWithTransform(SphereShape, SphereTransform);
+    Result.AddChildren(SphereTransform);
+
+    SphereShape.Material := TMaterialNode.Create;
+    SphereShape.Material.DiffuseColor := YellowRGB;
+
+    Box := TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
+    BoxTransform.Translation := Vector3(3, 0, 0);
+    Result.AddChildren(BoxTransform);
+
+    BoxShape.Material := TMaterialNode.Create;
+    BoxShape.Material.DiffuseColor := BlueRGB;
+  end;
+
 var
   ManifestDoc: TXMLDocument;
+  Scene: TCastleScene;
 begin
   ManifestDoc := URLReadXML(ManifestUrl);
   try
@@ -210,6 +266,14 @@ begin
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
 
   Caption := SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
+
+  ShellTreeView1.Root := ProjectPath;
+
+  // TODO CastleControl1 should be TCastleControlCustom ?
+  Scene := TCastleScene.Create(Self);
+  Scene.Load(CreateSceneRoot, true);
+  CastleControl1.SceneManager.Items.Add(Scene);
+  CastleControl1.SceneManager.MainScene := Scene;
 end;
 
 end.

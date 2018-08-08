@@ -1,14 +1,149 @@
 object ProjectForm: TProjectForm
-  Left = 363
-  Height = 618
-  Top = 196
-  Width = 1044
+  Left = 158
+  Height = 825
+  Top = 135
+  Width = 1505
   Caption = ' my-project | Castle Game Engine'
+  ClientHeight = 790
+  ClientWidth = 1505
   DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   Position = poMainFormCenter
   LCLVersion = '1.8.0.6'
+  object PageControl1: TPageControl
+    Left = 0
+    Height = 262
+    Top = 528
+    Width = 1505
+    ActivePage = TabCommandOutput
+    Align = alBottom
+    TabIndex = 1
+    TabOrder = 0
+    object TabFiles: TTabSheet
+      Caption = 'Files'
+      ClientHeight = 217
+      ClientWidth = 1499
+      object ShellTreeView1: TShellTreeView
+        Left = 0
+        Height = 217
+        Top = 0
+        Width = 367
+        Align = alLeft
+        FileSortType = fstAlphabet
+        HotTrack = True
+        ReadOnly = True
+        ShowRoot = False
+        TabOrder = 0
+        Options = [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+        ObjectTypes = [otFolders]
+        ShellListView = ShellListView1
+      end
+      object ShellListView1: TShellListView
+        Left = 374
+        Height = 217
+        Top = 0
+        Width = 1125
+        Align = alClient
+        Color = clDefault
+        ReadOnly = True
+        SortColumn = 0
+        TabOrder = 1
+        ObjectTypes = [otNonFolders]
+        ShellTreeView = ShellTreeView1
+      end
+      object Splitter1: TSplitter
+        Left = 367
+        Height = 217
+        Top = 0
+        Width = 7
+      end
+    end
+    object TabCommandOutput: TTabSheet
+      Caption = 'Command Output'
+      ClientHeight = 217
+      ClientWidth = 1499
+      object MemoCommandOutput: TMemo
+        Left = 0
+        Height = 217
+        Top = 0
+        Width = 1499
+        Align = alClient
+        ReadOnly = True
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
+        WordWrap = False
+      end
+    end
+  end
+  object Splitter2: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 7
+    Top = 521
+    Width = 1505
+    Align = alBottom
+    ResizeAnchor = akBottom
+  end
+  object PanelAboveTabs: TPanel
+    Left = 0
+    Height = 521
+    Top = 0
+    Width = 1505
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 521
+    ClientWidth = 1505
+    TabOrder = 2
+    object TreeView1: TTreeView
+      Left = 0
+      Height = 521
+      Top = 0
+      Width = 288
+      Align = alLeft
+      TabOrder = 0
+    end
+    object Splitter3: TSplitter
+      Left = 288
+      Height = 521
+      Top = 0
+      Width = 7
+    end
+    object ValueListEditor1: TValueListEditor
+      Left = 1213
+      Height = 521
+      Top = 0
+      Width = 292
+      Align = alRight
+      FixedCols = 0
+      RowCount = 2
+      TabOrder = 2
+      TitleCaptions.Strings = (
+        'Property'
+        'Value'
+      )
+      ColWidths = (
+        93
+        197
+      )
+    end
+    object Splitter4: TSplitter
+      Left = 1206
+      Height = 521
+      Top = 0
+      Width = 7
+      Align = alRight
+      ResizeAnchor = akRight
+    end
+    object CastleControl1: TCastleControl
+      Left = 295
+      Height = 521
+      Top = 0
+      Width = 911
+      Align = alClient
+      TabOrder = 4
+    end
+  end
   object MainMenu1: TMainMenu
     left = 336
     top = 97

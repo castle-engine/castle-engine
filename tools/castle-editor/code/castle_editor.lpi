@@ -67,6 +67,7 @@
       <Unit5>
         <Filename Value="../../build-tool/code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="formproject.pas"/>

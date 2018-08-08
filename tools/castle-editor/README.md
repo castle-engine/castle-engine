@@ -54,11 +54,23 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 
 ## TODO
 
+Now:
 * build tool integration:
     * show build tool progress at bottom, do not hang editor while waiting for build tool
       Colorize
       - For "run", always show log (on all platform), colorized (warnings at least)
       - For "compile", detect FPC warnings, errors
+      What to use to colorize? http://wiki.freepascal.org/RichMemo
+      Or see what Lazarus does for messages list?
+* Files browser as above
+* Visual inspector. designer etc.
+* All the plans from https://castle-engine.io/wp/2017/12/23/plans-6-4-release-asap-visual-editor-soon-2018-roadmap/
+
+Lower priority:
+* templates:
+    * Create other than "empty" project templates
+    * Proper screenshots of all project templates
+* build tool integration:
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
@@ -72,18 +84,19 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 	Best: change to use planned CastleEngineConfig.pas unit,
   	  that is always auto-generated without warning.
 	  Do not overwrite lpr each time.
-* templates:
-    * Create other than "empty" project templates
-    * Proper screenshots of all project templates
-* Visual inspector. designer etc.
-* All the plans from https://castle-engine.io/wp/2017/12/23/plans-6-4-release-asap-visual-editor-soon-2018-roadmap/
+* small GUI stuff:
+    * Show on recent list %20 as spaces, use URICaption or such ready function?
+    * on NewProject form AutoSize?
+    * allow switching list/icon/etc. view on "Files"
+    * allow configuring command output "word wrap"
+    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
+      (need to use custom draw for this? grep, search code)
+    * "Files" showroot doesn't work
 
-Lower priority:
+Lowest priority (OK if not in 1st release)
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor
     * Icon, other stuff from CastleEngineManifest.xml could be configuirable in editor
-* Show on recent list %20 as spaces, use URICaption or such ready function?
-* on NewProject form AutoSize?
 
 ## Contributing: When creating a new Lazarus form, remember to...
 
