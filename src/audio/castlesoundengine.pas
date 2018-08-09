@@ -738,7 +738,7 @@ type
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
 
-  TMusicPlayer = class;
+  TLoopingChannel = class;
   TSoundInfo = class;
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
@@ -820,18 +820,18 @@ type
       (that generally must be in [0, 1], although some OpenAL implementations
       allow values > 1).
 
-      When this sound is used for MusicPlayer.Sound:
+      When this sound is used for @link(TLoopingChannel.Sound):
       @orderedList(
         @item(MinGain, MaxGain are ignored.)
         @item(Effective Gain (passed to OpenAL sound source) is the
-          TMusicPlayer.MusicVolume multiplied by our @link(Gain).)
+          @link(TLoopingChannel.Volume) multiplied by our @link(Gain).)
       ) }
     Gain, MinGain, MaxGain: Single;
 
     { How important the sound is. Influences what happens when we have a lot
       of sounds playing at once. See TSound.Importance.
 
-      Ignored when this sound is used for MusicPlayer.Sound. }
+      Ignored when this sound is used for @link(TLoopingChannel.Sound). }
     DefaultImportance: Cardinal;
 
     { A group (one among FSoundGroups, or @nil if not in any group). }
@@ -869,23 +869,25 @@ type
         function IndexOfName(const GroupName: String): Integer;
       end;
 
-      TMusicPlayerList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMusicPlayer>;
+      TLoopingChannelList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLoopingChannel>;
 
     var
       FSoundImportanceNames: TStringList;
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
       FRepositoryURL: string;
-
-      FDefaultMusicPlayer: TMusicPlayer;
-      FMusicPlayers: TMusicPlayerList;
+      FLoopingChannels: TLoopingChannelList;
 
     procedure SetRepositoryURL(const Value: string);
-    { Reinitialize music players sounds.
+
+    { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
-    procedure RestartMusic;
+    procedure RestartLoopingChannels;
 
     procedure ALContextOpenCore; override;
+
+    function GetMusicPlayer: TLoopingChannel;
+    function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1010,29 +1012,50 @@ type
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
-    property MusicPlayer: TMusicPlayer read FDefaultMusicPlayer;
+    { Comfortable way to play and control the music.
+      Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
+      to play music. Set it to @link(stNone) to stop playing music.
+      This is just a shortcut for @link(LoopingChannel LoopingChannel[0]). }
+    property MusicPlayer: TLoopingChannel read GetMusicPlayer;
 
-    { Create an additional channel for playing a secondary looping sound.
-      Each music will play simultaneously in a loop (if TMusicPlayer.Sound
-      is assigned to sound other than stNone). }
-    function NewMusicPlayer: TMusicPlayer;
+    { Comfortable way to play and control looping sounds, like a music track.
+      Using this is an alternative way to playing looping sounds using
+      @link(Sound) with Looping=true parameter.
+
+      The TLoopingChannel instance automatically remembers the sound is plays.
+      You start playing by setting @link(TLoopingChannel.Sound)
+      to some sound (e.g. @link(SoundFromName SoundFromName('my_music'))).
+      You stop by setting @link(TLoopingChannel.Sound) to something else,
+      which can be @link(stNone) to just stop playing any looping
+      sound on this channel.
+
+      Each channel has it's own @link(TLoopingChannel.Volume)
+      that can be changed at any point.
+
+      All the looping channels (managed through this) play simultaneously,
+      in addition to all other (looping and non-looping) sounds created
+      by @link(Sound). }
+    property LoopingChannel [const Index: Cardinal]: TLoopingChannel
+      read GetLoopingChannel;
   end;
 
-  { Music player, to easily play a sound preloaded by TRepoSoundEngine.
+  { Looping sound management, to easily play music or other looping sounds.
+
     Instance of this class should be created only internally
-    by the TRepoSoundEngine, always use this through TRepoSoundEngine.MusicPlayer
-    or TRepoSoundEngine.NewMusicPlayer. }
-  TMusicPlayer = class
+    by the TRepoSoundEngine, always use this through
+    @link(TRepoSoundEngine.MusicPlayer)
+    or @link(TRepoSoundEngine.LoopingChannel). }
+  TLoopingChannel = class
   private
-    { Engine that owns this music player. }
+    { Engine that owns this. }
     FEngine: TRepoSoundEngine;
 
-    { This is nil if we don't play music right now
+    { This is nil if we don't play sound right now
       (because OpenAL is not initialized, or Sound = stNone,
       or PlayerSound.URL = '' (sound not existing)). }
     FAllocatedSource: TSound;
 
-    FMusicVolume: Single;
+    FVolume: Single;
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
@@ -1041,29 +1064,35 @@ type
     { Called by ALContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
-    function GetMusicVolume: Single;
-    procedure SetMusicVolume(const Value: Single);
+    function GetVolume: Single;
+    procedure SetVolume(const Value: Single);
   public
     const
-      DefaultMusicVolume = 1.0;
+      DefaultVolume = 1.0;
+      DefaultMusicVolume = 1.0 deprecated 'use DefaultVolume';
+
     constructor Create(AnEngine: TRepoSoundEngine);
     destructor Destroy; override;
 
-    { Currently played music.
-      Set to stNone to stop playing music.
-      Set to anything else to play that music.
+    { Currently played sound.
+      Set to stNone to stop playing.
+      Set to anything else to play.
 
       Changing value of this property (when both the old and new values
-      are <> stNone and are different) restarts playing the music.
+      are <> stNone and are different) restarts playing the sound.
 
       By default none (stNone). }
     property Sound: TSoundType read FSound write SetSound;
 
-    { Music volume. This must always be within 0..1 range.
+    { Volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
-    property MusicVolume: Single read GetMusicVolume write SetMusicVolume
-      default DefaultMusicVolume;
+    property Volume: Single read GetVolume write SetVolume default DefaultVolume;
+
+    property MusicVolume: Single read GetVolume write SetVolume default DefaultVolume;
+      deprecated 'use Volume';
   end;
+
+  TMusicPlayer = TLoopingChannel;
 
 var
   { Common sounds.
@@ -2614,10 +2643,7 @@ begin
   { add stNone sound }
   FSounds.Add(TSoundInfo.Create);
 
-  FDefaultMusicPlayer := TMusicPlayer.Create(Self);
-
-  FMusicPlayers := TMusicPlayerList.Create(true);
-  FMusicPlayers.Add(FDefaultMusicPlayer);
+  FLoopingChannels := TLoopingChannelList.Create(true);
 
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -2636,25 +2662,25 @@ begin
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FSoundGroups);
-  FreeAndNil(FMusicPlayers);
-  FDefaultMusicPlayer := nil; // already freed by freeing FMusicPlayers
+  FreeAndNil(FLoopingChannels);
   inherited;
 end;
 
 procedure TRepoSoundEngine.ALContextOpenCore;
 begin
   inherited;
-  RestartMusic;
+  RestartLoopingChannels;
 end;
 
-procedure TRepoSoundEngine.RestartMusic;
+procedure TRepoSoundEngine.RestartLoopingChannels;
 var
-  Music: TMusicPlayer;
+  L: TLoopingChannel;
 begin
-  { allocate sound for music }
+  { allocate sound for all TLoopingChannel }
   if ALActive then
-    for Music in FMusicPlayers do
-      Music.AllocateSource;
+    for L in FLoopingChannels do
+      if L <> nil then
+        L.AllocateSource;
 end;
 
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
@@ -2897,7 +2923,7 @@ begin
 
   { in case you set RepositoryURL when OpenAL context is already
     initialized, start playing music immediately if necessary }
-  RestartMusic;
+  RestartLoopingChannels;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;
@@ -2939,8 +2965,8 @@ procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
-  FDefaultMusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
-    TMusicPlayer.DefaultMusicVolume);
+  MusicPlayer.Volume := Config.GetFloat('sound/music/volume',
+    TLoopingChannel.DefaultVolume);
 end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
@@ -2948,41 +2974,53 @@ begin
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
-  if FDefaultMusicPlayer <> nil then
+  if FLoopingChannels <> nil then
     Config.SetDeleteFloat('sound/music/volume',
-      FDefaultMusicPlayer.MusicVolume,
-      TMusicPlayer.DefaultMusicVolume);
+      MusicPlayer.Volume, TLoopingChannel.DefaultVolume);
   inherited;
 end;
 
-function TRepoSoundEngine.NewMusicPlayer: TMusicPlayer;
+function TRepoSoundEngine.GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
 begin
-  Result := TMusicPlayer.Create(Self);
-  FMusicPlayers.Add(Result);
+  { On demand, resize FLoopingChannels list and create new TLoopingChannel.
+    Note that FLoopingChannels may have nils along the way. }
+  if Index >= FLoopingChannels.Count then
+    FLoopingChannels.Count := Index + 1;
+  Assert(Index < FLoopingChannels.Count);
+
+  if FLoopingChannels[Index] = nil then
+    FLoopingChannels[Index] := TLoopingChannel.Create(Self);
+
+  Result := FLoopingChannels[Index];
 end;
 
-{ TMusicPlayer --------------------------------------------------------------- }
+function TRepoSoundEngine.GetMusicPlayer: TLoopingChannel;
+begin
+  Result := LoopingChannel[0];
+end;
 
-constructor TMusicPlayer.Create(AnEngine: TRepoSoundEngine);
+{ TLoopingChannel --------------------------------------------------------------- }
+
+constructor TLoopingChannel.Create(AnEngine: TRepoSoundEngine);
 begin
   inherited Create;
-  FMusicVolume := DefaultMusicVolume;
+  FVolume := DefaultVolume;
   FEngine := AnEngine;
 end;
 
-destructor TMusicPlayer.Destroy;
+destructor TLoopingChannel.Destroy;
 begin
   if FAllocatedSource <> nil then
     FAllocatedSource.Release;
   inherited;
 end;
 
-procedure TMusicPlayer.AllocateSource;
+procedure TLoopingChannel.AllocateSource;
 begin
   FAllocatedSource := FEngine.PlaySound(
     FEngine.FSounds[Sound.Index].Buffer, false, true,
     MaxSoundImportance,
-    MusicVolume * FEngine.FSounds[Sound.Index].Gain, 0, 1,
+    Volume * FEngine.FSounds[Sound.Index].Gain, 0, 1,
     TVector3.Zero);
 
   if FAllocatedSource <> nil then
@@ -2990,7 +3028,7 @@ begin
       {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease;
 end;
 
-procedure TMusicPlayer.SetSound(const Value: TSoundType);
+procedure TLoopingChannel.SetSound(const Value: TSoundType);
 begin
   if Value <> FSound then
   begin
@@ -3007,24 +3045,24 @@ begin
   end;
 end;
 
-procedure TMusicPlayer.AllocatedSourceRelease(Sender: TSound);
+procedure TLoopingChannel.AllocatedSourceRelease(Sender: TSound);
 begin
   Assert(Sender = FAllocatedSource);
   FAllocatedSource := nil;
 end;
 
-function TMusicPlayer.GetMusicVolume: Single;
+function TLoopingChannel.GetVolume: Single;
 begin
-  Result := FMusicVolume;
+  Result := FVolume;
 end;
 
-procedure TMusicPlayer.SetMusicVolume(const Value: Single);
+procedure TLoopingChannel.SetVolume(const Value: Single);
 begin
-  if Value <> FMusicVolume then
+  if Value <> FVolume then
   begin
-    FMusicVolume := Value;
+    FVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := MusicVolume * FEngine.FSounds[Sound.Index].Gain;
+      FAllocatedSource.Gain := Volume * FEngine.FSounds[Sound.Index].Gain;
   end;
 end;
 
