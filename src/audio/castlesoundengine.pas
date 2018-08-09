@@ -2691,7 +2691,7 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     const BaseUrl: String);
   var
     S: TSoundInfo;
-    ImportanceStr, ShortName: String;
+    ImportanceStr, ShortName, URLPrefix: String;
     SoundImportanceIndex: Integer;
   begin
     S := TSoundInfo.Create;
@@ -2703,7 +2703,6 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
       S.Name := ParentGroup.Name + '/' + S.Name;
 
     { init to default values }
-    S.URL := CombineURI(BaseUrl, ShortName + '.wav');
     S.Gain := 1;
     S.MinGain := 0;
     S.MaxGain := 1;
@@ -2724,9 +2723,19 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     if (Element.AttributeString('url', S.URL) or
         Element.AttributeString('file_name', S.URL)) and
        (S.URL <> '') then
-      { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
-        was specified in XML file. }
-      S.URL := CombineURI(BaseUrl, S.URL);
+    begin
+      S.URL := CombineURI(BaseUrl, S.URL)
+    end else
+    begin
+      URLPrefix := CombineURI(BaseUrl, ShortName);
+      if URIFileExists(URLPrefix + '.ogg') then
+        S.URL := URLPrefix + '.ogg'
+      else
+      if URIFileExists(URLPrefix + '.wav') then
+        S.URL := URLPrefix + '.wav'
+      else
+        WritelnWarning('No matching sound file found for sound "%s"', [S.Name]);
+    end;
 
     Element.AttributeSingle('gain', S.Gain);
     Element.AttributeSingle('min_gain', S.MinGain);
