@@ -29,6 +29,7 @@ type
   ESoundBufferNotLoaded = class(Exception);
   EInvalidSoundBufferFree = class(Exception);
   ESoundFileError = CastleInternalSoundFile.ESoundFileError;
+  EInvalidSoundRepositoryXml = class(Exception);
 
   TSound = class;
   TSoundAllocator = class;
@@ -750,13 +751,19 @@ type
 
   TSoundInfo = class;
 
-  { @exclude
+  { List of TSoundInfo.
+
+    @exclude
     @bold(This is an internal class, and in the future will not be publicly available). }
-  TSoundInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>;
+  TSoundInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>)
+    { Index of sound with given TSoundInfo.Name, or -1 if not found. }
+    function IndexOfName(const SoundName: String): Integer;
+  end;
 
   { Sound information.
     Most fields of this classs correspond to appropriate attributes in
     the XML file loaded by setting @link(TRepoSoundEngine.RepositoryURL).
+
     @exclude
     @bold(This is an internal class, and in the future will not be publicly available). }
   TSoundInfo = class
@@ -857,7 +864,10 @@ type
         ParentGroup: TSoundGroup;
       end;
 
-      TSoundGroupList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundGroup>;
+      TSoundGroupList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundGroup>)
+        { Index of group with given TSoundGroup.Name, or -1 if not found. }
+        function IndexOfName(const GroupName: String): Integer;
+      end;
 
     var
       FSoundImportanceNames: TStringList;
@@ -2546,6 +2556,27 @@ begin
   Result := SoundType1.Index = SoundType2.Index;
 end;
 
+{ TSoundInfoList ------------------------------------------------------------- }
+
+function TSoundInfoList.IndexOfName(const SoundName: String): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Name = SoundName then
+      Exit;
+  Result := -1;
+end;
+
+{ TSoundGroupList ------------------------------------------------------------- }
+
+function TRepoSoundEngine.TSoundGroupList.IndexOfName(
+  const GroupName: String): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Name = GroupName then
+      Exit;
+  Result := -1;
+end;
+
 { TRepoSoundEngine ----------------------------------------------------------- }
 
 constructor TRepoSoundEngine.Create;
@@ -2678,6 +2709,9 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     S.MaxGain := 1;
     S.DefaultImportance := MaxSoundImportance;
 
+    if FSounds.IndexOfName(S.Name) <> -1 then
+      raise EInvalidSoundRepositoryXml.CreateFmt('Sound name "%s" is not unique',
+        [S.Name]);
     FSounds.Add(S);
 
     { retrieve URL using AttributeString
@@ -2740,6 +2774,10 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     if Subdirectory <> '' then
       Group.URL := Group.URL + Subdirectory + '/';
 
+    if FSoundGroups.IndexOfName(Group.Name) <> -1 then
+      raise EInvalidSoundRepositoryXml.CreateFmt('Group name "%s" is not unique',
+        [Group.Name]);
+
     { Add to a flat list of groups, to free TSoundGroup at end. }
     FSoundGroups.Add(Group);
 
@@ -2753,7 +2791,7 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
         if I.Current.TagName = 'group' then
           ReadGroup(I.Current, Group, Group.URL)
         else
-          raise Exception.CreateFmt('Invalid XML element "%s" in sounds XML file',
+          raise EInvalidSoundRepositoryXml.CreateFmt('Invalid XML element "%s" in sounds XML file',
             [I.Current.TagName]);
       end;
     finally FreeAndNil(I) end;
@@ -2805,7 +2843,7 @@ begin
         if I.Current.TagName = 'group' then
           ReadGroup(I.Current, nil, BaseUrl)
         else
-          raise Exception.CreateFmt('Invalid XML element "%s" in sounds XML file',
+          raise EInvalidSoundRepositoryXml.CreateFmt('Invalid XML element "%s" in sounds XML file',
             [I.Current.TagName]);
       end;
     finally FreeAndNil(I) end;
@@ -2850,12 +2888,12 @@ function TRepoSoundEngine.SoundFromName(const SoundName: string;
 var
   SoundIndex: Integer;
 begin
-  for SoundIndex := 0 to FSounds.Count - 1 do
-    if FSounds[SoundIndex].Name = SoundName then
-    begin
-      Result.Index := SoundIndex;
-      Exit;
-    end;
+  SoundIndex := FSounds.IndexOfName(SoundName);
+  if SoundIndex <> -1 then
+  begin
+    Result.Index := SoundIndex;
+    Exit;
+  end;
 
   if Required then
     WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
