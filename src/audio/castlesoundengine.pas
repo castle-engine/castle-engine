@@ -869,17 +869,19 @@ type
         function IndexOfName(const GroupName: String): Integer;
       end;
 
+      TMusicPlayerList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMusicPlayer>;
+
     var
       FSoundImportanceNames: TStringList;
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
       FRepositoryURL: string;
-      { This is the only allowed instance of TMusicPlayer class,
-        created and destroyed in this class create/destroy. }
-      FMusicPlayer: TMusicPlayer;
+
+      FDefaultMusicPlayer: TMusicPlayer;
+      FMusicPlayers: TMusicPlayerList;
 
     procedure SetRepositoryURL(const Value: string);
-    { Reinitialize MusicPlayer sound.
+    { Reinitialize music players sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartMusic;
 
@@ -1008,12 +1010,18 @@ type
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
-    property MusicPlayer: TMusicPlayer read FMusicPlayer;
+    property MusicPlayer: TMusicPlayer read FDefaultMusicPlayer;
+
+    { Create an additional channel for playing a secondary looping sound.
+      Each music will play simultaneously in a loop (if TMusicPlayer.Sound
+      is assigned to sound other than stNone). }
+    function NewMusicPlayer: TMusicPlayer;
   end;
 
   { Music player, to easily play a sound preloaded by TRepoSoundEngine.
     Instance of this class should be created only internally
-    by the TRepoSoundEngine, always use this through TRepoSoundEngine.MusicPlayer. }
+    by the TRepoSoundEngine, always use this through TRepoSoundEngine.MusicPlayer
+    or TRepoSoundEngine.NewMusicPlayer. }
   TMusicPlayer = class
   private
     { Engine that owns this music player. }
@@ -2601,7 +2609,10 @@ begin
   { add stNone sound }
   FSounds.Add(TSoundInfo.Create);
 
-  FMusicPlayer := TMusicPlayer.Create(Self);
+  FDefaultMusicPlayer := TMusicPlayer.Create(Self);
+
+  FMusicPlayers := TMusicPlayerList.Create(true);
+  FMusicPlayers.Add(FDefaultMusicPlayer);
 
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -2620,7 +2631,8 @@ begin
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FSoundGroups);
-  FreeAndNil(FMusicPlayer);
+  FreeAndNil(FMusicPlayers);
+  FDefaultMusicPlayer := nil; // already freed by freeing FMusicPlayers
   inherited;
 end;
 
@@ -2631,10 +2643,13 @@ begin
 end;
 
 procedure TRepoSoundEngine.RestartMusic;
+var
+  Music: TMusicPlayer;
 begin
   { allocate sound for music }
   if ALActive then
-    MusicPlayer.AllocateSource;
+    for Music in FMusicPlayers do
+      Music.AllocateSource;
 end;
 
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
@@ -2919,7 +2934,7 @@ procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
-  MusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
+  FDefaultMusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
     TMusicPlayer.DefaultMusicVolume);
 end;
 
@@ -2928,10 +2943,17 @@ begin
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
-  if MusicPlayer <> nil then
+  if FDefaultMusicPlayer <> nil then
     Config.SetDeleteFloat('sound/music/volume',
-      MusicPlayer.MusicVolume, TMusicPlayer.DefaultMusicVolume);
+      FDefaultMusicPlayer.MusicVolume,
+      TMusicPlayer.DefaultMusicVolume);
   inherited;
+end;
+
+function TRepoSoundEngine.NewMusicPlayer: TMusicPlayer;
+begin
+  Result := TMusicPlayer.Create(Self);
+  FMusicPlayers.Add(Result);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }
