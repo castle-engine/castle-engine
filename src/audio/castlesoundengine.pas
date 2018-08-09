@@ -738,18 +738,18 @@ type
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
 
+  TMusicPlayer = class;
+  TSoundInfo = class;
+
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
   TSoundType = record
   private
     { Just an index to TRepoSoundEngine.SoundNames array. }
     Index: Cardinal;
   public
+    function InternalInfo: TSoundInfo;
     class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): boolean;
   end;
-
-  TMusicPlayer = class;
-
-  TSoundInfo = class;
 
   { List of TSoundInfo.
 
@@ -2557,6 +2557,11 @@ begin
 end;
 
 { TSoundType ----------------------------------------------------------------- }
+
+function TSoundType.InternalInfo: TSoundInfo;
+begin
+  Result := SoundEngine.FSounds[Index];
+end;
 
 class operator TSoundType.{$ifdef FPC}={$else}Equals{$endif}
   (const SoundType1, SoundType2: TSoundType): boolean;
