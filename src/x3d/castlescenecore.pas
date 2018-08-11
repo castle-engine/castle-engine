@@ -1899,15 +1899,9 @@ type
           It also means that calling @link(PlayAnimation) multiple times
           before a single @link(Update) call is not expensive.
 
-          But, sometimes you need to change the scene immediately (for example,
-          because you don't want to show user the initial scene state).
-          To do this, simply call @link(ForceAnimationPose) with @code(TimeInAnimation)
-          parameter = 0 and the same animation. This will change the scene immediately,
-          to show the beginning of this animation.
-          You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
-          it doesn't matter.
-
-          Or you can call @link(ForceInitialAnimationPose) right after @link(PlayAnimation).
+          If you really need to change the scene immediately (for example,
+          because you don't want to show user the initial scene state),
+          simply call @link(ForceInitialAnimationPose) right after @link(PlayAnimation).
         )
 
         @item(Internally, @italic(the animation is performed using TTimeSensorNode
@@ -1948,8 +1942,20 @@ type
       const Forward: boolean = true): boolean; overload;
       deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: boolean)';
 
-    { Call right after calling @link(PlayAnimation) (before any update event
-      took place) to force setting initial animation frame @italic(now).
+    { Force the model to look like the initial animation frame @italic(now).
+
+      Use this after calling @link(PlayAnimation).
+      Calling this is simply ignored if no @link(PlayAnimation) was called
+      earlier, of if the model already looks following the
+      animation requested by @link(PlayAnimation).
+
+      Without this method, there may be a 1-frame delay
+      between calling @link(PlayAnimation) and actually updating the rendered
+      scene look. If during that time a rendering will happen,
+      the user will see a scene in previous pose (not in the first
+      pose of animation you requested by @link(PlayAnimation)).
+      To avoid this, simply call this method right after @link(PlayAnimation).
+
       This sets first animation frame,
       unless you used TPlayAnimationParameters.InitialTime <> 0. }
     procedure ForceInitialAnimationPose;
