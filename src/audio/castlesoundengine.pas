@@ -1037,6 +1037,22 @@ type
       by @link(Sound). }
     property LoopingChannel [const Index: Cardinal]: TLoopingChannel
       read GetLoopingChannel;
+
+    { Opens sound context (OpenAL) and loads sound files,
+      but only if RepositoryURL was set and contains some sounds.
+
+      The idea is that you can call this during "loading" stage for any game that
+      *possibly but not necessarily* uses sound. If a game doesn't use sound,
+      this does nothing (doesn't waste time to even initialize OpenAL,
+      which on some systems may cause some warnings).
+      If a game uses sound (through RepositoryURL), this will initialize
+      OpenAL and load these sound files, to play them without any delay
+      in game.
+
+      Note that, if this does nothing, but you later set @link(RepositoryURL)
+      or do @link(LoadBuffer) or @link(PlaySound), then sound context will
+      be createdon-demand anyway. So calling this is always optional. }
+    procedure PrepareResources;
   end;
 
   { Looping sound management, to easily play music or other looping sounds.
@@ -2959,6 +2975,12 @@ procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
+end;
+
+procedure TRepoSoundEngine.PrepareResources;
+begin
+  if not ALInitialized and (FSounds.Count > 1) then
+    ALContextOpen;
 end;
 
 procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);

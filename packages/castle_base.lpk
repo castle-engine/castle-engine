@@ -98,6 +98,7 @@ See https://castle-engine.io/license.php for details.
       </Item7>
       <Item8>
         <Filename Value="../src/3d/castlenurbs.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleNURBS"/>
       </Item8>
       <Item9>
@@ -2237,6 +2238,7 @@ See https://castle-engine.io/license.php for details.
       </Item539>
       <Item540>
         <Filename Value="../src/3d/castlerenderingcamera.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleRenderingCamera"/>
       </Item540>
       <Item541>

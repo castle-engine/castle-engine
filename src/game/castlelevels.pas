@@ -958,12 +958,7 @@ begin
     Player.LevelChanged;
 
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
-
-  { Initialize SoundEngine if we're sure that this game uses sounds.
-    Doing this now is good to avoid making a delay later in the middle
-    of the game when 1st sound is playing. }
-  if (not SoundEngine.ALInitialized) and (SoundEngine.Sounds.Count > 1) then
-    SoundEngine.ALContextOpen;
+  SoundEngine.PrepareResources;
 
   MainScene.ProcessEvents := true;
 
