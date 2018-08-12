@@ -98,6 +98,7 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 ## TODO
 
 Now:
+* Windows check - owner draw list box, log visible at run?
 * Visual inspector. designer etc.
 * Files browser as above
 
@@ -135,8 +136,8 @@ Lower priority:
 	  Do not overwrite lpr each time.
     * checkbox in menu for verbose output from the build tool
     * use machine-readble format format for communication with build tool and CastleLog:
-	--castle-machine-readable-output for build tool
-	(Or better name, see SVN command-line client?)
+        CASTLE_ENGINE_EDITOR_INSIDE=true
+	(better than command-line option, less invasive to implement)
 
 	Causes build tool some lines (e.g. in verbose fpc command line) to use special format, and actual program uses CastleLog that has special output (and always goes to console even on Windows)
 	- Avoid xml tags here (would require quoting rest).
