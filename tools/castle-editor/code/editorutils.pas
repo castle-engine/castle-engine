@@ -20,12 +20,8 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process,
+uses Classes, Types, Controls, StdCtrls, Process, Generics.Collections,
   CastleStringUtils;
-
-procedure ErrorBox(const Message: String);
-procedure WarningBox(const Message: String);
-function YesNoBox(const Message: String): Boolean;
 
 type
   TOutputKind = (
@@ -63,7 +59,8 @@ type
     procedure ScrollBottom;
   end;
 
-  { Call external process, sending output to TOutputList. }
+  { Call external process asynchronously (doesn't hang this process at any point),
+    sending output to TOutputList. }
   TAsynchronousProcess = class
   strict private
     Process: TProcess;
@@ -89,24 +86,130 @@ type
     property ExitStatus: Integer read FExitStatus;
   end;
 
+  { Call asynchronous processes, one after another, until the end
+    or until one of them exits with non-zero status.
+
+    This has deliberately similar API to TAsynchronousProcess,
+    since (from the outside) calling a sequence of processes
+    should have the same features as calling a single process. }
+  TAsynchronousProcessQueue = class
+  strict private
+    FQueuePosition: Integer;
+    AsyncProcess: TAsynchronousProcess;
+    procedure CreateAsyncProcess;
+  public
+    type
+      TQueueItem = class
+        ExeName, CurrentDirectory: String;
+        Parameters: TCastleStringList;
+        constructor Create;
+        destructor Destroy; override;
+      end;
+
+      TQueueItemList = specialize TObjectList<TQueueItem>;
+
+    var
+      Queue: TQueueItemList;
+      OutputList: TOutputList;
+
+    constructor Create;
+    destructor Destroy; override;
+    procedure Start;
+    procedure Update;
+    function Running: Boolean;
+  end;
+
+procedure ErrorBox(const Message: String);
+procedure WarningBox(const Message: String);
+function YesNoBox(const Message: String): Boolean;
+
 implementation
 
 uses SysUtils, Dialogs, Graphics,
   CastleUtils;
 
-procedure ErrorBox(const Message: String);
+{ TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
+
+constructor TAsynchronousProcessQueue.TQueueItem.Create;
 begin
-  MessageDlg('Error', Message, mtError, [mbOK], 0);
+  inherited;
+  Parameters := TCastleStringList.Create;
 end;
 
-procedure WarningBox(const Message: String);
+destructor TAsynchronousProcessQueue.TQueueItem.Destroy;
 begin
-  MessageDlg('Warning', Message, mtWarning, [mbOK], 0);
+  FreeAndNil(Parameters);
+  inherited;
 end;
 
-function YesNoBox(const Message: String): Boolean;
+{ TAsynchronousProcessQueue -------------------------------------------------- }
+
+constructor TAsynchronousProcessQueue.Create;
 begin
-  Result := MessageDlg('Question', Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+  inherited;
+  Queue := TQueueItemList.Create(true);
+  FQueuePosition := -1;
+end;
+
+destructor TAsynchronousProcessQueue.Destroy;
+begin
+  FreeAndNil(AsyncProcess);
+  FreeAndNil(Queue);
+  inherited;
+end;
+
+procedure TAsynchronousProcessQueue.Start;
+begin
+  if Queue.Count = 0 then
+    Exit; // nothing to do
+
+  FQueuePosition := 0;
+  CreateAsyncProcess;
+end;
+
+procedure TAsynchronousProcessQueue.CreateAsyncProcess;
+begin
+  AsyncProcess := TAsynchronousProcess.Create;
+  AsyncProcess.ExeName := Queue[FQueuePosition].ExeName;
+  AsyncProcess.CurrentDirectory := Queue[FQueuePosition].CurrentDirectory;
+  AsyncProcess.Parameters.Assign(Queue[FQueuePosition].Parameters);
+  AsyncProcess.OutputList := OutputList;
+  AsyncProcess.Start;
+end;
+
+procedure TAsynchronousProcessQueue.Update;
+var
+  LastLineKind: TOutputKind;
+begin
+  if AsyncProcess <> nil then
+  begin
+    AsyncProcess.Update;
+    if not AsyncProcess.Running then
+    begin
+      if AsyncProcess.ExitStatus <> 0 then
+      begin
+        LastLineKind := okError;
+        FQueuePosition := Queue.Count; // abort executing rest
+      end else
+      begin
+        Inc(FQueuePosition);
+        LastLineKind := okImportantInfo;
+      end;
+      OutputList.AddSeparator;
+      OutputList.AddLine('Command finished with status ' + IntToStr(AsyncProcess.ExitStatus) + '.',
+        LastLineKind);
+      FreeAndNil(AsyncProcess);
+
+      // create next process in queue
+      if FQueuePosition < Queue.Count then
+        CreateAsyncProcess;
+    end;
+  end;
+end;
+
+function TAsynchronousProcessQueue.Running: Boolean;
+begin
+  Result := (FQueuePosition >= 0) and (FQueuePosition < Queue.Count);
 end;
 
 { TAsynchronousProcess ------------------------------------------------------- }
@@ -351,6 +454,23 @@ end;
 procedure TOutputList.ScrollBottom;
 begin
   List.TopIndex := List.Items.Count - 1;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+procedure ErrorBox(const Message: String);
+begin
+  MessageDlg('Error', Message, mtError, [mbOK], 0);
+end;
+
+procedure WarningBox(const Message: String);
+begin
+  MessageDlg('Warning', Message, mtWarning, [mbOK], 0);
+end;
+
+function YesNoBox(const Message: String): Boolean;
+begin
+  Result := MessageDlg('Question', Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
 end.

@@ -98,7 +98,7 @@ type
     ProjectPath, ProjectPathUrl: String;
     BuildMode: TBuildMode;
     OutputList: TOutputList;
-    RunningProcess: TAsynchronousProcess;
+    RunningProcess: TAsynchronousProcessQueue;
     procedure BuildToolCall(const Commands: array of String);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
@@ -244,23 +244,12 @@ begin
 end;
 
 procedure TProjectForm.ProcessUpdateTimerTimer(Sender: TObject);
-var
-  LastLineKind: TOutputKind;
 begin
   if RunningProcess <> nil then
   begin
     RunningProcess.Update;
     if not RunningProcess.Running then
-    begin
-      if RunningProcess.ExitStatus <> 0 then
-        LastLineKind := okError
-      else
-        LastLineKind := okImportantInfo;
-      OutputList.AddSeparator;
-      OutputList.AddLine('Command finished with status ' + IntToStr(RunningProcess.ExitStatus) + '.',
-        LastLineKind);
       FreeProcess;
-    end;
   end;
 end;
 
@@ -273,7 +262,8 @@ end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String);
 var
-  BuildToolExe, ModeString: String;
+  BuildToolExe, ModeString, Command: String;
+  QueueItem: TAsynchronousProcessQueue.TQueueItem;
 begin
   if RunningProcess <> nil then
     raise EInternalError.Create('It should not be possible to call this when RunningProcess <> nil');
@@ -296,16 +286,20 @@ begin
   PageControl1.ActivePage := TabOutput;
   ProcessUpdateTimer.Enabled := true;
 
-  RunningProcess := TAsynchronousProcess.Create;
-  RunningProcess.ExeName := BuildToolExe;
-  RunningProcess.CurrentDirectory := ProjectPath;
-  RunningProcess.Parameters.Add(ModeString);
-  RunningProcess.Parameters.Add(Commands[0]);
+  RunningProcess := TAsynchronousProcessQueue.Create;
   RunningProcess.OutputList := OutputList;
-  RunningProcess.Start;
 
-  // TODO:
-  // TAsynchronousProcessQueue that stops when 1st process returned non-zero
+  for Command in Commands do
+  begin
+    QueueItem := TAsynchronousProcessQueue.TQueueItem.Create;
+    QueueItem.ExeName := BuildToolExe;
+    QueueItem.CurrentDirectory := ProjectPath;
+    QueueItem.Parameters.Add(ModeString);
+    QueueItem.Parameters.Add(Command);
+    RunningProcess.Queue.Add(QueueItem);
+  end;
+
+  RunningProcess.Start;
 end;
 
 procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);
