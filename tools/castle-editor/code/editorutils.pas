@@ -56,7 +56,6 @@ type
     procedure SplitAddLines(const S: String; const Kind: TOutputKind);
     procedure AddSeparator;
     procedure Clear;
-    procedure ScrollBottom;
   end;
 
   { Call external process asynchronously (doesn't hang this process at any point),
@@ -418,11 +417,30 @@ begin
 end;
 
 procedure TOutputList.AddLine(const S: String; const Kind: TOutputKind);
+var
+  IsBottom: Boolean;
 begin
+  {
+  IsBottom :=
+    (List.Items.Count = 0) or
+
+    // TODO: doesn't work reliably
+    // List.ItemFullyVisible(List.Items.Count - 1)
+
+    // TODO: doesn't work reliably
+    // checking is visible "List.Items.Count - 1" is not good enough
+    (List.Items.Count = 1) or
+    List.ItemVisible(List.Items.Count - 2);
+  }
+  IsBottom := true;
+
   List.Items.AddObject(S, OutputInfoPerKind[Kind]);
-  // TODO: scroll to bottom once new message received only if already looking
-  // at bottom
-  ScrollBottom;
+
+  { scroll to bottom once new message received,
+    but only if already looking at bottom (otherwise we would prevent
+    user from easily browsing past messages). }
+  if IsBottom then
+    List.TopIndex := List.Items.Count - 1;
 end;
 
 procedure TOutputList.SplitAddLines(const S: String; const Kind: TOutputKind);
@@ -449,11 +467,6 @@ end;
 procedure TOutputList.Clear;
 begin
   List.Items.Clear;
-end;
-
-procedure TOutputList.ScrollBottom;
-begin
-  List.TopIndex := List.Items.Count - 1;
 end;
 
 { global routines ------------------------------------------------------------ }
