@@ -55,13 +55,6 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 ## TODO
 
 Now:
-* build tool integration:
-    * show build tool progress at bottom, do not hang editor while waiting for build tool
-      Colorize
-      - For "run", always show log (on all platform), colorized (warnings at least)
-      - For "compile", detect FPC warnings, errors
-      What to use to colorize? http://wiki.freepascal.org/RichMemo
-      Or see what Lazarus does for messages list?
 * Files browser as above
 * Visual inspector. designer etc.
 * All the plans from https://castle-engine.io/wp/2017/12/23/plans-6-4-release-asap-visual-editor-soon-2018-roadmap/
@@ -71,10 +64,12 @@ Lower priority:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
 * build tool integration:
+    * For "run", colorized CastleLog warnings
+    * For "compile", colorize FPC warnings, errors
+    * show count of warnings/errors if non-zero on tab header, allow to filter by them
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
-    * Allow to auto-generate-textures, any other build tool command remains useful?
     * Allow to choose platform
     * rerun generate-program each time? (mark them as some *DO NOT MODIFY THIS, THIS IS ONLY FOR LAZARUS* comment)
         Not really OK, in case we open program with hand-crafted program file.
