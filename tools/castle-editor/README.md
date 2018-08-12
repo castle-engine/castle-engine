@@ -140,6 +140,7 @@ Lowest priority (OK if not in 1st release)
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor
     * Icon, other stuff from CastleEngineManifest.xml could be configuirable in editor
+* Desing also X3D nodes inside TCastleScene. This would be powerful... But not for now. I also deliberately do not want to turn CGE editor into Blender :) For creating 3D models, the recommended workflow will remain to use external editor (like Blender), and only e.g. adjust materials in CGE (override material properties using material_properties.xml). An editor for X3D nodes would be great to add stuff not possible in Blender, though (Background, clip planes, primitives...).
 
 ## Contributing: When creating a new Lazarus form, remember to...
 
