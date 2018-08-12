@@ -115,6 +115,11 @@ Lower priority:
 * build tool integration:
     * For "run", colorized CastleLog warnings
     * For "compile", colorize FPC warnings, errors
+    * Shoter compile output:
+        * lines "compiling..", "writing resource string table...", are displayed, but then replaced by a next AddLine. This way they serve as "progress indicator" but do not eat so much output space.
+	* also do not show FPC "logo", do not repeat information about FPC version, Os/CPU 2 times, debug mode,...
+	* remove the "separator" lines. The bold lines already separate them nicely?
+	* "command finished with status 0" -> "Command finished successfully."
     * show count of warnings/errors if non-zero on tab header, allow to filter by them
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
