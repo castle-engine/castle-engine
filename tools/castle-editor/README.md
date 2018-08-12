@@ -60,7 +60,7 @@ The editor is distributed as part of Castle Game Engine, also in binary form (fo
 - other tools from castle-engine/tools/ directory
 - maybe external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
 
-The idea is that you only install FPC/Lazarus, then you run precompiled CGE editor and it all just works. Maybe in the future we could even bundle FPC / Lazarus with CGE editor, but this is not something I want to do initially (as packaging FPC/Lazarus is non-trivial, and I also would always want to have a version "unbundled" for people who prefer to install FPC/Lazarus themselves, or use Delphi).
+The idea is that you only install FPC/Lazarus, then you run precompiled CGE editor and it all just works. Maybe in the future we could even bundle FPC/Lazarus with CGE editor, but this is not something I want to do initially (as packaging FPC/Lazarus is non-trivial, and I also would always want to have a version "unbundled" for people who prefer to install FPC/Lazarus themselves, or use Delphi).
 
 ## Documentation
 
