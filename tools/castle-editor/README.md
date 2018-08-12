@@ -5,11 +5,23 @@ where a "project" is a directory containing `CastleEngineManifest.xml` file.
 
 ## Features
 
+### Create, build, run projects
+
 You can create a new project (from a number of templates) or open an existing one.
 
 You can compile and run the project on various platforms,
 using the [Castle Game Engine Build Tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool)
 underneath (which in turn calls Pascal compiler, like FPC or Delphi, underneath).
+
+The "project" is simply a directory containing a
+[CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples) file.
+The CGE editor has deliberately the same "idea" for a project as our "build tool".
+You can really open any
+[CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
+(that you use with the current "build tool") with CGE editor.
+In this sense, CGE editor may serve as just a GUI wrapper around our "build tool".
+
+### Visual designer
 
 You can visually design:
 
@@ -33,9 +45,13 @@ The visual editor is available as a component (`TCastleEditor`) that works in 3 
 
     This is quite like GLScene or FireMonkey experience — a RAD tool to edit your game right inside the environment you know and love.
 
+### Open and run source code with external applications
+
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).
 
 We automatically set up project files such that you can run the game from Lazarus or Delphi (to use their built-in debugger). So, you can either compile/run from the CGE editor (which will use our build tool, that wraps Lazarus/Delphi) or you can compile/run from Lazarus or Delphi (for desktop platforms).
+
+### File browser
 
 You can browse the application files. Our "Files Browser" just displays the files inside your project directory.
 
@@ -50,6 +66,8 @@ You can browse the application files. Our "Files Browser" just displays the file
     This is in contrast to Unity3d (that requires putting source code also inside `Assets/` directory).
 
 * On various 3D and 2D assets you can run view3dscene. On 2D images you can run glViewImage. On text files you can run a text editor (see above). We also want to auto-generate and show a quick previews of them inside the CGE editor.
+
+### Distributed in a binary form too
 
 The editor is distributed as part of Castle Game Engine, also in binary form (for typical platforms -- Windows, Linux, macOS), for easy usage by everyone. This includes binaries (exe) to run:
 
