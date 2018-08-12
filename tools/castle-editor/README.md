@@ -13,11 +13,25 @@ underneath (which in turn calls Pascal compiler, like FPC or Delphi, underneath)
 
 You can visually design:
 
-* a hierarchy of Castle Game Engine user-interface controls. Anything descending from TUIControl, like a button, label, or a scene manager (that contains 2D or 3D scenes inside, that also can be designed in the same editor).
+* a hierarchy of user-interface controls (saved as `xxx.cge-user-interface` file). Anything descending from `TUIControl`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
-* or a hierachy of 3D or 2D scenes. Anything descending from TCastleTransform. This allows to design a 3D or 2D entity that you can add (using code) into your own TCastleSceneManager descendants.
+* a hierachy of 3D / 2D scenes and transformations (saved as `xxx.cge-scene-transform` file). Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
 
-Each such design is saved to a file `xxx.cge-control`. You can load it from code, and use however you like in the game (instantiate it whenever you want etc.).
+Each such design is saved to a file `xxx.cge-*`. You can load it from code, and use it however you like in the game (instantiate it whenever you want etc.).
+
+The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
+
+1. It allows to design inside the "Castle Game Engine Editor" here.
+
+2. It allows to design during the running game. This way you can inspect and even edit a live game!
+
+    It is automatically compiled-in by the "Castle Game Engine Editor" if you enable "Live Designer" in the menu. The application is then compiled with LCL backend of TCastleWindow and the F12 key automatically shows the editor (in a separate window, maybe dockable or always-on-top?).
+
+    This should provide an experience similar to running your game in game engines like Unity3d.
+
+3. It allows to use the editor inside Lazarus IDE, to edit the contents of TCastleControl.
+
+    This is quite like GLScene or FireMonkey experience — a RAD tool to edit your game right inside the environment you know and love.
 
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).
 
@@ -37,6 +51,17 @@ You can browse the application files. Our "Files Browser" just displays the file
 
 * On various 3D and 2D assets you can run view3dscene. On 2D images you can run glViewImage. On text files you can run a text editor (see above). We also want to auto-generate and show a quick previews of them inside the CGE editor.
 
+The editor is distributed as part of Castle Game Engine, also in binary form (for typical platforms -- Windows, Linux, macOS), for easy usage by everyone. This includes binaries (exe) to run:
+
+- castle-editor
+- castle-engine (our build tool)
+- view3dscene
+- glViewImage
+- other tools from castle-engine/tools/ directory
+- maybe external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
+
+The idea is that you only install FPC/Lazarus, then you run precompiled CGE editor and it all just works. Maybe in the future we could even bundle FPC / Lazarus with CGE editor, but this is not something I want to do initially (as packaging FPC/Lazarus is non-trivial, and I also would always want to have a version "unbundled" for people who prefer to install FPC/Lazarus themselves, or use Delphi).
+
 ## Documentation
 
 You use modern Pascal language to code your games.
@@ -55,14 +80,20 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 ## TODO
 
 Now:
-* Files browser as above
 * Visual inspector. designer etc.
-* All the plans from https://castle-engine.io/wp/2017/12/23/plans-6-4-release-asap-visual-editor-soon-2018-roadmap/
+* Files browser as above
 
 Lower priority:
+* visual designer notes:
+    Allow two modes:
+    - all published things
+    - most important properties?
+    - can we read public properties now, to add e.g. vector 3 there seamlessly? Test, possibly yes. https://stackoverflow.com/questions/4327344/which-delphi-version-supports-rtti-for-public-methods
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
+    * Templates should load by default the visually-designed world. The goal: you should be able to modify and run the game in the editor without writing code.
+    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TUIControl inside.
 * build tool integration:
     * For "run", colorized CastleLog warnings
     * For "compile", colorize FPC warnings, errors
@@ -79,6 +110,22 @@ Lower priority:
 	Best: change to use planned CastleEngineConfig.pas unit,
   	  that is always auto-generated without warning.
 	  Do not overwrite lpr each time.
+    * checkbox in menu for verbose output from the build tool
+    * use machine-readble format format for communication with build tool and CastleLog:
+	--castle-machine-readable-output for build tool
+	(Or better name, see SVN command-line client?)
+
+	Causes build tool some lines (e.g. in verbose fpc command line) to use special format, and actual program uses CastleLog that has special output (and always goes to console even on Windows)
+	- Avoid xml tags here (would require quoting rest).
+	- Just tags like Cge-output, bytes=xxx:
+	- Cge-output,multiline,...
+	- Cge-output, warning,...
+	- bytes are always required and allow reliably waiting reading up to message end, without the need to quote/unquote it
+
+    * Detect multilibe logs and show as one list item in output that can be expanded,, only category initially visible. E.g. useful for
+      - "OpenGL Information" or
+      - command-line of FPC in build tool verbose mode
+
 * small GUI stuff:
     * Show on recent list %20 as spaces, use URICaption or such ready function?
     * on NewProject form AutoSize?
@@ -87,6 +134,7 @@ Lower priority:
     * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
       (need to use custom draw for this? grep, search code)
     * "Files" showroot doesn't work
+    * TEditDirectory use at "new project"
 
 Lowest priority (OK if not in 1st release)
 * Project options:
