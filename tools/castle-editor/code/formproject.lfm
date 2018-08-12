@@ -9,6 +9,8 @@ object ProjectForm: TProjectForm
   DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poMainFormCenter
   LCLVersion = '1.8.0.6'
   object PageControl1: TPageControl
@@ -63,16 +65,18 @@ object ProjectForm: TProjectForm
       Caption = 'Command Output'
       ClientHeight = 217
       ClientWidth = 1499
-      object MemoCommandOutput: TMemo
+      object ListCommandOutput: TListBox
         Left = 0
         Height = 217
         Top = 0
         Width = 1499
         Align = alClient
-        ReadOnly = True
-        ScrollBars = ssAutoBoth
+        ItemHeight = 30
+        OnClick = ListCommandOutputClick
+        ScrollWidth = 1497
+        Style = lbOwnerDrawFixed
         TabOrder = 0
-        WordWrap = False
+        TopIndex = -1
       end
     end
   end

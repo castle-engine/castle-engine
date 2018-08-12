@@ -23,14 +23,15 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
-  CastleControl;
+  CastleControl, Types,
+  EditorUtils;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     CastleControl1: TCastleControl;
+    ListCommandOutput: TListBox;
     MainMenu1: TMainMenu;
-    MemoCommandOutput: TMemo;
     MenuItemModeRelease: TMenuItem;
     MenuItemPackage: TMenuItem;
     MenuItem3: TMenuItem;
@@ -64,6 +65,9 @@ type
     TreeView1: TTreeView;
     ValueListEditor1: TValueListEditor;
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure ListCommandOutputClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
@@ -81,6 +85,7 @@ type
     ProjectName: String;
     ProjectPath, ProjectPathUrl: String;
     BuildMode: TBuildMode;
+    OutputList: TOutputList;
     procedure BuildToolCall(const Commands: array of String);
   public
     procedure OpenProject(const ManifestUrl: String);
@@ -96,7 +101,7 @@ implementation
 uses CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
   CastleScene,
-  FormChooseProject, EditorUtils, ToolUtils;
+  FormChooseProject, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -135,6 +140,21 @@ begin
   // TODO ask only if unsaved things
   //if YesNoBox('Quit the editor?') then
     Application.Terminate;
+end;
+
+procedure TProjectForm.FormCreate(Sender: TObject);
+begin
+  OutputList := TOutputList.Create(ListCommandOutput);
+end;
+
+procedure TProjectForm.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(OutputList);
+end;
+
+procedure TProjectForm.ListCommandOutputClick(Sender: TObject);
+begin
+  // TODO: just to source code line in case of error message here
 end;
 
 procedure TProjectForm.MenuItemCleanClick(Sender: TObject);
@@ -184,8 +204,9 @@ end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String);
 var
-  BuildToolExe, BuildToolOutput, Command, ModeString, AllOutput: String;
+  BuildToolExe, BuildToolOutput, Command, ModeString: String;
   BuildToolStatus: integer;
+  LastLineKind: TOutputKind;
 begin
   BuildToolExe := FindExe('castle-engine');
   if BuildToolExe = '' then
@@ -200,52 +221,52 @@ begin
     else raise EInternalError.Create('BuildMode?');
   end;
 
-  AllOutput := '';
+  OutputList.Clear;
 
   for Command in Commands do
   begin
-    AllOutput := AllOutput +
-      'Running "' + BuildToolExe + ' ' + ModeString + ' ' + Command + '"' +
-      LineEnding + LineEnding;
+    OutputList.AddLine('Running "' + BuildToolExe + ' ' + ModeString + ' ' + Command + '"', okImportantInfo);
+    OutputList.AddSeparator;
 
     MyRunCommandIndir(ProjectPath, BuildToolExe,
       [ModeString, Command], BuildToolOutput, BuildToolStatus);
 
-    AllOutput := AllOutput + BuildToolOutput +
-      LineEnding + LineEnding +
-      'Command finished with status ' + IntToStr(BuildToolStatus) + '.' +
-      LineEnding + LineEnding;
+    OutputList.SplitAddLines(BuildToolOutput, okInfo);
+    OutputList.AddSeparator;
 
     if BuildToolStatus <> 0 then
-    begin
-      PageControl1.ActivePage := TabCommandOutput;
-      MemoCommandOutput.Lines.Text := AllOutput;
-      Exit;
-    end;
+      LastLineKind := okError
+    else
+      LastLineKind := okImportantInfo;
+    OutputList.AddLine('Command finished with status ' + IntToStr(BuildToolStatus) + '.',
+      LastLineKind);
+
+    if BuildToolStatus <> 0 then
+      Break;
   end;
 
   PageControl1.ActivePage := TabCommandOutput;
-  MemoCommandOutput.Lines.Text := AllOutput;
+  OutputList.ScrollBottom;
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 
   function CreateSceneRoot: TX3DRootNode;
   var
-    Sphere: TSphereNode;
-    Box: TBoxNode;
+    //Sphere: TSphereNode;
+    //Box: TBoxNode;
     SphereShape, BoxShape: TShapeNode;
     SphereTransform, BoxTransform: TTransformNode;
   begin
     Result := TX3DRootNode.Create;
 
-    Sphere := TSphereNode.CreateWithTransform(SphereShape, SphereTransform);
+    {Sphere := }TSphereNode.CreateWithTransform(SphereShape, SphereTransform);
     Result.AddChildren(SphereTransform);
 
     SphereShape.Material := TMaterialNode.Create;
     SphereShape.Material.DiffuseColor := YellowRGB;
 
-    Box := TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
+    {Box := }TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
     BoxTransform.Translation := Vector3(3, 0, 0);
     Result.AddChildren(BoxTransform);
 
