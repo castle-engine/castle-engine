@@ -396,6 +396,14 @@ begin
 end;
 
 constructor TOutputList.Create(const AList: TListBox);
+
+  { Measure font height in pixels. }
+  function GetRowHeight: Integer;
+  begin
+    FList.Canvas.Font := FList.Font;
+    Result := FList.Canvas.TextHeight('Wg');
+  end;
+
 var
   Kind: TOutputKind;
 begin
@@ -404,6 +412,7 @@ begin
   FList := AList;
   FList.Style := lbOwnerDrawFixed;
   FList.OnDrawItem := @DrawItem;
+  FList.ItemHeight := GetRowHeight + 4;
 
   { Create OutputInfoPerKind instances.
     The idea is that every AddLine call should not construct new
