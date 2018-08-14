@@ -24,14 +24,18 @@ uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
   Types,
+  // for TOIPropertyGrid usage
+  ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
+  // CGE units
   CastleControl, CastleUIControls,
+  // castle-editor units
   EditorUtils;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     CastleControl1: TCastleControl;
-    ControlInspector: TValueListEditor;
+    PropertiesSimple: TValueListEditor;
     LabelControlSelected: TLabel;
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
@@ -62,6 +66,7 @@ type
     MenuItemFile: TMenuItem;
     MenuItemQuit: TMenuItem;
     PageControl1: TPageControl;
+    ControlProperties: TPageControl;
     PanelRight: TPanel;
     PanelAboveTabs: TPanel;
     ShellListView1: TShellListView;
@@ -74,6 +79,8 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     ControlsTree: TTreeView;
+    TabSheetSimple: TTabSheet;
+    TabSheetAdvanced: TTabSheet;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -103,8 +110,11 @@ type
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
+    PropertyGrid: TOIPropertyGrid;
+    PropertyEditorHook: TPropertyEditorHook;
     procedure BuildToolCall(const Commands: array of String);
     function ComponentCaption(const C: TComponent): String;
+    procedure PropertyGridModified(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure UpdateControlsTree(const List: TChildrenControls);
@@ -120,7 +130,8 @@ implementation
 
 {$R *.lfm}
 
-uses CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
+uses TypInfo,
+  CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, CastleTransform, CastleControls,
   FormChooseProject, ToolUtils;
@@ -187,6 +198,18 @@ end;
 procedure TProjectForm.FormCreate(Sender: TObject);
 begin
   OutputList := TOutputList.Create(ListOutput);
+
+  // This code is like in Kraft
+  PropertyEditorHook := TPropertyEditorHook.Create(Self);
+  PropertyGrid := TOIPropertyGrid.CreateWithParams(Self, PropertyEditorHook
+     ,[tkUnknown, tkInteger, tkChar, tkEnumeration, tkFloat, tkSet{, tkMethod}
+     , tkSString, tkLString, tkAString, tkWString, tkVariant
+     , tkArray, tkRecord, tkInterface, tkClass, tkObject, tkWChar, tkBool
+     , tkInt64, tkQWord],
+     0 { auto size });
+  PropertyGrid.Parent := TabSheetAdvanced;
+  PropertyGrid.Align := alClient;
+  PropertyGrid.OnModified := @PropertyGridModified;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
@@ -358,30 +381,50 @@ procedure TProjectForm.OpenProject(const ManifestUrl: String);
   var
     Scene: TCastleScene;
     Button: TCastleButton;
-    Group: TCastleVerticalGroup;
+    RectangleGroup: TCastleRectangleControl;
     Lab: TCastleLabel;
   begin
+    // TODO: This should follow the auto-scale settings of loaded file
+    CastleControl1.Container.UIReferenceWidth := 1024;
+    CastleControl1.Container.UIReferenceHeight := 768;
+    CastleControl1.Container.UIScaling := usEncloseReferenceSize;
+
     Scene := TCastleScene.Create(Self);
     Scene.Name := 'ExampleScene';
     Scene.Load(CreateSceneRoot, true);
     CastleControl1.SceneManager.Items.Add(Scene);
     CastleControl1.SceneManager.MainScene := Scene;
 
-    Group := TCastleVerticalGroup.Create(Self);
-    Group.Name := 'VerticalGroup1';
-    Group.Anchor(hpRight, -10);
-    Group.Anchor(vpTop, -10);
-    CastleControl1.Controls.InsertFront(Group);
+    RectangleGroup := TCastleRectangleControl.Create(Self);
+    RectangleGroup.Name := 'Rectangle1';
+    RectangleGroup.Anchor(hpRight, -10);
+    RectangleGroup.Anchor(vpTop, -10);
+    RectangleGroup.Width := 500;
+    RectangleGroup.Height := 500;
+    RectangleGroup.Color := Vector4(0.5, 0.5, 1, 0.2); // transparent light-blue
+    CastleControl1.Controls.InsertFront(RectangleGroup);
+
+    { As you see, you need to explicitly set size of RectangleGroup,
+      and position of children within it.
+      If you would prefer an automatic layout (that auto-sizes following
+      children, and automatically sets up children positions),
+      use TCastleVerticalGroup or TCastleHorizontalGroup. }
 
     Button := TCastleButton.Create(Self);
     Button.Name := 'Button1';
     Button.Caption := 'I am a button';
-    Group.InsertFront(Button);
+    Button.FontSize := 50;
+    Button.Anchor(vpTop, -10);
+    Button.Anchor(hpMiddle);
+    RectangleGroup.InsertFront(Button);
 
     Lab := TCastleLabel.Create(Self);
     Lab.Name := 'Label1';
     Lab.Caption := 'I am a label';
-    Group.InsertFront(Lab);
+    Lab.FontSize := 50;
+    Lab.Anchor(vpTop, -100);
+    Lab.Anchor(hpMiddle);
+    RectangleGroup.InsertFront(Lab);
   end;
 
 var
@@ -429,6 +472,20 @@ function TProjectForm.ComponentCaption(const C: TComponent): String;
 
 begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
+end;
+
+procedure TProjectForm.PropertyGridModified(Sender: TObject);
+var
+  SelectedComponent: TComponent;
+begin
+  // when you modify component Name in PropertyGrid, update it in the ControlsTree
+
+  Assert(ControlsTree.Selected <> nil);
+  Assert(ControlsTree.Selected.Data <> nil);
+  Assert(TObject(ControlsTree.Selected.Data) is TComponent);
+  SelectedComponent := TComponent(ControlsTree.Selected.Data);
+
+  ControlsTree.Selected.Text := ComponentCaption(SelectedComponent);
 end;
 
 procedure TProjectForm.UpdateControlsTree(const List: TChildrenControls);
@@ -485,6 +542,7 @@ var
   SelectedComponent: TComponent;
   SelectedControl: TUIControl;
   SelectedTransform: TCastleTransform;
+  SelectionForOI: TPersistentSelectionList;
 begin
   SelectedControl := nil;
   SelectedTransform := nil;
@@ -510,8 +568,16 @@ begin
   else
     LabelControlSelected.Caption := 'Nothing Selected';
 
-  ControlInspector.Visible := SelectedComponent <> nil;
-  ControlInspector.Enabled := SelectedComponent <> nil;
+  ControlProperties.Visible := SelectedComponent <> nil;
+  ControlProperties.Enabled := SelectedComponent <> nil;
+
+  PropertyEditorHook.LookupRoot := SelectedComponent;
+  SelectionForOI := TPersistentSelectionList.Create;
+  try
+    if SelectedComponent <> nil then
+      SelectionForOI.Add(SelectedComponent);
+    PropertyGrid.Selection := SelectionForOI;
+  finally FreeAndNil(SelectionForOI) end;
 end;
 
 end.

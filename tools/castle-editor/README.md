@@ -162,9 +162,10 @@ Lower priority:
     * allow configuring command output "word wrap"
     * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
       (need to use custom draw for this? grep, search code)
-    * "Files" showroot doesn't work
+    * "Files" showroot=false doesn't work?
     * TEditDirectory use at "new project"
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
+    * remember ProjectForm state of maximized/not
 
 Lowest priority (OK if not in 1st release)
 * Project options:

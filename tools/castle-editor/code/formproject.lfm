@@ -142,24 +142,6 @@ object ProjectForm: TProjectForm
       ClientHeight = 348
       ClientWidth = 284
       TabOrder = 4
-      object ControlInspector: TValueListEditor
-        Left = 0
-        Height = 313
-        Top = 35
-        Width = 284
-        Align = alClient
-        FixedCols = 0
-        RowCount = 2
-        TabOrder = 0
-        TitleCaptions.Strings = (
-          'Property'
-          'Value'
-        )
-        ColWidths = (
-          93
-          187
-        )
-      end
       object LabelControlSelected: TLabel
         Left = 10
         Height = 15
@@ -169,6 +151,42 @@ object ProjectForm: TProjectForm
         BorderSpacing.Around = 10
         Caption = 'LabelControlSelected'
         ParentColor = False
+      end
+      object ControlProperties: TPageControl
+        Left = 0
+        Height = 313
+        Top = 35
+        Width = 284
+        ActivePage = TabSheetSimple
+        Align = alClient
+        TabIndex = 0
+        TabOrder = 0
+        object TabSheetSimple: TTabSheet
+          Caption = 'Simple'
+          ClientHeight = 285
+          ClientWidth = 276
+          object PropertiesSimple: TValueListEditor
+            Left = 0
+            Height = 285
+            Top = 0
+            Width = 276
+            Align = alClient
+            FixedCols = 0
+            RowCount = 2
+            TabOrder = 0
+            TitleCaptions.Strings = (
+              'Property'
+              'Value'
+            )
+            ColWidths = (
+              93
+              179
+            )
+          end
+        end
+        object TabSheetAdvanced: TTabSheet
+          Caption = 'Advanced'
+        end
       end
     end
   end
