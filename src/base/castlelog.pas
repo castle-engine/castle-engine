@@ -203,12 +203,16 @@ var
         [Result]);
   end;
 
+var
+  InsideEditor: Boolean;
 begin
   LogTimePrefix := ALogTimePrefix;
 
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
   LogStreamOwned := false;
+
+  InsideEditor := GetEnvironmentVariable('CASTLE_ENGINE_INSIDE_EDITOR') = 'true';
 
   if ALogStream = nil then
   begin
@@ -222,6 +226,17 @@ begin
         Exit;
     end else
     {$endif}
+    if InsideEditor and (not IsLibrary) and (StdOutStream <> nil) then
+    begin
+      { In this case, we know we have StdOutStream initialized OK,
+        even when IsConsole = false (because "castle-engine run"
+        and "castle-editor" are calling subprocesses to capture output
+        through pipes always).
+
+        We want to log to StdOutStream, to send them to "castle-editor"
+        output list. }
+      LogStream := StdOutStream;
+    end else
     if not IsConsole then
     begin
       { Under Windows GUI program, by default write to file .log
@@ -255,6 +270,9 @@ begin
     try to write something to uninitialized log. }
 
   FLog := true;
+
+  if InsideEditor and (not IsLibrary) and (StdOutStream = nil) then
+    WritelnWarning('Cannot send logs to the Castle Game Engine Editor through pipes.');
 end;
 
 procedure WriteLogRaw(const S: string); {$ifdef SUPPORTS_INLINE} inline; {$endif}

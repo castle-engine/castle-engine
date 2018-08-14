@@ -67,6 +67,7 @@ type
     PendingLines: String;
     FRunning: Boolean;
     FExitStatus: Integer;
+    Environment: TStringList;
   public
     { Set before @link(Start), do not change later.
       @groupBegin }
@@ -227,13 +228,21 @@ begin
       (https://www.freepascal.org/docs-html/fcl/process/tprocess.destroy.html) }
     Process.Terminate(0);
   FreeAndNil(Process);
+  FreeAndNil(Environment);
   inherited;
 end;
 
 procedure TAsynchronousProcess.Start;
 var
   S, LogLine: String;
+  I: Integer;
 begin
+  { copy environment and set $CASTLE_ENGINE_INSIDE_EDITOR }
+  Environment := TStringList.Create;
+  for I := 1 to GetEnvironmentVariableCount do
+    Environment.Add(GetEnvironmentString(I));
+  Environment.Values['CASTLE_ENGINE_INSIDE_EDITOR'] := 'true';
+
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
   Process.Executable := ExeName;
@@ -246,6 +255,7 @@ begin
     console, but FPC (called by castle-engine) console is still visible. }
   Process.ShowWindow := swoHide;
   Process.Options := [poUsePipes, poStderrToOutput];
+  Process.Environment := Environment;
   Process.Execute;
 
   { since the process is executed independently, in theory it *could*
