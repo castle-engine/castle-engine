@@ -98,7 +98,6 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 ## TODO
 
 Now:
-* Windows check - owner draw list box, log visible at run?
 * Visual inspector. designer etc.
 * Files browser as above
 
@@ -135,9 +134,7 @@ Lower priority:
   	  that is always auto-generated without warning.
 	  Do not overwrite lpr each time.
     * checkbox in menu for verbose output from the build tool
-    * use machine-readble format format for communication with build tool and CastleLog:
-        CASTLE_ENGINE_EDITOR_INSIDE=true
-	(better than command-line option, less invasive to implement)
+    * use machine-readble format format for communication with build tool and CastleLog when CASTLE_ENGINE_EDITOR_INSIDE=true
 
 	Causes build tool some lines (e.g. in verbose fpc command line) to use special format, and actual program uses CastleLog that has special output (and always goes to console even on Windows)
 	- Avoid xml tags here (would require quoting rest).
@@ -159,6 +156,7 @@ Lower priority:
       (need to use custom draw for this? grep, search code)
     * "Files" showroot doesn't work
     * TEditDirectory use at "new project"
+    * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
 
 Lowest priority (OK if not in 1st release)
 * Project options:
