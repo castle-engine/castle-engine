@@ -241,6 +241,10 @@ begin
     Process.CurrentDirectory := CurrentDirectory;
   for S in Parameters do
     Process.Parameters.Add(S);
+  { on Windows, we need swoHide, otherwise console appears for build tool.
+    Note that poNoConsole is not a solution, as it prevents castle-engine
+    console, but FPC (called by castle-engine) console is still visible. }
+  Process.ShowWindow := swoHide;
   Process.Options := [poUsePipes, poStderrToOutput];
   Process.Execute;
 
