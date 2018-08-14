@@ -56,11 +56,24 @@ implementation
 
 {$R *.lfm}
 
-uses LazFileUtils,
+uses {$ifdef MSWINDOWS} WinDirs, {$endif}
+  LazFileUtils,
   CastleURIUtils, CastleConfig, CastleUtils, CastleStringUtils,
   EditorUtils;
 
 procedure TNewProjectForm.FormShow(Sender: TObject);
+
+  function DefaultProjectsParentDir: String;
+  begin
+    Result :=
+      {$ifdef MSWINDOWS}
+      // get "Documents" dir
+      GetWindowsSpecialDir(CSIDL_PERSONAL);
+      {$else}
+      GetUserDir;
+      {$endif}
+  end;
+
 var
   DefaultNewProjectDir, NewProjectDir: String;
 begin
@@ -68,7 +81,8 @@ begin
 
   ButtonTemplateEmpty.Down := true;
 
-  DefaultNewProjectDir := InclPathDelim(GetUserDir) + 'Castle Game Engine Projects';
+  DefaultNewProjectDir := InclPathDelim(DefaultProjectsParentDir) +
+    'Castle Game Engine Projects';
   NewProjectDir := UserConfig.GetValue('new_project/default_dir', DefaultNewProjectDir);
   // SelectDirectoryDialog1.InitialDir := NewProjectDir; // not neeeded
   SelectDirectoryDialog1.FileName := NewProjectDir;
