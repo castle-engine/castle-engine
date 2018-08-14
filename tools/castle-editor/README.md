@@ -99,6 +99,14 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 
 Now:
 * Visual inspector. designer etc.
+    * Allow editing at least most important properties:
+        * Name
+        * TCastleScene.URL, test play animation
+        * TCastleTransform position, rotation, scale (using gizmos)
+        * TUIControl anchors (self, parent -- together in simple ver, separate in advanced version) and (using gizmo) delta to anchor
+    * Allow saving to file (make sure no extraneous stuff is saved)
+    * Allow loading from file in game
+    * Allow adding new, deleting, moving around
 * Files browser as above
 
 Lower priority:
@@ -117,9 +125,9 @@ Lower priority:
     * For "compile", colorize FPC warnings, errors
     * Shoter compile output:
         * lines "compiling..", "writing resource string table...", are displayed, but then replaced by a next AddLine. This way they serve as "progress indicator" but do not eat so much output space.
-	* also do not show FPC "logo", do not repeat information about FPC version, Os/CPU 2 times, debug mode,...
-	* remove the "separator" lines. The bold lines already separate them nicely?
-	* "command finished with status 0" -> "Command finished successfully."
+        * also do not show FPC "logo", do not repeat information about FPC version, Os/CPU 2 times, debug mode,...
+        * remove the "separator" lines. The bold lines already separate them nicely?
+        * "command finished with status 0" -> "Command finished successfully."
     * show count of warnings/errors if non-zero on tab header, allow to filter by them
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
@@ -127,21 +135,21 @@ Lower priority:
     * Allow to choose platform
     * rerun generate-program each time? (mark them as some *DO NOT MODIFY THIS, THIS IS ONLY FOR LAZARUS* comment)
         Not really OK, in case we open program with hand-crafted program file.
-	Maybe only auto-generate in castle-engine-output,
-	  before opening Lazarus,
-	  if lpr not yet present?
-	Best: change to use planned CastleEngineConfig.pas unit,
-  	  that is always auto-generated without warning.
-	  Do not overwrite lpr each time.
+        Maybe only auto-generate in castle-engine-output,
+          before opening Lazarus,
+          if lpr not yet present?
+        Best: change to use planned CastleEngineConfig.pas unit,
+          that is always auto-generated without warning.
+          Do not overwrite lpr each time.
     * checkbox in menu for verbose output from the build tool
     * use machine-readble format format for communication with build tool and CastleLog when CASTLE_ENGINE_EDITOR_INSIDE=true
 
-	Causes build tool some lines (e.g. in verbose fpc command line) to use special format, and actual program uses CastleLog that has special output (and always goes to console even on Windows)
-	- Avoid xml tags here (would require quoting rest).
-	- Just tags like Cge-output, bytes=xxx:
-	- Cge-output,multiline,...
-	- Cge-output, warning,...
-	- bytes are always required and allow reliably waiting reading up to message end, without the need to quote/unquote it
+        Causes build tool some lines (e.g. in verbose fpc command line) to use special format, and actual program uses CastleLog that has special output (and always goes to console even on Windows)
+        - Avoid xml tags here (would require quoting rest).
+        - Just tags like Cge-output, bytes=xxx:
+        - Cge-output,multiline,...
+        - Cge-output, warning,...
+        - bytes are always required and allow reliably waiting reading up to message end, without the need to quote/unquote it
 
     * Detect multilibe logs and show as one list item in output that can be expanded,, only category initially visible. E.g. useful for
       - "OpenGL Information" or

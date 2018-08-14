@@ -23,13 +23,16 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
-  CastleControl, Types,
+  Types,
+  CastleControl, CastleUIControls,
   EditorUtils;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     CastleControl1: TCastleControl;
+    ControlInspector: TValueListEditor;
+    LabelControlSelected: TLabel;
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
     MenuItemSeparator101: TMenuItem;
@@ -59,6 +62,7 @@ type
     MenuItemFile: TMenuItem;
     MenuItemQuit: TMenuItem;
     PageControl1: TPageControl;
+    PanelRight: TPanel;
     PanelAboveTabs: TPanel;
     ShellListView1: TShellListView;
     ShellTreeView1: TShellTreeView;
@@ -69,8 +73,8 @@ type
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
-    TreeView1: TTreeView;
-    ValueListEditor1: TValueListEditor;
+    ControlsTree: TTreeView;
+    procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -100,8 +104,11 @@ type
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
     procedure BuildToolCall(const Commands: array of String);
+    function ComponentCaption(const C: TComponent): String;
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
+    procedure UpdateControlsTree(const List: TChildrenControls);
+    procedure UpdateSelectedControl;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -115,7 +122,7 @@ implementation
 
 uses CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
-  CastleScene,
+  CastleScene, CastleSceneManager, CastleTransform, CastleControls,
   FormChooseProject, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -170,6 +177,11 @@ begin
   // TODO ask only if unsaved things
   //if YesNoBox('Quit the editor?') then
     Application.Terminate;
+end;
+
+procedure TProjectForm.ControlsTreeSelectionChanged(Sender: TObject);
+begin
+  UpdateSelectedControl;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -271,7 +283,7 @@ begin
   BuildToolExe := FindExe('castle-engine');
   if BuildToolExe = '' then
   begin
-    ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
+    EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
     Exit;
   end;
 
@@ -340,9 +352,40 @@ procedure TProjectForm.OpenProject(const ManifestUrl: String);
     BoxShape.Material.DiffuseColor := BlueRGB;
   end;
 
+  { Add some sample stuff to CastleControl1, just for test.
+    TODO: just temporary stuff. }
+  procedure SampleControls;
+  var
+    Scene: TCastleScene;
+    Button: TCastleButton;
+    Group: TCastleVerticalGroup;
+    Lab: TCastleLabel;
+  begin
+    Scene := TCastleScene.Create(Self);
+    Scene.Name := 'ExampleScene';
+    Scene.Load(CreateSceneRoot, true);
+    CastleControl1.SceneManager.Items.Add(Scene);
+    CastleControl1.SceneManager.MainScene := Scene;
+
+    Group := TCastleVerticalGroup.Create(Self);
+    Group.Name := 'VerticalGroup1';
+    Group.Anchor(hpRight, -10);
+    Group.Anchor(vpTop, -10);
+    CastleControl1.Controls.InsertFront(Group);
+
+    Button := TCastleButton.Create(Self);
+    Button.Name := 'Button1';
+    Button.Caption := 'I am a button';
+    Group.InsertFront(Button);
+
+    Lab := TCastleLabel.Create(Self);
+    Lab.Name := 'Label1';
+    Lab.Caption := 'I am a label';
+    Group.InsertFront(Lab);
+  end;
+
 var
   ManifestDoc: TXMLDocument;
-  Scene: TCastleScene;
 begin
   ManifestDoc := URLReadXML(ManifestUrl);
   try
@@ -357,10 +400,11 @@ begin
   ShellTreeView1.Root := ProjectPath;
 
   // TODO CastleControl1 should be TCastleControlCustom ?
-  Scene := TCastleScene.Create(Self);
-  Scene.Load(CreateSceneRoot, true);
-  CastleControl1.SceneManager.Items.Add(Scene);
-  CastleControl1.SceneManager.MainScene := Scene;
+
+  SampleControls;
+
+  UpdateControlsTree(CastleControl1.Controls);
+  UpdateSelectedControl;
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControl1.ActivePage := TabFiles;
@@ -368,6 +412,106 @@ begin
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;
+end;
+
+function TProjectForm.ComponentCaption(const C: TComponent): String;
+
+  function ClassCaption(const C: TClass): String;
+  begin
+    Result := C.ClassName;
+
+    // hide some internal classes by instead displaying ancestor name
+    if (C = TControlGameSceneManager) or
+       (C = TSceneManagerWorld) or
+       (Result = 'TSceneManagerWorldConcrete') then
+      Result := ClassCaption(C.ClassParent);
+  end;
+
+begin
+  Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
+end;
+
+procedure TProjectForm.UpdateControlsTree(const List: TChildrenControls);
+
+  procedure AddTransform(const Parent: TTreeNode; const T: TCastleTransform);
+  var
+    S: String;
+    Node: TTreeNode;
+    I: Integer;
+  begin
+    S := ComponentCaption(T);
+    Node := ControlsTree.Items.AddChildObject(Parent, S, T);
+    for I := 0 to T.Count - 1 do
+      AddTransform(Node, T[I]);
+  end;
+
+  procedure AddControl(const Parent: TTreeNode; const C: TUIControl);
+  var
+    S: String;
+    Node: TTreeNode;
+    I: Integer;
+    SceneManager: TCastleSceneManager;
+  begin
+    S := ComponentCaption(C);
+    Node := ControlsTree.Items.AddChildObject(Parent, S, C);
+    for I := 0 to C.ControlsCount - 1 do
+      AddControl(Node, C.Controls[I]);
+
+    if C is TCastleSceneManager then
+    begin
+      SceneManager := TCastleSceneManager(C);
+      AddTransform(Node, SceneManager.Items);
+    end;
+  end;
+
+var
+  Node: TTreeNode;
+  C: TUIControl;
+begin
+  ControlsTree.Items.Clear;
+
+  Node := ControlsTree.Items.AddChildObject(nil, 'Controls (list of TUIControl)', List);
+  for C in List do
+    AddControl(Node, C);
+
+  // show expanded by default
+  Node.Expand(true);
+end;
+
+procedure TProjectForm.UpdateSelectedControl;
+var
+  SelectedNode: TTreeNode;
+  SelectedObject: TObject;
+  SelectedComponent: TComponent;
+  SelectedControl: TUIControl;
+  SelectedTransform: TCastleTransform;
+begin
+  SelectedControl := nil;
+  SelectedTransform := nil;
+  SelectedComponent := nil;
+  SelectedObject := nil;
+  SelectedNode := ControlsTree.Selected;
+  if SelectedNode <> nil then
+  begin
+    SelectedObject := TObject(SelectedNode.Data);
+    if SelectedObject is TComponent then
+    begin
+      SelectedComponent := TComponent(SelectedObject);
+      if SelectedComponent is TUIControl then
+        SelectedControl := TUIControl(SelectedComponent)
+      else
+      if SelectedComponent is TCastleTransform then
+        SelectedTransform := TCastleTransform(SelectedComponent);
+    end;
+  end;
+
+  if SelectedComponent <> nil then
+    LabelControlSelected.Caption := ComponentCaption(SelectedComponent)
+  else
+    LabelControlSelected.Caption := 'Nothing Selected';
+
+  ControlInspector.Visible := SelectedComponent <> nil;
+  ControlInspector.Enabled := SelectedComponent <> nil;
 end;
 
 end.
