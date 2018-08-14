@@ -365,6 +365,9 @@ begin
   // It's too easy to change it visually and forget, so we set it from code
   PageControl1.ActivePage := TabFiles;
   SetEnabledCommandRun(true);
+
+  BuildMode := bmDebug;
+  MenuItemModeDebug.Checked := true;
 end;
 
 end.
