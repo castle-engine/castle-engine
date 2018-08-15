@@ -128,6 +128,17 @@ Now:
        how does this solve it? test is it solved.
        d:/cygwin64/home/michalis/installed/fpclazarus/3.0.4/fpcsrc/packages/fcl-web/src/base/webpage.pp
 
+       also, reading must be possible without LCL, why is reader now only in LResources?
+
+       I could possibly assign
+       http://server80.de/Manuals/Fpc/Html/rtl/classes/treader.oncreatecomponent.html
+       to create new TCastleTransform / TUIControl as children of existing.
+
+       Another approach: experimented with doing this with own callbacks in DefineProperties,
+       results... weird (crashes, or incomplete file).
+       I really need to remove LResources from the equation and just read/write using FPC sample,
+       like json?
+
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
     * show HierarchyUrl on caption

@@ -974,6 +974,9 @@ type
       components on the form. Our Left is completely independent from this.) }
     procedure ReadRealLeft(Reader: TReader);
     procedure WriteRealLeft(Writer: TWriter);
+    // TODO: unfinished tests
+    // procedure ReadControls(Reader: TReader);
+    // procedure WriteControls(Writer: TWriter);
 
     procedure ReadLeft(Reader: TReader);
     procedure ReadTop(Reader: TReader);
@@ -3461,6 +3464,14 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} WriteRealLeft,
     FLeft <> 0);
 
+    // TODO: unfinished tests
+(*
+  Filer.DefineProperty('Controls',
+    {$ifdef CASTLE_OBJFPC}@{$endif} ReadControls,
+    {$ifdef CASTLE_OBJFPC}@{$endif} WriteControls,
+    ControlsCount <> 0);
+*)
+
   { Code from fpc/trunk/rtl/objpas/classes/compon.inc }
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
@@ -3474,6 +3485,35 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} writetop,
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
+
+    // TODO: unfinished tests
+{
+procedure TUIControl.ReadControls(Reader: TReader);
+var
+  ReadCount, I: Integer;
+  ReadControl: TUIControl;
+begin
+  Reader.ReadListBegin;
+  ReadCount := Reader.ReadInteger;
+  for I := 0 to ReadCount - 1 do
+  begin
+    ReadControl := Reader.ReadComponent(Self) as TUIControl;
+    InsertBack(ReadControl);
+  end;
+  Reader.ReadListEnd;
+end;
+
+procedure TUIControl.WriteControls(Writer: TWriter);
+var
+  I: Integer;
+begin
+  Writer.WriteListBegin;
+  Writer.WriteInteger(ControlsCount);
+  for I := 0 to ControlsCount - 1 do
+    Writer.WriteComponent(Controls[I]);
+  Writer.WriteListEnd;
+end;
+}
 
 procedure TUIControl.SetLeft(const Value: Integer);
 begin
