@@ -27,7 +27,7 @@ uses
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
-  CastleControl, CastleUIControls,
+  CastleControl, CastleUIControls, CastlePropEdits,
   // castle-editor units
   EditorUtils;
 
@@ -617,5 +617,8 @@ begin
   finally FreeAndNil(Selected) end;
 end;
 
+initialization
+  { Enable using our property edits e.g. for TCastleScene.URL }
+  CastlePropEdits.Register;
 end.
 
