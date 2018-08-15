@@ -118,6 +118,10 @@ Now:
   	 https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
   	 http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
   	 See how normal TWriter does it, using TypInfo.
+
+	 yes, we can copy from
+	 /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
+
        - after loading, invisible, why?
        - simplify, InternalGetChild can be completely removed now
     * Allow adding new, deleting, moving around

@@ -205,6 +205,10 @@ begin
   // do not stream null values, as reader makes errors on them
   if Res is TJSONNull then
     FreeAndNil(Res);
+
+  // do not stream properties with stored=false or default values
+  if not IsStoredProp(AObject as TPersistent, Info) then
+    FreeAndNil(Res);
 end;
 
 procedure ComponentSave(const C: TComponent; const Url: String);
