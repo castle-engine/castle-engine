@@ -121,6 +121,9 @@ Now:
     * (in-progress) Allow loading from file in game
        - It stores too much now.
          Store only non-default with stored=true.
+  	 https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
+  	 http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
+  	 See how normal TWriter does it, using TypInfo.
        - after loading, invisible, why?
        - Items contents not loaded
        - simplify, as most these GetChildren / InternalGetChild can be completely removed now
