@@ -654,7 +654,7 @@ type
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
 
-    //procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -1709,10 +1709,11 @@ type
       Generally, it applies to every 3D model that is used as
       a child of this TCastleTransform instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
-  published
+
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
+  published
 
     { If this 3D object is rendered as part of TCastleSceneManager,
       and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
@@ -3125,16 +3126,14 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-// Not needed anymore, List is automatically saved by FpJsonRtti.
-//
-//procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
-//var
-//  I: Integer;
-//begin
-//  inherited;
-//  for I := 0 to List.Count - 1 do
-//    Proc(List[I]);
-//end;
+procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to List.Count - 1 do
+    Proc(List[I]);
+end;
 
 function TCastleTransform.InternalGetChild(
   const ResultName, ResultClassName: String): TComponent;
@@ -3144,10 +3143,8 @@ end;
 
 procedure TCastleTransform.InternalAddChild(const Child: TComponent);
 begin
-  // Not needed anymore, List is automatically saved by FpJsonRtti.
-  //
-  //if Child is TCastleTransform then
-  //  Add(TCastleTransform(Child));
+  if Child is TCastleTransform then
+    Add(TCastleTransform(Child));
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.

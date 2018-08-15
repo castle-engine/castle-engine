@@ -48,6 +48,9 @@ function TransformLoad(const Url: String; const Owner: TComponent): TCastleTrans
 procedure UserInterfaceSave(const C: TUIControl; const Url: String);
 function UserInterfaceLoad(const Url: String; const Owner: TComponent): TUIControl;
 
+procedure ComponentSave(const C: TComponent; const Url: String);
+function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+
 implementation
 
 uses JsonParser, TypInfo,

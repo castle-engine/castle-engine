@@ -33,7 +33,9 @@ You can visually design:
 
     Saved as `xxx.cge-scene-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
 
-Each such hierarchy is saved to a file `xxx.cge-*`. You can load it from code using `CastleComponentSerialize` unit, instantiate it whenever you want, as many times as you want etc.
+The `xxx.cge-user-interface` and `xxx.cge-scene-transform` are simple text files (JSON, using FPC FpJsonRtti). You should commit them to the version control, just like your source code. You can have as many such files inside your project as you need to. You load them from code using `CastleComponentSerialize` unit. You can instantiate them whenever you want, as many times as you want etc.
+
+Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TUIControl, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TUIControl` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
 
 The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
 
@@ -103,36 +105,31 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 
 Now:
 * Visual inspector. designer etc.
-    * important bug:
-      // TODO: should be automatic, by both Clear and InsertFront above
-      CastleControl.Invalidate;
-      // Also, doesn't help, why it doesn't show new (empty) contents?
-    * make tuicontrol saved recursively
-      make Tcastletransform saved recursively
-        will it work when Tcastletransform is present multiple times in graph?
+    * does recursive saving work when Tcastletransform is present multiple times in graph?
     * (in-progress) Allow editing at least most important properties:
         * Name
         * TCastleScene.URL (fix to set castle-data:)
 	* initial animation?
         * TCastleTransform position, rotation, scale (using gizmos)
         * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
-    * (in-progress) Allow saving to file
-       Fix: stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
-    * (in-progress) Allow loading from file in game
-       - It stores too much now.
+    * Fix: save also stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
+    *  - It stores too much now.
          Store only non-default with stored=true.
   	 https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
   	 http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
   	 See how normal TWriter does it, using TypInfo.
        - after loading, invisible, why?
-       - Items contents not loaded
        - simplify, as most these GetChildren / InternalGetChild can be completely removed now
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
-    * show HierarchyUrl on caption
+    * show HierarchyUrl on caption, whether it's modified, ask before closing project without saving
     * ask before overriding saved file
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
-    * force non-empty Name, to have wokring streaming?
+    * force non-empty Name on all, to have wokring streaming?
+    * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
+    * MainScene is not restored OK, also it cannot be chosen
+      (we disabled in object inspector some types, maybe we should not?)
+      (maybe LookupRoot should be something better, like HierarchyOwner?)
 
 Lower priority:
 * ugly button and label text in example?
