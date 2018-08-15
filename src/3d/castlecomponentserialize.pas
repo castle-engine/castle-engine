@@ -216,7 +216,9 @@ begin
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
     JsonWriter.ChildProperty := '_Children';
     Json := JsonWriter.ObjectToJSON(C);
-    StringToFile(Url, Json.FormatJSON);
+    try
+      StringToFile(Url, Json.FormatJSON);
+    finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonWriter) end;
 end;
 
