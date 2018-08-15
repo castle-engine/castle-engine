@@ -138,7 +138,9 @@ type
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
     procedure SaveHierarchy(const Url: string);
-    procedure OpenHierarchy(const Url: string);
+    { Changes HierarchyRoot, HierarchyUrl and all the associated user-interface. }
+    procedure OpenHierarchy(const NewHierarchyRoot: TComponent; const NewHierarchyUrl: String);
+    procedure OpenHierarchy(const NewHierarchyUrl: String);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure UpdateHierarchy(const Root: TComponent);
@@ -197,35 +199,49 @@ begin
   FreeAndNil(HierarchyRoot);
 end;
 
-procedure TProjectForm.OpenHierarchy(const Url: string);
+procedure TProjectForm.OpenHierarchy(const NewHierarchyRoot: TComponent;
+  const NewHierarchyUrl: String);
+var
+  TempSceneManager: TCastleSceneManager;
+begin
+  { actually you should always call it earlier, to avoid duplicate Name problems,
+    but for safety we also call it here. }
+  ClearHierarchy;
+
+  if NewHierarchyRoot is TUIControl then
+    CastleControl.Controls.InsertFront(NewHierarchyRoot as TUIControl)
+  else
+  if NewHierarchyRoot is TCastleTransform then
+  begin
+    TempSceneManager := TCastleSceneManager.Create(CastleControl);
+    TempSceneManager.Items.Add(NewHierarchyRoot as TCastleTransform);
+    CastleControl.Controls.InsertFront(TempSceneManager);
+  end else
+    raise EInternalError.Create('HierarchyRoot from file does not descend from TUIControl or TCastleTransform');
+
+  // replace HierarchyXxx variables, once loading successfull
+  HierarchyRoot := NewHierarchyRoot;
+  HierarchyUrl := NewHierarchyUrl;
+  UpdateHierarchy(HierarchyRoot);
+end;
+
+procedure TProjectForm.OpenHierarchy(const NewHierarchyUrl: string);
 var
   NewHierarchyRoot: TComponent;
-  TempSceneManager: TCastleSceneManager;
   Stream: TStream;
 begin
-  Stream := Download(Url);
+  { call ClearHierarchy before creating new components owned by CastleControl,
+    to avoid "duplicate Name" errors. }
+  ClearHierarchy;
+
+  Stream := Download(NewHierarchyUrl);
   try
     NewHierarchyRoot := nil;
     ReadComponentFromTextStream(Stream, NewHierarchyRoot, @FindComponentClass,
       CastleControl);
-
-    ClearHierarchy;
-
-    if NewHierarchyRoot is TUIControl then
-      CastleControl.Controls.InsertFront(NewHierarchyRoot as TUIControl)
-    else
-    if NewHierarchyRoot is TCastleTransform then
-    begin
-      TempSceneManager := TCastleSceneManager.Create(CastleControl);
-      TempSceneManager.Items.Add(NewHierarchyRoot as TCastleTransform);
-      CastleControl.Controls.InsertFront(TempSceneManager);
-    end else
-      raise EInternalError.Create('HierarchyRoot from file does not descend from TUIControl or TCastleTransform');
-
-    // replace HierarchyRoot variable, once loading successfull
-    HierarchyRoot := NewHierarchyRoot;
-    UpdateHierarchy(HierarchyRoot);
   finally FreeAndNil(Stream) end;
+
+  OpenHierarchy(NewHierarchyRoot, NewHierarchyUrl);
 end;
 
 procedure TProjectForm.MenuItemSaveAsHierarchyClick(Sender: TObject);
@@ -380,19 +396,17 @@ end;
 
 procedure TProjectForm.MenuItemNewHierarchyUserInterfaceClick(Sender: TObject);
 var
-  Root: TUIControlSizeable;
+  NewRoot: TUIControlSizeable;
 begin
+  { call ClearHierarchy before creating new components owned by CastleControl,
+    to avoid "duplicate Name" errors. }
   ClearHierarchy;
-  HierarchyUrl := '';
 
   // TODO: Allow choosing starting class?
-  Root := TUIControlSizeable.Create(CastleControl);
-  Root.Name := 'Group1';
-  Root.FullSize := true;
-  HierarchyRoot := Root;
-  CastleControl.Controls.InsertFront(Root);
-
-  UpdateHierarchy(HierarchyRoot);
+  NewRoot := TUIControlSizeable.Create(CastleControl);
+  NewRoot.Name := 'Group1';
+  NewRoot.FullSize := true;
+  OpenHierarchy(NewRoot, '');
 
   // TODO: should be automatic, by both Clear and InsertFront above
   CastleControl.Invalidate;
@@ -400,24 +414,17 @@ end;
 
 procedure TProjectForm.MenuItemNewHierarchySceneTransformClick(Sender: TObject);
 var
-  TempSceneManager: TCastleSceneManager;
-  Root: TCastleTransform;
+  NewRoot: TCastleTransform;
 begin
+  { call ClearHierarchy before creating new components owned by CastleControl,
+    to avoid "duplicate Name" errors. }
   ClearHierarchy;
-  HierarchyUrl := '';
 
   // TODO: Allow choosing starting class?
   // TODO: after adding new scenes, trasforms, adjust camera?
-  Root := TCastleTransform.Create(CastleControl);
-  Root.Name := 'Transform1';
-
-  TempSceneManager := TCastleSceneManager.Create(CastleControl);
-  TempSceneManager.Items.Add(Root);
-  CastleControl.Controls.InsertFront(TempSceneManager);
-
-  HierarchyRoot := Root;
-
-  UpdateHierarchy(HierarchyRoot);
+  NewRoot := TCastleTransform.Create(CastleControl);
+  NewRoot.Name := 'Transform1';
+  OpenHierarchy(NewRoot, '');
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -429,10 +436,7 @@ procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
 begin
   OpenHierarchyDialog.Url := HierarchyUrl;
   if OpenHierarchyDialog.Execute then
-  begin
     OpenHierarchy(OpenHierarchyDialog.Url);
-    HierarchyUrl := OpenHierarchyDialog.Url; // once successfully loaded
-  end;
 end;
 
 procedure TProjectForm.MenuItemPackageClick(Sender: TObject);
@@ -840,4 +844,3 @@ initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
 end.
-

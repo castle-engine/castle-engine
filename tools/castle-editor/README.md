@@ -102,6 +102,7 @@ Now:
     * important bug:
       // TODO: should be automatic, by both Clear and InsertFront above
       CastleControl.Invalidate;
+      // Also, doesn't help, why it doesn't show new (empty) contents?
     * make tuicontrol saved recursively
       make Tcastletransform saved recursively
         will it work when Tcastletransform is present multiple times in graph?
