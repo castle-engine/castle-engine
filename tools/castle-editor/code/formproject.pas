@@ -160,7 +160,8 @@ uses TypInfo, Contnrs, LResources,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
-  CastleTransform, CastleControls, CastleDownload,
+  CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
+  CastleLog,
   FormChooseProject, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -841,6 +842,10 @@ begin
 end;
 
 initialization
+  // initialize CGE log
+  ApplicationProperties.ApplicationName := 'castle-editor';
+  InitializeLog;
+
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
 end.
