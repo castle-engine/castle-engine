@@ -103,7 +103,7 @@ Now:
         * Name
         * TCastleScene.URL, test play animation
         * TCastleTransform position, rotation, scale (using gizmos)
-        * TUIControl anchors (self, parent -- together in simple ver, separate in advanced version) and (using gizmo) delta to anchor
+        * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
     * Allow saving to file (make sure no extraneous stuff is saved)
     * Allow loading from file in game
     * Allow adding new, deleting, moving around
