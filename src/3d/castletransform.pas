@@ -653,6 +653,8 @@ type
     { Override this to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
+
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -3119,6 +3121,15 @@ begin
   FTransformAndInverseValid := false;
   FWorldTransformAndInverseValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
+end;
+
+procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to List.Count - 1 do
+    Proc(List[I]);
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.

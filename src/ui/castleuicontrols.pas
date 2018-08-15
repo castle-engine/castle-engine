@@ -1010,6 +1010,8 @@ type
     procedure UIScaleChanged; virtual;
 
     //procedure DoCursorChange; override;
+
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -3179,6 +3181,16 @@ begin
   GLContextClose;
   FreeAndNil(FControls);
   inherited;
+end;
+
+procedure TUIControl.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  I: Integer;
+begin
+  inherited;
+  if FControls <> nil then
+    for I := 0 to FControls.Count - 1 do
+      Proc(FControls[I]);
 end;
 
 procedure TUIControl.CreateControls;

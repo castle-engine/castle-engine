@@ -108,13 +108,18 @@ Now:
         will it work when Tcastletransform is present multiple times in graph?
     * (in-progress) Allow editing at least most important properties:
         * Name
-        * TCastleScene.URL, test play animation
+        * TCastleScene.URL (fix to set castle-data:)
+	* initial animation?
         * TCastleTransform position, rotation, scale (using gizmos)
         * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
-    * (in-progress) Allow saving to file (make sure no extraneous stuff is saved, but stuff like TVector3 properties is fixed --- need to expose them as published, see TODOs, probably)
+    * (in-progress) Allow saving to file
+       Fix: stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
     * (in-progress) Allow loading from file in game
+       Fix: read recursive
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
+    * show HierarchyUrl on caption
+    * ask before overriding saved file
 
 Lower priority:
 * Files browser as above
@@ -124,6 +129,7 @@ Lower priority:
     * Templates should load by default the visually-designed world. The goal: you should be able to modify and run the game in the editor without writing code.
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TUIControl inside.
 * build tool integration:
+    * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * For "run", colorized CastleLog warnings
     * For "compile", colorize FPC warnings, errors
     * Shoter compile output:

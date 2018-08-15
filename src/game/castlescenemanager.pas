@@ -953,6 +953,7 @@ type
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
     function Headlight: TAbstractLightNode; override;
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -3078,6 +3079,12 @@ begin
   FreeAndNil(DefaultHeadlightNode);
 
   inherited;
+end;
+
+procedure TCastleSceneManager.GetChildren(Proc: TGetChildProc; Root: TComponent);
+begin
+  inherited;
+  Proc(Items);
 end;
 
 procedure TCastleSceneManager.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
