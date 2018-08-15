@@ -45,6 +45,7 @@ type
       ARect: TRect; State: TOwnerDrawState);
   public
     constructor Create(const AList: TListBox);
+    destructor Destroy; override;
     property List: TListBox read FList;
 
     procedure AddLine(const S: String; const Kind: TOutputKind);
@@ -437,6 +438,15 @@ begin
     OutputInfoPerKind[Kind] := TOutputInfo.Create;
     OutputInfoPerKind[Kind].Kind := Kind;
   end;
+end;
+
+destructor TOutputList.Destroy;
+var
+  Kind: TOutputKind;
+begin
+  for Kind in TOutputKind do
+    FreeAndNil(OutputInfoPerKind[Kind]);
+  inherited;
 end;
 
 procedure TOutputList.AddLine(const S: String; const Kind: TOutputKind);
