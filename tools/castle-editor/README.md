@@ -119,7 +119,7 @@ Now:
   	 http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
   	 See how normal TWriter does it, using TypInfo.
        - after loading, invisible, why?
-       - simplify, as most these GetChildren / InternalGetChild can be completely removed now
+       - simplify, InternalGetChild can be completely removed now
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
     * show HierarchyUrl on caption, whether it's modified, ask before closing project without saving
