@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
-  Types,
+  Types, Contnrs,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
@@ -136,6 +136,9 @@ type
     CastleControl: TCastleControlCustom;
     procedure BuildToolCall(const Commands: array of String);
     function ComponentCaption(const C: TComponent): String;
+    { calculate Selected list, non-nil <=> non-empty }
+    procedure GetSelected(out Selected: TComponentList;
+      out SelectedCount: Integer);
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
@@ -159,7 +162,7 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo, Contnrs,
+uses TypInfo,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
@@ -693,15 +696,23 @@ end;
 procedure TProjectForm.PropertyGridModified(Sender: TObject);
 var
   SelectedComponent: TComponent;
+  Selected: TComponentList;
+  SelectedCount: Integer;
 begin
   // when you modify component Name in PropertyGrid, update it in the ControlsTree
-
   Assert(ControlsTree.Selected <> nil);
   Assert(ControlsTree.Selected.Data <> nil);
   Assert(TObject(ControlsTree.Selected.Data) is TComponent);
   SelectedComponent := TComponent(ControlsTree.Selected.Data);
 
   ControlsTree.Selected.Text := ComponentCaption(SelectedComponent);
+
+  { update also LabelControlSelected }
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount = 1 then
+      LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Selected[0]);
+  finally FreeAndNil(Selected) end;
 end;
 
 procedure TProjectForm.UpdateHierarchy(const Root: TComponent);
@@ -754,7 +765,8 @@ begin
   UpdateSelectedControl;
 end;
 
-procedure TProjectForm.UpdateSelectedControl;
+procedure TProjectForm.GetSelected(out Selected: TComponentList;
+  out SelectedCount: Integer);
 
   function SelectedFromNode(const Node: TTreeNode): TComponent;
   var
@@ -783,30 +795,36 @@ procedure TProjectForm.UpdateSelectedControl;
   end;
 
 var
+  I: Integer;
+  C: TComponent;
+begin
+  Selected := nil;
+
+  for I := 0 to ControlsTree.SelectionCount - 1 do
+  begin
+    C := SelectedFromNode(ControlsTree.Selections[I]);
+    if C <> nil then
+    begin
+      if Selected = nil then
+        Selected := TComponentList.Create(false);
+      Selected.Add(C);
+    end;
+  end;
+
+  if Selected <> nil then
+    SelectedCount := Selected.Count
+  else
+    SelectedCount := 0;
+end;
+
+procedure TProjectForm.UpdateSelectedControl;
+var
   Selected: TComponentList;
   SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
-  C: TComponent;
 begin
-  { calculate Selected list, non-nil <=> non-empty }
-  Selected := nil;
+  GetSelected(Selected, SelectedCount);
   try
-    for I := 0 to ControlsTree.SelectionCount - 1 do
-    begin
-      C := SelectedFromNode(ControlsTree.Selections[I]);
-      if C <> nil then
-      begin
-        if Selected = nil then
-          Selected := TComponentList.Create(false);
-        Selected.Add(C);
-      end;
-    end;
-
-    if Selected <> nil then
-      SelectedCount := Selected.Count
-    else
-      SelectedCount := 0;
-
     case SelectedCount of
       0: LabelControlSelected.Caption := 'Nothing Selected';
       1: LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Selected[0]);
