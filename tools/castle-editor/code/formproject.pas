@@ -214,20 +214,28 @@ procedure TProjectForm.OpenHierarchy(const NewHierarchyRoot, NewHierarchyOwner: 
   end;
 
 var
+  Background: TCastleSimpleBackground;
   TempSceneManager: TCastleSceneManager;
 begin
   ClearHierarchy;
 
   if NewHierarchyRoot is TUIControl then
+  begin
     CastleControl.Controls.InsertFront(NewHierarchyRoot as TUIControl)
-  else
+  end else
   if NewHierarchyRoot is TCastleTransform then
   begin
     TempSceneManager := TCastleSceneManager.Create(NewHierarchyOwner);
+    TempSceneManager.Transparent := true;
     TempSceneManager.Items.Add(NewHierarchyRoot as TCastleTransform);
     CastleControl.Controls.InsertFront(TempSceneManager);
   end else
     raise EInternalError.Create('HierarchyRoot from file does not descend from TUIControl or TCastleTransform');
+
+  // make background defined
+  Background := TCastleSimpleBackground.Create(NewHierarchyOwner);
+  Background.Color := Vector4(0.5, 0.5, 0.5, 1);
+  CastleControl.Controls.InsertBack(Background);
 
   // replace HierarchyXxx variables, once loading successfull
   HierarchyRoot := NewHierarchyRoot;
@@ -418,9 +426,6 @@ begin
   NewRoot.Name := 'Group1';
   NewRoot.FullSize := true;
   OpenHierarchy(NewRoot, NewHierarchyOwner, '');
-
-  // TODO: should be automatic, by both Clear and InsertFront above
-  CastleControl.Invalidate;
 end;
 
 procedure TProjectForm.MenuItemNewHierarchySceneTransformClick(Sender: TObject);
