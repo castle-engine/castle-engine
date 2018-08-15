@@ -25,11 +25,15 @@ In this sense, CGE editor may serve as just a GUI wrapper around our "build tool
 
 You can visually design:
 
-* a hierarchy of user-interface controls (saved as `xxx.cge-user-interface` file). Anything descending from `TUIControl`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
+* a hierarchy of user-interface controls. Anything descending from `TUIControl`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
-* a hierachy of 3D / 2D scenes and transformations (saved as `xxx.cge-scene-transform` file). Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
+    Saved as `xxx.cge-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
-Each such design is saved to a file `xxx.cge-*`. You can load it from code, and use it however you like in the game (instantiate it whenever you want etc.).
+* a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
+
+    Saved as `xxx.cge-scene-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
+
+Each such hierarchy is saved to a file `xxx.cge-*`. You can load it from code using `CastleComponentSerialize` unit, instantiate it whenever you want, as many times as you want etc.
 
 The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
 
@@ -115,30 +119,11 @@ Now:
     * (in-progress) Allow saving to file
        Fix: stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
     * (in-progress) Allow loading from file in game
-       Fix: read recursive
-
-       Need to understand how to counter the GetChildren to take read children and insert to my list?
-
-       read and experiment with streaming system using a simpler example
-
-       how does this relate?
-       test the demo.
-       d:/cygwin64/home/michalis/installed/fpclazarus/3.0.4/fpcsrc/packages/fcl-json/examples/demortti.pp
-
-       how does this solve it? test is it solved.
-       d:/cygwin64/home/michalis/installed/fpclazarus/3.0.4/fpcsrc/packages/fcl-web/src/base/webpage.pp
-
-       also, reading must be possible without LCL, why is reader now only in LResources?
-
-       I could possibly assign
-       http://server80.de/Manuals/Fpc/Html/rtl/classes/treader.oncreatecomponent.html
-       to create new TCastleTransform / TUIControl as children of existing.
-
-       Another approach: experimented with doing this with own callbacks in DefineProperties,
-       results... weird (crashes, or incomplete file).
-       I really need to remove LResources from the equation and just read/write using FPC sample,
-       like json?
-
+       - It stores too much now.
+         Store only non-default with stored=true.
+       - after loading, invisible, why?
+       - Items contents not loaded
+       - simplify, as most these GetChildren / InternalGetChild can be completely removed now
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
     * show HierarchyUrl on caption

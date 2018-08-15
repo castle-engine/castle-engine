@@ -654,7 +654,7 @@ type
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
 
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    //procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -675,6 +675,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function InternalGetChild(const ResultName, ResultClassName: String): TComponent; virtual;
+    procedure InternalAddChild(const Child: TComponent); virtual;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -3096,7 +3098,7 @@ begin
 end;
 
 function TCastleTransform.Move(const ATranslation: TVector3;
-  const BecauseOfGravity, EnableWallSliding: boolean): boolean;
+  const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
 begin
@@ -3123,13 +3125,29 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
-var
-  I: Integer;
+// Not needed anymore, List is automatically saved by FpJsonRtti.
+//
+//procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
+//var
+//  I: Integer;
+//begin
+//  inherited;
+//  for I := 0 to List.Count - 1 do
+//    Proc(List[I]);
+//end;
+
+function TCastleTransform.InternalGetChild(
+  const ResultName, ResultClassName: String): TComponent;
 begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    Proc(List[I]);
+  Result := nil;
+end;
+
+procedure TCastleTransform.InternalAddChild(const Child: TComponent);
+begin
+  // Not needed anymore, List is automatically saved by FpJsonRtti.
+  //
+  //if Child is TCastleTransform then
+  //  Add(TCastleTransform(Child));
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.

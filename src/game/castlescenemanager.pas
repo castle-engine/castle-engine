@@ -953,13 +953,14 @@ type
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
     function Headlight: TAbstractLightNode; override;
-    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    //procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
+    //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
 
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
@@ -3081,11 +3082,23 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.GetChildren(Proc: TGetChildProc; Root: TComponent);
-begin
-  inherited;
-  Proc(Items);
-end;
+// Not needed anymore, Items are automatically saved/restored by FpJsonRtti.
+//
+//procedure TCastleSceneManager.GetChildren(Proc: TGetChildProc; Root: TComponent);
+//begin
+//  inherited;
+//  Proc(Items);
+//end;
+//
+//function TCastleSceneManager.InternalGetChild(
+//  const ResultName, ResultClassName: String): TComponent;
+//begin
+//  if (ResultName = 'Items') and
+//     (ResultClassName = 'TSceneManagerWorldConcrete') then
+//    Result := Items
+//  else
+//    Result := inherited InternalGetChild(ResultName, ResultClassName);
+//end;
 
 procedure TCastleSceneManager.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 begin

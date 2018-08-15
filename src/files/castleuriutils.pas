@@ -743,8 +743,9 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
-    if Ext = '.js' then Result := 'application/javascript'
-    else
+    if Ext = '.js' then Result := 'application/javascript' else
+    if Ext = '.cge-user-interface' then Result := 'text/x-cge-user-interface' else
+    if Ext = '.cge-scene-transform' then Result := 'text/x-cge-scene-transform' else
       { as a last resort, check URIMimeExtensions }
       URIMimeExtensions.TryGetValue(Ext, Result);
   end;

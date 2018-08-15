@@ -106,6 +106,7 @@ begin
     P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
+    P.Targets.AddUnit('castlecomponentserialize.pas');
     P.Targets.AddUnit('castlecubemaps.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castlegeometryarrays.pas');
