@@ -144,6 +144,7 @@ Now:
     * show HierarchyUrl on caption
     * ask before overriding saved file
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
+    * force non-empty Name, to have wokring streaming?
 
 Lower priority:
 * ugly button and label text in example?
