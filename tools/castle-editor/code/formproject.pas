@@ -36,9 +36,8 @@ type
   TProjectForm = class(TForm)
     CastleControl1: TCastleControl;
     ControlsTree: TTreeView;
-    Label1: TLabel;
+    LabelHierarchy: TLabel;
     PanelLeft: TPanel;
-    PropertiesSimple: TValueListEditor;
     LabelControlSelected: TLabel;
     ListOutput: TListBox;
     MainMenu1: TMainMenu;
@@ -68,21 +67,21 @@ type
     MenuItemRun: TMenuItem;
     MenuItemFile: TMenuItem;
     MenuItemQuit: TMenuItem;
-    PageControl1: TPageControl;
+    PageControlBottom: TPageControl;
     ControlProperties: TPageControl;
     PanelRight: TPanel;
     PanelAboveTabs: TPanel;
     ShellListView1: TShellListView;
     ShellTreeView1: TShellTreeView;
-    Splitter1: TSplitter;
+    SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
-    Splitter3: TSplitter;
-    Splitter4: TSplitter;
+    SplitterLeft: TSplitter;
+    SplitterRight: TSplitter;
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
-    TabSheetSimple: TTabSheet;
-    TabSheetAdvanced: TTabSheet;
+    TabSimple: TTabSheet;
+    TabAdvanced: TTabSheet;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -112,10 +111,12 @@ type
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
-    PropertyGrid: TOIPropertyGrid;
+    InspectorSimple, InspectorAdvanced: TOIPropertyGrid;
     PropertyEditorHook: TPropertyEditorHook;
     procedure BuildToolCall(const Commands: array of String);
     function ComponentCaption(const C: TComponent): String;
+    procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
+      var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
@@ -198,22 +199,37 @@ begin
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
+
+  function CommonInspectorCreate: TOIPropertyGrid;
+  begin
+    Result := TOIPropertyGrid.Create(Self);
+    // This code is inspired by Kraft sandbox demo
+    Result.Filter := [tkUnknown, tkInteger, tkChar, tkEnumeration, tkFloat, tkSet{, tkMethod}
+      , tkSString, tkLString, tkAString, tkWString, tkVariant
+      , tkArray, tkRecord, tkInterface, tkClass, tkObject, tkWChar, tkBool
+      , tkInt64, tkQWord];
+    Result.PropertyEditorHook := PropertyEditorHook;
+    Result.Align := alClient;
+    Result.OnModified := @PropertyGridModified;
+    Result.CheckboxForBoolean := true;
+    Result.PreferredSplitterX := 150;
+    Result.ValueFont.Bold := true;
+    Result.ShowGutter := false;
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
 
-  // This code is inspired by Kraft sandbox demo
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
-  PropertyGrid := TOIPropertyGrid.Create(Self);
-  PropertyGrid.Filter := [tkUnknown, tkInteger, tkChar, tkEnumeration, tkFloat, tkSet{, tkMethod}
-    , tkSString, tkLString, tkAString, tkWString, tkVariant
-    , tkArray, tkRecord, tkInterface, tkClass, tkObject, tkWChar, tkBool
-    , tkInt64, tkQWord];
-  PropertyGrid.PropertyEditorHook := PropertyEditorHook;
-  PropertyGrid.Parent := TabSheetAdvanced;
-  PropertyGrid.Align := alClient;
-  PropertyGrid.OnModified := @PropertyGridModified;
-  PropertyGrid.CheckboxForBoolean := true;
-  PropertyGrid.PreferredSplitterX := 200;
+  // TODO: is this correct? what should be set here?
+  PropertyEditorHook.LookupRoot := CastleControl1;
+
+  InspectorSimple := CommonInspectorCreate;
+  InspectorSimple.Parent := TabSimple;
+  InspectorSimple.OnEditorFilter := @InspectorSimpleFilter;
+
+  InspectorAdvanced := CommonInspectorCreate;
+  InspectorAdvanced.Parent := TabAdvanced;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
@@ -322,7 +338,7 @@ begin
 
   SetEnabledCommandRun(false);
   OutputList.Clear;
-  PageControl1.ActivePage := TabOutput;
+  PageControlBottom.ActivePage := TabOutput;
   ProcessUpdateTimer.Enabled := true;
 
   RunningProcess := TAsynchronousProcessQueue.Create;
@@ -457,9 +473,9 @@ begin
   UpdateSelectedControl;
 
   // It's too easy to change it visually and forget, so we set it from code
-  PageControl1.ActivePage := TabFiles;
+  PageControlBottom.ActivePage := TabFiles;
   SetEnabledCommandRun(true);
-  // TODO: set TabSheetSimple (for now it's non-functional so we show Advanced)
+  ControlProperties.ActivePage := TabSimple;
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;
@@ -480,6 +496,16 @@ function TProjectForm.ComponentCaption(const C: TComponent): String;
 
 begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
+end;
+
+procedure TProjectForm.InspectorSimpleFilter(Sender: TObject;
+  aEditor: TPropertyEditor; var aShow: boolean);
+begin
+  AShow := (aEditor.GetPropInfo <> nil) and
+    (
+      (aEditor.GetPropInfo^.Name = 'URL') or
+      (aEditor.GetPropInfo^.Name = 'Name')
+    );
 end;
 
 procedure TProjectForm.PropertyGridModified(Sender: TObject);
@@ -598,21 +624,19 @@ begin
 
     case SelectedCount of
       0: LabelControlSelected.Caption := 'Nothing Selected';
-      1: LabelControlSelected.Caption := 'Selected: ' + NL + ComponentCaption(Selected[0]);
-      else LabelControlSelected.Caption := 'Selected: ' + NL + IntToStr(SelectedCount) + ' components';
+      1: LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Selected[0]);
+      else LabelControlSelected.Caption := 'Selected:' + NL + IntToStr(SelectedCount) + ' components';
     end;
 
     ControlProperties.Visible := SelectedCount <> 0;
     ControlProperties.Enabled := SelectedCount <> 0;
 
-    // TODO: is this correct? what should be set here?
-    PropertyEditorHook.LookupRoot := CastleControl1;
-
     SelectionForOI := TPersistentSelectionList.Create;
     try
       for I := 0 to SelectedCount - 1 do
         SelectionForOI.Add(Selected[I]);
-      PropertyGrid.Selection := SelectionForOI;
+      InspectorSimple.Selection := SelectionForOI;
+      InspectorAdvanced.Selection := SelectionForOI;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 end;
