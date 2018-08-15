@@ -99,22 +99,24 @@ but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 
 Now:
 * Visual inspector. designer etc.
-    * Allow editing at least most important properties:
+    * important bug:
+      // TODO: should be automatic, by both Clear and InsertFront above
+      CastleControl.Invalidate;
+    * make tuicontrol saved recursively
+      make Tcastletransform saved recursively
+        will it work when Tcastletransform is present multiple times in graph?
+    * (in-progress) Allow editing at least most important properties:
         * Name
         * TCastleScene.URL, test play animation
         * TCastleTransform position, rotation, scale (using gizmos)
         * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
-    * Allow saving to file (make sure no extraneous stuff is saved)
-    * Allow loading from file in game
+    * (in-progress) Allow saving to file (make sure no extraneous stuff is saved, but stuff like TVector3 properties is fixed --- need to expose them as published, see TODOs, probably)
+    * (in-progress) Allow loading from file in game
     * Allow adding new, deleting, moving around
-* Files browser as above
+    * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
 
 Lower priority:
-* visual designer notes:
-    Allow two modes:
-    - all published things
-    - most important properties?
-    - can we read public properties now, to add e.g. vector 3 there seamlessly? Test, possibly yes. https://stackoverflow.com/questions/4327344/which-delphi-version-supports-rtti-for-public-methods
+* Files browser as above
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates

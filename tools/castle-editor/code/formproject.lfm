@@ -111,14 +111,6 @@ object ProjectForm: TProjectForm
       Align = alRight
       ResizeAnchor = akRight
     end
-    object CastleControl1: TCastleControl
-      Left = 273
-      Height = 348
-      Top = 0
-      Width = 537
-      Align = alClient
-      TabOrder = 2
-    end
     object PanelRight: TPanel
       Left = 817
       Height = 348
@@ -128,7 +120,7 @@ object ProjectForm: TProjectForm
       BevelOuter = bvNone
       ClientHeight = 348
       ClientWidth = 356
-      TabOrder = 3
+      TabOrder = 2
       object LabelControlSelected: TLabel
         Left = 5
         Height = 30
@@ -166,7 +158,7 @@ object ProjectForm: TProjectForm
       BevelOuter = bvNone
       ClientHeight = 348
       ClientWidth = 266
-      TabOrder = 4
+      TabOrder = 3
       object ControlsTree: TTreeView
         Left = 0
         Height = 323
@@ -201,6 +193,34 @@ object ProjectForm: TProjectForm
     top = 97
     object MenuItemFile: TMenuItem
       Caption = 'File'
+      object MenuItemNewHierarchyUserInterface: TMenuItem
+        Caption = 'New User Interface Hierarchy'
+        OnClick = MenuItemNewHierarchyUserInterfaceClick
+      end
+      object MenuItemNewHierarchySceneTransform: TMenuItem
+        Caption = 'New Scene / Transform Hierarchy'
+        OnClick = MenuItemNewHierarchySceneTransformClick
+      end
+      object MenuItemSeparator201: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemOpen: TMenuItem
+        Caption = 'Open ...'
+        ShortCut = 16463
+        OnClick = MenuItemOpenClick
+      end
+      object MenuItemSaveHierarchy: TMenuItem
+        Caption = 'Save Hierarchy'
+        ShortCut = 16467
+        OnClick = MenuItemSaveHierarchyClick
+      end
+      object MenuItemSaveAsHierarchy: TMenuItem
+        Caption = 'Save Hierarchy As ...'
+        OnClick = MenuItemSaveAsHierarchyClick
+      end
+      object MenuItemSeparator200: TMenuItem
+        Caption = '-'
+      end
       object MenuItemSwitchProject: TMenuItem
         Caption = 'Switch Project'
         OnClick = MenuItemSwitchProjectClick
@@ -309,5 +329,17 @@ object ProjectForm: TProjectForm
     OnTimer = ProcessUpdateTimerTimer
     left = 453
     top = 100
+  end
+  object SaveHierarchyDialog: TCastleSaveDialog
+    Title = 'Save Hierarchy As'
+    Filter = 'CGE Hierachy (*.cge-user-interface, *.cge-scene-transform)|*.cge-user-interface;*.cge-scene-transform|All Files|*'
+    FilterIndex = 0
+    left = 332
+    top = 170
+  end
+  object OpenHierarchyDialog: TCastleOpenDialog
+    Filter = 'CGE Hierachy (*.cge-user-interface, *.cge-scene-transform)|*.cge-user-interface;*.cge-scene-transform|All Files|*'
+    left = 464
+    top = 184
   end
 end
