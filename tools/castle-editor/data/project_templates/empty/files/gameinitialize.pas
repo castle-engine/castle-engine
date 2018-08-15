@@ -40,8 +40,8 @@ begin
   Window.OnUpdate := @WindowUpdate;
 
   { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
+  Window.Container.UIReferenceWidth := 1600;
+  Window.Container.UIReferenceHeight := 900;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
   Background := TCastleSimpleBackground.Create(Application);
@@ -52,6 +52,7 @@ begin
   LabelFps.Anchor(vpTop, -10);
   LabelFps.Anchor(hpRight, -10);
   LabelFps.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
+  LabelFps.FontSize := 20;
   Window.Controls.InsertFront(LabelFps);
 end;
 
