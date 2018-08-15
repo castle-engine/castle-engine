@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f zombie_fighter.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/2d_standard_ui/zombie_fighter/zombie_fighter.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd examples/2d_standard_ui/zombie_fighter/
+"${CASTLE_ENGINE}" compile

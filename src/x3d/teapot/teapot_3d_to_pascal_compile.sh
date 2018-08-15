@@ -7,4 +7,11 @@ if [ -f teapot_3d_to_pascal.lpr ]; then
 fi
 
 # Call this from ../../ (or just use `make examples').
-fpc -dRELEASE @castle-fpc.cfg src/x3d/teapot/teapot_3d_to_pascal.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile src/x3d/teapot/teapot_3d_to_pascal.lpr

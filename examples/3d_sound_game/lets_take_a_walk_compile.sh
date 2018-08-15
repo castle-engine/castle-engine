@@ -11,4 +11,11 @@ if [ -f lets_take_a_walk.lpr ]; then cd ../../; fi
 # For Unix, consider adding here -dCASTLE_WINDOW_XLIB
 # (and maybe "make clean-window" before)
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_sound_game/lets_take_a_walk.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile examples/3d_sound_game/lets_take_a_walk.lpr

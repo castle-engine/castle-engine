@@ -8,4 +8,11 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f x3d-nodes-to-pascal.lpr ]; then cd ../../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal.lpr

@@ -8,4 +8,11 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f dircleaner.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/tools/dircleaner.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile examples/tools/dircleaner.lpr

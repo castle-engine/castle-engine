@@ -4,25 +4,32 @@
 #     Compile all units, uses fpmake.
 #
 #   examples --
-#     Compile examples and tools (inside examples/ subdirectory).
-#     This compilation method uses our xxx_compile.sh Unix scripts,
-#     and requires only pure FPC installation.
+#     Compile most examples and tools (that don't use Lazarus LCL).
 #     Lazarus is not required (LCL dependent examples are not compiled).
+#
+#     This compilation method uses our xxx_compile.sh Unix scripts,
+#     and calls our "build tool" to compile examples and other tools
+#     (build tool, in turn, calls a compiler like FPC or Delphi).
+#
+#     The exception is when compiling the "build tool" itself,
+#     then we call FPC directly. (Although we *could* use
+#     the "build tool" to compile (bootstrap) itself, but it's not what
+#     people expect by default, so we don't do it for now.)
+#
 #     Note that you can also compile each example separately,
 #     just execute directly appropriate xxx_compile.sh scripts.
 #
 #   examples-laz --
-#     Compile examples and tools (inside examples/ subdirectory).
+#     Compile all examples and tools using Lazarus.
 #     This compilation method uses our .lpi project files,
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required, and Lazarus must know
 #     about the castle_* packages (compile them from Lazarus first).
 #
 #   clean --
-#     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,
-#     Lazarus trash (*.compiled),
-#     binaries of example programs,
-#     also FPC compiled trash in packages/*/lib/.
+#     Delete FPC temporary files, Delphi temporary files,
+#     Lazarus temporary files (*.compiled),
+#     binaries of example programs and tools.
 #
 # Not-so-commonly-useful targets:
 #
@@ -49,10 +56,11 @@ FIND:=find
 .PHONY: all
 all:
 	$(MAKE) --no-print-directory build-using-fpmake
+# Compile build tool first, used to compile other tools and examples
+	tools/build-tool/castle-engine_compile.sh
 	tools/texture-font-to-pascal/texture-font-to-pascal_compile.sh
 	tools/image-to-pascal/image-to-pascal_compile.sh
 	tools/castle-curves/castle-curves_compile.sh
-	tools/build-tool/castle-engine_compile.sh
 	tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d_compile.sh
 
 .PHONY: build-using-fpmake

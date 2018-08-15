@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f quick_2d_game.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/2d_standard_ui/quick_2d_game/quick_2d_game.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd examples/2d_standard_ui/quick_2d_game/
+"${CASTLE_ENGINE}" compile

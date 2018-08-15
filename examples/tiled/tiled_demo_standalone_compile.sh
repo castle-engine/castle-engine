@@ -8,7 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f tiled_demo_standalone.lpr ]; then cd ../../; fi
 
-# For Unix, consider adding here -dCASTLE_WINDOW_XLIB
-# (and maybe "make clean-window" before)
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/tiled/tiled_demo_standalone.lpr
+cd examples/tiled/
+"${CASTLE_ENGINE}" compile

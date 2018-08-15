@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f localization_test.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/localization/gettext/localization_test.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd examples/localization/gettext/
+"${CASTLE_ENGINE}" compile
