@@ -116,12 +116,26 @@ Now:
        Fix: stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
     * (in-progress) Allow loading from file in game
        Fix: read recursive
+
+       Need to understand how to counter the GetChildren to take read children and insert to my list?
+
+       read and experiment with streaming system using a simpler example
+
+       how does this relate?
+       test the demo.
+       d:/cygwin64/home/michalis/installed/fpclazarus/3.0.4/fpcsrc/packages/fcl-json/examples/demortti.pp
+
+       how does this solve it? test is it solved.
+       d:/cygwin64/home/michalis/installed/fpclazarus/3.0.4/fpcsrc/packages/fcl-web/src/base/webpage.pp
+
     * Allow adding new, deleting, moving around
     * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
     * show HierarchyUrl on caption
     * ask before overriding saved file
+    * mark Width, Height as stored=false when FloatWidth, FloatHeight available
 
 Lower priority:
+* ugly button and label text in example?
 * Files browser as above
 * templates:
     * Create other than "empty" project templates
