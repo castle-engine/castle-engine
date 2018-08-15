@@ -10,7 +10,7 @@ if [ -f detect_scene_clicks.lpr ]; then cd ../../; fi
 
 # Find the build tool, use it to compile
 if which tools/build-tool/castle-engine > /dev/null; then
-  CASTLE_ENGINE="`which tools/build-tool/castle-engine`"
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
 else
   CASTLE_ENGINE=castle-engine
 fi
