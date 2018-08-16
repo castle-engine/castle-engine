@@ -170,6 +170,11 @@ function UserConfigFile(const Extension: string): string; deprecated;
 function ProgramDataPath: string; deprecated;
 
 var
+  { URL used as a prefix of all @link(ApplicationConfig) returned URLs.
+    This overrides any autodetection of a suitable "user config" directory
+    done by default by @link(ApplicationConfig).
+
+    This must always end with a slash, if it's not empty. }
   ApplicationConfigOverride: string;
 
 { URL where we should read and write configuration files.
@@ -286,6 +291,11 @@ function ApplicationConfig(const Path: string): string;
 function ApplicationData(const Path: string): string;
 
 var
+  { URL used as a prefix of all @link(ApplicationData) returned URLs.
+    This overrides any autodetection of a suitable "data" directory
+    done by default by @link(ApplicationData).
+
+    This must always end with a slash, if it's not empty. }
   ApplicationDataOverride: string;
 
 {$ifdef UNIX}
