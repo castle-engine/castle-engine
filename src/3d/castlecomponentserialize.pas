@@ -84,27 +84,14 @@ end;
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJSONObject;
-  const Owner: TComponent; const Parent: TComponent): TComponent;
+  const Owner: TComponent): TComponent;
 var
-  ResultName, ResultClassName: String;
+  ResultClassName: String;
   ResultClass: TComponentClass;
 begin
-
-  ResultName := JsonObject.Strings['Name'];
   ResultClassName := JsonObject.Strings['_ClassName'];
   // do not confuse TJSONDeStreamer with extra ClassName property
   JsonObject.Delete('_ClassName');
-
-  { Try using InternalGetChild instead of creating a new instance.
-    This allows to use TCastleSeeneManager.Items. }
-  Result := nil;
-  if Parent is TUIControl then
-    Result := TUIControl(Parent).InternalGetChild(ResultName, ResultClassName)
-  else
-  if Parent is TCastleTransform then
-    Result := TCastleTransform(Parent).InternalGetChild(ResultName, ResultClassName);
-  if Result <> nil then
-    Exit;
 
   ResultClass := FindComponentClass(ResultClassName);
   if ResultClass = nil then
@@ -120,12 +107,9 @@ var
   JsonChild: TJSONObject;
   I: Integer;
   Child: TComponent;
-  Parent: TComponent;
 begin
   if AObject is TComponent then
   begin
-    Parent := TComponent(AObject);
-
     JsonChildren := Json.Arrays['_Children'];
     if JsonChildren <> nil then
     begin
@@ -134,13 +118,15 @@ begin
         JsonChild := JsonChildren.Objects[I];
         if JsonChild = nil then
           raise EInvalidComponentFile.Create('_Children must be an array of JSON objects');
-        Child := CreateComponentFromJson(JsonChild, Owner, Parent);
+        Child := CreateComponentFromJson(JsonChild, Owner);
         FJsonReader.JSONToObject(JsonChild, Child);
         if AObject is TUIControl then
-          TUIControl(AObject).InternalAddChild(Child)
+          // matches TUIControl.GetChildren implementation
+          TUIControl(AObject).InsertBack(Child as TUIControl)
         else
         if AObject is TCastleTransform then
-          TCastleTransform(AObject).InternalAddChild(Child)
+          // matches TCastleTransform.GetChildren implementation
+          TCastleTransform(AObject).Add(Child as TCastleTransform)
         else
           raise EInvalidComponentFile.CreateFmt('_Children contains unexpected class, it cannot be added to parent: %s',
             [Child.ClassName]);
@@ -175,7 +161,7 @@ begin
       JsonObject := JsonData as TJSONObject;
 
       { create Result with appropriate class }
-      Result := CreateComponentFromJson(JsonObject, Owner, nil);
+      Result := CreateComponentFromJson(JsonObject, Owner);
 
       { read Result contents from JSON }
       Reader.FJsonReader.JSONToObject(JsonObject, Result);
@@ -202,6 +188,10 @@ end;
 class procedure TCastleComponentWriter.StreamProperty(Sender: TObject;
   AObject: TObject; Info: PPropInfo; var Res: TJSONData);
 begin
+  // always save it
+  if Info^.Name = 'Name' then
+    Exit;
+
   // do not stream null values, as reader makes errors on them
   if Res is TJSONNull then
     FreeAndNil(Res);

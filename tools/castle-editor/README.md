@@ -107,8 +107,9 @@ Now:
 * Visual inspector. designer etc.
     * does recursive saving work when Tcastletransform is present multiple times in graph?
     * (in-progress) Allow editing at least most important properties:
-        * Name
-        * TCastleScene.URL (fix to set castle-data:)
+        * (done) Name
+        * (done) TCastleScene.URL
+	* (but fix URL to set castle-data:)
 	* initial animation?
         * TCastleTransform position, rotation, scale (using gizmos)
         * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
@@ -123,17 +124,34 @@ Now:
 	 /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
 
        - after loading, invisible, why?
-       - simplify, InternalGetChild can be completely removed now
     * Allow adding new, deleting, moving around
-    * need better name for TUIControlSizeable. TCastleGroup? TUIControl -> TCastleUserInterface?
+    * UI controls improvements:
+	* better names
+	     TUIControlSizeable -> TCastleUserInterfaceRect?
+	     TUIControl -> TCastleUserInterface?
+	     other TUIxxx - > rename too.
+	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
+	  At TCastleUserInterfaceRect document:
+
+	    Some descendants support auto-sizing, which means that the control's size
+	    set by these properties is ignored, and instead the calculated size
+	    (CalculatedWidth, CalculatedHeight, CalculatedRect) depends on some core
+	    values of the control. E.g. TCastleImageControl adjusts to image,
+	    TCastleLabel adjusts to caption, TCastleButton adjusts to button and icon,
+	    TCastleVerticalGroup adjusts to all children and so on.
+	    Consult the documentation of each descendant for the exact
+	    specification of behavior, usually a property called @code(AutoSize) controls it. }
+
+	* virtual functions to say VerticalResizingEffective
+	  (at tTUIControl or only TUIContronSizeable)
+    * remove _Children once processed
     * show HierarchyUrl on caption, whether it's modified, ask before closing project without saving
     * ask before overriding saved file
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
-    * MainScene is not restored OK, also it cannot be chosen
+    * MainScene is not restored OK? , also it cannot be chosen
       (we disabled in object inspector some types, maybe we should not?)
-      (maybe LookupRoot should be something better, like HierarchyOwner?)
 
 Lower priority:
 * ugly button and label text in example?

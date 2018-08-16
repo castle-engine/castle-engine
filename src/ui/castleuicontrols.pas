@@ -1021,9 +1021,6 @@ type
     property Controls [Index: Integer]: TUIControl read GetControls write SetControls;
     function ControlsCount: Integer;
 
-    function InternalGetChild(const ResultName, ResultClassName: String): TComponent; virtual;
-    procedure InternalAddChild(const Child: TComponent); virtual;
-
     { Add child control, at the front of other children. }
     procedure InsertFront(const NewItem: TUIControl); overload;
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
@@ -3268,18 +3265,6 @@ begin
   if FControls <> nil then
     Result := FControls.Count else
     Result := 0;
-end;
-
-function TUIControl.InternalGetChild(
-  const ResultName, ResultClassName: String): TComponent;
-begin
-  Result := nil;
-end;
-
-procedure TUIControl.InternalAddChild(const Child: TComponent);
-begin
-  if Child is TUIControl then
-    InsertBack(TUIControl(Child));
 end;
 
 procedure TUIControl.SetContainer(const Value: TUIContainer);

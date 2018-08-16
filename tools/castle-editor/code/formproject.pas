@@ -241,6 +241,9 @@ begin
   HierarchyRoot := NewHierarchyRoot;
   HierarchyUrl := NewHierarchyUrl;
   HierarchyOwner := NewHierarchyOwner;
+  // TODO: is this correct? what should be set here?
+  PropertyEditorHook.LookupRoot := HierarchyOwner;
+
   UpdateHierarchy(HierarchyRoot);
 end;
 
@@ -357,8 +360,6 @@ begin
   OutputList := TOutputList.Create(ListOutput);
 
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
-  // TODO: is this correct? what should be set here?
-  PropertyEditorHook.LookupRoot := CastleControl;
 
   InspectorSimple := CommonInspectorCreate;
   InspectorSimple.Parent := TabSimple;
@@ -655,8 +656,6 @@ begin
   Caption := SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
 
   ShellTreeView1.Root := ProjectPath;
-
-  // TODO CastleControl1 should be TCastleControlCustom ?
 
   SampleControls;
 

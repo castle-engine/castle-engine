@@ -675,8 +675,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function InternalGetChild(const ResultName, ResultClassName: String): TComponent; virtual;
-    procedure InternalAddChild(const Child: TComponent); virtual;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -3133,18 +3131,6 @@ begin
   inherited;
   for I := 0 to List.Count - 1 do
     Proc(List[I]);
-end;
-
-function TCastleTransform.InternalGetChild(
-  const ResultName, ResultClassName: String): TComponent;
-begin
-  Result := nil;
-end;
-
-procedure TCastleTransform.InternalAddChild(const Child: TComponent);
-begin
-  if Child is TCastleTransform then
-    Add(TCastleTransform(Child));
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.
