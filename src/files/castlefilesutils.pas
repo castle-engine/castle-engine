@@ -206,6 +206,9 @@ function ApplicationConfig(const Path: string): string;
   Android assets (files packaged inside Android apk) starting with
   @code(castle-android-assets:/...).
 
+  See the manual about the purpose of "data" directory:
+  https://castle-engine.io/manual_data_directory.php .
+
   Given Path parameter must specify a path under the data directory,
   with possible subdirectories, with possible filename at the end.
   The Path is a relative URL, so you should
