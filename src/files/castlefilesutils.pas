@@ -199,27 +199,37 @@ var
   (simplifying: looks inside ~/.config/<application-name>/). }
 function ApplicationConfig(const Path: string): string;
 
-{ URL from which we should read data files.
-  This returns URL, which is comfortable since our engine operates
-  on URLs everywhere. On normal desktops systems this will return
+{ URL from which we should read data file.
+  This returns an URL, which is comfortable since our engine operates
+  on URLs everywhere. On normal desktop systems this will return
   a @code(file://...) URL. On Android, it will return an URL indicating
-  assets (files packages together inside Android apk) starting with
-  @code(assets:/...).
+  Android assets (files packaged inside Android apk) starting with
+  @code(castle-android-assets:/...).
 
-  Given Path specifies a path under the data directory,
+  Given Path parameter must specify a path under the data directory,
   with possible subdirectories, with possible filename at the end.
   The Path is a relative URL, so you should
-  always use slashes "/" (regardless of OS), and you can escape characters by %xx.
-  You can use Path = '' to get the URL to whole data directory.
-  Note that files there may be read-only, do not try to write there.
+  always use slashes "/" to separate subdirectories (regardless of OS),
+  and you can escape characters by %xx.
+  You can use Path = '' to get the URL to the whole data directory.
+
+  Remember that files inside the data directory may be read-only on some systems.
+  If you want to write files, use the @link(ApplicationConfig) instead.
 
   The algorithm to find base data directory (with respect to which
   Path is resolved) is OS-specific.
   It looks at ApplicationName, and searches a couple of common locations,
-  using the first location that exists. We try to look first inside
-  user-specific directories, then inside system-wide directories,
-  and as a fallback we use current exe directory (under Windows)
-  or current working directory (under other OSes).
+  using the first location that exists. We look inside
+  standard user-specific directories, then inside standard system-wide directories,
+  then we look for the "data" subdirectory
+  in the current exe directory (under Windows)
+  or in the current working directory (under other OSes).
+
+  @bold(The algorithm specification below is non-trivial.
+  Don't read it :@)
+  Instead folow the short version:
+  just place the files inside the @code(data) subdirectory
+  of your project, and everything will work out-of-the-box.)
 
   The exact details how we currently look for data directory
   (specified here so that you know how to install your program):
@@ -228,27 +238,35 @@ function ApplicationConfig(const Path: string): string;
     @itemLabel(Windows)
     @item(@orderedList(
       @item(@code(data) subdirectory inside our exe directory, if exists.)
-      @item(Last resort fallback: just our exe directory.)
+
+      @item(Otherwise: just our exe directory.
+        But this alternative is deprecated, please don't depend on it.
+        Instead, place the data inside the "data" subdirectory.
+      )
     ))
 
-    @itemLabel(macOS)
+    @itemLabel(macOS and iOS)
     @item(@orderedList(
-      @item(@code(Contents/Resources/data) subdirectory inside our bundle directory,
+      @item(On desktop macOS:
+        @code(Contents/Resources/data) subdirectory inside our bundle directory,
         if we are inside a bundle and such subdirectory exists.)
-      @item(Otherwise, algorithm on macOS follows algorithm on other Unixes,
-        see below.)
+      @item(On iOS:
+        @code(data) subdirectory inside our bundle directory,
+        if we are inside a bundle and such subdirectory exists.)
+      @item(Otherwise, algorithm follows the algorithm on desktop Unix.)
     ))
 
     @itemLabel(Android)
     @item(@orderedList(
-      @item(We always return @code(assets:/) directory, to read assets
-        from the apk.)
+      @item(We always return @code(castle-android-assets:/) directory,
+        which is a special location on Android where application
+        should store it's assets.)
     ))
 
-    @itemLabel(Unix (Linux, macOS, FreeBSD etc.))
+    @itemLabel(Desktop Unix (Linux, macOS, FreeBSD...))
     @item(@orderedList(
       @item(@code(~/.local/share/) + ApplicationName.
-        This is nice user-specific data directory, following the default dictated by
+        This is user-specific data directory, following the default dictated by
         http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
         If such directory exists, it is returned.
 
@@ -277,14 +295,16 @@ function ApplicationConfig(const Path: string): string;
 
         This is suitable for system-wide installations with package manager.)
 
-       @item(@code(data) subdirectory of current directory, if exists.
-         Using @code(data) subdirectory is usually comfortable,
-         it allows you to separate code from data better.)
+      @item(@code(data) subdirectory of the current directory, if exists.
+        This is easiest and comfortable for development, just keep
+        the "data" subdirectory alongside the executable binary.)
 
       @item(As a last resort, we just return the current directory.
-        So you can just place data files inside the current directory,
-        and if user will run your game from it's own directory --- it will
-        work without any fuss.)
+        So you can just place data files directly inside the current directory.
+
+        This alternative is deprecated, please don't depend on it.
+        Instead, place the data inside the "data" subdirectory.
+      )
     )
   )
 ) }
