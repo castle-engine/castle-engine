@@ -64,9 +64,9 @@ examples/3d_rendering_processing/build_3d_object_by_code
 examples/3d_rendering_processing/build_3d_tunnel
 examples/3d_rendering_processing/call_pascal_code_from_3d_model_script
 examples/3d_rendering_processing/cars_demo
-examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config
 examples/3d_rendering_processing/combine_multiple_x3d_into_one
 examples/3d_rendering_processing/custom_3d_object
+examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config
 examples/3d_rendering_processing/detect_scene_clicks
 examples/3d_rendering_processing/display_box_custom_shaders
 examples/3d_rendering_processing/fog_culling
@@ -74,10 +74,11 @@ examples/3d_rendering_processing/gl_primitive_performance
 examples/3d_rendering_processing/listen_on_x3d_events
 examples/3d_rendering_processing/multiple_viewports
 examples/3d_rendering_processing/placeholder_names
-examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad
 examples/3d_rendering_processing/render_3d_to_image
+examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad
 examples/3d_rendering_processing/scene_manager_demos
 examples/3d_rendering_processing/show_bounding_rect_in_2d
+examples/3d_rendering_processing/switch_projection
 examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators
 examples/3d_rendering_processing/tools/gen_light_map
 examples/3d_rendering_processing/triangulate_demo
@@ -85,7 +86,6 @@ examples/3d_rendering_processing/triangulate_demo.res
 examples/3d_rendering_processing/view_3d_model_advanced
 examples/3d_rendering_processing/view_3d_model_advanced.res
 examples/3d_rendering_processing/view_3d_model_basic
-examples/3d_rendering_processing/switch_projection
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
@@ -111,6 +111,7 @@ examples/fonts/test_local_characters/test_local_characters
 examples/fonts/test_local_characters/test_local_characters_standalone
 examples/fonts/texture-font-to-pascal
 examples/fps_game/fps_game
+examples/headlight_test/headlight_test
 examples/images_videos/dds_decompose
 examples/images_videos/draw_images_on_gpu
 examples/images_videos/drawing_modes_test
@@ -119,9 +120,9 @@ examples/images_videos/image_compare
 examples/images_videos/image_convert
 examples/images_videos/image_identify
 examples/images_videos/image_paint
+examples/images_videos/image_render_custom_shader
 examples/images_videos/simple_video_editor
 examples/images_videos/test_castleimage_draw3x3
-examples/images_videos/image_render_custom_shader
 examples/isometric_game/isometric_game
 examples/joystick/joystick_demo
 examples/lazarus/load_model_and_camera_manually/lib/
@@ -136,6 +137,8 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/localization/custom/castle_localization
+examples/localization/gettext/localization_test
 examples/mobile/drawing_toy/drawing_toy
 examples/mobile/drawing_toy/libdrawing_toy.so
 examples/mobile/simple_3d_demo/libsimple_3d_demo.so
@@ -163,8 +166,6 @@ examples/research_special_rendering_methods/radiance_transfer/show_sh
 examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
 examples/resource_animations/resource_animations
-examples/localization/gettext/localization_test
-examples/localization/custom/castle_localization
 examples/screen_effects_demo/screen_effects_demo
 examples/space_filling_curve/draw_space_filling_curve
 examples/terrain/terrain

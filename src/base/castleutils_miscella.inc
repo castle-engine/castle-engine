@@ -26,17 +26,17 @@ const
 { basic exceptions ---------------------------------------- }
 
 type
-  { Internal error in the program. Something that definitely should not
+  { Internal error (bug) in the program. Something that definitely should not
     happen and indicates a bug that should be reported.
 
     This exception must be shown to user (never silently ignored),
     and usually the safest thing to do is to close the program at this point.
 
     We will add to your error message (passed to the constructor) some
-    instructive message, like @code('Internal error occurred, please
-    submit this to the author : '). }
+    instructive message, like @code('Please submit this to the developers: '). }
   EInternalError = class(Exception)
-    constructor Create(const s: string);
+    constructor Create(const S: string); overload;
+    constructor Create(const ErrorNumber: Int64); overload;
     constructor CreateFmt(const s: string; const Args: array of const);
   end;
 
@@ -145,9 +145,9 @@ type
 
 {$ifdef read_implementation}
 
-constructor EInternalError.Create(const s: string);
+constructor EInternalError.Create(const S: string);
 begin
-  inherited Create('Internal error (submit a bugreport!): ' + S);
+  inherited Create('Internal error occured. Please submit a bugreport providing this information to the developers: ' + S);
 //   inherited Create('Internal error: something that should not ever happen... happened. ' +
 //     'This indicates a bug in the program''s code (or something related, ' +
 //     'like a shared library, that should be workarounded from the program then). ' +
@@ -155,6 +155,11 @@ begin
 //     'bug in some way, so it may be something simple and I can probably fix it '+
 //     '(or it''s external bug and I am not responsible for this...). '+}
 //     'We definitely want you to report this as a bug! Please send this error-specific info: ' + S);
+end;
+
+constructor EInternalError.Create(const ErrorNumber: Int64);
+begin
+  Create(IntToStr(ErrorNumber));
 end;
 
 constructor EInternalError.CreateFmt(const s: string; const Args: array of const);
