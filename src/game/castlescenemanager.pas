@@ -595,6 +595,16 @@ type
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
+    { Instance for headlight that should be used for this scene.
+      Uses @link(Headlight) method, applies appropriate camera position/direction.
+      Returns @true only if @link(Headlight) method returned @true
+      and a suitable camera was present.
+
+      Instance should be considered undefined ("out" parameter)
+      when we return @false. }
+    function HeadlightInstance(out Instance: TLightInstance): boolean;
+      deprecated 'internal information, do not use this';
+
   published
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
@@ -2022,90 +2032,84 @@ begin
 end;
 
 procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
-
-  { Instance for headlight that should be used for this scene.
-    Uses @link(Headlight) method, applies appropriate camera position/direction.
-    Returns @true only if @link(Headlight) method returned @true
-    and a suitable camera was present.
-
-    Instance should be considered undefined ("out" parameter)
-    when we return @false. }
-  function HeadlightInstance(out Instance: TLightInstance): boolean;
-  var
-    Node: TAbstractLightNode;
-    HC: TCamera;
-
-    procedure PrepareInstance;
-    var
-      Position, Direction, Up: TVector3;
-    begin
-      Assert(Node <> nil);
-
-      HC.GetView(Position, Direction, Up);
-
-      { set location/direction of Node }
-      if Node is TAbstractPositionalLightNode then
-      begin
-        TAbstractPositionalLightNode(Node).FdLocation.Send(Position);
-        if Node is TSpotLightNode then
-          TSpotLightNode(Node).FdDirection.Send(Direction) else
-        if Node is TSpotLightNode_1 then
-          TSpotLightNode_1(Node).FdDirection.Send(Direction);
-      end else
-      if Node is TAbstractDirectionalLightNode then
-        TAbstractDirectionalLightNode(Node).FdDirection.Send(Direction);
-
-      Instance.Node := Node;
-      Instance.Location := Position;
-      Instance.Direction := Direction;
-      Instance.Transform := TMatrix4.Identity;
-      Instance.TransformScale := 1;
-      Instance.Radius := MaxSingle;
-      Instance.WorldCoordinates := true;
-    end;
-
-  begin
-    Result := false;
-    Node := Headlight;
-    if Node <> nil then
-    begin
-      {$warnings off}
-      if HeadlightFromViewport then
-        HC := Camera
-      else
-        HC := GetHeadlightCamera;
-      {$warnings on}
-
-      { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
-        rendering is done by a custom viewport and HeadlightFromViewport = false.
-        So check HC <> nil.
-        When nil we have to assume headlight doesn't shine.
-
-        We don't want to use camera settings from current viewport
-        (unless HeadlightFromViewport = true, which is a hack).
-        This would mean that mirror textures (like GeneratedCubeMapTexture)
-        will need to have different contents in different viewpoints,
-        which isn't possible. We also want to use scene manager's camera,
-        to have it tied with scene manager's CameraToChanges implementation.
-
-        So if you use custom viewports and want headlight Ok,
-        be sure to explicitly set TCastleSceneManager.Camera
-        (probably, to one of your viewpoints' cameras).
-        Or use a hacky HeadlightFromViewport. }
-
-      if HC <> nil then
-      begin
-        PrepareInstance;
-        Result := true;
-      end;
-    end;
-  end;
-
 var
   HI: TLightInstance;
 begin
+  {$warnings off}
   if HeadlightInstance(HI) then
     Lights.Add(HI);
+  {$warnings on}
+end;
+
+function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
+var
+  Node: TAbstractLightNode;
+  HC: TCamera;
+
+  procedure PrepareInstance;
+  var
+    Position, Direction, Up: TVector3;
+  begin
+    Assert(Node <> nil);
+
+    HC.GetView(Position, Direction, Up);
+
+    { set location/direction of Node }
+    if Node is TAbstractPositionalLightNode then
+    begin
+      TAbstractPositionalLightNode(Node).FdLocation.Send(Position);
+      if Node is TSpotLightNode then
+        TSpotLightNode(Node).FdDirection.Send(Direction) else
+      if Node is TSpotLightNode_1 then
+        TSpotLightNode_1(Node).FdDirection.Send(Direction);
+    end else
+    if Node is TAbstractDirectionalLightNode then
+      TAbstractDirectionalLightNode(Node).FdDirection.Send(Direction);
+
+    Instance.Node := Node;
+    Instance.Location := Position;
+    Instance.Direction := Direction;
+    Instance.Transform := TMatrix4.Identity;
+    Instance.TransformScale := 1;
+    Instance.Radius := MaxSingle;
+    Instance.WorldCoordinates := true;
+  end;
+
+begin
+  Result := false;
+  Node := Headlight;
+  if Node <> nil then
+  begin
+    {$warnings off}
+    if HeadlightFromViewport then
+      HC := Camera
+    else
+      HC := GetHeadlightCamera;
+    {$warnings on}
+
+    { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
+      rendering is done by a custom viewport and HeadlightFromViewport = false.
+      So check HC <> nil.
+      When nil we have to assume headlight doesn't shine.
+
+      We don't want to use camera settings from current viewport
+      (unless HeadlightFromViewport = true, which is a hack).
+      This would mean that mirror textures (like GeneratedCubeMapTexture)
+      will need to have different contents in different viewpoints,
+      which isn't possible. We also want to use scene manager's camera,
+      to have it tied with scene manager's CameraToChanges implementation.
+
+      So if you use custom viewports and want headlight Ok,
+      be sure to explicitly set TCastleSceneManager.Camera
+      (probably, to one of your viewpoints' cameras).
+      Or use a hacky HeadlightFromViewport. }
+
+    if HC <> nil then
+    begin
+      PrepareInstance;
+      Result := true;
+    end;
+  end;
 end;
 
 function TCastleAbstractViewport.PrepareParams: TPrepareParams;
