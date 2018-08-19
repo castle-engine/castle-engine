@@ -1022,12 +1022,17 @@ type
       Using this is an alternative way to playing looping sounds using
       @link(Sound) with Looping=true parameter.
 
-      The TLoopingChannel instance automatically remembers the sound is plays.
+      The TLoopingChannel instance automatically remembers the sound it plays.
       You start playing by setting @link(TLoopingChannel.Sound)
-      to some sound (e.g. @link(SoundFromName SoundFromName('my_music'))).
+      to some sound. For example:
+
+      @longCode(# LoopingChannel[0].Sound := SoundFromName('my_music'); #)
+
       You stop by setting @link(TLoopingChannel.Sound) to something else,
       which can be @link(stNone) to just stop playing any looping
-      sound on this channel.
+      sound on this channel. For example:
+
+      @longCode(# LoopingChannel[0].Sound := stNone; #)
 
       Each channel has it's own @link(TLoopingChannel.Volume)
       that can be changed at any point.
