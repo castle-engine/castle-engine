@@ -1110,48 +1110,67 @@ type
       You may also set your main TCastleScene (if you have any) as MainScene. }
     property Items: TSceneManagerWorld read FItems;
 
-    { The main scene of your 3D world. It's not necessary to set this
-      (after all, your 3D world doesn't even need to have any TCastleScene
-      instance). This @italic(must be) also added to our @link(Items)
-      (otherwise things will work strangely).
+    { The main scene of your 3D world. It's not necessary to set this.
+      It adds some optional features that require a notion of
+      the "main" scene to make sense.
 
-      When set, this is used for a couple of things:
+      The scene you set here @italic(must) also be added to our @link(Items).
+
+      The MainScene is used for a couple of things:
 
       @unorderedList(
-        @item Decides what headlight is used (by TCastleScene.Headlight).
+        @item(Determines initial camera position, orientation, projection,
+          move speed and other details.
+          The initial camera follows the X3D Viewpoint, OrthoViewpoint
+          and NavigationInfo nodes inside the MainScene.
 
-        @item(Decides what background is rendered.
-          @italic(Notes for implementing descendants of this class:)
-          You can change this by overriding Background method.)
-
-        @item(Decides if, and where, the main light casting shadows is.
-          @italic(Notes for implementing descendants of this class:)
-          You can change this by overriding MainLightForShadows method.)
-
-        @item(Determines projection for viewing (if you use
-          default @link(CalculateProjection) implementation).)
-
-        @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints
-          and navigation info.
-          This means that @link(Camera) will be updated when VRML/X3D events
-          change current Viewpoint or NavigationInfo, for example
+          The camera will also stay synchronized with the X3D nodes in MainScene.
+          This means that @link(Camera) will be updated when X3D events
+          change current X3D Viewpoint or X3D NavigationInfo, for example
           you can animate the camera by animating the viewpoint
           (or it's transformation) or bind camera to a viewpoint.
 
-          Note that scene manager "hijacks" some Scene events:
+          Note that scene manager "hijacks" some TCastleSceneCore events
+          for this purpose:
           TCastleSceneCore.OnBoundViewpointVectorsChanged,
           TCastleSceneCore.ViewpointStack.OnBoundChanged,
           TCastleSceneCore.NavigationInfoStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
           you can use scene manager's event OnBoundViewpointChanged,
-          OnBoundNavigationInfoChanged.)
+          OnBoundNavigationInfoChanged.
+
+          Note that descendants that overrride @link(CalculateProjection)
+          can change this behaviour.
+          For example @link(TCastle2DSceneManager) completely ignores the camera
+          parameters in MainScene, and instead always sets up a suitable
+          orthogonal camera.
+        )
+
+        @item(Determines what background is rendered.
+          If the MainScene contains an X3D Background node, it will be used.
+          Otherwise we render a background using @link(BackgroundColor).
+
+          Note that when @link(Transparent) is @true,
+          we never render any background (neither from MainScene,
+          nor from @link(BackgroundColor)).
+        )
+
+        @item(Determines whether headlight is used if @link(UseHeadlight)
+          is hlMainScene. The value of
+          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+          then determines the headlight.
+          The initial
+          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+          value depends on the X3D NavigationInfo node inside MainScene.)
+
+        @item(Determines if, and where, the main light casting shadow volumes is.)
+
+        @item(Determines lights shining on all scenes, if @link(UseGlobalLights).)
+
+        @item(Determines fog on all scenes, if @link(UseGlobalFog).)
       )
 
-      The above stuff is only sensible when done once per scene manager,
-      that's why we need MainScene property to indicate this.
-      (We cannot just use every 3D object from @link(Items) for this.)
-
-      Freeing MainScene will automatically set this to @nil. }
+      Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
 
     { Called on any camera change. }

@@ -71,19 +71,6 @@ begin
   end;
 end;
 
-function CreateMainSceneNode: TX3DRootNode;
-var
-  NavigationInfo: TNavigationInfoNode;
-begin
-  Result := TX3DRootNode.Create;
-
-  NavigationInfo := TNavigationInfoNode.Create;
-  NavigationInfo.Headlight := true;
-  Result.AddChildren(NavigationInfo);
-end;
-
-var
-  MainScene: TCastleScene;
 begin
   Window := TCastleWindow.Create(Application);
   Window.OnPress := @WindowPress;
@@ -98,11 +85,7 @@ begin
   AddHexagon(Vector3(1.5, 0, 1), BlueRGB, 2);
   AddHexagon(Vector3(-1.5, 0, 1), RedRGB, 3);
 
-  // add MainScene only to turn on headlight (light shining from camera)
-  MainScene := TCastleScene.Create(Application);
-  MainScene.Load(CreateMainSceneNode, true);
-  Window.SceneManager.Items.Add(MainScene);
-  Window.SceneManager.MainScene := MainScene;
+  Window.SceneManager.UseHeadlight := hlOn;
 
   // configure initial camera view
   Window.SceneManager.WalkCamera.SetView(
