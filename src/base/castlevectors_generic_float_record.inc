@@ -750,12 +750,12 @@ end;
 
 function TGenericVector2.ToString: string;
 begin
-  Result := Format('%f %f', [Data[0], Data[1]]);
+  Result := FormatDot('%f %f', [Data[0], Data[1]]);
 end;
 
 function TGenericVector2.ToRawString: string;
 begin
-  Result := Format('%g %g', [Data[0], Data[1]]);
+  Result := FormatDot('%g %g', [Data[0], Data[1]]);
 end;
 
 function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
@@ -961,12 +961,12 @@ end;
 
 function TGenericVector3.ToString: string;
 begin
-  Result := Format('%f %f %f', [Data[0], Data[1], Data[2]]);
+  Result := FormatDot('%f %f %f', [Data[0], Data[1], Data[2]]);
 end;
 
 function TGenericVector3.ToRawString: string;
 begin
-  Result := Format('%g %g %g', [Data[0], Data[1], Data[2]]);
+  Result := FormatDot('%g %g %g', [Data[0], Data[1], Data[2]]);
 end;
 
 function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
@@ -1221,12 +1221,12 @@ end;
 
 function TGenericVector4.ToString: string;
 begin
-  Result := Format('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := FormatDot('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
 end;
 
 function TGenericVector4.ToRawString: string;
 begin
-  Result := Format('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
+  Result := FormatDot('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
 end;
 
 function TGenericVector4.GetItems(const Index: TIndex): TGenericScalar;
@@ -1443,16 +1443,16 @@ end;
 
 function TGenericMatrix2.ToString(const LineIndent: string): string;
 begin
-  Result := Format('%s%f %f' + NL +
-                   '%s%f %f',
+  Result := FormatDot('%s%f %f' + NL +
+                      '%s%f %f',
    [LineIndent, Data[0, 0], Data[1, 0],
     LineIndent, Data[0, 1], Data[1, 1] ]);
 end;
 
 function TGenericMatrix2.ToRawString(const LineIndent: string): string;
 begin
-  Result := Format('%s%g %g' + NL +
-                   '%s%g %g',
+  Result := FormatDot('%s%g %g' + NL +
+                      '%s%g %g',
    [LineIndent, Data[0, 0], Data[1, 0],
     LineIndent, Data[0, 1], Data[1, 1] ]);
 end;
@@ -1705,9 +1705,9 @@ end;
 
 function TGenericMatrix3.ToString(const LineIndent: string): string;
 begin
-  Result := Format('%s%f %f %f' + NL +
-                   '%s%f %f %f' + NL +
-                   '%s%f %f %f',
+  Result := FormatDot('%s%f %f %f' + NL +
+                      '%s%f %f %f' + NL +
+                      '%s%f %f %f',
    [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
     LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
@@ -1715,9 +1715,9 @@ end;
 
 function TGenericMatrix3.ToRawString(const LineIndent: string): string;
 begin
-  Result := Format('%s%g %g %g' + NL +
-                   '%s%g %g %g' + NL +
-                   '%s%g %g %g',
+  Result := FormatDot('%s%g %g %g' + NL +
+                      '%s%g %g %g' + NL +
+                      '%s%g %g %g',
    [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
     LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
@@ -2070,10 +2070,10 @@ end;
 
 function TGenericMatrix4.ToString(const LineIndent: string): string;
 begin
-  Result := Format('%s%f %f %f %f' + NL +
-                   '%s%f %f %f %f' + NL +
-                   '%s%f %f %f %f' + NL +
-                   '%s%f %f %f %f',
+  Result := FormatDot('%s%f %f %f %f' + NL +
+                      '%s%f %f %f %f' + NL +
+                      '%s%f %f %f %f' + NL +
+                      '%s%f %f %f %f',
    [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
     LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
@@ -2082,10 +2082,10 @@ end;
 
 function TGenericMatrix4.ToRawString(const LineIndent: string): string;
 begin
-  Result := Format('%s%g %g %g %g' + NL +
-                   '%s%g %g %g %g' + NL +
-                   '%s%g %g %g %g' + NL +
-                   '%s%g %g %g %g',
+  Result := FormatDot('%s%g %g %g %g' + NL +
+                      '%s%g %g %g %g' + NL +
+                      '%s%g %g %g %g' + NL +
+                      '%s%g %g %g %g',
    [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
     LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],

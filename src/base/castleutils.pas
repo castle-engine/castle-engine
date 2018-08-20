@@ -68,9 +68,10 @@
       Maybe we had good reasons to do this,
       but in the long run it may be unexpected to new developers
       that the engine overrides a global DecimalSeparator.
-      We will eventually remove this feature in the future.)
-      Of course, our functions will continue to return the values
-      with "dot" inside, regardless of the DecimalSeparator.
+      We will remove this feature in the future.)
+
+      Use @link(FormatDot) to reliably output floating point values
+      with "dot" as a decimal separator.
     )
 
     @item(Makes AnsiString (which is usually just called "string")

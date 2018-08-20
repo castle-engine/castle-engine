@@ -141,6 +141,10 @@ type
   end;
   {$warnings on}
 
+{ Like standard Format, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings. }
+function FormatDot(const Fmt: String; const Args: array of const): String;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -269,6 +273,15 @@ end;
 constructor TNoParameterlessContructor.Create;
 begin
   raise Exception.Create('Parameterless constructor of ' + ClassName + ' should never be called');
+end;
+
+function FormatDot(const Fmt: String; const Args: array of const): String;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := Format(Fmt, Args, FormatSettings);
 end;
 
 {$endif read_implementation}
