@@ -126,7 +126,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  CastleRendererInternalTextureEnv, CastleBoxes;
+  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform;
 
 {$define read_interface}
 
@@ -743,7 +743,7 @@ type
       shaders. This makes multi-pass rendering, like for shadow volumes,
       play nicely with shaders. Otherwise we could recreate shaders at each
       rendering pass. }
-    ProgramCache: array [TRenderingPass] of TShaderProgramCache;
+    ProgramCache: array [TTotalRenderingPass] of TShaderProgramCache;
 
     Cache: TShapeCache;
 
@@ -880,7 +880,9 @@ type
     BaseLights: TLightInstancesList;
 
     { Rendering pass. Set in each RenderBegin. }
-    Pass: TRenderingPass;
+    InternalPass: TInternalRenderingPass;
+    UserPass: TUserRenderingPass;
+    Pass: TTotalRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: IAbstractFogObject;
@@ -982,7 +984,9 @@ type
     procedure UnprepareAll;
 
     procedure RenderBegin(ABaseLights: TLightInstancesList;
-      LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
+      LightRenderEvent: TLightRenderEvent;
+      const AInternalPass: TInternalRenderingPass;
+      const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
     procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
@@ -1049,7 +1053,6 @@ implementation
 // to keep it working for backward compatibility.
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
-  CastleTransform,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles;
 {$warnings on}
 
@@ -2548,10 +2551,14 @@ begin
 end;
 
 procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
-  LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
+  LightRenderEvent: TLightRenderEvent;
+  const AInternalPass: TInternalRenderingPass;
+  const AUserPass: TUserRenderingPass);
 begin
   BaseLights := ABaseLights;
-  Pass := APass;
+  InternalPass := AInternalPass;
+  UserPass := AUserPass;
+  Pass := InternalPass * UserPass;
 
   RenderCleanState(true);
 

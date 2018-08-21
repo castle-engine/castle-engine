@@ -344,6 +344,15 @@ type
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
 
+    var
+      { Rendering pass, for user purposes.
+        Useful to keep shaders cached when you render the same scene multiple times
+        in the same frame (under different lighting conditions or other things
+        that change shaders).
+        By default this is always 0, the engine doesn't modify this.
+        You can set this field manually. }
+      CustomRenderingPass: TUserRenderingPass;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -2273,7 +2282,8 @@ begin
 
   { clear FRenderParams instance }
 
-  FRenderParams.Pass := 0;
+  FRenderParams.InternalPass := 0;
+  FRenderParams.UserPass := CustomRenderingPass;
   FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 

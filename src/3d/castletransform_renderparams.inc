@@ -71,9 +71,21 @@
   );
 
   { @exclude Internal.
-
     Rendering pass, for multi-pass rendering, like for shadow volumes. }
-  TRenderingPass = 0..1;
+  TInternalRenderingPass = 0..1;
+
+  { Rendering pass, for user purposes.
+    Useful to keep shaders cached when you render the same scene multiple times
+    in the same frame (under different lighting conditions or other things
+    that change shaders). }
+  TUserRenderingPass = 0..2;
+
+  { @exclude Internal.
+    Rendering pass combining TInternalRenderingPass and TUserRenderingPass. }
+  TTotalRenderingPass = 0..
+    (High(TInternalRenderingPass) + 1) *
+    (High(TUserRenderingPass) + 1)
+    - 1;
 
   { @exclude Internal.
 
@@ -197,8 +209,14 @@
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
 
-    { Rendering pass number, for multi-pass rendering, like for shadow volumes. }
-    Pass: TRenderingPass;
+    { Rendering pass number, for internal multi-pass rendering,
+      like for shadow volumes. }
+    InternalPass: TInternalRenderingPass;
+
+    { Rendering pass number, for user purposes.
+      Multiplied with InternalPass to get final pass number,
+      that determines shaders used. }
+    UserPass: TUserRenderingPass;
 
     { Transformation that should be applied to the rendered result.
       If TransformIdentity, then Transform and InverseTransform is always identity.

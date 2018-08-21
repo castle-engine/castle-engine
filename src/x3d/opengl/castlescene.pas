@@ -1023,7 +1023,7 @@ var
   SI: TShapeTreeIterator;
   S: TGLShape;
   I: Integer;
-  Pass: TRenderingPass;
+  Pass: TTotalRenderingPass;
 begin
   PreparedRender := false;
   PreparedShapesResources := false;
@@ -1138,7 +1138,7 @@ var
 
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
-    if (Params.Pass = 0) and not ExcludeFromStatistics then
+    if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
 
     { Optionally free Shape arrays data now, if they need to be regenerated. }
@@ -1270,7 +1270,7 @@ begin
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
-  if (not Params.Transparent) and (Params.Pass = 0) then
+  if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
       Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
@@ -1297,7 +1297,7 @@ begin
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
-    LightRenderEvent, Params.Pass);
+    LightRenderEvent, Params.InternalPass, Params.UserPass);
   try
     if Attributes.Mode <> rmFull then
     begin
@@ -1438,7 +1438,7 @@ procedure TCastleScene.PrepareResources(
         { prepare resources by doing rendering (but with
           Renderer.PrepareRenderShape <> 0, so nothing will be actually drawn). }
         BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
-        Renderer.RenderBegin(BaseLights, nil, 0);
+        Renderer.RenderBegin(BaseLights, nil, 0, 0);
         while SI.GetNext do
         begin
           Shape := TGLShape(SI.Current);

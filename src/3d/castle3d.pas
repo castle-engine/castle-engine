@@ -57,7 +57,7 @@ type
   TPrepareResourcesOptions    = CastleTransform.TPrepareResourcesOptions;
   TAbstractLightInstancesList = CastleTransform.TAbstractLightInstancesList;
   TRenderFromViewFunction     = CastleTransform.TRenderFromViewFunction;
-  TRenderingPass              = CastleTransform.TRenderingPass;
+  TRenderingPass              = CastleTransform.TInternalRenderingPass;
   TRenderParams               = CastleTransform.TRenderParams;
   TBaseShadowVolumeRenderer   = CastleTransform.TBaseShadowVolumeRenderer;
   TVisibleChange              = CastleTransform.TVisibleChange;

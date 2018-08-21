@@ -329,7 +329,7 @@ begin
         we render only bbox. }
 
       Utils.DrawBox(Shape.BoundingBox);
-      if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+      if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then
         Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
@@ -443,7 +443,7 @@ var
     end;
 
     Utils.DrawBox(Box);
-    if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+    if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then
       Inc(Params.Statistics.BoxesOcclusionQueriedCount);
   end;
 
@@ -571,7 +571,7 @@ begin
                   RenderLeafNodeVolume(Node) else
                 begin
                   Utils.DrawBox(Node.Box);
-                  if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+                  if (Params.InternalPass = 0) and not Scene.ExcludeFromStatistics then
                     Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                 end;
               glEndQueryARB(GL_SAMPLES_PASSED_ARB);

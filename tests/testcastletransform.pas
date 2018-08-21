@@ -46,6 +46,7 @@ type
     procedure TestPhysicsWorldOwner;
     procedure TestPhysicsWorldOwnerEmptyBox;
     procedure TestPhysicsWorldOwnerEmptySphere;
+    procedure TestPass;
   end;
 
 implementation
@@ -1296,6 +1297,18 @@ begin
 
     Scene.RigidBody := Body;
   finally FreeAndNil(SceneManager) end;
+end;
+
+procedure TTestCastleTransform.TestPass;
+var
+  A: TInternalRenderingPass;
+  B: TUserRenderingPass;
+  C: TTotalRenderingPass;
+begin
+  A := High(A);
+  B := High(B);
+  C := High(C);
+  AssertTrue((Integer(A) + 1) * (Integer(B) + 1) = (Integer(C) + 1));
 end;
 
 initialization
