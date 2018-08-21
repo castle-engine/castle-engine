@@ -819,7 +819,7 @@ implementation
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
-  CastleStringUtils, CastleApplicationProperties,
+  CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes;
 {$warnings on}
 
@@ -1458,6 +1458,8 @@ procedure TCastleScene.PrepareResources(
 
 var
   I: Integer;
+  PossiblyTimeConsuming: Boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -1496,6 +1498,11 @@ begin
 
   Inc(InternalDirty);
   try
+    PossiblyTimeConsuming := (not PreparedShapesResources) or (not PreparedRender);
+
+    if PossiblyTimeConsuming then
+      TimeStart := Profiler.Start('Prepare Resources ' + URL);
+
     if not PreparedShapesResources then
     begin
       { Use PreparedShapesResources to avoid expensive (for large scenes)
@@ -1527,6 +1534,9 @@ begin
       for I := 0 to ScreenEffectNodes.Count - 1 do
         Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
     end;
+
+    if PossiblyTimeConsuming then
+      Profiler.Stop(TimeStart);
   finally Dec(InternalDirty) end;
 end;
 
@@ -2164,9 +2174,7 @@ end;
 
 function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
 begin
-  Result := TComponentClass(ClassType).Create(AOwner) as TCastleScene;
-  if RootNode <> nil then
-    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
+  Result := (inherited Clone(AOwner)) as TCastleScene;
 end;
 
 { TSceneRenderingAttributes ---------------------------------------------- }

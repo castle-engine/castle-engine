@@ -23,7 +23,7 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  SysUtils, Math,
+  SysUtils, Math, Generics.Collections,
   CastleUtils;
 
 type
@@ -421,9 +421,17 @@ type
     class function FrameId: Int64;
   end;
 
+{$define read_interface}
+{$I castletimeutils_profiler.inc}
+{$undef read_interface}
+
 implementation
 
-uses CastleLog;
+uses Generics.Defaults,
+  CastleLog;
+
+{$define read_implementation}
+{$I castletimeutils_profiler.inc}
 
 function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
 var
@@ -834,4 +842,7 @@ begin
   Result := FFrameId;
 end;
 
+initialization
+finalization
+  FreeAndNil(FProfiler);
 end.

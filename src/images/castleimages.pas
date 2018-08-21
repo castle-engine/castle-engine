@@ -1891,7 +1891,7 @@ implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -4524,7 +4524,10 @@ const
 var
   F: TStream;
   MimeType: string;
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Loading ' + URL + ' (CastleImages)');
+
   try
     try
       LoadImageEvents.Execute(URL);
@@ -4550,6 +4553,8 @@ begin
       raise;
     end;
   end;
+
+  Profiler.Stop(TimeStart);
 end;
 
 function LoadEncodedImage(const URL: string): TEncodedImage;

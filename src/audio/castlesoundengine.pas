@@ -2878,6 +2878,7 @@ var
   Stream: TStream;
   I: TXMLElementIterator;
   BaseUrl: string;
+  TimeStart: TCastleProfilerTime;
 begin
   if FRepositoryURL = Value then Exit;
   FRepositoryURL := Value;
@@ -2888,6 +2889,8 @@ begin
 
   { if no sounds XML file, then that's it --- no more sounds }
   if RepositoryURL = '' then Exit;
+
+  TimeStart := Profiler.Start('Loading All Sounds From ' + RepositoryURL + ' (TRepoSoundEngine)');
 
   { This must be an absolute path, since FSounds[].URL should be
     absolute (to not depend on the current dir when loading sound files. }
@@ -2945,6 +2948,8 @@ begin
   { in case you set RepositoryURL when OpenAL context is already
     initialized, start playing music immediately if necessary }
   RestartLoopingChannels;
+
+  Profiler.Stop(TimeStart);
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;

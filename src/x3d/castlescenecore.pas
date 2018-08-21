@@ -2003,7 +2003,10 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.Attributes). }
+      in @link(TCastleScene.Attributes).
+      It only copies the scene graph (RootNode) and also sets
+      target URL based on source URL (for logging purposes, e.g.
+      TCastleProfilerTime use this URL to report loading and preparation times). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
 
     { @deprecated Deprecated name for @link(URL). }
@@ -2772,13 +2775,19 @@ end;
 
 procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
   const AResetTime: boolean);
+var
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Loading ' + AURL + ' (TCastleSceneCore)');
+
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
   Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
   FURL := AURL;
+
+  Profiler.Stop(TimeStart);
 end;
 
 procedure TCastleSceneCore.SetRootNode(const Value: TX3DRootNode);
@@ -7324,6 +7333,7 @@ end;
 function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
 begin
   Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
+  Result.FURL := FURL + '[Clone]';
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
