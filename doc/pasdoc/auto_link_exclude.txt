@@ -261,6 +261,7 @@ primitive
 print
 product
 profile
+profiler
 progress
 projection
 prototype
