@@ -75,6 +75,9 @@ type
   }
   TCastleProfiler = class
   private
+    {$ifndef PASDOC}
+    // TODO: for PasDoc: Something here confuses PasDoc, although it generally can handle nested classes.
+
     type
       TTimes = class;
 
@@ -93,6 +96,7 @@ type
         procedure Sort;
         function Summary(const Indent: String): String;
       end;
+
     var
       FEnabled: boolean;
 
@@ -101,6 +105,8 @@ type
 
       { The currently started (but not stopped) TTime structures. }
       CurrentStack: TTimeList;
+
+    {$endif}
   public
     constructor Create;
     destructor Destroy; override;
