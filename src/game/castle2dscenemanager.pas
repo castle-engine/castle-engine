@@ -41,7 +41,7 @@ type
 
       @item(The @bold(camera does not give the user any automatic way
         to move in the world). Because you typically want to
-        code from scratch all your own movement for 2D.
+        code yourself all your camera movement for 2D games.
 
         More precisely, the NavigationType is ntNone by default.
       )
@@ -65,13 +65,6 @@ type
         that sets projection using a flexible
         algorithm that takes into account X3D viewpoint nodes,
         @link(TViewpointNode), in @link(TCastleSceneManager.MainScene).
-      )
-
-      @item(Sets Transparent = @true by default, which means that
-        @bold(background underneath the scene manager is visible).
-        Useful for 2D games where you often have an image or
-        another background underneath,
-        like TCastleImage or TCastleSimpleBackground.
       )
     ) }
   TCastle2DSceneManager = class(TCastleSceneManager)
