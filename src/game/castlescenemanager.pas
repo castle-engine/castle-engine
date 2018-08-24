@@ -367,6 +367,11 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
+    { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
+      about the current pointing device.
+      You usually don't need to call this, as it is done at every mouse move. }
+    procedure UpdateMouseRayHit;
+
     { Current projection parameters,
       calculated by last @link(CalculateProjection) call,
       adjusted by @link(OnProjection).
@@ -1606,12 +1611,12 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  { Call PointingDeviceMove, set MouseHitRay and such --- otherwise
-    the 1st mouse down event over a 3D object (like a TouchSensor) will be ignored
-    if it happens before any mouse move (which is normal on touch devices).
-    OldX,OldY and NewX,NewY are equal for the fake Motion call,
-    in case a camera would base some movement based on the position delta. }
-  Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
+  { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
+    about the current pointing device.
+    Otherwise the 1st mouse down event over a 3D object (like a TouchSensor)
+    will be ignored
+    if it happens before any mouse move (which is normal on touch devices). }
+  UpdateMouseRayHit;
 
   LastPressEvent := TInputPressRelease(Event);
 
@@ -1697,7 +1702,6 @@ function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
   end;
 
 var
-  RayOrigin, RayDirection: TVector3;
   TopMostScene: TCastleTransform;
 begin
   Result := inherited;
@@ -1729,11 +1733,13 @@ begin
     { Do PointingDeviceMove, which updates MouseRayHit, even when Camera.Motion
       is true. On Windows 10 with MouseLook, Camera.Motion is always true. }
     //if not Result then
-    begin
-      Camera.CustomRay(ScreenRect, Event.Position, FProjection, RayOrigin, RayDirection);
-      { TODO: do Result := PointingDeviceMove below? }
-      PointingDeviceMove(RayOrigin, RayDirection);
-    end;
+    UpdateMouseRayHit;
+
+    { Note: UpdateMouseRayHit above calls PointingDeviceMove and ignores
+      PointingDeviceMove result.
+      Maybe we should use PointingDeviceMove result as our Motion result?
+      Answer unknown. Historically we do not do this, and I found no practical
+      use-case when it would be useful to do this. }
   end;
 
   { update the cursor, since 3D object under the cursor possibly changed.
@@ -1745,6 +1751,14 @@ begin
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
   RecalculateCursor(Self);
+end;
+
+procedure TCastleAbstractViewport.UpdateMouseRayHit;
+var
+  RayOrigin, RayDirection: TVector3;
+begin
+  Camera.CustomRay(ScreenRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
+  PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
 procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
