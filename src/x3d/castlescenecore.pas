@@ -2030,41 +2030,82 @@ type
       @unorderedList(
         @item(@bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
 
-          Using any of these flags allows to resolve collisions with
+          Using one of these two flags allows to resolve collisions with
           the (collidable) triangles of the model.
-          By default, every shape is collidable, but you can use the
-          @link(TCollisionNode) to turn collisions off for some shapes
-          (or replace them with simpler objects
-          for the collision-detection purposes).
-
-          As for the distinction between these two flags,
-          ssDynamicCollisions and ssStaticCollisions:
-          Almost always you should use ssDynamicCollisions.
-          The speedup of ssStaticCollisions is very small,
-          and sometimes it costs memory usage (as shapes cannot be reused),
-          and ssStaticCollisions may cause crashes if the model
-          accidentally changes.
+          By default, every X3D Shape is collidable using it's exact mesh.
+          You can use the X3D @link(TCollisionNode) to turn collisions
+          off for some shapes, or replace some shapes with simpler objects
+          for the collision-detection purposes.
 
           If you use neither @bold(ssDynamicCollisions) nor @bold(ssStaticCollisions),
           then the collisions are resolved using the whole scene bounding
           box. That is, treating the whole scene as a giant cube.
 
           You can always toggle @link(Collides) to quickly make
-          the scene not collidable.)
+          the scene not collidable. In summary:
+
+          @unorderedList(
+            @item(@link(Collides) = @false: the scene does not collide.)
+
+            @item(@link(Collides) = @true and Spatial is empty:
+              the scene collides as it's bounding box.
+              This is the default situation after constructing TCastleScene.)
+
+            @item(@link(Collides) = @true and
+              Spatial contains @bold(ssDynamicCollisions) or @bold(ssStaticCollisions):
+              the scene collides as a set of triangles.
+              The triangles are derived from information in X3D Shape and Collision
+              nodes.)
+          )
+
+          The ssStaticCollisions can be used instead of ssDynamicCollisions
+          when the scene is guaranteed to @italic(absolutely never) change,
+          and @italic(only when the speed is absolutely crucial).
+          The collision structure created by ssStaticCollisions
+          is a bit faster (although may use significantly more memory).
+          The @italic(practical advice is to almost always use ssDynamicCollisions
+          instead of ssStaticCollisions): the speed gains
+          from ssStaticCollisions are usually impossible to measure,
+          and ssStaticCollisions sometimes uses significantly more memory,
+          and if you by accident modify the model (animate it etc.)
+          with ssStaticCollisions -> then results are undefined,
+          even crashes are possible.
+        )
 
         @item(@bold(ssRendering):
 
-          Using this adds an additional optimization during rendering.
-          This allows to use frustum culling with an octree.
+          Using this flag adds an additional optimization during rendering.
+          It allows to use frustum culling with an octree.
+          Whether the frustum culling is actually used depends
+          on @link(TCastleScene.OctreeFrustumCulling) value (by default: yes).
 
-          Using this is adviced, if your camera usually only sees
-          a small portion of the scene. For example,
-          a typical level / location in a game usually qualifies.)
+          Without this flag, we can still use frustum culling,
+          but it's less effective as it considers each shape separately.
+          Whether the frustum culling is actually used depends
+          in this case
+          on @link(TCastleScene.FrustumCulling) value (by default: yes).
+
+          Using frustum culling (preferably with ssRendering flag)
+          is highly adviced if your camera usually only sees
+          only a part of the scene. For example, it a noticeable optimization
+          if you have a camera walking/flying inside a typical game
+          level/location.)
 
         @item(@bold(ssVisibleTriangles):
 
-          Using this allows to resolve collisions with visible triangles
-          quickly. This mostly useful only for ray-tracers.)
+          Using this flag allows to resolve collisions with visible
+          (not only collidable) triangles quickly.
+
+          This is in practice useful only for ray-tracers,
+          normal applications should not use this.
+          Normal applications should avoid collision detection with the
+          @italic(visible) version of the model.
+          Normal applications should instead
+          perform collision detection with the @italic(collidable)
+          version of the model, since this is much better optimized
+          (both by the engine code, and by an artist creating the model,
+          using X3D Collision nodes etc.)
+        )
       )
 
       See @link(TSceneSpatialStructure) for more details about
@@ -2083,10 +2124,10 @@ type
       ) }
     property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial default [];
 
-    { Should the VRML/X3D event mechanism work.
+    { Should the event mechanism (a basic of animations and interactions) work.
 
       If @true, then events will be send and received
-      through routes, time dependent nodes (X3DTimeDependentNode,
+      through X3D routes, time dependent nodes (X3DTimeDependentNode,
       like TimeSensor) will be activated and updated from @link(Time) time
       property, @link(Press), @link(Release) and other methods will activate
       key/mouse sensor nodes, scripts will be initialized and work, etc.
