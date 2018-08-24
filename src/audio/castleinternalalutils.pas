@@ -189,6 +189,10 @@ function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
 function EnumerationExtPresent: boolean; overload;
 { @groupEnd }
 
+var
+  { Show in the log loading of sounds. }
+  LogSoundLoading: Boolean;
+
 {$undef read_interface}
 
 implementation
@@ -206,7 +210,7 @@ begin
   try
     alBufferData(Buffer, F.DataFormat, F.Data, F.DataSize, F.Frequency);
 
-    if Log then
+    if Log and LogSoundLoading then
       WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
         [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
           F.DataSize, F.Frequency, F.Duration ]));

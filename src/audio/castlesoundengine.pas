@@ -476,6 +476,9 @@ type
 
     procedure ALContextOpenCore; override;
     procedure ALContextCloseCore; override;
+
+    class function GetLogSoundLoading: Boolean; static;
+    class procedure SetLogSoundLoading(const Value: Boolean); static;
   public
     const
       DefaultVolume = 1.0;
@@ -660,6 +663,9 @@ type
       This is always reset to @true after setting @link(Enable) value. }
     property EnableSaveToConfig: boolean
       read FEnableSaveToConfig write FEnableSaveToConfig default true;
+
+    class property LogSoundLoading: Boolean
+      read GetLogSoundLoading write SetLogSoundLoading;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -2347,7 +2353,7 @@ begin
     begin
       Result := LoadedBuffers[I];
       Inc(Result.References);
-      if Log then
+      if Log and LogSoundLoading then
         WritelnLog('Sound', Format('Loaded sound buffer "%s" from cache, now it has %d references',
           [URIDisplay(FullURL), Result.References]));
       Exit;
@@ -2604,6 +2610,16 @@ begin
         ALContextOpen;
     end;
   end;
+end;
+
+class function TSoundEngine.GetLogSoundLoading: Boolean;
+begin
+  Result := CastleInternalALUtils.LogSoundLoading;
+end;
+
+class procedure TSoundEngine.SetLogSoundLoading(const Value: Boolean);
+begin
+  CastleInternalALUtils.LogSoundLoading := Value;
 end;
 
 { TSoundType ----------------------------------------------------------------- }
