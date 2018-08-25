@@ -693,7 +693,8 @@ begin
   AShow := (aEditor.GetPropInfo <> nil) and
     (
       (aEditor.GetPropInfo^.Name = 'URL') or
-      (aEditor.GetPropInfo^.Name = 'Name')
+      (aEditor.GetPropInfo^.Name = 'Name') or
+      (aEditor.GetPropInfo^.Name = 'Caption')
     );
 end;
 
