@@ -122,7 +122,7 @@ begin
         FJsonReader.JSONToObject(JsonChild, Child);
         if AObject is TUIControl then
           // matches TUIControl.GetChildren implementation
-          TUIControl(AObject).InsertBack(Child as TUIControl)
+          TUIControl(AObject).InsertFront(Child as TUIControl)
         else
         if AObject is TCastleTransform then
           // matches TCastleTransform.GetChildren implementation
