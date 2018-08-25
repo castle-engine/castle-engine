@@ -375,6 +375,7 @@ end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
 end;
@@ -547,101 +548,6 @@ begin
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
-
-  function CreateSceneRoot: TX3DRootNode;
-  var
-    //Sphere: TSphereNode;
-    //Box: TBoxNode;
-    SphereShape, BoxShape: TShapeNode;
-    SphereTransform, BoxTransform: TTransformNode;
-  begin
-    Result := TX3DRootNode.Create;
-
-    {Sphere := }TSphereNode.CreateWithTransform(SphereShape, SphereTransform);
-    Result.AddChildren(SphereTransform);
-
-    SphereShape.Material := TMaterialNode.Create;
-    SphereShape.Material.DiffuseColor := YellowRGB;
-
-    {Box := }TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
-    BoxTransform.Translation := Vector3(3, 0, 0);
-    Result.AddChildren(BoxTransform);
-
-    BoxShape.Material := TMaterialNode.Create;
-    BoxShape.Material.DiffuseColor := BlueRGB;
-  end;
-
-  { Add some sample stuff to CastleControl, just for test.
-    TODO: just temporary stuff. }
-  procedure SampleControls;
-  var
-    SceneManager: TCastleSceneManager;
-    Scene: TCastleScene;
-    Button: TCastleButton;
-    RectangleGroup: TCastleRectangleControl;
-    Lab: TCastleLabel;
-    Root: TUIControlSizeable;
-  begin
-    CastleControl.Controls.Clear;
-
-    // TODO: This should follow the auto-scale settings of loaded file
-    CastleControl.Container.UIReferenceWidth := 1600;
-    CastleControl.Container.UIReferenceHeight := 900;
-    CastleControl.Container.UIScaling := usEncloseReferenceSize;
-
-    HierarchyOwner := TComponent.Create(Self);
-
-    // Note that the owner of all components below is HierarchyOwner,
-    // not Self, to avoid Name conflicts with our form.
-
-    Root := TUIControlSizeable.Create(HierarchyOwner);
-    Root.Name := 'Group1';
-    Root.FullSize := true;
-    HierarchyRoot := Root;
-    CastleControl.Controls.InsertFront(Root);
-
-    SceneManager := TCastleSceneManager.Create(HierarchyOwner);
-    SceneManager.Name := 'SceneManager1';
-    Root.InsertFront(SceneManager);
-
-    Scene := TCastleScene.Create(HierarchyOwner);
-    Scene.Name := 'Scene1';
-    Scene.Load(CreateSceneRoot, true);
-    SceneManager.Items.Add(Scene);
-    SceneManager.MainScene := Scene;
-
-    RectangleGroup := TCastleRectangleControl.Create(HierarchyOwner);
-    RectangleGroup.Name := 'Rectangle1';
-    RectangleGroup.Anchor(hpRight, -10);
-    RectangleGroup.Anchor(vpTop, -10);
-    RectangleGroup.Width := 500;
-    RectangleGroup.Height := 500;
-    RectangleGroup.Color := Vector4(0.5, 0.5, 1, 0.2); // transparent light-blue
-    Root.InsertFront(RectangleGroup);
-
-    { As you see, you need to explicitly set size of RectangleGroup,
-      and position of children within it.
-      If you would prefer an automatic layout (that auto-sizes following
-      children, and automatically sets up children positions),
-      use TCastleVerticalGroup or TCastleHorizontalGroup. }
-
-    Button := TCastleButton.Create(HierarchyOwner);
-    Button.Name := 'Button1';
-    Button.Caption := 'I am a button';
-    Button.FontSize := 50;
-    Button.Anchor(vpTop, -10);
-    Button.Anchor(hpMiddle);
-    RectangleGroup.InsertFront(Button);
-
-    Lab := TCastleLabel.Create(HierarchyOwner);
-    Lab.Name := 'Label1';
-    Lab.Caption := 'I am a label';
-    Lab.FontSize := 50;
-    Lab.Anchor(vpTop, -100);
-    Lab.Anchor(hpMiddle);
-    RectangleGroup.InsertFront(Lab);
-  end;
-
 var
   ManifestDoc: TXMLDocument;
 begin
@@ -653,13 +559,22 @@ begin
   ProjectPathUrl := ExtractURIPath(ManifestUrl);
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
 
+  { override ApplicationData interpretation, and castle-data:/xxx URL,
+    while this project is open. }
+  ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+
   Caption := SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
 
   ShellTreeView1.Root := ProjectPath;
 
-  SampleControls;
+  // initialize CastleControl
+  // TODO: This should follow the auto-scale settings of loaded file
+  CastleControl.Container.UIReferenceWidth := 1600;
+  CastleControl.Container.UIReferenceHeight := 900;
+  CastleControl.Container.UIScaling := usEncloseReferenceSize;
 
-  UpdateHierarchy(HierarchyRoot);
+  // start
+  MenuItemNewHierarchyUserInterfaceClick(nil);
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;

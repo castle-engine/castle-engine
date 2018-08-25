@@ -15,7 +15,7 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties;
+  CastleUIControls, CastleApplicationProperties, CastleComponentSerialize;
 
 var
   Window: TCastleWindowCustom;
@@ -44,8 +44,10 @@ begin
   Window.Container.UIReferenceHeight := 900;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  Background := TCastleSimpleBackground.Create(Application);
-  Window.Controls.InsertFront(Background);
+  Window.Controls.InsertFront(UserInterfaceLoad(
+    'castle-data:/main.cge-user-interface', Application));
+
+  // TODO: LabelFps should be in main.cge-user-interface too, found by Name
 
   { Show a label with frames per second information }
   LabelFps := TCastleLabel.Create(Application);

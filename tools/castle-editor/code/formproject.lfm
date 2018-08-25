@@ -4,8 +4,9 @@ object ProjectForm: TProjectForm
   Top = 46
   Width = 1173
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 617
+  ClientHeight = 602
   ClientWidth = 1173
+  DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -15,7 +16,7 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
-    Top = 355
+    Top = 340
     Width = 1173
     ActivePage = TabFiles
     Align = alBottom
@@ -23,11 +24,11 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 234
-      ClientWidth = 1165
+      ClientHeight = 217
+      ClientWidth = 1167
       object ShellTreeView1: TShellTreeView
         Left = 0
-        Height = 234
+        Height = 217
         Top = 0
         Width = 367
         Align = alLeft
@@ -42,9 +43,9 @@ object ProjectForm: TProjectForm
       end
       object ShellListView1: TShellListView
         Left = 374
-        Height = 234
+        Height = 217
         Top = 0
-        Width = 791
+        Width = 793
         Align = alClient
         Color = clDefault
         ReadOnly = True
@@ -55,7 +56,7 @@ object ProjectForm: TProjectForm
       end
       object SplitterBetweenFiles: TSplitter
         Left = 367
-        Height = 234
+        Height = 217
         Top = 0
         Width = 7
       end
@@ -63,7 +64,7 @@ object ProjectForm: TProjectForm
     object TabOutput: TTabSheet
       Caption = 'Output'
       ClientHeight = 217
-      ClientWidth = 1499
+      ClientWidth = 1167
       object ListOutput: TListBox
         Left = 0
         Height = 217
@@ -75,6 +76,7 @@ object ProjectForm: TProjectForm
         ScrollWidth = 1497
         Style = lbOwnerDrawFixed
         TabOrder = 0
+        TopIndex = -1
       end
     end
   end
@@ -82,30 +84,30 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 348
+    Top = 333
     Width = 1173
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 348
+    Height = 333
     Top = 0
     Width = 1173
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 348
+    ClientHeight = 333
     ClientWidth = 1173
     TabOrder = 2
     object SplitterLeft: TSplitter
       Left = 266
-      Height = 348
+      Height = 333
       Top = 0
       Width = 7
     end
     object SplitterRight: TSplitter
       Left = 810
-      Height = 348
+      Height = 333
       Top = 0
       Width = 7
       Align = alRight
@@ -113,17 +115,17 @@ object ProjectForm: TProjectForm
     end
     object PanelRight: TPanel
       Left = 817
-      Height = 348
+      Height = 333
       Top = 0
       Width = 356
       Align = alRight
       BevelOuter = bvNone
-      ClientHeight = 348
+      ClientHeight = 333
       ClientWidth = 356
       TabOrder = 2
       object LabelControlSelected: TLabel
         Left = 5
-        Height = 30
+        Height = 54
         Top = 5
         Width = 346
         Align = alTop
@@ -134,8 +136,8 @@ object ProjectForm: TProjectForm
       end
       object ControlProperties: TPageControl
         Left = 0
-        Height = 308
-        Top = 40
+        Height = 269
+        Top = 64
         Width = 356
         ActivePage = TabAdvanced
         Align = alClient
@@ -151,19 +153,19 @@ object ProjectForm: TProjectForm
     end
     object PanelLeft: TPanel
       Left = 0
-      Height = 348
+      Height = 333
       Top = 0
       Width = 266
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 348
+      ClientHeight = 333
       ClientWidth = 266
       TabOrder = 3
       object ControlsTree: TTreeView
         Left = 0
-        Height = 323
+        Height = 296
         Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
-        Top = 25
+        Top = 37
         Width = 266
         Align = alClient
         MultiSelect = True
@@ -178,7 +180,7 @@ object ProjectForm: TProjectForm
       end
       object LabelHierarchy: TLabel
         Left = 5
-        Height = 15
+        Height = 27
         Top = 5
         Width = 256
         Align = alTop
