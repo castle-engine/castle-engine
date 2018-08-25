@@ -64,7 +64,10 @@ type
     )
 
     To send your own time information to the profile,
-    call @link(Start) and @link(Stop) methods.
+    call @link(Start) and @link(Stop) methods around a given time-consuming task.
+    We will measure time and automatically build a tree of tasks
+    (when one larger task contains several smaller tasks).
+
     Contrary to profilers like Valgrind or Gprof
     (see
     https://castle-engine.io/manual_optimization.php#section_profiling ,
@@ -128,7 +131,39 @@ type
       We will always gracefully accept this case (not crash). }
     procedure Clear;
 
+    { Start a task which execution time will be measured.
+      You @italic(must) later call @link(Stop) with
+      the returned TCastleProfilerTime value.
+
+      Typical usage looks like this:
+
+      @longCode(#
+      procedure TMyClass.LoadSomething;
+      var
+        TimeStart: TCastleProfilerTime;
+      begin
+        TimeStart := Profiler.Start('Loading something (TMyClass)');
+        try
+          // do the time-consuming loading now...
+        finally
+          Profiler.Stop(TimeStart);
+        end;
+      end;
+      #)
+
+      If you don't use the "finally" clause to @italic(always) call
+      the matching @link(Stop), and an exception may occur in LoadSomething,
+      then you will have an unmatched Start / Stop calls.
+      The profiler output is undefined in this case.
+      (However, we guarantee that the profiler will not crash or otherwise cause
+      problems in the application.)
+
+      @seealso Stop
+    }
     function Start(const Description: String): TCastleProfilerTime;
+
+    { Stop a task. This call must match earlier @link(Start) call.
+      @seealso Start }
     procedure Stop(const TimeStart: TCastleProfilerTime);
   end;
 
