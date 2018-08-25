@@ -24,7 +24,7 @@ uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
-  CastleShapes, CastleRectangles;
+  CastleShapes, CastleRectangles, CastleTransform;
 
 type
   TSurfaceTexture = (stAmbient, stSpecular, stShininess);
@@ -237,6 +237,7 @@ type
     Defines: array [0..9] of TLightDefine;
     DefinesCount: Cardinal;
   public
+    RenderingCamera: TRenderingCamera; //< Set this after construction.
     destructor Destroy; override;
     { Prepare some stuff for Code generation, update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
@@ -469,6 +470,8 @@ type
       to setup correct uniforms. }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
 
+    RenderingCamera: TRenderingCamera; //< Set this after construction.
+
     constructor Create;
     destructor Destroy; override;
 
@@ -612,13 +615,10 @@ type
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily still uses RenderingCamera singleton
 uses SysUtils, StrUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLUtils, CastleLog, Castle3D, CastleGLVersion,
-  CastleRenderingCamera, CastleScreenEffects, CastleInternalX3DLexer;
-{$warnings on}
+  CastleScreenEffects, CastleInternalX3DLexer;
 
 var
   { By default (when this is false),
@@ -1900,6 +1900,7 @@ begin
   NeedsCameraInverseMatrix := false;
   NeedsMirrorPlaneTexCoords := false;
   SeparateDiffuseTexture := false;
+  RenderingCamera := nil;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -3272,6 +3273,7 @@ begin
   LightShader.Light := Light;
   LightShader.Node := Light^.Node;
   LightShader.Shader := Self;
+  LightShader.RenderingCamera := RenderingCamera;
 
   LightShaders.Add(LightShader);
 

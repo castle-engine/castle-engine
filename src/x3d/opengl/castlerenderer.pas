@@ -879,6 +879,9 @@ type
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
 
+    { Rendering camera. Set in each RenderBegin, cleared in RenderEnd. }
+    RenderingCamera: TRenderingCamera;
+
     { Rendering pass. Set in each RenderBegin. }
     InternalPass: TInternalRenderingPass;
     UserPass: TUserRenderingPass;
@@ -983,13 +986,15 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(ABaseLights: TLightInstancesList;
-      LightRenderEvent: TLightRenderEvent;
+    procedure RenderBegin(const ABaseLights: TLightInstancesList;
+      const ARenderingCamera: TRenderingCamera;
+      const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
       const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
+    procedure RenderShape(const Shape: TX3DRendererShape;
+      const Fog: IAbstractFogObject);
 
     { Update generated texture for this shape.
 
@@ -1048,13 +1053,9 @@ var
 
 implementation
 
-{$warnings off}
-// TODO: This unit temporarily uses RenderingCamera singleton,
-// to keep it working for backward compatibility.
 uses Math,
-  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles;
-{$warnings on}
 
 {$define read_implementation}
 
@@ -2294,6 +2295,7 @@ var
   Shader: TShader;
   ShaderProgram: TX3DGLSLProgram;
   ShaderNode: TComposedShaderNode;
+  DummyCamera: TRenderingCamera;
 begin
   if not Node.ShaderLoaded then
   begin
@@ -2306,28 +2308,33 @@ begin
 
       Shader := TShader.Create;
       try
-        { for ScreenEffect, we require that some ComposedShader was present.
-          Rendering with default TShader shader makes no sense. }
-        if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
+        DummyCamera := TRenderingCamera.Create;
         try
-          ShaderProgram := TX3DGLSLProgram.Create(Self);
-          Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
-          Shader.LinkProgram(ShaderProgram, Node.NiceName);
+          Shader.RenderingCamera := DummyCamera;
 
-          { We have to ignore invalid uniforms, as it's normal that when
-            rendering screen effect we will pass some screen_* variables
-            that you will not use. }
-          ShaderProgram.UniformNotFoundAction := uaIgnore;
+          { for ScreenEffect, we require that some ComposedShader was present.
+            Rendering with default TShader shader makes no sense. }
+          if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
+          try
+            ShaderProgram := TX3DGLSLProgram.Create(Self);
+            Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
+            Shader.LinkProgram(ShaderProgram, Node.NiceName);
 
-          Node.Shader := ShaderProgram;
-          ScreenEffectPrograms.Add(ShaderProgram);
-        except on E: EGLSLError do
-          begin
-            FreeAndNil(ShaderProgram);
-            WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
-              [E.Message]));
+            { We have to ignore invalid uniforms, as it's normal that when
+              rendering screen effect we will pass some screen_* variables
+              that you will not use. }
+            ShaderProgram.UniformNotFoundAction := uaIgnore;
+
+            Node.Shader := ShaderProgram;
+            ScreenEffectPrograms.Add(ShaderProgram);
+          except on E: EGLSLError do
+            begin
+              FreeAndNil(ShaderProgram);
+              WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
+                [E.Message]));
+            end;
           end;
-        end;
+        finally FreeAndNil(DummyCamera) end;
       finally FreeAndNil(Shader) end;
     end;
   end;
@@ -2550,12 +2557,16 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
-  LightRenderEvent: TLightRenderEvent;
+procedure TGLRenderer.RenderBegin(
+  const ABaseLights: TLightInstancesList;
+  const ARenderingCamera: TRenderingCamera;
+  const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
   const AUserPass: TUserRenderingPass);
 begin
   BaseLights := ABaseLights;
+  RenderingCamera := ARenderingCamera;
+  Assert(RenderingCamera <> nil);
   InternalPass := AInternalPass;
   UserPass := AUserPass;
   Pass := InternalPass * UserPass;
@@ -2577,6 +2588,7 @@ begin
   Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
+  LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
 procedure TGLRenderer.RenderEnd;
@@ -2604,10 +2616,11 @@ begin
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
   TGLSLProgram.Current := nil;
+  RenderingCamera := nil;
 end;
 
-procedure TGLRenderer.RenderShape(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject);
+procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
+  const Fog: IAbstractFogObject);
 
   function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
   var
@@ -2639,6 +2652,7 @@ begin
   Shader := PreparedShader;
   Shader.Clear;
   Shader.SeparateDiffuseTexture := Attributes.SeparateDiffuseTexture;
+  Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
   PhongShading := Attributes.PhongShading;

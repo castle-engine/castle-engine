@@ -1297,6 +1297,7 @@ begin
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
+    Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, Params.UserPass);
   try
     if Attributes.Mode <> rmFull then
@@ -1414,6 +1415,7 @@ procedure TCastleScene.PrepareResources(
     Shape: TGLShape;
     BaseLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
+    DummyCamera: TRenderingCamera;
   begin
     if Log and LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -1435,21 +1437,31 @@ procedure TCastleScene.PrepareResources(
           GoodParams := Params;
         end;
 
-        { prepare resources by doing rendering (but with
-          Renderer.PrepareRenderShape <> 0, so nothing will be actually drawn). }
+        { Prepare resources by doing rendering.
+          But with Renderer.PrepareRenderShape <> 0,
+          so nothing will be actually drawn). }
+
         BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
-        Renderer.RenderBegin(BaseLights, nil, 0, 0);
-        while SI.GetNext do
-        begin
-          Shape := TGLShape(SI.Current);
-          { set sensible Shape.ModelView, otherwise it is zero
-            and TShader.EnableClipPlane will raise an exception since
-            PlaneTransform(Plane, SceneModelView); will fail,
-            with SceneModelView matrix = zero. }
-          Shape.ModelView := TMatrix4.Identity;
-          Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
-        end;
-        Renderer.RenderEnd;
+
+        { We need some non-nil TRenderingCamera instance to be able
+          to render with lights. }
+        DummyCamera := TRenderingCamera.Create;
+        try
+          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0);
+          while SI.GetNext do
+          begin
+            Shape := TGLShape(SI.Current);
+
+            { set sensible Shape.ModelView, otherwise it is zero
+              and TShader.EnableClipPlane will raise an exception since
+              PlaneTransform(Plane, SceneModelView); will fail,
+              with SceneModelView matrix = zero. }
+            Shape.ModelView := TMatrix4.Identity;
+
+            Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
+          end;
+          Renderer.RenderEnd;
+        finally FreeAndNil(DummyCamera) end;
 
         FreeAndNil(OwnParams);
       finally Dec(Renderer.PrepareRenderShape) end;
