@@ -236,13 +236,19 @@ function MapRangeClamped(const SourceVal, SourceBegin, SourceEnd, DestBegin, Des
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single; overload;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float; overload;
 
-{ Random int value in the given range,
+{ Random integer value in the given range,
   result is always >= RangeBegin and < RangeEnd.
   So @italic(result is never equal to RangeEnd), this is often convenient,
   and makes @code(RandomIntRange(0, N)) consistent with @code(Random(N)).
   Always pass arguments such that RangeBegin < RangeEnd. }
 function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer; overload;
 function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64; overload;
+
+{ Random int value in the given range,
+  result is always >= RangeBegin and <= RangeEnd.
+  Always pass arguments such that RangeBegin <= RangeEnd. }
+function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Integer): Integer; overload;
+function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Int64): Int64; overload;
 
 function RandomBoolean: boolean;
 
@@ -768,6 +774,16 @@ end;
 function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
 begin
   Result := RangeBegin + Random(RangeEnd - RangeBegin);
+end;
+
+function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Integer): Integer;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin + 1);
+end;
+
+function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Int64): Int64;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin + 1);
 end;
 
 function RandomBoolean: boolean;
