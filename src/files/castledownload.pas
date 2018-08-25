@@ -237,8 +237,13 @@ function Downloads: TDownloadList;
 
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
-  Right now, this only works for @code(file) URLs, and the only advantage
-  it has over manually creating TFileStream is that this accepts URLs.
+
+  Right now, this only works for @code(file) and @code(castle-data) URLs,
+  and (as all engine functions) can also accept simple filenames.
+
+  When saving to @code(castle-data) URL, remember that on some platforms
+  the game data is read-only. Use this only during development on desktop,
+  when you know that "data" is just your regular data directory.
 
   @raises(ESaveError In case of problems saving this URL.)
 
@@ -394,7 +399,7 @@ implementation
 uses URIParser, Math,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
-  CastleApplicationProperties
+  CastleApplicationProperties, CastleFilesUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
@@ -696,6 +701,12 @@ begin
       [URL]);
 end;
 
+{ Assuming this is castle-data:... URL, resolve it using ApplicationData. }
+function ResolveDataURL(const URL: String): String;
+begin
+  Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false));
+end;
+
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
@@ -798,6 +809,12 @@ begin
     {$endif}
   end else
 
+  { castle-data: to access ApplicationData }
+  if P = 'castle-data' then
+  begin
+    Result := Download(ResolveDataURL(URL), Options, MimeType);
+  end else
+
   { data: URI scheme }
   if P = 'data' then
   begin
@@ -868,7 +885,12 @@ begin
     if FileName = '' then
       raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
   end else
+  if P = 'castle-data' then
+  begin
+    Result := URLSaveStream(ResolveDataURL(URL), Options);
+  end else
     raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
+
   if ssoGzip in Options then
   begin
     Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);

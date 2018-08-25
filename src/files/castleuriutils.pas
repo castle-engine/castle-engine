@@ -765,7 +765,8 @@ begin
      (P = 'ftp') or
      (P = 'https') or
      (P = 'assets') or
-     (P = 'castle-android-assets') then
+     (P = 'castle-android-assets') or
+     (P = 'castle-data') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames.
       Note that this unit does not define public functions like ExtractURIExt
