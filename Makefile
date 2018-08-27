@@ -56,6 +56,10 @@ FIND:=find
 .PHONY: all
 all:
 	$(MAKE) --no-print-directory build-using-fpmake
+	$(MAKE) tools
+
+.PHONY: tools
+tools:
 # Compile build tool first, used to compile other tools and examples
 	tools/build-tool/castle-engine_compile.sh
 	tools/texture-font-to-pascal/texture-font-to-pascal_compile.sh
@@ -262,8 +266,11 @@ EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
 
 .PHONY: examples
 examples:
+# Compile tools, in particular build tool, first
+	$(MAKE) tools
+# Compile all examples using xxx_compile.sh shell script (calls build tool)
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
-# compile all examples with CastleEngineManifest.xml inside
+# Compile all examples with CastleEngineManifest.xml inside
 	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
 
 .PHONY: examples-ignore-errors
