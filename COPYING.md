@@ -51,7 +51,7 @@ In short, it means that: If you use the items listed below (modified or not) to 
 
 The items covered by the GPL license are:
 
-- The upcoming castle-editor. It is not distributed yet. It will be distributed in `tools/castle-editor/` directory.
+- castle-editor in `tools/castle-editor/` directory.
 
 - The data files of some examples (the examples are in `examples/` subdirectory, and their "data files" are in `data/` subdirectories beneath). They are clearly marked by the existence of `COPYING.GPL2.txt` and `AUTHORS.txt` files in their respective directories.
 

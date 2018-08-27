@@ -101,29 +101,75 @@ In short:
 You can use "Castle Game Engine" to create your own closed-source programs,
 but you cannot fork "Castle Game Engine Editor" into a closed-source program.
 
+When contributing (sending pull requests etc.) to the castle-editor source code,
+you agree that your contributions may be used under either GPL
+or a more permissive "LGPL with static linking exception" terms,
+at the discretion of _Castle Game Engine Developers_.
+_Castle Game Engine Developers_ are defined as _people with write (commit) access
+to the official CGE version control repository_
+(referred to from https://castle-engine.io/ , currently
+https://github.com/castle-engine/castle-engine/ ).
+The idea is that we sometimes want to move code from castle-editor to
+the engine core, for technical reasons, and we want the freedom to do so.
+Still, the editor stays GPL for the general public.
+
 ## TODO
 
 Now:
 * Visual inspector. designer etc.
+    * UI of designer needs to be improved to clearly communicate what is happening:
+	* File->Open should by default show our project directory,
+	  and warn when opening/saving xx.castle-xxx outside of our project
+	  ("You are saving or loading a hierarchy (.castle-user-interface or .castle-transform file) outside of the project "data" subdirectory. This is possible, but for typical games not adviced.
+
+	  Typical games should keep all the designs (.castle-user-interface and .castle-transform files) inside the "data" subdirectory to have them packaged in the application on all platforms (desktop, mobile). And you should always load them using the ApplicationData function or the castle-data:/xxx URL.
+	  )
+	* Show edited hierarchy basename on caption,
+	  show * to mark modified,
+	  before exiting ask whether to save.
+	* special menu "Designer" with new, open, close. Separate from "File"
+	* rest of "File" rename to "Project"
+	* initially nothing should be open,
+	  and top part of editor should show
+	  "Open or create a new
+	   - user interface (.castle-user-interface file) or
+	   - transformation (.castle-transform file)
+	   using the "Designer" menu
+	* Designer -> Close (Ctrl + W) menu
+    * use castle-, not cge-, for extensions
+      'main.castle-user-interface'
+      'main.castle-transform'
+    * open last scene in the project,
+      open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
     * (in-progress) Allow editing at least most important properties:
         * (done) Name
         * (done) TCastleScene.URL
 	* (but fix URL to set castle-data:)
-	* initial animation?
+	* initial animation? along with TimePlayingSpeed, ProcessEvents
         * TCastleTransform position, rotation, scale (using gizmos)
         * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
-    * Fix: save also stuff like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably
-    *  - It stores too much now.
-         Store only non-default with stored=true.
-  	 https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
-  	 http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
-  	 See how normal TWriter does it, using TypInfo.
+    * save also vectors, colors.
+      Like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably.
+      And colors, like
+        RectangleGroup.Color := Vector4(0.5, 0.5, 1, 0.2); // transparent light-blue
 
-	 yes, we can copy from
-	 /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
+      See /home/michalis/common/TODO/castle-engine/editor/castlevectors_components.inc
+      and /home/michalis/common/TODO/castle-engine/editor/cge-editor-older-notes-published-vectors.txt
+      Make a minimal test of this, with Delphi and FPC/Lazarus.
+      Possibly we can publish records now?
 
-       - after loading, invisible, why?
+    * Store only non-default with stored=true.
+      https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
+      http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
+      See how normal TWriter does it, using TypInfo.
+
+      yes, we can copy from
+      /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
+
+      cleanup then data/project_templates/empty/files/data/main.cge-user-interface
+      to not contain defaults
+
     * Allow adding new, deleting, moving around
     * UI controls improvements:
 	* better names
@@ -150,8 +196,36 @@ Now:
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
-    * MainScene is not restored OK? , also it cannot be chosen
+    * MainScene cannot be changed
       (we disabled in object inspector some types, maybe we should not?)
+    * publish and save SceneManager.NavigationType
+      and last camera
+      { Use initial camera settings stored in
+        InitialCameraPosition,
+	InitialCameraDirection,
+	InitialCameraUp
+	values. They are used if you create a camera using one of the
+	TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
+	or ExamineCamera. They will not be used if you assign to @link(Camera)
+	your own camera instance. }
+      StoreInitialCamera: Boolean
+      InitialCamera
+    * TCastleLabel.Caption:
+      - newline remains at end always
+      - Also, newline is not shown nicely in inspector, as unrenderable char.
+      - Our GetCaption should just strip it?
+
+    * TCastleButton:
+      - Pressed must be editable even when not toggle?
+	or maybe not published
+      - EnableParentDragging should not be published (and should be read-only?)
+      - we need a way to adjust various images of tcastlebutton
+        See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+
+    * castle-data:/ finish
+      - support castlefindfiles.pas too
+      - document in manual_network, at ApplicationData, manual_data
+        See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
 
 Lower priority:
 * ugly button and label text in example?
