@@ -221,6 +221,7 @@ Now:
       - EnableParentDragging should not be published (and should be read-only?)
       - we need a way to adjust various images of tcastlebutton
         See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+      	Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
 
     * castle-data:/ finish
       - support castlefindfiles.pas too
