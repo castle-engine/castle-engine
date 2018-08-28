@@ -81,13 +81,6 @@
   TUserRenderingPass = 0..2;
 
   { @exclude Internal.
-    Rendering pass combining TInternalRenderingPass and TUserRenderingPass. }
-  TTotalRenderingPass = 0..
-    (High(TInternalRenderingPass) + 1) *
-    (High(TUserRenderingPass) + 1)
-    - 1;
-
-  { @exclude Internal.
 
     Current camera used for rendering, used for @link(TRenderParams.RenderingCamera).
     This is part of TRenderParams information,

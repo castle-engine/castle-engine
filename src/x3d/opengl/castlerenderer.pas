@@ -719,6 +719,7 @@ type
   {$I castlerenderer_resource.inc}
   {$I castlerenderer_texture.inc}
   {$I castlerenderer_glsl.inc}
+  {$I castlerenderer_pass.inc}
 
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
@@ -883,8 +884,6 @@ type
     RenderingCamera: TRenderingCamera;
 
     { Rendering pass. Set in each RenderBegin. }
-    InternalPass: TInternalRenderingPass;
-    UserPass: TUserRenderingPass;
     Pass: TTotalRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
@@ -990,6 +989,7 @@ type
       const ARenderingCamera: TRenderingCamera;
       const LightRenderEvent: TLightRenderEvent;
       const AInternalPass: TInternalRenderingPass;
+      const AInternalScenePass: TInternalSceneRenderingPass;
       const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
@@ -2562,14 +2562,41 @@ procedure TGLRenderer.RenderBegin(
   const ARenderingCamera: TRenderingCamera;
   const LightRenderEvent: TLightRenderEvent;
   const AInternalPass: TInternalRenderingPass;
+  const AInternalScenePass: TInternalSceneRenderingPass;
   const AUserPass: TUserRenderingPass);
+
+  { Combine a set of numbers (each in their own range) into one unique number.
+    This is like combining a couple of digits into a whole number,
+    but each digit is in a separate numeric system.
+
+    This is used to calculate TTotalRenderingPass from a couple of numbers.
+    The goal is that changing *any* number must also change the result,
+    so that result is a unique representation of all the numbers. }
+  function GetTotalPass(
+    const Digits: array of Cardinal;
+    const Ranges: array of Cardinal): Cardinal;
+  var
+    I: Integer;
+    Multiplier: Cardinal;
+  begin
+    Result := 0;
+    Multiplier := 1;
+    Assert(Length(Digits) = Length(Ranges));
+    for I := 0 to Length(Digits) - 1 do
+    begin
+      Result := Result + Digits[I] * Multiplier;
+      Multiplier := Multiplier * Ranges[I];
+    end;
+  end;
+
 begin
   BaseLights := ABaseLights;
   RenderingCamera := ARenderingCamera;
   Assert(RenderingCamera <> nil);
-  InternalPass := AInternalPass;
-  UserPass := AUserPass;
-  Pass := InternalPass * UserPass;
+
+  Pass := GetTotalPass(
+    [     AInternalPass,       AInternalScenePass,       AUserPass ],
+    [High(AInternalPass), High(AInternalScenePass), High(AUserPass)]);
 
   RenderCleanState(true);
 

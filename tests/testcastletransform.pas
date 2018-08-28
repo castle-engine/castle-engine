@@ -47,13 +47,14 @@ type
     procedure TestPhysicsWorldOwnerEmptyBox;
     procedure TestPhysicsWorldOwnerEmptySphere;
     procedure TestPass;
+    procedure TestPassCombine;
   end;
 
 implementation
 
 uses Math, Contnrs,
   CastleVectors, CastleBoxes, CastleTransform, CastleSceneManager, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes;
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -1303,12 +1304,71 @@ procedure TTestCastleTransform.TestPass;
 var
   A: TInternalRenderingPass;
   B: TUserRenderingPass;
-  C: TTotalRenderingPass;
+  C: TInternalSceneRenderingPass;
+  P: TTotalRenderingPass;
 begin
   A := High(A);
   B := High(B);
   C := High(C);
-  AssertTrue((Integer(A) + 1) * (Integer(B) + 1) = (Integer(C) + 1));
+  P := High(P);
+  AssertTrue(
+    (Integer(A) + 1) *
+    (Integer(B) + 1) *
+    (Integer(C) + 1) =
+    (Integer(P) + 1));
+end;
+
+procedure TTestCastleTransform.TestPassCombine;
+
+  { Copied from src/x3d/opengl/castlerenderer.pas }
+  function GetTotalPass(
+    const Digits: array of Cardinal;
+    const Ranges: array of Cardinal): Cardinal;
+  var
+    I: Integer;
+    Multiplier: Cardinal;
+  begin
+    Result := 0;
+    Multiplier := 1;
+    Assert(Length(Digits) = Length(Ranges));
+    for I := 0 to Length(Digits) - 1 do
+    begin
+      Result := Result + Digits[I] * Multiplier;
+      Multiplier := Multiplier * Ranges[I];
+    end;
+  end;
+
+begin
+  { You can look at 1st GetTotalPass argument as a number, written backwards,
+    and then the assertions below are ordered:
+
+    000
+    001
+    010
+    011
+
+    100
+    101
+    ...
+
+    ... until final:
+    211
+  }
+
+  AssertEquals(0, GetTotalPass([0, 0, 0], [2, 2, 3]));
+  AssertEquals(1, GetTotalPass([1, 0, 0], [2, 2, 3]));
+  AssertEquals(2, GetTotalPass([0, 1, 0], [2, 2, 3]));
+  AssertEquals(3, GetTotalPass([1, 1, 0], [2, 2, 3]));
+
+  AssertEquals(4, GetTotalPass([0, 0, 1], [2, 2, 3]));
+  AssertEquals(5, GetTotalPass([1, 0, 1], [2, 2, 3]));
+  AssertEquals(6, GetTotalPass([0, 1, 1], [2, 2, 3]));
+  AssertEquals(7, GetTotalPass([1, 1, 1], [2, 2, 3]));
+
+  AssertEquals(8, GetTotalPass([0, 0, 2], [2, 2, 3]));
+  AssertEquals(9, GetTotalPass([1, 0, 2], [2, 2, 3]));
+  AssertEquals(10, GetTotalPass([0, 1, 2], [2, 2, 3]));
+  AssertEquals(11, GetTotalPass([1, 1, 2], [2, 2, 3]));
 end;
 
 initialization

@@ -408,6 +408,8 @@ type
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
 
+    InternalScenePass: TInternalSceneRenderingPass;
+
     { Render everything using Renderer.
 
       Calls Renderer.RenderBegin.
@@ -1298,7 +1300,7 @@ begin
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
     Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass, Params.UserPass);
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
     if Attributes.Mode <> rmFull then
     begin
@@ -1447,7 +1449,7 @@ procedure TCastleScene.PrepareResources(
           to render with lights. }
         DummyCamera := TRenderingCamera.Create;
         try
-          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0);
+          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
           while SI.GetNext do
           begin
             Shape := TGLShape(SI.Current);
@@ -1592,7 +1594,10 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings on}
   {$endif}
 
-  { Render taking Attributes.WireframeEffect into account. }
+  { Render taking Attributes.WireframeEffect into account.
+    Also controls InternalScenePass,
+    this way shaders from RenderNormal and RenderWireframe can coexist,
+    which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
   procedure RenderWithWireframeEffect;
   // TODO-es For OpenGLES, wireframe must be done differently
   {$ifndef OpenGLES}
@@ -1600,10 +1605,19 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings off}
   begin
     case Attributes.WireframeEffect of
-      weNormal: RenderNormal;
-      weWireframeOnly: RenderWireframe(Attributes.Mode = rmSolidColor);
+      weNormal:
+        begin
+          InternalScenePass := 0;
+          RenderNormal;
+        end;
+      weWireframeOnly:
+        begin
+          InternalScenePass := 1;
+          RenderWireframe(Attributes.Mode = rmSolidColor);
+        end;
       weSolidWireframe:
         begin
+          InternalScenePass := 0;
           glPushAttrib(GL_POLYGON_BIT);
             { enable polygon offset for everything (whole scene) }
             glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
@@ -1612,11 +1626,16 @@ procedure TCastleScene.LocalRenderOutside(
             glPolygonOffset(Attributes.SolidWireframeScale, Attributes.SolidWireframeBias); { saved by GL_POLYGON_BIT }
             RenderNormal;
           glPopAttrib;
+
+          InternalScenePass := 1;
           RenderWireframe(true);
         end;
       weSilhouette:
         begin
+          InternalScenePass := 0;
           RenderNormal;
+
+          InternalScenePass := 1;
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
@@ -1650,6 +1669,7 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings on}
   {$else}
   begin
+    InternalScenePass := 0;
     RenderNormal;
   {$endif}
   end;
