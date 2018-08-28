@@ -65,6 +65,7 @@ type
     OpenGLControl1: TOpenGLControl;
     procedure BtnScreenshotClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -131,6 +132,11 @@ begin
 
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  CGE_Close();
 end;
 
 procedure TForm1.FormResize(Sender: TObject);
