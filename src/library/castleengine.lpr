@@ -31,13 +31,13 @@
   See FPC CTypes unit (source rtl/unix/ctypes.inc) for a full list of c-types.
 }
 
-{$mode objfpc}{$H+}
 library castleengine;
 
-uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
+uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleApplicationProperties;
+  CastleBoxes, CastleControls, CastleApplicationProperties,
+  CastleWindow, CastleWindowTouch;
 
 type
   TCrosshairManager = class(TObject)
