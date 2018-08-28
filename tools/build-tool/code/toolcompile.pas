@@ -481,6 +481,16 @@ begin
       // do not show
       // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
       FpcOptions.Add('-vm6058');
+
+      // do not show
+      // Warning: Local variable "$1" of a managed type does not seem to be initialized
+      // (a lot of false warnings since FPC 3.3.1)
+      FpcOptions.Add('-vm5089');
+
+      // do not show
+      // Warning: function result variable of a managed type does not seem to be initialized
+      // (a lot of false warnings since FPC 3.3.1)
+      FpcOptions.Add('-vm5093');
     end;
 
     FpcOptions.Add('-T' + OSToString(OS));
