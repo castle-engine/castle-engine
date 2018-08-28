@@ -16,10 +16,6 @@
 { Compressing and downscaling textures. }
 unit ToolTextureGeneration;
 
-{ Unfortunately, AMDCompressCLI output is broken now.
-  See https://castle-engine.io/creating_data_material_properties.php . }
-{ $define USE_AMDCompress}
-
 interface
 
 uses CastleUtils, CastleStringUtils,
@@ -121,43 +117,27 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     end;
   end;
 
-  {$ifdef USE_AMDCompress}
-  procedure AMDCompress(const InputFile, OutputFile: string;
+  procedure Compressonator(const InputFile, OutputFile: string;
     const C: TTextureCompression; const CompressionNameForTool: string);
   var
-    {$ifndef MSWINDOWS}
-    WineExe: string;
-    {$endif}
     ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: string;
     Image: TCastleImage;
     CommandExe: string;
     CommandOptions: TCastleStringList;
   begin
-    { On non-Windows, we need wine for this }
-    {$ifndef MSWINDOWS}
-    WineExe := '';
-    TryToolExePath(WineExe, 'wine', C);
-    {$endif}
-
     ToolExe := '';
-    {$ifdef MSWINDOWS}
-    TryToolExe(ToolExe, 'c:/Program Files/AMD/AMDCompress/AMDCompressCLI.exe');
-    TryToolExe(ToolExe, 'c:/Program Files (x86)/AMD/AMDCompress/AMDCompressCLI.exe');
-    {$endif}
-    {$ifdef UNIX}
-    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files/AMD/AMDCompress/AMDCompressCLI.exe');
-    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files (x86)/AMD/AMDCompress/AMDCompressCLI.exe');
-    {$endif}
-    TryToolExePath(ToolExe, 'AMDCompressCLI', C);
+    { otherwise, assume it's on $PATH }
+    TryToolExePath(ToolExe, 'CompressonatorCLI', C);
 
     TempPrefix := GetTempFileNamePrefix;
 
     InputFlippedFile := TempPrefix + '.png';
 
-    { in theory, when DDSFlipped = false, we could just do
+    { In theory, when DDSFlipped = false, we could just do
       CheckCopyFile(InputFile, InputFlippedFile).
-      But then AMDCompressCLI fails to read some png files
-      (like flying in dark_dragon). }
+      But then AMDCompressCLI fails to read some png files (like flying in dark_dragon).
+      TODO: this comment is possibly no longer true as of
+      the new (open-source and cross-platform) Compressonator. }
     Image := LoadImage(FilenameToURISafe(InputFile));
     try
       if TextureCompressionInfo[C].DDSFlipped then
@@ -172,99 +152,31 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
     CommandOptions := TCastleStringList.Create;
     try
-      {$ifdef MSWINDOWS} CommandExe := ToolExe; CommandOptions.AddRange([
-      {$else}            CommandExe := WineExe; CommandOptions.AddRange([ToolExe,
+      CommandExe := ToolExe;
+      CommandOptions.AddRange([
+        '-fd',
+        CompressionNameForTool,
+        InputFlippedFile,
+        OutputTempFile]);
+
+      {$ifdef UNIX}
+      // CompressonatorCLI is just a bash script on Unix
+      CommandOptions.Insert(0, CommandExe);
+      CommandExe := '/bin/bash';
       {$endif}
-        '-fd', CompressionNameForTool,
-        { we cannot just pass InputFlippedFile, OutputFile to compressonator,
-          because it may be running in wine and not understanding Unix absolute paths. }
-        ExtractFileName(InputFlippedFile),
-        ExtractFileName(OutputTempFile)]);
+
       { TODO: it doesn't seem to help, DXT1_RGBA is still without
         anything useful in alpha value. Seems like AMDCompressCLI bug,
-        or I just don't know how to use the DXT1 options? }
+        or I just don't know how to use the DXT1 options?
+        TODO: this comment is possibly no longer true as of
+        the new (open-source and cross-platform) Compressonator. }
       if C = tcDxt1_RGB then // special options for tcDxt1_RGB
         CommandOptions.AddRange(
           ['-DXT1UseAlpha', '1', '-AlphaThreshold', '0.5']);
+
       RunCommandSimple(ExtractFilePath(TempPrefix),
         CommandExe, CommandOptions.ToArray);
     finally FreeAndNil(CommandOptions) end;
-
-    CheckRenameFile(OutputTempFile, OutputFile);
-    CheckDeleteFile(InputFlippedFile, true);
-  end;
-  {$endif}
-
-  procedure ATICompressonator(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
-  var
-    {$ifndef MSWINDOWS}
-    WineExe: string;
-    {$endif}
-    ToolExe, InputFlippedFile, OutputTempFile, TempPrefix, ConvertExe: string;
-    //Image: TCastleImage;
-  begin
-    { On non-Windows, we need wine for this }
-    {$ifndef MSWINDOWS}
-    WineExe := '';
-    TryToolExePath(WineExe, 'wine', C);
-    {$endif}
-
-    ToolExe := '';
-    {$ifdef MSWINDOWS}
-    TryToolExe(ToolExe, 'c:/Program Files/AMD/The Compressonator 1.50/TheCompressonator.exe');
-    TryToolExe(ToolExe, 'c:/Program Files (x86)/AMD/The Compressonator 1.50/TheCompressonator.exe');
-    {$endif}
-    {$ifdef UNIX}
-    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files/AMD/The Compressonator 1.50/TheCompressonator.exe');
-    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files (x86)/AMD/The Compressonator 1.50/TheCompressonator.exe');
-    {$endif}
-    TryToolExePath(ToolExe, 'TheCompressonator', C);
-
-    TempPrefix := GetTempFileNamePrefix;
-
-    { Use TGA format in-between (InputFlippedFile has .tga extension), not PNG,
-      this increases chances that ATI compressonator will not destroy
-      the alpha channel (testcase: escape textures of map/laser, pirate_1/2, pirate_boss,
-      bug reproducible when compressing to both "ATITC interpolated alpha"
-      and "ATITC explicit alpha" formats). }
-    InputFlippedFile := TempPrefix + '.tga';
-
-    // Image := LoadImage(FilenameToURISafe(InputFile));
-    // try
-    //   if TextureCompressionInfo[C].DDSFlipped then
-    //     Image.FlipVertical;
-    //   SaveImage(Image, FilenameToURISafe(InputFlippedFile));
-    // finally FreeAndNil(Image) end;
-
-    { Convert using ImageMagick.
-      - Back when we were using PNG for InputFlippedFile, ImageMagick proved
-        more reliable, ATI Compressonator was consistently producing invalid output
-        if we didn't use ImageMagick's convert.
-      - Now that we use TGA for InputFlippedFile, ImageMagick is the only option
-        anyway. We cannot write to TGA for now.
-    }
-    ConvertExe := '';
-    TryToolExePath(ConvertExe, 'convert', C);
-    if TextureCompressionInfo[C].DDSFlipped then
-      RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile])
-    else
-      RunCommandSimple(ConvertExe, [InputFile, InputFlippedFile]);
-
-    OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
-
-    RunCommandSimple(ExtractFilePath(TempPrefix),
-      {$ifdef MSWINDOWS} ToolExe, [
-      {$else}            WineExe, [ToolExe,
-      {$endif}
-      '-convert',
-      '-overwrite',
-      { we cannot just pass InputFlippedFile, OutputFile to compressonator,
-        because it may be running in wine and not understanding Unix absolute paths. }
-      ExtractFileName(InputFlippedFile),
-      ExtractFileName(OutputTempFile),
-      '-codec', 'ATICompressor.dll',
-      '+fourCC', CompressionNameForTool]);
 
     CheckRenameFile(OutputTempFile, OutputFile);
     CheckDeleteFile(InputFlippedFile, true);
@@ -353,43 +265,21 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
        OutputFile]);
   end;
 
-  procedure AMDCompress_FallbackATICompressonator(
-    const InputFile, OutputFile: string;
-    const C: TTextureCompression;
-    const CompressionNameForAMDCompress,
-          CompressionNameForATICompressonator: string);
-  begin
-    {$ifdef USE_AMDCompress}
-    try
-      AMDCompress(InputFile, OutputFile, C, CompressionNameForAMDCompress);
-      Exit; // if there was no ECannotFindTool exception, then success: exit
-    except
-      on E: ECannotFindTool do
-        Writeln('Cannot find AMDCompressCLI executable. Falling back to ATICompressonator.');
-    end;
-    {$endif}
-
-    ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
-  end;
-
-  procedure NVCompress_FallbackAMDCompress_FallbackATICompressonator(
+  procedure NVCompress_FallbackCompressonator(
     const InputFile, OutputFile: string;
     const C: TTextureCompression;
     const CompressionNameForNVCompress,
-          CompressionNameForAMDCompress,
-          CompressionNameForATICompressonator: string);
+          CompressionNameForCompressonator: string);
   begin
     try
       NVCompress(InputFile, OutputFile, C, CompressionNameForNVCompress);
       Exit; // if there was no ECannotFindTool exception, then success: exit
     except
       on E: ECannotFindTool do
-        Writeln('Cannot find nvcompress executable. Falling back to AMDCompressCLI or ATICompressonator.');
+        Writeln('Cannot find nvcompress executable. Falling back to Compressonator.');
     end;
 
-    AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C,
-      CompressionNameForAMDCompress,
-      CompressionNameForATICompressonator);
+    Compressonator(InputFile, OutputFile, C, CompressionNameForCompressonator);
   end;
 
   { Convert both URLs to filenames and check whether output should be updated.
@@ -468,18 +358,17 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       TimeStart := ProcessTimer;
 
       case C of
-        { For ATICompressonator DXT1:
-          tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
-          DXT1 is the same compression in both cases, and there's no option
-          how to differentiate between this in DDS file. }
-        tcDxt1_RGB : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc1' , 'DXT1', 'DXT1');
-        tcDxt1_RGBA: NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc1a', 'DXT1', 'DXT1');
-        tcDxt3     : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc2' , 'DXT3', 'DXT3');
-        tcDxt5     : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc3' , 'DXT5', 'DXT5');
+        { For Compressonator DXT1:
+          We have special handling for C = tcDxt1_RGB versus tcDxt1_RGBA,
+          they will be handled differently, even though they are both called 'DXT1'. }
+        tcDxt1_RGB : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc1' , 'DXT1');
+        tcDxt1_RGBA: NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc1a', 'DXT1');
+        tcDxt3     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc2' , 'DXT3');
+        tcDxt5     : NVCompress_FallbackCompressonator(InputFile, OutputFile, C, 'bc3' , 'DXT5');
 
-        tcATITC_RGB                   : AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
-        tcATITC_RGBA_InterpolatedAlpha: AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
-        tcATITC_RGBA_ExplicitAlpha    : AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
+        tcATITC_RGB                   : Compressonator(InputFile, OutputFile, C, 'ATC_RGB'              );
+        tcATITC_RGBA_InterpolatedAlpha: Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated');
+        tcATITC_RGBA_ExplicitAlpha    : Compressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    );
 
         tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4_RGB');
         tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2_RGB');
@@ -489,7 +378,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTC2_2');
 
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
-                      // or AMDCompress(InputFile, OutputFile, C, 'ETC_RGB');
+                      // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');
 
         else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
           [TextureCompressionToString(C), OutputFile]));
