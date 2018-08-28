@@ -677,6 +677,10 @@ type
     function CreateContainer: TWindowContainer; virtual;
   private
     FWidth, FHeight, FLeft, FTop: Integer;
+    { Window size reported last to DoResize,
+      and not clamped with some internal constaints like ResizeAllowed
+      of MaxWidth etc. }
+    FRealWidth, FRealHeight: Integer;
     FOnCloseQuery: TContainerEvent;
     FOnTimer: TContainerEvent;
     FOnDropFiles: TDropFilesFunc;
@@ -770,6 +774,17 @@ type
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
     procedure SetResizeAllowed(const Value: TResizeAllowed);
+
+    { Convert window position from the usual window system convention,
+      where (0,0) is left-top, and the window has size FRealWidth/FRealHeight,
+      to CGE convention where (0,0) is left-bottom. }
+    function LeftTopToCastle(const V: TVector2): TVector2;
+    function LeftTopToCastle(const X, Y: Single): TVector2;
+
+    { Convert window position from the CGE convention to window system
+      convention where (0,0) is left-top, also rounding it.
+      This reverses LeftTopToCastle, and rounds. }
+    function CastleToLeftTopInt(const V: TVector2): TVector2Integer;
 
     { Update FFullScreenBackend to FFullScreenWanted by closing and reopening
       the window (if needed, i.e. if FFullScreenBackend <> FFullScreenWanted). }
@@ -3411,36 +3426,41 @@ end;
 
 procedure TCastleWindowCustom.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
 begin
-  { zabezpiecz sie przed
-    1) backends where we can't express ResizeAllowed <> raAllowed
-    2) Windowsem, ktory moze zresizowac nasze okno np. gdy sie nie miescimy na ekranie
-    3) XWindow-Managerem ktory zawsze moze nas zresizowac, mimo ze prosimy go
-       zeby tego nie robil.
-    wiec pod wszystkimi trzema implementacjami musimy sprawdzic warunek ze
-      albo ResizeAllowed = raAllowed albo naprawde fwidth = w itd.
-    Sprawdzamy tez czy w i h sa w odpowiednim zakresie minXxx .. maxXxx.
-      Oczywiscie implementacje powinny starac sie zeby nic spoza tego zakresu do nas
-      nie dotarlo, ale nigdy nie ma pewnosci. Zwracam uwage, ze wymagamy aby zawsze
-      minWidth > 0 i minHeight > 0 wiec jednoczesnie ponizej gwarantujemy sobie ze nie
-      zachodzi sytuacja w = 0 lub h = 0.
+  { Set FRealWidth/Height unconditionally to AWidth/AHeight. }
+  FRealWidth := AWidth;
+  FRealHeight := AHeight;
 
-    Apropos wywolywania DoResize(.., false) z OpenBackend:
-    zabezpieczamy sie przed tym zawsze. Ale mozna tu odnotowac ze z pewnoscia
-    OpenBackend moze wywolywac DoResize(.., false) w przypadku
-    implementacji WINAPI i GTK.
-  }
+  { When setting FWidth/FHeight (which is used to report size to user,
+    and to create OpenGL area size) we make sure some constaints are honored:
 
-  { update FWidth, FHeight.
-    Below we are explicitly forcing assertions about ResizeAllowed:
-    when ResizeAllowed
-      = raNotAllowed: FWidth and FHeight cannot change
-      = raOnlyAtOpen: FWidth and FHeight can change only at first EventResize
+    - You should not be able to resize the window when ResizeAllowed <> raAllowed.
+      When ResizeAllowed = raNotAllowed, we want to guarantee that
+      FWidth and FHeight stay constant, just as developer set them.
+
+      And some backends do not allow to express,
+      or do not reliably honour, all possible ResizeAllowed values.
+      E.g. Windows will always resize the window to fit on desktop.
+      Window Manager on X can also do this.
+      So we need to "forcefully" apply the ResizeAllowed logic here:
+
+      * raNotAllowed: FWidth and FHeight cannot change
+
+      * raOnlyAtOpen: FWidth and FHeight can change only at first EventResize
         (with FirstResizeAfterOpen = true), at least from the point of view of outside.
         Internally, every call to DoResize upto and including FirstResizeAfterOpen call
         changes FWidth and FHeight. This allows to accumulate e.g. size changes
         caused by FullScreen=true, in case OpenBackend does them by explicitly
         calling DoResize, like unix/castlewindow_xlib.inc .
-      = raAllowed: FWidth and FHeight can change freely
+
+      * raAllowed: FWidth and FHeight can change freely
+
+    - Same thing for Min/MaxWidth/Height.
+
+      BTW, always MinWidth > 0 and MinHeight > 0,
+      so the Clamp below will also make sure FWidth and FHeight are > 0.
+
+    We also secure from calls with FirstResizeAfterOpen=false
+    from OpenBackend, which may happen from e.g. WinAPI and GTK backends.
   }
   if (ResizeAllowed = raAllowed) or
      ((ResizeAllowed = raOnlyAtOpen) and
@@ -4572,6 +4592,23 @@ end;
 function TCastleWindowCustom.Fps: TFramesPerSecond;
 begin
   Result := Container.Fps;
+end;
+
+function TCastleWindowCustom.LeftTopToCastle(const V: TVector2): TVector2;
+begin
+  Result := LeftTopToCastle(V.Data[0], V.Data[1]);
+end;
+
+function TCastleWindowCustom.LeftTopToCastle(const X, Y: Single): TVector2;
+begin
+  Result.Data[0] := X;
+  Result.Data[1] := FRealHeight - 1 - Y;
+end;
+
+function TCastleWindowCustom.CastleToLeftTopInt(const V: TVector2): TVector2Integer;
+begin
+  Result.Data[0] := Floor(V.Data[0]);
+  Result.Data[1] := FRealHeight - 1 - Floor(V.Data[1]);
 end;
 
 { TWindowSceneManager -------------------------------------------------------- }

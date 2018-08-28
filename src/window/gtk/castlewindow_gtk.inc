@@ -575,7 +575,7 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseDown(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseDown(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -585,14 +585,14 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseUp(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseUp(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(MousePosition,
-    Vector2(Event^.x, Height - 1 - Event^.y), MousePressed, 0));
+    LeftTopToCastle(Event^.x, Event^.y), MousePressed, 0));
   Result := g_true;
 SIGNAL_GLAREA_END;
 
@@ -762,8 +762,9 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
 {$endif}
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
-{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
 var
+  P: TVector2Integer;
+{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
   RootX, RootY: GInt;
 {$endif}
 begin
@@ -774,6 +775,8 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
+    P := CastleToLeftTopInt(Value);
+
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     { With older GDK/GTK, you had to use XWarpPointer to position mouse.
       We still use it, for now, for GTK under Xlib --- this way we work
@@ -782,10 +785,10 @@ begin
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
-      0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
+      0, 0, 0, 0, P.X, P.Y);
     {$else}
       gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-        Floor(Value[0]), Height - 1 - Floor(Value[1]), @RootX, @RootY);
+        P.X, P.Y, @RootX, @RootY);
       gdk_display_warp_pointer(Application.XDisplayGdk,
         Application.XScreenGdk, RootX, RootY);
     {$endif}

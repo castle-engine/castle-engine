@@ -248,6 +248,8 @@ function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent):
 
   function CurrentPosition(const PointerIndex: Integer): TVector2;
   begin
+    // TODO: Use LeftTopToCastle, test
+    // (It should be OK, since ScreenHeight should equal FRealHeight always)
     Result := Vector2(
       AMotionEvent_getX(Event, PointerIndex),
       ScreenHeight - AMotionEvent_getY(Event, PointerIndex));

@@ -370,6 +370,8 @@ begin
 end;
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+var
+  P: TVector2Integer;
 begin
   if not Closed then
   begin
@@ -378,8 +380,8 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
-    XWarpPointer(Application.XDisplay, X.None, WindowXID,
-      0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
+    P := CastleToLeftTopInt(Value);
+    XWarpPointer(Application.XDisplay, X.None, WindowXID, 0, 0, 0, 0, P.X, P.Y);
   end;
 end;
 
@@ -555,7 +557,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     btn: TMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
-      DoMouseDown(Vector2(xEvent.x, Height - 1 - xEvent.y), btn, 0) else
+      DoMouseDown(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0) else
     case xEvent.Button of
       Button4: DoMouseWheel( 1, true);
       Button5: DoMouseWheel(-1, true);
@@ -569,7 +571,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     btn: TMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
-      DoMouseUp(Vector2(xEvent.x, Height - 1 - xEvent.y), btn, 0)
+      DoMouseUp(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0)
   end;
 
   procedure X_MotionNotify(const xEvent: TXMotionEvent);
@@ -581,7 +583,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
     }
     DoMotion(InputMotion(MousePosition,
-      Vector2(xEvent.x, Height - 1 - xEvent.y),
+      LeftTopToCastle(xEvent.x, xEvent.y),
       MousePressed, 0));
   end;
 

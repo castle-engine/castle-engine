@@ -430,16 +430,16 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
   procedure HandleMouseDown(const Button: TMouseButton);
   begin
     MaybeCapture;
-    DoMouseDown(Vector2(
-                   TWinParam(lParm).LoSmallint,
-      Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
+    DoMouseDown(LeftTopToCastle(
+      TWinParam(lParm).LoSmallint,
+      TWinParam(lParm).HiSmallint), Button, 0);
   end;
 
   procedure HandleMouseUp(const Button: TMouseButton);
   begin
-    DoMouseUp(Vector2(
-                   TWinParam(lParm).LoSmallint,
-      Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
+    DoMouseUp(LeftTopToCastle(
+      TWinParam(lParm).LoSmallint,
+      TWinParam(lParm).HiSmallint), Button, 0);
     MaybeRelease;
   end;
 
@@ -654,9 +654,9 @@ begin
             if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
-        DoMotion(InputMotion(MousePosition, Vector2(
-                         TWinParam(lParm).LoSmallint,
-            Height - 1 - TWinParam(lParm).HiSmallint),
+        DoMotion(InputMotion(MousePosition, LeftTopToCastle(
+          TWinParam(lParm).LoSmallint,
+          TWinParam(lParm).HiSmallint),
           MousePressed, 0));
         Exit;
       end;
@@ -1008,6 +1008,8 @@ begin
 end;
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+var
+  P: TVector2Integer;
 begin
   if not Closed then
   begin
@@ -1016,7 +1018,8 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
-    SetCursorPos(Left + Floor(Value[0]), Top + Height - 1 - Floor(Value[1]));
+    P := CastleToLeftTopInt(Value);
+    SetCursorPos(Left + P.X, Top + P.Y);
   end;
 end;
 
