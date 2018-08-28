@@ -507,7 +507,7 @@ procedure TTestCastleUtils.TestRandomIntRangeInclusive;
     AssertTrue(MinRes <= MaxRes);
     AssertTrue(MinRes >= R1);
     AssertTrue(MaxRes <= R2);
-    Writeln('For range [', R1, ',', R2, '], the random numbers were within [', MinRes, ',', MaxRes, ']. Should be usually equal, for large test count');
+    // Writeln('For range [', R1, ',', R2, '], the random numbers were within [', MinRes, ',', MaxRes, ']. Should be usually equal, for large test count');
   end;
 
 begin
