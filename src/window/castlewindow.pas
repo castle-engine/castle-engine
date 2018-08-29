@@ -3238,7 +3238,7 @@ procedure TCastleWindowCustom.OpenCore;
         doing anything more with window now (like MakeCurrent) would be wrong. }
       if Closed then Exit;
 
-      DoResize(FWidth, FHeight, true);
+      DoResize(FRealWidth, FRealHeight, true);
     except
       { capture exceptions from Application.OnInitialize, Window.OnOpen, Window.OnResize }
       Application.HandleException(Self);

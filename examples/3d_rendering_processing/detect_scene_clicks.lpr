@@ -67,7 +67,9 @@ begin
       TopMostScene := nil;
 
     if TopMostScene <> nil then
-      Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag));
+      Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag))
+    else
+      Notifications.Show('Clicked on empty space')
   end;
 end;
 

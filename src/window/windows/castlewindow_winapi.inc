@@ -557,7 +557,7 @@ begin
           Do we really need to call DoResize, OnResize?
           Maybe we should just call only glViewport,
           using current RenderContext.Viewport? }
-        DoResize(fWidth, fHeight, false);
+        DoResize(fRealWidth, fRealHeight, false);
         Exit;
       end;
     WM_SIZING:
