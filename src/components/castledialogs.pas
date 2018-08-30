@@ -23,7 +23,8 @@ interface
 uses Classes, Dialogs, ExtDlgs;
 
 type
-  { General open dialog that uses URL. }
+  { General open dialog that uses URL.
+    The URL is a file: or castle-data: URL. }
   TCastleOpenDialog = class(TOpenDialog)
   private
     function GetURL: string;
@@ -32,7 +33,8 @@ type
     property URL: string read GetURL write SetURL stored false;
   end;
 
-  { General save dialog that uses URL. }
+  { General save dialog that uses URL.
+    The URL is a file: or castle-data: URL. }
   TCastleSaveDialog = class(TSaveDialog)
   private
     function GetURL: string;
@@ -99,7 +101,8 @@ procedure Register;
 
 implementation
 
-uses CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages;
+uses CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
+  CastleStringUtils;
 
 procedure Register;
 begin
@@ -112,9 +115,23 @@ begin
   ]);
 end;
 
+function MaybeUseDataProtocol(const URL: String): String;
+var
+  DataPath: String;
+begin
+  DataPath := ApplicationData('');
+  if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
+    Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
+  else
+    Result := URL;
+end;
+
+{ TCastleOpen3DDialog ----------------------------------------------------- }
+
 function TCastleOpen3DDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(FileName);
+  Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleOpen3DDialog.SetURL(AValue: string);
@@ -135,9 +152,12 @@ begin
   InitialFilterIndex := FilterIndex;
 end;
 
+{ TCastleSaveImageDialog ------------------------------------------------- }
+
 function TCastleSaveImageDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(FileName);
+  Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleSaveImageDialog.SetURL(AValue: string);
@@ -158,9 +178,12 @@ begin
   InitialFilterIndex := FilterIndex;
 end;
 
+{ TCastleOpenImageDialog --------------------------------------------------- }
+
 function TCastleOpenImageDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(FileName);
+  Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleOpenImageDialog.SetURL(AValue: string);
@@ -181,9 +204,12 @@ begin
   InitialFilterIndex := FilterIndex;
 end;
 
+{ TCastleSaveDialog -------------------------------------------------------- }
+
 function TCastleSaveDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(FileName);
+  Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleSaveDialog.SetURL(AValue: string);
@@ -191,14 +217,17 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-procedure TCastleOpenDialog.SetURL(AValue: string);
-begin
-  FileName := URIToFilenameSafeUTF8(AValue);
-end;
+{ TCastleOpenDialog ---------------------------------------------------------- }
 
 function TCastleOpenDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(FileName);
+  Result := MaybeUseDataProtocol(Result);
+end;
+
+procedure TCastleOpenDialog.SetURL(AValue: string);
+begin
+  FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
 end.

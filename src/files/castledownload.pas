@@ -701,12 +701,6 @@ begin
       [URL]);
 end;
 
-{ Assuming this is castle-data:... URL, resolve it using ApplicationData. }
-function ResolveDataURL(const URL: String): String;
-begin
-  Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false));
-end;
-
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
@@ -812,7 +806,7 @@ begin
   { castle-data: to access ApplicationData }
   if P = 'castle-data' then
   begin
-    Result := Download(ResolveDataURL(URL), Options, MimeType);
+    Result := Download(ResolveCastleDataURL(URL), Options, MimeType);
   end else
 
   { data: URI scheme }
@@ -887,7 +881,7 @@ begin
   end else
   if P = 'castle-data' then
   begin
-    Result := URLSaveStream(ResolveDataURL(URL), Options);
+    Exit(URLSaveStream(ResolveCastleDataURL(URL), Options));
   end else
     raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 

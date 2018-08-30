@@ -141,6 +141,7 @@ function AbsoluteURI(const URI: string): string;
 function AbsoluteFileURI(const URI: string): boolean;
 
 { Convert URI (or filename) to a filename.
+
   This is an improved URIToFilename from URIParser.
   When URI is already a filename, this does a better job than URIToFilename,
   as it handles also Windows absolute filenames (see URIProtocol).
@@ -148,7 +149,9 @@ function AbsoluteFileURI(const URI: string): boolean;
   a file URI.
 
   Just like URIParser.URIToFilename, this percent-decodes the parameter.
-  For example, @code(%4d) in URI will turn into letter @code(M) in result. }
+  For example, @code(%4d) in URI will turn into letter @code(M) in result.
+
+  It also handles our castle-data: protocol.}
 function URIToFilenameSafe(const URI: string): string;
 
 { Convert filename to URI.
@@ -247,10 +250,13 @@ function URIFileExists(const URL: string): boolean;
   including always final slash at the end. }
 function URICurrentPath: string;
 
+{ If this is castle-data:... URL, resolve it using ApplicationData. }
+function ResolveCastleDataURL(const URL: String): String;
+
 implementation
 
 uses SysUtils, URIParser,
-  CastleUtils, CastleDataURI, CastleLog;
+  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
@@ -506,7 +512,8 @@ begin
     filenames like "c:\foo" as filenames. }
   P := URIProtocol(URI);
   if P = '' then
-    Result := URI else
+    Result := URI
+  else
   if P = 'file' then
   begin
     try
@@ -522,6 +529,9 @@ begin
       end;
     end;
   end else
+  if P = 'castle-data' then
+    Result := URIToFilenameSafe(ResolveCastleDataURL(URI))
+  else
     Result := '';
 end;
 
@@ -885,6 +895,14 @@ end;
 function URICurrentPath: string;
 begin
   Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+end;
+
+function ResolveCastleDataURL(const URL: String): String;
+begin
+  if URIProtocol(URL) = 'castle-data' then
+    Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false))
+  else
+    Result := URL;
 end;
 
 finalization
