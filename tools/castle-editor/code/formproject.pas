@@ -133,12 +133,14 @@ type
       also temporary scene manager for .castle-transform.
       Everything specific to this hierarchy in CastleControl. }
     HierarchyOwner: TComponent;
+    HierarchyModified: Boolean;
     CastleControl: TCastleControlCustom;
     procedure BuildToolCall(const Commands: array of String);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
+    procedure HierarchyModifiedNotification(Sender: TObject);
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
@@ -151,6 +153,10 @@ type
     procedure FreeProcess;
     procedure UpdateHierarchy(const Root: TComponent);
     procedure UpdateSelectedControl;
+    procedure UpdateFormCaption;
+    { Propose saving the hierarchy.
+      Returns should we continue (user did not cancel). }
+    function ProposeSaveHierarchy: Boolean;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -197,6 +203,8 @@ begin
     TransformSave(TCastleTransform(HierarchyRoot), Url)
   else
     raise EInternalError.Create('We can only save HierarchyRoot that descends from TCastleUserInterface or TCastleTransform');
+  HierarchyModified := false;
+  UpdateFormCaption;
 end;
 
 procedure TProjectForm.OpenHierarchy(const NewHierarchyRoot, NewHierarchyOwner: TComponent;
@@ -241,13 +249,15 @@ begin
   HierarchyRoot := NewHierarchyRoot;
   HierarchyUrl := NewHierarchyUrl;
   HierarchyOwner := NewHierarchyOwner;
+  HierarchyModified := HierarchyUrl = ''; // when opening '', mark new hierarchy modified
   // TODO: is this correct? what should be set here?
   PropertyEditorHook.LookupRoot := HierarchyOwner;
 
   UpdateHierarchy(HierarchyRoot);
+  UpdateFormCaption;
 end;
 
-procedure TProjectForm.OpenHierarchy(const NewHierarchyUrl: string);
+procedure TProjectForm.OpenHierarchy(const NewHierarchyUrl: String);
 var
   NewHierarchyRoot, NewHierarchyOwner: TComponent;
   Mime: String;
@@ -287,6 +297,7 @@ begin
   begin
     SaveHierarchy(SaveHierarchyDialog.Url);
     HierarchyUrl := SaveHierarchyDialog.Url; // after successfull save
+    UpdateFormCaption;
     // TODO: save HierarchyUrl somewhere? CastleEditorSettings.xml?
   end;
 end;
@@ -367,9 +378,11 @@ begin
   InspectorSimple := CommonInspectorCreate;
   InspectorSimple.Parent := TabSimple;
   InspectorSimple.OnEditorFilter := @InspectorSimpleFilter;
+  InspectorSimple.OnModified := @HierarchyModifiedNotification;
 
   InspectorAdvanced := CommonInspectorCreate;
   InspectorAdvanced.Parent := TabAdvanced;
+  InspectorAdvanced.OnModified := @HierarchyModifiedNotification;
 
   CastleControl := TCastleControlCustom.Create(Self);
   CastleControl.Parent := PanelAboveTabs;
@@ -405,7 +418,8 @@ end;
 
 procedure TProjectForm.MenuItemCompileRunClick(Sender: TObject);
 begin
-  BuildToolCall(['compile', 'run']);
+  if ProposeSaveHierarchy then
+    BuildToolCall(['compile', 'run']);
 end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
@@ -449,7 +463,8 @@ end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
 begin
-  BuildToolCall(['run']);
+  if ProposeSaveHierarchy then
+    BuildToolCall(['run']);
 end;
 
 procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
@@ -553,6 +568,53 @@ begin
   MenuItemBreakProcess.Enabled := not AEnabled;
 end;
 
+procedure TProjectForm.UpdateFormCaption;
+var
+  HierarchyName: String;
+begin
+  // calculate HierarchyName
+  if HierarchyUrl <> '' then
+    HierarchyName := ExtractURIName(HierarchyUrl)
+  else
+  if HierarchyRoot is TCastleTransform then
+    HierarchyName := 'New Transform'
+  else
+  if HierarchyRoot is TCastleUserInterface then
+    HierarchyName := 'New User Interface'
+  else
+    // generic, should not happen now
+    HierarchyName := 'New Component';
+
+  Caption := '[' + Iff(HierarchyModified, '*', '') + HierarchyName + '] ' +
+    SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
+end;
+
+function TProjectForm.ProposeSaveHierarchy: Boolean;
+var
+  Mr: TModalResult;
+begin
+  Result := true;
+
+  { call SaveChanges to be sure to have good HierarchyModified value.
+    Otherwise when editing e.g. TCastleButton.Caption,
+    you can press F9 and have HierarchyModified = false,
+    because HierarchyModifiedNotification doesn't occur because we actually
+    press "tab" to focus another control. }
+  InspectorSimple.SaveChanges;
+  InspectorAdvanced.SaveChanges;
+
+  if HierarchyModified then
+  begin
+    Mr := MessageDlg('Save Design',
+      'Design "' + HierarchyUrl + '" was modified but not saved yet. Save it before running the application?',
+      mtConfirmation, mbYesNoCancel, 0);
+    case Mr of
+      mrYes: MenuItemSaveHierarchy.Click;
+      mrCancel: Result := false;
+    end;
+  end;
+end;
+
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 var
   ManifestDoc: TXMLDocument;
@@ -568,8 +630,6 @@ begin
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
-
-  Caption := SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
 
   ShellTreeView1.Root := ProjectPath;
 
@@ -741,6 +801,12 @@ begin
     SelectedCount := Selected.Count
   else
     SelectedCount := 0;
+end;
+
+procedure TProjectForm.HierarchyModifiedNotification(Sender: TObject);
+begin
+  HierarchyModified := true;
+  UpdateFormCaption;
 end;
 
 procedure TProjectForm.UpdateSelectedControl;
