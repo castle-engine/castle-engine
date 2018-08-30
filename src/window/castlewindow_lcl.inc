@@ -405,7 +405,7 @@ procedure TCastleWindowCustom.OpenBackend;
     InitialCursorPos: TPoint;
   begin
     InitialCursorPos := OpenGLControl.ScreenToControl(Mouse.CursorPos);
-    FMousePosition := LeftTopToCastle(InitialCursorPos);
+    FMousePosition := LeftTopToCastle(InitialCursorPos.X, InitialCursorPos.Y);
   end;
 
 begin
