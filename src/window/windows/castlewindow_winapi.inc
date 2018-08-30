@@ -829,6 +829,20 @@ begin
 end;
 
 procedure TCastleWindowCustom.OpenBackend;
+
+  // Get initial MousePosition, even before the first mouse move/down event.
+  procedure GetInitialCursorPos(const ClientRect: TRect);
+  var
+    InitialCursorPos: Windows.TPoint;
+  begin
+    if GetCursorPos(@InitialCursorPos) then
+    begin
+      FMousePosition := LeftTopToCastle(
+        InitialCursorPos.X - ClientRect.Left,
+        InitialCursorPos.Y - ClientRect.Top);
+    end;
+  end;
+
 var
   {$ifndef CASTLE_ENGINE_PLUGIN}
   dwExStyle, dwStyle: dword;
@@ -965,6 +979,8 @@ begin
   end;
   {$endif}
 
+  OSCheck(GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
+
   { Windows does not send us WM_SIZE messages when FullScreen (that's probably
     caused by our special dwStyle and dwStyleEx for FullScreen, probably
     by the lack of WS_OVERLAPPED in dwStyle). So we should simulate it here,
@@ -975,9 +991,11 @@ begin
     (we don't care here about ResizeAllowed, DoResize will take care of averything). }
   if FullScreen then
   begin
-    OSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
-    DoResize(ClientRect.Right - ClientRect.Left, ClientRect.Bottom - ClientRect.Top, false);
+    DoResize(ClientRect.Right - ClientRect.Left,
+             ClientRect.Bottom - ClientRect.Top, false);
   end;
+
+  GetInitialCursorPos(ClientRect);
 end;
 
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);

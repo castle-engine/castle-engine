@@ -3160,6 +3160,8 @@ procedure TCastleWindowCustom.OpenCore;
     ClampVar(FHeight, MinHeight, MaxHeight);
     if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
     if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
+    FRealWidth  := FWidth;
+    FRealHeight := FHeight;
 
     { reset some window state variables }
     Pressed.Clear;

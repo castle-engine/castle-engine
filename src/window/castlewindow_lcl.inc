@@ -399,6 +399,15 @@ begin
 end;
 
 procedure TCastleWindowCustom.OpenBackend;
+
+  procedure GetInitialCursorPos;
+  var
+    InitialCursorPos: TPoint;
+  begin
+    InitialCursorPos := OpenGLControl.ScreenToControl(Mouse.CursorPos);
+    FMousePosition := LeftTopToCastle(InitialCursorPos);
+  end;
+
 begin
   { We use Forms.Application.CreateForm, not just "Form := TForm.CreateNew(nil)",
     because we want our Form to be set as Forms.Application.MainForm.
@@ -517,6 +526,8 @@ begin
   OpenGLControl.Invalidate;
 
   Application.OpenWindowsAdd(Self);
+
+  GetInitialCursorPos;
 end;
 
 const
