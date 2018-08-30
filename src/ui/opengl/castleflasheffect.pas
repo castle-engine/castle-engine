@@ -66,6 +66,8 @@ type
 
     { Free the @link(Image) instance automatically. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
+
+    property FullSize default true;
   end;
 
 implementation
@@ -77,7 +79,7 @@ constructor TCastleFlashEffect.Create(AOwner: TComponent);
 begin
   inherited;
   FDuration := DefaultDuration;
-  FFullSize := true;
+  FullSize := true;
 end;
 
 destructor TCastleFlashEffect.Destroy;
