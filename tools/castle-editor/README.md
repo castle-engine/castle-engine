@@ -124,9 +124,7 @@ Now:
 
 	  Typical games should keep all the designs (.castle-user-interface and .castle-transform files) inside the "data" subdirectory to have them packaged in the application on all platforms (desktop, mobile). And you should always load them using the ApplicationData function or the castle-data:/xxx URL.
 	  )
-	* Show edited hierarchy basename on caption,
-	  show * to mark modified,
-	  before exiting ask whether to save.
+	* before exiting ask whether to save.
 	* special menu "Designer" with new, open, close. Separate from "File"
 	* rest of "File" rename to "Project"
 	* initially nothing should be open,
@@ -136,9 +134,6 @@ Now:
 	   - transformation (.castle-transform file)
 	   using the "Designer" menu
 	* Designer -> Close (Ctrl + W) menu
-    * use castle-, not cge-, for extensions
-      'main.castle-user-interface'
-      'main.castle-transform'
     * open last scene in the project,
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
@@ -206,10 +201,6 @@ Now:
 	your own camera instance. }
       StoreInitialCamera: Boolean
       InitialCamera
-    * TCastleLabel.Caption:
-      - newline remains at end always
-      - Also, newline is not shown nicely in inspector, as unrenderable char.
-      - Our GetCaption should just strip it?
 
     * TCastleButton:
       - Pressed must be editable even when not toggle?

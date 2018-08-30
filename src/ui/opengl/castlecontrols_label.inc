@@ -379,7 +379,7 @@ end;
 
 function TCastleLabel.GetCaption: string;
 begin
-  Result := Text.Text;
+  Result := TrimEndingNewline(Text.Text);
 end;
 
 procedure TCastleLabel.SetCaption(const Value: string);

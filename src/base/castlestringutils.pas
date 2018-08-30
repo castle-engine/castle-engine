@@ -948,6 +948,9 @@ type
 procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
   const RaiseExceptionOnError: boolean = true);
 
+{ Remove one newline from the end of the string, if any. }
+function TrimEndingNewline(const S: String): String;
+
 const
   { }
   CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
@@ -2528,6 +2531,17 @@ begin
     if not (C in ValidChars) then
       ReportInvalid;
   end;
+end;
+
+function TrimEndingNewline(const S: String): String;
+begin
+  if IsSuffix(#13#10, S, false) then
+    Result := Copy(S, 1, Length(S) - 2)
+  else
+  if IsSuffix(#10, S, false) then
+    Result := Copy(S, 1, Length(S) - 1)
+  else
+    Result := S;
 end;
 
 end.

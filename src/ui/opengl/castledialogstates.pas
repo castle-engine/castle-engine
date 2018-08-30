@@ -357,7 +357,7 @@ end;
 
 function TStateDialog.GetCaption: string;
 begin
-  Result := Text.Text;
+  Result := TrimEndingNewline(Text.Text);
 end;
 
 procedure TStateDialog.SetCaption(const Value: string);

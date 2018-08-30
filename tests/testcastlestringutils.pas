@@ -37,6 +37,7 @@ type
     procedure TestSReplacePatterns;
     procedure TestGetFileFilter;
     procedure TestSplitString;
+    procedure TestTrimEndingNewline;
   end;
 
 implementation
@@ -426,6 +427,15 @@ begin
   TestSplitAndGlue(['foo', '', 'bar'], 'foo||bar', '|');
   TestSplitAndGlue(['foo', '', '', 'bar'], 'foo|||bar', '|');
   TestSplitAndGlue(['foo', '', 'bar', ''], 'foo||bar|', '|');
+end;
+
+procedure TTestCastleStringUtils.TestTrimEndingNewline;
+begin
+  AssertEquals('aa  ', TrimEndingNewline('aa  '));
+  AssertEquals('aa  ', TrimEndingNewline('aa  '#10));
+  AssertEquals('aa  ', TrimEndingNewline('aa  '#13#10));
+  AssertEquals(#13'a'#10'a'#10, TrimEndingNewline(#13'a'#10'a'#10#10));
+  AssertEquals(#13'a'#10'a'#10, TrimEndingNewline(#13'a'#10'a'#10#13#10));
 end;
 
 initialization
