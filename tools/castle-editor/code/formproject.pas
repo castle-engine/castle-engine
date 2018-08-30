@@ -157,6 +157,7 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveHierarchy: Boolean;
+    procedure WarningIfHierarchyUrlOutsideData;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -271,8 +272,8 @@ begin
   if Mime = 'text/x-castle-transform' then
     NewHierarchyRoot := TransformLoad(NewHierarchyUrl, NewHierarchyOwner)
   else
-    raise Exception.CreateFmt('Unrecgnized file extension (MIME type %s)',
-      [Mime]);
+    raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
+      [ExtractFileExt(NewHierarchyUrl), Mime]);
 
   OpenHierarchy(NewHierarchyRoot, NewHierarchyOwner, NewHierarchyUrl);
 end;
@@ -289,15 +290,13 @@ begin
   else
     raise EInternalError.Create('HierarchyRoot does not descend from TCastleUserInterface or TCastleTransform');
 
-  if HierarchyUrl = '' then
-    SaveHierarchyDialog.Url := ProjectPathUrl
-  else
-    SaveHierarchyDialog.Url := HierarchyUrl;
+  SaveHierarchyDialog.Url := HierarchyUrl;
   if SaveHierarchyDialog.Execute then
   begin
     SaveHierarchy(SaveHierarchyDialog.Url);
     HierarchyUrl := SaveHierarchyDialog.Url; // after successfull save
     UpdateFormCaption;
+    WarningIfHierarchyUrlOutsideData;
     // TODO: save HierarchyUrl somewhere? CastleEditorSettings.xml?
   end;
 end;
@@ -469,12 +468,12 @@ end;
 
 procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
 begin
-  if HierarchyUrl = '' then
-    OpenHierarchyDialog.Url := ProjectPathUrl
-  else
-    OpenHierarchyDialog.Url := HierarchyUrl;
+  OpenHierarchyDialog.Url := HierarchyUrl;
   if OpenHierarchyDialog.Execute then
+  begin
     OpenHierarchy(OpenHierarchyDialog.Url);
+    WarningIfHierarchyUrlOutsideData;
+  end;
 end;
 
 procedure TProjectForm.MenuItemPackageClick(Sender: TObject);
@@ -615,6 +614,18 @@ begin
   end;
 end;
 
+procedure TProjectForm.WarningIfHierarchyUrlOutsideData;
+begin
+  if URIProtocol(HierarchyUrl) <> 'castle-data' then
+    MessageDlg('File outside data', 'You are saving or opening the design file outside of the project''s "data" subdirectory: "' +
+      HierarchyUrl + '".' + NL +
+      NL +
+      'You will not be able to open this design file using castle-data:/ URL (or ApplicationData function). And the design file will not be packaged with your distributed application automatically.' + NL +
+      NL +
+      'We strongly advice to instead open or save inside the project "data" directory, which is "' + ApplicationDataOverride + '".',
+      mtWarning, [mbOK], 0);
+end;
+
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 var
   ManifestDoc: TXMLDocument;
@@ -630,6 +641,8 @@ begin
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
+  OpenHierarchyDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  SaveHierarchyDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
 
   ShellTreeView1.Root := ProjectPath;
 
