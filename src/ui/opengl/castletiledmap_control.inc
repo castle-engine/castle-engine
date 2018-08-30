@@ -19,7 +19,7 @@
 
 type
   { Display a 2D tiled map (TMX). }
-  TCastleTiledMapControl = class(TUIControl)
+  TCastleTiledMapControl = class(TCastleUserInterface)
   private
     FTiledMap: TTiledMap;
     { Tilesets images. }

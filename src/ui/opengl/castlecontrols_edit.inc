@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Edit box to input 1 line of text. }
-  TCastleEdit = class(TUIControlFont)
+  TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
     FText: string;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;

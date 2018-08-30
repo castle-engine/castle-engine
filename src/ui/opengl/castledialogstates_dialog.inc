@@ -18,14 +18,14 @@
   { Dialog box that can display a long text, with automatic vertical scrollbar.
     You can also add buttons at the bottom.
     You can also have an input text area. }
-  TDialog = class(TUIControlFont)
+  TDialog = class(TCastleUserInterfaceFont)
   strict private
     const
       BoxMargin = 10;
       WindowMargin = 10;
       ButtonHorizontalMargin = 10;
     type
-      TDialogScrollArea = class(TUIControlSizeable)
+      TDialogScrollArea = class(TCastleUserInterfaceRect)
       strict private
         Dialog: TDialog;
       public

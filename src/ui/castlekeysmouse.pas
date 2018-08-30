@@ -454,7 +454,7 @@ type
 
   { Look of the mouse cursor.
     Used for various properties:
-    TUIControl.Cursor, T3D.Cursor, TCastleWindowCustom.Cursor.
+    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowCustom.Cursor.
 
     mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
@@ -474,7 +474,7 @@ type
     { Use a custom cursor image in TCastleWindowCustom.CustomCursor.
 
       In normal circumstances, this should not be used for
-      TUIControl.Cursor, T3D.Cursor and others, as they have no way
+      TCastleUserInterface.Cursor, TCastleTransform.Cursor and others, as they have no way
       to set TCastleWindowCustom.CustomCursor. }
     mcCustom,
     { Standard arrow, indicates, well, that user can point / click something. }

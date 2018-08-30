@@ -428,7 +428,7 @@ type
     { @groupEnd }
 
     { Check is move allowed. This is the perfect (precise, using triangle mesh,
-      and fast) implementation of T3D.MoveCollision interface.
+      and fast) implementation of TCastleTransform.MoveCollision interface.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
@@ -453,7 +453,7 @@ type
       above the ground. This is comfortable for cooperation with
       TWalkCamera.OnHeight.
 
-      See T3D.Height for specification.
+      See TCastleTransform.Height for specification.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }

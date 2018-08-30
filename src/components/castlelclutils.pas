@@ -69,7 +69,7 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
   It's awful that this function has to do conversion to Char,
   but that's the way of VCL and LCL: KeyPress and KeyDown
   are separate events. While I want to have them in one event,
-  and passed as one event to TUIControl.KeyDown. }
+  and passed as one event to TCastleUserInterface.KeyDown. }
 procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 

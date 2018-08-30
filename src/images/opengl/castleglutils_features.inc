@@ -238,7 +238,7 @@ type
           most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
           on desktops.)
         @item(It also allows you to use fixed-function pipeline calls in the
-          @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render)
+          @link(TCastleWindowCustom.OnRender) callback, @link(TCastleUserInterface.Render)
           override and related places.)
         @item(It also allows some deprecated rendering features like WindowPos
           to continue to work.)

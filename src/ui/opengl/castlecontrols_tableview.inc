@@ -36,9 +36,9 @@
     FImageIcon: TCastleImageControl;
     FAccessoryType: TCastleTableViewCellAccessoryType;
     FAccessoryTypeImage: TCastleImageControl;   // image representing the AccessoryType
-    FAccessoryControl: TUIControl;
+    FAccessoryControl: TCastleUserInterface;
 
-    procedure SetAccessoryControl(AControl: TUIControl);
+    procedure SetAccessoryControl(AControl: TCastleUserInterface);
 
   private
     procedure ReflectUIControls;
@@ -56,7 +56,7 @@
     property AccessoryType: TCastleTableViewCellAccessoryType
                             read FAccessoryType write FAccessoryType default tvcaNone;
     { Any custom control added at the right cell border (e.g. SwitchControl, ImageControl) }
-    property AccessoryControl: TUIControl
+    property AccessoryControl: TCastleUserInterface
                             read FAccessoryControl write SetAccessoryControl default nil;
   end;
 
@@ -153,7 +153,7 @@ begin
   Color := Vector4(0.0, 0.0, 0.0, 0.0); // transparent
 end;
 
-procedure TCastleTableViewCell.SetAccessoryControl(AControl: TUIControl);
+procedure TCastleTableViewCell.SetAccessoryControl(AControl: TCastleUserInterface);
 begin
   if AControl = FAccessoryControl then
     Exit;

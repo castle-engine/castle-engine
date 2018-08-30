@@ -190,13 +190,13 @@ end;
 
 procedure TProjectForm.SaveHierarchy(const Url: string);
 begin
-  if HierarchyRoot is TUIControl then
-    UserInterfaceSave(TUIControl(HierarchyRoot), Url)
+  if HierarchyRoot is TCastleUserInterface then
+    UserInterfaceSave(TCastleUserInterface(HierarchyRoot), Url)
   else
   if HierarchyRoot is TCastleTransform then
     TransformSave(TCastleTransform(HierarchyRoot), Url)
   else
-    raise EInternalError.Create('We can only save HierarchyRoot that descends from TUIControl or TCastleTransform');
+    raise EInternalError.Create('We can only save HierarchyRoot that descends from TCastleUserInterface or TCastleTransform');
 end;
 
 procedure TProjectForm.OpenHierarchy(const NewHierarchyRoot, NewHierarchyOwner: TComponent;
@@ -219,9 +219,9 @@ var
 begin
   ClearHierarchy;
 
-  if NewHierarchyRoot is TUIControl then
+  if NewHierarchyRoot is TCastleUserInterface then
   begin
-    CastleControl.Controls.InsertFront(NewHierarchyRoot as TUIControl)
+    CastleControl.Controls.InsertFront(NewHierarchyRoot as TCastleUserInterface)
   end else
   if NewHierarchyRoot is TCastleTransform then
   begin
@@ -230,7 +230,7 @@ begin
     TempSceneManager.Items.Add(NewHierarchyRoot as TCastleTransform);
     CastleControl.Controls.InsertFront(TempSceneManager);
   end else
-    raise EInternalError.Create('HierarchyRoot from file does not descend from TUIControl or TCastleTransform');
+    raise EInternalError.Create('HierarchyRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
   // make background defined
   Background := TCastleSimpleBackground.Create(NewHierarchyOwner);
@@ -271,13 +271,13 @@ procedure TProjectForm.MenuItemSaveAsHierarchyClick(Sender: TObject);
 begin
   // TODO -- disable when HierarchyRoot = nil
 
-  if HierarchyRoot is TUIControl then
+  if HierarchyRoot is TCastleUserInterface then
     SaveHierarchyDialog.DefaultExt := 'castle-user-interface'
   else
   if HierarchyRoot is TCastleTransform then
     SaveHierarchyDialog.DefaultExt := 'castle-transform'
   else
-    raise EInternalError.Create('HierarchyRoot does not descend from TUIControl or TCastleTransform');
+    raise EInternalError.Create('HierarchyRoot does not descend from TCastleUserInterface or TCastleTransform');
 
   SaveHierarchyDialog.Url := HierarchyUrl;
   if SaveHierarchyDialog.Execute then
@@ -418,13 +418,13 @@ end;
 
 procedure TProjectForm.MenuItemNewHierarchyUserInterfaceClick(Sender: TObject);
 var
-  NewRoot: TUIControlSizeable;
+  NewRoot: TCastleUserInterfaceRect;
   NewHierarchyOwner: TComponent;
 begin
   NewHierarchyOwner := TComponent.Create(Self);
 
   // TODO: Allow choosing starting class?
-  NewRoot := TUIControlSizeable.Create(NewHierarchyOwner);
+  NewRoot := TCastleUserInterfaceRect.Create(NewHierarchyOwner);
   NewRoot.Name := 'Group1';
   NewRoot.FullSize := true;
   OpenHierarchy(NewRoot, NewHierarchyOwner, '');
@@ -648,7 +648,7 @@ procedure TProjectForm.UpdateHierarchy(const Root: TComponent);
       AddTransform(Result, T[I]);
   end;
 
-  function AddControl(const Parent: TTreeNode; const C: TUIControl): TTreeNode;
+  function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
   var
     S: String;
     I: Integer;
@@ -671,13 +671,13 @@ var
 begin
   ControlsTree.Items.Clear;
 
-  if Root is TUIControl then
-    Node := AddControl(nil, Root as TUIControl)
+  if Root is TCastleUserInterface then
+    Node := AddControl(nil, Root as TCastleUserInterface)
   else
   if Root is TCastleTransform then
     Node := AddTransform(nil, Root as TCastleTransform)
   else
-    raise EInternalError.Create('Cannot UpdateHierarchy with other classes than TUIControl or TCastleTransform');
+    raise EInternalError.Create('Cannot UpdateHierarchy with other classes than TCastleUserInterface or TCastleTransform');
 
   // show expanded by default
   Node.Expand(true);
@@ -691,7 +691,7 @@ procedure TProjectForm.GetSelected(out Selected: TComponentList;
   function SelectedFromNode(const Node: TTreeNode): TComponent;
   var
     SelectedObject: TObject;
-    //SelectedControl: TUIControl;
+    //SelectedControl: TCastleUserInterface;
     //SelectedTransform: TCastleTransform;
   begin
     SelectedObject := nil;
@@ -705,8 +705,8 @@ procedure TProjectForm.GetSelected(out Selected: TComponentList;
       if SelectedObject is TComponent then
       begin
         Result := TComponent(SelectedObject);
-        //if SelectedComponent is TUIControl then
-        //  SelectedControl := TUIControl(SelectedComponent)
+        //if SelectedComponent is TCastleUserInterface then
+        //  SelectedControl := TCastleUserInterface(SelectedComponent)
         //else
         //if SelectedComponent is TCastleTransform then
         //  SelectedTransform := TCastleTransform(SelectedComponent);

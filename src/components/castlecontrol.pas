@@ -64,10 +64,10 @@ type
       @item(use @link(TCastleSimpleBackground),)
 
       @item(or use @link(TCastleRectangleControl) with
-        @link(TUIControlSizeable.FullSize FullSize) = @true,)
+        @link(TCastleUserInterfaceRect.FullSize FullSize) = @true,)
 
       @item(or use @link(TCastleSceneManager) with
-        @link(TUIControlSizeable.FullSize) = @true and
+        @link(TCastleUserInterfaceRect.FullSize) = @true and
         @link(TCastleAbstractViewport.Transparent) = @false,)
 
       @item(eventually you can also call @link(CastleGLUtils.GLClear)
@@ -164,7 +164,7 @@ type
     destructor Destroy; override;
 
     { List of user-interface controls currently active.
-      You can add your TUIControl instances
+      You can add your TCastleUserInterface instances
       (like TCastleSceneManager, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
       See @link(TUIContainer.Controls) for details. }
@@ -280,9 +280,9 @@ type
       should release stuff you create here.
 
       Often, instead of using this callback, it's cleaner to derive new classes
-      from TUIControl class or it's descendants,
+      from TCastleUserInterface class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
-      context being open/closed. Using such TUIControl classes
+      context being open/closed. Using such TCastleUserInterface classes
       is usually easier, as you add/remove them from controls whenever
       you want (e.g. you add them in ApplicationInitialize),
       and underneath they create/release/create again the OpenGL resources
@@ -329,8 +329,8 @@ type
       (in particular, the @link(TCastleControl.SceneManager) is also on this list),
       the OnRender event is done @bold(last).
       So here you can draw on top of the existing UI controls.
-      To draw something underneath the existing controls, create a new TUIControl
-      and override it's @link(TUIControl.Render) and insert it to the controls
+      To draw something underneath the existing controls, create a new TCastleUserInterface
+      and override it's @link(TCastleUserInterface.Render) and insert it to the controls
       using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
@@ -403,7 +403,7 @@ type
 
       @unorderedList(
         @item(Register an event on @link(OnUpdate) of this component,)
-        @item(Add custom @link(TUIControl) instance to the @link(Controls) list
+        @item(Add custom @link(TCastleUserInterface) instance to the @link(Controls) list
           with overridden @link(TInputListener.Update) method,)
         @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
           ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
@@ -1202,7 +1202,7 @@ begin
     Fps._RenderBegin;
     try
       Container.EventRender;
-      DoOnPaint; // call OnPaint, like it would be a top-most TUIControl
+      DoOnPaint; // call OnPaint, like it would be a top-most TCastleUserInterface
       if GLVersion.BuggySwapNonStandardViewport then
         RenderContext.Viewport := Rect;
       SwapBuffers;

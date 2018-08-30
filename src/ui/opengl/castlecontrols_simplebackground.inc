@@ -26,7 +26,7 @@
     TCastleSceneManager.BackgroundColor .
     So if you use @link(TCastleSceneManager) that fills the whole screen,
     then there's no need to use this control. }
-  TCastleSimpleBackground = class(TUIControl)
+  TCastleSimpleBackground = class(TCastleUserInterface)
   strict private
     FColor: TCastleColor;
     procedure SetColor(const Value: TCastleColor);

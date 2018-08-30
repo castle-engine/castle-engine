@@ -933,7 +933,7 @@ type
       when InternalDirty <> 0).
 
       Note: in the future, we could replace this by just Enable/Disable
-      feature on T3D. But it's not so trivial now, as Enable/Disable
+      feature on TCastleTransform. But it's not so trivial now, as Enable/Disable
       makes even *too much* things non-existing, e.g. GetCollides
       may return false, LocalBoundingBox may be empty etc.
 

@@ -54,8 +54,8 @@ type
     @orderedList(
       @item(It's simplest and best to add/keep children controls as real
         children of the current state, so add them
-        using methods @link(TUIControl.InsertFront) and
-        @link(TUIControl.InsertBack).)
+        using methods @link(TCastleUserInterface.InsertFront) and
+        @link(TCastleUserInterface.InsertBack).)
 
       @item(Eventually, for special tricks, you can add controls that are
         conceptually the state "children" directly to the
@@ -76,9 +76,9 @@ type
     about UI events, and can react to them. Since state-specific UI
     should always be at the front of us, or our children,
     so in case of events that can be "handled"
-    (like TUIControl.Press, TUIControl.Release events)
+    (like TCastleUserInterface.Press, TCastleUserInterface.Release events)
     the state-specific UI controls will handle them @italic(before)
-    the state itself (if you override TUIControl.Press or such in state,
+    the state itself (if you override TCastleUserInterface.Press or such in state,
     be sure to call @code(inherited) first, to make sure it really
     happens).
 
@@ -91,9 +91,9 @@ type
       @item(can have it's own render function, to directly draw UI.)
     )
 
-    See the TUIControl class for a lot of useful methods that you can
+    See the TCastleUserInterface class for a lot of useful methods that you can
     override in your state descendants to capture various events. }
-  TUIState = class(TUIControl)
+  TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
     FInterceptInput: boolean;
@@ -112,7 +112,7 @@ type
       if you use CastleWindow or
       @link(TCastleControlCustom.MainControl) if you use CastleControl.
       When the state is current, then @link(Container) property (from
-      ancestor, see TUIControl.Container) is equal to this. }
+      ancestor, see TCastleUserInterface.Container) is equal to this. }
     function StateContainer: TUIContainer; virtual;
 
     { Position on @code(StateContainer.Controls) where we insert this state.
@@ -167,7 +167,7 @@ type
         @item(MyStart.Start is called.)
         @item(MyStart is added to the @code(StateContainer.Controls) list,
           so the state methods GLContextOpen and Resize are called
-          (as for all normal TUIControl instances).)
+          (as for all normal TCastleUserInterface instances).)
         @item(MyStar.Resume is called.)
       ) }
     procedure Start; virtual;
@@ -181,7 +181,7 @@ type
         @item(MyStart is removed from the
           @code(StateContainer.Controls) list.
           So the state method GLContextClose is called
-          (as for all normal TUIControl instances).)
+          (as for all normal TCastleUserInterface instances).)
         @item(MyStart.Stop is called.)
         @item(MyStart is removed from the on state stack.)
       )

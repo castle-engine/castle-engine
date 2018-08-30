@@ -17,7 +17,7 @@
 
   { Base class for all user interface controls using a font.
     Allows to customize font and font size per-control, or use defaults. }
-  TUIControlFont = class(TUIControl)
+  TCastleUserInterfaceFont = class(TCastleUserInterface)
   strict private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
@@ -83,8 +83,8 @@
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
-      Note that you can override TUIControl.TooltipExists and
-      TUIControl.TooltipStyle and TUIControl.TooltipRender
+      Note that you can override TCastleUserInterface.TooltipExists and
+      TCastleUserInterface.TooltipStyle and TCastleUserInterface.TooltipRender
       to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
@@ -97,7 +97,7 @@
       deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
 
     { Use given font size when drawing. Leave at default zero to use
-      the default size of the font (may still be scaled by @link(TUIControl.UIScale),
+      the default size of the font (may still be scaled by @link(TCastleUserInterface.UIScale),
       but this happens only if @link(TUIContainer.UIScaling) is set to
       something else than default usNone).
       Font itself is taken from
@@ -134,31 +134,33 @@
       read FOutlineHighQuality write SetOutlineHighQuality default false;
   end;
 
+  TUIControlFont = TCastleUserInterfaceFont deprecated 'use TCastleUserInterfaceFont';
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TUIControlFont ---------------------------------------------------------- }
+{ TCastleUserInterfaceFont ---------------------------------------------------------- }
 
-constructor TUIControlFont.Create(AOwner: TComponent);
+constructor TCastleUserInterfaceFont.Create(AOwner: TComponent);
 begin
   inherited;
   FFontScale := 1.0;
 end;
 
-destructor TUIControlFont.Destroy;
+destructor TCastleUserInterfaceFont.Destroy;
 begin
   CustomFont := nil; // make sure to free FCustomFont, if necessary
   FreeAndNil(FCustomizedFont);
   inherited;
 end;
 
-function TUIControlFont.TooltipExists: boolean;
+function TCastleUserInterfaceFont.TooltipExists: boolean;
 begin
   Result := Tooltip <> '';
 end;
 
-procedure TUIControlFont.TooltipRender;
+procedure TCastleUserInterfaceFont.TooltipRender;
 var
   X, Y: Single;
   TooltipRect: TRectangle;
@@ -197,7 +199,7 @@ begin
   TooltipLabel.Render;
 end;
 
-procedure TUIControlFont.GLContextClose;
+procedure TCastleUserInterfaceFont.GLContextClose;
 begin
   { make sure to call GLContextClose on TooltipLabel,
     actually we can just free it now }
@@ -205,7 +207,7 @@ begin
   inherited;
 end;
 
-function TUIControlFont.Font: TCastleFont;
+function TCastleUserInterfaceFont.Font: TCastleFont;
 begin
   if CustomFont <> nil then
     Result := CustomFont else
@@ -257,7 +259,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetCustomFont(const Value: TCastleFont);
+procedure TCastleUserInterfaceFont.SetCustomFont(const Value: TCastleFont);
 begin
   if FCustomFont <> Value then
   begin
@@ -280,7 +282,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleUserInterfaceFont.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -296,7 +298,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetFontSize(const Value: Single);
+procedure TCastleUserInterfaceFont.SetFontSize(const Value: Single);
 begin
   if FFontSize <> Value then
   begin
@@ -305,7 +307,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetFontScale(const Value: Single);
+procedure TCastleUserInterfaceFont.SetFontScale(const Value: Single);
 begin
   if FFontScale <> Value then
   begin
@@ -314,7 +316,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetSmallFont(const Value: boolean);
+procedure TCastleUserInterfaceFont.SetSmallFont(const Value: boolean);
 begin
   if FSmallFont <> Value then
   begin
@@ -323,7 +325,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetOutline(const Value: Cardinal);
+procedure TCastleUserInterfaceFont.SetOutline(const Value: Cardinal);
 begin
   if FOutline <> Value then
   begin
@@ -332,7 +334,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetOutlineColor(const Value: TCastleColor);
+procedure TCastleUserInterfaceFont.SetOutlineColor(const Value: TCastleColor);
 begin
   if not TCastleColor.PerfectlyEquals(FOutlineColor, Value) then
   begin
@@ -341,7 +343,7 @@ begin
   end;
 end;
 
-procedure TUIControlFont.SetOutlineHighQuality(const Value: boolean);
+procedure TCastleUserInterfaceFont.SetOutlineHighQuality(const Value: boolean);
 begin
   if FOutlineHighQuality <> Value then
   begin
@@ -350,23 +352,23 @@ begin
   end;
 end;
 
-procedure TUIControlFont.FontChanged;
+procedure TCastleUserInterfaceFont.FontChanged;
 begin
 end;
 
-procedure TUIControlFont.UIScaleChanged;
+procedure TCastleUserInterfaceFont.UIScaleChanged;
 begin
   inherited;
   FontChanged;
 end;
 
-procedure TUIControlFont.Render;
+procedure TCastleUserInterfaceFont.Render;
 begin
   inherited;
   CheckFontChanged;
 end;
 
-procedure TUIControlFont.CheckFontChanged;
+procedure TCastleUserInterfaceFont.CheckFontChanged;
 var
   NewUIFont: TCastleFont;
 begin

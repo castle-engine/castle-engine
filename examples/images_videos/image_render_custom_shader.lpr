@@ -56,7 +56,7 @@ begin
     is open. So it's cleanest to create / destroy TGLSLProgram in
 
     - Window.OnOpen / Window.OnClose events,
-    - or overridden TUIControl.GLContextOpen / TUIControl.GLContextClose.
+    - or overridden TCastleUserInterface.GLContextOpen / TCastleUserInterface.GLContextClose.
 
     This approach will also work reliably on mobile platforms,
     when the OpenGLES context may be lost and recreated in the middle

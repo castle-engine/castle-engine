@@ -34,7 +34,7 @@ uses CastleControls, CastleProgress, CastleWindowProgress, CastleImages,
   CastleUIControls;
 
 type
-  TControl1 = class(TUIControl)
+  TControl1 = class(TCastleUserInterface)
     procedure GLContextOpen; override;
   end;
 
@@ -87,7 +87,7 @@ begin
 end;
 
 type
-  TControl2 = class(TUIControl)
+  TControl2 = class(TCastleUserInterface)
     procedure GLContextOpen; override;
   end;
 
@@ -130,7 +130,7 @@ begin
 end;
 
 type
-  TControl3 = class(TUIControl)
+  TControl3 = class(TCastleUserInterface)
     procedure GLContextOpen; override;
   end;
 

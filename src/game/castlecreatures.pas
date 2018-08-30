@@ -127,7 +127,7 @@ type
     { Flying creatures are not affected by gravity and
       (in case of TWalkAttackCreatureResource) their move direction is free.
 
-      For all creatures, TCreature.Gravity (inherited from T3D.Gravity)
+      For all creatures, TCreature.Gravity (inherited from TCastleTransform.Gravity)
       is set to @code("not Flying") at creation. (Except TMissileCreatureResource,
       that has special approach to gravity,
       see TMissileCreatureResource.DirectionFallSpeed.)
@@ -313,7 +313,7 @@ type
       The sphere center is the Middle point ("eye position") of the given creature.
       If the creature may be affected by gravity then
       make sure radius is < than PreferredHeight of the creature,
-      see T3D.PreferredHeight, otherwise creature may get stuck into ground.
+      see TCastleTransform.PreferredHeight, otherwise creature may get stuck into ground.
       In short, if you use the default implementations,
       PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
       bounding box height). Your radius must be smaller
@@ -524,7 +524,7 @@ type
 
       More precisely, the attack is allowed to start only when
       the angle between current creature @link(TCastleTransform.Direction Direction)
-      and the vector from creature's Middle to the enemy's Middle (see T3D.Middle)
+      and the vector from creature's Middle to the enemy's Middle (see TCastleTransform.Middle)
       is <= AttackMaxAngle.
 
       This is in radians. }
@@ -732,8 +732,8 @@ type
       downward, this way missile flies downward eventually.
 
       This is quite different (in different units and with slightly different
-      effect) than T3D.FallSpeed, hence a different name and property.
-      TMissileCreatureResource doesn't use T3D.Gravity and so ignores
+      effect) than TCastleTransform.FallSpeed, hence a different name and property.
+      TMissileCreatureResource doesn't use TCastleTransform.Gravity and so ignores
       T3DResource.FallSpeed, T3DResource.GrowSpeed and other properties.
 
       0 means to not fall down (missile is not affected by gravity). }
@@ -1155,7 +1155,7 @@ begin
     Result := Box.MaxSize / 2 else
   begin
     { Maximum radius value that allows gravity to work,
-      assuming default T3D.PreferredHeight implementation,
+      assuming default TCastleTransform.PreferredHeight implementation,
       and assuming that Box is the smallest possible bounding box of our creature. }
     MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1].Data[GC];
     Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);

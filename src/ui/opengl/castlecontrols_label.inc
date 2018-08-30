@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Label with possibly multiline text, in an optional box. }
-  TCastleLabel = class(TUIControlFont)
+  TCastleLabel = class(TCastleUserInterfaceFont)
   strict private
     FText: TStrings;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;

@@ -934,7 +934,7 @@ type
     function PrepareResourcesSteps: Cardinal; virtual;
 
     { Press and release events of key and mouse. Return @true if you handled them.
-      See also TUIControl analogous events.
+      See also TCastleUserInterface analogous events.
       @groupBegin }
     function Press(const Event: TInputPressRelease): boolean; virtual;
     function Release(const Event: TInputPressRelease): boolean; virtual;

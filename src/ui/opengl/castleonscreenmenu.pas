@@ -69,9 +69,9 @@ type
     (for example TCastleWindowCustom.Menu, or normal Lazarus menu).
 
     Each menu item can have an "accessory", for example an associated
-    slider (from TCastleFloatSlider, any TUIControl is OK).
+    slider (from TCastleFloatSlider, any TCastleUserInterface is OK).
     This allows to use this menu also for settings. }
-  TCastleOnScreenMenu = class(TUIControlFont)
+  TCastleOnScreenMenu = class(TCastleUserInterfaceFont)
   private
     FCaptureAllEvents: boolean;
     FOnClick: TNotifyEvent;
@@ -106,7 +106,7 @@ type
 
       By default, a single TCastleLabel (without children) is considered
       "not focusable". Everything else is focusable. }
-    function ControlFocusable(const C: TUIControl): boolean; virtual;
+    function ControlFocusable(const C: TCastleUserInterface): boolean; virtual;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
@@ -127,9 +127,9 @@ type
     destructor Destroy; override;
 
     procedure Add(const S: string);
-    procedure Add(const S: string; const Accessory: TUIControl);
+    procedure Add(const S: string; const Accessory: TCastleUserInterface);
     procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
-    procedure Add(const NewItem: TUIControl);
+    procedure Add(const NewItem: TCastleUserInterface);
 
     { Currently selected child index.
       This is always some number between @code(0) and @code(ControlsCount - 1).
@@ -434,7 +434,7 @@ procedure TCastleOnScreenMenu.RecalculateSize;
 
   function ChildHeight(const Index: Integer): Single;
   var
-    C: TUIControl;
+    C: TCastleUserInterface;
   begin
     C := Controls[Index];
     // ChildHeight assumes that TCastleLabel(C).AutoSize = true
@@ -453,7 +453,7 @@ var
   WholeItemWidth, MaxAccessoryWidth: Single;
   ItemsBelowHeight: Single;
   MarginBeforeAccessoryScaled, PaddingScaled: Single;
-  C: TUIControl;
+  C: TCastleUserInterface;
   R: TFloatRectangle;
 begin
   MarginBeforeAccessoryScaled := UIScale * MarginBeforeAccessory;
@@ -765,20 +765,20 @@ begin
   end;
 end;
 
-function TCastleOnScreenMenu.ControlFocusable(const C: TUIControl): boolean;
+function TCastleOnScreenMenu.ControlFocusable(const C: TCastleUserInterface): boolean;
 begin
   Result := (C.ControlsCount <> 0) or not (C is TCastleLabel);
 end;
 
-procedure TCastleOnScreenMenu.Add(const NewItem: TUIControl);
+procedure TCastleOnScreenMenu.Add(const NewItem: TCastleUserInterface);
 begin
-  if NewItem is TUIControlFont then
+  if NewItem is TCastleUserInterfaceFont then
   begin
-    TUIControlFont(NewItem).CustomFont := CustomFont;
+    TCastleUserInterfaceFont(NewItem).CustomFont := CustomFont;
     // TODO: dirty:
     // do not inherit SmallFont to avoid resetting slider SmallFont=true
-    //TUIControlFont(NewItem).SmallFont := SmallFont;
-    TUIControlFont(NewItem).FontSize := FontSize;
+    //TCastleUserInterfaceFont(NewItem).SmallFont := SmallFont;
+    TCastleUserInterfaceFont(NewItem).FontSize := FontSize;
   end;
   InsertFront(NewItem);
 
@@ -787,20 +787,20 @@ begin
     { Pass our CustomFont / FontSize to NewItem.Controls[0].
       TODO: this is a poor way, it's not updated later when we change
       CustomFont/FontSize, it's not recursive.... }
-    if NewItem.Controls[0] is TUIControlFont then
+    if NewItem.Controls[0] is TCastleUserInterfaceFont then
     begin
-      TUIControlFont(NewItem.Controls[0]).CustomFont := CustomFont;
+      TCastleUserInterfaceFont(NewItem.Controls[0]).CustomFont := CustomFont;
       // TODO: dirty:
       // do not inherit SmallFont to avoid resetting slider SmallFont=true
-      //TUIControlFont(NewItem.Controls[0]).SmallFont := SmallFont;
-      TUIControlFont(NewItem.Controls[0]).FontSize := FontSize;
+      //TCastleUserInterfaceFont(NewItem.Controls[0]).SmallFont := SmallFont;
+      TCastleUserInterfaceFont(NewItem.Controls[0]).FontSize := FontSize;
     end;
   end;
 
   RecalculateSize;
 end;
 
-procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TUIControl);
+procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TCastleUserInterface);
 var
   L: TCastleLabel;
 begin
@@ -818,7 +818,7 @@ end;
 
 procedure TCastleOnScreenMenu.Add(const S: string);
 begin
-  Add(S, TUIControl(nil));
+  Add(S, TCastleUserInterface(nil));
 end;
 
 procedure TCastleOnScreenMenu.Add(const S: string; const ItemOnClick: TNotifyEvent);

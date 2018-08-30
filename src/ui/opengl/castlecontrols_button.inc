@@ -20,12 +20,12 @@
 
   { Clickable button.
 
-    This is TUIControl descendant, so to use it just add it to
+    This is TCastleUserInterface descendant, so to use it just add it to
     the TCastleWindowCustom.Controls or TCastleControlCustom.Controls list.
     You will also usually want to adjust position (TCastleButton.Left,
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
-  TCastleButton = class(TUIControlFont)
+  TCastleButton = class(TCastleUserInterfaceFont)
   strict private
     FFloatWidth, FFloatHeight: Single;
     FFinalScaledValid: boolean;
@@ -243,8 +243,8 @@
       AutoSize).
 
       If needed, you can query the resulting button size with the standard
-      TUIControl methods like @link(TUIControl.CalculatedWidth) and
-      @link(TUIControl.CalculatedHeight). Note that they may not be available
+      TCastleUserInterface methods like @link(TCastleUserInterface.CalculatedWidth) and
+      @link(TCastleUserInterface.CalculatedHeight). Note that they may not be available
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
       for UI scaling to determine the font size). }

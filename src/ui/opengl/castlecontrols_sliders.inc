@@ -17,7 +17,7 @@
 
   { An abstract slider user interface. Usually you want to use of its descendants,
     like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
-  TCastleAbstractSlider = class(TUIControlFont)
+  TCastleAbstractSlider = class(TCastleUserInterfaceFont)
   strict private
     FDisplayValue: boolean;
     FWidth: Cardinal;

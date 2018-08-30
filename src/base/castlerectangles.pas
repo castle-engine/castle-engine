@@ -27,9 +27,9 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TUIControl.Align and TRectangle.Align
+    This is used by TCastleUserInterface.Align and TRectangle.Align
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TUIControl.Align, this specifies
+    In case of TCastleUserInterface.Align, this specifies
     the align of control with respect to the container
     (TCastleWindow or TCastleControl).
 
@@ -38,17 +38,17 @@ type
     @orderedList(
       @item(
         When we talk about the position of the control
-        (for example ControlPosition for TUIControl.Align),
+        (for example ControlPosition for TCastleUserInterface.Align),
         it determines which border of the control to align.)
       @item(
         When we talk about the position of the container
-        (for example ContainerPosition for TUIControl.Align),
+        (for example ContainerPosition for TCastleUserInterface.Align),
         this specifies the container border.)
     )
 
     In most cases you use equal both control and container borders.
     For example, both ControlPosition and ContainerPosition are usually equal for
-    TUIControlPos.Align call. This allows to align left control edge to
+    TCastleUserInterface.Align call. This allows to align left control edge to
     left container edge, or right control edge to right container edge,
     or to center control within the container --- which is the most common usage.
 
@@ -227,9 +227,9 @@ type
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched.
 
-      These details matter, e.g. when you set @link(TUIControlSizeable.Width), but not
-      @link(TUIControlSizeable.Height),
-      and then you expect the @link(TUIControl.CalculatedWidth) to work.
+      These details matter, e.g. when you set @link(TCastleUserInterfaceRect.Width), but not
+      @link(TCastleUserInterfaceRect.Height),
+      and then you expect the @link(TCastleUserInterface.CalculatedWidth) to work.
     }
     function ScaleAround0(const Factor: Single): TRectangle;
 

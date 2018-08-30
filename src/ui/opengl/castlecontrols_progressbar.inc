@@ -19,7 +19,7 @@
     This is usually used through the CastleWindowProgress and CastleProgress
     features. There is no need to directly create and access the TCastleProgressBar
     instance in this case. }
-  TCastleProgressBar = class(TUIControlFont)
+  TCastleProgressBar = class(TCastleUserInterfaceFont)
   strict private
     { Background image. }
     FBackground: TCastleImage;

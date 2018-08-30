@@ -27,7 +27,7 @@ uses Classes,
 type
   { Fade out, flash, and similar screen effects
     done by blending screen with given color. }
-  TCastleFlashEffect = class(TUIControl)
+  TCastleFlashEffect = class(TCastleUserInterface)
   strict private
     FIntensity: Single;
     FColor: TCastleColor;

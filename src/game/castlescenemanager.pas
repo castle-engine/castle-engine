@@ -321,7 +321,7 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(const Sender: TInputListener;
-      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
@@ -727,9 +727,9 @@ type
 
       It's your responsibility in such case to clear the depth buffer.
       E.g. place one scene manager in the back that has ClearDepth = @true.
-      Or place a TUIControl descendant in the back, that calls
+      Or place a TCastleUserInterface descendant in the back, that calls
       @code(TRenderContent.Clear RenderContent.Clear) in overridden
-      @link(TUIControl.Render).
+      @link(TCastleUserInterface.Render).
 
       Note: to disable clearning the color buffer, set @link(Transparent)
       to @false.
@@ -887,9 +887,9 @@ type
 
     For some of these features, you'll have to set the @link(MainScene) property.
 
-    This is a TUIControl descendant, which means it's advised usage
+    This is a TCastleUserInterface descendant, which means it's advised usage
     is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    This passes relevant TUIControl events to all the TCastleTransform objects inside.
+    This passes relevant TCastleUserInterface events to all the TCastleTransform objects inside.
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TCastleViewport class, to render your 3D world),
     you still should add scene manager to the controls list
@@ -968,7 +968,7 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(const Sender: TInputListener;
-      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
 
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -1313,16 +1313,16 @@ type
     but they always share the same 3D world (in scene manager).
 
     You can control the size of this viewport by
-    @link(TUIControlSizeable.FullSize FullSize),
-    @link(TUIControl.Left Left),
-    @link(TUIControl.Bottom Bottom),
-    @link(TUIControlSizeable.Width Width),
-    @link(TUIControlSizeable.Height Height) properties. For custom
+    @link(TCastleUserInterfaceRect.FullSize FullSize),
+    @link(TCastleUserInterface.Left Left),
+    @link(TCastleUserInterface.Bottom Bottom),
+    @link(TCastleUserInterfaceRect.Width Width),
+    @link(TCastleUserInterfaceRect.Height Height) properties. For custom
     viewports, you often want to set FullSize = @false
     and control viewport's position and size explicitly.
 
     Viewports may be overlapping, that is one viewport may (partially)
-    obscure another viewport. Just like with any other TUIControl,
+    obscure another viewport. Just like with any other TCastleUserInterface,
     position of viewport on the Controls list
     (like TCastleControlCustom.Controls or TCastleWindowCustom.Controls)
     is important: Controls are specified in the back-to-front order.
@@ -1367,7 +1367,7 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(const Sender: TInputListener;
-      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean); override;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
@@ -1839,7 +1839,7 @@ begin
   SecondsPassedScaled := SecondsPassed * GetTimeScale;
 
   { As for HandleInput: let Camera decide.
-    By default, camera (like all TUIControl) has ExclusiveEvents = true
+    By default, camera (like all TCastleUserInterface) has ExclusiveEvents = true
     and so will cause HandleInput := false, so things under this
     viewport do not get keys/mouse events. This is good when you have
     one viewport covering another, like in fps_game. This means pressing
@@ -3677,7 +3677,7 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
       Changes := ScheduledVisibleChangeNotificationChanges;
       ScheduledVisibleChangeNotificationChanges := [];
 
-      { pass visible change notification "upward" (as a TUIControl, to container) }
+      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
       VisibleChange([chRender]);
       { pass visible change notification "downward", to all children TCastleTransform }
       Items.VisibleChangeNotification(Changes);
@@ -3703,7 +3703,7 @@ begin
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(const Sender: TInputListener;
-  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 var
   Pos, Dir, Up: TVector3;
 begin
@@ -3942,7 +3942,7 @@ begin
 end;
 
 procedure TCastleViewport.CameraVisibleChange(const Sender: TInputListener;
-  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 begin
   VisibleChange(Changes, true);
 end;

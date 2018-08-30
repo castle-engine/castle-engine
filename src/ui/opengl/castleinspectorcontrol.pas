@@ -27,17 +27,17 @@ uses Classes,
 type
   { Add this on top of your 2D controls to have a nice inspector
     displaying names and borders of stuff under the mouse cursor. }
-  TCastleInspectorControl = class(TUIControlFont)
+  TCastleInspectorControl = class(TCastleUserInterfaceFont)
   private
     FColor: TCastleColor;
     FPadding: Single;
     FText: TStringList;
-    FControlsUnderMouse: TUIControlList;
+    FControlsUnderMouse: TCastleUserInterfaceList;
     FControlsInitialized: boolean;
     FRectWhenControlsInitialized: TFloatRectangle;
     FShowNotExisting: boolean;
-    function ControlColor(const C: TUIControl): TCastleColor;
-    function ControlDescription(const C: TUIControl): string;
+    function ControlColor(const C: TCastleUserInterface): TCastleColor;
+    function ControlDescription(const C: TCastleUserInterface): string;
   public
     const
       DefaultPadding = 10;
@@ -82,7 +82,7 @@ begin
   KeepInFront := true;
 
   FText := TStringList.Create;
-  FControlsUnderMouse := TUIControlList.Create(false);
+  FControlsUnderMouse := TCastleUserInterfaceList.Create(false);
 end;
 
 destructor TCastleInspectorControl.Destroy;
@@ -116,7 +116,7 @@ begin
   Result := FRectWhenControlsInitialized;
 end;
 
-function TCastleInspectorControl.ControlColor(const C: TUIControl): TCastleColor;
+function TCastleInspectorControl.ControlColor(const C: TCastleUserInterface): TCastleColor;
 const
   Transparency = 0.1;
 var
@@ -142,7 +142,7 @@ begin
     Transparency);
 end;
 
-function TCastleInspectorControl.ControlDescription(const C: TUIControl): string;
+function TCastleInspectorControl.ControlDescription(const C: TCastleUserInterface): string;
 begin
   if C.Name <> '' then
     Result := C.Name + ':' + C.ClassName else
@@ -204,7 +204,7 @@ end;
 
 procedure TCastleInspectorControl.BeforeRender;
 
-  procedure CheckControl(C: TUIControl; const Level: Integer);
+  procedure CheckControl(C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
     Col: TCastleColor;

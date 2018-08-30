@@ -20,7 +20,7 @@
 type
   { Image ready to be drawn on 2D screen.
     This image can be drawn in various rendering methods and events,
-    e.g. inside overridden @link(TUIControl.Render) or from events
+    e.g. inside overridden @link(TCastleUserInterface.Render) or from events
     @link(TCastleWindowCustom.OnRender) or
     @link(TCastleControlCustom.OnRender).
 
@@ -48,8 +48,8 @@ type
       (removed from docs, I wanted to keep them simple):
 
       An instance of TGLImageCore class can only exist when the OpenGL context is open.
-      So usually you create this in @link(TUIControl.GLContextOpen)
-      and destroy in @link(TUIControl.GLContextClose).
+      So usually you create this in @link(TCastleUserInterface.GLContextOpen)
+      and destroy in @link(TCastleUserInterface.GLContextClose).
       Or create in @link(TCastleWindowCustom.OnOpen) and destroy
       in @link(TCastleWindowCustom.OnClose).
       Use the descendant class @link(TGLImage) for more comfort.
@@ -360,7 +360,7 @@ type
       corner of the image will be placed (from 0 to size - 1).
       The overloaded version without X, Y parameters uses current WindowPos.
 
-      You should only use this inside TUIControl.Render.
+      You should only use this inside TCastleUserInterface.Render.
       We require that current projection is 2D and
       lighting / depth test and such are off, which is the default state
       there.
@@ -420,7 +420,7 @@ type
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
       for UI scaling, see @link(TUIContainer.UIScaling)
-      and @link(TUIControl.UIScale). }
+      and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
       read FScaleCorners write FScaleCorners default 1;
 
@@ -768,7 +768,7 @@ type
         @item(TGLImage.Draw (to draw @italic(other) TGLImage instances on this one),)
         @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
         @item(@link(TGLContainer.RenderControl Window.Container.RenderControl)
-          to render any TUIControl to this image.)
+          to render any TCastleUserInterface to this image.)
       )
 
       Calling the RenderToImageBegin for the first time automatically

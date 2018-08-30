@@ -109,9 +109,9 @@
 
   @italic(More component-like approach):
   For larger programs, it makes more sense to divide functionality into
-  controls, which are classes descending from TUIControl.
-  You can override TUIControl methods to render, capture input and so on
-  (see e.g. @link(TUIControl.Render), @link(TInputListener.Press), @link(TInputListener.Update).)
+  controls, which are classes descending from TCastleUserInterface.
+  You can override TCastleUserInterface methods to render, capture input and so on
+  (see e.g. @link(TCastleUserInterface.Render), @link(TInputListener.Press), @link(TInputListener.Update).)
   You can then add your control to the TCastleWindowCustom.Controls list.
 
   Some features list:
@@ -641,10 +641,10 @@ type
       @item(use @link(TCastleSimpleBackground),)
 
       @item(or use @link(TCastleRectangleControl) with
-        @link(TUIControlSizeable.FullSize FullSize) = @true,)
+        @link(TCastleUserInterfaceRect.FullSize FullSize) = @true,)
 
       @item(or use @link(TCastleSceneManager) with
-        @link(TUIControlSizeable.FullSize) = @true and
+        @link(TCastleUserInterfaceRect.FullSize) = @true and
         @link(TCastleAbstractViewport.Transparent) = @false,)
 
       @item(eventually you can also call @link(CastleGLUtils.GLClear)
@@ -1234,7 +1234,7 @@ type
           fullscreen. So be prepared that changing FullScreen
           may result in OnClose + OnOpen events, and all OpenGL resources
           are reloaded. In most cases, engine takes care of everything
-          automatically (all TCastleScene, TUIControl, TGLImage and other
+          automatically (all TCastleScene, TCastleUserInterface, TGLImage and other
           resources are automatically reloaded), just be aware that
           this operation may take a bit of time.
         )
@@ -1390,9 +1390,9 @@ type
       should release stuff you create here.
 
       Often, instead of using this callback, it's cleaner to derive new classes
-      from TUIControl class or it's descendants,
+      from TCastleUserInterface class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
-      context being open/closed. Using such TUIControl classes
+      context being open/closed. Using such TCastleUserInterface classes
       is usually easier, as you add/remove them from controls whenever
       you want (e.g. you add them in
       @link(TCastleApplication.OnInitialize Application.OnInitialize)),
@@ -1683,8 +1683,8 @@ type
       (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
       the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
       default). So here you can draw on top of the existing controls.
-      To draw something underneath the existing controls, create a new TUIControl
-      and override it's @link(TUIControl.Render) and insert it to the controls
+      To draw something underneath the existing controls, create a new TCastleUserInterface
+      and override it's @link(TCastleUserInterface.Render) and insert it to the controls
       using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
@@ -1829,7 +1829,7 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or @link(TInputListener.Update) in your @link(TUIControl) descendant,
+      (or @link(TInputListener.Update) in your @link(TCastleUserInterface) descendant,
       or @link(TCastleTransform.Update)) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
@@ -1945,14 +1945,14 @@ type
     property Closed: boolean read FClosed default true;
 
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-      deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
+      deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
 
     { Mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
       TODO: for now, mcCustom is not handled anywhere.
 
       Note that this is for internal usage in the engine. In your applications,
-      you should set TUIControl.Cursor, never set this property directly. }
+      you should set TCastleUserInterface.Cursor, never set this property directly. }
     property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { Image for cursor, used only when @link(Cursor) = mcCustom.
@@ -1972,7 +1972,7 @@ type
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
     { List of user-interface controls currently active.
       See @link(TUIContainer.Controls) for details. }
@@ -2152,7 +2152,7 @@ type
       @deprecated Deprecated, it is cleaner to just set Caption and OnRender
       as properties, and then use parameterless OpenAndRun version.
       In many programs, OnRender is not even used, as you render your stuff
-      inside various TUIControl instances. }
+      inside various TCastleUserInterface instances. }
     procedure OpenAndRun(const ACaption: string; AOnRender: TContainerEvent); overload; deprecated;
 
     { Parsing parameters ------------------------------------------------------- }

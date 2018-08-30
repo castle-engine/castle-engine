@@ -59,7 +59,7 @@ type
     which means it's set as @link(RenderContext) value.
 
     Do not depend on the context state being persistent.
-    The @link(RenderContext) does not change during a single TUIControl.OnRender
+    The @link(RenderContext) does not change during a single TCastleUserInterface.OnRender
     method (with all 2D and 3D stuff rendered inside),
     but that's all we guarantee. On desktops, you control the context
     creation / destruction explicitly (by opening / closing the TCastleWindow).
@@ -210,10 +210,10 @@ type
 
 var
   { Current OpenGL / OpenGLES context state.
-    @bold(Only access it during the rendering, i.e. in TUIControl.Render.)
+    @bold(Only access it during the rendering, i.e. in TCastleUserInterface.Render.)
 
     TODO: In the future, this global singleton may be removed,
-    and this may be accessible instead through a new TUIControl.Render parameter. }
+    and this may be accessible instead through a new TCastleUserInterface.Render parameter. }
   RenderContext: TRenderContext;
 
 procedure GLClear(const Buffers: TClearBuffers;

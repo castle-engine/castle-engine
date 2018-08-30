@@ -31,9 +31,9 @@ type
     Suitable for game messages like "Picked up 20 ammo".
     Call @link(Show) to display a message.
 
-    This is a TUIControl descendant, so to use it --- just add it
+    This is a TCastleUserInterface descendant, so to use it --- just add it
     to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    Use TUIControl anchors to automatically position it on the screen,
+    Use TCastleUserInterface anchors to automatically position it on the screen,
     for example:
 
     @longCode(#
@@ -42,7 +42,7 @@ type
       Notifications.Anchor(vpMiddle);
       Notifications.TextAlignment := hpMiddle; // looks best, when anchor is also in the middle
     #) }
-  TCastleNotifications = class(TUIControlFont)
+  TCastleNotifications = class(TCastleUserInterfaceFont)
   private
     type
       TNotification = class

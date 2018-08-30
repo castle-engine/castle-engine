@@ -250,7 +250,7 @@ var
 { Player HUD ---------------------------------------------------------------- }
 
 type
-  TPlayerHUD = class(TUIControl)
+  TPlayerHUD = class(TCastleUserInterface)
   public
     procedure Render; override;
   end;

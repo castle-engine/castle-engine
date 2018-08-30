@@ -189,7 +189,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
 
-    procedure VisibleChange(const Changes: TUIControlChanges;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
 
     { Current camera matrix. You should multiply every 3D point of your
@@ -745,7 +745,7 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
 
-    procedure VisibleChange(const Changes: TUIControlChanges;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     function GetNavigationType: TNavigationType; override;
 
@@ -1720,7 +1720,7 @@ begin
   MouseDraggingStarted := -1;
 end;
 
-procedure TCamera.VisibleChange(const Changes: TUIControlChanges;
+procedure TCamera.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean);
 begin
   RecalculateFrustum;
@@ -2729,7 +2729,7 @@ begin
   AUp  := FUp;
 end;
 
-procedure TExamineCamera.VisibleChange(const Changes: TUIControlChanges;
+procedure TExamineCamera.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean);
 var
   M: TMatrix4;

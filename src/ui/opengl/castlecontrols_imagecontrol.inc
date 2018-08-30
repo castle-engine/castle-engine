@@ -36,7 +36,7 @@
     We automatically use alpha test or alpha blending based
     on loaded image alpha channel (see @link(TGLImageCore.Alpha)).
     You can influence this by @link(AlphaChannel) property. }
-  TCastleImageControl = class(TUIControl)
+  TCastleImageControl = class(TCastleUserInterface)
   strict private
     FURL: string;
     FImage: TEncodedImage;

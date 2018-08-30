@@ -41,9 +41,9 @@ function GetUIFont: TCastleFont;
 procedure SetUIFont(const Value: TCastleFont);
 
 function GetUIFontSmall: TCastleFont;
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
 procedure SetUIFontSmall(const Value: TCastleFont);
-  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TCastleUserInterfaceFont.SmallFont';
 
 property UIFont: TCastleFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;

@@ -115,7 +115,7 @@ type
     or TCastleSceneManager with TCastleSceneManager.Background:=true
     to always reliably fill the background.
   }
-  TCastleScreenEffects = class(TUIControlSizeable)
+  TCastleScreenEffects = class(TCastleUserInterfaceRect)
   strict private
     type
       TScreenPoint = packed record

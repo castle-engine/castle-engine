@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ User interface (2D) basic classes: @link(TUIControl) and @link(TUIContainer). }
+{ User interface basic classes: @link(TCastleUserInterface), @link(TCastleUserInterfaceRect), @link(TUIContainer). }
 unit CastleUIControls;
 
 {$I castleconf.inc}
@@ -32,12 +32,12 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  { Determines the order in which TUIControl.Render is called.
+  { Determines the order in which TCastleUserInterface.Render is called.
     All 3D controls are always under all 2D controls.
-    See TUIControl.Render, TUIControl.RenderStyle. }
-  TRenderStyle = (rs2D, rs3D) deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
+    See TCastleUserInterface.Render, TCastleUserInterface.RenderStyle. }
+  TRenderStyle = (rs2D, rs3D) deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
-  TUIControl = class;
+  TCastleUserInterface = class;
   TChildrenControls = class;
   TUIContainer = class;
 
@@ -70,7 +70,7 @@ type
     { Position of the touch over a device.
 
       Position (0, 0) is the window's bottom-left corner.
-      This is consistent with how our 2D controls (TUIControl)
+      This is consistent with how our 2D controls (TCastleUserInterface)
       treat all positions.
 
       The position is expressed as a float value, to support backends
@@ -116,7 +116,7 @@ type
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
   end;
 
-  TUIControlList = class;
+  TCastleUserInterfaceList = class;
   TInputListener = class;
 
   { Possible values for TUIContainer.UIScaling. }
@@ -130,8 +130,8 @@ type
       So one size will be equal to reference size, and the other will be equal
       or larger to reference.
 
-      Controls that look at @link(TUIControl.UIScale) will be affected by this.
-      Together with anchors (see @link(TUIControl.HasHorizontalAnchor)
+      Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
+      Together with anchors (see @link(TCastleUserInterface.HasHorizontalAnchor)
       and friends), this allows to easily design a scalable UI. }
     usEncloseReferenceSize,
 
@@ -141,14 +141,14 @@ type
       So one size will be equal to reference size, and the other will be equal
       or smaller to reference.
 
-      Controls that look at @link(TUIControl.UIScale) will be affected by this.
-      Together with anchors (see @link(TUIControl.HasHorizontalAnchor)
+      Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
+      Together with anchors (see @link(TCastleUserInterface.HasHorizontalAnchor)
       and friends), this allows to easily design a scalable UI. }
     usFitReferenceSize,
 
     { Scale to fake that the container sizes are smaller/larger
       by an explicit factor @link(TUIContainer.UIExplicitScale).
-      Controls that look at @link(TUIControl.UIScale) will be affected by this.
+      Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
 
       Like usEncloseReferenceSize or usFitReferenceSize,
       this allows to design a scalable UI.
@@ -165,9 +165,9 @@ type
   );
 
   { Things that can cause @link(TInputListener.VisibleChange) notification. }
-  TUIControlChange = (
+  TCastleUserInterfaceChange = (
     { The look of this control changed.
-      This concerns all the things that affect what @link(TUIControl.Render) does.
+      This concerns all the things that affect what @link(TCastleUserInterface.Render) does.
 
       Note that changing chRectangle implies that the look changed too.
       So when chRectangle is in Changes, you should always behave
@@ -175,8 +175,8 @@ type
     chRender,
 
     { The rectangle (size or position) of the control changed.
-      This concerns all the things that affect @link(TUIControl.Rect),
-      @link(TUIControl.FloatRect) or our position inside parent (anchors).
+      This concerns all the things that affect @link(TCastleUserInterface.Rect),
+      @link(TCastleUserInterface.FloatRect) or our position inside parent (anchors).
 
       Note that this is not (necessarily) called when the screen position changed
       just because the parent screen position changed.
@@ -198,13 +198,13 @@ type
     { A child control was added or removed. }
     chChildren
   );
-  TUIControlChanges = set of TUIControlChange;
-  TUIControlChangeEvent = procedure(const Sender: TInputListener;
-    const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean)
+  TCastleUserInterfaceChanges = set of TCastleUserInterfaceChange;
+  TCastleUserInterfaceChangeEvent = procedure(const Sender: TInputListener;
+    const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean)
     of object;
 
   { Abstract user interface container. Connects OpenGL context management
-    code with Castle Game Engine controls (TUIControl, that is the basis
+    code with Castle Game Engine controls (TCastleUserInterface, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowCustom
     (a window) or TCastleControlCustom (Lazarus component), they provide
     you a non-abstact implementation of TUIContainer.
@@ -215,20 +215,20 @@ type
     on this list. Input goes to the front-most
     (that is, last on the @link(Controls) list) control under
     the event position (or mouse position, or the appropriate touch position).
-    We use @link(TUIControl.CapturesEventsAtPosition) to decide this
-    (by default it simply checks control's @link(TUIControl.ScreenRect)
+    We use @link(TCastleUserInterface.CapturesEventsAtPosition) to decide this
+    (by default it simply checks control's @link(TCastleUserInterface.ScreenRect)
     vs the given position).
     As long as the event is not handled,
     we search for the next control that can handle this event and
-    returns @link(TUIControl.CapturesEventsAtPosition) = @true.
+    returns @link(TCastleUserInterface.CapturesEventsAtPosition) = @true.
 
     We also call various methods to every control.
-    These include @link(TInputListener.Update), @link(TUIControl.Render),
+    These include @link(TInputListener.Update), @link(TCastleUserInterface.Render),
     @link(TInputListener.Resize). }
   TUIContainer = class abstract(TComponent)
   private
     type
-      TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TUIControl>;
+      TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TCastleUserInterface>;
     var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
@@ -243,11 +243,11 @@ type
     {$warnings off} // knowingly using deprecated stuff
     FRenderStyle: TRenderStyle;
     {$warnings on}
-    FFocus, FNewFocus: TUIControlList;
+    FFocus, FNewFocus: TCastleUserInterfaceList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
     FCaptureInput: TFingerIndexCaptureMap;
-    FForceCaptureInput: TUIControl;
+    FForceCaptureInput: TCastleUserInterface;
     FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
@@ -268,17 +268,17 @@ type
     FIsMousePositionForMouseLook: boolean;
     FFocusAndMouseCursorValid: boolean;
     procedure ControlsVisibleChange(const Sender: TInputListener;
-      const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
-    procedure DetachNotification(const C: TUIControl);
+    procedure DetachNotification(const C: TCastleUserInterface);
     function UseForceCaptureInput: boolean;
-    function TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
+    function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Integer);
     procedure SetUIReferenceHeight(const Value: Integer);
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
-    procedure SetForceCaptureInput(const Value: TUIControl);
+    procedure SetForceCaptureInput(const Value: TCastleUserInterface);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -300,7 +300,7 @@ type
 
     procedure SetInternalCursor(const Value: TMouseCursor); virtual;
     property Cursor: TMouseCursor write SetInternalCursor;
-      deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
+      deprecated 'do not set this, engine will override this. Set TCastleUserInterface.Cursor of your UI controls to control the Cursor.';
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
     function GetMousePosition: TVector2; virtual;
@@ -309,7 +309,7 @@ type
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
-      Most UI code should rather be placed in TUIControl, and use TUIControl.UIScale. }
+      Most UI code should rather be placed in TCastleUserInterface, and use TCastleUserInterface.UIScale. }
     function DefaultUIScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
@@ -367,17 +367,17 @@ type
     { Returns the controls that should receive input events,
       from back to front. So the front-most control, that should receive events first,
       is last on this list. }
-    property Focus: TUIControlList read FFocus;
+    property Focus: TCastleUserInterfaceList read FFocus;
 
     { When the tooltip should be shown (mouse hovers over a control
       with a tooltip) then the TooltipVisible is set to @true,
       and TooltipPosition indicate left-bottom (in screen space, regardless of UIScaling)
       suggested position of the tooltip.
 
-      The tooltip is only detected when TUIControl.TooltipExists.
-      See TUIControl.TooltipExists and TUIControl.TooltipStyle and
-      TUIControl.TooltipRender.
-      For simple purposes just set TUIControlFont.Tooltip to something
+      The tooltip is only detected when TCastleUserInterface.TooltipExists.
+      See TCastleUserInterface.TooltipExists and TCastleUserInterface.TooltipStyle and
+      TCastleUserInterface.TooltipRender.
+      For simple purposes just set TCastleUserInterfaceFont.Tooltip to something
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
@@ -522,15 +522,15 @@ type
       Called by controls within this container when something could
       change the container focused control (in @link(TUIContainer.Focus))
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
-      In practice, called when TUIControl.Cursor or
-      @link(TUIControl.CapturesEventsAtPosition) (and so also
-      @link(TUIControl.ScreenRect)) results change.
+      In practice, called when TCastleUserInterface.Cursor or
+      @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
+      @link(TCastleUserInterface.ScreenRect)) results change.
 
       In practice, it's called through VisibleChange now.
 
       This recalculates the focused control and the final cursor of
       the container, looking at Container's Controls,
-      testing @link(TUIControl.CapturesEventsAtPosition) with current mouse position,
+      testing @link(TCastleUserInterface.CapturesEventsAtPosition) with current mouse position,
       and looking at Cursor property of various controls.
 
       When you add / remove some control
@@ -566,7 +566,7 @@ type
       than window, and may not include window center). In this case you want
       to make sure that motion events get passed to this control,
       and that this control has focus (to keep mouse cursor hidden). }
-    property ForceCaptureInput: TUIControl
+    property ForceCaptureInput: TCastleUserInterface
       read FForceCaptureInput write SetForceCaptureInput;
 
     { When the control accepts the "press" event, it automatically captures
@@ -576,7 +576,7 @@ type
       But sometimes you want to cancel the dragging, and allow other controls
       to handle the following motion and release events, in which case calling this
       method helps. }
-    procedure ReleaseCapture(const C: TUIControl);
+    procedure ReleaseCapture(const C: TCastleUserInterface);
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -598,7 +598,7 @@ type
     }
     property RenderStyle: TRenderStyle
       read FRenderStyle write FRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
     { Delay in seconds before showing the tooltip. }
     property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
@@ -614,7 +614,7 @@ type
       read FUIScaling write SetUIScaling default usNone;
 
     { Reference width and height to which we fit the container size
-      (as seen by TUIControl implementations) when UIScaling is
+      (as seen by TCastleUserInterface implementations) when UIScaling is
       usEncloseReferenceSize or usFitReferenceSize.
       See @link(usEncloseReferenceSize) and @link(usFitReferenceSize)
       for precise description how this works.
@@ -626,7 +626,7 @@ type
       read FUIReferenceHeight write SetUIReferenceHeight default 0;
     { @groupEnd }
 
-    { Scale of the container size (as seen by TUIControl implementations)
+    { Scale of the container size (as seen by TCastleUserInterface implementations)
       when UIScaling is usExplicitScale.
       See @link(usExplicitScale) for precise description how this works. }
     property UIExplicitScale: Single
@@ -636,7 +636,7 @@ type
   { Base class for things that listen to user input. }
   TInputListener = class(TComponent)
   private
-    FOnVisibleChange: TUIControlChangeEvent;
+    FOnVisibleChange: TCastleUserInterfaceChangeEvent;
     FContainer: TUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
@@ -653,7 +653,7 @@ type
 
     procedure SetContainer(const Value: TUIContainer); virtual;
     { Called when @link(Cursor) changed.
-      In TUIControl class, just calls OnCursorChange. }
+      In TCastleUserInterface class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
       deprecated 'better override VisibleChange and watch for chCursor in Changes';
   public
@@ -774,7 +774,7 @@ type
       "Press" and "Release" events
       return whether the event was somehow "handled", and the container
       passes them only to the controls under the mouse (decided by
-      @link(TUIControl.CapturesEventsAtPosition)). And as soon as some control says it "handled"
+      @link(TCastleUserInterface.CapturesEventsAtPosition)). And as soon as some control says it "handled"
       the event, other controls (even if under the mouse) will not
       receive the event.
 
@@ -782,8 +782,8 @@ type
       need to do the Update job all the time,
       regardless of whether the control is under the mouse and regardless
       of what other controls already did. So all controls (well,
-      all controls that exist, in case of TUIControl,
-      see TUIControl.GetExists) receive Update calls.
+      all controls that exist, in case of TCastleUserInterface,
+      see TCastleUserInterface.GetExists) receive Update calls.
 
       So the "handled" status is passed through HandleInput.
       If a control is not under the mouse, it will receive HandleInput
@@ -795,13 +795,13 @@ type
 
     { Called always when something important inside this control (or it's children)
       changed. To be more precise, this is called when something mentioned among
-      the @link(TUIControlChange) enumerated items changed.
+      the @link(TCastleUserInterfaceChange) enumerated items changed.
 
       This is always called with Changes <> [] (non-empty set). }
-    procedure VisibleChange(const Changes: TUIControlChanges;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); overload; virtual;
     procedure VisibleChange(const RectOrCursorChanged: boolean = false); overload; virtual;
-      deprecated 'use VisibleChange overload with (TUIControlChanges,boolean) parameters';
+      deprecated 'use VisibleChange overload with (TCastleUserInterfaceChanges,boolean) parameters';
 
     { Called always when something important inside this control (or it's children)
       changed. See @link(VisibleChange) for details about when and how this is called.
@@ -812,7 +812,7 @@ type
       It's usually safest to only set a boolean flag like
       "something should be recalculated" when this event happens,
       and do the actual recalculation later. }
-    property OnVisibleChange: TUIControlChangeEvent
+    property OnVisibleChange: TCastleUserInterfaceChangeEvent
       read FOnVisibleChange write FOnVisibleChange;
 
     { Allow window containing this control to suspend waiting for user input.
@@ -825,7 +825,7 @@ type
     function AllowSuspendForInput: boolean; virtual;
 
     { You can resize/reposition your component here,
-      for example set @link(TUIControl.Left) or @link(TUIControl.Bottom), to react to parent
+      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom), to react to parent
       size changes.
       Called always when the container (component or window with OpenGL context)
       size changes. Called only when the OpenGL context of the container
@@ -835,7 +835,7 @@ type
       We also make sure to call this once when inserting into
       the controls list
       (like @link(TCastleWindowCustom.Controls) or
-      @link(TCastleControlCustom.Controls) or inside parent TUIControl),
+      @link(TCastleControlCustom.Controls) or inside parent TCastleUserInterface),
       if inserting into the container/parent
       with already initialized OpenGL context. If inserting into the container/parent
       without OpenGL context initialized, it will be called later,
@@ -872,7 +872,7 @@ type
       (for normal usage you don't want to deal with it). Also, it's confusing
       on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
       totally not related to this property that is concerned with handling
-      TUIControl events.) }
+      TCastleUserInterface events.) }
 
     { Should we disable further mouse / keys handling for events that
       we already handled in this control. If @true, then our events will
@@ -933,16 +933,16 @@ type
     using fields like Width, Height, FullSize.
     Some descendants may allow both approaches, switchable by
     property like TCastleButton.AutoSize or TCastleImageControl.Stretch.
-    The base @link(TUIControl.Rect) returns always an empty rectangle,
+    The base @link(TCastleUserInterface.Rect) returns always an empty rectangle,
     most descendants will want to override it (you can also ignore the issue
-    in your own TUIControl descendants, if the given control size will
+    in your own TCastleUserInterface descendants, if the given control size will
     never be used for anything).
 
     All screen (mouse etc.) coordinates passed here should be in the usual
     window system coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to the usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
-  TUIControl = class abstract(TInputListener)
+  TCastleUserInterface = class abstract(TInputListener)
   private
     FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
@@ -954,7 +954,7 @@ type
     FControls: TChildrenControls;
     FLeft: Integer;
     FBottom: Integer;
-    FParent: TUIControl; //< null means that parent is our owner
+    FParent: TCastleUserInterface; //< null means that parent is our owner
     FHasHorizontalAnchor: boolean;
     FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
     FHorizontalAnchorDelta: Single;
@@ -964,8 +964,8 @@ type
     FEnableUIScaling: boolean;
     FKeepInFront, FCapturesEvents: boolean;
     procedure SetExists(const Value: boolean);
-    function GetControls(const I: Integer): TUIControl;
-    procedure SetControls(const I: Integer; const Item: TUIControl);
+    function GetControls(const I: Integer): TCastleUserInterface;
+    procedure SetControls(const I: Integer; const Item: TCastleUserInterface);
     procedure CreateControls;
 
     { This takes care of some internal quirks with saving Left property
@@ -1015,24 +1015,24 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure VisibleChange(const Changes: TUIControlChanges;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
 
-    property Controls [Index: Integer]: TUIControl read GetControls write SetControls;
+    property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
 
     { Add child control, at the front of other children. }
-    procedure InsertFront(const NewItem: TUIControl); overload;
-    procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList); overload;
+    procedure InsertFront(const NewItem: TCastleUserInterface); overload;
+    procedure InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertFront(const NewItems: TCastleUserInterfaceList); overload;
 
     { Add child control, at the back of other children. }
-    procedure InsertBack(const NewItem: TUIControl); overload;
-    procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList); overload;
+    procedure InsertBack(const NewItem: TCastleUserInterface); overload;
+    procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
-    procedure RemoveControl(Item: TUIControl);
+    procedure RemoveControl(Item: TCastleUserInterface);
 
     { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
     procedure ClearControls;
@@ -1042,7 +1042,7 @@ type
       They only receive @link(GLContextOpen), @link(GLContextClose), @link(Resize)
       calls.
 
-      It TUIControl class, this returns the value of @link(Exists) property.
+      It TCastleUserInterface class, this returns the value of @link(Exists) property.
       May be overridden in descendants, to return something more complicated,
       but it should always be a logical "and" with the inherited @link(GetExists)
       implementation (so setting the @code(Exists := false) will always work),
@@ -1127,7 +1127,7 @@ type
       Among the controls with equal RenderStyle, their order
       on TUIContainer.Controls list determines the rendering order. }
     property RenderStyle: TRenderStyle read FRenderStyle write FRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
@@ -1142,7 +1142,7 @@ type
 
       @groupBegin }
     function TooltipStyle: TRenderStyle; virtual;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
     function TooltipExists: boolean; virtual;
     procedure TooltipRender; virtual;
     { @groupEnd }
@@ -1187,7 +1187,7 @@ type
       causing OpenGL errors or at least weird display artifacts.
 
       Most of the time, when you think of using this, you should instead
-      use the @link(TUIControl.Exists) property. This allows you to keep the control
+      use the @link(TCastleUserInterface.Exists) property. This allows you to keep the control
       of the @link(TUIContainer.Controls) list, and it will be receive
       GLContextOpen and GLContextClose events as usual, but will not exist
       for all other purposes.
@@ -1201,7 +1201,7 @@ type
       instance is added back, to be visible even in the menu mode.
       This means that CastleWindowModes cannot just modify the TUIContainer.Exists
       value, leaving the control on the @link(TUIContainer.Controls) list:
-      it would leave the TUIControl existing many times on the @link(TUIContainer.Controls)
+      it would leave the TCastleUserInterface existing many times on the @link(TUIContainer.Controls)
       list, with the undefined TUIContainer.Exists value. }
     property DisableContextOpenClose: Cardinal
       read FDisableContextOpenClose write FDisableContextOpenClose;
@@ -1214,7 +1214,7 @@ type
 
     property Focused: boolean read FFocused write SetFocused;
 
-    property Parent: TUIControl read FParent;
+    property Parent: TCastleUserInterface read FParent;
 
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
@@ -1239,7 +1239,7 @@ type
             end;
           #)
 
-          In fact, TUIControlSizeable already provides such implementation
+          In fact, TCastleUserInterfaceRect already provides such implementation
           for you.)
       )
 
@@ -1270,7 +1270,7 @@ type
       @italic(Notes for descendants implementors:)
 
       By default, in this class, this just returns @link(Rect) converted to floats.
-      The reason for this is historical: originally, our TUIControl API focused
+      The reason for this is historical: originally, our TCastleUserInterface API focused
       on expressing positions and rectangles as integers.
 
       Override this to return a float-based rectangle, which is better
@@ -1308,7 +1308,7 @@ type
       The reason why we prefer overriding @link(Rect) (and CalculatedRect is just
       derived from it), not the other way around:
       it is because font measurements are already done in scaled coordinates
-      (because UI scaling changes font size for TUIControlFont).
+      (because UI scaling changes font size for TCastleUserInterfaceFont).
       So things like TCastleLabel have to calculate size in scaled coordinates
       anyway, and the unscaled size can only be derived from it by division.
 
@@ -1321,7 +1321,7 @@ type
       calculated size.
 
       Unlike various other width properties of descendants (like
-      @link(TUIControlSizeable.Width) or @link(TCastleImageControl.Width)),
+      @link(TCastleUserInterfaceRect.Width) or @link(TCastleImageControl.Width)),
       this is the @italic(calculated) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
@@ -1340,7 +1340,7 @@ type
       calculated size.
 
       Unlike various other height properties of descendants (like
-      @link(TUIControlSizeable.Height) or @link(TCastleImageControl.Height)),
+      @link(TCastleUserInterfaceRect.Height) or @link(TCastleImageControl.Height)),
       this is the @italic(calculated) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
@@ -1461,7 +1461,7 @@ type
       All the drawing and measuring inside your control must take this into
       account. The final @link(Rect) result must already take this scaling
       into account, so that parent controls may depend on it.
-      All descendants, like TUIControlSizeable, provide a @link(Rect) implementation
+      All descendants, like TCastleUserInterfaceRect, provide a @link(Rect) implementation
       that does what is necessary. }
     function UIScale: Single;
   published
@@ -1538,8 +1538,8 @@ type
 
     { Enable or disable UI scaling for this particular control.
       See more about UI scaling on @link(TUIContainer.UIScaling) and
-      @link(TUIControl.UIScale). Setting this to @false forces
-      @link(TUIControl.UIScale) to always return 1.0.
+      @link(TCastleUserInterface.UIScale). Setting this to @false forces
+      @link(TCastleUserInterface.UIScale) to always return 1.0.
 
       Note that this does not work recursively, i.e. it does not affect
       the children of this control. Setting this to @false does not prevent
@@ -1564,7 +1564,7 @@ type
     By itself, this does not show anything. But it's useful as an ancestor
     class for new UI classes that want their size to be fully configurable,
     or as a container for UI children. }
-  TUIControlSizeable = class(TUIControl)
+  TCastleUserInterfaceRect = class(TCastleUserInterface)
   strict private
     FFloatWidth, FFloatHeight: Single;
     FFullSize: boolean;
@@ -1593,10 +1593,10 @@ type
       the whole parent (like TCastleWindow or TCastleControl,
       if you just placed the control on TCastleWindowCustom.Controls
       or TCastleControlCustom.Controls),
-      and the values of @link(TUIControl.Left Left),
-      @link(TUIControl.Bottom Bottom), @link(Width), @link(Height) are ignored.
+      and the values of @link(TCastleUserInterface.Left Left),
+      @link(TCastleUserInterface.Bottom Bottom), @link(Width), @link(Height) are ignored.
 
-      @seealso TUIControl.Rect
+      @seealso TCastleUserInterface.Rect
 
       @groupBegin }
     property FullSize: boolean read FFullSize write SetFullSize default false;
@@ -1607,38 +1607,35 @@ type
     { @groupEnd }
   end;
 
-  { Simple list of TUIControl instances. }
-  TUIControlList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUIControl>)
+  { Simple list of TCastleUserInterface instances. }
+  TCastleUserInterfaceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleUserInterface>)
   public
     { Add child control, at the front of other children. }
-    procedure InsertFront(const NewItem: TUIControl); overload;
-    procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList); overload;
+    procedure InsertFront(const NewItem: TCastleUserInterface); overload;
+    procedure InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertFront(const NewItems: TCastleUserInterfaceList); overload;
 
     { Add child control, at the back of other children. }
-    procedure InsertBack(const NewItem: TUIControl); overload;
-    procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList); overload;
+    procedure InsertBack(const NewItem: TCastleUserInterface); overload;
+    procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
-    { Insert, honoring @link(TUIControl.KeepInFront). }
-    procedure InsertWithZOrder(Index: Integer; const Item: TUIControl);
+    { Insert, honoring @link(TCastleUserInterface.KeepInFront). }
+    procedure InsertWithZOrder(Index: Integer; const Item: TCastleUserInterface);
   end;
 
-  TUIControlClass = class of TUIControl;
-
-  TUIControlPos = TUIControl deprecated 'use TUIControl class';
-  TUIRectangularControl = TUIControl deprecated 'use TUIControl class';
+  TCastleUserInterfaceClass = class of TCastleUserInterface;
 
   { List of UI controls, with a parent control and container.
     Ordered from back to front.
     Used for @link(TUIContainer.Controls). }
   TChildrenControls = class
   private
-    FParent: TUIControl;
+    FParent: TCastleUserInterface;
     FContainer: TUIContainer;
 
-    procedure RegisterContainer(const C: TUIControl; const AContainer: TUIContainer);
-    procedure UnregisterContainer(const C: TUIControl; const AContainer: TUIContainer);
+    procedure RegisterContainer(const C: TCastleUserInterface; const AContainer: TUIContainer);
+    procedure UnregisterContainer(const C: TCastleUserInterface; const AContainer: TUIContainer);
     procedure SetContainer(const AContainer: TUIContainer);
     property Container: TUIContainer read FContainer write SetContainer;
 
@@ -1665,62 +1662,62 @@ type
       private
         FList: TChildrenControls;
         FPosition: Integer;
-        function GetCurrent: TUIControl;
+        function GetCurrent: TCastleUserInterface;
       public
         constructor Create(AList: TChildrenControls);
         function MoveNext: Boolean;
-        property Current: TUIControl read GetCurrent;
+        property Current: TCastleUserInterface read GetCurrent;
       end;
     {$endif}
 
-    function GetItem(const I: Integer): TUIControl;
-    procedure SetItem(const I: Integer; const Item: TUIControl);
+    function GetItem(const I: Integer): TCastleUserInterface;
+    procedure SetItem(const I: Integer; const Item: TCastleUserInterface);
     { React to add/remove notifications. }
     procedure Notify(Ptr: Pointer; Action: TListNotification);
   public
-    constructor Create(AParent: TUIControl);
+    constructor Create(AParent: TCastleUserInterface);
     destructor Destroy; override;
 
     {$ifndef VER2_6}
     function GetEnumerator: TEnumerator;
     {$endif}
 
-    property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
+    property Items[I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
     function Count: Integer;
     procedure Assign(const Source: TChildrenControls);
     { Remove the Item from this list.
       Note that the given Item should always exist only once on a list
       (it is not allowed to add it multiple times), so there's no @code(RemoveAll)
       method. }
-    procedure Remove(const Item: TUIControl);
+    procedure Remove(const Item: TCastleUserInterface);
     procedure Clear;
-    procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
-    procedure Insert(Index: Integer; const Item: TUIControl);
-    function IndexOf(const Item: TUIControl): Integer;
+    procedure Add(const Item: TCastleUserInterface); deprecated 'use InsertFront or InsertBack';
+    procedure Insert(Index: Integer; const Item: TCastleUserInterface);
+    function IndexOf(const Item: TCastleUserInterface): Integer;
 
     { Make sure that NewItem is the only instance of given ReplaceClass
       on the list, replacing old item if necesssary.
       See TCastleObjectList.MakeSingle for precise description. }
-    function MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
-      AddFront: boolean = true): TUIControl;
+    function MakeSingle(ReplaceClass: TCastleUserInterfaceClass; NewItem: TCastleUserInterface;
+      AddFront: boolean = true): TCastleUserInterface;
 
     { Add at the end of the list. }
-    procedure InsertFront(const NewItem: TUIControl); overload;
-    procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList); overload;
+    procedure InsertFront(const NewItem: TCastleUserInterface); overload;
+    procedure InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertFront(const NewItems: TCastleUserInterfaceList); overload;
 
     { Add at the beginning of the list. }
-    procedure InsertBack(const NewItem: TUIControl); overload;
-    procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList); overload;
+    procedure InsertBack(const NewItem: TCastleUserInterface); overload;
+    procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
+    procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
-    procedure InsertIfNotExists(const Index: Integer; const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
-    procedure AddIfNotExists(const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
+    procedure InsertIfNotExists(const Index: Integer; const NewItem: TCastleUserInterface); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
+    procedure AddIfNotExists(const NewItem: TCastleUserInterface); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
 
     { BeginDisableContextOpenClose disables sending
-      TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
+      TCastleUserInterface.GLContextOpen and TCastleUserInterface.GLContextClose to all the controls
       on the list. EndDisableContextOpenClose ends this.
-      They work by increasing / decreasing the TUIControl.DisableContextOpenClose
+      They work by increasing / decreasing the TCastleUserInterface.DisableContextOpenClose
       for all the items on the list.
 
       @groupBegin }
@@ -1728,6 +1725,17 @@ type
     procedure EndDisableContextOpenClose;
     { @groupEnd }
   end;
+
+  TUIControlPos = TCastleUserInterface deprecated 'use TCastleUserInterface class';
+  TUIRectangularControl = TCastleUserInterface deprecated 'use TCastleUserInterface class';
+  // TODO: These aliases will soon be deprecated too.
+  { }
+  TUIControl = TCastleUserInterface;
+  TUIControlSizeable = TCastleUserInterfaceRect;
+  TUIControlChange = TCastleUserInterfaceChange;
+  TUIControlChanges = TCastleUserInterfaceChanges;
+  TUIControlList = TCastleUserInterfaceList;
+  TUIControlChangeEvent = TCastleUserInterfaceChangeEvent;
 
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
@@ -1827,9 +1835,9 @@ begin
   FCaptureInput := TFingerIndexCaptureMap.Create;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
-  FCalculatedUIScale := 1.0; // default safe value, in case some TUIControl will look here
-  FFocus := TUIControlList.Create(false);
-  FNewFocus := TUIControlList.Create(false);
+  FCalculatedUIScale := 1.0; // default safe value, in case some TCastleUserInterface will look here
+  FFocus := TCastleUserInterfaceList.Create(false);
+  FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
 
@@ -1869,11 +1877,11 @@ begin
     { set to nil by SetForceCaptureInput to clean nicely }
     ForceCaptureInput := nil;
 
-  if (Operation = opRemove) and (AComponent is TUIControl) then
-    DetachNotification(TUIControl(AComponent));
+  if (Operation = opRemove) and (AComponent is TCastleUserInterface) then
+    DetachNotification(TCastleUserInterface(AComponent));
 end;
 
-procedure TUIContainer.SetForceCaptureInput(const Value: TUIControl);
+procedure TUIContainer.SetForceCaptureInput(const Value: TCastleUserInterface);
 begin
   if FForceCaptureInput <> Value then
   begin
@@ -1885,7 +1893,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.DetachNotification(const C: TUIControl);
+procedure TUIContainer.DetachNotification(const C: TCastleUserInterface);
 var
   Index: Integer;
   FingerIndex: TFingerIndex;
@@ -1907,7 +1915,7 @@ begin
   end;
 end;
 
-function TUIContainer.TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
+function TUIContainer.TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
 var
   FingerControlPair: TFingerIndexCaptureMap.TDictionaryPair;
 begin
@@ -1943,7 +1951,7 @@ var
       another, the obscured control does not land on the FNewFocus list.
       However, the obscured control can still affect the AnythingForcesNoneCursor
       value. }
-    procedure RecursiveCalculateNewFocus(const C: TUIControl; var AllowAddingToFocus: boolean);
+    procedure RecursiveCalculateNewFocus(const C: TCastleUserInterface; var AllowAddingToFocus: boolean);
     var
       I: Integer;
       ChildAllowAddingToFocus: boolean;
@@ -1980,7 +1988,7 @@ var
 
   { Possibly adds the control to FNewFocus and
     updates the AnythingForcesNoneCursor if needed. }
-  procedure AddInFrontOfNewFocus(const C: TUIControl);
+  procedure AddInFrontOfNewFocus(const C: TCastleUserInterface);
   begin
     if (not (csDestroying in C.ComponentState)) and
        (FNewFocus.IndexOf(C) = -1) then
@@ -2009,13 +2017,13 @@ var
 
 var
   I: Integer;
-  Tmp: TUIControlList;
-  ControlUnderFinger0: TUIControl;
+  Tmp: TCastleUserInterfaceList;
+  ControlUnderFinger0: TCastleUserInterface;
 begin
   { since this is called at the end of TChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
 
-  { FNewFocus is only used by this method. It is only managed by TUIControl
+  { FNewFocus is only used by this method. It is only managed by TCastleUserInterface
     to avoid constructing/destructing it in every
     TUIContainer.UpdateFocusAndMouseCursor call. }
   FNewFocus.Clear;
@@ -2037,7 +2045,7 @@ begin
     if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
       AddInFrontOfNewFocus(ControlUnderFinger0);
 
-    { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
+    { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
     for I := 0 to FNewFocus.Count - 1 do
       if FFocus.IndexOf(FNewFocus[I]) = -1 then
         FNewFocus[I].Focused := true;
@@ -2058,7 +2066,7 @@ end;
 
 function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 
-  function RecursiveSensorRotation(const C: TUIControl): boolean;
+  function RecursiveSensorRotation(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2087,7 +2095,7 @@ end;
 
 function TUIContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 
-  function RecursiveSensorTranslation(const C: TUIControl): boolean;
+  function RecursiveSensorTranslation(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2116,7 +2124,7 @@ end;
 
 function TUIContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
 
-  function RecursiveJoyAxisMove(const C: TUIControl): boolean;
+  function RecursiveJoyAxisMove(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2145,7 +2153,7 @@ end;
 
 function TUIContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
 
-  function RecursiveJoyButtonPress(const C: TUIControl): boolean;
+  function RecursiveJoyButtonPress(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2232,7 +2240,7 @@ procedure TUIContainer.EventUpdate;
     end;
   end;
 
-  procedure RecursiveUpdate(const C: TUIControl; var HandleInput: boolean);
+  procedure RecursiveUpdate(const C: TCastleUserInterface; var HandleInput: boolean);
   var
     I: Integer;
     Dummy: boolean;
@@ -2256,7 +2264,7 @@ procedure TUIContainer.EventUpdate;
       begin
         { Although we call Update for all the existing controls, we look
           at CapturesEventsAtPosition and track HandleInput values.
-          See TUIControl.Update for explanation. }
+          See TCastleUserInterface.Update for explanation. }
         if C.CapturesEventsAtPosition(MousePosition) then
         begin
           C.Update(Fps.SecondsPassed, HandleInput);
@@ -2373,7 +2381,7 @@ end;
 
 function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
 
-  function RecursivePress(const C: TUIControl): boolean;
+  function RecursivePress(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2420,7 +2428,7 @@ begin
       Exit(true);
   end;
 
-  { pass to all Controls with TUIControl.Press event }
+  { pass to all Controls with TCastleUserInterface.Press event }
   for I := Controls.Count - 1 downto 0 do
     { checking "I < Controls.Count" below is a poor safeguard in case
       some Press handler changes the Controls.Count.
@@ -2438,7 +2446,7 @@ end;
 
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
 
-  function RecursiveRelease(const C: TUIControl): boolean;
+  function RecursiveRelease(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2459,7 +2467,7 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
 
 var
   I: Integer;
-  Capture: TUIControl;
+  Capture: TCastleUserInterface;
 begin
   Result := false;
 
@@ -2495,7 +2503,7 @@ begin
     Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
-  { pass to all Controls with TUIControl.Release event }
+  { pass to all Controls with TCastleUserInterface.Release event }
   for I := Controls.Count - 1 downto 0 do
     if RecursiveRelease(Controls[I]) then
       Exit(true);
@@ -2508,7 +2516,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.ReleaseCapture(const C: TUIControl);
+procedure TUIContainer.ReleaseCapture(const C: TCastleUserInterface);
 var
   FingerIndex: TFingerIndex;
 begin
@@ -2518,7 +2526,7 @@ end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
 
-  procedure RecursiveGLContextOpen(const C: TUIControl);
+  procedure RecursiveGLContextOpen(const C: TCastleUserInterface);
   var
     I: Integer;
   begin
@@ -2550,7 +2558,7 @@ end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
 
-  procedure RecursiveGLContextClose(const C: TUIControl);
+  procedure RecursiveGLContextClose(const C: TCastleUserInterface);
   var
     I: Integer;
   begin
@@ -2582,7 +2590,7 @@ end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
 
-  function RecursiveAllowSuspendForInput(const C: TUIControl): boolean;
+  function RecursiveAllowSuspendForInput(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2616,7 +2624,7 @@ end;
 
 procedure TUIContainer.EventMotion(const Event: TInputMotion);
 
-  function RecursiveMotion(const C: TUIControl): boolean;
+  function RecursiveMotion(const C: TCastleUserInterface): boolean;
   var
     I: Integer;
   begin
@@ -2637,7 +2645,7 @@ procedure TUIContainer.EventMotion(const Event: TInputMotion);
 
 var
   I: Integer;
-  Capture: TUIControl;
+  Capture: TCastleUserInterface;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -2678,7 +2686,7 @@ begin
 end;
 
 procedure TUIContainer.ControlsVisibleChange(const Sender: TInputListener;
-  const Changes: TUIControlChanges; const ChangeInitiatedByChildren: boolean);
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 begin
   { We abort when ChangeInitiatedByChildren = true,
     because this event will be also called with ChangeInitiatedByChildren = false
@@ -2696,7 +2704,7 @@ end;
 
 procedure TUIContainer.EventBeforeRender;
 
-  procedure RecursiveBeforeRender(const C: TUIControl);
+  procedure RecursiveBeforeRender(const C: TCastleUserInterface);
   var
     I: Integer;
   begin
@@ -2721,7 +2729,7 @@ end;
 
 procedure TUIContainer.EventResize;
 
-  procedure RecursiveResize(const C: TUIControl);
+  procedure RecursiveResize(const C: TCastleUserInterface);
   var
     I: Integer;
   begin
@@ -2852,7 +2860,7 @@ end;
 
 procedure TUIContainer.UpdateUIScale;
 
-  procedure RecursiveUIScaleChanged(const C: TUIControl);
+  procedure RecursiveUIScaleChanged(const C: TCastleUserInterface);
   var
     I: Integer;
   begin
@@ -2871,7 +2879,7 @@ end;
 
 function TUIContainer.FloatRect: TFloatRectangle;
 begin
-  { FloatRect is mostly for consistency with TUIControl,
+  { FloatRect is mostly for consistency with TCastleUserInterface,
     that has both Rect and FloatRect, and FloatRect is more adviced for calculations.
     In case of TUIContainer, it doesn't really matter, both Rect and FloatRect
     are good for calculations. }
@@ -3055,7 +3063,7 @@ procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = fals
 begin
 end;
 
-procedure TInputListener.VisibleChange(const Changes: TUIControlChanges;
+procedure TInputListener.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean);
 begin
   Assert(Changes <> [], 'Never call VisibleChange with an empty set');
@@ -3166,9 +3174,9 @@ begin
   FContainer := Value;
 end;
 
-{ TUIControl ----------------------------------------------------------------- }
+{ TCastleUserInterface ----------------------------------------------------------------- }
 
-constructor TUIControl.Create(AOwner: TComponent);
+constructor TCastleUserInterface.Create(AOwner: TComponent);
 begin
   inherited;
   FExists := true;
@@ -3176,14 +3184,14 @@ begin
   FCapturesEvents := true;
 end;
 
-destructor TUIControl.Destroy;
+destructor TCastleUserInterface.Destroy;
 begin
   GLContextClose;
   FreeAndNil(FControls);
   inherited;
 end;
 
-procedure TUIControl.GetChildren(Proc: TGetChildProc; Root: TComponent);
+procedure TCastleUserInterface.GetChildren(Proc: TGetChildProc; Root: TComponent);
 var
   I: Integer;
 begin
@@ -3193,7 +3201,7 @@ begin
       Proc(FControls[I]);
 end;
 
-procedure TUIControl.CreateControls;
+procedure TCastleUserInterface.CreateControls;
 begin
   if FControls = nil then
   begin
@@ -3202,72 +3210,72 @@ begin
   end;
 end;
 
-procedure TUIControl.InsertFront(const NewItem: TUIControl);
+procedure TCastleUserInterface.InsertFront(const NewItem: TCastleUserInterface);
 begin
   CreateControls;
   FControls.InsertFront(NewItem);
 end;
 
-procedure TUIControl.InsertFrontIfNotExists(const NewItem: TUIControl);
+procedure TCastleUserInterface.InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
 begin
   CreateControls;
   FControls.InsertFrontIfNotExists(NewItem);
 end;
 
-procedure TUIControl.InsertFront(const NewItems: TUIControlList);
+procedure TCastleUserInterface.InsertFront(const NewItems: TCastleUserInterfaceList);
 begin
   CreateControls;
   FControls.InsertFront(NewItems);
 end;
 
-procedure TUIControl.InsertBack(const NewItem: TUIControl);
+procedure TCastleUserInterface.InsertBack(const NewItem: TCastleUserInterface);
 begin
   CreateControls;
   FControls.InsertBack(NewItem);
 end;
 
-procedure TUIControl.InsertBackIfNotExists(const NewItem: TUIControl);
+procedure TCastleUserInterface.InsertBackIfNotExists(const NewItem: TCastleUserInterface);
 begin
   CreateControls;
   FControls.InsertBackIfNotExists(NewItem);
 end;
 
-procedure TUIControl.InsertBack(const NewItems: TUIControlList);
+procedure TCastleUserInterface.InsertBack(const NewItems: TCastleUserInterfaceList);
 begin
   CreateControls;
   FControls.InsertBack(NewItems);
 end;
 
-procedure TUIControl.RemoveControl(Item: TUIControl);
+procedure TCastleUserInterface.RemoveControl(Item: TCastleUserInterface);
 begin
   if FControls <> nil then
     FControls.Remove(Item);
 end;
 
-procedure TUIControl.ClearControls;
+procedure TCastleUserInterface.ClearControls;
 begin
   if FControls <> nil then
     FControls.Clear;
 end;
 
-function TUIControl.GetControls(const I: Integer): TUIControl;
+function TCastleUserInterface.GetControls(const I: Integer): TCastleUserInterface;
 begin
   Result := FControls[I];
 end;
 
-procedure TUIControl.SetControls(const I: Integer; const Item: TUIControl);
+procedure TCastleUserInterface.SetControls(const I: Integer; const Item: TCastleUserInterface);
 begin
   FControls[I] := Item;
 end;
 
-function TUIControl.ControlsCount: Integer;
+function TCastleUserInterface.ControlsCount: Integer;
 begin
   if FControls <> nil then
     Result := FControls.Count else
     Result := 0;
 end;
 
-procedure TUIControl.SetContainer(const Value: TUIContainer);
+procedure TCastleUserInterface.SetContainer(const Value: TUIContainer);
 var
   I: Integer;
 begin
@@ -3280,7 +3288,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetEnableUIScaling(const Value: boolean);
+procedure TCastleUserInterface.SetEnableUIScaling(const Value: boolean);
 begin
   if FEnableUIScaling <> Value then
   begin
@@ -3289,30 +3297,30 @@ begin
   end;
 end;
 
-function TUIControl.UIScale: Single;
+function TCastleUserInterface.UIScale: Single;
 begin
   if ContainerSizeKnown and EnableUIScaling then
     Result := Container.FCalculatedUIScale else
     Result := 1.0;
 end;
 
-function TUIControl.LeftBottomScaled: TVector2Integer;
+function TCastleUserInterface.LeftBottomScaled: TVector2Integer;
 begin
   Result := Vector2Integer(
     Round(UIScale * Left), Round(UIScale * Bottom));
 end;
 
-function TUIControl.FloatLeftBottomScaled: TVector2;
+function TCastleUserInterface.FloatLeftBottomScaled: TVector2;
 begin
   Result := Vector2(UIScale * Left, UIScale * Bottom);
 end;
 
-procedure TUIControl.UIScaleChanged;
+procedure TCastleUserInterface.UIScaleChanged;
 begin
 end;
 
 { No point in doing anything? We should propagate it to to parent like T3D?
-procedure TUIControl.DoCursorChange;
+procedure TCastleUserInterface.DoCursorChange;
 begin
   inherited;
   if FControls <> nil then
@@ -3321,7 +3329,7 @@ begin
 end;
 }
 
-function TUIControl.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TCastleUserInterface.CapturesEventsAtPosition(const Position: TVector2): boolean;
 var
   SR: TRectangle;
 begin
@@ -3339,53 +3347,53 @@ begin
      (SR.Height >= ContainerHeight));
 end;
 
-function TUIControl.TooltipExists: boolean;
+function TCastleUserInterface.TooltipExists: boolean;
 begin
   Result := false;
 end;
 
-procedure TUIControl.BeforeRender;
+procedure TCastleUserInterface.BeforeRender;
 begin
 end;
 
-procedure TUIControl.Render;
+procedure TCastleUserInterface.Render;
 begin
 end;
 
-procedure TUIControl.RenderOverChildren;
+procedure TCastleUserInterface.RenderOverChildren;
 begin
 end;
 
-function TUIControl.TooltipStyle: TRenderStyle;
+function TCastleUserInterface.TooltipStyle: TRenderStyle;
 begin
   Result := rs2D;
 end;
 
-procedure TUIControl.TooltipRender;
+procedure TCastleUserInterface.TooltipRender;
 begin
 end;
 
-procedure TUIControl.GLContextOpen;
+procedure TCastleUserInterface.GLContextOpen;
 begin
   FGLInitialized := true;
 end;
 
-procedure TUIControl.GLContextClose;
+procedure TCastleUserInterface.GLContextClose;
 begin
   FGLInitialized := false;
 end;
 
-function TUIControl.GetExists: boolean;
+function TCastleUserInterface.GetExists: boolean;
 begin
   Result := FExists;
 end;
 
-procedure TUIControl.SetFocused(const Value: boolean);
+procedure TCastleUserInterface.SetFocused(const Value: boolean);
 begin
   FFocused := Value;
 end;
 
-procedure TUIControl.VisibleChange(const Changes: TUIControlChanges;
+procedure TCastleUserInterface.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean);
 begin
   inherited;
@@ -3393,7 +3401,7 @@ begin
     Parent.VisibleChange(Changes, true);
 end;
 
-procedure TUIControl.SetExists(const Value: boolean);
+procedure TCastleUserInterface.SetExists(const Value: boolean);
 begin
   if FExists <> Value then
   begin
@@ -3402,22 +3410,22 @@ begin
   end;
 end;
 
-{ We store Left property value in file under "tuicontrolpos_real_left" name,
+{ We store Left property value in file under "TUIControlPos_Real_Left" name,
   to avoid clashing with TComponent magic "left" property name.
   The idea how to do this is taken from TComponent's own implementation
   of it's "left" magic property (rtl/objpas/classes/compon.inc). }
 
-procedure TUIControl.ReadRealLeft(Reader: TReader);
+procedure TCastleUserInterface.ReadRealLeft(Reader: TReader);
 begin
   FLeft := Reader.ReadInteger;
 end;
 
-procedure TUIControl.WriteRealLeft(Writer: TWriter);
+procedure TCastleUserInterface.WriteRealLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(FLeft);
 end;
 
-procedure TUIControl.ReadLeft(Reader: TReader);
+procedure TCastleUserInterface.ReadLeft(Reader: TReader);
 var
   D: LongInt;
 begin
@@ -3426,7 +3434,7 @@ begin
   DesignInfo := D;
 end;
 
-procedure TUIControl.ReadTop(Reader: TReader);
+procedure TCastleUserInterface.ReadTop(Reader: TReader);
 var
   D: LongInt;
 begin
@@ -3435,17 +3443,17 @@ begin
   DesignInfo := D;
 end;
 
-procedure TUIControl.WriteLeft(Writer: TWriter);
+procedure TCastleUserInterface.WriteLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(DesignInfo).Lo);
 end;
 
-procedure TUIControl.WriteTop(Writer: TWriter);
+procedure TCastleUserInterface.WriteTop(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(DesignInfo).Hi);
 end;
 
-procedure TUIControl.DefineProperties(Filer: TFiler);
+procedure TCastleUserInterface.DefineProperties(Filer: TFiler);
 Var Ancestor : TComponent;
     Temp : longint;
 begin
@@ -3483,7 +3491,7 @@ begin
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-procedure TUIControl.SetLeft(const Value: Integer);
+procedure TCastleUserInterface.SetLeft(const Value: Integer);
 begin
   if FLeft <> Value then
   begin
@@ -3492,7 +3500,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetBottom(const Value: Integer);
+procedure TCastleUserInterface.SetBottom(const Value: Integer);
 begin
   if FBottom <> Value then
   begin
@@ -3501,7 +3509,7 @@ begin
   end;
 end;
 
-procedure TUIControl.Align(
+procedure TCastleUserInterface.Align(
   const ControlPosition: THorizontalPosition;
   const ContainerPosition: THorizontalPosition;
   const X: Integer = 0);
@@ -3509,7 +3517,7 @@ begin
   Left := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
 end;
 
-procedure TUIControl.Align(
+procedure TCastleUserInterface.Align(
   const ControlPosition: TVerticalPosition;
   const ContainerPosition: TVerticalPosition;
   const Y: Integer = 0);
@@ -3517,7 +3525,7 @@ begin
   Bottom := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
 
-procedure TUIControl.AlignHorizontal(
+procedure TCastleUserInterface.AlignHorizontal(
   const ControlPosition: TPositionRelative;
   const ContainerPosition: TPositionRelative;
   const X: Integer);
@@ -3527,7 +3535,7 @@ begin
     THorizontalPosition(ContainerPosition), X);
 end;
 
-procedure TUIControl.AlignVertical(
+procedure TCastleUserInterface.AlignVertical(
   const ControlPosition: TPositionRelative;
   const ContainerPosition: TPositionRelative;
   const Y: Integer);
@@ -3537,33 +3545,33 @@ begin
     TVerticalPosition(ContainerPosition), Y);
 end;
 
-procedure TUIControl.Center;
+procedure TCastleUserInterface.Center;
 begin
   Align(hpMiddle, hpMiddle);
   Align(vpMiddle, vpMiddle);
 end;
 
-function TUIControl.Rect: TRectangle;
+function TCastleUserInterface.Rect: TRectangle;
 begin
   Result := Rectangle(LeftBottomScaled, 0, 0);
 end;
 
-function TUIControl.FloatRect: TFloatRectangle;
+function TCastleUserInterface.FloatRect: TFloatRectangle;
 begin
   Result := FloatRectangle(Rect);
 end;
 
-function TUIControl.CalculatedFloatRect: TFloatRectangle;
+function TCastleUserInterface.CalculatedFloatRect: TFloatRectangle;
 begin
   Result := FloatRectWithAnchors(true).ScaleAround0(1 / UIScale);
 end;
 
-function TUIControl.CalculatedRect: TRectangle;
+function TCastleUserInterface.CalculatedRect: TRectangle;
 begin
   Result := CalculatedFloatRect.Round;
 end;
 
-function TUIControl.CalculatedFloatWidth: Single;
+function TCastleUserInterface.CalculatedFloatWidth: Single;
 begin
   { Naive implementation:
   Result := CalculatedFloatRect.Width; }
@@ -3577,24 +3585,24 @@ begin
   //Assert(Result = CalculatedRect.Width);
 end;
 
-function TUIControl.CalculatedWidth: Cardinal;
+function TCastleUserInterface.CalculatedWidth: Cardinal;
 begin
   Result := Round(CalculatedFloatWidth);
 end;
 
-function TUIControl.CalculatedFloatHeight: Single;
+function TCastleUserInterface.CalculatedFloatHeight: Single;
 begin
   Result := FloatRect.Height * (1 / UIScale);
   //Assert(Result = CalculatedFloatRect.Height);
 end;
 
-function TUIControl.CalculatedHeight: Cardinal;
+function TCastleUserInterface.CalculatedHeight: Cardinal;
 begin
   Result := Round(CalculatedFloatHeight);
 end;
 
 (*
-function TUIControl.LocalRect: TRectangle;
+function TCastleUserInterface.LocalRect: TRectangle;
 begin
   {$warnings off}
   Result := Rect; // make deprecated Rect work by calling it here
@@ -3602,12 +3610,12 @@ begin
 end;
 *)
 
-function TUIControl.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TRectangle;
+function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TRectangle;
 begin
   Result := FloatRectWithAnchors(CalculateEvenWithoutContainer).Round;
 end;
 
-function TUIControl.FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
+function TCastleUserInterface.FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
   PR: TFloatRectangle;
 begin
@@ -3631,12 +3639,12 @@ begin
       UIScale * VerticalAnchorDelta);
 end;
 
-function TUIControl.ScreenRect: TRectangle;
+function TCastleUserInterface.ScreenRect: TRectangle;
 begin
   Result := ScreenFloatRect.Round;
 end;
 
-function TUIControl.ScreenFloatRect: TFloatRectangle;
+function TCastleUserInterface.ScreenFloatRect: TFloatRectangle;
 var
   T: TVector2;
 begin
@@ -3647,7 +3655,7 @@ begin
   Result.Bottom := Result.Bottom + T[1];
 end;
 
-function TUIControl.LocalToScreenTranslation: TVector2;
+function TCastleUserInterface.LocalToScreenTranslation: TVector2;
 var
   RA: TFloatRectangle;
 begin
@@ -3661,7 +3669,7 @@ begin
     Result := TVector2.Zero;
 end;
 
-function TUIControl.ParentRect: TRectangle;
+function TCastleUserInterface.ParentRect: TRectangle;
 begin
   if Parent <> nil then
   begin
@@ -3672,7 +3680,7 @@ begin
     Result := ContainerRect;
 end;
 
-function TUIControl.ParentFloatRect: TFloatRectangle;
+function TCastleUserInterface.ParentFloatRect: TFloatRectangle;
 begin
   if Parent <> nil then
   begin
@@ -3683,7 +3691,7 @@ begin
     Result := FloatRectangle(ContainerRect);
 end;
 
-procedure TUIControl.SetHasHorizontalAnchor(const Value: boolean);
+procedure TCastleUserInterface.SetHasHorizontalAnchor(const Value: boolean);
 begin
   if FHasHorizontalAnchor <> Value then
   begin
@@ -3692,7 +3700,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
+procedure TCastleUserInterface.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
 begin
   if FHorizontalAnchorSelf <> Value then
   begin
@@ -3701,7 +3709,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchorParent(const Value: THorizontalPosition);
+procedure TCastleUserInterface.SetHorizontalAnchorParent(const Value: THorizontalPosition);
 begin
   if FHorizontalAnchorParent <> Value then
   begin
@@ -3710,7 +3718,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchorDelta(const Value: Single);
+procedure TCastleUserInterface.SetHorizontalAnchorDelta(const Value: Single);
 begin
   if FHorizontalAnchorDelta <> Value then
   begin
@@ -3719,7 +3727,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHasVerticalAnchor(const Value: boolean);
+procedure TCastleUserInterface.SetHasVerticalAnchor(const Value: boolean);
 begin
   if FHasVerticalAnchor <> Value then
   begin
@@ -3728,7 +3736,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchorSelf(const Value: TVerticalPosition);
+procedure TCastleUserInterface.SetVerticalAnchorSelf(const Value: TVerticalPosition);
 begin
   if FVerticalAnchorSelf <> Value then
   begin
@@ -3737,7 +3745,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchorParent(const Value: TVerticalPosition);
+procedure TCastleUserInterface.SetVerticalAnchorParent(const Value: TVerticalPosition);
 begin
   if FVerticalAnchorParent <> Value then
   begin
@@ -3746,7 +3754,7 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchorDelta(const Value: Single);
+procedure TCastleUserInterface.SetVerticalAnchorDelta(const Value: Single);
 begin
   if FVerticalAnchorDelta <> Value then
   begin
@@ -3755,7 +3763,7 @@ begin
   end;
 end;
 
-procedure TUIControl.Anchor(const AHorizontalAnchor: THorizontalPosition;
+procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;
   const AHorizontalAnchorDelta: Single);
 begin
   HasHorizontalAnchor := true;
@@ -3764,7 +3772,7 @@ begin
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
 end;
 
-procedure TUIControl.Anchor(
+procedure TCastleUserInterface.Anchor(
   const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
   const AHorizontalAnchorDelta: Single);
 begin
@@ -3774,7 +3782,7 @@ begin
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
 end;
 
-procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
+procedure TCastleUserInterface.Anchor(const AVerticalAnchor: TVerticalPosition;
   const AVerticalAnchorDelta: Single);
 begin
   HasVerticalAnchor := true;
@@ -3783,7 +3791,7 @@ begin
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
-procedure TUIControl.Anchor(
+procedure TCastleUserInterface.Anchor(
   const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
   const AVerticalAnchorDelta: Single);
 begin
@@ -3793,15 +3801,15 @@ begin
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
-{ TUIControlSizeable --------------------------------------------------------- }
+{ TCastleUserInterfaceRect --------------------------------------------------------- }
 
-constructor TUIControlSizeable.Create(AOwner: TComponent);
+constructor TCastleUserInterfaceRect.Create(AOwner: TComponent);
 begin
   inherited;
   FFullSize := false;
 end;
 
-function TUIControlSizeable.FloatRect: TFloatRectangle;
+function TCastleUserInterfaceRect.FloatRect: TFloatRectangle;
 begin
   if FullSize then
     Result := ParentFloatRect else
@@ -3812,32 +3820,32 @@ begin
   end;
 end;
 
-function TUIControlSizeable.Rect: TRectangle;
+function TCastleUserInterfaceRect.Rect: TRectangle;
 begin
   Result := FloatRect.Round;
 end;
 
-function TUIControlSizeable.GetWidth: Cardinal;
+function TCastleUserInterfaceRect.GetWidth: Cardinal;
 begin
   Result := Round(FloatWidth);
 end;
 
-function TUIControlSizeable.GetHeight: Cardinal;
+function TCastleUserInterfaceRect.GetHeight: Cardinal;
 begin
   Result := Round(FloatHeight);
 end;
 
-procedure TUIControlSizeable.SetWidth(const Value: Cardinal);
+procedure TCastleUserInterfaceRect.SetWidth(const Value: Cardinal);
 begin
   FloatWidth := Value;
 end;
 
-procedure TUIControlSizeable.SetHeight(const Value: Cardinal);
+procedure TCastleUserInterfaceRect.SetHeight(const Value: Cardinal);
 begin
   FloatHeight := Value;
 end;
 
-procedure TUIControlSizeable.SetFloatWidth(const Value: Single);
+procedure TCastleUserInterfaceRect.SetFloatWidth(const Value: Single);
 begin
   if FFloatWidth <> Value then
   begin
@@ -3846,7 +3854,7 @@ begin
   end;
 end;
 
-procedure TUIControlSizeable.SetFloatHeight(const Value: Single);
+procedure TCastleUserInterfaceRect.SetFloatHeight(const Value: Single);
 begin
   if FFloatHeight <> Value then
   begin
@@ -3855,7 +3863,7 @@ begin
   end;
 end;
 
-procedure TUIControlSizeable.SetFullSize(const Value: boolean);
+procedure TCastleUserInterfaceRect.SetFullSize(const Value: boolean);
 begin
   if FFullSize <> Value then
   begin
@@ -3866,7 +3874,7 @@ end;
 
 { TChildrenControls ------------------------------------------------------------- }
 
-constructor TChildrenControls.Create(AParent: TUIControl);
+constructor TChildrenControls.Create(AParent: TCastleUserInterface);
 begin
   inherited Create;
   FParent := AParent;
@@ -3883,12 +3891,12 @@ begin
   inherited;
 end;
 
-function TChildrenControls.GetItem(const I: Integer): TUIControl;
+function TChildrenControls.GetItem(const I: Integer): TCastleUserInterface;
 begin
-  Result := TUIControl(FList.Items[I]);
+  Result := TCastleUserInterface(FList.Items[I]);
 end;
 
-procedure TChildrenControls.SetItem(const I: Integer; const Item: TUIControl);
+procedure TChildrenControls.SetItem(const I: Integer; const Item: TCastleUserInterface);
 begin
   FList.Items[I] := Item;
 end;
@@ -3903,7 +3911,7 @@ var
   I: Integer;
 begin
   for I := 0 to FList.Count - 1 do
-    with TUIControl(FList.Items[I]) do
+    with TCastleUserInterface(FList.Items[I]) do
       DisableContextOpenClose := DisableContextOpenClose + 1;
 end;
 
@@ -3912,22 +3920,22 @@ var
   I: Integer;
 begin
   for I := 0 to FList.Count - 1 do
-    with TUIControl(FList.Items[I]) do
+    with TCastleUserInterface(FList.Items[I]) do
       DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
-procedure TChildrenControls.InsertFront(const NewItem: TUIControl);
+procedure TChildrenControls.InsertFront(const NewItem: TCastleUserInterface);
 begin
   Insert(Count, NewItem);
 end;
 
-procedure TChildrenControls.InsertFrontIfNotExists(const NewItem: TUIControl);
+procedure TChildrenControls.InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
 begin
   if FList.IndexOf(NewItem) = -1 then
     InsertFront(NewItem);
 end;
 
-procedure TChildrenControls.InsertFront(const NewItems: TUIControlList);
+procedure TChildrenControls.InsertFront(const NewItems: TCastleUserInterfaceList);
 var
   I: Integer;
 begin
@@ -3935,27 +3943,27 @@ begin
     InsertFront(NewItems[I]);
 end;
 
-procedure TChildrenControls.InsertBack(const NewItem: TUIControl);
+procedure TChildrenControls.InsertBack(const NewItem: TCastleUserInterface);
 begin
   FList.Insert(0, NewItem);
 end;
 
-procedure TChildrenControls.InsertBackIfNotExists(const NewItem: TUIControl);
+procedure TChildrenControls.InsertBackIfNotExists(const NewItem: TCastleUserInterface);
 begin
   if FList.IndexOf(NewItem) = -1 then
     InsertBack(NewItem);
 end;
 
-procedure TChildrenControls.Add(const Item: TUIControl);
+procedure TChildrenControls.Add(const Item: TCastleUserInterface);
 begin
   InsertFront(Item);
 end;
 
-procedure TChildrenControls.Insert(Index: Integer; const Item: TUIControl);
+procedure TChildrenControls.Insert(Index: Integer; const Item: TCastleUserInterface);
 var
   I: Integer;
 begin
-  { TODO: code duplicated with TUIControlList.InsertWithZOrder }
+  { TODO: code duplicated with TCastleUserInterfaceList.InsertWithZOrder }
   Index := Clamped(Index, 0, Count);
   if Item.KeepInFront or
      (Count = 0) or
@@ -3974,22 +3982,22 @@ begin
   end;
 end;
 
-procedure TChildrenControls.InsertIfNotExists(const Index: Integer; const NewItem: TUIControl);
+procedure TChildrenControls.InsertIfNotExists(const Index: Integer; const NewItem: TCastleUserInterface);
 begin
   Insert(Index, NewItem);
 end;
 
-procedure TChildrenControls.AddIfNotExists(const NewItem: TUIControl);
+procedure TChildrenControls.AddIfNotExists(const NewItem: TCastleUserInterface);
 begin
   Insert(Count, NewItem);
 end;
 
-function TChildrenControls.IndexOf(const Item: TUIControl): Integer;
+function TChildrenControls.IndexOf(const Item: TCastleUserInterface): Integer;
 begin
   Result := FList.IndexOf(Item);
 end;
 
-procedure TChildrenControls.InsertBack(const NewItems: TUIControlList);
+procedure TChildrenControls.InsertBack(const NewItems: TCastleUserInterfaceList);
 var
   I: Integer;
 begin
@@ -4006,19 +4014,19 @@ end;
 
 procedure TChildrenControls.Notify(Ptr: Pointer; Action: TListNotification);
 var
-  C: TUIControl;
+  C: TCastleUserInterface;
 begin
   { TODO: while this updating works cool,
     if the Parent or Container is destroyed
     before children --- the children will keep invalid reference. }
 
-  C := TUIControl(Ptr);
+  C := TCastleUserInterface(Ptr);
   case Action of
     lnAdded:
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
+          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TCastleUserInterface instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
@@ -4059,7 +4067,7 @@ begin
     the list are always valid objects (no invalid references,
     even for a short time). }
 
-  if (Operation = opRemove) and (AComponent is TUIControl) then
+  if (Operation = opRemove) and (AComponent is TCastleUserInterface) then
     Parent.FList.Remove(AComponent);
 end;
 
@@ -4068,7 +4076,7 @@ begin
   FList.Assign(Source.FList);
 end;
 
-procedure TChildrenControls.Remove(const Item: TUIControl);
+procedure TChildrenControls.Remove(const Item: TCastleUserInterface);
 begin
   FList.Remove(Item);
 end;
@@ -4078,14 +4086,14 @@ begin
   FList.Clear;
 end;
 
-function TChildrenControls.MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
-  AddFront: boolean): TUIControl;
+function TChildrenControls.MakeSingle(ReplaceClass: TCastleUserInterfaceClass; NewItem: TCastleUserInterface;
+  AddFront: boolean): TCastleUserInterface;
 begin
-  Result := FList.MakeSingle(ReplaceClass, NewItem, AddFront) as TUIControl;
+  Result := FList.MakeSingle(ReplaceClass, NewItem, AddFront) as TCastleUserInterface;
 end;
 
 procedure TChildrenControls.RegisterContainer(
-  const C: TUIControl; const AContainer: TUIContainer);
+  const C: TCastleUserInterface; const AContainer: TUIContainer);
 begin
   { Register AContainer to be notified of control destruction. }
   C.FreeNotification(AContainer);
@@ -4107,7 +4115,7 @@ begin
 end;
 
 procedure TChildrenControls.UnregisterContainer(
-  const C: TUIControl; const AContainer: TUIContainer);
+  const C: TCastleUserInterface; const AContainer: TUIContainer);
 begin
   if AContainer.GLInitialized and
      (C.DisableContextOpenClose = 0) then
@@ -4145,7 +4153,7 @@ end;
 { TChildrenControls.TEnumerator ------------------------------------------------- }
 
 {$ifndef VER2_6}
-function TChildrenControls.TEnumerator.GetCurrent: TUIControl;
+function TChildrenControls.TEnumerator.GetCurrent: TCastleUserInterface;
 begin
   Result := FList.Items[FPosition];
 end;
@@ -4164,20 +4172,20 @@ begin
 end;
 {$endif}
 
-{ TUIControlList ------------------------------------------------------------- }
+{ TCastleUserInterfaceList ------------------------------------------------------------- }
 
-procedure TUIControlList.InsertFront(const NewItem: TUIControl);
+procedure TCastleUserInterfaceList.InsertFront(const NewItem: TCastleUserInterface);
 begin
   InsertWithZOrder(Count, NewItem);
 end;
 
-procedure TUIControlList.InsertFrontIfNotExists(const NewItem: TUIControl);
+procedure TCastleUserInterfaceList.InsertFrontIfNotExists(const NewItem: TCastleUserInterface);
 begin
   if IndexOf(NewItem) = -1 then
     InsertFront(NewItem);
 end;
 
-procedure TUIControlList.InsertFront(const NewItems: TUIControlList);
+procedure TCastleUserInterfaceList.InsertFront(const NewItems: TCastleUserInterfaceList);
 var
   I: Integer;
 begin
@@ -4185,18 +4193,18 @@ begin
     InsertFront(NewItems[I]);
 end;
 
-procedure TUIControlList.InsertBack(const NewItem: TUIControl);
+procedure TCastleUserInterfaceList.InsertBack(const NewItem: TCastleUserInterface);
 begin
   InsertWithZOrder(0, NewItem);
 end;
 
-procedure TUIControlList.InsertBackIfNotExists(const NewItem: TUIControl);
+procedure TCastleUserInterfaceList.InsertBackIfNotExists(const NewItem: TCastleUserInterface);
 begin
   if IndexOf(NewItem) = -1 then
     InsertBack(NewItem);
 end;
 
-procedure TUIControlList.InsertBack(const NewItems: TUIControlList);
+procedure TCastleUserInterfaceList.InsertBack(const NewItems: TCastleUserInterfaceList);
 var
   I: Integer;
 begin
@@ -4204,7 +4212,7 @@ begin
     InsertBack(NewItems[I]);
 end;
 
-procedure TUIControlList.InsertWithZOrder(Index: Integer; const Item: TUIControl);
+procedure TCastleUserInterfaceList.InsertWithZOrder(Index: Integer; const Item: TCastleUserInterface);
 var
   I: Integer;
 begin

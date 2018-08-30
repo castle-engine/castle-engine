@@ -17,7 +17,7 @@
 
   { Abstract ancestor for containers that pack children,
     like @link(TCastleHorizontalGroup) and @link(TCastleVerticalGroup). }
-  TCastlePackedGroup = class(TUIControl)
+  TCastlePackedGroup = class(TCastleUserInterface)
   strict private
     FFrame: boolean;
     FFrameColor: TCastleColor;
@@ -40,7 +40,7 @@
     function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure Render; override;
-    procedure VisibleChange(const Changes: TUIControlChanges;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
 
     property Frame: boolean read FFrame write SetFrame default false;
@@ -177,7 +177,7 @@ begin
   end;
 end;
 
-procedure TCastlePackedGroup.VisibleChange(const Changes: TUIControlChanges;
+procedure TCastlePackedGroup.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean);
 begin
   inherited;
@@ -206,7 +206,7 @@ end;
 procedure TCastleHorizontalGroup.DoPackChildren(out W, H: Single);
 var
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
   AlignmentDelta: Single;
 begin
   W := Padding;
@@ -259,7 +259,7 @@ end;
 procedure TCastleVerticalGroup.DoPackChildren(out W, H: Single);
 var
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
   AlignmentDelta: Single;
 begin
   W := 0;

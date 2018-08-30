@@ -56,7 +56,7 @@ begin
   Theme.Images[tiTooltip] := TooltipRounded;
   Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
 
-  { Thanks to using this button as a TUIControl descendant
+  { Thanks to using this button as a TCastleUserInterface descendant
     (placing it on Browser.Controls list), VRML scene sensors
     (like TouchSensor) will not intercept mouse clicks. That is, button
     obscures anything clickable on VRML scene (like TouchSensor) underneath.

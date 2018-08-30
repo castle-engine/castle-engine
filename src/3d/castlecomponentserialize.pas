@@ -14,7 +14,7 @@
 }
 
 { Reading and writing of hierachy of CGE components
-  (TUIControl, TCastleTransform) to and from files.
+  (TCastleUserInterface, TCastleTransform) to and from files.
   This is used by CGE editor to read/write components,
   and it can be used at runtime by games to instantiate components designed
   in CGE editor. }
@@ -45,8 +45,8 @@ type
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
 
-procedure UserInterfaceSave(const C: TUIControl; const Url: String);
-function UserInterfaceLoad(const Url: String; const Owner: TComponent): TUIControl;
+procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
+function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 
 procedure ComponentSave(const C: TComponent; const Url: String);
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
@@ -62,7 +62,7 @@ function FindComponentClass(const AClassName: string): TComponentClass;
 const
   // TODO: should we just register this all, and it should work then automatically?
   Classes: array [0..8] of TComponentClass = (
-    TUIControlSizeable,
+    TCastleUserInterfaceRect,
     TCastleButton,
     TCastleLabel,
     TCastleRectangleControl,
@@ -120,9 +120,9 @@ begin
           raise EInvalidComponentFile.Create('_Children must be an array of JSON objects');
         Child := CreateComponentFromJson(JsonChild, Owner);
         FJsonReader.JSONToObject(JsonChild, Child);
-        if AObject is TUIControl then
-          // matches TUIControl.GetChildren implementation
-          TUIControl(AObject).InsertFront(Child as TUIControl)
+        if AObject is TCastleUserInterface then
+          // matches TCastleUserInterface.GetChildren implementation
+          TCastleUserInterface(AObject).InsertFront(Child as TCastleUserInterface)
         else
         if AObject is TCastleTransform then
           // matches TCastleTransform.GetChildren implementation
@@ -138,7 +138,7 @@ end;
 { Load any TComponent.
 
   It mostly works automatically with any TComponent.
-  But it has some special connections to TUIControl and TCastleTransform.
+  But it has some special connections to TCastleUserInterface and TCastleTransform.
   It expects that they implement InternalAddChild (an analogue to GetChildren
   method), otherwise deserializing custom children (defined by GetChildren)
   is not possible. }
@@ -229,14 +229,14 @@ begin
   Result := ComponentLoad(Url, Owner) as TCastleTransform;
 end;
 
-procedure UserInterfaceSave(const C: TUIControl; const Url: String);
+procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
 begin
   ComponentSave(C, Url);
 end;
 
-function UserInterfaceLoad(const Url: String; const Owner: TComponent): TUIControl;
+function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 begin
-  Result := ComponentLoad(Url, Owner) as TUIControl;
+  Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
 end;
 
 end.

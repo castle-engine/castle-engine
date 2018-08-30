@@ -297,7 +297,7 @@ type
       to gravity).
 
       See TCastleTransform.FallSpeed for precise definition, this works the same,
-      except our default value is non-zero, and by default T3D.Gravity
+      except our default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
       read FFallSpeed write FFallSpeed default DefaultFallSpeed;
@@ -532,7 +532,7 @@ procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
     Loads the resource only if URL is not empty,
     and only if it's not already loaded (that is,
     when Scene = nil).
-    Prepares for fast rendering and other processing by T3D.PrepareResources.
+    Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
     Calls Progress.Step 2 times, if DoProgress. }
   procedure PrepareScene(var Scene: TCastleScene; const URL: string);
   begin

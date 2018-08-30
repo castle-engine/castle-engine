@@ -122,7 +122,7 @@ end;
 
 type
   { Draw frame around the control's rectangle, if focused (under cursor). }
-  TFocusedFrame = class(TUIControlSizeable)
+  TFocusedFrame = class(TCastleUserInterfaceRect)
   public
     procedure Render; override;
     procedure SetFocused(const Value: boolean); override;

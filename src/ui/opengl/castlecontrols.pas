@@ -42,7 +42,7 @@ type
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)
       and @link(TCastleWindowCustom.OnOpen Window.OnOpen).
-      And @link(TUIControl.GLContextOpen) for all initially present UI controls.
+      And @link(TCastleUserInterface.GLContextOpen) for all initially present UI controls.
       This "loading image" is loaded and displayed first,
       so that user does not see a black screen while the resources are prepared.
 
@@ -73,7 +73,7 @@ type
     tiEdit);
 
   {$define read_interface}
-  {$I castlecontrols_uicontrolfont.inc}
+  {$I castlecontrols_userinterfacefont.inc}
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
@@ -108,8 +108,8 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleApplicationProperties, CastleMessaging;
 
 {$define read_implementation}
-{$I castlecontrols_uifont.inc} //< Keep this on top, to allow uicontrolfont.inc to access internals
-{$I castlecontrols_uicontrolfont.inc}
+{$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals
+{$I castlecontrols_userinterfacefont.inc}
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}

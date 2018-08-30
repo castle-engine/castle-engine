@@ -304,7 +304,7 @@ type
       physics and other logic).
 
       This measures only time spend in @link(TUIContainer.EventRender)
-      method (and it's subordinates, like @link(TUIControl.Render),
+      method (and it's subordinates, like @link(TCastleUserInterface.Render),
       @link(TCastleScene.LocalRender),
       @link(TCastleWindowCustom.OnRender)).
       It does not take into account time spent on other activities,
@@ -406,7 +406,7 @@ type
 
       Changed when each container "update" event occurs,
       so this is equal during all @link(TInputListener.Update),
-      @link(TUIControl.Render), @link(TCastleTransform.Update),
+      @link(TCastleUserInterface.Render), @link(TCastleTransform.Update),
       @link(TCastleTransform.LocalRender) occuring within the same frame.
       You can use this to avoid performing the same job many times
       in a single frame.

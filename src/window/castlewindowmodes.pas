@@ -162,7 +162,7 @@ type
 
         @item(This also performs important optimization to avoid closing /
           reinitializing window TCastleWindowCustom.Controls OpenGL resources,
-          see TUIControl.DisableContextOpenClose.)
+          see TCastleUserInterface.DisableContextOpenClose.)
       ) }
     constructor Create(AWindow: TCastleWindowCustom);
 
@@ -233,7 +233,7 @@ type
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    BackgroundControls: TUIControlSizeable;
+    BackgroundControls: TCastleUserInterfaceRect;
   public
     constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
@@ -343,7 +343,7 @@ end;
 procedure TGLMode.TWindowState.WindowOpen(Container: TUIContainer);
 var
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
 begin
   if Assigned(OldOpenObject) then
     OldOpenObject(Container);
@@ -361,7 +361,7 @@ end;
 procedure TGLMode.TWindowState.WindowClose(Container: TUIContainer);
 var
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
 begin
   if Assigned(OldCloseObject) then
     OldCloseObject(Container);
@@ -528,7 +528,7 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create(AWindow);
 
-  BackgroundControls := TUIControlSizeable.Create(nil);
+  BackgroundControls := TCastleUserInterfaceRect.Create(nil);
   BackgroundControls.FullSize := true;
   FillBackgroundControls;
 

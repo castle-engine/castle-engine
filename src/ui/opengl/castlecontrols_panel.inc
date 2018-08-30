@@ -18,7 +18,7 @@
   { Panel or a toolbar control.
     Use as a background for other controls like buttons.
     You can add vertical separators to separate groups of controls on the panel. }
-  TCastlePanel = class(TUIControlSizeable)
+  TCastlePanel = class(TCastleUserInterfaceRect)
   strict private
     FVerticalSeparators: TCardinalList;
   public

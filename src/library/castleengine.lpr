@@ -144,14 +144,14 @@ end;
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl;
 var
   Image: TRGBImage;
-  Restore2D: TUIControlList;
+  Restore2D: TCastleUserInterfaceList;
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
 begin
   try
     if not CGE_VerifyWindow('CGE_SaveScreenshotToFile') then exit;
 
-    Restore2D := TUIControlList.Create(false);
+    Restore2D := TCastleUserInterfaceList.Create(false);
     try
       // hide touch controls
       for I := 0 to Window.Controls.Count - 1 do

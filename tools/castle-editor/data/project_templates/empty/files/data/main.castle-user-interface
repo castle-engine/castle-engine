@@ -214,5 +214,5 @@
       "_ClassName" : "TCastleRectangleControl"
     }
   ],
-  "_ClassName" : "TUIControlSizeable"
+  "_ClassName" : "TCastleUserInterfaceRect"
 }

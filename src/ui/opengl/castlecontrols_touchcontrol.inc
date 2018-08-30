@@ -27,7 +27,7 @@
     Usually, this control is created and used through the @link(TCastleWindowTouch)
     properties. There is no need to directly create TCastleTouchControl instance
     in this case. }
-  TCastleTouchControl = class(TUIControl)
+  TCastleTouchControl = class(TCastleUserInterface)
   strict private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2;
@@ -56,7 +56,7 @@
       read FTouchMode write SetTouchMode default ctcmWalking;
 
     { Set position of touch control. Right now this simply sets
-      the anchor using @link(TUIControl.HasHorizontalAnchor) and friends.
+      the anchor using @link(TCastleUserInterface.HasHorizontalAnchor) and friends.
       Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
       scale with screen size.
 

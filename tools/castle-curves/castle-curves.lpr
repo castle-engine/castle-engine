@@ -186,7 +186,7 @@ var
 { TCurvesDisplay ------------------------------------------------------------- }
 
 type
-  TCurvesDisplay = class(TUIControl)
+  TCurvesDisplay = class(TCastleUserInterface)
     procedure Render; override;
   end;
 

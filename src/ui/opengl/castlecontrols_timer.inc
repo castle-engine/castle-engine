@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Timer, running the @link(OnTimer) event periodically. }
-  TCastleTimer = class(TUIControl)
+  TCastleTimer = class(TCastleUserInterface)
   strict private
     FCounteractDelays: boolean;
     FIntervalSeconds, IntervalRemaining: TFloatTime;

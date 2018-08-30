@@ -68,14 +68,14 @@ procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this,
 procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { }
-procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
-procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
 procedure glClipPlane(plane: GLenum; const V: TVector4Double); overload;
 
@@ -109,9 +109,9 @@ procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
 
 // Do not mark as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glMultMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glMultMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 { }
-procedure glLoadMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
+procedure glLoadMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
 
 { }
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;

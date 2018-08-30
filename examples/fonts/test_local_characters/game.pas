@@ -117,8 +117,8 @@ begin
   UIFont := FontContainer.MyFont;
   { this is necessary to recalculate button sizes after UIFont measurements changed }
   for I := 0 to Window.Controls.Count - 1 do
-    if Window.Controls[I] is TUIControlFont then
-      TUIControlFont(Window.Controls[I]).FontChanged;
+    if Window.Controls[I] is TCastleUserInterfaceFont then
+      TCastleUserInterfaceFont(Window.Controls[I]).FontChanged;
 
   { use custom font by default when rendering X3D text }
   TFontStyleNode.OnFont := @FontContainer.GetFont;

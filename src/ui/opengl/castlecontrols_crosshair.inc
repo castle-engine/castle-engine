@@ -19,7 +19,7 @@
   TCastleCrosshairShape = (csCross, csCrossRect);
 
   { Display a simple crosshair in the middle of the parent control. }
-  TCastleCrosshair = class(TUIControl)
+  TCastleCrosshair = class(TCastleUserInterface)
   strict private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);

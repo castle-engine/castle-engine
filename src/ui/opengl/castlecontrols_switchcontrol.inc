@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Touch-friendly checkbox control with representing on/off state. }
-  TCastleSwitchControl = class(TUIControl)
+  TCastleSwitchControl = class(TCastleUserInterface)
   strict private
     FChecked: boolean;
     FEnabled: boolean;

@@ -25,7 +25,7 @@ In this sense, CGE editor may serve as just a GUI wrapper around our "build tool
 
 You can visually design:
 
-* a hierarchy of user-interface controls. Anything descending from `TUIControl`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
+* a hierarchy of user-interface controls. Anything descending from `TCastleUserInterface`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
     Saved as `xxx.castle-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
@@ -35,7 +35,7 @@ You can visually design:
 
 The `xxx.castle-user-interface` and `xxx.castle-transform` are simple text files (JSON, using FPC FpJsonRtti). You should commit them to the version control, just like your source code. You can have as many such files inside your project as you need to. You load them from code using `CastleComponentSerialize` unit. You can instantiate them whenever you want, as many times as you want etc.
 
-Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TUIControl, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TUIControl` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
+Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TCastleUserInterface, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TCastleUserInterface` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
 
 The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
 
@@ -148,7 +148,7 @@ Now:
 	* (but fix URL to set castle-data:)
 	* initial animation? along with TimePlayingSpeed, ProcessEvents
         * TCastleTransform position, rotation, scale (using gizmos)
-        * TUIControl anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
+        * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
     * save also vectors, colors.
       Like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably.
       And colors, like
@@ -172,10 +172,6 @@ Now:
 
     * Allow adding new, deleting, moving around
     * UI controls improvements:
-	* better names
-	     TUIControlSizeable -> TCastleUserInterfaceRect?
-	     TUIControl -> TCastleUserInterface?
-	     other TUIxxx - > rename too.
 	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
 	  At TCastleUserInterfaceRect document:
 
@@ -189,7 +185,7 @@ Now:
 	    specification of behavior, usually a property called @code(AutoSize) controls it. }
 
 	* virtual functions to say VerticalResizingEffective
-	  (at tTUIControl or only TUIContronSizeable)
+	  (at TCastleUserInterface or only TCastleUserInterfaceRect)
     * remove _Children once processed
     * show HierarchyUrl on caption, whether it's modified, ask before closing project without saving
     * ask before overriding saved file
@@ -235,7 +231,7 @@ Lower priority:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
     * Templates should load by default the visually-designed world. The goal: you should be able to modify and run the game in the editor without writing code.
-    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TUIControl inside.
+    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * For "run", colorized CastleLog warnings

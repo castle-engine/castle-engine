@@ -32,7 +32,7 @@ type
   TGLContainer = class abstract(TUIContainer)
   strict private
     FContext: TRenderContext;
-    procedure RenderControlCore(const C: TUIControl;
+    procedure RenderControlCore(const C: TCastleUserInterface;
       const ViewportRect: TRectangle;
       var SomeControlHasRenderStyle2D: boolean;
       const FilterRenderStyle: TRenderStyle);
@@ -43,7 +43,7 @@ type
     procedure EventRender; override;
     procedure EventClose(const OpenWindowsCount: Cardinal); override;
 
-    { Render a TUIControl (along with all it's children).
+    { Render a TCastleUserInterface (along with all it's children).
 
       This method can be used to render UI control into an image,
       @link(TGLImage), when it is surrounded by
@@ -72,35 +72,35 @@ type
 
         @item(Makes sure OpenGL resources of the control are initialized.
           If needed, it calls
-          @link(TUIControl.GLContextOpen Control.GLContextOpen) and
-          @link(TUIControl.GLContextClose Control.GLContextClose)
+          @link(TCastleUserInterface.GLContextOpen Control.GLContextOpen) and
+          @link(TCastleUserInterface.GLContextClose Control.GLContextClose)
           around.
           This is needed when you want to perform off-screen rendering,
           but the control's OpenGL resources are not initialized yet,
           e.g. because it is not present on the @link(Controls) list.
 
           Note that doing this repeatedly may be a slowdown
-          (how much, it depends on the actual TUIControl
-          -- some controls do nothing in TUIControl.GLContextOpen,
+          (how much, it depends on the actual TCastleUserInterface
+          -- some controls do nothing in TCastleUserInterface.GLContextOpen,
           some controls do a lot).
           If you want to repeatedly call @link(RenderControl) on the
           same Control, it is more efficient
           to first explicitly create it's OpenGL resources,
           e.g. by calling
-          @link(TUIControl.GLContextOpen Control.GLContextOpen) explicitly.
+          @link(TCastleUserInterface.GLContextOpen Control.GLContextOpen) explicitly.
           Or adding the control to the @link(Controls) list.
         )
 
         @item(Calls @link(TInputListener.Resize Control.Resize),
           required by some controls (like scene manager) to know viewport size.)
 
-        @item(Calls @link(TUIControl.BeforeRender Control.BeforeRender),
+        @item(Calls @link(TCastleUserInterface.BeforeRender Control.BeforeRender),
           required by some controls (like scene manager)
           to prepare resources (like generated textures,
           important for mirrors for screenshots in batch mode).)
       )
     }
-    procedure RenderControl(const Control: TUIControl;
+    procedure RenderControl(const Control: TCastleUserInterface;
       const ViewportRect: TRectangle);
 
     { Save screen by rendering the window contents to the back buffer. }
@@ -117,7 +117,7 @@ type
 
   Make sure that the control is nicely positioned to fill the ViewportRect.
   Usually you want to adjust control size and position,
-  and disable UI scaling (set TUIControl.EnableUIScaling = @false
+  and disable UI scaling (set TCastleUserInterface.EnableUIScaling = @false
   if you use TUIContainer.UIScaling).
 
   This is the @italic(easiest) way to make off-screen rendering,
@@ -130,7 +130,7 @@ type
   and @link(TGLImage.RenderToImageEnd).
 }
 function RenderControlToImage(const Container: TGLContainer;
-  const Control: TUIControl;
+  const Control: TCastleUserInterface;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage;
 
@@ -145,7 +145,7 @@ begin
   if GLFeatures.EnableFixedFunction then
   begin
     { Set state that is guaranteed for Render2D calls,
-      but TUIControl.Render cannot change it carelessly. }
+      but TCastleUserInterface.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
     glDisable(GL_LIGHTING);
     glDisable(GL_FOG);
@@ -185,7 +185,7 @@ begin
   inherited;
 end;
 
-procedure TGLContainer.RenderControlCore(const C: TUIControl;
+procedure TGLContainer.RenderControlCore(const C: TCastleUserInterface;
   const ViewportRect: TRectangle;
   var SomeControlHasRenderStyle2D: boolean;
   const FilterRenderStyle: TRenderStyle);
@@ -196,9 +196,9 @@ begin
   begin
     { We check C.GLInitialized, because it may happen that a control
       did not receive GLContextOpen yet, in case we cause some rendering
-      during TUIContainer.EventOpen (e.g. because some TUIControl.GLContextOpen
+      during TUIContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
       calls Window.Screenshot, so everything is rendered
-      before even the rest of controls received TUIControl.GLContextOpen).
+      before even the rest of controls received TCastleUserInterface.GLContextOpen).
       See castle_game_engine/tests/testcontainer.pas . }
 
     if C.GLInitialized then
@@ -278,7 +278,7 @@ begin
     RenderEverything(rs2D, Dummy);
 end;
 
-procedure TGLContainer.RenderControl(const Control: TUIControl;
+procedure TGLContainer.RenderControl(const Control: TCastleUserInterface;
   const ViewportRect: TRectangle);
 var
   SomeControlHasRenderStyle2D, Dummy, NeedsContainerSet, NeedsGLOpen: boolean;
@@ -336,7 +336,7 @@ end;
 { global routines ------------------------------------------------------------ }
 
 function RenderControlToImage(const Container: TGLContainer;
-  const Control: TUIControl;
+  const Control: TCastleUserInterface;
   const ViewportRect: TRectangle;
   const BackgroundColor: TCastleColor): TRGBAlphaImage;
 
