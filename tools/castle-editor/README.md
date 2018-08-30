@@ -27,13 +27,13 @@ You can visually design:
 
 * a hierarchy of user-interface controls. Anything descending from `TUIControl`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
-    Saved as `xxx.cge-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
+    Saved as `xxx.castle-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
 * a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
 
-    Saved as `xxx.cge-scene-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
+    Saved as `xxx.castle-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
 
-The `xxx.cge-user-interface` and `xxx.cge-scene-transform` are simple text files (JSON, using FPC FpJsonRtti). You should commit them to the version control, just like your source code. You can have as many such files inside your project as you need to. You load them from code using `CastleComponentSerialize` unit. You can instantiate them whenever you want, as many times as you want etc.
+The `xxx.castle-user-interface` and `xxx.castle-transform` are simple text files (JSON, using FPC FpJsonRtti). You should commit them to the version control, just like your source code. You can have as many such files inside your project as you need to. You load them from code using `CastleComponentSerialize` unit. You can instantiate them whenever you want, as many times as you want etc.
 
 Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TUIControl, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TUIControl` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
 
@@ -167,7 +167,7 @@ Now:
       yes, we can copy from
       /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
 
-      cleanup then data/project_templates/empty/files/data/main.cge-user-interface
+      cleanup then data/project_templates/empty/files/data/main.castle-user-interface
       to not contain defaults
 
     * Allow adding new, deleting, moving around

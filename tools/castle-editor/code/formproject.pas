@@ -130,7 +130,7 @@ type
     { Root saved/loaded to component file }
     HierarchyRoot: TComponent;
     { Owner of all components saved/loaded to component file,
-      also temporary scene manager for .cge-scene-transform.
+      also temporary scene manager for .castle-transform.
       Everything specific to this hierarchy in CastleControl. }
     HierarchyOwner: TComponent;
     CastleControl: TCastleControlCustom;
@@ -255,10 +255,10 @@ begin
   NewHierarchyOwner := TComponent.Create(Self);
 
   Mime := URIMimeType(NewHierarchyUrl);
-  if Mime = 'text/x-cge-user-interface' then
+  if Mime = 'text/x-castle-user-interface' then
     NewHierarchyRoot := UserInterfaceLoad(NewHierarchyUrl, NewHierarchyOwner)
   else
-  if Mime = 'text/x-cge-scene-transform' then
+  if Mime = 'text/x-castle-transform' then
     NewHierarchyRoot := TransformLoad(NewHierarchyUrl, NewHierarchyOwner)
   else
     raise Exception.CreateFmt('Unrecgnized file extension (MIME type %s)',
@@ -272,10 +272,10 @@ begin
   // TODO -- disable when HierarchyRoot = nil
 
   if HierarchyRoot is TUIControl then
-    SaveHierarchyDialog.DefaultExt := 'cge-user-interface'
+    SaveHierarchyDialog.DefaultExt := 'castle-user-interface'
   else
   if HierarchyRoot is TCastleTransform then
-    SaveHierarchyDialog.DefaultExt := 'cge-scene-transform'
+    SaveHierarchyDialog.DefaultExt := 'castle-transform'
   else
     raise EInternalError.Create('HierarchyRoot does not descend from TUIControl or TCastleTransform');
 

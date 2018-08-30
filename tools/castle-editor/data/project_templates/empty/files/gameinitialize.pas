@@ -45,9 +45,9 @@ begin
   Window.Container.UIScaling := usEncloseReferenceSize;
 
   Window.Controls.InsertFront(UserInterfaceLoad(
-    'castle-data:/main.cge-user-interface', Application));
+    'castle-data:/main.castle-user-interface', Application));
 
-  // TODO: LabelFps should be in main.cge-user-interface too, found by Name
+  // TODO: LabelFps should be in main.castle-user-interface too, found by Name
 
   { Show a label with frames per second information }
   LabelFps := TCastleLabel.Create(Application);

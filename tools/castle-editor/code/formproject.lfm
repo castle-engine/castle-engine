@@ -334,13 +334,13 @@ object ProjectForm: TProjectForm
   end
   object SaveHierarchyDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Hierachy (*.cge-user-interface, *.cge-scene-transform)|*.cge-user-interface;*.cge-scene-transform|All Files|*'
+    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     FilterIndex = 0
     left = 332
     top = 170
   end
   object OpenHierarchyDialog: TCastleOpenDialog
-    Filter = 'CGE Hierachy (*.cge-user-interface, *.cge-scene-transform)|*.cge-user-interface;*.cge-scene-transform|All Files|*'
+    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     left = 464
     top = 184
   end
