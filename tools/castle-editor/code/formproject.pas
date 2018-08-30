@@ -279,7 +279,10 @@ begin
   else
     raise EInternalError.Create('HierarchyRoot does not descend from TCastleUserInterface or TCastleTransform');
 
-  SaveHierarchyDialog.Url := HierarchyUrl;
+  if HierarchyUrl = '' then
+    SaveHierarchyDialog.Url := ProjectPathUrl
+  else
+    SaveHierarchyDialog.Url := HierarchyUrl;
   if SaveHierarchyDialog.Execute then
   begin
     SaveHierarchy(SaveHierarchyDialog.Url);
@@ -451,7 +454,10 @@ end;
 
 procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
 begin
-  OpenHierarchyDialog.Url := HierarchyUrl;
+  if HierarchyUrl = '' then
+    OpenHierarchyDialog.Url := ProjectPathUrl
+  else
+    OpenHierarchyDialog.Url := HierarchyUrl;
   if OpenHierarchyDialog.Execute then
     OpenHierarchy(OpenHierarchyDialog.Url);
 end;
