@@ -163,7 +163,6 @@ type
 
     procedure Resize; override;
 
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure Render; override;
@@ -739,11 +738,6 @@ begin
   {$warnings off}
   Click;
   {$warnings on}
-end;
-
-function TCastleOnScreenMenu.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleOnScreenMenu.FloatRect: TFloatRectangle;

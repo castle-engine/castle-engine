@@ -1114,7 +1114,7 @@ type
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
 
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -3920,11 +3920,12 @@ begin
   end;
 end;
 
-function TCastleSceneManager.Rect: TRectangle;
+function TCastleSceneManager.FloatRect: TFloatRectangle;
 begin
   if DefaultViewport then
-    Result := inherited Rect else
-    Result := TRectangle.Empty;
+    Result := inherited FloatRect
+  else
+    Result := TFloatRectangle.Empty;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }

@@ -57,7 +57,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
 
     { Text color. By default it's white. }
@@ -211,11 +210,6 @@ begin
     if WrapWidth > 0 then
       Result.Wrap(WrapWidth);
   end;
-end;
-
-function TCastleLabel.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleLabel.FloatRect: TFloatRectangle;

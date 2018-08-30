@@ -33,7 +33,7 @@
     destructor Destroy; override;
 
     procedure Render; override;
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -105,10 +105,9 @@ begin
   Theme.Draw(HandleRect, HandleImage, UIScale)
 end;
 
-function TCastleSwitchControl.Rect: TRectangle;
+function TCastleSwitchControl.FloatRect: TFloatRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
-  Result := Result.ScaleAround0(UIScale);
+  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleSwitchControl.SetEnabled(const Value: boolean);

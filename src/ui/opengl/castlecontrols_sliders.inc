@@ -54,7 +54,7 @@
       DefaultHeight = 20;
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
     property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
@@ -181,11 +181,9 @@ begin
   SmallFont := true;
 end;
 
-function TCastleAbstractSlider.Rect: TRectangle;
+function TCastleAbstractSlider.FloatRect: TFloatRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
-  // applying UIScale on this is easy...
-  Result := Result.ScaleAround0(UIScale);
+  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleAbstractSlider.Render;

@@ -1218,6 +1218,31 @@ type
 
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
+      See @link(FloatRect) for the meaning.
+
+      If you're looking for a way to query the size of the control,
+      using @link(CalculatedWidth), @link(CalculatedHeight),
+      or @link(CalculatedRect) is usually more useful.
+      Or use @link(ScreenRect) to get the rect in final (device) pixels.
+      It's seldom useful to call the @link(Rect) method directly.
+
+      The main purpose of this method is to be overridden in descendants.
+      But in most cases, it is better to override @link(FloatRect).
+
+      @seealso CalculatedRect
+    }
+    function Rect: TRectangle; virtual;
+
+    { Position and size of this control, assuming it exists,
+      in local coordinates (relative to parent 2D control).
+
+      If you're looking for a way to query the size of the control,
+      using @link(CalculatedFloatWidth), @link(CalculatedFloatHeight),
+      or @link(CalculatedFloatRect) is usually more useful.
+      Or use @link(ScreenFloatRect) to get the rect in final (device) pixels.
+      It's seldom useful to call the @link(FloatRect) method directly.
+
+      The main purpose of this method is to be overridden in descendants.
 
       @unorderedList(
         @item(@bold(This must ignore)
@@ -1235,7 +1260,7 @@ type
           @longCode(#
             function TMyControl.Rect: TRectangle;
             begin
-              Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+              Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight).ScaleAround0(UIScale);
             end;
           #)
 
@@ -1243,16 +1268,7 @@ type
           for you.)
       )
 
-      In this class, returns empty rectangle (zero width and height) with
-      Left and Bottom correctly set (scaled by @link(UIScale)).
-
-      @seealso CalculatedRect
-    }
-    function Rect: TRectangle; virtual;
-
-    { Position and size of this control, assuming it exists,
-      in local coordinates (relative to parent 2D control).
-      See @link(Rect) for more comments.
+      @italic(Why float-based coordinates?)
 
       Using the float-based rectangles and coordinates (like FloatRect,
       CalculatedFloatRect, TCastleButton.FloatWidth, TCastleButton.FloatWidth)
@@ -1267,35 +1283,46 @@ type
 
       Using the float-based coordinates is also natural for animations.
 
-      @italic(Notes for descendants implementors:)
+      @italic(For descendants implementors:)
 
       By default, in this class, this just returns @link(Rect) converted to floats.
-      The reason for this is historical: originally, our TCastleUserInterface API focused
-      on expressing positions and rectangles as integers.
-
-      Override this to return a float-based rectangle, which is better
-      for calculations when we use UI scaling (using float-based rectangles
-      avoids having to round values to integers in mid-calculation).
-      When you override this, you should also override @link(Rect)
-      to just return @code(FloatRect.Round). See e.g.
-      TCastleImageControl.Rect and TCastleImageControl.FloatRect
-      implementations. }
+      In turn, the @link(Rect) method by default returns a rounded @link(FloatRect).
+      So you must override at least one of: @link(Rect) or @link(FloatRect).
+      We have a smart protection from an infinite loop in case you don't override
+      any of them, but a correct descendant @italic(must) override at
+      least one of them.
+      It is better to override @link(FloatRect). See above for explanation
+      why float-based coordinates turned out to be better. }
     function FloatRect: TFloatRectangle; virtual;
 
     { Final position and size of this control, assuming it exists,
-      in local coordinates (relative to parent 2D control),
-      @italic(without UI scaling).
+      in local coordinates (relative to parent 2D control).
       Useful if you want to base other controls size/position on this control
       calculated size/position.
 
-      This is similar to @link(Rect), but:
-
       @unorderedList(
+        @item(@bold(This ignores)
+          the current value of the @link(GetExists) method
+          and @link(Exists) property, that is: the result of this function
+          assumes that control does exist.)
+
         @item(@bold(This takes into account) the anchors.)
-        @item(@bold(This ignores) the UI scaling.)
+
+        @item(@bold(This uses unscaled coordinates),
+          that correspond to the sizes you set e.g. in
+          @link(TCastleUserInterfaceRect.Width),
+          @link(TCastleUserInterfaceRect.FloatWidth),
+          @link(TCastleUserInterfaceRect.Height),
+          @link(TCastleUserInterfaceRect.FloatHeight).
+
+          If you want to see scaled coordinates (in final device pixels),
+          look into @link(ScreenFloatRect) instead.
+        )
       )
 
-      @bold(If you implement descendants of this class): Note that you
+      @bold(If you implement descendants of this class):
+
+      Note that you
       cannot override this method. It is implemented by simply taking
       @code(RectWithAnchors) result (which in turn is derived from @link(Rect) result)
       and dividing it by UIScale. This should always be correct.
@@ -1304,15 +1331,15 @@ type
       of more optimal implementation.
 
       If you implement descendants, you should rather think about overriding
-      the @link(Rect) method, if your control has special sizing mechanism.
-      The reason why we prefer overriding @link(Rect) (and CalculatedRect is just
+      the @link(FloatRect) method, if your control has special sizing mechanism.
+      The reason why we prefer overriding @link(FloatRect) (and CalculatedRect is just
       derived from it), not the other way around:
       it is because font measurements are already done in scaled coordinates
       (because UI scaling changes font size for TCastleUserInterfaceFont).
       So things like TCastleLabel have to calculate size in scaled coordinates
       anyway, and the unscaled size can only be derived from it by division.
 
-      @seealso Rect }
+      @seealso FloatRect }
     function CalculatedRect: TRectangle;
     function CalculatedFloatRect: TFloatRectangle;
 
@@ -1560,7 +1587,7 @@ type
       default true;
   end;
 
-  { UI control with configurable size.
+  { User interface control with a configurable size.
     By itself, this does not show anything. But it's useful as an ancestor
     class for new UI classes that want their size to be fully configurable,
     or as a container for UI children. }
@@ -1584,7 +1611,6 @@ type
       (when @link(FullSize) is @true), or at the properties
       @link(Left), @link(Bottom), @link(Width), @link(Height)
       (when @link(FullSize) is @false). }
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
   published
     { Control size.
@@ -3551,9 +3577,19 @@ begin
   Align(vpMiddle, vpMiddle);
 end;
 
+var
+  FloatRectNotOverriddenAddress: Pointer;
+
 function TCastleUserInterface.Rect: TRectangle;
 begin
-  Result := Rectangle(LeftBottomScaled, 0, 0);
+  if TMethod(@FloatRect).Code = FloatRectNotOverriddenAddress then
+    { For backward compatibility, and for safety, avoid an infinite loop
+      of calls between Rect and FloatRect, when neither of them was
+      overridden. }
+    Result := Rectangle(LeftBottomScaled, 0, 0)
+  else
+    { When FloatRect is overridden -- great, then use FloatRect.Round. }
+    Result := FloatRect.Round;
 end;
 
 function TCastleUserInterface.FloatRect: TFloatRectangle;
@@ -3814,15 +3850,9 @@ begin
   if FullSize then
     Result := ParentFloatRect else
   begin
-    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
-    // applying UIScale on this is easy...
-    Result := Result.ScaleAround0(UIScale);
+    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight).
+      ScaleAround0(UIScale);
   end;
-end;
-
-function TCastleUserInterfaceRect.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleUserInterfaceRect.GetWidth: Cardinal;
@@ -4251,4 +4281,18 @@ begin
   Result := ApplicationProperties.IsGLContextOpen;
 end;
 
+procedure DoInitialization;
+var
+  Ui: TCastleUserInterface;
+begin
+  {$warnings off} // knowingly Creating an instance of abstract class
+  Ui := TCastleUserInterface.Create(nil);
+  {$warnings on}
+  try
+    FloatRectNotOverriddenAddress := TMethod(@Ui.FloatRect).Code;
+  finally FreeAndNil(Ui) end;
+end;
+
+initialization
+  DoInitialization;
 end.

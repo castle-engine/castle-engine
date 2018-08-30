@@ -97,7 +97,6 @@
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure ImageChanged;
 
@@ -521,11 +520,6 @@ begin
     FDrawableImage.ScaleCorners := UIScale;
     FDrawableImage.Draw3x3(SR, FCorners);
   end;
-end;
-
-function TCastleImageControl.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleImageControl.FloatRect: TFloatRectangle;

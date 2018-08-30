@@ -42,8 +42,7 @@
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
 
-    { Size of this control, ignoring GetExists. }
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
 
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -98,11 +97,11 @@ begin
     Result := 1;
 end;
 
-function TCastleTouchControl.Rect: TRectangle;
+function TCastleTouchControl.FloatRect: TFloatRectangle;
 begin
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
-  Result := Rectangle(LeftBottomScaled,
+  Result := FloatRectangle(FloatLeftBottomScaled,
     Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
     Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
 end;

@@ -44,7 +44,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
@@ -90,11 +89,6 @@ begin
   FreeAndNil(FText);
   FreeAndNil(FControlsUnderMouse);
   inherited;
-end;
-
-function TCastleInspectorControl.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleInspectorControl.FloatRect: TFloatRectangle;

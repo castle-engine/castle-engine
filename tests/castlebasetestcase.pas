@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, CastleVectors, CastleBoxes,
-  CastleImages;
+  CastleImages, CastleRectangles;
 
 type
   TCastleBaseTestCase = class(TTestCase)
@@ -59,6 +59,8 @@ type
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double);
     procedure AssertFilenamesEqual(const Expected, Actual: string);
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage);
+    procedure AssertRectsEqual(const Expected, Actual: TRectangle);
+    procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle);
   end;
 
 implementation
@@ -276,6 +278,20 @@ begin
     Inc(ExpectedPtr);
     Inc(ActualPtr);
   end;
+end;
+
+procedure TCastleBaseTestCase.AssertRectsEqual(const Expected, Actual: TRectangle);
+begin
+  if not Expected.Equals(Actual) then
+    Fail(Format('Expected rect (%s) does not equal actual (%s)',
+      [Expected.ToString, Actual.ToString]));
+end;
+
+procedure TCastleBaseTestCase.AssertRectsEqual(const Expected, Actual: TFloatRectangle);
+begin
+  if not Expected.Equals(Actual) then
+    Fail(Format('Expected rect (%s) does not equal actual (%s)',
+      [Expected.ToString, Actual.ToString]));
 end;
 
 end.

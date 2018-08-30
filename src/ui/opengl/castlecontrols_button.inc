@@ -120,7 +120,6 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure FontChanged; override;
 
@@ -928,11 +927,6 @@ begin
     FEnabled := Value;
     VisibleChange([chRender]);
   end;
-end;
-
-function TCastleButton.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleButton.FloatRect: TFloatRectangle;

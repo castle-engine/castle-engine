@@ -88,7 +88,7 @@ type
       var HandleInput: boolean); override;
 
     procedure Render; override;
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -239,11 +239,11 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-function TCastleNotifications.Rect: TRectangle;
+function TCastleNotifications.FloatRect: TFloatRectangle;
 var
   I: integer;
 begin
-  Result := Rectangle(LeftBottomScaled, 0, Font.RowHeight * Messages.Count);
+  Result := FloatRectangle(FloatLeftBottomScaled, 0, Font.RowHeight * Messages.Count);
   for I := 0 to Messages.Count - 1 do
     Result.Width := Max(Result.Width, Messages[I].Width);
 end;

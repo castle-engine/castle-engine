@@ -454,6 +454,14 @@ type
     { Round rectangle coordinates, converting TFloatRectangle to TRectangle. }
     function Round: TRectangle;
 
+    { Is another rectangle equal to this one.
+      Floating-point values are compared with an epsilon tolerance. }
+    function Equals(const R: TFloatRectangle): Boolean;
+
+    { Is another rectangle equal to this one.
+      Floating-point values are compared with an epsilon tolerance. }
+    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
+
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
     class operator {$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
@@ -985,6 +993,8 @@ end;
 
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
 begin
+  if R.IsEmpty then
+    Exit(TFloatRectangle.Empty);
   Result.Left   := R.Left;
   Result.Bottom := R.Bottom;
   Result.Width  := R.Width;
@@ -1451,6 +1461,32 @@ begin
       System.Round(Bottom),
       System.Round(Width),
       System.Round(Height));
+end;
+
+function TFloatRectangle.Equals(const R: TFloatRectangle): Boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (SameValue(Left  , R.Left)) and
+      (SameValue(Bottom, R.Bottom)) and
+      (SameValue(Width , R.Width)) and
+      (SameValue(Height, R.Height));
+end;
+
+function TFloatRectangle.Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (SameValue(Left  , R.Left  , Epsilon)) and
+      (SameValue(Bottom, R.Bottom, Epsilon)) and
+      (SameValue(Width , R.Width , Epsilon)) and
+      (SameValue(Height, R.Height, Epsilon));
 end;
 
 class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;

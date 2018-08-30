@@ -52,6 +52,7 @@ uses
   TestCastleFrustum,
   TestCastleTransform,
   TestCastleParameters,
+  TestCastleUIControls,
   TestCastleCameras,
   TestX3DFields,
   TestX3DNodes,

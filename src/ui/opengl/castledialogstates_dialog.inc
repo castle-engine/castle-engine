@@ -75,7 +75,6 @@
     Answered: boolean;
 
     { The whole rectangle where we draw dialog box. }
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
@@ -380,11 +379,6 @@ end;
 function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always capture
-end;
-
-function TStateDialog.TDialog.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TStateDialog.TDialog.FloatRect: TFloatRectangle;

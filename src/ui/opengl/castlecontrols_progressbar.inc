@@ -33,7 +33,7 @@
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -154,17 +154,17 @@ begin
     TrimSimple;
 end;
 
-function TCastleProgressBar.Rect: TRectangle;
+function TCastleProgressBar.FloatRect: TFloatRectangle;
 var
-  XMargin, Height, YMiddle, Bot: Integer;
-  PR: TRectangle;
+  XMargin, Height, YMiddle, Bot: Single;
+  PR: TFloatRectangle;
 begin
-  PR := ParentRect;
-  XMargin := PR.Width div 8;
-  Height := PR.Height div 12;
-  YMiddle := Round(PR.Height * YPosition);
-  Bot := YMiddle - Height div 2;
-  Result := Rectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
+  PR := ParentFloatRect;
+  XMargin := PR.Width / 8;
+  Height := PR.Height / 12;
+  YMiddle := PR.Height * YPosition;
+  Bot := YMiddle - Height / 2;
+  Result := FloatRectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
 end;
 
 procedure TCastleProgressBar.Render;
@@ -174,7 +174,7 @@ const
 var
   MaxTextWidth: Integer;
   Caption: string;
-  BarRect, FillRect: TRectangle;
+  BarRect, FillRect: TFloatRectangle;
   HeightForText: Single;
 begin
   inherited;
@@ -182,17 +182,17 @@ begin
   if Progress = nil then Exit;
 
   if FGLBackground <> nil then
-    FGLBackground.Draw(ParentRect);
+    FGLBackground.Draw(ParentFloatRect);
 
-  BarRect := Rect;
+  BarRect := FloatRect;
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
-  FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
+  FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
   { it's normal that at the beginning FillRect is too small to be drawn }
   Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
-  MaxTextWidth := BarRect.Width - PaddingHorizontal;
+  MaxTextWidth := Round(BarRect.Width - PaddingHorizontal);
   Caption := Progress.Title;
 
   Font.PushProperties;
@@ -201,7 +201,7 @@ begin
     Font.Scale := Font.Scale / (Font.RowHeight / HeightForText);
   MakeTextFit(Caption, Font, MaxTextWidth);
   Font.Print(BarRect.Left + PaddingHorizontal,
-    BarRect.Bottom + (BarRect.Height - Font.RowHeight) div 2,
+    BarRect.Bottom + Round(BarRect.Height - Font.RowHeight) div 2,
     Theme.TextColor, Caption);
   Font.PopProperties;
 end;

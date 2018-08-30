@@ -27,14 +27,12 @@ uses Classes,
 type
   { Fade out, flash, and similar screen effects
     done by blending screen with given color. }
-  TCastleFlashEffect = class(TCastleUserInterface)
+  TCastleFlashEffect = class(TCastleUserInterfaceRect)
   strict private
     FIntensity: Single;
     FColor: TCastleColor;
     FDark: boolean;
     FDuration: Single;
-    FWidth, FHeight: Cardinal;
-    FFullSize: boolean;
     FImage, FImageAsGrayscale: TCastleImage;
     FGLImage, FGLImageAsGrayscale: TGLImage;
     FOwnsImage: boolean;
@@ -47,7 +45,6 @@ type
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function Rect: TRectangle; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
@@ -60,26 +57,6 @@ type
       has passed, and when you call @link(Reset) explicitly. }
     function Active: boolean;
   published
-    { Rectangle where the effect will be drawn.
-
-      When FullSize is @true (the default), the effect always fills
-      the whole parent (like TCastleWindow or TCastleControl,
-      if you just placed the TCastleFlashEffect on TCastleWindowCustom.Controls
-      or TCastleControlCustom.Controls),
-      and the values of Left, Bottom, Width, Height are ignored.
-
-      When FullSize is @false,
-      the values of Left, Bottom, Width, Height
-      define the size and position of the rectangle effect.
-
-      @seealso Rect
-
-      @groupBegin }
-    property FullSize: boolean read FFullSize write FFullSize default true;
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
-    { @groupEnd }
-
     property Duration: Single read FDuration write FDuration
       default DefaultDuration;
 
@@ -200,17 +177,6 @@ begin
   end;
 end;
 
-function TCastleFlashEffect.Rect: TRectangle;
-begin
-  if FullSize then
-    Result := ParentRect else
-  begin
-    Result := Rectangle(Left, Bottom, Width, Height);
-    // applying UIScale on this is easy...
-    Result := Result.ScaleAround0(UIScale);
-  end;
-end;
-
 procedure TCastleFlashEffect.Flash(const AColor: TCastleColor; const ADark: boolean);
 begin
   FColor := AColor;
@@ -261,9 +227,9 @@ begin
       FinalImage.Alpha := acBlending;
       FinalImage.BlendingSourceFactor := SourceFactor;
       FinalImage.BlendingDestinationFactor := DestinationFactor;
-      FinalImage.Draw(ScreenRect);
+      FinalImage.Draw(ScreenFloatRect);
     end else
-      DrawRectangle(ScreenRect, FinalColor, SourceFactor, DestinationFactor, true);
+      DrawRectangle(ScreenFloatRect, FinalColor, SourceFactor, DestinationFactor, true);
   end;
 end;
 

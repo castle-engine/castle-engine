@@ -42,7 +42,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
@@ -230,11 +229,6 @@ begin
     FFrame := Value;
     VisibleChange([chRectangle]);
   end;
-end;
-
-function TCastleEdit.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastleEdit.FloatRect: TFloatRectangle;

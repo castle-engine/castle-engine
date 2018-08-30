@@ -37,7 +37,6 @@
       DefaultSpacing = 10;
 
     constructor Create(AOwner: TComponent); override;
-    function Rect: TRectangle; override;
     function FloatRect: TFloatRectangle; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
@@ -117,11 +116,6 @@ begin
   inherited;
   if Frame then
     Theme.Draw(ScreenFloatRect, tiGroup, UIScale, FrameColor);
-end;
-
-function TCastlePackedGroup.Rect: TRectangle;
-begin
-  Result := FloatRect.Round;
 end;
 
 function TCastlePackedGroup.FloatRect: TFloatRectangle;

@@ -27,9 +27,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-
-    { Size of this control, ignoring GetExists. }
-    function Rect: TRectangle; override;
+    function FloatRect: TFloatRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
@@ -69,12 +67,9 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.Rect: TRectangle;
+function TCastleCrosshair.FloatRect: TFloatRectangle;
 begin
-  Result := Theme.Images[ImageType].Rect;
-
-  // applying UIScale on this is easy...
-  Result := Result.ScaleAround0(UIScale);
+  Result := FloatRectangle(Theme.Images[ImageType].Rect).ScaleAround0(UIScale);
 end;
 
 procedure TCastleCrosshair.Render;
