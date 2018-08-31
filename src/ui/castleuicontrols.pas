@@ -556,16 +556,25 @@ type
     { Internal for implementing mouse look in cameras. @exclude }
     procedure MakeMousePositionForMouseLook;
 
-    { Force passing events to given control first,
-      regardless if this control is under mouse cursor.
-      This control also always has focus.
+    { Force passing events to the given control first,
+      regardless if this control is under the mouse cursor.
+      Before we even send events to the currently "capturing" control
+      (for example, when you're dragging the slider, it is "capturing" mouse
+      events until you release the mouse), they are send to this control.
+
+      The control given here will always have focus
+      (that is, @link(TCastleUserInterface.Focused) will be set to true
+      shortly after it becomes the ForceCaptureInput).
 
       An example when this is useful is when you use camera MouseLook,
       and the associated viewport does not fill the full window
       (TCastleAbstractViewport.FullSize is @false, and actual sizes are smaller
       than window, and may not include window center). In this case you want
       to make sure that motion events get passed to this control,
-      and that this control has focus (to keep mouse cursor hidden). }
+      and that this control has focus (to keep mouse cursor hidden).
+
+      The engine itself @italic(never) automatically sets this property.
+      It is up to your application code to set this, if you need. }
     property ForceCaptureInput: TCastleUserInterface
       read FForceCaptureInput write SetForceCaptureInput;
 
