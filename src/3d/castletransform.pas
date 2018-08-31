@@ -368,6 +368,8 @@ type
     procedure SetScale(const Value: TVector3);
     procedure SetScaleOrientation(const Value: TVector4);
     procedure SetTranslation(const Value: TVector3);
+    function GetTranslationXY: TVector2;
+    procedure SetTranslationXY(const Value: TVector2);
     procedure SetRigidBody(const Value: TRigidBody);
     function GetDirection: TVector3;
     function GetUp: TVector3;
@@ -630,7 +632,7 @@ type
     function OnlyTranslation: boolean;
 
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
-    function Translation2D: TVector2;
+    function Translation2D: TVector2; deprecated 'use TranslationXY';
 
     { Transformation matrices, like @link(Transform) and @link(InverseTransform). }
     procedure TransformMatricesMult(var M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
@@ -1489,6 +1491,10 @@ type
 
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
+
+    { Get or set the XY components of the translation.
+      Useful for 2D games. }
+    property TranslationXY: TVector2 read GetTranslationXY write SetTranslationXY;
 
     function GetTranslation: TVector3; deprecated 'use Translation';
 
@@ -3180,6 +3186,16 @@ procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
   ChangedTransform;
+end;
+
+function TCastleTransform.GetTranslationXY: TVector2;
+begin
+  Result := Translation.XY;
+end;
+
+procedure TCastleTransform.SetTranslationXY(const Value: TVector2);
+begin
+  Translation := Vector3(Value, Translation.Data[2]);
 end;
 
 procedure TCastleTransform.Translate(const T: TVector3);

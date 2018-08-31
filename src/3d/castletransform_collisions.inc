@@ -414,7 +414,7 @@ begin
 
   if FOnlyTranslation then
     Result := LocalSphereCollision2D(
-      Pos - Translation2D, Radius, TrianglesToIgnoreFunc, Details) else
+      Pos - TranslationXY, Radius, TrianglesToIgnoreFunc, Details) else
     Result := LocalSphereCollision2D(
       InverseTransform.MultPoint(Pos), Radius / AverageScale2D, TrianglesToIgnoreFunc, Details);
 end;
@@ -429,7 +429,7 @@ begin
 
   if FOnlyTranslation then
     Result := LocalPointCollision2D(
-      Point - Translation2D, TrianglesToIgnoreFunc) else
+      Point - TranslationXY, TrianglesToIgnoreFunc) else
     Result := LocalPointCollision2D(
       InverseTransform.MultPoint(Point), TrianglesToIgnoreFunc);
 end;
