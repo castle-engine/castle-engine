@@ -89,7 +89,7 @@
       "Transparent" : false,
       "UseGlobalFog" : true,
       "UseGlobalLights" : true,
-      "UseHeadlight" : "hlMainScene",
+      "UseHeadlight" : "hlOn",
       "VerticalAnchorDelta" : 0.0000000000000000E+000,
       "VerticalAnchorParent" : "vpBottom",
       "VerticalAnchorSelf" : "vpBottom",
@@ -101,6 +101,13 @@
     {
       "Bottom" : 0,
       "CapturesEvents" : true,
+      "ColorPersistent" : {
+        "A" : 5.0000000000000000E-001,
+        "B" : 1.0000000000000000E+000,
+        "G" : 5.0000000000000000E-001,
+        "R" : 5.0000000000000000E-001,
+        "_ClassName" : "TCastleColorPersistent"
+      },
       "EnableUIScaling" : true,
       "Exists" : true,
       "FloatHeight" : 5.0000000000000000E+002,
