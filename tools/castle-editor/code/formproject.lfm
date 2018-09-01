@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
-  Left = 88
+  Left = 407
   Height = 725
-  Top = 46
+  Top = 211
   Width = 1296
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 690
@@ -197,43 +197,43 @@ object ProjectForm: TProjectForm
     left = 336
     top = 97
     object MenuItemFile: TMenuItem
-      Caption = 'File'
-      object MenuItemNewHierarchyUserInterface: TMenuItem
-        Caption = 'New User Interface Hierarchy'
-        OnClick = MenuItemNewHierarchyUserInterfaceClick
-      end
-      object MenuItemNewHierarchySceneTransform: TMenuItem
-        Caption = 'New Scene / Transform Hierarchy'
-        OnClick = MenuItemNewHierarchySceneTransformClick
-      end
-      object MenuItemSeparator201: TMenuItem
-        Caption = '-'
-      end
-      object MenuItemOpen: TMenuItem
-        Caption = 'Open ...'
-        ShortCut = 16463
-        OnClick = MenuItemOpenClick
-      end
-      object MenuItemSaveHierarchy: TMenuItem
-        Caption = 'Save Hierarchy'
-        ShortCut = 16467
-        OnClick = MenuItemSaveHierarchyClick
-      end
-      object MenuItemSaveAsHierarchy: TMenuItem
-        Caption = 'Save Hierarchy As ...'
-        OnClick = MenuItemSaveAsHierarchyClick
-      end
-      object MenuItemSeparator200: TMenuItem
-        Caption = '-'
-      end
+      Caption = 'Project'
       object MenuItemSwitchProject: TMenuItem
-        Caption = 'Switch Project'
+        Caption = 'Close and Switch Project'
         OnClick = MenuItemSwitchProjectClick
       end
       object MenuItemQuit: TMenuItem
         Caption = 'Quit'
         ShortCut = 16465
         OnClick = MenuItemQuitClick
+      end
+    end
+    object MenuItemDesign: TMenuItem
+      Caption = 'Design'
+      object MenuItemNewDesignUserInterface: TMenuItem
+        Caption = 'New User Interface'
+        OnClick = MenuItemNewDesignUserInterfaceClick
+      end
+      object MenuItemNewDesignTransform: TMenuItem
+        Caption = 'New Transform'
+        OnClick = MenuItemNewDesignTransformClick
+      end
+      object MenuItemSeparator201: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemOpenDesign: TMenuItem
+        Caption = 'Open ...'
+        ShortCut = 16463
+        OnClick = MenuItemOpenDesignClick
+      end
+      object MenuItemSaveDesign: TMenuItem
+        Caption = 'Save'
+        ShortCut = 16467
+        OnClick = MenuItemSaveDesignClick
+      end
+      object MenuItemSaveAsDesign: TMenuItem
+        Caption = 'Save As ...'
+        OnClick = MenuItemSaveAsDesignClick
       end
     end
     object MenuItemRun: TMenuItem
@@ -335,16 +335,16 @@ object ProjectForm: TProjectForm
     left = 453
     top = 100
   end
-  object SaveHierarchyDialog: TCastleSaveDialog
+  object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     FilterIndex = 0
     AdviceDataDirectory = True
     left = 332
     top = 170
   end
-  object OpenHierarchyDialog: TCastleOpenDialog
-    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+  object OpenDesignDialog: TCastleOpenDialog
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     AdviceDataDirectory = True
     left = 464
     top = 184

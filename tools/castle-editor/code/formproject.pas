@@ -34,17 +34,17 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    OpenHierarchyDialog: TCastleOpenDialog;
-    MenuItemOpen: TMenuItem;
+    MenuItemDesign: TMenuItem;
+    OpenDesignDialog: TCastleOpenDialog;
+    MenuItemOpenDesign: TMenuItem;
     MenuItemSeparator201: TMenuItem;
-    MenuItemNewHierarchySceneTransform: TMenuItem;
-    MenuItemNewHierarchyUserInterface: TMenuItem;
-    SaveHierarchyDialog: TCastleSaveDialog;
+    MenuItemNewDesignTransform: TMenuItem;
+    MenuItemNewDesignUserInterface: TMenuItem;
+    SaveDesignDialog: TCastleSaveDialog;
     ControlsTree: TTreeView;
     LabelHierarchy: TLabel;
-    MenuItemSeparator200: TMenuItem;
-    MenuItemSaveAsHierarchy: TMenuItem;
-    MenuItemSaveHierarchy: TMenuItem;
+    MenuItemSaveAsDesign: TMenuItem;
+    MenuItemSaveDesign: TMenuItem;
     PanelLeft: TPanel;
     LabelControlSelected: TLabel;
     ListOutput: TListBox;
@@ -106,17 +106,17 @@ type
     procedure MenuItemCompileRunClick(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
-    procedure MenuItemNewHierarchyUserInterfaceClick(Sender: TObject);
-    procedure MenuItemNewHierarchySceneTransformClick(Sender: TObject);
+    procedure MenuItemNewDesignUserInterfaceClick(Sender: TObject);
+    procedure MenuItemNewDesignTransformClick(Sender: TObject);
     procedure MenuItemOnlyRunClick(Sender: TObject);
-    procedure MenuItemOpenClick(Sender: TObject);
+    procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
     procedure MenuItemPackageSourceClick(Sender: TObject);
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
-    procedure MenuItemSaveAsHierarchyClick(Sender: TObject);
-    procedure MenuItemSaveHierarchyClick(Sender: TObject);
+    procedure MenuItemSaveAsDesignClick(Sender: TObject);
+    procedure MenuItemSaveDesignClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
@@ -127,37 +127,37 @@ type
     RunningProcess: TAsynchronousProcessQueue;
     InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
     PropertyEditorHook: TPropertyEditorHook;
-    HierarchyUrl: String;
+    DesignUrl: String;
     { Root saved/loaded to component file }
-    HierarchyRoot: TComponent;
+    DesignRoot: TComponent;
     { Owner of all components saved/loaded to component file,
       also temporary scene manager for .castle-transform.
       Everything specific to this hierarchy in CastleControl. }
-    HierarchyOwner: TComponent;
-    HierarchyModified: Boolean;
+    DesignOwner: TComponent;
+    DesignModified: Boolean;
     CastleControl: TCastleControlCustom;
     procedure BuildToolCall(const Commands: array of String);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
-    procedure HierarchyModifiedNotification(Sender: TObject);
+    procedure DesignModifiedNotification(Sender: TObject);
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
-    procedure SaveHierarchy(const Url: string);
-    { Changes HierarchyRoot, HierarchyUrl and all the associated user-interface. }
-    procedure OpenHierarchy(const NewHierarchyRoot, NewHierarchyOwner: TComponent;
-      const NewHierarchyUrl: String);
-    procedure OpenHierarchy(const NewHierarchyUrl: String);
+    procedure SaveDesign(const Url: string);
+    { Changes DesignRoot, DesignUrl and all the associated user-interface. }
+    procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
+      const NewDesignUrl: String);
+    procedure OpenDesign(const NewDesignUrl: String);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
-    procedure UpdateHierarchy(const Root: TComponent);
+    procedure UpdateDesign(const Root: TComponent);
     procedure UpdateSelectedControl;
     procedure UpdateFormCaption;
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
-    function ProposeSaveHierarchy: Boolean;
+    function ProposeSaveDesign: Boolean;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -195,117 +195,117 @@ begin
   MenuItemModeRelease.Checked := true;
 end;
 
-procedure TProjectForm.SaveHierarchy(const Url: string);
+procedure TProjectForm.SaveDesign(const Url: string);
 begin
-  if HierarchyRoot is TCastleUserInterface then
-    UserInterfaceSave(TCastleUserInterface(HierarchyRoot), Url)
+  if DesignRoot is TCastleUserInterface then
+    UserInterfaceSave(TCastleUserInterface(DesignRoot), Url)
   else
-  if HierarchyRoot is TCastleTransform then
-    TransformSave(TCastleTransform(HierarchyRoot), Url)
+  if DesignRoot is TCastleTransform then
+    TransformSave(TCastleTransform(DesignRoot), Url)
   else
-    raise EInternalError.Create('We can only save HierarchyRoot that descends from TCastleUserInterface or TCastleTransform');
-  HierarchyModified := false;
+    raise EInternalError.Create('We can only save DesignRoot that descends from TCastleUserInterface or TCastleTransform');
+  DesignModified := false;
   UpdateFormCaption;
 end;
 
-procedure TProjectForm.OpenHierarchy(const NewHierarchyRoot, NewHierarchyOwner: TComponent;
-  const NewHierarchyUrl: String);
+procedure TProjectForm.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
+  const NewDesignUrl: String);
 
-  procedure ClearHierarchy;
+  procedure ClearDesign;
   begin
     ControlsTree.Items.Clear;
     UpdateSelectedControl;
     CastleControl.Controls.Clear;
-    HierarchyRoot := nil;
+    DesignRoot := nil;
 
-    // this actually frees everything inside HierarchyRoot
-    FreeAndNil(HierarchyOwner);
+    // this actually frees everything inside DesignRoot
+    FreeAndNil(DesignOwner);
   end;
 
 var
   Background: TCastleSimpleBackground;
   TempSceneManager: TCastleSceneManager;
 begin
-  ClearHierarchy;
+  ClearDesign;
 
-  if NewHierarchyRoot is TCastleUserInterface then
+  if NewDesignRoot is TCastleUserInterface then
   begin
-    CastleControl.Controls.InsertFront(NewHierarchyRoot as TCastleUserInterface)
+    CastleControl.Controls.InsertFront(NewDesignRoot as TCastleUserInterface)
   end else
-  if NewHierarchyRoot is TCastleTransform then
+  if NewDesignRoot is TCastleTransform then
   begin
-    TempSceneManager := TCastleSceneManager.Create(NewHierarchyOwner);
+    TempSceneManager := TCastleSceneManager.Create(NewDesignOwner);
     TempSceneManager.Transparent := true;
-    TempSceneManager.Items.Add(NewHierarchyRoot as TCastleTransform);
+    TempSceneManager.Items.Add(NewDesignRoot as TCastleTransform);
     CastleControl.Controls.InsertFront(TempSceneManager);
   end else
-    raise EInternalError.Create('HierarchyRoot from file does not descend from TCastleUserInterface or TCastleTransform');
+    raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
   // make background defined
-  Background := TCastleSimpleBackground.Create(NewHierarchyOwner);
+  Background := TCastleSimpleBackground.Create(NewDesignOwner);
   Background.Color := Vector4(0.5, 0.5, 0.5, 1);
   CastleControl.Controls.InsertBack(Background);
 
-  // replace HierarchyXxx variables, once loading successfull
-  HierarchyRoot := NewHierarchyRoot;
-  HierarchyUrl := NewHierarchyUrl;
-  HierarchyOwner := NewHierarchyOwner;
-  HierarchyModified := HierarchyUrl = ''; // when opening '', mark new hierarchy modified
+  // replace DesignXxx variables, once loading successfull
+  DesignRoot := NewDesignRoot;
+  DesignUrl := NewDesignUrl;
+  DesignOwner := NewDesignOwner;
+  DesignModified := DesignUrl = ''; // when opening '', mark new hierarchy modified
   // TODO: is this correct? what should be set here?
-  PropertyEditorHook.LookupRoot := HierarchyOwner;
+  PropertyEditorHook.LookupRoot := DesignOwner;
 
-  UpdateHierarchy(HierarchyRoot);
+  UpdateDesign(DesignRoot);
   UpdateFormCaption;
 end;
 
-procedure TProjectForm.OpenHierarchy(const NewHierarchyUrl: String);
+procedure TProjectForm.OpenDesign(const NewDesignUrl: String);
 var
-  NewHierarchyRoot, NewHierarchyOwner: TComponent;
+  NewDesignRoot, NewDesignOwner: TComponent;
   Mime: String;
 begin
-  NewHierarchyOwner := TComponent.Create(Self);
+  NewDesignOwner := TComponent.Create(Self);
 
-  Mime := URIMimeType(NewHierarchyUrl);
+  Mime := URIMimeType(NewDesignUrl);
   if Mime = 'text/x-castle-user-interface' then
-    NewHierarchyRoot := UserInterfaceLoad(NewHierarchyUrl, NewHierarchyOwner)
+    NewDesignRoot := UserInterfaceLoad(NewDesignUrl, NewDesignOwner)
   else
   if Mime = 'text/x-castle-transform' then
-    NewHierarchyRoot := TransformLoad(NewHierarchyUrl, NewHierarchyOwner)
+    NewDesignRoot := TransformLoad(NewDesignUrl, NewDesignOwner)
   else
     raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
-      [ExtractFileExt(NewHierarchyUrl), Mime]);
+      [ExtractFileExt(NewDesignUrl), Mime]);
 
-  OpenHierarchy(NewHierarchyRoot, NewHierarchyOwner, NewHierarchyUrl);
+  OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 end;
 
-procedure TProjectForm.MenuItemSaveAsHierarchyClick(Sender: TObject);
+procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
-  // TODO -- disable when HierarchyRoot = nil
+  // TODO -- disable when DesignRoot = nil
 
-  if HierarchyRoot is TCastleUserInterface then
-    SaveHierarchyDialog.DefaultExt := 'castle-user-interface'
+  if DesignRoot is TCastleUserInterface then
+    SaveDesignDialog.DefaultExt := 'castle-user-interface'
   else
-  if HierarchyRoot is TCastleTransform then
-    SaveHierarchyDialog.DefaultExt := 'castle-transform'
+  if DesignRoot is TCastleTransform then
+    SaveDesignDialog.DefaultExt := 'castle-transform'
   else
-    raise EInternalError.Create('HierarchyRoot does not descend from TCastleUserInterface or TCastleTransform');
+    raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
 
-  SaveHierarchyDialog.Url := HierarchyUrl;
-  if SaveHierarchyDialog.Execute then
+  SaveDesignDialog.Url := DesignUrl;
+  if SaveDesignDialog.Execute then
   begin
-    SaveHierarchy(SaveHierarchyDialog.Url);
-    HierarchyUrl := SaveHierarchyDialog.Url; // after successfull save
+    SaveDesign(SaveDesignDialog.Url);
+    DesignUrl := SaveDesignDialog.Url; // after successfull save
     UpdateFormCaption;
-    // TODO: save HierarchyUrl somewhere? CastleEditorSettings.xml?
+    // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
   end;
 end;
 
-procedure TProjectForm.MenuItemSaveHierarchyClick(Sender: TObject);
+procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
-  if HierarchyUrl = '' then
-    MenuItemSaveAsHierarchyClick(Sender)
+  if DesignUrl = '' then
+    MenuItemSaveAsDesignClick(Sender)
   else
-    SaveHierarchy(HierarchyUrl);
+    SaveDesign(DesignUrl);
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
@@ -361,7 +361,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     Result.PreferredSplitterX := 150;
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
-    Result.OnModified := @HierarchyModifiedNotification;
+    Result.OnModified := @DesignModifiedNotification;
   end;
 
 begin
@@ -416,7 +416,7 @@ end;
 
 procedure TProjectForm.MenuItemCompileRunClick(Sender: TObject);
 begin
-  if ProposeSaveHierarchy then
+  if ProposeSaveDesign then
     BuildToolCall(['compile', 'run']);
 end;
 
@@ -431,45 +431,45 @@ begin
   MenuItemModeDebug.Checked := true;
 end;
 
-procedure TProjectForm.MenuItemNewHierarchyUserInterfaceClick(Sender: TObject);
+procedure TProjectForm.MenuItemNewDesignUserInterfaceClick(Sender: TObject);
 var
   NewRoot: TCastleUserInterfaceRect;
-  NewHierarchyOwner: TComponent;
+  NewDesignOwner: TComponent;
 begin
-  NewHierarchyOwner := TComponent.Create(Self);
+  NewDesignOwner := TComponent.Create(Self);
 
   // TODO: Allow choosing starting class?
-  NewRoot := TCastleUserInterfaceRect.Create(NewHierarchyOwner);
+  NewRoot := TCastleUserInterfaceRect.Create(NewDesignOwner);
   NewRoot.Name := 'Group1';
   NewRoot.FullSize := true;
-  OpenHierarchy(NewRoot, NewHierarchyOwner, '');
+  OpenDesign(NewRoot, NewDesignOwner, '');
 end;
 
-procedure TProjectForm.MenuItemNewHierarchySceneTransformClick(Sender: TObject);
+procedure TProjectForm.MenuItemNewDesignTransformClick(Sender: TObject);
 var
   NewRoot: TCastleTransform;
-  NewHierarchyOwner: TComponent;
+  NewDesignOwner: TComponent;
 begin
-  NewHierarchyOwner := TComponent.Create(Self);
+  NewDesignOwner := TComponent.Create(Self);
 
   // TODO: Allow choosing starting class?
   // TODO: after adding new scenes, trasforms, adjust camera?
-  NewRoot := TCastleTransform.Create(NewHierarchyOwner);
+  NewRoot := TCastleTransform.Create(NewDesignOwner);
   NewRoot.Name := 'Transform1';
-  OpenHierarchy(NewRoot, NewHierarchyOwner, '');
+  OpenDesign(NewRoot, NewDesignOwner, '');
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
 begin
-  if ProposeSaveHierarchy then
+  if ProposeSaveDesign then
     BuildToolCall(['run']);
 end;
 
-procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
+procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
-  OpenHierarchyDialog.Url := HierarchyUrl;
-  if OpenHierarchyDialog.Execute then
-    OpenHierarchy(OpenHierarchyDialog.Url);
+  OpenDesignDialog.Url := DesignUrl;
+  if OpenDesignDialog.Execute then
+    OpenDesign(OpenDesignDialog.Url);
 end;
 
 procedure TProjectForm.MenuItemPackageClick(Sender: TObject);
@@ -565,47 +565,47 @@ end;
 
 procedure TProjectForm.UpdateFormCaption;
 var
-  HierarchyName: String;
+  DesignName: String;
 begin
-  // calculate HierarchyName
-  if HierarchyUrl <> '' then
-    HierarchyName := ExtractURIName(HierarchyUrl)
+  // calculate DesignName
+  if DesignUrl <> '' then
+    DesignName := ExtractURIName(DesignUrl)
   else
-  if HierarchyRoot is TCastleTransform then
-    HierarchyName := 'New Transform'
+  if DesignRoot is TCastleTransform then
+    DesignName := 'New Transform'
   else
-  if HierarchyRoot is TCastleUserInterface then
-    HierarchyName := 'New User Interface'
+  if DesignRoot is TCastleUserInterface then
+    DesignName := 'New User Interface'
   else
     // generic, should not happen now
-    HierarchyName := 'New Component';
+    DesignName := 'New Component';
 
-  Caption := '[' + Iff(HierarchyModified, '*', '') + HierarchyName + '] ' +
+  Caption := '[' + Iff(DesignModified, '*', '') + DesignName + '] ' +
     SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
 end;
 
-function TProjectForm.ProposeSaveHierarchy: Boolean;
+function TProjectForm.ProposeSaveDesign: Boolean;
 var
   Mr: TModalResult;
 begin
   Result := true;
 
-  { call SaveChanges to be sure to have good HierarchyModified value.
+  { call SaveChanges to be sure to have good DesignModified value.
     Otherwise when editing e.g. TCastleButton.Caption,
-    you can press F9 and have HierarchyModified = false,
-    because HierarchyModifiedNotification doesn't occur because we actually
+    you can press F9 and have DesignModified = false,
+    because DesignModifiedNotification doesn't occur because we actually
     press "tab" to focus another control. }
   InspectorSimple.SaveChanges;
   InspectorAdvanced.SaveChanges;
   InspectorEvents.SaveChanges;
 
-  if HierarchyModified then
+  if DesignModified then
   begin
     Mr := MessageDlg('Save Design',
-      'Design "' + HierarchyUrl + '" was modified but not saved yet. Save it before running the application?',
+      'Design "' + DesignUrl + '" was modified but not saved yet. Save it before running the application?',
       mtConfirmation, mbYesNoCancel, 0);
     case Mr of
-      mrYes: MenuItemSaveHierarchy.Click;
+      mrYes: MenuItemSaveDesign.Click;
       mrCancel: Result := false;
     end;
   end;
@@ -626,8 +626,8 @@ begin
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
   ApplicationDataOverride := CombineURI(ProjectPathUrl, 'data/');
-  OpenHierarchyDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
-  SaveHierarchyDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  OpenDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
+  SaveDesignDialog.InitialDir := URIToFilenameSafe(ApplicationDataOverride);
 
   ShellTreeView1.Root := ProjectPath;
 
@@ -638,7 +638,7 @@ begin
   CastleControl.Container.UIScaling := usEncloseReferenceSize;
 
   // start
-  MenuItemNewHierarchyUserInterfaceClick(nil);
+  MenuItemNewDesignUserInterfaceClick(nil);
 
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;
@@ -699,7 +699,7 @@ begin
   finally FreeAndNil(Selected) end;
 end;
 
-procedure TProjectForm.UpdateHierarchy(const Root: TComponent);
+procedure TProjectForm.UpdateDesign(const Root: TComponent);
 
   function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
   var
@@ -741,7 +741,7 @@ begin
   if Root is TCastleTransform then
     Node := AddTransform(nil, Root as TCastleTransform)
   else
-    raise EInternalError.Create('Cannot UpdateHierarchy with other classes than TCastleUserInterface or TCastleTransform');
+    raise EInternalError.Create('Cannot UpdateDesign with other classes than TCastleUserInterface or TCastleTransform');
 
   // show expanded by default
   Node.Expand(true);
@@ -801,9 +801,9 @@ begin
     SelectedCount := 0;
 end;
 
-procedure TProjectForm.HierarchyModifiedNotification(Sender: TObject);
+procedure TProjectForm.DesignModifiedNotification(Sender: TObject);
 begin
-  HierarchyModified := true;
+  DesignModified := true;
   UpdateFormCaption;
 end;
 
