@@ -25,25 +25,9 @@ Now:
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
     * save also vectors, colors.
       Like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably.
-      And colors, like
-        RectangleGroup.Color := Vector4(0.5, 0.5, 1, 0.2); // transparent light-blue
-
       See /home/michalis/common/TODO/castle-engine/editor/castlevectors_components.inc
       and /home/michalis/common/TODO/castle-engine/editor/cge-editor-older-notes-published-vectors.txt
-      Make a minimal test of this, with Delphi and FPC/Lazarus.
-      Possibly we can publish records now?
-
-    * Store only non-default with stored=true.
-      https://stackoverflow.com/questions/30352756/delphi-how-to-get-default-value-for-property-using-rtti
-      http://docwiki.embarcadero.com/Libraries/Berlin/en/System.TypInfo.TPropInfo
-      See how normal TWriter does it, using TypInfo.
-
-      yes, we can copy from
-      /home/michalis/installed/fpclazarus/3.0.4/fpcsrc/rtl/objpas/classes/writer.inc
-
-      cleanup then data/project_templates/empty/files/data/main.castle-user-interface
-      to not contain defaults
-
+      started (TCastleRectangleControl.Color works), needs to be automated for other now.
     * Allow adding new, deleting, moving around
     * UI controls improvements:
 	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
@@ -60,7 +44,6 @@ Now:
 
 	* virtual functions to say VerticalResizingEffective
 	  (at TCastleUserInterface or only TCastleUserInterfaceRect)
-    * remove _Children once processed
     * ask before closing project when HierarchyModified - save? cancel?
     * ask before overriding saved file
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
@@ -97,7 +80,7 @@ Now:
 
     * unpublish KeepInFront, since switching it at runtime is not supported
     * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
-    * TLabel.Text setting is ignored
+    * TLabel.Text using prop editor (multiline) setting is ignored
       (we should react to Text.Assign maybe?)
     * saving TCastleColorPersistent to LFM for now doesn't work?
 
@@ -119,7 +102,6 @@ Lower priority:
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
-    * Templates should load by default the visually-designed world. The goal: you should be able to modify and run the game in the editor without writing code.
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?

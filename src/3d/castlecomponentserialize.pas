@@ -53,8 +53,8 @@ function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
 implementation
 
-uses JsonParser, TypInfo,
-  CastleFilesUtils,
+uses JsonParser, TypInfo, RtlConsts,
+  CastleFilesUtils, CastleUtils,
   // TODO: these units are only for temporary FindComponentClass implementation
   CastleControls, CastleScene, Castle2DSceneManager, CastleSceneManager;
 
@@ -132,6 +132,7 @@ begin
             [Child.ClassName]);
       end;
     end;
+    Json.Delete('_Children');
   end;
 end;
 
@@ -174,6 +175,13 @@ end;
 
 type
   TCastleComponentWriter = class
+  strict private
+    { Does the property have default value.
+      Written looking closely at what standard FPC writer does,
+      3.0.4/fpcsrc/rtl/objpas/classes/writer.inc ,
+      and simplified a lot for our purposes. }
+    class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean;
+  public
     class procedure AfterStreamObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     class procedure StreamProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJSONData);
   end;
@@ -199,6 +207,87 @@ begin
   // do not stream properties with stored=false or default values
   if not IsStoredProp(AObject as TPersistent, Info) then
     FreeAndNil(Res);
+
+  // do not store properties with default values
+  if HasDefaultValue(AObject as TPersistent, Info) then
+    FreeAndNil(Res);
+end;
+
+class function TCastleComponentWriter.HasDefaultValue(
+  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean;
+var
+  PropType: PTypeInfo;
+  Value, DefValue: LongInt;
+{$ifndef FPUNONE}
+  FloatValue, DefFloatValue: Extended;
+{$endif}
+  MethodValue, DefMethodValue: TMethod;
+  VarValue, DefVarValue : tvardata;
+  BoolValue, DefBoolValue: boolean;
+begin
+  Result := false; // for unknown types, assume false
+
+  PropType := PropInfo^.PropType;
+  case PropType^.Kind of
+    tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
+      begin
+        Value := GetOrdProp(Instance, PropInfo);
+        DefValue := PropInfo^.Default;
+        Result := (Value = DefValue) and (DefValue <> longint($80000000));
+      end;
+{$ifndef FPUNONE}
+    tkFloat:
+      begin
+        FloatValue := GetFloatProp(Instance, PropInfo);
+        DefValue := PropInfo^.Default;
+        DefFloatValue := PSingle(@PropInfo^.Default)^;
+        Result := (FloatValue = DefFloatValue) and (DefValue <> longint($80000000));
+      end;
+{$endif}
+    tkMethod:
+      begin
+        MethodValue := GetMethodProp(Instance, PropInfo);
+        DefMethodValue.Data := nil;
+        DefMethodValue.Code := nil;
+        Result := CompareMethods(MethodValue, DefMethodValue);
+      end;
+    tkSString, tkLString, tkAString:
+      begin
+        Result := GetStrProp(Instance, PropInfo) = '';
+      end;
+    tkWString:
+      begin
+        Result := GetWideStrProp(Instance, PropInfo) = '';
+      end;
+    tkUString:
+      begin
+        Result := GetUnicodeStrProp(Instance, PropInfo) = '';
+      end;
+    tkVariant:
+      begin
+        { Ensure that a Variant manager is installed }
+        if not assigned(VarClearProc) then
+          raise EWriteError.Create(SErrNoVariantSupport);
+        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
+        FillChar(DefVarValue,sizeof(DefVarValue),0);
+        Result := CompareByte(VarValue,DefVarValue,sizeof(VarValue)) = 0;
+      end;
+    tkClass:
+      begin
+        Result := GetObjectProp(Instance, PropInfo) = nil;
+      end;
+    tkInt64, tkQWord:
+      begin
+        Result := GetInt64Prop(Instance, PropInfo) = 0;
+      end;
+    tkBool:
+      begin
+        BoolValue := GetOrdProp(Instance, PropInfo)<>0;
+        DefBoolValue := PropInfo^.Default<>0;
+        DefValue := PropInfo^.Default;
+        Result := (BoolValue = DefBoolValue) and (DefValue <> longint($80000000));
+      end;
+  end;
 end;
 
 procedure ComponentSave(const C: TComponent; const Url: String);
