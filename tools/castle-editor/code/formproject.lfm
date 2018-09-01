@@ -1,11 +1,11 @@
 object ProjectForm: TProjectForm
   Left = 88
-  Height = 637
+  Height = 725
   Top = 46
-  Width = 1173
+  Width = 1296
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 602
-  ClientWidth = 1173
+  ClientHeight = 690
+  ClientWidth = 1296
   DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
@@ -16,8 +16,8 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
-    Top = 340
-    Width = 1173
+    Top = 428
+    Width = 1296
     ActivePage = TabFiles
     Align = alBottom
     TabIndex = 0
@@ -25,7 +25,7 @@ object ProjectForm: TProjectForm
     object TabFiles: TTabSheet
       Caption = 'Files'
       ClientHeight = 217
-      ClientWidth = 1167
+      ClientWidth = 1290
       object ShellTreeView1: TShellTreeView
         Left = 0
         Height = 217
@@ -45,7 +45,7 @@ object ProjectForm: TProjectForm
         Left = 374
         Height = 217
         Top = 0
-        Width = 793
+        Width = 916
         Align = alClient
         Color = clDefault
         ReadOnly = True
@@ -64,7 +64,7 @@ object ProjectForm: TProjectForm
     object TabOutput: TTabSheet
       Caption = 'Output'
       ClientHeight = 217
-      ClientWidth = 1167
+      ClientWidth = 1290
       object ListOutput: TListBox
         Left = 0
         Height = 217
@@ -84,43 +84,43 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 333
-    Width = 1173
+    Top = 421
+    Width = 1296
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 333
+    Height = 421
     Top = 0
-    Width = 1173
+    Width = 1296
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 333
-    ClientWidth = 1173
+    ClientHeight = 421
+    ClientWidth = 1296
     TabOrder = 2
     object SplitterLeft: TSplitter
       Left = 266
-      Height = 333
+      Height = 421
       Top = 0
       Width = 7
     end
     object SplitterRight: TSplitter
-      Left = 810
-      Height = 333
+      Left = 933
+      Height = 421
       Top = 0
       Width = 7
       Align = alRight
       ResizeAnchor = akRight
     end
     object PanelRight: TPanel
-      Left = 817
-      Height = 333
+      Left = 940
+      Height = 421
       Top = 0
       Width = 356
       Align = alRight
       BevelOuter = bvNone
-      ClientHeight = 333
+      ClientHeight = 421
       ClientWidth = 356
       TabOrder = 2
       object LabelControlSelected: TLabel
@@ -136,7 +136,7 @@ object ProjectForm: TProjectForm
       end
       object ControlProperties: TPageControl
         Left = 0
-        Height = 269
+        Height = 357
         Top = 64
         Width = 356
         ActivePage = TabSimple
@@ -156,17 +156,17 @@ object ProjectForm: TProjectForm
     end
     object PanelLeft: TPanel
       Left = 0
-      Height = 333
+      Height = 421
       Top = 0
       Width = 266
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 333
+      ClientHeight = 421
       ClientWidth = 266
       TabOrder = 3
       object ControlsTree: TTreeView
         Left = 0
-        Height = 296
+        Height = 384
         Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
         Top = 37
         Width = 266
@@ -339,11 +339,13 @@ object ProjectForm: TProjectForm
     Title = 'Save Hierarchy As'
     Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     FilterIndex = 0
+    AdviceDataDirectory = True
     left = 332
     top = 170
   end
   object OpenHierarchyDialog: TCastleOpenDialog
     Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    AdviceDataDirectory = True
     left = 464
     top = 184
   end

@@ -158,7 +158,6 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveHierarchy: Boolean;
-    procedure WarningIfHierarchyUrlOutsideData;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -297,7 +296,6 @@ begin
     SaveHierarchy(SaveHierarchyDialog.Url);
     HierarchyUrl := SaveHierarchyDialog.Url; // after successfull save
     UpdateFormCaption;
-    WarningIfHierarchyUrlOutsideData;
     // TODO: save HierarchyUrl somewhere? CastleEditorSettings.xml?
   end;
 end;
@@ -471,10 +469,7 @@ procedure TProjectForm.MenuItemOpenClick(Sender: TObject);
 begin
   OpenHierarchyDialog.Url := HierarchyUrl;
   if OpenHierarchyDialog.Execute then
-  begin
     OpenHierarchy(OpenHierarchyDialog.Url);
-    WarningIfHierarchyUrlOutsideData;
-  end;
 end;
 
 procedure TProjectForm.MenuItemPackageClick(Sender: TObject);
@@ -614,18 +609,6 @@ begin
       mrCancel: Result := false;
     end;
   end;
-end;
-
-procedure TProjectForm.WarningIfHierarchyUrlOutsideData;
-begin
-  if URIProtocol(HierarchyUrl) <> 'castle-data' then
-    MessageDlg('File outside data', 'You are saving or opening the design file outside of the project''s "data" subdirectory: "' +
-      HierarchyUrl + '".' + NL +
-      NL +
-      'You will not be able to open this design file using castle-data:/ URL (or ApplicationData function). And the design file will not be packaged with your distributed application automatically.' + NL +
-      NL +
-      'We strongly advice to instead open or save inside the project "data" directory, which is "' + ApplicationDataOverride + '".',
-      mtWarning, [mbOK], 0);
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
@@ -859,4 +842,5 @@ initialization
 
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
+  PropertyEditorsAdviceDataDirectory := true;
 end.

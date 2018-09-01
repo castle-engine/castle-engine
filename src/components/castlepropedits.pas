@@ -26,6 +26,9 @@ unit CastlePropEdits;
 
 interface
 
+var
+  PropertyEditorsAdviceDataDirectory: Boolean;
+
 procedure Register;
 
 implementation
@@ -65,6 +68,7 @@ var
 begin
   Dialog := TCastleOpen3DDialog.Create(nil);
   try
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
@@ -93,6 +97,7 @@ var
 begin
   Dialog := TCastleOpenImageDialog.Create(nil);
   try
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);

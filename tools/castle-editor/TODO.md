@@ -6,12 +6,6 @@ Now:
       to json,
       and for lfm -- se TCastleColorPersistent.DefineProperties todo
     * UI of designer needs to be improved to clearly communicate what is happening:
-	* File->Open should by default show our project directory,
-	  and warn when opening/saving xx.castle-xxx outside of our project
-	  ("You are saving or loading a hierarchy (.castle-user-interface or .castle-transform file) outside of the project "data" subdirectory. This is possible, but for typical games not adviced.
-
-	  Typical games should keep all the designs (.castle-user-interface and .castle-transform files) inside the "data" subdirectory to have them packaged in the application on all platforms (desktop, mobile). And you should always load them using the ApplicationData function or the castle-data:/xxx URL.
-	  )
 	* before exiting ask whether to save.
 	* special menu "Designer" with new, open, close. Separate from "File"
 	* rest of "File" rename to "Project"
@@ -25,10 +19,7 @@ Now:
     * open last scene in the project,
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
-    * (in-progress) Allow editing at least most important properties:
-        * (done) Name
-        * (done) TCastleScene.URL
-	* (but fix URL to set castle-data:)
+    * Allow editing of:
 	* initial animation? along with TimePlayingSpeed, ProcessEvents
         * TCastleTransform position, rotation, scale (using gizmos)
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
@@ -121,9 +112,6 @@ Now:
 +    TSubPropertiesEditor);
 +  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
 +    TSubPropertiesEditor);
-
-    * opening other data (like 3d models) should also default to data dir,
-      and warn if opening outside.
 
 Lower priority:
 * ugly button in example? new ui for internal controls?
