@@ -107,7 +107,7 @@ procedure WriteLog(const Category: string; const Message: string); overload;
   deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
-  The Message may, but doesn't have to, terminate with newline --
+  The Message may, but doesn't have to, terminate with a newline --
   we will format it OK either way. }
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 
@@ -147,7 +147,8 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils
+  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils,
+  CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
@@ -351,7 +352,7 @@ begin
     WriteLogRaw(
       '-------------------- ' + Category + ' begin' + NL +
       // trim newlines at the end of Message
-      TrimRight(Message) + NL +
+      TrimEndingNewline(Message) + NL +
       '-------------------- ' + Category + ' end' + NL)
   end;
 end;
