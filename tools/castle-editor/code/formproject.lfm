@@ -139,15 +139,18 @@ object ProjectForm: TProjectForm
         Height = 269
         Top = 64
         Width = 356
-        ActivePage = TabAdvanced
+        ActivePage = TabSimple
         Align = alClient
-        TabIndex = 1
+        TabIndex = 0
         TabOrder = 0
         object TabSimple: TTabSheet
           Caption = 'Simple'
         end
         object TabAdvanced: TTabSheet
           Caption = 'Advanced'
+        end
+        object TabEvents: TTabSheet
+          Caption = 'Events'
         end
       end
     end

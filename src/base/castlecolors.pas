@@ -20,7 +20,8 @@ unit CastleColors;
 
 interface
 
-uses Math, CastleVectors;
+uses Math, Classes,
+  CastleVectors;
 
 type
   TCastleColor = TVector4;
@@ -164,9 +165,17 @@ function FadeDarkColor(const Color: TCastleColor;
 function FadeColor(const Color: TCastleColor;
   const FadeIntensity: Single): TCastleColor;
 
+{$define read_interface}
+{$I castlecolors_persistent.inc}
+{$undef read_interface}
+
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils;
+
+{$define read_implementation}
+{$I castlecolors_persistent.inc}
+{$undef read_implementation}
 
 { grayscale ------------------------------------------------------------------ }
 

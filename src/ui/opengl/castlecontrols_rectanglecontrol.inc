@@ -27,6 +27,7 @@
     procedure SetUseThemeImage(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -47,6 +48,10 @@
       "handled" by this control.  }
     property InterceptInput: boolean read FInterceptInput write FInterceptInput
       default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -61,6 +66,18 @@ begin
   FColor := White;
   FThemeImage := tiWindow;
   FUseThemeImage := false;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleRectangleControl.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
@@ -116,5 +133,9 @@ begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

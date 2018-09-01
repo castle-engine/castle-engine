@@ -117,6 +117,9 @@ Still, the editor stays GPL for the general public.
 
 Now:
 * Visual inspector. designer etc.
+    * Component wrapper will also need info about what is default, to know what to save...
+      to json,
+      and for lfm -- se TCastleColorPersistent.DefineProperties todo
     * UI of designer needs to be improved to clearly communicate what is happening:
 	* File->Open should by default show our project directory,
 	  and warn when opening/saving xx.castle-xxx outside of our project
@@ -182,13 +185,14 @@ Now:
 	* virtual functions to say VerticalResizingEffective
 	  (at TCastleUserInterface or only TCastleUserInterfaceRect)
     * remove _Children once processed
-    * show HierarchyUrl on caption, whether it's modified, ask before closing project without saving
+    * ask before closing project when HierarchyModified - save? cancel?
     * ask before overriding saved file
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
     * MainScene cannot be changed
       (we disabled in object inspector some types, maybe we should not?)
+      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine
     * publish and save SceneManager.NavigationType
       and last camera
       { Use initial camera settings stored in
@@ -212,11 +216,32 @@ Now:
 
     * castle-data:/ finish
       - support castlefindfiles.pas too
-      - document in manual_network, at ApplicationData, manual_data
+      - document at ApplicationData
         See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
 
+    * unpublish KeepInFront, since switching it at runtime is not supported
+    * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
+    * TLabel.Text setting is ignored
+      (we should react to Text.Assign maybe?)
+    * saving TCastleColorPersistent to LFM for now doesn't work?
+
++  // TODO: Why these are necessary to expand in castle-editor,
++  // but in Lazarus at least TCastleVector3Persistent in test project was
++  // expanded without this?
++  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
++    TSubPropertiesEditor);
++  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
++    TSubPropertiesEditor);
++  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
++    TSubPropertiesEditor);
++  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
++    TSubPropertiesEditor);
+
+    * opening other data (like 3d models) should also default to data dir,
+      and warn if opening outside.
+
 Lower priority:
-* ugly button and label text in example?
+* ugly button in example? new ui for internal controls?
 * Files browser as above
 * templates:
     * Create other than "empty" project templates
@@ -227,7 +252,7 @@ Lower priority:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * For "run", colorized CastleLog warnings
     * For "compile", colorize FPC warnings, errors
-    * Shoter compile output:
+    * Shorter compile output:
         * lines "compiling..", "writing resource string table...", are displayed, but then replaced by a next AddLine. This way they serve as "progress indicator" but do not eat so much output space.
         * also do not show FPC "logo", do not repeat information about FPC version, Os/CPU 2 times, debug mode,...
         * remove the "separator" lines. The bold lines already separate them nicely?

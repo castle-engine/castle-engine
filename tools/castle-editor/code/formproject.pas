@@ -88,6 +88,7 @@ type
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
+    TabEvents: TTabSheet;
     TabSimple: TTabSheet;
     TabAdvanced: TTabSheet;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
@@ -124,7 +125,7 @@ type
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
-    InspectorSimple, InspectorAdvanced: TOIPropertyGrid;
+    InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
     PropertyEditorHook: TPropertyEditorHook;
     HierarchyUrl: String;
     { Root saved/loaded to component file }
@@ -355,11 +356,6 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   function CommonInspectorCreate: TOIPropertyGrid;
   begin
     Result := TOIPropertyGrid.Create(Self);
-    // This code is inspired by Kraft sandbox demo
-    Result.Filter := [tkUnknown, tkInteger, tkChar, tkEnumeration, tkFloat, tkSet{, tkMethod}
-      , tkSString, tkLString, tkAString, tkWString, tkVariant
-      , tkArray, tkRecord, tkInterface, tkClass, tkObject, tkWChar, tkBool
-      , tkInt64, tkQWord];
     Result.PropertyEditorHook := PropertyEditorHook;
     Result.Align := alClient;
     Result.OnModified := @PropertyGridModified;
@@ -367,6 +363,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     Result.PreferredSplitterX := 150;
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
+    Result.OnModified := @HierarchyModifiedNotification;
   end;
 
 begin
@@ -377,11 +374,15 @@ begin
   InspectorSimple := CommonInspectorCreate;
   InspectorSimple.Parent := TabSimple;
   InspectorSimple.OnEditorFilter := @InspectorSimpleFilter;
-  InspectorSimple.OnModified := @HierarchyModifiedNotification;
+  InspectorSimple.Filter := tkProperties;
 
   InspectorAdvanced := CommonInspectorCreate;
   InspectorAdvanced.Parent := TabAdvanced;
-  InspectorAdvanced.OnModified := @HierarchyModifiedNotification;
+  InspectorAdvanced.Filter := tkProperties;
+
+  InspectorEvents := CommonInspectorCreate;
+  InspectorEvents.Parent := TabEvents;
+  InspectorEvents.Filter := tkMethods;
 
   CastleControl := TCastleControlCustom.Create(Self);
   CastleControl.Parent := PanelAboveTabs;
@@ -601,6 +602,7 @@ begin
     press "tab" to focus another control. }
   InspectorSimple.SaveChanges;
   InspectorAdvanced.SaveChanges;
+  InspectorEvents.SaveChanges;
 
   if HierarchyModified then
   begin
@@ -845,6 +847,7 @@ begin
         SelectionForOI.Add(Selected[I]);
       InspectorSimple.Selection := SelectionForOI;
       InspectorAdvanced.Selection := SelectionForOI;
+      InspectorEvents.Selection := SelectionForOI;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 end;

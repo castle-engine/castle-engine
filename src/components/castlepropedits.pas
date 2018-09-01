@@ -35,7 +35,7 @@ uses SysUtils, Classes,
   OpenGLContext,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleSceneManager;
+  CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -46,37 +46,57 @@ uses SysUtils, Classes,
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 
 type
-  TSceneURLPropertyEditor = class(TFileNamePropertyEditor)
+  { Property editor for URL that refers to 3D model.
+    Show an TCastleOpen3DDialog on Edit. }
+  TSceneURLPropertyEditor = class(TStringPropertyEditor)
   public
-    function GetFilter: String; override;
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
   end;
 
-function TSceneURLPropertyEditor.GetFilter: String;
-var
-  LCLFilter: string;
-  FilterIndex: Integer;
+function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  { TODO: use Load3D_FileFilters without "All Files" part. }
-  FileFiltersToDialog(Load3D_FileFilters, LCLFilter, FilterIndex);
-  Result := LCLFilter + (inherited GetFilter);
+  Result := [paDialog, paRevertable];
+end;
+
+procedure TSceneURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpen3DDialog;
+begin
+  Dialog := TCastleOpen3DDialog.Create(nil);
+  try
+    Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
 end;
 
 { TImageURLPropertyEditor ---------------------------------------------------- }
 
 type
-  TImageURLPropertyEditor = class(TFileNamePropertyEditor)
+  { Property editor for URL that refers to a file readable by Castle Game Engine.
+    Show an TCastleOpenImageDialog on Edit. }
+  TImageURLPropertyEditor = class(TStringPropertyEditor)
   public
-    function GetFilter: String; override;
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
   end;
 
-function TImageURLPropertyEditor.GetFilter: String;
-var
-  LCLFilter: string;
-  FilterIndex: Integer;
+function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  { TODO: use LoadImage_FileFilters without "All Files" part. }
-  FileFiltersToDialog(LoadImage_FileFilters, LCLFilter, FilterIndex);
-  Result := LCLFilter + (inherited GetFilter);
+  Result := [paDialog, paRevertable];
+end;
+
+procedure TImageURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenImageDialog;
+begin
+  Dialog := TCastleOpenImageDialog.Create(nil);
+  try
+    Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
 end;
 
 { TChildrenControlsPropertyEditor -------------------------------------------- }
@@ -84,6 +104,10 @@ end;
 type
   TChildrenControlsPropertyEditor = class(TListPropertyEditor)
   end;
+
+(*
+
+// This was just a temporary thing until we can use CGE editor.
 
 { T3DEditorForm -------------------------------------------------------------- }
 
@@ -166,7 +190,7 @@ end;
 
 function TSceneManagerWorldPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := [paMultiSelect, paSubProperties, paDialog, paReadOnly];
+  Result := [paMultiSelect, paSubProperties, {paDialog,} paReadOnly];
 end;
 
 { TCastleControlComponentEditor ---------------------------------------------- }
@@ -216,20 +240,50 @@ begin
   Result := 1;
 end;
 
+*)
+
+{ TSubPropertiesEditor ----------------------------------------------------- }
+
+type
+  TSubPropertiesEditor = class(TClassPropertyEditor)
+  public
+    function  GetAttributes: TPropertyAttributes; Override;
+  end;
+
+function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paMultiSelect, paSubProperties, paReadOnly];
+end;
+
 procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
     'URL', TSceneURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'URL', TImageURLPropertyEditor);
+
+  // TODO: the SceneManager.Items, actually complete TCastleControl,
+  // should be editable using new CGE editor now.
+
   { TODO: crashes
   RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlCustom,
     'Controls', TChildrenControlsPropertyEditor);
   }
-  // TODO: Also TSceneManagerPropertyEditor, leading to the same?
+  // RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
+
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
-    TSceneManagerWorldPropertyEditor);
-  RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
+    TSubPropertiesEditor);
+  // TODO: Why these are necessary to expand in castle-editor,
+  // but in Lazarus at least TCastleVector3Persistent in test project was
+  // expanded without this?
+  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
+    TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
+    TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
+    TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
+    TSubPropertiesEditor);
 end;
 
 initialization
