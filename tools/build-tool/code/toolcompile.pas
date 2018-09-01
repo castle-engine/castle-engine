@@ -417,6 +417,7 @@ begin
         AddEnginePath('services/opengl');
         AddEnginePath('physics');
         AddEnginePath('physics/kraft');
+        AddEnginePath('pasgltf');
 
         if not FPCVer.AtLeast(3, 1, 1) or FPCVer.IsCodeTyphon then
           AddEnginePath('compatibility/generics.collections/src');

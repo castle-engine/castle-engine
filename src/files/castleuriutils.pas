@@ -679,6 +679,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       application/wavefront-stl
       application/vnd.ms-pki.stl }
     if Ext = '.stl' then Result := 'application/x-stl' else
+    if Ext = '.glb' then Result := 'model/gltf-binary' else
+    if Ext = '.gltf' then Result := 'model/gltf+json' else
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
       For handled images, their extensions and mime types are recorded

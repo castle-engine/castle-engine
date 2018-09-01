@@ -87,7 +87,7 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
@@ -95,6 +95,7 @@ const
   'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
   'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
   'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
+  'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -155,7 +156,8 @@ implementation
 
 uses CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL, X3DLoadInternalMD3,
+  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
+  X3DLoadInternalMD3, X3DLoadInternalGLTF,
   CastleInternalNodeInterpolator;
 
 function Load3D(const URL: string;
@@ -232,6 +234,10 @@ begin
        (MimeType = 'application/vnd.ms-pki.stl') or
        (MimeType = 'application/x-navistyle') then
       Result := LoadSTL(URL) else
+
+    if (MimeType = 'model/gltf+json') or
+       (MimeType = 'model/gltf-binary') then
+      Result := LoadGLTF(URL) else
 
     if NilOnUnrecognizedFormat then
       Result := nil else

@@ -364,6 +364,11 @@ begin
     P.Targets.AddUnit('castlescreeneffects.pas');
     P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
 
+    P.SourcePath.Add('src' + PathDelim + 'pasgltf');
+    P.Targets.AddUnit('PasDblStrUtils.pas');
+    P.Targets.AddUnit('PasGLTF.pas');
+    P.Targets.AddUnit('PasJSON.pas');
+
     Run;
   end;
 end.

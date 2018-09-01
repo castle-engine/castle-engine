@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl;../src/x3d/opengl;../src/x3d;../src/x3d/teapot;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl;../src/base/ios;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -47,6 +47,11 @@ end;"/>
           <OptimizationLevel Value="2"/>
         </Optimizations>
       </CodeGeneration>
+      <Linking>
+        <Debugging>
+          <GenerateDebugInfo Value="False"/>
+        </Debugging>
+      </Linking>
       <Other>
         <Verbosity>
           <ShowHints Value="False"/>
@@ -67,7 +72,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="671">
+    <Files Count="675">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2766,6 +2771,22 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item671>
+      <Item672>
+        <Filename Value="../src/pasgltf/PasDblStrUtils.pas"/>
+        <UnitName Value="PasDblStrUtils"/>
+      </Item672>
+      <Item673>
+        <Filename Value="../src/pasgltf/PasGLTF.pas"/>
+        <UnitName Value="PasGLTF"/>
+      </Item673>
+      <Item674>
+        <Filename Value="../src/pasgltf/PasJSON.pas"/>
+        <UnitName Value="PasJSON"/>
+      </Item674>
+      <Item675>
+        <Filename Value="../src/x3d/x3dloadinternalgltf.pas"/>
+        <UnitName Value="X3DLoadInternalGLTF"/>
+      </Item675>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
