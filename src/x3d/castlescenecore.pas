@@ -945,22 +945,76 @@ type
 
     constructor Create(AOwner: TComponent); override;
 
-    { Load new 3D model (from VRML/X3D node tree).
+    { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
 
-      If AResetTime, we will also do ResetTimeAtLoad,
-      changing @link(Time) --- this is usually what you want when you
-      really load a new world. }
+      @param(ARootNode The model to load.
+        This will become a new value of our @link(RootNode) property.)
+
+      @param(AOwnsRootNode Should the scene take care of freeing
+        this root node when it is no longer used. If @false,
+        you are expected to free it yourself, but only after the scene
+        using it was freed.)
+
+      @param(AResetTime If @true then we will reset time at loading
+        (using @link(ResetTimeAtLoad)),
+        changing the @link(Time). This is usually what you want when you
+        load a new world.)
+
+      Note that you should never load the same @link(TX3DRootNode) instance
+      into multiple @link(TCastleScene) instances.
+
+      @longCode(#
+        // DON'T DO THIS!
+        Node := Load3D(URL);
+        Scene1 := TCastleScene.Create(Application);
+        Scene1.Load(Node, false);
+        Scene2 := TCastleScene.Create(Application);
+        Scene2.Load(Node, false);
+      #)
+
+      If you need to load the same model into multiple scenes,
+      it is best to use the @link(Clone) method:
+
+      @longCode(#
+        SceneTemplate := TCastleScene.Create(Application);
+        SceneTemplate.Load(URL);
+        Scene1 := SceneTemplate.Clone(Application);
+        Scene2 := SceneTemplate.Clone(Application);
+      #)
+
+      Using the @link(Clone) makes a copy of the underlying X3D graph,
+      so it is roughly like doing:
+
+      @longCode(#
+        Node := Load3D(URL);
+        Scene1 := TCastleScene.Create(Application);
+        Scene1.Load(Node.DeepCopy as TX3DRootNode, false);
+        Scene2 := TCastleScene.Create(Application);
+        Scene2.Load(Node.DeepCopy as TX3DRootNode, false);
+      #)
+
+      Note that sometimes you don't need to create multiple scenes
+      to show the same model many times.
+      You can simply insert the same TCastleScene instance multiple
+      times to SceneManager.Items.
+      See the manual:
+      https://castle-engine.io/manual_scene.php#section_many_instances
+    }
     procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       const AResetTime: boolean = true);
 
     { Load the 3D model from given URL.
 
-      Model is loaded by Load3D, so this supports all
-      3D model formats that Load3D handles
-      (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
+      We load a number of 3D model formats (X3D, VRML, Collada, Wavefront OBJ...)
+      and some 2D model formats (Spine JSON).
+      See https://castle-engine.io/creating_data_model_formats.php
+      for the complete list.
 
-      URL is downloaded using CastleDownload unit.
+      URL is downloaded using the CastleDownload unit,
+      so it supports files, http resources and more.
+      See https://castle-engine.io/manual_network.php
+      about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
       as the URL parameter.
@@ -3352,7 +3406,13 @@ end;
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if not FStatic then
+  begin
+    if (Node.Scene <> nil) and
+       (Node.Scene <> Self) then
+      WritelnWarning('X3D node %s is already part of another TCastleScene instance. You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+        [Node.NiceName]);
     Node.Scene := Self;
+  end;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -7017,7 +7077,7 @@ begin
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
   NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
-  NewViewpointNode.Scene := self;
+  NewViewpointNode.Scene := Self;
 
   { Create NavigationInfo node }
   Walk := nil;
@@ -7055,7 +7115,7 @@ begin
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
   NewNavigationNode.X3DName := 'NavInfo' + IntToStr(Random(10000));
-  NewNavigationNode.Scene := self;
+  NewNavigationNode.Scene := Self;
 
   // Connect viewpoint with navigation info
   NewRoute := TX3DRoute.Create;
