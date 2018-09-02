@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ProjectUtils,
+  ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
   Types, Contnrs,
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   EditorUtils, FrameDesign;
@@ -30,7 +30,10 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
-    DesignFrame1: TDesignFrame;
+    LabelNoDesign: TLabel;
+    MenuItemSeparator1000: TMenuItem;
+    MenuItemDesignClose: TMenuItem;
+    MenuItemSeparator400: TMenuItem;
     MenuItemDesign: TMenuItem;
     OpenDesignDialog: TCastleOpenDialog;
     MenuItemOpenDesign: TMenuItem;
@@ -89,6 +92,7 @@ type
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
+    procedure MenuItemDesignCloseClick(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
     procedure MenuItemNewDesignUserInterfaceClick(Sender: TObject);
@@ -110,6 +114,7 @@ type
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
+    Design: TDesignFrame;
     procedure BuildToolCall(const Commands: array of String);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
@@ -117,6 +122,10 @@ type
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
     function ProposeSaveDesign: Boolean;
+    { Call always when Design<>nil value changed. }
+    procedure DesignExistenceChanged;
+    { Create Design, if nil. }
+    procedure NeedsDesignFrame;
   public
     procedure OpenProject(const ManifestUrl: String);
   end;
@@ -156,28 +165,30 @@ end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
 begin
-  // TODO -- disable when DesignRoot = nil
+  Assert(Design <> nil); // menu item is disabled otherwise
 
-  if DesignFrame1.DesignRoot is TCastleUserInterface then
+  if Design.DesignRoot is TCastleUserInterface then
     SaveDesignDialog.DefaultExt := 'castle-user-interface'
   else
-  if DesignFrame1.DesignRoot is TCastleTransform then
+  if Design.DesignRoot is TCastleTransform then
     SaveDesignDialog.DefaultExt := 'castle-transform'
   else
     raise EInternalError.Create('DesignRoot does not descend from TCastleUserInterface or TCastleTransform');
 
-  SaveDesignDialog.Url := DesignFrame1.DesignUrl;
+  SaveDesignDialog.Url := Design.DesignUrl;
   if SaveDesignDialog.Execute then
-    DesignFrame1.SaveDesign(SaveDesignDialog.Url);
+    Design.SaveDesign(SaveDesignDialog.Url);
     // TODO: save DesignUrl somewhere? CastleEditorSettings.xml?
 end;
 
 procedure TProjectForm.MenuItemSaveDesignClick(Sender: TObject);
 begin
-  if DesignFrame1.DesignUrl = '' then
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  if Design.DesignUrl = '' then
     MenuItemSaveAsDesignClick(Sender)
   else
-    DesignFrame1.SaveDesign(DesignFrame1.DesignUrl);
+    Design.SaveDesign(Design.DesignUrl);
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
@@ -219,7 +230,6 @@ end;
 procedure TProjectForm.FormCreate(Sender: TObject);
 begin
   OutputList := TOutputList.Create(ListOutput);
-  DesignFrame1.OnUpdateFormCaption := @UpdateFormCaption;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
@@ -255,6 +265,17 @@ begin
     BuildToolCall(['compile', 'run']);
 end;
 
+procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+
+  if ProposeSaveDesign then
+  begin
+    FreeAndNil(Design);
+    DesignExistenceChanged;
+  end;
+end;
+
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
 begin
   OpenURL('https://castle-engine.io/manual_intro.php');
@@ -264,6 +285,26 @@ procedure TProjectForm.MenuItemModeDebugClick(Sender: TObject);
 begin
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;
+end;
+
+procedure TProjectForm.DesignExistenceChanged;
+begin
+  MenuItemSaveAsDesign.Enabled := Design <> nil;
+  MenuItemSaveDesign.Enabled := Design <> nil;
+  MenuItemDesignClose.Enabled := Design <> nil;
+  LabelNoDesign.Visible := Design = nil;
+end;
+
+procedure TProjectForm.NeedsDesignFrame;
+begin
+  if Design = nil then
+  begin
+    Design := TDesignFrame.Create(Self);
+    Design.Parent := PanelAboveTabs;
+    Design.Align := alClient;
+    Design.OnUpdateFormCaption := @UpdateFormCaption;
+    DesignExistenceChanged;
+  end;
 end;
 
 procedure TProjectForm.MenuItemNewDesignUserInterfaceClick(Sender: TObject);
@@ -277,7 +318,9 @@ begin
   NewRoot := TCastleUserInterfaceRect.Create(NewDesignOwner);
   NewRoot.Name := 'Group1';
   NewRoot.FullSize := true;
-  DesignFrame1.OpenDesign(NewRoot, NewDesignOwner, '');
+
+  NeedsDesignFrame;
+  Design.OpenDesign(NewRoot, NewDesignOwner, '');
 end;
 
 procedure TProjectForm.MenuItemNewDesignTransformClick(Sender: TObject);
@@ -291,7 +334,9 @@ begin
   // TODO: after adding new scenes, trasforms, adjust camera?
   NewRoot := TCastleTransform.Create(NewDesignOwner);
   NewRoot.Name := 'Transform1';
-  DesignFrame1.OpenDesign(NewRoot, NewDesignOwner, '');
+
+  NeedsDesignFrame;
+  Design.OpenDesign(NewRoot, NewDesignOwner, '');
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -302,9 +347,13 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
-  OpenDesignDialog.Url := DesignFrame1.DesignUrl;
+  if Design <> nil then
+    OpenDesignDialog.Url := Design.DesignUrl;
   if OpenDesignDialog.Execute then
-    DesignFrame1.OpenDesign(OpenDesignDialog.Url);
+  begin
+    NeedsDesignFrame;
+    Design.OpenDesign(OpenDesignDialog.Url);
+  end;
 end;
 
 procedure TProjectForm.MenuItemPackageClick(Sender: TObject);
@@ -322,7 +371,7 @@ begin
   // TODO ask only if unsaved things
   //if YesNoBox('Close this editor project?') then
 
-  Free; // do not call Close, to avoid OnCloseQuery
+  Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
   ChooseProjectForm.Show;
 end;
 
@@ -399,9 +448,14 @@ begin
 end;
 
 procedure TProjectForm.UpdateFormCaption(Sender: TObject);
+var
+  S: String;
 begin
-  Caption := DesignFrame1.FormCaption +
-    SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
+  if Design <> nil then
+    S := Design.FormCaption
+  else
+    S := '';
+  Caption := S + SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
 end;
 
 function TProjectForm.ProposeSaveDesign: Boolean;
@@ -410,16 +464,18 @@ var
 begin
   Result := true;
 
-  DesignFrame1.BeforeProposeSaveDesign;
-
-  if DesignFrame1.DesignModified then
+  if Design <> nil then
   begin
-    Mr := MessageDlg('Save Design',
-      'Design "' + DesignFrame1.DesignUrl + '" was modified but not saved yet. Save it before running the application?',
-      mtConfirmation, mbYesNoCancel, 0);
-    case Mr of
-      mrYes: MenuItemSaveDesign.Click;
-      mrCancel: Result := false;
+    Design.BeforeProposeSaveDesign;
+    if Design.DesignModified then
+    begin
+      Mr := MessageDlg('Save Design',
+        'Design "' + Design.DesignUrl + '" was modified but not saved yet. Save it now?',
+        mtConfirmation, mbYesNoCancel, 0);
+      case Mr of
+        mrYes: MenuItemSaveDesign.Click;
+        mrCancel: Result := false;
+      end;
     end;
   end;
 end;
@@ -444,15 +500,14 @@ begin
 
   ShellTreeView1.Root := ProjectPath;
 
-  // start
-  MenuItemNewDesignUserInterfaceClick(nil);
-
   // It's too easy to change it visually and forget, so we set it from code
   PageControlBottom.ActivePage := TabFiles;
   SetEnabledCommandRun(true);
 
   BuildMode := bmDebug;
   MenuItemModeDebug.Checked := true;
+
+  DesignExistenceChanged;
 end;
 
 initialization

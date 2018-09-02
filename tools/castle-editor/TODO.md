@@ -5,18 +5,8 @@ Now:
     * Component wrapper will also need info about what is default, to know what to save...
       to json,
       and for lfm -- se TCastleColorPersistent.DefineProperties todo
-    * UI of designer needs to be improved to clearly communicate what is happening:
-	* before exiting ask whether to save.
-	* special menu "Designer" with new, open, close. Separate from "File"
-	* rest of "File" rename to "Project"
-	* initially nothing should be open,
-	  and top part of editor should show
-	  "Open or create a new
-	   - user interface (.castle-user-interface file) or
-	   - transformation (.castle-transform file)
-	   using the "Designer" menu
-	* Designer -> Close (Ctrl + W) menu
-    * open last scene in the project,
+    * before exiting ask whether to save design
+    * open last design in the project,
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
     * Allow editing of:

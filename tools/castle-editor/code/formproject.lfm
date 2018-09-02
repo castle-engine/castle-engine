@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
   Left = 371
   Height = 738
-  Top = 198
+  Top = 197
   Width = 1332
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 703
@@ -99,45 +99,36 @@ object ProjectForm: TProjectForm
     ClientHeight = 434
     ClientWidth = 1332
     TabOrder = 2
-    inline DesignFrame1: TDesignFrame
-      Height = 434
-      Width = 1332
-      Align = alClient
-      ClientHeight = 434
-      ClientWidth = 1332
-      inherited SplitterLeft: TSplitter
-        Height = 434
-      end
-      inherited SplitterRight: TSplitter
-        Left = 969
-        Height = 434
-      end
-      inherited PanelRight: TPanel
-        Left = 976
-        Height = 434
-        ClientHeight = 434
-        inherited ControlProperties: TPageControl
-          Height = 370
-        end
-      end
-      inherited PanelLeft: TPanel
-        Height = 434
-        ClientHeight = 434
-        inherited ControlsTree: TTreeView
-          Height = 397
-          OnSelectionChanged = nil
-        end
-      end
+    object LabelNoDesign: TLabel
+      AnchorSideLeft.Control = PanelAboveTabs
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = PanelAboveTabs
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrCenter
+      AnchorSideBottom.Side = asrCenter
+      Left = 328
+      Height = 216
+      Top = 109
+      Width = 677
+      Alignment = taCenter
+      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Designer" menu.'
+      Font.Height = -39
+      ParentColor = False
+      ParentFont = False
+      WordWrap = True
     end
   end
   object MainMenu1: TMainMenu
-    left = 336
-    top = 97
+    left = 52
+    top = 24
     object MenuItemFile: TMenuItem
       Caption = 'Project'
       object MenuItemSwitchProject: TMenuItem
         Caption = 'Close and Switch Project'
         OnClick = MenuItemSwitchProjectClick
+      end
+      object MenuItemSeparator1000: TMenuItem
+        Caption = '-'
       end
       object MenuItemQuit: TMenuItem
         Caption = 'Quit'
@@ -171,6 +162,13 @@ object ProjectForm: TProjectForm
       object MenuItemSaveAsDesign: TMenuItem
         Caption = 'Save As ...'
         OnClick = MenuItemSaveAsDesignClick
+      end
+      object MenuItemSeparator400: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
       end
     end
     object MenuItemRun: TMenuItem
@@ -269,21 +267,21 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    left = 453
-    top = 100
+    left = 169
+    top = 27
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     FilterIndex = 0
     AdviceDataDirectory = True
-    left = 332
-    top = 170
+    left = 48
+    top = 97
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     AdviceDataDirectory = True
-    left = 464
-    top = 184
+    left = 180
+    top = 111
   end
 end
