@@ -16,8 +16,10 @@ type
   TDesignFrame = class(TFrame)
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
+    LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
+    PanelMiddle: TPanel;
     PanelLeft: TPanel;
     PanelRight: TPanel;
     SplitterLeft: TSplitter;
@@ -37,6 +39,7 @@ type
     DesignOwner: TComponent;
     FDesignModified: Boolean;
     CastleControl: TCastleControlCustom;
+    procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
@@ -107,8 +110,9 @@ begin
   InspectorEvents.Filter := tkMethods;
 
   CastleControl := TCastleControlCustom.Create(Self);
-  CastleControl.Parent := Self;
+  CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
+  CastleControl.OnResize := @CastleControlResize;
 
   // initialize CastleControl
   // TODO: This should follow the auto-scale settings of loaded file
@@ -250,6 +254,38 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
 begin
   Result := C.Name + ' (' + ClassCaption(C.ClassType) + ')';
+end;
+
+procedure TDesignFrame.CastleControlResize(Sender: TObject);
+var
+  CalculatedUIScale: Single;
+  H, CalculatedUIScaleStr: String;
+begin
+  // trick to get private TUIContainer.FCalculatedUIScale
+  CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledFloatWidth) *
+    CastleControl.Container.Width;
+  CalculatedUIScaleStr := IntToStr(Round(CalculatedUIScale * 100)) + '%';
+
+  LabelUIScaling.Caption := CalculatedUIScaleStr;
+  case CastleControl.Container.UIScaling of
+    usNone                : H := 'No user interface scaling';
+    usEncloseReferenceSize: H := 'User interface scaling in effect: window must fit inside a simulated size of %dx%d.' + NL;
+    usFitReferenceSize    : H := 'User interface scaling in effect: window must enclose a simulated size of %dx%d.' + NL;
+    usExplicitScale       : H := 'User interface scaling in effect: explicit scale.' + NL;
+    else raise EInternalError.Create('CastleControl.Container.UIScaling?');
+  end;
+  if CastleControl.Container.UIScaling <> usNone then
+  begin
+    H := Format(H + 'Actual window size is %dx%d.' + NL + 'Calculated scale is %s, which simulates surface of size %dx%d.',
+      [CastleControl.Container.UIReferenceWidth,
+       CastleControl.Container.UIReferenceHeight,
+       CastleControl.Container.Width,
+       CastleControl.Container.Height,
+       CalculatedUIScaleStr,
+       CastleControl.Container.UnscaledWidth,
+       CastleControl.Container.UnscaledHeight]);
+  end;
+  LabelUIScaling.Hint := H;
 end;
 
 procedure TDesignFrame.InspectorSimpleFilter(Sender: TObject;

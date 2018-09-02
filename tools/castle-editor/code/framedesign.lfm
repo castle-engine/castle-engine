@@ -103,4 +103,30 @@ object DesignFrame: TDesignFrame
       ParentColor = False
     end
   end
+  object PanelMiddle: TPanel
+    Left = 273
+    Height = 503
+    Top = 0
+    Width = 606
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 503
+    ClientWidth = 606
+    TabOrder = 4
+    object LabelUIScaling: TLabel
+      Left = 5
+      Height = 27
+      Hint = 'UI Scaling to 1600x900'
+      Top = 5
+      Width = 596
+      Align = alTop
+      Alignment = taRightJustify
+      Anchors = [akTop, akRight]
+      BorderSpacing.Around = 5
+      Caption = '50%'
+      ParentColor = False
+      ParentShowHint = False
+      ShowHint = True
+    end
+  end
 end

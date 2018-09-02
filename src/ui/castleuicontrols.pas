@@ -616,9 +616,22 @@ type
       default DefaultTooltipDistance;
 
     { Enable automatic scaling of the UI.
-      This is great when the container size may vary widly (for example,
-      on mobile devices, although it becomes more and more sensible for desktops
-      too). See @link(TUIScaling) values for precise description how it works. }
+
+      This allows your UI to look correctly on various window sizes
+      (great both for mobile and desktop, where window size may vary wildly).
+      The idea is that you can set UI controls sizes
+      (like @link(TCastleUserInterfaceRect.Width),
+      @link(TCastleUserInterfaceRect.Height)) to a simple constant values.
+      And you should also set appropriate anchors
+      (choose wisely whether to anchor e.g. to left or right,
+      as the simulated window size still has variable aspect ratio).
+      And the result will look good on any actual window size.
+      All the controls will be scaled to fill the same window part.
+      The scaling is actually done by scaling the coordinates, so there's
+      no quality loss, whole rendering just adjusts to the actual window size
+      in a smart way.
+
+      See @link(TUIScaling) values for precise description how it works. }
     property UIScaling: TUIScaling
       read FUIScaling write SetUIScaling default usNone;
 

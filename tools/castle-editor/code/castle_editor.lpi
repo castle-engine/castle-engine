@@ -161,6 +161,7 @@
         <Filename Value="framedesign.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DesignFrame"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="FrameDesign"/>
       </Unit7>

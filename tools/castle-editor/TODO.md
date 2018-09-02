@@ -1,11 +1,11 @@
 ## TODO
 
 Now:
+
 * Visual inspector. designer etc.
     * Component wrapper will also need info about what is default, to know what to save...
       to json,
       and for lfm -- se TCastleColorPersistent.DefineProperties todo
-    * before exiting ask whether to save design
     * open last design in the project,
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
@@ -34,8 +34,11 @@ Now:
 
 	* virtual functions to say VerticalResizingEffective
 	  (at TCastleUserInterface or only TCastleUserInterfaceRect)
-    * ask before closing project when HierarchyModified - save? cancel?
-    * ask before overriding saved file
+    * design files UI:
+        * ask before overriding saved file
+	* before opening new one - ask whether to save design
+        * before exiting - ask whether to save design
+
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
@@ -72,21 +75,11 @@ Now:
     * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
     * TLabel.Text using prop editor (multiline) setting is ignored
       (we should react to Text.Assign maybe?)
-    * saving TCastleColorPersistent to LFM for now doesn't work?
 
-+  // TODO: Why these are necessary to expand in castle-editor,
-+  // but in Lazarus at least TCastleVector3Persistent in test project was
-+  // expanded without this?
-+  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-+    TSubPropertiesEditor);
-+  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-+    TSubPropertiesEditor);
-+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
-+    TSubPropertiesEditor);
-+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
-+    TSubPropertiesEditor);
+------------------------------------------------------------------------------
+Lower priority:
+* show and allow to control auto-scaling
 
-* show somewhere
     Scaling: Automatic scaling to reference sizes 1600x900 in effect.
     Actual window size is 696x434.
     Calculated scale is 0.44, which simulates surface of size 1600x998.
@@ -103,13 +96,16 @@ Now:
 
     (From code, you can control this using Window.Container.UIScalingXxx properties.)
 
-Lower priority:
 * ugly button in example? new ui for internal controls?
-* Files browser as above
+
+* Make files browser with features as documented.
+    Also to allow dropping scenes/images on UI design.
+
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
+
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * For "run", colorized CastleLog warnings
@@ -158,8 +154,27 @@ Lower priority:
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
     * remember ProjectForm state of maximized/not
 
-Lowest priority (OK if not in 1st release)
+------------------------------------------------------------------------------
+Lowest priority (OK if not in 1st release):
+
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor
     * Icon, other stuff from CastleEngineManifest.xml could be configuirable in editor
 * Desing also X3D nodes inside TCastleScene. This would be powerful... But not for now. I also deliberately do not want to turn CGE editor into Blender :) For creating 3D models, the recommended workflow will remain to use external editor (like Blender), and only e.g. adjust materials in CGE (override material properties using material_properties.xml). An editor for X3D nodes would be great to add stuff not possible in Blender, though (Background, clip planes, primitives...).
+
+* For editor on Lazarus at design-time:
+    * TCastleControl (or sthg else) in designer mode should set ApplicationDataOverride,
+        to allow our dialogs to replace URL with castle-data:/ nicely.
+    * object inspector editing vectors/colors question:
+	+  // TODO: Why these are necessary to expand in castle-editor,
+	+  // but in Lazarus at least TCastleVector3Persistent in test project was
+	+  // expanded without this?
+	+  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
+	+    TSubPropertiesEditor);
+	+  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
+	+    TSubPropertiesEditor);
+	+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
+	+    TSubPropertiesEditor);
+	+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
+	+    TSubPropertiesEditor);
+    * saving TCastleColorPersistent to LFM for now doesn't work?
