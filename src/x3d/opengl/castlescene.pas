@@ -822,7 +822,8 @@ implementation
 // to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
-  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes;
+  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
+  CastleComponentSerialize;
 {$warnings on}
 
 var
@@ -2440,6 +2441,7 @@ end;
 
 initialization
   GLContextCache := TGLRendererContextCache.Create;
+  RegisterSerializableComponent(TCastleScene, 'Scene');
 finalization
   FreeAndNil(GLContextCache);
 end.

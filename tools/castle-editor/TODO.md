@@ -18,6 +18,12 @@ Now:
       See /home/michalis/common/TODO/castle-engine/editor/castlevectors_components.inc
       and /home/michalis/common/TODO/castle-engine/editor/cge-editor-older-notes-published-vectors.txt
       started (TCastleRectangleControl.Color works), needs to be automated for other now.
+
+      Autogenerate wrappers for vectors, colors
+
+    * Add TCastleImageComponent, manually make all UI controls use it
+      See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+
     * Allow adding new, deleting, moving around
     * UI controls improvements:
 	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
@@ -65,6 +71,7 @@ Now:
       - we need a way to adjust various images of tcastlebutton
         See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
       	Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
+      - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
 
     * castle-data:/ finish
       - support castlefindfiles.pas too

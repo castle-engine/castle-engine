@@ -1879,7 +1879,7 @@ const
 
 implementation
 
-uses CastleLog, CastleQuaternions;
+uses CastleLog, CastleQuaternions, CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
@@ -3348,4 +3348,5 @@ end;
 
 initialization
   GlobalIdentityMatrix := TMatrix4.Identity;
+  RegisterSerializableComponent(TCastleTransform, 'Transform');
 end.

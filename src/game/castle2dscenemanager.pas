@@ -170,7 +170,7 @@ type
 
 implementation
 
-uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
+uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes, CastleComponentSerialize;
 
 { TCastle2DSceneManager -------------------------------------------------------- }
 
@@ -270,4 +270,7 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
+initialization
+  RegisterSerializableComponent(TCastle2DSceneManager, '2D Scene Manager');
+  RegisterSerializableComponent(TCastle2DScene, '2D Scene');
 end.

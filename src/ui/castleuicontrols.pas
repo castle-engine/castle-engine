@@ -1822,7 +1822,7 @@ var
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleComponentSerialize;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -4313,6 +4313,8 @@ begin
   try
     FloatRectNotOverriddenAddress := TMethod(@Ui.FloatRect).Code;
   finally FreeAndNil(Ui) end;
+
+  RegisterSerializableComponent(TCastleUserInterfaceRect, 'Empty Rectangle');
 end;
 
 initialization

@@ -1416,7 +1416,8 @@ implementation
 uses Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
-  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages;
+  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
+  CastleComponentSerialize;
 {$warnings on}
 
 procedure Register;
@@ -4094,4 +4095,7 @@ initialization
   Input_Interact.Assign(K_None, K_None, #0, true, mbLeft);
   Input_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
   Input_CancelFlying.Assign(K_None, K_None, #0, false, mbLeft);
+
+  RegisterSerializableComponent(TCastleSceneManager, 'Scene Manager');
+  RegisterSerializableComponent(TCastleViewport, 'Viewport');
 end.

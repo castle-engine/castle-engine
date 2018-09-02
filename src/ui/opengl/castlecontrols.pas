@@ -105,7 +105,7 @@ implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10, CastleTextureImages,
-  CastleApplicationProperties, CastleMessaging;
+  CastleApplicationProperties, CastleMessaging, CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals
@@ -141,6 +141,20 @@ end;
 
 initialization
   FTheme := TCastleTheme.Create;
+
+  RegisterSerializableComponent(TCastleButton, 'Button');
+  RegisterSerializableComponent(TCastleImageControl, 'Image');
+  RegisterSerializableComponent(TCastleRectangleControl, 'Color Rectangle');
+  RegisterSerializableComponent(TCastleLabel, 'Label');
+  RegisterSerializableComponent(TCastleShape, 'Simple Shape');
+  RegisterSerializableComponent(TCastleIntegerSlider, 'Integer Slider');
+  RegisterSerializableComponent(TCastleFloatSlider, 'Float Slider');
+  RegisterSerializableComponent(TCastleTimer, 'Timer');
+  RegisterSerializableComponent(TCastleEdit, 'Edit');
+  RegisterSerializableComponent(TCastleVerticalGroup, 'Vertical Group');
+  RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
+  // TODO: TCastleCrosshair, TCastleScrollView, TCastleSwitchControl? more?
+
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;

@@ -24,7 +24,7 @@ unit CastleComponentSerialize;
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti,
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections,
   CastleUIControls, CastleTransform;
 
 type
@@ -42,45 +42,78 @@ type
     property Owner: TComponent read FOwner;
   end;
 
+{ Save / load TCastleTransform (or descendant) to a .castle-transform file. }
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
 
+{ Save / load TCastleUserInterface (or descendant) to a .castle-user-interface file. }
 procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
 function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 
+{ Save / load TComponent (or descendant)
+  to a .castle-user-interface or .castle-transform file.
+
+  Usually it is more comfortable to use stronger typed
+  @link(UserInterfaceSave), @link(UserInterfaceLoad),
+  @link(TransformSave), @link(TransformLoad). }
 procedure ComponentSave(const C: TComponent; const Url: String);
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+
+{ Register a component that can be serialized and edited using CGE editor.
+  @param(Caption Nice caption to show user in the editor.) }
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const Caption: String);
+
+type
+  TRegisteredComponent = class
+    ComponentClass: TComponentClass;
+    Caption: String;
+  end;
+  TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
+
+{ Read-only list of currently registered
+  (using @link(RegisterSerializableComponent)) components. }
+function RegisteredComponents: TRegisteredComponents;
 
 implementation
 
 uses JsonParser, TypInfo, RtlConsts,
-  CastleFilesUtils, CastleUtils,
-  // TODO: these units are only for temporary FindComponentClass implementation
-  CastleControls, CastleScene, Castle2DSceneManager, CastleSceneManager;
+  CastleFilesUtils, CastleUtils;
+
+{ component registration ----------------------------------------------------- }
+
+var
+  FRegisteredComponents: TRegisteredComponents;
+
+function RegisteredComponents: TRegisteredComponents;
+begin
+  if FRegisteredComponents = nil then
+    FRegisteredComponents := TRegisteredComponents.Create(true);
+  Result := FRegisteredComponents;
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const Caption: String);
+var
+  R: TRegisteredComponent;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  R.Caption := Caption;
+  RegisteredComponents.Add(R);
+end;
 
 function FindComponentClass(const AClassName: string): TComponentClass;
-const
-  // TODO: should we just register this all, and it should work then automatically?
-  Classes: array [0..8] of TComponentClass = (
-    TCastleUserInterfaceRect,
-    TCastleButton,
-    TCastleLabel,
-    TCastleRectangleControl,
-    TCastleSceneManager,
-    TCastle2DSceneManager,
-    TCastleTransform,
-    TCastleScene,
-    TCastle2DScene
-  );
 var
-  C: TComponentClass;
+  R: TRegisteredComponent;
 begin
-  // TODO: browse also registered classes
-  for C in Classes do
-    if C.ClassName = AClassName then
-      Exit(C);
+  for R in RegisteredComponents do
+    if R.ComponentClass.ClassName = AClassName then
+      Exit(R.ComponentClass);
   Result := nil;
 end;
+
+{ loading from JSON ---------------------------------------------------------- }
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJSONObject;
@@ -172,6 +205,8 @@ begin
     FreeAndNil(Reader);
   end;
 end;
+
+{ saving to JSON ------------------------------------------------------------- }
 
 type
   TCastleComponentWriter = class
@@ -308,6 +343,8 @@ begin
   finally FreeAndNil(JsonWriter) end;
 end;
 
+{ simple utilities ----------------------------------------------------------- }
+
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 begin
   ComponentSave(T, Url);
@@ -328,4 +365,6 @@ begin
   Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
 end;
 
+finalization
+  FreeAndNil(FRegisteredComponents);
 end.
