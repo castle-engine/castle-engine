@@ -1,11 +1,11 @@
 object ProjectForm: TProjectForm
-  Left = 407
-  Height = 725
-  Top = 211
-  Width = 1296
+  Left = 371
+  Height = 738
+  Top = 198
+  Width = 1332
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 690
-  ClientWidth = 1296
+  ClientHeight = 703
+  ClientWidth = 1332
   DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
@@ -16,8 +16,8 @@ object ProjectForm: TProjectForm
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
-    Top = 428
-    Width = 1296
+    Top = 441
+    Width = 1332
     ActivePage = TabFiles
     Align = alBottom
     TabIndex = 0
@@ -25,7 +25,7 @@ object ProjectForm: TProjectForm
     object TabFiles: TTabSheet
       Caption = 'Files'
       ClientHeight = 217
-      ClientWidth = 1290
+      ClientWidth = 1326
       object ShellTreeView1: TShellTreeView
         Left = 0
         Height = 217
@@ -45,7 +45,7 @@ object ProjectForm: TProjectForm
         Left = 374
         Height = 217
         Top = 0
-        Width = 916
+        Width = 952
         Align = alClient
         Color = clDefault
         ReadOnly = True
@@ -64,7 +64,7 @@ object ProjectForm: TProjectForm
     object TabOutput: TTabSheet
       Caption = 'Output'
       ClientHeight = 217
-      ClientWidth = 1290
+      ClientWidth = 1326
       object ListOutput: TListBox
         Left = 0
         Height = 217
@@ -84,112 +84,49 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 421
-    Width = 1296
+    Top = 434
+    Width = 1332
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 421
+    Height = 434
     Top = 0
-    Width = 1296
+    Width = 1332
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 421
-    ClientWidth = 1296
+    ClientHeight = 434
+    ClientWidth = 1332
     TabOrder = 2
-    object SplitterLeft: TSplitter
-      Left = 266
-      Height = 421
-      Top = 0
-      Width = 7
-    end
-    object SplitterRight: TSplitter
-      Left = 933
-      Height = 421
-      Top = 0
-      Width = 7
-      Align = alRight
-      ResizeAnchor = akRight
-    end
-    object PanelRight: TPanel
-      Left = 940
-      Height = 421
-      Top = 0
-      Width = 356
-      Align = alRight
-      BevelOuter = bvNone
-      ClientHeight = 421
-      ClientWidth = 356
-      TabOrder = 2
-      object LabelControlSelected: TLabel
-        Left = 5
-        Height = 54
-        Top = 5
-        Width = 346
-        Align = alTop
-        BorderSpacing.Around = 5
-        Caption = 'Selected:'#13#10'xxx (yyy)'
-        ParentColor = False
-        ParentFont = False
+    inline DesignFrame1: TDesignFrame
+      Height = 434
+      Width = 1332
+      Align = alClient
+      ClientHeight = 434
+      ClientWidth = 1332
+      inherited SplitterLeft: TSplitter
+        Height = 434
       end
-      object ControlProperties: TPageControl
-        Left = 0
-        Height = 357
-        Top = 64
-        Width = 356
-        ActivePage = TabSimple
-        Align = alClient
-        TabIndex = 0
-        TabOrder = 0
-        object TabSimple: TTabSheet
-          Caption = 'Simple'
-        end
-        object TabAdvanced: TTabSheet
-          Caption = 'Advanced'
-        end
-        object TabEvents: TTabSheet
-          Caption = 'Events'
+      inherited SplitterRight: TSplitter
+        Left = 969
+        Height = 434
+      end
+      inherited PanelRight: TPanel
+        Left = 976
+        Height = 434
+        ClientHeight = 434
+        inherited ControlProperties: TPageControl
+          Height = 370
         end
       end
-    end
-    object PanelLeft: TPanel
-      Left = 0
-      Height = 421
-      Top = 0
-      Width = 266
-      Align = alLeft
-      BevelOuter = bvNone
-      ClientHeight = 421
-      ClientWidth = 266
-      TabOrder = 3
-      object ControlsTree: TTreeView
-        Left = 0
-        Height = 384
-        Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
-        Top = 37
-        Width = 266
-        Align = alClient
-        MultiSelect = True
-        ParentShowHint = False
-        ReadOnly = True
-        RowSelect = True
-        ScrollBars = ssAutoBoth
-        ShowHint = True
-        TabOrder = 0
-        OnSelectionChanged = ControlsTreeSelectionChanged
-        Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
-      end
-      object LabelHierarchy: TLabel
-        Left = 5
-        Height = 27
-        Top = 5
-        Width = 256
-        Align = alTop
-        BorderSpacing.Around = 5
-        Caption = 'Hierarchy'
-        ParentColor = False
+      inherited PanelLeft: TPanel
+        Height = 434
+        ClientHeight = 434
+        inherited ControlsTree: TTreeView
+          Height = 397
+          OnSelectionChanged = nil
+        end
       end
     end
   end
