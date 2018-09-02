@@ -86,6 +86,23 @@ Now:
 +  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
 +    TSubPropertiesEditor);
 
+* show somewhere
+    Scaling: Automatic scaling to reference sizes 1600x900 in effect.
+    Actual window size is 696x434.
+    Calculated scale is 0.44, which simulates surface of size 1600x998.
+
+    show 44% somewhere, and upon clicking a dialog:
+
+    Configure user interface scaling
+
+    User interface scaling simulates a window of a particular size by adjusting the coordinates internally used by the UI controls. In effect, you can set hardcoded values for controls sizes, and they will take the same portion of the final window. You should still carefully set the anchors of your UI controls, as the final window may have various aspect ratios.
+
+    - No user interface scaling
+    - Window fits inside the simulated area size
+    - Window encloses simulated area size (Recommended)
+
+    (From code, you can control this using Window.Container.UIScalingXxx properties.)
+
 Lower priority:
 * ugly button in example? new ui for internal controls?
 * Files browser as above
