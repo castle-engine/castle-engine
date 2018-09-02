@@ -278,7 +278,7 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
-  CastleStringUtils, CastleGLImages, CastleSoundEngine;
+  CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleComponentSerialize;
 
 procedure Register;
 begin
@@ -836,4 +836,6 @@ begin
   RecalculateSize;
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleOnScreenMenu, 'On-screen Menu');
 end.

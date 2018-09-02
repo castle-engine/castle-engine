@@ -153,8 +153,9 @@ initialization
   RegisterSerializableComponent(TCastleEdit, 'Edit');
   RegisterSerializableComponent(TCastleVerticalGroup, 'Vertical Group');
   RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
-  // TODO: TCastleCrosshair, TCastleScrollView, TCastleSwitchControl? more?
-
+  RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');
+  RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
+  RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;

@@ -22,7 +22,7 @@ interface
 
 uses Classes,
   CastleUIControls, CastleColors, CastleRectangles, CastleGLImages,
-  CastleImages;
+  CastleImages, CastleComponentSerialize;
 
 type
   { Fade out, flash, and similar screen effects
@@ -245,4 +245,6 @@ begin
   Result := FIntensity > 0;
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleFlashEffect, 'Flash Effect');
 end.

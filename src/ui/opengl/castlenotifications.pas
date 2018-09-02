@@ -135,7 +135,7 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleLog;
+  CastleLog, CastleComponentSerialize;
 
 procedure Register;
 begin
@@ -291,4 +291,6 @@ begin
     end;
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleNotifications, 'Notifications');
 end.
