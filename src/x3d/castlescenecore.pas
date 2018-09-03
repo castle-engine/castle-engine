@@ -456,6 +456,14 @@ type
     constructor Create;
   end;
 
+  { Possible values for @link(TCastleScene.PrimitiveGeometry). }
+  TPrimitiveGeometry = (
+    pgNone,
+    pgRectangle2D,
+    pgSphere,
+    pgBox
+  );
+
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
     @link(TCastleScene), which is a descendant of this class that adds rendering
@@ -563,6 +571,8 @@ type
       tree. }
     ShapeLODs: TObjectList;
 
+    FPrimitiveGeometry: TPrimitiveGeometry;
+
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
       TInternalTimeDependentHandler.SetTime. }
@@ -605,6 +615,8 @@ type
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
       Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+
+    procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -2298,6 +2310,12 @@ type
       ) }
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
+
+    { Easily turn the scene into a simple primitive, like sphere or box or plane.
+      Changing this to something else than pgNone
+      reloads the scene (calls @link(Load) with a new X3D graph). }
+    property PrimitiveGeometry: TPrimitiveGeometry
+      read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
   end;
 
   {$define read_interface}
@@ -2881,6 +2899,11 @@ begin
   Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
   FURL := AURL;
+
+  { When loading from URL, reset FPrimitiveGeometry.
+    Otherwise deserialization would be undefined -- do we load contents
+    from URL or PrimitiveGeometry? }
+  FPrimitiveGeometry := pgNone;
 
   Profiler.Stop(TimeStart);
 end;
@@ -7478,6 +7501,39 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 begin
   inherited;
   RenderingCameraChanged(Params.RenderingCamera);
+end;
+
+procedure TCastleSceneCore.SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
+const
+  Classes: array [TPrimitiveGeometry] of TAbstractGeometryNodeClass =
+  ( nil,
+    TRectangle2DNode,
+    TSphereNode,
+    TBoxNode
+  );
+var
+  Shape: TShapeNode;
+  TransformNode: TTransformNode;
+  NewRootNode: TX3DRootNode;
+begin
+  if FPrimitiveGeometry <> AValue then
+  begin
+    FPrimitiveGeometry := AValue;
+    if Classes[FPrimitiveGeometry] <> nil then
+    begin
+      { Reset FURL if the scene contents are determined by PrimitiveGeometry,
+        otherwise deserialization would be undefined -- do we load contents
+        from URL or PrimitiveGeometry? }
+      FURL := '';
+
+      NewRootNode := TX3DRootNode.Create;
+      Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
+      // default Material, to be lit
+      Shape.Material := TMaterialNode.Create;
+      NewRootNode.AddChildren(TransformNode);
+      Load(NewRootNode, true);
+    end;
+  end;
 end;
 
 end.
