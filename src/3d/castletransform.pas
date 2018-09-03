@@ -699,19 +699,6 @@ type
       May be modified in subclasses, to return something more complicated. }
     function GetVisible: boolean; virtual;
 
-    { Is this object visible and colliding.
-
-      Setting this to @false pretty much turns everything of this 3D object
-      to "off". This is useful for objects that disappear completely from
-      the level when something happens. You could just as well remove
-      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
-      comfortable to simply turn this property to @false.
-
-      Descendants may also override GetExists method.
-
-      @noAutoLinkHere }
-    property Exists: boolean read FExists write FExists default true;
-
     { Items that are at least once disabled are treated like not existing.
       Every @link(Disable) call should always be paired with @link(Enable) call
       (usually using @code(try ... finally .... end) block).
@@ -724,62 +711,6 @@ type
     procedure Disable;
     procedure Enable;
     { @groupEnd }
-
-    { Should this 3D object participate in collision detection.
-      You can turn this off, useful to make e.g. "fake" walls
-      (to some secret places on level).
-
-      This describes collision resolution with almost everything --- camera,
-      player (in third-person perspective, camera may differ from player),
-      other creatures. That is because everything
-      resolves collisions through our methods MoveCollision and HeightCollision
-      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
-      PointCollision2D, BoxCollision (low-level).
-
-      (Note that RayCollision is excluded from this,
-      it exceptionally ignores Collides value, as it's primarily used for picking.
-      Same for SegmentCollision with LineOfSight=true.)
-
-      The only exception are the collisions with T3DMoving instances
-      (movable world parts like elevators and doors) that have their own
-      detection routines and look at CollidesWithMoving property of other objects.
-      That is, the T3DMoving instance itself must still have Collides = @true,
-      but it interacts with @italic(other) objects if and only if they have
-      CollidesWithMoving = @true (ignoring their Collides value).
-      This allows items to be moved by elevators, but still player and creatures
-      can pass through them.
-
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects never participate in collision detection).
-
-      Descendants may also override GetCollides method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Collides: boolean read FCollides write FCollides default true;
-
-    { Is item pickable by @link(RayCollision) method.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never pickable).
-      This is independent from @link(Collides), as @link(RayCollision)
-      does not look at @link(Collides), it only looks at @link(Pickable).
-
-      Descendants may also override GetPickable method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Pickable: boolean read FPickable write FPickable default true;
-
-    { Is item visible.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never visible).
-      This is independent from @link(Collides) or @link(Pickable).
-
-      Descendants may also override GetVisible method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Visible: boolean read FVisible write FVisible default true;
 
     { Operate on 3D objects contained in the list.
       You can also operate directly on @link(List) instance.
@@ -1718,6 +1649,74 @@ type
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
   published
+    { Is this object visible and colliding.
+
+      Setting this to @false pretty much turns everything of this 3D object
+      to "off". This is useful for objects that disappear completely from
+      the level when something happens. You could just as well remove
+      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
+      comfortable to simply turn this property to @false.
+
+      Descendants may also override GetExists method.
+
+      @noAutoLinkHere }
+    property Exists: boolean read FExists write FExists default true;
+
+    { Should this 3D object participate in collision detection.
+      You can turn this off, useful to make e.g. "fake" walls
+      (to some secret places on level).
+
+      This describes collision resolution with almost everything --- camera,
+      player (in third-person perspective, camera may differ from player),
+      other creatures. That is because everything
+      resolves collisions through our methods MoveCollision and HeightCollision
+      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
+      PointCollision2D, BoxCollision (low-level).
+
+      (Note that RayCollision is excluded from this,
+      it exceptionally ignores Collides value, as it's primarily used for picking.
+      Same for SegmentCollision with LineOfSight=true.)
+
+      The only exception are the collisions with T3DMoving instances
+      (movable world parts like elevators and doors) that have their own
+      detection routines and look at CollidesWithMoving property of other objects.
+      That is, the T3DMoving instance itself must still have Collides = @true,
+      but it interacts with @italic(other) objects if and only if they have
+      CollidesWithMoving = @true (ignoring their Collides value).
+      This allows items to be moved by elevators, but still player and creatures
+      can pass through them.
+
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects never participate in collision detection).
+
+      Descendants may also override GetCollides method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Collides: boolean read FCollides write FCollides default true;
+
+    { Is item pickable by @link(RayCollision) method.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never pickable).
+      This is independent from @link(Collides), as @link(RayCollision)
+      does not look at @link(Collides), it only looks at @link(Pickable).
+
+      Descendants may also override GetPickable method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Pickable: boolean read FPickable write FPickable default true;
+
+    { Is item visible.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never visible).
+      This is independent from @link(Collides) or @link(Pickable).
+
+      Descendants may also override GetVisible method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Visible: boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleSceneManager,
       and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
