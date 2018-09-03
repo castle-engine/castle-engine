@@ -346,18 +346,13 @@ begin
         should work (although we don't really need it now,
         DesignOwner owns everything). }
 
-      // TODO: This crashes for some reason?
-      //repeat
-      //  C := FirstDeletableComponent(Selected);
-      //  if C <> nil then
-      //    FreeAndNil(C)
-      //  else
-      //    Break;
-      //until false;
-
-      C := FirstDeletableComponent(Selected);
-      if C <> nil then
-        FreeAndNil(C);
+      repeat
+        C := FirstDeletableComponent(Selected);
+        if C <> nil then
+          FreeAndNil(C)
+        else
+          Break;
+      until false;
 
       // temporarily disable this event, as some pointers are invalid now
       ControlsTree.OnSelectionChanged := nil;
