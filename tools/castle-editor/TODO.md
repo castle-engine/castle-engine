@@ -24,7 +24,11 @@ Now:
     * Add TCastleImageComponent, manually make all UI controls use it
       See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
 
-    * Allow adding new, deleting, moving around
+    * moving added things in hierarchy (dragging in tree).
+    * adding - better UI? component palette?
+      add to root, if none selected?
+    * removing - keep selected above?
+      allow removing group?
     * UI controls improvements:
 	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
 	  At TCastleUserInterfaceRect document:
@@ -82,6 +86,11 @@ Now:
     * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
     * TLabel.Text using prop editor (multiline) setting is ignored
       (we should react to Text.Assign maybe?)
+
+    * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
+
+    * after changing scene manager items (or scene url),
+      recalculate camera box to have zoom working
 
 ------------------------------------------------------------------------------
 Lower priority:
@@ -185,3 +194,7 @@ Lowest priority (OK if not in 1st release):
 	+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
 	+    TSubPropertiesEditor);
     * saving TCastleColorPersistent to LFM for now doesn't work?
+
+* setting PrimitiveGeometry to pgSphere,
+  clears URL,
+  but it is not visible in object inspector immediately (it is not redrawn, it seems?)

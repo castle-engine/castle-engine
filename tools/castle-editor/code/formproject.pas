@@ -24,13 +24,24 @@ uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
   ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
   Types, Contnrs,
-  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
+  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
   EditorUtils, FrameDesign;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemSeparatorInAddTransform: TMenuItem;
+    MenuItemDesignAddSphere: TMenuItem;
+    MenuItemDesignAddRectangle2D: TMenuItem;
+    MenuItemDesignAddBox: TMenuItem;
+    MenuItemSeparator170: TMenuItem;
+    MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem;
+    MenuItemDesignNewTransformCustomRoot: TMenuItem;
+    MenuItemDesignDeleteComponent: TMenuItem;
+    MenuItemDesignAddTransform: TMenuItem;
+    MenuItemDesignAddUserInterface: TMenuItem;
+    MenuItemSeparator150: TMenuItem;
     MenuItemSeparator1000: TMenuItem;
     MenuItemDesignClose: TMenuItem;
     MenuItemSeparator400: TMenuItem;
@@ -38,8 +49,8 @@ type
     OpenDesignDialog: TCastleOpenDialog;
     MenuItemOpenDesign: TMenuItem;
     MenuItemSeparator201: TMenuItem;
-    MenuItemNewDesignTransform: TMenuItem;
-    MenuItemNewDesignUserInterface: TMenuItem;
+    MenuItemDesignNewTransform: TMenuItem;
+    MenuItemDesignNewUserInterfaceRect: TMenuItem;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
     MenuItemSaveDesign: TMenuItem;
@@ -92,11 +103,15 @@ type
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
+    procedure MenuItemDesignAddBoxClick(Sender: TObject);
+    procedure MenuItemDesignAddRectangle2DClick(Sender: TObject);
+    procedure MenuItemDesignAddSphereClick(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
+    procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
-    procedure MenuItemNewDesignUserInterfaceClick(Sender: TObject);
-    procedure MenuItemNewDesignTransformClick(Sender: TObject);
+    procedure MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
+    procedure MenuItemDesignNewTransformClick(Sender: TObject);
     procedure MenuItemOnlyRunClick(Sender: TObject);
     procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
@@ -116,6 +131,8 @@ type
     RunningProcess: TAsynchronousProcessQueue;
     Design: TDesignFrame;
     procedure BuildToolCall(const Commands: array of String);
+    procedure MenuItemAddComponentClick(Sender: TObject);
+    procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
     procedure UpdateFormCaption(Sender: TObject);
@@ -139,10 +156,10 @@ implementation
 
 uses TypInfo,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
-  CastleFilesUtils, CastleUtils, X3DNodes, CastleVectors, CastleColors,
+  CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
-  CastleLog, CastleComponentSerialize,
+  CastleLog, CastleComponentSerialize, CastleSceneCore,
   FormChooseProject, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -228,8 +245,44 @@ begin
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
+
+  function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
+  begin
+    Result := TMenuItem.Create(Self);
+    Result.Caption := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+    Result.Tag := PtrInt(Pointer(R.ComponentClass));
+  end;
+
+var
+  MenuItem: TMenuItem;
+  R: TRegisteredComponent;
+  SeparatorIndex: Integer;
 begin
   OutputList := TOutputList.Create(ListOutput);
+  for R in RegisteredComponents do
+  begin
+    if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      MenuItem := CreateMenuItemForComponent(R);
+      MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+      MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
+
+      MenuItem := CreateMenuItemForComponent(R);
+      MenuItem.OnClick := @MenuItemAddComponentClick;
+      MenuItemDesignAddUserInterface.Add(MenuItem);
+    end else
+    if R.ComponentClass.InheritsFrom(TCastleTransform) then
+    begin
+      MenuItem := CreateMenuItemForComponent(R);
+      MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+      MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
+
+      MenuItem := CreateMenuItemForComponent(R);
+      MenuItem.OnClick := @MenuItemAddComponentClick;
+      SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
+      MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+    end;
+  end;
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
@@ -265,6 +318,24 @@ begin
     BuildToolCall(['compile', 'run']);
 end;
 
+procedure TProjectForm.MenuItemDesignAddBoxClick(Sender: TObject);
+begin
+  NeedsDesignFrame;
+  Design.AddComponent(TCastleScene, pgBox);
+end;
+
+procedure TProjectForm.MenuItemDesignAddRectangle2DClick(Sender: TObject);
+begin
+  NeedsDesignFrame;
+  Design.AddComponent(TCastleScene, pgRectangle2D);
+end;
+
+procedure TProjectForm.MenuItemDesignAddSphereClick(Sender: TObject);
+begin
+  NeedsDesignFrame;
+  Design.AddComponent(TCastleScene, pgSphere);
+end;
+
 procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
@@ -274,6 +345,11 @@ begin
     FreeAndNil(Design);
     DesignExistenceChanged;
   end;
+end;
+
+procedure TProjectForm.MenuItemDesignDeleteComponentClick(Sender: TObject);
+begin
+  Design.DeleteComponent;
 end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
@@ -292,6 +368,9 @@ begin
   MenuItemSaveAsDesign.Enabled := Design <> nil;
   MenuItemSaveDesign.Enabled := Design <> nil;
   MenuItemDesignClose.Enabled := Design <> nil;
+  MenuItemDesignAddTransform.Enabled := Design <> nil;
+  MenuItemDesignAddUserInterface.Enabled := Design <> nil;
+  MenuItemDesignDeleteComponent.Enabled := Design <> nil;
   LabelNoDesign.Visible := Design = nil;
 end;
 
@@ -307,36 +386,16 @@ begin
   end;
 end;
 
-procedure TProjectForm.MenuItemNewDesignUserInterfaceClick(Sender: TObject);
-var
-  NewRoot: TCastleUserInterfaceRect;
-  NewDesignOwner: TComponent;
+procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
-  NewDesignOwner := TComponent.Create(Self);
-
-  // TODO: Allow choosing starting class?
-  NewRoot := TCastleUserInterfaceRect.Create(NewDesignOwner);
-  NewRoot.Name := 'Group1';
-  NewRoot.FullSize := true;
-
   NeedsDesignFrame;
-  Design.OpenDesign(NewRoot, NewDesignOwner, '');
+  Design.NewDesign(TCastleUserInterfaceRect);
 end;
 
-procedure TProjectForm.MenuItemNewDesignTransformClick(Sender: TObject);
-var
-  NewRoot: TCastleTransform;
-  NewDesignOwner: TComponent;
+procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
-  NewDesignOwner := TComponent.Create(Self);
-
-  // TODO: Allow choosing starting class?
-  // TODO: after adding new scenes, trasforms, adjust camera?
-  NewRoot := TCastleTransform.Create(NewDesignOwner);
-  NewRoot.Name := 'Transform1';
-
   NeedsDesignFrame;
-  Design.OpenDesign(NewRoot, NewDesignOwner, '');
+  Design.NewDesign(TCastleTransform);
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -432,6 +491,23 @@ begin
   end;
 
   RunningProcess.Start;
+end;
+
+procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
+var
+  ComponentClass: TComponentClass;
+begin
+  ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
+  Design.AddComponent(ComponentClass);
+end;
+
+procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
+var
+  ComponentClass: TComponentClass;
+begin
+  ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
+  NeedsDesignFrame;
+  Design.NewDesign(ComponentClass);
 end;
 
 procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);

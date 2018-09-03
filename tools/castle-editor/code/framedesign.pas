@@ -10,7 +10,8 @@ uses
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
-  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs;
+  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
+  CastleSceneCore;
 
 type
   TDesignFrame = class(TFrame)
@@ -50,6 +51,9 @@ type
     procedure PropertyGridModified(Sender: TObject);
     procedure UpdateDesign(const Root: TComponent);
     procedure UpdateSelectedControl;
+    function ProposeName(const ComponentClass: TComponentClass;
+      const ComponentsOwner: TComponent): String;
+    procedure UpdateComponentCaptionFromName(const C: TComponent);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -59,8 +63,13 @@ type
     procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
       const NewDesignUrl: String);
     procedure OpenDesign(const NewDesignUrl: String);
+    procedure NewDesign(const ComponentClass: TComponentClass);
+
     function FormCaption: String;
     procedure BeforeProposeSaveDesign;
+    procedure AddComponent(const ComponentClass: TComponentClass;
+      const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
+    procedure DeleteComponent;
 
     property DesignUrl: String read FDesignUrl;
     { Root saved/loaded to component file }
@@ -72,7 +81,8 @@ implementation
 
 uses TypInfo, StrUtils,
   CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
-  CastleControls, CastleURIUtils, CastleVectors;
+  CastleControls, CastleURIUtils, CastleVectors, CastleStringUtils,
+  EditorUtils;
 
 {$R *.lfm}
 
@@ -166,6 +176,7 @@ begin
   begin
     TempSceneManager := TCastleSceneManager.Create(NewDesignOwner);
     TempSceneManager.Transparent := true;
+    TempSceneManager.UseHeadlight := hlOn;
     TempSceneManager.Items.Add(NewDesignRoot as TCastleTransform);
     CastleControl.Controls.InsertFront(TempSceneManager);
   end else
@@ -239,6 +250,125 @@ begin
   InspectorEvents.SaveChanges;
 end;
 
+procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
+  const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
+
+  procedure AddTransform(const ParentComponent: TCastleTransform);
+  var
+    NewTransform: TCastleTransform;
+  begin
+    if ComponentClass.InheritsFrom(TCastleTransform) then
+    begin
+      NewTransform := ComponentClass.Create(DesignOwner) as TCastleTransform;
+      NewTransform.Name := ProposeName(ComponentClass, DesignOwner);
+      UpdateComponentCaptionFromName(NewTransform);
+      if PrimitiveGeometry <> pgNone then
+      begin
+        Assert(NewTransform is TCastleSceneCore);
+        (NewTransform as TCastleSceneCore).PrimitiveGeometry := PrimitiveGeometry;
+      end;
+      ParentComponent.Add(NewTransform);
+      UpdateDesign(DesignRoot);
+    end else
+      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+  end;
+
+  procedure AddUserInterface(const ParentComponent: TCastleUserInterface);
+  var
+    NewUserInterface: TCastleUserInterface;
+  begin
+    if ComponentClass.InheritsFrom(TCastleUserInterface) then
+    begin
+      NewUserInterface := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+      NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
+      UpdateComponentCaptionFromName(NewUserInterface);
+      ParentComponent.InsertFront(NewUserInterface);
+      UpdateDesign(DesignRoot);
+    end else
+      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select SceneManager.Items.',
+        [ComponentClass.ClassName, ParentComponent.ClassName]))
+  end;
+
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+  ParentComponent: TComponent;
+begin
+  // calculate ParentComponent
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount <> 1 then
+    begin
+      ErrorBox('Select exactly one component as a parent for the added component.');
+      Exit;
+    end;
+    ParentComponent := Selected.First;
+  finally FreeAndNil(Selected) end;
+
+  if ParentComponent is TCastleUserInterface then
+  begin
+    AddUserInterface(ParentComponent as TCastleUserInterface);
+  end else
+  if ParentComponent is TCastleTransform then
+  begin
+    AddTransform(ParentComponent as TCastleTransform);
+  end else
+    ErrorBox(Format('Cannot add to the parent of class %s, select other parent before adding.',
+      [ParentComponent.ClassName]))
+end;
+
+procedure TDesignFrame.DeleteComponent;
+
+  function FirstDeletableComponent(const List: TComponentList): TComponent;
+  var
+    I: Integer;
+  begin
+    for I := 0 to List.Count - 1 do
+      if (not (csSubComponent in List[I].ComponentStyle)) and
+         (List[I] <> DesignRoot) then
+        Exit(List[I]);
+    Result := nil;
+  end;
+
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+  C: TComponent;
+begin
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount <> 0 then // check this, otherwise Selected may be nil
+    begin
+      { We depend on the fact TComponentList observes freed items,
+        and removes them automatically.
+        This way also freeing something that frees something else
+        should work (although we don't really need it now,
+        DesignOwner owns everything). }
+
+      // TODO: This crashes for some reason?
+      //repeat
+      //  C := FirstDeletableComponent(Selected);
+      //  if C <> nil then
+      //    FreeAndNil(C)
+      //  else
+      //    Break;
+      //until false;
+
+      C := FirstDeletableComponent(Selected);
+      if C <> nil then
+        FreeAndNil(C);
+
+      // temporarily disable this event, as some pointers are invalid now
+      ControlsTree.OnSelectionChanged := nil;
+      ControlsTree.Items.Clear;
+      ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
+
+      UpdateDesign(DesignRoot);
+    end;
+  finally FreeAndNil(Selected) end;
+end;
+
 function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
   function ClassCaption(const C: TClass): String;
@@ -295,7 +425,9 @@ begin
     (
       (aEditor.GetPropInfo^.Name = 'URL') or
       (aEditor.GetPropInfo^.Name = 'Name') or
-      (aEditor.GetPropInfo^.Name = 'Caption')
+      (aEditor.GetPropInfo^.Name = 'Caption') or
+      (aEditor.GetPropInfo^.Name = 'Exists') or
+      (aEditor.GetPropInfo^.Name = 'ProcessEvents')
     );
 end;
 
@@ -462,9 +594,69 @@ begin
   UpdateSelectedControl;
 end;
 
+function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
+  const ComponentsOwner: TComponent): String;
+var
+  ResultBase: String;
+  I: Integer;
+begin
+  ResultBase := ComponentClass.ClassName;
+
+  // remove common prefixes
+  if IsPrefix('TCastleUserInterface', ResultBase, true) then
+    ResultBase := PrefixRemove('TCastleUserInterface', ResultBase, true)
+  else
+  if IsPrefix('TCastle', ResultBase, true) then
+    ResultBase := PrefixRemove('TCastle', ResultBase, true)
+  else
+  if IsPrefix('T', ResultBase, true) then
+    ResultBase := PrefixRemove('T', ResultBase, true);
+
+  // remove 2D, as component name cannot start with that
+  if IsPrefix('2D', ResultBase, true) then
+    ResultBase := PrefixRemove('2D', ResultBase, true);
+
+  // make unique
+  I := 1;
+  Result := ResultBase + IntToStr(I);
+  while ComponentsOwner.FindComponent(Result) <> nil do
+  begin
+    Inc(I);
+    Result := ResultBase + IntToStr(I);
+  end;
+end;
+
+procedure TDesignFrame.UpdateComponentCaptionFromName(const C: TComponent);
+begin
+  if C is TCastleLabel then
+    TCastleLabel(C).Caption := C.Name
+  else
+  if C is TCastleButton then
+    TCastleButton(C).Caption := C.Name
+  else
+  if C is TCastleEdit then
+    TCastleEdit(C).Text := C.Name;
+end;
+
+procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
+var
+  NewRoot: TComponent;
+  NewDesignOwner: TComponent;
+begin
+  NewDesignOwner := TComponent.Create(Self);
+
+  NewRoot := ComponentClass.Create(NewDesignOwner);
+  NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
+  UpdateComponentCaptionFromName(NewRoot);
+
+  if NewRoot is TCastleUserInterfaceRect then
+    (NewRoot as TCastleUserInterfaceRect).FullSize := true;
+
+  OpenDesign(NewRoot, NewDesignOwner, '');
+end;
+
 initialization
   { Enable using our property edits e.g. for TCastleScene.URL }
   CastlePropEdits.Register;
   PropertyEditorsAdviceDataDirectory := true;
 end.
-

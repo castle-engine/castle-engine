@@ -1,7 +1,7 @@
 object ProjectForm: TProjectForm
-  Left = 371
+  Left = 483
   Height = 738
-  Top = 197
+  Top = 233
   Width = 1332
   Caption = ' my-project | Castle Game Engine'
   ClientHeight = 703
@@ -138,13 +138,19 @@ object ProjectForm: TProjectForm
     end
     object MenuItemDesign: TMenuItem
       Caption = 'Design'
-      object MenuItemNewDesignUserInterface: TMenuItem
-        Caption = 'New User Interface'
-        OnClick = MenuItemNewDesignUserInterfaceClick
+      object MenuItemDesignNewUserInterfaceRect: TMenuItem
+        Caption = 'New User Interface (Empty Rectangle as Root)'
+        OnClick = MenuItemDesignNewUserInterfaceRectClick
       end
-      object MenuItemNewDesignTransform: TMenuItem
-        Caption = 'New Transform'
-        OnClick = MenuItemNewDesignTransformClick
+      object MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem
+        Caption = 'New User Interface (Chosen Root)'
+      end
+      object MenuItemDesignNewTransform: TMenuItem
+        Caption = 'New Transform (Empty Transform as Root)'
+        OnClick = MenuItemDesignNewTransformClick
+      end
+      object MenuItemDesignNewTransformCustomRoot: TMenuItem
+        Caption = 'New Transform (Chosen Root)'
       end
       object MenuItemSeparator201: TMenuItem
         Caption = '-'
@@ -162,6 +168,38 @@ object ProjectForm: TProjectForm
       object MenuItemSaveAsDesign: TMenuItem
         Caption = 'Save As ...'
         OnClick = MenuItemSaveAsDesignClick
+      end
+      object MenuItemSeparator150: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignAddUserInterface: TMenuItem
+        Caption = 'Add User Interface Component'
+      end
+      object MenuItemDesignAddTransform: TMenuItem
+        Caption = 'Add Transform Component'
+        object MenuItemSeparatorInAddTransform: TMenuItem
+          Caption = '-'
+        end
+        object MenuItemDesignAddRectangle2D: TMenuItem
+          Caption = 'Rectangle (TCastleScene with TRectangle2DNode)'
+          OnClick = MenuItemDesignAddRectangle2DClick
+        end
+        object MenuItemDesignAddBox: TMenuItem
+          Caption = 'Box (TCastleScene with TBoxNode)'
+          OnClick = MenuItemDesignAddBoxClick
+        end
+        object MenuItemDesignAddSphere: TMenuItem
+          Caption = 'Sphere (TCastleScene with TSphereNode)'
+          OnClick = MenuItemDesignAddSphereClick
+        end
+      end
+      object MenuItemSeparator170: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignDeleteComponent: TMenuItem
+        Caption = 'Delete Component'
+        ShortCut = 16430
+        OnClick = MenuItemDesignDeleteComponentClick
       end
       object MenuItemSeparator400: TMenuItem
         Caption = '-'
