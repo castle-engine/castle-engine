@@ -1621,8 +1621,11 @@ begin
 
   LastPressEvent := TInputPressRelease(Event);
 
-  Result := GetItems.Press(Event);
-  if Result then Exit;
+  if GetItems <> nil then
+  begin
+    Result := GetItems.Press(Event);
+    if Result then Exit;
+  end;
 
   if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
@@ -1665,8 +1668,11 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  Result := GetItems.Release(Event);
-  if Result then Exit;
+  if GetItems <> nil then
+  begin
+    Result := GetItems.Release(Event);
+    if Result then Exit;
+  end;
 
   if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
@@ -1723,7 +1729,7 @@ begin
       Camera.Press(LastPressEvent);
     end;
 
-    Camera.EnableDragging := not GetItems.Dragging;
+    Camera.EnableDragging := (GetItems = nil) or (not GetItems.Dragging);
     { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
       when we're already dragging a 3D item.
       This means that if you drag X3D sensors like TouchSensor, then your
@@ -1758,8 +1764,11 @@ procedure TCastleAbstractViewport.UpdateMouseRayHit;
 var
   RayOrigin, RayDirection: TVector3;
 begin
-  Camera.CustomRay(ScreenRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
-  PointingDeviceMove(RayOrigin, RayDirection);
+  if Camera <> nil then
+  begin
+    Camera.CustomRay(ScreenRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
+    PointingDeviceMove(RayOrigin, RayDirection);
+  end;
 end;
 
 procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
@@ -1774,7 +1783,9 @@ end;
 
 procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
 begin
-  if { This may be called from
+  if { This may be called from TCastleViewport without SceneManager assigned. }
+     (GetItems = nil) or
+     { This may be called from
        TCastleTransformList.Notify when removing stuff owned by other
        stuff, in particular during our own destructor when FItems is freed
        and we're in half-destructed state. }
@@ -1966,7 +1977,10 @@ var
   PerspectiveFieldOfViewForceVertical: boolean;
   PerspectiveAnglesRad: TVector2;
 begin
-  Box := GetItems.BoundingBox;
+  if GetItems <> nil then
+    Box := GetItems.BoundingBox
+  else
+    Box := TBox3D.Empty;
   Viewport := ScreenRect;
 
   { calculate ViewpointNode }
@@ -2946,7 +2960,10 @@ var
   C: TExamineCamera;
   Nav: TNavigationType;
 begin
-  Box := GetItems.BoundingBox;
+  if GetItems <> nil then
+    Box := GetItems.BoundingBox
+  else
+    Box := TBox3D.Empty;
   Scene := GetMainScene;
   if Scene <> nil then
   begin
@@ -3984,8 +4001,10 @@ end;
 
 function TCastleViewport.GetItems: TSceneManagerWorld;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.Items;
+  if SceneManager <> nil then
+    Result := SceneManager.Items
+  else
+    Result := nil; // to work even before SceneManager is assigned
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -4014,19 +4033,23 @@ end;
 
 function TCastleViewport.GetPlayer: TPlayer;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.Player;
+  if SceneManager <> nil then
+    Result := SceneManager.Player
+  else
+    Result := nil; // to make Update work without errors when SceneManager=nil
 end;
 
 function TCastleViewport.GetTimeScale: Single;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.TimeScale;
+  if SceneManager <> nil then
+    Result := SceneManager.TimeScale
+  else
+    Result := 1; // to make Update work without errors when SceneManager=nil
 end;
 
 procedure TCastleViewport.Render;
 begin
-  if not GetExists then Exit;
+  if (not GetExists) or (SceneManager = nil) then Exit;
 
   CheckSceneManagerAssigned;
   SceneManager.UpdateGeneratedTexturesIfNeeded;
