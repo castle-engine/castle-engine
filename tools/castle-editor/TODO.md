@@ -26,9 +26,9 @@ Now:
 
     * moving added things in hierarchy (dragging in tree).
     * adding - better UI? component palette?
-      add to root, if none selected?
+      after adding, keep previously selected still selected
+      content menu on hierarchy, to add transform/ui depending on parent
     * removing - keep selected above?
-      allow removing group?
     * UI controls improvements:
 	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
 	  At TCastleUserInterfaceRect document:
@@ -54,7 +54,8 @@ Now:
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
     * MainScene cannot be changed
       (we disabled in object inspector some types, maybe we should not?)
-      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine
+      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
+      Saving back suggests it's not deserialized OK now.
     * publish and save SceneManager.NavigationType
       and last camera
       { Use initial camera settings stored in

@@ -298,12 +298,10 @@ begin
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
   try
-    if SelectedCount <> 1 then
-    begin
-      ErrorBox('Select exactly one component as a parent for the added component.');
-      Exit;
-    end;
-    ParentComponent := Selected.First;
+    if SelectedCount = 1 then
+      ParentComponent := Selected.First
+    else
+      ParentComponent := DesignRoot;
   finally FreeAndNil(Selected) end;
 
   if ParentComponent is TCastleUserInterface then
