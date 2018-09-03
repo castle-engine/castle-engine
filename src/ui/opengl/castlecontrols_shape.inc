@@ -36,14 +36,8 @@
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
 
-    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
-
-    property Filled: boolean read FFilled write SetFilled default true;
-
     { The fill color, used if @link(Filled). By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
-
-    property Outline: boolean read FOutline write SetOutline default false;
 
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
@@ -94,6 +88,12 @@
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
+  published
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
+
+    property Filled: boolean read FFilled write SetFilled default true;
+
+    property Outline: boolean read FOutline write SetOutline default false;
   end;
 
 {$endif read_interface}

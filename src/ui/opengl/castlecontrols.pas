@@ -146,7 +146,7 @@ initialization
   RegisterSerializableComponent(TCastleImageControl, 'Image');
   RegisterSerializableComponent(TCastleRectangleControl, 'Color Rectangle');
   RegisterSerializableComponent(TCastleLabel, 'Label');
-  RegisterSerializableComponent(TCastleShape, 'Simple Shape');
+  RegisterSerializableComponent(TCastleShape, 'Shape');
   RegisterSerializableComponent(TCastleIntegerSlider, 'Integer Slider');
   RegisterSerializableComponent(TCastleFloatSlider, 'Float Slider');
   RegisterSerializableComponent(TCastleTimer, 'Timer');
