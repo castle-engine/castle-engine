@@ -836,11 +836,6 @@ type
       showing the user something like "now we're preparing
       the resources --- please wait".
 
-      For OpenGL rendered objects, this method ties this object
-      to the current OpenGL context.
-      But it doesn't change any OpenGL state or buffers contents
-      (at most, it allocates some texture and display list names).
-
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
