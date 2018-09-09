@@ -3,6 +3,21 @@
 Now:
 
 * Visual inspector. designer etc.
+    * check scene with primitive is (de)serialized ok
+    * Dragging UI:
+      * "Anchors" tab
+	Parent and Self anchors are the same (checkbox, if not -- separate 3x3 controls)
+	Calculated size: CalculatedWidth x CalculatedHeight
+	Rectangle on screen (in final device pixels): ScreenFloatRect
+	Warning: the area occupied by this control is outside of the parent control area. This the events (like mouse clicks) may not reach this control correctly. You must always fit child control inside the parent.
+      * Allow clicking on control, to select and drag (move)
+      * When dragging don't allow to drag outside of parent
+      * Drag by multiply, like 5, configurable
+      * Make Label for fps (in template) now designed in editor
+    * Button at scene manager: Camera View All
+    * Property editor for TCastleColorPersistent
+    * F1 help to API reference, show also in menu
+      for now just go to API reference main page?
     * Component wrapper will also need info about what is default, to know what to save...
       to json,
       and for lfm -- se TCastleColorPersistent.DefineProperties todo
@@ -95,13 +110,15 @@ Now:
 
 ------------------------------------------------------------------------------
 Lower priority:
-* show and allow to control auto-scaling
+* Add components tab at the bottom, with large icon for each component?
 
-    Scaling: Automatic scaling to reference sizes 1600x900 in effect.
-    Actual window size is 696x434.
-    Calculated scale is 0.44, which simulates surface of size 1600x998.
+* Allow to attach rigidbody and collision instances.
 
-    show 44% somewhere, and upon clicking a dialog:
+  Allow to autosynchronize them (e.g. size) with size of the model?
+
+* allow to control auto-scaling
+
+    when clicking on 44% (currently shows a hint about UI scaling) a dialog:
 
     Configure user interface scaling
 
