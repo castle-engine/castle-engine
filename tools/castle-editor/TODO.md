@@ -3,13 +3,19 @@
 Now:
 
 * Visual inspector. designer etc.
+    * some way to disable auto-selecting,
+      to allow moving parent when it is difficult to reach,
+      or to allow moving e.g. camera of scene manager instead of moving sceme manager
+    * update property grid when moving by mouse immediately
+    * Anchors tab keeps getting deselected for some reason when moving UI control
+    * Snap = 5.0; // TODO: configurable
+    * why moving scenemanager with fullsize=false doesn;t work?
+      changing Left works,
+      but changing HorizontalAnchorDelta doesn't?
     * check scene with primitive is (de)serialized ok
     * Dragging UI:
       * "Anchors" tab
 	Parent and Self anchors are the same (checkbox, if not -- separate 3x3 controls)
-	Calculated size: CalculatedWidth x CalculatedHeight
-	Rectangle on screen (in final device pixels): ScreenFloatRect
-	Warning: the area occupied by this control is outside of the parent control area. This the events (like mouse clicks) may not reach this control correctly. You must always fit child control inside the parent.
       * Allow clicking on control, to select and drag (move)
       * When dragging don't allow to drag outside of parent
       * Drag by multiply, like 5, configurable

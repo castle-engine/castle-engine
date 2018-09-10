@@ -323,6 +323,7 @@ type
 
     function Contains(const X, Y: Single): boolean; overload;
     function Contains(const Point: TVector2): boolean; overload;
+    function Contains(const R: TFloatRectangle): boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -1034,6 +1035,19 @@ function TFloatRectangle.Contains(const Point: TVector2): boolean;
 begin
   Result := (Point.Data[0] >= Left  ) and (Point.Data[0] <= Left   + Width) and
             (Point.Data[1] >= Bottom) and (Point.Data[1] <= Bottom + Height);
+end;
+
+function TFloatRectangle.Contains(const R: TFloatRectangle): boolean;
+begin
+  if R.IsEmpty then
+    Result := true
+  else
+    Result :=
+      (not IsEmpty) and
+      (R.Left >= Left) and
+      (R.Bottom >= Bottom) and
+      (R.Right <= Right) and
+      (R.Top <= Top);
 end;
 
 function TFloatRectangle.Center: TVector2;

@@ -6,46 +6,71 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Contnrs,
+  Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
-  CastleSceneCore;
+  CastleSceneCore, CastleKeysMouse, CastleVectors;
 
 type
+  { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
+    LabelSizeInfo: TLabel;
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
     PanelMiddle: TPanel;
     PanelLeft: TPanel;
     PanelRight: TPanel;
+    ScrollBox1: TScrollBox;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAdvanced: TTabSheet;
     TabEvents: TTabSheet;
+    TabAnchors: TTabSheet;
     TabSimple: TTabSheet;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
   private
-    InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
-    PropertyEditorHook: TPropertyEditorHook;
-    FDesignUrl: String;
-    FDesignRoot: TComponent;
-    { Owner of all components saved/loaded to component file,
-      also temporary scene manager for .castle-transform.
-      Everything specific to this hierarchy in CastleControl. }
-    DesignOwner: TComponent;
-    FDesignModified: Boolean;
-    CastleControl: TCastleControlCustom;
+    type
+      { UI layer that can intercept mouse clicks and drags. }
+      TDesignerLayer = class(TCastleUserInterfaceRect)
+      strict private
+        PendingMove: TVector2;
+        function GetSelectedUserInterface: TCastleUserInterface;
+        procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
+      public
+        Frame: TDesignFrame;
+        constructor Create(AOwner: TComponent); override;
+        function Press(const Event: TInputPressRelease): Boolean; override;
+        function Motion(const Event: TInputMotion): Boolean; override;
+        property SelectedUserInterface: TCastleUserInterface
+          read GetSelectedUserInterface write SetSelectedUserInterface;
+      end;
+
+      TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
+      end;
+
+    var
+      InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
+      PropertyEditorHook: TPropertyEditorHook;
+      FDesignUrl: String;
+      FDesignRoot: TComponent;
+      { Owner of all components saved/loaded to component file,
+        also temporary scene manager for .castle-transform.
+        Everything specific to this hierarchy in CastleControl. }
+      DesignOwner: TComponent;
+      FDesignModified: Boolean;
+      CastleControl: TCastleControlCustom;
+      TreeNodeMap: TTreeNodeMap;
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
-    procedure DesignModifiedNotification(Sender: TObject);
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
@@ -54,9 +79,11 @@ type
     function ProposeName(const ComponentClass: TComponentClass;
       const ComponentsOwner: TComponent): String;
     procedure UpdateComponentCaptionFromName(const C: TComponent);
+    procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
+    destructor Destroy; override;
 
     procedure SaveDesign(const Url: string);
     { Changes DesignRoot, DesignUrl and all the associated user-interface. }
@@ -79,12 +106,158 @@ type
 
 implementation
 
-uses TypInfo, StrUtils,
+uses TypInfo, StrUtils, Math,
   CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
-  CastleControls, CastleURIUtils, CastleVectors, CastleStringUtils,
+  CastleControls, CastleURIUtils, CastleStringUtils, CastleRectangles,
   EditorUtils;
 
 {$R *.lfm}
+
+function ParentScreenFloatRect(const UI: TCastleUserInterface): TFloatRectangle;
+begin
+  if UI.Parent = nil then
+    Result := UI.Container.FloatRect
+  else
+    Result := UI.Parent.ScreenFloatRect;
+end;
+
+{ TDesignFrame.TDesignerLayer ------------------------------------------------ }
+
+constructor TDesignFrame.TDesignerLayer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FullSize := true;
+end;
+
+function TDesignFrame.TDesignerLayer.GetSelectedUserInterface: TCastleUserInterface;
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+begin
+  Result := nil;
+  Frame.GetSelected(Selected, SelectedCount);
+  try
+    if (SelectedCount = 1) and (Selected[0] is TCastleUserInterface) then
+      Result := TCastleUserInterface(Selected[0]);
+  finally FreeAndNil(Selected) end;
+end;
+
+procedure TDesignFrame.TDesignerLayer.SetSelectedUserInterface(
+  const Value: TCastleUserInterface);
+var
+  Node: TTreeNode;
+begin
+  if Frame.TreeNodeMap.TryGetValue(Value, Node) then
+    Frame.ControlsTree.Select([Node]);
+end;
+
+function TDesignFrame.TDesignerLayer.Press(
+  const Event: TInputPressRelease): Boolean;
+
+  function ControlUnder(const C: TCastleUserInterface;
+    const MousePos: TVector2): TCastleUserInterface;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+    { To allow selecting even controls that have bad rectangle (outside
+      of parent, which can happen, e.g. if you enlarge caption of label
+      with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
+      too early here. }
+    if C.GetExists {and
+       C.CapturesEventsAtPosition(MousePos)} then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+      begin
+        Result := ControlUnder(C.Controls[I], MousePos);
+        if Result <> nil then Exit;
+      end;
+      if C.CapturesEventsAtPosition(MousePos) then
+        Result := C;
+    end;
+  end;
+
+var
+  UI: TCastleUserInterface;
+begin
+  Result := inherited Press(Event);
+  if Result then Exit;
+
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    // TODO: for now selects only UI control, not TCastleTransform
+    if Frame.DesignRoot is TCastleUserInterface then
+    begin
+      UI := ControlUnder(Frame.DesignRoot as TCastleUserInterface, Event.Position);
+      if UI <> nil then
+      begin
+        SelectedUserInterface := UI;
+        Exit(ExclusiveEvents);
+      end;
+    end;
+
+    PendingMove := TVector2.Zero;
+  end;
+end;
+
+function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
+const
+  Snap = 0.0; // TODO: configurable
+var
+  UI: TCastleUserInterface;
+  Move: TVector2;
+  CurrentRect, ResultingRect, ParentR: TFloatRectangle;
+begin
+  Result := inherited Motion(Event);
+  if Result then Exit;
+
+  if mbLeft in Event.Pressed then
+  begin
+    UI := SelectedUserInterface;
+    if UI <> nil then
+    begin
+      Move := Event.Position - Event.OldPosition;
+
+      CurrentRect := UI.ScreenFloatRect;
+      ResultingRect := CurrentRect.Translate(Move);
+      ParentR := ParentScreenFloatRect(UI);
+      { only allow movement if control will not go outside of parent,
+        unless it was already outside }
+      if (not ParentR.Contains(CurrentRect)) or
+        ParentR.Contains(ResultingRect) then
+      begin
+        Move /= UI.UIScale;
+
+        if Snap <> 0 then
+        begin
+          PendingMove += Move;
+          while Abs(PendingMove.X) >= Snap do
+          begin
+            UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta +
+              Sign(PendingMove.X) * Snap;
+            PendingMove.X := PendingMove.X -
+              Sign(PendingMove.X) * Snap;
+          end;
+          while Abs(PendingMove.Y) >= Snap do
+          begin
+            UI.VerticalAnchorDelta := UI.VerticalAnchorDelta +
+              Sign(PendingMove.Y) * Snap;
+            PendingMove.Y := PendingMove.Y -
+              Sign(PendingMove.Y) * Snap;
+          end;
+        end else
+        begin
+          UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + Move.X;
+          UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Move.Y;
+        end;
+
+        Exit(ExclusiveEvents);
+      end;
+    end;
+  end;
+end;
+
+{ TDesignFrame --------------------------------------------------------------- }
 
 constructor TDesignFrame.Create(TheOwner: TComponent);
 
@@ -98,9 +271,10 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.PreferredSplitterX := 150;
     Result.ValueFont.Bold := true;
     Result.ShowGutter := false;
-    Result.OnModified := @DesignModifiedNotification;
   end;
 
+var
+  DesignerLayer: TDesignerLayer;
 begin
   inherited;
 
@@ -130,8 +304,20 @@ begin
   CastleControl.Container.UIReferenceHeight := 900;
   CastleControl.Container.UIScaling := usEncloseReferenceSize;
 
+  DesignerLayer := TDesignerLayer.Create(Self);
+  DesignerLayer.Frame := Self;
+  CastleControl.Controls.InsertFront(DesignerLayer);
+
   // It's too easy to change it visually and forget, so we set it from code
   ControlProperties.ActivePage := TabSimple;
+
+  TreeNodeMap := TTreeNodeMap.Create;
+end;
+
+destructor TDesignFrame.Destroy;
+begin
+  FreeAndNil(TreeNodeMap);
+  inherited Destroy;
 end;
 
 procedure TDesignFrame.SaveDesign(const Url: string);
@@ -155,7 +341,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
   begin
     ControlsTree.Items.Clear;
     UpdateSelectedControl;
-    CastleControl.Controls.Clear;
+    //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
     FDesignRoot := nil;
 
     // this actually frees everything inside DesignRoot
@@ -168,9 +354,12 @@ var
 begin
   ClearDesign;
 
+  { We use CastleControl.Controls.InsertBack here, to keep DesignerLayer
+    in the front. }
+
   if NewDesignRoot is TCastleUserInterface then
   begin
-    CastleControl.Controls.InsertFront(NewDesignRoot as TCastleUserInterface)
+    CastleControl.Controls.InsertBack(NewDesignRoot as TCastleUserInterface)
   end else
   if NewDesignRoot is TCastleTransform then
   begin
@@ -178,7 +367,7 @@ begin
     TempSceneManager.Transparent := true;
     TempSceneManager.UseHeadlight := hlOn;
     TempSceneManager.Items.Add(NewDesignRoot as TCastleTransform);
-    CastleControl.Controls.InsertFront(TempSceneManager);
+    CastleControl.Controls.InsertBack(TempSceneManager);
   end else
     raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
@@ -243,7 +432,7 @@ begin
   { call SaveChanges to be sure to have good DesignModified value.
     Otherwise when editing e.g. TCastleButton.Caption,
     you can press F9 and have DesignModified = false,
-    because DesignModifiedNotification doesn't occur because we actually
+    because PropertyGridModified doesn't occur because we actually
     press "tab" to focus another control. }
   InspectorSimple.SaveChanges;
   InspectorAdvanced.SaveChanges;
@@ -438,12 +627,22 @@ begin
 
   ControlsTree.Selected.Text := ComponentCaption(SelectedComponent);
 
-  { update also LabelControlSelected }
   GetSelected(Selected, SelectedCount);
   try
     if SelectedCount = 1 then
+    begin
+      // update also LabelControlSelected
       LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Selected[0]);
+
+      // update also LabelSizeInfo
+      if Selected[0] is TCastleUserInterface then
+        UpdateLabelSizeInfo(Selected[0] as TCastleUserInterface);
+    end;
   finally FreeAndNil(Selected) end;
+
+  // mark modified
+  FDesignModified := true;
+  OnUpdateFormCaption(Self);
 end;
 
 procedure TDesignFrame.UpdateDesign(const Root: TComponent);
@@ -455,6 +654,7 @@ procedure TDesignFrame.UpdateDesign(const Root: TComponent);
   begin
     S := ComponentCaption(T);
     Result := ControlsTree.Items.AddChildObject(Parent, S, T);
+    TreeNodeMap.AddOrSetValue(T, Result);
     for I := 0 to T.Count - 1 do
       AddTransform(Result, T[I]);
   end;
@@ -467,6 +667,7 @@ procedure TDesignFrame.UpdateDesign(const Root: TComponent);
   begin
     S := ComponentCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
+    TreeNodeMap.AddOrSetValue(C, Result);
     for I := 0 to C.ControlsCount - 1 do
       AddControl(Result, C.Controls[I]);
 
@@ -481,6 +682,7 @@ var
   Node: TTreeNode;
 begin
   ControlsTree.Items.Clear;
+  TreeNodeMap.Clear;
 
   if Root is TCastleUserInterface then
     Node := AddControl(nil, Root as TCastleUserInterface)
@@ -548,17 +750,12 @@ begin
     SelectedCount := 0;
 end;
 
-procedure TDesignFrame.DesignModifiedNotification(Sender: TObject);
-begin
-  FDesignModified := true;
-  OnUpdateFormCaption(Self);
-end;
-
 procedure TDesignFrame.UpdateSelectedControl;
 var
   Selected: TComponentList;
   SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
+  UI: Boolean;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -579,6 +776,11 @@ begin
       InspectorAdvanced.Selection := SelectionForOI;
       InspectorEvents.Selection := SelectionForOI;
     finally FreeAndNil(SelectionForOI) end;
+
+    UI := (SelectedCount = 1) and (Selected[0] is TCastleUserInterface);
+    TabAnchors.TabVisible := UI;
+    if UI then
+      UpdateLabelSizeInfo(Selected[0] as TCastleUserInterface);
   finally FreeAndNil(Selected) end;
 end;
 
@@ -629,6 +831,36 @@ begin
   else
   if C is TCastleEdit then
     TCastleEdit(C).Text := C.Name;
+end;
+
+procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);
+
+  function RectToString(const R: TFloatRectangle): String;
+  begin
+    if R.IsEmpty then
+      Result := 'Empty'
+    else
+      Result := Format('  Left x Bottom: %f x %f' + NL + '  Size: %f x %f',
+        [R.Left, R.Bottom, R.Width, R.Height]);
+  end;
+
+var
+  S: String;
+begin
+  S := Format(
+    'Calculated size: %f x %f' + NL +
+    NL +
+    'Screen rectangle (scaled and with anchors):' + NL +
+    '%s',
+    [ UI.CalculatedFloatWidth,
+      UI.CalculatedFloatHeight,
+      RectToString(UI.ScreenFloatRect)
+    ]);
+  if (UI.Parent <> nil) and
+     (not UI.Parent.ScreenFloatRect.Contains(UI.ScreenFloatRect)) then
+    S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
+
+  LabelSizeInfo.Caption := S;
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
