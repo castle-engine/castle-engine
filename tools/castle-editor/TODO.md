@@ -4,20 +4,21 @@ Now:
 
 * Visual inspector. designer etc.
     * Dragging UI:
+      * Some outline around selected UI, UI under mouse too (hover)
       * tools over preview:
-	None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera and more.)
-	Translate (hint: Click to select, drag to move UI control.)
-	(later will be used to Translate / Rotate / Scale scenes)
+        None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera and more.)
+        Translate (hint: Click to select, drag to move UI control.)
+        (later will be used to Translate / Rotate / Scale scenes)
       * update property grid when moving by mouse immediately
       * Anchors tab keeps getting deselected for some reason when moving UI control
       * Snap = 5.0; // TODO: configurable
       * why moving scenemanager with fullsize=false doesn;t work?
-	changing Left works,
-	but changing HorizontalAnchorDelta doesn't?
+        changing Left works,
+        but changing HorizontalAnchorDelta doesn't?
       * "Anchors" tab
         Make "Parent and Self anchors are the same" checkbox working
-	Show 3x3,
-	or 2x 3x3 controls to configure anchors
+        Show 3x3,
+        or 2x 3x3 controls to configure anchors
       * Make Label for fps (in template) now designed in editor
     * check scene with primitive is (de)serialized ok
     * Button at scene manager: Camera View All
@@ -31,7 +32,7 @@ Now:
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
     * Allow editing of:
-	* initial animation? along with TimePlayingSpeed, ProcessEvents
+        * initial animation? along with TimePlayingSpeed, ProcessEvents
         * TCastleTransform position, rotation, scale (using gizmos)
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
     * save also vectors, colors.
@@ -45,29 +46,55 @@ Now:
     * Add TCastleImageComponent, manually make all UI controls use it
       See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
 
+      *All* images from theme should also be customizable at the control level,
+      and naming should be consistent
+
     * moving added things in hierarchy (dragging in tree).
     * adding - better UI? component palette?
       after adding, keep previously selected still selected
       content menu on hierarchy, to add transform/ui depending on parent
     * removing - keep selected above?
     * UI controls improvements:
-	* more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
-	  At TCastleUserInterfaceRect document:
+        * more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
+          Just TCastleUserInterfaceFont should descend from it?
+          maybe just merge it with TCastleUserInterface...,
+            do we really need separation TCastleUserInterfaceRect<>TCastleUserInterface?
+            esp. if I plan
 
-	    Some descendants support auto-sizing, which means that the control's size
-	    set by these properties is ignored, and instead the calculated size
-	    (CalculatedWidth, CalculatedHeight, CalculatedRect) depends on some core
-	    values of the control. E.g. TCastleImageControl adjusts to image,
-	    TCastleLabel adjusts to caption, TCastleButton adjusts to button and icon,
-	    TCastleVerticalGroup adjusts to all children and so on.
-	    Consult the documentation of each descendant for the exact
-	    specification of behavior, usually a property called @code(AutoSize) controls it. }
+          At TCastleUserInterfaceRect document:
 
-	* virtual functions to say VerticalResizingEffective
-	  (at TCastleUserInterface or only TCastleUserInterfaceRect)
+            Some descendants support auto-sizing, which means that the control's size
+            set by these properties is ignored, and instead the calculated size
+            (CalculatedWidth, CalculatedHeight, CalculatedRect) depends on some core
+            values of the control.
+
+            E.g.
+            @unorderedList(
+              @item TCastleImageControl adjusts to image,
+              @item TCastleLabel adjusts to caption,
+              @item TCastleButton adjusts to button and icon,
+              @item TCastleVerticalGroup adjusts to all children and so on.
+	    )
+            Consult the documentation of each descendant for the exact
+            specification of the size behavior.
+	    When it is reasonable a property called @code(AutoSize) can be turned
+	    off to allow you to specify the size manually using the properties
+	    FloatWidth, FloatHeight and the rest mentioned below.
+
+        * virtual functions to say VerticalResizingEffective
+          (at TCastleUserInterface or only TCastleUserInterfaceRect).
+	  maybe like
+	  HonorsExplicitSize(out Horizontal, Vertical: Boolean; out Reason: String)
+	    and descendants could set e.g.
+	      Reason = 'Turn off TCastleButton.AutoSizeHorizontal to change button size.'
+	      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
+
+	  Or maybe not needed?
+	  dragging autosized control will just have no effect?
+
     * design files UI:
         * ask before overriding saved file
-	* before opening new one - ask whether to save design
+        * before opening new one - ask whether to save design
         * before exiting - ask whether to save design
 
     * mark Width, Height as stored=false when FloatWidth, FloatHeight available
@@ -81,22 +108,22 @@ Now:
       and last camera
       { Use initial camera settings stored in
         InitialCameraPosition,
-	InitialCameraDirection,
-	InitialCameraUp
-	values. They are used if you create a camera using one of the
-	TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
-	or ExamineCamera. They will not be used if you assign to @link(Camera)
-	your own camera instance. }
+        InitialCameraDirection,
+        InitialCameraUp
+        values. They are used if you create a camera using one of the
+        TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
+        or ExamineCamera. They will not be used if you assign to @link(Camera)
+        your own camera instance. }
       StoreInitialCamera: Boolean
       InitialCamera
 
     * TCastleButton:
       - Pressed must be editable even when not toggle?
-	or maybe not published
+        or maybe not published
       - EnableParentDragging should not be published (and should be read-only?)
       - we need a way to adjust various images of tcastlebutton
         See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
-      	Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
+        Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
       - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
 
     * castle-data:/ finish
@@ -113,6 +140,11 @@ Now:
 
     * after changing scene manager items (or scene url),
       recalculate camera box to have zoom working
+
+    * make https://github.com/castle-engine/blaise-pascal-article-examples/
+      version using editor for level,
+      3d_game_alternative_using_editor
+      mention in README
 
 ------------------------------------------------------------------------------
 Lower priority:
@@ -206,17 +238,17 @@ Lowest priority (OK if not in 1st release):
     * TCastleControl (or sthg else) in designer mode should set ApplicationDataOverride,
         to allow our dialogs to replace URL with castle-data:/ nicely.
     * object inspector editing vectors/colors question:
-	+  // TODO: Why these are necessary to expand in castle-editor,
-	+  // but in Lazarus at least TCastleVector3Persistent in test project was
-	+  // expanded without this?
-	+  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-	+    TSubPropertiesEditor);
-	+  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-	+    TSubPropertiesEditor);
-	+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
-	+    TSubPropertiesEditor);
-	+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
-	+    TSubPropertiesEditor);
+        +  // TODO: Why these are necessary to expand in castle-editor,
+        +  // but in Lazarus at least TCastleVector3Persistent in test project was
+        +  // expanded without this?
+        +  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
+        +    TSubPropertiesEditor);
+        +  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
+        +    TSubPropertiesEditor);
+        +  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
+        +    TSubPropertiesEditor);
+        +  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
+        +    TSubPropertiesEditor);
     * saving TCastleColorPersistent to LFM for now doesn't work?
 
 * setting PrimitiveGeometry to pgSphere,
