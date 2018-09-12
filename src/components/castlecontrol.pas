@@ -138,6 +138,77 @@ type
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
     class function GetMainContainer: TUIContainer;
+
+    { Force DoUpdate and Paint (if invalidated) events to happen,
+      if sufficient time (based on LimitFPS, that in this case acts like
+      "desired FPS") passed.
+      This is needed when user "clogs" the GTK / WinAPI / Qt etc. event queue.
+      In this case Lazarus (LCL) doesn't automatically fire the idle and repaint
+      events.
+
+      The behavior of Lazarus application Idle events is such that they
+      are executed only when there are no events left to process.
+      This makes sense, and actually follows the docs and the name "idle".
+
+      In contrast, our DoUpdate expects to be run continously, that is:
+      about the same number
+      of times per second as the screen Redraw (and if the screen doesn't need to
+      be redrawn, our DoUpdate should still run a sensible number of times
+      per second --- around the same value as LimitFPS, or (when LimitFPS
+      is set to 0, meaning "unused") as many times as possible).
+      For our DoUpdate, it should not matter whether your event
+      loop has something left to process. We need this,
+      since typical games / 3D simulations must try to update animations and
+      repaint at a constant rate, even when user is moving around.
+
+      The problem is most obvious when moving the mouse, for example when using
+      the mouse look to walk and look around in Walk mode (TWalkCamera.MouseLook),
+      or when dragging with mouse
+      in Examine mode. The event loop is then typically busy processing mouse move
+      events all the time, so it's never/seldom empty (note: it doesn't mean that
+      event loop is clogged, as mouse move events can be potentially accumulated
+      at various levels --- LCL, underlying widgetset like GTK, underlying system
+      like XWindows etc. I think in practice XWindows does it, but I'm not sure).
+      Our program should however still be responsive. Not only the screen should
+      be redrawn, regardless if our event loop is empty or not, but also
+      our Update event should be continously called. But if we just use LCL Idle/Redraw
+      behavior (that descends from other widgetsets) then you may find that:
+      - during mouse look things "stutter" --- no Idle, not even Redraw,
+        happens regularly.
+      - during mouse drag Redraw may be regular, but still Idle are not called
+        (so e.g. animations do not move, instead they suddenly jump a couple
+        of seconds
+        forward when you stop dragging after a couple of seconds).
+
+      Note that TCastleWindow (with backends other than LCL) do not have this
+      problem. Maybe we process events faster, so that we don't get clogged
+      during MouseLook?
+
+      We can't fix it by hacking Application methods,
+      especially as LCL Application.ProcessMessage may handle a "batch"
+      of events (for example, may be ~ 100 GTK messages, see
+      TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
+      So instead we hack it from the inside: from time to time
+      (more precisely, LimitFPS times per second),
+      when receving an often occuring event (right now: just MouseMove),
+      we'll call the DoUpdate, and (if pending Invalidate call) Paint methods.
+
+      In theory, we could call this on every event (key down, mouse down etc.).
+      But in practice:
+      - Doing this from KeyDown would make redraw when moving by only holding
+        down some keys stutter a little (screen seems like not refreshed fast
+        enough). Reason for this stutter is not known,
+        it also stutters in case of mouse move, but we have no choice in this case:
+        either update with stuttering, or not update (continously) at all.
+        TCastleWindow doesn't have this problem, mouse look is smooth there.
+      - It's also not needed from events other than mouse move.
+
+      In theory, for LimitFPS = 0, we should just do this every time.
+      But this would overload the system
+      (you would see smooth animation and rendering, but there will be latency
+      with respect to handling input, e.g. mouse move will be processed with
+      a small delay). So we use MaxDesiredFPS to cap it. }
+    procedure AggressiveUpdate;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -1062,94 +1133,24 @@ begin
     Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
 end;
 
-procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
-
-  { Force DoUpdate and Paint (if invalidated) events to happen,
-    if sufficient time (based on LimitFPS, that in this case acts like
-    "desired FPS") passed.
-    This is needed when user "clogs" the GTK / WinAPI / Qt etc. event queue.
-    In this case Lazarus (LCL) doesn't automatically fire the idle and repaint
-    events.
-
-    The behavior of Lazarus application Idle events is such that they
-    are executed only when there are no events left to process.
-    This makes sense, and actually follows the docs and the name "idle".
-
-    In contrast, our DoUpdate expects to be run continously, that is:
-    about the same number
-    of times per second as the screen Redraw (and if the screen doesn't need to
-    be redrawn, our DoUpdate should still run a sensible number of times
-    per second --- around the same value as LimitFPS, or (when LimitFPS
-    is set to 0, meaning "unused") as many times as possible).
-    For our DoUpdate, it should not matter whether your event
-    loop has something left to process. We need this,
-    since typical games / 3D simulations must try to update animations and
-    repaint at a constant rate, even when user is moving around.
-
-    The problem is most obvious when moving the mouse, for example when using
-    the mouse look to walk and look around in Walk mode (TWalkCamera.MouseLook),
-    or when dragging with mouse
-    in Examine mode. The event loop is then typically busy processing mouse move
-    events all the time, so it's never/seldom empty (note: it doesn't mean that
-    event loop is clogged, as mouse move events can be potentially accumulated
-    at various levels --- LCL, underlying widgetset like GTK, underlying system
-    like XWindows etc. I think in practice XWindows does it, but I'm not sure).
-    Our program should however still be responsive. Not only the screen should
-    be redrawn, regardless if our event loop is empty or not, but also
-    our Update event should be continously called. But if we just use LCL Idle/Redraw
-    behavior (that descends from other widgetsets) then you may find that:
-    - during mouse look things "stutter" --- no Idle, not even Redraw,
-      happens regularly.
-    - during mouse drag Redraw may be regular, but still Idle are not called
-      (so e.g. animations do not move, instead they suddenly jump a couple
-      of seconds
-      forward when you stop dragging after a couple of seconds).
-
-    Note that TCastleWindow (with backends other than LCL) do not have this
-    problem. Maybe we process events faster, so that we don't get clogged
-    during MouseLook?
-
-    We can't fix it by hacking Application methods,
-    especially as LCL Application.ProcessMessage may handle a "batch"
-    of events (for example, may be ~ 100 GTK messages, see
-    TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
-    So instead we hack it from the inside: from time to time
-    (more precisely, LimitFPS times per second),
-    when receving an often occuring event (right now: just MouseMove),
-    we'll call the DoUpdate, and (if pending Invalidate call) Paint methods.
-
-    In theory, we could call this on every event (key down, mouse down etc.).
-    But in practice:
-    - Doing this from KeyDown would make redraw when moving by only holding
-      down some keys stutter a little (screen seems like not refreshed fast
-      enough). Reason for this stutter is not known,
-      it also stutters in case of mouse move, but we have no choice in this case:
-      either update with stuttering, or not update (continously) at all.
-      TCastleWindow doesn't have this problem, mouse look is smooth there.
-    - It's also not needed from events other than mouse move.
-
-    In theory, for LimitFPS = 0, we should just do this every time.
-    But this would overload the system
-    (you would see smooth animation and rendering, but there will be latency
-    with respect to handling input, e.g. mouse move will be processed with
-    a small delay). So we use MaxDesiredFPS to cap it. }
-  procedure AggressiveUpdate;
-  const
-    MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
-  var
-    DesiredFPS: Single;
+procedure TCastleControlCustom.AggressiveUpdate;
+const
+  MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
+var
+  DesiredFPS: Single;
+begin
+  if ApplicationProperties.LimitFPS <= 0 then
+    DesiredFPS := MaxDesiredFPS
+  else
+    DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
+  if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
-    if ApplicationProperties.LimitFPS <= 0 then
-      DesiredFPS := MaxDesiredFPS
-    else
-      DesiredFPS := Min(MaxDesiredFPS, ApplicationProperties.LimitFPS);
-    if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
-    begin
-      DoUpdate;
-      if Invalidated then Paint;
-    end;
+    DoUpdate;
+    if Invalidated then Paint;
   end;
+end;
 
+procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 begin
   { check GLInitialized, because it seems it can be called before GL context
     is created (on Windows) or after it's destroyed (sometimes on Linux).
@@ -1174,6 +1175,7 @@ function TCastleControlCustom.DoMouseWheel(Shift: TShiftState; WheelDelta: Integ
   MousePos: TPoint): Boolean;
 begin
   Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true));
+  AggressiveUpdate;
   if Result then Exit;
 
   Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
