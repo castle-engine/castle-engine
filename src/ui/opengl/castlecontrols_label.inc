@@ -46,6 +46,7 @@
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
+    procedure TextChange(Sender: TObject);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -179,6 +180,7 @@ begin
   inherited;
 
   FText := TStringList.Create;
+  TStringList(FText).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
   FColor := White;
   FFrame := false;
   FFrameColor := White;
@@ -418,6 +420,11 @@ begin
   try
     Result := TextToRender.DisplayChars;
   finally FreeAndNil(TextToRender) end;
+end;
+
+procedure TCastleLabel.TextChange(Sender: TObject);
+begin
+  VisibleChange([chRectangle]);
 end;
 
 {$endif read_implementation}
