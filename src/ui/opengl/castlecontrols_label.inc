@@ -46,6 +46,7 @@
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
+    procedure SetMaxWidth(const Value: Single);
     procedure TextChange(Sender: TObject);
   private
     { For internal use by tooltip rendering. In normal circumstances,
@@ -143,7 +144,7 @@
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
       (together with @link(PaddingHorizontal)) inside MaxWidth. }
-    property MaxWidth: Single read FMaxWidth write FMaxWidth default 0;
+    property MaxWidth: Single read FMaxWidth write SetMaxWidth default 0;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -406,6 +407,15 @@ begin
   if FMaxDisplayChars <> Value then
   begin
     FMaxDisplayChars := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleLabel.SetMaxWidth(const Value: Single);
+begin
+  if FMaxWidth <> Value then
+  begin
+    FMaxWidth := Value;
     VisibleChange([chRectangle]);
   end;
 end;
