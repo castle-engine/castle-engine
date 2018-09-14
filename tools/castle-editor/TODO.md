@@ -81,16 +81,17 @@ Now:
 	    off to allow you to specify the size manually using the properties
 	    FloatWidth, FloatHeight and the rest mentioned below.
 
-        * virtual functions to say VerticalResizingEffective
+        * virtual function IsAutoSize
           (at TCastleUserInterface or only TCastleUserInterfaceRect).
 	  maybe like
-	  HonorsExplicitSize(out Horizontal, Vertical: Boolean; out Reason: String)
+	  IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
 	    and descendants could set e.g.
-	      Reason = 'Turn off TCastleButton.AutoSizeHorizontal to change button size.'
+	      Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
 	      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
 
-	  Or maybe not needed?
-	  dragging autosized control will just have no effect?
+	  utility:
+	  "stored" for floatwidth/height could use them.
+	  when trying to drag to resize, we could show a suitable hint
 
     * design files UI:
         * ask before overriding saved file
