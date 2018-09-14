@@ -2513,6 +2513,7 @@ type
 
   private
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
+    FOnInitializeEvent: TNotifyEvent;
     Initialized, InitializedJavaActivity: boolean;
     FOnUpdate: TUpdateFunc;
     FOnTimer: TProcedure;
@@ -2714,6 +2715,7 @@ type
       when OpenGL context is active, to allow you to display progress
       bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+    property OnInitializeEvent: TNotifyEvent read FOnInitializeEvent write FOnInitializeEvent;
 
     {property OnInitializeJavaActivity: TProcedure
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
@@ -4811,14 +4813,26 @@ begin
   if not Initialized then
   begin
     Initialized := true;
+
+    // Call OnInitialize and OnInitializeEvent, watched by Profiler
+
     if Assigned(OnInitialize) then
     begin
       TimeStart := Profiler.Start('TCastleApplication.OnInitialize');
       OnInitialize();
       Profiler.Stop(TimeStart);
-      if Profiler.Enabled then
-        WritelnLogMultiline('Time Profile', Profiler.Summary);
     end;
+
+    if Assigned(OnInitializeEvent) then
+    begin
+      TimeStart := Profiler.Start('TCastleApplication.OnInitializeEvent');
+      OnInitializeEvent(Self);
+      Profiler.Stop(TimeStart);
+    end;
+
+    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) or
+       Profiler.Enabled then
+      WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
 end;
 
