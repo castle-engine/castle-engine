@@ -268,10 +268,20 @@ EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
 examples:
 # Compile tools, in particular build tool, first
 	$(MAKE) tools
+
 # Compile all examples using xxx_compile.sh shell script (calls build tool)
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
-# Compile all examples with CastleEngineManifest.xml inside
-	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
+
+# Compile all examples with CastleEngineManifest.xml inside.
+# Use xargs (not "find ... -execdir") because we want the "make examples" to fail
+# if something failed to compile.
+# We do not compile examples/tcp_connection/ here,
+# as it requires Indy which may not be installed.
+	$(FIND) . \
+	  '(' -path ./examples/tcp_connection -prune ')' -o \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
+	  xargs -0 -n1 castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
