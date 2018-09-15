@@ -64,7 +64,18 @@
 }
 {$ifdef FPC}
   {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$mode objfpc}
+
+    // CASTLE_CONF_DO_NOT_OVERRIDE_MODE is a hack for CastleUtils unit and FPC 3.0.x
+    {$ifndef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
+      {$mode objfpc}
+      // Using CASTLE_OBJFPC instead of FPC_OBJFPC
+      // allows to workaround FPC bug in some units, FPC seems to "lose"
+      // the fact that FPC_OBJFPC should be defined.
+      // The cleanest solution seems to just ignore FPC_OBJFPC,
+      // and define equivalent symbol (CASTLE_OBJFPC) on our own.
+      {$define CASTLE_OBJFPC}
+    {$endif}
+
     {$H+}
     {$macro on}
   {$endif}
@@ -167,16 +178,6 @@
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-{$endif}
-
-// Allows to workaround FPC bug in some units, FPC seems to "lose"
-// the fact that FPC_OBJFPC should be defined.
-// The cleanest solution seems to just ignore FPC_OBJFPC,
-// and define equivalent symbol (CASTLE_OBJFPC) on our own.
-{$ifdef FPC}
-  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$define CASTLE_OBJFPC}
-  {$endif}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
