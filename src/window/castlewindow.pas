@@ -4830,7 +4830,7 @@ begin
       Profiler.Stop(TimeStart);
     end;
 
-    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) or
+    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) and
        Profiler.Enabled then
       WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
