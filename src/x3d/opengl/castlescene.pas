@@ -1516,7 +1516,7 @@ begin
     PossiblyTimeConsuming := (not PreparedShapesResources) or (not PreparedRender);
 
     if PossiblyTimeConsuming then
-      TimeStart := Profiler.Start('Prepare Resources ' + URL);
+      TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
     if not PreparedShapesResources then
     begin

@@ -671,9 +671,14 @@ procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
   I: Integer;
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Prepare Animations of Resource ' + Name);
+
   for I := 0 to Animations.Count - 1 do
     Animations[I].Prepare(Params, DoProgress);
+
+  Profiler.Stop(TimeStart);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
@@ -791,8 +796,8 @@ begin
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
       Xml.URL := URL;
-      if Log then
-        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+      // if Log then
+      //   WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
       if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
@@ -902,8 +907,8 @@ var
   I: Integer;
   Resource: T3DResource;
   PrepareSteps: Cardinal;
-  TimeBegin: TProcessTimerResult;
   PrepareNeeded, DoProgress: boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   { We iterate two times over Items, first time only to calculate
     PrepareSteps, 2nd time does actual work.
@@ -925,8 +930,7 @@ begin
 
   if PrepareNeeded then
   begin
-    if Log then
-      TimeBegin := ProcessTimer;
+    TimeStart := Profiler.Start('Loading ' + ResourcesName);
 
     DoProgress := not Progress.Active;
     if DoProgress then Progress.Init(PrepareSteps, 'Loading ' + ResourcesName);
@@ -936,9 +940,6 @@ begin
         Resource := Items[I];
         if Resource.UsageCount = 1 then
         begin
-          if Log then
-            WritelnLog('Resources', Format(
-              'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
           Resource.PrepareCore(Params, DoProgress);
           Resource.FPrepared := true;
@@ -948,10 +949,7 @@ begin
       if DoProgress then Progress.Fini;
     end;
 
-    if Log then
-      WritelnLog('Resources', Format('Loading %s time: %f seconds',
-        [ ResourcesName,
-          ProcessTimerSeconds(ProcessTimer, TimeBegin) ]));
+    Profiler.Stop(TimeStart);
   end;
 end;
 
