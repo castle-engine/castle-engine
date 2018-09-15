@@ -54,16 +54,21 @@
 
 { Configure syntax ----------------------------------------------------------- }
 
-{ These should be set on the command-line always.
-  - NOT setting them here forces the user to use correct compilation method
-    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
-    instead of hacking something, which is GOOD.
-  - Also, not setting them allows to check compilation of the engine without macros
-    and in Delphi mode, which is useful to keep Delphi compatibility.
+{ Although these options are also specified by the CGE build tool
+  on the command-line,
+  and are in Lazarus packages too,
+  we still need to repeat them here.
+
+  That is because user can specify "<option>-Mdelphi</option>"
+  in CastleEngineManifest.xml, to compile the application in Delphi mode.
 }
-{ $mode objfpc}
-{ $H+}
-{ $macro on}
+{$ifdef FPC}
+  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
+    {$mode objfpc}
+    {$H+}
+    {$macro on}
+  {$endif}
+{$endif}
 
 { For FPC, these can only be specified here, not on the FPC command-line. }
 {$writeableconst off}
