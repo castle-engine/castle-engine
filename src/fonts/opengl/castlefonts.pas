@@ -311,6 +311,12 @@ type
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
       const Html: boolean = false): Integer;
+    function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const LineSpacing: Single;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
     function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Single;
       const PositionsFirst: boolean;
@@ -942,6 +948,17 @@ begin
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;
   finally FreeAndNil(Text) end;
+end;
+
+function TCastleFont.PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const LineSpacing: Single;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean = false): Integer;
+begin
+  Result := PrintBrokenString(Rect.Round, Color, S, LineSpacing,
+    AlignHorizontal, AlignVertical, Html);
 end;
 
 function TCastleFont.PrintBrokenString(const S: string;
