@@ -2777,6 +2777,7 @@ begin
   EnableInternalEffects;
   EnableLights;
   EnableShaderColorPerVertex;
+  PrepareCommonCode; // must be before EnableShaderBumpMapping to define PLUG texture_coord_shift
   EnableShaderBumpMapping;
   EnableShaderSurfaceTextures;
   EnableShaderFog;
@@ -2785,7 +2786,6 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
   EnableMirrorPlaneTexCoords;
-  PrepareCommonCode;
 
   if HasGeometryMain then
   begin
