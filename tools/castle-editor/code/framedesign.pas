@@ -818,6 +818,10 @@ begin
   if IsPrefix('2D', ResultBase, true) then
     ResultBase := PrefixRemove('2D', ResultBase, true);
 
+  // in case the replacements above made '', fix it (can happen in case of TCastleUserInterface)
+  if ResultBase = '' then
+    ResultBase := 'Group';
+
   // make unique
   I := 1;
   Result := ResultBase + IntToStr(I);
