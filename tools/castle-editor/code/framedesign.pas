@@ -251,6 +251,9 @@ begin
           UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Move.Y;
         end;
 
+        UI.HasHorizontalAnchor := true;
+        UI.HasVerticalAnchor := true;
+
         Exit(ExclusiveEvents);
       end;
     end;
