@@ -51,21 +51,25 @@ Now:
       content menu on hierarchy, to add transform/ui depending on parent
     * removing - keep selected above?
     * UI controls improvements:
+        * rename TUIState -> TCastleState? (best)
+          TCastleUserInterfaceState?
+          TCastleForm?
+
         * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
 
-	* Maybe TCastleUserInterface should have color property too . Just make TCastleReactngleControl a descendant with white opaque color by default.
+        * Maybe TCastleUserInterface should have color property too . Just make TCastleReactngleControl a descendant with white opaque color by default.
 
         * virtual function IsAutoSize at TCastleUserInterface
-	  maybe like
-	  IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
-	    and descendants could set e.g.
-	      Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
-	      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
+          maybe like
+          IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
+            and descendants could set e.g.
+              Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
+              Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
 
-	  utility:
-	  when trying to drag to resize, we could show a suitable hint
+          utility:
+          when trying to drag to resize, we could show a suitable hint
 
-	  DO NOT use it for "stored" for width/height, store them always, safer.
+          DO NOT use it for "stored" for width/height, store them always, safer.
 
     * design files UI:
         * ask before overriding saved file
