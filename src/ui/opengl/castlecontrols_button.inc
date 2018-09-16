@@ -844,8 +844,12 @@ procedure TCastleButton.SetWidth(const Value: Single);
 begin
   if Width <> Value then
   begin
-    inherited;
+    { Should we set FFinalScaledValid before or after calling inherited?
+      Should work in both cases, but "before" version seems more reliable,
+      in case "inherited" calls VisibleChange that causes VisibleChangeNotification
+      that calculates something in the future. }
     FFinalScaledValid := false;
+    inherited;
   end;
 end;
 
@@ -853,8 +857,8 @@ procedure TCastleButton.SetHeight(const Value: Single);
 begin
   if Height <> Value then
   begin
-    inherited;
     FFinalScaledValid := false;
+    inherited;
   end;
 end;
 
@@ -971,8 +975,12 @@ begin
       FFinalScaledValid := true;
       CalculateFinalScaledSize;
     end;
-    Result.Width := FFinalScaledWidth;
-    Result.Height := FFinalScaledHeight;
+
+    { Do not only change here Result.Width/Height, as the inherited
+      set Result to TFloatRectangle.Empty when Width/Height = 0. }
+    Result := FloatRectangle(LeftBottomScaled,
+      FFinalScaledWidth,
+      FFinalScaledHeight);
   end;
 end;
 

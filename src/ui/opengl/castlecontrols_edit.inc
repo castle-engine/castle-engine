@@ -242,7 +242,9 @@ begin
         US * FrameCorners[2];
     end;
 
-    Result.Height := HeightScaled;
+    { Do not only change here Result.Height, as the inherited
+      set Result to TFloatRectangle.Empty because Height = 0. }
+    Result := FloatRectangle(LeftBottomScaled, US * Width, HeightScaled);
   end;
 end;
 

@@ -6,21 +6,17 @@ Now:
     * Dragging UI:
       * Some outline around selected UI, UI under mouse too (hover)
       * tools over preview:
-        None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera and more.)
+        None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
         Translate (hint: Click to select, drag to move UI control.)
         (later will be used to Translate / Rotate / Scale scenes)
       * update property grid when moving by mouse immediately
       * Anchors tab keeps getting deselected for some reason when moving UI control
       * Snap = 5.0; // TODO: configurable
-      * why moving scenemanager with fullsize=false doesn;t work?
-        changing Left works,
-        but changing HorizontalAnchorDelta doesn't?
       * "Anchors" tab
         Make "Parent and Self anchors are the same" checkbox working
         Show 3x3,
         or 2x 3x3 controls to configure anchors
       * Make Label for fps (in template) now designed in editor
-    * check scene with primitive is (de)serialized ok
     * Button at scene manager: Camera View All
     * Property editor for TCastleColorPersistent
     * F1 help to API reference, show also in menu
