@@ -207,8 +207,6 @@ type
 
     procedure Finish; virtual; deprecated 'use Stop';
 
-    function Rect: TFloatRectangle; override;
-
     { State is right now part of the state stack, which means
       it's between @link(Start) and @link(Stop) calls.
       The state is added to the stack before the @link(Start) call,
@@ -235,6 +233,14 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+  published
+    { TUIState control makes most sense when it is FullSize,
+      filling the whole window.
+
+      This way it always captures events on the whole container.
+      And the child controls (anchored to this)
+      behave like anchored to the whole container. }
+    property FullSize default true;
   end;
 
   TUIStateList = class(specialize TObjectList<TUIState>);
@@ -405,6 +411,7 @@ end;
 constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
+  FullSize := true;
 end;
 
 destructor TUIState.Destroy;
@@ -455,13 +462,6 @@ end;
 
 procedure TUIState.Finish;
 begin
-end;
-
-function TUIState.Rect: TFloatRectangle;
-begin
-  { 1. always capture events on whole container
-    2. make child controls (anchored to us) behave like anchored to whole window. }
-  Result := ParentRect;
 end;
 
 function TUIState.Active: boolean;
