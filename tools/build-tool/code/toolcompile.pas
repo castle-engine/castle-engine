@@ -477,9 +477,13 @@ begin
       // do not show
       // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
       FpcOptions.Add('-vm5071');
+    end;
 
+    if FPCVer.AtLeast(3, 3, 1) then
+    begin
       // do not show
       // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
+      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
       FpcOptions.Add('-vm6058');
 
       // do not show
