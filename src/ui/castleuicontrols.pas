@@ -1553,6 +1553,10 @@ type
       It's usually most natural to leave @link(Left) as zero when
       using anchors.
 
+      Note that anchors (as well as @link(Left) and @link(Bottom))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
+
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
@@ -1577,6 +1581,10 @@ type
       Note that @link(VerticalAnchorDelta) is summed with @link(Bottom).
       It's usually most natural to leave @link(Bottom) as zero when
       using anchors.
+
+      Note that anchors (as well as @link(Left) and @link(Bottom))
+      are ignored when @link(FullSize) is set to true.
+      In case of @link(FullSize), the control fills the parent perfectly.
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
@@ -3614,14 +3622,16 @@ begin
   Result := Rect;
 
   { apply anchors }
-  if HasHorizontalAnchor or HasVerticalAnchor then
+  if (not FullSize) and (HasHorizontalAnchor or HasVerticalAnchor) then
+  begin
     PR := ParentRect;
-  if HasHorizontalAnchor then
-    Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
-      UIScale * HorizontalAnchorDelta);
-  if HasVerticalAnchor then
-    Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
-      UIScale * VerticalAnchorDelta);
+    if HasHorizontalAnchor then
+      Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
+        UIScale * HorizontalAnchorDelta);
+    if HasVerticalAnchor then
+      Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
+        UIScale * VerticalAnchorDelta);
+  end;
 end;
 
 function TCastleUserInterface.RenderRect: TFloatRectangle;
