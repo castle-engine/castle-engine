@@ -20,7 +20,7 @@
     You can add vertical separators to separate groups of controls on the panel. }
   TCastlePanel = class(TCastleUserInterface)
   strict private
-    FVerticalSeparators: TCardinalList;
+    FVerticalSeparators: TSingleList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -32,8 +32,8 @@
 
       Values are the horizontal positions of the separators (with respect
       to this panel @link(Left)). Width of the separator is in SeparatorSize. }
-    property VerticalSeparators: TCardinalList read FVerticalSeparators;
-    class function SeparatorSize: Cardinal;
+    property VerticalSeparators: TSingleList read FVerticalSeparators;
+    class function SeparatorSize: Single;
   end;
 
 {$endif read_interface}
@@ -45,7 +45,7 @@
 constructor TCastlePanel.Create(AOwner: TComponent);
 begin
   inherited;
-  FVerticalSeparators := TCardinalList.Create;
+  FVerticalSeparators := TSingleList.Create;
 end;
 
 destructor TCastlePanel.Destroy;
@@ -78,7 +78,7 @@ begin
       tiPanelSeparator, UIScale);
 end;
 
-class function TCastlePanel.SeparatorSize: Cardinal;
+class function TCastlePanel.SeparatorSize: Single;
 begin
   Result := 2;
 end;
