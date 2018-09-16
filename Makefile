@@ -281,7 +281,7 @@ examples:
 	  '(' -path ./examples/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+	  xargs -0 -n1 tools/build-tool/castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
