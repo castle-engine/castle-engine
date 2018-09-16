@@ -46,8 +46,6 @@
     FOwnsDrawableImage: boolean;
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
-    FFullSize: boolean;
-    FWidth, FHeight: Single;
     FCorners: TVector4Integer;
     FCache: boolean;
 
@@ -76,9 +74,6 @@
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
     procedure SetStretch(const Value: boolean);
-    procedure SetWidth(const Value: Single);
-    procedure SetHeight(const Value: Single);
-    procedure SetFullSize(const Value: boolean);
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
     procedure SetProportional(const Value: boolean);
@@ -273,9 +268,6 @@
 
       @groupBegin }
     property Stretch: boolean read FStretch write SetStretch default false;
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
-    property FullSize: boolean read FFullSize write SetFullSize default false;
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
     { @groupEnd }
@@ -632,33 +624,6 @@ begin
   begin
     FDrawableImage.Color := Value;
     VisibleChange([chRender]);
-  end;
-end;
-
-procedure TCastleImageControl.SetWidth(const Value: Single);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleImageControl.SetHeight(const Value: Single);
-begin
-  if FHeight <> Value then
-  begin
-    FHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleImageControl.SetFullSize(const Value: boolean);
-begin
-  if FFullSize <> Value then
-  begin
-    FFullSize := Value;
-    VisibleChange([chRectangle]);
   end;
 end;
 

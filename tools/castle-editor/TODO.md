@@ -56,40 +56,10 @@ Now:
     * removing - keep selected above?
     * UI controls improvements:
         * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
-        * more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
-          Just TCastleUserInterfaceFont should descend from it?
-          maybe just merge it with TCastleUserInterface...,
-            do we really need separation TCastleUserInterfaceRect<>TCastleUserInterface?
-            esp. if I plan
 
-          At TCastleUserInterfaceRect document:
+	* Maybe TCastleUserInterface should have color property too . Just make TCastleReactngleControl a descendant with white opaque color by default.
 
-            Some descendants support auto-sizing, which means that the control's size
-            set by these properties is ignored, and instead the calculated size
-            (EffectiveWidth, EffectiveHeight, EffectiveRect) depends on some core
-            values of the control.
-
-            E.g.
-            @unorderedList(
-              @item TCastleImageControl adjusts to image,
-              @item TCastleLabel adjusts to caption,
-              @item TCastleButton adjusts to button and icon,
-              @item TCastleVerticalGroup adjusts to all children and so on.
-	    )
-            Consult the documentation of each descendant for the exact
-            specification of the size behavior.
-	    When it is reasonable a property called @code(AutoSize) can be turned
-	    off to allow you to specify the size manually using the properties
-	    Width, Height and the rest mentioned below.
-
-	* Maybe TCastleUserInterface should have both size and color properties. Just make TCastleReactngleControl a descendant with white opaque color by default.
-
-	  would also fix e.g.
-	  /mnt/data/sources/castle-engine/castle-engine/examples/window/multi_window.lpr
-	  not having rect defined (right now a workaround is to descend from TCastleUserInterfaceRect, but it should be harder to even make this mistake)
-
-        * virtual function IsAutoSize
-          (at TCastleUserInterface or only TCastleUserInterfaceRect).
+        * virtual function IsAutoSize at TCastleUserInterface
 	  maybe like
 	  IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
 	    and descendants could set e.g.
@@ -97,8 +67,9 @@ Now:
 	      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
 
 	  utility:
-	  "stored" for width/height could use them.
 	  when trying to drag to resize, we could show a suitable hint
+
+	  DO NOT use it for "stored" for width/height, store them always, safer.
 
     * design files UI:
         * ask before overriding saved file

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ User interface basic classes: @link(TCastleUserInterface), @link(TCastleUserInterfaceRect), @link(TUIContainer). }
+{ User interface basic classes: @link(TCastleUserInterface), @link(TUIContainer). }
 unit CastleUIControls;
 
 {$I castleconf.inc}
@@ -617,8 +617,8 @@ type
       This allows your UI to look correctly on various window sizes
       (great both for mobile and desktop, where window size may vary wildly).
       The idea is that you can set UI controls sizes
-      (like @link(TCastleUserInterfaceRect.Width),
-      @link(TCastleUserInterfaceRect.Height)) to a simple constant values.
+      (like @link(TCastleUserInterface.Width),
+      @link(TCastleUserInterface.Height)) to a simple constant values.
       And you should also set appropriate anchors
       (choose wisely whether to anchor e.g. to left or right,
       as the simulated window size still has variable aspect ratio).
@@ -914,17 +914,13 @@ type
     prHigh
   ) deprecated;
 
-  { Basic 2D control class. All controls derive from this class,
+  { Basic user-interface class. All controls derive from this class,
     overriding chosen methods to react to some events.
-    Various user interface containers (things that directly receive messages
-    from something outside, like operating system, windowing library etc.)
-    implement support for such controls.
 
-    Control has children controls, see @link(Controls) and @link(ControlsCount).
-    Parent control is recorded inside @link(Parent). A control
+    Every control can have children controls, see @link(Controls) and @link(ControlsCount).
+    Parent control is recorded inside the @link(Parent). A control
     may only be a child of one other control --- that is, you cannot
-    insert to the 2D hierarchy the same control multiple times
-    (in TCastleTransform hierarchy, such trick is allowed).
+    insert to the UI hierarchy the same control multiple times.
 
     Control may handle mouse/keyboard input, see @link(Press) and @link(Release)
     methods.
@@ -938,33 +934,30 @@ type
     and only return @false when you're absolutely sure that nothing was done
     by this control.
 
-    Every control also has a position and takes some rectangular space
+    Every control also has a position and size and takes some rectangular space
     on the container.
 
     The position is controlled using the @link(Anchor) methods
     or anchor properties, like @link(HorizontalAnchorSelf),
-    @link(HorizontalAnchorParent),
-    @link(HorizontalAnchorDelta).
+    @link(HorizontalAnchorParent), @link(HorizontalAnchorDelta).
+    The size is controlled using the @link(Width), @link(Height), @link(FullSize)
+    properties.
+
     The size (before UI scaling is applied) can be queried using
     @link(EffectiveWidth) and @link(EffectiveHeight) methods.
     The rectangle where the control is visible (during rendering,
     after applying UI scaling) can be queried using @link(RenderRect) methods.
 
-    Note that each descendant has it's own definition of the size of the control.
-    E.g. some descendants may automatically calculate the size
-    (based on text or images or such placed within the control).
-    Some descendants may allow to control the size explicitly
-    using fields like Width, Height, FullSize.
-    Some descendants may allow both approaches, switchable by
-    property like TCastleButton.AutoSize or TCastleImageControl.Stretch.
-    The base @link(TCastleUserInterface.Rect) returns always an empty rectangle,
-    most descendants will want to override it (you can also ignore the issue
-    in your own TCastleUserInterface descendants, if the given control size will
-    never be used for anything).
+    Note that some descendants perform auto-sizing,
+    that is: their effective size follows some natural property of the control.
+    For example, @link(TCastleLabel) size by default follows the @link(TCastleLabel.Caption)
+    value, and ignores the explicit size set in @link(Width) and @link(Height).
+    You can turn off auto-sizing by @link(TCastleLabel.AutoSize),
+    to manually control the size using @link(Width) and @link(Height).
 
     All the coordinates passed here should follow the Castle Game Engine
     convention that (0, 0) is left-bottom window corner. }
-  TCastleUserInterface = class abstract(TInputListener)
+  TCastleUserInterface = class(TInputListener)
   private
     FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
@@ -985,6 +978,9 @@ type
     FVerticalAnchorDelta: Single;
     FEnableUIScaling: boolean;
     FKeepInFront, FCapturesEvents: boolean;
+    FWidth, FHeight: Single;
+    FFullSize: boolean;
+
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
     procedure SetControls(const I: Integer; const Item: TCastleUserInterface);
@@ -1016,6 +1012,8 @@ type
     procedure SetEnableUIScaling(const Value: boolean);
     { Like @link(Rect) but with anchors effect applied. }
     function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
+
+    procedure SetFullSize(const Value: boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -1025,6 +1023,8 @@ type
     function LeftBottomScaled: TVector2;
 
     procedure UIScaleChanged; virtual;
+    procedure SetWidth(const Value: Single); virtual;
+    procedure SetHeight(const Value: Single); virtual;
 
     //procedure DoCursorChange; override;
 
@@ -1236,6 +1236,12 @@ type
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
 
+      The default implementation in this class
+      follows the properties @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is @false)
+      or returns parent size
+      (when @link(FullSize) is @true).
+
       If you're looking for a way to query the size of the control,
       using @link(EffectiveWidth), @link(EffectiveHeight),
       or @link(EffectiveRect) is usually more useful.
@@ -1264,8 +1270,10 @@ type
             end;
           #)
 
-          In fact, TCastleUserInterfaceRect already provides such implementation
-          for you.)
+          In fact, this is more-or-less what the default implementation
+          of this method is doing in TCastleUserInterface class.
+          (More-or-less, because it also takes into account @link(FullSize) value.)
+        )
       )
 
       @italic(Why float-based coordinates?)
@@ -1295,9 +1303,9 @@ type
         @item(@bold(This takes into account) the anchors.)
 
         @item(@bold(This uses unscaled coordinates),
-          that correspond to the sizes you set e.g. in
-          @link(TCastleUserInterfaceRect.Width),
-          @link(TCastleUserInterfaceRect.Height).
+          that correspond to the sizes you set in
+          @link(TCastleUserInterface.Width),
+          @link(TCastleUserInterface.Height).
 
           If you want to see scaled coordinates (in final device pixels),
           look into @link(RenderRect) instead.
@@ -1330,14 +1338,11 @@ type
       Useful if you want to base other controls size/position on this control
       calculated size.
 
-      Unlike various other width properties of descendants (like
-      @link(TCastleUserInterfaceRect.Width) or @link(TCastleImageControl.Width)),
+      Unlike the @link(Width) property,
       this is the @italic(effective) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
-      depending on settings).
-
-      Unlike @code(Rect.Width), this does not have UI scaling applied.
+      depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Width).
 
@@ -1348,14 +1353,11 @@ type
       Useful if you want to base other controls size/position on this control
       calculated size.
 
-      Unlike various other height properties of descendants (like
-      @link(TCastleUserInterfaceRect.Height) or @link(TCastleImageControl.Height)),
+      Unlike the @link(Height) property,
       this is the @italic(effective) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
-      depending on settings).
-
-      Unlike @code(Rect.Height), this does not have UI scaling applied.
+      depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Height).
 
@@ -1472,11 +1474,12 @@ type
       (see @link(TUIContainer.UIScaling).
 
       All the drawing and measuring inside your control must take this into
-      account. The final @link(Rect) result must already take this scaling
-      into account, so that parent controls may depend on it.
-      All descendants, like TCastleUserInterfaceRect, provide a @link(Rect) implementation
-      that does what is necessary. }
+      account. The @link(Rect) method result must already take this scaling
+      into account, so that parent controls may depend on it. }
     function UIScale: Single;
+
+    property FloatWidth: Single read FWidth write SetWidth stored false; deprecated 'use Width';
+    property FloatHeight: Single read FHeight write SetHeight stored false; deprecated 'use Height';
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1504,6 +1507,43 @@ type
       Using anchors is often more flexible, as various sides of child and parent
       may be anchored, and with a float shift. }
     property Bottom: Single read FBottom write SetBottom default 0;
+
+    { Control size.
+
+      When FullSize is @true, the control always fills the whole parent.
+      Otherwise, the position and size of the control is determined by
+      the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
+      When @link(Width) or @link(Height) are zero, the rectangle is empty
+      (it is @link(TFloatRectangle.Empty)).
+
+      The anchors (see @link(Anchor)) also affect the final position of the control.
+
+      Note that some descendants do @italic(auto-sizing) by default.
+      This means that some of these properties may be ignored,
+      and instead the calculated size (EffectiveWidth, EffectiveHeight)
+      depends on some core values of the control.
+
+      For example:
+
+      @unorderedList(
+        @item TCastleImageControl adjusts to image (unless you set @link(TCastleImageControl.Stretch) to @true),
+        @item TCastleLabel adjusts to caption (unless you set @link(TCastleLabel.AutoSize) to @false),
+        @item TCastleButton adjusts to caption and icon (unless you set @link(TCastleButton.AutoSize) to @false),
+        @item TCastleVerticalGroup adjusts to children sizes,
+        @item ... and so on.
+      )
+
+      Consult the documentation of each descendant for the exact
+      specification of the size behavior.
+
+      @seealso TCastleUserInterface.EffectiveWidth
+      @seealso TCastleUserInterface.EffectiveHeight
+
+      @groupBegin }
+    property FullSize: boolean read FFullSize write SetFullSize default false;
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
+    { @groupEnd }
 
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect)
@@ -1577,49 +1617,6 @@ type
 
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
-  end;
-
-  { User interface control with a configurable size.
-    By itself, this does not show anything. But it's useful as an ancestor
-    class for new UI classes that want their size to be fully configurable,
-    or as a container for UI children. }
-  TCastleUserInterfaceRect = class(TCastleUserInterface)
-  strict private
-    FWidth, FHeight: Single;
-    FFullSize: boolean;
-    procedure SetWidth(const Value: Single);
-    procedure SetHeight(const Value: Single);
-    procedure SetFullSize(const Value: boolean);
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    { Position and size of the control, assuming it exists.
-
-      Looks at @link(FullSize) value, and the parent size
-      (when @link(FullSize) is @true), or at the properties
-      @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false). }
-    function Rect: TFloatRectangle; override;
-
-    property FloatWidth: Single read FWidth write SetWidth stored false; deprecated 'use Width';
-    property FloatHeight: Single read FHeight write SetHeight stored false; deprecated 'use Height';
-  published
-    { Control size.
-
-      When FullSize is @true, the control always fills
-      the whole parent (like TCastleWindow or TCastleControl,
-      if you just placed the control on TCastleWindowCustom.Controls
-      or TCastleControlCustom.Controls),
-      and the values of @link(TCastleUserInterface.Left Left),
-      @link(TCastleUserInterface.Bottom Bottom), @link(Width), @link(Height) are ignored.
-
-      @seealso TCastleUserInterface.Rect
-
-      @groupBegin }
-    property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
-    { @groupEnd }
   end;
 
   { Simple list of TCastleUserInterface instances. }
@@ -1741,12 +1738,13 @@ type
     { @groupEnd }
   end;
 
-  TUIControlPos = TCastleUserInterface deprecated 'use TCastleUserInterface class';
-  TUIRectangularControl = TCastleUserInterface deprecated 'use TCastleUserInterface class';
+  TUIControlPos = TCastleUserInterface deprecated 'use TCastleUserInterface';
+  TUIRectangularControl = TCastleUserInterface deprecated 'use TCastleUserInterface';
+  TUIControl = TCastleUserInterface deprecated 'use TCastleUserInterface';
+  TUIControlSizeable = TCastleUserInterface deprecated 'use TCastleUserInterface';
+  TCastleUserInterfaceRect = TCastleUserInterface deprecated 'use TCastleUserInterface';
   // TODO: These aliases will soon be deprecated too.
   { }
-  TUIControl = TCastleUserInterface;
-  TUIControlSizeable = TCastleUserInterfaceRect;
   TUIControlChange = TCastleUserInterfaceChange;
   TUIControlChanges = TCastleUserInterfaceChanges;
   TUIControlList = TCastleUserInterfaceList;
@@ -3544,7 +3542,13 @@ end;
 
 function TCastleUserInterface.Rect: TFloatRectangle;
 begin
-  Result := TFloatRectangle.Empty;
+  if FullSize then
+    Result := ParentRect
+  else
+  if (Width > 0) and (Height > 0) then
+    Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale)
+  else
+    Result := TFloatRectangle.Empty;
 end;
 
 function TCastleUserInterface.EffectiveRect: TFloatRectangle;
@@ -3771,25 +3775,7 @@ begin
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
-{ TCastleUserInterfaceRect --------------------------------------------------------- }
-
-constructor TCastleUserInterfaceRect.Create(AOwner: TComponent);
-begin
-  inherited;
-  FFullSize := false;
-end;
-
-function TCastleUserInterfaceRect.Rect: TFloatRectangle;
-begin
-  if FullSize then
-    Result := ParentRect else
-  begin
-    Result := FloatRectangle(Left, Bottom, Width, Height).
-      ScaleAround0(UIScale);
-  end;
-end;
-
-procedure TCastleUserInterfaceRect.SetWidth(const Value: Single);
+procedure TCastleUserInterface.SetWidth(const Value: Single);
 begin
   if FWidth <> Value then
   begin
@@ -3798,7 +3784,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterfaceRect.SetHeight(const Value: Single);
+procedure TCastleUserInterface.SetHeight(const Value: Single);
 begin
   if FHeight <> Value then
   begin
@@ -3807,7 +3793,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterfaceRect.SetFullSize(const Value: boolean);
+procedure TCastleUserInterface.SetFullSize(const Value: boolean);
 begin
   if FFullSize <> Value then
   begin
@@ -4197,7 +4183,7 @@ end;
 
 procedure DoInitialization;
 begin
-  RegisterSerializableComponent(TCastleUserInterfaceRect, 'Empty Rectangle');
+  RegisterSerializableComponent(TCastleUserInterface, 'Empty Rectangle');
 end;
 
 initialization

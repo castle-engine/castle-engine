@@ -20,9 +20,9 @@
     to be functional on both desktops and mobile
     (we handle scrolling by keys, mouse wheel, dragging by scrollbar,
     dragging the whole area - see @link(EnableDragging)). }
-  TCastleScrollView = class(TCastleUserInterfaceRect)
+  TCastleScrollView = class(TCastleUserInterface)
   strict private
-    FScrollArea: TCastleUserInterfaceRect;
+    FScrollArea: TCastleUserInterface;
     Scissor: TScissor;
 
     FScroll: Single;
@@ -77,7 +77,7 @@
     { Children you add here will be scrolled.
       Make sure to add some children here, and set proper size of this control,
       to have a useful scrolling area. }
-    property ScrollArea: TCastleUserInterfaceRect read FScrollArea;
+    property ScrollArea: TCastleUserInterface read FScrollArea;
     { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
@@ -106,7 +106,7 @@ begin
   FScrollBarWidth := DefaultScrollBarWidth;
   FTintScrollBarInactive := White;
 
-  FScrollArea := TCastleUserInterfaceRect.Create(Self);
+  FScrollArea := TCastleUserInterface.Create(Self);
   FScrollArea.SetSubComponent(true);
   FScrollArea.Name := 'ScrollArea';
   FScrollArea.Anchor(vpTop);

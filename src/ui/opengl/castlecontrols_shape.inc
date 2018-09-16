@@ -19,7 +19,7 @@
   TShapeType = (stRectangle, stCircle);
 
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }
-  TCastleShape = class(TCastleUserInterfaceRect)
+  TCastleShape = class(TCastleUserInterface)
   strict private
     FFilled, FOutline, FOutlineThick: boolean;
     FColor, FOutlineColor: TCastleColor;

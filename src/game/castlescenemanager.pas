@@ -1313,11 +1313,11 @@ type
     but they always share the same 3D world (in scene manager).
 
     You can control the size of this viewport by
-    @link(TCastleUserInterfaceRect.FullSize FullSize),
+    @link(TCastleUserInterface.FullSize FullSize),
     @link(TCastleUserInterface.Left Left),
     @link(TCastleUserInterface.Bottom Bottom),
-    @link(TCastleUserInterfaceRect.Width Width),
-    @link(TCastleUserInterfaceRect.Height Height) properties. For custom
+    @link(TCastleUserInterface.Width Width),
+    @link(TCastleUserInterface.Height Height) properties. For custom
     viewports, you often want to set FullSize = @false
     and control viewport's position and size explicitly.
 

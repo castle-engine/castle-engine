@@ -25,7 +25,7 @@
       WindowMargin = 10;
       ButtonHorizontalMargin = 10;
     type
-      TDialogScrollArea = class(TCastleUserInterfaceRect)
+      TDialogScrollArea = class(TCastleUserInterface)
       strict private
         Dialog: TDialog;
       public

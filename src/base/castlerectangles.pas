@@ -227,9 +227,9 @@ type
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched.
 
-      These details matter, e.g. when you set @link(TCastleUserInterfaceRect.Width), but not
-      @link(TCastleUserInterfaceRect.Height),
-      and then you expect the @link(TCastleUserInterface.CalculatedWidth) to work.
+      These details matter, e.g. when you set @link(TCastleUserInterface.Width), but not
+      @link(TCastleUserInterface.Height),
+      and then you expect the @link(TCastleUserInterface.EffectiveWidth) to work.
     }
     function ScaleAround0(const Factor: Single): TRectangle;
 

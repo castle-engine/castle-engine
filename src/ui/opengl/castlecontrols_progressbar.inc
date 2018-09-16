@@ -156,15 +156,15 @@ end;
 
 function TCastleProgressBar.Rect: TFloatRectangle;
 var
-  XMargin, Height, YMiddle, Bot: Single;
+  XMargin, AHeight, YMiddle, Bot: Single;
   PR: TFloatRectangle;
 begin
   PR := ParentRect;
   XMargin := PR.Width / 8;
-  Height := PR.Height / 12;
+  AHeight := PR.Height / 12;
   YMiddle := PR.Height * YPosition;
-  Bot := YMiddle - Height / 2;
-  Result := FloatRectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
+  Bot := YMiddle - AHeight / 2;
+  Result := FloatRectangle(XMargin, Bot, PR.Width - 2 * XMargin, AHeight);
 end;
 
 procedure TCastleProgressBar.Render;

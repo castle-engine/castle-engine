@@ -27,7 +27,6 @@
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
-    FWidth, FHeight: Single;
     FFinalScaledValid: boolean;
     { The only method that can access these is Rect.
       Everything else should use
@@ -87,8 +86,6 @@
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
-    procedure SetWidth(const Value: Single);
-    procedure SetHeight(const Value: Single);
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
@@ -98,6 +95,8 @@
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
   protected
+    procedure SetWidth(const Value: Single); override;
+    procedure SetHeight(const Value: Single); override;
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
   public
@@ -210,9 +209,6 @@
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
   published
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
-
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Cardinal
       read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
@@ -846,21 +842,19 @@ end;
 
 procedure TCastleButton.SetWidth(const Value: Single);
 begin
-  if FWidth <> Value then
+  if Width <> Value then
   begin
-    FWidth := Value;
+    inherited;
     FFinalScaledValid := false;
-    VisibleChange([chRectangle]);
   end;
 end;
 
 procedure TCastleButton.SetHeight(const Value: Single);
 begin
-  if FHeight <> Value then
+  if Height <> Value then
   begin
-    FHeight := Value;
+    inherited;
     FFinalScaledValid := false;
-    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -912,8 +906,8 @@ function TCastleButton.Rect: TFloatRectangle;
       ImageMarginScaled,
       PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   begin
-    FFinalScaledWidth  := FWidth  * UIScale;
-    FFinalScaledHeight := FHeight * UIScale;
+    FFinalScaledWidth  := Width  * UIScale;
+    FFinalScaledHeight := Height * UIScale;
 
     if AutoSize then
     begin
@@ -969,12 +963,17 @@ function TCastleButton.Rect: TFloatRectangle;
   end;
 
 begin
-  if not FFinalScaledValid then
+  Result := inherited;
+  if not FullSize then
   begin
-    FFinalScaledValid := true;
-    CalculateFinalScaledSize;
+    if not FFinalScaledValid then
+    begin
+      FFinalScaledValid := true;
+      CalculateFinalScaledSize;
+    end;
+    Result.Width := FFinalScaledWidth;
+    Result.Height := FFinalScaledHeight;
   end;
-  Result := FloatRectangle(LeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
 end;
 
 {$endif read_implementation}

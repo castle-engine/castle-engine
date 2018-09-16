@@ -29,13 +29,8 @@
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
-    FWidth, FHeight: Single;
-    FFullSize: boolean;
     FMaxDisplayChars: Integer;
     function GetTextToRender: TRichText;
-    procedure SetWidth(const Value: Single);
-    procedure SetHeight(const Value: Single);
-    procedure SetFullSize(const Value: boolean);
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
@@ -65,10 +60,6 @@
 
     function DisplayChars: Cardinal;
   published
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
-    property FullSize: boolean read FFullSize write SetFullSize default false;
-
     { Should we automatically adjust size to the text size.
       The size of the label determines where does it display the @link(Frame),
       where does it catch events, to what width is it aligned (see @link(Alignment))
@@ -244,12 +235,7 @@ begin
       2 * PaddingVerticalScaled +
       Font.Descend);
   end else
-  if FullSize then
-    Result := ParentRect else
-  begin
-    Result := FloatRectangle(Left, Bottom, Width, Height);
-    Result := Result.ScaleAround0(UIScale);
-  end;
+    Result := inherited;
 end;
 
 procedure TCastleLabel.Render;
@@ -309,33 +295,6 @@ begin
       TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment,
         MaxDisplayChars);
     finally FreeAndNil(TextToRender) end;
-  end;
-end;
-
-procedure TCastleLabel.SetWidth(const Value: Single);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleLabel.SetHeight(const Value: Single);
-begin
-  if FHeight <> Value then
-  begin
-    FHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleLabel.SetFullSize(const Value: boolean);
-begin
-  if FFullSize <> Value then
-  begin
-    FFullSize := Value;
-    VisibleChange([chRectangle]);
   end;
 end;
 

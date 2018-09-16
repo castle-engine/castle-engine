@@ -111,11 +111,11 @@ type
     colors of the entire rectangle (@link(RenderRect)) of this control.
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
-    You may use e.g. TCastleSimpleBackground or TCastleRectangle
-    or TCastleSceneManager with TCastleSceneManager.Background:=true
+    You may use e.g. @link(TCastleRectangleControl)
+    or TCastleSceneManager with @link(TCastleSceneManager.Background)=true
     to always reliably fill the background.
   }
-  TCastleScreenEffects = class(TCastleUserInterfaceRect)
+  TCastleScreenEffects = class(TCastleUserInterface)
   strict private
     type
       TScreenPoint = packed record

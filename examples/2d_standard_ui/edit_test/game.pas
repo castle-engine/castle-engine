@@ -44,7 +44,7 @@ var
   Group: TCastleVerticalGroup;
   Label1, Label2, Label3: TCastleLabel;
   SimpleBackground: TCastleSimpleBackground;
-  Spacer: TCastleUserInterfaceRect;
+  Spacer: TCastleUserInterface;
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
@@ -75,7 +75,7 @@ begin
   ButtonCopyText.OnClick := @TEventHandler(nil).ButtonCopyTextClick;
   Group.InsertFront(ButtonCopyText);
 
-  Spacer := TCastleUserInterfaceRect.Create(Application);
+  Spacer := TCastleUserInterface.Create(Application);
   Spacer.Width := 1;
   Spacer.Height := 20;
   Group.InsertFront(Spacer);
@@ -91,7 +91,7 @@ begin
   Edit2.PaddingVertical := 10;
   Group.InsertFront(Edit2);
 
-  Spacer := TCastleUserInterfaceRect.Create(Application);
+  Spacer := TCastleUserInterface.Create(Application);
   Spacer.Width := 1;
   Spacer.Height := 20;
   Group.InsertFront(Spacer);

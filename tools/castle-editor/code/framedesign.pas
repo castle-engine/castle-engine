@@ -37,7 +37,7 @@ type
   private
     type
       { UI layer that can intercept mouse clicks and drags. }
-      TDesignerLayer = class(TCastleUserInterfaceRect)
+      TDesignerLayer = class(TCastleUserInterface)
       strict private
         PendingMove: TVector2;
         function GetSelectedUserInterface: TCastleUserInterface;
@@ -878,8 +878,8 @@ begin
   NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
   UpdateComponentCaptionFromName(NewRoot);
 
-  if NewRoot is TCastleUserInterfaceRect then
-    (NewRoot as TCastleUserInterfaceRect).FullSize := true;
+  if NewRoot is TCastleUserInterface then
+    (NewRoot as TCastleUserInterface).FullSize := true;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 end;

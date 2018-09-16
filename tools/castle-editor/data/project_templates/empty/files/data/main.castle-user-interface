@@ -80,5 +80,5 @@
       "_ClassName" : "TCastleRectangleControl"
     }
   ],
-  "_ClassName" : "TCastleUserInterfaceRect"
+  "_ClassName" : "TCastleUserInterface"
 }

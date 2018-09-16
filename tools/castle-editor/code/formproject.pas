@@ -389,7 +389,7 @@ end;
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
   NeedsDesignFrame;
-  Design.NewDesign(TCastleUserInterfaceRect);
+  Design.NewDesign(TCastleUserInterface);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);

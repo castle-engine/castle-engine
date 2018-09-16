@@ -233,7 +233,7 @@ type
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    BackgroundControls: TCastleUserInterfaceRect;
+    BackgroundControls: TCastleUserInterface;
   public
     constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
@@ -528,7 +528,7 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create(AWindow);
 
-  BackgroundControls := TCastleUserInterfaceRect.Create(nil);
+  BackgroundControls := TCastleUserInterface.Create(nil);
   BackgroundControls.FullSize := true;
   FillBackgroundControls;
 

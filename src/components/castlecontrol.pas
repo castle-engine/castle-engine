@@ -64,10 +64,10 @@ type
       @item(use @link(TCastleSimpleBackground),)
 
       @item(or use @link(TCastleRectangleControl) with
-        @link(TCastleUserInterfaceRect.FullSize FullSize) = @true,)
+        @link(TCastleUserInterface.FullSize FullSize) = @true,)
 
       @item(or use @link(TCastleSceneManager) with
-        @link(TCastleUserInterfaceRect.FullSize) = @true and
+        @link(TCastleUserInterface.FullSize) = @true and
         @link(TCastleAbstractViewport.Transparent) = @false,)
 
       @item(eventually you can also call @link(CastleGLUtils.GLClear)

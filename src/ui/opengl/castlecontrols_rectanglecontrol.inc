@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
   { Fill a rectangle on screen with given color or theme image. }
-  TCastleRectangleControl = class(TCastleUserInterfaceRect)
+  TCastleRectangleControl = class(TCastleUserInterface)
   strict private
     FColor: TCastleColor;
     FThemeImage: TThemeImage;

@@ -21,19 +21,20 @@
     FChecked: boolean;
     FEnabled: boolean;
     FPressed: boolean;
-    FWidth: Cardinal;
-    FHeight: Cardinal;
     FOnChange: TNotifyEvent;
 
     procedure SetChecked(const Value: boolean);
     procedure SetEnabled(const Value: boolean);
 
   public
+    const
+      DefaultWidth = 50;
+      DefaultHeight = 28;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -43,10 +44,10 @@
     { Switch state. }
     property Checked: boolean read FChecked write SetChecked default false;
     property Enabled: boolean read FEnabled write SetEnabled default true;
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
     { Event sent when switch value changed. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property Width default DefaultWidth;
+    property Height default DefaultHeight;
   end;
 
 {$endif read_interface}
@@ -62,8 +63,8 @@ begin
   FEnabled := true;
   FPressed := false;
   FOnChange := nil;
-  FWidth := 50;
-  FHeight := 28;
+  Width := DefaultWidth;
+  Height := DefaultHeight;
 end;
 
 destructor TCastleSwitchControl.Destroy;
@@ -103,11 +104,6 @@ begin
   else
     HandleImage := tiButtonNormal;
   Theme.Draw(HandleRect, HandleImage, UIScale)
-end;
-
-function TCastleSwitchControl.Rect: TFloatRectangle;
-begin
-  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleSwitchControl.SetEnabled(const Value: boolean);

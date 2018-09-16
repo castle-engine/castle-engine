@@ -22,7 +22,6 @@
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FFrame: boolean;
-    FWidth: Single;
     LifeTime: TFloatTime;
     FMaxLength: Cardinal;
     FAllowedChars: TSetOfChars;
@@ -33,7 +32,6 @@
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetBackgroundColor(const Value: TCastleColor);
-    procedure SetWidth(const Value: Single);
     procedure SetPadding(const Value: Single);
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
@@ -90,7 +88,7 @@
       Note that the edit control width is never auto-calculated,
       since there's no "natural width" for the edit box.
       In contrast, our height is always (for now) auto-calculated. }
-    property Width: Single read FWidth write SetWidth default DefaultWidth;
+    property Width default DefaultWidth;
 
     { Currently input text. }
     property Text: string read FText write SetText;
@@ -135,7 +133,7 @@ begin
   FFocusedColor := Black;
   FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
   FBackgroundColor := White;
-  FWidth := DefaultWidth;
+  Width := DefaultWidth;
   FPadding := DefaultPadding;
   FFrame := true;
   FAllowedChars := AllChars;
@@ -186,15 +184,6 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetWidth(const Value: Single);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
 procedure TCastleEdit.SetPadding(const Value: Single);
 begin
   if FPadding <> Value then
@@ -237,19 +226,24 @@ var
   US: Single;
   FrameCorners: TVector4Integer;
 begin
-  US := UIScale;
-  PaddingVerticalScaled := US * (PaddingVertical + Padding);
+  Result := inherited;
 
-  HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
-  if Frame then
+  if not FullSize then
   begin
-    FrameCorners := Theme.Corners[tiEdit];
-    HeightScaled := HeightScaled +
-      US * FrameCorners[0] +
-      US * FrameCorners[2];
-  end;
+    US := UIScale;
+    PaddingVerticalScaled := US * (PaddingVertical + Padding);
 
-  Result := FloatRectangle(LeftBottomScaled, Width * US, HeightScaled);
+    HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
+    if Frame then
+    begin
+      FrameCorners := Theme.Corners[tiEdit];
+      HeightScaled := HeightScaled +
+        US * FrameCorners[0] +
+        US * FrameCorners[2];
+    end;
+
+    Result.Height := HeightScaled;
+  end;
 end;
 
 procedure TCastleEdit.Render;

@@ -20,12 +20,8 @@
   TCastleAbstractSlider = class(TCastleUserInterfaceFont)
   strict private
     FDisplayValue: boolean;
-    FWidth: Single;
-    FHeight: Single;
     FOnChange: TNotifyEvent;
     FCaption: string;
-    procedure SetWidth(const Value: Single);
-    procedure SetHeight(const Value: Single);
     function IndicatorWidth(const R: TFloatRectangle): Single;
     procedure SetCaption(const Value: string);
   private
@@ -54,11 +50,10 @@
       DefaultHeight = 20;
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
-    property Width: Single read FWidth write SetWidth default DefaultWidth;
-    property Height: Single read FHeight write SetHeight default DefaultHeight;
+    property Width default DefaultWidth;
+    property Height default DefaultHeight;
 
     property SmallFont default true;
 
@@ -176,14 +171,9 @@ constructor TCastleAbstractSlider.Create(AOwner: TComponent);
 begin
   inherited;
   FDisplayValue := true;
-  FWidth := DefaultWidth;
-  FHeight := DefaultHeight;
+  Width := DefaultWidth;
+  Height := DefaultHeight;
   SmallFont := true;
-end;
-
-function TCastleAbstractSlider.Rect: TFloatRectangle;
-begin
-  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleAbstractSlider.Render;
@@ -239,24 +229,6 @@ procedure TCastleAbstractSlider.DoChange;
 begin
   if Assigned(OnChange) then
     OnChange(Self);
-end;
-
-procedure TCastleAbstractSlider.SetWidth(const Value: Single);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleAbstractSlider.SetHeight(const Value: Single);
-begin
-  if FHeight <> Value then
-  begin
-    FHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
 end;
 
 procedure TCastleAbstractSlider.SetCaption(const Value: string);
