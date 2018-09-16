@@ -75,7 +75,7 @@
     Answered: boolean;
 
     { The whole rectangle where we draw dialog box. }
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -107,7 +107,7 @@ constructor TStateDialog.TDialog.TDialogScrollArea.Create(AOwner: TComponent);
 begin
   inherited;
   Dialog := AOwner as TStateDialog.TDialog;
-  FullSize := true; // we want our ScreenRect to be equal to parent
+  FullSize := true; // we want our RenderRect to be equal to parent
 end;
 
 procedure TStateDialog.TDialog.TDialogScrollArea.Render;
@@ -126,14 +126,14 @@ type
       CaretWidth := 0;
     { change X only locally, to take TextAlign into account }
     case TextAlign of
-      hpMiddle: X += (Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) / 2;
-      hpRight : X +=  Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth);
+      hpMiddle: X := X + ((Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) / 2);
+      hpRight : X := X + ( Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth));
     end;
     if Caret = cmVisible then
       Text := Text + CaretChar;
     Dialog.Font.Print(X, Y, Color, Text);
     { change Y for caller, to print next line higher }
-    Y += Dialog.Font.RowHeight;
+    Y := Y + Dialog.Font.RowHeight;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
@@ -162,11 +162,11 @@ type
 
 var
   TextX, TextY: Single;
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
 
-  SR := ScreenRect; // screen rectangle of ScrollView.ScrollArea
+  SR := RenderRect; // screen rectangle of ScrollView.ScrollArea
   TextX := SR.Left   + Dialog.BoxMarginScaled;
   TextY := SR.Bottom + Dialog.BoxMarginScaled;
 
@@ -178,7 +178,7 @@ begin
 
   { adjust TextX for TRichText.Print call }
   case Dialog.TextAlign of
-    hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+    hpMiddle: TextX := (SR.Left + SR.Right) / 2;
     hpRight : TextX := SR.Right - Dialog.BoxMarginScaled;
   end;
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
@@ -246,7 +246,7 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Button.CalculatedFloatHeight * UIScale + 2 * BoxMarginScaled);
+    MaxVar(Result, Button.EffectiveHeight * UIScale + 2 * BoxMarginScaled);
 end;
 
 function TStateDialog.TDialog.ButtonsHeight: Single;
@@ -255,7 +255,7 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Button.CalculatedFloatHeight + 2 * BoxMargin);
+    MaxVar(Result, Button.EffectiveHeight + 2 * BoxMargin);
 end;
 
 procedure TStateDialog.TDialog.Resize;
@@ -282,7 +282,7 @@ procedure TStateDialog.TDialog.UpdateSizes;
         Button := Buttons[I];
         Button.Anchor(vpBottom, Y);
         Button.Anchor(hpRight, X);
-        X -= Button.CalculatedFloatWidth + ButtonHorizontalMargin;
+        X := X - (Button.EffectiveWidth + ButtonHorizontalMargin);
       end;
     end;
   end;
@@ -303,7 +303,7 @@ begin
 
     Using PR.Width always works OK.
   }
-  PR := ParentFloatRect;
+  PR := ParentRect;
 
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
@@ -323,9 +323,9 @@ begin
 
   ButtonsWidth := 0;
   for Button in Buttons do
-    ButtonsWidth += Button.CalculatedWidth * UIScale + ButtonHorizontalMarginScaled;
+    ButtonsWidth := ButtonsWidth + (Button.EffectiveWidth * UIScale + ButtonHorizontalMarginScaled);
   if ButtonsWidth > 0 then
-    ButtonsWidth -= ButtonHorizontalMarginScaled; // extract margin from last button
+    ButtonsWidth := ButtonsWidth - ButtonHorizontalMarginScaled; // extract margin from last button
   MaxVar(MaxLineWidth, ButtonsWidth);
 
   if DrawInputText then
@@ -339,22 +339,22 @@ begin
       so there should be indication of "empty line". }
     if Broken_InputText.count = 0 then Broken_InputText.Add('');
     MaxVar(MaxLineWidth, Font.MaxTextWidth(Broken_InputText) + Font.TextWidth(CaretChar));
-    AllScrolledLinesCount += Broken_InputText.count;
+    AllScrolledLinesCount := AllScrolledLinesCount + Broken_InputText.count;
   end;
 
   { Now we have MaxLineWidth and AllScrolledLinesCount calculated,
-    so our Rect and ScreenRect return valid values. }
+    so our Rect and RenderRect return valid values. }
 
   ScrollView.Anchor(hpLeft, 0);
   ScrollView.Anchor(vpBottom, ButtonsHeight);
-  ScrollView.FloatWidth := CalculatedFloatWidth;
-  ScrollView.FloatHeight := CalculatedFloatHeight - ButtonsHeight;
+  ScrollView.Width := EffectiveWidth;
+  ScrollView.Height := EffectiveHeight - ButtonsHeight;
 
   { add Font.Descend, to be able to see the descend of the bottom line when Scroll is ScrollMax. }
-  ScrollView.ScrollArea.FloatHeight :=
+  ScrollView.ScrollArea.Height :=
     (Font.RowHeight * AllScrolledLinesCount + Font.Descend) / UIScale
     + 2 * BoxMargin;
-  ScrollView.ScrollArea.FloatWidth := CalculatedFloatWidth;
+  ScrollView.ScrollArea.Width := EffectiveWidth;
 
   UpdateButtons;
 end;
@@ -363,7 +363,7 @@ procedure TStateDialog.TDialog.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   { when we have input text, we display blinking caret, so keep redrawing }
   if DrawInputText then
     VisibleChange([chRender]);
@@ -373,7 +373,7 @@ procedure TStateDialog.TDialog.Render;
 begin
   inherited;
 
-  Theme.Draw(ScreenRect, tiWindow, UIScale);
+  Theme.Draw(RenderRect, tiWindow, UIScale);
 end;
 
 function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
@@ -381,11 +381,11 @@ begin
   Result := true; // always capture
 end;
 
-function TStateDialog.TDialog.FloatRect: TFloatRectangle;
+function TStateDialog.TDialog.Rect: TFloatRectangle;
 var
   PR: TFloatRectangle;
 begin
-  PR := ParentFloatRect;
+  PR := ParentRect;
   Result := FloatRectangle(0, 0,
     Min(MaxLineWidth + BoxMarginScaled * 2 +
       ScrollView.ScrollBarWidth * UIScale,
@@ -396,7 +396,7 @@ begin
         ScrollView.ScrollArea.Height using a similar equation as above
         "Font.RowHeight * AllScrolledLinesCount + Font.Descend...",
         but it's in unscaled size (/ UIScale), and sometimes (with wild UIScale
-        values) it seems like scrollbars are needed (CalculatedHeight < ScrollArea.CalculatedHeight)
+        values) it seems like scrollbars are needed (EffectiveHeight < ScrollArea.EffectiveHeight)
         even though they actually are not.
 
         Reproducible if you try to resize to small sizes the demo on

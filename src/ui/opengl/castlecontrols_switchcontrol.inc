@@ -33,7 +33,7 @@
     destructor Destroy; override;
 
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -73,24 +73,24 @@ end;
 
 procedure TCastleSwitchControl.Render;
 var
-  BaseRect, BackRect, HandleRect: TRectangle;
+  BaseRect, BackRect, HandleRect: TFloatRectangle;
   HandleImage: TThemeImage;
 begin
   inherited;
 
-  BaseRect := ScreenRect;
+  BaseRect := RenderRect;
 
   // background
   BackRect := BaseRect;
-  BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height div 2;
-  BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) div 2);
+  BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height / 2;
+  BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) / 2);
   Theme.Draw(BackRect, tiSwitchControl, UIScale);
   if Checked then
     Theme.Draw(BackRect, tiSwitchControlFill, UIScale);
 
   // handle
   HandleRect := BaseRect;
-  HandleRect.Width := BaseRect.Width div 3; //HandleRect.Height;
+  HandleRect.Width := BaseRect.Width / 3; //HandleRect.Height;
   if Checked then
     HandleRect.Left := BaseRect.Right - HandleRect.Width;
 
@@ -105,7 +105,7 @@ begin
   Theme.Draw(HandleRect, HandleImage, UIScale)
 end;
 
-function TCastleSwitchControl.FloatRect: TFloatRectangle;
+function TCastleSwitchControl.Rect: TFloatRectangle;
 begin
   Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;

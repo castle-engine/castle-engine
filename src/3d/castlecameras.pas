@@ -339,7 +339,13 @@ type
       const Viewport: TRectangle;
       const WindowPosition: TVector2;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3);
+      out RayOrigin, RayDirection: TVector3); overload;
+      deprecated 'use the overloaded version of CustomRay with TFloatRectangle';
+    procedure CustomRay(
+      const Viewport: TFloatRectangle;
+      const WindowPosition: TVector2;
+      const Projection: TProjection;
+      out RayOrigin, RayDirection: TVector3); overload;
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -1789,7 +1795,7 @@ procedure TCamera.Ray(const WindowPosition: TVector2;
   out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
-  CustomRay(ContainerRect, WindowPosition, Projection, RayOrigin, RayDirection);
+  CustomRay(FloatRectangle(ContainerRect), WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.MouseRay(
@@ -1797,11 +1803,11 @@ procedure TCamera.MouseRay(
   out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
-  CustomRay(ContainerRect, Container.MousePosition, Projection, RayOrigin, RayDirection);
+  CustomRay(FloatRectangle(ContainerRect), Container.MousePosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
-  const Viewport: TRectangle;
+  const Viewport: TFloatRectangle;
   const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
@@ -1817,6 +1823,16 @@ begin
     Pos, Dir, Up,
     Projection,
     RayOrigin, RayDirection);
+end;
+
+procedure TCamera.CustomRay(
+  const Viewport: TRectangle;
+  const WindowPosition: TVector2;
+  const Projection: TProjection;
+  out RayOrigin, RayDirection: TVector3);
+begin
+  CustomRay(FloatRectangle(Viewport),
+    WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.Update(const SecondsPassed: Single;

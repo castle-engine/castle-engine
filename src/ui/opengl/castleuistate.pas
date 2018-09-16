@@ -207,7 +207,7 @@ type
 
     procedure Finish; virtual; deprecated 'use Stop';
 
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     { State is right now part of the state stack, which means
       it's between @link(Start) and @link(Stop) calls.
@@ -457,11 +457,11 @@ procedure TUIState.Finish;
 begin
 end;
 
-function TUIState.FloatRect: TFloatRectangle;
+function TUIState.Rect: TFloatRectangle;
 begin
   { 1. always capture events on whole container
     2. make child controls (anchored to us) behave like anchored to whole window. }
-  Result := ParentFloatRect;
+  Result := ParentRect;
 end;
 
 function TUIState.Active: boolean;

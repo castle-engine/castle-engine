@@ -36,20 +36,20 @@ type
   TNothingOverrriden = class(TCastleUserInterface)
   end;
 
-  TIntOverrriden = class(TCastleUserInterface)
-    function Rect: TRectangle; override;
-  end;
+  // TIntOverrriden = class(TCastleUserInterface)
+  //   function Rect: TRectangle; override;
+  // end;
 
   TFloatOverrriden = class(TCastleUserInterface)
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
   end;
 
-function TIntOverrriden.Rect: TRectangle;
-begin
-  Result := Rectangle(10, 20, 30, 40);
-end;
+// function TIntOverrriden.Rect: TRectangle;
+// begin
+//   Result := Rectangle(10, 20, 30, 40);
+// end;
 
-function TFloatOverrriden.FloatRect: TFloatRectangle;
+function TFloatOverrriden.Rect: TFloatRectangle;
 begin
   Result := FloatRectangle(100, 200, 300, 400);
 end;
@@ -57,25 +57,22 @@ end;
 procedure TTestCastleUIControls.TestRectOverrides;
 var
   N: TNothingOverrriden;
-  I: TIntOverrriden;
+  // I: TIntOverrriden;
   F: TFloatOverrriden;
 begin
   N := TNothingOverrriden.Create(nil);
   try
-    AssertRectsEqual(TRectangle.Empty, N.Rect);
-    AssertRectsEqual(TFloatRectangle.Empty, N.FloatRect);
+    AssertRectsEqual(TFloatRectangle.Empty, N.Rect);
   finally FreeAndNil(N); end;
 
-  I := TIntOverrriden.Create(nil);
-  try
-    AssertRectsEqual(Rectangle(10, 20, 30, 40), I.Rect);
-    AssertRectsEqual(FloatRectangle(10, 20, 30, 40), I.FloatRect);
-  finally FreeAndNil(I); end;
+  // I := TIntOverrriden.Create(nil);
+  // try
+  //   AssertRectsEqual(FloatRectangle(10, 20, 30, 40), I.Rect);
+  // finally FreeAndNil(I); end;
 
   F := TFloatOverrriden.Create(nil);
   try
-    AssertRectsEqual(Rectangle(100, 200, 300, 400), F.Rect);
-    AssertRectsEqual(FloatRectangle(100, 200, 300, 400), F.FloatRect);
+    AssertRectsEqual(FloatRectangle(100, 200, 300, 400), F.Rect);
   finally FreeAndNil(F); end;
 end;
 

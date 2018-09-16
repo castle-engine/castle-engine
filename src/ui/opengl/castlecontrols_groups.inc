@@ -37,7 +37,7 @@
       DefaultSpacing = 10;
 
     constructor Create(AOwner: TComponent); override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
@@ -115,10 +115,10 @@ procedure TCastlePackedGroup.Render;
 begin
   inherited;
   if Frame then
-    Theme.Draw(ScreenFloatRect, tiGroup, UIScale, FrameColor);
+    Theme.Draw(RenderRect, tiGroup, UIScale, FrameColor);
 end;
 
-function TCastlePackedGroup.FloatRect: TFloatRectangle;
+function TCastlePackedGroup.Rect: TFloatRectangle;
 
   procedure PackChildren;
   begin
@@ -130,7 +130,7 @@ function TCastlePackedGroup.FloatRect: TFloatRectangle;
 
 begin
   PackChildren;
-  Result := FloatRectangle(FloatLeftBottomScaled,
+  Result := FloatRectangle(LeftBottomScaled,
     FInsideWidth * UIScale,
     FInsideHeight * UIScale);
 end;
@@ -224,8 +224,8 @@ begin
     end;
     C.Anchor(Alignment, AlignmentDelta);
 
-    W := W + C.CalculatedFloatWidth + Spacing;
-    MaxVar(H, C.CalculatedFloatHeight);
+    W := W + C.EffectiveWidth + Spacing;
+    MaxVar(H, C.EffectiveHeight);
   end;
 
   W := W - Spacing + Padding;
@@ -277,8 +277,8 @@ begin
     else
       C.Anchor(vpBottom, H);
 
-    MaxVar(W, C.CalculatedFloatWidth);
-    H := H + C.CalculatedFloatHeight + Spacing;
+    MaxVar(W, C.EffectiveWidth);
+    H := H + C.EffectiveHeight + Spacing;
   end;
 
   W := W + 2 * Padding;

@@ -131,7 +131,7 @@ type
 procedure TFocusedFrame.Render;
 begin
   if Focused then
-    Theme.Draw(ScreenRect, tiActiveFrame);
+    Theme.Draw(RenderRect, tiActiveFrame);
 end;
 
 procedure TFocusedFrame.SetFocused(const Value: boolean);
@@ -158,11 +158,11 @@ const
 
 procedure Resize(Container: TUIContainer);
 var
-  W, H, TopMargin: Integer;
+  W, H, TopMargin: Single;
 begin
-  TopMargin := OpenButton.CalculatedHeight + 2 * Margin;
-  W := Window.Width div 2;
-  H := (Window.Height - TopMargin) div 2;
+  TopMargin := OpenButton.EffectiveHeight + 2 * Margin;
+  W := Window.Width / 2;
+  H := (Window.Height - TopMargin) / 2;
 
   Viewports[0].Left   :=       Margin;
   Viewports[0].Bottom :=       Margin;

@@ -42,7 +42,7 @@
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
 
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -97,11 +97,11 @@ begin
     Result := 1;
 end;
 
-function TCastleTouchControl.FloatRect: TFloatRectangle;
+function TCastleTouchControl.Rect: TFloatRectangle;
 begin
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
-  Result := FloatRectangle(FloatLeftBottomScaled,
+  Result := FloatRectangle(LeftBottomScaled,
     Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
     Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
 end;
@@ -145,12 +145,12 @@ procedure TCastleTouchControl.Render;
 var
   LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
   LeverDist: Double;
-  InnerRect: TRectangle;
+  InnerRect: TFloatRectangle;
   ImageInner, ImageOuter: TThemeImage;
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
-  SR := ScreenRect;
+  SR := RenderRect;
 
   if FTouchMode = ctcmFlyUpdown then
   begin
@@ -178,11 +178,11 @@ begin
   if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
 
   // draw lever
-  InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
-  InnerRect.Width  := Round(InnerRect.Width  * TotalScale);
-  InnerRect.Height := Round(InnerRect.Height * TotalScale);
-  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
-  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
+  InnerRect := FloatRectangle(Theme.Images[ImageInner].Rect); // rectangle at (0,0)
+  InnerRect.Width  := InnerRect.Width  * TotalScale;
+  InnerRect.Height := InnerRect.Height * TotalScale;
+  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) / 2 + LevOffsetTrimmedX;
+  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) / 2 + LevOffsetTrimmedY;
 
   Theme.Draw(InnerRect, ImageInner, UIScale);
 end;

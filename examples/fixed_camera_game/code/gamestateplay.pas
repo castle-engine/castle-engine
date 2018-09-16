@@ -55,7 +55,7 @@ uses Math, SysUtils,
 procedure TStatePlay.Resize;
 begin
   inherited;
-  CurrentLocation.Scene.SceneManagerRect := SceneManager.ScreenRect;
+  CurrentLocation.Scene.SceneManagerRect := SceneManager.RenderRect.Round;
 end;
 
 procedure TStatePlay.Start;

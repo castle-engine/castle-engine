@@ -27,12 +27,12 @@
 
     FScroll: Single;
     FScrollbarVisible: boolean;
-    { Rects in screen coordinates (like ScreenFloatRect),
+    { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
     ScrollBarDragging: boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
-    FScrollBarWidth: Cardinal;
+    FScrollBarWidth: Single;
     FEnableDragging: boolean;
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
@@ -83,7 +83,7 @@
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
     property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed default DefaultWheelScrollSpeed;
     { Width of the scroll bar. }
-    property ScrollBarWidth: Cardinal read FScrollBarWidth write FScrollBarWidth default DefaultScrollBarWidth;
+    property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default DefaultScrollBarWidth;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
       Note that this doesn't affect the dragging directly by the scrollbar,
@@ -124,7 +124,7 @@ end;
 procedure TCastleScrollView.Render;
 begin
   inherited;
-  Scissor.Rect := ScreenRect;
+  Scissor.Rect := RenderRect.Round;
   Scissor.Enabled := true;
 end;
 
@@ -161,24 +161,25 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
   var
     SR: TFloatRectangle;
   begin
-    SR := ScreenFloatRect;
+    SR := RenderRect;
 
     ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
 
     ScrollbarSlider := ScrollbarFrame;
-    if ScrollArea.CalculatedFloatHeight = 0 then
+    if ScrollArea.EffectiveHeight = 0 then
       FScrollBarVisible := false
     else
     begin
-      ScrollbarSlider.Height := CalculatedFloatHeight * SR.Height / ScrollArea.CalculatedFloatHeight;
+      ScrollbarSlider.Height := EffectiveHeight * SR.Height / ScrollArea.EffectiveHeight;
       FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
       { equivalent would be to set
-          ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
+          ScrollBarVisible := EffectiveHeight < ScrollArea.EffectiveHeight
         But this way makes it clear that MapRange below is valid, will not divide by zero. }
     end;
     if FScrollBarVisible then
-      ScrollbarSlider.Bottom += MapRange(Scroll, ScrollMin, ScrollMax,
-        ScrollbarFrame.Height - ScrollbarSlider.Height, 0) else
+      ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
+        (MapRange(Scroll, ScrollMin, ScrollMax,
+          ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
     begin
       ScrollBarDragging := false;
       Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
@@ -227,7 +228,7 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
         TimeSinceDraggingStopped := 0;
       end else
       begin
-        TimeSinceDraggingStopped += SecondsPassed;
+        TimeSinceDraggingStopped := TimeSinceDraggingStopped + SecondsPassed;
         if (DragSpeed <> 0) and
            (TimeSinceDraggingStopped < DragDecelerationDuration) then
         begin
@@ -261,7 +262,7 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     if TimeSinceDraggingStopped = 0 then
     begin
       { dragging now }
-      TimeSinceDraggingStarted += SecondsPassed;
+      TimeSinceDraggingStarted := TimeSinceDraggingStarted + SecondsPassed;
       if TimeSinceDraggingStarted > AppearTime then
         NewScrollbarActive := 1 else
         NewScrollbarActive := TimeSinceDraggingStarted / AppearTime;
@@ -382,7 +383,7 @@ begin
   if ScrollBarDragging then
   begin
     Scroll := Scroll + ((Event.OldPosition[1] - Event.Position[1]) / UIScale) /
-      ScrollbarFrame.Height * ScrollArea.ScreenFloatRect.Height;
+      ScrollbarFrame.Height * ScrollArea.RenderRect.Height;
     TimeSinceDraggingStopped := 0;
     Result := ExclusiveEvents;
   end else
@@ -390,7 +391,7 @@ begin
   begin
     Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
     Scroll := Scroll + Drag;
-    DragSinceLastUpdate += Drag;
+    DragSinceLastUpdate := DragSinceLastUpdate + Drag;
     Result := ExclusiveEvents;
   end;
 end;
@@ -402,7 +403,7 @@ end;
 
 function TCastleScrollView.ScrollMax: Single;
 begin
-  Result := Max(0, ScrollArea.CalculatedFloatHeight - CalculatedFloatHeight);
+  Result := Max(0, ScrollArea.EffectiveHeight - EffectiveHeight);
 end;
 
 function TCastleScrollView.ScrollBarWidthScaled: Single;

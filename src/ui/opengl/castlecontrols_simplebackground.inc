@@ -33,6 +33,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
+    function Rect: TFloatRectangle; override;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
   end;
@@ -62,6 +63,11 @@ procedure TCastleSimpleBackground.Render;
 begin
   inherited;
   RenderContext.Clear([cbColor], Color);
+end;
+
+function TCastleSimpleBackground.Rect: TFloatRectangle;
+begin
+  Result := TFloatRectangle.Empty;
 end;
 
 {$endif read_implementation}

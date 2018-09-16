@@ -175,8 +175,8 @@ type
     chRender,
 
     { The rectangle (size or position) of the control changed.
-      This concerns all the things that affect @link(TCastleUserInterface.Rect),
-      @link(TCastleUserInterface.FloatRect) or our position inside parent (anchors).
+      This concerns all the things that affect
+      @link(TCastleUserInterface.Rect) or our position inside parent (anchors).
 
       Note that this is not (necessarily) called when the screen position changed
       just because the parent screen position changed.
@@ -216,7 +216,7 @@ type
     (that is, last on the @link(Controls) list) control under
     the event position (or mouse position, or the appropriate touch position).
     We use @link(TCastleUserInterface.CapturesEventsAtPosition) to decide this
-    (by default it simply checks control's @link(TCastleUserInterface.ScreenRect)
+    (by default it simply checks control's @link(TCastleUserInterface.RenderRect)
     vs the given position).
     As long as the event is not handled,
     we search for the next control that can handle this event and
@@ -258,8 +258,8 @@ type
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
     FUIScaling: TUIScaling;
-    FUIReferenceWidth: Integer;
-    FUIReferenceHeight: Integer;
+    FUIReferenceWidth: Single;
+    FUIReferenceHeight: Single;
     FUIExplicitScale: Single;
     FCalculatedUIScale: Single; //< set on all children
     FFps: TFramesPerSecond;
@@ -274,8 +274,8 @@ type
     function UseForceCaptureInput: boolean;
     function TryGetFingerOfControl(const C: TCastleUserInterface; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
-    procedure SetUIReferenceWidth(const Value: Integer);
-    procedure SetUIReferenceHeight(const Value: Integer);
+    procedure SetUIReferenceWidth(const Value: Single);
+    procedure SetUIReferenceHeight(const Value: Single);
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
@@ -415,7 +415,6 @@ type
       is more natural when you use UI scaling (@link(UIScaling)),
       and it's simply equal to @name when UI scaling is not used. }
     function Rect: TRectangle; virtual;
-    function FloatRect: TFloatRectangle;
 
     { Translucent status bar height in the container, in pixels.
       This is expressed in real device pixels.
@@ -440,18 +439,15 @@ type
       because the @link(TUIContainer.Width) is (for historic reasons) the "real" size.
 
       @seealso UnscaledHeight }
-    function UnscaledWidth: Cardinal;
-    function UnscaledFloatWidth: Single;
+    function UnscaledWidth: Single;
 
     { Container height as seen by controls with UI scaling.
       @seealso UnscaledWidth }
-    function UnscaledHeight: Cardinal;
-    function UnscaledFloatHeight: Single;
+    function UnscaledHeight: Single;
 
     { Container rectangle as seen by controls with UI scaling.
       @seealso UnscaledWidth }
-    function UnscaledRect: TRectangle;
-    function UnscaledFloatRect: TFloatRectangle;
+    function UnscaledRect: TFloatRectangle;
 
     { Translucent status bar height inside the container as seen by controls
       with UI scaling.
@@ -459,7 +455,7 @@ type
       Status bar occupies the top part of the container height. Invisible
       status bar returns height equal zero.
       @seealso UnscaledWidth }
-    function StatusBarHeight: Cardinal;
+    function StatusBarHeight: Single;
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
@@ -514,6 +510,7 @@ type
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual; abstract;
+    function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
     { @groupEnd }
 
     { This is internal, and public only for historic reasons.
@@ -524,7 +521,7 @@ type
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
       In practice, called when TCastleUserInterface.Cursor or
       @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
-      @link(TCastleUserInterface.ScreenRect)) results change.
+      @link(TCastleUserInterface.RenderRect)) results change.
 
       In practice, it's called through VisibleChange now.
 
@@ -642,9 +639,9 @@ type
       for precise description how this works.
       Set both these properties, or set only one (and leave the other as zero).
       @groupBegin }
-    property UIReferenceWidth: Integer
+    property UIReferenceWidth: Single
       read FUIReferenceWidth write SetUIReferenceWidth default 0;
-    property UIReferenceHeight: Integer
+    property UIReferenceHeight: Single
       read FUIReferenceHeight write SetUIReferenceHeight default 0;
     { @groupEnd }
 
@@ -944,9 +941,14 @@ type
     Every control also has a position and takes some rectangular space
     on the container.
 
-    The position is controlled using the @link(Left), @link(Bottom) fields.
-    The rectangle where the control is visible can be queried using
-    the @link(Rect) or @link(ScreenRect) methods.
+    The position is controlled using the @link(Anchor) methods
+    or anchor properties, like @link(HorizontalAnchorSelf),
+    @link(HorizontalAnchorParent),
+    @link(HorizontalAnchorDelta).
+    The size (before UI scaling is applied) can be queried using
+    @link(EffectiveWidth) and @link(EffectiveHeight) methods.
+    The rectangle where the control is visible (during rendering,
+    after applying UI scaling) can be queried using @link(RenderRect) methods.
 
     Note that each descendant has it's own definition of the size of the control.
     E.g. some descendants may automatically calculate the size
@@ -960,10 +962,8 @@ type
     in your own TCastleUserInterface descendants, if the given control size will
     never be used for anything).
 
-    All screen (mouse etc.) coordinates passed here should be in the usual
-    window system coordinates, that is (0, 0) is left-top window corner.
-    (Note that this is contrary to the usual OpenGL 2D system,
-    where (0, 0) is left-bottom window corner.) }
+    All the coordinates passed here should follow the Castle Game Engine
+    convention that (0, 0) is left-bottom window corner. }
   TCastleUserInterface = class abstract(TInputListener)
   private
     FDisableContextOpenClose: Cardinal;
@@ -974,8 +974,8 @@ type
     FRenderStyle: TRenderStyle;
     {$warnings on}
     FControls: TChildrenControls;
-    FLeft: Integer;
-    FBottom: Integer;
+    FLeft: Single;
+    FBottom: Single;
     FParent: TCastleUserInterface; //< null means that parent is our owner
     FHasHorizontalAnchor: boolean;
     FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
@@ -1002,8 +1002,8 @@ type
     procedure WriteLeft(Writer: TWriter);
     procedure WriteTop(Writer: TWriter);
 
-    procedure SetLeft(const Value: Integer);
-    procedure SetBottom(const Value: Integer);
+    procedure SetLeft(const Value: Single);
+    procedure SetBottom(const Value: Single);
 
     procedure SetHasHorizontalAnchor(const Value: boolean);
     procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
@@ -1015,19 +1015,14 @@ type
     procedure SetVerticalAnchorDelta(const Value: Single);
     procedure SetEnableUIScaling(const Value: boolean);
     { Like @link(Rect) but with anchors effect applied. }
-    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TRectangle;
-    function FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
+    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
 
     { The left-bottom corner scaled by UIScale,
       useful for implementing overridden @code(Rect) methods. }
-    function LeftBottomScaled: TVector2Integer;
-
-    { The left-bottom corner scaled by UIScale,
-      useful for implementing overridden @code(FloatRect) methods. }
-    function FloatLeftBottomScaled: TVector2;
+    function LeftBottomScaled: TVector2;
 
     procedure UIScaleChanged; virtual;
 
@@ -1077,7 +1072,7 @@ type
 
     { Does this control capture events under this screen position.
       The default implementation simply checks whether Position
-      is inside ScreenRect now. It also checks whether @link(CapturesEvents) is @true.
+      is inside RenderRect now. It also checks whether @link(CapturesEvents) is @true.
 
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
@@ -1240,29 +1235,12 @@ type
 
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
-      See @link(FloatRect) for the meaning.
 
       If you're looking for a way to query the size of the control,
-      using @link(CalculatedWidth), @link(CalculatedHeight),
-      or @link(CalculatedRect) is usually more useful.
-      Or use @link(ScreenRect) to get the rect in final (device) pixels.
+      using @link(EffectiveWidth), @link(EffectiveHeight),
+      or @link(EffectiveRect) is usually more useful.
+      Or use @link(RenderRect) to get the rect in final (device) pixels.
       It's seldom useful to call the @link(Rect) method directly.
-
-      The main purpose of this method is to be overridden in descendants.
-      But in most cases, it is better to override @link(FloatRect).
-
-      @seealso CalculatedRect
-    }
-    function Rect: TRectangle; virtual;
-
-    { Position and size of this control, assuming it exists,
-      in local coordinates (relative to parent 2D control).
-
-      If you're looking for a way to query the size of the control,
-      using @link(CalculatedFloatWidth), @link(CalculatedFloatHeight),
-      or @link(CalculatedFloatRect) is usually more useful.
-      Or use @link(ScreenFloatRect) to get the rect in final (device) pixels.
-      It's seldom useful to call the @link(FloatRect) method directly.
 
       The main purpose of this method is to be overridden in descendants.
 
@@ -1280,9 +1258,9 @@ type
           In simple cases, this can be done easily, like this:
 
           @longCode(#
-            function TMyControl.Rect: TRectangle;
+            function TMyControl.Rect: TFloatRectangle;
             begin
-              Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight).ScaleAround0(UIScale);
+              Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
             end;
           #)
 
@@ -1292,10 +1270,7 @@ type
 
       @italic(Why float-based coordinates?)
 
-      Using the float-based rectangles and coordinates (like FloatRect,
-      CalculatedFloatRect, TCastleButton.FloatWidth, TCastleButton.FloatWidth)
-      instead of integer-based (like Rect,
-      CalculatedRect, TCastleButton.Width, TCastleButton.Width) is better
+      Using the float-based rectangles and coordinates is better than integer
       in case you use UI scaling (@link(TUIContainer.UIScaling)).
       It may sound counter-intuitive, but calculating everything using
       floats results in more precision and better speed
@@ -1303,19 +1278,8 @@ type
       Without UI scaling, it doesn't matter, use whichever ones are more
       comfortable.
 
-      Using the float-based coordinates is also natural for animations.
-
-      @italic(For descendants implementors:)
-
-      By default, in this class, this just returns @link(Rect) converted to floats.
-      In turn, the @link(Rect) method by default returns a rounded @link(FloatRect).
-      So you must override at least one of: @link(Rect) or @link(FloatRect).
-      We have a smart protection from an infinite loop in case you don't override
-      any of them, but a correct descendant @italic(must) override at
-      least one of them.
-      It is better to override @link(FloatRect). See above for explanation
-      why float-based coordinates turned out to be better. }
-    function FloatRect: TFloatRectangle; virtual;
+      Using the float-based coordinates is also natural for animations. }
+    function Rect: TFloatRectangle; virtual;
 
     { Final position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
@@ -1333,12 +1297,10 @@ type
         @item(@bold(This uses unscaled coordinates),
           that correspond to the sizes you set e.g. in
           @link(TCastleUserInterfaceRect.Width),
-          @link(TCastleUserInterfaceRect.FloatWidth),
-          @link(TCastleUserInterfaceRect.Height),
-          @link(TCastleUserInterfaceRect.FloatHeight).
+          @link(TCastleUserInterfaceRect.Height).
 
           If you want to see scaled coordinates (in final device pixels),
-          look into @link(ScreenFloatRect) instead.
+          look into @link(RenderRect) instead.
         )
       )
 
@@ -1353,17 +1315,16 @@ type
       of more optimal implementation.
 
       If you implement descendants, you should rather think about overriding
-      the @link(FloatRect) method, if your control has special sizing mechanism.
-      The reason why we prefer overriding @link(FloatRect) (and CalculatedRect is just
+      the @link(Rect) method, if your control has special sizing mechanism.
+      The reason why we prefer overriding @link(Rect) (and EffectiveRect is just
       derived from it), not the other way around:
       it is because font measurements are already done in scaled coordinates
       (because UI scaling changes font size for TCastleUserInterfaceFont).
       So things like TCastleLabel have to calculate size in scaled coordinates
       anyway, and the unscaled size can only be derived from it by division.
 
-      @seealso FloatRect }
-    function CalculatedRect: TRectangle;
-    function CalculatedFloatRect: TFloatRectangle;
+      @seealso Rect }
+    function EffectiveRect: TFloatRectangle;
 
     { Calculated width of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1371,18 +1332,17 @@ type
 
       Unlike various other width properties of descendants (like
       @link(TCastleUserInterfaceRect.Width) or @link(TCastleImageControl.Width)),
-      this is the @italic(calculated) size, not the desired size.
+      this is the @italic(effective) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
       depending on settings).
 
       Unlike @code(Rect.Width), this does not have UI scaling applied.
 
-      It is always equal to just @code(CalculatedRect.Width).
+      It is always equal to just @code(EffectiveRect.Width).
 
-      @seealso CalculatedRect }
-    function CalculatedWidth: Cardinal;
-    function CalculatedFloatWidth: Single;
+      @seealso EffectiveRect }
+    function EffectiveWidth: Single;
 
     { Calculated height of the control, without UI scaling.
       Useful if you want to base other controls size/position on this control
@@ -1390,23 +1350,28 @@ type
 
       Unlike various other height properties of descendants (like
       @link(TCastleUserInterfaceRect.Height) or @link(TCastleImageControl.Height)),
-      this is the @italic(calculated) size, not the desired size.
+      this is the @italic(effective) size, not the desired size.
       So this is already processed by any auto-sizing mechanism
       (e.g. TCastleImageControl may adjust it's own size to the underlying image,
       depending on settings).
 
       Unlike @code(Rect.Height), this does not have UI scaling applied.
 
-      It is always equal to just @code(CalculatedRect.Height).
+      It is always equal to just @code(EffectiveRect.Height).
 
-      @seealso CalculatedRect }
-    function CalculatedHeight: Cardinal;
-    function CalculatedFloatHeight: Single;
+      @seealso EffectiveRect }
+    function EffectiveHeight: Single;
+
+    function CalculatedWidth: Cardinal; deprecated 'use EffectiveWidth';
+    function CalculatedHeight: Cardinal; deprecated 'use EffectiveHeight';
+    function CalculatedRect: TRectangle; deprecated 'use EffectiveRect';
 
     { Position and size of this control, assuming it exists, in screen (container)
-      coordinates. }
-    function ScreenRect: TRectangle;
-    function ScreenFloatRect: TFloatRectangle;
+      coordinates. The primary use of this is inside @link(Render).
+      A proper UI control should adjust to draw precisely in this rectangle. }
+    function RenderRect: TFloatRectangle;
+
+    function ScreenRect: TRectangle; deprecated 'use RenderRect';
 
     { How to translate local coords to screen.
       If you use UI scaling, this works in final coordinates
@@ -1418,8 +1383,7 @@ type
       are always zero.
       This is already scaled by UI scaling, since it's derived from @link(Rect)
       size that should also be already scaled. }
-    function ParentRect: TRectangle;
-    function ParentFloatRect: TFloatRectangle;
+    function ParentRect: TFloatRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
@@ -1457,7 +1421,7 @@ type
     procedure AlignHorizontal(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const X: Integer = 0); deprecated 'use Align or Anchor';
+      const X: Single = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
@@ -1470,7 +1434,7 @@ type
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
-      const X: Integer = 0); overload;
+      const X: Single = 0); overload;
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
@@ -1478,7 +1442,7 @@ type
     procedure AlignVertical(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const Y: Integer = 0); deprecated 'use Align or Anchor';
+      const Y: Single = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
@@ -1491,7 +1455,7 @@ type
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
-      const Y: Integer = 0); overload;
+      const Y: Single = 0); overload;
 
     { Immediately center the control within the parent,
       both horizontally and vertically.
@@ -1529,7 +1493,7 @@ type
       Do not do both -- or they will be summed.
       Using anchors is often more flexible, as various sides of child and parent
       may be anchored, and with a float shift. }
-    property Left: Integer read FLeft write SetLeft stored false default 0;
+    property Left: Single read FLeft write SetLeft stored false default 0;
 
     { Position from the bottom side of the screen.
 
@@ -1539,12 +1503,15 @@ type
       Do not do both -- or they will be summed.
       Using anchors is often more flexible, as various sides of child and parent
       may be anchored, and with a float shift. }
-    property Bottom: Integer read FBottom write SetBottom default 0;
+    property Bottom: Single read FBottom write SetBottom default 0;
 
-    { Automatically adjust horizontal position to align us to
-      the parent horizontally. Note that the value of @link(Left) remains
-      unchanged (it is just ignored), using the anchors only modifies the output
-      of the @link(ScreenRect) value that should be used for rendering/physics.
+    { Adjust position to align us to the parent horizontally.
+      The resulting @link(EffectiveRect) and @link(RenderRect)
+      will immediately reflect the new position.
+
+      Note that @link(HorizontalAnchorDelta) is summed with @link(Left).
+      It's usually most natural to leave @link(Left) as zero when
+      using anchors.
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
@@ -1563,10 +1530,13 @@ type
     property HorizontalAnchorDelta: Single
       read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
 
-    { Automatically adjust vertical position to align us to
-      the parent vertically. Note that the value of @link(Bottom) remains
-      unchanged (it is tjust ignored), using the anchors only modifies the output
-      of the @link(ScreenRect) value that should be used for rendering/physics.
+    { Adjust position to align us to the parent vertically.
+      The resulting @link(EffectiveRect) and @link(RenderRect)
+      will immediately reflect the new position.
+
+      Note that @link(VerticalAnchorDelta) is summed with @link(Bottom).
+      It's usually most natural to leave @link(Bottom) as zero when
+      using anchors.
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
@@ -1615,14 +1585,10 @@ type
     or as a container for UI children. }
   TCastleUserInterfaceRect = class(TCastleUserInterface)
   strict private
-    FFloatWidth, FFloatHeight: Single;
+    FWidth, FHeight: Single;
     FFullSize: boolean;
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -1633,7 +1599,10 @@ type
       (when @link(FullSize) is @true), or at the properties
       @link(Left), @link(Bottom), @link(Width), @link(Height)
       (when @link(FullSize) is @false). }
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
+
+    property FloatWidth: Single read FWidth write SetWidth stored false; deprecated 'use Width';
+    property FloatHeight: Single read FHeight write SetHeight stored false; deprecated 'use Height';
   published
     { Control size.
 
@@ -1648,10 +1617,8 @@ type
 
       @groupBegin }
     property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
     { @groupEnd }
   end;
 
@@ -2848,7 +2815,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIReferenceWidth(const Value: Integer);
+procedure TUIContainer.SetUIReferenceWidth(const Value: Single);
 begin
   if FUIReferenceWidth <> Value then
   begin
@@ -2857,7 +2824,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.SetUIReferenceHeight(const Value: Integer);
+procedure TUIContainer.SetUIReferenceHeight(const Value: Single);
 begin
   if FUIReferenceHeight <> Value then
   begin
@@ -2897,10 +2864,10 @@ begin
         end else
         if (UIReferenceHeight <> 0) and (Height > 0) then
           Result := Height / UIReferenceHeight;
-        WritelnLog('Scaling', 'Automatic scaling to reference sizes %dx%d in effect. Actual window size is %dx%d. Calculated scale is %f, which simulates surface of size %dx%d.',
+        WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
           [UIReferenceWidth, UIReferenceHeight,
            Width, Height,
-           Result, Round(Width / Result), Round(Height / Result)]);
+           Result, Width / Result, Height / Result]);
       end;
     else raise EInternalError.Create('UIScaling unknown');
   end;
@@ -2925,38 +2892,19 @@ begin
     RecursiveUIScaleChanged(Controls[I]);
 end;
 
-function TUIContainer.FloatRect: TFloatRectangle;
-begin
-  { FloatRect is mostly for consistency with TCastleUserInterface,
-    that has both Rect and FloatRect, and FloatRect is more adviced for calculations.
-    In case of TUIContainer, it doesn't really matter, both Rect and FloatRect
-    are good for calculations. }
-  Result := FloatRectangle(Rect);
-end;
-
-function TUIContainer.UnscaledFloatWidth: Single;
+function TUIContainer.UnscaledWidth: Single;
 begin
   Result := Width / FCalculatedUIScale;
 end;
 
-function TUIContainer.UnscaledWidth: Cardinal;
-begin
-  Result := Round(UnscaledFloatWidth);
-end;
-
-function TUIContainer.UnscaledFloatHeight: Single;
+function TUIContainer.UnscaledHeight: Single;
 begin
   Result := Height / FCalculatedUIScale;
 end;
 
-function TUIContainer.UnscaledHeight: Cardinal;
+function TUIContainer.UnscaledRect: TFloatRectangle;
 begin
-  Result := Round(UnscaledFloatHeight);
-end;
-
-function TUIContainer.UnscaledFloatRect: TFloatRectangle;
-begin
-  Result := FloatRect;
+  Result := FloatRectangle(Rect);
   if not Result.IsEmpty then
   begin
     Result.Width  := Result.Width  / FCalculatedUIScale;
@@ -2964,14 +2912,9 @@ begin
   end;
 end;
 
-function TUIContainer.UnscaledRect: TRectangle;
+function TUIContainer.StatusBarHeight: Single;
 begin
-  Result := UnscaledFloatRect.Round;
-end;
-
-function TUIContainer.StatusBarHeight: Cardinal;
-begin
-  Result := Round(ScaledStatusBarHeight / FCalculatedUIScale);
+  Result := ScaledStatusBarHeight / FCalculatedUIScale;
 end;
 
 procedure TUIContainer.SaveScreen(const URL: string);
@@ -2988,6 +2931,11 @@ end;
 function TUIContainer.SaveScreen: TRGBImage;
 begin
   Result := SaveScreen(Rect);
+end;
+
+function TUIContainer.SaveScreen(const SaveRect: TFloatRectangle): TRGBImage;
+begin
+  Result := SaveScreen(SaveRect.Round);
 end;
 
 function TUIContainer.Dpi: Integer;
@@ -3173,7 +3121,8 @@ end;
 function TInputListener.ContainerRect: TRectangle;
 begin
   if ContainerSizeKnown then
-    Result := Container.Rect else
+    Result := Container.Rect
+  else
     Result := TRectangle.Empty;
 end;
 
@@ -3352,13 +3301,7 @@ begin
     Result := 1.0;
 end;
 
-function TCastleUserInterface.LeftBottomScaled: TVector2Integer;
-begin
-  Result := Vector2Integer(
-    Round(UIScale * Left), Round(UIScale * Bottom));
-end;
-
-function TCastleUserInterface.FloatLeftBottomScaled: TVector2;
+function TCastleUserInterface.LeftBottomScaled: TVector2;
 begin
   Result := Vector2(UIScale * Left, UIScale * Bottom);
 end;
@@ -3379,12 +3322,12 @@ end;
 
 function TCastleUserInterface.CapturesEventsAtPosition(const Position: TVector2): boolean;
 var
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
   if not CapturesEvents then
     Exit(false);
 
-  SR := ScreenRect;
+  SR := RenderRect;
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
@@ -3465,12 +3408,12 @@ end;
 
 procedure TCastleUserInterface.ReadRealLeft(Reader: TReader);
 begin
-  FLeft := Reader.ReadInteger;
+  FLeft := Reader.ReadSingle;
 end;
 
 procedure TCastleUserInterface.WriteRealLeft(Writer: TWriter);
 begin
-  Writer.WriteInteger(FLeft);
+  Writer.WriteSingle(FLeft);
 end;
 
 procedure TCastleUserInterface.ReadLeft(Reader: TReader);
@@ -3539,7 +3482,7 @@ begin
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-procedure TCastleUserInterface.SetLeft(const Value: Integer);
+procedure TCastleUserInterface.SetLeft(const Value: Single);
 begin
   if FLeft <> Value then
   begin
@@ -3548,7 +3491,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.SetBottom(const Value: Integer);
+procedure TCastleUserInterface.SetBottom(const Value: Single);
 begin
   if FBottom <> Value then
   begin
@@ -3560,7 +3503,7 @@ end;
 procedure TCastleUserInterface.Align(
   const ControlPosition: THorizontalPosition;
   const ContainerPosition: THorizontalPosition;
-  const X: Integer = 0);
+  const X: Single = 0);
 begin
   Left := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
 end;
@@ -3568,7 +3511,7 @@ end;
 procedure TCastleUserInterface.Align(
   const ControlPosition: TVerticalPosition;
   const ContainerPosition: TVerticalPosition;
-  const Y: Integer = 0);
+  const Y: Single = 0);
 begin
   Bottom := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
@@ -3576,7 +3519,7 @@ end;
 procedure TCastleUserInterface.AlignHorizontal(
   const ControlPosition: TPositionRelative;
   const ContainerPosition: TPositionRelative;
-  const X: Integer);
+  const X: Single);
 begin
   Align(
     THorizontalPosition(ControlPosition),
@@ -3586,7 +3529,7 @@ end;
 procedure TCastleUserInterface.AlignVertical(
   const ControlPosition: TPositionRelative;
   const ContainerPosition: TPositionRelative;
-  const Y: Integer);
+  const Y: Single);
 begin
   Align(
     TVerticalPosition(ControlPosition),
@@ -3599,64 +3542,49 @@ begin
   Align(vpMiddle, vpMiddle);
 end;
 
-var
-  FloatRectNotOverriddenAddress: Pointer;
-
-function TCastleUserInterface.Rect: TRectangle;
+function TCastleUserInterface.Rect: TFloatRectangle;
 begin
-  if TMethod(@FloatRect).Code = FloatRectNotOverriddenAddress then
-    { For backward compatibility, and for safety, avoid an infinite loop
-      of calls between Rect and FloatRect, when neither of them was
-      overridden. }
-    Result := Rectangle(LeftBottomScaled, 0, 0)
-  else
-    { When FloatRect is overridden -- great, then use FloatRect.Round. }
-    Result := FloatRect.Round;
+  Result := TFloatRectangle.Empty;
 end;
 
-function TCastleUserInterface.FloatRect: TFloatRectangle;
+function TCastleUserInterface.EffectiveRect: TFloatRectangle;
 begin
-  Result := FloatRectangle(Rect);
+  Result := RectWithAnchors(true).ScaleAround0(1 / UIScale);
 end;
 
-function TCastleUserInterface.CalculatedFloatRect: TFloatRectangle;
-begin
-  Result := FloatRectWithAnchors(true).ScaleAround0(1 / UIScale);
-end;
-
-function TCastleUserInterface.CalculatedRect: TRectangle;
-begin
-  Result := CalculatedFloatRect.Round;
-end;
-
-function TCastleUserInterface.CalculatedFloatWidth: Single;
+function TCastleUserInterface.EffectiveWidth: Single;
 begin
   { Naive implementation:
-  Result := CalculatedFloatRect.Width; }
+  Result := EffectiveRect.Width; }
 
-  { Optimized implementation, knowing that FloatRectWithAnchors(true) does not
-    change FloatRect.Width:
-  Result := FloatRect.ScaleAround0(1 / UIScale).Width; }
+  { Optimized implementation, knowing that RectWithAnchors(true) does not
+    change Rect.Width:
+  Result := Rect.ScaleAround0(1 / UIScale).Width; }
 
   { Optimized implementation: }
-  Result := FloatRect.Width * (1 / UIScale);
-  //Assert(Result = CalculatedRect.Width);
+  Result := Rect.Width * (1 / UIScale);
+  //Assert(Result = EffectiveRect.Width);
+end;
+
+function TCastleUserInterface.EffectiveHeight: Single;
+begin
+  Result := Rect.Height * (1 / UIScale);
+  //Assert(Result = EffectiveRect.Height);
 end;
 
 function TCastleUserInterface.CalculatedWidth: Cardinal;
 begin
-  Result := Round(CalculatedFloatWidth);
-end;
-
-function TCastleUserInterface.CalculatedFloatHeight: Single;
-begin
-  Result := FloatRect.Height * (1 / UIScale);
-  //Assert(Result = CalculatedFloatRect.Height);
+  Result := Round(EffectiveWidth);
 end;
 
 function TCastleUserInterface.CalculatedHeight: Cardinal;
 begin
-  Result := Round(CalculatedFloatHeight);
+  Result := Round(EffectiveHeight);
+end;
+
+function TCastleUserInterface.CalculatedRect: TRectangle;
+begin
+  Result := EffectiveRect.Round;
 end;
 
 (*
@@ -3668,12 +3596,7 @@ begin
 end;
 *)
 
-function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TRectangle;
-begin
-  Result := FloatRectWithAnchors(CalculateEvenWithoutContainer).Round;
-end;
-
-function TCastleUserInterface.FloatRectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
+function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
   PR: TFloatRectangle;
 begin
@@ -3684,11 +3607,11 @@ begin
       This is crucial, various programs will crash without it. }
     Exit(TFloatRectangle.Empty);
 
-  Result := FloatRect;
+  Result := Rect;
 
   { apply anchors }
   if HasHorizontalAnchor or HasVerticalAnchor then
-    PR := ParentFloatRect;
+    PR := ParentRect;
   if HasHorizontalAnchor then
     Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
       UIScale * HorizontalAnchorDelta);
@@ -3697,20 +3620,20 @@ begin
       UIScale * VerticalAnchorDelta);
 end;
 
-function TCastleUserInterface.ScreenRect: TRectangle;
-begin
-  Result := ScreenFloatRect.Round;
-end;
-
-function TCastleUserInterface.ScreenFloatRect: TFloatRectangle;
+function TCastleUserInterface.RenderRect: TFloatRectangle;
 var
   T: TVector2;
 begin
-  Result := FloatRectWithAnchors;
+  Result := RectWithAnchors;
   { transform local to screen space }
   T := LocalToScreenTranslation;
   Result.Left := Result.Left + T[0];
   Result.Bottom := Result.Bottom + T[1];
+end;
+
+function TCastleUserInterface.ScreenRect: TRectangle;
+begin
+  Result := RenderRect.Round;
 end;
 
 function TCastleUserInterface.LocalToScreenTranslation: TVector2;
@@ -3720,29 +3643,18 @@ begin
   if Parent <> nil then
   begin
     Result := Parent.LocalToScreenTranslation;
-    RA := Parent.FloatRectWithAnchors;
+    RA := Parent.RectWithAnchors;
     Result.Data[0] := Result.Data[0] + RA.Left;
     Result.Data[1] := Result.Data[1] + RA.Bottom;
   end else
     Result := TVector2.Zero;
 end;
 
-function TCastleUserInterface.ParentRect: TRectangle;
+function TCastleUserInterface.ParentRect: TFloatRectangle;
 begin
   if Parent <> nil then
   begin
     Result := Parent.Rect;
-    Result.Left := 0;
-    Result.Bottom := 0;
-  end else
-    Result := ContainerRect;
-end;
-
-function TCastleUserInterface.ParentFloatRect: TFloatRectangle;
-begin
-  if Parent <> nil then
-  begin
-    Result := Parent.FloatRect;
     Result.Left := 0;
     Result.Bottom := 0;
   end else
@@ -3867,50 +3779,30 @@ begin
   FFullSize := false;
 end;
 
-function TCastleUserInterfaceRect.FloatRect: TFloatRectangle;
+function TCastleUserInterfaceRect.Rect: TFloatRectangle;
 begin
   if FullSize then
-    Result := ParentFloatRect else
+    Result := ParentRect else
   begin
-    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight).
+    Result := FloatRectangle(Left, Bottom, Width, Height).
       ScaleAround0(UIScale);
   end;
 end;
 
-function TCastleUserInterfaceRect.GetWidth: Cardinal;
+procedure TCastleUserInterfaceRect.SetWidth(const Value: Single);
 begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleUserInterfaceRect.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleUserInterfaceRect.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleUserInterfaceRect.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleUserInterfaceRect.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
+  if FWidth <> Value then
   begin
-    FFloatWidth := Value;
+    FWidth := Value;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleUserInterfaceRect.SetFloatHeight(const Value: Single);
+procedure TCastleUserInterfaceRect.SetHeight(const Value: Single);
 begin
-  if FFloatHeight <> Value then
+  if FHeight <> Value then
   begin
-    FFloatHeight := Value;
+    FHeight := Value;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -4304,16 +4196,7 @@ begin
 end;
 
 procedure DoInitialization;
-var
-  Ui: TCastleUserInterface;
 begin
-  {$warnings off} // knowingly Creating an instance of abstract class
-  Ui := TCastleUserInterface.Create(nil);
-  {$warnings on}
-  try
-    FloatRectNotOverriddenAddress := TMethod(@Ui.FloatRect).Code;
-  finally FreeAndNil(Ui) end;
-
   RegisterSerializableComponent(TCastleUserInterfaceRect, 'Empty Rectangle');
 end;
 

@@ -47,7 +47,7 @@
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
     FFullSize: boolean;
-    FFloatWidth, FFloatHeight: Single;
+    FWidth, FHeight: Single;
     FCorners: TVector4Integer;
     FCache: boolean;
 
@@ -76,12 +76,8 @@
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
     procedure SetStretch(const Value: boolean);
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
@@ -97,7 +93,7 @@
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -194,7 +190,7 @@
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
 
       The equation is calculated in the final scaled screen coordinates
-      (not in the local, unscaled pixels). Adjust it to match the ScreenRect
+      (not in the local, unscaled pixels). Adjust it to match the RenderRect
       if necessary, to make it work with UI scaling. }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
 
@@ -277,10 +273,8 @@
 
       @groupBegin }
     property Stretch: boolean read FStretch write SetStretch default false;
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
     property FullSize: boolean read FFullSize write SetFullSize default false;
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
@@ -513,7 +507,7 @@ var
 begin
   inherited;
   if (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0) then Exit;
-  SR := ScreenFloatRect;
+  SR := RenderRect;
   if FCorners.IsZero then
     FDrawableImage.Draw(SR) else
   begin
@@ -522,9 +516,9 @@ begin
   end;
 end;
 
-function TCastleImageControl.FloatRect: TFloatRectangle;
+function TCastleImageControl.Rect: TFloatRectangle;
 var
-  NewFloatWidth, NewFloatHeight, NewLeft, NewBottom: Single;
+  NewWidth, NewHeight, NewLeft, NewBottom: Single;
   ApplyScaling: boolean;
 begin
   ApplyScaling := true;
@@ -535,7 +529,7 @@ begin
   begin
     if FullSize then
     begin
-      Result := ParentFloatRect;
+      Result := ParentRect;
       ApplyScaling := false;
     end else
     if (ProportionalScaling in [psFit, psEnclose]) and
@@ -543,19 +537,19 @@ begin
        (FDrawableImage.Height <> 0) then
     begin
       if (ProportionalScaling = psFit) =
-         (FloatWidth / FloatHeight > FDrawableImage.Width / FDrawableImage.Height) then
+         (Width / Height > FDrawableImage.Width / FDrawableImage.Height) then
       begin
-        NewFloatWidth := FDrawableImage.Width * FloatHeight / FDrawableImage.Height;
-        NewLeft := Left + (FloatWidth - NewFloatWidth) / 2;
-        Result := FloatRectangle(NewLeft, Bottom, NewFloatWidth, FloatHeight);
+        NewWidth := FDrawableImage.Width * Height / FDrawableImage.Height;
+        NewLeft := Left + (Width - NewWidth) / 2;
+        Result := FloatRectangle(NewLeft, Bottom, NewWidth, Height);
       end else
       begin
-        NewFloatHeight := FDrawableImage.Height * FloatWidth / FDrawableImage.Width;
-        NewBottom := Bottom + (FloatHeight - NewFloatHeight) / 2;
-        Result := FloatRectangle(Left, NewBottom, FloatWidth, NewFloatHeight);
+        NewHeight := FDrawableImage.Height * Width / FDrawableImage.Width;
+        NewBottom := Bottom + (Height - NewHeight) / 2;
+        Result := FloatRectangle(Left, NewBottom, Width, NewHeight);
       end;
     end else
-      Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
+      Result := FloatRectangle(Left, Bottom, Width, Height);
   end;
 
   if ApplyScaling then
@@ -641,42 +635,22 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetFloatWidth(const Value: Single);
+procedure TCastleImageControl.SetWidth(const Value: Single);
 begin
-  if FFloatWidth <> Value then
+  if FWidth <> Value then
   begin
-    FFloatWidth := Value;
+    FWidth := Value;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleImageControl.SetFloatHeight(const Value: Single);
+procedure TCastleImageControl.SetHeight(const Value: Single);
 begin
-  if FFloatHeight <> Value then
+  if FHeight <> Value then
   begin
-    FFloatHeight := Value;
+    FHeight := Value;
     VisibleChange([chRectangle]);
   end;
-end;
-
-function TCastleImageControl.GetWidth: Cardinal;
-begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleImageControl.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleImageControl.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleImageControl.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
 end;
 
 procedure TCastleImageControl.SetFullSize(const Value: boolean);

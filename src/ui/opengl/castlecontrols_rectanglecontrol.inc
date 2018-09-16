@@ -111,9 +111,9 @@ procedure TCastleRectangleControl.Render;
 begin
   inherited;
   if FUseThemeImage then
-    Theme.Draw(ScreenRect, ThemeImage, UIScale, Color)
+    Theme.Draw(RenderRect, ThemeImage, UIScale, Color)
   else
-    DrawRectangle(ScreenRect, Color);
+    DrawRectangle(RenderRect, Color);
 end;
 
 function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;

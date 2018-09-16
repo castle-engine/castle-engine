@@ -1114,7 +1114,7 @@ type
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
 
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -1500,7 +1500,7 @@ begin
   if Container = nil then
     Result := FullSize
   else
-    Result := ScreenRect.Equals(Container.Rect);
+    Result := RenderRect.Round.Equals(Container.Rect);
 end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
@@ -1766,7 +1766,7 @@ var
 begin
   if Camera <> nil then
   begin
-    Camera.CustomRay(ScreenRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
+    Camera.CustomRay(RenderRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
     PointingDeviceMove(RayOrigin, RayDirection);
   end;
 end;
@@ -1898,7 +1898,7 @@ begin
   { We need to know container size now. }
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
-  Viewport := ScreenRect;
+  Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
@@ -1981,7 +1981,7 @@ begin
     Box := GetItems.BoundingBox
   else
     Box := TBox3D.Empty;
-  Viewport := ScreenRect;
+  Viewport := RenderRect.Round;
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
@@ -2443,7 +2443,7 @@ begin
 
   { Restore RenderContext.Viewport set by ApplyProjection }
   if not FillsWholeContainer then
-    RenderContext.Viewport := ScreenRect;
+    RenderContext.Viewport := RenderRect.Round;
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
@@ -2541,7 +2541,7 @@ begin
     CurrentScreenEffects* values are constant, even if overridden
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
-  SR := ScreenRect;
+  SR := RenderRect.Round;
 
   Result := GLFeatures.VertexBufferObject { for screen quad } and
     { check IsTextureSized, to gracefully work (without screen effects)
@@ -2689,7 +2689,8 @@ begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FillsWholeContainer then
       { Use Scissor to limit what RenderContext.Clear clears. }
-      RenderContext.ScissorEnable(ScreenRect.Translate(RenderContext.ViewportDelta));
+      RenderContext.ScissorEnable(
+        RenderRect.Translate(Vector2(RenderContext.ViewportDelta)).Round);
 
     RenderFromViewEverything(RenderingCamera);
 
@@ -3512,7 +3513,7 @@ begin
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
       ChosenViewport.FProjection.ProjectionNear,
       ChosenViewport.FProjection.ProjectionFar,
-      ChosenViewport.ScreenRect);
+      ChosenViewport.RenderRect.Round);
   end;
 end;
 
@@ -3568,7 +3569,7 @@ var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(ScreenRect, MousePosition + Change,
+    Camera.CustomRay(RenderRect, MousePosition + Change,
       FProjection, RayOrigin, RayDirection);
 
     RayHit := CameraRayCollision(RayOrigin, RayDirection);
@@ -3938,10 +3939,10 @@ begin
   end;
 end;
 
-function TCastleSceneManager.FloatRect: TFloatRectangle;
+function TCastleSceneManager.Rect: TFloatRectangle;
 begin
   if DefaultViewport then
-    Result := inherited FloatRect
+    Result := inherited Rect
   else
     Result := TFloatRectangle.Empty;
 end;

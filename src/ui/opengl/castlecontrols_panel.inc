@@ -58,20 +58,21 @@ procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
-  I, SeparatorMarginScaled: Integer;
-  SR: TRectangle;
+  I: Integer;
+  SeparatorMarginScaled: Single;
+  SR: TFloatRectangle;
 begin
   inherited;
 
-  SR := ScreenRect;
+  SR := RenderRect;
   Theme.Draw(SR, tiPanel, UIScale);
 
-  SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
+  SeparatorMarginScaled := SeparatorMargin * UIScale;
   if SR.Height <= 2 * SeparatorMarginScaled then
     Exit; // no space
   for I := 0 to VerticalSeparators.Count - 1 do
-    Theme.Draw(Rectangle(
-      SR.Left + Round(VerticalSeparators[I] * UIScale),
+    Theme.Draw(FloatRectangle(
+      SR.Left + VerticalSeparators[I] * UIScale,
       SR.Bottom + SeparatorMarginScaled,
       Theme.Images[tiPanelSeparator].Width, SR.Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);

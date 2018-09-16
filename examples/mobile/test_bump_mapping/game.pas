@@ -28,7 +28,7 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils
+  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils,
   CastleApplicationProperties;
 
 var

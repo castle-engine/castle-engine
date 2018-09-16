@@ -51,7 +51,7 @@ type
         Width: Integer;
         Color: TCastleColor;
       end;
-      TNotificationList = class(specialize TObjectList<TNotification>)
+      TNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNotification>)
         procedure DeleteFirst(DelCount: Integer);
       end;
     var
@@ -88,7 +88,7 @@ type
       var HandleInput: boolean); override;
 
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -239,11 +239,11 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-function TCastleNotifications.FloatRect: TFloatRectangle;
+function TCastleNotifications.Rect: TFloatRectangle;
 var
   I: integer;
 begin
-  Result := FloatRectangle(FloatLeftBottomScaled, 0, Font.RowHeight * Messages.Count);
+  Result := FloatRectangle(LeftBottomScaled, 0, Font.RowHeight * Messages.Count);
   for I := 0 to Messages.Count - 1 do
     Result.Width := Max(Result.Width, Messages[I].Width);
 end;
@@ -251,12 +251,12 @@ end;
 procedure TCastleNotifications.Render;
 var
   I: integer;
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
-  SR := ScreenRect;
+  SR := RenderRect;
   for I := 0 to Messages.Count - 1 do
   begin
-    Font.PrintRect(Rectangle(SR.Left,
+    Font.PrintRect(FloatRectangle(SR.Left,
       SR.Bottom + (Messages.Count - 1 - I) * Font.RowHeight,
       SR.Width, Font.RowHeight), Messages[i].Color, Messages[i].Text,
       TextAlignment, vpBottom);

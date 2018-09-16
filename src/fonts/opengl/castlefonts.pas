@@ -114,6 +114,10 @@ type
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition);
+    procedure PrintRect(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
 
     { Print text, aligning within given rectangle.
       Newlines within the text will be automatically honored,
@@ -121,6 +125,13 @@ type
       See @link(PrintStrings) for description of parameters Html,
       LineSpacing, TextHorizontalAlignment. }
     procedure PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+    procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
@@ -653,6 +664,18 @@ begin
   finally FreeAndNil(Strings) end;
 end;
 
+procedure TCastleFont.PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Html: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+begin
+  PrintRectMultiline(Rect.Round, Color, S,
+    HorizontalAlignment, VerticalAlignment, Html, LineSpacing, TextHorizontalAlignment);
+end;
+
 procedure TCastleFont.PrintRect(const Rect: TRectangle; const Color: TCastleColor;
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
@@ -665,6 +688,15 @@ begin
     Align(HorizontalAlignment, Rect, HorizontalAlignment).
     Align(VerticalAlignment, Rect, VerticalAlignment);
   Print(ThisRect.Left, ThisRect.Bottom, Color, S);
+end;
+
+procedure TCastleFont.PrintRect(
+  const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+begin
+  PrintRect(Rect.Round, Color, S, HorizontalAlignment, VerticalAlignment);
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;

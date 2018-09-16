@@ -55,6 +55,7 @@ Now:
       content menu on hierarchy, to add transform/ui depending on parent
     * removing - keep selected above?
     * UI controls improvements:
+        * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
         * more should descend from TCastleUserInterfaceRect, e.g. TCastleButton/Label//ImageControl too.
           Just TCastleUserInterfaceFont should descend from it?
           maybe just merge it with TCastleUserInterface...,
@@ -65,7 +66,7 @@ Now:
 
             Some descendants support auto-sizing, which means that the control's size
             set by these properties is ignored, and instead the calculated size
-            (CalculatedWidth, CalculatedHeight, CalculatedRect) depends on some core
+            (EffectiveWidth, EffectiveHeight, EffectiveRect) depends on some core
             values of the control.
 
             E.g.
@@ -79,7 +80,13 @@ Now:
             specification of the size behavior.
 	    When it is reasonable a property called @code(AutoSize) can be turned
 	    off to allow you to specify the size manually using the properties
-	    FloatWidth, FloatHeight and the rest mentioned below.
+	    Width, Height and the rest mentioned below.
+
+	* Maybe TCastleUserInterface should have both size and color properties. Just make TCastleReactngleControl a descendant with white opaque color by default.
+
+	  would also fix e.g.
+	  /mnt/data/sources/castle-engine/castle-engine/examples/window/multi_window.lpr
+	  not having rect defined (right now a workaround is to descend from TCastleUserInterfaceRect, but it should be harder to even make this mistake)
 
         * virtual function IsAutoSize
           (at TCastleUserInterface or only TCastleUserInterfaceRect).
@@ -90,7 +97,7 @@ Now:
 	      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
 
 	  utility:
-	  "stored" for floatwidth/height could use them.
+	  "stored" for width/height could use them.
 	  when trying to drag to resize, we could show a suitable hint
 
     * design files UI:
@@ -98,7 +105,6 @@ Now:
         * before opening new one - ask whether to save design
         * before exiting - ask whether to save design
 
-    * mark Width, Height as stored=false when FloatWidth, FloatHeight available
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
     * MainScene cannot be changed

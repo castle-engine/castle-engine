@@ -22,7 +22,7 @@
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FFrame: boolean;
-    FWidth: Cardinal;
+    FWidth: Single;
     LifeTime: TFloatTime;
     FMaxLength: Cardinal;
     FAllowedChars: TSetOfChars;
@@ -33,7 +33,7 @@
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetBackgroundColor(const Value: TCastleColor);
-    procedure SetWidth(const Value: Cardinal);
+    procedure SetWidth(const Value: Single);
     procedure SetPadding(const Value: Single);
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
@@ -42,7 +42,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -90,7 +90,7 @@
       Note that the edit control width is never auto-calculated,
       since there's no "natural width" for the edit box.
       In contrast, our height is always (for now) auto-calculated. }
-    property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
+    property Width: Single read FWidth write SetWidth default DefaultWidth;
 
     { Currently input text. }
     property Text: string read FText write SetText;
@@ -186,7 +186,7 @@ begin
   end;
 end;
 
-procedure TCastleEdit.SetWidth(const Value: Cardinal);
+procedure TCastleEdit.SetWidth(const Value: Single);
 begin
   if FWidth <> Value then
   begin
@@ -231,7 +231,7 @@ begin
   end;
 end;
 
-function TCastleEdit.FloatRect: TFloatRectangle;
+function TCastleEdit.Rect: TFloatRectangle;
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
@@ -249,7 +249,7 @@ begin
       US * FrameCorners[2];
   end;
 
-  Result := FloatRectangle(FloatLeftBottomScaled, Width * US, HeightScaled);
+  Result := FloatRectangle(LeftBottomScaled, Width * US, HeightScaled);
 end;
 
 procedure TCastleEdit.Render;
@@ -266,7 +266,7 @@ var
 begin
   inherited;
 
-  SR := ScreenFloatRect;
+  SR := RenderRect;
   US := UIScale;
   RectInside := SR;
 
@@ -314,7 +314,7 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   { do not allow other controls to handle key presses
     (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
   if ExclusiveEvents then

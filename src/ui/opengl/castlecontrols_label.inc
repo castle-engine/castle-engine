@@ -29,16 +29,12 @@
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
-    FFloatWidth, FFloatHeight: Single;
+    FWidth, FHeight: Single;
     FFullSize: boolean;
     FMaxDisplayChars: Integer;
     function GetTextToRender: TRichText;
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
     procedure SetFullSize(const Value: boolean);
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
@@ -59,7 +55,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
@@ -69,10 +65,8 @@
 
     function DisplayChars: Cardinal;
   published
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
     property FullSize: boolean read FFullSize write SetFullSize default false;
 
     { Should we automatically adjust size to the text size.
@@ -215,7 +209,7 @@ begin
   end;
 end;
 
-function TCastleLabel.FloatRect: TFloatRectangle;
+function TCastleLabel.Rect: TFloatRectangle;
 var
   TextToRender: TRichText;
   TextToRenderWidth, TextToRenderCount: Cardinal;
@@ -243,7 +237,7 @@ begin
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
     LineSpacingScaled := US * LineSpacing;
     Result := FloatRectangle(
-      FloatLeftBottomScaled,
+      LeftBottomScaled,
       TextToRenderWidth + 2 * PaddingHorizontalScaled,
       Font.RowHeight * TextToRenderCount +
       LineSpacingScaled * (TextToRenderCount - 1) +
@@ -251,9 +245,9 @@ begin
       Font.Descend);
   end else
   if FullSize then
-    Result := ParentFloatRect else
+    Result := ParentRect else
   begin
-    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
+    Result := FloatRectangle(Left, Bottom, Width, Height);
     Result := Result.ScaleAround0(UIScale);
   end;
 end;
@@ -276,7 +270,7 @@ begin
   inherited;
   if Text.Count = 0 then Exit; // early exit in case of easy, fast case
 
-  SR := ScreenFloatRect;
+  SR := RenderRect;
   US := UIScale;
   PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
@@ -318,40 +312,20 @@ begin
   end;
 end;
 
-function TCastleLabel.GetWidth: Cardinal;
+procedure TCastleLabel.SetWidth(const Value: Single);
 begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleLabel.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleLabel.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleLabel.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleLabel.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
+  if FWidth <> Value then
   begin
-    FFloatWidth := Value;
+    FWidth := Value;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleLabel.SetFloatHeight(const Value: Single);
+procedure TCastleLabel.SetHeight(const Value: Single);
 begin
-  if FFloatHeight <> Value then
+  if FHeight <> Value then
   begin
-    FFloatHeight := Value;
+    FHeight := Value;
     VisibleChange([chRectangle]);
   end;
 end;

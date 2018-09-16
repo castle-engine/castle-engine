@@ -34,11 +34,10 @@
         "R" : 5.0000000000000000E-001,
         "_ClassName" : "TCastleColorPersistent"
       },
-      "FloatHeight" : 5.0000000000000000E+002,
-      "FloatWidth" : 5.0000000000000000E+002,
+      "Height" : 5.0000000000000000E+002,
+      "Width" : 5.0000000000000000E+002,
       "HasHorizontalAnchor" : true,
       "HasVerticalAnchor" : true,
-      "Height" : 500,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -46,7 +45,6 @@
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
-      "Width" : 500,
       "_Children" : [
         {
           "Caption" : "I am a button",

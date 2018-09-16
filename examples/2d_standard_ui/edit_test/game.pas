@@ -76,8 +76,8 @@ begin
   Group.InsertFront(ButtonCopyText);
 
   Spacer := TCastleUserInterfaceRect.Create(Application);
-  Spacer.FloatWidth := 1;
-  Spacer.FloatHeight := 20;
+  Spacer.Width := 1;
+  Spacer.Height := 20;
   Group.InsertFront(Spacer);
 
   Label2 := TCastleLabel.Create(Application);
@@ -92,8 +92,8 @@ begin
   Group.InsertFront(Edit2);
 
   Spacer := TCastleUserInterfaceRect.Create(Application);
-  Spacer.FloatWidth := 1;
-  Spacer.FloatHeight := 20;
+  Spacer.Width := 1;
+  Spacer.Height := 20;
   Group.InsertFront(Spacer);
 
   Label3 := TCastleLabel.Create(Application);

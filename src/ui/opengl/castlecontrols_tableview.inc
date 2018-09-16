@@ -60,7 +60,7 @@
                             read FAccessoryControl write SetAccessoryControl default nil;
   end;
 
-  TCastleTableViewCellList = specialize TObjectList<TCastleTableViewCell>;
+  TCastleTableViewCellList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleTableViewCell>;
 
   { Data source used in @link(TCastleTableView). Implement this interface to
     populate data into the TableView. }
@@ -176,7 +176,7 @@ end;
 
 procedure TCastleTableViewCell.ReflectUIControls;
 var
-  NextLeft, NextRight, Spacing: Integer;
+  NextLeft, NextRight, Spacing: Single;
 begin
   if FAccessoryType = tvcaNone then
   begin
@@ -213,23 +213,23 @@ begin
   if (FAccessoryTypeImage <> nil) and FAccessoryTypeImage.Exists then
   begin
     FAccessoryTypeImage.Anchor(hpRight, NextRight);
-    NextRight := NextRight - FAccessoryTypeImage.CalculatedWidth - Spacing;
+    NextRight := NextRight - FAccessoryTypeImage.EffectiveWidth - Spacing;
   end;
 
   if (FAccessoryControl <> nil) and FAccessoryControl.Exists then
   begin
     FAccessoryControl.Anchor(hpRight, NextRight);
-    NextRight := NextRight - FAccessoryControl.CalculatedWidth - Spacing;
+    NextRight := NextRight - FAccessoryControl.EffectiveWidth - Spacing;
   end;
 
   if (FImageIcon.Image <> nil) and FImageIcon.Exists then
   begin
     FImageIcon.Anchor(hpLeft, NextLeft);
-    NextLeft := NextLeft + FImageIcon.CalculatedWidth + Spacing;
+    NextLeft := NextLeft + FImageIcon.EffectiveWidth + Spacing;
   end;
 
   FTextLabel.Anchor(hpLeft, NextLeft);
-  FTextLabel.MaxWidth := CalculatedWidth - NextLeft + NextRight;
+  FTextLabel.MaxWidth := EffectiveWidth - NextLeft + NextRight;
 end;
 
 constructor TCastleTableView.Create(AOwner: TComponent);
@@ -253,7 +253,7 @@ procedure TCastleTableView.ReloadData;
 var
   I, ItemCount, OldCount: Integer;
   Cell: TCastleTableViewCell;
-  CellWidth, SeparatorHeight: Integer;
+  CellWidth, SeparatorHeight: Single;
 begin
   if ScrollbarVisible then
     CellWidth := Width - ScrollBarWidth
@@ -302,7 +302,7 @@ begin
   end;
 
   ScrollArea.Height := ItemCount * (CellHeight + SeparatorHeight);
-  ScrollArea.Width := CalculatedWidth;
+  ScrollArea.Width := EffectiveWidth;
 end;
 
 procedure TCastleTableView.Update(const SecondsPassed: Single;
@@ -310,7 +310,8 @@ procedure TCastleTableView.Update(const SecondsPassed: Single;
 var
   WasScrollbar: boolean;
   Cell: TCastleTableViewCell;
-  I, CellWidth: Integer;
+  I: Integer;
+  CellWidth: Single;
 begin
   WasScrollbar := ScrollbarVisible;
 
@@ -353,14 +354,14 @@ end;
 function TCastleTableView.Release(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
-  CellRect: TRectangle;
+  CellRect: TFloatRectangle;
 begin
   Result := inherited;
   if Assigned(FOnDidSelectCell) and FMotionIsClick then
   begin
     for I := 0 to FCells.Count - 1 do
     begin
-      CellRect := FCells.Items[I].ScreenRect;
+      CellRect := FCells.Items[I].RenderRect;
       if CellRect.Contains(FPressPos) then
       begin
         FOnDidSelectCell(I, Self);

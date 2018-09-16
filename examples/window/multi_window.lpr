@@ -30,7 +30,7 @@ uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, Castle
   CastleStringUtils, CastleColors, CastleControls, CastleUIControls;
 
 type
-  TText = class(TCastleUserInterface)
+  TText = class(TCastleUserInterfaceRect)
   public
     Text: string;
     LightColor, DarkColor: TCastleColor;

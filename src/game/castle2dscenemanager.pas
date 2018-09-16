@@ -205,14 +205,14 @@ end;
 
 function TCastle2DSceneManager.CalculateProjection: TProjection;
 var
-  ControlWidth, ControlHeight: Integer;
+  ControlWidth, ControlHeight: Single;
 begin
   Result.ProjectionType := ptOrthographic;
   Result.Dimensions.Left := 0;
   Result.Dimensions.Bottom := 0;
 
-  ControlWidth := CalculatedWidth;
-  ControlHeight := CalculatedHeight;
+  ControlWidth := EffectiveWidth;
+  ControlHeight := EffectiveHeight;
 
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then

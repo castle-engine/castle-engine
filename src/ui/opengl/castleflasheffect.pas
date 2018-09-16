@@ -191,7 +191,7 @@ procedure TCastleFlashEffect.Update(const SecondsPassed: Single;
 begin
   inherited;
   if FIntensity > 0 then
-    FIntensity -= (1 / Duration) * SecondsPassed;
+    FIntensity := FIntensity - ((1 / Duration) * SecondsPassed);
 end;
 
 procedure TCastleFlashEffect.Render;
@@ -229,9 +229,9 @@ begin
       FinalImage.Alpha := acBlending;
       FinalImage.BlendingSourceFactor := SourceFactor;
       FinalImage.BlendingDestinationFactor := DestinationFactor;
-      FinalImage.Draw(ScreenFloatRect);
+      FinalImage.Draw(RenderRect);
     end else
-      DrawRectangle(ScreenFloatRect, FinalColor, SourceFactor, DestinationFactor, true);
+      DrawRectangle(RenderRect, FinalColor, SourceFactor, DestinationFactor, true);
   end;
 end;
 

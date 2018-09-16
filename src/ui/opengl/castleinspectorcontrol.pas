@@ -44,7 +44,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -91,7 +91,7 @@ begin
   inherited;
 end;
 
-function TCastleInspectorControl.FloatRect: TFloatRectangle;
+function TCastleInspectorControl.Rect: TFloatRectangle;
 var
   US: Single;
   PaddingScaled: Single;
@@ -101,7 +101,7 @@ begin
     US := UIScale;
     PaddingScaled := US * Padding;
     FRectWhenControlsInitialized := FloatRectangle(
-      FloatLeftBottomScaled,
+      LeftBottomScaled,
       Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
       Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
   end;
@@ -161,7 +161,7 @@ var
   C: TCastleColor;
 begin
   inherited;
-  SR := ScreenFloatRect;
+  SR := RenderRect;
   US := UIScale;
   PaddingScaled := US * Padding;
 
@@ -176,7 +176,7 @@ begin
 
     for I := 0 to FControlsUnderMouse.Count - 1 do
     begin
-      SR := FControlsUnderMouse[I].ScreenFloatRect;
+      SR := FControlsUnderMouse[I].RenderRect;
       if SR.IsEmpty then Continue;
       C := ControlColor(FControlsUnderMouse[I]);
       DrawRectangle(SR, InvertColorRGB(C));
@@ -210,11 +210,11 @@ procedure TCastleInspectorControl.BeforeRender;
         C.CapturesEventsAtPosition(Container.MousePosition) and
         (C.GetExists or FShowNotExisting) then
     begin
-      S := ControlDescription(C) + ' ' + C.ScreenRect.ToString;
+      S := ControlDescription(C) + ' ' + C.RenderRect.ToString;
       if not C.GetExists then
-        S += ' (hidden)';
+        S := S + ' (hidden)';
       if C.Focused then
-        S += ' (focused)';
+        S := S + ' (focused)';
       S := StringOfChar(' ', Level) + S;
       S := '<font color="#' + ColorToHex(Col) + '">' + S + '</font>';
       FText.Add(S);
@@ -256,7 +256,7 @@ begin
   { escape to bottom or top, to not be under mouse }
   if Event.FingerIndex = 0 then
   begin
-    if ScreenRect.Contains(Event.Position) then
+    if RenderRect.Contains(Event.Position) then
     begin
       if HorizontalAnchorSelf = hpLeft then
         Anchor(hpRight) else

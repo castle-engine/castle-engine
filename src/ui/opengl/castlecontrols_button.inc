@@ -27,12 +27,12 @@
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
-    FFloatWidth, FFloatHeight: Single;
+    FWidth, FHeight: Single;
     FFinalScaledValid: boolean;
-    { The only method that can access these is FloatRect.
+    { The only method that can access these is Rect.
       Everything else should use
-      FloatRect, ScreenFloatRect, CalculatedFloatWidth, CalculatedFloatHeight
-      or other methods that wrap FloatRect.
+      RenderRect, EffectiveWidth, EffectiveHeight
+      or other methods that wrap Rect.
       This makes sure that FFinalScaledValid is honored. }
     FFinalScaledWidth, FFinalScaledHeight: Single;
     FOnClick: TNotifyEvent;
@@ -87,12 +87,8 @@
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
@@ -120,7 +116,7 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
     procedure FontChanged; override;
 
     { Called when user clicks the button. In this class, simply calls
@@ -214,10 +210,8 @@
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
   published
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
 
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Cardinal
@@ -242,8 +236,8 @@
       AutoSize).
 
       If needed, you can query the resulting button size with the standard
-      TCastleUserInterface methods like @link(TCastleUserInterface.CalculatedWidth) and
-      @link(TCastleUserInterface.CalculatedHeight). Note that they may not be available
+      TCastleUserInterface methods like @link(TCastleUserInterface.EffectiveWidth) and
+      @link(TCastleUserInterface.EffectiveHeight). Note that they may not be available
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
       for UI scaling to determine the font size). }
@@ -401,7 +395,7 @@ begin
 
   ImageMarginScaled := ImageMargin * UIScale;
 
-  SR := ScreenFloatRect;
+  SR := RenderRect;
 
   { calculate Tint }
   if Pressed then
@@ -458,16 +452,16 @@ begin
   begin
     TextLeft := SR.Left + (SR.Width - TextWidth) / 2;
     if UseImage and (ImageLayout = ilLeft) then
-      TextLeft += (ImgScreenWidth + ImageMarginScaled) / 2 else
+      TextLeft := TextLeft + ((ImgScreenWidth + ImageMarginScaled) / 2) else
     if UseImage and (ImageLayout = ilRight) then
-      TextLeft -= (ImgScreenWidth + ImageMarginScaled) / 2;
+      TextLeft := TextLeft - ((ImgScreenWidth + ImageMarginScaled) / 2);
 
     TextBottom := SR.Bottom + (SR.Height - TextHeight) / 2;
     if UseImage and (ImageLayout = ilBottom) then
-      TextBottom += (ImgScreenHeight + ImageMarginScaled) / 2 else
+      TextBottom := TextBottom + ((ImgScreenHeight + ImageMarginScaled) / 2) else
     if UseImage and (ImageLayout = ilTop) then
-      TextBottom -= (ImgScreenHeight + ImageMarginScaled) / 2;
-    TextBottom += Font.Descend;
+      TextBottom := TextBottom - ((ImgScreenHeight + ImageMarginScaled) / 2);
+    TextBottom := TextBottom + Font.Descend;
 
     RenderText;
   end;
@@ -569,7 +563,7 @@ begin
       mouse down on the button, and then release mouse while still over
       the button.
 
-      We have to check ScreenFloatRect.Contains, since (because we keep "focus"
+      We have to check RenderRect.Contains, since (because we keep "focus"
       on this button, if mouse down was on this) we *always* get release event
       (even if mouse position is no longer over this button).
 
@@ -577,7 +571,7 @@ begin
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
-    if Enabled and ScreenFloatRect.Contains(Event.Position) then
+    if Enabled and RenderRect.Contains(Event.Position) then
       DoClick;
   end;
 end;
@@ -850,41 +844,21 @@ begin
   end;
 end;
 
-function TCastleButton.GetWidth: Cardinal;
+procedure TCastleButton.SetWidth(const Value: Single);
 begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleButton.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleButton.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleButton.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleButton.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
+  if FWidth <> Value then
   begin
-    FFloatWidth := Value;
+    FWidth := Value;
     FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleButton.SetFloatHeight(const Value: Single);
+procedure TCastleButton.SetHeight(const Value: Single);
 begin
-  if FFloatHeight <> Value then
+  if FHeight <> Value then
   begin
-    FFloatHeight := Value;
+    FHeight := Value;
     FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
@@ -929,7 +903,7 @@ begin
   end;
 end;
 
-function TCastleButton.FloatRect: TFloatRectangle;
+function TCastleButton.Rect: TFloatRectangle;
 
   procedure CalculateFinalScaledSize;
   var
@@ -938,8 +912,8 @@ function TCastleButton.FloatRect: TFloatRectangle;
       ImageMarginScaled,
       PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   begin
-    FFinalScaledWidth  := FFloatWidth  * UIScale;
-    FFinalScaledHeight := FFloatHeight * UIScale;
+    FFinalScaledWidth  := FWidth  * UIScale;
+    FFinalScaledHeight := FHeight * UIScale;
 
     if AutoSize then
     begin
@@ -1000,7 +974,7 @@ begin
     FFinalScaledValid := true;
     CalculateFinalScaledSize;
   end;
-  Result := FloatRectangle(FloatLeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
+  Result := FloatRectangle(LeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
 end;
 
 {$endif read_implementation}

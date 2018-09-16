@@ -113,12 +113,12 @@ uses TypInfo, StrUtils, Math,
 
 {$R *.lfm}
 
-function ParentScreenFloatRect(const UI: TCastleUserInterface): TFloatRectangle;
+function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
-    Result := UI.Container.FloatRect
+    Result := FloatRectangle(UI.Container.Rect)
   else
-    Result := UI.Parent.ScreenFloatRect;
+    Result := UI.Parent.RenderRect;
 end;
 
 { TDesignFrame.TDesignerLayer ------------------------------------------------ }
@@ -218,9 +218,9 @@ begin
     begin
       Move := Event.Position - Event.OldPosition;
 
-      CurrentRect := UI.ScreenFloatRect;
+      CurrentRect := UI.RenderRect;
       ResultingRect := CurrentRect.Translate(Move);
-      ParentR := ParentScreenFloatRect(UI);
+      ParentR := ParentRenderRect(UI);
       { only allow movement if control will not go outside of parent,
         unless it was already outside }
       if (not ParentR.Contains(CurrentRect)) or
@@ -574,24 +574,28 @@ var
   H, CalculatedUIScaleStr: String;
 begin
   // trick to get private TUIContainer.FCalculatedUIScale
-  CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledFloatWidth) *
+  CalculatedUIScale :=  (1 / CastleControl.Container.UnscaledWidth) *
     CastleControl.Container.Width;
   CalculatedUIScaleStr := IntToStr(Round(CalculatedUIScale * 100)) + '%';
 
   LabelUIScaling.Caption := CalculatedUIScaleStr;
   case CastleControl.Container.UIScaling of
     usNone                : H := 'No user interface scaling';
-    usEncloseReferenceSize: H := 'User interface scaling in effect: window must fit inside a simulated size of %dx%d.' + NL;
-    usFitReferenceSize    : H := 'User interface scaling in effect: window must enclose a simulated size of %dx%d.' + NL;
+    usEncloseReferenceSize: H := Format('User interface scaling in effect: window must fit inside a simulated size of %f x %f.' + NL,
+      [CastleControl.Container.UIReferenceWidth,
+       CastleControl.Container.UIReferenceHeight]);
+    usFitReferenceSize    : H := Format('User interface scaling in effect: window must enclose a simulated size of %f x %f.' + NL,
+      [CastleControl.Container.UIReferenceWidth,
+       CastleControl.Container.UIReferenceHeight]);
     usExplicitScale       : H := 'User interface scaling in effect: explicit scale.' + NL;
     else raise EInternalError.Create('CastleControl.Container.UIScaling?');
   end;
   if CastleControl.Container.UIScaling <> usNone then
   begin
-    H := Format(H + 'Actual window size is %dx%d.' + NL + 'Calculated scale is %s, which simulates surface of size %dx%d.',
-      [CastleControl.Container.UIReferenceWidth,
-       CastleControl.Container.UIReferenceHeight,
-       CastleControl.Container.Width,
+    H := Format(H +
+      'Actual window size is %d x %d.' + NL +
+      'Calculated scale is %s, which simulates surface of size %f x %f.',
+      [CastleControl.Container.Width,
        CastleControl.Container.Height,
        CalculatedUIScaleStr,
        CastleControl.Container.UnscaledWidth,
@@ -852,12 +856,12 @@ begin
     NL +
     'Screen rectangle (scaled and with anchors):' + NL +
     '%s',
-    [ UI.CalculatedFloatWidth,
-      UI.CalculatedFloatHeight,
-      RectToString(UI.ScreenFloatRect)
+    [ UI.EffectiveWidth,
+      UI.EffectiveHeight,
+      RectToString(UI.RenderRect)
     ]);
   if (UI.Parent <> nil) and
-     (not UI.Parent.ScreenFloatRect.Contains(UI.ScreenFloatRect)) then
+     (not UI.Parent.RenderRect.Contains(UI.RenderRect)) then
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
   LabelSizeInfo.Caption := S;

@@ -101,7 +101,7 @@ type
       )
     }
     procedure RenderControl(const Control: TCastleUserInterface;
-      const ViewportRect: TRectangle);
+      const ViewportRect: TRectangle); overload;
 
     { Save screen by rendering the window contents to the back buffer. }
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override;
@@ -132,7 +132,7 @@ type
 function RenderControlToImage(const Container: TGLContainer;
   const Control: TCastleUserInterface;
   const ViewportRect: TRectangle;
-  const BackgroundColor: TCastleColor): TRGBAlphaImage;
+  const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
 
 implementation
 

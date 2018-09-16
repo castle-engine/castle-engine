@@ -54,7 +54,7 @@ class procedure TEventsHandler.Open(const Url: string);
   procedure RecreateAnimationsPanel;
   var
     Lab: TCastleLabel;
-    W, H: Integer;
+    W, H: Single;
     AnimationName: string;
     Button: TCastleButton;
     ScrollView: TCastleScrollView;
@@ -82,12 +82,12 @@ class procedure TEventsHandler.Open(const Url: string);
 
     SwitchForward := TCastleSwitchControl.Create(AnimationsPanel);
     SwitchForward.Checked := true;
-    SwitchForward.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
+    SwitchForward.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
     SwitchForward.Anchor(vpTop, -H);
     ScrollView.ScrollArea.InsertFront(SwitchForward);
 
-    H += Lab.CalculatedHeight + Margin;
-    MaxVar(W, Lab.CalculatedWidth + SwitchForward.CalculatedWidth + 3 * Margin);
+    H := H + (Lab.EffectiveHeight + Margin);
+    MaxVar(W, Lab.EffectiveWidth + SwitchForward.EffectiveWidth + 3 * Margin);
 
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Loop:';
@@ -97,12 +97,12 @@ class procedure TEventsHandler.Open(const Url: string);
 
     SwitchLoop := TCastleSwitchControl.Create(AnimationsPanel);
     SwitchLoop.Checked := true;
-    SwitchLoop.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
+    SwitchLoop.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
     SwitchLoop.Anchor(vpTop, -H);
     ScrollView.ScrollArea.InsertFront(SwitchLoop);
 
-    H += Lab.CalculatedHeight + Margin;
-    MaxVar(W, Lab.CalculatedWidth + SwitchLoop.CalculatedWidth + 3 * Margin);
+    H := H + (Lab.EffectiveHeight + Margin);
+    MaxVar(W, Lab.EffectiveWidth + SwitchLoop.EffectiveWidth + 3 * Margin);
 
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Transition:';
@@ -113,12 +113,12 @@ class procedure TEventsHandler.Open(const Url: string);
     SliderTransition := TCastleFloatSlider.Create(AnimationsPanel);
     SliderTransition.Min := 0;
     SliderTransition.Max := 5;
-    SliderTransition.Anchor(hpLeft, Lab.CalculatedWidth + 2 * Margin);
+    SliderTransition.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
     SliderTransition.Anchor(vpTop, -H);
     ScrollView.ScrollArea.InsertFront(SliderTransition);
 
-    H += Lab.CalculatedHeight + Margin;
-    MaxVar(W, Lab.CalculatedWidth + SliderTransition.CalculatedWidth + 3 * Margin);
+    H := H + (Lab.EffectiveHeight + Margin);
+    MaxVar(W, Lab.EffectiveWidth + SliderTransition.EffectiveWidth + 3 * Margin);
 
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Click to play animation...';
@@ -126,8 +126,8 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Anchor(vpTop, -H);
     ScrollView.ScrollArea.InsertFront(Lab);
 
-    H += Lab.CalculatedHeight + Margin;
-    MaxVar(W, Lab.CalculatedWidth + 2 * Margin);
+    H := H + (Lab.EffectiveHeight + Margin);
+    MaxVar(W, Lab.EffectiveWidth + 2 * Margin);
 
     for AnimationName in Scene.AnimationsList do
     begin
@@ -138,8 +138,8 @@ class procedure TEventsHandler.Open(const Url: string);
       Button.OnClick := @TEventsHandler(nil).ButtonPlayAnimationClick;
       ScrollView.ScrollArea.InsertFront(Button);
 
-      H += Button.CalculatedHeight + Margin;
-      MaxVar(W, Button.CalculatedWidth + 2 * Margin);
+      H := H + (Button.EffectiveHeight + Margin);
+      MaxVar(W, Button.EffectiveWidth + 2 * Margin);
     end;
 
     ScrollView.ScrollArea.Width := W;
@@ -208,7 +208,7 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  Y: Integer;
+  Y: Single;
 begin
   { This is an optimization useful when you animate a hierarchy of Transform
     nodes (which often happens in case of Spine animation).
@@ -237,7 +237,7 @@ begin
   ButtonOpen3D.Anchor(hpLeft, Margin);
   ButtonOpen3D.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpen3D);
-  Y -= ButtonOpen3D.CalculatedHeight + Margin;
+  Y := Y - (ButtonOpen3D.EffectiveHeight + Margin);
 
   ButtonOpen2D := TCastleButton.Create(Application);
   ButtonOpen2D.Caption := 'Load sample 2D model';
@@ -245,7 +245,7 @@ begin
   ButtonOpen2D.Anchor(hpLeft, Margin);
   ButtonOpen2D.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpen2D);
-  Y -= ButtonOpen2D.CalculatedHeight + Margin;
+  Y := Y - (ButtonOpen2D.EffectiveHeight + Margin);
 
   ButtonOpenDialog := TCastleButton.Create(Application);
   ButtonOpenDialog.Caption := 'Open any model on disk';

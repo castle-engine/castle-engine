@@ -61,7 +61,7 @@
       when you just changed @link(UIFont) (changing
       @link(CustomFont) automatically calls this automatically)
       and you want control size to be updated immediately
-      (for example, you need @link(CalculatedHeight)
+      (for example, you need @link(EffectiveHeight)
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
@@ -163,7 +163,7 @@ end;
 procedure TCastleUserInterfaceFont.TooltipRender;
 var
   X, Y: Single;
-  TooltipRect: TRectangle;
+  TooltipRect: TFloatRectangle;
 begin
   if TooltipLabel = nil then
   begin

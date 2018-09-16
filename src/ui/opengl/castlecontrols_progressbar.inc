@@ -33,7 +33,7 @@
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -154,12 +154,12 @@ begin
     TrimSimple;
 end;
 
-function TCastleProgressBar.FloatRect: TFloatRectangle;
+function TCastleProgressBar.Rect: TFloatRectangle;
 var
   XMargin, Height, YMiddle, Bot: Single;
   PR: TFloatRectangle;
 begin
-  PR := ParentFloatRect;
+  PR := ParentRect;
   XMargin := PR.Width / 8;
   Height := PR.Height / 12;
   YMiddle := PR.Height * YPosition;
@@ -182,9 +182,9 @@ begin
   if Progress = nil then Exit;
 
   if FGLBackground <> nil then
-    FGLBackground.Draw(ParentFloatRect);
+    FGLBackground.Draw(ParentRect);
 
-  BarRect := FloatRect;
+  BarRect := Rect;
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);

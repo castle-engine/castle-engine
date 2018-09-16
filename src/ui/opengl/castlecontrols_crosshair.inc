@@ -27,7 +27,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    function Rect: TFloatRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
@@ -67,7 +67,7 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.FloatRect: TFloatRectangle;
+function TCastleCrosshair.Rect: TFloatRectangle;
 begin
   Result := FloatRectangle(Theme.Images[ImageType].Rect).ScaleAround0(UIScale);
 end;
@@ -75,7 +75,7 @@ end;
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, ImageType, UIScale);
+  Theme.Draw(RenderRect, ImageType, UIScale);
 end;
 
 {$endif read_implementation}
