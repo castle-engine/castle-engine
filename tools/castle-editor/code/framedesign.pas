@@ -845,28 +845,30 @@ begin
 end;
 
 procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);
-
-  function RectToString(const R: TFloatRectangle): String;
-  begin
-    if R.IsEmpty then
-      Result := 'Empty'
-    else
-      Result := Format('  Left x Bottom: %f x %f' + NL + '  Size: %f x %f',
-        [R.Left, R.Bottom, R.Width, R.Height]);
-  end;
-
 var
+  RR: TFloatRectangle;
   S: String;
 begin
-  S := Format(
-    'Calculated size: %f x %f' + NL +
-    NL +
-    'Screen rectangle (scaled and with anchors):' + NL +
-    '%s',
-    [ UI.EffectiveWidth,
-      UI.EffectiveHeight,
-      RectToString(UI.RenderRect)
-    ]);
+  RR := UI.RenderRect;
+  if RR.IsEmpty then
+    S := 'Size: Empty'
+  else
+  begin
+    S := Format(
+      'Calculated size: %f x %f' + NL +
+      NL +
+      'Screen rectangle (scaled and with anchors):' + NL +
+      '  Left x Bottom: %f x %f' + NL +
+      '  Size: %f x %f',
+      [ UI.EffectiveWidth,
+        UI.EffectiveHeight,
+        RR.Left,
+        RR.Bottom,
+        RR.Width,
+        RR.Height
+      ]);
+  end;
+
   if (UI.Parent <> nil) and
      (not UI.Parent.RenderRect.Contains(UI.RenderRect)) then
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
