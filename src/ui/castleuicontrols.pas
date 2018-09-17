@@ -1345,6 +1345,7 @@ type
       depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Width).
+      It is 0 when EffectiveRect and Rect are empty.
 
       @seealso EffectiveRect }
     function EffectiveWidth: Single;
@@ -1360,6 +1361,7 @@ type
       depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Height).
+      It is 0 when EffectiveRect and Rect are empty.
 
       @seealso EffectiveRect }
     function EffectiveHeight: Single;
@@ -3565,6 +3567,8 @@ begin
 end;
 
 function TCastleUserInterface.EffectiveWidth: Single;
+var
+  R: TFloatRectangle;
 begin
   { Naive implementation:
   Result := EffectiveRect.Width; }
@@ -3574,14 +3578,28 @@ begin
   Result := Rect.ScaleAround0(1 / UIScale).Width; }
 
   { Optimized implementation: }
-  Result := Rect.Width * (1 / UIScale);
-  //Assert(Result = EffectiveRect.Width);
+  R := Rect;
+  if R.IsEmpty then
+    Result := 0
+  else
+  begin
+    Result := R.Width / UIScale;
+    //Assert(Result = EffectiveRect.Width);
+  end;
 end;
 
 function TCastleUserInterface.EffectiveHeight: Single;
+var
+  R: TFloatRectangle;
 begin
-  Result := Rect.Height * (1 / UIScale);
-  //Assert(Result = EffectiveRect.Height);
+  R := Rect;
+  if R.IsEmpty then
+    Result := 0
+  else
+  begin
+    Result := R.Height / UIScale;
+    //Assert(Result = EffectiveRect.Height);
+  end;
 end;
 
 function TCastleUserInterface.CalculatedWidth: Cardinal;

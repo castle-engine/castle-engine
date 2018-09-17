@@ -63,6 +63,8 @@ begin
   N := TNothingOverrriden.Create(nil);
   try
     AssertRectsEqual(TFloatRectangle.Empty, N.Rect);
+    AssertEquals(0, N.EffectiveWidth);
+    AssertEquals(0, N.EffectiveHeight);
   finally FreeAndNil(N); end;
 
   // I := TIntOverrriden.Create(nil);
@@ -73,6 +75,8 @@ begin
   F := TFloatOverrriden.Create(nil);
   try
     AssertRectsEqual(FloatRectangle(100, 200, 300, 400), F.Rect);
+    AssertEquals(300, F.EffectiveWidth);
+    AssertEquals(400, F.EffectiveHeight);
   finally FreeAndNil(F); end;
 end;
 
