@@ -118,6 +118,14 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
   end;
 
+  TClippingAttachment = class(TAttachment)
+    Vertices: TVector2List;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+  end;
+
   TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
@@ -166,6 +174,13 @@ begin
   if TypeName = 'path' then
   begin
     Result := TPathAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json, Bones);
+  end else
+  if TypeName = 'clipping' then
+  begin
+    Result := TClippingAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
@@ -595,6 +610,99 @@ begin
   Curve.Tessellation := ControlPoints.FdPoint.Count * 10; // by default, make quite detailed tesselation
   Curve.PiecewiseBezier;
   Shape.Geometry := Curve;
+end;
+
+{ TClippingAttachment ---------------------------------------------------------- }
+
+constructor TClippingAttachment.Create;
+begin
+  inherited;
+  Vertices := TVector2List.Create;
+end;
+
+destructor TClippingAttachment.Destroy;
+begin
+  FreeAndNil(Vertices);
+  inherited;
+end;
+
+procedure TClippingAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+var
+  VertexCount: Integer;
+begin
+  inherited;
+  VertexCount := Json.Get('vertexCount', 0);
+  ReadVector2List(Json, 'vertices', Vertices);
+  if Vertices.Count <> VertexCount then
+    WritelnWarning('Spine "clipping" attachment has unexpected "vertices" count: expected %d, has %d', [VertexCount, Vertices.Count]);
+end;
+
+procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
+  const TextureLoader: TTextureLoader);
+
+  procedure VisualizeClipPolygon;
+  var
+    Coordinates: TCoordinateNode;
+    Faces: TIndexedFaceSetNode;
+    Shape: TShapeNode;
+    I: Integer;
+  begin
+    Shape := TShapeNode.Create('', BaseUrl);
+    Node.AddChildren(Shape);
+
+    Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+
+    Coordinates := TCoordinateNode.Create('', BaseUrl);
+    for I := 0 to Vertices.Count - 1 do
+    begin
+      Coordinates.FdPoint.Items.Add(Vector3(Vertices[I], 0));
+      Faces.FdCoordIndex.Items.Add(I);
+    end;
+
+    Faces.Coord := Coordinates;
+    Faces.Solid := false;
+    Faces.Convex := false;
+    Shape.Geometry := Faces;
+  end;
+
+  procedure AddClipPlane(const Point, NextPoint: TVector2);
+  var
+    D: Single;
+    Plane: TVector4;
+    ClipPlane: TClipPlaneNode;
+  begin
+    D := PointsDistance(Point, NextPoint);
+    Plane := Triangle3(
+      Vector3(Point, 0),
+      Vector3(NextPoint, 0),
+      Vector3((Point + NextPoint) / 2, D)
+    ).NormalizedPlane;
+    ClipPlane := TClipPlaneNode.Create('', BaseUrl);
+    ClipPlane.Plane := Plane;
+    Node.AddChildren(ClipPlane);
+  end;
+
+var
+  I: Integer;
+begin
+  if Node <> nil then
+    WritelnWarning('Spine', 'TClippingAttachment.BuildNodes multiple times on same node');
+
+  Node := TTransformNode.Create(
+    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
+
+  // debug
+  //VisualizeClipPolygon;
+
+  for I := 0 to Vertices.Count - 1 do
+    AddClipPlane(Vertices[I], Vertices[(I + 1) mod Vertices.Count]);
+
+  // TODO: This is cool, but ClipPlanes don't affect anything.
+  // To make this approach cool, we would need ClipPlane.global field.
+  // Alternatively, we could make a different approach using stencil buffer.
+
+  WritelnWarning('Spine', 'Spine "clipping" region type is not yet implemented');
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

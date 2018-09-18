@@ -39,6 +39,7 @@ implementation
 uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
+  CastleTriangles,
   X3DFields;
 
 type
