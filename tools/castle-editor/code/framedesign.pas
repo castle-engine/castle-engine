@@ -23,6 +23,7 @@ type
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
+    PanelMiddleTop: TPanel;
     PanelMiddle: TPanel;
     PanelLeft: TPanel;
     PanelRight: TPanel;
@@ -33,7 +34,11 @@ type
     TabEvents: TTabSheet;
     TabAnchors: TTabSheet;
     TabSimple: TTabSheet;
+    ToggleInteractMode: TToggleBox;
+    ToggleTranslateMode: TToggleBox;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
+    procedure ToggleInteractModeClick(Sender: TObject);
+    procedure ToggleTranslateModeClick(Sender: TObject);
   private
     type
       { UI layer that can intercept mouse clicks and drags. }
@@ -54,6 +59,8 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
+      TMode = (moInteract, moTranslate);
+
     var
       InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
       PropertyEditorHook: TPropertyEditorHook;
@@ -66,6 +73,8 @@ type
       FDesignModified: Boolean;
       CastleControl: TCastleControlCustom;
       TreeNodeMap: TTreeNodeMap;
+      Mode: TMode;
+      InsideToggleModeClick: Boolean;
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
@@ -80,6 +89,7 @@ type
       const ComponentsOwner: TComponent): String;
     procedure UpdateComponentCaptionFromName(const C: TComponent);
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
+    procedure ChangeMode(const NewMode: TMode);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -183,7 +193,7 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) then
+  if (Frame.Mode = moTranslate) and Event.IsMouseButton(mbLeft) then
   begin
     // TODO: for now selects only UI control, not TCastleTransform
     if Frame.DesignRoot is TCastleUserInterface then
@@ -211,7 +221,7 @@ begin
   Result := inherited Motion(Event);
   if Result then Exit;
 
-  if mbLeft in Event.Pressed then
+  if (Frame.Mode = moTranslate) and (mbLeft in Event.Pressed) then
   begin
     UI := SelectedUserInterface;
     if UI <> nil then
@@ -315,6 +325,8 @@ begin
   ControlProperties.ActivePage := TabSimple;
 
   TreeNodeMap := TTreeNodeMap.Create;
+
+  ChangeMode(moInteract);
 end;
 
 destructor TDesignFrame.Destroy;
@@ -796,6 +808,22 @@ begin
   UpdateSelectedControl;
 end;
 
+procedure TDesignFrame.ToggleInteractModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moInteract);
+  InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.ToggleTranslateModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moTranslate);
+  InsideToggleModeClick := false;
+end;
+
 function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
   const ComponentsOwner: TComponent): String;
 var
@@ -874,6 +902,13 @@ begin
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
   LabelSizeInfo.Caption := S;
+end;
+
+procedure TDesignFrame.ChangeMode(const NewMode: TMode);
+begin
+  Mode := NewMode;
+  ToggleInteractMode.Checked := Mode = moInteract;
+  ToggleTranslateMode.Checked := Mode = moTranslate;
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
