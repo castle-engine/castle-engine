@@ -47,11 +47,13 @@ type
         PendingMove: TVector2;
         function GetSelectedUserInterface: TCastleUserInterface;
         procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
+        function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
       public
         Frame: TDesignFrame;
         constructor Create(AOwner: TComponent); override;
         function Press(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
+        procedure Render; override;
         property SelectedUserInterface: TCastleUserInterface
           read GetSelectedUserInterface write SetSelectedUserInterface;
       end;
@@ -119,6 +121,7 @@ implementation
 uses TypInfo, StrUtils, Math,
   CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
   CastleControls, CastleURIUtils, CastleStringUtils, CastleRectangles,
+  CastleGLUtils, CastleColors,
   EditorUtils;
 
 {$R *.lfm}
@@ -161,8 +164,8 @@ begin
     Frame.ControlsTree.Select([Node]);
 end;
 
-function TDesignFrame.TDesignerLayer.Press(
-  const Event: TInputPressRelease): Boolean;
+function TDesignFrame.TDesignerLayer.HoverUserInterface(
+  const AMousePosition: TVector2): TCastleUserInterface;
 
   function ControlUnder(const C: TCastleUserInterface;
     const MousePos: TVector2): TCastleUserInterface;
@@ -187,6 +190,15 @@ function TDesignFrame.TDesignerLayer.Press(
     end;
   end;
 
+begin
+  if Frame.DesignRoot is TCastleUserInterface then
+    Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition)
+  else
+    Result := nil;
+end;
+
+function TDesignFrame.TDesignerLayer.Press(
+  const Event: TInputPressRelease): Boolean;
 var
   UI: TCastleUserInterface;
 begin
@@ -196,14 +208,11 @@ begin
   if (Frame.Mode = moTranslate) and Event.IsMouseButton(mbLeft) then
   begin
     // TODO: for now selects only UI control, not TCastleTransform
-    if Frame.DesignRoot is TCastleUserInterface then
+    UI := HoverUserInterface(Event.Position);
+    if UI <> nil then
     begin
-      UI := ControlUnder(Frame.DesignRoot as TCastleUserInterface, Event.Position);
-      if UI <> nil then
-      begin
-        SelectedUserInterface := UI;
-        Exit(ExclusiveEvents);
-      end;
+      SelectedUserInterface := UI;
+      Exit(ExclusiveEvents);
     end;
 
     PendingMove := TVector2.Zero;
@@ -268,6 +277,31 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TDesignFrame.TDesignerLayer.Render;
+
+  procedure RenderUiOutline(const UIRect: TFloatRectangle;
+    const Shift1, Shift2: Integer; const Border1, Border2: TCastleColor);
+  begin
+    DrawRectangleOutline(UIRect.Grow(Shift1), Border1);
+    DrawRectangleOutline(UIRect.Grow(Shift2), Border2);
+  end;
+
+var
+  UI: TCastleUserInterface;
+begin
+  inherited;
+
+  UI := SelectedUserInterface;
+  if UI <> nil then
+    RenderUiOutline(UI.RenderRect, 0, -1, White, Black);
+
+  UI := HoverUserInterface(Container.MousePosition);
+  if UI <> nil then
+    RenderUiOutline(UI.RenderRect, 0, -1,
+      Vector4(1, 1, 0, 0.75),
+      Vector4(1, 1, 0, 0.5));
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
