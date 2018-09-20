@@ -109,6 +109,7 @@ type
     procedure AddComponent(const ComponentClass: TComponentClass;
       const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
     procedure DeleteComponent;
+    procedure CameraViewAll;
 
     property DesignUrl: String read FDesignUrl;
     { Root saved/loaded to component file }
@@ -121,7 +122,7 @@ implementation
 uses TypInfo, StrUtils, Math,
   CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
   CastleControls, CastleURIUtils, CastleStringUtils, CastleRectangles,
-  CastleGLUtils, CastleColors,
+  CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
 
 {$R *.lfm}
@@ -596,6 +597,49 @@ begin
       ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
       UpdateDesign(DesignRoot);
+    end;
+  finally FreeAndNil(Selected) end;
+end;
+
+procedure TDesignFrame.CameraViewAll;
+
+  procedure AdjustCamera(const SceneManager: TCastleSceneManager);
+  var
+    Position, Direction, Up, GravityUp: TVector3;
+  begin
+    CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
+      2, 1, false, true, // dir = -Z, up = +Y
+      Position, Direction, Up, GravityUp);
+    SceneManager.RequiredCamera.AnimateTo(Position, Direction, Up, 0.5);
+    SceneManager.RequiredCamera.GravityUp := GravityUp;
+  end;
+
+var
+  Selected: TComponentList;
+  SelectedCount, I: Integer;
+  World: TSceneManagerWorld;
+  Sel: TComponent;
+begin
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount = 0 then
+    begin
+      ErrorBox('Select some SceneManager, or any transformation that is part of scene manager, first');
+      Exit;
+    end;
+
+    for I := 0 to SelectedCount - 1 do
+    begin
+      Sel := Selected[I];
+      if Sel is TCastleSceneManager then
+        AdjustCamera(Sel as TCastleSceneManager)
+      else
+      if Sel is TCastleTransform then
+      begin
+        World := (Sel as TCastleTransform).World;
+        if World <> nil then
+          AdjustCamera(World.Owner as TCastleSceneManager);
+      end;
     end;
   finally FreeAndNil(Selected) end;
 end;

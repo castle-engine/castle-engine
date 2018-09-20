@@ -5,10 +5,14 @@ Now:
 * Visual inspector. designer etc.
     * Dragging UI:
       * Some outline around selected UI, UI under mouse too (hover)
+        Done, maybe it can look better?
+
       * tools over preview:
         None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
         Translate (hint: Click to select, drag to move UI control.)
         (later will be used to Translate / Rotate / Scale scenes)
+        Done, maybe it can look better? with icons? and hints?
+
       * update property grid when moving by mouse immediately
       * Anchors tab keeps getting deselected for some reason when moving UI control
       * Snap = 5.0; // TODO: configurable
@@ -18,6 +22,7 @@ Now:
         or 2x 3x3 controls to configure anchors
       * Make Label for fps (in template) now designed in editor
     * Button at scene manager: Camera View All
+      Done, maybe it can look better, be placed in "Simple" tab?
     * Property editor for TCastleColorPersistent
     * F1 help to API reference, show also in menu
       for now just go to API reference main page?

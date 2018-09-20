@@ -204,6 +204,14 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator400: TMenuItem
         Caption = '-'
       end
+      object MenuItemCameraViewAll: TMenuItem
+        Caption = 'Scene Manager Camera View All'
+        ShortCut = 16420
+        OnClick = MenuItemCameraViewAllClick
+      end
+      object MenuItemSeparator1300: TMenuItem
+        Caption = '-'
+      end
       object MenuItemDesignClose: TMenuItem
         Caption = 'Close'
         OnClick = MenuItemDesignCloseClick

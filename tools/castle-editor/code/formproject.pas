@@ -31,6 +31,8 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemCameraViewAll: TMenuItem;
+    MenuItemSeparator1300: TMenuItem;
     MenuItemSeparatorInAddTransform: TMenuItem;
     MenuItemDesignAddSphere: TMenuItem;
     MenuItemDesignAddRectangle2D: TMenuItem;
@@ -99,6 +101,7 @@ type
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
     procedure MenuItemBreakProcessClick(Sender: TObject);
+    procedure MenuItemCameraViewAllClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
@@ -237,6 +240,12 @@ begin
   FreeProcess;
 end;
 
+procedure TProjectForm.MenuItemCameraViewAllClick(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.CameraViewAll;
+end;
+
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   // TODO ask only if unsaved things
@@ -371,6 +380,8 @@ begin
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
+  MenuItemCameraViewAll.Enabled := Design <> nil;
+
   LabelNoDesign.Visible := Design = nil;
 end;
 
