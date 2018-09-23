@@ -5,10 +5,9 @@ object DesignFrame: TDesignFrame
   Width = 1261
   ClientHeight = 510
   ClientWidth = 1261
-  DesignTimePPI = 140
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 383
+  DesignLeft = 339
   DesignTop = 171
   object SplitterLeft: TSplitter
     Left = 266
@@ -36,7 +35,7 @@ object DesignFrame: TDesignFrame
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 54
+      Height = 34
       Top = 5
       Width = 346
       Align = alTop
@@ -47,8 +46,8 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 446
-      Top = 64
+      Height = 466
+      Top = 44
       Width = 356
       ActivePage = TabAnchors
       Align = alClient
@@ -59,28 +58,28 @@ object DesignFrame: TDesignFrame
       end
       object TabAnchors: TTabSheet
         Caption = 'Anchors'
-        ClientHeight = 401
-        ClientWidth = 350
+        ClientHeight = 432
+        ClientWidth = 352
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 401
+          Height = 432
           Top = 0
-          Width = 350
+          Width = 352
           HorzScrollBar.Page = 1
           HorzScrollBar.Visible = False
-          VertScrollBar.Page = 76
+          VertScrollBar.Page = 60
           Align = alClient
           BorderStyle = bsNone
-          ClientHeight = 401
-          ClientWidth = 350
+          ClientHeight = 432
+          ClientWidth = 352
           TabOrder = 0
           object LabelSizeInfo: TLabel
             AnchorSideTop.Control = CheckParentSelfAnchorsEqual
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 27
-            Top = 49
-            Width = 338
+            Height = 17
+            Top = 43
+            Width = 340
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 10
             Caption = 'LabelSizeInfo'
@@ -89,9 +88,9 @@ object DesignFrame: TDesignFrame
           end
           object CheckParentSelfAnchorsEqual: TCheckBox
             Left = 8
-            Height = 31
+            Height = 25
             Top = 8
-            Width = 300
+            Width = 268
             Caption = 'Parent And Self Anchors Equal'
             TabOrder = 0
           end
@@ -117,9 +116,9 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 473
+      Height = 483
       Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
-      Top = 37
+      Top = 27
       Width = 266
       Align = alClient
       MultiSelect = True
@@ -134,7 +133,7 @@ object DesignFrame: TDesignFrame
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 27
+      Height = 17
       Top = 5
       Width = 256
       Align = alTop
@@ -155,19 +154,19 @@ object DesignFrame: TDesignFrame
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 39
+      Height = 33
       Top = 5
       Width = 615
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 39
+      ClientHeight = 33
       ClientWidth = 615
       TabOrder = 0
       object LabelUIScaling: TLabel
         Left = 0
-        Height = 27
+        Height = 17
         Hint = 'UI Scaling to 1600x900'
         Top = 0
         Width = 615
@@ -180,25 +179,25 @@ object DesignFrame: TDesignFrame
       end
       object ToggleInteractMode: TToggleBox
         Left = 0
-        Height = 39
+        Height = 29
         Top = 0
-        Width = 84
+        Width = 65
         AutoSize = True
         Caption = 'Interact'
         OnClick = ToggleInteractModeClick
         TabOrder = 0
       end
-      object ToggleTranslateMode: TToggleBox
+      object ToggleSelectTranslateResizeMode: TToggleBox
         AnchorSideLeft.Control = ToggleInteractMode
         AnchorSideLeft.Side = asrBottom
-        Left = 89
-        Height = 39
+        Left = 70
+        Height = 33
         Top = 0
-        Width = 96
+        Width = 216
         AutoSize = True
         BorderSpacing.Left = 5
-        Caption = 'Translate'
-        OnClick = ToggleTranslateModeClick
+        Caption = 'Select / Translate / Resize'
+        OnClick = ToggleSelectTranslateResizeModeClick
         TabOrder = 1
       end
     end

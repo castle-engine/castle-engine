@@ -267,6 +267,7 @@ type
     FMousePressed: CastleKeysMouse.TMouseButtons;
     FIsMousePositionForMouseLook: boolean;
     FFocusAndMouseCursorValid: boolean;
+    FOverrideCursor: TMouseCursor;
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
@@ -574,6 +575,13 @@ type
       It is up to your application code to set this, if you need. }
     property ForceCaptureInput: TCastleUserInterface
       read FForceCaptureInput write SetForceCaptureInput;
+
+    { When this is not mcDefault, it sets the cursor, regardless of
+      cursor specified at the @link(TCastleUserInterface.Cursor) value of
+      the focused control. It even takes precedence over any control using
+      mcForceNone (so it can force the cursor to be visible anyway). }
+    property OverrideCursor: TMouseCursor read FOverrideCursor write FOverrideCursor
+      default mcDefault;
 
     { When the control accepts the "press" event, it automatically captures
       the following motion and release events, hijacking them from other controls,
@@ -2031,6 +2039,9 @@ var
 
     if AnythingForcesNoneCursor then
       Result := mcForceNone;
+
+    if OverrideCursor <> mcDefault then
+      Result := OverrideCursor;
 
     { do not hide when container is not focused (mouse look doesn't work
       then too, so better to not hide mouse) }

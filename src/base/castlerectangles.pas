@@ -1132,14 +1132,14 @@ end;
 function TFloatRectangle.GrowLeft(const W: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Left := Result.Left - Integer(W);
+  Result.Left := Result.Left - W;
   Result.Width := Result.Width + W;
 end;
 
 function TFloatRectangle.GrowBottom(const H: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Bottom := Result.Bottom - H;
   Result.Height := Result.Height + H;
 end;
 

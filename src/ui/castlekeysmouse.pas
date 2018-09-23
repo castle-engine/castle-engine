@@ -486,8 +486,19 @@ type
       or that user can click to set focus to the text area. }
     mcText,
     { Indicates something active is under cursor, usually for links. }
-    mcHand);
+    mcHand,
 
+    mcResizeVertical,
+    mcResizeHorizontal,
+    mcResizeTopLeft,
+    mcResizeTop,
+    mcResizeTopRight,
+    mcResizeLeft,
+    mcResizeRight,
+    mcResizeBottomLeft,
+    mcResizeBottom,
+    mcResizeBottomRight
+  );
 const
   MouseButtonStr: array [TMouseButton] of string = (
     'left', 'middle', 'right', 'extra1', 'extra2');

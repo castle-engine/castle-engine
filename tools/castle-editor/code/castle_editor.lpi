@@ -188,6 +188,9 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
+      <CompilerMessages>
+        <IgnoredMessages idx4046="True"/>
+      </CompilerMessages>
     </Other>
   </CompilerOptions>
   <Debugging>

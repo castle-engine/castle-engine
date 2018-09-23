@@ -715,23 +715,39 @@ procedure TCastleWindowCustom.UpdateCursor;
     { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
     Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
     try
-      Result := gdk_cursor_new_from_pixmap(
-        Pixmap, Pixmap, @Color, @Color, 0, 0);
+      Result := gdk_cursor_new_from_pixmap(Pixmap, Pixmap, @Color, @Color, 0, 0);
     finally gdk_pixmap_unref(Pixmap); end;
   end;
 
 const
+  { GDK cursors.
+    See https://developer.gnome.org/gdk3/stable/gdk3-Cursors.html for the list. }
   GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
-  ( { I think that GDK_ARROW was traditionally standard under XWindows
-      (right-top arrow), but then gtk changed standard to much more standard
-      left-top arrow in GDK_LEFT_PTR.
-
-      See for example
-      http://library.gnome.org/devel/gdk/stable/gdk-Cursors.html
-      for the list.
-    }
-    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
+  ( { mcStandard.
+      Note that GDK_ARROW seems standard under XWindows (it is a right-top arrow),
+      but actually in modern applications it is more standard
+      to use left-top arrow in GDK_LEFT_PTR. }
+    GDK_LEFT_PTR,
+    // mcStandard
+    GDK_WATCH,
+    // mcWait
+    GDK_XTERM,
+    // mcHand
+    GDK_HAND2,
+    // crResizeVertical
+    GDK_SB_V_DOUBLE_ARROW,
+    GDK_SB_H_DOUBLE_ARROW,
+    // crResizeTopLeft
+    GDK_TOP_LEFT_CORNER,
+    GDK_TOP_SIDE,
+    GDK_TOP_RIGHT_CORNER,
+    GDK_LEFT_SIDE,
+    GDK_RIGHT_SIDE,
+    GDK_BOTTOM_LEFT_CORNER,
+    GDK_BOTTOM_SIDE,
+    GDK_BOTTOM_RIGHT_CORNER
+  );
 begin
   if Application.Cursors[InternalCursor] = nil then
   begin
