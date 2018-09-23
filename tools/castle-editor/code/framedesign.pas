@@ -105,6 +105,7 @@ type
     procedure UpdateComponentCaptionFromName(const C: TComponent);
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     procedure ChangeMode(const NewMode: TMode);
+    procedure ModifiedOutsideObjectInspector;
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -387,6 +388,8 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     // everything done here relies on anchors being active
     UI.HasHorizontalAnchor := true;
     UI.HasVerticalAnchor := true;
+
+    Frame.ModifiedOutsideObjectInspector;
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1208,6 +1211,17 @@ begin
   LabelSnap.Enabled := Mode = moSelectTranslateResize;
   SpinEditSnap.Visible := Mode = moSelectTranslateResize;
   SpinEditSnap.Enabled := Mode = moSelectTranslateResize;
+end;
+
+procedure TDesignFrame.ModifiedOutsideObjectInspector;
+begin
+  // TODO: this moves UI scrollbar up,
+  // TODO: this is not optimized
+  // (PropertyGridModified does some unnecessary things if we only changed size)
+  InspectorSimple.RefreshPropertyValues;
+  InspectorAdvanced.RefreshPropertyValues;
+  InspectorEvents.RefreshPropertyValues;
+  PropertyGridModified(nil);
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
