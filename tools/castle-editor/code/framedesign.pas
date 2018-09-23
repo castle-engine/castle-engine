@@ -310,7 +310,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       ParentR.Contains(ResultingRect);
   end;
 
-  procedure ApplyDrag(const UI: TCastleUserInterface; const X, Y: Single);
+  procedure ApplyDrag(const UI: TCastleUserInterface; X, Y: Single);
   const
     MinWidth  = 10;
     MinHeight = 10;
@@ -328,15 +328,24 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
           case ResizingHorizontal of
             hpLeft:
               begin
+                // do not allow to set UI.Width < MinWidth, by limiting X
+                if UI.Width - X < MinWidth then
+                  X := UI.Width - MinWidth;
+                UI.Width := UI.Width - X;
+
                 case UI.HorizontalAnchorSelf of
                   hpLeft  : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
                   hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
                   //hpRight : UI.HorizontalAnchorDelta := no need to change
                 end;
-                UI.Width := Max(MinWidth, UI.Width - X);
               end;
             hpRight:
               begin
+                // do not allow to set UI.Width < MinWidth, by limiting X
+                if UI.Width + X < MinWidth then
+                  X := MinWidth - UI.Width;
+                UI.Width := UI.Width + X;
+
                 case UI.HorizontalAnchorSelf of
                   // hpLeft  : UI.HorizontalAnchorDelta := no need to change
                   hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
@@ -348,21 +357,29 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
           case ResizingVertical of
             vpBottom:
               begin
+                // do not allow to set UI.Height < MinHeight, by limiting Y
+                if UI.Height - Y < MinHeight then
+                  Y := UI.Height - MinHeight;
+                UI.Height := UI.Height - Y;
+
                 case UI.VerticalAnchorSelf of
                   vpBottom: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
                   vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
                   //vpTop : UI.VerticalAnchorDelta := no need to change
                 end;
-                UI.Height := Max(MinHeight, UI.Height - Y);
               end;
             vpTop:
               begin
+                // do not allow to set UI.Height < MinHeight, by limiting Y
+                if UI.Height + Y < MinHeight then
+                  Y := MinHeight - UI.Height;
+                UI.Height := UI.Height + Y;
+
                 case UI.VerticalAnchorSelf of
                   //vpBottom: UI.VerticalAnchorDelta := no need to change
                   vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
                   vpTop   : UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
                 end;
-                UI.Height := Max(MinHeight, UI.Height + Y);
               end;
           end;
         end;
