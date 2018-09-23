@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Contnrs, Generics.Collections,
+  Spin, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
@@ -19,6 +19,7 @@ type
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
+    LabelSnap: TLabel;
     LabelSizeInfo: TLabel;
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
@@ -28,6 +29,7 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ScrollBox1: TScrollBox;
+    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAdvanced: TTabSheet;
@@ -412,12 +414,11 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     Frame.CastleControl.Container.OverrideCursor := NewCursor;
   end;
 
-const
-  Snap = 0.0; // TODO: configurable
 var
   UI: TCastleUserInterface;
   Move: TVector2;
   CurrentRect, ResultingRect, ParentR: TFloatRectangle;
+  Snap: Single;
 begin
   Result := inherited Motion(Event);
   if Result then Exit;
@@ -449,6 +450,7 @@ begin
       begin
         Move /= UI.UIScale;
 
+        Snap := Frame.SpinEditSnap.Value;
         if Snap <> 0 then
         begin
           PendingMove += Move;
@@ -1181,7 +1183,12 @@ procedure TDesignFrame.ChangeMode(const NewMode: TMode);
 begin
   Mode := NewMode;
   ToggleInteractMode.Checked := Mode = moInteract;
+
   ToggleSelectTranslateResizeMode.Checked := Mode = moSelectTranslateResize;
+  LabelSnap.Visible := Mode = moSelectTranslateResize;
+  LabelSnap.Enabled := Mode = moSelectTranslateResize;
+  SpinEditSnap.Visible := Mode = moSelectTranslateResize;
+  SpinEditSnap.Enabled := Mode = moSelectTranslateResize;
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
