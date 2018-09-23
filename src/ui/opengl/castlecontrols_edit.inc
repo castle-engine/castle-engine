@@ -15,7 +15,20 @@
 
 {$ifdef read_interface}
 
-  { Edit box to input 1 line of text. }
+  { Edit box to input 1 line of text.
+
+    The edit control @link(Width TCastleUserInterface.Width)
+    is never auto-calculated, since there's no "natural width" for the edit box.
+    We use the property @link(Width TCastleUserInterface.Width) to determine
+    width. The @link(Width TCastleUserInterface.Width) must include also
+    space for the border frame (if @link(Frame) is @true),
+    and padding (see @link(Padding) + @link(PaddingHorizontal)).
+    So, we are similar to CSS box model called box-sizing, width includes also
+    padding and border.
+
+    In contrast, our @link(Height TCastleUserInterface.Height) is always
+    (for now) auto-calculated, based on frame, padding and font size.
+  }
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
     FText: string;
@@ -74,21 +87,8 @@
     property MaxLength: Cardinal read FMaxLength write FMaxLength;
   published
     const
-      DefaultWidth = 100;
       DefaultPadding = 4;
       DefaultAutoOnScreenKeyboard = false;
-
-    { Width, in pixels.
-
-      Inside it, we will put the border frame (if @link(Frame) is @true),
-      and padding (see @link(Padding) + @link(PaddingHorizontal)).
-      So, similar to CSS box model called box-sizing, width includes also
-      padding and border.
-
-      Note that the edit control width is never auto-calculated,
-      since there's no "natural width" for the edit box.
-      In contrast, our height is always (for now) auto-calculated. }
-    property Width default DefaultWidth;
 
     { Currently input text. }
     property Text: string read FText write SetText;
@@ -133,7 +133,6 @@ begin
   FFocusedColor := Black;
   FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
   FBackgroundColor := White;
-  Width := DefaultWidth;
   FPadding := DefaultPadding;
   FFrame := true;
   FAllowedChars := AllChars;

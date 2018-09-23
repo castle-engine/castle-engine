@@ -46,14 +46,14 @@
     procedure DoChange; virtual;
   public
     const
-      DefaultWidth = 200;
-      DefaultHeight = 20;
+      DefaultSliderWidth = 200;
+      DefaultSliderHeight = 20;
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
-    property Width default DefaultWidth;
-    property Height default DefaultHeight;
+    property Width default DefaultSliderWidth;
+    property Height default DefaultSliderHeight;
 
     property SmallFont default true;
 
@@ -171,8 +171,8 @@ constructor TCastleAbstractSlider.Create(AOwner: TComponent);
 begin
   inherited;
   FDisplayValue := true;
-  Width := DefaultWidth;
-  Height := DefaultHeight;
+  Width := DefaultSliderWidth;
+  Height := DefaultSliderHeight;
   SmallFont := true;
 end;
 

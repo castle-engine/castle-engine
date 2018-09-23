@@ -1038,6 +1038,10 @@ type
 
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
+    const
+      DefaultWidth = 100.0;
+      DefaultHeight = 100.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
@@ -1551,8 +1555,8 @@ type
 
       @groupBegin }
     property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Width: Single read FWidth write SetWidth default 0;
-    property Height: Single read FHeight write SetHeight default 0;
+    property Width: Single read FWidth write SetWidth default DefaultWidth;
+    property Height: Single read FHeight write SetHeight default DefaultHeight;
     { @groupEnd }
 
     { Adjust position to align us to the parent horizontally.
@@ -3198,6 +3202,8 @@ begin
   FExists := true;
   FEnableUIScaling := true;
   FCapturesEvents := true;
+  FWidth := DefaultWidth;
+  FHeight := DefaultHeight;
 end;
 
 destructor TCastleUserInterface.Destroy;

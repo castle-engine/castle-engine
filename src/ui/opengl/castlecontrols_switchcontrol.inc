@@ -28,8 +28,8 @@
 
   public
     const
-      DefaultWidth = 50;
-      DefaultHeight = 28;
+      DefaultSwitchControlWidth = 50;
+      DefaultSwitchControlHeight = 28;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -46,8 +46,8 @@
     property Enabled: boolean read FEnabled write SetEnabled default true;
     { Event sent when switch value changed. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
-    property Width default DefaultWidth;
-    property Height default DefaultHeight;
+    property Width default DefaultSwitchControlWidth;
+    property Height default DefaultSwitchControlHeight;
   end;
 
 {$endif read_interface}
@@ -63,8 +63,8 @@ begin
   FEnabled := true;
   FPressed := false;
   FOnChange := nil;
-  Width := DefaultWidth;
-  Height := DefaultHeight;
+  Width := DefaultSwitchControlWidth;
+  Height := DefaultSwitchControlHeight;
 end;
 
 destructor TCastleSwitchControl.Destroy;
