@@ -294,11 +294,29 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     end;
   end;
 
+  function DragAllowed(const UI: TCastleUserInterface; const Move: TVector2): Boolean;
+  var
+    CurrentRect, ResultingRect, ParentR: TFloatRectangle;
+  begin
+    CurrentRect := UI.RenderRect;
+    case DraggingMode of
+      dmTranslate: ResultingRect := CurrentRect.Translate(Move);
+      dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
+    end;
+    ParentR := ParentRenderRect(UI);
+    { only allow movement/resize if control will not go outside of parent,
+      unless it was already outside }
+    Result := (not ParentR.Contains(CurrentRect)) or
+      ParentR.Contains(ResultingRect);
+  end;
+
   procedure ApplyDrag(const UI: TCastleUserInterface; const X, Y: Single);
   const
     MinWidth  = 10;
     MinHeight = 10;
   begin
+    if not DragAllowed(UI, Vector2(X, Y)) then Exit;
+
     case DraggingMode of
       dmTranslate:
         begin
@@ -417,7 +435,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
 var
   UI: TCastleUserInterface;
   Move: TVector2;
-  CurrentRect, ResultingRect, ParentR: TFloatRectangle;
   Snap: Single;
 begin
   Result := inherited Motion(Event);
@@ -434,43 +451,28 @@ begin
     UI := SelectedUserInterface;
     if UI <> nil then
     begin
-      Move := Event.Position - Event.OldPosition;
+      Move := (Event.Position - Event.OldPosition) / UI.UIScale;
 
-      CurrentRect := UI.RenderRect;
-      case DraggingMode of
-        dmTranslate: ResultingRect := CurrentRect.Translate(Move);
-        dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
-      end;
-      ParentR := ParentRenderRect(UI);
-      { only allow movement/resize if control will not go outside of parent,
-        unless it was already outside }
-        // TODO: this check should be later, otherwise snapping breaks it
-      if (not ParentR.Contains(CurrentRect)) or
-        ParentR.Contains(ResultingRect) then
+      Snap := Frame.SpinEditSnap.Value;
+      if Snap <> 0 then
       begin
-        Move /= UI.UIScale;
-
-        Snap := Frame.SpinEditSnap.Value;
-        if Snap <> 0 then
+        PendingMove += Move;
+        while Abs(PendingMove.X) >= Snap do
         begin
-          PendingMove += Move;
-          while Abs(PendingMove.X) >= Snap do
-          begin
-            ApplyDrag(UI, Sign(PendingMove.X) * Snap, 0);
-            PendingMove.X := PendingMove.X - Sign(PendingMove.X) * Snap;
-          end;
-          while Abs(PendingMove.Y) >= Snap do
-          begin
-            ApplyDrag(UI, 0, Sign(PendingMove.Y) * Snap);
-            PendingMove.Y := PendingMove.Y - Sign(PendingMove.Y) * Snap;
-          end;
-        end else
-        begin
-          ApplyDrag(UI, Move.X, Move.Y);
+          ApplyDrag(UI, Sign(PendingMove.X) * Snap, 0);
+          PendingMove.X := PendingMove.X - Sign(PendingMove.X) * Snap;
         end;
-
-        Exit(ExclusiveEvents);
+        while Abs(PendingMove.Y) >= Snap do
+        begin
+          ApplyDrag(UI, 0, Sign(PendingMove.Y) * Snap);
+          PendingMove.Y := PendingMove.Y - Sign(PendingMove.Y) * Snap;
+        end;
+      end else
+      begin
+        ApplyDrag(UI, Move.X, Move.Y);
       end;
+
+      Exit(ExclusiveEvents);
     end;
   end;
 
