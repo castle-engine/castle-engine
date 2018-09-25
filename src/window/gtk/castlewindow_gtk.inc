@@ -757,7 +757,7 @@ begin
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
         Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
-          Application.XDisplayGdk, GdkCursorTypeFromMy[InternalCursor]);
+          Application.XDisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
     end;
   end;
 
