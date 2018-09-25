@@ -722,31 +722,27 @@ procedure TCastleWindowCustom.UpdateCursor;
 const
   { GDK cursors.
     See https://developer.gnome.org/gdk3/stable/gdk3-Cursors.html for the list. }
-  GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
+  GdkCursorTypeFromCastle: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
-  ( { mcStandard.
-      Note that GDK_ARROW seems standard under XWindows (it is a right-top arrow),
-      but actually in modern applications it is more standard
-      to use left-top arrow in GDK_LEFT_PTR. }
-    GDK_LEFT_PTR,
-    // mcStandard
-    GDK_WATCH,
-    // mcWait
-    GDK_XTERM,
-    // mcHand
-    GDK_HAND2,
-    // crResizeVertical
-    GDK_SB_V_DOUBLE_ARROW,
-    GDK_SB_H_DOUBLE_ARROW,
-    // crResizeTopLeft
-    GDK_TOP_LEFT_CORNER,
-    GDK_TOP_SIDE,
-    GDK_TOP_RIGHT_CORNER,
-    GDK_LEFT_SIDE,
-    GDK_RIGHT_SIDE,
-    GDK_BOTTOM_LEFT_CORNER,
-    GDK_BOTTOM_SIDE,
-    GDK_BOTTOM_RIGHT_CORNER
+  (
+    GDK_LEFT_PTR, //< mcStandard.
+                  // Note that GDK_ARROW seems standard under XWindows
+                  // (it is a right-top arrow),
+                  // but actually in modern applications it is more standard
+                  // to use left-top arrow in GDK_LEFT_PTR.
+    GDK_WATCH,                // mcWait
+    GDK_XTERM,                // mcText
+    GDK_HAND2,                // mcHand
+    GDK_SB_V_DOUBLE_ARROW,    // mcResizeVertical
+    GDK_SB_H_DOUBLE_ARROW,    // mcResizeHorizontal
+    GDK_TOP_LEFT_CORNER,      // mcResizeTopLeft
+    GDK_TOP_SIDE,             // mcResizeTop
+    GDK_TOP_RIGHT_CORNER,     // mcResizeTopRight
+    GDK_LEFT_SIDE,            // mcResizeLeft
+    GDK_RIGHT_SIDE,           // mcResizeRight
+    GDK_BOTTOM_LEFT_CORNER,   // mcResizeBottomLeft
+    GDK_BOTTOM_SIDE,          // mcResizeBottom
+    GDK_BOTTOM_RIGHT_CORNER   // mcResizeBottomRight
   );
 begin
   if Application.Cursors[InternalCursor] = nil then
