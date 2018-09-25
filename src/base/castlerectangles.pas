@@ -338,8 +338,8 @@ type
       @code((Round(Left), Round(Bottom))) and
       spans the @code((Round(Width), Round(Height))) pixels.
       @groupBegin }
-    property Right: Single read GetRight {write SetRight} { };
-    property Top: Single read GetTop {write SetTop} { };
+    property Right: Single read GetRight;
+    property Top: Single read GetTop;
     { @groupEnd }
 
     function Middle: TVector2; deprecated 'use Center';
