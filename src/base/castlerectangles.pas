@@ -139,8 +139,8 @@ type
       of the rectangle (by 1 pixel). That's because the rectangle starts at
       pixel @code((Left, Bottom)) and spans the @code((Width, Height)) pixels.
       @groupBegin }
-    property Right: Integer read GetRight {write SetRight} { };
-    property Top: Integer read GetTop {write SetTop} { };
+    property Right: Integer read GetRight;
+    property Top: Integer read GetTop;
     { @groupEnd }
 
     { Return rectangle with given width and height centered
