@@ -688,25 +688,21 @@ begin
       There's some uncertainty whether doing SetCursor calls so often (each WM_SETCURSOR,
       each mouse move !) will not decrease performance --- but, well, there seems to be
       no other way, and SetCursor docs guarantee that SetCursor checks whether cursor
-      changes. In no change, SetCursor returns immediately. So, we feel a little safer
+      changes. If no change, SetCursor returns immediately. So, we feel a little safer
       that we use CursorHandles[Cursor].Handle, so when Cursor stays the same, SetCursor
       is called with exactly the same arguments. }
     WM_SETCURSOR:
       begin
-        { Falling back on DefWindowProc means that it will install
-          our window class cursor (or parent cursor) if in client area,
-          or just do the right thing if outside client area.
+        if (WParm = h_Wnd) and
+           (Application.CursorHandles[InternalCursor].Handle <> 0) then
+        begin
+          Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
+          Exit(1);
+        end;
+        { Otherwise we fall back on DefWindowProc.
+          It will install our window class cursor (or parent cursor)
+          if in client area, or just do the right thing if outside client area.
           So it's suitable when wParm <> h_Wnd or we want mcDefault. }
-        if wParm = h_Wnd then
-          case InternalCursor of
-            mcDefault: { Fallback on DefWindowProc };
-            mcCustom: { TODO, for now behave like mcDefault };
-            else
-              begin
-                Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
-                Exit(1);
-              end;
-          end;
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
@@ -1467,6 +1463,23 @@ end;
 { TCastleApplication ----------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
+const
+  WinCursorNameFromCastle: array [mcStandard .. High(TMouseCursor)] of LPCTSTR = (
+    IDC_ARROW,  // mcStandard
+    IDC_WAIT,   // mcWait
+    IDC_IBEAM,  // mcText
+    IDC_HAND,   // mcHand
+    IDC_SIZENS, // mcResizeVertical
+    IDC_SIZEWE, // mcResizeHorizontal
+    IDC_SIZENWSE, // no IDC_SIZENW in Windows, // mcResizeTopLeft
+    IDC_SIZENS,   // no IDC_SIZEN  in Windows, // mcResizeTop
+    IDC_SIZENESW, // no IDC_SIZENE in Windows, // mcResizeTopRight
+    IDC_SIZEWE,   // no IDC_SIZEW  in Windows, // mcResizeLeft
+    IDC_SIZEWE,   // no IDC_SIZEE  in Windows, // mcResizeRight
+    IDC_SIZENESW, // no IDC_SIZESW in Windows, // mcResizeBottomLeft
+    IDC_SIZENS,   // no IDC_SIZES  in Windows, // mcResizeBottom
+    IDC_SIZENWSE  // no IDC_SIZESE in Windows, // mcResizeBottomRight
+  );
 var
   WindowClass: TWndClass;
   C: TMouseCursor;
@@ -1475,20 +1488,14 @@ begin
 
   appActive := true;
 
-  { initialize NameForLoadCursor for CursorHandles }
-  CursorHandles[mcStandard].NameForLoadCursor := IDC_ARROW;
-  CursorHandles[mcWait].NameForLoadCursor := IDC_WAIT;
-  CursorHandles[mcText].NameForLoadCursor := IDC_IBEAM;
-  CursorHandles[mcHand].NameForLoadCursor := IDC_HAND;
-
-  { initialize Handle for CursorHandles }
-
-  CursorHandles[mcNone].Handle := 0;
-  CursorHandles[mcForceNone].Handle := 0;
-
-  for C := Low(C) to High(C) do
-    if not (C in [mcDefault, mcNone, mcForceNone, mcCustom]) then
-      CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
+  { Initialize NameForLoadCursor for CursorHandles.
+    We depend on the fact that CursorHandles is initially filled with zero,
+    so NameForLoadCursor is nil for the rest of TMouseCursor values. }
+  for C := Low(WinCursorNameFromCastle) to High(WinCursorNameFromCastle) do
+  begin
+    CursorHandles[C].NameForLoadCursor := WinCursorNameFromCastle[C];
+    CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
+  end;
 
   { create window class (WindowClass) }
 

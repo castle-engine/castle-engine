@@ -715,23 +715,35 @@ procedure TCastleWindowCustom.UpdateCursor;
     { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
     Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
     try
-      Result := gdk_cursor_new_from_pixmap(
-        Pixmap, Pixmap, @Color, @Color, 0, 0);
+      Result := gdk_cursor_new_from_pixmap(Pixmap, Pixmap, @Color, @Color, 0, 0);
     finally gdk_pixmap_unref(Pixmap); end;
   end;
 
 const
-  GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
+  { GDK cursors.
+    See https://developer.gnome.org/gdk3/stable/gdk3-Cursors.html for the list. }
+  GdkCursorTypeFromCastle: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
-  ( { I think that GDK_ARROW was traditionally standard under XWindows
-      (right-top arrow), but then gtk changed standard to much more standard
-      left-top arrow in GDK_LEFT_PTR.
-
-      See for example
-      http://library.gnome.org/devel/gdk/stable/gdk-Cursors.html
-      for the list.
-    }
-    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
+  (
+    GDK_LEFT_PTR, //< mcStandard.
+                  // Note that GDK_ARROW seems standard under XWindows
+                  // (it is a right-top arrow),
+                  // but actually in modern applications it is more standard
+                  // to use left-top arrow in GDK_LEFT_PTR.
+    GDK_WATCH,                // mcWait
+    GDK_XTERM,                // mcText
+    GDK_HAND2,                // mcHand
+    GDK_SB_V_DOUBLE_ARROW,    // mcResizeVertical
+    GDK_SB_H_DOUBLE_ARROW,    // mcResizeHorizontal
+    GDK_TOP_LEFT_CORNER,      // mcResizeTopLeft
+    GDK_TOP_SIDE,             // mcResizeTop
+    GDK_TOP_RIGHT_CORNER,     // mcResizeTopRight
+    GDK_LEFT_SIDE,            // mcResizeLeft
+    GDK_RIGHT_SIDE,           // mcResizeRight
+    GDK_BOTTOM_LEFT_CORNER,   // mcResizeBottomLeft
+    GDK_BOTTOM_SIDE,          // mcResizeBottom
+    GDK_BOTTOM_RIGHT_CORNER   // mcResizeBottomRight
+  );
 begin
   if Application.Cursors[InternalCursor] = nil then
   begin

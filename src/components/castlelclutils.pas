@@ -102,8 +102,26 @@ function MouseButtonLCLToCastle(
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
-  ( crDefault, crNone, crNone, crDefault { mcCustom treat like mcDefault },
-    crArrow, crHourGlass, crIBeam, crHandPoint );
+  ( crDefault, // mcDefault
+    crNone,    // mcNone
+    crNone,    // mcForceNone
+    crDefault  // mcCustom
+
+    crArrow,       // mcStandard
+    crHourGlass,   // mcWait
+    crIBeam,       // mcText
+    crHandPoint,   // mcHand
+    crSizeNS,      // mcResizeVertical
+    crSizeWE,      // mcResizeHorizontal
+    crSizeNW,      // mcResizeTopLeft
+    crSizeN,       // mcResizeTop
+    crSizeNE,      // mcResizeTopRight
+    crSizeW,       // mcResizeLeft
+    crSizeE,       // mcResizeRight
+    crSizeSW,      // mcResizeBottomLeft
+    crSizeS,       // mcResizeBottom
+    crSizeSE       // mcResizeBottomRight
+  );
 
 function FilenameToURISafeUTF8(const FileName: string): string;
 function URIToFilenameSafeUTF8(const URL: string): string;

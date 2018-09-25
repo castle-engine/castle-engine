@@ -6,12 +6,12 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Contnrs, Generics.Collections,
+  Spin, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
-  CastleSceneCore, CastleKeysMouse, CastleVectors;
+  CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles;
 
 type
   { Frame to visually design component hierarchy. }
@@ -19,6 +19,7 @@ type
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
+    LabelSnap: TLabel;
     LabelSizeInfo: TLabel;
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
@@ -28,6 +29,7 @@ type
     PanelLeft: TPanel;
     PanelRight: TPanel;
     ScrollBox1: TScrollBox;
+    SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
     TabAdvanced: TTabSheet;
@@ -35,23 +37,34 @@ type
     TabAnchors: TTabSheet;
     TabSimple: TTabSheet;
     ToggleInteractMode: TToggleBox;
-    ToggleTranslateMode: TToggleBox;
+    ToggleSelectTranslateResizeMode: TToggleBox;
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ToggleInteractModeClick(Sender: TObject);
-    procedure ToggleTranslateModeClick(Sender: TObject);
+    procedure ToggleSelectTranslateResizeModeClick(Sender: TObject);
   private
     type
       { UI layer that can intercept mouse clicks and drags. }
       TDesignerLayer = class(TCastleUserInterface)
       strict private
-        PendingMove: TVector2;
+        type
+          TDraggingMode = (dmNone, dmTranslate, dmResize);
+        var
+          PendingMove: TVector2;
+          DraggingMode: TDraggingMode;
+          ResizingHorizontal: THorizontalPosition; //< Defined only when DraggingMode=dmResize
+          ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
         function GetSelectedUserInterface: TCastleUserInterface;
         procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+        { Should clicking inside UI rectangle start resizing (not only moving?). }
+        function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
+          out Horizontal: THorizontalPosition;
+          out Vertical: TVerticalPosition): Boolean;
       public
         Frame: TDesignFrame;
         constructor Create(AOwner: TComponent); override;
         function Press(const Event: TInputPressRelease): Boolean; override;
+        function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
         procedure Render; override;
         property SelectedUserInterface: TCastleUserInterface
@@ -61,7 +74,7 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TMode = (moInteract, moTranslate);
+      TMode = (moInteract, moSelectTranslateResize);
 
     var
       InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
@@ -92,6 +105,7 @@ type
     procedure UpdateComponentCaptionFromName(const C: TComponent);
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     procedure ChangeMode(const NewMode: TMode);
+    procedure ModifiedOutsideObjectInspector;
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -121,7 +135,7 @@ implementation
 
 uses TypInfo, StrUtils, Math,
   CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
-  CastleControls, CastleURIUtils, CastleStringUtils, CastleRectangles,
+  CastleControls, CastleURIUtils, CastleStringUtils,
   CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
 
@@ -198,6 +212,37 @@ begin
     Result := nil;
 end;
 
+function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
+  const Position: TVector2; out Horizontal: THorizontalPosition;
+  out Vertical: TVerticalPosition): Boolean;
+const
+  BorderDragMargin = 10;
+var
+  R: TFloatRectangle;
+begin
+  R := UI.RenderRect;
+
+  { the order of checking (top or bottom) matters in case of very
+    small heights. }
+  if R.TopPart(BorderDragMargin).Contains(Position) then
+    Vertical := vpTop
+  else
+  if R.BottomPart(BorderDragMargin).Contains(Position) then
+    Vertical := vpBottom
+  else
+    Vertical := vpMiddle;
+
+  if R.RightPart(BorderDragMargin).Contains(Position) then
+    Horizontal := hpRight
+  else
+  if R.LeftPart(BorderDragMargin).Contains(Position) then
+    Horizontal := hpLeft
+  else
+    Horizontal := hpMiddle;
+
+  Result := (Vertical <> vpMiddle) or (Horizontal <> hpMiddle);
+end;
+
 function TDesignFrame.TDesignerLayer.Press(
   const Event: TInputPressRelease): Boolean;
 var
@@ -206,12 +251,16 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if (Frame.Mode = moTranslate) and Event.IsMouseButton(mbLeft) then
+  if (Frame.Mode = moSelectTranslateResize) and Event.IsMouseButton(mbLeft) then
   begin
     // TODO: for now selects only UI control, not TCastleTransform
     UI := HoverUserInterface(Event.Position);
     if UI <> nil then
     begin
+      if IsResizing(UI, Event.Position, ResizingHorizontal, ResizingVertical) then
+        DraggingMode := dmResize
+      else
+        DraggingMode := dmTranslate;
       SelectedUserInterface := UI;
       Exit(ExclusiveEvents);
     end;
@@ -220,64 +269,234 @@ begin
   end;
 end;
 
+function TDesignFrame.TDesignerLayer.Release(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited Press(Event);
+  if Result then Exit;
+
+  if Event.IsMouseButton(mbLeft) then
+    DraggingMode := dmNone;
+end;
+
 function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
-const
-  Snap = 0.0; // TODO: configurable
+
+  { Grow the rectangle from the appropriate sides, following
+    ResizingHorizontal/Vertical field values. }
+  function ResizeRect(const R: TFloatRectangle; const Move: TVector2): TFloatRectangle;
+  begin
+    Result := R;
+    case ResizingHorizontal of
+      hpLeft : Result := Result.GrowLeft(-Move.X);
+      hpRight: Result := Result.GrowRight(Move.X);
+    end;
+    case ResizingVertical of
+      vpBottom: Result := Result.GrowBottom(-Move.Y);
+      vpTop   : Result := Result.GrowTop(Move.Y);
+    end;
+  end;
+
+  function DragAllowed(const UI: TCastleUserInterface; const Move: TVector2): Boolean;
+  var
+    CurrentRect, ResultingRect, ParentR: TFloatRectangle;
+  begin
+    CurrentRect := UI.RenderRect;
+    case DraggingMode of
+      dmTranslate: ResultingRect := CurrentRect.Translate(Move);
+      dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
+    end;
+    ParentR := ParentRenderRect(UI);
+    { only allow movement/resize if control will not go outside of parent,
+      unless it was already outside }
+    Result := (not ParentR.Contains(CurrentRect)) or
+      ParentR.Contains(ResultingRect);
+  end;
+
+  procedure ApplyDrag(const UI: TCastleUserInterface; X, Y: Single);
+  const
+    MinWidth  = 10;
+    MinHeight = 10;
+  begin
+    if not DragAllowed(UI, Vector2(X, Y)) then Exit;
+
+    case DraggingMode of
+      dmTranslate:
+        begin
+          UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
+          UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Y;
+        end;
+      dmResize:
+        begin
+          case ResizingHorizontal of
+            hpLeft:
+              begin
+                // do not allow to set UI.Width < MinWidth, by limiting X
+                if UI.Width - X < MinWidth then
+                  X := UI.Width - MinWidth;
+                UI.Width := UI.Width - X;
+
+                case UI.HorizontalAnchorSelf of
+                  hpLeft  : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
+                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
+                  //hpRight : UI.HorizontalAnchorDelta := no need to change
+                end;
+              end;
+            hpRight:
+              begin
+                // do not allow to set UI.Width < MinWidth, by limiting X
+                if UI.Width + X < MinWidth then
+                  X := MinWidth - UI.Width;
+                UI.Width := UI.Width + X;
+
+                case UI.HorizontalAnchorSelf of
+                  // hpLeft  : UI.HorizontalAnchorDelta := no need to change
+                  hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
+                  hpRight : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
+                end;
+                UI.Width := Max(MinWidth, UI.Width + X);
+              end;
+          end;
+          case ResizingVertical of
+            vpBottom:
+              begin
+                // do not allow to set UI.Height < MinHeight, by limiting Y
+                if UI.Height - Y < MinHeight then
+                  Y := UI.Height - MinHeight;
+                UI.Height := UI.Height - Y;
+
+                case UI.VerticalAnchorSelf of
+                  vpBottom: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
+                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
+                  //vpTop : UI.VerticalAnchorDelta := no need to change
+                end;
+              end;
+            vpTop:
+              begin
+                // do not allow to set UI.Height < MinHeight, by limiting Y
+                if UI.Height + Y < MinHeight then
+                  Y := MinHeight - UI.Height;
+                UI.Height := UI.Height + Y;
+
+                case UI.VerticalAnchorSelf of
+                  //vpBottom: UI.VerticalAnchorDelta := no need to change
+                  vpMiddle: UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y / 2;
+                  vpTop   : UI.VerticalAnchorDelta := UI.VerticalAnchorDelta + Y;
+                end;
+              end;
+          end;
+        end;
+    end;
+    // everything done here relies on anchors being active
+    UI.HasHorizontalAnchor := true;
+    UI.HasVerticalAnchor := true;
+
+    Frame.ModifiedOutsideObjectInspector;
+  end;
+
+  function ResizingCursor(const H: THorizontalPosition;
+    const V: TVerticalPosition): TMouseCursor;
+  begin
+    case H of
+      hpLeft:
+        case V of
+          vpBottom: Result := mcResizeBottomLeft;
+          vpMiddle: Result := mcResizeLeft;
+          vpTop   : Result := mcResizeTopLeft;
+        end;
+      hpMiddle:
+        case V of
+          vpBottom: Result := mcResizeBottom;
+          vpMiddle: raise EInternalError.Create('No resizing, cannot determine cursor');
+          vpTop   : Result := mcResizeTop;
+        end;
+      hpRight:
+        case V of
+          vpBottom: Result := mcResizeBottomRight;
+          vpMiddle: Result := mcResizeRight;
+          vpTop   : Result := mcResizeTopRight;
+        end;
+    end;
+  end;
+
+  procedure UpdateCursor;
+  var
+    UI: TCastleUserInterface;
+    WouldResizeHorizontal: THorizontalPosition;
+    WouldResizeVertical: TVerticalPosition;
+    NewCursor: TMouseCursor;
+  begin
+    if Frame.Mode <> moSelectTranslateResize then
+      NewCursor := mcDefault
+    else
+    case DraggingMode of
+      dmNone:
+        begin
+          // calculate cursor based on what would happen if you Press
+          UI := HoverUserInterface(Event.Position);
+          if UI <> nil then
+          begin
+            if IsResizing(UI, Event.Position,
+              WouldResizeHorizontal, WouldResizeVertical) then
+            begin
+              NewCursor := ResizingCursor(
+                WouldResizeHorizontal, WouldResizeVertical);
+            end else
+              NewCursor := mcHand;
+          end else
+            NewCursor := mcDefault;
+        end;
+      dmTranslate:
+        NewCursor := mcHand;
+      dmResize:
+        NewCursor := ResizingCursor(ResizingHorizontal, ResizingVertical);
+    end;
+    Frame.CastleControl.Container.OverrideCursor := NewCursor;
+  end;
+
 var
   UI: TCastleUserInterface;
   Move: TVector2;
-  CurrentRect, ResultingRect, ParentR: TFloatRectangle;
+  Snap: Single;
 begin
   Result := inherited Motion(Event);
   if Result then Exit;
 
-  if (Frame.Mode = moTranslate) and (mbLeft in Event.Pressed) then
+  { in case user left mouse button, but the event didn't reach us for some reason
+    (maybe can happen e.g. if you Alt+Tab during dragging?),
+    reset DraggingMode. }
+  if (DraggingMode <> dmNone) and (not (mbLeft in Event.Pressed)) then
+    DraggingMode := dmNone;
+
+  if (Frame.Mode = moSelectTranslateResize) and (DraggingMode <> dmNone) then
   begin
     UI := SelectedUserInterface;
     if UI <> nil then
     begin
-      Move := Event.Position - Event.OldPosition;
+      Move := (Event.Position - Event.OldPosition) / UI.UIScale;
 
-      CurrentRect := UI.RenderRect;
-      ResultingRect := CurrentRect.Translate(Move);
-      ParentR := ParentRenderRect(UI);
-      { only allow movement if control will not go outside of parent,
-        unless it was already outside }
-      if (not ParentR.Contains(CurrentRect)) or
-        ParentR.Contains(ResultingRect) then
+      Snap := Frame.SpinEditSnap.Value;
+      if Snap <> 0 then
       begin
-        Move /= UI.UIScale;
-
-        if Snap <> 0 then
+        PendingMove += Move;
+        while Abs(PendingMove.X) >= Snap do
         begin
-          PendingMove += Move;
-          while Abs(PendingMove.X) >= Snap do
-          begin
-            UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta +
-              Sign(PendingMove.X) * Snap;
-            PendingMove.X := PendingMove.X -
-              Sign(PendingMove.X) * Snap;
-          end;
-          while Abs(PendingMove.Y) >= Snap do
-          begin
-            UI.VerticalAnchorDelta := UI.VerticalAnchorDelta +
-              Sign(PendingMove.Y) * Snap;
-            PendingMove.Y := PendingMove.Y -
-              Sign(PendingMove.Y) * Snap;
-          end;
-        end else
-        begin
-          UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + Move.X;
-          UI.VerticalAnchorDelta   := UI.VerticalAnchorDelta   + Move.Y;
+          ApplyDrag(UI, Sign(PendingMove.X) * Snap, 0);
+          PendingMove.X := PendingMove.X - Sign(PendingMove.X) * Snap;
         end;
-
-        UI.HasHorizontalAnchor := true;
-        UI.HasVerticalAnchor := true;
-
-        Exit(ExclusiveEvents);
+        while Abs(PendingMove.Y) >= Snap do
+        begin
+          ApplyDrag(UI, 0, Sign(PendingMove.Y) * Snap);
+          PendingMove.Y := PendingMove.Y - Sign(PendingMove.Y) * Snap;
+        end;
+      end else
+      begin
+        ApplyDrag(UI, Move.X, Move.Y);
       end;
+
+      Exit(ExclusiveEvents);
     end;
   end;
+
+  UpdateCursor;
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
@@ -894,11 +1113,11 @@ begin
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ToggleTranslateModeClick(Sender: TObject);
+procedure TDesignFrame.ToggleSelectTranslateResizeModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moTranslate);
+  ChangeMode(moSelectTranslateResize);
   InsideToggleModeClick := false;
 end;
 
@@ -986,7 +1205,23 @@ procedure TDesignFrame.ChangeMode(const NewMode: TMode);
 begin
   Mode := NewMode;
   ToggleInteractMode.Checked := Mode = moInteract;
-  ToggleTranslateMode.Checked := Mode = moTranslate;
+
+  ToggleSelectTranslateResizeMode.Checked := Mode = moSelectTranslateResize;
+  LabelSnap.Visible := Mode = moSelectTranslateResize;
+  LabelSnap.Enabled := Mode = moSelectTranslateResize;
+  SpinEditSnap.Visible := Mode = moSelectTranslateResize;
+  SpinEditSnap.Enabled := Mode = moSelectTranslateResize;
+end;
+
+procedure TDesignFrame.ModifiedOutsideObjectInspector;
+begin
+  // TODO: this moves UI scrollbar up,
+  // TODO: this is not optimized
+  // (PropertyGridModified does some unnecessary things if we only changed size)
+  InspectorSimple.RefreshPropertyValues;
+  InspectorAdvanced.RefreshPropertyValues;
+  InspectorEvents.RefreshPropertyValues;
+  PropertyGridModified(nil);
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);

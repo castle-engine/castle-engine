@@ -27,47 +27,14 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TCastleUserInterface.Align and TRectangle.Align
+    This is used by @link(TCastleUserInterface.Anchor),
+    @link(TRectangle.Align), @link(TFloatRectangle.Align) and other methods
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TCastleUserInterface.Align, this specifies
-    the align of control with respect to the container
-    (TCastleWindow or TCastleControl).
 
-    This is used to talk about position of the control and the container.
-
-    @orderedList(
-      @item(
-        When we talk about the position of the control
-        (for example ControlPosition for TCastleUserInterface.Align),
-        it determines which border of the control to align.)
-      @item(
-        When we talk about the position of the container
-        (for example ContainerPosition for TCastleUserInterface.Align),
-        this specifies the container border.)
-    )
-
-    In most cases you use equal both control and container borders.
-    For example, both ControlPosition and ContainerPosition are usually equal for
-    TCastleUserInterface.Align call. This allows to align left control edge to
-    left container edge, or right control edge to right container edge,
-    or to center control within the container --- which is the most common usage.
-
-    @unorderedList(
-      @item(If both are hpLeft, then X specifies position
-        of left control border relative to left container border.
-        X should be >= 0 if you want to see the control completely
-        within the container.)
-
-      @item(If both are hpMiddle, then X (most often just 0)
-        specifies the shift between container middle to
-        control middle. If X is zero, then control is just in the
-        middle of the container.)
-
-      @item(If both are hpRight, then X specifies position
-        of right control border relative to right container border.
-        X should be <= 0 if you want to see the control completely
-        within the container.)
-    )
+    Note that @link(TCastleUserInterface.Anchor) has various overloaded
+    versions. E.g. you can align the left side of the control to the left side
+    of the parent (most common situation), or you can align left side
+    of the control to the middle of the parent...
 
     @seealso TVerticalPosition
   }
@@ -1132,14 +1099,14 @@ end;
 function TFloatRectangle.GrowLeft(const W: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Left := Result.Left - Integer(W);
+  Result.Left := Result.Left - W;
   Result.Width := Result.Width + W;
 end;
 
 function TFloatRectangle.GrowBottom(const H: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Bottom := Result.Bottom - H;
   Result.Height := Result.Height + H;
 end;
 

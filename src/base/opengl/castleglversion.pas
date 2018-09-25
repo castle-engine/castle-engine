@@ -603,7 +603,20 @@ begin
     {$ifdef MSWINDOWS}
     ( (VendorType = gvIntel) and
       not VendorVersionAtLeast(9, 0, 0)
-    )
+    ) or
+
+    // Workaround various troubles on HP ProBook
+    //
+    // Version string: 3.3.11672 Compatibility Profile Context
+    // Version parsed: major: 3, minor: 3, release exists: True, release: 11672, vendor-specific information: "Compatibility Profile Context"
+    // Vendor-specific version parsed: major: 0, minor: 0, release: 0
+    // Vendor: ATI Technologies Inc.
+    // Vendor type: ATI
+    //
+    // Renderer: ATI Mobility Radeon HD 4300 Series
+    ( (VendorType = gvATI) and
+      ReleaseExists and
+      (Release <= 11672) )
     {$else} false
     {$endif};
 end;

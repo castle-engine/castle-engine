@@ -100,9 +100,10 @@ begin
 
   { Cursor tests: }
   case Event.KeyCharacter of
-    'n': Notifications.Cursor := mcNone;
-    'd': Notifications.Cursor := mcDefault;
-    'w': Notifications.Cursor := mcWait;
+    'n': Container.OverrideCursor := mcNone;
+    'd': Container.OverrideCursor := mcDefault;
+    'w': Container.OverrideCursor := mcWait;
+    's': Container.OverrideCursor := mcResizeHorizontal;
     '1': Window.MousePosition := Vector2(0           , 0);
     '2': Window.MousePosition := Vector2(Window.Width, 0);
     '3': Window.MousePosition := Vector2(Window.Width, Window.Height);
