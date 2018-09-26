@@ -352,7 +352,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
                   hpMiddle: UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X / 2;
                   hpRight : UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta + X;
                 end;
-                UI.Width := Max(MinWidth, UI.Width + X);
               end;
           end;
           case ResizingVertical of
