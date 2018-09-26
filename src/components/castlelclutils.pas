@@ -105,7 +105,7 @@ const
   ( crDefault, // mcDefault
     crNone,    // mcNone
     crNone,    // mcForceNone
-    crDefault  // mcCustom
+    crDefault, // mcCustom
 
     crArrow,       // mcStandard
     crHourGlass,   // mcWait
