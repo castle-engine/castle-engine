@@ -62,6 +62,12 @@ var
 begin
   N := TNothingOverrriden.Create(nil);
   try
+    AssertRectsEqual(FloatRectangle(0, 0, 100, 100), N.Rect);
+    AssertEquals(100, N.EffectiveWidth);
+    AssertEquals(100, N.EffectiveHeight);
+
+    N.Width := 0;
+    N.Height := 0;
     AssertRectsEqual(TFloatRectangle.Empty, N.Rect);
     AssertEquals(0, N.EffectiveWidth);
     AssertEquals(0, N.EffectiveHeight);
