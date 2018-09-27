@@ -1,3 +1,20 @@
+{
+  Copyright 2018-2018 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Frame where you can design
+  a xxx.castle-user-interface or xxx.castle-transform file. }
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
@@ -499,28 +516,37 @@ begin
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
-
-  procedure RenderUiOutline(const UIRect: TFloatRectangle;
-    const Shift1, Shift2: Integer; const Border1, Border2: TCastleColor);
-  begin
-    DrawRectangleOutline(UIRect.Grow(Shift1), Border1);
-    DrawRectangleOutline(UIRect.Grow(Shift2), Border2);
-  end;
-
 var
   UI: TCastleUserInterface;
+  R: TFloatRectangle;
 begin
   inherited;
 
   UI := SelectedUserInterface;
   if UI <> nil then
-    RenderUiOutline(UI.RenderRect, 0, -1, White, Black);
+  begin
+    R := UI.RenderRect;
+    DrawRectangleOutline(R, White);
+    DrawRectangleOutline(R.Grow(-1), Black);
+  end;
 
   UI := HoverUserInterface(Container.MousePosition);
   if UI <> nil then
-    RenderUiOutline(UI.RenderRect, 0, -1,
-      Vector4(1, 1, 0, 0.75),
-      Vector4(1, 1, 0, 0.5));
+  begin
+    R := UI.RenderRect;
+    DrawRectangleOutline(R, Vector4(1, 1, 0, 0.75));
+
+    // TODO: for now hide, too confusing in case of auto-sized label/button
+    {
+    if not UI.FullSize then
+    begin
+      // show desired Width / Height, useful e.g. for TCastleImageControl
+      R.Width  := UI.Width  * UI.UIScale;
+      R.Height := UI.Height * UI.UIScale;
+      DrawRectangleOutline(R, Vector4(1, 1, 0, 0.25));
+    end;
+    }
+  end;
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
