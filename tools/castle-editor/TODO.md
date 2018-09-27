@@ -3,26 +3,22 @@
 Now:
 
 * Visual inspector. designer etc.
+    * do not allow sizing (not even such cursor) when control is autosized
+    * more colors, vectors published props
+    * 3d gizmos to move etc.
     * Dragging UI:
-      * Some outline around selected UI, UI under mouse too (hover)
-        Done, maybe it can look better?
-
-      * tools over preview:
-        None (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
+      * tools hints:
+        None (or Interact) (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
         Translate (hint: Click to select, drag to move UI control.)
-        (later will be used to Translate / Rotate / Scale scenes)
-        Done, maybe it can look better? with icons? and hints?
-
-      * update property grid when moving by mouse immediately
       * Anchors tab keeps getting deselected for some reason when moving UI control
-      * Snap = 5.0; // TODO: configurable
       * "Anchors" tab
         Make "Parent and Self anchors are the same" checkbox working
         Show 3x3,
         or 2x 3x3 controls to configure anchors
       * Make Label for fps (in template) now designed in editor
-    * Button at scene manager: Camera View All
-      Done, maybe it can look better, be placed in "Simple" tab?
+      * should "Snap" snap to the final value (like an invisible grid?)
+        Would be more like Delphi/Lazarus, probably.
+	Right now we are more like Blender, only movement amount is snapped.
     * Property editor for TCastleColorPersistent
     * F1 help to API reference, show also in menu
       for now just go to API reference main page?
@@ -237,3 +233,17 @@ Lowest priority (OK if not in 1st release):
 * setting PrimitiveGeometry to pgSphere,
   clears URL,
   but it is not visible in object inspector immediately (it is not redrawn, it seems?)
+
+* at scene loading show something "wait, loading..."
+
+
+* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
+  Show better message for XxxLoad:
+
+    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
+
+* "Camera View All" button more prominent?
+  Maybe attached to scene manager in designer mode?
+
+* allow to import file with textures, audio, inline tracked
+  as alternative at warning message when opening file outside of castle-data:

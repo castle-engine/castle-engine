@@ -1262,8 +1262,8 @@ begin
   NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
   UpdateComponentCaptionFromName(NewRoot);
 
-  if NewRoot is TCastleUserInterface then
-    (NewRoot as TCastleUserInterface).FullSize := true;
+  //if NewRoot is TCastleUserInterface then
+  //  (NewRoot as TCastleUserInterface).FullSize := true;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 end;
