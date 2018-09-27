@@ -856,6 +856,8 @@ procedure TDesignFrame.CameraViewAll;
       Position, Direction, Up, GravityUp);
     SceneManager.RequiredCamera.AnimateTo(Position, Direction, Up, 0.5);
     SceneManager.RequiredCamera.GravityUp := GravityUp;
+    // Makes Examine camera pivot, and scroll speed, adjust to sizes
+    SceneManager.RequiredCamera.ModelBox := SceneManager.Items.BoundingBox;
   end;
 
 var
