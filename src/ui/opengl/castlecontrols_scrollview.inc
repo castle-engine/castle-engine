@@ -37,20 +37,18 @@
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
-
+    procedure SetScroll(Value: Single);
+    function ScrollBarWidthScaled: Single;
+  protected
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
     function ScrollMax: Single;
-
-    procedure SetScroll(Value: Single);
 
     { How many pixels do we scroll. This corresponds to ScrollArea vertical anchor,
       so it's in unscaled pixels. Kept as a float, to allow smooth time-based changes.
       Note that setting it always clamps the value to a sensible range. }
     property Scroll: Single read FScroll write SetScroll;
 
-    function ScrollBarWidthScaled: Single;
-  protected
     property ScrollbarVisible: boolean read FScrollbarVisible;
   public
     const
