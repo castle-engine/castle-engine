@@ -15,7 +15,6 @@ Now:
         Make "Parent and Self anchors are the same" checkbox working
         Show 3x3,
         or 2x 3x3 controls to configure anchors
-      * Make Label for fps (in template) now designed in editor
       * should "Snap" snap to the final value (like an invisible grid?)
         Would be more like Delphi/Lazarus, probably.
 	Right now we are more like Blender, only movement amount is snapped.

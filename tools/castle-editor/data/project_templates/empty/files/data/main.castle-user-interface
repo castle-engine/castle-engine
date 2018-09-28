@@ -34,10 +34,9 @@
         "R" : 5.0000000000000000E-001,
         "_ClassName" : "TCastleColorPersistent"
       },
-      "Height" : 5.0000000000000000E+002,
-      "Width" : 5.0000000000000000E+002,
       "HasHorizontalAnchor" : true,
       "HasVerticalAnchor" : true,
+      "Height" : 5.0000000000000000E+002,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -45,6 +44,7 @@
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
+      "Width" : 5.0000000000000000E+002,
       "_Children" : [
         {
           "Caption" : "I am a button",
@@ -78,6 +78,20 @@
         }
       ],
       "_ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "FontSize" : 2.0000000000000000E+001,
+      "HasHorizontalAnchor" : true,
+      "HasVerticalAnchor" : true,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelFps",
+      "Text" : "FPS: xxx\n",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "_Children" : [
+      ],
+      "_ClassName" : "TCastleLabel"
     }
   ],
   "_ClassName" : "TCastleUserInterface"
