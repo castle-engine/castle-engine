@@ -191,10 +191,9 @@ src/library/build-*
 src/library/ios-output/
 src/library/libcastleengine.dylib
 src/library/libcastleengine.so
-src/x3d/nodes_specification/old_x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal
-src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal
-src/x3d/teapot/teapot_3d_to_pascal
-src/x3d/teapot/teapot_3d_to_pascal.res
+tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
+tools/internal/teapot-to-pascal/teapot-to-pascal
+tools/internal/teapot-to-pascal/teapot-to-pascal.res
 tests/test_castle_game_engine
 tools/build-tool/castle-engine
 tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar

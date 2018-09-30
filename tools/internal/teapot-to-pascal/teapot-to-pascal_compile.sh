@@ -2,7 +2,7 @@
 set -eu
 
 # Allow calling this script from it's dir.
-if [ -f teapot_3d_to_pascal.lpr ]; then
+if [ -f teapot-to-pascal.lpr ]; then
   cd ../../../
 fi
 
@@ -14,4 +14,4 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile src/x3d/teapot/teapot_3d_to_pascal.lpr
+"${CASTLE_ENGINE}" simple-compile tools/internal/teapot-to-pascal/teapot-to-pascal.lpr
