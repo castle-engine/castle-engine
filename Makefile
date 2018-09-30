@@ -216,6 +216,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/switch_projection \
   tools/internal/teapot-to-pascal/teapot_3d_to_pascal \
   tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal \
+  tools/internal/generate-persistent-vectors/generate-persistent-vectors \
   examples/3d_sound_game/lets_take_a_walk \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \

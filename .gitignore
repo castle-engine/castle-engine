@@ -194,6 +194,7 @@ src/library/libcastleengine.so
 tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
 tools/internal/teapot-to-pascal/teapot-to-pascal
 tools/internal/teapot-to-pascal/teapot-to-pascal.res
+tools/internal/generate-persistent-vectors/generate-persistent-vectors
 tests/test_castle_game_engine
 tools/build-tool/castle-engine
 tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar

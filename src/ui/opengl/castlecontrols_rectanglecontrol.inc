@@ -50,7 +50,7 @@
       default false;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -68,14 +68,14 @@ begin
   FUseThemeImage := false;
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleRectangleControl.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
 end;
@@ -135,7 +135,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$endif read_implementation}
