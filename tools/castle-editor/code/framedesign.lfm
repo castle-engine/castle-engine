@@ -5,7 +5,7 @@ object DesignFrame: TDesignFrame
   Width = 1261
   ClientHeight = 510
   ClientWidth = 1261
-  DesignTimePPI = 106
+  DesignTimePPI = 140
   ParentFont = False
   TabOrder = 0
   DesignLeft = 339
@@ -36,7 +36,7 @@ object DesignFrame: TDesignFrame
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 40
+      Height = 54
       Top = 5
       Width = 346
       Align = alTop
@@ -47,8 +47,8 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 460
-      Top = 50
+      Height = 446
+      Top = 64
       Width = 356
       ActivePage = TabAnchors
       Align = alClient
@@ -59,28 +59,28 @@ object DesignFrame: TDesignFrame
       end
       object TabAnchors: TTabSheet
         Caption = 'Anchors'
-        ClientHeight = 426
-        ClientWidth = 352
+        ClientHeight = 401
+        ClientWidth = 350
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 426
+          Height = 401
           Top = 0
-          Width = 352
+          Width = 350
           HorzScrollBar.Page = 1
           HorzScrollBar.Visible = False
-          VertScrollBar.Page = 62
+          VertScrollBar.Page = 76
           Align = alClient
           BorderStyle = bsNone
-          ClientHeight = 426
-          ClientWidth = 352
+          ClientHeight = 401
+          ClientWidth = 350
           TabOrder = 0
           object LabelSizeInfo: TLabel
             AnchorSideTop.Control = CheckParentSelfAnchorsEqual
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 20
-            Top = 42
-            Width = 340
+            Height = 27
+            Top = 49
+            Width = 338
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 10
             Caption = 'LabelSizeInfo'
@@ -89,9 +89,9 @@ object DesignFrame: TDesignFrame
           end
           object CheckParentSelfAnchorsEqual: TCheckBox
             Left = 8
-            Height = 24
+            Height = 31
             Top = 8
-            Width = 248
+            Width = 300
             Caption = 'Parent And Self Anchors Equal'
             TabOrder = 0
           end
@@ -117,9 +117,9 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 480
+      Height = 473
       Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
-      Top = 30
+      Top = 37
       Width = 266
       Align = alClient
       MultiSelect = True
@@ -134,7 +134,7 @@ object DesignFrame: TDesignFrame
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 20
+      Height = 27
       Top = 5
       Width = 256
       Align = alTop
@@ -155,19 +155,19 @@ object DesignFrame: TDesignFrame
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 32
+      Height = 39
       Top = 5
       Width = 615
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 32
+      ClientHeight = 39
       ClientWidth = 615
       TabOrder = 0
       object LabelUIScaling: TLabel
         Left = 0
-        Height = 20
+        Height = 27
         Hint = 'UI Scaling to 1600x900'
         Top = 0
         Width = 615
@@ -180,9 +180,9 @@ object DesignFrame: TDesignFrame
       end
       object ToggleInteractMode: TToggleBox
         Left = 0
-        Height = 32
+        Height = 39
         Top = 0
-        Width = 68
+        Width = 84
         AutoSize = True
         Caption = 'Interact'
         OnClick = ToggleInteractModeClick
@@ -191,10 +191,10 @@ object DesignFrame: TDesignFrame
       object ToggleSelectTranslateResizeMode: TToggleBox
         AnchorSideLeft.Control = ToggleInteractMode
         AnchorSideLeft.Side = asrBottom
-        Left = 73
-        Height = 32
+        Left = 89
+        Height = 39
         Top = 0
-        Width = 197
+        Width = 241
         AutoSize = True
         BorderSpacing.Left = 5
         Caption = 'Select / Translate / Resize'
@@ -206,8 +206,8 @@ object DesignFrame: TDesignFrame
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelSnap
         AnchorSideTop.Side = asrCenter
-        Left = 335
-        Height = 30
+        Left = 406
+        Height = 37
         Top = 1
         Width = 55
         BorderSpacing.Left = 5
@@ -218,10 +218,10 @@ object DesignFrame: TDesignFrame
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = ToggleSelectTranslateResizeMode
         AnchorSideTop.Side = asrCenter
-        Left = 290
-        Height = 20
+        Left = 350
+        Height = 27
         Top = 6
-        Width = 40
+        Width = 51
         BorderSpacing.Left = 20
         Caption = 'Snap:'
         ParentColor = False

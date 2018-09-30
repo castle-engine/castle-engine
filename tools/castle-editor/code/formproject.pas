@@ -31,6 +31,7 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemSortBackToFront2D: TMenuItem;
     MenuItemCameraViewAll: TMenuItem;
     MenuItemSeparator1300: TMenuItem;
     MenuItemSeparatorInAddTransform: TMenuItem;
@@ -124,6 +125,7 @@ type
     procedure MenuItemModeReleaseClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
+    procedure MenuItemSortBackToFront2DClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
@@ -209,6 +211,12 @@ begin
     MenuItemSaveAsDesignClick(Sender)
   else
     Design.SaveDesign(Design.DesignUrl);
+end;
+
+procedure TProjectForm.MenuItemSortBackToFront2DClick(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.SortBackToFront2D;
 end;
 
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
@@ -381,6 +389,7 @@ begin
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
   MenuItemCameraViewAll.Enabled := Design <> nil;
+  MenuItemSortBackToFront2D.Enabled := Design <> nil;
 
   LabelNoDesign.Visible := Design = nil;
 end;

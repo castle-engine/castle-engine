@@ -209,6 +209,10 @@ object ProjectForm: TProjectForm
         ShortCut = 16420
         OnClick = MenuItemCameraViewAllClick
       end
+      object MenuItemSortBackToFront2D: TMenuItem
+        Caption = 'Scene Manager Sort For Correct 2D Blending'
+        OnClick = MenuItemSortBackToFront2DClick
+      end
       object MenuItemSeparator1300: TMenuItem
         Caption = '-'
       end

@@ -18,6 +18,7 @@
 unit FrameDesign;
 
 {$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
 
 interface
 
@@ -28,7 +29,8 @@ uses
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
-  CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles;
+  CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
+  CastleSceneManager;
 
 type
   { Frame to visually design component hierarchy. }
@@ -93,6 +95,8 @@ type
 
       TMode = (moInteract, moSelectTranslateResize);
 
+      TCastleSceneManagerCallback = procedure (const ASceneManager: TCastleSceneManager) is nested;
+
     var
       InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
       PropertyEditorHook: TPropertyEditorHook;
@@ -123,6 +127,7 @@ type
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector;
+    function ForEachSelectedSceneManager(const Callback: TCastleSceneManagerCallback): Cardinal;
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -141,6 +146,7 @@ type
       const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
     procedure DeleteComponent;
     procedure CameraViewAll;
+    procedure SortBackToFront2D;
 
     property DesignUrl: String read FDesignUrl;
     { Root saved/loaded to component file }
@@ -151,7 +157,7 @@ type
 implementation
 
 uses TypInfo, StrUtils, Math,
-  CastleComponentSerialize, CastleTransform, CastleSceneManager, CastleUtils,
+  CastleComponentSerialize, CastleTransform, CastleUtils,
   CastleControls, CastleURIUtils, CastleStringUtils,
   CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
@@ -845,6 +851,45 @@ begin
   finally FreeAndNil(Selected) end;
 end;
 
+function TDesignFrame.ForEachSelectedSceneManager(
+  const Callback: TCastleSceneManagerCallback): Cardinal;
+var
+  Selected: TComponentList;
+  SelectedCount, I: Integer;
+  World: TSceneManagerWorld;
+  Sel: TComponent;
+begin
+  Result := 0;
+
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount = 0 then
+    begin
+      ErrorBox('Select some SceneManager, or any transformation that is part of scene manager, first');
+      Exit;
+    end;
+
+    for I := 0 to SelectedCount - 1 do
+    begin
+      Sel := Selected[I];
+      if Sel is TCastleSceneManager then
+      begin
+        Callback(Sel as TCastleSceneManager);
+        Inc(Result);
+      end else
+      if Sel is TCastleTransform then
+      begin
+        World := (Sel as TCastleTransform).World;
+        if World <> nil then
+        begin
+          Callback(World.Owner as TCastleSceneManager);
+          Inc(Result);
+        end;
+      end;
+    end;
+  finally FreeAndNil(Selected) end;
+end;
+
 procedure TDesignFrame.CameraViewAll;
 
   procedure AdjustCamera(const SceneManager: TCastleSceneManager);
@@ -860,34 +905,23 @@ procedure TDesignFrame.CameraViewAll;
     SceneManager.RequiredCamera.ModelBox := SceneManager.Items.BoundingBox;
   end;
 
-var
-  Selected: TComponentList;
-  SelectedCount, I: Integer;
-  World: TSceneManagerWorld;
-  Sel: TComponent;
 begin
-  GetSelected(Selected, SelectedCount);
-  try
-    if SelectedCount = 0 then
-    begin
-      ErrorBox('Select some SceneManager, or any transformation that is part of scene manager, first');
-      Exit;
-    end;
+  ForEachSelectedSceneManager(@AdjustCamera);
+end;
 
-    for I := 0 to SelectedCount - 1 do
-    begin
-      Sel := Selected[I];
-      if Sel is TCastleSceneManager then
-        AdjustCamera(Sel as TCastleSceneManager)
-      else
-      if Sel is TCastleTransform then
-      begin
-        World := (Sel as TCastleTransform).World;
-        if World <> nil then
-          AdjustCamera(World.Owner as TCastleSceneManager);
-      end;
-    end;
-  finally FreeAndNil(Selected) end;
+procedure TDesignFrame.SortBackToFront2D;
+
+  procedure CallSortBackToFront2D(const SceneManager: TCastleSceneManager);
+  begin
+    SceneManager.Items.SortBackToFront2D;
+  end;
+
+begin
+  if ForEachSelectedSceneManager(@CallSortBackToFront2D) <> 0 then
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign(DesignRoot); // make the tree reflect new order
+  end;
 end;
 
 function TDesignFrame.ComponentCaption(const C: TComponent): String;
