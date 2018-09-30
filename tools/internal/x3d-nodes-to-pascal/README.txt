@@ -1,12 +1,28 @@
-The components/ subdirectory contains X3D nodes specification
-in a simple text format (more-or-less pasted from X3D specifications).
+The nodes-specification/ subdirectory contains X3D nodes description
+in a simple text format (similar to what is used in X3D specifications).
+This is an input to the x3d-nodes-to-pascal program.
 
-They are parsed by the x3d-nodes-to-pascal program, that can generate node
-"helper" methods, placed in the ../auto_generated_node_helpers/ directory,
-or the templates (useful to automatically generate parts of the X3DNodes unit).
+x3d-nodes-to-pascal
+
+1. Generates some helper methods and properties,
+   and places them in the ../../../src/x3d/auto_generated_node_helpers/
+   directory.
+   These files are never edited manually.
+   So you can rerun x3d-nodes-to-pascal as often as you want.
+   Like this:
+
+   cd code/
+   ./x3d-nodes-to-pascal_compile.sh
+   ./x3d-nodes-to-pascal_run.sh
+
+2. x3d-nodes-to-pascal can also generate "starting templates" to define
+   an Object Pascal class that defines given X3D node.
+   These "starting templates" were used when creating the X3DNodes unit,
+   but they require manual adjustment,
+   and we try to limit their usage in the future.
 
 ------------------------------------------------------------------------------
-Historical notes how the initial files in components/ were created:
+Historical notes how the initial files in nodes-specification/ were created:
 
 - Originally, this was created by hand, simply pasting from X3D specification.
 

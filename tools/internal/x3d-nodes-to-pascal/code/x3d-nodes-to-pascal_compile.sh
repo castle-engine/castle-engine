@@ -15,4 +15,4 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal.lpr
+"${CASTLE_ENGINE}" simple-compile tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal.lpr

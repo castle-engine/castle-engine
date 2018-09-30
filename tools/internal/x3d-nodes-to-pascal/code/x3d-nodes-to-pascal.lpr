@@ -28,12 +28,13 @@ var
   OutputMode: TOutputMode;
 
 const
-  Options: array [0..3] of TOption =
+  Options: array [0..4] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'output'; Argument: oaRequired),
-    (Short: #0 ; Long: 'verbose'; Argument: oaNone)
+    (Short: #0 ; Long: 'verbose'; Argument: oaNone),
+    (Short: #0 ; Long: 'output-path'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -72,6 +73,7 @@ begin
            raise EInvalidParams.Create('Invalid argument for --output');
        end;
     3: Verbose := true;
+    4: OutputPath := InclPathDelim(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;

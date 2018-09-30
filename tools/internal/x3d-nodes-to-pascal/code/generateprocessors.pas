@@ -120,6 +120,8 @@ type
 var
   Verbose: boolean;
 
+  OutputPath: String;
+
 implementation
 
 uses DateUtils;
@@ -982,8 +984,7 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
   var
     OutputFileName: string;
   begin
-    OutputFileName := '../../auto_generated_node_helpers/x3dnodes_' +
-      LowerCase(Node.X3DType) + '.inc';
+    OutputFileName := OutputPath + 'x3dnodes_' + LowerCase(Node.X3DType) + '.inc';
 
     StringToFile(OutputFileName,
       '{ -*- buffer-read-only: t -*-' + NL +
