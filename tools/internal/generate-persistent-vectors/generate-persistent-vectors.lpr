@@ -22,6 +22,7 @@ uses SysUtils, Generics.Collections,
 type
   TAutoGenerateProperty = class
     PropertyName, PropertyType: String;
+    function PersistentPropertyClass: String;
   end;
 
   TAutoGeneratePropertyList = class(specialize TObjectList<TAutoGenerateProperty>)
@@ -40,6 +41,14 @@ type
     procedure Add(const Path, OutputClassName, PropertyName, PropertyType: String);
     procedure GenerateAll;
   end;
+
+{ TAutoGenerateProperty ------------------------------------------------------ }
+
+function TAutoGenerateProperty.PersistentPropertyClass: String;
+begin
+  Result := StringReplace(PropertyType, 'TVector', 'TCastleVector', [rfReplaceAll]);
+  Result += 'Persistent';
+end;
 
 { TAutoGeneratePropertyList --------------------------------------------------}
 
@@ -69,11 +78,13 @@ end;
 
 procedure TAutoGenerateClass.GenerateCode;
 var
-  InputTemplate, OutputFileName, OutputCode: String;
+  InputTemplate, OutputPath, OutputFileName, OutputCode: String;
   Macros: TStringStringMap;
   P: TAutoGenerateProperty;
 begin
-  OutputFileName := Path + 'auto_generated_persistent_vectors' + PathDelim +
+  OutputPath := Path + 'auto_generated_persistent_vectors' + PathDelim;
+  ForceDirectories(OutputPath);
+  OutputFileName := OutputPath +
     LowerCase(OutputClassName) + '_persistent_vectors.inc';
 
   InputTemplate := FileToString('persistent_vectors_template.inc');
@@ -86,6 +97,7 @@ begin
       Macros.Add('${CLASS_NAME}', OutputClassName);
       Macros.Add('${PROPERTY_NAME}', P.PropertyName);
       Macros.Add('${PROPERTY_TYPE}', P.PropertyType);
+      Macros.Add('${PERSISTENT_PROPERTY_CLASS}', P.PersistentPropertyClass);
       OutputCode := OutputCode + SReplacePatterns(InputTemplate, Macros, false) + NL;
     finally FreeAndNil(Macros) end;
   end;
@@ -135,6 +147,8 @@ begin
       while not InputFile.Eof do
       begin
         Line := InputFile.Readln;
+
+        if Trim(Line) = '' then Continue; // skip empty lines
 
         LineSplit := CreateTokens(Line);
         try

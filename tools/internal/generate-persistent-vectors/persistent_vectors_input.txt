@@ -1,1 +1,39 @@
 ../../../src/ui/opengl/ TCastleRectangleControl Color TCastleColor
+../../../src/ui/opengl/ TStateDialog BackgroundColor TCastleColor
+../../../src/ui/opengl/ TCastleScrollView TintScrollBarInactive TCastleColor
+
+../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
+../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor
+../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemColor TCastleColor
+../../../src/ui/opengl/ TCastleOnScreenMenu NonCurrentItemColor TCastleColor
+../../../src/ui/opengl/ TCastleOnScreenMenu NonFocusableItemColor TCastleColor
+
+../../../src/ui/opengl/ TCastleButton TintPressed  TCastleColor
+../../../src/ui/opengl/ TCastleButton TintDisabled TCastleColor
+../../../src/ui/opengl/ TCastleButton TintFocused  TCastleColor
+../../../src/ui/opengl/ TCastleButton TintNormal   TCastleColor
+../../../src/ui/opengl/ TCastleButton CustomTextColor TCastleColor
+
+../../../src/ui/opengl/ TCastleImageControl Color TCastleColor
+
+../../../src/ui/opengl/ TCastleUserInterfaceFont OutlineColor TCastleColor
+
+../../../src/ui/opengl/ TCastleNotifications Color TCastleColor
+
+../../../src/ui/opengl/ TCastlePackedGroup FrameColor TCastleColor
+
+../../../src/ui/opengl/ TCastleLabel Color TCastleColor
+../../../src/ui/opengl/ TCastleLabel FrameColor TCastleColor
+
+../../../src/ui/opengl/ TCastleShape Color TCastleColor
+../../../src/ui/opengl/ TCastleShape OutlineColor TCastleColor
+
+../../../src/ui/opengl/ TCastleEdit FocusedColor TCastleColor
+../../../src/ui/opengl/ TCastleEdit UnfocusedColor TCastleColor
+../../../src/ui/opengl/ TCastleEdit BackgroundColor TCastleColor
+
+../../../src/3d/ TCastleTransform Center TVector3
+../../../src/3d/ TCastleTransform Rotation TVector4
+../../../src/3d/ TCastleTransform Scale TVector3
+../../../src/3d/ TCastleTransform ScaleOrientation TVector4
+../../../src/3d/ TCastleTransform Translation TVector3

@@ -24,38 +24,39 @@
 
 {$ifdef read_interface_class}
 strict private
-  F${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS};
-  function Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
-  procedure Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+  FFrameColorPersistent: TCastleColorPersistent;
+  function GetFrameColorForPersistent: TCastleColor;
+  procedure SetFrameColorForPersistent(const AValue: TCastleColor);
 published
-  { @link(${PROPERTY_NAME}) that can be visually edited in
+  { @link(FrameColor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(${PROPERTY_NAME}) directly.
+    instead read or write @link(FrameColor) directly.
 
-    @seealso ${PROPERTY_NAME} }
-  property ${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS} read F${PROPERTY_NAME}Persistent;
+    @seealso FrameColor }
+  property FrameColorPersistent: TCastleColorPersistent read FFrameColorPersistent;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function ${CLASS_NAME}.Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
+function TCastlePackedGroup.GetFrameColorForPersistent: TCastleColor;
 begin
-  Result := ${PROPERTY_NAME};
+  Result := FrameColor;
 end;
 
-procedure ${CLASS_NAME}.Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+procedure TCastlePackedGroup.SetFrameColorForPersistent(const AValue: TCastleColor);
 begin
-  ${PROPERTY_NAME} := AValue;
+  FrameColor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
-  F${PROPERTY_NAME}Persistent.InternalGetValue := @Get${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalSetValue := @Set${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default
+  FFrameColorPersistent := TCastleColorPersistent.Create;
+  FFrameColorPersistent.InternalGetValue := @GetFrameColorForPersistent;
+  FFrameColorPersistent.InternalSetValue := @SetFrameColorForPersistent;
+  FFrameColorPersistent.InternalDefaultValue := FrameColor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(F${PROPERTY_NAME}Persistent);
+  FreeAndNil(FFrameColorPersistent);
 {$endif read_implementation_destructor}
+

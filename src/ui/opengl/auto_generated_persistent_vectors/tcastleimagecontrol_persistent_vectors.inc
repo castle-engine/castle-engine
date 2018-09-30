@@ -24,38 +24,39 @@
 
 {$ifdef read_interface_class}
 strict private
-  F${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS};
-  function Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
-  procedure Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+  FColorPersistent: TCastleColorPersistent;
+  function GetColorForPersistent: TCastleColor;
+  procedure SetColorForPersistent(const AValue: TCastleColor);
 published
-  { @link(${PROPERTY_NAME}) that can be visually edited in
+  { @link(Color) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(${PROPERTY_NAME}) directly.
+    instead read or write @link(Color) directly.
 
-    @seealso ${PROPERTY_NAME} }
-  property ${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS} read F${PROPERTY_NAME}Persistent;
+    @seealso Color }
+  property ColorPersistent: TCastleColorPersistent read FColorPersistent;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function ${CLASS_NAME}.Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
+function TCastleImageControl.GetColorForPersistent: TCastleColor;
 begin
-  Result := ${PROPERTY_NAME};
+  Result := Color;
 end;
 
-procedure ${CLASS_NAME}.Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+procedure TCastleImageControl.SetColorForPersistent(const AValue: TCastleColor);
 begin
-  ${PROPERTY_NAME} := AValue;
+  Color := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
-  F${PROPERTY_NAME}Persistent.InternalGetValue := @Get${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalSetValue := @Set${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default
+  FColorPersistent := TCastleColorPersistent.Create;
+  FColorPersistent.InternalGetValue := @GetColorForPersistent;
+  FColorPersistent.InternalSetValue := @SetColorForPersistent;
+  FColorPersistent.InternalDefaultValue := Color; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(F${PROPERTY_NAME}Persistent);
+  FreeAndNil(FColorPersistent);
 {$endif read_implementation_destructor}
+

@@ -24,38 +24,39 @@
 
 {$ifdef read_interface_class}
 strict private
-  F${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS};
-  function Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
-  procedure Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+  FBackgroundColorPersistent: TCastleColorPersistent;
+  function GetBackgroundColorForPersistent: TCastleColor;
+  procedure SetBackgroundColorForPersistent(const AValue: TCastleColor);
 published
-  { @link(${PROPERTY_NAME}) that can be visually edited in
+  { @link(BackgroundColor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(${PROPERTY_NAME}) directly.
+    instead read or write @link(BackgroundColor) directly.
 
-    @seealso ${PROPERTY_NAME} }
-  property ${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS} read F${PROPERTY_NAME}Persistent;
+    @seealso BackgroundColor }
+  property BackgroundColorPersistent: TCastleColorPersistent read FBackgroundColorPersistent;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function ${CLASS_NAME}.Get${PROPERTY_NAME}ForPersistent: ${PROPERTY_TYPE};
+function TStateDialog.GetBackgroundColorForPersistent: TCastleColor;
 begin
-  Result := ${PROPERTY_NAME};
+  Result := BackgroundColor;
 end;
 
-procedure ${CLASS_NAME}.Set${PROPERTY_NAME}ForPersistent(const AValue: ${PROPERTY_TYPE});
+procedure TStateDialog.SetBackgroundColorForPersistent(const AValue: TCastleColor);
 begin
-  ${PROPERTY_NAME} := AValue;
+  BackgroundColor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  F${PROPERTY_NAME}Persistent := ${PERSISTENT_PROPERTY_CLASS}.Create;
-  F${PROPERTY_NAME}Persistent.InternalGetValue := @Get${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalSetValue := @Set${PROPERTY_NAME}ForPersistent;
-  F${PROPERTY_NAME}Persistent.InternalDefaultValue := ${PROPERTY_NAME}; // current value is default
+  FBackgroundColorPersistent := TCastleColorPersistent.Create;
+  FBackgroundColorPersistent.InternalGetValue := @GetBackgroundColorForPersistent;
+  FBackgroundColorPersistent.InternalSetValue := @SetBackgroundColorForPersistent;
+  FBackgroundColorPersistent.InternalDefaultValue := BackgroundColor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(F${PROPERTY_NAME}Persistent);
+  FreeAndNil(FBackgroundColorPersistent);
 {$endif read_implementation_destructor}
+

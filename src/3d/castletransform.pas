@@ -1729,6 +1729,10 @@ type
       @link(TCastleAbstractViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
@@ -2072,10 +2076,18 @@ begin
   FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleTransform.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   PhysicsDestroy;
   FreeAndNil(FList);
   { set to nil, to detach free notification }
@@ -3291,6 +3303,10 @@ begin
     MakeVectorsOrthoOnTheirPlane(D, U);
   Rotation := RotationFromDirectionUp(D, U);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TSceneManagerWorld ------------------------------------------------------------------- }
 
