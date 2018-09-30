@@ -18,7 +18,11 @@
 
   This means they are
   - Saved/loaded using our serialization system in CastleComponentSerialize,
-  - saved/loaded using standard Lazarus/Delphi serialization (lfm, dfm),
+  - saved/loaded using standard Lazarus/Delphi serialization (lfm, dfm)
+    (Not yet working, a published TPersistent is not saved automatically in LFM.
+    In the future, possibly we will upgrade them to TComponent,
+    or we will save a JSON serialization of TCastleControl.Controls in LFM,
+    or we will figure out a way to serialize a bare TPersistent in LFM.)
   - editable in Castle Game Engine Editor,
   - editable in Lazarus/Delphi Object Inspector (when used in TCastleControl).
 }
@@ -54,6 +58,7 @@ end;
   FColorPersistent := TCastleColorPersistent.Create;
   FColorPersistent.InternalGetValue := @GetColorForPersistent;
   FColorPersistent.InternalSetValue := @SetColorForPersistent;
+  FColorPersistent.InternalDefaultValue := FColor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}

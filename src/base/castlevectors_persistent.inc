@@ -25,7 +25,7 @@ type
 
   { TVector3 record represented as a TPersistent descendant,
     to be able to visually edit it (in Lazarus and Delphi visual designer,
-    and Castle Game Engine visual designer).
+    and Castle Game Engine visual designer) and to serialize it.
 
     Normal user code does not need to deal with this class or it's instances.
     Instead directly operate on TVector3 values,
@@ -43,19 +43,23 @@ type
     procedure SetX(const AValue: Single);
     procedure SetY(const AValue: Single);
     procedure SetZ(const AValue: Single);
+    function XIsStored: Boolean;
+    function YIsStored: Boolean;
+    function ZIsStored: Boolean;
   public
     InternalGetValue: TGetVector3Event;
     InternalSetValue: TSetVector3Event;
+    InternalDefaultValue: TVector3;
     property Value: TVector3 read GetValue write SetValue;
   published
-    property X: Single read GetX write SetX;
-    property Y: Single read GetY write SetY;
-    property Z: Single read GetZ write SetZ;
+    property X: Single read GetX write SetX stored XIsStored nodefault;
+    property Y: Single read GetY write SetY stored YIsStored nodefault;
+    property Z: Single read GetZ write SetZ stored ZIsStored nodefault;
   end;
 
   { TVector4 record represented as a TPersistent descendant,
     to be able to visually edit it (in Lazarus and Delphi visual designer,
-    and Castle Game Engine visual designer).
+    and Castle Game Engine visual designer) and to serialize it.
 
     Normal user code does not need to deal with this class or it's instances.
     Instead directly operate on TVector4 values,
@@ -75,15 +79,20 @@ type
     procedure SetY(const AValue: Single);
     procedure SetZ(const AValue: Single);
     procedure SetW(const AValue: Single);
+    function XIsStored: Boolean;
+    function YIsStored: Boolean;
+    function ZIsStored: Boolean;
+    function WIsStored: Boolean;
   public
     InternalGetValue: TGetVector4Event;
     InternalSetValue: TSetVector4Event;
+    InternalDefaultValue: TVector4;
     property Value: TVector4 read GetValue write SetValue;
   published
-    property X: Single read GetX write SetX;
-    property Y: Single read GetY write SetY;
-    property Z: Single read GetZ write SetZ;
-    property W: Single read GetW write SetW;
+    property X: Single read GetX write SetX stored XIsStored nodefault;
+    property Y: Single read GetY write SetY stored YIsStored nodefault;
+    property Z: Single read GetZ write SetZ stored ZIsStored nodefault;
+    property W: Single read GetW write SetW stored WIsStored nodefault;
   end;
 
 {$endif read_interface}
@@ -142,6 +151,21 @@ begin
   V := Value;
   V.Data[2] := AValue;
   Value := V;
+end;
+
+function TCastleVector3Persistent.XIsStored: Boolean;
+begin
+  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+end;
+
+function TCastleVector3Persistent.YIsStored: Boolean;
+begin
+  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
+
+function TCastleVector3Persistent.ZIsStored: Boolean;
+begin
+  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
 end;
 
 { TCastleVector4Persistent ---------------------------------------------------- }
@@ -210,6 +234,26 @@ begin
   V := Value;
   V.Data[3] := AValue;
   Value := V;
+end;
+
+function TCastleVector4Persistent.XIsStored: Boolean;
+begin
+  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+end;
+
+function TCastleVector4Persistent.YIsStored: Boolean;
+begin
+  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
+
+function TCastleVector4Persistent.ZIsStored: Boolean;
+begin
+  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+end;
+
+function TCastleVector4Persistent.WIsStored: Boolean;
+begin
+  Result := Value.Data[3] <> InternalDefaultValue.Data[3];
 end;
 
 {$endif read_implementation}

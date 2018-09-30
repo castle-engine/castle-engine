@@ -78,7 +78,7 @@ function RegisteredComponents: TRegisteredComponents;
 implementation
 
 uses JsonParser, TypInfo, RtlConsts,
-  CastleFilesUtils, CastleUtils;
+  CastleFilesUtils, CastleUtils, CastleLog;
 
 { component registration ----------------------------------------------------- }
 
@@ -110,6 +110,7 @@ begin
   for R in RegisteredComponents do
     if R.ComponentClass.ClassName = AClassName then
       Exit(R.ComponentClass);
+  WritelnWarning('Cannot find component class "' + AClassName + '", (de)serialization of it will fail');
   Result := nil;
 end;
 
@@ -237,15 +238,26 @@ begin
 
   // do not stream null values, as reader makes errors on them
   if Res is TJSONNull then
+  begin
     FreeAndNil(Res);
+    Exit;
+  end;
 
   // do not stream properties with stored=false or default values
   if not IsStoredProp(AObject as TPersistent, Info) then
+  begin
+    //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because stored function answers false');
     FreeAndNil(Res);
+    Exit;
+  end;
 
   // do not store properties with default values
   if HasDefaultValue(AObject as TPersistent, Info) then
+  begin
+    //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
     FreeAndNil(Res);
+    Exit;
+  end;
 end;
 
 class function TCastleComponentWriter.HasDefaultValue(

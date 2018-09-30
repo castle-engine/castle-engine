@@ -20,7 +20,7 @@
 type
   { TCastleColorRGB record represented as a TPersistent descendant,
     to be able to visually edit it (in Lazarus and Delphi visual designer,
-    and Castle Game Engine visual designer).
+    and Castle Game Engine visual designer) and to serialize it.
 
     Normal user code does not need to deal with this class or it's instances.
     Instead directly operate on TCastleColorRGB values,
@@ -38,19 +38,26 @@ type
     procedure SetR(const AValue: Single);
     procedure SetG(const AValue: Single);
     procedure SetB(const AValue: Single);
+    function RIsStored: Boolean;
+    function GIsStored: Boolean;
+    function BIsStored: Boolean;
   public
     InternalGetValue: TGetVector3Event;
     InternalSetValue: TSetVector3Event;
+    InternalDefaultValue: TCastleColorRGB;
     property Value: TCastleColorRGB read GetValue write SetValue;
   published
-    property R: Single read GetR write SetR;
-    property G: Single read GetG write SetG;
-    property B: Single read GetB write SetB;
+    { Red color component. }
+    property R: Single read GetR write SetR stored RIsStored nodefault;
+    { Green color component. }
+    property G: Single read GetG write SetG stored GIsStored nodefault;
+    { Blue color component. }
+    property B: Single read GetB write SetB stored BIsStored nodefault;
   end;
 
   { TCastleColor record represented as a TPersistent descendant,
     to be able to visually edit it (in Lazarus and Delphi visual designer,
-    and Castle Game Engine visual designer).
+    and Castle Game Engine visual designer) and to serialize it.
 
     Normal user code does not need to deal with this class or it's instances.
     Instead directly operate on TCastleColor values,
@@ -70,22 +77,24 @@ type
     procedure SetG(const AValue: Single);
     procedure SetB(const AValue: Single);
     procedure SetA(const AValue: Single);
-    //procedure ReadValue(Reader: TReader);
-    //procedure WriteValue(Writer: TWriter);
-  protected
-    // TODO: doesn't work for LFM for now.
-    //{ Makes the color properly saved to LFM / DFM.
-    //  Not used (and not necessary) for JSON serialization in CastleComponentSerialize. }
-    //procedure DefineProperties(Filer: TFiler); override;
+    function RIsStored: Boolean;
+    function GIsStored: Boolean;
+    function BIsStored: Boolean;
+    function AIsStored: Boolean;
   public
     InternalGetValue: TGetVector4Event;
     InternalSetValue: TSetVector4Event;
+    InternalDefaultValue: TCastleColor;
     property Value: TCastleColor read GetValue write SetValue;
   published
-    property R: Single read GetR write SetR;
-    property G: Single read GetG write SetG;
-    property B: Single read GetB write SetB;
-    property A: Single read GetA write SetA;
+    { Red color component. }
+    property R: Single read GetR write SetR stored RIsStored nodefault;
+    { Green color component. }
+    property G: Single read GetG write SetG stored GIsStored nodefault;
+    { Blue color component. }
+    property B: Single read GetB write SetB stored BIsStored nodefault;
+    { Alpha (opacity) color component. }
+    property A: Single read GetA write SetA stored AIsStored nodefault;
   end;
 
 {$endif read_interface}
@@ -144,6 +153,21 @@ begin
   V := Value;
   V.Data[2] := AValue;
   Value := V;
+end;
+
+function TCastleColorRGBPersistent.RIsStored: Boolean;
+begin
+  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+end;
+
+function TCastleColorRGBPersistent.GIsStored: Boolean;
+begin
+  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
+
+function TCastleColorRGBPersistent.BIsStored: Boolean;
+begin
+  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
 end;
 
 { TCastleColorPersistent ---------------------------------------------------- }
@@ -214,36 +238,24 @@ begin
   Value := V;
 end;
 
-//procedure TCastleColorPersistent.ReadValue(Reader: TReader);
-//var
-//  V: TCastleColor;
-//begin
-//  V.Data[0] := Reader.ReadSingle;
-//  V.Data[1] := Reader.ReadSingle;
-//  V.Data[2] := Reader.ReadSingle;
-//  V.Data[3] := Reader.ReadSingle;
-//  Value := V;
-//end;
-//
-//procedure TCastleColorPersistent.WriteValue(Writer: TWriter);
-//var
-//  V: TCastleColor;
-//begin
-//  V := Value;
-//  Writer.WriteSingle(V.Data[0]);
-//  Writer.WriteSingle(V.Data[1]);
-//  Writer.WriteSingle(V.Data[2]);
-//  Writer.WriteSingle(V.Data[3]);
-//end;
-//
-//procedure TCastleColorPersistent.DefineProperties(Filer: TFiler);
-//begin
-//  inherited;
-//  Filer.DefineProperty('Value',
-//    {$ifdef CASTLE_OBJFPC}@{$endif} ReadValue,
-//    {$ifdef CASTLE_OBJFPC}@{$endif} WriteValue,
-//    // TODO: no default, always write
-//    true);
-//end;
+function TCastleColorPersistent.RIsStored: Boolean;
+begin
+  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+end;
+
+function TCastleColorPersistent.GIsStored: Boolean;
+begin
+  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
+
+function TCastleColorPersistent.BIsStored: Boolean;
+begin
+  Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+end;
+
+function TCastleColorPersistent.AIsStored: Boolean;
+begin
+  Result := Value.Data[3] <> InternalDefaultValue.Data[3];
+end;
 
 {$endif read_implementation}

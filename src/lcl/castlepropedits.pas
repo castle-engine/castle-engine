@@ -278,9 +278,7 @@ begin
 
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
     TSubPropertiesEditor);
-  // TODO: Why these are necessary to expand in castle-editor,
-  // but in Lazarus at least TCastleVector3Persistent in test project was
-  // expanded without this?
+  // These are necessary to expand in castle-editor and Lazarus design-time.
   RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
