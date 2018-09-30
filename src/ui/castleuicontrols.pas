@@ -2887,10 +2887,11 @@ begin
         end else
         if (UIReferenceHeight <> 0) and (Height > 0) then
           Result := Height / UIReferenceHeight;
-        WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
-          [UIReferenceWidth, UIReferenceHeight,
-           Width, Height,
-           Result, Width / Result, Height / Result]);
+        // Too talkative when resizing a window (also in castle-editor)
+        // WritelnLog('Scaling', 'Automatic scaling to reference sizes %f x %f in effect. Actual window size is %d x %d. Calculated scale is %f, which simulates surface of size %f x %f.',
+        //   [UIReferenceWidth, UIReferenceHeight,
+        //    Width, Height,
+        //    Result, Width / Result, Height / Result]);
       end;
     else raise EInternalError.Create('UIScaling unknown');
   end;
