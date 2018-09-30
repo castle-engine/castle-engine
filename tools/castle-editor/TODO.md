@@ -1,11 +1,42 @@
 ## TODO
 
+------------------------------------------------------------------------------
 Now:
 
-* Visual inspector. designer etc.
-    * do not allow sizing (not even such cursor) when control is autosized
-    * more colors, vectors published props
+* Visual inspector. designer etc. most
     * 3d gizmos to move etc.
+    * do not allow sizing (not even such cursor) when control is autosized
+    * Property editor for TCastleColorPersistent
+    * Add TCastleImageComponent, manually make all UI controls use it
+      See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+
+      *All* images from theme should also be customizable at the control level,
+      and naming should be consistent
+    * MainScene cannot be changed
+      (we disabled in object inspector some types, maybe we should not?)
+      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
+      Saving back suggests it's not deserialized OK now.
+
+------------------------------------------------------------------------------
+Lower priority:
+* Visual inspector. designer etc. less important
+    * more colors, vectors published props:
+
+      use
+      src/ui/opengl/auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc
+      src/ui/opengl/auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc
+
+      grep for TCastleColor*, TVector* properties and add everything.
+      For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
+
     * Dragging UI:
       * tools hints:
         None (or Interact) (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
@@ -18,12 +49,8 @@ Now:
       * should "Snap" snap to the final value (like an invisible grid?)
         Would be more like Delphi/Lazarus, probably.
 	Right now we are more like Blender, only movement amount is snapped.
-    * Property editor for TCastleColorPersistent
     * F1 help to API reference, show also in menu
       for now just go to API reference main page?
-    * Component wrapper will also need info about what is default, to know what to save...
-      to json,
-      and for lfm -- se TCastleColorPersistent.DefineProperties todo
     * open last design in the project,
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
@@ -31,19 +58,6 @@ Now:
         * initial animation? along with TimePlayingSpeed, ProcessEvents
         * TCastleTransform position, rotation, scale (using gizmos)
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
-    * save also vectors, colors.
-      Like position, rotation, scale as TVector3 properties should be fixed --- need to expose them as published, see TODOs, probably.
-      See /home/michalis/common/TODO/castle-engine/editor/castlevectors_components.inc
-      and /home/michalis/common/TODO/castle-engine/editor/cge-editor-older-notes-published-vectors.txt
-      started (TCastleRectangleControl.Color works), needs to be automated for other now.
-
-      Autogenerate wrappers for vectors, colors
-
-    * Add TCastleImageComponent, manually make all UI controls use it
-      See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
-
-      *All* images from theme should also be customizable at the control level,
-      and naming should be consistent
 
     * moving added things in hierarchy (dragging in tree).
     * adding - better UI? component palette?
@@ -78,10 +92,6 @@ Now:
 
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
-    * MainScene cannot be changed
-      (we disabled in object inspector some types, maybe we should not?)
-      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
-      Saving back suggests it's not deserialized OK now.
     * publish and save SceneManager.NavigationType
       and last camera
       { Use initial camera settings stored in
@@ -116,16 +126,11 @@ Now:
 
     * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
 
-    * after changing scene manager items (or scene url),
-      recalculate camera box to have zoom working
-
     * make https://github.com/castle-engine/blaise-pascal-article-examples/
       version using editor for level,
       3d_game_alternative_using_editor
       mention in README
 
-------------------------------------------------------------------------------
-Lower priority:
 * Add components tab at the bottom, with large icon for each component?
 
 * Allow to attach rigidbody and collision instances.
@@ -203,6 +208,14 @@ Lower priority:
     * TEditDirectory use at "new project"
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
     * remember ProjectForm state of maximized/not
+
+* remove most stuff from CGE component palette...
+
+* move CastleComponentSerialize to src/base/
+  And UserInterfaceLoad, TransformLoad move to appropriate units with these classes.
+  Use interface like ICastleChildrenSerialize
+
+* right after opening recent project, caption shows my-project instead of my-project45
 
 ------------------------------------------------------------------------------
 Lowest priority (OK if not in 1st release):
