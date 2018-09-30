@@ -153,6 +153,10 @@
       Use DisplayChars as the maximum sensible value for this. }
     property MaxDisplayChars: Integer
       read FMaxDisplayChars write SetMaxDisplayChars default -1;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -174,10 +178,18 @@ begin
   FAutoSize := true;
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleLabel.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   FreeAndNil(FText);
 
   inherited;
@@ -369,5 +381,9 @@ procedure TCastleLabel.TextChange(Sender: TObject);
 begin
   VisibleChange([chRectangle]);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

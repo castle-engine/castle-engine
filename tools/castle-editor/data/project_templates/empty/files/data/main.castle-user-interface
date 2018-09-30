@@ -7,10 +7,40 @@
         "_ClassName" : "TDirectionalLightNode"
       },
       "Items" : {
+        "CenterPersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
         "Name" : "Items",
+        "RotationPersistent" : {
+          "_ClassName" : "TCastleVector4Persistent"
+        },
+        "ScaleOrientationPersistent" : {
+          "_ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
+        "TranslationPersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
         "_Children" : [
           {
+            "CenterPersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Scene1",
+            "RotationPersistent" : {
+              "_ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "_ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
             "URL" : "castle-data:/example.x3dv",
             "_Children" : [
             ],
@@ -29,7 +59,6 @@
     {
       "ColorPersistent" : {
         "A" : 5.0000000000000000E-001,
-        "B" : 1.0000000000000000E+000,
         "G" : 5.0000000000000000E-001,
         "R" : 5.0000000000000000E-001,
         "_ClassName" : "TCastleColorPersistent"
@@ -62,7 +91,13 @@
           "_ClassName" : "TCastleButton"
         },
         {
+          "ColorPersistent" : {
+            "_ClassName" : "TCastleColorPersistent"
+          },
           "FontSize" : 5.0000000000000000E+001,
+          "FrameColorPersistent" : {
+            "_ClassName" : "TCastleColorPersistent"
+          },
           "HasHorizontalAnchor" : true,
           "HasVerticalAnchor" : true,
           "HorizontalAnchorParent" : "hpMiddle",
@@ -80,7 +115,14 @@
       "_ClassName" : "TCastleRectangleControl"
     },
     {
+      "ColorPersistent" : {
+        "B" : 0.0000000000000000E+000,
+        "_ClassName" : "TCastleColorPersistent"
+      },
       "FontSize" : 2.0000000000000000E+001,
+      "FrameColorPersistent" : {
+        "_ClassName" : "TCastleColorPersistent"
+      },
       "HasHorizontalAnchor" : true,
       "HasVerticalAnchor" : true,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
