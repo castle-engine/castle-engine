@@ -126,8 +126,11 @@ end;
 
 procedure TTestCastleComponentSerialize.TestDefaultValues;
 var
+  TempFileName: String;
   TestInput, TestOutput: TMyComponent;
 begin
+  TempFileName := GetTempFileNameCheck;
+
   TestInput := TMyComponent.Create(nil);
   try
     AssertVectorEquals(Vector3(0, 0, 0), TestInput.PositionPersistent.Value);
@@ -143,12 +146,12 @@ begin
     AssertVectorEquals(Vector3(0, 1, 2), TestInput.ScalePersistent.Value);
     AssertVectorEquals(Vector3(0, 1, 2), TestInput.Scale);
 
-    ComponentSave(TestInput, '/tmp/test-castle-serialization.json');
+    ComponentSave(TestInput, TempFileName);
   finally
     FreeAndNil(TestInput);
   end;
 
-  TestOutput := ComponentLoad('/tmp/test-castle-serialization.json', nil) as TMyComponent;
+  TestOutput := ComponentLoad(TempFileName, nil) as TMyComponent;
   try
     AssertVectorEquals(Vector3(0, 20, 30), TestOutput.PositionPersistent.Value);
     AssertVectorEquals(Vector3(0, 20, 30), TestOutput.Position);
@@ -157,6 +160,8 @@ begin
   finally
     FreeAndNil(TestOutput);
   end;
+
+  CheckDeleteFile(TempFileName, true);
 end;
 
 initialization
