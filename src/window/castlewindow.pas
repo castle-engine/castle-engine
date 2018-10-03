@@ -1914,8 +1914,8 @@ type
     property MainMenuVisible: boolean
       read FMainMenuVisible write FMainMenuVisible default true;
 
-    { If true then in TCastleWindowCustom destructor MainMenu will be destroyed too
-      (if not nil, od course). Usually this is something useful. }
+    { If true then the @link(MainMenu) will automatically freed when this
+      TCastleWindowCustom instance is freed. }
     property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
     { Called each time user chooses some menu item and it's not handled
