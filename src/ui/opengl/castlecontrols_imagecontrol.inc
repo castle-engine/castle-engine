@@ -48,6 +48,8 @@
     FProportionalScaling: TProportionalScaling;
     FCorners: TVector4Integer;
     FCache: boolean;
+    FFlipHorizontal: Boolean;
+    FFlipVertical: Boolean;
 
     { Properties simply synchronized with the same properties of FDrawableImage. }
     function GetCenterX: Single;
@@ -77,6 +79,8 @@
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
     procedure SetProportional(const Value: boolean);
+    procedure SetFlipVertical(const Value: Boolean);
+    procedure SetFlipHorizontal(const Value: Boolean);
 
     { Free FImage if needed, and make it @nil. }
     procedure FreeImage;
@@ -315,6 +319,11 @@
       otherwise the image will not be loaded/freed using the cache.
       This may change at some point. }
     property Cache: boolean read FCache write FCache;
+
+    property FlipHorizontal: Boolean read FFlipHorizontal write SetFlipHorizontal
+      default false;
+    property FlipVertical: Boolean read FFlipVertical write SetFlipVertical
+      default false;
   end;
 
 {$endif read_interface}
@@ -500,9 +509,16 @@ begin
   inherited;
   if (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0) then Exit;
   SR := RenderRect;
+
   if FCorners.IsZero then
-    FDrawableImage.Draw(SR) else
   begin
+    if FlipHorizontal or FlipVertical then
+      FDrawableImage.DrawFlipped(SR, FlipHorizontal, FlipVertical)
+    else
+      FDrawableImage.Draw(SR);
+  end else
+  begin
+    // TODO: FlipHorizontal, FlipVertical ignored in this case
     FDrawableImage.ScaleCorners := UIScale;
     FDrawableImage.Draw3x3(SR, FCorners);
   end;
@@ -647,6 +663,24 @@ begin
   begin
     FreeDrawableImage;
     FDrawableImage := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetFlipVertical(const Value: Boolean);
+begin
+  if FFlipVertical <> Value then
+  begin
+    FFlipVertical := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetFlipHorizontal(const Value: Boolean);
+begin
+  if FFlipHorizontal <> Value then
+  begin
+    FFlipHorizontal := Value;
     VisibleChange([chRender]);
   end;
 end;
