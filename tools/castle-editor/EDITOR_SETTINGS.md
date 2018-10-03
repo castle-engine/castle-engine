@@ -55,11 +55,11 @@ The features that can be achieved this way:
 <?xml version="1.0" encoding="utf-8"?>
 <editor_settings>
   <!--
-    Use this if in your Application.OnInitialize you do this:
+    Use this if your game code calls this (usually in Application.OnInitialize):
 
-    Window.Container.UIScaling := usEncloseReferenceSize;
-    Window.Container.UIReferenceWidth := 1920;
-    Window.Container.UIReferenceHeight := 1080;
+      Window.Container.UIScaling := usEncloseReferenceSize;
+      Window.Container.UIReferenceWidth := 1920;
+      Window.Container.UIReferenceHeight := 1080;
 
     This way the castle-editor will use the same UI scaling settings as your game.
   -->
@@ -70,10 +70,10 @@ The features that can be achieved this way:
   />
 
   <!--
-    Use this if in your Application.OnInitialize you do this:
+    Use this if your game code calls this (usually in Application.OnInitialize):
 
-    UIFont := TTextureFont.Create(Application);
-    (UIFont as TTextureFont).Load(ApplicationData('MyFontFile.ttf'), 20, true);
+      UIFont := TTextureFont.Create(Application);
+      (UIFont as TTextureFont).Load(ApplicationData('MyFontFile.ttf'), 20, true);
 
     This way the castle-editor will use the same UIFont (default font) as your game.
   -->
@@ -84,13 +84,15 @@ The features that can be achieved this way:
   />
 
   <!--
-    Use this if in your Application.OnInitialize you do this:
+    Use this if your game code calls this
+    (usually in the "initialization" section of some unit):
 
-    RegisterSerializableComponent(TUnholyButton, 'Unholy Button');
-    and TUnholyButton descends from TCastleButton.
+      RegisterSerializableComponent(TUnholyButton, 'Unholy Button');
 
     This way the castle-editor will allow you to use class TUnholyButton
     (exposing TCastleButton properties of it).
+    The example assumes that TUnholyButton is a custom descendant of
+    TCastleButton.
   -->
   <additional_components>
     <additional_component
