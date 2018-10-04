@@ -75,10 +75,20 @@ The features that can be achieved this way:
   <!--
     Use this if your game code calls this (usually in Application.OnInitialize):
 
-      UIFont := TTextureFont.Create(Application);
-      (UIFont as TTextureFont).Load('castle-data:/MyFontFile.ttf', 20, true);
+      NewUIFont := TTextureFont.Create(Application);
+      NewUIFont.Load('castle-data:/MyFontFile.ttf', 20, true);
+      UIFont := NewUIFont;
 
     This way the castle-editor will use the same UIFont (default font) as your game.
+
+    You can additionally use this parameter:
+      size_at_load="40"
+    if you do a trick to load font with larger size (to make it less blurry),
+    like this:
+      NewUIFont := TTextureFont.Create(Application);
+      NewUIFont.Load('castle-data:/MyFontFile.ttf', 40, true);
+      NewUIFont.Size := 20;
+      UIFont := NewUIFont;
   -->
   <ui_font
     url="castle-data:/MyFontFile.ttf"

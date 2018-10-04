@@ -605,7 +605,7 @@ procedure TProjectForm.OpenProject(const ManifestUrl: String);
     SettingsDoc: TXMLDocument;
     E: TDOMElement;
     NewUIFont: TTextureFont;
-    UIFontSize: Cardinal;
+    UIFontSize, UIFontLoadSize: Cardinal;
     UIFontAntiAliased: Boolean;
   begin
     // in case CastleEditorSettings.xml is missing, initialize ProjectUIXxx to defaults
@@ -637,10 +637,12 @@ procedure TProjectForm.OpenProject(const ManifestUrl: String);
         begin
           UIFontUrl := E.AttributeURL('url', SettingsUrl);
           UIFontSize := E.AttributeCardinalDef('size', 20);
+          UIFontLoadSize := E.AttributeCardinalDef('size_at_load', UIFontSize);
           UIFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
 
           NewUIFont := TTextureFont.Create(Self);
-          NewUIFont.Load(UIFontUrl, UIFontSize, UIFontAntiAliased);
+          NewUIFont.Load(UIFontUrl, UIFontLoadSize, UIFontAntiAliased);
+          NewUIFont.Size := UIFontSize;
 
           UIFont := NewUIFont;
         end;
