@@ -135,6 +135,8 @@ type
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
     Design: TDesignFrame;
+    ProjectUIScaling: TUIScaling;
+    ProjectUIReferenceWidth, ProjectUIReferenceHeight: Single;
     procedure BuildToolCall(const Commands: array of String);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
@@ -164,7 +166,8 @@ uses TypInfo,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
-  CastleLog, CastleComponentSerialize, CastleSceneCore,
+  CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
+  CastleFonts,
   FormChooseProject, ToolUtils;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -402,6 +405,7 @@ begin
     Design.Parent := PanelAboveTabs;
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
+    Design.UIScaling(ProjectUIScaling, ProjectUIReferenceWidth, ProjectUIReferenceHeight);
     DesignExistenceChanged;
   end;
 end;
@@ -577,6 +581,84 @@ begin
 end;
 
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
+
+  function UIScalingToString(const UIScaling: TUIScaling): String;
+  begin
+    Result := SEnding(GetEnumName(TypeInfo(TUIScaling), Ord(UIScaling)), 3);
+  end;
+
+  function UIScalingFromString(const S: String): TUIScaling;
+  begin
+    for Result := Low(TUIScaling) to High(TUIScaling) do
+      if S = UIScalingToString(Result) then
+        Exit;
+    raise Exception.CreateFmt('Not a valid value for UIScaling: %s', [S]);
+  end;
+
+  procedure ReadEditorSettings;
+  const
+    DefaultUIScaling = usEncloseReferenceSize;
+    DefaultUIReferenceWidth = 1600;
+    DefaultUIReferenceHeight = 900;
+  var
+    SettingsUrl, UIFontUrl: String;
+    SettingsDoc: TXMLDocument;
+    E: TDOMElement;
+    NewUIFont: TTextureFont;
+    UIFontSize: Cardinal;
+    UIFontAntiAliased: Boolean;
+  begin
+    // in case CastleEditorSettings.xml is missing, initialize ProjectUIXxx to defaults
+    ProjectUIScaling := DefaultUIScaling;
+    ProjectUIReferenceWidth := DefaultUIReferenceWidth;
+    ProjectUIReferenceHeight := DefaultUIReferenceHeight;
+
+    SettingsUrl := CombineURI(ProjectPathUrl, 'CastleEditorSettings.xml');
+    if URIFileExists(SettingsUrl) then
+    try
+      SettingsDoc := URLReadXML(SettingsUrl);
+      try
+        if SettingsDoc.DocumentElement.TagName8 <> 'editor_settings' then
+          raise Exception.Create('The root element must be <editor_settings>');
+
+        E := SettingsDoc.DocumentElement.Child('ui_scaling', false);
+        if E <> nil then
+        begin
+          ProjectUIScaling := UIScalingFromString(
+            E.AttributeStringDef('mode', UIScalingToString(DefaultUIScaling)));
+          ProjectUIReferenceWidth :=
+            E.AttributeSingleDef('reference_width', DefaultUIReferenceWidth);
+          ProjectUIReferenceHeight :=
+            E.AttributeSingleDef('reference_height', DefaultUIReferenceHeight);
+        end;
+
+        E := SettingsDoc.DocumentElement.Child('ui_font', false);
+        if E <> nil then
+        begin
+          UIFontUrl := E.AttributeURL('url', SettingsUrl);
+          UIFontSize := E.AttributeCardinalDef('size', 20);
+          UIFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
+
+          NewUIFont := TTextureFont.Create(Self);
+          NewUIFont.Load(UIFontUrl, UIFontSize, UIFontAntiAliased);
+
+          UIFont := NewUIFont;
+        end;
+      finally FreeAndNil(SettingsDoc) end;
+    except
+      on E: Exception do
+      begin
+        ErrorBox('An error occurred when reading the CastleEditorSettings.xml file in your project:' +
+          NL + NL + ExceptMessage(E));
+        { and continue, this way you can still open a project with broken
+          CastleEditorSettings.xml }
+      end;
+    end;
+
+    if Design <> nil then
+      Design.UIScaling(ProjectUIScaling, ProjectUIReferenceWidth, ProjectUIReferenceHeight);
+  end;
+
 var
   ManifestDoc: TXMLDocument;
 begin
@@ -604,6 +686,8 @@ begin
   MenuItemModeDebug.Checked := true;
 
   DesignExistenceChanged;
+
+  ReadEditorSettings;
 end;
 
 initialization

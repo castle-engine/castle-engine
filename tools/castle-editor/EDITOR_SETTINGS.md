@@ -62,9 +62,12 @@ The features that can be achieved this way:
       Window.Container.UIReferenceHeight := 1080;
 
     This way the castle-editor will use the same UI scaling settings as your game.
+    The allowed mode values are "None", "EncloseReferenceSize", "FitReferenceSize".
+    See the [TUIScaling API docs](https://castle-engine.io/apidoc/html/CastleUIControls.html#TUIScaling)
+    for meaning.
   -->
   <ui_scaling
-    type="usFitReferenceSize"
+    mode="EncloseReferenceSize"
     reference_width="1920"
     reference_height="1080"
   />
@@ -73,12 +76,12 @@ The features that can be achieved this way:
     Use this if your game code calls this (usually in Application.OnInitialize):
 
       UIFont := TTextureFont.Create(Application);
-      (UIFont as TTextureFont).Load(ApplicationData('MyFontFile.ttf'), 20, true);
+      (UIFont as TTextureFont).Load('castle-data:/MyFontFile.ttf', 20, true);
 
     This way the castle-editor will use the same UIFont (default font) as your game.
   -->
   <ui_font
-    url="MyFontFile.ttf"
+    url="castle-data:/MyFontFile.ttf"
     size="20"
     anti_aliased="true"
   />

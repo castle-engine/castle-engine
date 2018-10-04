@@ -147,6 +147,9 @@ type
     procedure DeleteComponent;
     procedure CameraViewAll;
     procedure SortBackToFront2D;
+    { set UIScaling values. }
+    procedure UIScaling(const UIScaling: TUIScaling;
+      const UIReferenceWidth, UIReferenceHeight: Single);
 
     property DesignUrl: String read FDesignUrl;
     { Root saved/loaded to component file }
@@ -596,12 +599,6 @@ begin
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
 
-  // initialize CastleControl
-  // TODO: This should follow the auto-scale settings of loaded file
-  CastleControl.Container.UIReferenceWidth := 1600;
-  CastleControl.Container.UIReferenceHeight := 900;
-  CastleControl.Container.UIScaling := usEncloseReferenceSize;
-
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;
   CastleControl.Controls.InsertFront(DesignerLayer);
@@ -924,6 +921,14 @@ begin
   end;
 end;
 
+procedure TDesignFrame.UIScaling(const UIScaling: TUIScaling;
+  const UIReferenceWidth, UIReferenceHeight: Single);
+begin
+  CastleControl.Container.UIScaling := UIScaling;
+  CastleControl.Container.UIReferenceWidth := UIReferenceWidth;
+  CastleControl.Container.UIReferenceHeight := UIReferenceHeight;
+end;
+
 function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
   function ClassCaption(const C: TClass): String;
@@ -954,10 +959,10 @@ begin
   LabelUIScaling.Caption := CalculatedUIScaleStr;
   case CastleControl.Container.UIScaling of
     usNone                : H := 'No user interface scaling';
-    usEncloseReferenceSize: H := Format('User interface scaling in effect: window must fit inside a simulated size of %f x %f.' + NL,
+    usEncloseReferenceSize: H := Format('User interface scaling in effect: window must enclose a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
-    usFitReferenceSize    : H := Format('User interface scaling in effect: window must enclose a simulated size of %f x %f.' + NL,
+    usFitReferenceSize    : H := Format('User interface scaling in effect: window must fit inside a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
     usExplicitScale       : H := 'User interface scaling in effect: explicit scale.' + NL;
