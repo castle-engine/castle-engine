@@ -470,6 +470,12 @@ begin
      (RelativeProtocol = 'compiled') then
     Exit(Relative);
 
+  { When Base is like 'castle-data:/CastleSettings.xml'
+    and Relative is like '../gfx/font.ttf',
+    you need to resolve the Base to use the file:/ protocol. }
+  if (URIProtocol(Base) = 'castle-data') and IsPrefix('../', Relative) then
+    Exit(CombineURI(ResolveCastleDataURL(Base), Relative));
+
   try
     if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
     begin

@@ -892,7 +892,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleKeysMouse"/>
       </Item203>
       <Item204>
-        <Filename Value="../src/ui/castleuicontrols.pas"/>
+        <Filename Value="../src/ui/opengl/castleuicontrols.pas"/>
         <UnitName Value="CastleUIControls"/>
       </Item204>
       <Item205>

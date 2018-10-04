@@ -574,6 +574,25 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ShowGutter := false;
   end;
 
+  procedure ReadSettings;
+  var
+    SettingsUrl: String;
+  begin
+    SettingsUrl := 'castle-data:/CastleSettings.xml';
+    if URIFileExists(SettingsUrl) then
+    try
+      CastleControl.Container.LoadSettings(SettingsUrl);
+    except
+      on E: Exception do
+      begin
+        ErrorBox('An error occurred when reading the CastleSettings.xml file in your project:' +
+          NL + NL + ExceptMessage(E));
+        { and continue, this way you can still open a project with broken
+          CastleSettings.xml }
+      end;
+    end;
+  end;
+
 var
   DesignerLayer: TDesignerLayer;
 begin
@@ -598,6 +617,8 @@ begin
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
+
+  ReadSettings;
 
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;

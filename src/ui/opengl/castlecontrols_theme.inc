@@ -126,8 +126,10 @@
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single; const Color: TCastleColor);
 
-    { Font used by dialogs. Leave @nil to use UIFont. }
+    { Font used by dialogs.
+      Leave @nil to use @link(TUIContainer.DefaultFont). }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
+
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
 

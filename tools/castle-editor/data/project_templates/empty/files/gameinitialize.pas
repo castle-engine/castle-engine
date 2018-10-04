@@ -40,11 +40,11 @@ begin
   { Assign Window callbacks }
   Window.OnUpdate := @WindowUpdate;
 
-  { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
-  Window.Container.UIReferenceWidth := 1600;
-  Window.Container.UIReferenceHeight := 900;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings,
+    e.g. for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  { Load designed user interface }
   Ui := UserInterfaceLoad('castle-data:/main.castle-user-interface', Window);
   Window.Controls.InsertFront(Ui);
 

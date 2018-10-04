@@ -21,7 +21,7 @@ unit CastleUIControls;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleKeysMouse, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleUtils, CastleClassUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
@@ -268,6 +268,7 @@ type
     FIsMousePositionForMouseLook: boolean;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
+    FDefaultFont: TCastleFont;
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
@@ -591,6 +592,15 @@ type
       to handle the following motion and release events, in which case calling this
       method helps. }
     procedure ReleaseCapture(const C: TCastleUserInterface);
+
+    { Load visual settings from an XML file.
+      See https://github.com/castle-engine/castle-engine/blob/master/tools/castle-editor/EDITOR_SETTINGS.md
+      for a documentation of the file format.
+
+      This loads UIScaling, UIReferenceWidth, UIReferenceHeight, DefaultFont.
+      In the future, it may load more things configurable by the CGE editor
+      and CastleSettings.xml file. }
+    procedure LoadSettings(const SettingsUrl: String);
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -658,6 +668,15 @@ type
       See @link(usExplicitScale) for precise description how this works. }
     property UIExplicitScale: Single
       read FUIExplicitScale write SetUIExplicitScale default 1.0;
+
+    { Default font (type, size) to be used by all user interface controls.
+      Note that each UI control can customize the used font and/or size
+      using properties @link(TCastleUserInterfaceFont.CustomFont),
+      @link(TCastleUserInterfaceFont.FontSize).
+
+      If this is @nil, we use the global font @link(UIFont)
+      that is always assigned. }
+    property DefaultFont: TCastleFont read FDefaultFont write FDefaultFont;
   end;
 
   { Base class for things that listen to user input. }
@@ -1809,7 +1828,8 @@ var
 
 implementation
 
-uses CastleLog, CastleComponentSerialize;
+uses DOM, TypInfo,
+  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -3028,6 +3048,79 @@ function TUIContainer.GLInitialized: boolean;
 begin
   { Default implementation, assuming the OpenGL context is always initialized. }
   Result := true;
+end;
+
+procedure TUIContainer.LoadSettings(const SettingsUrl: String);
+
+  function UIScalingToString(const UIScaling: TUIScaling): String;
+  begin
+    Result := SEnding(GetEnumName(TypeInfo(TUIScaling), Ord(UIScaling)), 3);
+  end;
+
+  function UIScalingFromString(const S: String): TUIScaling;
+  begin
+    for Result := Low(TUIScaling) to High(TUIScaling) do
+      if S = UIScalingToString(Result) then
+        Exit;
+    raise Exception.CreateFmt('Not a valid value for UIScaling: %s', [S]);
+  end;
+
+const
+  DefaultUIScaling = usNone;
+  DefaultUIReferenceWidth = 0;
+  DefaultUIReferenceHeight = 0;
+var
+  SettingsDoc: TXMLDocument;
+  E: TDOMElement;
+
+  DefaultFontUrl: String;
+  DefaultFontSize, DefaultFontLoadSize: Cardinal;
+  DefaultFontAntiAliased: Boolean;
+  NewDefaultFont: TTextureFont;
+
+  NewUIScaling: TUIScaling;
+  NewUIReferenceWidth, NewUIReferenceHeight: Single;
+begin
+  // initialize defaults
+  NewUIScaling := DefaultUIScaling;
+  NewUIReferenceWidth := DefaultUIReferenceWidth;
+  NewUIReferenceHeight := DefaultUIReferenceHeight;
+  NewDefaultFont := nil;
+
+  SettingsDoc := URLReadXML(SettingsUrl);
+  try
+    if SettingsDoc.DocumentElement.TagName8 <> 'castle_settings' then
+      raise Exception.Create('The root element must be <castle_settings>');
+
+    E := SettingsDoc.DocumentElement.Child('ui_scaling', false);
+    if E <> nil then
+    begin
+      NewUIScaling := UIScalingFromString(
+        E.AttributeStringDef('mode', UIScalingToString(DefaultUIScaling)));
+      NewUIReferenceWidth :=
+        E.AttributeSingleDef('reference_width', DefaultUIReferenceWidth);
+      NewUIReferenceHeight :=
+        E.AttributeSingleDef('reference_height', DefaultUIReferenceHeight);
+    end;
+
+    E := SettingsDoc.DocumentElement.Child('default_font', false);
+    if E <> nil then
+    begin
+      DefaultFontUrl := E.AttributeURL('url', SettingsUrl);
+      DefaultFontSize := E.AttributeCardinalDef('size', 20);
+      DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
+      DefaultFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
+
+      NewDefaultFont := TTextureFont.Create(Self);
+      NewDefaultFont.Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
+      NewDefaultFont.Size := DefaultFontSize;
+    end;
+  finally FreeAndNil(SettingsDoc) end;
+
+  UIScaling := NewUIScaling;
+  UIReferenceWidth := NewUIReferenceWidth;
+  UIReferenceHeight := NewUIReferenceHeight;
+  DefaultFont := NewDefaultFont;
 end;
 
 { TInputListener ------------------------------------------------------------- }
