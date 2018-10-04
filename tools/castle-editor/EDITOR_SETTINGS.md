@@ -67,7 +67,7 @@ The features that can be controlled this way:
     You can use `<additional_component>` element, as presented below,
     to make CGE editor fake having an additional component class.
 
-# Example CastleEditorSettings.xml
+# Example CastleSettings.xml
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
