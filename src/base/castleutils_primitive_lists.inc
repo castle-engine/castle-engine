@@ -76,6 +76,8 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
     function PerfectlyEquals(SecondValue: TObject): boolean;
+
+    function Sum: Single;
   end;
 
   TDoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>)
@@ -323,6 +325,15 @@ begin
           Exit;
         end;
   end;
+end;
+
+function TSingleList.Sum: Single;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    Result := Result + Items[I];
 end;
 
 { TDoubleList ------------------------------------------------------------ }
