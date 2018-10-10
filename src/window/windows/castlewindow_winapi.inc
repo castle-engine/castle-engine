@@ -694,7 +694,8 @@ begin
     WM_SETCURSOR:
       begin
         if (WParm = h_Wnd) and
-           (Application.CursorHandles[InternalCursor].Handle <> 0) then
+           ( (InternalCursor in [mcNone, mcForceNone]) or
+             (Application.CursorHandles[InternalCursor].Handle <> 0) ) then
         begin
           Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
           Exit(1);
@@ -702,7 +703,9 @@ begin
         { Otherwise we fall back on DefWindowProc.
           It will install our window class cursor (or parent cursor)
           if in client area, or just do the right thing if outside client area.
-          So it's suitable when wParm <> h_Wnd or we want mcDefault. }
+          So it's suitable when wParm <> h_Wnd,
+          or we want mcDefault,
+          or we want mcCustom. }
       end;
 
     WM_MOUSEWHEEL, WM_MOUSEHWHEEL:
