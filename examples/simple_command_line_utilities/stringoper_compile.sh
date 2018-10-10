@@ -15,4 +15,4 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile examples/tools/stringoper.lpr
+"${CASTLE_ENGINE}" simple-compile examples/simple_command_line_utilities/stringoper.lpr

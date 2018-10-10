@@ -15,7 +15,10 @@
 *.stat
 *.dcu
 
-# Don't ignore - commit these files, to allow compiling these examples with shell scripts / lpi too.
+# Don't ignore these files.
+# Although they are automatically created/updated by the CGE build tool.
+# We commit these files, to allow compiling the examples through Lazarus
+# (using lpi) without the need to run the build tool.
 # automatic-windows-resources.res
 
 # Other backups
@@ -167,16 +170,15 @@ examples/research_special_rendering_methods/shadow_fields/precompute_shadow_fiel
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
 examples/resource_animations/resource_animations
 examples/screen_effects_demo/screen_effects_demo
+examples/simple_command_line_utilities/castle_download
+examples/simple_command_line_utilities/dircleaner
+examples/simple_command_line_utilities/dircleaner.res
+examples/simple_command_line_utilities/stringoper
 examples/space_filling_curve/draw_space_filling_curve
 examples/terrain/terrain
 examples/tiled/tiled_demo
 examples/tiled/tiled_demo_standalone
 examples/tiled/tiled_demo_standalone.lps
-examples/tools/castle_download
-examples/tools/dircleaner
-examples/tools/dircleaner.res
-examples/tools/stringoper
-examples/tools/to_data_uri
 examples/window/multi_window
 examples/window/window_events
 examples/window/window_gtk_mix
@@ -191,10 +193,6 @@ src/library/build-*
 src/library/ios-output/
 src/library/libcastleengine.dylib
 src/library/libcastleengine.so
-tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
-tools/internal/teapot-to-pascal/teapot-to-pascal
-tools/internal/teapot-to-pascal/teapot-to-pascal.res
-tools/internal/generate-persistent-vectors/generate-persistent-vectors
 tests/test_castle_game_engine
 tools/build-tool/castle-engine
 tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
@@ -209,5 +207,10 @@ tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytic
 tools/castle-curves/castle-curves
 tools/castle-engine
 tools/image-to-pascal/image-to-pascal
+tools/internal/generate-persistent-vectors/generate-persistent-vectors
+tools/internal/teapot-to-pascal/teapot-to-pascal
+tools/internal/teapot-to-pascal/teapot-to-pascal.res
+tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 tools/texture-font-to-pascal/texture-font-to-pascal
+tools/to-data-uri/to-data-uri

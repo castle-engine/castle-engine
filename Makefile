@@ -154,100 +154,100 @@ strip-precompiled-libraries:
 #    by our engine or any game for anything).
 
 EXAMPLES_BASE_NAMES := \
-  examples/audio/algets \
-  examples/audio/alplay \
-  examples/audio/doppler_demo \
-  examples/audio/efx_demo \
-  examples/tools/dircleaner \
-  examples/tools/stringoper \
-  examples/tools/castle_download \
-  examples/tools/to_data_uri \
-  examples/castlescript/castle_calculator \
-  examples/castlescript/image_make_by_script \
-  examples/images_videos/image_convert \
-  examples/images_videos/dds_decompose \
-  examples/images_videos/image_identify \
-  examples/images_videos/image_paint \
-  examples/images_videos/image_compare \
-  examples/images_videos/simple_video_editor \
-  examples/images_videos/drawing_modes_test \
-  examples/images_videos/draw_images_on_gpu \
-  examples/images_videos/test_castleimage_draw3x3 \
-  examples/images_videos/image_render_custom_shader \
-  examples/joystick/joystick_demo \
-  examples/fonts/test_font_break \
-  examples/fonts/font_from_texture \
-  examples/fonts/test_local_characters/test_local_characters \
-  examples/fonts/html_text \
-  examples/fonts/font_draw_over_image \
-  examples/tiled/tiled_demo_standalone \
-  examples/window/window_events \
-  examples/window/window_menu \
-  examples/window/window_gtk_mix \
-  examples/window/multi_window \
-  examples/curves/simplest_curve_read \
-  examples/space_filling_curve/draw_space_filling_curve \
-  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
-  examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
-  examples/terrain/terrain \
+  examples/2d_standard_ui/edit_test/edit_test \
+  examples/2d_standard_ui/quick_2d_game/quick_2d_game \
+  examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
+  examples/2d_standard_ui/timer_test/timer_test \
+  examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/build_3d_object_by_code \
   examples/3d_rendering_processing/build_3d_tunnel \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
   examples/3d_rendering_processing/cars_demo \
-  examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
+  examples/3d_rendering_processing/custom_input_shortcuts_saved_to_config \
   examples/3d_rendering_processing/detect_scene_clicks \
   examples/3d_rendering_processing/display_box_custom_shaders \
   examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/listen_on_x3d_events \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/placeholder_names \
-  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
   examples/3d_rendering_processing/render_3d_to_image \
+  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/show_bounding_rect_in_2d \
+  examples/3d_rendering_processing/switch_projection \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
-  examples/3d_rendering_processing/switch_projection \
-  tools/internal/teapot-to-pascal/teapot-to-pascal \
-  tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal \
-  tools/internal/generate-persistent-vectors/generate-persistent-vectors \
   examples/3d_sound_game/lets_take_a_walk \
-  examples/resource_animations/resource_animations \
+  examples/audio/algets \
+  examples/audio/alplay \
+  examples/audio/doppler_demo \
+  examples/audio/efx_demo \
+  examples/castlescript/castle_calculator \
+  examples/castlescript/image_make_by_script \
+  examples/curves/simplest_curve_read \
+  examples/fonts/font_draw_over_image \
+  examples/fonts/font_from_texture \
+  examples/fonts/html_text \
+  examples/fonts/test_font_break \
+  examples/fonts/test_local_characters/test_local_characters \
   examples/fps_game/fps_game \
-  examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
-  examples/2d_standard_ui/edit_test/edit_test \
-  examples/2d_standard_ui/timer_test/timer_test \
-  examples/2d_standard_ui/zombie_fighter/zombie_fighter \
-  examples/2d_standard_ui/quick_2d_game/quick_2d_game \
+  examples/images_videos/dds_decompose \
+  examples/images_videos/draw_images_on_gpu \
+  examples/images_videos/drawing_modes_test \
+  examples/images_videos/image_compare \
+  examples/images_videos/image_convert \
+  examples/images_videos/image_identify \
+  examples/images_videos/image_paint \
+  examples/images_videos/image_render_custom_shader \
+  examples/images_videos/simple_video_editor \
+  examples/images_videos/test_castleimage_draw3x3 \
+  examples/joystick/joystick_demo \
+  examples/localization/custom/localization \
+  examples/localization/gettext/localization_test \
   examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
-  tools/image-to-pascal/image-to-pascal \
-  tools/texture-font-to-pascal/texture-font-to-pascal \
-  tools/castle-curves/castle-curves \
-  tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test \
-  examples/localization/gettext/localization_test \
-  examples/localization/custom/localization
+  examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/show_sh \
+  examples/resource_animations/resource_animations \
+  examples/simple_command_line_utilities/castle_download \
+  examples/simple_command_line_utilities/dircleaner \
+  examples/simple_command_line_utilities/stringoper \
+  examples/space_filling_curve/draw_space_filling_curve \
+  examples/terrain/terrain \
+  examples/tiled/tiled_demo_standalone \
+  examples/window/multi_window \
+  examples/window/window_events \
+  examples/window/window_gtk_mix \
+  examples/window/window_menu \
+  tools/castle-curves/castle-curves \
+  tools/image-to-pascal/image-to-pascal \
+  tools/internal/generate-persistent-vectors/generate-persistent-vectors \
+  tools/internal/teapot-to-pascal/teapot-to-pascal \
+  tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal \
+  tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
+  tools/texture-font-to-pascal/texture-font-to-pascal \
+  tools/to-data-uri/to-data-uri
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  examples/audio/test_al_source_allocator \
   examples/audio/audio_player_scrubber/audio_player_scrubber \
+  examples/audio/test_al_source_allocator \
+  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
-  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
-  examples/lazarus/two_controls/two_controls \
   examples/lazarus/quick_2d_game/quick_2d_game_lazarus \
-  tests/test_castle_game_engine \
-  src/library/castleengine \
+  examples/lazarus/two_controls/two_controls \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test \
+  src/library/castleengine \
+  tests/test_castle_game_engine \
   tools/build-tool/code/castle-engine \
   tools/castle-editor/code/castle_editor
 
