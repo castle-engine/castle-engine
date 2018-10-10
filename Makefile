@@ -66,6 +66,7 @@ tools:
 	tools/image-to-pascal/image-to-pascal_compile.sh
 	tools/castle-curves/castle-curves_compile.sh
 	tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d_compile.sh
+	tools/to-data-uri/to-data-uri_compile.sh
 
 .PHONY: build-using-fpmake
 build-using-fpmake:
@@ -109,6 +110,7 @@ install:
 	install tools/castle-curves/castle-curves $(BINDIR)
 	install tools/build-tool/castle-engine $(BINDIR)
 	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d $(BINDIR)
+	install tools/to-data-uri/to-data-uri $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	install -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
