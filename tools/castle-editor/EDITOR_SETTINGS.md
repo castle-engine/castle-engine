@@ -51,22 +51,6 @@ The features that can be controlled this way:
     (using `TCastleUserInterfaceFont.CustomFont`,
     `TCastleUserInterfaceFont.FontSize`).
 
-- Custom component classes:
-
-    Right now, the CGE editor doesn't allow installing custom components.
-    Although you could recompile the CGE editor with additional units
-    (that call `RegisterSerializableComponent`)
-    (but then be wary of CGE editor license in COPYING.GPL2.txt:
-    if you distribute a modified CGE editor only for internal purposes,
-    then you don't have to do anything;
-    but if you distribute a modified CGE editor publicly,
-    you have to share the code of your components too).
-
-    There is another way of informing the CGE editor about your custom components:
-
-    You can use `<additional_component>` element, as presented below,
-    to make CGE editor fake having an additional component class.
-
 # Example CastleSettings.xml
 
 ```xml
@@ -110,24 +94,5 @@ The features that can be controlled this way:
     size_at_load="20"
     anti_aliased="true"
   />
-
-  <!--
-    Use this if your game code calls this
-    (usually in the "initialization" section of some unit):
-
-      RegisterSerializableComponent(TUnholyButton, 'Unholy Button');
-
-    This way the castle-editor will allow you to use class TUnholyButton
-    (exposing TCastleButton properties of it).
-    The example assumes that TUnholyButton is a custom descendant of
-    TCastleButton.
-  -->
-  <additional_components>
-    <additional_component
-      class_name="TUnholyButton"
-      ancestor_class="TCastleButton"
-      caption="Unholy Button"
-    />
-  </additional_components>
 </castle_settings>
 ```
