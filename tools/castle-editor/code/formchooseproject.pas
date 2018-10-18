@@ -43,7 +43,9 @@ type
     procedure FormShow(Sender: TObject);
   private
     RecentProjects: TCastleRecentFiles;
+    CommandLineHandled: Boolean;
     procedure MenuItemRecentClick(Sender: TObject);
+    procedure OpenProjectFromCommandLine;
   public
 
   end;
@@ -56,7 +58,7 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
-  CastleFilesUtils,
+  CastleFilesUtils, CastleParameters,
   ProjectUtils, EditorUtils, FormNewProject;
 
 { TChooseProjectForm ------------------------------------------------------------- }
@@ -164,6 +166,7 @@ end;
 procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
+  OpenProjectFromCommandLine;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);
@@ -178,6 +181,25 @@ begin
   except
     Show;
     raise;
+  end;
+end;
+
+procedure TChooseProjectForm.OpenProjectFromCommandLine;
+begin
+  if CommandLineHandled then Exit;
+  CommandLineHandled := true;
+
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+  begin
+    Hide;
+    try
+      ProjectOpen(Parameters[1]);
+      RecentProjects.Add(Parameters[1], false);
+    except
+      Show;
+      raise;
+    end;
   end;
 end;
 

@@ -114,6 +114,18 @@ type
 const
   MaxAndroidTagLength = 23;
 
+{ Like @link(FindExe), but additionally look for the exe in
+  Castle Game Engine bin/ subdirectory. }
+function FindCgeExe(const ExeName: String): String;
+
+{ Path to CGE main directory,
+  obtained from $CASTLE_ENGINE_PATH environment variable.
+
+  Returns empty String if it wasn't possible to get a valid value.
+  Otherwise, the returned path always ends with path delimiter,
+  and always exists. }
+function CastleEnginePath: String;
+
 implementation
 
 uses Classes, Process, SysUtils,
@@ -364,6 +376,43 @@ begin
       Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
   end;
   Result := nil;
+end;
+
+function FindCgeExe(const ExeName: String): String;
+var
+  CgePath: String;
+begin
+  CgePath := CastleEnginePath;
+  if CgePath <> '' then
+  begin
+    Result := CgePath + 'bin' + PathDelim + ExeName + ExeExtension;
+    if FileExists(Result) then
+      Exit;
+  end;
+
+  Result := FindExe(ExeName);
+end;
+
+function CastleEnginePath: String;
+begin
+  Result := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+  if Result = '' then Exit;
+
+  Result := InclPathDelim(Result);
+
+  if not DirectoryExists(Result) then
+    Exit('');
+
+  { $CASTLE_ENGINE_PATH environment variable may point to the directory
+    - containing castle_game_engine/ as subdirectory
+    - or containing castle-engine/ as subdirectory
+    - or pointing straight to castle_game_engine/ or castle-engine/
+      directory. }
+  if DirectoryExists(Result + 'castle_game_engine') then
+    Result := Result + 'castle_game_engine' + PathDelim
+  else
+  if DirectoryExists(Result + 'castle-engine') then
+    Result := Result + 'castle-engine' + PathDelim;
 end;
 
 end.

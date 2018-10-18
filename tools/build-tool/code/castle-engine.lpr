@@ -145,6 +145,9 @@ begin
             '    Generate lpr and lpi files to edit and run this project in Lazarus.' +NL+
             '    Depends on game_units being defined in the CastleEngineManifest.xml.' +NL+
             NL+
+            'editor:' +NL+
+            '    Run Castle Game Engine Editor within this project, with possible project-specific components.' +NL+
+            NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
             VersionOptionHelp +NL+
@@ -279,9 +282,11 @@ begin
     Project := TCastleProject.Create;
     try
       if Command = 'create-manifest' then
-        Project.DoCreateManifest else
+        Project.DoCreateManifest
+      else
       if Command = 'compile' then
-        Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions) else
+        Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions)
+      else
       if Command = 'package' then
       begin
         if not AssumeCompiled then
@@ -310,13 +315,20 @@ begin
         Project.DoPackageSource;
       end else
       if Command = 'clean' then
-        Project.DoClean else
+        Project.DoClean
+      else
       if Command = 'auto-generate-textures' then
-        Project.DoAutoGenerateTextures else
+        Project.DoAutoGenerateTextures
+      else
       if Command = 'auto-generate-clean' then
-        Project.DoAutoGenerateClean else
+        Project.DoAutoGenerateClean
+      else
       if Command = 'generate-program' then
-        Project.DoGenerateProgram else
+        Project.DoGenerateProgram
+      else
+      if Command = 'editor' then
+        Project.DoEditor
+      else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

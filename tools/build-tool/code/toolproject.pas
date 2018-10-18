@@ -58,7 +58,7 @@ type
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
-    FGameUnits: string;
+    FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -149,6 +149,7 @@ type
     procedure DoAutoGenerateTextures;
     procedure DoAutoGenerateClean;
     procedure DoGenerateProgram;
+    procedure DoEditor;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -457,6 +458,7 @@ constructor TCastleProject.Create(const APath: string);
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FGameUnits := Doc.DocumentElement.AttributeStringDef('game_units', '');
+        FEditorUnits := Doc.DocumentElement.AttributeStringDef('editor_units', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
         FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
@@ -1529,6 +1531,49 @@ begin
   Generate('lpi');
 end;
 
+procedure TCastleProject.DoEditor;
+var
+  EditorExe, CgePath, EditorPath, LazbuildExe: String;
+begin
+  if Trim(FEditorUnits) = '' then
+  begin
+    EditorExe := FindCgeExe('castle-editor');
+    if EditorExe = '' then
+      raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
+  end else
+  begin
+    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
+      will always fail. }
+    CgePath := CastleEnginePath;
+    if CgePath = '' then
+      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+
+    // create custom editor directory
+    EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
+    { Do not remove previous directory contents,
+      allows to reuse previous lazbuild compilation results.
+      Only remove some previous files, to make sure template recreates them. }
+    DeleteFile(EditorPath + 'castle_editor.lpi');
+    DeleteFile(EditorPath + 'castle_editor.lpr');
+    DeleteFile(EditorPath + 'castle_editor.ico');
+    ExtractTemplate('custom_editor_template/', EditorPath);
+
+    // use lazbuild to compile CGE packages and CGE editor
+    LazbuildExe := FindExe('lazbuild');
+    if LazbuildExe = '' then
+      raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
+    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
+    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
+    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
+
+    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
+    if not FileExists(EditorExe) then
+      raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
+  end;
+
+  RunCommandSimple(EditorExe, [ManifestFile]);
+end;
+
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
 const
   AndroidScreenOrientation: array [TScreenOrientation] of string =
@@ -1693,16 +1738,20 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
-  function SearchPathsStr: string;
+  function SearchPathsStr(const Absolute: Boolean): String;
   var
-    S: string;
+    S, Dir: string;
   begin
     Result := '';
     for S in SearchPaths do
     begin
       if Result <> '' then
         Result := Result + ';';
-      Result := Result + S;
+      if Absolute then
+        Dir := CombinePaths(Path, S)
+      else
+        Dir := S;
+      Result := Result + Dir;
     end;
   end;
 
@@ -1758,7 +1807,10 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , FGameUnits);
-    Macros.Add('SEARCH_PATHS'    , SearchPathsStr);
+    Macros.Add('SEARCH_PATHS'         , SearchPathsStr(false));
+    Macros.Add('ABSOLUTE_SEARCH_PATHS', SearchPathsStr(true));
+    Macros.Add('EDITOR_UNITS'         , FEditorUnits);
+    Macros.Add('CASTLE_ENGINE_PATH'   , CastleEnginePath);
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
@@ -1783,7 +1835,7 @@ begin
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
   ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
-    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
+    raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
   TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
     @ExtractTemplateFoundFile, [ffRecursive]);
