@@ -446,6 +446,17 @@ constructor TCastleProject.Create(const APath: string);
           [AndroidMinSdkVersion, ReallyMinSdkVersion]);
     end;
 
+    { Change compiler option @xxx to use absolute paths.
+      Important for "castle-engine editor" where ExtraCompilerOptions is inserted
+      into lpk, but lpk is in a different directory.
+      Testcase: unholy_society. }
+    function FixCompilerOption(const Option: String): String;
+    begin
+      Result := Trim(Option);
+      if (Length(Option) >= 2) and (Option[1] = '@') then
+        Result := '@' + CombinePaths(Path, SEnding(Option, 2));
+    end;
+
   var
     Doc: TXMLDocument;
     ManifestURL, AndroidProjectTypeStr: string;
@@ -639,7 +650,7 @@ constructor TCastleProject.Create(const APath: string);
             ChildElements := ChildElement.ChildrenIterator('option');
             try
               while ChildElements.GetNext do
-                ExtraCompilerOptions.Add(ChildElements.Current.TextData);
+                ExtraCompilerOptions.Add(FixCompilerOption(ChildElements.Current.TextData));
             finally FreeAndNil(ChildElements) end;
           end;
 
