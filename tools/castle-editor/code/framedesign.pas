@@ -60,6 +60,8 @@ type
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ToggleInteractModeClick(Sender: TObject);
     procedure ToggleSelectTranslateResizeModeClick(Sender: TObject);
+  protected
+    procedure SetParent(AParent: TWinControl); override;
   private
     type
       { UI layer that can intercept mouse clicks and drags. }
@@ -1206,6 +1208,25 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moSelectTranslateResize);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.SetParent(AParent: TWinControl);
+{$ifdef LCLwin32}
+var
+  H: Integer;
+{$endif}
+begin
+  inherited SetParent(AParent);
+  {$ifdef LCLwin32}
+  // fix height of rows of object inspector
+  if AParent <> nil then
+  begin
+    H := Canvas.TextHeight('Wg') + 4;
+    InspectorSimple.DefaultItemHeight := H;
+    InspectorAdvanced.DefaultItemHeight := H;
+    InspectorEvents.DefaultItemHeight := H;
+  end;
+  {$endif}
 end;
 
 function TDesignFrame.ProposeName(const ComponentClass: TComponentClass;
