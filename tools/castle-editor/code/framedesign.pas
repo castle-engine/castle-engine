@@ -279,17 +279,24 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if (Frame.Mode = moSelectTranslateResize) and Event.IsMouseButton(mbLeft) then
+  if (Frame.Mode = moSelectTranslateResize) and
+     (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
   begin
-    // TODO: for now selects only UI control, not TCastleTransform
-    UI := HoverUserInterface(Event.Position);
+    { Left mouse button selects before moving/resizing.
+      Right mouse button doesn't. This allows to change the size of the control
+      without changing the selected control, e.g. when you want to change
+      the size of TCastleScrollView without
+      selecting TCastleScrollView.ScrollArea inside. }
+    if Event.IsMouseButton(mbLeft) then
+      SelectedUserInterface := HoverUserInterface(Event.Position);
+
+    UI := SelectedUserInterface;
     if UI <> nil then
     begin
       if IsResizing(UI, Event.Position, ResizingHorizontal, ResizingVertical) then
         DraggingMode := dmResize
       else
         DraggingMode := dmTranslate;
-      SelectedUserInterface := UI;
       Exit(ExclusiveEvents);
     end;
 
@@ -302,7 +309,7 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) then
+  if (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
     DraggingMode := dmNone;
 end;
 
@@ -490,7 +497,9 @@ begin
   { in case user left mouse button, but the event didn't reach us for some reason
     (maybe can happen e.g. if you Alt+Tab during dragging?),
     reset DraggingMode. }
-  if (DraggingMode <> dmNone) and (not (mbLeft in Event.Pressed)) then
+  if (DraggingMode <> dmNone) and
+     // neither mbLeft nor mbRight
+     ([mbLeft, mbRight] * Event.Pressed = []) then
     DraggingMode := dmNone;
 
   if (Frame.Mode = moSelectTranslateResize) and (DraggingMode <> dmNone) then
