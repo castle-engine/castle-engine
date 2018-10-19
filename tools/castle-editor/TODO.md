@@ -270,4 +270,4 @@ Lowest priority (OK if not in 1st release):
   Warning: You are opening a project with possible custom components (editor_units attribute in CastleEngineManifest.xml), but these custom components are not compiled-in in this editor version. Use menu item "Restart editor in this project" to get the correct editor version.
   """
 
-- Do not rebuild "castle-engine editor" when not needed, how? Compare lpi and keep previous timestamp? Or does lazbuild just always recompiles, even when xxx.compiled file is present?
+- Do not rebuild "castle-engine editor" when not needed. It seems we should compare generated lpi/lpk, and *do not* overwrite (to not change timestamp) when equal. This way Lazarus xxx.compiled files will work.
