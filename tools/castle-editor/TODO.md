@@ -79,6 +79,7 @@ Lower priority:
             and descendants could set e.g.
               Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
               Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
+	      Reason = 'Turn off FullSize to change control size.'
 
           utility:
           when trying to drag to resize, we could show a suitable hint
@@ -259,3 +260,14 @@ Lowest priority (OK if not in 1st release):
 
 * allow to import file with textures, audio, inline tracked
   as alternative at warning message when opening file outside of castle-data:
+
+------------------------------------------------------------------------------
+"castle-engine editor" improvements:
+
+- Make editor warn when opening project with editor_units, but castle_editor_automatic_package not compiled in. (Known registered packages? Or just unit castleeditorcustomcomponents.pas can set some global variable?)
+
+  """
+  Warning: You are opening a project with possible custom components (editor_units attribute in CastleEngineManifest.xml), but these custom components are not compiled-in in this editor version. Use menu item "Restart editor in this project" to get the correct editor version.
+  """
+
+- Do not rebuild "castle-engine editor" when not needed, how? Compare lpi and keep previous timestamp? Or does lazbuild just always recompiles, even when xxx.compiled file is present?

@@ -78,6 +78,10 @@ procedure RunCommandSimple(
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = ''); overload;
 
+{ Run the command, and return immediately, without waiting for finish. }
+procedure RunCommandNoWait(
+  const ExeName: string; const Options: array of string);
+
 var
   { Trivial verbosity global setting. }
   Verbose: boolean = false;
@@ -276,6 +280,51 @@ begin
     FreeAndNil(p);
     FreeAndNil(NewEnvironment);
   end;
+end;
+
+procedure RunCommandNoWait(
+  const ExeName: string; const Options: array of string);
+var
+  P: TProcess;
+  I: Integer;
+  {$ifdef UNIX} NoHupExe: String; {$endif}
+begin
+  P := TProcess.Create(nil);
+  try
+    P.Executable := ExeName;
+
+    { Under Unix, execute using nohup.
+      This way the parent process can die (and destroy child's IO handles)
+      and the new process will keep running OK.
+      This is important when you execute in "castle-editor" the option
+      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
+      and both "castle-editor" and "castle-engine" processes die
+      (while the new CGE editor should continue running). }
+    {$ifdef UNIX}
+    NoHupExe := FindExe('nohup');
+    if NoHupExe <> '' then
+    begin
+      P.Executable := NoHupExe;
+      P.Parameters.Add(ExeName);
+    end;
+    {$endif}
+
+    for I := Low(Options) to High(Options) do
+      P.Parameters.Add(Options[I]);
+
+    { Under Windows, these options should make a process execute OK.
+      Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
+    P.InheritHandles := false;
+    P.ShowWindow := swoShow;
+
+    if Verbose then
+    begin
+      Writeln('Calling ' + ExeName);
+      Writeln(P.Parameters.Text);
+    end;
+
+    P.Execute;
+  finally FreeAndNil(P) end;
 end;
 
 procedure RunCommandSimple(

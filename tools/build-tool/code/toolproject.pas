@@ -1606,7 +1606,7 @@ begin
       raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
   end;
 
-  RunCommandSimple(EditorExe, [ManifestFile]);
+  RunCommandNoWait(EditorExe, [ManifestFile]);
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);

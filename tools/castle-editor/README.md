@@ -51,6 +51,20 @@ The visual editor is available as a component (`TCastleEditor`) that works in 3 
 
     This is quite like GLScene or FireMonkey experience — a RAD tool to edit your game right inside the environment you know and love.
 
+### Include custom (project-specific) components in the visual designer
+
+Larger projects may define custom components (descendants of the `TCastleUserInterface` or `TCastleTransform`). It is possible to include your custom components within the _Castle Game Engine Editor_, so that they can be used at design-time, just like standard CGE components. To do this:
+
+1. In the initialization section of some unit (it may be the same unit where you define your custom component), register it.
+    * Use unit `CastleComponentSerialize`.
+    * In the `initialization` section add a call like this: `RegisterSerializableComponent(TMyButton, 'My Button');`
+
+2. Inside your [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples), set the attribute `editor_units` to list all the units that call the mentioned `RegisterSerializableComponent`. It is a comma-separated list, like `editor_units="MyButtonUnit, MyMenuUnit"`.
+
+3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `CASTLE_ENGINE_PATH` is correctly defined.
+
+4. Use the [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`. This will automatically build and run a customized version of the editor that includes your custom components. This step can be replaced by calling _"Project -> Restart Editor (may rebuild editor with custom controls)"_ from the editor.
+
 ### Open and run source code with external applications
 
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).

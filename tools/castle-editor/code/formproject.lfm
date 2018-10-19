@@ -123,12 +123,16 @@ object ProjectForm: TProjectForm
     top = 24
     object MenuItemFile: TMenuItem
       Caption = 'Project'
+      object MenuItemRestartRebuildEditor: TMenuItem
+        Caption = 'Restart Editor (may rebuild editor with custom controls)'
+        OnClick = MenuItemRestartRebuildEditorClick
+      end
+      object MenuItemSeparator788: TMenuItem
+        Caption = '-'
+      end
       object MenuItemSwitchProject: TMenuItem
         Caption = 'Close and Switch Project'
         OnClick = MenuItemSwitchProjectClick
-      end
-      object MenuItemSeparator1000: TMenuItem
-        Caption = '-'
       end
       object MenuItemQuit: TMenuItem
         Caption = 'Quit'

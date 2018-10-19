@@ -31,6 +31,8 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemSeparator788: TMenuItem;
+    MenuItemRestartRebuildEditor: TMenuItem;
     MenuItemSortBackToFront2D: TMenuItem;
     MenuItemCameraViewAll: TMenuItem;
     MenuItemSeparator1300: TMenuItem;
@@ -45,7 +47,6 @@ type
     MenuItemDesignAddTransform: TMenuItem;
     MenuItemDesignAddUserInterface: TMenuItem;
     MenuItemSeparator150: TMenuItem;
-    MenuItemSeparator1000: TMenuItem;
     MenuItemDesignClose: TMenuItem;
     MenuItemSeparator400: TMenuItem;
     MenuItemDesign: TMenuItem;
@@ -123,6 +124,7 @@ type
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
+    procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
     procedure MenuItemSortBackToFront2DClick(Sender: TObject);
@@ -135,7 +137,8 @@ type
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
     Design: TDesignFrame;
-    procedure BuildToolCall(const Commands: array of String);
+    procedure BuildToolCall(const Commands: array of String;
+        const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
@@ -184,6 +187,11 @@ procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
 begin
   BuildMode := bmRelease;
   MenuItemModeRelease.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
+begin
+  BuildToolCall(['editor'], true);
 end;
 
 procedure TProjectForm.MenuItemSaveAsDesignClick(Sender: TObject);
@@ -472,7 +480,8 @@ begin
   ProcessUpdateTimer.Enabled := false;
 end;
 
-procedure TProjectForm.BuildToolCall(const Commands: array of String);
+procedure TProjectForm.BuildToolCall(const Commands: array of String;
+  const ExitOnSuccess: Boolean);
 var
   BuildToolExe, ModeString, Command: String;
   QueueItem: TAsynchronousProcessQueue.TQueueItem;
@@ -510,6 +519,9 @@ begin
     QueueItem.Parameters.Add(Command);
     RunningProcess.Queue.Add(QueueItem);
   end;
+
+  if ExitOnSuccess then
+    RunningProcess.OnSuccessfullyFinishedAll := @MenuItemQuitClick;
 
   RunningProcess.Start;
 end;
