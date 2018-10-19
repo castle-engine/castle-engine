@@ -492,6 +492,11 @@ begin
       FpcOptions.Add('-vm5089');
 
       // do not show
+      // Warning: Variable "OutputFace" of a managed type does not seem to be initialized
+      // (3 false warnings since FPC 3.3.1 in Kraft)
+      FpcOptions.Add('-vm5090');
+
+      // do not show
       // Warning: function result variable of a managed type does not seem to be initialized
       // (a lot of false warnings since FPC 3.3.1)
       FpcOptions.Add('-vm5093');
