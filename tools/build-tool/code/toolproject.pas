@@ -53,7 +53,8 @@ type
     GatheringFilesVsData: boolean; //< only for PackageFilesGather
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
-    IncludePaths, ExcludePaths, ExtraCompilerOptions: TCastleStringList;
+    IncludePaths, ExcludePaths: TCastleStringList;
+    ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
@@ -447,14 +448,14 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
     { Change compiler option @xxx to use absolute paths.
-      Important for "castle-engine editor" where ExtraCompilerOptions is inserted
+      Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
       into lpk, but lpk is in a different directory.
       Testcase: unholy_society. }
-    function FixCompilerOption(const Option: String): String;
+    function MakeAbsoluteCompilerOption(const Option: String): String;
     begin
       Result := Trim(Option);
-      if (Length(Option) >= 2) and (Option[1] = '@') then
-        Result := '@' + CombinePaths(Path, SEnding(Option, 2));
+      if (Length(Result) >= 2) and (Result[1] = '@') then
+        Result := '@' + CombinePaths(Path, SEnding(Result, 2));
     end;
 
   var
@@ -462,6 +463,7 @@ constructor TCastleProject.Create(const APath: string);
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
+    NewCompilerOption: String;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -650,7 +652,11 @@ constructor TCastleProject.Create(const APath: string);
             ChildElements := ChildElement.ChildrenIterator('option');
             try
               while ChildElements.GetNext do
-                ExtraCompilerOptions.Add(FixCompilerOption(ChildElements.Current.TextData));
+              begin
+                NewCompilerOption := ChildElements.Current.TextData;
+                ExtraCompilerOptions.Add(NewCompilerOption);
+                ExtraCompilerOptionsAbsolute.Add(MakeAbsoluteCompilerOption(NewCompilerOption));
+              end;
             finally FreeAndNil(ChildElements) end;
           end;
 
@@ -737,6 +743,7 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   ExtraCompilerOptions := TCastleStringList.Create;
+  ExtraCompilerOptionsAbsolute := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
@@ -762,6 +769,7 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(ExtraCompilerOptions);
+  FreeAndNil(ExtraCompilerOptionsAbsolute);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
@@ -1838,6 +1846,7 @@ begin
     Macros.Add('ABSOLUTE_SEARCH_PATHS' , SearchPathsStr(true));
     Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
     Macros.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
+    Macros.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', ExtraCompilerOptionsAbsolute.Text);
     Macros.Add('EDITOR_UNITS'          , FEditorUnits);
 
     AddMacrosAndroid(Macros);

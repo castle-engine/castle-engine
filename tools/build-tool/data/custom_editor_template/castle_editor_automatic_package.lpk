@@ -11,7 +11,7 @@
         <UnitOutputDirectory Value="lib-package/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
-        <CustomOptions Value="${EXTRA_COMPILER_OPTIONS}"/>
+        <CustomOptions Value="${EXTRA_COMPILER_OPTIONS_ABSOLUTE}"/>
       </Other>
     </CompilerOptions>
     <Files Count="1">
