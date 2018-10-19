@@ -3314,7 +3314,9 @@ begin
   inherited;
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
-      Proc(FControls[I]);
+      // do not save SubComponents, like TCastleScrollView.ScrollArea.
+      if not (csSubComponent in FControls[I].ComponentStyle) then
+        Proc(FControls[I]);
 end;
 
 procedure TCastleUserInterface.CreateControls;
