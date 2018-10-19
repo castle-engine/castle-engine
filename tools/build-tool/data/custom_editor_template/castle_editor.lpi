@@ -105,13 +105,16 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
         <PackageName Value="castle_components"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
       </Item2>
+      <Item3>
+        <PackageName Value="castle_editor_automatic_package"/>
+      </Item3>
     </RequiredPackages>
     <Units Count="8">
       <Unit0>
@@ -173,8 +176,8 @@
       <Filename Value="castle-editor"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);${ABSOLUTE_SEARCH_PATHS}"/>
-      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code;${ABSOLUTE_SEARCH_PATHS}"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

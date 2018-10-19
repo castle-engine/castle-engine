@@ -7,8 +7,11 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
-  EditorUtils, FormProject, FrameDesign, ${EDITOR_UNITS}
+  // packages:
+  castle_components,
+  castle_editor_automatic_package,
+  Forms, FormChooseProject, ProjectUtils, FormNewProject,
+  EditorUtils, FormProject, FrameDesign
   { you can add units after this };
 
 {$R *.res}
@@ -25,4 +28,3 @@ begin
   {$endif}
   Application.Run;
 end.
-

@@ -71,7 +71,10 @@ type
     FAssociateDocumentTypes: TAssociatedDocTypeList;
     FListLocalizedAppName: TListLocalizedAppName;
     // Helpers only for ExtractTemplateFoundFile.
+    // @groupBegin
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
+    ExtractTemplateOverrideExisting: Boolean;
+    // @groupEnd
     IOSTeam: string;
     procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -193,8 +196,23 @@ type
       to the build tool data) to the DestinationPath (this should be an absolute
       existing directory name).
 
-      Each file is processed by the ReplaceMacros method. }
-    procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
+      Each file is processed by the ReplaceMacros method.
+
+      OverrideExisting says what happens when the destination file already exists.
+
+      - OverrideExisting = @false (default) means that the
+        destination file will be left unchanged
+        (to preserve possible user customization),
+        or source will be merged into destination
+        (in case of special filenames;
+        this allows to e.g. merge AndroidManifest.xml).
+
+      - OverrideExisting = @true means that the destination file
+        will simply be overridden, without any warning, without
+        any merging.
+    }
+    procedure ExtractTemplate(const TemplatePath, DestinationPath: string;
+      const OverrideExisting: Boolean = false);
 
     { Output Android library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
@@ -781,7 +799,7 @@ begin
   try
     ExtraOptions.AddRange(ExtraCompilerOptions);
     if FpcExtraOptions <> nil then
-       ExtraOptions.AddRange(FpcExtraOptions);
+      ExtraOptions.AddRange(FpcExtraOptions);
 
     if Target = targetIOS then
     begin
@@ -1552,11 +1570,8 @@ begin
     EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
     { Do not remove previous directory contents,
       allows to reuse previous lazbuild compilation results.
-      Only remove some previous files, to make sure template recreates them. }
-    DeleteFile(EditorPath + 'castle_editor.lpi');
-    DeleteFile(EditorPath + 'castle_editor.lpr');
-    DeleteFile(EditorPath + 'castle_editor.ico');
-    ExtractTemplate('custom_editor_template/', EditorPath);
+      Just silence ExtractTemplate warnings when overriding. }
+    ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
     LazbuildExe := FindExe('lazbuild');
@@ -1564,6 +1579,7 @@ begin
       raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
+    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor_automatic_package.lpk');
     RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
@@ -1807,10 +1823,11 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , FGameUnits);
-    Macros.Add('SEARCH_PATHS'         , SearchPathsStr(false));
-    Macros.Add('ABSOLUTE_SEARCH_PATHS', SearchPathsStr(true));
-    Macros.Add('EDITOR_UNITS'         , FEditorUnits);
-    Macros.Add('CASTLE_ENGINE_PATH'   , CastleEnginePath);
+    Macros.Add('SEARCH_PATHS'          , SearchPathsStr(false));
+    Macros.Add('ABSOLUTE_SEARCH_PATHS' , SearchPathsStr(true));
+    Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
+    Macros.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
+    Macros.Add('EDITOR_UNITS'          , FEditorUnits);
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
@@ -1828,10 +1845,12 @@ begin
   finally FreeAndNil(Macros) end;
 end;
 
-procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string);
+procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string;
+  const OverrideExisting: boolean);
 var
   TemplateFilesCount: Cardinal;
 begin
+  ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
   ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
@@ -1866,7 +1885,8 @@ begin
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
 
   ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName,
-    DestinationRelativeFileName, false);
+    DestinationRelativeFileName,
+    ExtractTemplateOverrideExisting);
 end;
 
 procedure TCastleProject.ExtractTemplateFile(
