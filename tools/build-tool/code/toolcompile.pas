@@ -418,7 +418,7 @@ begin
         AddEnginePath('physics');
         AddEnginePath('physics/kraft');
 
-        if not FPCVer.AtLeast(3, 1, 1) or FPCVer.IsCodeTyphon then
+        if (not FPCVer.AtLeast(3, 1, 1)) or FPCVer.IsCodeTyphon then
           AddEnginePath('compatibility/generics.collections/src');
 
         { Do not add castle-fpc.cfg.
