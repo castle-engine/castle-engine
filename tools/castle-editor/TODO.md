@@ -260,7 +260,6 @@ Lowest priority (OK if not in 1st release):
 
 * allow to import file with textures, audio, inline tracked
   as alternative at warning message when opening file outside of castle-data:
-
 ------------------------------------------------------------------------------
 "castle-engine editor" improvements:
 
@@ -271,3 +270,5 @@ Lowest priority (OK if not in 1st release):
   """
 
 - Do not rebuild "castle-engine editor" when not needed. It seems we should compare generated lpi/lpk, and *do not* overwrite (to not change timestamp) when equal. This way Lazarus xxx.compiled files will work.
+
+    Hm, risky. Lazarus will then not recompile when only editor_units changed.

@@ -1007,11 +1007,15 @@ type
     FKeepInFront, FCapturesEvents: boolean;
     FWidth, FHeight: Single;
     FFullSize: boolean;
+    FAutoSizeToChildren: Boolean;
+    FSizeFromChildrenValid: Boolean;
+    FSizeFromChildrenRect: TFloatRectangle;
 
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
     procedure SetControls(const I: Integer; const Item: TCastleUserInterface);
     procedure CreateControls;
+    procedure SetAutoSizeToChildren(const Value: Boolean);
 
     { This takes care of some internal quirks with saving Left property
       correctly. (Because TComponent doesn't declare, but saves/loads a "magic"
@@ -1577,6 +1581,23 @@ type
     property Width: Single read FWidth write SetWidth default DefaultWidth;
     property Height: Single read FHeight write SetHeight default DefaultHeight;
     { @groupEnd }
+
+    { Adjust size to encompass all the children.
+      The properties @link(FullSize), @link(Width), @link(Height)
+      are ignored in this case.
+      Our @link(Left) and @link(Bottom) still matter.
+
+      Our size is adjusted to all existing children sizes and positions.
+
+      Note that this works only for simple children anchors:
+      the left edge of the child to the left edge of the parent,
+      the bottom edge of the child to the bottom edge of the parent,
+      and so on.
+      It is impossible to adjust this calculation to all possible children anchors
+      values, since the interpretation of anchors depends on the parent size.
+    }
+    property AutoSizeToChildren: Boolean
+      read FAutoSizeToChildren write SetAutoSizeToChildren default false;
 
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect)
@@ -3511,6 +3532,8 @@ begin
   inherited;
   if Parent <> nil then
     Parent.VisibleChange(Changes, true);
+  if [chRectangle, chChildren] * Changes <> [] then
+    FSizeFromChildrenValid := false;
 end;
 
 procedure TCastleUserInterface.SetExists(const Value: boolean);
@@ -3664,7 +3687,78 @@ begin
 end;
 
 function TCastleUserInterface.Rect: TFloatRectangle;
+
+  procedure UpdateSizeFromChildren;
+  var
+    I: Integer;
+    C: TCastleUserInterface;
+    ChildRect: TFloatRectangle;
+  begin
+    if FSizeFromChildrenValid then Exit;
+    FSizeFromChildrenValid := true;
+    FSizeFromChildrenRect := TFloatRectangle.Empty;
+
+    for I := 0 to ControlsCount - 1 do
+    begin
+      C := Controls[I];
+      if not C.GetExists then Continue;
+
+      { Calculate ChildRect.
+        We cannot use C.EffectiveRect or C.RectWithAnchors now,
+        as they would query ParentRect, thus recursively asking for our
+        current size.
+        Although FSizeFromChildrenValid would prevent from entering an infinite
+        loop, it would be still unreliable to use such result. }
+      ChildRect := C.Rect.ScaleAround0(1 / UIScale);
+      if not ChildRect.IsEmpty then
+      begin
+        // apply C anchors, at least some cases
+
+        if C.HasHorizontalAnchor then
+        begin
+          if (C.HorizontalAnchorSelf = hpLeft) and
+             (C.HorizontalAnchorParent = hpLeft) then
+            ChildRect.Left := ChildRect.Left + C.HorizontalAnchorDelta
+          else
+          if (C.HorizontalAnchorSelf = hpRight) and
+             (C.HorizontalAnchorParent = hpRight) then
+            // when right anchor has delta -10, increase width + 10
+            ChildRect.Width := ChildRect.Width - C.HorizontalAnchorDelta;
+        end;
+
+        if C.HasVerticalAnchor then
+        begin
+          if (C.VerticalAnchorSelf = vpBottom) and
+             (C.VerticalAnchorParent = vpBottom) then
+            ChildRect.Bottom := ChildRect.Bottom + C.VerticalAnchorDelta
+          else
+          if (C.VerticalAnchorSelf = vpTop) and
+             (C.VerticalAnchorParent = vpTop) then
+            ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
+        end;
+      end;
+
+      FSizeFromChildrenRect := FSizeFromChildrenRect + ChildRect;
+    end;
+  end;
+
 begin
+  if AutoSizeToChildren then
+  begin
+    UpdateSizeFromChildren;
+    if FSizeFromChildrenRect.IsEmpty then
+      Result := TFloatRectangle.Empty
+    else
+      { We do not use FSizeFromChildrenRect.Left/Bottom.
+        This would shift children:
+        Imagine a child with anchor (on the left) equal 100.
+        If this would increase our resulting Rect.Left by 100,
+        then child would still have to move another 100 to the left,
+        thus landing at total left = 200. }
+      Result := FloatRectangle(Left, Bottom,
+        FSizeFromChildrenRect.Right, FSizeFromChildrenRect.Top).
+        ScaleAround0(UIScale);
+  end else
   if FullSize then
     Result := ParentRect
   else
@@ -3940,6 +4034,15 @@ begin
   begin
     FFullSize := Value;
     VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleUserInterface.SetAutoSizeToChildren(const Value: Boolean);
+begin
+  if FAutoSizeToChildren <> Value then
+  begin
+    FAutoSizeToChildren := Value;
+    FSizeFromChildrenValid := false;
   end;
 end;
 
