@@ -30,7 +30,7 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager;
+  CastleSceneManager, CastleControls;
 
 type
   { Frame to visually design component hierarchy. }
@@ -74,6 +74,8 @@ type
           DraggingMode: TDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when DraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
+          LabelHover: TCastleLabel;
+          RectHover: TCastleRectangleControl;
         function GetSelectedUserInterface: TCastleUserInterface;
         procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
@@ -163,8 +165,7 @@ implementation
 
 uses TypInfo, StrUtils, Math,
   CastleComponentSerialize, CastleTransform, CastleUtils,
-  CastleControls, CastleURIUtils, CastleStringUtils,
-  CastleGLUtils, CastleColors, CastleCameras,
+  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
 
 {$R *.lfm}
@@ -183,6 +184,18 @@ constructor TDesignFrame.TDesignerLayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FullSize := true;
+
+  RectHover := TCastleRectangleControl.Create(Self);
+  RectHover.Color := Vector4(0, 0, 0, 0.5);
+  RectHover.Exists := false;
+  InsertFront(RectHover);
+
+  LabelHover := TCastleLabel.Create(Self);
+  LabelHover.Color := Yellow;
+  LabelHover.Anchor(hpMiddle);
+  LabelHover.Anchor(vpMiddle);
+  LabelHover.FontSize := 15;
+  RectHover.InsertFront(LabelHover);
 end;
 
 function TDesignFrame.TDesignerLayer.GetSelectedUserInterface: TCastleUserInterface;
@@ -556,6 +569,13 @@ begin
     R := UI.RenderRect;
     DrawRectangleOutline(R, Vector4(1, 1, 0, 0.75));
 
+    LabelHover.Caption := Frame.ComponentCaption(UI);
+    RectHover.Exists := true;
+    RectHover.Width := LabelHover.EffectiveWidth + 6;
+    RectHover.Height := LabelHover.EffectiveHeight + 6;
+    RectHover.Anchor(hpLeft, R.Left / UIScale);
+    RectHover.Anchor(vpBottom, R.Top / UIScale);
+
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
     if not UI.FullSize then
@@ -566,7 +586,8 @@ begin
       DrawRectangleOutline(R, Vector4(1, 1, 0, 0.25));
     end;
     }
-  end;
+  end else
+    RectHover.Exists := false;
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
