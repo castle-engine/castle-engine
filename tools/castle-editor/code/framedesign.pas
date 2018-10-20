@@ -186,12 +186,12 @@ begin
   FullSize := true;
 
   RectHover := TCastleRectangleControl.Create(Self);
-  RectHover.Color := Vector4(0, 0, 0, 0.5);
+  RectHover.Color := Vector4(0, 0, 0, 0.25);
   RectHover.Exists := false;
   InsertFront(RectHover);
 
   LabelHover := TCastleLabel.Create(Self);
-  LabelHover.Color := Yellow;
+  LabelHover.Color := HexToColor('fffba0'); // desaturated yellow
   LabelHover.Anchor(hpMiddle);
   LabelHover.Anchor(vpMiddle);
   LabelHover.FontSize := 15;
