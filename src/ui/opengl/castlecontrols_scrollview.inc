@@ -73,8 +73,16 @@
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
   published
     { Children you add here will be scrolled.
-      Make sure to add some children here, and set proper size of this control,
-      to have a useful scrolling area. }
+      To have a useful scrolling area:
+
+      @unorderedList(
+        @itemSpacing compact
+        @item(Add some children to ScrollArea,)
+        @item(Set proper size of the ScrollArea (you can set an explicit size,
+          or use @link(TCastleUserInterface.AutoSizeToChildren)),)
+        @item(Leave the ScrollArea anchors as default: ScrollArea should be
+          anchored to the top-left corner of the parent.)
+      ) }
     property ScrollArea: TCastleUserInterface read FScrollArea;
     { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
