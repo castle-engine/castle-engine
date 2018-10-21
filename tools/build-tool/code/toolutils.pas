@@ -80,6 +80,7 @@ procedure RunCommandSimple(
 
 { Run the command, and return immediately, without waiting for finish. }
 procedure RunCommandNoWait(
+  const ProjectPath: string;
   const ExeName: string; const Options: array of string);
 
 var
@@ -283,6 +284,7 @@ begin
 end;
 
 procedure RunCommandNoWait(
+  const ProjectPath: string;
   const ExeName: string; const Options: array of string);
 var
   P: TProcess;
@@ -292,6 +294,8 @@ begin
   P := TProcess.Create(nil);
   try
     P.Executable := ExeName;
+    // this is useful on Unix, to place nohup.out inside temp directory
+    P.CurrentDirectory := TempOutputPath(ProjectPath);
 
     { Under Unix, execute using nohup.
       This way the parent process can die (and destroy child's IO handles)
