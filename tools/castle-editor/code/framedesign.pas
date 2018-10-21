@@ -164,7 +164,7 @@ type
 implementation
 
 uses TypInfo, StrUtils, Math,
-  CastleComponentSerialize, CastleTransform, CastleUtils,
+  CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
 
@@ -945,10 +945,31 @@ procedure TDesignFrame.CameraViewAll;
   procedure AdjustCamera(const SceneManager: TCastleSceneManager);
   var
     Position, Direction, Up, GravityUp: TVector3;
+    ProjectionWidth, ProjectionHeight, ProjectionSpan: Single;
+    SceneManager2D: TCastle2DSceneManager;
   begin
-    CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
-      2, 1, false, true, // dir = -Z, up = +Y
-      Position, Direction, Up, GravityUp);
+    if SceneManager is TCastle2DSceneManager then
+    begin
+      SceneManager2D := TCastle2DSceneManager(SceneManager);
+      CameraOrthoViewpointForWholeScene(SceneManager.Items.BoundingBox,
+      SceneManager2D.EffectiveWidth, SceneManager2D.EffectiveHeight,
+        SceneManager2D.ProjectionOriginCenter,
+        Position, ProjectionWidth, ProjectionHeight, ProjectionSpan);
+      SceneManager2D.ProjectionAutoSize := false;
+      SceneManager2D.ProjectionWidth := ProjectionWidth;
+      SceneManager2D.ProjectionHeight := ProjectionHeight;
+      SceneManager2D.ProjectionSpan := ProjectionSpan;
+      // set the rest of variables to constant values, matching 2D game view
+      Direction := Vector3(0, 0, -1);
+      Up := Vector3(0, 1, 0);
+      GravityUp := Up;
+    end else
+    begin
+      CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
+        2, 1, false, true, // dir = -Z, up = +Y
+        Position, Direction, Up, GravityUp);
+    end;
+
     SceneManager.RequiredCamera.AnimateTo(Position, Direction, Up, 0.5);
     SceneManager.RequiredCamera.GravityUp := GravityUp;
     // Makes Examine camera pivot, and scroll speed, adjust to sizes

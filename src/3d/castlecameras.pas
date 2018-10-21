@@ -1690,6 +1690,33 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirectionPositive, WantedUpPositive: boolean;
   out Position, Direction, Up, GravityUp: TVector3);
 
+{ Calculate suitable camera to see everything using an orthographic projection.
+
+  Assumes that the camera direction is -Z, and camera up is +Y.
+  So the horizontal axis of the world is X,
+  vertical axis is Y.
+  These are default values of camera in TCastle2DSceneManager.
+
+  The meaning of ProjectionOriginCenter is the same as
+  @link(TCastle2DSceneManager.ProjectionOriginCenter).
+
+  Returns new correct values of
+  @link(TCastle2DSceneManager.ProjectionWidth),
+  @link(TCastle2DSceneManager.ProjectionHeight),
+  @link(TCastle2DSceneManager.ProjectionSpan) and camera position
+  (set it like @code(SceneManager.RequiredCamera.Position := NewPosition;)).
+
+  Remember to set @link(TCastle2DSceneManager.ProjectionAutoSize) to @false,
+  otherwise
+  @link(TCastle2DSceneManager.ProjectionWidth),
+  @link(TCastle2DSceneManager.ProjectionHeight) are ignored.
+}
+procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
+  const ViewportWidth, ViewportHeight: Single;
+  const ProjectionOriginCenter: Boolean;
+  out Position: TVector3;
+  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+
 procedure Register;
 
 implementation
@@ -4731,6 +4758,89 @@ begin
 
   { GravityUp is just always equal Up here. }
   GravityUp := Up;
+end;
+
+procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
+  const ViewportWidth, ViewportHeight: Single;
+  const ProjectionOriginCenter: Boolean;
+  out Position: TVector3;
+  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+
+  { Calculate Position.XY and AProjectionWidth, AProjectionHeight. }
+  function PositionXY: TVector2;
+  var
+    Rect: TFloatRectangle;
+    ResultingProjectionWidth, ResultingProjectionHeight: Single;
+  begin
+    if Box.IsEmpty then
+    begin
+      Result := Vector2(0, 0);
+      AProjectionWidth := 0;
+      AProjectionHeight := 0;
+    end else
+    begin
+      Rect := Box.RectangleXY;
+
+      if ViewportWidth / ViewportHeight >
+         Rect.Width / Rect.Height then
+      begin
+        AProjectionWidth := 0;
+        AProjectionHeight := Rect.Height;
+        { Calculate ResultingProjectionXxx
+          the same way that CurrentProjectionWidth/Height would be calculated. }
+        ResultingProjectionWidth := Rect.Height * ViewportWidth / ViewportHeight;
+        ResultingProjectionHeight := AProjectionHeight;
+      end else
+      begin
+        AProjectionWidth := Rect.Width;
+        AProjectionHeight := 0;
+        { Calculate ResultingProjectionXxx
+          the same way that CurrentProjectionWidth/Height would be calculated. }
+        ResultingProjectionWidth := AProjectionWidth;
+        ResultingProjectionHeight := Rect.Width * ViewportHeight / ViewportWidth;
+      end;
+
+      // calculate PositionXY
+      Result := Rect.Center;
+      if not ProjectionOriginCenter then
+        Result := Result - Vector2(
+          ResultingProjectionWidth / 2,
+          ResultingProjectionHeight / 2);
+    end;
+  end;
+
+  { Calculate Position.Z and AProjectionSpan. }
+  function PositionZ: Single;
+  const
+    // Same as TCastle2DSceneManager constants
+    DefaultProjectionSpan = 1000.0;
+    DefaultCameraZ = DefaultProjectionSpan / 2;
+  var
+    MinZ, MaxZ: Single;
+  begin
+    if Box.IsEmpty then
+    begin
+      Result := DefaultCameraZ;
+      AProjectionSpan := DefaultProjectionSpan;
+    end else
+    begin
+      MinZ := Box.Min.Z;
+      MaxZ := Box.Max.Z;
+      if (MinZ > - DefaultProjectionSpan / 2) and
+         (MaxZ < DefaultProjectionSpan / 2) then
+      begin
+        Result := DefaultCameraZ;
+        AProjectionSpan := DefaultProjectionSpan;
+      end else
+      begin
+        Result := MaxZ + 1;
+        AProjectionSpan := MaxZ - MinZ;
+      end;
+    end;
+  end;
+
+begin
+  Position := Vector3(PositionXY, PositionZ);
 end;
 
 end.
