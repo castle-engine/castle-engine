@@ -81,6 +81,12 @@ type
       DefaultProjectionSpan = 1000.0;
       DefaultCameraZ = DefaultProjectionSpan / 2;
 
+    constructor Create(AOwner: TComponent); override;
+    procedure AssignDefaultCamera; override;
+
+    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
+    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+  published
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
       ProjectionHeight and ProjectionWidth are ignored then.
@@ -100,8 +106,6 @@ type
       read FProjectionHeight write FProjectionHeight default 0;
     property ProjectionWidth: Single
       read FProjectionWidth write FProjectionWidth default 0;
-    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
-    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
 
     { Determines the minimum and maximum depth visible, relative to the camera Z.
 
@@ -140,9 +144,6 @@ type
     }
     property ProjectionOriginCenter: boolean
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
-
-    constructor Create(AOwner: TComponent); override;
-    procedure AssignDefaultCamera; override;
   end;
 
   T2DSceneManager = class(TCastle2DSceneManager)
