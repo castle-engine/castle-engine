@@ -407,7 +407,14 @@ type
     const Animation: TTimeSensorNode) of object;
 
   { Parameters to use when playing animation,
-    see @link(TCastleSceneCore.PlayAnimation). }
+    see @link(TCastleSceneCore.PlayAnimation).
+
+    Design note: This is a class, not e.g. an advanced record.
+    This way is has always sensible defaults.
+    You will usually create and quickly destroy it around
+    the @link(TCastleSceneCore.PlayAnimation) call.
+    Don't worry, time of creation/destruction of it really doesn't matter
+    in practice, thanks to fast FPC memory allocator. }
   TPlayAnimationParameters = class
     { Animation name.
       You have to set at least this field, otherwise calling
