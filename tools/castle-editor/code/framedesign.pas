@@ -661,7 +661,8 @@ begin
 
   TreeNodeMap := TTreeNodeMap.Create;
 
-  ChangeMode(moInteract);
+  //ChangeMode(moInteract);
+  ChangeMode(moSelectTranslateResize); // most expected default, it seems
 end;
 
 destructor TDesignFrame.Destroy;
