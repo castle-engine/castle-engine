@@ -61,7 +61,7 @@ Larger projects may define custom components (descendants of the `TCastleUserInt
 
 2. Inside your [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples), set the attribute `editor_units` to list all the units that call the mentioned `RegisterSerializableComponent`. It is a comma-separated list, like `editor_units="MyButtonUnit, MyMenuUnit"`.
 
-3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `CASTLE_ENGINE_PATH` is correctly defined.
+3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `$CASTLE_ENGINE_PATH` is correctly defined.
 
 4. Use the [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`. This will automatically build and run a customized version of the editor that includes your custom components. This step can be replaced by calling _"Project -> Restart Editor (may rebuild editor with custom controls)"_ from the editor.
 
