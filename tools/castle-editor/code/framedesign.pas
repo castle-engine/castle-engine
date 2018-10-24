@@ -977,7 +977,13 @@ procedure TDesignFrame.CameraViewAll;
   end;
 
 begin
-  ForEachSelectedSceneManager(@AdjustCamera);
+  if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
+  begin
+    // TODO: for now, camera is not saved to file, so this isn't really necessary.
+    // But camera should be saved to design file one day.
+
+    ModifiedOutsideObjectInspector;
+  end;
 end;
 
 procedure TDesignFrame.SortBackToFront2D;
