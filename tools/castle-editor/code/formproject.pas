@@ -417,14 +417,20 @@ end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
-  NeedsDesignFrame;
-  Design.NewDesign(TCastleUserInterface);
+  if ProposeSaveDesign then
+  begin
+    NeedsDesignFrame;
+    Design.NewDesign(TCastleUserInterface);
+  end;
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
-  NeedsDesignFrame;
-  Design.NewDesign(TCastleTransform);
+  if ProposeSaveDesign then
+  begin
+    NeedsDesignFrame;
+    Design.NewDesign(TCastleTransform);
+  end;
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -435,12 +441,15 @@ end;
 
 procedure TProjectForm.MenuItemOpenDesignClick(Sender: TObject);
 begin
-  if Design <> nil then
-    OpenDesignDialog.Url := Design.DesignUrl;
-  if OpenDesignDialog.Execute then
+  if ProposeSaveDesign then
   begin
-    NeedsDesignFrame;
-    Design.OpenDesign(OpenDesignDialog.Url);
+    if Design <> nil then
+      OpenDesignDialog.Url := Design.DesignUrl;
+    if OpenDesignDialog.Execute then
+    begin
+      NeedsDesignFrame;
+      Design.OpenDesign(OpenDesignDialog.Url);
+    end;
   end;
 end;
 
@@ -538,9 +547,12 @@ procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
 var
   ComponentClass: TComponentClass;
 begin
-  ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
-  NeedsDesignFrame;
-  Design.NewDesign(ComponentClass);
+  if ProposeSaveDesign then
+  begin
+    ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
+    NeedsDesignFrame;
+    Design.NewDesign(ComponentClass);
+  end;
 end;
 
 procedure TProjectForm.SetEnabledCommandRun(const AEnabled: Boolean);

@@ -86,11 +86,6 @@ Lower priority:
 
           DO NOT use it for "stored" for width/height, store them always, safer.
 
-    * design files UI:
-        * ask before overriding saved file
-        * before opening new one - ask whether to save design
-        * before exiting - ask whether to save design
-
     * force non-empty Name on all, to have wokring streaming?
     * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
     * publish and save SceneManager.NavigationType
