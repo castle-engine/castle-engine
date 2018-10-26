@@ -196,12 +196,17 @@
     { Custom GLSL shading code.
       See TGLImage.CustomShader for explanation. }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
+
+    { Deprecated, use more flexible AlphaChannel instead. }
+    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
+    property Proportional: boolean read GetProportional write SetProportional
+      stored false default false; deprecated 'use ProportionalScaling';
+    { Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
     property URL: string read FURL write SetURL;
-    { Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
@@ -210,8 +215,6 @@
       Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
       read GetAlphaChannel write SetAlphaChannel default acAuto;
-    { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
@@ -275,9 +278,6 @@
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
     { @groupEnd }
-
-    property Proportional: boolean read GetProportional write SetProportional
-      stored false default false; deprecated 'use ProportionalScaling';
 
     { If @true, the images are loaded and freed using the cache.
       That is, the TEncodedImage in @link(Image) is loaded and freed using
