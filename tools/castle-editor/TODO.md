@@ -6,7 +6,6 @@ Now:
 * Visual inspector. designer etc. most
     * 3d gizmos to move etc.
     * do not allow sizing (not even such cursor) when control is autosized
-    * Property editor for TCastleColorPersistent
     * Add TCastleImageComponent, manually make all UI controls use it
       See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
 

@@ -49,7 +49,7 @@ begin
   Window.Controls.InsertFront(Ui);
 
   { Find a label to show frames per second information }
-  LabelFps := Window.FindComponent('LabelFps') as TCastleLabel;
+  LabelFps := Window.FindRequiredComponent('LabelFps') as TCastleLabel;
 end;
 
 initialization

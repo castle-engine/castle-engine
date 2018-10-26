@@ -75,6 +75,19 @@ type
   (using @link(RegisterSerializableComponent)) components. }
 function RegisteredComponents: TRegisteredComponents;
 
+type
+  EComponentNotFound = class(Exception);
+
+  TComponentHelper = class helper for TComponent
+    { Find a child component that is owned by this component.
+      This is just like standard TComponent.FindComponent
+      (see https://www.freepascal.org/docs-html/rtl/classes/tcomponent.findcomponent.html )
+      but it makes an exception if component could not be found.
+      @raises EComponentNotFound If child component with given name could not be found.
+    }
+    function FindRequiredComponent(const AName: String): TComponent;
+  end;
+
 implementation
 
 uses JsonParser, TypInfo, RtlConsts,
@@ -375,6 +388,15 @@ end;
 function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 begin
   Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
+end;
+
+{ TComponentHelper ----------------------------------------------------------- }
+
+function TComponentHelper.FindRequiredComponent(const AName: String): TComponent;
+begin
+  Result := FindComponent(AName);
+  if Result = nil then
+    raise EComponentNotFound.CreateFmt('Cannot find component named "%s"', [AName]);
 end;
 
 finalization
