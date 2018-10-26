@@ -34,6 +34,7 @@
     procedure SetOutlineThick(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Render; override;
 
     { The fill color, used if @link(Filled). By default, opaque white. }
@@ -94,6 +95,10 @@
     property Filled: boolean read FFilled write SetFilled default true;
 
     property Outline: boolean read FOutline write SetOutline default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -111,6 +116,18 @@ begin
   FOutline := false;
   FOutlineWidth := 1.0;
   FOutlineColor := Black;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleShape.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleShape.SetShapeType(const Value: TShapeType);
@@ -222,5 +239,9 @@ begin
       end;
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

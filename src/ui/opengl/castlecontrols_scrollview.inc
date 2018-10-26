@@ -95,6 +95,10 @@
       Note that this doesn't affect the dragging directly by the scrollbar,
       which is always enabled. }
     property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -119,11 +123,19 @@ begin
   InsertFront(FScrollArea);
 
   Scissor := TScissor.Create;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleScrollView.Destroy;
 begin
   FreeAndNil(Scissor);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -416,5 +428,9 @@ function TCastleScrollView.ScrollBarWidthScaled: Single;
 begin
   Result := ScrollBarWidth * UIScale;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

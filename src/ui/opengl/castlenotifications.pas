@@ -128,6 +128,10 @@ type
     { Alignment of the text inside. }
     property TextAlignment: THorizontalPosition
       read FTextAlignment write FTextAlignment default hpLeft;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 procedure Register;
@@ -166,12 +170,20 @@ begin
   Timeout := DefaultTimeout;
   Fade := DefaultFade;
   FColor := White;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleNotifications.Destroy;
 begin
   FreeAndNil(Messages);
   FreeAndNil(FHistory);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -290,6 +302,10 @@ begin
       VisibleChange([chRectangle]);
     end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 initialization
   RegisterSerializableComponent(TCastleNotifications, 'Notifications');

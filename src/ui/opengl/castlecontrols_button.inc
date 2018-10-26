@@ -293,6 +293,10 @@
       all the motion events for dragging. }
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -320,6 +324,10 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleButton.Destroy;
@@ -336,6 +344,9 @@ begin
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
 
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -983,5 +994,9 @@ begin
       FFinalScaledHeight);
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

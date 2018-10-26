@@ -37,6 +37,7 @@
       DefaultSpacing = 10;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function Rect: TFloatRectangle; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
@@ -47,6 +48,10 @@
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
     property Padding: Single read FPadding write SetPadding default DefaultPadding;
     property Spacing: Single read FSpacing write SetSpacing default DefaultSpacing;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Container that packs the children horizontally.
@@ -109,6 +114,18 @@ begin
   FFrameColor := White;
   FPadding := DefaultPadding;
   FSpacing := DefaultSpacing;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastlePackedGroup.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastlePackedGroup.Render;
@@ -178,6 +195,10 @@ begin
   if [chRectangle, chChildren] * Changes <> [] then
     FPackingValid := false;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleHorizontalGroup ----------------------------------------------------- }
 

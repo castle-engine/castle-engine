@@ -324,6 +324,10 @@
       default false;
     property FlipVertical: Boolean read FFlipVertical write SetFlipVertical
       default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -338,12 +342,20 @@ begin
   FOwnsImage := true;
   FOwnsDrawableImage := true;
   FDrawableImage := TGLImage.Create(FImage, true { default SmoothScaling }, false);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleImageControl.Destroy;
 begin
   FreeImage;
   FreeDrawableImage;
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -684,5 +696,9 @@ begin
     VisibleChange([chRender]);
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

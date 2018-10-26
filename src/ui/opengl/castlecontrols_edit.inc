@@ -116,6 +116,10 @@
 
     { When true, it shows the software keyboard on Android. }
     property AutoOnScreenKeyboard: Boolean read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard default DefaultAutoOnScreenKeyboard;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -139,11 +143,19 @@ begin
   FMaxLength := 0;
   FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleEdit.Destroy;
 begin
   FreeAndNil(Scissor);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -372,5 +384,9 @@ begin
   if FAutoOnScreenKeyboard then
     Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

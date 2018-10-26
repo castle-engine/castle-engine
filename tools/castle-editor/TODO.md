@@ -22,18 +22,6 @@ Lower priority:
 * Visual inspector. designer etc. less important
     * more colors, vectors published props:
 
-      use
-      src/ui/opengl/auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc
-      src/ui/opengl/auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc
-
       grep for TCastleColor*, TVector* properties and add everything.
       For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
 

@@ -133,6 +133,10 @@
       @seealso Outline }
     property OutlineHighQuality: boolean
       read FOutlineHighQuality write SetOutlineHighQuality default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TUIControlFont = TCastleUserInterfaceFont deprecated 'use TCastleUserInterfaceFont';
@@ -147,12 +151,20 @@ constructor TCastleUserInterfaceFont.Create(AOwner: TComponent);
 begin
   inherited;
   FFontScale := 1.0;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleUserInterfaceFont.Destroy;
 begin
   CustomFont := nil; // make sure to free FCustomFont, if necessary
   FreeAndNil(FCustomizedFont);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -396,5 +408,9 @@ begin
   FLastSeenUIFont := NewUIFont;
   FLastSeenDefaultFont := NewDefaultFont;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

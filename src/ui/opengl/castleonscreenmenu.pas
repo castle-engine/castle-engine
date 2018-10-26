@@ -271,6 +271,10 @@ type
       are still visible as usual). }
     property CaptureAllEvents: boolean
       read FCaptureAllEvents write FCaptureAllEvents default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 procedure Register;
@@ -342,11 +346,19 @@ begin
   FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
   FDrawFocusedBorder := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleOnScreenMenu.Destroy;
 begin
   FreeAndNil(FRectangles);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -835,6 +847,10 @@ begin
   inherited;
   RecalculateSize;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleonscreenmenu_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 initialization
   RegisterSerializableComponent(TCastleOnScreenMenu, 'On-screen Menu');
