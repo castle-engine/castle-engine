@@ -103,7 +103,6 @@ Lower priority:
       - document at ApplicationData
         See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
 
-    * unpublish KeepInFront, since switching it at runtime is not supported
     * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
     * TLabel.Text using prop editor (multiline) setting is ignored
       (we should react to Text.Assign maybe?)

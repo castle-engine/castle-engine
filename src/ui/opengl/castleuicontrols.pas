@@ -1517,6 +1517,14 @@ type
 
     property FloatWidth: Single read FWidth write SetWidth stored false; deprecated 'use Width';
     property FloatHeight: Single read FHeight write SetHeight stored false; deprecated 'use Height';
+
+    { Keep the control in front of other controls (with KeepInFront=@false)
+      when inserting.
+
+      TODO: Do not change this property while the control is already
+      a children of something. }
+    property KeepInFront: boolean read FKeepInFront write FKeepInFront
+      default false;
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1669,14 +1677,15 @@ type
     property EnableUIScaling: boolean
       read FEnableUIScaling write SetEnableUIScaling default true;
 
-    { Keep the control in front of other controls (with KeepInFront=@false)
-      when inserting.
+    { Capture input events (keyboard, mouse, joystick).
+      If @false, then the methods like @link(Press) and @link(Release) will never be called,
+      and @link(Update) will always be called with HandleInput = @false.
+      The control will never behave like focused.
 
-      TODO: Do not change this propertyu while the control is already
-      a children of something. }
-    property KeepInFront: boolean read FKeepInFront write FKeepInFront
-      default false;
-
+      The only exception is when this control is set as @link(TUIContainer.ForceCaptureInput).
+      In this case, the control will receive inputs.
+      In other words, @link(TUIContainer.ForceCaptureInput) overrides
+      the intent of this property. }
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
   end;

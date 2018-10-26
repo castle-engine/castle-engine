@@ -81,6 +81,15 @@
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;
 
+    property OwnsCustomFont: boolean
+      read FOwnsCustomFont write FOwnsCustomFont default false;
+      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
+
+    { Use smaller font.
+      Right now this just says to scale font by 0.5. }
+    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
+
     { Outline color, used only if Outline <> 0. Default is black.
       @seealso Outline }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
@@ -97,18 +106,10 @@
       or the global @link(UIFont). }
     property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
-    property OwnsCustomFont: boolean
-      read FOwnsCustomFont write FOwnsCustomFont default false;
-      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
 
     { Use given font size when drawing. Leave at default zero to use
       the default size of the current font. }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
-
-    { Use smaller font.
-      Right now this just says to scale font by 0.5. }
-    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
-      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
 
     { Scale the font. This additionally scales the font defined
       by all other properties of this class, thus you can use it to reliably
