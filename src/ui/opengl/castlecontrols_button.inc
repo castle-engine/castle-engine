@@ -834,8 +834,12 @@ procedure TCastleButton.SetPressed(const Value: boolean);
 begin
   if FPressed <> Value then
   begin
-    if not Toggle then
-      raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
+    { Allow to change Pressed always.
+      This is necessary for correct deserialization,
+      where Pressed may be deserialized
+      befoire Toggle is deserialized. }
+    // if not Toggle then
+    //   raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
     VisibleChange([chRender]);
   end;

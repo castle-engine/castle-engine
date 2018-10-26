@@ -90,9 +90,6 @@ Lower priority:
       InitialCamera
 
     * TCastleButton:
-      - Pressed must be editable even when not toggle?
-        or maybe not published
-      - EnableParentDragging should not be published (and should be read-only?)
       - we need a way to adjust various images of tcastlebutton
         See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
         Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
