@@ -1083,8 +1083,16 @@ type
     procedure InsertBackIfNotExists(const NewItem: TCastleUserInterface);
     procedure InsertBack(const NewItems: TCastleUserInterfaceList); overload;
 
+    { Add child control at specified position.
+      It is usually easier to use @link(InsertFront) or @link(InsertBack),
+      if possible. }
+    procedure InsertControl(const Index: Integer; const NewItem: TCastleUserInterface);
+
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
-    procedure RemoveControl(Item: TCastleUserInterface);
+    procedure RemoveControl(const Item: TCastleUserInterface);
+
+    { Index of child control, or -1 if not present. }
+    function IndexOfControl(const Item: TCastleUserInterface): Integer;
 
     { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
     procedure ClearControls;
@@ -3394,10 +3402,25 @@ begin
   FControls.InsertBack(NewItems);
 end;
 
-procedure TCastleUserInterface.RemoveControl(Item: TCastleUserInterface);
+procedure TCastleUserInterface.InsertControl(const Index: Integer; const NewItem: TCastleUserInterface);
+begin
+  CreateControls;
+  FControls.Insert(Index, NewItem);
+end;
+
+procedure TCastleUserInterface.RemoveControl(const Item: TCastleUserInterface);
 begin
   if FControls <> nil then
     FControls.Remove(Item);
+end;
+
+function TCastleUserInterface.IndexOfControl(const Item: TCastleUserInterface
+  ): Integer;
+begin
+  if FControls <> nil then
+    Result := FControls.IndexOf(Item)
+  else
+    Result := -1;
 end;
 
 procedure TCastleUserInterface.ClearControls;

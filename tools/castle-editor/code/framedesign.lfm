@@ -118,10 +118,11 @@ object DesignFrame: TDesignFrame
     object ControlsTree: TTreeView
       Left = 0
       Height = 473
-      Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
+      Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
       Top = 37
       Width = 266
       Align = alClient
+      DragMode = dmAutomatic
       MultiSelect = True
       ParentShowHint = False
       ReadOnly = True
@@ -129,6 +130,10 @@ object DesignFrame: TDesignFrame
       ScrollBars = ssAutoBoth
       ShowHint = True
       TabOrder = 0
+      OnAdvancedCustomDrawItem = ControlsTreeAdvancedCustomDrawItem
+      OnDragDrop = ControlsTreeDragDrop
+      OnDragOver = ControlsTreeDragOver
+      OnEndDrag = ControlsTreeEndDrag
       OnSelectionChanged = ControlsTreeSelectionChanged
       Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end

@@ -46,7 +46,6 @@ Lower priority:
         * TCastleTransform position, rotation, scale (using gizmos)
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
 
-    * moving added things in hierarchy (dragging in tree).
     * adding - better UI? component palette?
       after adding, keep previously selected still selected
       content menu on hierarchy, to add transform/ui depending on parent

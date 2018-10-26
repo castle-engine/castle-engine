@@ -57,6 +57,13 @@ type
     TabSimple: TTabSheet;
     ToggleInteractMode: TToggleBox;
     ToggleSelectTranslateResizeMode: TToggleBox;
+    procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
+      Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
+      var PaintImages, DefaultDraw: Boolean);
+    procedure ControlsTreeDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure ControlsTreeDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+    procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ToggleInteractModeClick(Sender: TObject);
     procedure ToggleSelectTranslateResizeModeClick(Sender: TObject);
@@ -101,6 +108,8 @@ type
 
       TCastleSceneManagerCallback = procedure (const ASceneManager: TCastleSceneManager) is nested;
 
+      TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
+
     var
       InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
       PropertyEditorHook: TPropertyEditorHook;
@@ -115,6 +124,8 @@ type
       TreeNodeMap: TTreeNodeMap;
       Mode: TMode;
       InsideToggleModeClick: Boolean;
+      ControlsTreeNodeUnderMouse: TTreeNode;
+      ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     { calculate Selected list, non-nil <=> non-empty }
@@ -123,7 +134,7 @@ type
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
-    procedure UpdateDesign(const Root: TComponent);
+    procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
       const ComponentsOwner: TComponent): String;
@@ -163,7 +174,7 @@ type
 
 implementation
 
-uses TypInfo, StrUtils, Math,
+uses TypInfo, StrUtils, Math, Graphics, Types,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
@@ -735,7 +746,7 @@ begin
   // TODO: is this correct? what should be set here?
   PropertyEditorHook.LookupRoot := DesignOwner;
 
-  UpdateDesign(DesignRoot);
+  UpdateDesign;
   OnUpdateFormCaption(Self);
 end;
 
@@ -808,7 +819,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
         (NewTransform as TCastleSceneCore).PrimitiveGeometry := PrimitiveGeometry;
       end;
       ParentComponent.Add(NewTransform);
-      UpdateDesign(DesignRoot);
+      UpdateDesign;
     end else
       ErrorBox(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
@@ -824,7 +835,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
       NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
       UpdateComponentCaptionFromName(NewUserInterface);
       ParentComponent.InsertFront(NewUserInterface);
-      UpdateDesign(DesignRoot);
+      UpdateDesign;
     end else
       ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select SceneManager.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
@@ -897,7 +908,7 @@ begin
       ControlsTree.Items.Clear;
       ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
-      UpdateDesign(DesignRoot);
+      UpdateDesign;
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -998,7 +1009,7 @@ begin
   if ForEachSelectedSceneManager(@CallSortBackToFront2D) <> 0 then
   begin
     ModifiedOutsideObjectInspector;
-    UpdateDesign(DesignRoot); // make the tree reflect new order
+    UpdateDesign; // make the tree reflect new order
   end;
 end;
 
@@ -1108,7 +1119,7 @@ begin
   OnUpdateFormCaption(Self);
 end;
 
-procedure TDesignFrame.UpdateDesign(const Root: TComponent);
+procedure TDesignFrame.UpdateDesign;
 
   function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
   var
@@ -1147,11 +1158,11 @@ begin
   ControlsTree.Items.Clear;
   TreeNodeMap.Clear;
 
-  if Root is TCastleUserInterface then
-    Node := AddControl(nil, Root as TCastleUserInterface)
+  if DesignRoot is TCastleUserInterface then
+    Node := AddControl(nil, DesignRoot as TCastleUserInterface)
   else
-  if Root is TCastleTransform then
-    Node := AddTransform(nil, Root as TCastleTransform)
+  if DesignRoot is TCastleTransform then
+    Node := AddTransform(nil, DesignRoot as TCastleTransform)
   else
     raise EInternalError.Create('Cannot UpdateDesign with other classes than TCastleUserInterface or TCastleTransform');
 
@@ -1250,6 +1261,179 @@ end;
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
 begin
   UpdateSelectedControl;
+end;
+
+procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+
+  function NodeSide(const Node: TTreeNode; const X, Y: Integer): TTreeNodeSide;
+  var
+    R: TRect;
+  begin
+    R := Node.DisplayRect(false);
+    if X > R.SplitRect(srRight, 0.33).Left then
+      Result := tnsRight
+    else
+    if Y > R.CenterPoint.Y then
+      Result := tnsBottom
+    else
+      Result := tnsTop;
+  end;
+
+var
+  Src, Dst: TTreeNode;
+  SrcComponent: TCastleUserInterface;
+begin
+  // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
+  Src := ControlsTree.Selected;
+  Dst := ControlsTree.GetNodeAt(X, Y);
+  ControlsTreeNodeUnderMouse := Dst;
+
+  Accept := (Src <> nil) and (Dst <> nil) and (Src <> Dst);
+  if Accept then
+  begin
+    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
+      or root component. }
+    SrcComponent := TObject(Src.Data) as TCastleUserInterface;
+    if (SrcComponent = DesignRoot) or
+       (csSubComponent in SrcComponent.ComponentStyle) then
+      Accept := false;
+  end;
+  if not Accept then
+    ControlsTreeNodeUnderMouse := nil;
+
+  { We don't use TCustomTreeView.GetHitTestInfoAt,
+    it never contains flags htAbove, htBelow, htOnRight that interest us.
+    (Simply not implemented, marked by TODO in Lazarus sources.) }
+  //ControlsTreeNodeUnderMouseHit := ControlsTree.GetHitTestInfoAt(X, Y);
+  if ControlsTreeNodeUnderMouse <> nil then
+    ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
+  ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
+  Y: Integer);
+begin
+  ControlsTreeNodeUnderMouse := nil;
+  ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
+  Y: Integer);
+
+  procedure Refresh;
+  begin
+    { TODO: Dragging the same item right after dropping it doesn't work.
+      So it is easiest to deselect everything.
+
+      It is also easiest to refresh the whole tree, to make sure
+      it reflects new state.
+      So instead of Src.MoveTo(Dst, ...), we just the real update component
+      hierarchy, then refresh the tree from it. }
+
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+  end;
+
+var
+  Src, Dst: TTreeNode;
+  SrcComponent, DstComponent: TComponent;
+  SrcUi, DstUi: TCastleUserInterface;
+  Index: Integer;
+begin
+  Src := ControlsTree.Selected;
+  //Dst := ControlsTree.GetNodeAt(X,Y);
+  Dst := ControlsTreeNodeUnderMouse;
+  { Paranoidally check that both Src and Dst are assigned.
+    It happens that Src is nil, in my tests. }
+  if (Src <> nil) and (Dst <> nil) then
+  begin
+    // TODO: implement the same for TCastleTransform
+    SrcComponent := TComponent(Src.Data) as TCastleUserInterface;
+    DstComponent := TComponent(Dst.Data) as TCastleUserInterface;
+    if (SrcComponent is TCastleUserInterface) and
+       (DstComponent is TCastleUserInterface) then
+    begin
+      SrcUi := TCastleUserInterface(SrcComponent);
+      DstUi := TCastleUserInterface(DstComponent);
+      case ControlsTreeNodeUnderMouseSide of
+        tnsRight :
+          begin
+            //Src.MoveTo(Dst, naAddChild);
+            if SrcUi.Parent <> nil then
+              SrcUi.Parent.RemoveControl(SrcUi);
+            DstUi.InsertFront(SrcUi);
+            Refresh;
+          end;
+        tnsBottom:
+          begin
+            //Src.MoveTo(Dst, naInsertBehind);
+            if DstUi.Parent <> nil then
+            begin
+              if SrcUi.Parent <> nil then
+                SrcUi.Parent.RemoveControl(SrcUi);
+              Index := DstUi.Parent.IndexOfControl(DstUi);
+              Assert(Index <> -1);
+              DstUi.Parent.InsertControl(Index + 1, SrcUi);
+              Refresh;
+            end;
+          end;
+        tnsTop   :
+          begin
+            //Src.MoveTo(Dst, naInsert);
+            if DstUi.Parent <> nil then
+            begin
+              if SrcUi.Parent <> nil then
+                SrcUi.Parent.RemoveControl(SrcUi);
+              Index := DstUi.Parent.IndexOfControl(DstUi);
+              Assert(Index <> -1);
+              DstUi.Parent.InsertControl(Index, SrcUi);
+              Refresh;
+            end;
+          end;
+        else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+      end;
+    end;
+  end;
+end;
+
+procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
+  Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+  Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+var
+  NodeRect, R: TRect;
+begin
+  DefaultDraw := true;
+
+  if (Stage = cdPostPaint) and
+     (Node = ControlsTreeNodeUnderMouse) then
+  begin
+    NodeRect := Node.DisplayRect(false);
+
+    if ControlsTreeNodeUnderMouseSide = tnsRight then
+    begin
+      R := NodeRect.SplitRect(srRight, NodeRect.Height);
+      ControlsTree.Canvas.Brush.Color := clBtnShadow;
+      ControlsTree.Canvas.Brush.Style := bsSolid;
+      //ControlsTree.Canvas.FillRect(R);
+      ControlsTree.Canvas.Polygon([
+        Point(R.Left , R.Top),
+        Point(R.Right, R.CenterPoint.Y),
+        Point(R.Left , R.Bottom)
+      ]);
+    end else
+    begin
+      if ControlsTreeNodeUnderMouseSide = tnsTop then
+        R := NodeRect.SplitRect(srTop, 0.1)
+      else
+        R := NodeRect.SplitRect(srBottom, 0.1);
+      R.Left := R.Left + ((Node.Level + 1)* ControlsTree.Indent);
+
+      ControlsTree.Canvas.Brush.Color := clBtnShadow;
+      ControlsTree.Canvas.Brush.Style := bsSolid;
+      ControlsTree.Canvas.FillRect(R);
+    end;
+  end;
 end;
 
 procedure TDesignFrame.ToggleInteractModeClick(Sender: TObject);
