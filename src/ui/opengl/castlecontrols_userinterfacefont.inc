@@ -152,6 +152,7 @@ constructor TCastleUserInterfaceFont.Create(AOwner: TComponent);
 begin
   inherited;
   FFontScale := 1.0;
+  FOutlineColor := Black;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
