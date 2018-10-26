@@ -1076,15 +1076,53 @@ end;
 
 procedure TDesignFrame.InspectorSimpleFilter(Sender: TObject;
   aEditor: TPropertyEditor; var aShow: boolean);
+var
+  PropertyName: String;
+  Instance: TPersistent;
 begin
-  AShow := (aEditor.GetPropInfo <> nil) and
-    (
-      (aEditor.GetPropInfo^.Name = 'URL') or
-      (aEditor.GetPropInfo^.Name = 'Name') or
-      (aEditor.GetPropInfo^.Name = 'Caption') or
-      (aEditor.GetPropInfo^.Name = 'Exists') or
-      (aEditor.GetPropInfo^.Name = 'ProcessEvents')
-    );
+  AShow := false;
+
+  if aEditor.GetPropInfo = nil then
+    Exit;
+
+  PropertyName := aEditor.GetPropInfo^.Name;
+  // some property names quality as "Simple" on all components
+  if (PropertyName = 'URL') or
+     (PropertyName = 'Name') or
+     (PropertyName = 'Caption') or
+     (PropertyName = 'Exists') or
+     (PropertyName = 'ProcessEvents') then
+  begin
+    AShow := true;
+    Exit;
+  end;
+
+  if (aEditor.GetInstProp <> nil) and
+     (aEditor.GetInstProp^.Instance <> nil) then
+  begin
+    Instance := aEditor.GetInstProp^.Instance;
+    if  (Instance is TCastleColorPersistent) or
+        (Instance is TCastleColorRGBPersistent) or
+        (Instance is TCastleVector3Persistent) or
+        (Instance is TCastleVector4Persistent) or
+       ((Instance is TCastleShape) and (PropertyName = 'ColorPersistent')) or
+       ((Instance is TCastleShape) and (PropertyName = 'ShapeType')) or
+       ((Instance is TCastleUserInterfaceFont) and (PropertyName = 'FontSize')) or
+       ((Instance is TCastleRectangleControl) and (PropertyName = 'ColorPersistent')) or
+       ((Instance is TCastleLabel) and (PropertyName = 'ColorPersistent')) or
+       ((Instance is TCastleVerticalGroup) and (PropertyName = 'Alignment')) or
+       ((Instance is TCastleHorizontalGroup) and (PropertyName = 'Alignment')) or
+       ((Instance is TCastleImageControl) and (PropertyName = 'Stretch')) or
+       ((Instance is TCastleImageControl) and (PropertyName = 'ProportionalScaling')) or
+       ((Instance is TCastleImageControl) and (PropertyName = 'ColorPersistent')) or
+       ((Instance is TCastleTimer) and (PropertyName = 'IntervalSeconds')) or
+       ((Instance is TCastleSwitchControl) and (PropertyName = 'Checked')) or
+       false then // this line is just to allow easily adding above
+    begin
+      AShow := true;
+      Exit;
+    end;
+  end;
 end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);
