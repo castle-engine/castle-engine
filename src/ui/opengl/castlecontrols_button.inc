@@ -180,9 +180,6 @@
       See @link(CustomBackground) for details. Zero by default. }
     property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
 
-    { Should we use custom text color in @link(CustomTextColor)
-      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
-    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
@@ -209,6 +206,10 @@
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
   published
+    { Should we use custom text color in @link(CustomTextColor)
+      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
+    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
+
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Cardinal
       read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
@@ -323,6 +324,7 @@ begin
   FEnabled := true;
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
+  FCustomTextColor := Black;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 
   {$define read_implementation_constructor}
