@@ -133,10 +133,12 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [
     TCastleButton, TCastleImageControl, TCastleRectangleControl,
     TCastleLabel, TCastleCrosshair, TCastleIntegerSlider, TCastleFloatSlider,
     TCastleScrollView, TCastleSwitchControl]);
+  {$endif}
 end;
 
 initialization

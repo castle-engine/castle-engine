@@ -481,7 +481,9 @@ uses //Base64,
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleConfig]);
+  {$endif}
 end;
 
 { TCastleConfigEventList ----------------------------------------------------- }

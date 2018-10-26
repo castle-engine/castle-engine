@@ -286,7 +286,9 @@ uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
+  {$endif}
 end;
 
 { TCastleMenuButton ---------------------------------------------------------- }

@@ -624,19 +624,9 @@ uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    { TCastleControlCustom is not registered on a palette anymore,
-      as the simplest approach is to use TCastleControl with
-      scene manager instance already created.
-      This avoids questions about "which one to use" (common at engine
-      versions 2.x).
-
-      Developers familiar with our architecture that want
-      to use TCastleControlCustom (but not TCastleControl)
-      will have to use it from code.
-      Final decision about it (should it be visible on palette for advanced uses,
-      and risk confusing novice users?) is still unsure (report on forum
-      if you have any opinion). }
-    { TCastleControlCustom, }
+    { We hesitated whether to publish TCastleControlCustom for a while.
+      Eventually, it seems useful enough to be published. }
+    TCastleControlCustom,
     TCastleControl,
     TCastle2DControl]);
 end;

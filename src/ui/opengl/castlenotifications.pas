@@ -143,7 +143,9 @@ uses Math,
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleNotifications]);
+  {$endif}
 end;
 
 { TNotificationList ---------------------------------------------------------- }
