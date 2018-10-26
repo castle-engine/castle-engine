@@ -35,7 +35,7 @@ implementation
 
 uses SysUtils, Classes,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
-  OpenGLContext,
+  OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs;
@@ -45,6 +45,19 @@ uses SysUtils, Classes,
 {$if LCL_FULLVERSION >= 1090000}
   {$define HAS_RENDER_AT_DESIGN_TIME}
 {$endif}
+
+{ TSubPropertiesEditor ----------------------------------------------------- }
+
+type
+  TSubPropertiesEditor = class(TClassPropertyEditor)
+  public
+    function  GetAttributes: TPropertyAttributes; Override;
+  end;
+
+function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paMultiSelect, paSubProperties, paReadOnly];
+end;
 
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 
@@ -101,6 +114,76 @@ begin
     Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TCastleColorPropertyEditor ------------------------------------------------- }
+
+type
+  TCastleColorPropertyEditor = class(TSubPropertiesEditor)
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog, paRevertable];
+end;
+
+procedure TCastleColorPropertyEditor.Edit;
+var
+  Dialog: TColorDialog;
+  ColorPersistent: TCastleColorPersistent;
+  Color: TCastleColor;
+  ColorByte: TVector3Byte;
+begin
+  Dialog := TColorDialog.Create(nil);
+  try
+    ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+    Color := ColorPersistent.Value;
+    ColorByte := Vector3Byte(Color.XYZ); // edit only Color RGB
+    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
+    if Dialog.Execute then
+    begin
+      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      Color := Vector4(Vector3(ColorByte), Color[3]); // keep Color alpha unchanged
+      ColorPersistent.Value := Color;
+    end;
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TCastleColorRGBPropertyEditor ------------------------------------------------- }
+
+type
+  TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog, paRevertable];
+end;
+
+procedure TCastleColorRGBPropertyEditor.Edit;
+var
+  Dialog: TColorDialog;
+  ColorPersistent: TCastleColorRGBPersistent;
+  Color: TCastleColorRGB;
+  ColorByte: TVector3Byte;
+begin
+  Dialog := TColorDialog.Create(nil);
+  try
+    ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+    Color := ColorPersistent.Value;
+    ColorByte := Vector3Byte(Color);
+    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
+    if Dialog.Execute then
+    begin
+      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
+      Color := Vector3(ColorByte);
+      ColorPersistent.Value := Color;
+    end;
   finally FreeAndNil(Dialog) end;
 end;
 
@@ -247,19 +330,6 @@ end;
 
 *)
 
-{ TSubPropertiesEditor ----------------------------------------------------- }
-
-type
-  TSubPropertiesEditor = class(TClassPropertyEditor)
-  public
-    function  GetAttributes: TPropertyAttributes; Override;
-  end;
-
-function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paMultiSelect, paSubProperties, paReadOnly];
-end;
-
 procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
@@ -276,13 +346,14 @@ begin
   }
   // RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
 
+  { These descend from TSubPropertiesEditor,
+    which is necessary to expand in castle-editor and Lazarus design-time. }
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
     TSubPropertiesEditor);
-  // These are necessary to expand in castle-editor and Lazarus design-time.
   RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-    TSubPropertiesEditor);
+    TCastleColorPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-    TSubPropertiesEditor);
+    TCastleColorRGBPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
