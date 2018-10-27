@@ -15,49 +15,22 @@ Now:
       (we disabled in object inspector some types, maybe we should not?)
       Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
       Saving back suggests it's not deserialized OK now.
-
-------------------------------------------------------------------------------
-Lower priority:
-* Visual inspector. designer etc. less important
-    * more colors, vectors published props:
-
-      grep for TCastleColor*, TVector* properties and add everything.
-      For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
-
     * Dragging UI:
-      * tools hints:
-        None (or Interact) (hint: Editor doesn't handle mouse clicks and dragging. Allows to interact with buttons, scene manager camera, sliders values and more.)
-        Translate (hint: Click to select, drag to move UI control.)
       * Anchors tab keeps getting deselected for some reason when moving UI control
       * "Anchors" tab
         Make "Parent and Self anchors are the same" checkbox working
         Show 3x3,
         or 2x 3x3 controls to configure anchors
-      * should "Snap" snap to the final value (like an invisible grid?)
-        Would be more like Delphi/Lazarus, probably.
-	Right now we are more like Blender, only movement amount is snapped.
     * F1 help to API reference, show also in menu
       for now just go to API reference main page?
-    * open last design in the project,
-      open the only scene in the project, if only one exists?
-    * does recursive saving work when Tcastletransform is present multiple times in graph?
     * Allow editing of:
-        * initial animation? along with TimePlayingSpeed, ProcessEvents
-        * TCastleTransform position, rotation, scale (using gizmos)
         * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
 
-    * adding - better UI? component palette?
-      after adding, keep previously selected still selected
-      content menu on hierarchy, to add transform/ui depending on parent
-    * removing - keep selected above?
-    * UI controls improvements:
-        * rename TUIState -> TCastleState? (best)
-          TCastleUserInterfaceState?
-          TCastleForm?
+    * rename TUIState -> TCastleState? (best)
+      TCastleUserInterfaceState?
+      TCastleForm?
 
-        * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
-
-        * Maybe TCastleUserInterface should have color property too . Just make TCastleReactngleControl a descendant with white opaque color by default.
+    * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
 
         * virtual function IsAutoSize at TCastleUserInterface
           maybe like
@@ -109,6 +82,56 @@ Lower priority:
       3d_game_alternative_using_editor
       mention in README
 
+* Make files browser at least basic: ignore castle-engine-output
+    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
+      (need to use custom draw for this? grep, search code)
+    * "Files" showroot=false doesn't work?
+
+* TEditDirectory use at "new project"
+
+* templates:
+    * Create other than "empty" project templates
+    * Proper screenshots of all project templates
+    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
+
+* build tool integration:
+    * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
+    * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
+    * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
+    * Detect lack of FPC / Delphi and make a nice error message
+
+* more colors, vectors published props:
+
+  grep for TCastleColor*, TVector* properties and add everything.
+  For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
+
+* Show on recent list %20 as spaces, use URICaption or such ready function?
+
+* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
+  Show better message for XxxLoad:
+
+    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
+------------------------------------------------------------------------------
+Lower priority:
+OK if after nearest release:
+
+* Visual inspector. designer etc. less important
+    * Dragging UI: should "Snap" snap to the final value (like an invisible grid?)
+      Would be more like Delphi/Lazarus, probably.
+      Right now we are more like Blender, only movement amount is snapped.
+    * open last design in the project,
+      open the only scene in the project, if only one exists?
+    * does recursive saving work when Tcastletransform is present multiple times in graph?
+    * Allow editing of:
+        * initial animation? along with TimePlayingSpeed, ProcessEvents
+
+    * adding - better UI? component palette?
+      after adding, keep previously selected still selected
+      content menu on hierarchy, to add transform/ui depending on parent
+    * removing - keep selected above?
+    * UI controls improvements:
+        * Maybe TCastleUserInterface should have color property too . Just make TCastleReactngleControl a descendant with white opaque color by default.
+
 * Add components tab at the bottom, with large icon for each component?
 
 * Allow to attach rigidbody and collision instances.
@@ -134,13 +157,7 @@ Lower priority:
 * Make files browser with features as documented.
     Also to allow dropping scenes/images on UI design.
 
-* templates:
-    * Create other than "empty" project templates
-    * Proper screenshots of all project templates
-    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
-
 * build tool integration:
-    * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * For "run", colorized CastleLog warnings
     * For "compile", colorize FPC warnings, errors
     * Shorter compile output:
@@ -149,9 +166,6 @@ Lower priority:
         * remove the "separator" lines. The bold lines already separate them nicely?
         * "command finished with status 0" -> "Command finished successfully."
     * show count of warnings/errors if non-zero on tab header, allow to filter by them
-    * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
-    * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
-    * Detect lack of FPC / Delphi and make a nice error message
     * Allow to choose platform
     * rerun generate-program each time? (mark them as some *DO NOT MODIFY THIS, THIS IS ONLY FOR LAZARUS* comment)
         Not really OK, in case we open program with hand-crafted program file.
@@ -176,18 +190,11 @@ Lower priority:
       - command-line of FPC in build tool verbose mode
 
 * small GUI stuff:
-    * Show on recent list %20 as spaces, use URICaption or such ready function?
     * on NewProject form AutoSize?
     * allow switching list/icon/etc. view on "Files"
     * allow configuring command output "word wrap"
-    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
-      (need to use custom draw for this? grep, search code)
-    * "Files" showroot=false doesn't work?
-    * TEditDirectory use at "new project"
     * Output ListBox has some width (and horiz scrollbar) on Windows, unrelated to anything?
     * remember ProjectForm state of maximized/not
-
-* remove most stuff from CGE component palette...
 
 * move CastleComponentSerialize to src/base/
   And UserInterfaceLoad, TransformLoad move to appropriate units with these classes.
@@ -206,31 +213,14 @@ Lowest priority (OK if not in 1st release):
 * For editor on Lazarus at design-time:
     * TCastleControl (or sthg else) in designer mode should set ApplicationDataOverride,
         to allow our dialogs to replace URL with castle-data:/ nicely.
-    * object inspector editing vectors/colors question:
-        +  // TODO: Why these are necessary to expand in castle-editor,
-        +  // but in Lazarus at least TCastleVector3Persistent in test project was
-        +  // expanded without this?
-        +  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-        +    TSubPropertiesEditor);
-        +  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-        +    TSubPropertiesEditor);
-        +  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
-        +    TSubPropertiesEditor);
-        +  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
-        +    TSubPropertiesEditor);
     * saving TCastleColorPersistent to LFM for now doesn't work?
+        maybe ignore, we will save TCastleControl to JSON?
 
 * setting PrimitiveGeometry to pgSphere,
   clears URL,
   but it is not visible in object inspector immediately (it is not redrawn, it seems?)
 
 * at scene loading show something "wait, loading..."
-
-
-* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
-  Show better message for XxxLoad:
-
-    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
 
 * "Camera View All" button more prominent?
   Maybe attached to scene manager in designer mode?
