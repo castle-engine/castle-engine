@@ -126,7 +126,6 @@ uses CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
 
 procedure Register;
 begin
-  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [
     TCastleOpenDialog,
     TCastleSaveDialog,
@@ -134,7 +133,6 @@ begin
     TCastleOpenImageDialog,
     TCastleSaveImageDialog
   ]);
-  {$endif}
 end;
 
 function MaybeUseDataProtocol(const URL: String): String;
