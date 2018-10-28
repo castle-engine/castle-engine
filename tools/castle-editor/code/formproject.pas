@@ -173,8 +173,7 @@ uses TypInfo,
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
-  // TODO ask only if unsaved things
-//  if YesNoBox('Quit the editor?') then
+  if ProposeSaveDesign then
     Application.Terminate;
 end;
 
@@ -265,9 +264,10 @@ end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-  // TODO ask only if unsaved things
-  //if YesNoBox('Quit the editor?') then
-    Application.Terminate;
+  if ProposeSaveDesign then
+    Application.Terminate
+  else
+    CanClose := false;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -465,11 +465,11 @@ end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);
 begin
-  // TODO ask only if unsaved things
-  //if YesNoBox('Close this editor project?') then
-
-  Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
-  ChooseProjectForm.Show;
+  if ProposeSaveDesign then
+  begin
+    Free; // do not call MenuItemDesignClose, to avoid OnCloseQuery
+    ChooseProjectForm.Show;
+  end;
 end;
 
 procedure TProjectForm.ProcessUpdateTimerTimer(Sender: TObject);
