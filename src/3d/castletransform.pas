@@ -730,6 +730,17 @@ type
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
+    { Return parent TCastleTransform, but only if this TCastleTransform
+      is a child of exactly one other TCastleTransform.
+
+      In general, the same TCastleTransform instance may be used
+      multiple times as a child of other TCastleTransform instances
+      (as long as they are all within the same TCastleSceneManager),
+      in which case this property is @nil.
+
+      It is also @nil if this is the root transform, not added to any parent. }
+    property UniqueParent: TCastleTransform read FParent;
+
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
       Only the immediate list items are reordered,

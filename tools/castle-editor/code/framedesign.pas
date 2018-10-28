@@ -1408,11 +1408,90 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
     Result := false;
   end;
 
+  { As above, but overloaded for TCastleTransform. }
+  function ContainsRecursive(const Parent, PotentialChild: TCastleTransform): Boolean;
+  var
+    I: Integer;
+  begin
+    if Parent = PotentialChild then
+      Exit(true);
+    for I := 0 to Parent.Count - 1 do
+      if ContainsRecursive(Parent.Items[I], PotentialChild) then
+        Exit(true);
+    Result := false;
+  end;
+
+  procedure MoveUserInterface(const Src, Dst: TCastleUserInterface);
+  var
+    Index: Integer;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight:
+        begin
+          if not ContainsRecursive(Src, Dst) then
+          begin
+            if Src.Parent <> nil then
+              Src.Parent.RemoveControl(Src);
+            Dst.InsertFront(Src);
+            Refresh;
+          end;
+        end;
+      tnsBottom, tnsTop:
+        begin
+          if (Dst.Parent <> nil) and
+             not ContainsRecursive(Src, Dst.Parent) then
+          begin
+            if Src.Parent <> nil then
+              Src.Parent.RemoveControl(Src);
+            Index := Dst.Parent.IndexOfControl(Dst);
+            Assert(Index <> -1);
+            if ControlsTreeNodeUnderMouseSide = tnsBottom then
+              Inc(Index);
+            Dst.Parent.InsertControl(Index, Src);
+            Refresh;
+          end;
+        end;
+      else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+    end;
+  end;
+
+  procedure MoveTransform(const Src, Dst: TCastleTransform);
+  var
+    Index: Integer;
+  begin
+    case ControlsTreeNodeUnderMouseSide of
+      tnsRight:
+        begin
+          if not ContainsRecursive(Src, Dst) then
+          begin
+            if Src.UniqueParent <> nil then
+              Src.UniqueParent.Remove(Src);
+            Dst.Add(Src);
+            Refresh;
+          end;
+        end;
+      tnsBottom, tnsTop:
+        begin
+          if (Dst.UniqueParent <> nil) and
+             not ContainsRecursive(Src, Dst.UniqueParent) then
+          begin
+            if Src.UniqueParent <> nil then
+              Src.UniqueParent.Remove(Src);
+            Index := Dst.UniqueParent.List.IndexOf(Dst);
+            Assert(Index <> -1);
+            if ControlsTreeNodeUnderMouseSide = tnsBottom then
+              Inc(Index);
+            Dst.UniqueParent.Insert(Index, Src);
+            Refresh;
+          end;
+        end;
+      else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
+    end;
+  end;
+
 var
   Src, Dst: TTreeNode;
   SrcComponent, DstComponent: TComponent;
-  SrcUi, DstUi: TCastleUserInterface;
-  Index: Integer;
 begin
   Src := ControlsTree.Selected;
   //Dst := ControlsTree.GetNodeAt(X,Y);
@@ -1421,42 +1500,21 @@ begin
     It happens that Src is nil, in my tests. }
   if ControlsTreeAllowDrag(Src, Dst) then
   begin
-    // TODO: implement the same for TCastleTransform
-    SrcComponent := TComponent(Src.Data) as TCastleUserInterface;
-    DstComponent := TComponent(Dst.Data) as TCastleUserInterface;
+    SrcComponent := TComponent(Src.Data);
+    DstComponent := TComponent(Dst.Data);
     if (SrcComponent is TCastleUserInterface) and
        (DstComponent is TCastleUserInterface) then
     begin
-      SrcUi := TCastleUserInterface(SrcComponent);
-      DstUi := TCastleUserInterface(DstComponent);
-      case ControlsTreeNodeUnderMouseSide of
-        tnsRight:
-          begin
-            if not ContainsRecursive(SrcUi, DstUi) then
-            begin
-              if SrcUi.Parent <> nil then
-                SrcUi.Parent.RemoveControl(SrcUi);
-              DstUi.InsertFront(SrcUi);
-              Refresh;
-            end;
-          end;
-        tnsBottom, tnsTop:
-          begin
-            if (DstUi.Parent <> nil) and
-               not ContainsRecursive(SrcUi, DstUi.Parent) then
-            begin
-              if SrcUi.Parent <> nil then
-                SrcUi.Parent.RemoveControl(SrcUi);
-              Index := DstUi.Parent.IndexOfControl(DstUi);
-              Assert(Index <> -1);
-              if ControlsTreeNodeUnderMouseSide = tnsBottom then
-                Inc(Index);
-              DstUi.Parent.InsertControl(Index, SrcUi);
-              Refresh;
-            end;
-          end;
-        else raise EInternalError.Create('ControlsTreeDragDrop:ControlsTreeNodeUnderMouseSide?');
-      end;
+      MoveUserInterface(
+        TCastleUserInterface(SrcComponent),
+        TCastleUserInterface(DstComponent));
+    end else
+    if (SrcComponent is TCastleTransform) and
+       (DstComponent is TCastleTransform) then
+    begin
+      MoveTransform(
+        TCastleTransform(SrcComponent),
+        TCastleTransform(DstComponent));
     end;
   end;
 end;
