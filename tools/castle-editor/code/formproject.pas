@@ -582,6 +582,7 @@ end;
 function TProjectForm.ProposeSaveDesign: Boolean;
 var
   Mr: TModalResult;
+  DesignName: String;
 begin
   Result := true;
 
@@ -590,8 +591,12 @@ begin
     Design.BeforeProposeSaveDesign;
     if Design.DesignModified then
     begin
+      if Design.DesignUrl <> '' then
+        DesignName := '"' + Design.DesignUrl + '"'
+      else
+        DesignName := '<unnnamed>';
       Mr := MessageDlg('Save Design',
-        'Design "' + Design.DesignUrl + '" was modified but not saved yet. Save it now?',
+        'Design ' + DesignName + ' was modified but not saved yet. Save it now?',
         mtConfirmation, mbYesNoCancel, 0);
       case Mr of
         mrYes: MenuItemSaveDesign.Click;
