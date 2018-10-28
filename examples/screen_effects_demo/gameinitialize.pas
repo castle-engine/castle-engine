@@ -224,7 +224,7 @@ procedure ApplicationInitialize;
   end;
 
 var
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   ExampleImage: TCastleImageControl;
   ExampleButton: TCastleButton;
   Example3DScene: TCastleScene;
@@ -239,8 +239,9 @@ begin
 
   { Insert almost-black background, otherwise (as Window is only TCastleWindowCustom)
     the background would be undefined. }
-  Background := TCastleSimpleBackground.Create(Application);
+  Background := TCastleRectangleControl.Create(Application);
   Background.Color := Vector4(0.1, 0.1, 0.1, 1);
+  Background.FullSize := true;
   Window.Controls.InsertBack(Background);
 
   { Show a label with frames per second information }

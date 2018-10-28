@@ -150,7 +150,7 @@ begin
 
     This is just one way to create a background for 2D game, there are many others!
     Some alternatives: you could use a normal 2D UI for a background,
-    like TCastleSimpleBackground or TCastleImageControl instead of X3D model.
+    like TCastleImageControl instead of X3D model.
     Or you could load a scene from any format --- e.g. your background
     could also be a Spine scene. }
   Background := TCastle2DScene.Create(Application);

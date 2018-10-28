@@ -28,7 +28,7 @@
 
 uses SysUtils,
   CastleWindow, CastleControls, CastleGLShaders, CastleTimeUtils,
-  CastleFilesUtils, CastleUtils;
+  CastleFilesUtils, CastleUtils, CastleColors;
 
 var
   Window: TCastleWindowCustom;
@@ -37,9 +37,14 @@ var
   LifeTime: TFloatTime;
 
 procedure ApplicationInitialize;
+var
+  Background: TCastleRectangleControl;
 begin
   // simple black background underneath
-  Window.Controls.InsertFront(TCastleSimpleBackground.Create(Application));
+  Background := TCastleRectangleControl.Create(Application);
+  Background.Color := Black;
+  Background.FullSize := true;
+  Window.Controls.InsertFront(Background);
 
   Image := TCastleImageControl.Create(Application);
   Image.URL := ApplicationData('test_texture.png');

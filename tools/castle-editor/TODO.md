@@ -30,8 +30,6 @@ Now:
       TCastleUserInterfaceState?
       TCastleForm?
 
-    * TCastleSimpleBackground deprecate, use TCastleRectangleControl for this
-
         * virtual function IsAutoSize at TCastleUserInterface
           maybe like
           IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)

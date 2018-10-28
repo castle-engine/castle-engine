@@ -36,7 +36,7 @@
     function Rect: TFloatRectangle; override;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
-  end;
+  end deprecated 'use TCastleRectangleControl with FullSize=true; note that by default it has White color, while TCastleSimpleBackground has by default Black color.';
 
 {$endif read_interface}
 

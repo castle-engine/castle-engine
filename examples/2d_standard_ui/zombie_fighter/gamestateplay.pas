@@ -25,7 +25,7 @@ uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu,
 type
   TStatePlay = class(TUIState)
   strict private
-    SimpleBackground: TCastleSimpleBackground;
+    Background: TCastleRectangleControl;
     SceneManager: TCastleSceneManager;
     Scene: TCastleScene;
     ViewportRect: TCastleRectangleControl;
@@ -55,9 +55,10 @@ procedure TStatePlay.Start;
 begin
   inherited;
 
-  SimpleBackground := TCastleSimpleBackground.Create(FreeAtStop);
-  SimpleBackground.Color := Black;
-  InsertFront(SimpleBackground);
+  Background := TCastleRectangleControl.Create(FreeAtStop);
+  Background.Color := Black;
+  Background.FullSize := true;
+  InsertFront(Background);
 
   Scene := TCastleScene.Create(FreeAtStop);
   Scene.Load(ApplicationData('level1.x3d'));

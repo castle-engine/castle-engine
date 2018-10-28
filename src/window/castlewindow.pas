@@ -638,14 +638,14 @@ type
     For example:
 
     @unorderedList(
-      @item(use @link(TCastleSimpleBackground),)
-
-      @item(or use @link(TCastleRectangleControl) with
-        @link(TCastleUserInterface.FullSize FullSize) = @true,)
+      @item(Use @link(TCastleRectangleControl) with
+        @link(TCastleUserInterface.FullSize FullSize) = @true and set
+        @link(TCastleRectangleControl.Color) as desired,)
 
       @item(or use @link(TCastleSceneManager) with
         @link(TCastleUserInterface.FullSize) = @true and
-        @link(TCastleAbstractViewport.Transparent) = @false,)
+        @link(TCastleAbstractViewport.Transparent) = @false and set
+        @link(TCastleSceneManager.BackgroundColor) as desired,)
 
       @item(eventually you can also call @link(CastleGLUtils.GLClear)
         at the beginning of your rendering in @link(OnRender).

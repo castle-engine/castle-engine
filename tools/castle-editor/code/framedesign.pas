@@ -712,7 +712,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
   end;
 
 var
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   TempSceneManager: TCastleSceneManager;
 begin
   ClearDesign;
@@ -735,8 +735,9 @@ begin
     raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
   // make background defined
-  Background := TCastleSimpleBackground.Create(NewDesignOwner);
+  Background := TCastleRectangleControl.Create(NewDesignOwner);
   Background.Color := Vector4(0.5, 0.5, 0.5, 1);
+  Background.FullSize := true;
   CastleControl.Controls.InsertBack(Background);
 
   // replace DesignXxx variables, once loading successfull
