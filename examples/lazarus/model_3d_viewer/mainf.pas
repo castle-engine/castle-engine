@@ -67,7 +67,6 @@ type
     SaveScreenshotDialog: TCastleSaveImageDialog;
     Timer1: TTimer;
     MenuMouseLookToggle: TMenuItem;
-    RecentFiles: TCastleRecentFiles;
     procedure ButtonNavigationTypeClick(Sender: TObject);
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TCamera);
@@ -84,18 +83,19 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure RecentFilesOpenRecent(const URL: string);
   private
     SceneURL: string;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
     CrosshairActive: Boolean;    // there is something to touch under the crosshair
+    RecentFiles: TCastleRecentFiles;
 
     procedure OpenScene(const URL: string);
     procedure UpdateCaption;
     procedure UpdateCrosshairImage;
     procedure OnPointingDeviceSensorsChange(Sender: TObject);
+    procedure RecentFilesOpenRecent(const URL: string);
   public
     { public declarations }
   end;
@@ -287,8 +287,10 @@ begin
   OnGetApplicationName := @MyGetApplicationName;
   UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);
-  RecentFiles.LoadFromConfig(UserConfig);
 
+  RecentFiles := TCastleRecentFiles.Create(Self);
+  RecentFiles.OnOpenRecent := @RecentFilesOpenRecent;
+  RecentFiles.LoadFromConfig(UserConfig);
   RecentFiles.NextMenuItem := MenuSep1;
 
   UpdateCaption;
