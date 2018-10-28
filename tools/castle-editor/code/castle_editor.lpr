@@ -18,11 +18,6 @@ begin
   Application.Initialize;
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
-  { On Windows, Position = poDefault is all over the place,
-    never where one expects to see a new application. }
-  {$ifdef MSWINDOWS}
-  ChooseProjectForm.Position := poScreenCenter;
-  {$endif}
   Application.Run;
 end.
 
