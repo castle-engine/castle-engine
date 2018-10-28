@@ -128,6 +128,7 @@ type
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
+    function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     { calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
@@ -1320,23 +1321,13 @@ procedure TDesignFrame.ControlsTreeDragOver(Sender, Source: TObject; X,
 
 var
   Src, Dst: TTreeNode;
-  SrcComponent: TCastleUserInterface;
 begin
   // Thanks to answer on https://stackoverflow.com/questions/18856374/delphi-treeview-drag-and-drop-between-nodes
   Src := ControlsTree.Selected;
   Dst := ControlsTree.GetNodeAt(X, Y);
   ControlsTreeNodeUnderMouse := Dst;
 
-  Accept := (Src <> nil) and (Dst <> nil) and (Src <> Dst);
-  if Accept then
-  begin
-    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
-      or root component. }
-    SrcComponent := TObject(Src.Data) as TCastleUserInterface;
-    if (SrcComponent = DesignRoot) or
-       (csSubComponent in SrcComponent.ComponentStyle) then
-      Accept := false;
-  end;
+  Accept := ControlsTreeAllowDrag(Src, Dst);
   if not Accept then
     ControlsTreeNodeUnderMouse := nil;
 
@@ -1347,6 +1338,22 @@ begin
   if ControlsTreeNodeUnderMouse <> nil then
     ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
   ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
+var
+  SrcComponent: TComponent;
+begin
+  Result := (Src <> nil) and (Dst <> nil) and (Src <> Dst);
+  if Result then
+  begin
+    { Do not allow to drag subcomponents (like TCastleScrollView.ScrollArea)
+      or root component. }
+    SrcComponent := TObject(Src.Data) as TComponent;
+    if (SrcComponent = DesignRoot) or
+       (csSubComponent in SrcComponent.ComponentStyle) then
+      Result := false;
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -1361,16 +1368,44 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
 
   procedure Refresh;
   begin
-    { TODO: Dragging the same item right after dropping it doesn't work.
-      So it is easiest to deselect everything.
+    { TODO: In theory we could replicate the movement in UI controls tree
+      by doing a movement in nodes tree using:
 
-      It is also easiest to refresh the whole tree, to make sure
-      it reflects new state.
-      So instead of Src.MoveTo(Dst, ...), we just the real update component
-      hierarchy, then refresh the tree from it. }
+        tnsRight: Src.MoveTo(Dst, naAddChild);
+        tnsBottom: Src.MoveTo(Dst, naInsertBehind);
+        tnsTop: Src.MoveTo(Dst, naInsert);
+
+      However:
+
+      - It is error prone. It's safer to do the operation in UI controls tree,
+        and then show the resulting tree using this method.
+        This way, in case we do something unexpected,
+        at least the "shown tree" will reflect the "actual tree".
+
+      - Also, this way we workaround a problem (at least with GTK2 backend):
+        Dragging the same item right after dropping it doesn't work.
+        So it is easiest to deselect it.
+        Which already happens when we do UpdateDesign.
+    }
 
     ModifiedOutsideObjectInspector;
     UpdateDesign;
+  end;
+
+  { Does Parent contains PotentialChild, searching recursively.
+    It checks is Parent equal PotentialChild,
+    and searches Parent's children,
+    and Parent's children's children etc. }
+  function ContainsRecursive(const Parent, PotentialChild: TCastleUserInterface): Boolean;
+  var
+    I: Integer;
+  begin
+    if Parent = PotentialChild then
+      Exit(true);
+    for I := 0 to Parent.ControlsCount - 1 do
+      if ContainsRecursive(Parent.Controls[I], PotentialChild) then
+        Exit(true);
+    Result := false;
   end;
 
 var
@@ -1382,9 +1417,9 @@ begin
   Src := ControlsTree.Selected;
   //Dst := ControlsTree.GetNodeAt(X,Y);
   Dst := ControlsTreeNodeUnderMouse;
-  { Paranoidally check that both Src and Dst are assigned.
+  { Paranoidally check ControlsTreeAllowDrag again.
     It happens that Src is nil, in my tests. }
-  if (Src <> nil) and (Dst <> nil) then
+  if ControlsTreeAllowDrag(Src, Dst) then
   begin
     // TODO: implement the same for TCastleTransform
     SrcComponent := TComponent(Src.Data) as TCastleUserInterface;
@@ -1395,36 +1430,27 @@ begin
       SrcUi := TCastleUserInterface(SrcComponent);
       DstUi := TCastleUserInterface(DstComponent);
       case ControlsTreeNodeUnderMouseSide of
-        tnsRight :
+        tnsRight:
           begin
-            //Src.MoveTo(Dst, naAddChild);
-            if SrcUi.Parent <> nil then
-              SrcUi.Parent.RemoveControl(SrcUi);
-            DstUi.InsertFront(SrcUi);
-            Refresh;
-          end;
-        tnsBottom:
-          begin
-            //Src.MoveTo(Dst, naInsertBehind);
-            if DstUi.Parent <> nil then
+            if not ContainsRecursive(SrcUi, DstUi) then
             begin
               if SrcUi.Parent <> nil then
                 SrcUi.Parent.RemoveControl(SrcUi);
-              Index := DstUi.Parent.IndexOfControl(DstUi);
-              Assert(Index <> -1);
-              DstUi.Parent.InsertControl(Index + 1, SrcUi);
+              DstUi.InsertFront(SrcUi);
               Refresh;
             end;
           end;
-        tnsTop   :
+        tnsBottom, tnsTop:
           begin
-            //Src.MoveTo(Dst, naInsert);
-            if DstUi.Parent <> nil then
+            if (DstUi.Parent <> nil) and
+               not ContainsRecursive(SrcUi, DstUi.Parent) then
             begin
               if SrcUi.Parent <> nil then
                 SrcUi.Parent.RemoveControl(SrcUi);
               Index := DstUi.Parent.IndexOfControl(DstUi);
               Assert(Index <> -1);
+              if ControlsTreeNodeUnderMouseSide = tnsBottom then
+                Inc(Index);
               DstUi.Parent.InsertControl(Index, SrcUi);
               Refresh;
             end;
@@ -1438,38 +1464,57 @@ end;
 procedure TDesignFrame.ControlsTreeAdvancedCustomDrawItem(
   Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+const
+  ColorOutline = clBlack;
+  ColorDecoration = clGray;
 var
   NodeRect, R: TRect;
 begin
   DefaultDraw := true;
 
-  if (Stage = cdPostPaint) and
-     (Node = ControlsTreeNodeUnderMouse) then
+  if Node = ControlsTreeNodeUnderMouse then
   begin
-    NodeRect := Node.DisplayRect(false);
+    case Stage of
+      cdPostPaint:
+        begin
+          NodeRect := Node.DisplayRect(false);
 
-    if ControlsTreeNodeUnderMouseSide = tnsRight then
-    begin
-      R := NodeRect.SplitRect(srRight, NodeRect.Height);
-      ControlsTree.Canvas.Brush.Color := clBtnShadow;
-      ControlsTree.Canvas.Brush.Style := bsSolid;
-      //ControlsTree.Canvas.FillRect(R);
-      ControlsTree.Canvas.Polygon([
-        Point(R.Left , R.Top),
-        Point(R.Right, R.CenterPoint.Y),
-        Point(R.Left , R.Bottom)
-      ]);
-    end else
-    begin
-      if ControlsTreeNodeUnderMouseSide = tnsTop then
-        R := NodeRect.SplitRect(srTop, 0.1)
-      else
-        R := NodeRect.SplitRect(srBottom, 0.1);
-      R.Left := R.Left + ((Node.Level + 1)* ControlsTree.Indent);
+          { We can't draw it in cdPrePaint, as after csPrePaint
+            the node rectangle is cleared anyway.
+            And we can't draw it in any cdXxxErase, which are not implemented
+            in LCL (2.1.0). }
+          ControlsTree.Canvas.Pen.Color := ColorOutline;
+          ControlsTree.Canvas.Pen.Style := psDot;
+          ControlsTree.Canvas.Brush.Style := bsClear;
+          ControlsTree.Canvas.Rectangle(NodeRect);
 
-      ControlsTree.Canvas.Brush.Color := clBtnShadow;
-      ControlsTree.Canvas.Brush.Style := bsSolid;
-      ControlsTree.Canvas.FillRect(R);
+          if ControlsTreeNodeUnderMouseSide = tnsRight then
+          begin
+            R := NodeRect.SplitRect(srRight, NodeRect.Height);
+            R.Inflate(-5, -5);
+            ControlsTree.Canvas.Brush.Color := ColorDecoration;
+            ControlsTree.Canvas.Brush.Style := bsSolid;
+            ControlsTree.Canvas.Pen.Color := ColorOutline;
+            ControlsTree.Canvas.Pen.Style := psSolid;
+            //ControlsTree.Canvas.FillRect(R);
+            ControlsTree.Canvas.Polygon([
+              Point(R.Left , R.Top),
+              Point(R.Right, R.CenterPoint.Y),
+              Point(R.Left , R.Bottom)
+            ]);
+          end else
+          begin
+            if ControlsTreeNodeUnderMouseSide = tnsTop then
+              R := NodeRect.SplitRect(srTop, 0.1)
+            else
+              R := NodeRect.SplitRect(srBottom, 0.1);
+            R.Left := R.Left + ((Node.Level + 1)* ControlsTree.Indent);
+
+            ControlsTree.Canvas.Brush.Color := ColorDecoration;
+            ControlsTree.Canvas.Brush.Style := bsSolid;
+            ControlsTree.Canvas.FillRect(R);
+          end;
+        end;
     end;
   end;
 end;
