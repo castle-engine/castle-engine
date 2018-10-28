@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
-  EditorUtils, FormProject, FrameDesign
+  EditorUtils, FormProject, FrameDesign, FormAbout
   { you can add units after this };
 
 {$R *.res}
@@ -18,6 +18,7 @@ begin
   Application.Initialize;
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
+  Application.CreateForm(TAboutForm, AboutForm);
   Application.Run;
 end.
 

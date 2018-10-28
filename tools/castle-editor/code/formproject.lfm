@@ -310,6 +310,10 @@ object ProjectForm: TProjectForm
         Caption = 'API Reference'
         OnClick = MenuItemReferenceClick
       end
+      object MenuItemSupport: TMenuItem
+        Caption = 'Support the development'
+        OnClick = MenuItemSupportClick
+      end
       object MenuItemSeparator: TMenuItem
         Caption = '-'
       end

@@ -31,6 +31,7 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemSupport: TMenuItem;
     MenuItemSeparator788: TMenuItem;
     MenuItemRestartRebuildEditor: TMenuItem;
     MenuItemSortBackToFront2D: TMenuItem;
@@ -128,6 +129,7 @@ type
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
     procedure MenuItemSortBackToFront2DClick(Sender: TObject);
+    procedure MenuItemSupportClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
@@ -169,7 +171,7 @@ uses TypInfo,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts,
-  FormChooseProject, ToolUtils;
+  FormChooseProject, ToolUtils, FormAbout;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -227,6 +229,11 @@ begin
   Design.SortBackToFront2D;
 end;
 
+procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
+begin
+  OpenURL('https://patreon.com/castleengine/');
+end;
+
 procedure TProjectForm.MenuItemCgeWwwClick(Sender: TObject);
 begin
   OpenURL('https://castle-engine.io/');
@@ -234,11 +241,7 @@ end;
 
 procedure TProjectForm.MenuItemAboutClick(Sender: TObject);
 begin
-  // TODO
-  // Show logo, website link, Patreon link,
-  // Copyright Michalis Kamburelis and many contributors (thank you!)
-  // Show current (runtime) CGE, FPC version
-  // Show CGE, FPC version when compiling editor
+  AboutForm.ShowModal;
 end;
 
 procedure TProjectForm.MenuItemAutoGenerateTexturesClick(Sender: TObject);

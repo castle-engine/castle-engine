@@ -116,7 +116,7 @@
         <PackageName Value="castle_editor_automatic_package"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="9">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -168,6 +168,14 @@
         <ResourceBaseClass Value="Frame"/>
         <UnitName Value="FrameDesign"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="formabout.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AboutForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormAbout"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
