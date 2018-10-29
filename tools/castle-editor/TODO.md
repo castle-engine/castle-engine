@@ -17,10 +17,6 @@ Now:
       Saving back suggests it's not deserialized OK now.
     * Dragging UI:
       * Anchors tab keeps getting deselected for some reason when moving UI control
-      * "Anchors" tab
-        Make "Parent and Self anchors are the same" checkbox working
-        Show 3x3,
-        or 2x 3x3 controls to configure anchors
     * F1 help to API reference, show also in menu
       for now just go to API reference main page?
     * Allow editing of:
@@ -43,20 +39,6 @@ Now:
 
           DO NOT use it for "stored" for width/height, store them always, safer.
 
-    * force non-empty Name on all, to have wokring streaming?
-    * show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
-    * publish and save SceneManager.NavigationType
-      and last camera
-      { Use initial camera settings stored in
-        InitialCameraPosition,
-        InitialCameraDirection,
-        InitialCameraUp
-        values. They are used if you create a camera using one of the
-        TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
-        or ExamineCamera. They will not be used if you assign to @link(Camera)
-        your own camera instance. }
-      StoreInitialCamera: Boolean
-      InitialCamera
 
     * TCastleButton:
       - we need a way to adjust various images of tcastlebutton
@@ -64,33 +46,9 @@ Now:
         Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
       - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
 
-    * castle-data:/ finish
-      - support castlefindfiles.pas too
-      - document at ApplicationData
-        See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
-
-    * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
     * TLabel.Text using prop editor (multiline) setting is ignored
       (we should react to Text.Assign maybe?)
 
-    * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
-
-    * make https://github.com/castle-engine/blaise-pascal-article-examples/
-      version using editor for level,
-      3d_game_alternative_using_editor
-      mention in README
-
-* Make files browser at least basic: ignore castle-engine-output
-    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
-      (need to use custom draw for this? grep, search code)
-    * "Files" showroot=false doesn't work?
-
-* TEditDirectory use at "new project"
-
-* templates:
-    * Create other than "empty" project templates
-    * Proper screenshots of all project templates
-    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
@@ -105,10 +63,57 @@ Now:
 
 * Show on recent list %20 as spaces, use URICaption or such ready function?
 
+------------------------------------------------------------------------------
+Before 6.6 release:
+
+* force non-empty Name on all, to have wokring streaming?
+
+* show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
+
+* publish and save SceneManager.NavigationType
+  and last camera
+  { Use initial camera settings stored in
+    InitialCameraPosition,
+    InitialCameraDirection,
+    InitialCameraUp
+    values. They are used if you create a camera using one of the
+    TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
+    or ExamineCamera. They will not be used if you assign to @link(Camera)
+    your own camera instance. }
+  StoreInitialCamera: Boolean
+  InitialCamera
+
+* Make files browser at least basic: ignore castle-engine-output
+    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
+      (need to use custom draw for this? grep, search code)
+    * "Files" showroot=false doesn't work?
+
+* TEditDirectory use at "new project"
+
+* templates:
+    * Create other than "empty" project templates
+    * Proper screenshots of all project templates
+    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
+
 * TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
   Show better message for XxxLoad:
 
     The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
+
+* castle-data:/ finish
+  - support castlefindfiles.pas too
+  - document at ApplicationData
+    See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
+
+* unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
+
+* Scene.Rendering (new Scene.Attributes) should be subcomponent and published
+
+* make https://github.com/castle-engine/blaise-pascal-article-examples/
+  version using editor for level,
+  3d_game_alternative_using_editor
+  mention in README
+
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:
@@ -225,6 +230,12 @@ Lowest priority (OK if not in 1st release):
 
 * allow to import file with textures, audio, inline tracked
   as alternative at warning message when opening file outside of castle-data:
+
+* When something is anchored to top-right,
+  resizing by dragging left border makes unpleasant visual effect.
+  Weird resizing by dragging bottom border is OK.
+  On GTK2, with LCL 1.8.0.
+
 ------------------------------------------------------------------------------
 "castle-engine editor" improvements:
 
