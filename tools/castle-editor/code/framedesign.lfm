@@ -68,18 +68,18 @@ object DesignFrame: TDesignFrame
           Width = 350
           HorzScrollBar.Page = 1
           HorzScrollBar.Visible = False
-          VertScrollBar.Page = 76
+          VertScrollBar.Page = 311
           Align = alClient
           BorderStyle = bsNone
           ClientHeight = 401
           ClientWidth = 350
           TabOrder = 0
           object LabelSizeInfo: TLabel
-            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 27
-            Top = 49
+            Top = 284
             Width = 338
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 10
@@ -91,9 +91,55 @@ object DesignFrame: TDesignFrame
             Left = 8
             Height = 31
             Top = 8
-            Width = 300
-            Caption = 'Parent And Self Anchors Equal'
+            Width = 334
+            Caption = 'Anchor to the same side of Parent'
+            OnChange = CheckParentSelfAnchorsEqualChange
             TabOrder = 0
+          end
+          inline SelfAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 176
+            Top = 49
+            Width = 152
+            BorderSpacing.Top = 10
+            ClientHeight = 176
+            ClientWidth = 152
+            TabOrder = 1
+          end
+          inline ParentAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Side = asrBottom
+            Left = 170
+            Height = 176
+            Top = 49
+            Width = 152
+            BorderSpacing.Left = 10
+            BorderSpacing.Top = 10
+            ClientHeight = 176
+            ClientWidth = 152
+            TabOrder = 2
+            inherited GroupBox1: TGroupBox
+              Caption = 'Parent Side'
+            end
+          end
+          object ButtonClearAnchorDeltas: TButton
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            AnchorSideTop.Control = SelfAnchorsFrame
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 39
+            Top = 235
+            Width = 191
+            AutoSize = True
+            BorderSpacing.Top = 10
+            Caption = 'Move to the anchor'
+            OnClick = ButtonClearAnchorDeltasClick
+            TabOrder = 3
           end
         end
       end

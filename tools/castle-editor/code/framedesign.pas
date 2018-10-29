@@ -30,11 +30,14 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager, CastleControls;
+  CastleSceneManager, FrameAnchors, CastleControls;
 
 type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ButtonClearAnchorDeltas: TButton;
+    SelfAnchorsFrame: TAnchorsFrame;
+    ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
@@ -57,6 +60,8 @@ type
     TabSimple: TTabSheet;
     ToggleInteractMode: TToggleBox;
     ToggleSelectTranslateResizeMode: TToggleBox;
+    procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure CheckParentSelfAnchorsEqualChange(Sender: TObject);
     procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
       var PaintImages, DefaultDraw: Boolean);
@@ -129,9 +134,15 @@ type
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
-    { calculate Selected list, non-nil <=> non-empty }
+    procedure FrameAnchorsChange(Sender: TObject);
+    procedure FinishUserInterfaceAnchorsChange(const UI: TCastleUserInterface;
+      const RenderRectBeforeChange: TFloatRectangle);
+    { Calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
+    { If there is exactly one item selected, and it is TCastleUserInterface,
+      return it. Otherwise return nil. }
+    function GetSelectedUserInterface: TCastleUserInterface;
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure PropertyGridModified(Sender: TObject);
@@ -141,6 +152,12 @@ type
       const ComponentsOwner: TComponent): String;
     procedure UpdateComponentCaptionFromName(const C: TComponent);
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
+    { Update anchors shown, based on UI state.
+      Updates which buttons are pressed inside 2 TAnchorFrame instances.
+      If AllowToHideParentAnchorsFrame, updates also checkbox
+      "parent and self equal" and may hide the parent anchor frame if yes. }
+    procedure UpdateAnchors(const UI: TCastleUserInterface;
+      const AllowToHideParentAnchorsFrame: Boolean);
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector;
     function ForEachSelectedSceneManager(const Callback: TCastleSceneManagerCallback): Cardinal;
@@ -175,7 +192,7 @@ type
 
 implementation
 
-uses TypInfo, StrUtils, Math, Graphics, Types,
+uses TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
@@ -211,16 +228,8 @@ begin
 end;
 
 function TDesignFrame.TDesignerLayer.GetSelectedUserInterface: TCastleUserInterface;
-var
-  Selected: TComponentList;
-  SelectedCount: Integer;
 begin
-  Result := nil;
-  Frame.GetSelected(Selected, SelectedCount);
-  try
-    if (SelectedCount = 1) and (Selected[0] is TCastleUserInterface) then
-      Result := TCastleUserInterface(Selected[0]);
-  finally FreeAndNil(Selected) end;
+  Result := Frame.GetSelectedUserInterface;
 end;
 
 procedure TDesignFrame.TDesignerLayer.SetSelectedUserInterface(
@@ -672,6 +681,9 @@ begin
   ControlProperties.ActivePage := TabSimple;
 
   TreeNodeMap := TTreeNodeMap.Create;
+
+  SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
+  ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
   //ChangeMode(moInteract);
   ChangeMode(moSelectTranslateResize); // most expected default, it seems
@@ -1132,6 +1144,7 @@ var
   SelectedComponent: TComponent;
   Selected: TComponentList;
   SelectedCount: Integer;
+  UI: TCastleUserInterface;
 begin
   // when you modify component Name in PropertyGrid, update it in the ControlsTree
   Assert(ControlsTree.Selected <> nil);
@@ -1150,7 +1163,11 @@ begin
 
       // update also LabelSizeInfo
       if Selected[0] is TCastleUserInterface then
-        UpdateLabelSizeInfo(Selected[0] as TCastleUserInterface);
+      begin
+        UI := Selected[0] as TCastleUserInterface;
+        UpdateLabelSizeInfo(UI);
+        UpdateAnchors(UI, true);
+      end;
     end;
   finally FreeAndNil(Selected) end;
 
@@ -1264,12 +1281,21 @@ begin
     SelectedCount := 0;
 end;
 
+function TDesignFrame.GetSelectedUserInterface: TCastleUserInterface;
+begin
+  if (ControlsTree.SelectionCount = 1) and
+     (TObject(ControlsTree.Selections[0].Data) is TCastleUserInterface) then
+    Result := TCastleUserInterface(ControlsTree.Selections[0].Data)
+  else
+    Result := nil;
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 var
   Selected: TComponentList;
   SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
-  UI: Boolean;
+  UI: TCastleUserInterface;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1290,12 +1316,15 @@ begin
       InspectorAdvanced.Selection := SelectionForOI;
       InspectorEvents.Selection := SelectionForOI;
     finally FreeAndNil(SelectionForOI) end;
-
-    UI := (SelectedCount = 1) and (Selected[0] is TCastleUserInterface);
-    TabAnchors.TabVisible := UI;
-    if UI then
-      UpdateLabelSizeInfo(Selected[0] as TCastleUserInterface);
   finally FreeAndNil(Selected) end;
+
+  UI := GetSelectedUserInterface;
+  TabAnchors.TabVisible := UI <> nil;
+  if UI <> nil then
+  begin
+    UpdateLabelSizeInfo(UI);
+    UpdateAnchors(UI, true);
+  end;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
@@ -1355,6 +1384,60 @@ begin
        (csSubComponent in SrcComponent.ComponentStyle) then
       Result := false;
   end;
+end;
+
+procedure TDesignFrame.FrameAnchorsChange(Sender: TObject);
+var
+  UI: TCastleUserInterface;
+  OldRect: TFloatRectangle;
+begin
+  UI := GetSelectedUserInterface;
+  if UI <> nil then
+  begin
+    OldRect := UI.RenderRect;
+
+    UI.HasHorizontalAnchor := true;
+    UI.HasVerticalAnchor := true;
+    UI.HorizontalAnchorSelf := SelfAnchorsFrame.HorizontalAnchor;
+    UI.VerticalAnchorSelf := SelfAnchorsFrame.VerticalAnchor;
+    if CheckParentSelfAnchorsEqual.Checked then
+    begin
+      UI.HorizontalAnchorParent := UI.HorizontalAnchorSelf;
+      UI.VerticalAnchorParent := UI.VerticalAnchorSelf;
+      // keep invisible ParentAnchorsFrame synchronized
+      ParentAnchorsFrame.HorizontalAnchor := UI.HorizontalAnchorParent;
+      ParentAnchorsFrame.VerticalAnchor := UI.VerticalAnchorParent;
+    end else
+    begin
+      UI.HorizontalAnchorParent := ParentAnchorsFrame.HorizontalAnchor;
+      UI.VerticalAnchorParent := ParentAnchorsFrame.VerticalAnchor;
+    end;
+
+    FinishUserInterfaceAnchorsChange(UI, OldRect);
+  end;
+end;
+
+procedure TDesignFrame.FinishUserInterfaceAnchorsChange(
+  const UI: TCastleUserInterface; const RenderRectBeforeChange: TFloatRectangle);
+var
+  NewRect: TFloatRectangle;
+begin
+  // adjust anchors, to preserve previous position
+  NewRect := UI.RenderRect;
+  if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
+  begin
+    // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
+    UI.HorizontalAnchorDelta := 0;
+    UI.VerticalAnchorDelta := 0;
+  end else
+  begin
+    UI.HorizontalAnchorDelta := UI.HorizontalAnchorDelta +
+      (RenderRectBeforeChange.Left - NewRect.Left) / UI.UIScale;
+    UI.VerticalAnchorDelta := UI.VerticalAnchorDelta +
+      (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale;
+  end;
+
+  ModifiedOutsideObjectInspector;
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -1578,6 +1661,48 @@ begin
   end;
 end;
 
+procedure TDesignFrame.CheckParentSelfAnchorsEqualChange(Sender: TObject);
+var
+  UI: TCastleUserInterface;
+  OldRect: TFloatRectangle;
+begin
+  ParentAnchorsFrame.Visible := not CheckParentSelfAnchorsEqual.Checked;
+  ParentAnchorsFrame.Enabled := not CheckParentSelfAnchorsEqual.Checked;
+  if CheckParentSelfAnchorsEqual.Checked then
+  begin
+    UI := GetSelectedUserInterface;
+    if UI <> nil then
+    begin
+      OldRect := UI.RenderRect;
+
+      UI.HasHorizontalAnchor := true;
+      UI.HasVerticalAnchor := true;
+      UI.HorizontalAnchorParent := UI.HorizontalAnchorSelf;
+      UI.VerticalAnchorParent := UI.VerticalAnchorSelf;
+
+      FinishUserInterfaceAnchorsChange(UI, OldRect);
+
+      // update also (invisible now) ParentAnchorsFrame UI state
+      UpdateAnchors(UI, false);
+    end;
+  end;
+end;
+
+procedure TDesignFrame.ButtonClearAnchorDeltasClick(Sender: TObject);
+var
+  UI: TCastleUserInterface;
+begin
+  UI := GetSelectedUserInterface;
+  if UI <> nil then
+  begin
+    UI.HasHorizontalAnchor := true;
+    UI.HasVerticalAnchor := true;
+    UI.HorizontalAnchorDelta := 0;
+    UI.VerticalAnchorDelta := 0;
+    ModifiedOutsideObjectInspector;
+  end;
+end;
+
 procedure TDesignFrame.ToggleInteractModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
@@ -1691,6 +1816,24 @@ begin
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
   LabelSizeInfo.Caption := S;
+end;
+
+procedure TDesignFrame.UpdateAnchors(const UI: TCastleUserInterface;
+  const AllowToHideParentAnchorsFrame: Boolean);
+begin
+  SelfAnchorsFrame.HorizontalAnchor := UI.HorizontalAnchorSelf;
+  SelfAnchorsFrame.VerticalAnchor := UI.VerticalAnchorSelf;
+  ParentAnchorsFrame.HorizontalAnchor := UI.HorizontalAnchorParent;
+  ParentAnchorsFrame.VerticalAnchor := UI.VerticalAnchorParent;
+
+  if AllowToHideParentAnchorsFrame then
+  begin
+    CheckParentSelfAnchorsEqual.Checked :=
+      (UI.HorizontalAnchorSelf = UI.HorizontalAnchorParent) and
+      (UI.VerticalAnchorSelf = UI.VerticalAnchorParent);
+    { The above will automatically call CheckParentSelfAnchorsEqualChanged,
+      if Checked just changed. }
+  end;
 end;
 
 procedure TDesignFrame.ChangeMode(const NewMode: TMode);
