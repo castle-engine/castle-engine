@@ -3,6 +3,10 @@
 ------------------------------------------------------------------------------
 Now:
 
+* warning when project with editor_units opened in vanilla editor
+
+* maybe? remove (deprecate, saying it has no effect) HasXxxAnchor, assume always true?
+
 * do not allow sizing (not even such cursor) when control is autosized
 
   how? virtual function IsAutoSize at TCastleUserInterface
