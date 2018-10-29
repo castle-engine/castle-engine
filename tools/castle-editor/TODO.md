@@ -3,52 +3,37 @@
 ------------------------------------------------------------------------------
 Now:
 
-* Visual inspector. designer etc. most
-    * 3d gizmos to move etc.
-    * do not allow sizing (not even such cursor) when control is autosized
-    * Add TCastleImageComponent, manually make all UI controls use it
-      See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+* do not allow sizing (not even such cursor) when control is autosized
 
-      *All* images from theme should also be customizable at the control level,
-      and naming should be consistent
-    * MainScene cannot be changed
-      (we disabled in object inspector some types, maybe we should not?)
-      Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
-      Saving back suggests it's not deserialized OK now.
-    * Dragging UI:
-      * Anchors tab keeps getting deselected for some reason when moving UI control
-    * F1 help to API reference, show also in menu
-      for now just go to API reference main page?
-    * Allow editing of:
-        * TCastleUserInterface anchors (self, parent -- together in simple ver, as 3x3 grid) and (using gizmo) delta to anchor
+  how? virtual function IsAutoSize at TCastleUserInterface
+  maybe like
+  IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
+    and descendants could set e.g.
+      Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
+      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
+      Reason = 'Turn off FullSize to change control size.'
 
-    * rename TUIState -> TCastleState? (best)
-      TCastleUserInterfaceState?
-      TCastleForm?
+  utility:
+  when trying to drag to resize, we could show a suitable hint
 
-        * virtual function IsAutoSize at TCastleUserInterface
-          maybe like
-          IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
-            and descendants could set e.g.
-              Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
-              Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
-	      Reason = 'Turn off FullSize to change control size.'
+  DO NOT use it for "stored" for width/height, store them always, safer.
 
-          utility:
-          when trying to drag to resize, we could show a suitable hint
+* Add TCastleImageComponent, manually make all UI controls use it
+  See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
 
-          DO NOT use it for "stored" for width/height, store them always, safer.
+  *All* images from theme should also be customizable at the control level,
+  and naming should be consistent
 
+* Anchors tab keeps getting deselected for some reason when moving UI control
 
-    * TCastleButton:
-      - we need a way to adjust various images of tcastlebutton
-        See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
-        Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
-      - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
+* TCastleButton:
+- we need a way to adjust various images of tcastlebutton
+  See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+  Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
+- Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
 
-    * TLabel.Text using prop editor (multiline) setting is ignored
-      (we should react to Text.Assign maybe?)
-
+* TLabel.Text using prop editor (multiline) setting is ignored
+  (we should react to Text.Assign maybe?)
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
@@ -56,15 +41,29 @@ Now:
     * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
 
+* Show on recent list %20 as spaces, use URICaption or such ready function?
+
+------------------------------------------------------------------------------
+Before 6.6 release:
+
 * more colors, vectors published props:
 
   grep for TCastleColor*, TVector* properties and add everything.
   For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
 
-* Show on recent list %20 as spaces, use URICaption or such ready function?
+* F1 help to API reference, show also in menu
+    for now just go to API reference main page?
 
-------------------------------------------------------------------------------
-Before 6.6 release:
+* rename TUIState -> TCastleState? (best)
+  TCastleUserInterfaceState?
+  TCastleForm?
+
+* 3d gizmos to translate / rotate / scale
+
+* MainScene cannot be changed
+  (we disabled in object inspector some types, maybe we should not?)
+  Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
+  Saving back suggests it's not deserialized OK now.
 
 * force non-empty Name on all, to have wokring streaming?
 
