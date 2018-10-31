@@ -9,6 +9,13 @@ pipeline {
       image 'kambi/castle-engine-cloud-builds-tools:cge-none'
     }
   }
+  environment {
+    /* Used by CGE build tool ("castle-engine").
+       Define env based on another env variable.
+       According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+       this should be supported. */
+    CASTLE_ENGINE_PATH = "${WORKSPACE}"
+  }
   stages {
     stage('Build Tools (Default FPC)') {
       steps {
@@ -28,7 +35,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (Default FPC)') {
       steps {
-        sh 'export PATH="${PATH}:`pwd`/tools/build-tool/ && make tests'
+        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
       }
     }
     stage('Build Using FpMake (Default FPC)') {
@@ -59,7 +66,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC 3.0.2)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:`pwd`/tools/build-tool/ && make tests'
+        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
       }
     }
     stage('Build Using FpMake (FPC 3.0.2)') {
@@ -90,7 +97,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC trunk)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:`pwd`/tools/build-tool/ && make tests'
+        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
       }
     }
     stage('Build Using FpMake (FPC trunk)') {
