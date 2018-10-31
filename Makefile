@@ -388,15 +388,19 @@ clean-window:
 	      src/window/CastleWindow.o \
 	      src/window/CastleWindow.ppu
 
-# ----------------------------------------
-# Set SVN tag.
+# tests ----------------------------------------
 
-# Don't use anymore, we use GIT now.
-
-# svntag:
-# 	source ../www/pack/generated_versions.sh && \
-# 	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
-# 	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
-# 	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Castle Game Engine'."
+# Build and run tests.
+# Requires the CGE build tool ("castle-engine") to be available on $PATH.
+.PHONY: tests
+tests:
+	cd tests/ && \
+	  castle-engine clean && \
+	  ./compile_console.sh -dNO_WINDOW_SYSTEM && \
+	  ./test_castle_game_engine -a
+	cd tests/ && \
+	  castle-engine clean && \
+	  ./compile_console_release.sh -dNO_WINDOW_SYSTEM && \
+	  ./test_castle_game_engine -a
 
 # eof ------------------------------------------------------------
