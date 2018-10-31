@@ -1006,7 +1006,9 @@ type
     FEnableUIScaling: boolean;
     FKeepInFront, FCapturesEvents: boolean;
     FWidth, FHeight: Single;
+    FWidthFraction, FHeightFraction: Single;
     FFullSize: boolean;
+    FFullSizeMargins: TVector4;
     FAutoSizeToChildren: Boolean;
     FSizeFromChildrenValid: Boolean;
     FSizeFromChildrenRect: TFloatRectangle;
@@ -1045,6 +1047,9 @@ type
     function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     procedure SetFullSize(const Value: boolean);
+    procedure SetFullSizeMargins(const Value: TVector4);
+    procedure SetWidthFraction(const Value: Single);
+    procedure SetHeightFraction(const Value: Single);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -1279,11 +1284,21 @@ type
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
 
-      The default implementation in this class
-      follows the properties @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false)
-      or returns parent size
-      (when @link(FullSize) is @true).
+      The default implementation in this class does this:
+
+      @unorderedList(
+        @item(
+          If @link(FullSize) is @false:
+
+          Then return rectangle honoring
+          the properties @link(Left), @link(Bottom), @link(Width), @link(Height).
+        )
+        @item(
+          If @link(FullSize) is @true:
+
+          Then fill the parent size, minus margins from @link(FullSizeMargins).
+        )
+      )
 
       If you're looking for a way to query the size of the control,
       using @link(EffectiveWidth), @link(EffectiveHeight),
@@ -1533,6 +1548,23 @@ type
       a children of something. }
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
+
+    { In case @link(FullSize) is @true, the control will fill the parent,
+      but leaving a specified amount of margin at each side.
+      The margin is a 4 component vector, specifying sides in the same order as CSS:
+      top, right, bottom, left (easy to remember: clockwise, from the top,
+      like on an analog clock).
+
+      One obvious use-case is to use this for visual margins,
+      i.e. empty space.
+
+      Another use-case is to arrange margins to leave a space
+      for additional (sibling) controls within the same parent.
+      E.g. you can set FullSize=true and FullSizeMargins=(100, 0, 0, 0)
+      and this way there is always a strip with height=100 at the top
+      of the parent, where you can insert another control (with height=100,
+      anchored to the top). }
+    property FullSizeMargins: TVector4 read FFullSizeMargins write SetFullSizeMargins;
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1561,13 +1593,34 @@ type
       may be anchored, and with a float shift. }
     property Bottom: Single read FBottom write SetBottom default 0;
 
-    { Control size.
+    { Control size. The algorithm works like this:
 
-      When FullSize is @true, the control always fills the whole parent.
-      Otherwise, the position and size of the control is determined by
-      the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
-      When @link(Width) or @link(Height) are zero, the rectangle is empty
-      (it is @link(TFloatRectangle.Empty)).
+      @unorderedList(
+        @item(
+          When FullSize is @true:
+
+          The control always fills the whole parent,
+          minus margins in @link(FullSizeMargins).
+        )
+        @item(
+          When FullSize is @false:
+
+          The position and size of the control is determined by
+          the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
+
+          Moreover, @link(WidthFraction), if non-zero, specifies the control width
+          as a fraction of the parent width. E.g. WidthFraction = 1.0 means that width
+          equals parent, 0.5 means it's half the width of the parent etc.
+          In this case the explicit @link(Width) is ignored.
+
+          Similarly you can use @link(HeightFraction) to express height as a fraction of parent.
+          When @link(HeightFraction) is not zero, then
+          the explicit @link(Height) is ignored.
+
+          If at least one of the resulting sizes is zero, the rectangle is empty
+          (it is @link(TFloatRectangle.Empty)).
+        )
+      )
 
       The anchors (see @link(Anchor)) also affect the final position of the control.
 
@@ -1596,6 +1649,8 @@ type
     property FullSize: boolean read FFullSize write SetFullSize default false;
     property Width: Single read FWidth write SetWidth default DefaultWidth;
     property Height: Single read FHeight write SetHeight default DefaultHeight;
+    property WidthFraction: Single read FWidthFraction write SetWidthFraction default 0.0;
+    property HeightFraction: Single read FHeightFraction write SetHeightFraction default 0.0;
     { @groupEnd }
 
     { Adjust size to encompass all the children.
@@ -1625,7 +1680,8 @@ type
 
       Note that anchors (as well as @link(Left) and @link(Bottom))
       are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly.
+      In case of @link(FullSize), the control fills the parent perfectly
+      (minus @link(FullSizeMargins)).
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
@@ -1654,7 +1710,8 @@ type
 
       Note that anchors (as well as @link(Left) and @link(Bottom))
       are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly.
+      In case of @link(FullSize), the control fills the parent perfectly
+      (minus @link(FullSizeMargins)).
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
@@ -3774,6 +3831,9 @@ function TCastleUserInterface.Rect: TFloatRectangle;
     end;
   end;
 
+var
+  PR: TFloatRectangle;
+  W, H: Single;
 begin
   if AutoSizeToChildren then
   begin
@@ -3792,12 +3852,31 @@ begin
         ScaleAround0(UIScale);
   end else
   if FullSize then
-    Result := ParentRect
-  else
-  if (Width > 0) and (Height > 0) then
-    Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale)
-  else
-    Result := TFloatRectangle.Empty;
+  begin
+    Result := ParentRect;
+    if not FFullSizeMargins.IsZero then // optimize common case
+      Result := Result.
+        RemoveTop(FFullSizeMargins[0] * UIScale).
+        RemoveRight(FFullSizeMargins[1] * UIScale).
+        RemoveBottom(FFullSizeMargins[2] * UIScale).
+        RemoveLeft(FFullSizeMargins[3] * UIScale);
+  end else
+  begin
+    W := Width * UIScale;
+    H := Height * UIScale;
+    if (WidthFraction <> 0) or (HeightFraction <> 0) then
+    begin
+      PR := ParentRect;
+      if WidthFraction <> 0 then
+        W := WidthFraction * PR.Width;
+      if HeightFraction <> 0 then
+        H := HeightFraction * PR.Height;
+    end;
+    if (W > 0) and (H > 0) then
+      Result := FloatRectangle(LeftBottomScaled, W, H)
+    else
+      Result := TFloatRectangle.Empty;
+  end;
 end;
 
 function TCastleUserInterface.EffectiveRect: TFloatRectangle;
@@ -4060,11 +4139,38 @@ begin
   end;
 end;
 
+procedure TCastleUserInterface.SetWidthFraction(const Value: Single);
+begin
+  if FWidthFraction <> Value then
+  begin
+    FWidthFraction := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleUserInterface.SetHeightFraction(const Value: Single);
+begin
+  if FHeightFraction <> Value then
+  begin
+    FHeightFraction := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
 procedure TCastleUserInterface.SetFullSize(const Value: boolean);
 begin
   if FFullSize <> Value then
   begin
     FFullSize := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleUserInterface.SetFullSizeMargins(const Value: TVector4);
+begin
+  if not TVector4.PerfectlyEquals(FFullSizeMargins, Value) then
+  begin
+    FFullSizeMargins := Value;
     VisibleChange([chRectangle]);
   end;
 end;
