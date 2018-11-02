@@ -1012,6 +1012,8 @@ type
     FAutoSizeToChildren: Boolean;
     FSizeFromChildrenValid: Boolean;
     FSizeFromChildrenRect: TFloatRectangle;
+    FCachedRect: TFloatRectangle;
+    FUseCachedRect: Cardinal; // <> 0 if we should use FCachedRect
 
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
@@ -1050,6 +1052,11 @@ type
     procedure SetFullSizeMargins(const Value: TVector4);
     procedure SetWidthFraction(const Value: Single);
     procedure SetHeightFraction(const Value: Single);
+
+    { Like Rect, but may be temporarily cached.
+      Inside TCastleUserInterface implementation, always use this instead
+      of calling Rect. }
+    function FastRect: TFloatRectangle;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -3738,7 +3745,7 @@ procedure TCastleUserInterface.Align(
   const ContainerPosition: THorizontalPosition;
   const X: Single = 0);
 begin
-  Left := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
+  Left := FastRect.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
 end;
 
 procedure TCastleUserInterface.Align(
@@ -3746,7 +3753,7 @@ procedure TCastleUserInterface.Align(
   const ContainerPosition: TVerticalPosition;
   const Y: Single = 0);
 begin
-  Bottom := Rect.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
+  Bottom := FastRect.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
 
 procedure TCastleUserInterface.AlignHorizontal(
@@ -3798,7 +3805,7 @@ function TCastleUserInterface.Rect: TFloatRectangle;
         current size.
         Although FSizeFromChildrenValid would prevent from entering an infinite
         loop, it would be still unreliable to use such result. }
-      ChildRect := C.Rect.ScaleAround0(1 / UIScale);
+      ChildRect := C.FastRect.ScaleAround0(1 / UIScale);
       if not ChildRect.IsEmpty then
       begin
         // apply C anchors, at least some cases
@@ -3896,7 +3903,7 @@ begin
   Result := Rect.ScaleAround0(1 / UIScale).Width; }
 
   { Optimized implementation: }
-  R := Rect;
+  R := FastRect;
   if R.IsEmpty then
     Result := 0
   else
@@ -3910,7 +3917,7 @@ function TCastleUserInterface.EffectiveHeight: Single;
 var
   R: TFloatRectangle;
 begin
-  R := Rect;
+  R := FastRect;
   if R.IsEmpty then
     Result := 0
   else
@@ -3944,6 +3951,15 @@ begin
 end;
 *)
 
+function TCastleUserInterface.FastRect: TFloatRectangle;
+begin
+  Writeln('FastRect used cache? ', FUseCachedRect <> 0);
+  if FUseCachedRect <> 0 then
+    Result := FCachedRect
+  else
+    Result := Rect;
+end;
+
 function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
 var
   PR: TFloatRectangle;
@@ -3955,11 +3971,18 @@ begin
       This is crucial, various programs will crash without it. }
     Exit(TFloatRectangle.Empty);
 
-  Result := Rect;
+  Result := FastRect;
 
   { apply anchors }
   if (not FullSize) and (HasHorizontalAnchor or HasVerticalAnchor) then
   begin
+    if FUseCachedRect = 0 then
+      FCachedRect := Result; // we know Result is now equal Rect
+    { Thanks to using FUseCachedRect, we now know that if Parent.FastRect will
+      call again our FastRect, it will not cause an infinite loop,
+      instead our FastRect will return immediately. }
+    Inc(FUseCachedRect);
+
     PR := ParentRect;
     if HasHorizontalAnchor then
       Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
@@ -3967,6 +3990,8 @@ begin
     if HasVerticalAnchor then
       Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
         UIScale * VerticalAnchorDelta);
+
+    Dec(FUseCachedRect);
   end;
 end;
 
@@ -4004,7 +4029,7 @@ function TCastleUserInterface.ParentRect: TFloatRectangle;
 begin
   if Parent <> nil then
   begin
-    Result := Parent.Rect;
+    Result := Parent.FastRect;
     Result.Left := 0;
     Result.Bottom := 0;
   end else
