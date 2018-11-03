@@ -767,7 +767,7 @@ type
       @unorderedList(
         @item(TGLImage.Draw (to draw @italic(other) TGLImage instances on this one),)
         @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
-        @item(@link(TGLContainer.RenderControl Window.Container.RenderControl)
+        @item(@link(TUIContainer.RenderControl Window.Container.RenderControl)
           to render any TCastleUserInterface to this image.)
       )
 

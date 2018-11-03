@@ -83,7 +83,7 @@ type
     type
       { Non-abstact implementation of TUIContainer that cooperates with
         TCastleControlCustom. }
-      TContainer = class(TGLContainer)
+      TContainer = class(TUIContainer)
       private
         Parent: TCastleControlCustom;
       protected

@@ -598,9 +598,9 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstact implementation of TGLContainer that cooperates with
+  { Non-abstact implementation of TUIContainer that cooperates with
     TCastleWindowCustom. }
-  TWindowContainer = class(TGLContainer)
+  TWindowContainer = class(TUIContainer)
   private
     Parent: TCastleWindowCustom;
   public

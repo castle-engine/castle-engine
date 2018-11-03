@@ -21,8 +21,8 @@ unit CastleUIControls;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleKeysMouse, CastleUtils, CastleClassUtils, CastleFonts,
-  CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
+  CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
+  CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const
@@ -261,6 +261,8 @@ type
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
     FDefaultFont: TCastleFont;
+    FContext: TRenderContext;
+
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
     { Called when the control C is destroyed or just removed from Controls list. }
@@ -273,6 +275,9 @@ type
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
+    procedure RenderControlPrepare(const ViewportRect: TRectangle);
+    procedure RenderControlCore(const C: TCastleUserInterface;
+      const ViewportRect: TRectangle);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -335,7 +340,7 @@ type
     procedure EventMotion(const Event: TInputMotion); virtual;
     function AllowSuspendForInput: boolean;
     procedure EventBeforeRender; virtual;
-    procedure EventRender; virtual; abstract;
+    procedure EventRender; virtual;
     procedure EventResize; virtual;
     function EventJoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
     function EventJoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
@@ -491,6 +496,68 @@ type
       @seealso Touches }
     function TouchesCount: Integer; virtual;
 
+    property Context: TRenderContext read FContext;
+
+    { Render a TCastleUserInterface (along with all it's children).
+
+      This method can be used to render UI control into an image,
+      @link(TGLImage), when it is surrounded by
+      @link(TGLImage.RenderToImageBegin)
+      and @link(TGLImage.RenderToImageEnd).
+      See example ../../../examples/3d_rendering_processing/render_3d_to_image.lpr.
+
+      It can also be used with more low-level @link(TGLRenderToTexture).
+      See example ../../../examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad.lpr.
+
+      This is a good method to render the UI control off-screen.
+      It can render any UI control, including e.g. TCastleSceneManager
+      with 3D stuff inside TCastleScene.
+
+      The contents of the @link(Controls) list doesn't matter for this method.
+      In particular, it doesn't matter if the Control (given as a parameter)
+      is present on the list of current @link(Controls).
+      This method explicitly renders the given Control parameter (and it's children),
+      nothing more, nothing less.
+
+      More details what this method does:
+
+      @unorderedList(
+        @item(Temporarily sets
+          @link(TInputListener.Container Control.Container), if needed.)
+
+        @item(Makes sure OpenGL resources of the control are initialized.
+          If needed, it calls
+          @link(TCastleUserInterface.GLContextOpen Control.GLContextOpen) and
+          @link(TCastleUserInterface.GLContextClose Control.GLContextClose)
+          around.
+          This is needed when you want to perform off-screen rendering,
+          but the control's OpenGL resources are not initialized yet,
+          e.g. because it is not present on the @link(Controls) list.
+
+          Note that doing this repeatedly may be a slowdown
+          (how much, it depends on the actual TCastleUserInterface
+          -- some controls do nothing in TCastleUserInterface.GLContextOpen,
+          some controls do a lot).
+          If you want to repeatedly call @link(RenderControl) on the
+          same Control, it is more efficient
+          to first explicitly create it's OpenGL resources,
+          e.g. by calling
+          @link(TCastleUserInterface.GLContextOpen Control.GLContextOpen) explicitly.
+          Or adding the control to the @link(Controls) list.
+        )
+
+        @item(Calls @link(TInputListener.Resize Control.Resize),
+          required by some controls (like scene manager) to know viewport size.)
+
+        @item(Calls @link(TCastleUserInterface.BeforeRender Control.BeforeRender),
+          required by some controls (like scene manager)
+          to prepare resources (like generated textures,
+          important for mirrors for screenshots in batch mode).)
+      )
+    }
+    procedure RenderControl(const Control: TCastleUserInterface;
+      const ViewportRect: TRectangle);
+
     { Capture the current container (window) contents to an image
       (or straight to an image file, like png).
 
@@ -503,7 +570,7 @@ type
       @groupBegin }
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual; abstract;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual;
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
     { @groupEnd }
 
@@ -1107,7 +1174,7 @@ type
       @bold(Do not explicitly call this method.)
       Instead, render controls by adding them to the
       @link(TUIContainer.Controls) list, or render them explicitly
-      (for off-screen rendering) by @link(TGLContainer.RenderControl).
+      (for off-screen rendering) by @link(TUIContainer.RenderControl).
     }
     procedure BeforeRender; virtual;
 
@@ -1117,7 +1184,7 @@ type
       @bold(Do not explicitly call this method.)
       Instead, render controls by adding them to the
       @link(TUIContainer.Controls) list, or render them explicitly
-      (for off-screen rendering) by @link(TGLContainer.RenderControl).
+      (for off-screen rendering) by @link(TUIContainer.RenderControl).
       This is method should only be overridden in your own code.
 
       Before calling this method we always set some OpenGL state,
@@ -1879,10 +1946,39 @@ var
     @exclude }
   OnMainContainer: TOnMainContainer = nil;
 
+{ Render control contents to an RGBA image, using off-screen rendering.
+  The background behind the control is filled with BackgroundColor
+  (which may be transparent, e.g. with alpha = 0).
+
+  The rendering is done using off-screen FBO.
+  Which means that you can request any size, you are @bold(not) limited
+  to your current window / control size.
+
+  Make sure that the control is nicely positioned to fill the ViewportRect.
+  Usually you want to adjust control size and position,
+  and disable UI scaling (set TCastleUserInterface.EnableUIScaling = @false
+  if you use TUIContainer.UIScaling).
+
+  This is the @italic(easiest) way to make off-screen rendering,
+  i.e. to render 3D things (like TCastleScene or TCastleSceneManager)
+  into an image. This is @italic(not the fastest way), as it creates
+  new TGLRenderToTexture instance each time,
+  and it grabs the image contents to CPU.
+  If you want a faster approach, use @link(TUIContainer.RenderControl)
+  and render into @link(TGLImage) using @link(TGLImage.RenderToImageBegin)
+  and @link(TGLImage.RenderToImageEnd).
+}
+function RenderControlToImage(const Container: TUIContainer;
+  const Control: TCastleUserInterface;
+  const ViewportRect: TRectangle;
+  const BackgroundColor: TCastleColor): TRGBAlphaImage; overload;
+
 implementation
 
 uses DOM, TypInfo,
-  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils;
+  CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLImages;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -1947,6 +2043,7 @@ begin
   FNewFocus := TCastleUserInterfaceList.Create(false);
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
+  FContext := TRenderContext.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1961,6 +2058,10 @@ end;
 
 destructor TUIContainer.Destroy;
 begin
+  if RenderContext = FContext then
+    RenderContext := nil;
+  FreeAndNil(FContext);
+
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   FreeAndNil(FControls);
@@ -2319,7 +2420,7 @@ procedure TUIContainer.EventUpdate;
         if Focus.Last.TooltipExists = false but other control on Focus
         has tooltips.
         Set something like TooltipFocusIndex or just TooltipControl
-        to pass correct control to TGLContainer.EventRender then,
+        to pass correct control to TUIContainer.EventRender then,
         right now we hardcoded there rendering of Focus.Last tooltip. }
       NewTooltipVisible :=
         { make TooltipVisible only when we're over a control that has
@@ -2695,7 +2796,15 @@ begin
       RecursiveGLContextClose(Controls[I]);
 
   if OpenWindowsCount = 1 then
+  begin
     ApplicationProperties._GLContextClose;
+
+    { recreate FContext instance, to reset every variable when context is closed }
+    if RenderContext = FContext then
+      RenderContext := nil;
+    FreeAndNil(FContext);
+    FContext := TRenderContext.Create;
+  end;
 end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
@@ -2835,6 +2944,122 @@ begin
     RecursiveBeforeRender(Controls[I]);
 
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
+end;
+
+procedure TUIContainer.RenderControlPrepare(const ViewportRect: TRectangle);
+begin
+  if GLFeatures.EnableFixedFunction then
+  begin
+    { Set state that is guaranteed for Render2D calls,
+      but TCastleUserInterface.Render cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    GLEnableTexture(CastleGLUtils.etNone);
+  end;
+
+  glDisable(GL_DEPTH_TEST);
+
+  RenderContext.Viewport := ViewportRect;
+  OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
+
+  if GLFeatures.EnableFixedFunction then
+  begin
+    { Set OpenGL state that may be changed carelessly, and has some
+      guaranteed value, for Render2d calls. }
+    {$ifndef OpenGLES} glLoadIdentity; {$endif}
+    {$warnings off}
+    CastleGLUtils.WindowPos := Vector2Integer(0, 0);
+    {$warnings on}
+  end;
+end;
+
+procedure TUIContainer.RenderControlCore(const C: TCastleUserInterface;
+  const ViewportRect: TRectangle);
+var
+  I: Integer;
+begin
+  if C.GetExists then
+  begin
+    // the calculation inside will use C.Rect a number of times, make it faster
+    if C.FUseCachedRect = 0 then
+      C.FCachedRect := C.FastRect;
+    Inc(C.FUseCachedRect);
+
+    { We check C.GLInitialized, because it may happen that a control
+      did not receive GLContextOpen yet, in case we cause some rendering
+      during TUIContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
+      calls Window.Screenshot, so everything is rendered
+      before even the rest of controls received TCastleUserInterface.GLContextOpen).
+      See castle_game_engine/tests/testcontainer.pas . }
+
+    if C.GLInitialized then
+    begin
+      RenderControlPrepare(Rect);
+      C.Render;
+    end;
+
+    for I := 0 to C.ControlsCount - 1 do
+      RenderControlCore(C.Controls[I], ViewportRect);
+
+    if C.GLInitialized then
+    begin
+      RenderControlPrepare(Rect);
+      C.RenderOverChildren;
+    end;
+
+    Dec(C.FUseCachedRect);
+  end;
+end;
+
+procedure TUIContainer.EventRender;
+var
+  I: Integer;
+begin
+  { draw controls in "to" order, back to front }
+  for I := 0 to Controls.Count - 1 do
+    RenderControlCore(Controls[I], Rect);
+
+  if TooltipVisible and (Focus.Count <> 0) then
+  begin
+    RenderControlPrepare(Rect);
+    Focus.Last.TooltipRender;
+  end;
+
+  RenderControlPrepare(Rect);
+  if Assigned(OnRender) then OnRender(Self);
+end;
+
+procedure TUIContainer.RenderControl(const Control: TCastleUserInterface;
+  const ViewportRect: TRectangle);
+var
+  NeedsContainerSet, NeedsGLOpen: boolean;
+  OldContainer: TUIContainer;
+begin
+  NeedsContainerSet := Control.Container <> Self;
+  NeedsGLOpen := not Control.GLInitialized;
+
+  { TODO: calling the methods below is not recursive,
+    it will not prepare the children correctly. }
+  if NeedsContainerSet then
+  begin
+    OldContainer := Control.Container;
+    Control.Container := Self;
+  end;
+  if NeedsGLOpen then
+    Control.GLContextOpen;
+  Control.Resize;
+  Control.BeforeRender;
+
+  RenderControlCore(Control, ViewportRect);
+
+  { TODO: calling the methods below is not recursive,
+    it will not unprepare the children correctly. }
+  if NeedsContainerSet then
+    Control.Container := OldContainer;
+  if NeedsGLOpen then
+    Control.GLContextClose;
 end;
 
 procedure TUIContainer.EventResize;
@@ -3011,6 +3236,14 @@ end;
 function TUIContainer.StatusBarHeight: Single;
 begin
   Result := ScaledStatusBarHeight / FCalculatedUIScale;
+end;
+
+function TUIContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  EventBeforeRender;
+  EventRender;
+  { This is correct if we use double-buffer. }
+  Result := SaveScreen_NoFlush(SaveRect, cbBack);
 end;
 
 procedure TUIContainer.SaveScreen(const URL: string);
@@ -3898,7 +4131,6 @@ end;
 
 function TCastleUserInterface.FastRect: TFloatRectangle;
 begin
-  Writeln('FastRect used cache? ', FUseCachedRect <> 0);
   if FUseCachedRect <> 0 then
     Result := FCachedRect
   else
@@ -4531,6 +4763,58 @@ end;
 function IsGLContextOpen: boolean;
 begin
   Result := ApplicationProperties.IsGLContextOpen;
+end;
+
+function RenderControlToImage(const Container: TUIContainer;
+  const Control: TCastleUserInterface;
+  const ViewportRect: TRectangle;
+  const BackgroundColor: TCastleColor): TRGBAlphaImage;
+
+  function CreateTargetTexture(const W, H: Integer): TGLTextureId;
+  var
+    InitialImage: TCastleImage;
+  begin
+    InitialImage := TRGBAlphaImage.Create(W, H);
+    try
+      InitialImage.URL := 'generated:/temporary-render-to-texture';
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+      Result := LoadGLTexture(InitialImage,
+        TextureFilter(minNearest, magNearest),
+        Texture2DClampToEdge, nil, true);
+    finally FreeAndNil(InitialImage) end;
+  end;
+
+var
+  W, H: Integer;
+  RenderToTexture: TGLRenderToTexture;
+  TargetTexture: TGLTextureId;
+begin
+  W := ViewportRect.Width;
+  H := ViewportRect.Height;
+  RenderToTexture := TGLRenderToTexture.Create(W, H);
+  try
+    // RenderToTexture.Buffer := tbNone;
+    // RenderToTexture.ColorBufferAlpha := true;
+
+    RenderToTexture.Buffer := tbColor;
+    TargetTexture := CreateTargetTexture(W, H);
+    RenderToTexture.SetTexture(TargetTexture, GL_TEXTURE_2D);
+    RenderToTexture.GLContextOpen;
+    RenderToTexture.RenderBegin;
+
+    { actually render }
+    RenderContext.Clear([cbColor], BackgroundColor);
+    Container.RenderControl(Control, ViewportRect);
+
+    RenderToTexture.RenderEnd;
+
+    Result := TRGBAlphaImage.Create(W, H);
+    SaveTextureContents(Result, TargetTexture);
+
+    RenderToTexture.GLContextClose;
+
+    glFreeTexture(TargetTexture);
+  finally FreeAndNil(RenderToTexture) end;
 end;
 
 procedure DoInitialization;
