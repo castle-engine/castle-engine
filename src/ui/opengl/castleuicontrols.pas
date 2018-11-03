@@ -1048,6 +1048,7 @@ type
     FSizeFromChildrenRect: TFloatRectangle;
     FCachedRect: TFloatRectangle;
     FUseCachedRect: Cardinal; // <> 0 if we should use FCachedRect
+    FInsideRect: Boolean;
 
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
@@ -4020,6 +4021,13 @@ var
   PR: TFloatRectangle;
   W, H: Single;
 begin
+  if FInsideRect then
+  begin
+    WriteLnWarning('Recursive call from TCastleUserInterface.Rect to itself. This means that UI child size depends on the parent (e.g. using FullSize), while at the same time UI parent size depends on the child.');
+    Exit(TFloatRectangle.Empty);
+  end;
+  FInsideRect := true;
+
   if AutoSizeToChildren then
   begin
     UpdateSizeFromChildren;
@@ -4062,6 +4070,8 @@ begin
     else
       Result := TFloatRectangle.Empty;
   end;
+
+  FInsideRect := false;
 end;
 
 function TCastleUserInterface.EffectiveRect: TFloatRectangle;
@@ -4153,13 +4163,6 @@ begin
   { apply anchors }
   if (not FullSize) and (HasHorizontalAnchor or HasVerticalAnchor) then
   begin
-    if FUseCachedRect = 0 then
-      FCachedRect := Result; // we know Result is now equal Rect
-    { Thanks to using FUseCachedRect, we now know that if Parent.FastRect will
-      call again our FastRect, it will not cause an infinite loop,
-      instead our FastRect will return immediately. }
-    Inc(FUseCachedRect);
-
     PR := ParentRect;
     if HasHorizontalAnchor then
       Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
@@ -4167,8 +4170,6 @@ begin
     if HasVerticalAnchor then
       Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
         UIScale * VerticalAnchorDelta);
-
-    Dec(FUseCachedRect);
   end;
 end;
 

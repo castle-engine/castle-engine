@@ -26,6 +26,7 @@ type
   TTestCastleUIControls = class(TCastleBaseTestCase)
   published
     procedure TestRectOverrides;
+    procedure TestRecursiveRect;
   end;
 
 implementation
@@ -84,6 +85,53 @@ begin
     AssertEquals(300, F.EffectiveWidth);
     AssertEquals(400, F.EffectiveHeight);
   finally FreeAndNil(F); end;
+end;
+
+type
+  TParentAdjustsToChildren = class(TCastleUserInterface)
+    function Rect: TFloatRectangle; override;
+  end;
+
+function TParentAdjustsToChildren.Rect: TFloatRectangle;
+var
+  I: Integer;
+  C: TCastleUserInterface;
+begin
+  Result := TFloatRectangle.Empty;
+  for I := 0 to ControlsCount - 1 do
+  begin
+    C := Controls[I];
+    Result := Result + C.Rect;
+  end;
+end;
+
+procedure TTestCastleUIControls.TestRecursiveRect;
+var
+  UiParent: TParentAdjustsToChildren;
+  UiChild: TCastleUserInterface;
+begin
+  UiParent := TParentAdjustsToChildren.Create(nil);
+  UiChild := TCastleUserInterface.Create(nil);
+  try
+    UiParent.InsertFront(UiChild);
+
+    // check that calculating rects doesn't cause infinite loop
+    UiParent.Rect;
+    UiChild.Rect;
+    UiParent.RenderRect;
+    UiChild.RenderRect;
+
+    UiChild.FullSize := true;
+
+    // check that calculating rects doesn't cause infinite loop
+    UiParent.Rect;
+    UiChild.Rect;
+    UiParent.RenderRect;
+    UiChild.RenderRect;
+  finally
+    FreeAndNil(UiParent);
+    FreeAndNil(UiChild);
+  end;
 end;
 
 initialization
