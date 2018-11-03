@@ -33,9 +33,7 @@ type
   strict private
     FContext: TRenderContext;
     procedure RenderControlCore(const C: TCastleUserInterface;
-      const ViewportRect: TRectangle;
-      var SomeControlHasRenderStyle2D: boolean;
-      const FilterRenderStyle: TRenderStyle);
+      const ViewportRect: TRectangle);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -186,9 +184,7 @@ begin
 end;
 
 procedure TGLContainer.RenderControlCore(const C: TCastleUserInterface;
-  const ViewportRect: TRectangle;
-  var SomeControlHasRenderStyle2D: boolean;
-  const FilterRenderStyle: TRenderStyle);
+  const ViewportRect: TRectangle);
 var
   I: Integer;
 begin
@@ -203,26 +199,14 @@ begin
 
     if C.GLInitialized then
     begin
-      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-      if C.RenderStyle = FilterRenderStyle then
-      {$warnings on}
-      begin
-        ControlRenderBegin(Rect);
-        C.Render;
-      end;
-      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-      if C.RenderStyle = rs2D then
-      {$warnings on}
-        SomeControlHasRenderStyle2D := true;
+      ControlRenderBegin(Rect);
+      C.Render;
     end;
 
     for I := 0 to C.ControlsCount - 1 do
-      RenderControlCore(C.Controls[I], ViewportRect,
-        SomeControlHasRenderStyle2D, FilterRenderStyle);
+      RenderControlCore(C.Controls[I], ViewportRect);
 
-    {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-    if C.GLInitialized and (C.RenderStyle = FilterRenderStyle) then
-    {$warnings on}
+    if C.GLInitialized then
     begin
       ControlRenderBegin(Rect);
       C.RenderOverChildren;
@@ -231,57 +215,27 @@ begin
 end;
 
 procedure TGLContainer.EventRender;
+var
+  I: Integer;
+begin
+  { draw controls in "to" order, back to front }
+  for I := 0 to Controls.Count - 1 do
+    RenderControlCore(Controls[I], Rect);
 
-  procedure RenderEverything(const FilterRenderStyle: TRenderStyle; out SomeControlHasRenderStyle2D: boolean);
-  var
-    I: Integer;
+  if TooltipVisible and (Focus.Count <> 0) then
   begin
-    SomeControlHasRenderStyle2D := false;
-
-    { draw controls in "to" order, back to front }
-    for I := 0 to Controls.Count - 1 do
-      RenderControlCore(Controls[I], Rect, SomeControlHasRenderStyle2D, FilterRenderStyle);
-
-    if TooltipVisible and (Focus.Count <> 0) then
-    begin
-      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-      if Focus.Last.TooltipStyle = FilterRenderStyle then
-      {$warnings on}
-      begin
-        ControlRenderBegin(Rect);
-        Focus.Last.TooltipRender;
-      end;
-      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-      if Focus.Last.TooltipStyle = rs2D then
-      {$warnings on}
-        SomeControlHasRenderStyle2D := true;
-    end;
-
-    {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-    if RenderStyle = FilterRenderStyle then
-    {$warnings on}
-    begin
-      ControlRenderBegin(Rect);
-      if Assigned(OnRender) then OnRender(Self);
-    end;
-    {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-    if RenderStyle = rs2D then
-    {$warnings on}
-      SomeControlHasRenderStyle2D := true;
+    ControlRenderBegin(Rect);
+    Focus.Last.TooltipRender;
   end;
 
-var
-  SomeControlHasRenderStyle2D, Dummy: boolean;
-begin
-  RenderEverything(rs3D, SomeControlHasRenderStyle2D);
-  if SomeControlHasRenderStyle2D then
-    RenderEverything(rs2D, Dummy);
+  ControlRenderBegin(Rect);
+  if Assigned(OnRender) then OnRender(Self);
 end;
 
 procedure TGLContainer.RenderControl(const Control: TCastleUserInterface;
   const ViewportRect: TRectangle);
 var
-  SomeControlHasRenderStyle2D, Dummy, NeedsContainerSet, NeedsGLOpen: boolean;
+  NeedsContainerSet, NeedsGLOpen: boolean;
   OldContainer: TUIContainer;
 begin
   NeedsContainerSet := Control.Container <> Self;
@@ -299,10 +253,7 @@ begin
   Control.Resize;
   Control.BeforeRender;
 
-  SomeControlHasRenderStyle2D := false;
-  RenderControlCore(Control, ViewportRect, SomeControlHasRenderStyle2D, rs3D);
-  if SomeControlHasRenderStyle2D then
-    RenderControlCore(Control, ViewportRect, Dummy, rs2D);
+  RenderControlCore(Control, ViewportRect);
 
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }

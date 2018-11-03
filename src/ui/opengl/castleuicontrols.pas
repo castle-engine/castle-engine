@@ -32,11 +32,6 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  { Determines the order in which TCastleUserInterface.Render is called.
-    All 3D controls are always under all 2D controls.
-    See TCastleUserInterface.Render, TCastleUserInterface.RenderStyle. }
-  TRenderStyle = (rs2D, rs3D) deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
-
   TCastleUserInterface = class;
   TChildrenControls = class;
   TUIContainer = class;
@@ -240,9 +235,6 @@ type
     { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
     FControls: TObject;
-    {$warnings off} // knowingly using deprecated stuff
-    FRenderStyle: TRenderStyle;
-    {$warnings on}
     FFocus, FNewFocus: TCastleUserInterfaceList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
@@ -602,28 +594,6 @@ type
       and CastleSettings.xml file. }
     procedure LoadSettings(const SettingsUrl: String);
   published
-    { How OnRender callback fits within various Render methods of our
-      @link(Controls).
-
-      @unorderedList(
-        @item(rs2D means that OnRender is called at the end,
-          after all our @link(Controls) (3D and 2D) are drawn.)
-
-        @item(rs3D means that OnRender is called after all other
-          @link(Controls) with rs3D draw style, but before any 2D
-          controls.
-
-          This is suitable if you want to draw something 3D,
-          that may be later covered by 2D controls.)
-      )
-
-      @deprecated Do not use this to control the order of rendering,
-      better to use proper InsertFront or InsertBack or KeepInFront.
-    }
-    property RenderStyle: TRenderStyle
-      read FRenderStyle write FRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
-
     { Delay in seconds before showing the tooltip. }
     property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
       default DefaultTooltipDelay;
@@ -990,9 +960,6 @@ type
     FFocused: boolean;
     FGLInitialized: boolean;
     FExists: boolean;
-    {$warnings off} // knowingly using deprecated stuff
-    FRenderStyle: TRenderStyle;
-    {$warnings on}
     FControls: TChildrenControls;
     FLeft: Single;
     FBottom: Single;
@@ -1193,28 +1160,17 @@ type
       as the convention is that the parent is underneath children. }
     procedure RenderOverChildren; virtual;
 
-    { Determines the rendering order.
-      All controls with RenderStyle = rs3D are drawn first.
-      Then all the controls with RenderStyle = rs2D are drawn.
-      Among the controls with equal RenderStyle, their order
-      on TUIContainer.Controls list determines the rendering order. }
-    property RenderStyle: TRenderStyle read FRenderStyle write FRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
-
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
       Then the TCastleWindowCustom.TooltipVisible will be detected,
       and your TooltipRender will be called.
 
-      The values of rs2D and rs3D are interpreted in the same way
-      as RenderStyle. And TooltipRender is called in the same way as @link(Render),
+      TooltipRender is called in the same way as @link(Render),
       so e.g. you can safely assume that modelview matrix is identity
       and (for 2D) WindowPos is zero.
-      TooltipRender is always called as a last (front-most) 2D or 3D control.
+      TooltipRender is always called as a last (front-most) control.
 
       @groupBegin }
-    function TooltipStyle: TRenderStyle; virtual;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
     function TooltipExists: boolean; virtual;
     procedure TooltipRender; virtual;
     { @groupEnd }
@@ -1898,11 +1854,6 @@ function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationPrope
 function IsGLContextOpen: boolean; deprecated 'use ApplicationProperties.IsGLContextOpen';
 
 const
-  { Deprecated name for rs2D. }
-  ds2D = rs2D deprecated;
-  { Deprecated name for rs3D. }
-  ds3D = rs3D deprecated;
-
   prLeft = prLow deprecated;
   prRight = prHigh deprecated;
   prBottom = prLow deprecated;
@@ -1986,7 +1937,6 @@ begin
   inherited;
   FControls := TChildrenControls.Create(nil);
   TChildrenControls(FControls).Container := Self;
-  FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
   FCaptureInput := TFingerIndexCaptureMap.Create;
@@ -3591,11 +3541,6 @@ end;
 
 procedure TCastleUserInterface.RenderOverChildren;
 begin
-end;
-
-function TCastleUserInterface.TooltipStyle: TRenderStyle;
-begin
-  Result := rs2D;
 end;
 
 procedure TCastleUserInterface.TooltipRender;

@@ -50,9 +50,6 @@ type
         OldPress, OldRelease: TInputPressReleaseEvent;
         OldOpenObject, OldCloseObject: TContainerObjectEvent;
         OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
-        {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-        OldRenderStyle: TRenderStyle;
-        {$warnings on}
         OldResize: TContainerEvent;
         OldMenuClick: TMenuClickFunc;
         OldCaption: string;
@@ -201,7 +198,6 @@ type
         @item(TCastleWindowCustom.Cursor is reset to mcDefault.)
         @item(TCastleWindowCustom.UserData is reset to @nil.)
         @item(TCastleWindowCustom.AutoRedisplay is reset to @false.)
-        @item(TCastleWindowCustom.RenderStyle is reset to rs2D.)
         @item(TCastleWindowCustom.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
@@ -263,9 +259,6 @@ begin
   OldRelease := Window.OnRelease;
   OldBeforeRender := Window.OnBeforeRender;
   OldRender := Window.OnRender;
-  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-  OldRenderStyle := Window.RenderStyle;
-  {$warnings on}
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
@@ -305,9 +298,6 @@ begin
   Window.OnRelease := OldRelease;
   Window.OnBeforeRender := OldBeforeRender;
   Window.OnRender := OldRender;
-  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-  Window.RenderStyle := OldRenderStyle;
-  {$warnings on}
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
@@ -386,9 +376,6 @@ begin
   Window.OnRelease := nil;
   Window.OnBeforeRender := nil;
   Window.OnRender := nil;
-  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-  Window.RenderStyle := rs2D;
-  {$warnings on}
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
   Window.OnTimer := nil;

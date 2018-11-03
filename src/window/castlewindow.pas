@@ -742,8 +742,6 @@ type
     procedure SetPublicCaption(const Value: string);
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
     function GetWholeCaption: string;
-    function GetRenderStyle: TRenderStyle;
-    procedure SetRenderStyle(const Value: TRenderStyle);
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     function GetOnOpen: TContainerEvent;
@@ -1681,8 +1679,8 @@ type
 
       When you have some controls on the @link(Controls) list
       (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
-      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
-      default). So here you can draw on top of the existing controls.
+      the OnRender event is done @bold(last).
+      So here you can draw on top of the existing controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
       and override it's @link(TCastleUserInterface.Render) and insert it to the controls
       using @code(Controls.InsertBack(MyBackgroundControl);). }
@@ -1970,9 +1968,6 @@ type
       under every CastleWindow backend... sorry, CustomCursor is only a plan. }
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
-
-    property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
     { List of user-interface controls currently active.
       See @link(TUIContainer.Controls) for details. }
@@ -4436,18 +4431,6 @@ begin
 end;
 {$endif}
 {$endif}
-
-{$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
-begin
-  Result := Container.RenderStyle;
-end;
-
-procedure TCastleWindowCustom.SetRenderStyle(const Value: TRenderStyle);
-begin
-  Container.RenderStyle := Value;
-end;
-{$warnings on}
 
 function TCastleWindowCustom.Controls: TChildrenControls;
 begin
