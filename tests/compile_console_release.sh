@@ -1,11 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-# Tests must pass both in -dDEBUG and -dRELEASE modes.
-# This script recompiles engine (and fpcunit tests) in -dRELEASE mode.
+# Compile the auto-tests.
+# In release mode (tests must pass in both debug and release), with text runner.
+# One optional additional parameter possible, like -dXXX.
 
 if which castle-engine  > /dev/null; then
-  castle-engine --mode=release compile
+  castle-engine --mode=release --compiler-option="$@" compile
 else
   cd ../
   fpc -gh -dRELEASE -dTEXT_RUNNER "$@" \
