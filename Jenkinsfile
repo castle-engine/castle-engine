@@ -35,7 +35,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (Default FPC)') {
       steps {
-        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
+        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake (Default FPC)') {
@@ -66,7 +66,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC 3.0.2)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
+        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake (FPC 3.0.2)') {
@@ -97,7 +97,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests (FPC trunk)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/ && make tests'
+        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake (FPC trunk)') {
