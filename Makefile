@@ -238,6 +238,8 @@ EXAMPLES_BASE_NAMES := \
   tools/texture-font-to-pascal/texture-font-to-pascal \
   tools/to-data-uri/to-data-uri
 
+# Note that src/library/castleengine must be compiled before
+# cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/audio_player_scrubber/audio_player_scrubber \
   examples/audio/test_al_source_allocator \
@@ -246,9 +248,9 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/quick_2d_game/quick_2d_game_lazarus \
   examples/lazarus/two_controls/two_controls \
+  src/library/castleengine \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test \
-  src/library/castleengine \
   tests/test_castle_game_engine \
   tools/build-tool/code/castle-engine \
   tools/castle-editor/code/castle_editor
