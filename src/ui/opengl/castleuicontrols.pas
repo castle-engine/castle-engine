@@ -275,9 +275,7 @@ type
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
-    procedure RenderControlPrepare(const ViewportRect: TRectangle);
-    procedure RenderControlCore(const C: TCastleUserInterface;
-      const ViewportRect: TRectangle);
+    class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1049,6 +1047,8 @@ type
     FCachedRect: TFloatRectangle;
     FUseCachedRect: Cardinal; // <> 0 if we should use FCachedRect
     FInsideRect: Boolean;
+    FRenderCulling: Boolean;
+    FClipChildren: Boolean;
 
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
@@ -1080,18 +1080,23 @@ type
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Single);
     procedure SetEnableUIScaling(const Value: boolean);
-    { Like @link(Rect) but with anchors effect applied. }
-    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     procedure SetFullSize(const Value: boolean);
     procedure SetFullSizeMargins(const Value: TVector4);
     procedure SetWidthFraction(const Value: Single);
     procedure SetHeightFraction(const Value: Single);
+    procedure SetRenderCulling(const Value: Boolean);
+    procedure SetClipChildren(const Value: Boolean);
+
+    { Like @link(Rect) but with anchors effect applied. }
+    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     { Like Rect, but may be temporarily cached.
       Inside TCastleUserInterface implementation, always use this instead
       of calling Rect. }
     function FastRect: TFloatRectangle;
+
+    procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -1784,6 +1789,32 @@ type
       the intent of this property. }
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
+
+    { Optimize rendering by first checking whether the control's
+      rectangle fits within the parent.
+
+      This is useful for UI controls that have expensive rendering
+      (e.g. they do something non-trivial in @link(Render) or @link(RenderOverChildren),
+      or they include a lot of children controls).
+      And they may be placed off-screen,
+      or they may be outside of parent with @link(ClipChildren),
+      which is often the case when the parent is @link(TCastleScrollView). }
+    property RenderCulling: Boolean read FRenderCulling write SetRenderCulling default false;
+
+    { Clip the rendering of children.
+
+      By default this is @false and so the control
+      can draw outside of it's designated rectangle (@link(RenderRect)).
+      Although all the standard UI controls are carefully implemented
+      such that their @link(Render) and @link(RenderOverChildren)
+      draw only within their @link(RenderRect).
+      But it is easy to place children controls outside of this rectangle.
+
+      When this property is @true, the rendering is clipped,
+      so the "overflowing" parts are never visible.
+      This affects both @link(Render) and @link(RenderOverChildren)
+      of this control, as well as all children rendering. }
+    property ClipChildren: Boolean read FClipChildren write SetClipChildren default false;
   end;
 
   { Simple list of TCastleUserInterface instances. }
@@ -2947,7 +2978,7 @@ begin
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
-procedure TUIContainer.RenderControlPrepare(const ViewportRect: TRectangle);
+class procedure TUIContainer.RenderControlPrepare(const ViewportRect: TRectangle); static;
 begin
   if GLFeatures.EnableFixedFunction then
   begin
@@ -2976,51 +3007,13 @@ begin
   end;
 end;
 
-procedure TUIContainer.RenderControlCore(const C: TCastleUserInterface;
-  const ViewportRect: TRectangle);
-var
-  I: Integer;
-begin
-  if C.GetExists then
-  begin
-    // the calculation inside will use C.Rect a number of times, make it faster
-    if C.FUseCachedRect = 0 then
-      C.FCachedRect := C.FastRect;
-    Inc(C.FUseCachedRect);
-
-    { We check C.GLInitialized, because it may happen that a control
-      did not receive GLContextOpen yet, in case we cause some rendering
-      during TUIContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
-      calls Window.Screenshot, so everything is rendered
-      before even the rest of controls received TCastleUserInterface.GLContextOpen).
-      See castle_game_engine/tests/testcontainer.pas . }
-
-    if C.GLInitialized then
-    begin
-      RenderControlPrepare(Rect);
-      C.Render;
-    end;
-
-    for I := 0 to C.ControlsCount - 1 do
-      RenderControlCore(C.Controls[I], ViewportRect);
-
-    if C.GLInitialized then
-    begin
-      RenderControlPrepare(Rect);
-      C.RenderOverChildren;
-    end;
-
-    Dec(C.FUseCachedRect);
-  end;
-end;
-
 procedure TUIContainer.EventRender;
 var
   I: Integer;
 begin
   { draw controls in "to" order, back to front }
   for I := 0 to Controls.Count - 1 do
-    RenderControlCore(Controls[I], Rect);
+    Controls[I].RecursiveRender(Rect);
 
   if TooltipVisible and (Focus.Count <> 0) then
   begin
@@ -3052,8 +3045,7 @@ begin
     Control.GLContextOpen;
   Control.Resize;
   Control.BeforeRender;
-
-  RenderControlCore(Control, ViewportRect);
+  Control.RecursiveRender(ViewportRect);
 
   { TODO: calling the methods below is not recursive,
     it will not unprepare the children correctly. }
@@ -3777,6 +3769,97 @@ procedure TCastleUserInterface.RenderOverChildren;
 begin
 end;
 
+procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
+
+  procedure CacheRectBegin;
+  begin
+    // the calculation inside will use Rect a number of times, make it faster
+    if FUseCachedRect = 0 then
+    begin
+      FCachedRect := Rect;
+      {$ifdef CASTLE_DEBUG_UI_RECT_CACHE}
+      WriteLnLog('FastRect cache prepared');
+      {$endif}
+    end;
+    Inc(FUseCachedRect);
+  end;
+
+  procedure CacheRectEnd;
+  begin
+    Dec(FUseCachedRect);
+  end;
+
+  function ParentRenderRect: TFloatRectangle;
+  begin
+    if Parent <> nil then
+      Result := Parent.RenderRect
+    else
+      Result := FloatRectangle(ContainerRect);
+  end;
+
+var
+  Scissor: TScissor;
+
+  procedure ClipChildrenBegin;
+  begin
+    if ClipChildren then
+    begin
+      Scissor := TScissor.Create;
+      Scissor.Rect := RenderRect.Round;
+      Scissor.Enabled := true;
+    end else
+      Scissor := nil;
+  end;
+
+  procedure ClipChildrenEnd;
+  begin
+    if Scissor <> nil then
+    begin
+      Scissor.Enabled := false;
+      FreeAndNil(Scissor);
+    end;
+  end;
+
+var
+  I: Integer;
+begin
+  if GetExists then
+  begin
+    CacheRectBegin;
+
+    if (not RenderCulling) or ParentRenderRect.Collides(RenderRect) then
+    begin
+      ClipChildrenBegin;
+
+      { We check GLInitialized, because it may happen that a control
+        did not receive GLContextOpen yet, in case we cause some rendering
+        during TUIContainer.EventOpen (e.g. because some TCastleUserInterface.GLContextOpen
+        calls Window.Screenshot, so everything is rendered
+        before even the rest of controls received TCastleUserInterface.GLContextOpen).
+        See castle_game_engine/tests/testcontainer.pas . }
+
+      if GLInitialized then
+      begin
+        TUIContainer.RenderControlPrepare(ViewportRect);
+        Render;
+      end;
+
+      for I := 0 to ControlsCount - 1 do
+        Controls[I].RecursiveRender(ViewportRect);
+
+      if GLInitialized then
+      begin
+        TUIContainer.RenderControlPrepare(ViewportRect);
+        RenderOverChildren;
+      end;
+
+      ClipChildrenEnd;
+    end;
+
+    CacheRectEnd;
+  end;
+end;
+
 procedure TCastleUserInterface.TooltipRender;
 begin
 end;
@@ -4130,17 +4213,12 @@ begin
   Result := EffectiveRect.Round;
 end;
 
-(*
-function TCastleUserInterface.LocalRect: TRectangle;
-begin
-  {$warnings off}
-  Result := Rect; // make deprecated Rect work by calling it here
-  {$warnings off}
-end;
-*)
-
 function TCastleUserInterface.FastRect: TFloatRectangle;
 begin
+  {$ifdef CASTLE_DEBUG_UI_RECT_CACHE}
+  WriteLnLog('FastRect cache used: ' + BoolToStr(FUseCachedRect <> 0, true));
+  {$endif}
+
   if FUseCachedRect <> 0 then
     Result := FCachedRect
   else
@@ -4384,6 +4462,24 @@ begin
   begin
     FAutoSizeToChildren := Value;
     FSizeFromChildrenValid := false;
+  end;
+end;
+
+procedure TCastleUserInterface.SetRenderCulling(const Value: Boolean);
+begin
+  if FRenderCulling <> Value then
+  begin
+    FRenderCulling := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.SetClipChildren(const Value: Boolean);
+begin
+  if FClipChildren <> Value then
+  begin
+    FClipChildren := Value;
+    VisibleChange([chRender]);
   end;
 end;
 

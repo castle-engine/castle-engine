@@ -23,7 +23,6 @@
   TCastleScrollView = class(TCastleUserInterface)
   strict private
     FScrollArea: TCastleUserInterface;
-    Scissor: TScissor;
 
     FScroll: Single;
     FScrollbarVisible: boolean;
@@ -58,7 +57,6 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Render; override;
     procedure RenderOverChildren; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -72,6 +70,9 @@
       By default it's opaque white, which means that no tint is shown. }
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
   published
+    { Scroll view rendering makes sense only when ClipChildren is @true. }
+    property ClipChildren default true;
+
     { Children you add here will be scrolled.
       To have a useful scrolling area:
 
@@ -122,7 +123,7 @@ begin
   FScrollArea.Anchor(vpTop);
   InsertFront(FScrollArea);
 
-  Scissor := TScissor.Create;
+  ClipChildren := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
@@ -131,27 +132,16 @@ end;
 
 destructor TCastleScrollView.Destroy;
 begin
-  FreeAndNil(Scissor);
-
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlescrollview_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
 end;
 
-procedure TCastleScrollView.Render;
-begin
-  inherited;
-  Scissor.Rect := RenderRect.Round;
-  Scissor.Enabled := true;
-end;
-
 procedure TCastleScrollView.RenderOverChildren;
 var
   Color: TCastleColor;
 begin
-  Scissor.Enabled := false;
-
   if ScrollBarVisible then
   begin
     Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
