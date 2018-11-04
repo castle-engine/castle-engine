@@ -295,9 +295,8 @@ var
   begin
     OutputDataFolder := XcodeProject + Project.Name + PathDelim + 'data';
     ForceDirectories(OutputDataFolder);    // create folder even if project does not contain any files (is referenced in Xcode project)
-    Files := TCastleStringList.Create;
+    Files := Project.PackageFiles(true);
     try
-      Project.PackageFiles(Files, true);
       for I := 0 to Files.Count - 1 do
       begin
         FileFrom := Project.DataPath + Files[I];

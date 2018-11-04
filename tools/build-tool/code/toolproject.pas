@@ -50,7 +50,6 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
-    GatheringFilesVsData: boolean; //< only for PackageFilesGather
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
@@ -220,13 +219,13 @@ type
       otherwise a complete absolute path. }
     function AndroidLibraryFile(const AbsolutePath: boolean = true): string;
 
-    { Add platform-independent files that should be included in package,
+    { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
       If OnlyData, then only takes stuff inside DataPath,
-      and assumes that Files are (and will be) URLs relative to DataPath.
-      Otherwise, takes more files,
-      and assumes that Files are (and will be) URLs relative to @link(Path). }
-    procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+      and Files will contain URLs relative to DataPath.
+      Otherwise, takes all files to be packaged in a project,
+      and Files will contain URLs relative to @link(Path). }
+    function PackageFiles(const OnlyData: boolean): TCastleStringList;
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
@@ -890,17 +889,13 @@ begin
 end;
 
 procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-var
-  RelativeVs: string;
 begin
-  if GatheringFilesVsData then
-    RelativeVs := DataPath
-  else
-    RelativeVs := Path;
-  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
+  { Add relative paths to GatheringFiles, to make include/exclude
+    only work looking at relative paths. }
+  GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
 end;
 
-procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+function TCastleProject.PackageFiles(const OnlyData: boolean): TCastleStringList;
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
   const
@@ -911,12 +906,6 @@ procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const Only
   begin
     { replace all backslashes with slashes, so that they are equal for comparison }
     PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);
-    { Files are relative to data/ in case of OnlyData.
-      So make sure that PathMaskSlashes is also relative to data/,
-      otherwise stuff like exclude="data/blahblah/*" would not work
-      for things that se OnlyData=true, e.g. for Android packaging. }
-    if OnlyData then
-      PathMaskSlashes := PrefixRemove(DataName + '/', PathMaskSlashes, IgnoreCase);
     I := 0;
     while I < Files.Count do
     begin
@@ -931,8 +920,9 @@ var
   I: Integer;
   FindOptions: TFindFilesOptions;
 begin
-  GatheringFiles := Files;
-  GatheringFilesVsData := OnlyData;
+  Result := TCastleStringList.Create;
+
+  GatheringFiles := Result;
   FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
@@ -948,14 +938,25 @@ begin
     end;
   GatheringFiles := nil;
 
-  Exclude('*.xcf', Files);
-  Exclude('*.blend*', Files);
-  Exclude('*~', Files);
+  Exclude('*.xcf', Result);
+  Exclude('*.blend*', Result);
+  Exclude('*~', Result);
   // Note: slash or backslash below doesn't matter, Exclude function converts them
-  Exclude('*/.DS_Store', Files);
-  Exclude('*/thumbs.db', Files);
+  Exclude('*/.DS_Store', Result);
+  Exclude('*/thumbs.db', Result);
   for I := 0 to ExcludePaths.Count - 1 do
-    Exclude(ExcludePaths[I], Files);
+    Exclude(ExcludePaths[I], Result);
+
+  { Change to relative paths vs DataPath.
+    We do it only at the end, this way inclusion/exclusion mechanism
+    works the same, regardless of OnlyData. So e.g. these work the same:
+      <exclude path="data/blahblah/*" />
+    or
+      <exclude path="*/.svn/*" />
+    (even when "data/.svn" exists). }
+  if OnlyData then
+    for I := 0 to Result.Count - 1 do
+      Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
 end;
 
 function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
@@ -1081,9 +1082,8 @@ begin
   { for Android, the packaging process is special }
   if OS = Android then
   begin
-    Files := TCastleStringList.Create;
+    Files := PackageFiles(true);
     try
-      PackageFiles(Files, true);
       CreateAndroidPackage(Self, OS, CPU, Mode, Files);
     finally FreeAndNil(Files) end;
     Exit;
@@ -1096,9 +1096,8 @@ begin
     AddExecutable;
     AddExternalLibraries;
 
-    Files := TCastleStringList.Create;
+    Files := PackageFiles(false);
     try
-      PackageFiles(Files, false);
       for I := 0 to Files.Count - 1 do
         Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
