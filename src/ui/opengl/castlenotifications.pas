@@ -63,6 +63,8 @@ type
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
     FTextAlignment: THorizontalPosition;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultMaxMessages = 4;
@@ -88,7 +90,6 @@ type
       var HandleInput: boolean); override;
 
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -253,13 +254,15 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-function TCastleNotifications.Rect: TFloatRectangle;
+procedure TCastleNotifications.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   I: integer;
 begin
-  Result := FloatRectangle(LeftBottomScaled, 0, Font.RowHeight * Messages.Count);
+  inherited;
+  PreferredWidth := 0;
+  PreferredHeight := Font.RowHeight * Messages.Count;
   for I := 0 to Messages.Count - 1 do
-    Result.Width := Max(Result.Width, Messages[I].Width);
+    PreferredWidth := Max(PreferredWidth, Messages[I].Width);
 end;
 
 procedure TCastleNotifications.Render;

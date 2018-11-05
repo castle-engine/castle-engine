@@ -31,6 +31,8 @@
   strict protected
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultPadding = 10;
@@ -38,14 +40,14 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Rect: TFloatRectangle; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
 
-    property Frame: boolean read FFrame write SetFrame default false;
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
+  published
+    property Frame: boolean read FFrame write SetFrame default false;
     property Padding: Single read FPadding write SetPadding default DefaultPadding;
     property Spacing: Single read FSpacing write SetSpacing default DefaultSpacing;
 
@@ -135,7 +137,7 @@ begin
     Theme.Draw(RenderRect, tiGroup, UIScale, FrameColor);
 end;
 
-function TCastlePackedGroup.Rect: TFloatRectangle;
+procedure TCastlePackedGroup.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 
   procedure PackChildren;
   begin
@@ -146,10 +148,10 @@ function TCastlePackedGroup.Rect: TFloatRectangle;
   end;
 
 begin
+  inherited;
   PackChildren;
-  Result := FloatRectangle(LeftBottomScaled,
-    FInsideWidth * UIScale,
-    FInsideHeight * UIScale);
+  PreferredWidth  := FInsideWidth  * UIScale;
+  PreferredHeight := FInsideHeight * UIScale;
 end;
 
 procedure TCastlePackedGroup.SetFrameColor(const Value: TCastleColor);

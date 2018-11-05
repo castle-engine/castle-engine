@@ -24,10 +24,11 @@
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
@@ -67,9 +68,11 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.Rect: TFloatRectangle;
+procedure TCastleCrosshair.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
-  Result := FloatRectangle(Theme.Images[ImageType].Rect).ScaleAround0(UIScale);
+  inherited;
+  PreferredWidth  := Theme.Images[ImageType].Width  * UIScale;
+  PreferredHeight := Theme.Images[ImageType].Height * UIScale;
 end;
 
 procedure TCastleCrosshair.Render;

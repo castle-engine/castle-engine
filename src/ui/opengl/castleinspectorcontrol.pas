@@ -34,17 +34,18 @@ type
     FText: TStringList;
     FControlsUnderMouse: TCastleUserInterfaceList;
     FControlsInitialized: boolean;
-    FRectWhenControlsInitialized: TFloatRectangle;
+    FSizeWhenControlsInitialized: TVector2;
     FShowNotExisting: boolean;
     function ControlColor(const C: TCastleUserInterface): TCastleColor;
     function ControlDescription(const C: TCastleUserInterface): string;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultPadding = 10;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Rect: TFloatRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -75,7 +76,7 @@ begin
   inherited;
   FColor := White;
   FPadding := DefaultPadding;
-  FRectWhenControlsInitialized := TFloatRectangle.Empty;
+  FSizeWhenControlsInitialized := TVector2.Zero;
   Anchor(hpLeft);
   Anchor(vpBottom);
   KeepInFront := true;
@@ -91,23 +92,24 @@ begin
   inherited;
 end;
 
-function TCastleInspectorControl.Rect: TFloatRectangle;
+procedure TCastleInspectorControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   US: Single;
   PaddingScaled: Single;
 begin
+  inherited;
   if FControlsInitialized then
   begin
     US := UIScale;
     PaddingScaled := US * Padding;
-    FRectWhenControlsInitialized := FloatRectangle(
-      LeftBottomScaled,
+    FSizeWhenControlsInitialized := Vector2(
       Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
       Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
   end;
   { note that when FControlsInitialized = false, this simply returns last value calculated
     when FControlsInitialized = true. }
-  Result := FRectWhenControlsInitialized;
+  PreferredWidth  := FSizeWhenControlsInitialized.Data[0];
+  PreferredHeight := FSizeWhenControlsInitialized.Data[1];
 end;
 
 function TCastleInspectorControl.ControlColor(const C: TCastleUserInterface): TCastleColor;

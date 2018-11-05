@@ -27,13 +27,12 @@
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
-    FFinalScaledValid: boolean;
-    { The only method that can access these is Rect.
+    FCalculatedPreferred: Boolean;
+    { The only method that can access these is PreferredSize.
       Everything else should use
-      RenderRect, EffectiveWidth, EffectiveHeight
-      or other methods that wrap Rect.
-      This makes sure that FFinalScaledValid is honored. }
-    FFinalScaledWidth, FFinalScaledHeight: Single;
+      RenderRect, EffectiveWidth, EffectiveHeight or other methods.
+      This makes sure that FCalculatedPreferred is honored. }
+    FCalculatedPreferredWidth, FCalculatedPreferredHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
@@ -78,7 +77,7 @@
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
-    { Recalculate TextWidth, TextHeight, and set FFinalScaledValid to false. }
+    { Recalculate TextWidth, TextHeight, and set FCalculatedPreferred to false. }
     procedure UpdateTextSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
@@ -99,6 +98,7 @@
     procedure SetHeight(const Value: Single); override;
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultImageMargin = 10;
@@ -115,7 +115,6 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function Rect: TFloatRectangle; override;
     procedure FontChanged; override;
 
     { Called when user clicks the button. In this class, simply calls
@@ -224,9 +223,9 @@
       and @link(Image) size, plus some margin to make it look nice.
 
       Width is auto-calculated only when AutoSize and AutoSizeWidth
-      (otherwise we just use @link(Width) property value).
+      (otherwise we use @link(Width), @link(WidthFraction) and similar properties).
       Likewise, Height is calculated only when AutoSize and AutoSizeHeight
-      (otherwise we just use @link(Height) property value).
+      (otherwise we use @link(Height), @link(HeightFraction) and similar properties).
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
@@ -688,14 +687,16 @@ begin
       finally FreeAndNil(TextToRender) end;
     end;
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
 procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
-  FFinalScaledValid := false;
+  FCalculatedPreferred := false;
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleButton.SetImage(const Value: TCastleImage);
@@ -712,7 +713,8 @@ begin
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImage.Create(FImage, true, false);
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -730,7 +732,8 @@ begin
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
       FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -748,7 +751,8 @@ begin
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
       FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -766,7 +770,8 @@ begin
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
       FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -784,7 +789,8 @@ begin
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
       FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
 
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -852,20 +858,25 @@ begin
   if FImageLayout <> Value then
   begin
     FImageLayout := Value;
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
+
+// TODO: VisibleChange should call FCalculatedPreferred := false,
+// and most code should only call "VisibleChange([chRectangle])".
+// And overriding SetWidth/Height should not be needed
 
 procedure TCastleButton.SetWidth(const Value: Single);
 begin
   if Width <> Value then
   begin
-    { Should we set FFinalScaledValid before or after calling inherited?
+    { Should we set FCalculatedPreferred before or after calling inherited?
       Should work in both cases, but "before" version seems more reliable,
       in case "inherited" calls VisibleChange that causes VisibleChangeNotification
       that calculates something in the future. }
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
     inherited;
   end;
 end;
@@ -874,7 +885,8 @@ procedure TCastleButton.SetHeight(const Value: Single);
 begin
   if Height <> Value then
   begin
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
+    VisibleChange([chRectangle]);
     inherited;
   end;
 end;
@@ -884,7 +896,7 @@ begin
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -894,7 +906,7 @@ begin
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -904,7 +916,7 @@ begin
   if FImageMargin <> Value then
   begin
     FImageMargin := Value;
-    FFinalScaledValid := false;
+    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -918,87 +930,65 @@ begin
   end;
 end;
 
-function TCastleButton.Rect: TFloatRectangle;
+procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 
-  procedure CalculateFinalScaledSize;
+  procedure CalculatePreferredSize;
   var
     ImgSize: Single;
     MinWidthScaled, MinHeightScaled,
       ImageMarginScaled,
       PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   begin
-    FFinalScaledWidth  := Width  * UIScale;
-    FFinalScaledHeight := Height * UIScale;
+    PaddingHorizontalScaled := PaddingHorizontal * UIScale;
+    PaddingVerticalScaled   := PaddingVertical   * UIScale;
+    ImageMarginScaled       := ImageMargin       * UIScale;
+    MinWidthScaled          := MinWidth          * UIScale;
+    MinHeightScaled         := MinHeight         * UIScale;
 
-    if AutoSize then
+    FCalculatedPreferredWidth  := TextWidth  + PaddingHorizontalScaled * 2;
+    FCalculatedPreferredHeight := TextHeight + PaddingVerticalScaled * 2;
+
+    if (FImage <> nil) or
+       (MinImageWidth <> 0) or
+       (MinImageHeight <> 0) then
     begin
-      PaddingHorizontalScaled := PaddingHorizontal * UIScale;
-      PaddingVerticalScaled   := PaddingVertical   * UIScale;
-      ImageMarginScaled       := ImageMargin       * UIScale;
-      MinWidthScaled          := MinWidth          * UIScale;
-      MinHeightScaled         := MinHeight         * UIScale;
-
-      { We modify fields FFinalScaledWidth, FFinalScaledHeight,
-        to avoid calling VisibleChange too many times
-        (although it should be optimized, but better play it safe).
-        We'll call it at the end explicitly, with VisibleChange([chRectangle]). }
-      if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
-      if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
-      if (FImage <> nil) or
-         (MinImageWidth <> 0) or
-         (MinImageHeight <> 0) then
-      begin
-        if AutoSizeWidth then
-        begin
-          if FImage <> nil then
-            ImgSize := Max(FImage.Width, MinImageWidth) else
-            ImgSize := MinImageWidth;
-          ImgSize := ImgSize * UIScale;
-          case ImageLayout of
-            ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
-            ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
-          end;
-        end;
-        if AutoSizeHeight then
-        begin
-          if FImage <> nil then
-            ImgSize := Max(FImage.Height, MinImageHeight) else
-            ImgSize := MinImageHeight;
-          ImgSize := ImgSize * UIScale;
-          case ImageLayout of
-            ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
-            ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
-          end;
-        end;
+      if FImage <> nil then
+        ImgSize := Max(FImage.Width, MinImageWidth) else
+        ImgSize := MinImageWidth;
+      ImgSize := ImgSize * UIScale;
+      case ImageLayout of
+        ilLeft, ilRight: FCalculatedPreferredWidth := FCalculatedPreferredWidth + ImgSize + ImageMarginScaled;
+        ilTop, ilBottom: FCalculatedPreferredWidth := Max(FCalculatedPreferredWidth, ImgSize + PaddingHorizontalScaled * 2);
       end;
 
-      { at the end apply MinXxx properties }
-      if AutoSizeWidth then
-        MaxVar(FFinalScaledWidth, MinWidthScaled);
-      if AutoSizeHeight then
-        MaxVar(FFinalScaledHeight, MinHeightScaled);
-
-      if AutoSizeWidth or AutoSizeHeight then
-        VisibleChange([chRectangle]);
+      if FImage <> nil then
+        ImgSize := Max(FImage.Height, MinImageHeight) else
+        ImgSize := MinImageHeight;
+      ImgSize := ImgSize * UIScale;
+      case ImageLayout of
+        ilLeft, ilRight: FCalculatedPreferredHeight := Max(FCalculatedPreferredHeight, ImgSize + PaddingVerticalScaled * 2);
+        ilTop, ilBottom: FCalculatedPreferredHeight := FCalculatedPreferredHeight + ImgSize + ImageMarginScaled;
+      end;
     end;
+
+    { at the end apply MinXxx properties }
+    MaxVar(FCalculatedPreferredWidth, MinWidthScaled);
+    MaxVar(FCalculatedPreferredHeight, MinHeightScaled);
   end;
 
 begin
-  Result := inherited;
-  if not FullSize then
-  begin
-    if not FFinalScaledValid then
-    begin
-      FFinalScaledValid := true;
-      CalculateFinalScaledSize;
-    end;
+  inherited;
 
-    { Do not only change here Result.Width/Height, as the inherited
-      set Result to TFloatRectangle.Empty when Width/Height = 0. }
-    Result := FloatRectangle(LeftBottomScaled,
-      FFinalScaledWidth,
-      FFinalScaledHeight);
+  if not FCalculatedPreferred then
+  begin
+    FCalculatedPreferred := true;
+    CalculatePreferredSize;
   end;
+
+  if AutoSize and AutoSizeWidth then
+    PreferredWidth := FCalculatedPreferredWidth;
+  if AutoSize and AutoSizeHeight then
+    PreferredHeight := FCalculatedPreferredHeight;
 end;
 
 {$define read_implementation_methods}

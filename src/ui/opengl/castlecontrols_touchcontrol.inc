@@ -38,12 +38,11 @@
     procedure SetPosition(const Value: TCastleTouchPosition);
     procedure SetScale(const Value: Single);
     function MaxOffsetDist: Integer;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-
-    function Rect: TFloatRectangle; override;
-
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -97,13 +96,13 @@ begin
     Result := 1;
 end;
 
-function TCastleTouchControl.Rect: TFloatRectangle;
+procedure TCastleTouchControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
+  inherited;
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
-  Result := FloatRectangle(LeftBottomScaled,
-    Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
-    Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
+  PreferredWidth  := Theme.Images[tiTouchCtlOuter].Width  * TotalScale;
+  PreferredHeight := Theme.Images[tiTouchCtlOuter].Height * TotalScale;
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);

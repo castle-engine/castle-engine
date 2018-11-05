@@ -1113,8 +1113,6 @@ type
 
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
-
-    function Rect: TFloatRectangle; override;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -2239,6 +2237,7 @@ var
   UsedBackground: TBackground;
   MainLightPosition: TVector4; { ignored }
   SavedProjectionMatrix: TMatrix4;
+  R: TFloatRectangle;
 begin
   { TODO: Temporary compatibiliy cludge:
     Because some rendering code still depends on
@@ -2277,7 +2276,8 @@ begin
       if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-        PerspectiveProjection(45, Rect.Width / Rect.Height,
+        R := RenderRect;
+        PerspectiveProjection(45, R.Width / R.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
       end;
@@ -3937,14 +3937,6 @@ begin
       end;
     else raise EInternalError.Create(2018081902);
   end;
-end;
-
-function TCastleSceneManager.Rect: TFloatRectangle;
-begin
-  if DefaultViewport then
-    Result := inherited Rect
-  else
-    Result := TFloatRectangle.Empty;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }

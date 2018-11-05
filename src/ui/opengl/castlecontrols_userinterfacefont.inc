@@ -146,6 +146,18 @@
 
 {$ifdef read_implementation}
 
+type
+  TCastleLabelTooltip = class(TCastleLabel)
+  public
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+  end;
+
+procedure TCastleLabelTooltip.PreferredSize(
+  var PreferredWidth, PreferredHeight: Single);
+begin
+  inherited;
+end;
+
 { TCastleUserInterfaceFont ---------------------------------------------------------- }
 
 constructor TCastleUserInterfaceFont.Create(AOwner: TComponent);
@@ -177,12 +189,11 @@ end;
 
 procedure TCastleUserInterfaceFont.TooltipRender;
 var
-  X, Y: Single;
-  TooltipRect: TFloatRectangle;
+  X, Y, TooltipWidth, TooltipHeight: Single;
 begin
   if TooltipLabel = nil then
   begin
-    TooltipLabel := TCastleLabel.Create(nil);
+    TooltipLabel := TCastleLabelTooltip.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
     TooltipLabel.Frame := true;
     TooltipLabel.Container := Container;
@@ -195,15 +206,17 @@ begin
   TooltipLabel.Color := Theme.TooltipTextColor;
   TooltipLabel.Text.Clear;
   TooltipLabel.Text.Append(Tooltip);
-  TooltipRect := TooltipLabel.Rect;
+  TooltipWidth := 0;
+  TooltipHeight := 0;
+  TCastleLabelTooltip(TooltipLabel).PreferredSize(TooltipWidth, TooltipHeight);
 
   { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
   X := Container.TooltipPosition[0] / TooltipLabel.UIScale;
   Y := Container.TooltipPosition[1] / TooltipLabel.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
-  MinVar(X, ContainerWidth - TooltipRect.Width);
-  MinVar(Y, ContainerHeight - TooltipRect.Height);
+  MinVar(X, ContainerWidth  - TooltipWidth );
+  MinVar(Y, ContainerHeight - TooltipHeight);
   MaxVar(X, 0);
   MaxVar(Y, 0);
 

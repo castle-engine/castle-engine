@@ -27,13 +27,21 @@
     FYPosition: Single;
     FProgress: TProgress;
     procedure SetBackground(const Value: TCastleImage);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Rect: TFloatRectangle; override;
+
+    property HasHorizontalAnchor default true;
+    property HorizontalAnchorSelf default hpMiddle;
+    property HorizontalAnchorParent default hpMiddle;
+    property HasVerticalAnchor default true;
+    property VerticalAnchorSelf default vpMiddle;
+    property VerticalAnchorParent default vpMiddle;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -156,17 +164,19 @@ begin
     TrimSimple;
 end;
 
-function TCastleProgressBar.Rect: TFloatRectangle;
+procedure TCastleProgressBar.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  XMargin, AHeight, YMiddle, Bot: Single;
+  XMargin, AHeight: Single;
   PR: TFloatRectangle;
 begin
+  inherited;
+
   PR := ParentRect;
   XMargin := PR.Width / 8;
   AHeight := PR.Height / 12;
-  YMiddle := PR.Height * YPosition;
-  Bot := YMiddle - AHeight / 2;
-  Result := FloatRectangle(XMargin, Bot, PR.Width - 2 * XMargin, AHeight);
+
+  PreferredWidth := PR.Width - 2 * XMargin;
+  PreferredHeight := AHeight;
 end;
 
 procedure TCastleProgressBar.Render;
@@ -186,7 +196,7 @@ begin
   if FGLBackground <> nil then
     FGLBackground.Draw(ParentRect);
 
-  BarRect := Rect;
+  BarRect := RenderRect;
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
@@ -212,6 +222,8 @@ constructor TCastleProgressBar.Create(AOwner: TComponent);
 begin
   inherited;
   FYPosition := TProgressUserInterface.DefaultBarYPosition;
+  Anchor(hpMiddle);
+  Anchor(vpMiddle);
 end;
 
 destructor TCastleProgressBar.Destroy;

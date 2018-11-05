@@ -68,14 +68,13 @@
     function ButtonsHeightScaled: Single;
     function ButtonsHeight: Single;
     procedure UpdateSizes;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
       you should check in your loop whether something set Answered to @true. }
     Answered: boolean;
-
-    { The whole rectangle where we draw dialog box. }
-    function Rect: TFloatRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -381,16 +380,18 @@ begin
   Result := true; // always capture
 end;
 
-function TStateDialog.TDialog.Rect: TFloatRectangle;
+procedure TStateDialog.TDialog.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   PR: TFloatRectangle;
 begin
   PR := ParentRect;
-  Result := FloatRectangle(0, 0,
+  PreferredWidth :=
     Min(MaxLineWidth + BoxMarginScaled * 2 +
       ScrollView.ScrollBarWidth * UIScale,
-      PR.Width  - WindowMarginScaled * 2),
-    Min(Font.RowHeight * AllScrolledLinesCount + Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
+      PR.Width  - WindowMarginScaled * 2);
+  PreferredHeight :=
+    Min(Font.RowHeight * AllScrolledLinesCount +
+      Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
       { adding here + 2 is a hack to make sure that TCastleScrollView will
         not show scrollbars when not necessary. That's because we set
         ScrollView.ScrollArea.Height using a similar equation as above
@@ -402,7 +403,7 @@ begin
         Reproducible if you try to resize to small sizes the demo on
         /home/michalis/sources/castle-engine/castle-engine/examples/android/android_demo/game.pas . }
       + 2,
-      PR.Height - WindowMarginScaled * 2));
+      PR.Height - WindowMarginScaled * 2);
 end;
 
 function TStateDialog.TDialog.BoxMarginScaled: Single;

@@ -107,6 +107,7 @@ type
       By default, a single TCastleLabel (without children) is considered
       "not focusable". Everything else is focusable. }
     function ControlFocusable(const C: TCastleUserInterface): boolean; virtual;
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
@@ -163,7 +164,6 @@ type
 
     procedure Resize; override;
 
-    function Rect: TFloatRectangle; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure Render; override;
 
@@ -452,10 +452,10 @@ procedure TCastleOnScreenMenu.RecalculateSize;
     C := Controls[Index];
     // ChildHeight assumes that TCastleLabel(C).AutoSize = true
     Assert((not (C is TCastleLabel)) or (TCastleLabel(C).AutoSize = true));
-    Result := C.Rect.Height;
+    Result := C.EffectiveHeight;
     { add accessory (slider etc.) height inside the menu item }
     if C.ControlsCount <> 0 then
-      MaxVar(Result, C.Controls[0].Rect.Height);
+      MaxVar(Result, C.Controls[0].EffectiveHeight);
   end;
 
 const
@@ -484,10 +484,10 @@ begin
       TCastleLabel(C).AutoSize := true; // later we'll turn it back to false
       TCastleLabel(C).PaddingHorizontal := 0; // later we'll turn it back to nonzero
     end;
-    MaxVar(MaxItemWidth, C.Rect.Width);
+    MaxVar(MaxItemWidth, C.EffectiveWidth);
     { add accessory (slider etc.) width inside the menu item }
     if C.ControlsCount <> 0 then
-      MaxVar(MaxAccessoryWidth, C.Controls[0].Rect.Width);
+      MaxVar(MaxAccessoryWidth, C.Controls[0].EffectiveWidth);
   end;
 
   { calculate FWidth and FHeight }
@@ -515,7 +515,7 @@ begin
     if MaxAccessoryWidth <> 0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessoryScaled + MaxAccessoryWidth
     else
-      WholeItemWidth := Controls[I].Rect.Width;
+      WholeItemWidth := Controls[I].EffectiveWidth;
     FRectangles.Add(FloatRectangle(0, 0, WholeItemWidth, ChildHeight(I)));
   end;
 
@@ -754,9 +754,11 @@ begin
   {$warnings on}
 end;
 
-function TCastleOnScreenMenu.Rect: TFloatRectangle;
+procedure TCastleOnScreenMenu.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
-  Result := FloatRectangle(LeftBottomScaled, FWidth, FHeight);
+  inherited;
+  PreferredWidth  := FWidth;
+  PreferredHeight := FHeight;
 end;
 
 function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2): boolean;

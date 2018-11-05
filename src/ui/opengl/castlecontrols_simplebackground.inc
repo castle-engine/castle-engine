@@ -33,7 +33,8 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
+    property Width default 0;
+    property Height default 0;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
   end deprecated 'use TCastleRectangleControl with FullSize=true; note that by default it has White color, while TCastleSimpleBackground has by default Black color.';
@@ -48,6 +49,9 @@ constructor TCastleSimpleBackground.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := Black;
+  // This should have size = 0, to have empty rectangle, to never catch events
+  Width := 0;
+  Height := 0;
 end;
 
 procedure TCastleSimpleBackground.SetColor(const Value: TCastleColor);
@@ -63,11 +67,6 @@ procedure TCastleSimpleBackground.Render;
 begin
   inherited;
   RenderContext.Clear([cbColor], Color);
-end;
-
-function TCastleSimpleBackground.Rect: TFloatRectangle;
-begin
-  Result := TFloatRectangle.Empty;
 end;
 
 {$endif read_implementation}

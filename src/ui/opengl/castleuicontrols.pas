@@ -1044,9 +1044,9 @@ type
     FAutoSizeToChildren: Boolean;
     FSizeFromChildrenValid: Boolean;
     FSizeFromChildrenRect: TFloatRectangle;
-    FCachedRect: TFloatRectangle;
-    FUseCachedRect: Cardinal; // <> 0 if we should use FCachedRect
-    FInsideRect: Boolean;
+    FCachedRectWithoutAnchors: TFloatRectangle;
+    FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
+    FInsideRectWithoutAnchors: Boolean;
     FRenderCulling: Boolean;
     FClipChildren: Boolean;
 
@@ -1088,13 +1088,13 @@ type
     procedure SetRenderCulling(const Value: Boolean);
     procedure SetClipChildren(const Value: Boolean);
 
-    { Like @link(Rect) but with anchors effect applied. }
-    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
-
-    { Like Rect, but may be temporarily cached.
+    function RectWithoutAnchors: TFloatRectangle;
+    { Like @link(RectWithoutAnchors), but may be temporarily cached.
       Inside TCastleUserInterface implementation, always use this instead
-      of calling Rect. }
-    function FastRect: TFloatRectangle;
+      of calling RectWithoutAnchors. }
+    function FastRectWithoutAnchors: TFloatRectangle;
+    { Like @link(RectWithoutAnchors) but with anchors effect applied. }
+    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
@@ -1112,6 +1112,16 @@ type
     //procedure DoCursorChange; override;
 
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+
+    { Controls that have preferred size should override this.
+      By default this contains values derived from
+      @link(Width), @link(WidthFraction),
+      @link(Height), @link(HeightFraction).
+
+      Note that the arguments should be already scaled, i.e. multiplied by UIScale,
+      i.e. expressed in final device pixels.
+    }
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); virtual;
   public
     const
       DefaultWidth = 100.0;
@@ -1382,6 +1392,7 @@ type
 
       Using the float-based coordinates is also natural for animations. }
     function Rect: TFloatRectangle; virtual;
+      deprecated 'instead of using this, use EffectiveRect or RenderRect depending on the situation; instead of overriding this, override PreferredSize';
 
     { Final position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
@@ -3774,19 +3785,14 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
   procedure CacheRectBegin;
   begin
     // the calculation inside will use Rect a number of times, make it faster
-    if FUseCachedRect = 0 then
-    begin
-      FCachedRect := Rect;
-      {$ifdef CASTLE_DEBUG_UI_RECT_CACHE}
-      WriteLnLog('FastRect cache prepared');
-      {$endif}
-    end;
-    Inc(FUseCachedRect);
+    if FUseCachedRectWithoutAnchors = 0 then
+      FCachedRectWithoutAnchors := RectWithoutAnchors;
+    Inc(FUseCachedRectWithoutAnchors);
   end;
 
   procedure CacheRectEnd;
   begin
-    Dec(FUseCachedRect);
+    Dec(FUseCachedRectWithoutAnchors);
   end;
 
   function ParentRenderRect: TFloatRectangle;
@@ -4007,7 +4013,7 @@ procedure TCastleUserInterface.Align(
   const ContainerPosition: THorizontalPosition;
   const X: Single = 0);
 begin
-  Left := FastRect.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
+  Left := FastRectWithoutAnchors.AlignCore(ControlPosition, ParentRect, ContainerPosition, X);
 end;
 
 procedure TCastleUserInterface.Align(
@@ -4015,7 +4021,7 @@ procedure TCastleUserInterface.Align(
   const ContainerPosition: TVerticalPosition;
   const Y: Single = 0);
 begin
-  Bottom := FastRect.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
+  Bottom := FastRectWithoutAnchors.AlignCore(ControlPosition, ParentRect, ContainerPosition, Y);
 end;
 
 procedure TCastleUserInterface.AlignHorizontal(
@@ -4045,6 +4051,27 @@ begin
 end;
 
 function TCastleUserInterface.Rect: TFloatRectangle;
+begin
+  Result := TFloatRectangle.Empty;
+end;
+
+procedure TCastleUserInterface.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+var
+  R: TFloatRectangle;
+begin
+  { Keep the old code, written when Rect was not deprecated
+    and PreferredSize was not available, working. }
+  {$warnings off}
+  R := Rect;
+  {$warnings on}
+  if (not R.IsEmpty) then // this means that Rect was overridden
+  begin
+    PreferredWidth := R.Width;
+    PreferredHeight := R.Height;
+  end;
+end;
+
+function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
 
   procedure UpdateSizeFromChildren;
   var
@@ -4067,7 +4094,7 @@ function TCastleUserInterface.Rect: TFloatRectangle;
         current size.
         Although FSizeFromChildrenValid would prevent from entering an infinite
         loop, it would be still unreliable to use such result. }
-      ChildRect := C.FastRect.ScaleAround0(1 / UIScale);
+      ChildRect := C.FastRectWithoutAnchors.ScaleAround0(1 / UIScale);
       if not ChildRect.IsEmpty then
       begin
         // apply C anchors, at least some cases
@@ -4104,12 +4131,12 @@ var
   PR: TFloatRectangle;
   W, H: Single;
 begin
-  if FInsideRect then
+  if FInsideRectWithoutAnchors then
   begin
-    WriteLnWarning('Recursive call from TCastleUserInterface.Rect to itself. This means that UI child size depends on the parent (e.g. using FullSize), while at the same time UI parent size depends on the child.');
+    WriteLnWarning('Recursive call from TCastleUserInterface.RectWithoutAnchors to itself. This means that UI child size depends on the parent (e.g. using FullSize), while at the same time UI parent size depends on the child.');
     Exit(TFloatRectangle.Empty);
   end;
-  FInsideRect := true;
+  FInsideRectWithoutAnchors := true;
 
   if AutoSizeToChildren then
   begin
@@ -4148,13 +4175,16 @@ begin
       if HeightFraction <> 0 then
         H := HeightFraction * PR.Height;
     end;
+
+    PreferredSize(W, H);
+
     if (W > 0) and (H > 0) then
       Result := FloatRectangle(LeftBottomScaled, W, H)
     else
       Result := TFloatRectangle.Empty;
   end;
 
-  FInsideRect := false;
+  FInsideRectWithoutAnchors := false;
 end;
 
 function TCastleUserInterface.EffectiveRect: TFloatRectangle;
@@ -4170,11 +4200,11 @@ begin
   Result := EffectiveRect.Width; }
 
   { Optimized implementation, knowing that RectWithAnchors(true) does not
-    change Rect.Width:
-  Result := Rect.ScaleAround0(1 / UIScale).Width; }
+    change RectWithoutAnchors.Width:
+  Result := RectWithoutAnchors.ScaleAround0(1 / UIScale).Width; }
 
   { Optimized implementation: }
-  R := FastRect;
+  R := FastRectWithoutAnchors;
   if R.IsEmpty then
     Result := 0
   else
@@ -4188,7 +4218,7 @@ function TCastleUserInterface.EffectiveHeight: Single;
 var
   R: TFloatRectangle;
 begin
-  R := FastRect;
+  R := FastRectWithoutAnchors;
   if R.IsEmpty then
     Result := 0
   else
@@ -4213,16 +4243,12 @@ begin
   Result := EffectiveRect.Round;
 end;
 
-function TCastleUserInterface.FastRect: TFloatRectangle;
+function TCastleUserInterface.FastRectWithoutAnchors: TFloatRectangle;
 begin
-  {$ifdef CASTLE_DEBUG_UI_RECT_CACHE}
-  WriteLnLog('FastRect cache used: ' + BoolToStr(FUseCachedRect <> 0, true));
-  {$endif}
-
-  if FUseCachedRect <> 0 then
-    Result := FCachedRect
+  if FUseCachedRectWithoutAnchors <> 0 then
+    Result := FCachedRectWithoutAnchors
   else
-    Result := Rect;
+    Result := RectWithoutAnchors;
 end;
 
 function TCastleUserInterface.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TFloatRectangle;
@@ -4236,7 +4262,7 @@ begin
       This is crucial, various programs will crash without it. }
     Exit(TFloatRectangle.Empty);
 
-  Result := FastRect;
+  Result := FastRectWithoutAnchors;
 
   { apply anchors }
   if (not FullSize) and (HasHorizontalAnchor or HasVerticalAnchor) then
@@ -4285,7 +4311,7 @@ function TCastleUserInterface.ParentRect: TFloatRectangle;
 begin
   if Parent <> nil then
   begin
-    Result := Parent.FastRect;
+    Result := Parent.FastRectWithoutAnchors;
     Result.Left := 0;
     Result.Bottom := 0;
   end else

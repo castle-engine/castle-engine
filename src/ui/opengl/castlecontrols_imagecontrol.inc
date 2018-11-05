@@ -87,12 +87,13 @@
     { Free FDrawableImage if needed, and make it @nil. }
     procedure FreeDrawableImage;
     procedure SetDrawableImage(const Value: TGLImage);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
-    function Rect: TFloatRectangle; override;
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -222,26 +223,28 @@
     property SmoothScaling: boolean
       read GetSmoothScaling write SetSmoothScaling default true;
 
-    { Size of the image control.
-
-      If Stretch = @false, then values you set for Width, Height, FullSize,
-      ProportionalScaling properties do not matter (they are still remembered though,
-      so you can set properties in any order).
-      The displayed size (you can check it through @link(Rect) function)
-      always corresponds to the underlying image size.
-      The Left and Bottom properties work as usual, they allow you to move the control.
-
-      If Stretch = @true, then the image will be stretched to fill the requested area.
+    { How does the loaded image size affect the size of the image control.
 
       @unorderedList(
-        @item(If Stretch = @true and FullSize = @true then values of Width,
-          Height, Left, Bottom do not matter:
-          image always fills the whole parent
-          (@link(Rect) corresponds to the parent area).)
+        @item(
+          When @link(FullSize) or @link(AutoSizeToChildren) is @true,
+          then the value of @link(Stretch), and loaded image size, are ignored.
+          When @link(AutoSizeToChildren),
+          the image is always stretched to surround the children.
+          When @link(FullSize),
+          the image is always stretched to fill the parent.
 
-        @item(If Stretch = @true and FullSize = @false then the property
-          ProportionalScaling determines how the the image will be adjusted
-          to fit the requested Width and Height.
+          Otherwise:
+        )
+
+        @item(If Stretch = @false (default), then
+          the displayed size corresponds to the underlying image size.)
+
+        @item(If Stretch = @true, the image will be stretched to fill
+          the requested area. The property
+          @link(ProportionalScaling) determines how the image will
+          be adjusted to fit the requested size
+          (by @link(Width), @link(WidthFraction), @link(Height), @link(HeightFraction)).
 
           @definitionList(
             @itemLabel psNone
@@ -269,9 +272,6 @@
           )
         )
       )
-
-      Note that you can always look at @link(Rect) value to know
-      the current calculated size and position of the image control on screen.
 
       @groupBegin }
     property Stretch: boolean read FStretch write SetStretch default false;
@@ -536,45 +536,29 @@ begin
   end;
 end;
 
-function TCastleImageControl.Rect: TFloatRectangle;
-var
-  NewWidth, NewHeight, NewLeft, NewBottom: Single;
-  ApplyScaling: boolean;
+procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
-  ApplyScaling := true;
+  inherited;
+
   if not Stretch then
   begin
-    Result := FloatRectangle(Left, Bottom, FDrawableImage.Width, FDrawableImage.Height);
+    PreferredWidth  := FDrawableImage.Width  * UIScale;
+    PreferredHeight := FDrawableImage.Height * UIScale;
   end else
+  if (ProportionalScaling in [psFit, psEnclose]) and
+     (FDrawableImage.Width <> 0) and
+     (FDrawableImage.Height <> 0) then
   begin
-    if FullSize then
+    if (ProportionalScaling = psFit) =
+       (PreferredWidth / PreferredHeight >
+        FDrawableImage.Width / FDrawableImage.Height) then
     begin
-      Result := ParentRect;
-      ApplyScaling := false;
+      PreferredWidth := FDrawableImage.Width * PreferredHeight / FDrawableImage.Height;
     end else
-    if (ProportionalScaling in [psFit, psEnclose]) and
-       (FDrawableImage.Width <> 0) and
-       (FDrawableImage.Height <> 0) then
     begin
-      if (ProportionalScaling = psFit) =
-         (Width / Height > FDrawableImage.Width / FDrawableImage.Height) then
-      begin
-        NewWidth := FDrawableImage.Width * Height / FDrawableImage.Height;
-        NewLeft := Left + (Width - NewWidth) / 2;
-        Result := FloatRectangle(NewLeft, Bottom, NewWidth, Height);
-      end else
-      begin
-        NewHeight := FDrawableImage.Height * Width / FDrawableImage.Width;
-        NewBottom := Bottom + (Height - NewHeight) / 2;
-        Result := FloatRectangle(Left, NewBottom, Width, NewHeight);
-      end;
-    end else
-      Result := FloatRectangle(Left, Bottom, Width, Height);
+      PreferredHeight := FDrawableImage.Height * PreferredWidth / FDrawableImage.Width;
+    end;
   end;
-
-  if ApplyScaling then
-    // applying UIScale on this is easy...
-    Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleImageControl.ImageChanged;

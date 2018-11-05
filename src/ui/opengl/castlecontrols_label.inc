@@ -43,6 +43,8 @@
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultLineSpacing = 2;
@@ -50,7 +52,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
@@ -212,13 +213,15 @@ begin
   end;
 end;
 
-function TCastleLabel.Rect: TFloatRectangle;
+procedure TCastleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   TextToRender: TRichText;
   TextToRenderWidth, TextToRenderCount: Cardinal;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Single;
   US: Single;
 begin
+  inherited;
+
   if AutoSize then
   begin
     if (not Html) and (MaxWidth = 0) then
@@ -239,15 +242,14 @@ begin
     PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
     LineSpacingScaled := US * LineSpacing;
-    Result := FloatRectangle(
-      LeftBottomScaled,
-      TextToRenderWidth + 2 * PaddingHorizontalScaled,
+
+    PreferredWidth := TextToRenderWidth + 2 * PaddingHorizontalScaled;
+    PreferredHeight :=
       Font.RowHeight * TextToRenderCount +
       LineSpacingScaled * (TextToRenderCount - 1) +
       2 * PaddingVerticalScaled +
-      Font.Descend);
-  end else
-    Result := inherited;
+      Font.Descend;
+  end;
 end;
 
 procedure TCastleLabel.Render;

@@ -49,11 +49,12 @@
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
     procedure SetFrame(const Value: boolean);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -231,32 +232,27 @@ begin
   end;
 end;
 
-function TCastleEdit.Rect: TFloatRectangle;
+procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
   FrameCorners: TVector4Integer;
 begin
-  Result := inherited;
+  inherited;
 
-  if not FullSize then
+  US := UIScale;
+  PaddingVerticalScaled := US * (PaddingVertical + Padding);
+
+  HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
+  if Frame then
   begin
-    US := UIScale;
-    PaddingVerticalScaled := US * (PaddingVertical + Padding);
-
-    HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
-    if Frame then
-    begin
-      FrameCorners := Theme.Corners[tiEdit];
-      HeightScaled := HeightScaled +
-        US * FrameCorners[0] +
-        US * FrameCorners[2];
-    end;
-
-    { Do not only change here Result.Height, as the inherited
-      set Result to TFloatRectangle.Empty because Height = 0. }
-    Result := FloatRectangle(LeftBottomScaled, US * Width, HeightScaled);
+    FrameCorners := Theme.Corners[tiEdit];
+    HeightScaled := HeightScaled +
+      US * FrameCorners[0] +
+      US * FrameCorners[2];
   end;
+
+  PreferredHeight := HeightScaled;
 end;
 
 procedure TCastleEdit.Render;
