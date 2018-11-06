@@ -1045,6 +1045,8 @@ type
     FBorder: TVector4;
     FBorderColor: TCastleColor;
     FAutoSizeToChildren: Boolean;
+    FAutoSizeToChildrenPaddingRight: Single;
+    FAutoSizeToChildrenPaddingTop: Single;
     FSizeFromChildrenValid: Boolean;
     FSizeFromChildrenRect: TFloatRectangle;
     FCachedRectWithoutAnchors: TFloatRectangle;
@@ -1058,6 +1060,8 @@ type
     procedure SetControls(const I: Integer; const Item: TCastleUserInterface);
     procedure CreateControls;
     procedure SetAutoSizeToChildren(const Value: Boolean);
+    procedure SetAutoSizeToChildrenPaddingRight(const Value: Single);
+    procedure SetAutoSizeToChildrenPaddingTop(const Value: Single);
 
     { This takes care of some internal quirks with saving Left property
       correctly. (Because TComponent doesn't declare, but saves/loads a "magic"
@@ -1697,9 +1701,22 @@ type
       and so on.
       It is impossible to adjust this calculation to all possible children anchors
       values, since the interpretation of anchors depends on the parent size.
+
+      On the right and top side, we add @link(AutoSizeToChildrenPaddingTop)
+      and @link(AutoSizeToChildrenPaddingRight). To make left/bottom padding,
+      simply move all children away from the left/bottom edge.
     }
     property AutoSizeToChildren: Boolean
       read FAutoSizeToChildren write SetAutoSizeToChildren default false;
+
+    { Padding added when @link(AutoSizeToChildren) is used. }
+    property AutoSizeToChildrenPaddingRight: Single
+      read FAutoSizeToChildrenPaddingRight
+      write SetAutoSizeToChildrenPaddingRight default 0;
+    { Padding added when @link(AutoSizeToChildren) is used. }
+    property AutoSizeToChildrenPaddingTop: Single
+      read FAutoSizeToChildrenPaddingTop
+      write SetAutoSizeToChildrenPaddingTop default 0;
 
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
@@ -4152,9 +4169,9 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
     if not FSizeFromChildrenRect.IsEmpty then
     begin
       FSizeFromChildrenRect.Width :=
-        FSizeFromChildrenRect.Width + FBorder[1] {TODO:+ AutoSizeToChildrenPaddingRight};
+        FSizeFromChildrenRect.Width + FBorder[1] + AutoSizeToChildrenPaddingRight;
       FSizeFromChildrenRect.Height :=
-        FSizeFromChildrenRect.Height + FBorder[0] {TODO:+ AutoSizeToChildrenPaddingTop};
+        FSizeFromChildrenRect.Height + FBorder[0] + AutoSizeToChildrenPaddingTop;
     end;
   end;
 
@@ -4550,6 +4567,24 @@ begin
   if FAutoSizeToChildren <> Value then
   begin
     FAutoSizeToChildren := Value;
+    FSizeFromChildrenValid := false;
+  end;
+end;
+
+procedure TCastleUserInterface.SetAutoSizeToChildrenPaddingRight(const Value: Single);
+begin
+  if FAutoSizeToChildrenPaddingRight <> Value then
+  begin
+    FAutoSizeToChildrenPaddingRight := Value;
+    FSizeFromChildrenValid := false;
+  end;
+end;
+
+procedure TCastleUserInterface.SetAutoSizeToChildrenPaddingTop(const Value: Single);
+begin
+  if FAutoSizeToChildrenPaddingTop <> Value then
+  begin
+    FAutoSizeToChildrenPaddingTop := Value;
     FSizeFromChildrenValid := false;
   end;
 end;
