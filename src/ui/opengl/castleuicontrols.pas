@@ -1377,12 +1377,24 @@ type
 
       @unorderedList(
         @item(
-          When FullSize is @true:
+          When @link(AutoSizeToChildren) is @true:
+
+          The control size is adjusted to children, to surround them.
+          @link(Left) and @link(Bottom) and our anchors still matter,
+          but our @link(Width) and @link(Height) do not matter.
+          See the @link(AutoSizeToChildren) documentation for details.
+        )
+
+        @item(
+          Otherwise, when @link(FullSize) is @true:
 
           The control always fills the whole parent.
+          If the control is added directly to the container,
+          it will fill the whole container (TCastleWindow or TCastleControl).
         )
         @item(
-          When FullSize is @false:
+          Otherwise (when @link(FullSize) and @link(AutoSizeToChildren)
+          are both @false):
 
           The position and size of the control is determined by
           the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
@@ -1652,24 +1664,26 @@ type
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
 
-    { Position from the left side of the screen.
+    { Position from the left side of the parent control.
 
-      Note: it's often more flexible to use anchors instead of this property.
+      It's usually better to use anchors instead of this property.
       For example, instead of setting @code(Control.Left := 10),
-      you can call @code(Control.Anchor(hpLeft, 10)).
-      Do not do both -- or they will be summed.
-      Using anchors is often more flexible, as various sides of child and parent
-      may be anchored, and with a float shift. }
+      you can call @code(Control.Anchor(hpLeft, 10)),
+      or just change @link(HorizontalAnchorDelta).
+
+      Note that the effects of this property and @link(HorizontalAnchorDelta)
+      are summed, if you set both. }
     property Left: Single read FLeft write SetLeft stored false default 0;
 
-    { Position from the bottom side of the screen.
+    { Position from the bottom side of the parent control.
 
-      Note: it's often more flexible to use anchors instead of this property.
+      It's usually better to use anchors instead of this property.
       For example, instead of setting @code(Control.Bottom := 10),
-      you can call @code(Control.Anchor(hpBottom, 10)).
-      Do not do both -- or they will be summed.
-      Using anchors is often more flexible, as various sides of child and parent
-      may be anchored, and with a float shift. }
+      you can call @code(Control.Anchor(vpBottom, 10)),
+      or just change @link(VerticalAnchorDelta).
+
+      Note that the effects of this property and @link(VerticalAnchorDelta)
+      are summed, if you set both. }
     property Bottom: Single read FBottom write SetBottom default 0;
 
     { When @name, the control will always fill the whole parent area.
