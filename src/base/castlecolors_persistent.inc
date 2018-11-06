@@ -31,28 +31,25 @@ type
   TCastleColorRGBPersistent = class(TPersistent)
   strict private
     function GetValue: TCastleColorRGB;
-    function GetR: Single;
-    function GetG: Single;
-    function GetB: Single;
+    function GetRed: Single;
+    function GetGreen: Single;
+    function GetBlue: Single;
     procedure SetValue(const AValue: TCastleColorRGB);
-    procedure SetR(const AValue: Single);
-    procedure SetG(const AValue: Single);
-    procedure SetB(const AValue: Single);
-    function RIsStored: Boolean;
-    function GIsStored: Boolean;
-    function BIsStored: Boolean;
+    procedure SetRed(const AValue: Single);
+    procedure SetGreen(const AValue: Single);
+    procedure SetBlue(const AValue: Single);
+    function RedIsStored: Boolean;
+    function GreenIsStored: Boolean;
+    function BlueIsStored: Boolean;
   public
     InternalGetValue: TGetVector3Event;
     InternalSetValue: TSetVector3Event;
     InternalDefaultValue: TCastleColorRGB;
     property Value: TCastleColorRGB read GetValue write SetValue;
   published
-    { Red color component. }
-    property R: Single read GetR write SetR stored RIsStored nodefault;
-    { Green color component. }
-    property G: Single read GetG write SetG stored GIsStored nodefault;
-    { Blue color component. }
-    property B: Single read GetB write SetB stored BIsStored nodefault;
+    property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
+    property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
+    property Blue: Single read GetBlue write SetBlue stored BlueIsStored nodefault;
   end;
 
   { TCastleColor record represented as a TPersistent descendant,
@@ -68,33 +65,29 @@ type
   TCastleColorPersistent = class(TPersistent)
   strict private
     function GetValue: TCastleColor;
-    function GetR: Single;
-    function GetG: Single;
-    function GetB: Single;
-    function GetA: Single;
+    function GetRed: Single;
+    function GetGreen: Single;
+    function GetBlue: Single;
+    function GetAlpha: Single;
     procedure SetValue(const AValue: TCastleColor);
-    procedure SetR(const AValue: Single);
-    procedure SetG(const AValue: Single);
-    procedure SetB(const AValue: Single);
-    procedure SetA(const AValue: Single);
-    function RIsStored: Boolean;
-    function GIsStored: Boolean;
-    function BIsStored: Boolean;
-    function AIsStored: Boolean;
+    procedure SetRed(const AValue: Single);
+    procedure SetGreen(const AValue: Single);
+    procedure SetBlue(const AValue: Single);
+    procedure SetAlpha(const AValue: Single);
+    function RedIsStored: Boolean;
+    function GreenIsStored: Boolean;
+    function BlueIsStored: Boolean;
+    function AlphaIsStored: Boolean;
   public
     InternalGetValue: TGetVector4Event;
     InternalSetValue: TSetVector4Event;
     InternalDefaultValue: TCastleColor;
     property Value: TCastleColor read GetValue write SetValue;
   published
-    { Red color component. }
-    property R: Single read GetR write SetR stored RIsStored nodefault;
-    { Green color component. }
-    property G: Single read GetG write SetG stored GIsStored nodefault;
-    { Blue color component. }
-    property B: Single read GetB write SetB stored BIsStored nodefault;
-    { Alpha (opacity) color component. }
-    property A: Single read GetA write SetA stored AIsStored nodefault;
+    property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
+    property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
+    property Blue: Single read GetBlue write SetBlue stored BlueIsStored nodefault;
+    property Alpha: Single read GetAlpha write SetAlpha stored AlphaIsStored nodefault;
   end;
 
 {$endif read_interface}
@@ -113,22 +106,22 @@ begin
   InternalSetValue(AValue);
 end;
 
-function TCastleColorRGBPersistent.GetR: Single;
+function TCastleColorRGBPersistent.GetRed: Single;
 begin
   Result := Value.Data[0];
 end;
 
-function TCastleColorRGBPersistent.GetG: Single;
+function TCastleColorRGBPersistent.GetGreen: Single;
 begin
   Result := Value.Data[1];
 end;
 
-function TCastleColorRGBPersistent.GetB: Single;
+function TCastleColorRGBPersistent.GetBlue: Single;
 begin
   Result := Value.Data[2];
 end;
 
-procedure TCastleColorRGBPersistent.SetR(const AValue: Single);
+procedure TCastleColorRGBPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
@@ -137,7 +130,7 @@ begin
   Value := V;
 end;
 
-procedure TCastleColorRGBPersistent.SetG(const AValue: Single);
+procedure TCastleColorRGBPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
@@ -146,7 +139,7 @@ begin
   Value := V;
 end;
 
-procedure TCastleColorRGBPersistent.SetB(const AValue: Single);
+procedure TCastleColorRGBPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColorRGB;
 begin
@@ -155,17 +148,17 @@ begin
   Value := V;
 end;
 
-function TCastleColorRGBPersistent.RIsStored: Boolean;
+function TCastleColorRGBPersistent.RedIsStored: Boolean;
 begin
   Result := Value.Data[0] <> InternalDefaultValue.Data[0];
 end;
 
-function TCastleColorRGBPersistent.GIsStored: Boolean;
+function TCastleColorRGBPersistent.GreenIsStored: Boolean;
 begin
   Result := Value.Data[1] <> InternalDefaultValue.Data[1];
 end;
 
-function TCastleColorRGBPersistent.BIsStored: Boolean;
+function TCastleColorRGBPersistent.BlueIsStored: Boolean;
 begin
   Result := Value.Data[2] <> InternalDefaultValue.Data[2];
 end;
@@ -182,27 +175,27 @@ begin
   InternalSetValue(AValue);
 end;
 
-function TCastleColorPersistent.GetR: Single;
+function TCastleColorPersistent.GetRed: Single;
 begin
   Result := Value.Data[0];
 end;
 
-function TCastleColorPersistent.GetG: Single;
+function TCastleColorPersistent.GetGreen: Single;
 begin
   Result := Value.Data[1];
 end;
 
-function TCastleColorPersistent.GetB: Single;
+function TCastleColorPersistent.GetBlue: Single;
 begin
   Result := Value.Data[2];
 end;
 
-function TCastleColorPersistent.GetA: Single;
+function TCastleColorPersistent.GetAlpha: Single;
 begin
   Result := Value.Data[3];
 end;
 
-procedure TCastleColorPersistent.SetR(const AValue: Single);
+procedure TCastleColorPersistent.SetRed(const AValue: Single);
 var
   V: TCastleColor;
 begin
@@ -211,7 +204,7 @@ begin
   Value := V;
 end;
 
-procedure TCastleColorPersistent.SetG(const AValue: Single);
+procedure TCastleColorPersistent.SetGreen(const AValue: Single);
 var
   V: TCastleColor;
 begin
@@ -220,7 +213,7 @@ begin
   Value := V;
 end;
 
-procedure TCastleColorPersistent.SetB(const AValue: Single);
+procedure TCastleColorPersistent.SetBlue(const AValue: Single);
 var
   V: TCastleColor;
 begin
@@ -229,7 +222,7 @@ begin
   Value := V;
 end;
 
-procedure TCastleColorPersistent.SetA(const AValue: Single);
+procedure TCastleColorPersistent.SetAlpha(const AValue: Single);
 var
   V: TCastleColor;
 begin
@@ -238,22 +231,22 @@ begin
   Value := V;
 end;
 
-function TCastleColorPersistent.RIsStored: Boolean;
+function TCastleColorPersistent.RedIsStored: Boolean;
 begin
   Result := Value.Data[0] <> InternalDefaultValue.Data[0];
 end;
 
-function TCastleColorPersistent.GIsStored: Boolean;
+function TCastleColorPersistent.GreenIsStored: Boolean;
 begin
   Result := Value.Data[1] <> InternalDefaultValue.Data[1];
 end;
 
-function TCastleColorPersistent.BIsStored: Boolean;
+function TCastleColorPersistent.BlueIsStored: Boolean;
 begin
   Result := Value.Data[2] <> InternalDefaultValue.Data[2];
 end;
 
-function TCastleColorPersistent.AIsStored: Boolean;
+function TCastleColorPersistent.AlphaIsStored: Boolean;
 begin
   Result := Value.Data[3] <> InternalDefaultValue.Data[3];
 end;
