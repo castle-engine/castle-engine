@@ -256,6 +256,16 @@ end;
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
   const AMousePosition: TVector2): TCastleUserInterface;
 
+  { Like TCastleUserInterface.CapturesEventsAtPosition, but
+    - ignores CapturesEvents
+    - uses RenderRectWithBorder (to be able to drag complete control)
+    - doesn't need "if the control covers the whole Container" hack. }
+  function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
+    const Position: TVector2): boolean;
+  begin
+    Result := UI.RenderRectWithBorder.Contains(Position);
+  end;
+
   function ControlUnder(const C: TCastleUserInterface;
     const MousePos: TVector2): TCastleUserInterface;
   var
@@ -274,7 +284,8 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
         Result := ControlUnder(C.Controls[I], MousePos);
         if Result <> nil then Exit;
       end;
-      if C.CapturesEventsAtPosition(MousePos) then
+      //if C.CapturesEventsAtPosition(MousePos) then
+      if SimpleCapturesEventsAtPosition(C, MousePos) then
         Result := C;
     end;
   end;
