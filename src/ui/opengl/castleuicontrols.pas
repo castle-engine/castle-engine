@@ -3770,6 +3770,25 @@ end;
 
 procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
 
+  { Draw 4 borders.
+    RenderRectWithBorder is equal to Self.RenderRectWithBorder,
+    but it is already calculated by the caller. }
+  procedure DrawBorder(const RenderRectWithBorder: TFloatRectangle);
+
+    procedure DrawBorderRectangle(const R: TFloatRectangle);
+    begin
+      if not R.IsEmpty then
+        DrawRectangle(R, BorderColor);
+    end;
+
+  begin
+    if FBorderColor[3] = 0 then Exit; // early exit in a common case
+    DrawBorderRectangle(RenderRectWithBorder.TopPart(Border[0]));
+    DrawBorderRectangle(RenderRectWithBorder.RightPart(Border[1]));
+    DrawBorderRectangle(RenderRectWithBorder.BottomPart(Border[2]));
+    DrawBorderRectangle(RenderRectWithBorder.LeftPart(Border[3]));
+  end;
+
   procedure CacheRectBegin;
   begin
     // the calculation inside will use Rect a number of times, make it faster
@@ -3816,14 +3835,19 @@ var
 
 var
   I: Integer;
+  R: TFloatRectangle;
 begin
   if GetExists then
   begin
     CacheRectBegin;
 
+    R := RenderRectWithBorder;
+
     if (not RenderCulling) or
-       ParentRenderRectWithBorder.Collides(RenderRectWithBorder) then
+       ParentRenderRectWithBorder.Collides(R) then
     begin
+      DrawBorder(R);
+
       ClipChildrenBegin;
 
       { We check GLInitialized, because it may happen that a control
