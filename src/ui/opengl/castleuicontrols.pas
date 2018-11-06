@@ -714,6 +714,31 @@ type
     property DefaultFont: TCastleFont read FDefaultFont write FDefaultFont;
   end;
 
+  { Configurable border size for @link(TCastleUserInterface.Border). }
+  TBorder = class(TPersistent)
+  strict private
+    FTop, FRight, FBottom, FLeft, FAllSides: Single;
+    procedure SetAllSides(const AValue: Single);
+    procedure SetBottom(const AValue: Single);
+    procedure SetLeft(const AValue: Single);
+    procedure SetRight(const AValue: Single);
+    procedure SetTop(const AValue: Single);
+  private
+    OnChange: TNotifyEvent;
+    function TotalTop: Single;
+    function TotalRight: Single;
+    function TotalBottom: Single;
+    function TotalLeft: Single;
+    { Anything not zero? }
+    function Exists: Boolean;
+  published
+    property Top: Single read FTop write SetTop;
+    property Right: Single read FRight write SetRight;
+    property Bottom: Single read FBottom write SetBottom;
+    property Left: Single read FLeft write SetLeft;
+    property AllSides: Single read FAllSides write SetAllSides;
+  end;
+
   { Base class for things that listen to user input. }
   TInputListener = class(TComponent)
   private
@@ -1042,7 +1067,7 @@ type
     FWidth, FHeight: Single;
     FWidthFraction, FHeightFraction: Single;
     FFullSize: boolean;
-    FBorder: TVector4;
+    FBorder: TBorder;
     FBorderColor: TCastleColor;
     FAutoSizeToChildren: Boolean;
     FAutoSizeToChildrenPaddingRight: Single;
@@ -1055,6 +1080,7 @@ type
     FRenderCulling: Boolean;
     FClipChildren: Boolean;
 
+    procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TCastleUserInterface;
     procedure SetControls(const I: Integer; const Item: TCastleUserInterface);
@@ -1087,7 +1113,6 @@ type
     procedure SetEnableUIScaling(const Value: boolean);
 
     procedure SetFullSize(const Value: boolean);
-    procedure SetBorder(const Value: TVector4);
     procedure SetBorderColor(const Value: TCastleColor);
     procedure SetWidthFraction(const Value: Single);
     procedure SetHeightFraction(const Value: Single);
@@ -1620,36 +1645,9 @@ type
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
 
-    { Border (by default transparent) of the control.
-      Border adds a space from the control content
-      (drawn within @link(RenderRect)) to the control rectangle
-      (returned by @link(RenderRectWithBorder)) (scaled), or @link(EffectiveRect)
-      (unscaled) and friends).
-
-      It is transparent by default, but you can change it by @link(BorderColor).
-
-      Border works always, regardless of @link(FullSize) or @link(AutoSizeToChildren).
-
-      The border is a 4 component vector, specifying sides in the same order as CSS:
-      top, right, bottom, left (easy to remember: clockwise, from the top,
-      like on an analog clock).
-
-      One obvious use-case is to use this for visual space
-      (empty space or a colorful frame, separating this control from the rest).
-
-      Another use-case is to reserve a predictable space
-      for as additional (sibling) control within the same parent.
-      E.g. you can set FullSize=true and Border=(100, 0, 0, 0)
-      and this way there is always a strip with height=100 at the top
-      of the parent, where you can insert another control (with height=100,
-      anchored to the top). }
-    property Border: TVector4 read FBorder write SetBorder;
-
     { Color of the @link(Border), by default completely transparent black. }
     property BorderColor: TCastleColor read FBorderColor write SetBorderColor;
 
-    property FullSizeMargins: TVector4 read FBorder write SetBorder;
-      deprecated 'use Border';
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write FHasHorizontalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
@@ -1835,6 +1833,27 @@ type
       This affects both @link(Render) and @link(RenderOverChildren)
       of this control, as well as all children rendering. }
     property ClipChildren: Boolean read FClipChildren write SetClipChildren default false;
+
+    { Border (by default transparent) of the control.
+      Border adds a space from the control content
+      (drawn within @link(RenderRect)) to the control rectangle
+      (returned by @link(RenderRectWithBorder)) (scaled), or @link(EffectiveRect)
+      (unscaled) and friends).
+
+      It is transparent by default, but you can change it by @link(BorderColor).
+
+      Border works always, regardless of @link(FullSize) or @link(AutoSizeToChildren).
+
+      One obvious use-case is to use this for visual space
+      (empty space or a colorful frame, separating this control from the rest).
+
+      Another use-case is to reserve a predictable space
+      for as additional (sibling) control within the same parent.
+      E.g. you can set FullSize=true and Border.Top=100,
+      and this way there is always a strip with Height=100 at the top
+      of the parent, where you can insert another control (with Height=100,
+      anchored to the top). }
+    property Border: TBorder read FBorder;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -3425,6 +3444,72 @@ begin
   DefaultFont := NewDefaultFont;
 end;
 
+{ TBorder -------------------------------------------------------------------- }
+
+procedure TBorder.SetAllSides(const AValue: Single);
+begin
+  if FAllSides = AValue then Exit;
+  FAllSides := AValue;
+  if Assigned(OnChange) then OnChange(Self);
+end;
+
+procedure TBorder.SetBottom(const AValue: Single);
+begin
+  if FBottom = AValue then Exit;
+  FBottom := AValue;
+  if Assigned(OnChange) then OnChange(Self);
+end;
+
+procedure TBorder.SetLeft(const AValue: Single);
+begin
+  if FLeft = AValue then Exit;
+  FLeft := AValue;
+  if Assigned(OnChange) then OnChange(Self);
+end;
+
+procedure TBorder.SetRight(const AValue: Single);
+begin
+  if FRight = AValue then Exit;
+  FRight := AValue;
+  if Assigned(OnChange) then OnChange(Self);
+end;
+
+procedure TBorder.SetTop(const AValue: Single);
+begin
+  if FTop = AValue then Exit;
+  FTop := AValue;
+  if Assigned(OnChange) then OnChange(Self);
+end;
+
+function TBorder.TotalTop: Single;
+begin
+  Result := FAllSides + FTop;
+end;
+
+function TBorder.TotalRight: Single;
+begin
+  Result := FAllSides + FRight;
+end;
+
+function TBorder.TotalBottom: Single;
+begin
+  Result := FAllSides + FBottom;
+end;
+
+function TBorder.TotalLeft: Single;
+begin
+  Result := FAllSides + FLeft;
+end;
+
+function TBorder.Exists: Boolean;
+begin
+  Result := (FAllSides <> 0) or
+    (FTop <> 0) or
+    (FRight <> 0) or
+    (FBottom <> 0) or
+    (FLeft <> 0);
+end;
+
 { TInputListener ------------------------------------------------------------- }
 
 constructor TInputListener.Create(AOwner: TComponent);
@@ -3600,6 +3685,8 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
+  FBorder := TBorder.Create;
+  FBorder.OnChange := @BorderChange;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -3610,6 +3697,7 @@ destructor TCastleUserInterface.Destroy;
 begin
   GLContextClose;
   FreeAndNil(FControls);
+  FreeAndNil(FBorder);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -3817,8 +3905,8 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
       changed RenderContext.Viewport. }
     TUIContainer.RenderControlPrepare(ViewportRect);
 
-    DrawBorderRectangle(RectBorder.TopPart(Border[0]));
-    DrawBorderRectangle(RectBorder.BottomPart(Border[2]));
+    DrawBorderRectangle(RectBorder.TopPart(Border.TotalTop));
+    DrawBorderRectangle(RectBorder.BottomPart(Border.TotalBottom));
 
     { Draw left and right borders from a smaller rectangle.
       This way we do not overdraw border corners, which is important
@@ -3827,10 +3915,10 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
       Unfortunately artifacts are visible (the right part is visibly
       shifted by ~1 pixel to the right), so we don't do it always now. }
     RectLeftRightBorders := RectBorder.
-      RemoveTop(Border[0]).
-      RemoveBottom(Border[2]);
-    DrawBorderRectangle(RectLeftRightBorders.RightPart(Border[1]));
-    DrawBorderRectangle(RectLeftRightBorders.LeftPart(Border[3]));
+      RemoveTop(Border.TotalTop).
+      RemoveBottom(Border.TotalBottom);
+    DrawBorderRectangle(RectLeftRightBorders.RightPart(Border.TotalRight));
+    DrawBorderRectangle(RectLeftRightBorders.LeftPart(Border.TotalLeft));
   end;
 
   procedure CacheRectBegin;
@@ -3966,6 +4054,11 @@ begin
     FExists := Value;
     VisibleChange([chExists]);
   end;
+end;
+
+procedure TCastleUserInterface.BorderChange(Sender: TObject);
+begin
+  VisibleChange([chRectangle]);
 end;
 
 { We store Left property value in file under "TUIControlPos_Real_Left" name,
@@ -4176,8 +4269,8 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
           ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
 
         // apply Border shift
-        ChildRect.Left := ChildRect.Left + FBorder[3];
-        ChildRect.Bottom := ChildRect.Bottom + FBorder[2];
+        ChildRect.Left := ChildRect.Left + FBorder.TotalLeft;
+        ChildRect.Bottom := ChildRect.Bottom + FBorder.TotalBottom;
       end;
 
       FSizeFromChildrenRect := FSizeFromChildrenRect + ChildRect;
@@ -4186,9 +4279,9 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
     if not FSizeFromChildrenRect.IsEmpty then
     begin
       FSizeFromChildrenRect.Width :=
-        FSizeFromChildrenRect.Width + FBorder[1] + AutoSizeToChildrenPaddingRight;
+        FSizeFromChildrenRect.Width + FBorder.TotalRight + AutoSizeToChildrenPaddingRight;
       FSizeFromChildrenRect.Height :=
-        FSizeFromChildrenRect.Height + FBorder[0] + AutoSizeToChildrenPaddingTop;
+        FSizeFromChildrenRect.Height + FBorder.TotalTop + AutoSizeToChildrenPaddingTop;
     end;
   end;
 
@@ -4236,8 +4329,8 @@ begin
     end;
 
     // subtract Border from W, H
-    BorderW := (Border[1] + Border[3]) * UIScale;
-    BorderH := (Border[0] + Border[2]) * UIScale;
+    BorderW := (Border.TotalRight + Border.TotalLeft) * UIScale;
+    BorderH := (Border.TotalTop + Border.TotalBottom) * UIScale;
     W := W - BorderW;
     H := H - BorderH;
 
@@ -4250,8 +4343,8 @@ begin
     if (W > 0) and (H > 0) then
     begin
       Result := FloatRectangle(Left * UIScale, Bottom * UIScale, W, H);
-      //Result.Left := Result.Left - FBorder[3] * UIScale; // no need to
-      //Result.Bottom := Result.Bottom - FBorder[2] * UIScale; // no need to
+      //Result.Left := Result.Left - FBorder.TotalLeft * UIScale; // no need to
+      //Result.Bottom := Result.Bottom - FBorder.TotalBottom * UIScale; // no need to
     end else
       Result := TFloatRectangle.Empty;
   end;
@@ -4363,12 +4456,12 @@ end;
 function TCastleUserInterface.RenderRect: TFloatRectangle;
 begin
   Result := RenderRectWithBorder;
-  if not FBorder.IsZero then // optimize common case
+  if FBorder.Exists then // optimize common case
     Result := Result.
-      RemoveTop(FBorder[0] * UIScale).
-      RemoveRight(FBorder[1] * UIScale).
-      RemoveBottom(FBorder[2] * UIScale).
-      RemoveLeft(FBorder[3] * UIScale);
+      RemoveTop   (FBorder.TotalTop    * UIScale).
+      RemoveRight (FBorder.TotalRight  * UIScale).
+      RemoveBottom(FBorder.TotalBottom * UIScale).
+      RemoveLeft  (FBorder.TotalLeft   * UIScale);
 end;
 
 function TCastleUserInterface.ScreenRect: TRectangle;
@@ -4398,12 +4491,12 @@ begin
     Result.Left := 0;
     Result.Bottom := 0;
 
-    if not Parent.FBorder.IsZero then // optimize common case
+    if Parent.FBorder.Exists then // optimize common case
       Result := Result.
-        RemoveTop   (Parent.FBorder[0] * UIScale).
-        RemoveRight (Parent.FBorder[1] * UIScale).
-        RemoveBottom(Parent.FBorder[2] * UIScale).
-        RemoveLeft  (Parent.FBorder[3] * UIScale);
+        RemoveTop   (Parent.FBorder.TotalTop    * UIScale).
+        RemoveRight (Parent.FBorder.TotalRight  * UIScale).
+        RemoveBottom(Parent.FBorder.TotalBottom * UIScale).
+        RemoveLeft  (Parent.FBorder.TotalLeft   * UIScale);
   end else
     Result := FloatRectangle(ContainerRect);
 end;
@@ -4537,15 +4630,6 @@ begin
   if FFullSize <> Value then
   begin
     FFullSize := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleUserInterface.SetBorder(const Value: TVector4);
-begin
-  if not TVector4.PerfectlyEquals(FBorder, Value) then
-  begin
-    FBorder := Value;
     VisibleChange([chRectangle]);
   end;
 end;

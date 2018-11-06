@@ -358,6 +358,8 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
+    TSubPropertiesEditor);
 end;
 
 initialization
