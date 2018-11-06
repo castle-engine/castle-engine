@@ -1638,6 +1638,12 @@ type
 
     property FullSizeMargins: TVector4 read FBorder write SetBorder;
       deprecated 'use Border';
+    property HasHorizontalAnchor: boolean
+      read FHasHorizontalAnchor write FHasHorizontalAnchor stored false;
+      deprecated 'this property does not do anything anymore, anchors are always active';
+    property HasVerticalAnchor: boolean
+      read FHasVerticalAnchor write FHasVerticalAnchor stored false;
+      deprecated 'this property does not do anything anymore, anchors are always active';
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1715,13 +1721,6 @@ type
     property AutoSizeToChildrenPaddingTop: Single
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop default 0;
-
-    property HasHorizontalAnchor: boolean
-      read FHasHorizontalAnchor write FHasHorizontalAnchor stored false;
-      deprecated 'this property does not do anything anymore, anchors are always active';
-    property HasVerticalAnchor: boolean
-      read FHasVerticalAnchor write FHasVerticalAnchor stored false;
-      deprecated 'this property does not do anything anymore, anchors are always active';
 
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
