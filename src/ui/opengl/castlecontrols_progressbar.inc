@@ -193,6 +193,7 @@ begin
 
   if Progress = nil then Exit;
 
+  // TODO: control should not draw over parent this way
   if FGLBackground <> nil then
     FGLBackground.Draw(ParentRect);
 

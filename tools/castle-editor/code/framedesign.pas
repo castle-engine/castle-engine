@@ -86,8 +86,8 @@ type
           DraggingMode: TDraggingMode;
           ResizingHorizontal: THorizontalPosition; //< Defined only when DraggingMode=dmResize
           ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
-          LabelHover: TCastleLabel;
-          RectHover: TCastleRectangleControl;
+          LabelHover, LabelSelected: TCastleLabel;
+          RectHover, RectSelected: TCastleRectangleControl;
         function GetSelectedUserInterface: TCastleUserInterface;
         procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
@@ -199,12 +199,12 @@ uses TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
 
 {$R *.lfm}
 
-function ParentRenderRectWithBorder(const UI: TCastleUserInterface): TFloatRectangle;
+function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
     Result := FloatRectangle(UI.Container.Rect)
   else
-    Result := UI.Parent.RenderRectWithBorder;
+    Result := UI.Parent.RenderRect;
 end;
 
 { TDesignFrame.TDesignerLayer ------------------------------------------------ }
@@ -225,6 +225,18 @@ begin
   LabelHover.Anchor(vpMiddle);
   LabelHover.FontSize := 15;
   RectHover.InsertFront(LabelHover);
+
+  RectSelected := TCastleRectangleControl.Create(Self);
+  RectSelected.Color := Vector4(0, 0, 0, 0.25);
+  RectSelected.Exists := false;
+  InsertFront(RectSelected);
+
+  LabelSelected := TCastleLabel.Create(Self);
+  LabelSelected.Color := White;
+  LabelSelected.Anchor(hpMiddle);
+  LabelSelected.Anchor(vpMiddle);
+  LabelSelected.FontSize := 15;
+  RectSelected.InsertFront(LabelSelected);
 end;
 
 function TDesignFrame.TDesignerLayer.GetSelectedUserInterface: TCastleUserInterface;
@@ -373,9 +385,15 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
       dmTranslate: ResultingRect := CurrentRect.Translate(Move);
       dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
     end;
-    ParentR := ParentRenderRectWithBorder(UI);
-    { only allow movement/resize if control will not go outside of parent,
-      unless it was already outside }
+    ParentR := ParentRenderRect(UI);
+    { Only allow movement/resize if control will not go outside of parent,
+      unless it was already outside.
+
+      Note that we limit to the parent rect *without border*,
+      that is: we don't allow to move control over a border of the parent.
+      This makes sense, since FullSize and WidthFraction = 1 keep the control
+      within the parent rect *without border* too.
+    }
     Result := (not ParentR.Contains(CurrentRect)) or
       ParentR.Contains(ResultingRect);
   end;
@@ -582,7 +600,15 @@ begin
     R := UI.RenderRectWithBorder;
     DrawRectangleOutline(R, White);
     DrawRectangleOutline(R.Grow(-1), Black);
-  end;
+
+    LabelSelected.Caption := Frame.ComponentCaption(UI);
+    RectSelected.Exists := true;
+    RectSelected.Width := LabelSelected.EffectiveWidth + 6;
+    RectSelected.Height := LabelSelected.EffectiveHeight + 6;
+    RectSelected.Anchor(hpLeft, R.Left / UIScale);
+    RectSelected.Anchor(vpTop, vpBottom, R.Bottom / UIScale);
+  end else
+    RectSelected.Exists := false;
 
   UI := HoverUserInterface(Container.MousePosition);
   if UI <> nil then
@@ -1812,7 +1838,7 @@ begin
   end;
 
   if (UI.Parent <> nil) and
-     (not UI.Parent.RenderRectWithBorder.Contains(UI.RenderRectWithBorder)) then
+     (not UI.Parent.RenderRect.Contains(UI.RenderRectWithBorder)) then
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
   LabelSizeInfo.Caption := S;

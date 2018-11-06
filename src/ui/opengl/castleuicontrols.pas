@@ -211,7 +211,7 @@ type
     (that is, last on the @link(Controls) list) control under
     the event position (or mouse position, or the appropriate touch position).
     We use @link(TCastleUserInterface.CapturesEventsAtPosition) to decide this
-    (by default it simply checks control's @link(TCastleUserInterface.RenderRectWithBorder)
+    (by default it simply checks control's @link(TCastleUserInterface.RenderRect)
     vs the given position).
     As long as the event is not handled,
     we search for the next control that can handle this event and
@@ -580,7 +580,7 @@ type
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
       In practice, called when TCastleUserInterface.Cursor or
       @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
-      @link(TCastleUserInterface.RenderRectWithBorder)) results change.
+      @link(TCastleUserInterface.RenderRect)) results change.
 
       In practice, it's called through VisibleChange now.
 
@@ -1130,7 +1130,8 @@ type
       of calling RectWithoutAnchors. }
     function FastRectWithoutAnchors: TFloatRectangle;
     { Like @link(RectWithoutAnchors) but with anchors effect applied. }
-    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
+    function RectWithAnchors(
+      const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
   protected
@@ -1212,7 +1213,8 @@ type
 
     { Does this control capture events under this screen position.
       The default implementation simply checks whether Position
-      is inside RenderRectWithBorder now. It also checks whether @link(CapturesEvents) is @true.
+      is inside @link(RenderRect).
+      It also checks whether @link(CapturesEvents) is @true.
 
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
@@ -1493,11 +1495,11 @@ type
       (after scaling, real pixels on screen). }
     function LocalToScreenTranslation: TVector2;
 
-    { Rectangle filling the parent control (or coordinates), in local coordinates.
+    { Rectangle filling the parent control (or container), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
-      are always zero.
-      This is already scaled by UI scaling, since it's derived from @link(Rect)
-      size that should also be already scaled. }
+      are always zero, unless parent has Border (the returned rectangle
+      is shrunk by Parent.Border).
+      This is already scaled by UI scaling. }
     function ParentRect: TFloatRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
@@ -1612,8 +1614,7 @@ type
 
       It is transparent by default, but you can change it by @link(BorderColor).
 
-      Border works both when @link(FullSize) is @true or @false.
-      Note that it's ignored when @link(AutoSizeToChildren).
+      Border works always, regardless of @link(FullSize) or @link(AutoSizeToChildren).
 
       The border is a 4 component vector, specifying sides in the same order as CSS:
       top, right, bottom, left (easy to remember: clockwise, from the top,
@@ -3740,7 +3741,7 @@ begin
   if not CapturesEvents then
     Exit(false);
 
-  SR := RenderRectWithBorder;
+  SR := RenderRect;
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
@@ -3805,10 +3806,10 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
     Dec(FUseCachedRectWithoutAnchors);
   end;
 
-  function ParentRenderRectWithBorder: TFloatRectangle;
+  function ParentRenderRect: TFloatRectangle;
   begin
     if Parent <> nil then
-      Result := Parent.RenderRectWithBorder
+      Result := Parent.RenderRect
     else
       Result := FloatRectangle(ContainerRect);
   end;
@@ -3846,8 +3847,10 @@ begin
 
     R := RenderRectWithBorder;
 
-    if (not RenderCulling) or
-       ParentRenderRectWithBorder.Collides(R) then
+    { We compare Parent.RenderRect, since this is where child should fit
+      (and what is clipped in case of Parent.ClipChildren)
+      with our Self.RenderRectWithBorder, since this is the space we take. }
+    if (not RenderCulling) or ParentRenderRect.Collides(R) then
     begin
       DrawBorder(R);
 
@@ -4137,9 +4140,21 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
              (C.VerticalAnchorParent = vpTop) then
             ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
         end;
+
+        // apply Border shift
+        ChildRect.Left := ChildRect.Left + FBorder[3];
+        ChildRect.Bottom := ChildRect.Bottom + FBorder[2];
       end;
 
       FSizeFromChildrenRect := FSizeFromChildrenRect + ChildRect;
+    end;
+
+    if not FSizeFromChildrenRect.IsEmpty then
+    begin
+      FSizeFromChildrenRect.Width :=
+        FSizeFromChildrenRect.Width + FBorder[1] {TODO:+ AutoSizeToChildrenPaddingRight};
+      FSizeFromChildrenRect.Height :=
+        FSizeFromChildrenRect.Height + FBorder[0] {TODO:+ AutoSizeToChildrenPaddingTop};
     end;
   end;
 
@@ -4287,16 +4302,14 @@ begin
 
   Result := FastRectWithoutAnchors;
 
-  { apply anchors }
-  if (not FullSize) and (HasHorizontalAnchor or HasVerticalAnchor) then
+  { apply my Anchors and parent Border }
+  if not FullSize then
   begin
     PR := ParentRect;
-    if HasHorizontalAnchor then
-      Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
-        UIScale * HorizontalAnchorDelta);
-    if HasVerticalAnchor then
-      Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
-        UIScale * VerticalAnchorDelta);
+    Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
+      UIScale * HorizontalAnchorDelta);
+    Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
+      UIScale * VerticalAnchorDelta);
   end;
 end;
 
@@ -4348,6 +4361,13 @@ begin
     Result := Parent.FastRectWithoutAnchors;
     Result.Left := 0;
     Result.Bottom := 0;
+
+    if not Parent.FBorder.IsZero then // optimize common case
+      Result := Result.
+        RemoveTop   (Parent.FBorder[0] * UIScale).
+        RemoveRight (Parent.FBorder[1] * UIScale).
+        RemoveBottom(Parent.FBorder[2] * UIScale).
+        RemoveLeft  (Parent.FBorder[3] * UIScale);
   end else
     Result := FloatRectangle(ContainerRect);
 end;
