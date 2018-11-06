@@ -571,7 +571,7 @@ begin
       mouse down on the button, and then release mouse while still over
       the button.
 
-      We have to check RenderRect.Contains, since (because we keep "focus"
+      We have to check CapturesEventsAtPosition, since (because we keep "focus"
       on this button, if mouse down was on this) we *always* get release event
       (even if mouse position is no longer over this button).
 
@@ -579,7 +579,7 @@ begin
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
-    if Enabled and RenderRect.Contains(Event.Position) then
+    if Enabled and CapturesEventsAtPosition(Event.Position) then
       DoClick;
   end;
 end;

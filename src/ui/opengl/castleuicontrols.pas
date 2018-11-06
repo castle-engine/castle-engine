@@ -211,7 +211,7 @@ type
     (that is, last on the @link(Controls) list) control under
     the event position (or mouse position, or the appropriate touch position).
     We use @link(TCastleUserInterface.CapturesEventsAtPosition) to decide this
-    (by default it simply checks control's @link(TCastleUserInterface.RenderRect)
+    (by default it simply checks control's @link(TCastleUserInterface.RenderRectWithBorder)
     vs the given position).
     As long as the event is not handled,
     we search for the next control that can handle this event and
@@ -580,7 +580,7 @@ type
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
       In practice, called when TCastleUserInterface.Cursor or
       @link(TCastleUserInterface.CapturesEventsAtPosition) (and so also
-      @link(TCastleUserInterface.RenderRect)) results change.
+      @link(TCastleUserInterface.RenderRectWithBorder)) results change.
 
       In practice, it's called through VisibleChange now.
 
@@ -1002,13 +1002,15 @@ type
     The position is controlled using the @link(Anchor) methods
     or anchor properties, like @link(HorizontalAnchorSelf),
     @link(HorizontalAnchorParent), @link(HorizontalAnchorDelta).
-    The size is controlled using the @link(Width), @link(Height), @link(FullSize)
+    The size is controlled using the @link(Width), @link(WidthFraction),
+    @link(Height), @link(HeightFraction), @link(FullSize), or @link(AutoSizeToChildren)
     properties.
 
     The size (before UI scaling is applied) can be queried using
     @link(EffectiveWidth) and @link(EffectiveHeight) methods.
     The rectangle where the control is visible (during rendering,
-    after applying UI scaling) can be queried using @link(RenderRect) methods.
+    after applying UI scaling) can be queried using @link(RenderRect)
+    and @link(RenderRectWithBorder) methods.
 
     Note that some descendants perform auto-sizing,
     that is: their effective size follows some natural property of the control.
@@ -1040,7 +1042,8 @@ type
     FWidth, FHeight: Single;
     FWidthFraction, FHeightFraction: Single;
     FFullSize: boolean;
-    FFullSizeMargins: TVector4;
+    FBorder: TVector4;
+    FBorderColor: TCastleColor;
     FAutoSizeToChildren: Boolean;
     FSizeFromChildrenValid: Boolean;
     FSizeFromChildrenRect: TFloatRectangle;
@@ -1082,12 +1085,45 @@ type
     procedure SetEnableUIScaling(const Value: boolean);
 
     procedure SetFullSize(const Value: boolean);
-    procedure SetFullSizeMargins(const Value: TVector4);
+    procedure SetBorder(const Value: TVector4);
+    procedure SetBorderColor(const Value: TCastleColor);
     procedure SetWidthFraction(const Value: Single);
     procedure SetHeightFraction(const Value: Single);
     procedure SetRenderCulling(const Value: Boolean);
     procedure SetClipChildren(const Value: Boolean);
 
+    { Position and size of this control, assuming it exists,
+      in the local coordinates (relative to the parent 2D control,
+      although without anchors applied).
+
+      The implementation in this class follows the algorithm
+      documented at @link(EffectiveRect).
+
+      @unorderedList(
+        @item(@bold(This must ignore)
+          the current value of the @link(GetExists) method
+          and @link(Exists) property, that is: the result of this function
+          assumes that control does exist.)
+
+        @item(@bold(This must ignore) the anchors. Their effect is applied
+          outside of this method, in RectWithAnchors.)
+
+        @item(@bold(This must take into account) UI scaling.
+          This method must calculate a result already multiplied by @link(UIScale).
+        )
+      )
+
+      @italic(Why float-based coordinates?)
+
+      Using the float-based rectangles and coordinates is better than integer
+      in case you use UI scaling (@link(TUIContainer.UIScaling)).
+      It may sound counter-intuitive, but calculating everything using
+      floats results in more precision and better speed
+      (because we avoid various rounding in the middle of calculations).
+      Without UI scaling, it doesn't matter, use whichever ones are more
+      comfortable.
+
+      Using the float-based coordinates is also natural for animations. }
     function RectWithoutAnchors: TFloatRectangle;
     { Like @link(RectWithoutAnchors), but may be temporarily cached.
       Inside TCastleUserInterface implementation, always use this instead
@@ -1101,10 +1137,6 @@ type
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
 
-    { The left-bottom corner scaled by UIScale,
-      useful for implementing overridden @code(Rect) methods. }
-    function LeftBottomScaled: TVector2;
-
     procedure UIScaleChanged; virtual;
     procedure SetWidth(const Value: Single); virtual;
     procedure SetHeight(const Value: Single); virtual;
@@ -1113,14 +1145,17 @@ type
 
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
 
-    { Controls that have preferred size should override this.
+    { Controls that have a preferred size should override this.
       By default this contains values derived from
       @link(Width), @link(WidthFraction),
-      @link(Height), @link(HeightFraction).
+      @link(Height), @link(HeightFraction), with @link(Border) subtracted.
 
       Note that the arguments should be already scaled, i.e. multiplied by UIScale,
       i.e. expressed in final device pixels.
-    }
+
+      Note that the returned PreferredWidth and PreferredHeight
+      must not include the space for @link(Border). Border size will be
+      added later. }
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); virtual;
   public
     const
@@ -1177,7 +1212,7 @@ type
 
     { Does this control capture events under this screen position.
       The default implementation simply checks whether Position
-      is inside RenderRect now. It also checks whether @link(CapturesEvents) is @true.
+      is inside RenderRectWithBorder now. It also checks whether @link(CapturesEvents) is @true.
 
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
@@ -1327,116 +1362,86 @@ type
 
     property Parent: TCastleUserInterface read FParent;
 
-    { Position and size of this control, assuming it exists,
-      in local coordinates (relative to parent 2D control).
-
-      The default implementation in this class does this:
-
-      @unorderedList(
-        @item(
-          If @link(FullSize) is @false:
-
-          Then return rectangle honoring
-          the properties @link(Left), @link(Bottom), @link(Width), @link(Height).
-        )
-        @item(
-          If @link(FullSize) is @true:
-
-          Then fill the parent size, minus margins from @link(FullSizeMargins).
-        )
-      )
-
-      If you're looking for a way to query the size of the control,
-      using @link(EffectiveWidth), @link(EffectiveHeight),
-      or @link(EffectiveRect) is usually more useful.
-      Or use @link(RenderRect) to get the rect in final (device) pixels.
-      It's seldom useful to call the @link(Rect) method directly.
-
-      The main purpose of this method is to be overridden in descendants.
-
-      @unorderedList(
-        @item(@bold(This must ignore)
-          the current value of the @link(GetExists) method
-          and @link(Exists) property, that is: the result of this function
-          assumes that control does exist.)
-
-        @item(@bold(This must ignore) the anchors. Their effect is applied
-          outside of this method.)
-
-        @item(@bold(This must take into account) UI scaling.
-          This method must calculate a result already multiplied by @link(UIScale).
-          In simple cases, this can be done easily, like this:
-
-          @longCode(#
-            function TMyControl.Rect: TFloatRectangle;
-            begin
-              Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
-            end;
-          #)
-
-          In fact, this is more-or-less what the default implementation
-          of this method is doing in TCastleUserInterface class.
-          (More-or-less, because it also takes into account @link(FullSize) value.)
-        )
-      )
-
-      @italic(Why float-based coordinates?)
-
-      Using the float-based rectangles and coordinates is better than integer
-      in case you use UI scaling (@link(TUIContainer.UIScaling)).
-      It may sound counter-intuitive, but calculating everything using
-      floats results in more precision and better speed
-      (because we avoid various rounding in the middle of calculations).
-      Without UI scaling, it doesn't matter, use whichever ones are more
-      comfortable.
-
-      Using the float-based coordinates is also natural for animations. }
     function Rect: TFloatRectangle; virtual;
       deprecated 'instead of using this, use EffectiveRect or RenderRect depending on the situation; instead of overriding this, override PreferredSize';
 
-    { Final position and size of this control, assuming it exists,
-      in local coordinates (relative to parent 2D control).
-      Useful if you want to base other controls size/position on this control
+    { Control position and size.
+      Use this to base other controls size/position on this control's
       calculated size/position.
 
+      The algorithm that determines control position and size is like this:
+
       @unorderedList(
-        @item(@bold(This ignores)
-          the current value of the @link(GetExists) method
-          and @link(Exists) property, that is: the result of this function
-          assumes that control does exist.)
+        @item(
+          When FullSize is @true:
 
-        @item(@bold(This takes into account) the anchors.)
+          The control always fills the whole parent.
+        )
+        @item(
+          When FullSize is @false:
 
-        @item(@bold(This uses unscaled coordinates),
-          that correspond to the sizes you set in
-          @link(TCastleUserInterface.Width),
-          @link(TCastleUserInterface.Height).
+          The position and size of the control is determined by
+          the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
 
-          If you want to see scaled coordinates (in final device pixels),
-          look into @link(RenderRect) instead.
+          Moreover, @link(WidthFraction), if non-zero, specifies the control width
+          as a fraction of the parent width. E.g. WidthFraction = 1.0 means that width
+          equals parent, 0.5 means it's half the width of the parent etc.
+          In this case the explicit @link(Width) is ignored.
+
+          Similarly you can use @link(HeightFraction) to express height as a fraction of parent.
+          When @link(HeightFraction) is not zero, then
+          the explicit @link(Height) is ignored.
+
+          If at least one of the resulting sizes is zero, the rectangle is empty
+          (it is @link(TFloatRectangle.Empty)).
         )
       )
 
-      @bold(If you implement descendants of this class):
+      The above describes the size of the @italic(content and border, summed).
+      The content itself may be a little smaller, when the @link(Border) is
+      used. The size of the "content itself" is returned
+      only by @code(RenderRect) (in already-scaled coordinates,
+      i.e. using final device pixels).
 
-      Note that you
-      cannot override this method. It is implemented by simply taking
-      @code(RectWithAnchors) result (which in turn is derived from @link(Rect) result)
-      and dividing it by UIScale. This should always be correct.
+      The anchors (see @link(Anchor)) also affect the final position of the control.
 
-      Maybe in the future overriding this can be possible, but only for the sake
-      of more optimal implementation.
+      Note that some descendants do @italic(auto-sizing) by default.
+      This means that some of these properties may be ignored,
+      and instead the calculated size (EffectiveWidth, EffectiveHeight)
+      depends on some core values of the control.
 
-      If you implement descendants, you should rather think about overriding
-      the @link(Rect) method, if your control has special sizing mechanism.
-      The reason why we prefer overriding @link(Rect) (and EffectiveRect is just
-      derived from it), not the other way around:
-      it is because font measurements are already done in scaled coordinates
-      (because UI scaling changes font size for TCastleUserInterfaceFont).
-      So things like TCastleLabel have to calculate size in scaled coordinates
-      anyway, and the unscaled size can only be derived from it by division.
+      For example:
 
-      @seealso Rect }
+      @unorderedList(
+        @item TCastleImageControl adjusts to image (unless you set @link(TCastleImageControl.Stretch) to @true),
+        @item TCastleLabel adjusts to caption (unless you set @link(TCastleLabel.AutoSize) to @false),
+        @item TCastleButton adjusts to caption and icon (unless you set @link(TCastleButton.AutoSize) to @false),
+        @item TCastleVerticalGroup adjusts to children sizes,
+        @item ... and so on.
+      )
+
+      Consult the documentation of each descendant for the exact
+      specification of the size behavior.
+
+      This method returns the rectangle in local coordinates
+      (relative to the parent 2D control).
+      It also uses "unscaled" coordinates,
+      which means that they correspond to the sizes you set in
+      @link(TCastleUserInterface.Width),
+      @link(TCastleUserInterface.Height).
+
+      If you're looking for a way to query the size of the control
+      in final scaled coordinates (in real device pixels), and not relative
+      to the parent position, use @link(RenderRect)
+      or @link(RenderRectWithBorder) instead.
+
+      This method ignores the current value of the @link(GetExists) method
+      and @link(Exists) property, that is: the result of this function
+      assumes that control does exist.
+
+      @seealso TCastleUserInterface.EffectiveWidth
+      @seealso TCastleUserInterface.EffectiveHeight
+    }
     function EffectiveRect: TFloatRectangle;
 
     { Calculated width of the control, without UI scaling.
@@ -1450,7 +1455,7 @@ type
       depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Width).
-      It is 0 when EffectiveRect and Rect are empty.
+      It is 0 when EffectiveRect is empty.
 
       @seealso EffectiveRect }
     function EffectiveWidth: Single;
@@ -1466,7 +1471,7 @@ type
       depending on settings), it is changed by @link(FullSize) and so on.
 
       It is always equal to just @code(EffectiveRect.Height).
-      It is 0 when EffectiveRect and Rect are empty.
+      It is 0 when EffectiveRect is empty.
 
       @seealso EffectiveRect }
     function EffectiveHeight: Single;
@@ -1479,6 +1484,7 @@ type
       coordinates. The primary use of this is inside @link(Render).
       A proper UI control should adjust to draw precisely in this rectangle. }
     function RenderRect: TFloatRectangle;
+    function RenderRectWithBorder: TFloatRectangle;
 
     function ScreenRect: TRectangle; deprecated 'use RenderRect';
 
@@ -1585,8 +1591,10 @@ type
       into account, so that parent controls may depend on it. }
     function UIScale: Single;
 
-    property FloatWidth: Single read FWidth write SetWidth stored false; deprecated 'use Width';
-    property FloatHeight: Single read FHeight write SetHeight stored false; deprecated 'use Height';
+    property FloatWidth: Single read FWidth write SetWidth stored false;
+      deprecated 'use Width';
+    property FloatHeight: Single read FHeight write SetHeight stored false;
+      deprecated 'use Height';
 
     { Keep the control in front of other controls (with KeepInFront=@false)
       when inserting.
@@ -1596,22 +1604,37 @@ type
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
 
-    { In case @link(FullSize) is @true, the control will fill the parent,
-      but leaving a specified amount of margin at each side.
-      The margin is a 4 component vector, specifying sides in the same order as CSS:
+    { Border (by default transparent) of the control.
+      Border adds a space from the control content
+      (drawn within @link(RenderRect)) to the control rectangle
+      (returned by @link(RenderRectWithBorder)) (scaled), or @link(EffectiveRect)
+      (unscaled) and friends).
+
+      It is transparent by default, but you can change it by @link(BorderColor).
+
+      Border works both when @link(FullSize) is @true or @false.
+      Note that it's ignored when @link(AutoSizeToChildren).
+
+      The border is a 4 component vector, specifying sides in the same order as CSS:
       top, right, bottom, left (easy to remember: clockwise, from the top,
       like on an analog clock).
 
-      One obvious use-case is to use this for visual margins,
-      i.e. empty space.
+      One obvious use-case is to use this for visual space
+      (empty space or a colorful frame, separating this control from the rest).
 
-      Another use-case is to arrange margins to leave a space
-      for additional (sibling) controls within the same parent.
-      E.g. you can set FullSize=true and FullSizeMargins=(100, 0, 0, 0)
+      Another use-case is to reserve a predictable space
+      for as additional (sibling) control within the same parent.
+      E.g. you can set FullSize=true and Border=(100, 0, 0, 0)
       and this way there is always a strip with height=100 at the top
       of the parent, where you can insert another control (with height=100,
       anchored to the top). }
-    property FullSizeMargins: TVector4 read FFullSizeMargins write SetFullSizeMargins;
+    property Border: TVector4 read FBorder write SetBorder;
+
+    { Color of the @link(Border), by default completely transparent black. }
+    property BorderColor: TCastleColor read FBorderColor write SetBorderColor;
+
+    property FullSizeMargins: TVector4 read FBorder write SetBorder;
+      deprecated 'use Border';
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1640,60 +1663,20 @@ type
       may be anchored, and with a float shift. }
     property Bottom: Single read FBottom write SetBottom default 0;
 
-    { Control size. The algorithm works like this:
+    { When @name, the control will always fill the whole parent area.
+      @seealso TCastleUserInterface.EffectiveRect
+      @seealso TCastleUserInterface.EffectiveWidth
+      @seealso TCastleUserInterface.EffectiveHeight }
+    property FullSize: boolean read FFullSize write SetFullSize default false;
 
-      @unorderedList(
-        @item(
-          When FullSize is @true:
+    { These properties determine the control size.
+      See the @link(EffectiveRect) documentation for details how the size
+      is calculated.
 
-          The control always fills the whole parent,
-          minus margins in @link(FullSizeMargins).
-        )
-        @item(
-          When FullSize is @false:
-
-          The position and size of the control is determined by
-          the @link(Left), @link(Bottom), @link(Width), @link(Height) properties.
-
-          Moreover, @link(WidthFraction), if non-zero, specifies the control width
-          as a fraction of the parent width. E.g. WidthFraction = 1.0 means that width
-          equals parent, 0.5 means it's half the width of the parent etc.
-          In this case the explicit @link(Width) is ignored.
-
-          Similarly you can use @link(HeightFraction) to express height as a fraction of parent.
-          When @link(HeightFraction) is not zero, then
-          the explicit @link(Height) is ignored.
-
-          If at least one of the resulting sizes is zero, the rectangle is empty
-          (it is @link(TFloatRectangle.Empty)).
-        )
-      )
-
-      The anchors (see @link(Anchor)) also affect the final position of the control.
-
-      Note that some descendants do @italic(auto-sizing) by default.
-      This means that some of these properties may be ignored,
-      and instead the calculated size (EffectiveWidth, EffectiveHeight)
-      depends on some core values of the control.
-
-      For example:
-
-      @unorderedList(
-        @item TCastleImageControl adjusts to image (unless you set @link(TCastleImageControl.Stretch) to @true),
-        @item TCastleLabel adjusts to caption (unless you set @link(TCastleLabel.AutoSize) to @false),
-        @item TCastleButton adjusts to caption and icon (unless you set @link(TCastleButton.AutoSize) to @false),
-        @item TCastleVerticalGroup adjusts to children sizes,
-        @item ... and so on.
-      )
-
-      Consult the documentation of each descendant for the exact
-      specification of the size behavior.
-
+      @seealso TCastleUserInterface.EffectiveRect
       @seealso TCastleUserInterface.EffectiveWidth
       @seealso TCastleUserInterface.EffectiveHeight
-
       @groupBegin }
-    property FullSize: boolean read FFullSize write SetFullSize default false;
     property Width: Single read FWidth write SetWidth default DefaultWidth;
     property Height: Single read FHeight write SetHeight default DefaultHeight;
     property WidthFraction: Single read FWidthFraction write SetWidthFraction default 0.0;
@@ -1718,7 +1701,7 @@ type
       read FAutoSizeToChildren write SetAutoSizeToChildren default false;
 
     { Adjust position to align us to the parent horizontally.
-      The resulting @link(EffectiveRect) and @link(RenderRect)
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
       will immediately reflect the new position.
 
       Note that @link(HorizontalAnchorDelta) is summed with @link(Left).
@@ -1727,8 +1710,7 @@ type
 
       Note that anchors (as well as @link(Left) and @link(Bottom))
       are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly
-      (minus @link(FullSizeMargins)).
+      In case of @link(FullSize), the control fills the parent perfectly.
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
@@ -1748,7 +1730,7 @@ type
       read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
 
     { Adjust position to align us to the parent vertically.
-      The resulting @link(EffectiveRect) and @link(RenderRect)
+      The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
       will immediately reflect the new position.
 
       Note that @link(VerticalAnchorDelta) is summed with @link(Bottom).
@@ -1757,8 +1739,7 @@ type
 
       Note that anchors (as well as @link(Left) and @link(Bottom))
       are ignored when @link(FullSize) is set to true.
-      In case of @link(FullSize), the control fills the parent perfectly
-      (minus @link(FullSizeMargins)).
+      In case of @link(FullSize), the control fills the parent perfectly.
 
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
@@ -1826,6 +1807,10 @@ type
       This affects both @link(Render) and @link(RenderOverChildren)
       of this control, as well as all children rendering. }
     property ClipChildren: Boolean read FClipChildren write SetClipChildren default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Simple list of TCastleUserInterface instances. }
@@ -3587,12 +3572,20 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleUserInterface.Destroy;
 begin
   GLContextClose;
   FreeAndNil(FControls);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -3726,11 +3719,6 @@ begin
     Result := 1.0;
 end;
 
-function TCastleUserInterface.LeftBottomScaled: TVector2;
-begin
-  Result := Vector2(UIScale * Left, UIScale * Bottom);
-end;
-
 procedure TCastleUserInterface.UIScaleChanged;
 begin
 end;
@@ -3752,7 +3740,7 @@ begin
   if not CapturesEvents then
     Exit(false);
 
-  SR := RenderRect;
+  SR := RenderRectWithBorder;
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
@@ -3795,10 +3783,10 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
     Dec(FUseCachedRectWithoutAnchors);
   end;
 
-  function ParentRenderRect: TFloatRectangle;
+  function ParentRenderRectWithBorder: TFloatRectangle;
   begin
     if Parent <> nil then
-      Result := Parent.RenderRect
+      Result := Parent.RenderRectWithBorder
     else
       Result := FloatRectangle(ContainerRect);
   end;
@@ -3833,7 +3821,8 @@ begin
   begin
     CacheRectBegin;
 
-    if (not RenderCulling) or ParentRenderRect.Collides(RenderRect) then
+    if (not RenderCulling) or
+       ParentRenderRectWithBorder.Collides(RenderRectWithBorder) then
     begin
       ClipChildrenBegin;
 
@@ -4129,7 +4118,7 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
 
 var
   PR: TFloatRectangle;
-  W, H: Single;
+  W, H, BorderW, BorderH: Single;
 begin
   if FInsideRectWithoutAnchors then
   begin
@@ -4157,12 +4146,6 @@ begin
   if FullSize then
   begin
     Result := ParentRect;
-    if not FFullSizeMargins.IsZero then // optimize common case
-      Result := Result.
-        RemoveTop(FFullSizeMargins[0] * UIScale).
-        RemoveRight(FFullSizeMargins[1] * UIScale).
-        RemoveBottom(FFullSizeMargins[2] * UIScale).
-        RemoveLeft(FFullSizeMargins[3] * UIScale);
   end else
   begin
     W := Width * UIScale;
@@ -4176,11 +4159,24 @@ begin
         H := HeightFraction * PR.Height;
     end;
 
+    // subtract Border from W, H
+    BorderW := (Border[1] + Border[3]) * UIScale;
+    BorderH := (Border[0] + Border[2]) * UIScale;
+    W := W - BorderW;
+    H := H - BorderH;
+
     PreferredSize(W, H);
 
+    // add Border around Result
+    W := W + BorderW;
+    H := H + BorderH;
+
     if (W > 0) and (H > 0) then
-      Result := FloatRectangle(LeftBottomScaled, W, H)
-    else
+    begin
+      Result := FloatRectangle(Left * UIScale, Bottom * UIScale, W, H);
+      //Result.Left := Result.Left - FBorder[3] * UIScale; // no need to
+      //Result.Bottom := Result.Bottom - FBorder[2] * UIScale; // no need to
+    end else
       Result := TFloatRectangle.Empty;
   end;
 
@@ -4277,7 +4273,7 @@ begin
   end;
 end;
 
-function TCastleUserInterface.RenderRect: TFloatRectangle;
+function TCastleUserInterface.RenderRectWithBorder: TFloatRectangle;
 var
   T: TVector2;
 begin
@@ -4286,6 +4282,17 @@ begin
   T := LocalToScreenTranslation;
   Result.Left := Result.Left + T[0];
   Result.Bottom := Result.Bottom + T[1];
+end;
+
+function TCastleUserInterface.RenderRect: TFloatRectangle;
+begin
+  Result := RenderRectWithBorder;
+  if not FBorder.IsZero then // optimize common case
+    Result := Result.
+      RemoveTop(FBorder[0] * UIScale).
+      RemoveRight(FBorder[1] * UIScale).
+      RemoveBottom(FBorder[2] * UIScale).
+      RemoveLeft(FBorder[3] * UIScale);
 end;
 
 function TCastleUserInterface.ScreenRect: TRectangle;
@@ -4473,12 +4480,21 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.SetFullSizeMargins(const Value: TVector4);
+procedure TCastleUserInterface.SetBorder(const Value: TVector4);
 begin
-  if not TVector4.PerfectlyEquals(FFullSizeMargins, Value) then
+  if not TVector4.PerfectlyEquals(FBorder, Value) then
   begin
-    FFullSizeMargins := Value;
+    FBorder := Value;
     VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleUserInterface.SetBorderColor(const Value: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FBorderColor, Value) then
+  begin
+    FBorderColor := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -4508,6 +4524,10 @@ begin
     VisibleChange([chRender]);
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TChildrenControls ------------------------------------------------------------- }
 

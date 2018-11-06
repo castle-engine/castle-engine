@@ -1,3 +1,5 @@
+../../../src/ui/opengl/ TCastleUserInterface Border TVector4
+
 ../../../src/ui/opengl/ TCastleRectangleControl Color TCastleColor
 ../../../src/ui/opengl/ TStateDialog BackgroundColor TCastleColor
 ../../../src/ui/opengl/ TCastleScrollView TintScrollBarInactive TCastleColor

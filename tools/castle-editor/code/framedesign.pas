@@ -199,12 +199,12 @@ uses TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
 
 {$R *.lfm}
 
-function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
+function ParentRenderRectWithBorder(const UI: TCastleUserInterface): TFloatRectangle;
 begin
   if UI.Parent = nil then
     Result := FloatRectangle(UI.Container.Rect)
   else
-    Result := UI.Parent.RenderRect;
+    Result := UI.Parent.RenderRectWithBorder;
 end;
 
 { TDesignFrame.TDesignerLayer ------------------------------------------------ }
@@ -282,7 +282,7 @@ const
 var
   R: TFloatRectangle;
 begin
-  R := UI.RenderRect;
+  R := UI.RenderRectWithBorder;
 
   { the order of checking (top or bottom) matters in case of very
     small heights. }
@@ -368,12 +368,12 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
   var
     CurrentRect, ResultingRect, ParentR: TFloatRectangle;
   begin
-    CurrentRect := UI.RenderRect;
+    CurrentRect := UI.RenderRectWithBorder;
     case DraggingMode of
       dmTranslate: ResultingRect := CurrentRect.Translate(Move);
       dmResize   : ResultingRect := ResizeRect(CurrentRect, Move);
     end;
-    ParentR := ParentRenderRect(UI);
+    ParentR := ParentRenderRectWithBorder(UI);
     { only allow movement/resize if control will not go outside of parent,
       unless it was already outside }
     Result := (not ParentR.Contains(CurrentRect)) or
@@ -579,7 +579,7 @@ begin
   UI := SelectedUserInterface;
   if UI <> nil then
   begin
-    R := UI.RenderRect;
+    R := UI.RenderRectWithBorder;
     DrawRectangleOutline(R, White);
     DrawRectangleOutline(R.Grow(-1), Black);
   end;
@@ -587,7 +587,7 @@ begin
   UI := HoverUserInterface(Container.MousePosition);
   if UI <> nil then
   begin
-    R := UI.RenderRect;
+    R := UI.RenderRectWithBorder;
     DrawRectangleOutline(R, Vector4(1, 1, 0, 0.75));
 
     LabelHover.Caption := Frame.ComponentCaption(UI);
@@ -1394,7 +1394,7 @@ begin
   UI := GetSelectedUserInterface;
   if UI <> nil then
   begin
-    OldRect := UI.RenderRect;
+    OldRect := UI.RenderRectWithBorder;
 
     UI.HasHorizontalAnchor := true;
     UI.HasVerticalAnchor := true;
@@ -1423,7 +1423,7 @@ var
   NewRect: TFloatRectangle;
 begin
   // adjust anchors, to preserve previous position
-  NewRect := UI.RenderRect;
+  NewRect := UI.RenderRectWithBorder;
   if NewRect.IsEmpty or RenderRectBeforeChange.IsEmpty then
   begin
     // don't know what to do, adjust delta to 0, to avoid leaving some crazy value
@@ -1673,7 +1673,7 @@ begin
     UI := GetSelectedUserInterface;
     if UI <> nil then
     begin
-      OldRect := UI.RenderRect;
+      OldRect := UI.RenderRectWithBorder;
 
       UI.HasHorizontalAnchor := true;
       UI.HasVerticalAnchor := true;
@@ -1791,7 +1791,7 @@ var
   RR: TFloatRectangle;
   S: String;
 begin
-  RR := UI.RenderRect;
+  RR := UI.RenderRectWithBorder;
   if RR.IsEmpty then
     S := 'Size: Empty'
   else
@@ -1812,7 +1812,7 @@ begin
   end;
 
   if (UI.Parent <> nil) and
-     (not UI.Parent.RenderRect.Contains(UI.RenderRect)) then
+     (not UI.Parent.RenderRectWithBorder.Contains(UI.RenderRectWithBorder)) then
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
   LabelSizeInfo.Caption := S;
