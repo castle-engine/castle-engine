@@ -4313,10 +4313,12 @@ begin
   if not FullSize then
   begin
     PR := ParentRect;
-    Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
-      UIScale * HorizontalAnchorDelta);
-    Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
-      UIScale * VerticalAnchorDelta);
+    Result.Left := Result.Left +
+      Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
+        UIScale * HorizontalAnchorDelta);
+    Result.Bottom := Result.Bottom +
+      Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
+        UIScale * VerticalAnchorDelta);
   end;
 end;
 
