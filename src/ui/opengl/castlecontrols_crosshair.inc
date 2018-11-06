@@ -33,8 +33,6 @@
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
     { By default, crosshair is centered. }
-    property HasHorizontalAnchor default true;
-    property HasVerticalAnchor default true;
     property HorizontalAnchorSelf default hpMiddle;
     property HorizontalAnchorParent default hpMiddle;
     property VerticalAnchorSelf default vpMiddle;

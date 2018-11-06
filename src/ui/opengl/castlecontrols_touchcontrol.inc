@@ -54,7 +54,7 @@
       read FTouchMode write SetTouchMode default ctcmWalking;
 
     { Set position of touch control. Right now this simply sets
-      the anchor using @link(TCastleUserInterface.HasHorizontalAnchor) and friends.
+      the anchor using @link(TCastleUserInterface.Anchor) and friends.
       Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
       scale with screen size.
 

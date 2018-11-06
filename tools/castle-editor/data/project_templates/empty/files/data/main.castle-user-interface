@@ -63,8 +63,6 @@
         "R" : 5.0000000000000000E-001,
         "_ClassName" : "TCastleColorPersistent"
       },
-      "HasHorizontalAnchor" : true,
-      "HasVerticalAnchor" : true,
       "Height" : 5.0000000000000000E+002,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
@@ -78,8 +76,6 @@
         {
           "Caption" : "I am a button",
           "FontSize" : 5.0000000000000000E+001,
-          "HasHorizontalAnchor" : true,
-          "HasVerticalAnchor" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Button1",
@@ -98,8 +94,6 @@
           "FrameColorPersistent" : {
             "_ClassName" : "TCastleColorPersistent"
           },
-          "HasHorizontalAnchor" : true,
-          "HasVerticalAnchor" : true,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label1",
@@ -123,8 +117,6 @@
       "FrameColorPersistent" : {
         "_ClassName" : "TCastleColorPersistent"
       },
-      "HasHorizontalAnchor" : true,
-      "HasVerticalAnchor" : true,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelFps",
       "Text" : "FPS: xxx\n",

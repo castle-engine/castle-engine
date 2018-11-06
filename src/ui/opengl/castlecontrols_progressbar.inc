@@ -36,10 +36,8 @@
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
-    property HasHorizontalAnchor default true;
     property HorizontalAnchorSelf default hpMiddle;
     property HorizontalAnchorParent default hpMiddle;
-    property HasVerticalAnchor default true;
     property VerticalAnchorSelf default vpMiddle;
     property VerticalAnchorParent default vpMiddle;
 

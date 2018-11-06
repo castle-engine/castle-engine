@@ -57,8 +57,6 @@ type
     { Padding between rect borders and text. }
     property Padding: Single read FPadding write FPadding
       default DefaultPadding;
-    property HasHorizontalAnchor stored false;
-    property HasVerticalAnchor stored false;
     property HorizontalAnchorSelf stored false;
     property HorizontalAnchorParent stored false;
     property VerticalAnchorSelf stored false;

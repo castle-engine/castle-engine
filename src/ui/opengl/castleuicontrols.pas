@@ -126,8 +126,8 @@ type
       or larger to reference.
 
       Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
-      Together with anchors (see @link(TCastleUserInterface.HasHorizontalAnchor)
-      and friends), this allows to easily design a scalable UI. }
+      Together with anchors (see @link(TCastleUserInterface.Anchor)),
+      this allows to easily design a scalable UI. }
     usEncloseReferenceSize,
 
     { Scale to fake that the container sizes fit inside
@@ -137,8 +137,8 @@ type
       or smaller to reference.
 
       Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
-      Together with anchors (see @link(TCastleUserInterface.HasHorizontalAnchor)
-      and friends), this allows to easily design a scalable UI. }
+      Together with anchors (see @link(TCastleUserInterface.Anchor)),
+      this allows to easily design a scalable UI. }
     usFitReferenceSize,
 
     { Scale to fake that the container sizes are smaller/larger
@@ -1078,11 +1078,9 @@ type
     procedure SetLeft(const Value: Single);
     procedure SetBottom(const Value: Single);
 
-    procedure SetHasHorizontalAnchor(const Value: boolean);
     procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorParent(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorDelta(const Value: Single);
-    procedure SetHasVerticalAnchor(const Value: boolean);
     procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Single);
@@ -1507,14 +1505,14 @@ type
     function ParentRect: TFloatRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
-      control aligned to parent. Sets @link(HasHorizontalAnchor),
+      control aligned to parent. Sets
       @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
       @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
       const AHorizontalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable horizontal anchor, to automatically keep this
-      control aligned to parent. Sets @link(HasHorizontalAnchor),
+      control aligned to parent. Sets
       @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
       @link(HorizontalAnchorDelta). }
     procedure Anchor(
@@ -1522,14 +1520,14 @@ type
       const AHorizontalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
-      control aligned to parent. Sets @link(HasVerticalAnchor),
+      control aligned to parent. Sets
       @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
       @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
       const AVerticalAnchorDelta: Single = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
-      control aligned to parent. Sets @link(HasVerticalAnchor),
+      control aligned to parent. Sets
       @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
       @link(VerticalAnchorDelta). }
     procedure Anchor(
@@ -1718,6 +1716,13 @@ type
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop default 0;
 
+    property HasHorizontalAnchor: boolean
+      read FHasHorizontalAnchor write FHasHorizontalAnchor stored false;
+      deprecated 'this property does not do anything anymore, anchors are always active';
+    property HasVerticalAnchor: boolean
+      read FHasVerticalAnchor write FHasVerticalAnchor stored false;
+      deprecated 'this property does not do anything anymore, anchors are always active';
+
     { Adjust position to align us to the parent horizontally.
       The resulting @link(EffectiveRect) and @link(RenderRect) and @link(RenderRectWithBorder)
       will immediately reflect the new position.
@@ -1730,20 +1735,16 @@ type
       are ignored when @link(FullSize) is set to true.
       In case of @link(FullSize), the control fills the parent perfectly.
 
-      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
-    property HasHorizontalAnchor: boolean
-      read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
-    { Which @bold(our) border to align (it's aligned
-      to parent @link(HorizontalAnchorParent) border),
-      only used if @link(HasHorizontalAnchor). }
+      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).)
+
+      Which @bold(our) border to align (it's aligned
+      to parent @link(HorizontalAnchorParent) border). }
     property HorizontalAnchorSelf: THorizontalPosition
       read FHorizontalAnchorSelf write SetHorizontalAnchorSelf default hpLeft;
-    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border,
-      only used if @link(HasHorizontalAnchor). }
+    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border. }
     property HorizontalAnchorParent: THorizontalPosition
       read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
-    { Delta between our border and parent,
-      only used if @link(HasHorizontalAnchor). }
+    { Delta between our border and parent. }
     property HorizontalAnchorDelta: Single
       read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
 
@@ -1759,20 +1760,16 @@ type
       are ignored when @link(FullSize) is set to true.
       In case of @link(FullSize), the control fills the parent perfectly.
 
-      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
-    property HasVerticalAnchor: boolean
-      read FHasVerticalAnchor write SetHasVerticalAnchor default false;
-    { Which @bold(our) border to align (it's aligned
-      to parent @link(VerticalAnchorParent) border),
-      only used if @link(HasVerticalAnchor). }
+      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).)
+
+      Which @bold(our) border to align (it's aligned
+      to parent @link(VerticalAnchorParent) border). }
     property VerticalAnchorSelf: TVerticalPosition
       read FVerticalAnchorSelf write SetVerticalAnchorSelf default vpBottom;
-    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border,
-      only used if @link(HasVerticalAnchor). }
+    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border. }
     property VerticalAnchorParent: TVerticalPosition
       read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
-    { Delta between our border and parent,
-      only used if @link(HasVerticalAnchor). }
+    { Delta between our border and parent. }
     property VerticalAnchorDelta: Single
       read FVerticalAnchorDelta write SetVerticalAnchorDelta default 0;
 
@@ -4135,28 +4132,22 @@ function TCastleUserInterface.RectWithoutAnchors: TFloatRectangle;
       begin
         // apply C anchors, at least some cases
 
-        if C.HasHorizontalAnchor then
-        begin
-          if (C.HorizontalAnchorSelf = hpLeft) and
-             (C.HorizontalAnchorParent = hpLeft) then
-            ChildRect.Left := ChildRect.Left + C.HorizontalAnchorDelta
-          else
-          if (C.HorizontalAnchorSelf = hpRight) and
-             (C.HorizontalAnchorParent = hpRight) then
-            // when right anchor has delta -10, increase width + 10
-            ChildRect.Width := ChildRect.Width - C.HorizontalAnchorDelta;
-        end;
+        if (C.HorizontalAnchorSelf = hpLeft) and
+           (C.HorizontalAnchorParent = hpLeft) then
+          ChildRect.Left := ChildRect.Left + C.HorizontalAnchorDelta
+        else
+        if (C.HorizontalAnchorSelf = hpRight) and
+           (C.HorizontalAnchorParent = hpRight) then
+          // when right anchor has delta -10, increase width + 10
+          ChildRect.Width := ChildRect.Width - C.HorizontalAnchorDelta;
 
-        if C.HasVerticalAnchor then
-        begin
-          if (C.VerticalAnchorSelf = vpBottom) and
-             (C.VerticalAnchorParent = vpBottom) then
-            ChildRect.Bottom := ChildRect.Bottom + C.VerticalAnchorDelta
-          else
-          if (C.VerticalAnchorSelf = vpTop) and
-             (C.VerticalAnchorParent = vpTop) then
-            ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
-        end;
+        if (C.VerticalAnchorSelf = vpBottom) and
+           (C.VerticalAnchorParent = vpBottom) then
+          ChildRect.Bottom := ChildRect.Bottom + C.VerticalAnchorDelta
+        else
+        if (C.VerticalAnchorSelf = vpTop) and
+           (C.VerticalAnchorParent = vpTop) then
+          ChildRect.Height := ChildRect.Height - C.VerticalAnchorDelta;
 
         // apply Border shift
         ChildRect.Left := ChildRect.Left + FBorder[3];
@@ -4389,15 +4380,6 @@ begin
     Result := FloatRectangle(ContainerRect);
 end;
 
-procedure TCastleUserInterface.SetHasHorizontalAnchor(const Value: boolean);
-begin
-  if FHasHorizontalAnchor <> Value then
-  begin
-    FHasHorizontalAnchor := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
 procedure TCastleUserInterface.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
 begin
   if FHorizontalAnchorSelf <> Value then
@@ -4421,15 +4403,6 @@ begin
   if FHorizontalAnchorDelta <> Value then
   begin
     FHorizontalAnchorDelta := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleUserInterface.SetHasVerticalAnchor(const Value: boolean);
-begin
-  if FHasVerticalAnchor <> Value then
-  begin
-    FHasVerticalAnchor := Value;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -4464,7 +4437,6 @@ end;
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;
   const AHorizontalAnchorDelta: Single);
 begin
-  HasHorizontalAnchor := true;
   HorizontalAnchorSelf := AHorizontalAnchor;
   HorizontalAnchorParent := AHorizontalAnchor;
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
@@ -4474,7 +4446,6 @@ procedure TCastleUserInterface.Anchor(
   const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
   const AHorizontalAnchorDelta: Single);
 begin
-  HasHorizontalAnchor := true;
   HorizontalAnchorSelf := AHorizontalAnchorSelf;
   HorizontalAnchorParent := AHorizontalAnchorParent;
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
@@ -4483,7 +4454,6 @@ end;
 procedure TCastleUserInterface.Anchor(const AVerticalAnchor: TVerticalPosition;
   const AVerticalAnchorDelta: Single);
 begin
-  HasVerticalAnchor := true;
   VerticalAnchorSelf := AVerticalAnchor;
   VerticalAnchorParent := AVerticalAnchor;
   VerticalAnchorDelta := AVerticalAnchorDelta;
@@ -4493,7 +4463,6 @@ procedure TCastleUserInterface.Anchor(
   const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
   const AVerticalAnchorDelta: Single);
 begin
-  HasVerticalAnchor := true;
   VerticalAnchorSelf := AVerticalAnchorSelf;
   VerticalAnchorParent := AVerticalAnchorParent;
   VerticalAnchorDelta := AVerticalAnchorDelta;

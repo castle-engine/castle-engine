@@ -471,9 +471,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
           end;
         end;
     end;
-    // everything done here relies on anchors being active
-    UI.HasHorizontalAnchor := true;
-    UI.HasVerticalAnchor := true;
 
     Frame.ModifiedOutsideObjectInspector;
   end;
@@ -1422,8 +1419,6 @@ begin
   begin
     OldRect := UI.RenderRectWithBorder;
 
-    UI.HasHorizontalAnchor := true;
-    UI.HasVerticalAnchor := true;
     UI.HorizontalAnchorSelf := SelfAnchorsFrame.HorizontalAnchor;
     UI.VerticalAnchorSelf := SelfAnchorsFrame.VerticalAnchor;
     if CheckParentSelfAnchorsEqual.Checked then
@@ -1701,8 +1696,6 @@ begin
     begin
       OldRect := UI.RenderRectWithBorder;
 
-      UI.HasHorizontalAnchor := true;
-      UI.HasVerticalAnchor := true;
       UI.HorizontalAnchorParent := UI.HorizontalAnchorSelf;
       UI.VerticalAnchorParent := UI.VerticalAnchorSelf;
 
@@ -1721,8 +1714,6 @@ begin
   UI := GetSelectedUserInterface;
   if UI <> nil then
   begin
-    UI.HasHorizontalAnchor := true;
-    UI.HasVerticalAnchor := true;
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
     ModifiedOutsideObjectInspector;
