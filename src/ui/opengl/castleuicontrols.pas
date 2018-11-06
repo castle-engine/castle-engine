@@ -3795,15 +3795,28 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
         DrawRectangle(R, BorderColor);
     end;
 
+  var
+    RectLeftRightBorders: TFloatRectangle;
   begin
     if FBorderColor[3] = 0 then Exit; // early exit in a common case
     { RenderControlPrepare necessary, since TCastleSceneManager could have
       changed RenderContext.Viewport. }
     TUIContainer.RenderControlPrepare(ViewportRect);
+
     DrawBorderRectangle(RectBorder.TopPart(Border[0]));
-    DrawBorderRectangle(RectBorder.RightPart(Border[1]));
     DrawBorderRectangle(RectBorder.BottomPart(Border[2]));
-    DrawBorderRectangle(RectBorder.LeftPart(Border[3]));
+
+    { Draw left and right borders from a smaller rectangle.
+      This way we do not overdraw border corners, which is important
+      in case BorderColor[3] is e.g. 0.5. Drawing corner twice would
+      make it seem more opaque.
+      Unfortunately artifacts are visible (the right part is visibly
+      shifted by ~1 pixel to the right), so we don't do it always now. }
+    RectLeftRightBorders := RectBorder.
+      RemoveTop(Border[0]).
+      RemoveBottom(Border[2]);
+    DrawBorderRectangle(RectLeftRightBorders.RightPart(Border[1]));
+    DrawBorderRectangle(RectLeftRightBorders.LeftPart(Border[3]));
   end;
 
   procedure CacheRectBegin;
