@@ -3771,9 +3771,9 @@ end;
 procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
 
   { Draw 4 borders.
-    RenderRectWithBorder is equal to Self.RenderRectWithBorder,
+    RectBorder is equal to Self.RenderRectWithBorder,
     but it is already calculated by the caller. }
-  procedure DrawBorder(const RenderRectWithBorder: TFloatRectangle);
+  procedure DrawBorder(const RectBorder: TFloatRectangle);
 
     procedure DrawBorderRectangle(const R: TFloatRectangle);
     begin
@@ -3783,10 +3783,13 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
 
   begin
     if FBorderColor[3] = 0 then Exit; // early exit in a common case
-    DrawBorderRectangle(RenderRectWithBorder.TopPart(Border[0]));
-    DrawBorderRectangle(RenderRectWithBorder.RightPart(Border[1]));
-    DrawBorderRectangle(RenderRectWithBorder.BottomPart(Border[2]));
-    DrawBorderRectangle(RenderRectWithBorder.LeftPart(Border[3]));
+    { RenderControlPrepare necessary, since TCastleSceneManager could have
+      changed RenderContext.Viewport. }
+    TUIContainer.RenderControlPrepare(ViewportRect);
+    DrawBorderRectangle(RectBorder.TopPart(Border[0]));
+    DrawBorderRectangle(RectBorder.RightPart(Border[1]));
+    DrawBorderRectangle(RectBorder.BottomPart(Border[2]));
+    DrawBorderRectangle(RectBorder.LeftPart(Border[3]));
   end;
 
   procedure CacheRectBegin;
