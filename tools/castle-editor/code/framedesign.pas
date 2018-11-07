@@ -217,6 +217,9 @@ begin
   RectHover := TCastleRectangleControl.Create(Self);
   RectHover.Color := Vector4(0, 0, 0, 0.25);
   RectHover.Exists := false;
+  { LabelHover with scaling sometimes looks too tiny.
+    Also, positioning RectHover is easier without UI scaling. }
+  RectHover.EnableUIScaling := false;
   InsertFront(RectHover);
 
   LabelHover := TCastleLabel.Create(Self);
@@ -224,11 +227,13 @@ begin
   LabelHover.Anchor(hpMiddle);
   LabelHover.Anchor(vpMiddle);
   LabelHover.FontSize := 15;
+  LabelHover.EnableUIScaling := false;
   RectHover.InsertFront(LabelHover);
 
   RectSelected := TCastleRectangleControl.Create(Self);
   RectSelected.Color := Vector4(0, 0, 0, 0.25);
   RectSelected.Exists := false;
+  RectSelected.EnableUIScaling := false;
   InsertFront(RectSelected);
 
   LabelSelected := TCastleLabel.Create(Self);
@@ -236,6 +241,7 @@ begin
   LabelSelected.Anchor(hpMiddle);
   LabelSelected.Anchor(vpMiddle);
   LabelSelected.FontSize := 15;
+  LabelSelected.EnableUIScaling := false;
   RectSelected.InsertFront(LabelSelected);
 end;
 
@@ -613,8 +619,8 @@ begin
     RectSelected.Exists := true;
     RectSelected.Width := LabelSelected.EffectiveWidth + 6;
     RectSelected.Height := LabelSelected.EffectiveHeight + 6;
-    RectSelected.Anchor(hpLeft, R.Left / UIScale);
-    RectSelected.Anchor(vpTop, vpBottom, R.Bottom / UIScale);
+    RectSelected.Anchor(hpLeft, R.Left);
+    RectSelected.Anchor(vpTop, vpBottom, R.Bottom);
   end else
     RectSelected.Exists := false;
 
@@ -628,8 +634,8 @@ begin
     RectHover.Exists := true;
     RectHover.Width := LabelHover.EffectiveWidth + 6;
     RectHover.Height := LabelHover.EffectiveHeight + 6;
-    RectHover.Anchor(hpLeft, R.Left / UIScale);
-    RectHover.Anchor(vpBottom, R.Top / UIScale);
+    RectHover.Anchor(hpLeft, R.Left);
+    RectHover.Anchor(vpBottom, R.Top);
 
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
