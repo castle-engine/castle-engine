@@ -1118,6 +1118,8 @@ type
     procedure SetHeightFraction(const Value: Single);
     procedure SetRenderCulling(const Value: Boolean);
     procedure SetClipChildren(const Value: Boolean);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
 
     { Position and size of this control, assuming it exists,
       in the local coordinates (relative to the parent 2D control,
@@ -1166,8 +1168,6 @@ type
     procedure SetContainer(const Value: TUIContainer); override;
 
     procedure UIScaleChanged; virtual;
-    procedure SetWidth(const Value: Single); virtual;
-    procedure SetHeight(const Value: Single); virtual;
 
     //procedure DoCursorChange; override;
 

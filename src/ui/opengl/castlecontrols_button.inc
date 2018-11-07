@@ -94,8 +94,6 @@
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
   protected
-    procedure SetWidth(const Value: Single); override;
-    procedure SetHeight(const Value: Single); override;
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
@@ -116,6 +114,8 @@
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure FontChanged; override;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -687,7 +687,6 @@ begin
       finally FreeAndNil(TextToRender) end;
     end;
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -695,7 +694,6 @@ end;
 procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
-  FCalculatedPreferred := false;
   VisibleChange([chRectangle]);
 end;
 
@@ -713,7 +711,6 @@ begin
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImage.Create(FImage, true, false);
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -732,7 +729,6 @@ begin
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
       FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -751,7 +747,6 @@ begin
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
       FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -770,7 +765,6 @@ begin
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
       FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -789,7 +783,6 @@ begin
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
       FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
 
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -858,36 +851,7 @@ begin
   if FImageLayout <> Value then
   begin
     FImageLayout := Value;
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
-  end;
-end;
-
-// TODO: VisibleChange should call FCalculatedPreferred := false,
-// and most code should only call "VisibleChange([chRectangle])".
-// And overriding SetWidth/Height should not be needed
-
-procedure TCastleButton.SetWidth(const Value: Single);
-begin
-  if Width <> Value then
-  begin
-    { Should we set FCalculatedPreferred before or after calling inherited?
-      Should work in both cases, but "before" version seems more reliable,
-      in case "inherited" calls VisibleChange that causes VisibleChangeNotification
-      that calculates something in the future. }
-    FCalculatedPreferred := false;
-    VisibleChange([chRectangle]);
-    inherited;
-  end;
-end;
-
-procedure TCastleButton.SetHeight(const Value: Single);
-begin
-  if Height <> Value then
-  begin
-    FCalculatedPreferred := false;
-    VisibleChange([chRectangle]);
-    inherited;
   end;
 end;
 
@@ -896,7 +860,6 @@ begin
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -906,7 +869,6 @@ begin
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -916,7 +878,6 @@ begin
   if FImageMargin <> Value then
   begin
     FImageMargin := Value;
-    FCalculatedPreferred := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -989,6 +950,15 @@ begin
     PreferredWidth := FCalculatedPreferredWidth;
   if AutoSize and AutoSizeHeight then
     PreferredHeight := FCalculatedPreferredHeight;
+end;
+
+procedure TCastleButton.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean = false);
+begin
+  inherited;
+  // react to SetWidth, SetHeight etc.
+  if [chRectangle, chChildren] * Changes <> [] then
+    FCalculatedPreferred := false;
 end;
 
 {$define read_implementation_methods}
