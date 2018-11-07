@@ -352,7 +352,8 @@ begin
   // RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
 
   { These descend from TSubPropertiesEditor,
-    which is necessary to expand in castle-editor and Lazarus design-time. }
+    which is necessary to expand in castle-editor and Lazarus design-time.
+    Although it seems not necessary for object inspector in castle-editor? }
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
