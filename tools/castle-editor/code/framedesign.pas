@@ -192,12 +192,26 @@ type
 
 implementation
 
-uses TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
+uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
+  {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
+  TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
   EditorUtils;
 
 {$R *.lfm}
+
+{$ifdef VER3_0}
+{$ifdef MSWINDOWS}
+type
+  TSplitRectType = Windows.TSplitRectType;
+const
+  srLeft = TSplitRectType.srLeft;
+  srRight = TSplitRectType.srRight;
+  srTop = TSplitRectType.srTop;
+  srBottom = TSplitRectType.srBottom;
+{$endif}
+{$endif}
 
 function ParentRenderRect(const UI: TCastleUserInterface): TFloatRectangle;
 begin
