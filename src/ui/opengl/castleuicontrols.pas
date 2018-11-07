@@ -718,13 +718,14 @@ type
   TBorder = class(TPersistent)
   strict private
     FTop, FRight, FBottom, FLeft, FAllSides: Single;
+    FOnChange: TNotifyEvent;
     procedure SetAllSides(const AValue: Single);
     procedure SetBottom(const AValue: Single);
     procedure SetLeft(const AValue: Single);
     procedure SetRight(const AValue: Single);
     procedure SetTop(const AValue: Single);
-  private
-    OnChange: TNotifyEvent;
+  public
+    constructor Create(const AOnChange: TNotifyEvent);
     function TotalTop: Single;
     function TotalRight: Single;
     function TotalBottom: Single;
@@ -2023,6 +2024,9 @@ var
     useful by CastleUIState.
     @exclude }
   OnMainContainer: TOnMainContainer = nil;
+
+  { Are we inside Castle Game Engine designer mode. }
+  CastleDesignMode: Boolean;
 
 { Render control contents to an RGBA image, using off-screen rendering.
   The background behind the control is filled with BackgroundColor
@@ -3449,39 +3453,45 @@ end;
 
 { TBorder -------------------------------------------------------------------- }
 
+constructor TBorder.Create(const AOnChange: TNotifyEvent);
+begin
+  inherited Create;
+  FOnChange := AOnChange;
+end;
+
 procedure TBorder.SetAllSides(const AValue: Single);
 begin
   if FAllSides = AValue then Exit;
   FAllSides := AValue;
-  if Assigned(OnChange) then OnChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 procedure TBorder.SetBottom(const AValue: Single);
 begin
   if FBottom = AValue then Exit;
   FBottom := AValue;
-  if Assigned(OnChange) then OnChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 procedure TBorder.SetLeft(const AValue: Single);
 begin
   if FLeft = AValue then Exit;
   FLeft := AValue;
-  if Assigned(OnChange) then OnChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 procedure TBorder.SetRight(const AValue: Single);
 begin
   if FRight = AValue then Exit;
   FRight := AValue;
-  if Assigned(OnChange) then OnChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 procedure TBorder.SetTop(const AValue: Single);
 begin
   if FTop = AValue then Exit;
   FTop := AValue;
-  if Assigned(OnChange) then OnChange(Self);
+  if Assigned(FOnChange) then FOnChange(Self);
 end;
 
 function TBorder.TotalTop: Single;
@@ -3688,8 +3698,7 @@ begin
   FCapturesEvents := true;
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
-  FBorder := TBorder.Create;
-  FBorder.OnChange := @BorderChange;
+  FBorder := TBorder.Create(@BorderChange);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}

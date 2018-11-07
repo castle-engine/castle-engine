@@ -46,7 +46,7 @@
     FOwnsDrawableImage: boolean;
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
-    FCorners: TVector4Integer;
+    FProtectedSides: TBorder;
     FCache: boolean;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
@@ -87,6 +87,10 @@
     { Free FDrawableImage if needed, and make it @nil. }
     procedure FreeDrawableImage;
     procedure SetDrawableImage(const Value: TGLImage);
+    procedure ProtectedSidesChange(Sender: TObject);
+
+    function GetCorners: TVector4Integer;
+    procedure SetCorners(const Value: TVector4Integer);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -167,11 +171,11 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read GetColor write SetColor;
 
-    { Corners of the image that are not stretched even
-      in case @link(Stretch) is used.
-      See @link(TGLImageCore.Draw3x3) for the details how drawing image
-      with borders work. }
-    property Corners: TVector4Integer read FCorners write FCorners;
+    { Corners and edges of the image that are not stretched even
+      when @link(Stretch) is used.
+      See @link(TGLImageCore.Draw3x3) for the details how such drawing works. }
+    property Corners: TVector4Integer read GetCorners write SetCorners;
+      deprecated 'use ProtectedSides';
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
@@ -325,6 +329,13 @@
     property FlipVertical: Boolean read FFlipVertical write SetFlipVertical
       default false;
 
+    { Corners and edges of the image that are protected from scaling distortion
+      when @link(Stretch) is used.
+      We use the 9-slicing algorithm,
+      described at @link(TGLImageCore.Draw3x3)
+      and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
+    property ProtectedSides: TBorder read FProtectedSides;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -342,6 +353,7 @@ begin
   FOwnsImage := true;
   FOwnsDrawableImage := true;
   FDrawableImage := TGLImage.Create(FImage, true { default SmoothScaling }, false);
+  FProtectedSides := TBorder.Create(@ProtectedSidesChange);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -352,6 +364,7 @@ destructor TCastleImageControl.Destroy;
 begin
   FreeImage;
   FreeDrawableImage;
+  FreeAndNil(FProtectedSides);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -517,12 +530,13 @@ end;
 procedure TCastleImageControl.Render;
 var
   SR: TFloatRectangle;
+  ProtectedSidesVector: TVector4;
 begin
   inherited;
   if (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0) then Exit;
   SR := RenderRect;
 
-  if FCorners.IsZero then
+  if not FProtectedSides.Exists then
   begin
     if FlipHorizontal or FlipVertical then
       FDrawableImage.DrawFlipped(SR, FlipHorizontal, FlipVertical)
@@ -532,7 +546,33 @@ begin
   begin
     // TODO: FlipHorizontal, FlipVertical ignored in this case
     FDrawableImage.ScaleCorners := UIScale;
-    FDrawableImage.Draw3x3(SR, FCorners);
+    ProtectedSidesVector := Vector4(
+      ProtectedSides.TotalTop,
+      ProtectedSides.TotalRight,
+      ProtectedSides.TotalBottom,
+      ProtectedSides.TotalLeft
+    );
+    FDrawableImage.Draw3x3(SR, ProtectedSidesVector);
+
+    if CastleDesignMode then
+    begin
+      if ((ProtectedSides.TotalRight + ProtectedSides.TotalLeft) * UIScale < SR.Width) and
+         ((ProtectedSides.TotalTop + ProtectedSides.TotalBottom) * UIScale < SR.Height) then
+      begin
+        DrawPrimitive2D(pmLines, [
+          // vertical lines
+          Vector2(SR.Left + ProtectedSides.TotalLeft * UIScale, SR.Bottom),
+          Vector2(SR.Left + ProtectedSides.TotalLeft * UIScale, SR.Top),
+          Vector2(SR.Right - ProtectedSides.TotalRight * UIScale, SR.Bottom),
+          Vector2(SR.Right - ProtectedSides.TotalRight * UIScale, SR.Top),
+          // horizontal lines
+          Vector2(SR.Left , SR.Bottom + ProtectedSides.TotalBottom * UIScale),
+          Vector2(SR.Right, SR.Bottom + ProtectedSides.TotalBottom * UIScale),
+          Vector2(SR.Left , SR.Top - ProtectedSides.TotalTop * UIScale),
+          Vector2(SR.Right, SR.Top - ProtectedSides.TotalTop * UIScale)
+        ], Vector4(1, 1, 0, 0.5));
+      end;
+    end;
   end;
 end;
 
@@ -679,6 +719,30 @@ begin
     FFlipHorizontal := Value;
     VisibleChange([chRender]);
   end;
+end;
+
+function TCastleImageControl.GetCorners: TVector4Integer;
+begin
+  Result := Vector4Integer(
+    Round(ProtectedSides.TotalTop),
+    Round(ProtectedSides.TotalRight),
+    Round(ProtectedSides.TotalBottom),
+    Round(ProtectedSides.TotalLeft)
+  );
+end;
+
+procedure TCastleImageControl.SetCorners(const Value: TVector4Integer);
+begin
+  ProtectedSides.AllSides := 0;
+  ProtectedSides.Top    := Value[0];
+  ProtectedSides.Right  := Value[1];
+  ProtectedSides.Bottom := Value[2];
+  ProtectedSides.Left   := Value[3];
+end;
+
+procedure TCastleImageControl.ProtectedSidesChange(Sender: TObject);
+begin
+  VisibleChange([chRectangle]);
 end;
 
 {$define read_implementation_methods}

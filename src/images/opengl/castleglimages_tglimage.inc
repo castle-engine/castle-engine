@@ -442,13 +442,15 @@ type
       )
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer); overload;
+      const CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
       const Corner: TVector4Integer); overload;
+    procedure Draw3x3(const ScreenRect: TFloatRectangle;
+      const Corner: TVector4); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -1465,7 +1467,7 @@ begin
 end;
 
 procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
+  const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
@@ -1505,7 +1507,7 @@ begin
            (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
     if Log and not IgnoreTooLargeCorners then
-      WritelnLog('TGLImageCore.Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %f %f',
+      WritelnLog('TGLImageCore.Draw3x3', 'Image corners are too large to draw it: corners are %f %f %f %f, image size is %d %d, draw area size is %f %f',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Width, Height,
          DrawWidth, DrawHeight]);
@@ -1590,6 +1592,14 @@ end;
 
 procedure TGLImageCore.Draw3x3(const ScreenRect: TFloatRectangle;
   const Corner: TVector4Integer);
+begin
+  Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
+    ScreenRect.Width, ScreenRect.Height,
+    Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImageCore.Draw3x3(const ScreenRect: TFloatRectangle;
+  const Corner: TVector4);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,
