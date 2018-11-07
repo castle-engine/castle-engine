@@ -73,6 +73,7 @@ type
     type
       TScissorList = class(specialize TObjectList<TScissor>)
       public
+        FFinalScissor: TRectangle; // only defined when Count <> 0
         procedure Update;
       end;
     var
@@ -206,6 +207,12 @@ type
     { Shifts the rectangle passed to @link(Viewport).
       Only the @link(TCastleScreenEffects) should control this. }
     property ViewportDelta: TVector2Integer read FViewportDelta write SetViewportDelta;
+
+    { Scissor rectangle to which we clip the view.
+      This is determined by all @link(TScissor) that are currently enabled.
+      Returns @true and sets Rect if any scissor is active.
+      Returns @false if we don't clip the view now. }
+    function FinalScissor(out Rect: TRectangle): Boolean;
   end;
 
 var
@@ -519,6 +526,15 @@ begin
   end;
 end;
 
+function TRenderContext.FinalScissor(out Rect: TRectangle): Boolean;
+begin
+  Result :=
+    (FEnabledScissors <> nil) and
+    (FEnabledScissors.Count <> 0);
+  if Result then
+    Rect := FEnabledScissors.FFinalScissor;
+end;
+
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
 
 procedure TRenderContext.TScissorList.Update;
@@ -531,6 +547,7 @@ begin
     R := Items[0].Rect;
     for I := 1 to Count - 1 do
       R := R * Items[I].Rect;
+    FFinalScissor := R;
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else

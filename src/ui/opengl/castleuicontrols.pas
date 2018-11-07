@@ -1808,14 +1808,17 @@ type
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
 
-    { Optimize rendering by first checking whether the control's
-      rectangle fits within the parent.
+    { Optimize rendering by first checking whether the control can be visible.
+      The visibility is checked by looking at container rectangle,
+      and all possible clipping parents
+      (set by @link(TCastleScrollView), or any other control with
+      @link(ClipChildren)).
 
       This is useful for UI controls that have expensive rendering
       (e.g. they do something non-trivial in @link(Render) or @link(RenderOverChildren),
       or they include a lot of children controls).
       And they may be placed off-screen,
-      or they may be outside of parent with @link(ClipChildren),
+      or they may be outside of a parent with clipping,
       which is often the case when the parent is @link(TCastleScrollView). }
     property RenderCulling: Boolean read FRenderCulling write SetRenderCulling default false;
 
@@ -3934,12 +3937,14 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
     Dec(FUseCachedRectWithoutAnchors);
   end;
 
-  function ParentRenderRect: TFloatRectangle;
+  function ClippingRect: TFloatRectangle;
+  var
+    ResultInt, ScissorRect: TRectangle;
   begin
-    if Parent <> nil then
-      Result := Parent.RenderRect
-    else
-      Result := FloatRectangle(ContainerRect);
+    ResultInt := ContainerRect;
+    if RenderContext.FinalScissor(ScissorRect) then
+      ResultInt := ResultInt * ScissorRect;
+    Result := FloatRectangle(ResultInt);
   end;
 
 var
@@ -3975,10 +3980,7 @@ begin
 
     R := RenderRectWithBorder;
 
-    { We compare Parent.RenderRect, since this is where child should fit
-      (and what is clipped in case of Parent.ClipChildren)
-      with our Self.RenderRectWithBorder, since this is the space we take. }
-    if (not RenderCulling) or ParentRenderRect.Collides(R) then
+    if (not RenderCulling) or ClippingRect.Collides(R) then
     begin
       DrawBorder(R);
 
