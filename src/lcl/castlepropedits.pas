@@ -146,7 +146,12 @@ begin
     if Dialog.Execute then
     begin
       RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
-      Color := Vector4(Vector3(ColorByte), Color[3]); // keep Color alpha unchanged
+      // keep Color alpha unchanged ...
+      Color := Vector4(Vector3(ColorByte), Color[3]);
+      // ... unless it is zero, then change to 1.
+      // This makes changing TCastleUserInterface.BorderColor changing more natural.
+      if Color[3] = 0 then
+        Color[3] := 1;
       ColorPersistent.Value := Color;
     end;
   finally FreeAndNil(Dialog) end;
