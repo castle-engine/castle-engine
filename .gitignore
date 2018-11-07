@@ -35,6 +35,7 @@ backup
 .DS_Store
 xcuserdata
 !xcshareddata
+bin/
 
 # cge build tool stuff
 castle-engine-output

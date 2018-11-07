@@ -332,7 +332,8 @@ clean: cleanexamples
 	$(FIND) . -type d '(' -name 'lib' -or \
 	                      -name 'castle-engine-output' ')' \
 	     -exec rm -Rf '{}' ';' -prune
-	rm -Rf packages/castle_base.pas \
+	rm -Rf bin/ \
+	  packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
 	  packages/alternative_castle_window_based_on_lcl.pas \
@@ -352,8 +353,15 @@ clean: cleanexamples
 	       src/library/libcastleengine.dylib \
 	       src/library/castleengine.dll \
 	       src/library/libcastleengine.so
-# clean every project with CastleEngineManifest.xml
-	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
+# Clean every project with CastleEngineManifest.xml .
+#
+# Avoid a project in project_templates,
+# that has CastleEngineManifest.xml with macros, and would cause errors:
+# """ Project name contains invalid characters: "${PROJECT_NAME}" """
+	$(FIND) . \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' \
+	  -iname CastleEngineManifest.xml \
+	  -execdir castle-engine clean ';'
 
 cleanmore: clean
 	$(FIND) . -type f '(' -iname '*~' -or \

@@ -16,4 +16,4 @@ else
 fi
 
 cd tools/image-to-pascal/
-"${CASTLE_ENGINE}" compile
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}

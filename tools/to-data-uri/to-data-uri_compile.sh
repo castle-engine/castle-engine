@@ -15,4 +15,5 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile tools/to-data-uri/to-data-uri.lpr
+"${CASTLE_ENGINE}" simple-compile ${CASTLE_BUILD_TOOL_OPTIONS:-} \
+  tools/to-data-uri/to-data-uri.lpr

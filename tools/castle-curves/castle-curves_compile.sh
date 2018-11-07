@@ -16,4 +16,4 @@ else
 fi
 
 cd tools/castle-curves/
-"${CASTLE_ENGINE}" compile
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}
