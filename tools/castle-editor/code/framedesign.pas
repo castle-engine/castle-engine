@@ -147,6 +147,8 @@ type
       var aShow: boolean);
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
+    { Is Child selectable and visible in hierarchy. }
+    class function Selectable(const AParent, Child: TComponent): Boolean; static;
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
@@ -293,18 +295,24 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     I: Integer;
   begin
     Result := nil;
+
     { To allow selecting even controls that have bad rectangle (outside
       of parent, which can happen, e.g. if you enlarge caption of label
       with AutoSize), do not check C.CapturesEventsAtPosition(MousePos)
-      too early here. }
-    if C.GetExists {and
-       C.CapturesEventsAtPosition(MousePos)} then
+      too early here. So the condition
+
+        and C.CapturesEventsAtPosition(MousePos)
+
+      is not present in "if" below. }
+
+    if C.GetExists then
     begin
       for I := C.ControlsCount - 1 downto 0 do
-      begin
-        Result := ControlUnder(C.Controls[I], MousePos);
-        if Result <> nil then Exit;
-      end;
+        if TDesignFrame.Selectable(C, C.Controls[I]) then
+        begin
+          Result := ControlUnder(C.Controls[I], MousePos);
+          if Result <> nil then Exit;
+        end;
       //if C.CapturesEventsAtPosition(MousePos) then
       if SimpleCapturesEventsAtPosition(C, MousePos) then
         Result := C;
@@ -1241,6 +1249,18 @@ begin
   OnUpdateFormCaption(Self);
 end;
 
+class function TDesignFrame.Selectable(
+  const AParent, Child: TComponent): Boolean;
+begin
+  { Do not show in hierarchy the TCastleDesign loaded hierarchy,
+    as it will not be saved.
+    Consequently, do not allow to select stuff inside. }
+  Result := not (
+    (AParent is TCastleDesign) and
+    (csSubComponent in Child.ComponentStyle)
+  );
+end;
+
 procedure TDesignFrame.UpdateDesign;
 
   function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
@@ -1265,7 +1285,10 @@ procedure TDesignFrame.UpdateDesign;
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
     TreeNodeMap.AddOrSetValue(C, Result);
     for I := 0 to C.ControlsCount - 1 do
-      AddControl(Result, C.Controls[I]);
+    begin
+      if Selectable(C, C.Controls[I]) then
+        AddControl(Result, C.Controls[I]);
+    end;
 
     if C is TCastleSceneManager then
     begin

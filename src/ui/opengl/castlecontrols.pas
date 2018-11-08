@@ -91,6 +91,7 @@ type
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
+  {$I castlecontrols_design.inc}
   // Add more UI controls include files here.
 
   // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
@@ -127,6 +128,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_groups.inc}
+{$I castlecontrols_design.inc}
 {$I castlecontrols_theme.inc}
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
@@ -158,6 +160,7 @@ initialization
   RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');
   RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
+  RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;

@@ -117,6 +117,35 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
+{ TDesignURLPropertyEditor ---------------------------------------------------- }
+
+type
+  { Property editor for URL that refers to a file readable by UserInterfaceLoad. }
+  TDesignURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable];
+end;
+
+procedure TDesignURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
 { TCastleColorPropertyEditor ------------------------------------------------- }
 
 type
@@ -341,6 +370,8 @@ begin
     'URL', TSceneURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'URL', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
+    'URL', TDesignURLPropertyEditor);
 
   // TODO: the SceneManager.Items, actually complete TCastleControl,
   // should be editable using new CGE editor now.
