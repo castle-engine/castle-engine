@@ -145,6 +145,7 @@ type
     function GetSelectedUserInterface: TCastleUserInterface;
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
+    procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
@@ -974,9 +975,14 @@ begin
       // temporarily disable this event, as some pointers are invalid now
       ControlsTree.OnSelectionChanged := nil;
       ControlsTree.Items.Clear;
+      TreeNodeMap.Clear;
       ControlsTree.OnSelectionChanged := @ControlsTreeSelectionChanged;
 
       UpdateDesign;
+
+      { call this after UpdateDesign, otherwise tree is not ready,
+        and events caused by ModifiedOutsideObjectInspector may expect it is. }
+      ModifiedOutsideObjectInspector;
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -1225,6 +1231,11 @@ begin
     end;
   finally FreeAndNil(Selected) end;
 
+  MarkModified;
+end;
+
+procedure TDesignFrame.MarkModified;
+begin
   // mark modified
   FDesignModified := true;
   OnUpdateFormCaption(Self);
@@ -1901,10 +1912,14 @@ begin
   // TODO: this moves UI scrollbar up,
   // TODO: this is not optimized
   // (PropertyGridModified does some unnecessary things if we only changed size)
+
   InspectorSimple.RefreshPropertyValues;
   InspectorAdvanced.RefreshPropertyValues;
   InspectorEvents.RefreshPropertyValues;
-  PropertyGridModified(nil);
+  // do not call PropertyGridModified if nothing selected, e.g. after delete opration
+  if ControlsTree.Selected <> nil then
+    PropertyGridModified(nil);
+  MarkModified;
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
