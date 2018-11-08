@@ -39,6 +39,7 @@
     procedure SetMaxDisplayChars(const Value: Integer);
     procedure SetMaxWidth(const Value: Single);
     procedure TextChange(Sender: TObject);
+    procedure SetText(const Value: TStrings);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -70,8 +71,9 @@
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
 
-    { Caption displayed on the label, each line as a string. }
-    property Text: TStrings read FText;
+    { Caption displayed on the label, each line as a string.
+      Setting this property merely copies the contents using TStrings.Assign. }
+    property Text: TStrings read FText write SetText;
 
     { Caption displayed on the label.
       This is just a shortcut to get/set @link(Text) as a single string.
@@ -382,6 +384,11 @@ end;
 procedure TCastleLabel.TextChange(Sender: TObject);
 begin
   VisibleChange([chRectangle]);
+end;
+
+procedure TCastleLabel.SetText(const Value: TStrings);
+begin
+  FText.Assign(Value);
 end;
 
 {$define read_implementation_methods}
