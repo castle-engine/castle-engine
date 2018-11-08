@@ -1171,7 +1171,6 @@ begin
   // some property names quality as "Simple" on all components
   if (PropertyName = 'URL') or
      (PropertyName = 'Name') or
-     (PropertyName = 'Caption') or
      (PropertyName = 'Exists') or
      (PropertyName = 'ProcessEvents') then
   begin
@@ -1199,6 +1198,9 @@ begin
        ((Instance is TCastleImageControl) and (PropertyName = 'ColorPersistent')) or
        ((Instance is TCastleTimer) and (PropertyName = 'IntervalSeconds')) or
        ((Instance is TCastleSwitchControl) and (PropertyName = 'Checked')) or
+       ((Instance is TCastleButton) and (PropertyName = 'Caption')) or
+       ((Instance is TCastleLabel) and (PropertyName = 'Text')) or
+       ((Instance is TCastleDesign) and (PropertyName = 'Stretch')) or
        false then // this line is just to allow easily adding above
     begin
       AShow := true;
