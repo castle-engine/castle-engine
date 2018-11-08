@@ -554,7 +554,7 @@ begin
     );
     FDrawableImage.Draw3x3(SR, ProtectedSidesVector);
 
-    if CastleDesignMode then
+    if CastleDesignMode and Stretch then
     begin
       if ((ProtectedSides.TotalRight + ProtectedSides.TotalLeft) * UIScale < SR.Width) and
          ((ProtectedSides.TotalTop + ProtectedSides.TotalBottom) * UIScale < SR.Height) then
