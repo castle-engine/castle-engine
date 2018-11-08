@@ -131,5 +131,8 @@ pipeline {
         subject: "[jenkins] Build is again successfull: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
+    success {
+      build job: '../castle_game_engine_update_docker_image'
+    }
   }
 }
