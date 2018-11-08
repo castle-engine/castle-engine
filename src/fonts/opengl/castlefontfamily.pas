@@ -937,19 +937,22 @@ var
     PercentSize := 0;
 
     NumStr := Copy(S, I, EndPos - I);
-    try
-      if IsSuffix('%', NumStr, false) then
-        PercentSize := StrToFloat(SuffixRemove('%', NumStr, false)) / 100 else
-      begin
-        SizeRead := StrToInt(NumStr);
-        if S[I] in ['+', '-'] then
-          { size is relative to 3.
-            See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
-          HtmlSize := Clamped(3 + SizeRead, 1, 7) else
-          HtmlSize := Clamped(SizeRead, 1, 7);
-      end;
-    except
-      on EConvertError do Exit(false);
+
+    if IsSuffix('%', NumStr, false) then
+    begin
+      if not TryStrToFloat(SuffixRemove('%', NumStr, false), PercentSize) then
+        Exit(false);
+      PercentSize := PercentSize / 100;
+    end else
+    begin
+      if not TryStrToInt64(NumStr, SizeRead) then
+        Exit(false);
+      if S[I] in ['+', '-'] then
+        { size is relative to 3.
+          See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
+        HtmlSize := Clamped(3 + SizeRead, 1, 7)
+      else
+        HtmlSize := Clamped(SizeRead, 1, 7);
     end;
   end;
 
