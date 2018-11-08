@@ -240,7 +240,6 @@ begin
   InsertFront(RectHover);
 
   LabelHover := TCastleLabel.Create(Self);
-  LabelHover.Color := HexToColor('fffba0'); // desaturated yellow
   LabelHover.Anchor(hpMiddle);
   LabelHover.Anchor(vpMiddle);
   LabelHover.FontSize := 15;
@@ -254,7 +253,6 @@ begin
   InsertFront(RectSelected);
 
   LabelSelected := TCastleLabel.Create(Self);
-  LabelSelected.Color := White;
   LabelSelected.Anchor(hpMiddle);
   LabelSelected.Anchor(vpMiddle);
   LabelSelected.FontSize := 15;
@@ -625,40 +623,49 @@ begin
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
+
+  procedure UpdateAttachedLabel(const UI: TCastleUserInterface;
+    const UIRect: TFloatRectangle;
+    const Lab: TCastleLabel; const Rect: TCastleRectangleControl;
+    const LabelColor: TCastleColor);
+  begin
+    if UI <> nil then
+    begin
+      Lab.Caption := Frame.ComponentCaption(UI);
+      Lab.Color := LabelColor;
+
+      Rect.Exists := true;
+      Rect.Width := Lab.EffectiveWidth + 6;
+      Rect.Height := Lab.EffectiveHeight + 6;
+      Rect.Anchor(hpLeft, UIRect.Left);
+      Rect.Anchor(vpTop, vpBottom, UIRect.Bottom);
+
+      if Rect.RenderRect.Bottom < 0 then
+        // put Rect inside UI, otherwise it would be offscreen
+        Rect.Anchor(vpBottom, UIRect.Bottom);
+    end else
+      Rect.Exists := false;
+  end;
+
 var
-  UI: TCastleUserInterface;
-  R: TFloatRectangle;
+  SelectedUI, HoverUI: TCastleUserInterface;
+  SelectedUIRect, HoverUIRect: TFloatRectangle;
 begin
   inherited;
 
-  UI := SelectedUserInterface;
-  if UI <> nil then
+  SelectedUI := SelectedUserInterface;
+  if SelectedUI <> nil then
   begin
-    R := UI.RenderRectWithBorder;
-    DrawRectangleOutline(R, White);
-    DrawRectangleOutline(R.Grow(-1), Black);
+    SelectedUIRect := SelectedUI.RenderRectWithBorder;
+    DrawRectangleOutline(SelectedUIRect, White);
+    DrawRectangleOutline(SelectedUIRect.Grow(-1), Black);
+  end;
 
-    LabelSelected.Caption := Frame.ComponentCaption(UI);
-    RectSelected.Exists := true;
-    RectSelected.Width := LabelSelected.EffectiveWidth + 6;
-    RectSelected.Height := LabelSelected.EffectiveHeight + 6;
-    RectSelected.Anchor(hpLeft, R.Left);
-    RectSelected.Anchor(vpTop, vpBottom, R.Bottom);
-  end else
-    RectSelected.Exists := false;
-
-  UI := HoverUserInterface(Container.MousePosition);
-  if UI <> nil then
+  HoverUI := HoverUserInterface(Container.MousePosition);
+  if HoverUI <> nil then
   begin
-    R := UI.RenderRectWithBorder;
-    DrawRectangleOutline(R, Vector4(1, 1, 0, 0.75));
-
-    LabelHover.Caption := Frame.ComponentCaption(UI);
-    RectHover.Exists := true;
-    RectHover.Width := LabelHover.EffectiveWidth + 6;
-    RectHover.Height := LabelHover.EffectiveHeight + 6;
-    RectHover.Anchor(hpLeft, R.Left);
-    RectHover.Anchor(vpBottom, R.Top);
+    HoverUIRect := HoverUI.RenderRectWithBorder;
+    DrawRectangleOutline(HoverUIRect, Vector4(1, 1, 0, 0.75));
 
     // TODO: for now hide, too confusing in case of auto-sized label/button
     {
@@ -670,8 +677,21 @@ begin
       DrawRectangleOutline(R, Vector4(1, 1, 0, 0.25));
     end;
     }
+  end;
+
+  if (HoverUI <> nil) and (HoverUI = SelectedUI) then
+  begin
+    UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
+      Yellow);
+    // make sure to hide RectHover in this case
+    UpdateAttachedLabel(nil, TFloatRectangle.Empty, LabelHover, RectHover, Black);
   end else
-    RectHover.Exists := false;
+  begin
+    UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
+      White);
+    UpdateAttachedLabel(HoverUI, HoverUIRect, LabelHover, RectHover,
+      HexToColor('fffba0')); // desaturated yellow
+  end
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
