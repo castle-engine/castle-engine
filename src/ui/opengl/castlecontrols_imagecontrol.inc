@@ -306,7 +306,7 @@
         ImageControl := TCastleImageControl.Create(Application);
         ImageControl.Cache := true:
         ImageControl.URL := 'my_image.png'; // use already cached URL
-        // somewhere much layer
+        // somewhere much later
         TextureCache.TextureImage_DecReference(CachedImage);
       #)
 
@@ -322,7 +322,7 @@
       Right now, this should be set before assigning Image or URL,
       otherwise the image will not be loaded/freed using the cache.
       This may change at some point. }
-    property Cache: boolean read FCache write FCache;
+    property Cache: boolean read FCache write FCache default false;
 
     property FlipHorizontal: Boolean read FFlipHorizontal write SetFlipHorizontal
       default false;
