@@ -1187,11 +1187,16 @@ begin
   if aEditor.GetPropInfo = nil then
     Exit;
 
+  // TODO: Make the "Simple properties" registered outside of the editor code.
+  // Using property attributes would be most natural,
+  // but not supported by FPC yet? Investigate.
+
   PropertyName := aEditor.GetPropInfo^.Name;
   // some property names quality as "Simple" on all components
   if (PropertyName = 'URL') or
      (PropertyName = 'Name') or
      (PropertyName = 'Exists') or
+     (PropertyName = 'FullSize') or
      (PropertyName = 'ProcessEvents') then
   begin
     AShow := true;
