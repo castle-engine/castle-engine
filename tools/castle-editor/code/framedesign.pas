@@ -317,8 +317,17 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     end;
   end;
 
+  function MouseOverControl(const Control: TCastleControlCustom): Boolean;
+  var
+    PosInClient: TPoint;
+  begin
+    PosInClient := Control.ScreenToClient(Mouse.CursorPos);
+    Result := Control.ClientRect.Contains(PosInClient);
+  end;
+
 begin
-  if Frame.DesignRoot is TCastleUserInterface then
+  if MouseOverControl(Frame.CastleControl) and
+     (Frame.DesignRoot is TCastleUserInterface) then
     Result := ControlUnder(Frame.DesignRoot as TCastleUserInterface, AMousePosition)
   else
     Result := nil;
@@ -637,12 +646,17 @@ procedure TDesignFrame.TDesignerLayer.Render;
       Rect.Exists := true;
       Rect.Width := Lab.EffectiveWidth + 6;
       Rect.Height := Lab.EffectiveHeight + 6;
+      { Place in left-top corner. Because:
+        - We want left-xxx corner, this way if the label is cut off,
+          at least the beginning looks OK.
+        - We don't want left-bottom corner, as that's where child controls
+          are placed by default, so the text would be over them too often. }
       Rect.Anchor(hpLeft, UIRect.Left);
-      Rect.Anchor(vpTop, vpBottom, UIRect.Bottom);
+      Rect.Anchor(vpBottom, UIRect.Top);
 
-      if Rect.RenderRect.Bottom < 0 then
+      if Rect.RenderRect.Top > Rect.Container.Height then
         // put Rect inside UI, otherwise it would be offscreen
-        Rect.Anchor(vpBottom, UIRect.Bottom);
+        Rect.Anchor(vpTop, vpBottom, UIRect.Top);
     end else
       Rect.Exists := false;
   end;
@@ -691,7 +705,19 @@ begin
       White);
     UpdateAttachedLabel(HoverUI, HoverUIRect, LabelHover, RectHover,
       HexToColor('fffba0')); // desaturated yellow
-  end
+
+    { Improve special case, when both RectSelected and RectHover would
+      be displayed on top of each other. In this case,
+      shift the RectHover (as the more often changing one). }
+    if RectSelected.Exists and
+       RectHover.Exists and
+       (RectSelected.RenderRect.Bottom = RectHover.RenderRect.Bottom) and
+       (RectSelected.RenderRect.Left   = RectHover.RenderRect.Left  ) then
+    begin
+      RectHover.VerticalAnchorDelta := RectHover.VerticalAnchorDelta -
+        RectSelected.EffectiveHeight;
+    end;
+  end;
 end;
 
 { TDesignFrame --------------------------------------------------------------- }
