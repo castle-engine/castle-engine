@@ -767,24 +767,49 @@ type
     constructor Create(AOwner: TComponent); override;
 
     (*Handle press or release of a key, mouse button or mouse wheel.
-      Return @true if the event was somehow handled.
+      Return @true if the event was somehow handled,
+      which prevents from passing this event to other UI controls.
 
-      In this class this always returns @false, when implementing
-      in descendants you should override it like
+      When implementing in descendants it is best to override it like this:
 
       @longCode(#
+      function TMyControl.Press(const Event: TInputPressRelease): boolean;
+      begin
         Result := inherited;
-        if Result then Exit;
-        { ... And do the job here.
-          In other words, the handling of events in inherited
-          class should have a priority. }
+        if Result then Exit; // exit if ancestor already handled event
+
+        if Event.IsKey(keyEnter) then
+        begin
+          // do something in reaction on Enter
+          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+        end;
+
+        if Event.IsMouseButton(mbLeft) then
+        begin
+          // do something in reaction on Enter
+          Exit(ExclusiveEvents); // ExclusiveEvents is true by default
+        end;
+      end;
       #)
 
-      Note that releasing of mouse wheel is not implemented for now,
+      Note that releasing of the mouse wheel is not implemented for now,
       neither by CastleWindow or Lazarus CastleControl.
+
+      The events PreviewPress and PreviewRelease are passed first to
+      the parent control, before children have a chance to process this event.
+      Overriding them makes sense if you draw something
+      in @link(RenderOverChildren).
+
+      The events Press and Release are passed to the parent only
+      after the children had a chance to process this event.
+      Overriding them makes sense if you draw something
+      in @link(Render). This is usually more natural, and adviced.
+
       @groupBegin *)
     function Press(const Event: TInputPressRelease): boolean; virtual;
     function Release(const Event: TInputPressRelease): boolean; virtual;
+    function PreviewPress(const Event: TInputPressRelease): boolean; virtual;
+    function PreviewRelease(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
     { Motion of mouse or touch. }
@@ -2680,6 +2705,16 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
   begin
     if C.GetExists and C.CapturesEventsAtPosition(Event.Position)  then
     begin
+      { try C.PreviewPress }
+      if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
+      begin
+        if (Event.EventType = itMouseButton) and
+           // See below for explanation of "C.Container = Self" comparison.
+           (C.Container = Self) then
+          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
+        Exit(true);
+      end;
+
       { try to pass press to C children }
       for I := C.ControlsCount - 1 downto 0 do
         { checking "I < C.ControlsCount" below is a poor safeguard in case
@@ -2688,7 +2723,7 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
         if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
           Exit(true);
 
-      { try C.Press itself }
+      { try C.Press }
       if (C <> ForceCaptureInput) and C.Press(Event) then
       begin
         { We have to check whether C.Container = Self. That is because
@@ -2717,6 +2752,8 @@ begin
   { pass to ForceCaptureInput }
   if UseForceCaptureInput then
   begin
+    if ForceCaptureInput.PreviewPress(Event) then
+      Exit(true);
     if ForceCaptureInput.Press(Event) then
       Exit(true);
   end;
@@ -2745,12 +2782,16 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   begin
     if C.GetExists and C.CapturesEventsAtPosition(Event.Position) then
     begin
+      { try C.PreviewRelease }
+      if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
+        Exit(true);
+
       { try to pass release to C children }
       for I := C.ControlsCount - 1 downto 0 do
         if RecursiveRelease(C.Controls[I]) then
           Exit(true);
 
-      { try C.Release itself }
+      { try C.Release }
       if (C <> ForceCaptureInput) and C.Release(Event) then
         Exit(true);
     end;
@@ -2767,6 +2808,8 @@ begin
   { pass to ForceCaptureInput }
   if UseForceCaptureInput then
   begin
+    if ForceCaptureInput.PreviewRelease(Event) then
+      Exit(true);
     if ForceCaptureInput.Release(Event) then
       Exit(true);
   end;
@@ -2792,6 +2835,7 @@ begin
 
   if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
+    Result := Capture.PreviewRelease(Event);
     Result := Capture.Release(Event);
     Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
@@ -3538,6 +3582,16 @@ begin
 end;
 
 function TInputListener.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.PreviewPress(const Event: TInputPressRelease): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.PreviewRelease(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
 end;

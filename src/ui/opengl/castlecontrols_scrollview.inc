@@ -60,6 +60,7 @@
     procedure RenderOverChildren; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function PreviewPress(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -297,6 +298,35 @@ begin
   UpdateScrollBarActive;
 end;
 
+function TCastleScrollView.PreviewPress(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  { Process clicks in PreviewPress,
+    since we draw ScrollbarFrame in RenderOverChildren.
+    So clicking on ScrollbarFrame should be captured, before passing them
+    to children (e.g. TCastleButton inside ScrollArea). }
+
+  if ScrollBarVisible and
+     Event.IsMouseButton(mbLeft) and
+     ScrollbarFrame.Contains(Event.Position) then
+  begin
+    if Event.Position[1] < ScrollbarSlider.Bottom then
+    begin
+      Scroll := Scroll + Height;
+      TimeSinceDraggingStopped := 0;
+    end else
+    if Event.Position[1] >= ScrollbarSlider.Top then
+    begin
+      Scroll := Scroll - Height;
+      TimeSinceDraggingStopped := 0;
+    end else
+      ScrollBarDragging := true;
+    Exit(ExclusiveEvents);
+  end;
+end;
+
 function TCastleScrollView.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
@@ -321,25 +351,6 @@ begin
           K_Home:     begin Scroll := ScrollMin; Result := ExclusiveEvents; end;
           K_End:      begin Scroll := ScrollMax; Result := ExclusiveEvents; end;
         end;
-      itMouseButton:
-        begin
-          if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollbarFrame.Contains(Event.Position) then
-          begin
-            if Event.Position[1] < ScrollbarSlider.Bottom then
-            begin
-              Scroll := Scroll + Height;
-              TimeSinceDraggingStopped := 0;
-            end else
-            if Event.Position[1] >= ScrollbarSlider.Top then
-            begin
-              Scroll := Scroll - Height;
-              TimeSinceDraggingStopped := 0;
-            end else
-              ScrollBarDragging := true;
-            Result := ExclusiveEvents;
-          end;
-        end;
       itMouseWheel:
         if Event.MouseWheelVertical then
         begin
@@ -350,8 +361,8 @@ begin
     end;
 
   { We do not process mouse button clicks (or touches) here
-    (not on an entire TCastleScrollView area -- the code above handles
-    clicks inside ScrollbarFrame only).
+    (not on an entire TCastleScrollView area -- the code in PreviewPress
+    handles clicks inside ScrollbarFrame only).
     We only process dragging (with mbLeft) inside TCastleScrollView.Update
     and TCastleScrollView.Motion.
 
