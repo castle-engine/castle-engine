@@ -8,6 +8,7 @@
 *.a
 *.lps
 *.lrs
+*.dbg
 
 # Delphi stuff
 *.dproj.local
