@@ -116,6 +116,8 @@
     procedure FontChanged; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
+    procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
+      out Reason: String); override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -950,6 +952,22 @@ begin
     PreferredWidth := FCalculatedPreferredWidth;
   if AutoSize and AutoSizeHeight then
     PreferredHeight := FCalculatedPreferredHeight;
+end;
+
+procedure TCastleButton.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSize and AutoSizeWidth then
+  begin
+    ResizeWidth := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleButton.AutoSize" or "TCastleButton.AutoSizeWidth" to change width.');
+  end;
+  if AutoSize and AutoSizeHeight then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleButton.AutoSize" or "TCastleButton.AutoSizeHeight" to change height.');
+  end;
 end;
 
 procedure TCastleButton.VisibleChange(const Changes: TCastleUserInterfaceChanges;

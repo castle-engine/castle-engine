@@ -340,23 +340,27 @@ const
   BorderDragMargin = 10;
 var
   R: TFloatRectangle;
+  ResizeWidth, ResizeHeight: Boolean;
+  ResizeDisabledReason: String;
 begin
   R := UI.RenderRectWithBorder;
 
+  UI.EditorAllowResize(ResizeWidth, ResizeHeight, ResizeDisabledReason);
+
   { the order of checking (top or bottom) matters in case of very
     small heights. }
-  if R.TopPart(BorderDragMargin).Contains(Position) then
+  if ResizeHeight and R.TopPart(BorderDragMargin).Contains(Position) then
     Vertical := vpTop
   else
-  if R.BottomPart(BorderDragMargin).Contains(Position) then
+  if ResizeHeight and R.BottomPart(BorderDragMargin).Contains(Position) then
     Vertical := vpBottom
   else
     Vertical := vpMiddle;
 
-  if R.RightPart(BorderDragMargin).Contains(Position) then
+  if ResizeWidth and R.RightPart(BorderDragMargin).Contains(Position) then
     Horizontal := hpRight
   else
-  if R.LeftPart(BorderDragMargin).Contains(Position) then
+  if ResizeWidth and R.LeftPart(BorderDragMargin).Contains(Position) then
     Horizontal := hpLeft
   else
     Horizontal := hpMiddle;

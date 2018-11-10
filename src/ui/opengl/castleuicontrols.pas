@@ -1658,6 +1658,10 @@ type
       into account, so that parent controls may depend on it. }
     function UIScale: Single;
 
+    { Override this to prevent resizing some dimension in CGE editor. }
+    procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
+      out Reason: String); virtual;
+
     property FloatWidth: Single read FWidth write SetWidth stored false;
       deprecated 'use Width';
     property FloatHeight: Single read FHeight write SetHeight stored false;
@@ -4750,6 +4754,40 @@ begin
   begin
     FClipChildren := Value;
     VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleUserInterface.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  ResizeWidth := true;
+  ResizeHeight := true;
+  Reason := '';
+
+  if AutoSizeToChildren then
+  begin
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "AutoSizeToChildren" to change size.');
+  end;
+
+  if FullSize then
+  begin
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "FullSize" to change size.');
+  end;
+
+  if WidthFraction <> 0 then
+  begin
+    ResizeWidth := false;
+    Reason := SAppendPart(Reason, NL, 'Set "WidthFraction" to 0 to be able to freely change "Width".');
+  end;
+
+  if HeightFraction <> 0 then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Set "HeightFraction" to 0 to be able to freely change "Height".');
   end;
 end;
 

@@ -98,6 +98,8 @@
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -598,6 +600,18 @@ begin
     begin
       PreferredHeight := FDrawableImage.Height * PreferredWidth / FDrawableImage.Width;
     end;
+  end;
+end;
+
+procedure TCastleImageControl.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if not Stretch then
+  begin
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn on "TCastleImageControl.Stretch" to change size.');
   end;
 end;
 

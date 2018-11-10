@@ -5,8 +5,6 @@ Now:
 
 * warning when project with editor_units opened in vanilla editor
 
-* maybe? remove (deprecate, saying it has no effect) HasXxxAnchor, assume always true?
-
 * do not allow sizing (not even such cursor) when control is autosized
 
   how? virtual function IsAutoSize at TCastleUserInterface
@@ -22,6 +20,19 @@ Now:
 
   DO NOT use it for "stored" for width/height, store them always, safer.
 
+  Remains for:
+  castledialogstates_dialog.inc
+  castlecontrols_progressbar.inc
+  castleonscreenmenu.pas
+  castleinspectorcontrol.pas
+  castlenotifications.pas
+  castlecontrols_touchcontrol.inc
+  castlecontrols_groups.inc
+  castlecontrols_crosshair.inc
+
+  show ResizeDisabledReason somewhere?
+  at tooltip?
+
 * Add TCastleImageComponent, manually make all UI controls use it
   See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
 
@@ -35,9 +46,6 @@ Now:
   See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
   Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
 - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
-
-* TLabel.Text using prop editor (multiline) setting is ignored
-  (we should react to Text.Assign maybe?)
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?

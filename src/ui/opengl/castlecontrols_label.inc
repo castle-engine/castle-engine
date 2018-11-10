@@ -53,6 +53,8 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
@@ -251,6 +253,18 @@ begin
       LineSpacingScaled * (TextToRenderCount - 1) +
       2 * PaddingVerticalScaled +
       Font.Descend;
+  end;
+end;
+
+procedure TCastleLabel.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSize then
+  begin
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleLabel.AutoSize" to change size.');
   end;
 end;
 

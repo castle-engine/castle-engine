@@ -26,8 +26,9 @@
     So, we are similar to CSS box model called box-sizing, width includes also
     padding and border.
 
-    In contrast, our @link(Height TCastleUserInterface.Height) is always
-    (for now) auto-calculated, based on frame, padding and font size.
+    In contrast, our height is by default
+    (see @link(AutoSizeHeight)) auto-calculated,
+    based on frame, padding and font size.
   }
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
@@ -41,6 +42,7 @@
     FCaptureAllInput: boolean;
     FAutoOnScreenKeyboard: Boolean;
     Scissor: TScissor;
+    FAutoSizeHeight: Boolean;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -49,6 +51,7 @@
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
     procedure SetFrame(const Value: boolean);
+    procedure SetAutoSizeHeight(const Value: Boolean);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -60,6 +63,8 @@
       var HandleInput: boolean); override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure SetFocused(const Value: boolean); override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
@@ -116,7 +121,12 @@
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
 
     { When true, it shows the software keyboard on Android. }
-    property AutoOnScreenKeyboard: Boolean read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard default DefaultAutoOnScreenKeyboard;
+    property AutoOnScreenKeyboard: Boolean
+      read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
+      default DefaultAutoOnScreenKeyboard;
+
+    property AutoSizeHeight: Boolean
+      read FAutoSizeHeight write SetAutoSizeHeight default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -144,6 +154,7 @@ begin
   FMaxLength := 0;
   FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
+  FAutoSizeHeight := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -232,6 +243,15 @@ begin
   end;
 end;
 
+procedure TCastleEdit.SetAutoSizeHeight(const Value: Boolean);
+begin
+  if FAutoSizeHeight <> Value then
+  begin
+    FAutoSizeHeight := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
 procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   PaddingVerticalScaled, HeightScaled: Single;
@@ -240,19 +260,33 @@ var
 begin
   inherited;
 
-  US := UIScale;
-  PaddingVerticalScaled := US * (PaddingVertical + Padding);
-
-  HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
-  if Frame then
+  if AutoSizeHeight then
   begin
-    FrameCorners := Theme.Corners[tiEdit];
-    HeightScaled := HeightScaled +
-      US * FrameCorners[0] +
-      US * FrameCorners[2];
-  end;
+    US := UIScale;
+    PaddingVerticalScaled := US * (PaddingVertical + Padding);
 
-  PreferredHeight := HeightScaled;
+    HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
+    if Frame then
+    begin
+      FrameCorners := Theme.Corners[tiEdit];
+      HeightScaled := HeightScaled +
+        US * FrameCorners[0] +
+        US * FrameCorners[2];
+    end;
+
+    PreferredHeight := HeightScaled;
+  end;
+end;
+
+procedure TCastleEdit.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSizeHeight then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleEdit.AutoSizeHeight" to change height.');
+  end;
 end;
 
 procedure TCastleEdit.Render;
