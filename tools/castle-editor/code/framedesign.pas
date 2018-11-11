@@ -1254,6 +1254,7 @@ begin
        ((Instance is TCastleTimer) and (PropertyName = 'IntervalSeconds')) or
        ((Instance is TCastleSwitchControl) and (PropertyName = 'Checked')) or
        ((Instance is TCastleButton) and (PropertyName = 'Caption')) or
+       ((Instance is TCastleLabel) and (PropertyName = 'Caption')) or // expresses the same thing as Text, but easier to access
        ((Instance is TCastleLabel) and (PropertyName = 'Text')) or
        ((Instance is TCastleDesign) and (PropertyName = 'Stretch')) or
        false then // this line is just to allow easily adding above
