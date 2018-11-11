@@ -27,7 +27,7 @@ uses SysUtils, Classes, Generics.Collections,
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
-  DefaultDpi = 96;
+  DefaultDpi = 96.0;
   DefaultTooltipDelay = 1.0;
   DefaultTooltipDistance = 10;
 
@@ -460,7 +460,7 @@ type
       read GetMousePosition write SetMousePosition;
 
     { Dots per inch, specifying the relation of screen pixels to physical size. }
-    function Dpi: Integer; virtual;
+    function Dpi: Single; virtual;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
@@ -3358,7 +3358,7 @@ begin
   Result := SaveScreen(SaveRect.Round);
 end;
 
-function TUIContainer.Dpi: Integer;
+function TUIContainer.Dpi: Single;
 begin
   { Default implementation, if you cannot query real dpi value of the screen. }
   Result := DefaultDpi;

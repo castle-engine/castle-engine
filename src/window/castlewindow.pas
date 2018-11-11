@@ -614,7 +614,7 @@ type
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
-    function Dpi: Integer; override;
+    function Dpi: Single; override;
     function Focused: boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
@@ -728,7 +728,7 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    FDpi: Integer;
+    FDpi: Single;
     FContainer: TWindowContainer;
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
@@ -1184,13 +1184,15 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch,
-      thus it depends on both the screen resolution
-      and on the physical size of the device.
+    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
+      So this is determined by the screen resolution in pixels,
+      and by the physical size of the device.
 
-      Some platforms leave it at default 96 (DefaultDpi constant).
-      For now, only Android and iOS platforms expose the actual DPI here. }
-    property Dpi: integer read FDpi write FDpi default DefaultDpi;
+      Some systems may expose a value that actually reflects user preference
+      "how to scale the user-interface", where 96 (DefaultDpi) is default.
+      So do not depend that it is actually related to the physical monitor size.
+      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
+    property Dpi: Single read FDpi write FDpi default DefaultDpi;
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -3002,7 +3004,7 @@ begin
   Parent.MousePosition := Value;
 end;
 
-function TWindowContainer.Dpi: Integer;
+function TWindowContainer.Dpi: Single;
 begin
   Result := Parent.Dpi;
 end;

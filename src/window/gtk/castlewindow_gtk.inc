@@ -261,6 +261,8 @@ function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
 function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
   cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
+function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
+  cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -909,6 +911,27 @@ const
     FMousePosition := LeftTopToCastle(X, Y);
   end;
 
+  procedure InitializeDpi;
+  var
+    ScreenWidthMM: Single;
+  begin
+    FDpi := gdk_screen_get_resolution(Application.XScreenGdk);
+    if FDpi <= 0 then
+    begin
+      ScreenWidthMM := gdk_screen_width_mm();
+      if ScreenWidthMM <= 0 then
+      begin
+        { Lazarus LCL also secures from this case, with comment:
+          "some TV-out screens don't know there size" (GetScreenWidthMM). }
+        FDpi := DefaultDpi;
+      end else
+        FDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
+    end;
+
+    WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   ShareContext: PGdkGLContext;
   VisualAttr: TLongIntList;
@@ -1142,6 +1165,7 @@ begin
 
   GetInitialCursorPos;
   UpdateCursor;
+  InitializeDpi;
 end;
 
 procedure TCastleWindowCustom.CloseBackend;

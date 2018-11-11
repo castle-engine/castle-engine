@@ -104,6 +104,19 @@ const
 { TCastleWindowCustom --------------------------------------------------------  }
 
 procedure TCastleWindowCustom.OpenBackend;
+
+  procedure InitializeDpi;
+  var
+    DW, DWMM: Integer;
+  begin
+    DW := XDisplayWidth(Application.XDisplay, Application.XScreen);
+    DWMM := XDisplayWidthMM(Application.XDisplay, Application.XScreen);
+    FDpi := DW / (DWMM / 25.4);
+
+    WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
@@ -264,6 +277,7 @@ begin
   Application.OpenWindowsAdd(Self);
 
   MakeCurrent;
+  InitializeDpi;
 end;
 
 procedure TCastleWindowCustom.CloseBackend;

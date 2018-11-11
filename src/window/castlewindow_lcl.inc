@@ -528,6 +528,8 @@ begin
   Application.OpenWindowsAdd(Self);
 
   GetInitialCursorPos;
+
+  FDpi := Screen.PixelsPerInch;
 end;
 
 const

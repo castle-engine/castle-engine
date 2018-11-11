@@ -842,6 +842,13 @@ procedure TCastleWindowCustom.OpenBackend;
     end;
   end;
 
+  procedure InitializeDpi;
+  begin
+    FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
+    WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   {$ifndef CASTLE_ENGINE_PLUGIN}
   dwExStyle, dwStyle: dword;
@@ -995,6 +1002,7 @@ begin
   end;
 
   GetInitialCursorPos(ClientRect);
+  InitializeDpi;
 end;
 
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);

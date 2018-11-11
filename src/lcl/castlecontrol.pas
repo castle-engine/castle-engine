@@ -97,6 +97,7 @@ type
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
         function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+        function Dpi: Single; override;
 
         procedure EventOpen(const OpenWindowsCount: Cardinal); override;
         procedure EventClose(const OpenWindowsCount: Cardinal); override;
@@ -804,6 +805,11 @@ begin
     EventRender;
   end;
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
+end;
+
+function TCastleControlCustom.TContainer.Dpi: Single;
+begin
+  Result := Screen.PixelsPerInch;
 end;
 
 procedure TCastleControlCustom.TContainer.EventOpen(const OpenWindowsCount: Cardinal);

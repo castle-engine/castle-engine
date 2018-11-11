@@ -2557,7 +2557,7 @@ var
   ModsDown: TModifierKeys;
   DoZooming, DoMoving: boolean;
   MoveDivConst: Single;
-  Dpi: Integer;
+  Dpi: Single;
 
   function DragRotation: TQuaternion;
 

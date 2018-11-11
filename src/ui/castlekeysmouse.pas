@@ -858,7 +858,7 @@ type
       @groupBegin }
     function Press(const Event: TInputPressRelease): boolean;
     function Release(const Event: TInputPressRelease): boolean;
-    function Motion(const Event: TInputMotion; Dpi: Integer): boolean;
+    function Motion(const Event: TInputMotion; const Dpi: Single): boolean;
     { @groupEnd }
 
     { Gesture type once it's recognized. Check it inside OnGestureChanged event. }
@@ -1470,7 +1470,8 @@ begin
   end;
 end;
 
-function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion; Dpi: Integer): boolean;
+function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
+  const Dpi: Single): boolean;
 var
   OldDist, NewDist: Single;
   Length0, Length1: Single;
