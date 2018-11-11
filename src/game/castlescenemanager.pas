@@ -845,6 +845,10 @@ type
       See the @link(CalculateProjection) for a description how to default
       projection parameters are calculated. }
     property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
@@ -1463,6 +1467,10 @@ begin
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   FullSize := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -1490,6 +1498,9 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
 
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -3003,6 +3014,10 @@ function TCastleAbstractViewport.SensorTranslation(const X, Y, Z, Length: Double
 begin
   Result := (Camera <> nil) and Camera.SensorTranslation(X, Y, Z, Length, SecondsPassed * GetTimeScale);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleAbstractViewportList -------------------------------------------------- }
 
