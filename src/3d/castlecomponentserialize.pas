@@ -136,9 +136,16 @@ var
   ResultClassName: String;
   ResultClass: TComponentClass;
 begin
-  ResultClassName := JsonObject.Strings['_ClassName'];
-  // do not confuse TJSONDeStreamer with extra ClassName property
-  JsonObject.Delete('_ClassName');
+  if JsonObject.Find('$ClassName') <> nil then
+    ResultClassName := JsonObject.Strings['$ClassName']
+  else
+    ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
+
+  { Initially we did here
+      JsonObject.Delete('_ClassName');
+    to not confuse TJSONDeStreamer with extra _ClassName property.
+    But later: it is better to leave JSON structure unmodified
+    (allows to read it multiple times, if needed). }
 
   ResultClass := FindComponentClass(ResultClassName);
   if ResultClass = nil then
@@ -157,14 +164,18 @@ var
 begin
   if AObject is TComponent then
   begin
-    JsonChildren := Json.Arrays['_Children'];
+    if Json.Find('$Children') <> nil then
+      JsonChildren := Json.Arrays['$Children']
+    else
+      JsonChildren := Json.Arrays['_Children']; // handle older format
+
     if JsonChildren <> nil then
     begin
       for I := 0 to JsonChildren.Count - 1 do
       begin
         JsonChild := JsonChildren.Objects[I];
         if JsonChild = nil then
-          raise EInvalidComponentFile.Create('_Children must be an array of JSON objects');
+          raise EInvalidComponentFile.Create('$Children must be an array of JSON objects');
         Child := CreateComponentFromJson(JsonChild, Owner);
         FJsonReader.JSONToObject(JsonChild, Child);
         if AObject is TCastleUserInterface then
@@ -175,11 +186,16 @@ begin
           // matches TCastleTransform.GetChildren implementation
           TCastleTransform(AObject).Add(Child as TCastleTransform)
         else
-          raise EInvalidComponentFile.CreateFmt('_Children contains unexpected class, it cannot be added to parent: %s',
+          raise EInvalidComponentFile.CreateFmt('$Children contains unexpected class, it cannot be added to parent: %s',
             [Child.ClassName]);
       end;
     end;
-    Json.Delete('_Children');
+
+    { Initially we did here
+        Json.Delete('_Children');
+      to not confuse TJSONDeStreamer with extra property.
+      But later: it is better to leave JSON structure unmodified
+      (allows to read it multiple times, if needed). }
   end;
 end;
 
@@ -239,7 +255,7 @@ class procedure TCastleComponentWriter.AfterStreamObject(
   Sender: TObject; AObject: TObject; JSON: TJSONObject);
 begin
   { set _ClassName string, our reader depends on it }
-  Json.Strings['_ClassName'] := AObject.ClassName;
+  Json.Strings['$ClassName'] := AObject.ClassName;
 end;
 
 class procedure TCastleComponentWriter.StreamProperty(Sender: TObject;
@@ -360,7 +376,7 @@ begin
     JsonWriter.Options := [jsoStreamChildren];
     JsonWriter.AfterStreamObject := @TCastleComponentWriter(nil).AfterStreamObject;
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
-    JsonWriter.ChildProperty := '_Children';
+    JsonWriter.ChildProperty := '$Children';
     Json := JsonWriter.ObjectToJSON(C);
     try
       StringToFile(Url, Json.FormatJSON);
