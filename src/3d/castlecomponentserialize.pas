@@ -59,6 +59,12 @@ function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleU
 procedure ComponentSave(const C: TComponent; const Url: String);
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
+{ Save / load TComponent (or descendant) to a string.
+  The string contents have the same format
+  as a .castle-user-interface or .castle-transform file. }
+function ComponentToString(const C: TComponent): String;
+function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+
 { Register a component that can be serialized and edited using CGE editor.
   @param(Caption Nice caption to show user in the editor.) }
 procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
@@ -86,6 +92,34 @@ type
       @raises EComponentNotFound If child component with given name could not be found.
     }
     function FindRequiredComponent(const AName: String): TComponent;
+  end;
+
+  { Load the serialized component once, instantiate it many times. }
+  TSerializedComponent = class
+  strict private
+    JsonObject: TJSONObject;
+  public
+    constructor Create(const Url: String);
+    constructor CreateFromString(const Contents: String);
+    destructor Destroy; override;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.TransformLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function TransformLoad(const Owner: TComponent): TCastleTransform;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.UserInterfaceLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.ComponentLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function ComponentLoad(const Owner: TComponent): TComponent;
   end;
 
 implementation
@@ -199,6 +233,33 @@ begin
   end;
 end;
 
+{ TSerializedComponent ------------------------------------------------------- }
+
+constructor TSerializedComponent.Create(const Url: String);
+begin
+  CreateFromString(FileToString(Url));
+end;
+
+constructor TSerializedComponent.CreateFromString(const Contents: String);
+var
+  JsonData: TJSONData;
+begin
+  inherited Create;
+
+  JsonData := GetJson(Contents, true);
+  if not (JsonData is TJSONObject) then
+    raise EInvalidComponentFile.Create('Component JSON file should contain an object');
+  JsonObject := JsonData as TJSONObject;
+end;
+
+destructor TSerializedComponent.Destroy;
+begin
+  FreeAndNil(JsonObject);
+  inherited;
+end;
+
+function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
+
 { Load any TComponent.
 
   It mostly works automatically with any TComponent.
@@ -206,11 +267,9 @@ end;
   It expects that they implement InternalAddChild (an analogue to GetChildren
   method), otherwise deserializing custom children (defined by GetChildren)
   is not possible. }
-function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+
 var
   Reader: TCastleComponentReader;
-  JsonData: TJSONData;
-  JsonObject: TJSONObject;
 begin
   Reader := TCastleComponentReader.Create;
   try
@@ -218,22 +277,40 @@ begin
     Reader.FJsonReader.AfterReadObject := @Reader.DeStreamerAfterReadObject;
     Reader.FOwner := Owner;
 
-    JsonData := GetJson(FileToString(Url), true);
-    try
-      if not (JsonData is TJSONObject) then
-        raise EInvalidComponentFile.Create('Component JSON file should contain an object');
-      JsonObject := JsonData as TJSONObject;
+    { create Result with appropriate class }
+    Result := CreateComponentFromJson(JsonObject, Owner);
 
-      { create Result with appropriate class }
-      Result := CreateComponentFromJson(JsonObject, Owner);
-
-      { read Result contents from JSON }
-      Reader.FJsonReader.JSONToObject(JsonObject, Result);
-    finally FreeAndNil(JsonData) end;
+    { read Result contents from JSON }
+    Reader.FJsonReader.JSONToObject(JsonObject, Result);
   finally
     FreeAndNil(Reader.FJsonReader);
     FreeAndNil(Reader);
   end;
+end;
+
+function TSerializedComponent.TransformLoad(const Owner: TComponent): TCastleTransform;
+begin
+  Result := ComponentLoad(Owner) as TCastleTransform;
+end;
+
+function TSerializedComponent.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+begin
+  Result := ComponentLoad(Owner) as TCastleUserInterface;
+end;
+
+function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+var
+  SerializedComponent: TSerializedComponent;
+begin
+  SerializedComponent := TSerializedComponent.CreateFromString(Contents);
+  try
+    Result := SerializedComponent.ComponentLoad(Owner);
+  finally FreeAndNil(SerializedComponent) end;
+end;
+
+function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+begin
+  Result := StringToComponent(FileToString(Url), Owner);
 end;
 
 { saving to JSON ------------------------------------------------------------- }
@@ -366,7 +443,7 @@ begin
   end;
 end;
 
-procedure ComponentSave(const C: TComponent; const Url: String);
+function ComponentToString(const C: TComponent): String;
 var
   JsonWriter: TJSONStreamer;
   Json: TJSONObject;
@@ -379,9 +456,14 @@ begin
     JsonWriter.ChildProperty := '$Children';
     Json := JsonWriter.ObjectToJSON(C);
     try
-      StringToFile(Url, Json.FormatJSON);
+      Result := Json.FormatJSON;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonWriter) end;
+end;
+
+procedure ComponentSave(const C: TComponent; const Url: String);
+begin
+  StringToFile(Url, ComponentToString(C));
 end;
 
 { simple utilities ----------------------------------------------------------- }

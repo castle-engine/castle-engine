@@ -31,6 +31,8 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    MenuItemPasteComponent: TMenuItem;
+    MenuItemCopyComponent: TMenuItem;
     MenuItemSupport: TMenuItem;
     MenuItemSeparator788: TMenuItem;
     MenuItemRestartRebuildEditor: TMenuItem;
@@ -109,6 +111,7 @@ type
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
+    procedure MenuItemCopyComponentClick(Sender: TObject);
     procedure MenuItemDesignAddBoxClick(Sender: TObject);
     procedure MenuItemDesignAddRectangle2DClick(Sender: TObject);
     procedure MenuItemDesignAddSphereClick(Sender: TObject);
@@ -122,6 +125,7 @@ type
     procedure MenuItemOpenDesignClick(Sender: TObject);
     procedure MenuItemPackageClick(Sender: TObject);
     procedure MenuItemPackageSourceClick(Sender: TObject);
+    procedure MenuItemPasteComponentClick(Sender: TObject);
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
@@ -347,6 +351,12 @@ begin
     BuildToolCall(['compile', 'run']);
 end;
 
+procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.CopyComponent;
+end;
+
 procedure TProjectForm.MenuItemDesignAddBoxClick(Sender: TObject);
 begin
   NeedsDesignFrame;
@@ -402,6 +412,8 @@ begin
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
   MenuItemCameraViewAll.Enabled := Design <> nil;
   MenuItemSortBackToFront2D.Enabled := Design <> nil;
+  MenuItemCopyComponent.Enabled := Design <> nil;
+  MenuItemPasteComponent.Enabled := Design <> nil;
 
   LabelNoDesign.Visible := Design = nil;
 end;
@@ -464,6 +476,12 @@ end;
 procedure TProjectForm.MenuItemPackageSourceClick(Sender: TObject);
 begin
   BuildToolCall(['package-source']);
+end;
+
+procedure TProjectForm.MenuItemPasteComponentClick(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.PasteComponent;
 end;
 
 procedure TProjectForm.MenuItemSwitchProjectClick(Sender: TObject);

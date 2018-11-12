@@ -12,7 +12,7 @@ object ProjectForm: TProjectForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poMainFormCenter
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '1.9.0.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
@@ -119,8 +119,8 @@ object ProjectForm: TProjectForm
     end
   end
   object MainMenu1: TMainMenu
-    left = 52
-    top = 24
+    Left = 52
+    Top = 24
     object MenuItemFile: TMenuItem
       Caption = 'Project'
       object MenuItemRestartRebuildEditor: TMenuItem
@@ -199,6 +199,16 @@ object ProjectForm: TProjectForm
       end
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
+      end
+      object MenuItemCopyComponent: TMenuItem
+        Caption = 'Copy Component'
+        ShortCut = 16451
+        OnClick = MenuItemCopyComponentClick
+      end
+      object MenuItemPasteComponent: TMenuItem
+        Caption = 'Paste Component'
+        ShortCut = 16470
+        OnClick = MenuItemPasteComponentClick
       end
       object MenuItemDesignDeleteComponent: TMenuItem
         Caption = 'Delete Component'
@@ -325,8 +335,8 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    left = 169
-    top = 27
+    Left = 169
+    Top = 27
   end
   object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
@@ -334,13 +344,13 @@ object ProjectForm: TProjectForm
     FilterIndex = 0
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     AdviceDataDirectory = True
-    left = 169
-    top = 192
+    Left = 169
+    Top = 192
   end
   object OpenDesignDialog: TCastleOpenDialog
     Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     AdviceDataDirectory = True
-    left = 180
-    top = 111
+    Left = 180
+    Top = 111
   end
 end

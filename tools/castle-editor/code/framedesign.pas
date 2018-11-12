@@ -146,6 +146,12 @@ type
     property SelectedUserInterface: TCastleUserInterface
       read GetSelectedUserInterface write SetSelectedUserInterface;
 
+    { If there is exactly one item selected, return it. Otherwise return nil. }
+    function GetSelectedComponent: TComponent;
+    procedure SetSelectedComponent(const Value: TComponent);
+    property SelectedComponent: TComponent
+      read GetSelectedComponent write SetSelectedComponent;
+
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure MarkModified;
@@ -184,6 +190,8 @@ type
     procedure AddComponent(const ComponentClass: TComponentClass;
       const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
     procedure DeleteComponent;
+    procedure CopyComponent;
+    procedure PasteComponent;
     procedure CameraViewAll;
     procedure SortBackToFront2D;
     { set UIScaling values. }
@@ -920,6 +928,13 @@ end;
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
   const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
 
+  procedure FinishAddingComponent(const NewComponent: TComponent);
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+    SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+  end;
+
   procedure AddTransform(const ParentComponent: TCastleTransform);
   var
     NewTransform: TCastleTransform;
@@ -935,7 +950,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
         (NewTransform as TCastleSceneCore).PrimitiveGeometry := PrimitiveGeometry;
       end;
       ParentComponent.Add(NewTransform);
-      UpdateDesign;
+      FinishAddingComponent(NewTransform);
     end else
       ErrorBox(Format('Cannot add component class %s when the parent is a TCastleTransform scendant (%s). Select a parent that descends from TCastleUserInterface.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
@@ -951,8 +966,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
       NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
       UpdateComponentCaptionFromName(NewUserInterface);
       ParentComponent.InsertFront(NewUserInterface);
-      UpdateDesign;
-      SelectedUserInterface := NewUserInterface; // select after adding, makes it natural to edit
+      FinishAddingComponent(NewUserInterface);
     end else
       ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select SceneManager.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
@@ -1033,6 +1047,74 @@ begin
       ModifiedOutsideObjectInspector;
     end;
   finally FreeAndNil(Selected) end;
+end;
+
+procedure TDesignFrame.CopyComponent;
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+begin
+  GetSelected(Selected, SelectedCount);
+  try
+    if (SelectedCount <> 1) or
+       (csSubComponent in Selected[0].ComponentStyle) then
+    begin
+      ErrorBox('Select exactly one component, that is not a subcomponent, to copy');
+      Exit;
+    end;
+    Clipboard.AsText := ComponentToString(Selected[0]);
+  finally FreeAndNil(Selected) end;
+end;
+
+procedure TDesignFrame.PasteComponent;
+
+  procedure FinishAddingComponent(const NewComponent: TComponent);
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+    SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+  end;
+
+var
+  Selected: TComponentList;
+  SelectedCount: Integer;
+  ParentComponent, NewComponent: TComponent;
+begin
+  // TODO: rename to unique names
+
+  NewComponent := StringToComponent(Clipboard.AsText, DesignOwner);
+
+  // calculate ParentComponent
+  GetSelected(Selected, SelectedCount);
+  try
+    if SelectedCount = 1 then
+      ParentComponent := Selected.First
+    else
+      ParentComponent := DesignRoot;
+  finally FreeAndNil(Selected) end;
+
+  if NewComponent is TCastleUserInterface then
+  begin
+    if not (ParentComponent is TCastleUserInterface) then
+    begin
+      ErrorBox('Clipboard contains a TCastleUserInterface instance, you need to select a TCastleUserInterface as a parent before doing "Paste Component"');
+      Exit;
+    end;
+    (ParentComponent as TCastleUserInterface).InsertFront(NewComponent as TCastleUserInterface);
+    FinishAddingComponent(NewComponent);
+  end else
+  if NewComponent is TCastleTransform then
+  begin
+    if not (ParentComponent is TCastleTransform) then
+    begin
+      ErrorBox('Clipboard contains a TCastleTransform instance, you need to select a TCastleTransform as a parent before doing "Paste Component"');
+      Exit;
+    end;
+    (ParentComponent as TCastleTransform).Add(NewComponent as TCastleTransform);
+    FinishAddingComponent(NewComponent);
+  end else
+    ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
+      [NewComponent.ClassName]));
 end;
 
 function TDesignFrame.ForEachSelectedSceneManager(
@@ -1260,35 +1342,32 @@ end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);
 var
-  SelectedComponent: TComponent;
-  Selected: TComponentList;
-  SelectedCount: Integer;
+  Sel: TComponent;
   UI: TCastleUserInterface;
 begin
-  // when you modify component Name in PropertyGrid, update it in the ControlsTree
+  // This knows we have selected *at least one* component.
+  // When you modify component Name in PropertyGrid, update it in the ControlsTree.
   Assert(ControlsTree.Selected <> nil);
   Assert(ControlsTree.Selected.Data <> nil);
   Assert(TObject(ControlsTree.Selected.Data) is TComponent);
-  SelectedComponent := TComponent(ControlsTree.Selected.Data);
+  Sel := TComponent(ControlsTree.Selected.Data);
+  ControlsTree.Selected.Text := ComponentCaption(Sel);
 
-  ControlsTree.Selected.Text := ComponentCaption(SelectedComponent);
+  // This checks we have selected *exactly one* component.
+  Sel := SelectedComponent;
+  if Sel <> nil then
+  begin
+    // update also LabelControlSelected
+    LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Sel);
 
-  GetSelected(Selected, SelectedCount);
-  try
-    if SelectedCount = 1 then
+    // update also LabelSizeInfo
+    if Sel is TCastleUserInterface then
     begin
-      // update also LabelControlSelected
-      LabelControlSelected.Caption := 'Selected:' + NL + ComponentCaption(Selected[0]);
-
-      // update also LabelSizeInfo
-      if Selected[0] is TCastleUserInterface then
-      begin
-        UI := Selected[0] as TCastleUserInterface;
-        UpdateLabelSizeInfo(UI);
-        UpdateAnchors(UI, true);
-      end;
+      UI := Sel as TCastleUserInterface;
+      UpdateLabelSizeInfo(UI);
+      UpdateAnchors(UI, true);
     end;
-  finally FreeAndNil(Selected) end;
+  end;
 
   MarkModified;
 end;
@@ -1421,15 +1500,30 @@ begin
 end;
 
 function TDesignFrame.GetSelectedUserInterface: TCastleUserInterface;
+var
+  C: TComponent;
 begin
-  if (ControlsTree.SelectionCount = 1) and
-     (TObject(ControlsTree.Selections[0].Data) is TCastleUserInterface) then
-    Result := TCastleUserInterface(ControlsTree.Selections[0].Data)
+  C := GetSelectedComponent;
+  if C is TCastleUserInterface then
+    Result := TCastleUserInterface(C)
   else
     Result := nil;
 end;
 
 procedure TDesignFrame.SetSelectedUserInterface(const Value: TCastleUserInterface);
+begin
+  SelectedComponent := Value;
+end;
+
+function TDesignFrame.GetSelectedComponent: TComponent;
+begin
+  if ControlsTree.SelectionCount = 1 then
+    Result := TComponent(ControlsTree.Selections[0].Data)
+  else
+    Result := nil;
+end;
+
+procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
