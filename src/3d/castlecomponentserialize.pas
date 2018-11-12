@@ -24,7 +24,7 @@ unit CastleComponentSerialize;
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections,
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo,
   CastleUIControls, CastleTransform;
 
 type
@@ -36,6 +36,7 @@ type
     FJsonReader: TJSONDeStreamer;
     FOwner: TComponent;
     procedure DeStreamerAfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
   public
     property JsonReader: TJSONDeStreamer read FJsonReader;
     { Will own all deserialized components. }
@@ -124,8 +125,8 @@ type
 
 implementation
 
-uses JsonParser, TypInfo, RtlConsts,
-  CastleFilesUtils, CastleUtils, CastleLog;
+uses JsonParser, RtlConsts,
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils;
 
 { component registration ----------------------------------------------------- }
 
@@ -233,6 +234,63 @@ begin
   end;
 end;
 
+procedure TCastleComponentReader.RestoreProperty(Sender: TObject; AObject: TObject;
+  Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
+
+  function RenameUniquely(const Owner: TComponent; const NewName: String): String;
+  var
+    NameWithoutNumber: String;
+    Number: Int64;
+    P: Integer;
+  begin
+    // calculate P (position of last digit)
+    P := Length(NewName) + 1;
+    while (P > 1) and (NewName[P - 1] in ['0'..'9']) do
+      Dec(P);
+
+    // calculate NameWithoutNumber, Number
+    NameWithoutNumber := Copy(NewName, 1, P - 1);
+    try
+      if P <= Length(NewName) then
+        Number := StrToInt(SEnding(NewName, P))
+      else
+        Number := 0;
+    except
+      on EConvertError do
+      begin
+        // StrToInt can fail e.g. if you supply 'Blah99999999999999999999999999'.
+        NameWithoutNumber := NewName;
+        Number := 0;
+      end;
+    end;
+
+    repeat
+      Inc(Number);
+      Result := NameWithoutNumber + IntToStr(Number);
+    until Owner.FindComponent(Result) = nil;
+  end;
+
+var
+  TI: PTypeInfo;
+  NewName: TJSONStringType;
+begin
+  TI := Info^.PropType;
+  if (TI^.Kind in [tkSString, tkLString, tkAString]) and
+     (Info^.Name = 'Name') then
+  begin
+    { We handle setting Name ourselves, this way we can change the Name
+      to avoid conflicts. This is the only way to make Copy+Paste in CGE editor,
+      it is also a useful feature in general (makes it easier to instantiate
+      designs, when you don't have to worry that owner may have this name
+      already reserved). }
+    NewName := AValue.AsString;
+    if Owner.FindComponent(NewName) <> nil then
+      NewName := RenameUniquely(Owner, NewName);
+    SetStrProp(AObject, Info, NewName);
+    Handled := true;
+  end;
+end;
+
 { TSerializedComponent ------------------------------------------------------- }
 
 constructor TSerializedComponent.Create(const Url: String);
@@ -275,6 +333,7 @@ begin
   try
     Reader.FJsonReader := TJSONDeStreamer.Create(nil);
     Reader.FJsonReader.AfterReadObject := @Reader.DeStreamerAfterReadObject;
+    Reader.FJsonReader.OnRestoreProperty := @Reader.RestoreProperty;
     Reader.FOwner := Owner;
 
     { create Result with appropriate class }
