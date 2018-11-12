@@ -3991,8 +3991,8 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
       changed RenderContext.Viewport. }
     TUIContainer.RenderControlPrepare(ViewportRect);
 
-    DrawBorderRectangle(RectBorder.TopPart(Border.TotalTop));
-    DrawBorderRectangle(RectBorder.BottomPart(Border.TotalBottom));
+    DrawBorderRectangle(RectBorder.TopPart(Border.TotalTop * UIScale));
+    DrawBorderRectangle(RectBorder.BottomPart(Border.TotalBottom * UIScale));
 
     { Draw left and right borders from a smaller rectangle.
       This way we do not overdraw border corners, which is important
@@ -4001,10 +4001,10 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
       Unfortunately artifacts are visible (the right part is visibly
       shifted by ~1 pixel to the right), so we don't do it always now. }
     RectLeftRightBorders := RectBorder.
-      RemoveTop(Border.TotalTop).
-      RemoveBottom(Border.TotalBottom);
-    DrawBorderRectangle(RectLeftRightBorders.RightPart(Border.TotalRight));
-    DrawBorderRectangle(RectLeftRightBorders.LeftPart(Border.TotalLeft));
+      RemoveTop(Border.TotalTop * UIScale).
+      RemoveBottom(Border.TotalBottom * UIScale);
+    DrawBorderRectangle(RectLeftRightBorders.RightPart(Border.TotalRight * UIScale));
+    DrawBorderRectangle(RectLeftRightBorders.LeftPart(Border.TotalLeft * UIScale));
   end;
 
   procedure CacheRectBegin;
