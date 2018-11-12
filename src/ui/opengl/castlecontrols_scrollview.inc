@@ -15,6 +15,15 @@
 
 {$ifdef read_interface}
 
+  { @exclude Internal class to represent @link(TCastleScrollView). }
+  TInternalCastleScrollArea = class(TCastleUserInterface)
+    { Do not store VerticalAnchorXxx properties, they should be only controlled
+      using @link(TCastleScrollView.Scroll). }
+    property VerticalAnchorSelf stored false;
+    property VerticalAnchorParent stored false;
+    property VerticalAnchorDelta stored false;
+  end;
+
   { Children added to @link(ScrollArea) can be scrolled vertically.
     We automatically show a scrollbar, and handle various scrolling inputs
     to be functional on both desktops and mobile
@@ -22,7 +31,7 @@
     dragging the whole area - see @link(EnableDragging)). }
   TCastleScrollView = class(TCastleUserInterface)
   strict private
-    FScrollArea: TCastleUserInterface;
+    FScrollArea: TInternalCastleScrollArea;
 
     FScroll: Single;
     FScrollbarVisible: boolean;
@@ -85,7 +94,7 @@
         @item(Leave the ScrollArea anchors as default: ScrollArea should be
           anchored to the top-left corner of the parent.)
       ) }
-    property ScrollArea: TCastleUserInterface read FScrollArea;
+    property ScrollArea: TInternalCastleScrollArea read FScrollArea;
     { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
@@ -118,7 +127,7 @@ begin
   FScrollBarWidth := DefaultScrollBarWidth;
   FTintScrollBarInactive := White;
 
-  FScrollArea := TCastleUserInterface.Create(Self);
+  FScrollArea := TInternalCastleScrollArea.Create(Self);
   FScrollArea.SetSubComponent(true);
   FScrollArea.Name := 'ScrollArea';
   FScrollArea.Anchor(vpTop);
