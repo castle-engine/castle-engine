@@ -128,15 +128,6 @@
     { Should we free the @link(Image) when you set another one or at destructor. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
-    { Auto-size routines (see @link(AutoSize)) may treat the image
-      like always having at least these minimal sizes.
-      Even if the @link(Image) is empty (@nil).
-      This is useful when you have a row of buttons (typical for toolbar),
-      and you want them to have the same height, and their captions
-      to be displayed at the same level, regardless of their images sizes. }
-    property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
-    property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
-
     { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
     property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
     { Color tint when button is disabled (and not pressed). Opaque white by default. }
@@ -145,17 +136,6 @@
     property TintFocused : TCastleColor read FTintFocused  write FTintFocused;
     { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
     property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
-
-    { Use custom background images. If @true, we use properties
-      @unorderedList(
-        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
-      ).
-      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
-      specified by @link(CustomBackgroundCorners). }
-    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
 
     { Background image on the pressed button. See @link(CustomBackground) for details. }
     property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
@@ -184,6 +164,15 @@
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
+  published
+    { Auto-size routines (see @link(AutoSize)) may treat the image
+      like always having at least these minimal sizes.
+      Even if the @link(Image) is empty (@nil).
+      This is useful when you have a row of buttons (typical for toolbar),
+      and you want them to have the same height, and their captions
+      to be displayed at the same level, regardless of their images sizes. }
+    property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
+    property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
 
     { For multi-line @link(Caption), the horizontal alignment of the lines. }
     property TextAlignment: THorizontalPosition
@@ -206,7 +195,18 @@
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
-  published
+
+    { Use custom background images. If @true, we use properties
+      @unorderedList(
+        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
+      )
+      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
+      specified by @link(CustomBackgroundCorners). }
+    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+
     { Should we use custom text color in @link(CustomTextColor)
       instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
     property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;

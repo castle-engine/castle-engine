@@ -619,6 +619,10 @@ type
     function HeadlightInstance(out Instance: TLightInstance): boolean;
       deprecated 'internal information, do not use this';
 
+    { Enable built-in SSAO screen effect in the world. }
+    property ScreenSpaceAmbientOcclusion: boolean
+      read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
+      default DefaultScreenSpaceAmbientOcclusion;
   published
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
@@ -832,11 +836,6 @@ type
     }
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
-
-    { Enable built-in SSAO screen effect in the world. }
-    property ScreenSpaceAmbientOcclusion: boolean
-      read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
-      default DefaultScreenSpaceAmbientOcclusion;
 
     { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
@@ -1117,6 +1116,50 @@ type
 
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
+
+    { Player in this 3D world. This currently serves various purposes:
+
+      @unorderedList(
+        @item(In the 1st person view, this 3D object guides the camera and
+          it never collides with the camera. That is, our CameraMoveAllowed
+          and similar methods simply call Player.MoveAllowed,
+          that in turn calls World.WorldMoveAllowed making sure
+          that player is temporarily disabled (does not collide with itself).
+
+          TGameSceneManager.LoadLevel will set Player.Camera to
+          TCastleSceneManager.Camera. This means that user can directly
+          control Player.Camera view (position, direction, up),
+          which in turn is always synchronized with Player view (that
+          is, TPlayer.Direction always equals TPlayer.Camera.Direction and so on).)
+
+        @item(For simple AI in CastleCreatures, hostile creatures will attack
+          this player. So this determines the target position that
+          creatures try to reach, where they shoot missiles etc.
+          More advanced AI, with friendlies/companions, or cooperating
+          factions of creatures, may have other mechanisms to determine who
+          wants to attack who.)
+
+        @item(For items on level in CastleItems, this player will pick up the items
+          lying on the ground, and will be able to equip weapons.
+          This functionality may be generalized in the future, to allow
+          anyone to pick up and carry and equip items.)
+      )
+    }
+    property Player: TPlayer read FPlayer write SetPlayer;
+
+    { Determines the headlight look, if we use a headlight
+      (which is determined by the algorithm described at @link(UseHeadlight) and
+      @link(TUseHeadlight)).
+      By default it's a simplest directional headlight,
+      but you can customize it, and thus you can use a point light
+      or a spot light for a headlight.
+      Just like https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
+
+      This is never @nil.
+      Assigning here @nil simply causes us to recreate it using
+      the simplest directional headlight. }
+    property HeadlightNode: TAbstractLightNode
+      read GetHeadlightNode write SetHeadlightNode;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -1208,36 +1251,6 @@ type
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
 
-    { Player in this 3D world. This currently serves various purposes:
-
-      @unorderedList(
-        @item(In the 1st person view, this 3D object guides the camera and
-          it never collides with the camera. That is, our CameraMoveAllowed
-          and similar methods simply call Player.MoveAllowed,
-          that in turn calls World.WorldMoveAllowed making sure
-          that player is temporarily disabled (does not collide with itself).
-
-          TGameSceneManager.LoadLevel will set Player.Camera to
-          TCastleSceneManager.Camera. This means that user can directly
-          control Player.Camera view (position, direction, up),
-          which in turn is always synchronized with Player view (that
-          is, TPlayer.Direction always equals TPlayer.Camera.Direction and so on).)
-
-        @item(For simple AI in CastleCreatures, hostile creatures will attack
-          this player. So this determines the target position that
-          creatures try to reach, where they shoot missiles etc.
-          More advanced AI, with friendlies/companions, or cooperating
-          factions of creatures, may have other mechanisms to determine who
-          wants to attack who.)
-
-        @item(For items on level in CastleItems, this player will pick up the items
-          lying on the ground, and will be able to equip weapons.
-          This functionality may be generalized in the future, to allow
-          anyone to pick up and carry and equip items.)
-      )
-    }
-    property Player: TPlayer read FPlayer write SetPlayer;
-
     (*Enable or disable movement of the player, items and creatures.
       This applies to all 3D objects using TCastleTransform.WorldMoveAllowed for movement.
       In case of 1st-person view (always for now),
@@ -1283,20 +1296,6 @@ type
       ) *)
     property OnMoveAllowed: TWorldMoveAllowedEvent
       read FOnMoveAllowed write FOnMoveAllowed;
-
-    { Determines the headlight look, if we use a headlight
-      (which is determined by the algorithm described at @link(UseHeadlight) and
-      @link(TUseHeadlight)).
-      By default it's a simplest directional headlight,
-      but you can customize it, and thus you can use a point light
-      or a spot light for a headlight.
-      Just like https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
-
-      This is never @nil.
-      Assigning here @nil simply causes us to recreate it using
-      the simplest directional headlight. }
-    property HeadlightNode: TAbstractLightNode
-      read GetHeadlightNode write SetHeadlightNode;
 
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
