@@ -158,22 +158,25 @@
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
 
-// This serves two purposes:
+// *Not* define ENABLE_SELF_RECORD_CONSTANTS because:
+//
 // - Declaring something like TVector3.Zero (constant filled with zeros,
 //   inside a record, which type is the same record)
 //   causes internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
 //   so already fixed in FPC).
+//
 // - Declaring something like TVector3.Zero or TVector3.One
 //   (any constant inside a record, which type is the same record)
 //   is not allowed in Delphi, causes error that type is not completely defined.
-{$ifdef FPC}
-  {$define ENABLE_SELF_RECORD_CONSTANTS}
-  {$ifdef VER3_0}
-    {$ifndef VER3_0_0}
-      {$undef ENABLE_SELF_RECORD_CONSTANTS}
-    {$endif}
-  {$endif}
-{$endif}
+//
+// - Since FPC 3.3.1 (at least revision 40292, revision 40000 was OK)
+//   FPC reports the same error as Delphi
+//   (Error: Type "TGenericVector2" is not completely defined).
+//
+// So ENABLE_SELF_RECORD_CONSTANTS is just *never* defined for now.
+// If FPC 3.3.1 will keep this behaviour, we'll just simplify the code
+// in the future to not make this optional.
+{.$define ENABLE_SELF_RECORD_CONSTANTS}
 
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}

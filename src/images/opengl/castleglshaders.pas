@@ -101,9 +101,8 @@ type
     Name: string;
     Location: TGLint;
 
-    const
-      { Calling @link(TGLSLUniform.SetValue) of this is ignored. }
-      NotExisting: TGLSLUniform = (Owner: nil; Name: ''; Location: -1);
+    { Calling @link(TGLSLUniform.SetValue) of this is ignored. }
+    class function NotExisting: TGLSLUniform; static;
 
     { Set uniform variable value.
       You should get the uniform information first using the
@@ -653,6 +652,13 @@ begin
 end;
 
 { TGLSLUniform --------------------------------------------------------------- }
+
+class function TGLSLUniform.NotExisting: TGLSLUniform; static;
+const
+  R: TGLSLUniform = (Owner: nil; Name: ''; Location: -1);
+begin
+  Result := R;
+end;
 
 procedure TGLSLUniform.SetValue(const Value: boolean; const ForceException: boolean);
 begin
