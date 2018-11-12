@@ -88,8 +88,6 @@ type
           ResizingVertical: TVerticalPosition; //< Defined only when DraggingMode=dmResize
           LabelHover, LabelSelected: TCastleLabel;
           RectHover, RectSelected: TCastleRectangleControl;
-        function GetSelectedUserInterface: TCastleUserInterface;
-        procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
@@ -102,8 +100,6 @@ type
         function Release(const Event: TInputPressRelease): Boolean; override;
         function Motion(const Event: TInputMotion): Boolean; override;
         procedure Render; override;
-        property SelectedUserInterface: TCastleUserInterface
-          read GetSelectedUserInterface write SetSelectedUserInterface;
       end;
 
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
@@ -131,18 +127,25 @@ type
       InsideToggleModeClick: Boolean;
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
+
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
     procedure FinishUserInterfaceAnchorsChange(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
+
     { Calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
       out SelectedCount: Integer);
+
     { If there is exactly one item selected, and it is TCastleUserInterface,
       return it. Otherwise return nil. }
     function GetSelectedUserInterface: TCastleUserInterface;
+    procedure SetSelectedUserInterface(const Value: TCastleUserInterface);
+    property SelectedUserInterface: TCastleUserInterface
+      read GetSelectedUserInterface write SetSelectedUserInterface;
+
     procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure MarkModified;
@@ -260,20 +263,6 @@ begin
   RectSelected.InsertFront(LabelSelected);
 end;
 
-function TDesignFrame.TDesignerLayer.GetSelectedUserInterface: TCastleUserInterface;
-begin
-  Result := Frame.GetSelectedUserInterface;
-end;
-
-procedure TDesignFrame.TDesignerLayer.SetSelectedUserInterface(
-  const Value: TCastleUserInterface);
-var
-  Node: TTreeNode;
-begin
-  if Frame.TreeNodeMap.TryGetValue(Value, Node) then
-    Frame.ControlsTree.Select([Node]);
-end;
-
 function TDesignFrame.TDesignerLayer.HoverUserInterface(
   const AMousePosition: TVector2): TCastleUserInterface;
 
@@ -385,9 +374,9 @@ begin
       the size of TCastleScrollView without
       selecting TCastleScrollView.ScrollArea inside. }
     if Event.IsMouseButton(mbLeft) then
-      SelectedUserInterface := HoverUserInterface(Event.Position);
+      Frame.SelectedUserInterface := HoverUserInterface(Event.Position);
 
-    UI := SelectedUserInterface;
+    UI := Frame.SelectedUserInterface;
     if UI <> nil then
     begin
       if IsResizing(UI, Event.Position, ResizingHorizontal, ResizingVertical) then
@@ -604,7 +593,7 @@ begin
 
   if (Frame.Mode = moSelectTranslateResize) and (DraggingMode <> dmNone) then
   begin
-    UI := SelectedUserInterface;
+    UI := Frame.SelectedUserInterface;
     if UI <> nil then
     begin
       Move := (Event.Position - Event.OldPosition) / UI.UIScale;
@@ -671,7 +660,7 @@ var
 begin
   inherited;
 
-  SelectedUI := SelectedUserInterface;
+  SelectedUI := Frame.SelectedUserInterface;
   if SelectedUI <> nil then
   begin
     SelectedUIRect := SelectedUI.RenderRectWithBorder;
@@ -963,6 +952,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
       UpdateComponentCaptionFromName(NewUserInterface);
       ParentComponent.InsertFront(NewUserInterface);
       UpdateDesign;
+      SelectedUserInterface := NewUserInterface; // select after adding, makes it natural to edit
     end else
       ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select SceneManager.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
@@ -1439,6 +1429,14 @@ begin
     Result := nil;
 end;
 
+procedure TDesignFrame.SetSelectedUserInterface(const Value: TCastleUserInterface);
+var
+  Node: TTreeNode;
+begin
+  if TreeNodeMap.TryGetValue(Value, Node) then
+    ControlsTree.Select([Node]);
+end;
+
 procedure TDesignFrame.UpdateSelectedControl;
 var
   Selected: TComponentList;
@@ -1467,7 +1465,7 @@ begin
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
-  UI := GetSelectedUserInterface;
+  UI := SelectedUserInterface;
   TabAnchors.TabVisible := UI <> nil;
   if UI <> nil then
   begin
@@ -1540,7 +1538,7 @@ var
   UI: TCastleUserInterface;
   OldRect: TFloatRectangle;
 begin
-  UI := GetSelectedUserInterface;
+  UI := SelectedUserInterface;
   if UI <> nil then
   begin
     OldRect := UI.RenderRectWithBorder;
@@ -1817,7 +1815,7 @@ begin
   ParentAnchorsFrame.Enabled := not CheckParentSelfAnchorsEqual.Checked;
   if CheckParentSelfAnchorsEqual.Checked then
   begin
-    UI := GetSelectedUserInterface;
+    UI := SelectedUserInterface;
     if UI <> nil then
     begin
       OldRect := UI.RenderRectWithBorder;
@@ -1837,7 +1835,7 @@ procedure TDesignFrame.ButtonClearAnchorDeltasClick(Sender: TObject);
 var
   UI: TCastleUserInterface;
 begin
-  UI := GetSelectedUserInterface;
+  UI := SelectedUserInterface;
   if UI <> nil then
   begin
     UI.HorizontalAnchorDelta := 0;
