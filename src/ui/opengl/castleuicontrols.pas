@@ -143,20 +143,35 @@ type
 
     { Scale to fake that the container sizes are smaller/larger
       by an explicit factor @link(TUIContainer.UIExplicitScale).
-      Controls that look at @link(TCastleUserInterface.UIScale) will be affected by this.
+      Controls that look at @link(TCastleUserInterface.UIScale)
+      will be affected by this.
 
       Like usEncloseReferenceSize or usFitReferenceSize,
       this allows to design a scalable UI.
       In this case, the scale factor has to be calculated by your code
       (by default @link(TUIContainer.UIExplicitScale) is 1.0 and the engine will
       not modify it automatically in any way),
-      which allows customizing the scale to your requirements.
+      which allows customizing the scale to your requirements. }
+    usExplicitScale,
 
-      For example derive the @link(TUIContainer.UIExplicitScale) from
-      the @link(TUIContainer.Dpi) value to keep UI controls at constant
-      @italic(physical) (real-world) size, at least on devices where
-      @link(TUIContainer.Dpi) is a real value (right now: iOS). }
-    usExplicitScale
+    { Scale to pretend that the container size is smaller/larger
+      by a factor derived from @link(TUIContainer.Dpi).
+
+      This allows to adjust controls to:
+
+      @unorderedList(
+        @item(The physical size
+          (@link(TUIContainer.Dpi) on iOS and Android really reflects physical size).)
+        @item(Or at least to follow user preferred UI scaling
+          (@link(TUIContainer.Dpi) desktop is often more like "configurable
+          way to scale UI" than derived from actual monitor physical size).)
+      )
+
+      This is the same scaling done by normal desktop applications,
+      e.g. using Lazarus LCL. Using this scaling is best if your user interface
+      using CGE should match (the size of) the user interface done by Lazarus LCL.
+    }
+    usDpiScale
   );
 
   { Things that can cause @link(TInputListener.VisibleChange) notification. }
@@ -3258,6 +3273,7 @@ begin
   case UIScaling of
     usNone         : Result := 1;
     usExplicitScale: Result := UIExplicitScale;
+    usDpiScale     : Result := Dpi / DefaultDpi;
     usEncloseReferenceSize, usFitReferenceSize:
       begin
         Result := 1;

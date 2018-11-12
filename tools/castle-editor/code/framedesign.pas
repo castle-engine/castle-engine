@@ -1189,7 +1189,10 @@ begin
     usFitReferenceSize    : H := Format('User interface scaling in effect: window must fit inside a reference size of %f x %f.' + NL,
       [CastleControl.Container.UIReferenceWidth,
        CastleControl.Container.UIReferenceHeight]);
-    usExplicitScale       : H := 'User interface scaling in effect: explicit scale.' + NL;
+    usExplicitScale       : H := Format('User interface scaling in effect: explicit scale %f.' + NL,
+      [CastleControl.Container.UIExplicitScale]);
+    usDpiScale            : H := Format('User interface scaling in effect: scale to follow DPI (pixels per inch). DPI detected now is %f.' + NL,
+      [CastleControl.Container.Dpi]);
     else raise EInternalError.Create('CastleControl.Container.UIScaling?');
   end;
   if CastleControl.Container.UIScaling <> usNone then

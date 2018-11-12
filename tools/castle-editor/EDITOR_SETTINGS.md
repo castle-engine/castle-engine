@@ -58,7 +58,12 @@ The features that can be controlled this way:
 <castle_settings>
   <!--
     UI scaling settings.
-    The allowed mode values are "None", "EncloseReferenceSize", "FitReferenceSize".
+    The allowed mode values are
+    - None,
+    - EncloseReferenceSize,
+    - FitReferenceSize,
+    - ExplicitScale,
+    - DpiScale.
     See the [TUIScaling API docs](https://castle-engine.io/apidoc/html/CastleUIControls.html#TUIScaling)
     for meaning.
   -->
