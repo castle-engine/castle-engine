@@ -47,6 +47,7 @@
     FTintScrollBarInactive: TCastleColor;
     procedure SetScroll(Value: Single);
     function ScrollBarWidthScaled: Single;
+    function EffectiveHeightForChildren: Single;
   protected
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
@@ -188,11 +189,12 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
       FScrollBarVisible := false
     else
     begin
-      ScrollbarSlider.Height := EffectiveHeight * SR.Height / ScrollArea.EffectiveHeight;
+      ScrollbarSlider.Height := EffectiveHeightForChildren * SR.Height / ScrollArea.EffectiveHeight;
       FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
       { equivalent would be to set
-          ScrollBarVisible := EffectiveHeight < ScrollArea.EffectiveHeight
-        But this way makes it clear that MapRange below is valid, will not divide by zero. }
+          ScrollBarVisible := EffectiveHeightForChildren < ScrollArea.EffectiveHeight
+        But this way makes it clear that MapRange below is valid,
+        it will not divide by zero. }
     end;
     if FScrollBarVisible then
       ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
@@ -431,7 +433,7 @@ end;
 
 function TCastleScrollView.ScrollMax: Single;
 begin
-  Result := Max(0, ScrollArea.EffectiveHeight - EffectiveHeight);
+  Result := Max(0, ScrollArea.EffectiveHeight - EffectiveHeightForChildren);
 end;
 
 function TCastleScrollView.ScrollBarWidthScaled: Single;
@@ -440,6 +442,11 @@ begin
     Result := Theme.ScrollBarWidth * UIScale
   else
     Result := ScrollBarWidth * UIScale;
+end;
+
+function TCastleScrollView.EffectiveHeightForChildren: Single;
+begin
+  Result := EffectiveHeight - Border.TotalTop - Border.TotalBottom;
 end;
 
 {$define read_implementation_methods}

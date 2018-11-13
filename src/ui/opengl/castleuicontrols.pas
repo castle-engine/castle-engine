@@ -1507,10 +1507,12 @@ type
 
       This method returns the rectangle in local coordinates
       (relative to the parent 2D control).
-      It also uses "unscaled" coordinates,
-      which means that they correspond to the sizes you set in
+      The returned rectangle size includes the border size.
+      The returned rectangle size uses "unscaled" coordinates,
+      which means that they correspond to the sizes you set e.g. in
       @link(TCastleUserInterface.Width),
-      @link(TCastleUserInterface.Height).
+      @link(TCastleUserInterface.Height), and translation units you use with
+      e.g. @link(TCastleUserInterface.Anchor).
 
       If you're looking for a way to query the size of the control
       in final scaled coordinates (in real device pixels), and not relative
