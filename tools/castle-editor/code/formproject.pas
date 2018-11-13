@@ -655,6 +655,7 @@ begin
   MenuItemModeDebug.Checked := true;
 
   DesignExistenceChanged;
+  UpdateFormCaption(nil); // make form Caption reflect project name
 end;
 
 initialization
