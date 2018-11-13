@@ -190,6 +190,11 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     else
     begin
       ScrollbarSlider.Height := EffectiveHeightForChildren * SR.Height / ScrollArea.EffectiveHeight;
+      ScrollbarSlider.Height := Max(
+        Theme.MinimumScrollbarSliderHeight, ScrollbarSlider.Height);
+      ScrollbarSlider.Height := Min(
+        EffectiveHeightForChildren, ScrollbarSlider.Height);
+
       FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
       { equivalent would be to set
           ScrollBarVisible := EffectiveHeightForChildren < ScrollArea.EffectiveHeight
@@ -197,9 +202,11 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
         it will not divide by zero. }
     end;
     if FScrollBarVisible then
+    begin
       ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
         (MapRange(Scroll, ScrollMin, ScrollMax,
-          ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
+          ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
+    end else
     begin
       ScrollBarDragging := false;
       Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears

@@ -69,6 +69,8 @@
 
     { Width of scrollbar for TCastleScrollView. }
     ScrollBarWidth: Single;
+    { Minumum scrollbar height, to be comfortably visible and draggable. }
+    MinimumScrollbarSliderHeight: Single;
 
     { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
 
@@ -161,6 +163,7 @@ begin
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
   ScrollBarWidth := 20;
+  MinimumScrollbarSliderHeight := 20;
 
   FOwnsMessageFont := true;
 
