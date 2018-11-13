@@ -67,6 +67,9 @@
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
+    { Width of scrollbar for TCastleScrollView. }
+    ScrollBarWidth: Single;
+
     { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
 
       This is internally set and unset by the CastleWindow exception handler
@@ -157,6 +160,7 @@ begin
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
+  ScrollBarWidth := 20;
 
   FOwnsMessageFont := true;
 

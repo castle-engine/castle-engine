@@ -62,7 +62,6 @@
     const
       DefaultKeyScrollSpeed = 200.0;
       DefaultWheelScrollSpeed = 20.0;
-      DefaultScrollBarWidth = 20;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -99,8 +98,10 @@
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
     { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
     property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed default DefaultWheelScrollSpeed;
-    { Width of the scroll bar. }
-    property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default DefaultScrollBarWidth;
+    { Width of the scroll bar.
+      Value of 0 means to use global default
+      in @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
+    property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default 0;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
       Note that this doesn't affect the dragging directly by the scrollbar,
@@ -124,7 +125,6 @@ begin
 
   FKeyScrollSpeed := DefaultKeyScrollSpeed;
   FWheelScrollSpeed := DefaultWheelScrollSpeed;
-  FScrollBarWidth := DefaultScrollBarWidth;
   FTintScrollBarInactive := White;
 
   FScrollArea := TInternalCastleScrollArea.Create(Self);
@@ -436,7 +436,10 @@ end;
 
 function TCastleScrollView.ScrollBarWidthScaled: Single;
 begin
-  Result := ScrollBarWidth * UIScale;
+  if ScrollBarWidth = 0 then
+    Result := Theme.ScrollBarWidth * UIScale
+  else
+    Result := ScrollBarWidth * UIScale;
 end;
 
 {$define read_implementation_methods}
