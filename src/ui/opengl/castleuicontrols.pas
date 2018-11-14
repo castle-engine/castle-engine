@@ -32,6 +32,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
+  TInputListener = class;
   TCastleUserInterface = class;
   TChildrenControls = class;
   TUIContainer = class;
@@ -40,6 +41,14 @@ type
   TContainerObjectEvent = procedure (Container: TUIContainer) of object;
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
   TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
+
+  TUiNotifyEvent = procedure (const Sender: TCastleUserInterface) of object;
+  TUiUpdateEvent = procedure (const Sender: TInputListener;
+    const SecondsPassed: Single; var HandleInput: Boolean) of object;
+  TUiPressReleaseEvent = procedure (const Sender: TInputListener;
+    const Event: TInputPressRelease; var Handled: Boolean) of object;
+  TUiMotionEvent = procedure (const Sender: TInputListener;
+    const Event: TInputMotion; var Handled: Boolean) of object;
 
   { Tracking of a touch by a single finger, used by TTouchList. }
   TTouch = object
@@ -112,7 +121,6 @@ type
   end;
 
   TCastleUserInterfaceList = class;
-  TInputListener = class;
 
   { Possible values for TUIContainer.UIScaling. }
   TUIScaling = (
@@ -763,6 +771,10 @@ type
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FExclusiveEvents: boolean;
+    FOnUpdate: TUiUpdateEvent;
+    FOnPress: TUiPressReleaseEvent;
+    FOnRelease: TUiPressReleaseEvent;
+    FOnMotion: TUiMotionEvent;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container sizes.
@@ -1003,11 +1015,6 @@ type
       May be @nil if this control is not yet inserted into any container. }
     property Container: TUIContainer read FContainer write SetContainer;
 
-    { Mouse cursor over this control.
-      When user moves mouse over the Container, the currently focused
-      (topmost under the cursor) control determines the mouse cursor look. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
     { Event called when the @link(Cursor) property changes.
       This event is, in normal circumstances, used by the Container,
       so you should not use it in your own programs. }
@@ -1030,6 +1037,25 @@ type
       which is usually more sensible, but sometimes somewhat limiting. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
+
+  published
+    { Mouse cursor over this control.
+      When user moves mouse over the Container, the currently focused
+      (topmost under the cursor) control determines the mouse cursor look. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+
+    { Event that occurs continously on each control.
+      See @link(Update) for details. }
+    property OnUpdate: TUiUpdateEvent read FOnUpdate write FOnUpdate;
+    { An input (key, mouse button, mouse wheel) was pressed.
+      See @link(Press) for details. }
+    property OnPress: TUiPressReleaseEvent read FOnPress write FOnPress;
+    { An input (key, mouse button, mouse wheel) was released.
+      See @link(Release) for details. }
+    property OnRelease: TUiPressReleaseEvent read FOnRelease write FOnRelease;
+    { Pointer (mouse or finger) moved.
+      See @link(Motion) for details. }
+    property OnMotion: TUiMotionEvent read FOnMotion write FOnMotion;
   end;
 
   { Position for relative layout of one control in respect to another.
@@ -1120,6 +1146,7 @@ type
     FInsideRectWithoutAnchors: Boolean;
     FRenderCulling: Boolean;
     FClipChildren: Boolean;
+    FOnRender: TUiNotifyEvent;
 
     procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
@@ -1702,6 +1729,12 @@ type
       read FHasVerticalAnchor write FHasVerticalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
   published
+    { Control is being displayed.
+      See @link(Render) for details.
+      This event it called @italic(after) the @link(Render) method
+      of this control finished. }
+    property OnRender: TUiNotifyEvent read FOnRender write FOnRender;
+
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
       You can also remove this from controls list (like
@@ -3601,11 +3634,15 @@ end;
 function TInputListener.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
+  if Assigned(OnPress) then
+    OnPress(Self, Event, Result);
 end;
 
 function TInputListener.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
+  if Assigned(OnRelease) then
+    OnRelease(Self, Event, Result);
 end;
 
 function TInputListener.PreviewPress(const Event: TInputPressRelease): boolean;
@@ -3621,6 +3658,8 @@ end;
 function TInputListener.Motion(const Event: TInputMotion): boolean;
 begin
   Result := false;
+  if Assigned(OnMotion) then
+    OnMotion(Self, Event, Result);
 end;
 
 function TInputListener.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
@@ -3646,6 +3685,8 @@ end;
 procedure TInputListener.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
+  if Assigned(OnUpdate) then
+    OnUpdate(Self, SecondsPassed, HandleInput);
 end;
 
 procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = false);
@@ -4082,6 +4123,12 @@ begin
       begin
         TUIContainer.RenderControlPrepare(ViewportRect);
         Render;
+
+        if Assigned(OnRender) then
+        begin
+          TUIContainer.RenderControlPrepare(ViewportRect);
+          OnRender(Self);
+        end;
       end;
 
       for I := 0 to ControlsCount - 1 do
