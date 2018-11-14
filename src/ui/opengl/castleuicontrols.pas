@@ -299,6 +299,8 @@ type
     procedure UpdateUIScale;
     procedure SetForceCaptureInput(const Value: TCastleUserInterface);
     class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
+    function PassEvents(const C: TCastleUserInterface;
+      const CheckMousePosition: Boolean = true): Boolean;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -775,6 +777,7 @@ type
     FOnPress: TUiPressReleaseEvent;
     FOnRelease: TUiPressReleaseEvent;
     FOnMotion: TUiMotionEvent;
+    FVisible: Boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container sizes.
@@ -1144,7 +1147,7 @@ type
     FCachedRectWithoutAnchors: TFloatRectangle;
     FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
     FInsideRectWithoutAnchors: Boolean;
-    FRenderCulling: Boolean;
+    FCulling: Boolean;
     FClipChildren: Boolean;
     FOnRender: TUiNotifyEvent;
 
@@ -1184,7 +1187,7 @@ type
     procedure SetBorderColor(const Value: TCastleColor);
     procedure SetWidthFraction(const Value: Single);
     procedure SetHeightFraction(const Value: Single);
-    procedure SetRenderCulling(const Value: Boolean);
+    procedure SetCulling(const Value: Boolean);
     procedure SetClipChildren(const Value: Boolean);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
@@ -1888,19 +1891,20 @@ type
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
 
-    { Optimize rendering by first checking whether the control can be visible.
+    { Optimize rendering and event processing
+      by checking whether the control can be visible.
       The visibility is checked by looking at container rectangle,
       and all possible clipping parents
       (set by @link(TCastleScrollView), or any other control with
       @link(ClipChildren)).
 
-      This is useful for UI controls that have expensive rendering
+      This is useful for UI controls that have expensive rendering or other events
       (e.g. they do something non-trivial in @link(Render) or @link(RenderOverChildren),
       or they include a lot of children controls).
       And they may be placed off-screen,
       or they may be outside of a parent with clipping,
       which is often the case when the parent is @link(TCastleScrollView). }
-    property RenderCulling: Boolean read FRenderCulling write SetRenderCulling default false;
+    property Culling: Boolean read FCulling write SetCulling default false;
 
     { Clip the rendering of children.
 
@@ -2307,6 +2311,16 @@ begin
     ForceCaptureInput.GetExists;
 end;
 
+function TUIContainer.PassEvents(const C: TCastleUserInterface;
+  const CheckMousePosition: Boolean): Boolean;
+begin
+  Result :=
+    (not (csDestroying in C.ComponentState)) and
+    C.GetExists and
+    ((not CheckMousePosition) or C.CapturesEventsAtPosition(MousePosition)) and
+    C.FVisible;
+end;
+
 procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   AnythingForcesNoneCursor: boolean;
@@ -2325,9 +2339,7 @@ var
       I: Integer;
       ChildAllowAddingToFocus: boolean;
     begin
-      if (not (csDestroying in C.ComponentState)) and
-         C.GetExists and
-         C.CapturesEventsAtPosition(MousePosition) then
+      if PassEvents(C) then
       begin
         if C.Cursor = mcForceNone then
           AnythingForcesNoneCursor := true;
@@ -2442,7 +2454,7 @@ function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const Se
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    if PassEvents(C) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         if RecursiveSensorRotation(C.Controls[I]) then
@@ -2471,7 +2483,7 @@ function TUIContainer.EventSensorTranslation(const X, Y, Z, Length: Double; cons
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    if PassEvents(C) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         if RecursiveSensorTranslation(C.Controls[I]) then
@@ -2500,7 +2512,7 @@ function TUIContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    if PassEvents(C) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         if RecursiveJoyAxisMove(C.Controls[I]) then
@@ -2529,7 +2541,7 @@ function TUIContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    if PassEvents(C) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         if RecursiveJoyButtonPress(C.Controls[I]) then
@@ -2617,7 +2629,7 @@ procedure TUIContainer.EventUpdate;
     I: Integer;
     Dummy: boolean;
   begin
-    if C.GetExists then
+    if PassEvents(C, false) then
     begin
       { go downward, from front to back.
         Important for controls watching/setting HandleInput,
@@ -2757,7 +2769,7 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position)  then
+    if PassEvents(C) then
     begin
       { try C.PreviewPress }
       if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
@@ -2834,7 +2846,7 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) then
+    if PassEvents(C) then
     begin
       { try C.PreviewRelease }
       if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
@@ -3027,7 +3039,7 @@ procedure TUIContainer.EventMotion(const Event: TInputMotion);
   var
     I: Integer;
   begin
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) then
+    if PassEvents(C) then
     begin
       { try to pass release to C children }
       for I := C.ControlsCount - 1 downto 0 do
@@ -3107,7 +3119,7 @@ procedure TUIContainer.EventBeforeRender;
   var
     I: Integer;
   begin
-    if C.GetExists then
+    if PassEvents(C, false) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         RecursiveBeforeRender(C.Controls[I]);
@@ -3629,6 +3641,7 @@ begin
   inherited;
   FExclusiveEvents := true;
   FCursor := mcDefault;
+  FVisible := true;
 end;
 
 function TInputListener.Press(const Event: TInputPressRelease): boolean;
@@ -4106,7 +4119,8 @@ begin
 
     R := RenderRectWithBorder;
 
-    if (not RenderCulling) or ClippingRect.Collides(R) then
+    FVisible := (not Culling) or ClippingRect.Collides(R);
+    if FVisible then
     begin
       DrawBorder(R);
 
@@ -4804,11 +4818,11 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.SetRenderCulling(const Value: Boolean);
+procedure TCastleUserInterface.SetCulling(const Value: Boolean);
 begin
-  if FRenderCulling <> Value then
+  if FCulling <> Value then
   begin
-    FRenderCulling := Value;
+    FCulling := Value;
     VisibleChange([chRender]);
   end;
 end;
