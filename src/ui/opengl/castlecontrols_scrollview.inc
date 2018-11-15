@@ -47,7 +47,6 @@
     FTintScrollBarInactive: TCastleColor;
     procedure SetScroll(Value: Single);
     function ScrollBarWidthScaled: Single;
-    function EffectiveHeightForChildren: Single;
   protected
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
@@ -449,11 +448,6 @@ begin
     Result := Theme.ScrollBarWidth * UIScale
   else
     Result := ScrollBarWidth * UIScale;
-end;
-
-function TCastleScrollView.EffectiveHeightForChildren: Single;
-begin
-  Result := EffectiveHeight - Border.TotalTop - Border.TotalBottom;
 end;
 
 {$define read_implementation_methods}

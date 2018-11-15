@@ -751,10 +751,21 @@ type
     procedure SetTop(const AValue: Single);
   public
     constructor Create(const AOnChange: TNotifyEvent);
+
+    { Total top border (Top + AllSides). }
     function TotalTop: Single;
+    { Total right border (Right + AllSides). }
     function TotalRight: Single;
+    { Total bottom border (Bottom + AllSides). }
     function TotalBottom: Single;
+    { Total left border (Left + AllSides). }
     function TotalLeft: Single;
+
+    { Total horizontal border (TotalLeft + TotalRight). }
+    function TotalWidth: Single;
+    { Total vertical border (TotalTop + TotalBottom). }
+    function TotalHeight: Single;
+
     { Anything not zero? }
     function Exists: Boolean;
   published
@@ -1256,6 +1267,11 @@ type
       must not include the space for @link(Border). Border size will be
       added later. }
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); virtual;
+
+    { @link(EffectiveWidth) without @link(Border) size. }
+    function EffectiveWidthForChildren: Single;
+    { @link(EffectiveHeight) without @link(Border) size. }
+    function EffectiveHeightForChildren: Single;
   public
     const
       DefaultWidth = 100.0;
@@ -2144,7 +2160,7 @@ function RenderControlToImage(const Container: TUIContainer;
 
 implementation
 
-uses DOM, TypInfo,
+uses DOM, TypInfo, Math,
   CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLImages;
@@ -3629,6 +3645,16 @@ begin
   Result := FAllSides + FLeft;
 end;
 
+function TBorder.TotalWidth: Single;
+begin
+  Result := 2 * FAllSides + FRight + FLeft;
+end;
+
+function TBorder.TotalHeight: Single;
+begin
+  Result := 2 * FAllSides + FTop + FBottom;
+end;
+
 function TBorder.Exists: Boolean;
 begin
   Result := (FAllSides <> 0) or
@@ -4481,8 +4507,8 @@ begin
     end;
 
     // subtract Border from W, H
-    BorderW := (Border.TotalRight + Border.TotalLeft) * UIScale;
-    BorderH := (Border.TotalTop + Border.TotalBottom) * UIScale;
+    BorderW := Border.TotalWidth * UIScale;
+    BorderH := Border.TotalHeight * UIScale;
     W := W - BorderW;
     H := H - BorderH;
 
@@ -4874,6 +4900,16 @@ begin
     ResizeHeight := false;
     Reason := SAppendPart(Reason, NL, 'Set "HeightFraction" to 0 to be able to freely change "Height".');
   end;
+end;
+
+function TCastleUserInterface.EffectiveHeightForChildren: Single;
+begin
+  Result := Max(0, EffectiveHeight - Border.TotalHeight);
+end;
+
+function TCastleUserInterface.EffectiveWidthForChildren: Single;
+begin
+  Result := Max(0, EffectiveWidth - Border.TotalWidth);
 end;
 
 {$define read_implementation_methods}

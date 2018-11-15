@@ -212,8 +212,8 @@ begin
   Result.Dimensions.Left := 0;
   Result.Dimensions.Bottom := 0;
 
-  ControlWidth := EffectiveWidth;
-  ControlHeight := EffectiveHeight;
+  ControlWidth := EffectiveWidthForChildren;
+  ControlHeight := EffectiveHeightForChildren;
 
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
