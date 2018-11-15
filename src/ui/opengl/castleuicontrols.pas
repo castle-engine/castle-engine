@@ -1731,6 +1731,10 @@ type
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write FHasVerticalAnchor stored false;
       deprecated 'this property does not do anything anymore, anchors are always active';
+
+    { Is the control possibly visible.
+      This is always @true when @link(Culling) is @false (the default). }
+    property Visible: Boolean read FVisible;
   published
     { Control is being displayed.
       See @link(Render) for details.
@@ -4823,6 +4827,8 @@ begin
   if FCulling <> Value then
   begin
     FCulling := Value;
+    if not Value then
+      FVisible := true; // Visible is always true when Culling is false
     VisibleChange([chRender]);
   end;
 end;
