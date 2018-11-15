@@ -24,7 +24,7 @@ uses Classes,
 
 procedure CompileIOS(const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, ExtraOptions: TStrings);
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 
@@ -50,7 +50,7 @@ const
 
 procedure CompileIOS(const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, ExtraOptions: TStrings);
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
@@ -58,7 +58,8 @@ procedure CompileIOS(const Plugin: boolean;
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile, SearchPaths, ExtraOptions);
+    Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile,
+      SearchPaths, LibraryPaths, ExtraOptions);
 
     { now use libtool to create a static library .a }
 

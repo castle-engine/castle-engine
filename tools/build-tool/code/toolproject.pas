@@ -55,7 +55,7 @@ type
     IncludePaths, ExcludePaths: TCastleStringList;
     ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
-    FSearchPaths: TStringList;
+    FSearchPaths, FLibraryPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
     FGameUnits, FEditorUnits: string;
@@ -179,6 +179,7 @@ type
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
+    property LibraryPaths: TStringList read FLibraryPaths;
     property AndroidServices: TServiceList read FAndroidServices;
     property IOSServices: TServiceList read FIOSServices;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
@@ -668,6 +669,16 @@ constructor TCastleProject.Create(const APath: string);
                 FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
             finally FreeAndNil(ChildElements) end;
           end;
+
+          ChildElement := Element.ChildElement('library_paths', false);
+          if ChildElement <> nil then
+          begin
+            ChildElements := ChildElement.ChildrenIterator('path');
+            try
+              while ChildElements.GetNext do
+                FLibraryPaths.Add(ChildElements.Current.AttributeString('value'));
+            finally FreeAndNil(ChildElements) end;
+          end;
         end;
 
         if FAndroidServices.HasService('open_associated_urls') then
@@ -747,6 +758,7 @@ begin
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
+  FLibraryPaths := TStringList.Create;
   FAndroidProjectType := apBase;
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
@@ -772,6 +784,7 @@ begin
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
+  FreeAndNil(FLibraryPaths);
   FreeAndNil(FAndroidServices);
   FreeAndNil(FIOSServices);
   FreeAndNil(FAssociateDocumentTypes);
@@ -825,7 +838,8 @@ begin
         { To compile CastleInternalVorbisFile properly.
           Later PackageIOS will actually add the static tremolo files to the project. }
         ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
-      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths, ExtraOptions);
+      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true),
+        SearchPaths, LibraryPaths, ExtraOptions);
 
       LinkIOSLibrary(Path, IOSLibraryFile);
       Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
@@ -835,7 +849,8 @@ begin
     case OS of
       Android:
         begin
-          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true), SearchPaths, ExtraOptions);
+          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
+            SearchPaths, LibraryPaths, ExtraOptions);
           Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
         end;
       else
@@ -855,7 +870,8 @@ begin
           if OS in AllWindowsOSes then
             GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
 
-          Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths, ExtraOptions);
+          Compile(OS, CPU, Plugin, Mode, Path, MainSource,
+            SearchPaths, LibraryPaths, ExtraOptions);
 
           if Plugin then
           begin
@@ -1772,12 +1788,12 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
-  function SearchPathsStr(const Absolute: Boolean): String;
+  function MakePathsStr(const Paths: TStringList; const Absolute: Boolean): String;
   var
     S, Dir: string;
   begin
     Result := '';
-    for S in SearchPaths do
+    for S in Paths do
     begin
       if Result <> '' then
         Result := Result + ';';
@@ -1841,8 +1857,13 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , FGameUnits);
-    Macros.Add('SEARCH_PATHS'          , SearchPathsStr(false));
-    Macros.Add('ABSOLUTE_SEARCH_PATHS' , SearchPathsStr(true));
+    Macros.Add('SEARCH_PATHS'          , MakePathsStr(SearchPaths, false));
+    Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(SearchPaths, true));
+    Macros.Add('LIBRARY_PATHS'          , MakePathsStr(LibraryPaths, false));
+    { Using this is important in ../data/custom_editor_template/castle_editor.lpi ,
+      otherwise with FPC 3.3.1 (rev 40292) doing "castle-engine editor"
+      fails when the project uses some libraries (like mORMot's .o files in static/). }
+    Macros.Add('ABSOLUTE_LIBRARY_PATHS' , MakePathsStr(LibraryPaths, true));
     Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
     Macros.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
     Macros.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', ExtraCompilerOptionsAbsolute.Text);

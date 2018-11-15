@@ -31,8 +31,8 @@ type
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings;
-  const ExtraOptions: TStrings = nil);
+  const SearchPaths, LibraryPaths: TStrings;
+  const ExtraOptions: TStrings);
 
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
@@ -215,7 +215,7 @@ end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, ExtraOptions: TStrings);
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FPCVer: TFPCVersion;
@@ -240,6 +240,15 @@ var
         FpcOptions.Add('-Fu' + SearchPaths[I]);
         FpcOptions.Add('-Fi' + SearchPaths[I]);
       end;
+  end;
+
+  procedure AddLibraryPaths;
+  var
+    I: Integer;
+  begin
+    if LibraryPaths <> nil then
+      for I := 0 to LibraryPaths.Count - 1 do
+        FpcOptions.Add('-Fl' + LibraryPaths[I]);
   end;
 
   function IsIOS: boolean;
@@ -433,6 +442,7 @@ begin
     end;
 
     AddSearchPaths;
+    AddLibraryPaths;
 
     { Specify the compilation options explicitly,
       duplicating logic from ../castle-fpc.cfg .

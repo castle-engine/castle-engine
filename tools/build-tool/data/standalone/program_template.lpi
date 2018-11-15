@@ -34,6 +34,7 @@
       <IncludeFiles Value="${SEARCH_PATHS}"/>
       <OtherUnitFiles Value="${SEARCH_PATHS}"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/${DOLLAR}(TargetCPU)-${DOLLAR}(TargetOS)"/>
+      <Libraries Value="${LIBRARY_PATHS}" />
     </SearchPaths>
     <Other>
       <Verbosity>
