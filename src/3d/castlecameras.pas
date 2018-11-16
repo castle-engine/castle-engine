@@ -606,6 +606,7 @@ type
     rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
+    FRotationEnabled: Boolean;
     FTranslation: TVector3;
     FRotations: TQuaternion;
     FDragMoveSpeed, FKeysMoveSpeed: Single;
@@ -635,6 +636,8 @@ type
     FInput_ScaleSmaller: TInputShortcut;
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
+
+    FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TMouseButton;
 
     procedure SetRotationsAnim(const Value: TVector3);
     procedure SetRotations(const Value: TQuaternion);
@@ -693,6 +696,33 @@ type
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
+
+    { Enable rotating the model.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a rotation. }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled;
+
+    { Drag with this mouse button to rotate the model.
+
+      See the discussion in castlecameras_default_examine_mouse_buttons.txt
+      why these defaults were chosen for MouseButtonRotate (left),
+      MouseButtonMove (middle), MouseButtonZoom (right).
+      Also note that for this camera:
+
+      @unorderedList(
+        @item(pressing left mouse button with Ctrl is considered like
+          pressing right mouse button,)
+        @item(pressing left mouse button with Shift is considered like
+          pressing middle mouse button.)
+      )
+    }
+    property MouseButtonRotate: TMouseButton
+      read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
+    { Drag with this mouse button to move the model (look closer / further). }
+    property MouseButtonMove: TMouseButton
+      read FMouseButtonMove write FMouseButtonMove default mbMiddle;
+    { Drag with this mouse button to zoom the model (look closer / further). }
+    property MouseButtonZoom: TMouseButton
+      read FMouseButtonZoom write FMouseButtonZoom default mbRight;
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -2100,6 +2130,7 @@ var
 begin
   inherited;
 
+  FRotationEnabled := true;
   FTranslation := TVector3.Zero;
   FRotations := TQuaternion.ZeroRotation;
   FRotationsAnim := TVector3.Zero;
@@ -2113,6 +2144,10 @@ begin
   FRotationSpeed := DefaultRotationSpeed;
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
+
+  FMouseButtonRotate := mbLeft;
+  FMouseButtonMove := mbMiddle;
+  FMouseButtonZoom := mbRight;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2204,6 +2239,8 @@ procedure TExamineCamera.Update(const SecondsPassed: Single;
   const
     MaxRotationSpeed = 6.0; { this prevents rotations getting too wild speed }
   begin
+    if not RotationEnabled then Exit;
+
     if RotationAccelerate then
       FRotationsAnim[coord] :=
         Clamped(FRotationsAnim[coord] +
@@ -2236,7 +2273,7 @@ begin
     keys (that increase RotationsAnim). Exact equality is Ok check
     to detect this. }
 
-  if not FRotationsAnim.IsPerfectlyZero then
+  if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
     RotChange := SecondsPassed;
 
@@ -2403,6 +2440,7 @@ var
   RotationSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit(false);
+  if not RotationEnabled then Exit(false);
   Result := true;
 
   Moved := false;
@@ -2607,7 +2645,6 @@ function TExamineCamera.Motion(const Event: TInputMotion): boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
-  DoZooming, DoMoving: boolean;
   MoveDivConst: Single;
   Dpi: Single;
 
@@ -2668,6 +2705,8 @@ var
     end;
   end;
 
+var
+  DraggingMouseButton: TMouseButton;
 begin
   Result := inherited;
   if Result then Exit;
@@ -2682,53 +2721,6 @@ begin
 
   MoveDivConst := Dpi;
 
-  { Shortcuts: I'll try to make them intelligent, which means
-    "mostly matching shortcuts in other programs" (like Blender) and
-    "accessible to all users" (which means that e.g. I don't want to use
-    middle mouse button, as many users have only 2 mouse buttons (or even 1),
-    besides GNOME hig says users seldom try out other than the 1st button).
-
-    Let's check what others use:
-
-    Blender:
-    - rotating: on bmMiddle
-    - moving left/right/down/up: on Shift + mbMiddle
-    - moving closer/further: on Ctrl + mbMiddle
-      (moving down brings closer, up brings further; horizontal move ignored)
-    Both Shift and Ctrl pressed do nothing.
-
-    vrweb:
-    - rotating: mbMiddle
-    - moving closer/further: mbRight (like in Blender: down closer, up further,
-      horizontal doesn't matter)
-    - moving left/right/down/up: mbLeft
-
-    GIMP normalmap 3d preview:
-    - rotating: mbLeft
-    - moving closer/further: mbRight (like in Blender: down closer, up further,
-      horizontal doesn't matter)
-    - no moving left/right/down/up.
-
-    My thoughts and conclusions:
-    - rotating seems most natural in Examine mode (that's where this navigation
-      mode is the most comfortable), so it should be on mbLeft (like normalmap)
-      with no modifiers (like Blender).
-    - moving closer/further: 2nd most important action in Examine mode, IMO.
-      Goes to mbRight. For people with 1 mouse button, and for Blender analogy,
-      it's also on Ctrl + mbLeft.
-    - moving left/right/down/up: mbMiddle.
-      For people with no middle button, and Blender analogy, it's also on
-      Shift + mbLeft.
-
-    This achieves a couple of nice goals:
-    - everything is available with only mbLeft, for people with 1 mouse button.
-    - Blender analogy: you can say to just switch "mbMiddle" to "mbLeft",
-      and it works the same
-    - OTOH, for people with 3 mouse buttons, that do not catch the fact that
-      keyboard modifiers change the navigation, also each mb (without modifier)
-      does something different.
-  }
-
   { When dragging should be ignored, or (it's an optimization to check it
     here early, Motion occurs very often) when nothing pressed, do nothing. }
   if (Container.MousePressed = []) or
@@ -2739,43 +2731,42 @@ begin
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
 
-  { Rotating }
+  { Look at Container.MousePressed and ModsDown to determine
+    which mouse button is "dragging" now. }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
+    DraggingMouseButton := mbLeft
+  else
+  if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
+     ((mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
+    DraggingMouseButton := mbRight
+  else
+  if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
+     ((mbLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
+    DraggingMouseButton := mbMiddle
+  else
+    Exit;
+
+  { Rotating }
+  if RotationEnabled and
+     (MouseButtonRotate = DraggingMouseButton) then
   begin
     if Turntable then
-      FRotations := DragRotation {old FRotations already included in XYRotation} else
+      FRotations := DragRotation {old FRotations already included in XYRotation}
+    else
       FRotations := DragRotation * FRotations;
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
 
-  { Moving uses box size, so requires non-empty box. }
-
-  { Note: checks for (ModsDown = []) are not really needed below,
-    mkRight / Middle don't serve any other purpose anyway.
-    But I think that it improves user ability to "discover" these shortcuts
-    and keys, otherwise it seems strange that shift/ctrl change the
-    meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
-
-  { Moving closer/further }
-  if Turntable then
-    DoZooming := (mbMiddle in Container.MousePressed) else
-    DoZooming := ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
-                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
-  if DoZooming then
+  if MouseButtonZoom = DraggingMouseButton then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
-  { Moving left/right/down/up }
-  if Turntable then
-    DoMoving := (not FModelBox.IsEmpty) and (mbRight in Container.MousePressed)
-  else
-    DoMoving := (not FModelBox.IsEmpty) and
-               ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
-                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) );
-  if DoMoving then
+  { Moving uses box size, so requires non-empty box. }
+  if (not FModelBox.IsEmpty) and
+     (MouseButtonMove = DraggingMouseButton) then
   begin
     Size := FModelBox.AverageSize;
     FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst));
