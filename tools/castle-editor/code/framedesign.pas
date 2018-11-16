@@ -1078,9 +1078,17 @@ var
   SelectedCount: Integer;
   ParentComponent, NewComponent: TComponent;
 begin
-  // TODO: rename to unique names
-
-  NewComponent := StringToComponent(Clipboard.AsText, DesignOwner);
+  try
+    NewComponent := StringToComponent(Clipboard.AsText, DesignOwner);
+  except
+    on E: Exception do
+    begin
+      ErrorBox('Cliboard doesn''t seem to contain a copied component.' + NL + NL +
+        'Trying to deserialize it failed with the error:' + NL + NL +
+        ExceptMessage(E));
+      Exit;
+    end;
+  end;
 
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
@@ -1096,6 +1104,7 @@ begin
     if not (ParentComponent is TCastleUserInterface) then
     begin
       ErrorBox('Clipboard contains a TCastleUserInterface instance, you need to select a TCastleUserInterface as a parent before doing "Paste Component"');
+      FreeAndNil(NewComponent);
       Exit;
     end;
     (ParentComponent as TCastleUserInterface).InsertFront(NewComponent as TCastleUserInterface);
@@ -1106,13 +1115,17 @@ begin
     if not (ParentComponent is TCastleTransform) then
     begin
       ErrorBox('Clipboard contains a TCastleTransform instance, you need to select a TCastleTransform as a parent before doing "Paste Component"');
+      FreeAndNil(NewComponent);
       Exit;
     end;
     (ParentComponent as TCastleTransform).Add(NewComponent as TCastleTransform);
     FinishAddingComponent(NewComponent);
   end else
+  begin
     ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
       [NewComponent.ClassName]));
+    FreeAndNil(NewComponent);
+  end;
 end;
 
 function TDesignFrame.ForEachSelectedSceneManager(
