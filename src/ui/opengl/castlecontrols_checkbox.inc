@@ -25,19 +25,24 @@
     FCaptionMargin: Single;
     FImageSquare, FImageCheckmark: TCastleImageControl;
     FLabelCaption: TCastleLabel;
-    FTextColor, FCheckColor: TCastleColor;
+    FTextColor, FCheckboxColor: TCastleColor;
     FAutoSize: Boolean;
+    FFontSize: Single;
+    FCheckboxSize: Single;
     procedure SetChecked(const Value: Boolean);
     procedure SetCaption(const Value: String);
     procedure SetTextColor(const Value: TCastleColor);
-    procedure SetCheckColor(const Value: TCastleColor);
+    procedure SetCheckboxColor(const Value: TCastleColor);
     procedure SetCaptionMargin(const Value: Single);
     procedure SetAutoSize(const Value: Boolean);
+    procedure SetFontSize(const Value: Single);
+    procedure SetCheckboxSize(const Value: Single);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultCaptionMargin = 10;
+      DefaultCheckboxSize = 24;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -48,7 +53,7 @@
     { Color of the label. By default opaque black. }
     property TextColor: TCastleColor read FTextColor write SetTextColor;
     { Color of the checkbox square and checkmark. By default opaque black. }
-    property CheckColor: TCastleColor read FCheckColor write SetCheckColor;
+    property CheckboxColor: TCastleColor read FCheckboxColor write SetCheckboxColor;
   published
     property Checked: Boolean read FChecked write SetChecked default false;
     property Caption: String read FCaption write SetCaption;
@@ -61,6 +66,11 @@
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     { Should our size be determined by checkbox image size and caption. }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
+    { Caption font size. }
+    property FontSize: Single read FFontSize write SetFontSize default 0.0;
+    { Size of the square checkbox. }
+    property CheckboxSize: Single read FCheckboxSize write SetCheckboxSize
+      default DefaultCheckboxSize;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlecheckbox_persistent_vectors.inc}
@@ -79,14 +89,18 @@ begin
   FCaptionMargin := DefaultCaptionMargin;
   FAutoSize := true;
   FTextColor := Black;
-  FCheckColor := Black;
+  FCheckboxColor := Black;
+  FCheckboxSize := DefaultCheckboxSize;
 
   FImageSquare := TCastleImageControl.Create(Self);
   FImageSquare.SetTransient;
   FImageSquare.Image := EmptySquare;
   FImageSquare.OwnsImage := false;
-  FImageSquare.Color := FCheckColor;
+  FImageSquare.Color := FCheckboxColor;
   FImageSquare.Anchor(vpMiddle);
+  FImageSquare.Stretch := true;
+  FImageSquare.Width := FCheckboxSize;
+  FImageSquare.Height := FCheckboxSize;
   InsertFront(FImageSquare);
 
   FImageCheckmark := TCastleImageControl.Create(Self);
@@ -95,8 +109,11 @@ begin
   FImageCheckmark.OwnsImage := false;
   FImageCheckmark.Anchor(hpMiddle);
   FImageCheckmark.Anchor(vpMiddle);
-  FImageCheckmark.Color := FCheckColor;
+  FImageCheckmark.Color := FCheckboxColor;
   FImageCheckmark.Exists := FChecked;
+  FImageCheckmark.Stretch := true;
+  FImageCheckmark.Width := FCheckboxSize;
+  FImageCheckmark.Height := FCheckboxSize;
   FImageSquare.InsertFront(FImageCheckmark);
 
   FLabelCaption := TCastleLabel.Create(Self);
@@ -218,13 +235,26 @@ begin
   end;
 end;
 
-procedure TCastleCheckbox.SetCheckColor(const Value: TCastleColor);
+procedure TCastleCheckbox.SetCheckboxColor(const Value: TCastleColor);
 begin
-  if not TCastleColor.PerfectlyEquals(FCheckColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FCheckboxColor, Value) then
   begin
-    FCheckColor := Value;
+    FCheckboxColor := Value;
     FImageSquare.Color := Value;
     FImageCheckmark.Color := Value;
+  end;
+end;
+
+procedure TCastleCheckbox.SetCheckboxSize(const Value: Single);
+begin
+  if FCheckboxSize <> Value then
+  begin
+    FCheckboxSize := Value;
+    FImageSquare.Width := Value;
+    FImageSquare.Height := Value;
+    FImageCheckmark.Width := Value;
+    FImageCheckmark.Height := Value;
+    FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
   end;
 end;
 
@@ -234,6 +264,15 @@ begin
   begin
     FCaptionMargin := Value;
     FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
+  end;
+end;
+
+procedure TCastleCheckbox.SetFontSize(const Value: Single);
+begin
+  if FFontSize <> Value then
+  begin
+    FFontSize := Value;
+    FLabelCaption.FontSize := Value;
   end;
 end;
 

@@ -86,39 +86,39 @@ end;
 
 {$ifdef read_interface_class}
 strict private
-  FCheckColorPersistent: TCastleColorPersistent;
-  function GetCheckColorForPersistent: TCastleColor;
-  procedure SetCheckColorForPersistent(const AValue: TCastleColor);
+  FCheckboxColorPersistent: TCastleColorPersistent;
+  function GetCheckboxColorForPersistent: TCastleColor;
+  procedure SetCheckboxColorForPersistent(const AValue: TCastleColor);
 published
-  { @link(CheckColor) that can be visually edited in
+  { @link(CheckboxColor) that can be visually edited in
     Castle Game Engine Editor, Lazarus and Delphi.
     Normal user code does not need to deal with this,
-    instead read or write @link(CheckColor) directly.
+    instead read or write @link(CheckboxColor) directly.
 
-    @seealso CheckColor }
-  property CheckColorPersistent: TCastleColorPersistent read FCheckColorPersistent;
+    @seealso CheckboxColor }
+  property CheckboxColorPersistent: TCastleColorPersistent read FCheckboxColorPersistent;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleCheckbox.GetCheckColorForPersistent: TCastleColor;
+function TCastleCheckbox.GetCheckboxColorForPersistent: TCastleColor;
 begin
-  Result := CheckColor;
+  Result := CheckboxColor;
 end;
 
-procedure TCastleCheckbox.SetCheckColorForPersistent(const AValue: TCastleColor);
+procedure TCastleCheckbox.SetCheckboxColorForPersistent(const AValue: TCastleColor);
 begin
-  CheckColor := AValue;
+  CheckboxColor := AValue;
 end;
 {$endif read_implementation_methods}
 
 {$ifdef read_implementation_constructor}
-  FCheckColorPersistent := TCastleColorPersistent.Create;
-  FCheckColorPersistent.InternalGetValue := @GetCheckColorForPersistent;
-  FCheckColorPersistent.InternalSetValue := @SetCheckColorForPersistent;
-  FCheckColorPersistent.InternalDefaultValue := CheckColor; // current value is default
+  FCheckboxColorPersistent := TCastleColorPersistent.Create;
+  FCheckboxColorPersistent.InternalGetValue := @GetCheckboxColorForPersistent;
+  FCheckboxColorPersistent.InternalSetValue := @SetCheckboxColorForPersistent;
+  FCheckboxColorPersistent.InternalDefaultValue := CheckboxColor; // current value is default
 {$endif read_implementation_constructor}
 
 {$ifdef read_implementation_destructor}
-  FreeAndNil(FCheckColorPersistent);
+  FreeAndNil(FCheckboxColorPersistent);
 {$endif read_implementation_destructor}
 

@@ -35,7 +35,7 @@
 ../../../src/ui/opengl/ TCastleEdit BackgroundColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleCheckbox TextColor TCastleColor
-../../../src/ui/opengl/ TCastleCheckbox CheckColor TCastleColor
+../../../src/ui/opengl/ TCastleCheckbox CheckboxColor TCastleColor
 
 ../../../src/3d/ TCastleTransform Center TVector3
 ../../../src/3d/ TCastleTransform Rotation TVector4
