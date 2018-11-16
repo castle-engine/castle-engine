@@ -331,7 +331,10 @@ type
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
-      Most UI code should rather be placed in TCastleUserInterface, and use TCastleUserInterface.UIScale. }
+      Almost all UI code should rather be placed in TCastleUserInterface,
+      and use TCastleUserInterface.UIScale,
+      not directly accessing Container.DefaultUIScale or
+      Container.FCalculatedUIScale. }
     function DefaultUIScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
@@ -781,6 +784,8 @@ type
   private
     FOnVisibleChange: TCastleUserInterfaceChangeEvent;
     FContainer: TUIContainer;
+    FLastSeenContainerWidth, FLastSeenContainerHeight: Integer;
+    FLastSeenUIScale: Single;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FExclusiveEvents: boolean;
@@ -1245,6 +1250,11 @@ type
       const CalculateEvenWithoutContainer: boolean = false): TFloatRectangle;
 
     procedure RecursiveRender(const ViewportRect: TRectangle);
+
+    { Recalculate UIScale property value, call UIScaleChanged if needed. }
+    procedure CheckUIScaleChanged;
+    { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
+    procedure CheckResize;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -1744,12 +1754,8 @@ type
     procedure Center;
 
     { UI scale of this control, derived from container
-      (see @link(TUIContainer.UIScaling).
-
-      All the drawing and measuring inside your control must take this into
-      account. The @link(Rect) method result must already take this scaling
-      into account, so that parent controls may depend on it. }
-    function UIScale: Single;
+      (see @link(TUIContainer.UIScaling) and @link(EnableUIScaling)). }
+    property UIScale: Single read FLastSeenUIScale;
 
     { Override this to prevent resizing some dimension in CGE editor. }
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
@@ -3055,7 +3061,7 @@ function TUIContainer.AllowSuspendForInput: boolean;
   var
     I: Integer;
   begin
-    if C.GetExists then
+    if PassEvents(C, false) then
     begin
       for I := C.ControlsCount - 1 downto 0 do
         if not RecursiveAllowSuspendForInput(C.Controls[I]) then
@@ -3175,7 +3181,11 @@ procedure TUIContainer.EventBeforeRender;
         RecursiveBeforeRender(C.Controls[I]);
 
       if C.GLInitialized then
+      begin
+        C.CheckUIScaleChanged;
+        C.CheckResize;
         C.BeforeRender;
+      end;
     end;
   end;
 
@@ -3253,7 +3263,7 @@ begin
   end;
   if NeedsGLOpen then
     Control.GLContextOpen;
-  Control.Resize;
+  Control.CheckResize;
   Control.BeforeRender;
   Control.RecursiveRender(ViewportRect);
 
@@ -3266,26 +3276,18 @@ begin
 end;
 
 procedure TUIContainer.EventResize;
-
-  procedure RecursiveResize(const C: TCastleUserInterface);
-  var
-    I: Integer;
-  begin
-    for I := C.ControlsCount - 1 downto 0 do
-      RecursiveResize(C.Controls[I]);
-    C.Resize;
-  end;
-
-var
-  I: Integer;
 begin
   if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
     { usXxxReferenceSize adjust current Width/Height to reference,
       so the FCalculatedUIScale must be adjusted on each resize. }
     UpdateUIScale;
 
-  for I := Controls.Count - 1 downto 0 do
-    RecursiveResize(Controls[I]);
+  { Note that we don't cause TCastleUserInterface.Resize calls now.
+    They are done before BeforeRender, this way culled UI controls
+    (when using @link(TCastleUserInterface.Culling))
+    are only updated when they are actually visible.
+    This can significantly speed things up when Culling makes sense
+    (lots of off-screen controls). }
 
   { This way control's get Resize before our OnResize,
     useful to process them all reliably in OnResize. }
@@ -3399,22 +3401,15 @@ begin
 end;
 
 procedure TUIContainer.UpdateUIScale;
-
-  procedure RecursiveUIScaleChanged(const C: TCastleUserInterface);
-  var
-    I: Integer;
-  begin
-    for I := 0 to C.ControlsCount - 1 do
-      RecursiveUIScaleChanged(C.Controls[I]);
-    C.UIScaleChanged;
-  end;
-
-var
-  I: Integer;
 begin
   FCalculatedUIScale := DefaultUIScale;
-  for I := 0 to Controls.Count - 1 do
-    RecursiveUIScaleChanged(Controls[I]);
+
+  { Note that we don't cause TCastleUserInterface.UIScaleChanged calls now.
+    They are done before BeforeRender, this way culled UI controls
+    (when using @link(TCastleUserInterface.Culling))
+    are only updated when they are actually visible.
+    This can significantly speed things up when Culling makes sense
+    (lots of off-screen controls). }
 end;
 
 function TUIContainer.UnscaledWidth: Single;
@@ -3889,6 +3884,7 @@ begin
   FWidth := DefaultWidth;
   FHeight := DefaultHeight;
   FBorder := TBorder.Create(@BorderChange);
+  FLastSeenUIScale := 1.0;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
@@ -4035,15 +4031,8 @@ begin
   if FEnableUIScaling <> Value then
   begin
     FEnableUIScaling := Value;
-    UIScaleChanged;
+    CheckUIScaleChanged;
   end;
-end;
-
-function TCastleUserInterface.UIScale: Single;
-begin
-  if ContainerSizeKnown and EnableUIScaling then
-    Result := Container.FCalculatedUIScale else
-    Result := 1.0;
 end;
 
 procedure TCastleUserInterface.UIScaleChanged;
@@ -4081,6 +4070,43 @@ end;
 function TCastleUserInterface.TooltipExists: boolean;
 begin
   Result := false;
+end;
+
+procedure TCastleUserInterface.CheckUIScaleChanged;
+var
+  NewUIScale: Single;
+begin
+  if (Container <> nil) and EnableUIScaling then
+    NewUIScale := Container.FCalculatedUIScale
+  else
+    NewUIScale := 1;
+  if FLastSeenUIScale <> NewUIScale then
+  begin
+    FLastSeenUIScale := NewUIScale;
+    UIScaleChanged;
+  end;
+end;
+
+procedure TCastleUserInterface.CheckResize;
+var
+  NewContainerWidth, NewContainerHeight: Integer;
+begin
+  if Container <> nil then
+  begin
+    NewContainerWidth := Container.Width;
+    NewContainerHeight := Container.Height;
+  end else
+  begin
+    NewContainerWidth := 0;
+    NewContainerHeight := 0;
+  end;
+  if (FLastSeenContainerWidth <> NewContainerWidth) or
+     (FLastSeenContainerHeight <> NewContainerHeight) then
+  begin
+    FLastSeenContainerWidth := NewContainerWidth;
+    FLastSeenContainerHeight := NewContainerHeight;
+    Resize;
+  end;
 end;
 
 procedure TCastleUserInterface.BeforeRender;
@@ -5182,7 +5208,14 @@ begin
   C.FreeNotification(AContainer);
 
   C.Container := AContainer;
-  C.UIScaleChanged;
+  C.CheckUIScaleChanged;
+
+  { Make sure Resize is called at the nearest opportunity.
+    For historic reasons, some controls may depend that Resize happens
+    immediately after adding control to the container,
+    they may even initialize GL resources there. }
+  C.FLastSeenContainerWidth := 0;
+  C.FLastSeenContainerHeight := 0;
 
   if AContainer.GLInitialized then
   begin
@@ -5190,10 +5223,9 @@ begin
       C.GLContextOpen;
     AContainer.Invalidate;
     { Call initial Resize for control.
-      If window OpenGL context is not yet initialized, defer it to
-      the Open time, then our initial EventResize will be called
-      that will do Resize on every control. }
-    C.Resize;
+      If window OpenGL context is not yet initialized, defer it to later
+      (we will call CheckResize before BeforeRender). }
+    C.CheckResize;
   end;
 end;
 
