@@ -101,11 +101,12 @@ begin
     if Value <> '' then
     begin
       FDesign := UserInterfaceLoad(Value, Self);
-      FDesign.Name := 'Design';
-      { This prevents this child from being saved,
-        in case TCastleDesign is placed inside a hierachy saved using
-        UserInterfaceSave. Only URL will be saved. }
-      FDesign.SetSubComponent(true);
+      { This prevents this child from
+        - being serialized (in case TCastleDesign is placed inside
+          a hierachy saved using UserInterfaceSave. Only URL should be saved.)
+        - or even be visible in the hierachy of castle-editor.
+      }
+      FDesign.SetTransient;
       FDesign.FullSize := FStretchWhenNotLoaded;
       FDesign.FreeNotification(Self);
       InsertFront(FDesign);
