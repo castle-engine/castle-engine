@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -219,6 +220,8 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
   FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiEmptySquare] := EmptySquare;
+  FCorners[tiEmptySquare] := Vector4Integer(4, 4, 4, 4);
   FImages[tiDisclosure] := Disclosure;
   FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
