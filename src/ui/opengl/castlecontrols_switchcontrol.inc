@@ -44,7 +44,9 @@
     { Switch state. }
     property Checked: boolean read FChecked write SetChecked default false;
     property Enabled: boolean read FEnabled write SetEnabled default true;
-    { Event sent when switch value changed. }
+    { Event sent when @link(Checked) value was changed by a user click.
+      Note that this is @italic(not) called when you change @link(Checked)
+      property programmatically by setting the property. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Width default DefaultSwitchControlWidth;
     property Height default DefaultSwitchControlHeight;
@@ -127,20 +129,52 @@ end;
 function TCastleSwitchControl.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  FPressed := true;
-  Result := ExclusiveEvents;
+  if Result then Exit;
+
+  if Event.IsMouseButton(mbLeft) or
+     Event.IsKey(keySpace) or
+     Event.IsKey(keyEnter) then
+  begin
+    FPressed := true;
+    Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleSwitchControl.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  FPressed := false;
-  FChecked := not FChecked;
-  VisibleChange([chRender]);
+  if Result then Exit;
 
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-  Result := ExclusiveEvents;
+  if FPressed and (
+     Event.IsMouseButton(mbLeft) or
+     Event.IsKey(keySpace) or
+     Event.IsKey(keyEnter)) then
+  begin
+    FPressed := false;
+
+    { Because of mouse capture mechanism in TUIContainer,
+      we receive Release notifications about all clicks that started
+      within our rect, regardless where they finished.
+
+      Just like TCastleButton, the click only counts
+      if it happens over our rect. }
+    if CapturesEventsAtPosition(Event.Position) then
+    begin
+      FChecked := not FChecked; // FPressed, FChecked changed
+      VisibleChange([chRender]);
+
+      { Make sure to execute FOnChange at the end,
+        to have consistent state when calling the callback that can
+        do anything with this TCastleSwitchControl. }
+      if Assigned(FOnChange) then
+        FOnChange(Self);
+    end else
+    begin
+      VisibleChange([chRender]); // FPressed changed
+    end;
+
+    Exit(ExclusiveEvents);
+  end;
 end;
 
 {$endif read_implementation}
