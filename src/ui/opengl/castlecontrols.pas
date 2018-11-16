@@ -36,7 +36,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiCheckmark, tiDisclosure,
+    tiCrosshair1, tiCrosshair2, tiCheckmark, tiEmptySquare, tiDisclosure,
     tiSwitchControl, tiSwitchControlFill,
 
     { Image displayed when the application is initializing,
@@ -87,6 +87,7 @@ type
   {$I castlecontrols_sliders.inc}
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_switchcontrol.inc}
+  {$I castlecontrols_checkbox.inc}
   {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
@@ -124,6 +125,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_sliders.inc}
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_switchcontrol.inc}
+{$I castlecontrols_checkbox.inc}
 {$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
@@ -159,6 +161,7 @@ initialization
   RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
   RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');
   RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
+  RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
   RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
 finalization

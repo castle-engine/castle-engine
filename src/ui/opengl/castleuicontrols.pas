@@ -1136,7 +1136,7 @@ type
     FControls: TChildrenControls;
     FLeft: Single;
     FBottom: Single;
-    FParent: TCastleUserInterface; //< null means that parent is our owner
+    FParent: TCastleUserInterface;
     FHasHorizontalAnchor: boolean;
     FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
     FHorizontalAnchorDelta: Single;
@@ -1281,6 +1281,32 @@ type
     destructor Destroy; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
+
+    { Ignore this component when serializing parent's @link(Controls) list,
+      and do not show this component in CGE editor.
+      This simply sets csTransient flag in ComponentStyle.
+
+      This is useful for children that are automatically managed by the parent,
+      and should not be modified by user code. For example,
+      TCastleCheckbox is internally composed from TCastleImageControl
+      and TCastleLabel children, but we don't want to serialize or even
+      show these children to user.
+
+      Note that if you want to prevent this component from serializing
+      as part of @link(Controls) list,
+      but you still want it to be visible in CGE editor,
+      then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
+
+      In any case (csSubComponent and/or csTransient) the component
+      is just not serialized as part of parent's @link(Controls) list.
+      But if you will make the component published (which is normal for "subcomponents")
+      then it will be published, just as part of it's own property
+      (like TCastleScrollView.ScrollArea).
+      So to @italic(really) avoid serializing the component,
+      make it csSubComponent and/or csTransient,
+      and do not publish it.
+    }
+    procedure SetTransient;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -1476,6 +1502,10 @@ type
 
     property Focused: boolean read FFocused write SetFocused;
 
+    { Visual parent control. This control is rendered within the parent,
+      and it's anchors and coordinates are relative to the parent.
+      Parent may be @nil, which means that the @link(Container)
+      (if set) is our direct parent. }
     property Parent: TCastleUserInterface read FParent;
 
     function Rect: TFloatRectangle; virtual;
@@ -3877,6 +3907,11 @@ begin
   inherited;
 end;
 
+procedure TCastleUserInterface.SetTransient;
+begin
+  Include(FComponentStyle, csTransient);
+end;
+
 procedure TCastleUserInterface.GetChildren(Proc: TGetChildProc; Root: TComponent);
 var
   I: Integer;
@@ -3884,8 +3919,12 @@ begin
   inherited;
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
-      // do not save SubComponents, like TCastleScrollView.ScrollArea.
-      if not (csSubComponent in FControls[I].ComponentStyle) then
+      { Do not save SubComponents, like TCastleScrollView.ScrollArea.
+        They are saved separately, as published properties.
+        Also do not save csTransient components, like loaded TCastleDesign
+        child, or TCastleCheckbox children. They are automatically managed
+        by the parent, and they should not be saved in normal fashion. }
+      if [csSubComponent, csTransient] * FControls[I].ComponentStyle = [] then
         Proc(FControls[I]);
 end;
 

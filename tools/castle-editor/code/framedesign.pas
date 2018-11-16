@@ -1051,19 +1051,17 @@ end;
 
 procedure TDesignFrame.CopyComponent;
 var
-  Selected: TComponentList;
-  SelectedCount: Integer;
+  Sel: TComponent;
 begin
-  GetSelected(Selected, SelectedCount);
-  try
-    if (SelectedCount <> 1) or
-       (csSubComponent in Selected[0].ComponentStyle) then
-    begin
-      ErrorBox('Select exactly one component, that is not a subcomponent, to copy');
-      Exit;
-    end;
-    Clipboard.AsText := ComponentToString(Selected[0]);
-  finally FreeAndNil(Selected) end;
+  Sel := SelectedComponent;
+  if (Sel <> nil) and
+     (not (csSubComponent in Sel.ComponentStyle)) then
+  begin
+    Clipboard.AsText := ComponentToString(Sel)
+  end else
+  begin
+    ErrorBox('Select exactly one component, that is not a subcomponent, to copy');
+  end;
 end;
 
 procedure TDesignFrame.PasteComponent;
@@ -1292,9 +1290,17 @@ begin
   if aEditor.GetPropInfo = nil then
     Exit;
 
-  // TODO: Make the "Simple properties" registered outside of the editor code.
-  // Using property attributes would be most natural,
-  // but not supported by FPC yet? Investigate.
+  { TODO: This if-else list should be replaced by a nice registration
+    of "main text property" in CastleComponentSerialize. Like:
+
+    RegisterSerializableComponent(TCastleLabel, 'Label',
+      ['Caption', 'Color', 'Text'], // properties in "Simple" tab in CGE editor
+      'Caption' // main text property, initially reflecting Name in CGE editor
+    );
+
+    Internally RegisterSerializableComponent can save TypeInfo() or such
+    for each property, not just the name.
+  }
 
   PropertyName := aEditor.GetPropInfo^.Name;
   // some property names quality as "Simple" on all components
@@ -1327,6 +1333,8 @@ begin
        ((Instance is TCastleImageControl) and (PropertyName = 'ProportionalScaling')) or
        ((Instance is TCastleImageControl) and (PropertyName = 'ColorPersistent')) or
        ((Instance is TCastleTimer) and (PropertyName = 'IntervalSeconds')) or
+       ((Instance is TCastleCheckbox) and (PropertyName = 'Checked')) or
+       ((Instance is TCastleCheckbox) and (PropertyName = 'Caption')) or
        ((Instance is TCastleSwitchControl) and (PropertyName = 'Checked')) or
        ((Instance is TCastleButton) and (PropertyName = 'Caption')) or
        ((Instance is TCastleLabel) and (PropertyName = 'Caption')) or // expresses the same thing as Text, but easier to access
@@ -1384,11 +1392,9 @@ class function TDesignFrame.Selectable(
 begin
   { Do not show in hierarchy the TCastleDesign loaded hierarchy,
     as it will not be saved.
+    Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
-  Result := not (
-    (AParent is TCastleDesign) and
-    (csSubComponent in Child.ComponentStyle)
-  );
+  Result := not (csTransient in Child.ComponentStyle);
 end;
 
 procedure TDesignFrame.UpdateDesign;
@@ -2011,6 +2017,15 @@ end;
 
 procedure TDesignFrame.UpdateComponentCaptionFromName(const C: TComponent);
 begin
+  { TODO: This if-else list should be replaced by a nice registration
+    of "main text property" in CastleComponentSerialize. Like:
+
+    RegisterSerializableComponent(TCastleLabel, 'Label',
+      ['Caption', 'Color', 'Text'], // properties in "Simple" tab in CGE editor
+      'Caption' // main text property, initially reflecting Name in CGE editor
+    );
+  }
+
   if C is TCastleLabel then
     TCastleLabel(C).Caption := C.Name
   else
@@ -2018,7 +2033,10 @@ begin
     TCastleButton(C).Caption := C.Name
   else
   if C is TCastleEdit then
-    TCastleEdit(C).Text := C.Name;
+    TCastleEdit(C).Text := C.Name
+  else
+  if C is TCastleCheckbox then
+    TCastleCheckbox(C).Caption := C.Name;
 end;
 
 procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);

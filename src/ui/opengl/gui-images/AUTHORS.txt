@@ -1,0 +1,7 @@
+Checkmark.png
+EmptySquare.png
+
+  from https://feathericons.com/
+  - https://github.com/feathericons/feather
+  - Copyright (c) 2013-2017 Cole Bemis
+  - Licence: MIT https://github.com/feathericons/feather/blob/master/LICENSE

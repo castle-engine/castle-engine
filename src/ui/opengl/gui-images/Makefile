@@ -25,7 +25,7 @@ clean:
 	  FrameThickWhite.png FrameThickYellow.png ProgressBar.png ProgressFill.png \
 	  TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
 	  Loading.png Crosshair1.png Crosshair2.png ScrollbarSlider.png \
-	  Checkmark.png Disclosure.png \
+	  Checkmark.png Disclosure.png EmptySquare.png \
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png \
