@@ -2514,7 +2514,7 @@ begin
     FScaleFactorMin := Value;
     { Correct ScaleFactor now.
       Using a property, so it causes ScheduleVisibleChange if changed. }
-    ScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
   end;
 end;
 
@@ -2525,7 +2525,7 @@ begin
     FScaleFactorMax := Value;
     { Correct ScaleFactor now.
       Using a property, so it causes ScheduleVisibleChange if changed. }
-    ScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
   end;
 end;
 
