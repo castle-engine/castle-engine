@@ -69,6 +69,7 @@
     FAlignment: TVerticalPosition;
     FLeftToRight: boolean;
     procedure SetLeftToRight(const Value: boolean);
+    procedure SetAlignment(const Value: TVerticalPosition);
   strict protected
     procedure DoPackChildren(out W, H: Single); override;
   public
@@ -76,7 +77,7 @@
   published
     { The alignment of children inside this control. }
     property Alignment: TVerticalPosition
-      read FAlignment write FAlignment default vpMiddle;
+      read FAlignment write SetAlignment default vpMiddle;
     property LeftToRight: boolean read FLeftToRight write SetLeftToRight
       default true;
   end;
@@ -93,6 +94,7 @@
     FAlignment: THorizontalPosition;
     FTopToBottom: boolean;
     procedure SetTopToBottom(const Value: boolean);
+    procedure SetAlignment(const Value: THorizontalPosition);
   strict protected
     procedure DoPackChildren(out W, H: Single); override;
   public
@@ -100,7 +102,7 @@
   published
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
-      read FAlignment write FAlignment default hpLeft;
+      read FAlignment write SetAlignment default hpLeft;
     property TopToBottom: boolean read FTopToBottom write SetTopToBottom
       default true;
   end;
@@ -221,6 +223,15 @@ begin
   end;
 end;
 
+procedure TCastleHorizontalGroup.SetAlignment(const Value: TVerticalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    FPackingValid := false;
+  end;
+end;
+
 procedure TCastleHorizontalGroup.DoPackChildren(out W, H: Single);
 var
   I: Integer;
@@ -270,6 +281,15 @@ begin
   if FTopToBottom <> Value then
   begin
     FTopToBottom := Value;
+    FPackingValid := false;
+  end;
+end;
+
+procedure TCastleVerticalGroup.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
     FPackingValid := false;
   end;
 end;
