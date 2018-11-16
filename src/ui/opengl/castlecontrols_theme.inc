@@ -222,6 +222,8 @@ begin
   FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
   FImages[tiEmptySquare] := EmptySquare;
   FCorners[tiEmptySquare] := Vector4Integer(4, 4, 4, 4);
+  FImages[tiEmptySquareGlow] := EmptySquareGlow;
+  FCorners[tiEmptySquareGlow] := Vector4Integer(4, 4, 4, 4);
   FImages[tiDisclosure] := Disclosure;
   FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;

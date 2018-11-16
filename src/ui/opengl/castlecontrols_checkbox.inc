@@ -23,7 +23,7 @@
     FCaption: String;
     FOnChange: TNotifyEvent;
     FCaptionMargin: Single;
-    FImageSquare, FImageCheckmark: TCastleImageControl;
+    FImageSquare, FImageCheckmark, FImagePressed: TCastleImageControl;
     FLabelCaption: TCastleLabel;
     FTextColor, FCheckboxColor: TCastleColor;
     FAutoSize: Boolean;
@@ -116,6 +116,19 @@ begin
   FImageCheckmark.Height := FCheckboxSize;
   FImageSquare.InsertFront(FImageCheckmark);
 
+  FImagePressed := TCastleImageControl.Create(Self);
+  FImagePressed.SetTransient;
+  FImagePressed.Image := EmptySquareGlow;
+  FImagePressed.OwnsImage := false;
+  FImagePressed.Anchor(hpMiddle);
+  FImagePressed.Anchor(vpMiddle);
+  FImagePressed.Color := FCheckboxColor;
+  FImagePressed.Exists := FPressed;
+  FImagePressed.Stretch := true;
+  FImagePressed.Width := FCheckboxSize;
+  FImagePressed.Height := FCheckboxSize;
+  FImageSquare.InsertFront(FImagePressed);
+
   FLabelCaption := TCastleLabel.Create(Self);
   FLabelCaption.SetTransient;
   FLabelCaption.Color := FTextColor;
@@ -183,6 +196,7 @@ begin
      Event.IsKey(keyEnter) then
   begin
     FPressed := true;
+    FImagePressed.Exists := FPressed;
     Exit(ExclusiveEvents);
   end;
 end;
@@ -198,6 +212,7 @@ begin
      Event.IsKey(keyEnter)) then
   begin
     FPressed := false;
+    FImagePressed.Exists := FPressed;
 
     { Because of mouse capture mechanism in TUIContainer,
       we receive Release notifications about all clicks that started
@@ -242,6 +257,7 @@ begin
     FCheckboxColor := Value;
     FImageSquare.Color := Value;
     FImageCheckmark.Color := Value;
+    FImagePressed.Color := Value;
   end;
 end;
 
@@ -254,6 +270,8 @@ begin
     FImageSquare.Height := Value;
     FImageCheckmark.Width := Value;
     FImageCheckmark.Height := Value;
+    FImagePressed.Width := Value;
+    FImagePressed.Height := Value;
     FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
   end;
 end;

@@ -94,6 +94,9 @@ var
   EmptySquare: TGrayscaleAlphaImage;
 
 var
+  EmptySquareGlow: TGrayscaleAlphaImage;
+
+var
   PanelSeparator: TGrayscaleImage;
 
 var
@@ -207,6 +210,9 @@ initialization
   EmptySquare := TGrayscaleAlphaImage.Create(EmptySquareWidth, EmptySquareHeight, EmptySquareDepth);
   Move(EmptySquarePixels, EmptySquare.RawPixels^, SizeOf(EmptySquarePixels));
   EmptySquare.URL := 'embedded-image:/EmptySquare';
+  EmptySquareGlow := TGrayscaleAlphaImage.Create(EmptySquareGlowWidth, EmptySquareGlowHeight, EmptySquareGlowDepth);
+  Move(EmptySquareGlowPixels, EmptySquareGlow.RawPixels^, SizeOf(EmptySquareGlowPixels));
+  EmptySquareGlow.URL := 'embedded-image:/EmptySquareGlow';
   PanelSeparator := TGrayscaleImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   PanelSeparator.URL := 'embedded-image:/PanelSeparator';
@@ -254,6 +260,7 @@ finalization
   FreeAndNil(Checkmark);
   FreeAndNil(Disclosure);
   FreeAndNil(EmptySquare);
+  FreeAndNil(EmptySquareGlow);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

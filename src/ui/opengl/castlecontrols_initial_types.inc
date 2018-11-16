@@ -24,7 +24,7 @@
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiGroup, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiCheckmark, tiEmptySquare,
+    tiCrosshair1, tiCrosshair2, tiCheckmark, tiEmptySquare, tiEmptySquareGlow,
     tiDisclosure,
     tiSwitchControl, tiSwitchControlFill,
 
