@@ -621,7 +621,7 @@ type
       then scale angle, then convert back to quaternion... which makes
       the whole exercise useless. }
     FRotationsAnim: TVector3;
-    FScaleFactor: Single;
+    FScaleFactor, FScaleFactorMin, FScaleFactorMax: Single;
     FRotationAccelerate: boolean;
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
@@ -639,6 +639,8 @@ type
     procedure SetRotationsAnim(const Value: TVector3);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
+    procedure SetScaleFactorMin(const Value: Single);
+    procedure SetScaleFactorMax(const Value: Single);
     procedure SetTranslation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
@@ -715,10 +717,13 @@ type
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
-    { How the model is scaled.
-      @italic(This property may never be zero (or close to zero).) }
+    { Scale of the model. }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
+    property ScaleFactorMin: Single
+      read FScaleFactorMin write SetScaleFactorMin default 0.01;
+    property ScaleFactorMax: Single
+      read FScaleFactorMax write SetScaleFactorMax default 100.0;
 
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
@@ -2101,6 +2106,8 @@ begin
   FScaleFactor := 1;
   FDragMoveSpeed := 1;
   FKeysMoveSpeed := 1;
+  FScaleFactorMin := 0.01;
+  FScaleFactorMax := 100.0;
   FRotationAccelerate := true;
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
@@ -2454,7 +2461,35 @@ procedure TExamineCamera.SetRotations(const Value: TQuaternion);
 begin FRotations := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetScaleFactor(const Value: Single);
-begin FScaleFactor := Value; ScheduleVisibleChange; end;
+begin
+  if FScaleFactor <> Value then
+  begin
+    FScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+    ScheduleVisibleChange;
+  end;
+end;
+
+procedure TExamineCamera.SetScaleFactorMin(const Value: Single);
+begin
+  if FScaleFactorMin <> Value then
+  begin
+    FScaleFactorMin := Value;
+    { Correct ScaleFactor now.
+      Using a property, so it causes ScheduleVisibleChange if changed. }
+    ScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+  end;
+end;
+
+procedure TExamineCamera.SetScaleFactorMax(const Value: Single);
+begin
+  if FScaleFactorMax <> Value then
+  begin
+    FScaleFactorMax := Value;
+    { Correct ScaleFactor now.
+      Using a property, so it causes ScheduleVisibleChange if changed. }
+    ScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+  end;
+end;
 
 procedure TExamineCamera.SetTranslation(const Value: TVector3);
 begin FTranslation := Value; ScheduleVisibleChange; end;
@@ -2521,6 +2556,14 @@ begin
 end;
 
 function TExamineCamera.Zoom(const Factor: Single): boolean;
+
+  function OrthographicProjection: Boolean;
+  begin
+    { See how perspective (and more flexible frustum) projection matrices
+      look like in CastleProjection, they have always -1 in this field. }
+    Result := FProjectionMatrix.Data[2, 3] = 0;
+  end;
+
 var
   Size: Single;
   OldTranslation, OldPosition: TVector3;
@@ -2528,23 +2571,32 @@ begin
   Result := not FModelBox.IsEmptyOrZero;
   if Result then
   begin
-    Size := FModelBox.AverageSize;
-
-    OldTranslation := FTranslation;
-    OldPosition := Position;
-
-    FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
-
-    { Cancel zoom in, don't allow to go to the other side of the model too far.
-      Note that Box3DPointDistance = 0 when you're inside the box,
-      so zoomin in/out inside the box is still always allowed.
-      See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
-    if (Factor > 0) and
-       (FModelBox.PointDistance(Position) >
-        FModelBox.PointDistance(OldPosition)) then
+    if OrthographicProjection then
     begin
-      FTranslation := OldTranslation;
-      Exit(false);
+      { In case of OrthographicProjection, changing Translation
+        would have no effect. So instead scale the model. }
+      ScaleFactor := ScaleFactor * Exp(Factor);
+    end else
+    begin
+      { zoom by changing Translation }
+      Size := FModelBox.AverageSize;
+
+      OldTranslation := FTranslation;
+      OldPosition := Position;
+
+      FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
+
+      { Cancel zoom in, don't allow to go to the other side of the model too far.
+        Note that Box3DPointDistance = 0 when you're inside the box,
+        so zoomin in/out inside the box is still always allowed.
+        See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
+      if (Factor > 0) and
+         (FModelBox.PointDistance(Position) >
+          FModelBox.PointDistance(OldPosition)) then
+      begin
+        FTranslation := OldTranslation;
+        Exit(false);
+      end;
     end;
 
     ScheduleVisibleChange;
