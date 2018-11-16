@@ -148,10 +148,12 @@ var
   { Current log date&time prefix style. Can be changed runtime. }
   LogTimePrefix: TLogTimePrefix;
 
-  { Set this to a filename to contain log.
-    It may be an absolute or relative (to the current directory
-    at the time of InitializeLog) path.
-    It's your responsibility to choose a path that is write-able on current OS. }
+  { Set this to a filename that should contain log,
+    before calling @link(InitializeLog).
+    This may be an absolute or relative (to the current directory
+    at the time of InitializeLog call) path.
+    It's your responsibility to choose a path that is writeable on current OS
+    (you can e.g. use GetAppConfigDir function from FPC RTL). }
   LogFileName: String = '';
 
 implementation
