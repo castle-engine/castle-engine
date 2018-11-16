@@ -2224,7 +2224,10 @@ type
       @code(Scene.Load('blah.x3d')) is that setting the URL will
       @italic(not) reload the scene if you set it to the same value.
       That is, @code(Scene.URL := Scene.URL;) will not reload
-      the scene (you have to use explicit @link(Load) for this.). }
+      the scene (you have to use explicit @link(Load) for this.).
+
+      Pass URL = '' to load an empty scene, this sets @link(RootNode) to @nil.
+    }
     property URL: string read FURL write SetURL;
 
     { At loading, process the scene to support shadow maps.
@@ -2897,13 +2900,18 @@ procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 var
   TimeStart: TCastleProfilerTime;
+  NewRoot: TX3DRootNode;
 begin
-  TimeStart := Profiler.Start('Loading ' + AURL + ' (TCastleSceneCore)');
+  TimeStart := Profiler.Start('Loading "' + AURL + '" (TCastleSceneCore)');
 
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(Load3D(AURL, AllowStdIn), true, AResetTime);
+  if AURL <> '' then
+    NewRoot := Load3D(AURL, AllowStdIn)
+  else
+    NewRoot := nil;
+  Load(NewRoot, true, AResetTime);
 
   FURL := AURL;
 
