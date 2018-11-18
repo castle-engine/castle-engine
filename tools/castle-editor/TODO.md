@@ -129,6 +129,13 @@ Before 6.6 release:
 Lower priority:
 OK if after nearest release:
 
+* When adding new item to hierarchy,
+  in general: when doing UpdateDesign,
+  preserve previous state of
+  - collapsed/not collapsed
+  - scrollbar of scrollbar
+  - maybe just traverse existing tree and only "fix", removing/adding what is necessary
+
 * Visual inspector. designer etc. less important
     * Dragging UI: should "Snap" snap to the final value (like an invisible grid?)
       Would be more like Delphi/Lazarus, probably.
