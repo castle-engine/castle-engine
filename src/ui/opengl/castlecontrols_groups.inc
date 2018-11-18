@@ -25,10 +25,13 @@
     FPadding: Single;
     FSpacing: Single;
     FInsideWidth, FInsideHeight: Single;
+    FAutoSizeWidth, FAutoSizeHeight: Boolean;
     procedure SetFrameColor(const Value: TCastleColor);
-    procedure SetFrame(const Value: boolean);
+    procedure SetFrame(const Value: Boolean);
     procedure SetPadding(const Value: Single);
     procedure SetSpacing(const Value: Single);
+    procedure SetAutoSizeWidth(const Value: Boolean);
+    procedure SetAutoSizeHeight(const Value: Boolean);
   strict protected
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
@@ -44,6 +47,8 @@
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
+    procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
+      out Reason: String); override;
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
@@ -51,6 +56,28 @@
     property Frame: boolean read FFrame write SetFrame default false;
     property Padding: Single read FPadding write SetPadding default DefaultPadding;
     property Spacing: Single read FSpacing write SetSpacing default DefaultSpacing;
+
+    { Whether the control's size is automatically adjusted to wrap children
+      tightly.
+
+      Be careful to not create a recursive loop! Group's size calculation
+      always looks at children size (even when auto-size is off,
+      since it needs to arrange children next to each other anyway).
+      This means that children size @italic(cannot) depend on a parent.
+      So a direct child of @link(TCastleVerticalGroup) or
+      @link(TCastleHorizontalGroup) @italic(cannot)
+      use @link(FullSize), or @link(WidthFraction) or @link(HeightFraction).
+      This would create a loop in calculations, which would be forcefully
+      resolved by some control having undefined size.
+
+      So, you can only deactivate auto-size on a group if all children
+      have explicitly defined size using their @link(Width) and @link(Height)
+      properties.
+    }
+    property AutoSizeWidth: Boolean
+      read FAutoSizeWidth write SetAutoSizeWidth default true;
+    property AutoSizeHeight: Boolean
+      read FAutoSizeHeight write SetAutoSizeHeight default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
@@ -119,6 +146,8 @@ begin
   FFrameColor := White;
   FPadding := DefaultPadding;
   FSpacing := DefaultSpacing;
+  FAutoSizeWidth := true;
+  FAutoSizeHeight := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
@@ -153,8 +182,26 @@ procedure TCastlePackedGroup.PreferredSize(var PreferredWidth, PreferredHeight: 
 begin
   inherited;
   PackChildren;
-  PreferredWidth  := FInsideWidth  * UIScale;
-  PreferredHeight := FInsideHeight * UIScale;
+  if FAutoSizeWidth then
+    PreferredWidth  := FInsideWidth  * UIScale;
+  if FAutoSizeHeight then
+    PreferredHeight := FInsideHeight * UIScale;
+end;
+
+procedure TCastlePackedGroup.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSizeWidth then
+  begin
+    ResizeWidth := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastlePackedGroup.AutoSizeWidth" to change width.');
+  end;
+  if AutoSizeHeight then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastlePackedGroup.AutoSizeHeight" to change height.');
+  end;
 end;
 
 procedure TCastlePackedGroup.SetFrameColor(const Value: TCastleColor);
@@ -199,6 +246,24 @@ begin
   inherited;
   if [chRectangle, chChildren] * Changes <> [] then
     FPackingValid := false;
+end;
+
+procedure TCastlePackedGroup.SetAutoSizeWidth(const Value: Boolean);
+begin
+  if FAutoSizeWidth <> Value then
+  begin
+    FAutoSizeWidth := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastlePackedGroup.SetAutoSizeHeight(const Value: Boolean);
+begin
+  if FAutoSizeHeight <> Value then
+  begin
+    FAutoSizeHeight := Value;
+    VisibleChange([chRectangle]);
+  end;
 end;
 
 {$define read_implementation_methods}
