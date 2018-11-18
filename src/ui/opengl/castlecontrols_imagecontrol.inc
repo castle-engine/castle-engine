@@ -40,6 +40,7 @@
   TCastleImageControl = class(TCastleUserInterface)
   strict private
     FURL: string;
+    FScaleFromUrl: Single;
     FImage: TEncodedImage;
     FImageLoadedFromCache: boolean;
     FDrawableImage: TGLImage;
@@ -51,6 +52,7 @@
     FCache: boolean;
     FFlipHorizontal: Boolean;
     FFlipVertical: Boolean;
+    FDetectScaleFromUrl: Boolean;
 
     { Properties simply synchronized with the same properties of FDrawableImage. }
     function GetCenterX: Single;
@@ -82,6 +84,7 @@
     procedure SetProportional(const Value: boolean);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
+    procedure SetDetectScaleFromUrl(const Value: Boolean);
 
     { Free FImage if needed, and make it @nil. }
     procedure FreeImage;
@@ -339,6 +342,15 @@
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
+    { Set this to auto-detect that image is scaled compared to it's desired size.
+      This detects URL endings like 'xxx@2x.png', and we will automatically adjust
+      to it (the size determined by AutoSize will be actually 2x smaller than
+      the PNG size).
+      Preparing images at a 2x or 4x larger size than "desired" is a useful trick
+      when using UI scaling, when you want the image to look good at various scales. }
+    property DetectScaleFromUrl: Boolean
+      read FDetectScaleFromUrl write SetDetectScaleFromUrl default false;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -438,6 +450,26 @@ begin
 end;
 
 procedure TCastleImageControl.SetURL(const Value: string);
+
+  function GetScaleFromUrl: Single;
+  var
+    BaseName: String;
+    P: Integer;
+    Scale: Single;
+  begin
+    Result := 1;
+    BaseName := DeleteURIExt(ExtractURIName(URL));
+    if (Length(BaseName) >= 4) and // BaseName must look like at least '?@4x'
+       (BaseName[Length(BaseName)] = 'x') then
+    begin
+      P := BackPos('@', BaseName);
+      if (P > 1) and
+         TryStrToFloatDot(CopyPos(BaseName, P + 1, Length(BaseName) - 1), Scale) and
+         (Scale > 0) then
+        Result := Scale;
+    end;
+  end;
+
 begin
   if Value <> '' then
   begin
@@ -451,6 +483,8 @@ begin
   { only once new Image is successfully loaded, change property value.
     If LoadImage raised exception, URL will remain unchanged. }
   FURL := Value;
+
+  FScaleFromUrl := GetScaleFromUrl;
 end;
 
 function TCastleImageControl.GetCenterX: Single;
@@ -580,26 +614,36 @@ begin
 end;
 
 procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+var
+  ImageWidth, ImageHeight: Single;
 begin
   inherited;
 
+  ImageWidth  := FDrawableImage.Width;
+  ImageHeight := FDrawableImage.Height;
+  if FDetectScaleFromUrl and (FScaleFromUrl <> 1) then
+  begin
+    ImageWidth  /= FScaleFromUrl;
+    ImageHeight /= FScaleFromUrl;
+  end;
+
   if not Stretch then
   begin
-    PreferredWidth  := FDrawableImage.Width  * UIScale;
-    PreferredHeight := FDrawableImage.Height * UIScale;
+    PreferredWidth  := ImageWidth  * UIScale;
+    PreferredHeight := ImageHeight * UIScale;
   end else
   if (ProportionalScaling in [psFit, psEnclose]) and
-     (FDrawableImage.Width <> 0) and
-     (FDrawableImage.Height <> 0) then
+     (ImageWidth <> 0) and
+     (ImageHeight <> 0) then
   begin
     if (ProportionalScaling = psFit) =
        (PreferredWidth / PreferredHeight >
-        FDrawableImage.Width / FDrawableImage.Height) then
+        ImageWidth / ImageHeight) then
     begin
-      PreferredWidth := FDrawableImage.Width * PreferredHeight / FDrawableImage.Height;
+      PreferredWidth := ImageWidth * PreferredHeight / ImageHeight;
     end else
     begin
-      PreferredHeight := FDrawableImage.Height * PreferredWidth / FDrawableImage.Width;
+      PreferredHeight := ImageHeight * PreferredWidth / ImageWidth;
     end;
   end;
 end;
@@ -732,6 +776,15 @@ begin
   if FFlipHorizontal <> Value then
   begin
     FFlipHorizontal := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetDetectScaleFromUrl(const Value: Boolean);
+begin
+  if FDetectScaleFromUrl <> Value then
+  begin
+    FDetectScaleFromUrl := Value;
     VisibleChange([chRender]);
   end;
 end;

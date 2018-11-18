@@ -145,6 +145,14 @@ type
   for the floating point numbers, regardless of the user's locale settings. }
 function FormatDot(const Fmt: String; const Args: array of const): String;
 
+{ Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings. }
+function TryStrToFloatDot(const S: String; out Value: Single): Boolean;
+function TryStrToFloatDot(const S: String; out Value: Double): Boolean;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
+{$endif}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -283,5 +291,34 @@ begin
   FormatSettings.DecimalSeparator := '.';
   Result := Format(Fmt, Args, FormatSettings);
 end;
+
+function TryStrToFloatDot(const S: String; out Value: Single): Boolean;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := TryStrToFloat(S, Value, FormatSettings);
+end;
+
+function TryStrToFloatDot(const S: String; out Value: Double): Boolean;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := TryStrToFloat(S, Value, FormatSettings);
+end;
+
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := TryStrToFloat(S, Value, FormatSettings);
+end;
+{$endif}
 
 {$endif read_implementation}
