@@ -62,7 +62,7 @@
       default DefaultCaptionMargin;
     { Event sent when @link(Checked) value was changed by a user click.
       Note that this is @italic(not) called when you change @link(Checked)
-      property programmatically by setting the property. }
+      property programmatically. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     { Should our size be determined by checkbox image size and caption. }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;

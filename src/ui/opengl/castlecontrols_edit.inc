@@ -46,6 +46,7 @@
     Scissor: TScissor;
     FAutoSizeHeight: Boolean;
     FPlaceholder: String;
+    FOnChange: TNotifyEvent;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -59,6 +60,7 @@
     procedure SetPlaceholder(const Value: String);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    procedure DoChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -139,6 +141,11 @@
     { Displayed when @link(Text) is empty. }
     property Placeholder: String
       read FPlaceholder write SetPlaceholder;
+
+    { Event sent when @link(Text) value was changed by a user.
+      Note that this is @italic(not) called when you change @link(Text)
+      property programmatically. }
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -300,6 +307,12 @@ begin
   end;
 end;
 
+procedure TCastleEdit.DoChange;
+begin
+  if Assigned(OnChange) then
+    OnChange(Self);
+end;
+
 procedure TCastleEdit.EditorAllowResize(
   out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
 begin
@@ -317,11 +330,12 @@ const
 var
   SR, RectInside: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
-  US: Single;
+  US, TextLeft, TextBottom: Single;
   FrameCorners: TVector4Integer;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
+  CaretShift: Integer;
 begin
   inherited;
 
@@ -351,18 +365,21 @@ begin
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
   RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
 
-  // calculate S and Color
+  // calculate S, Color, CaretShift
+  CaretShift := 0;
   if Text <> '' then
   begin
     S := Text;
     if Focused then
     begin
-      CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
-      if CaretVisible then
-        S := S + CaretChar;
-      Color := FocusedColor;
+      CaretShift := Font.TextWidth(Text);
+      Color := FocusedColor
     end else
+    begin
       Color := UnfocusedColor;
+      { CaretShift doesn't matter in this case,
+        so we don't have to calculate TextWidth, saving a small time. }
+    end;
   end else
   begin
     S := Placeholder;
@@ -372,10 +389,18 @@ begin
   Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
 
-  Font.Print(RectInside.Left,
-    // center in RectInside, important when AutoSize = false
-    RectInside.Bottom + (RectInside.Height - Font.RowHeight) / 2,
-    Color, S);
+  TextLeft := RectInside.Left;
+  // center in RectInside, important when AutoSize = false
+  TextBottom := RectInside.Bottom + (RectInside.Height - Font.RowHeight) / 2;
+  Font.Print(TextLeft, TextBottom, Color, S);
+
+  { Note that we have to display Caret even when Text = '' and S = Placeholder. }
+  if Focused then
+  begin
+    CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
+    if CaretVisible then
+      Font.Print(TextLeft + CaretShift, TextBottom, FocusedColor, CaretChar);
+  end;
 
   Scissor.Enabled := false;
 end;
@@ -399,7 +424,10 @@ begin
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
     if Text <> '' then
+    begin
       Text := Copy(Text, 1, Length(Text) - 1);
+      DoChange;
+    end;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlC) then
@@ -414,20 +442,28 @@ begin
     begin
       Clipboard.AsText := Text;
       Text := '';
+      DoChange;
     end;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
+    DoChange;
     Result := ExclusiveEvents;
   end else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
-     ((MaxLength = 0) or (Length(Text) < MaxLength)) then
+     ((MaxLength = 0) or (Length(Text) < MaxLength)) and
+     { Do not add unprintable special characters, like Enter and Escape.
+       TCastleEdit doesn't process them,
+       but also users don't expect these keys are something added to the edit field.
+       Note: The range CtrlA..CtrlZ includes CharEnter. }
+     (not (Event.KeyCharacter in [CtrlA..CtrlZ, CharEscape])) then
   begin
     Text := Text + Event.KeyString;
+    DoChange;
     Result := ExclusiveEvents;
   end;
 end;
