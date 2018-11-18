@@ -47,6 +47,7 @@
     FAutoSizeHeight: Boolean;
     FPlaceholder: String;
     FOnChange: TNotifyEvent;
+    FPasswordChar: Char;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -58,6 +59,7 @@
     procedure SetFrame(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
     procedure SetPlaceholder(const Value: String);
+    procedure SetPasswordChar(const Value: Char);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     procedure DoChange; virtual;
@@ -146,6 +148,11 @@
       Note that this is @italic(not) called when you change @link(Text)
       property programmatically. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+
+    { Show given character (usually "*") instead of actual input characters.
+      Useful for password input fields. }
+    property PasswordChar: Char
+      read FPasswordChar write SetPasswordChar default #0;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -370,9 +377,15 @@ begin
   if Text <> '' then
   begin
     S := Text;
+
+    { in case PasswordChar is non-zero, replace S with repeated PasswordChar }
+    if PasswordChar <> #0 then
+      S := StringOfChar(PasswordChar, Length(S));
+
     if Focused then
     begin
-      CaretShift := Font.TextWidth(Text);
+      { Note that S here may be already processed by PasswordChar. }
+      CaretShift := Font.TextWidth(S);
       Color := FocusedColor
     end else
     begin
@@ -489,6 +502,15 @@ begin
   if FPlaceholder <> Value then
   begin
     FPlaceholder := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetPasswordChar(const Value: Char);
+begin
+  if FPasswordChar <> Value then
+  begin
+    FPasswordChar := Value;
     VisibleChange([chRender]);
   end;
 end;
