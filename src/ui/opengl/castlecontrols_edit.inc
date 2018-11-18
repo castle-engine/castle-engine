@@ -36,6 +36,7 @@
     FText: string;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
+    FPlaceholderColor: TCastleColor;
     FFrame: boolean;
     LifeTime: TFloatTime;
     FMaxLength: Cardinal;
@@ -44,15 +45,18 @@
     FAutoOnScreenKeyboard: Boolean;
     Scissor: TScissor;
     FAutoSizeHeight: Boolean;
+    FPlaceholder: String;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
+    procedure SetPlaceholderColor(const Value: TCastleColor);
     procedure SetBackgroundColor(const Value: TCastleColor);
     procedure SetPadding(const Value: Single);
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
     procedure SetFrame(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
+    procedure SetPlaceholder(const Value: String);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -72,6 +76,9 @@
 
     { Unfocused text color. By default it's dark gray. }
     property UnfocusedColor: TCastleColor read FUnfocusedColor write SetUnfocusedColor;
+
+    { Color for @link(Placeholder). By default it's light gray. }
+    property PlaceholderColor: TCastleColor read FPlaceholderColor write SetPlaceholderColor;
 
     { Background color. Fills the area under @link(Text) and the padding.
       By default it's white.
@@ -129,6 +136,10 @@
     property AutoSizeHeight: Boolean
       read FAutoSizeHeight write SetAutoSizeHeight default true;
 
+    { Displayed when @link(Text) is empty. }
+    property Placeholder: String
+      read FPlaceholder write SetPlaceholder;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -148,6 +159,7 @@ begin
   inherited;
   FFocusedColor := Black;
   FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
+  FPlaceholderColor := Vector4(0.75, 0.75, 0.75, 1);
   FBackgroundColor := White;
   FPadding := DefaultPadding;
   FFrame := true;
@@ -195,6 +207,15 @@ begin
   if not TCastleColor.PerfectlyEquals(FUnfocusedColor, Value) then
   begin
     FUnfocusedColor := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetPlaceholderColor(const Value: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FPlaceholderColor, Value) then
+  begin
+    FPlaceholderColor := Value;
     VisibleChange([chRender]);
   end;
 end;
@@ -330,15 +351,23 @@ begin
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
   RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
 
-  S := Text;
-  if Focused then
+  // calculate S and Color
+  if Text <> '' then
   begin
-    CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
-    if CaretVisible then
-      S := S + CaretChar;
-    Color := FocusedColor;
+    S := Text;
+    if Focused then
+    begin
+      CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
+      if CaretVisible then
+        S := S + CaretChar;
+      Color := FocusedColor;
+    end else
+      Color := UnfocusedColor;
   end else
-    Color := UnfocusedColor;
+  begin
+    S := Placeholder;
+    Color := PlaceholderColor;
+  end;
 
   Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
@@ -414,6 +443,15 @@ begin
 
   if FAutoOnScreenKeyboard then
     Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
+end;
+
+procedure TCastleEdit.SetPlaceholder(const Value: string);
+begin
+  if FPlaceholder <> Value then
+  begin
+    FPlaceholder := Value;
+    VisibleChange([chRender]);
+  end;
 end;
 
 {$define read_implementation_methods}

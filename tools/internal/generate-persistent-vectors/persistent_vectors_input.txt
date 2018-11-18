@@ -32,6 +32,7 @@
 
 ../../../src/ui/opengl/ TCastleEdit FocusedColor TCastleColor
 ../../../src/ui/opengl/ TCastleEdit UnfocusedColor TCastleColor
+../../../src/ui/opengl/ TCastleEdit PlaceholderColor TCastleColor
 ../../../src/ui/opengl/ TCastleEdit BackgroundColor TCastleColor
 
 ../../../src/ui/opengl/ TCastleCheckbox TextColor TCastleColor
