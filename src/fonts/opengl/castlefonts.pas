@@ -563,6 +563,11 @@ type
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
 
+{ Protect characters from being interpreted as special HTML sequences
+  by TCastleFont.Print with Html = @true parameter.
+  Replaces '<' with '&lt;' and so on. }
+function SimpleHtmlQuote(const S: String): String;
+
 implementation
 
 uses Math,
@@ -1692,6 +1697,16 @@ begin
   ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
   ADescend       := Round(ADescend       * ScaleFactor);
   AMeasuredSize := RealSize;
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+function SimpleHtmlQuote(const S: String): String;
+const
+  Patterns: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
+  Replacements: array [0..4] of String = ('&', '<', '>', '''', '"');
+begin
+  Result := SReplacePatterns(S, Patterns, Replacements, false);
 end;
 
 end.
