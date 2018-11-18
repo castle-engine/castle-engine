@@ -372,7 +372,10 @@ begin
   Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
 
-  Font.Print(RectInside.Left, RectInside.Bottom + Font.Descend, Color, S);
+  Font.Print(RectInside.Left,
+    // center in RectInside, important when AutoSize = false
+    RectInside.Bottom + (RectInside.Height - Font.RowHeight) / 2,
+    Color, S);
 
   Scissor.Enabled := false;
 end;
