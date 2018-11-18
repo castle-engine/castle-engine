@@ -54,6 +54,10 @@
       FOwnsCustomBackgroundDisabled,
       FOwnsCustomBackgroundFocused,
       FOwnsCustomBackgroundNormal: boolean;
+    FCustomColorPressed,
+      FCustomColorDisabled,
+      FCustomColorFocused,
+      FCustomColorNormal: TCastleColor;
     FCustomBackground: boolean;
     FCustomBackgroundCorners: TVector4Integer;
     FCustomTextColor: TCastleColor;
@@ -78,6 +82,10 @@
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
+    procedure SetCustomColorDisabled(const AValue: TCastleColor);
+    procedure SetCustomColorFocused(const AValue: TCastleColor);
+    procedure SetCustomColorNormal(const AValue: TCastleColor);
+    procedure SetCustomColorPressed(const AValue: TCastleColor);
     { Recalculate TextWidth, TextHeight, and set FCalculatedPreferred to false. }
     procedure UpdateTextSize;
     procedure SetImage(const Value: TCastleImage);
@@ -165,6 +173,23 @@
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
+
+    { Button colors used when @link(CustomBackground) is @true,
+      but CustomBackgroundXxx images (like @link(CustomBackgroundNormal))
+      are left unassigned.
+
+      By default they are all transparent black, so actually the button
+      is completely transparent in this case.
+
+      They are affected by tint (see @link(TintPressed), @link(TintDisabled),
+      @link(TintFocused), @link(TintNormal)). The tint color is simply multiplied
+      component-wise with these colors. By default all tint colors are
+      opaque white, so the multiplication by tint actually doesn't change anything.
+    }
+    property CustomColorPressed: TCastleColor read FCustomColorPressed write SetCustomColorPressed;
+    property CustomColorDisabled: TCastleColor read FCustomColorDisabled write SetCustomColorDisabled;
+    property CustomColorFocused: TCastleColor read FCustomColorFocused write SetCustomColorFocused;
+    property CustomColorNormal: TCastleColor read FCustomColorNormal write SetCustomColorNormal;
   published
     { Auto-size routines (see @link(AutoSize)) may treat the image
       like always having at least these minimal sizes.
@@ -202,10 +227,16 @@
         @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
+        @item(@link(CustomBackgroundNormal) (or fallback on solid color if @nil,
+          see @link(CustomColorPressed),
+          see @link(CustomColorNormal) and so on).)
       )
       They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
-      specified by @link(CustomBackgroundCorners). }
+      specified by @link(CustomBackgroundCorners).
+
+      They are affected by tint (see @link(TintPressed), @link(TintDisabled),
+      @link(TintFocused), @link(TintNormal)).
+    }
     property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
 
     { Should we use custom text color in @link(CustomTextColor)
@@ -400,7 +431,7 @@ var
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
-  Tint: TCastleColor;
+  Tint, SolidColor: TCastleColor;
 begin
   inherited;
 
@@ -422,11 +453,14 @@ begin
   if CustomBackground then
   begin
     if Pressed then
-      CustomBackgroundImage := FGLCustomBackgroundPressed else
+      CustomBackgroundImage := FGLCustomBackgroundPressed
+    else
     if not Enabled then
-      CustomBackgroundImage := FGLCustomBackgroundDisabled else
+      CustomBackgroundImage := FGLCustomBackgroundDisabled
+    else
     if Focused then
-      CustomBackgroundImage := FGLCustomBackgroundFocused else
+      CustomBackgroundImage := FGLCustomBackgroundFocused
+    else
       CustomBackgroundImage := FGLCustomBackgroundNormal;
     { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
@@ -437,15 +471,32 @@ begin
       CustomBackgroundImage.Color := Tint;
       CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+    end else
+    begin
+      if Pressed then
+        SolidColor := FCustomColorPressed
+      else
+      if not Enabled then
+        SolidColor := FCustomColorDisabled
+     else
+      if Focused then
+        SolidColor := FCustomColorFocused
+      else
+        SolidColor := FCustomColorNormal;
+      if SolidColor[3] <> 0 then
+        DrawRectangle(SR, SolidColor * Tint);
     end;
   end else
   begin
     if Pressed then
-      Background := tiButtonPressed else
+      Background := tiButtonPressed
+    else
     if not Enabled then
-      Background := tiButtonDisabled else
+      Background := tiButtonDisabled
+    else
     if Focused then
-      Background := tiButtonFocused else
+      Background := tiButtonFocused
+    else
       Background := tiButtonNormal;
     Theme.Draw(SR, Background, UIScale, Tint);
   end;
@@ -666,6 +717,46 @@ begin
   begin
     FAutoSizeHeight := Value;
     UpdateTextSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorDisabled(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorDisabled, AValue) then
+  begin
+    FCustomColorDisabled := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorFocused(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorFocused, AValue) then
+  begin
+    FCustomColorFocused := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorNormal(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorNormal, AValue) then
+  begin
+    FCustomColorNormal := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorPressed(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorPressed, AValue) then
+  begin
+    FCustomColorPressed := AValue;
+    VisibleChange([chRender]);
   end;
 end;
 

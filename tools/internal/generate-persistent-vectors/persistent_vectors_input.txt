@@ -15,6 +15,10 @@
 ../../../src/ui/opengl/ TCastleButton TintFocused  TCastleColor
 ../../../src/ui/opengl/ TCastleButton TintNormal   TCastleColor
 ../../../src/ui/opengl/ TCastleButton CustomTextColor TCastleColor
+../../../src/ui/opengl/ TCastleButton CustomColorPressed TCastleColor
+../../../src/ui/opengl/ TCastleButton CustomColorDisabled TCastleColor
+../../../src/ui/opengl/ TCastleButton CustomColorFocused TCastleColor
+../../../src/ui/opengl/ TCastleButton CustomColorNormal TCastleColor
 
 ../../../src/ui/opengl/ TCastleImageControl Color TCastleColor
 
