@@ -897,7 +897,7 @@ begin
   FContainer.Name := 'Container';
 
   if ControlsList.Count <> 0 then
-    SharedControl := ControlsList[0] as TCastleControl;
+    SharedControl := ControlsList[0] as TCastleControlCustom;
   ControlsList.Add(Self);
 
   Invalidated := false;
