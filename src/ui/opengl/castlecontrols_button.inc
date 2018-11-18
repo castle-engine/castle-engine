@@ -455,6 +455,12 @@ begin
   begin
     ImgScreenWidth  := UIScale * FImage.Width;
     ImgScreenHeight := UIScale * FImage.Height;
+  end else
+  begin
+    { Not really necessary,
+      but silence FPC 3.3.1 warnings that these are not initialized later. }
+    ImgScreenWidth  := 0;
+    ImgScreenHeight := 0;
   end;
 
   UseText := (Length(Caption) > 0);
@@ -475,6 +481,12 @@ begin
     TextBottom := TextBottom + Font.Descend;
 
     RenderText;
+  end else
+  begin
+    { Not really necessary,
+      but silence FPC 3.3.1 warnings that these are not initialized later. }
+    TextLeft := 0;
+    TextBottom := 0;
   end;
 
   if UseImage then

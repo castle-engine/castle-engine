@@ -2256,6 +2256,10 @@ begin
   if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
     CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
 
+  { Make ClearColor anything defined.
+    If we will include cbColor in ClearBuffers, it will actually always
+    be adjusted to something appropriate. }
+  ClearColor := Black;
   ClearBuffers := [];
   if ClearDepth then
     Include(ClearBuffers, cbDepth);
@@ -2282,7 +2286,9 @@ begin
       { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
-        testcase. So temporary set good perspective projection. }
+        testcase. So temporary set good perspective projection.
+
+        The code below always calls "UsedBackground.Render(...)" }
       if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := RenderContext.ProjectionMatrix;
@@ -2290,12 +2296,10 @@ begin
         PerspectiveProjection(45, R.Width / R.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
-      end;
-
-      UsedBackground.Render(RenderingCamera, BackgroundWireframe);
-
-      if FProjection.ProjectionType = ptOrthographic then
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      end else
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
 
       RenderingCamera.RotationOnly := false;
     end else
