@@ -147,10 +147,10 @@ function FormatDot(const Fmt: String; const Args: array of const): String;
 
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
   for the floating point numbers, regardless of the user's locale settings. }
-function TryStrToFloatDot(const S: String; out Value: Single): Boolean;
-function TryStrToFloatDot(const S: String; out Value: Double): Boolean;
+function TryStrToFloatDot(const S: String; out Value: Single): Boolean; overload;
+function TryStrToFloatDot(const S: String; out Value: Double): Boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
+function TryStrToFloatDot(const S: String; out Value: Extended): Boolean; overload;
 {$endif}
 
 {$endif read_interface}
