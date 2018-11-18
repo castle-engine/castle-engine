@@ -65,13 +65,13 @@
     FToggle: boolean;
     ClickStarted: boolean;
     ClickStartedPosition: TVector2;
-    FMinImageWidth: Cardinal;
-    FMinImageHeight: Cardinal;
+    FMinImageWidth: Single;
+    FMinImageHeight: Single;
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
-    FMinWidth, FMinHeight: Cardinal;
-    FImageMargin: Cardinal;
-    FPaddingHorizontal, FPaddingVertical: Cardinal;
+    FMinWidth, FMinHeight: Single;
+    FImageMargin: Single;
+    FPaddingHorizontal, FPaddingVertical: Single;
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
     FEnableParentDragging: boolean;
@@ -94,14 +94,16 @@
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
-    procedure SetMinWidth(const Value: Cardinal);
-    procedure SetMinHeight(const Value: Cardinal);
-    procedure SetImageMargin(const Value: Cardinal);
+    procedure SetMinWidth(const Value: Single);
+    procedure SetMinHeight(const Value: Single);
+    procedure SetImageMargin(const Value: Single);
     procedure SetEnabled(const Value: boolean);
     procedure SetTextAlignment(const Value: THorizontalPosition);
     procedure SetLineSpacing(const Value: Single);
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
+    procedure SetPaddingHorizontal(const Value: Single);
+    procedure SetPaddingVertical(const Value: Single);
   protected
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
@@ -197,8 +199,8 @@
       This is useful when you have a row of buttons (typical for toolbar),
       and you want them to have the same height, and their captions
       to be displayed at the same level, regardless of their images sizes. }
-    property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
-    property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
+    property MinImageWidth: Single read FMinImageWidth write FMinImageWidth default 0;
+    property MinImageHeight: Single read FMinImageHeight write FMinImageHeight default 0;
 
     { For multi-line @link(Caption), the horizontal alignment of the lines. }
     property TextAlignment: THorizontalPosition
@@ -244,12 +246,12 @@
     property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
 
     { Horizontal distance between text or @link(Image) and the button border. }
-    property PaddingHorizontal: Cardinal
-      read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
+    property PaddingHorizontal: Single
+      read FPaddingHorizontal write SetPaddingHorizontal default DefaultPaddingHorizontal;
 
     { Vertical distance between text or @link(Image) and the button border. }
-    property PaddingVertical: Cardinal
-      read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
+    property PaddingVertical: Single
+      read FPaddingVertical write SetPaddingVertical default DefaultPaddingVertical;
 
     { When AutoSize is @true (the default) then button sizes are automatically
       calculated when you change the @link(Caption) and @link(Image).
@@ -279,8 +281,8 @@
       a minimal width/height of the button. This is useful if you want
       to use auto-size (to make sure that the content fits inside),
       but you want to force filling some space. }
-    property MinWidth: Cardinal read FMinWidth write SetMinWidth default 0;
-    property MinHeight: Cardinal read FMinHeight write SetMinHeight default 0;
+    property MinWidth: Single read FMinWidth write SetMinWidth default 0;
+    property MinHeight: Single read FMinHeight write SetMinHeight default 0;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
@@ -314,7 +316,7 @@
       read FImageAlphaTest write FImageAlphaTest default false;
 
     { Distance between text and @link(Image). Unused if @link(Image) not set. }
-    property ImageMargin: Cardinal read FImageMargin write SetImageMargin
+    property ImageMargin: Single read FImageMargin write SetImageMargin
       default DefaultImageMargin;
 
     property Enabled: boolean read FEnabled write SetEnabled default true;
@@ -928,6 +930,24 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetPaddingHorizontal(const Value: Single);
+begin
+  if FPaddingHorizontal <> Value then
+  begin
+    FPaddingHorizontal := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TCastleButton.SetPaddingVertical(const Value: Single);
+begin
+  if FPaddingVertical <> Value then
+  begin
+    FPaddingVertical := Value;
+    UpdateTextSize;
+  end;
+end;
+
 procedure TCastleButton.SetHtml(const Value: boolean);
 begin
   if FHtml <> Value then
@@ -961,7 +981,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetMinWidth(const Value: Cardinal);
+procedure TCastleButton.SetMinWidth(const Value: Single);
 begin
   if FMinWidth <> Value then
   begin
@@ -970,7 +990,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetMinHeight(const Value: Cardinal);
+procedure TCastleButton.SetMinHeight(const Value: Single);
 begin
   if FMinHeight <> Value then
   begin
@@ -979,7 +999,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetImageMargin(const Value: Cardinal);
+procedure TCastleButton.SetImageMargin(const Value: Single);
 begin
   if FImageMargin <> Value then
   begin
