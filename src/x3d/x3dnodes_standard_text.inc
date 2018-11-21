@@ -860,7 +860,7 @@ begin
       begin
         for I := 0 to TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord.Count - 1 do
           MultiTexCoordNode.FdTexCoord.Add(
-            TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord.Items[I]);
+            TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord[I]);
       end else
         MultiTexCoordNode.FdTexCoord.Add(FdTexCoord.Value);
     end else

@@ -50,6 +50,7 @@ type
     procedure AddFloat(const F: Single);
     procedure AddPointer(Ptr: Pointer);
     procedure AddEffects(Nodes: TX3DNodeList);
+    procedure AddEffects(Nodes: TMFNode);
 
     function ToString: string;
     procedure Clear;
@@ -770,6 +771,16 @@ begin
     source code may still have different uniform values, and sharing them
     would not be handled correctly here --- we set uniform values on change,
     not every time before rendering shape). }
+  for I := 0 to Nodes.Count - 1 do
+    if (Nodes[I] is TEffectNode) and
+       TEffectNode(Nodes[I]).FdEnabled.Value then
+      AddPointer(Nodes[I]);
+end;
+
+procedure TShaderCodeHash.AddEffects(Nodes: TMFNode);
+var
+  I: Integer;
+begin
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TEffectNode) and
        TEffectNode(Nodes[I]).FdEnabled.Value then
@@ -1511,7 +1522,7 @@ begin
   Hash.AddInteger(179 * (TextureUnit + 1) * IntHash);
   { Don't directly add Node to the Hash, it would prevent a lot of sharing.
     Node is only used to get effects. }
-  Hash.AddEffects(Node.FdEffects.Items);
+  Hash.AddEffects(Node.FdEffects);
 {$include norqcheckend.inc}
 end;
 
@@ -2143,7 +2154,7 @@ procedure TShader.EnableEffects(Effects: TMFNode;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 begin
-  EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
+  EnableEffects(Effects.InternalItems, Code, ForwardDeclareInFinalShader);
 end;
 
 procedure TShader.EnableEffects(Effects: TX3DNodeList;
@@ -3388,7 +3399,7 @@ begin
   if AppearanceEffects.Count <> 0 then
   begin
     ShapeRequiresShaders := true;
-    FCodeHash.AddEffects(AppearanceEffects.Items);
+    FCodeHash.AddEffects(AppearanceEffects);
   end;
 end;
 

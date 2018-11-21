@@ -1163,7 +1163,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    MultiTexCoord: TX3DNodeList;
+    MultiTexCoord: TMFNode;
     I, LastCoord: Integer;
   begin
     if TexCoord = nil then
@@ -1173,7 +1173,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end else
     if TexCoord is TMultiTextureCoordinateNode then
     begin
-      MultiTexCoord := TMultiTextureCoordinateNode(TexCoord).FdTexCoord.Items;
+      MultiTexCoord := TMultiTextureCoordinateNode(TexCoord).FdTexCoord;
       SetTexLengths(MultiTexCoord.Count);
       for I := 0 to MultiTexCoord.Count - 1 do
         AddSingleTexCoord(I, MultiTexCoord[I]);

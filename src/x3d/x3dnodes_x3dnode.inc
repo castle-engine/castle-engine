@@ -1409,13 +1409,15 @@ begin
       end;
     end;
 
+  { Use InternalItems for an extra epsilon of speed. }
+
   if FFieldsMFNode <> nil then
     for I := 0 to FFieldsMFNode.Count - 1 do
     begin
       MF := TMFNode(FFieldsMFNode[I]);
-      for J := 0 to MF.Items.Count - 1 do
+      for J := 0 to MF.InternalItems.Count - 1 do
       begin
-        Result := Func(Self, MF.Items[J]);
+        Result := Func(Self, MF.InternalItems[J]);
         if Result <> nil then Exit;
       end;
     end;
@@ -2847,11 +2849,11 @@ begin
     begin
       MF := TMFNode(FFieldsMFNode[I]);
       J := 0;
-      while J < MF.Items.Count do
+      while J < MF.InternalItems.Count do
       begin
-        NewNode := MF.Items[J];
+        NewNode := MF.InternalItems[J];
         Func(Self, NewNode);
-        if NewNode <> MF.Items[J] then
+        if NewNode <> MF.InternalItems[J] then
         begin
           MF.Delete(J);
           Inc(Result);
@@ -2862,7 +2864,7 @@ begin
           end;
         end else
         begin
-          Result := Result + MF.Items[J].EnumerateReplaceChildren(Func);
+          Result := Result + MF.InternalItems[J].EnumerateReplaceChildren(Func);
           Inc(J);
         end;
       end;
@@ -2994,7 +2996,7 @@ begin
   begin
     MF := TMFNode(Destination);
     for J := 0 to MF.Count - 1 do
-      MF.Replace(J, CopyState.DeepCopy(MF.Items[J]));
+      MF.Replace(J, CopyState.DeepCopy(MF.InternalItems[J]));
   end;
 end;
 

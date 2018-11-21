@@ -3186,7 +3186,7 @@ function TChangedAllTraverser.Traverse(
       as there are LODNode.FdChildren. Reason: LODTree.CalculateLevel
       uses this Count. }
 
-    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    for I := 0 to LODNode.FdChildren.Count - 1 do
       LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
     if ParentScene.ProcessEvents and
@@ -3768,7 +3768,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         Traverse would enter only active child), because changing Transform
         node may be in inactive graph parts. }
 
-      for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+      for I := 0 to SwitchNode.FdChildren.Count - 1 do
       begin
         NewShapes.Group := ShapeSwitch.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
@@ -3777,7 +3777,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         ChildInactive := I <> SwitchNode.FdWhichChoice.Value;
         if ChildInactive then Inc(Inactive);
 
-        SwitchNode.FdChildren.Items[I].TraverseInternal(
+        SwitchNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
@@ -3815,7 +3815,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         (while normal Traverse would enter only active child),
         because changing Transform  node may be in inactive graph parts. }
 
-      for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+      for I := 0 to LODNode.FdChildren.Count - 1 do
       begin
         NewShapes.Group := ShapeLOD.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
@@ -3823,7 +3823,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
-        LODNode.FdChildren.Items[I].TraverseInternal(
+        LODNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);

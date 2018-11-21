@@ -81,21 +81,17 @@
       const AnAllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
-    { TODO:
-      Replace TMFNode.Items by a list with notifications?
-      Although leave TMFNode methods with trivial implementations
-      (TMFNode.Add calls Items.Add), because this way you don't have to write
-      "Items." everywhere. }
+    { Items of this field. }
+    property Items[Index: Integer]: TX3DNode read GetItems; default;
+    property ItemsArray[Index: Integer]: TX3DNode read GetItems; deprecated 'use Items (default array property)';
 
-    { Lists items of this field.
-
+    { Lists of items in this field.
       Do not modify this list explicitly. Use only methods in this class
       like @link(Add). They take care of calling appropriate
       AddParentField / RemoveParentField, otherwise you
-      could break reference-counting of nodes by ParentFields. }
-    property Items: TX3DNodeList read FItems;
-
-    property ItemsArray[Index: Integer]: TX3DNode read GetItems; default;
+      can break reference-counting of nodes by ParentFields.
+      @exclude }
+    property InternalItems: TX3DNodeList read FItems;
 
     procedure Add(Node: TX3DNode); overload;
     procedure Add(Position: Integer; Node: TX3DNode); overload;
@@ -174,6 +170,24 @@
 
     // Not needed now
     //procedure Send(const AValue: TX3DNodeList); overload;
+
+    { Find node by name, @nil if not found.
+
+      For empty node name, always returns @nil. This follows the definition
+      of @link(TX3DNode.X3DName):
+      empty means that node has no name, so it should not be found
+      by searches by name, ever.
+
+      @seealso(IndexOfName Returns the node index. This is sometimes more
+        flexible (you can always quickly get actual node knowing the index,
+        by Items[Index], but not the other way around). It is also sometimes
+        less comfortable (often you're not interested in node index).) }
+    function FindName(const AName: string): TX3DNode;
+
+    { Find index of a node with given name, -1 if not found. }
+    function IndexOfName(const AName: string): Integer;
+    { Find index of a node , -1 if not found. }
+    function IndexOf(const ANode: TX3DNode): Integer;
   end;
 
 {$endif read_interface}
@@ -268,14 +282,14 @@ begin
           In this case, we want it to start on the same line, so indent must
           be discarded. }
         Writer.DiscardNextIndent;
-        Items[0].NodeSaveToStream(Writer, N);
+        FItems[0].NodeSaveToStream(Writer, N);
       end else
       begin
         Writer.Writeln('[');
         Writer.IncIndent;
         for I := 0 to Count - 1 do
         begin
-          Items[I].NodeSaveToStream(Writer, N);
+          FItems[I].NodeSaveToStream(Writer, N);
           Writer.Writeln;
         end;
         Writer.DecIndent;
@@ -283,7 +297,7 @@ begin
       end;
     xeXML:
       for I := 0 to Count - 1 do
-        Items[I].NodeSaveToStream(Writer, N);
+        FItems[I].NodeSaveToStream(Writer, N);
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
   end;
 end;
@@ -295,23 +309,23 @@ end;
 
 function TMFNode.GetCount: SizeInt;
 begin
-  Result := Items.Count;
+  Result := FItems.Count;
 end;
 
 procedure TMFNode.SetCount(const Value: SizeInt);
 var
   I: Integer;
 begin
-  if Value < Items.Count then
+  if Value < FItems.Count then
   begin
-    for I := Value to Items.Count - 1 do
-      Items[I].RemoveParentField(Self);
-    Items.Count := Value;
+    for I := Value to FItems.Count - 1 do
+      FItems[I].RemoveParentField(Self);
+    FItems.Count := Value;
   end else
-  if Value > Items.Count then
+  if Value > FItems.Count then
   begin
     { TObjectList makes sure that increasing count sets new items to nil }
-    Items.Count := Value;
+    FItems.Count := Value;
   end;
 end;
 
@@ -319,7 +333,7 @@ procedure TMFNode.Add(Node: TX3DNode);
 begin
   if Node = nil then
     raise EX3DError.Create('Cannot add nil node to an MFNode field ' + NiceName);
-  Items.Add(Node);
+  FItems.Add(Node);
   Node.AddParentField(Self);
 end;
 
@@ -327,32 +341,32 @@ procedure TMFNode.Add(Position: Integer; Node: TX3DNode);
 begin
   if Node = nil then
     raise EX3DError.Create('Cannot add nil node to an MFNode field ' + NiceName);
-  Items.Insert(Position, Node);
+  FItems.Insert(Position, Node);
   Node.AddParentField(Self);
 end;
 
 procedure TMFNode.Delete(Index: Integer);
 begin
-  Items[Index].RemoveParentField(Self);
-  Items.Delete(Index);
+  FItems[Index].RemoveParentField(Self);
+  FItems.Delete(Index);
 end;
 
 function TMFNode.Remove(const Node: TX3DNode): Integer;
 begin
-  Result := Items.IndexOf(Node);
+  Result := FItems.IndexOf(Node);
   if Result <> -1 then
     Delete(Result);
 end;
 
 function TMFNode.Extract(Index: Integer): TX3DNode;
 begin
-  Result := Items[Index];
+  Result := FItems[Index];
 
   { Instead of calling Result.RemoveParentField(Self), which would possibly
     free Result, we manually call FParentFields.Delete. }
   Result.FParentFields.Remove(Self);
 
-  Items.Delete(Index);
+  FItems.Delete(Index);
 end;
 
 procedure TMFNode.Replace(Index: Integer; Node: TX3DNode);
@@ -390,9 +404,9 @@ var
   I: Integer;
 begin
   Clear;
-  Items.Assign(SourceItems);
+  FItems.Assign(SourceItems);
   for I := 0 to Count - 1 do
-    Items[I].AddParentField(Self);
+    FItems[I].AddParentField(Self);
 end;
 
 procedure TMFNode.AssignItems(const SourceItems: array of TX3DNode);
@@ -400,9 +414,9 @@ var
   I: Integer;
 begin
   Clear;
-  Items.Assign(SourceItems);
+  FItems.Assign(SourceItems);
   for I := 0 to Count - 1 do
-    Items[I].AddParentField(Self);
+    FItems[I].AddParentField(Self);
 end;
 
 procedure TMFNode.AssignDefaultItems(SourceItems: TX3DNodeList);
@@ -524,21 +538,21 @@ end;
 
 function TMFNode.EqualsDefaultValue: boolean;
 begin
-  Result := DefaultValueExists and DefaultItems.Equals(Items);
+  Result := DefaultValueExists and DefaultItems.Equals(FItems);
 end;
 
 function TMFNode.Equals(SecondValue: TX3DField): boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TMFNode) and
-    (TMFNode(SecondValue).Items.Equals(Items));
+    (TMFNode(SecondValue).FItems.Equals(FItems));
 end;
 
 procedure TMFNode.Assign(Source: TPersistent);
 begin
   if Source is TMFNode then
   begin
-    AssignItems(TMFNode(Source).Items);
+    AssignItems(TMFNode(Source).FItems);
     AssignDefaultItems(TMFNode(Source).DefaultItems);
     DefaultValueExists := TMFNode(Source).DefaultValueExists;
     VRMLFieldAssignCommon(TX3DField(Source));
@@ -551,7 +565,7 @@ begin
   if Source is TMFNode then
   begin
     inherited;
-    AssignItems(TMFNode(Source).Items);
+    AssignItems(TMFNode(Source).FItems);
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
@@ -559,7 +573,7 @@ end;
 procedure TMFNode.AssignDefaultValueFromValue;
 begin
   inherited;
-  AssignDefaultItems(Items);
+  AssignDefaultItems(FItems);
   DefaultValueExists := true;
 end;
 
@@ -578,7 +592,7 @@ begin
     and costs time, because it may do a slow Supports() call }
   //if ChildAllowed(Items[I]) then
   begin
-    Result := Func(ParentNode, Items[I]);
+    Result := Func(ParentNode, FItems[I]);
     if Result <> nil then Exit;
   end;
 end;
@@ -603,7 +617,7 @@ begin
     { AExposed = false below, because not needed otherwise. }
     FieldValue := TMFNode.CreateUndefined(ParentNode, false, X3DName);
     try
-      FieldValue.Items.AddRange(AValue);
+      FieldValue.FItems.AddRange(AValue);
       Send(FieldValue);
     finally FreeAndNil(FieldValue) end;
   end else
@@ -616,6 +630,22 @@ begin
     Changed;
   end;
 end;
+
+function TMFNode.FindName(const AName: string): TX3DNode;
+begin
+  Result := FItems.FindName(AName);
+end;
+
+function TMFNode.IndexOfName(const AName: string): Integer;
+begin
+  Result := FItems.IndexOfName(AName);
+end;
+
+function TMFNode.IndexOf(const ANode: TX3DNode): Integer;
+begin
+  Result := FItems.IndexOf(ANode);
+end;
+
 
 // Not needed now
 // procedure TMFNode.Send(const AValue: TX3DNodeList);
