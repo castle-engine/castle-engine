@@ -335,6 +335,8 @@ begin
   BottomControls.Anchor(hpMiddle);
   BottomControls.Anchor(vpBottom, 10);
   BottomControls.Frame := true;
+  BottomControls.Padding := 10;
+  BottomControls.Spacing := 10;
   Window.Controls.InsertFront(BottomControls);
 
   LabelEffects := TCastleLabel.Create(Application);

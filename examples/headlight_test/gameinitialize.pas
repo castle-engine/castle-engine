@@ -162,6 +162,8 @@ begin
   Buttons := TButtons.Create(Application);
   Buttons.Anchor(vpBottom, 10);
   Buttons.Anchor(hpLeft, 10);
+  Buttons.Spacing := 10;
+  Buttons.Padding := 10;
   Window.Controls.InsertFront(Buttons);
 end;
 

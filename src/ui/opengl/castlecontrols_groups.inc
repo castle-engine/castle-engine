@@ -39,8 +39,8 @@
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
-      DefaultPadding = 10;
-      DefaultSpacing = 10;
+      DefaultPadding = 0;
+      DefaultSpacing = 0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

@@ -58,6 +58,8 @@ begin
   Group.Anchor(vpTop);
   Group.Anchor(hpLeft);
   Group.Alignment := hpLeft;
+  Group.Spacing := 10;
+  Group.Padding := 10;
   Window.Controls.InsertFront(Group);
 
   Label1 := TCastleLabel.Create(Application);
