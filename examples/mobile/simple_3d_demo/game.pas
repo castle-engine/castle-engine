@@ -207,7 +207,7 @@ var
   procedure AnchorNextButton(const B: TCastleButton);
   begin
     B.Anchor(vpTop, AnchorY);
-    AnchorY -= Margin + Round(B.Rect.Height / B.UIScale);
+    AnchorY -= Margin + Round(B.EffectiveHeight / B.UIScale);
   end;
 
 begin
