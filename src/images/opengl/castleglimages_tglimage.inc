@@ -468,13 +468,17 @@ type
     *)
 
     { Ignore (do not log to CastleLog) situations when Draw3x3
-      cannot work
-      because corners are larger than draw area size.
+      cannot work because corners are larger than draw area size.
       Set this to @true when it's perfectly possible (you do not want to even
       see it in log) for Draw3x3 calls to fail because corners
-      are larger than draw area size. }
+      are larger than draw area size.
+
+      This is @true by default now, since it's safer for UI rendering.
+      Otherwise causing this problem makes a flood of errors to the log file,
+      and it's easy to make this problem when your UI adjusts to the screen size.
+    }
     property IgnoreTooLargeCorners: boolean
-      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
+      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default true;
 
     { Color to multiply the texture contents (all RGBA channels).
       By default this is White, which is (1, 1, 1, 1) as RGBA,
@@ -880,6 +884,7 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingConstantColor := DefaultBlendingConstantColor;
+  FIgnoreTooLargeCorners := true;
 
   Load(Image);
 end;
