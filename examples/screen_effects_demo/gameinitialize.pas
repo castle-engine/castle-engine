@@ -317,18 +317,21 @@ begin
   Label1.Caption := 'Example button and image';
   Label1.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label1.Anchor(hpMiddle, -300 - 50);
+  Label1.Color := White;
   Window.Controls.InsertFront(Label1);
 
   Label2 := TCastleLabel.Create(Application);
   Label2.Caption := '2D Scene Manager';
   Label2.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label2.Anchor(hpMiddle);
+  Label2.Color := White;
   Window.Controls.InsertFront(Label2);
 
   Label3 := TCastleLabel.Create(Application);
   Label3.Caption := '3D Scene Manager';
   Label3.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label3.Anchor(hpMiddle, 300 + 50);
+  Label3.Color := White;
   Window.Controls.InsertFront(Label3);
 
   BottomControls := TCastleHorizontalGroup.Create(Application);
@@ -341,6 +344,7 @@ begin
 
   LabelEffects := TCastleLabel.Create(Application);
   LabelEffects.Caption := 'Toggle Screen Effects:';
+  LabelEffects.Color := White;
   BottomControls.InsertFront(LabelEffects);
 
   FilmGrain.Button := TCastleButton.Create(Application);

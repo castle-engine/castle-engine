@@ -127,6 +127,7 @@ begin
   inherited;
   FTextLabel := TCastleLabel.Create(Self);
   FTextLabel.Anchor(vpMiddle);
+  FTextLabel.Color := White;
   InsertFront(FTextLabel);
 
   FImageIcon := TCastleImageControl.Create(Self);

@@ -152,6 +152,7 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
+  Background: TCastleRectangleControl;
   Scene: TCastleScene;
   TestLabel: TCastleLabel;
   Config: TCastleConfig;
@@ -166,7 +167,10 @@ begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
 
-  Window.Controls.InsertBack(TCastleSimpleBackground.Create(Application));
+  Background := TCastleRectangleControl.Create(Application);
+  Background.Color := Black;
+  Background.FullSize := true;
+  Window.Controls.InsertBack(Background);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(ApplicationData('scene.x3dv'));
@@ -229,6 +233,7 @@ begin
     'Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!';
   TestLabel.Bottom := Y;
   TestLabel.Left := 100;
+  TestLabel.Color := White;
   Window.Controls.InsertFront(TestLabel);
   Y := Y + (TestLabel.EffectiveHeight + 10);
 

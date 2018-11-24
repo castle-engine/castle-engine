@@ -63,6 +63,7 @@ begin
   MyLabel.Caption := 'Port:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -10);
+  MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   PortEdit := TCastleEdit.Create(Application);
@@ -94,11 +95,13 @@ begin
   MyLabel.Caption := 'Response:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -310);
+  MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   ResponseLabel := TCastleLabel.Create(Application);
   ResponseLabel.Anchor(hpMiddle);
   ResponseLabel.Anchor(vpTop, -360);
+  ResponseLabel.Color := White;
   Window.Controls.InsertFront(ResponseLabel);
 end;
 
@@ -117,7 +120,7 @@ end;
 destructor TServer.Destroy;
 begin
   FServer.Free;
-  
+
   inherited;
 end;
 

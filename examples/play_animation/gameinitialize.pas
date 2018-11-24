@@ -78,6 +78,7 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Forward:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
+    Lab.Color := White;
     ScrollView.ScrollArea.InsertFront(Lab);
 
     SwitchForward := TCastleSwitchControl.Create(AnimationsPanel);
@@ -93,6 +94,7 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Loop:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
+    Lab.Color := White;
     ScrollView.ScrollArea.InsertFront(Lab);
 
     SwitchLoop := TCastleSwitchControl.Create(AnimationsPanel);
@@ -108,6 +110,7 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Transition:';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
+    Lab.Color := White;
     ScrollView.ScrollArea.InsertFront(Lab);
 
     SliderTransition := TCastleFloatSlider.Create(AnimationsPanel);
@@ -124,6 +127,7 @@ class procedure TEventsHandler.Open(const Url: string);
     Lab.Caption := 'Click to play animation...';
     Lab.Anchor(hpLeft, Margin);
     Lab.Anchor(vpTop, -H);
+    Lab.Color := White;
     ScrollView.ScrollArea.InsertFront(Lab);
 
     H := H + (Lab.EffectiveHeight + Margin);

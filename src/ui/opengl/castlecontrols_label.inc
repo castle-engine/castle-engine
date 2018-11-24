@@ -57,7 +57,7 @@
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
 
-    { Text color. By default it's white. }
+    { Text color. By default it's opaque black. }
     property Color: TCastleColor read FColor write FColor;
 
     { Color tint of the background image, see @link(Frame). By default white. }
@@ -177,7 +177,12 @@ begin
 
   FText := TStringList.Create;
   TStringList(FText).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
-  FColor := White;
+  {$warnings off}
+  if Theme.DefaultLabelWhite then
+  {$warnings on}
+    FColor := White
+  else
+    FColor := Black;
   FFrame := false;
   FFrameColor := White;
   FLineSpacing := DefaultLineSpacing;

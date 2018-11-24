@@ -63,6 +63,7 @@ begin
   MyLabel.Caption := 'Hostname:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -10);
+  MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   HostEdit := TCastleEdit.Create(Application);
@@ -75,6 +76,7 @@ begin
   MyLabel.Caption := 'Port:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -110);
+  MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   PortEdit := TCastleEdit.Create(Application);
@@ -106,11 +108,13 @@ begin
   MyLabel.Caption := 'Response:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -410);
+  MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   ResponseLabel := TCastleLabel.Create(Application);
   ResponseLabel.Anchor(hpMiddle);
   ResponseLabel.Anchor(vpTop, -460);
+  ResponseLabel.Color := White;
   Window.Controls.InsertFront(ResponseLabel);
 end;
 

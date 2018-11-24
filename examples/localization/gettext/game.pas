@@ -199,6 +199,7 @@ begin
 
   Lab := TCastleLabel.Create(Application);
   Lab.Caption := CaptionLabel;
+  Lab.Color := White;
   BottomGroup.InsertFront(Lab);
 
   Language := SystemLanguage;

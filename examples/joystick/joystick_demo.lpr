@@ -172,6 +172,7 @@ begin
     JoyAxes[i].Left := 10;
     JoyAxes[i].Bottom := 120 + i * 45;
     JoyAxes[i].Caption := 'Axis: ' + IntToStr(i);
+    JoyAxes[i].Color := White;
     Window.Controls.InsertFront(JoyAxes[i]);
   end;
   Notifications.Show(Format('Found %d axes',
@@ -216,6 +217,7 @@ begin
   Title := TCastleLabel.Create(Window);
   Title.Left := 10;
   Title.Anchor(vpTop, -10);
+  Title.Color := White;
   Window.Controls.InsertFront(Title);
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);

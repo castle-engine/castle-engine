@@ -33,7 +33,7 @@
 program lets_take_a_walk;
 
 uses SysUtils, Classes,
-  CastleWindow, CastleScene, X3DFields, X3DNodes,
+  CastleWindow, CastleScene, X3DFields, X3DNodes, CastleColors,
   CastleUtils, CastleGLUtils, CastleBoxes, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
@@ -318,6 +318,7 @@ begin
   HelpMessage.Frame := true;
   HelpMessage.FrameColor := Vector4(0.25, 0.25, 0.25, 1);
   HelpMessage.Padding := 10;
+  HelpMessage.Color := White;
   Window.Controls.InsertFront(HelpMessage);
 
   { open window, to have OpenGL context }

@@ -87,6 +87,8 @@
       rendering user stuff). }
     InternalForceOpaqueBackground: boolean;
 
+    DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
+
     constructor Create;
     destructor Destroy; override;
 
