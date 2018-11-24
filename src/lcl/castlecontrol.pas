@@ -573,7 +573,7 @@ type
   end;
 
   { Control to render 2D games with Castle Game Engine,
-    with a default @link(TCastleSceneManager) instance already created for you.
+    with a default @link(TCastle2DSceneManager) instance already created for you.
     This is the simplest way to render a game world with 2D controls above.
     Add your
     game stuff (like @link(TCastle2DScene))
