@@ -38,45 +38,27 @@ var
     LabelDeja, LabelDejaBW, LabelDejaLarge, LabelDejaLargeOutline,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
-procedure Resize(Container: TUIContainer);
-const
-  Margin = 10;
 var
-  Y: Integer;
-
-  procedure PositionLabel(L: TCastleLabel);
-  begin
-    Y -= Integer(L.Rect.Height) + Margin;
-    L.Align(hpMiddle, hpMiddle);
-    L.Bottom := Y;
-  end;
-
-begin
-  { each time Window size changes, reposition labels }
-  Y := Window.Height;
-  PositionLabel(Label1);
-  PositionLabel(Label2);
-  PositionLabel(LabelDeja);
-  PositionLabel(LabelDejaBw);
-  PositionLabel(LabelDejaLarge);
-  PositionLabel(LabelDejaLargeOutline);
-  PositionLabel(LabelStylish);
-  PositionLabel(LabelStylishBw);
-  PositionLabel(LabelStylishLarge);
-end;
-
-var
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   MyTextureFont: TTextureFont;
   MySimpleTextureFont: TSimpleTextureFont;
+  LabelsGroup: TCastleVerticalGroup;
 begin
   InitializeLog;
 
   Window := TCastleWindow.Create(Application);
 
-  Background := TCastleSimpleBackground.Create(Window);
+  Background := TCastleRectangleControl.Create(Window);
   Background.Color := Vector4(0.4, 0.4, 0.0, 1.0);
+  Background.FullSize := true;
   Window.Controls.InsertFront(Background);
+
+  LabelsGroup := TCastleVerticalGroup.Create(Window);
+  LabelsGroup.Alignment := hpMiddle;
+  LabelsGroup.Anchor(hpMiddle);
+  LabelsGroup.Anchor(vpTop, -10);
+  LabelsGroup.Spacing := 10;
+  Window.Controls.InsertFront(LabelsGroup);
 
   MySimpleTextureFont := TSimpleTextureFont.Create(nil);
   MySimpleTextureFont.Load(LoadImage(ApplicationData('sonic_asalga_0.png')), 8, 12, 2, 2);
@@ -90,8 +72,9 @@ begin
   Label1.Text.Append('1 + 2 + 3 = 6');
   Label1.Padding := 5;
   Label1.Frame := true;
+  Label1.Color := White;
   // do not assign Label1.CustomFont, so it will use global UIFont
-  Window.Controls.InsertFront(Label1);
+  LabelsGroup.InsertFront(Label1);
 
   Label2 := TCastleLabel.Create(Window);
   Label2.Text.Append('Yet another label.');
@@ -102,7 +85,7 @@ begin
   Label2.CustomFont := MySimpleTextureFont;
   Label2.Color := Red;
   Label2.Frame := true;
-  Window.Controls.InsertFront(Label2);
+  LabelsGroup.InsertFront(Label2);
 
   LabelDeja := TCastleLabel.Create(Window);
   LabelDeja.Text.Append('DejaVuSans font');
@@ -112,7 +95,8 @@ begin
   MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 15, true);
   LabelDeja.CustomFont := MyTextureFont;
   LabelDeja.Frame := true;
-  Window.Controls.InsertFront(LabelDeja);
+  LabelDeja.Color := White;
+  LabelsGroup.InsertFront(LabelDeja);
 
   LabelDejaBW := TCastleLabel.Create(Window);
   LabelDejaBW.Text.Append('DejaVuSans font');
@@ -122,7 +106,8 @@ begin
   MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 15, false);
   LabelDejaBW.CustomFont := MyTextureFont;
   LabelDejaBW.Frame := true;
-  Window.Controls.InsertFront(LabelDejaBW);
+  LabelDejaBW.Color := White;
+  LabelsGroup.InsertFront(LabelDejaBW);
 
   LabelDejaLarge := TCastleLabel.Create(Window);
   LabelDejaLarge.Text.Append('DejaVuSans font with anti-aliasing');
@@ -133,7 +118,7 @@ begin
   MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 30, true);
   LabelDejaLarge.CustomFont := MyTextureFont;
   LabelDejaLarge.Frame := true;
-  Window.Controls.InsertFront(LabelDejaLarge);
+  LabelsGroup.InsertFront(LabelDejaLarge);
 
   LabelDejaLargeOutline := TCastleLabel.Create(Window);
   LabelDejaLargeOutline.Text.Append('DejaVuSans font with anti-aliasing');
@@ -148,7 +133,7 @@ begin
   MyTextureFont.OutlineColor := Red;
   LabelDejaLargeOutline.CustomFont := MyTextureFont;
   LabelDejaLargeOutline.Frame := true;
-  Window.Controls.InsertFront(LabelDejaLargeOutline);
+  LabelsGroup.InsertFront(LabelDejaLargeOutline);
 
   LabelStylish := TCastleLabel.Create(Window);
   LabelStylish.Caption :=
@@ -159,7 +144,8 @@ begin
   MyTextureFont.Load(ApplicationData('PARPG.ttf'), 15, true);
   LabelStylish.CustomFont := MyTextureFont;
   LabelStylish.Frame := true;
-  Window.Controls.InsertFront(LabelStylish);
+  LabelStylish.Color := White;
+  LabelsGroup.InsertFront(LabelStylish);
 
   LabelStylishBW := TCastleLabel.Create(Window);
   LabelStylishBW.Caption :=
@@ -170,7 +156,8 @@ begin
   MyTextureFont.Load(ApplicationData('PARPG.ttf'), 15, false);
   LabelStylishBW.CustomFont := MyTextureFont;
   LabelStylishBW.Frame := true;
-  Window.Controls.InsertFront(LabelStylishBW);
+  LabelStylishBW.Color := White;
+  LabelsGroup.InsertFront(LabelStylishBW);
 
   LabelStylishLarge := TCastleLabel.Create(Window);
   LabelStylishLarge.Caption :=
@@ -183,8 +170,8 @@ begin
 //  MyTextureFont.Scale := 4; // test font Scale
   LabelStylishLarge.CustomFont := MyTextureFont;
   LabelStylishLarge.Frame := true;
-  Window.Controls.InsertFront(LabelStylishLarge);
+  LabelStylishLarge.Color := White;
+  LabelsGroup.InsertFront(LabelStylishLarge);
 
-  Window.OnResize := @Resize;
   Window.OpenAndRun;
 end.
