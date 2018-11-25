@@ -191,18 +191,21 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     begin
       ScrollbarSlider.Height := EffectiveHeightForChildren * SR.Height / ScrollArea.EffectiveHeight;
       ScrollbarSlider.Height := Max(
-        Theme.MinimumScrollbarSliderHeight, ScrollbarSlider.Height);
+        Theme.MinimumScrollbarSliderHeight * UIScale, ScrollbarSlider.Height);
       ScrollbarSlider.Height := Min(
-        EffectiveHeightForChildren, ScrollbarSlider.Height);
+        EffectiveHeightForChildren * UIScale, ScrollbarSlider.Height);
 
-      FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+      FScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height + SingleEpsilon;
       { equivalent would be to set
-          ScrollBarVisible := EffectiveHeightForChildren < ScrollArea.EffectiveHeight
+          ScrollBarVisible := EffectiveHeightForChildren <
+            ScrollArea.EffectiveHeight;
         But this way makes it clear that MapRange below is valid,
         it will not divide by zero. }
     end;
     if FScrollBarVisible then
     begin
+      { above calculation of FScrollBarVisible must guarantee this. }
+      Assert(ScrollbarFrame.Height > ScrollbarSlider.Height);
       ScrollbarSlider.Bottom := ScrollbarSlider.Bottom +
         (MapRange(Scroll, ScrollMin, ScrollMax,
           ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
