@@ -222,10 +222,12 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
   FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
-  FImages[tiEmptySquare] := EmptySquare;
-  FCorners[tiEmptySquare] := Vector4Integer(4, 4, 4, 4);
-  FImages[tiEmptySquareGlow] := EmptySquareGlow;
-  FCorners[tiEmptySquareGlow] := Vector4Integer(4, 4, 4, 4);
+  FImages[tiSquareEmpty] := SquareEmpty;
+  FCorners[tiSquareEmpty] := Vector4Integer(4, 4, 4, 4);
+  FImages[tiSquareChecked] := SquareChecked;
+  FCorners[tiSquareChecked] := Vector4Integer(4, 4, 4, 4);
+  FImages[tiSquarePressedBackground] := SquarePressedBackground;
+  FCorners[tiSquarePressedBackground] := Vector4Integer(4, 4, 4, 4);
   FImages[tiDisclosure] := Disclosure;
   FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;

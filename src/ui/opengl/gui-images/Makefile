@@ -17,7 +17,7 @@ clean:
   ProgressBar.png ProgressFill.png \
   TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
   Crosshair1.png Crosshair2.png ScrollbarSlider.png \
-  Checkmark.png Disclosure.png EmptySquare.png EmptySquareGlow.png \
+  Checkmark.png Disclosure.png SquareEmpty.png SquarePressedBackground.png SquareChecked.png \
   Loading.png Edit.png
 	image-to-pascal --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
@@ -27,7 +27,7 @@ clean:
 	  FrameThickWhite.png FrameThickYellow.png ProgressBar.png ProgressFill.png \
 	  TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
 	  Loading.png Crosshair1.png Crosshair2.png ScrollbarSlider.png \
-	  Checkmark.png Disclosure.png EmptySquare.png EmptySquareGlow.png \
+	  Checkmark.png Disclosure.png SquareEmpty.png SquarePressedBackground.png SquareChecked.png \
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png \

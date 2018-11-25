@@ -23,7 +23,8 @@
     FCaption: String;
     FOnChange: TNotifyEvent;
     FCaptionMargin: Single;
-    FImageSquare, FImageCheckmark, FImagePressed: TCastleImageControl;
+    FImageContainer: TCastleUserInterface;
+    FImageSquareEmpty, FImageSquareChecked, FImagePressedBackground: TCastleImageControl;
     FLabelCaption: TCastleLabel;
     FTextColor, FCheckboxColor: TCastleColor;
     FAutoSize: Boolean;
@@ -92,47 +93,47 @@ begin
   FCheckboxColor := Black;
   FCheckboxSize := DefaultCheckboxSize;
 
-  FImageSquare := TCastleImageControl.Create(Self);
-  FImageSquare.SetTransient;
-  FImageSquare.Image := EmptySquare;
-  FImageSquare.OwnsImage := false;
-  FImageSquare.Color := FCheckboxColor;
-  FImageSquare.Anchor(vpMiddle);
-  FImageSquare.Stretch := true;
-  FImageSquare.Width := FCheckboxSize;
-  FImageSquare.Height := FCheckboxSize;
-  InsertFront(FImageSquare);
+  FImageContainer := TCastleUserInterface.Create(Self);
+  FImageContainer.SetTransient;
+  FImageContainer.Width := FCheckboxSize;
+  FImageContainer.Height := FCheckboxSize;
+  FImageContainer.Anchor(vpMiddle);
+  InsertFront(FImageContainer);
 
-  FImageCheckmark := TCastleImageControl.Create(Self);
-  FImageCheckmark.SetTransient;
-  FImageCheckmark.Image := Checkmark;
-  FImageCheckmark.OwnsImage := false;
-  FImageCheckmark.Anchor(hpMiddle);
-  FImageCheckmark.Anchor(vpMiddle);
-  FImageCheckmark.Color := FCheckboxColor;
-  FImageCheckmark.Exists := FChecked;
-  FImageCheckmark.Stretch := true;
-  FImageCheckmark.Width := FCheckboxSize;
-  FImageCheckmark.Height := FCheckboxSize;
-  FImageSquare.InsertFront(FImageCheckmark);
+  FImagePressedBackground := TCastleImageControl.Create(Self);
+  FImagePressedBackground.SetTransient;
+  FImagePressedBackground.Image := Theme.Images[tiSquarePressedBackground];
+  FImagePressedBackground.OwnsImage := false;
+  FImagePressedBackground.Color := FCheckboxColor;
+  FImagePressedBackground.Exists := FPressed;
+  FImagePressedBackground.Stretch := true;
+  FImagePressedBackground.FullSize := true; // size is determined by FImageContainer
+  FImageContainer.InsertFront(FImagePressedBackground);
 
-  FImagePressed := TCastleImageControl.Create(Self);
-  FImagePressed.SetTransient;
-  FImagePressed.Image := EmptySquareGlow;
-  FImagePressed.OwnsImage := false;
-  FImagePressed.Anchor(hpMiddle);
-  FImagePressed.Anchor(vpMiddle);
-  FImagePressed.Color := FCheckboxColor;
-  FImagePressed.Exists := FPressed;
-  FImagePressed.Stretch := true;
-  FImagePressed.Width := FCheckboxSize;
-  FImagePressed.Height := FCheckboxSize;
-  FImageSquare.InsertFront(FImagePressed);
+  FImageSquareEmpty := TCastleImageControl.Create(Self);
+  FImageSquareEmpty.SetTransient;
+  FImageSquareEmpty.Image := Theme.Images[tiSquareEmpty];
+  FImageSquareEmpty.OwnsImage := false;
+  FImageSquareEmpty.Color := FCheckboxColor;
+  FImageSquareEmpty.Exists := not FChecked;
+  FImageSquareEmpty.Stretch := true;
+  FImageSquareEmpty.FullSize := true; // size is determined by FImageContainer
+  FImageContainer.InsertFront(FImageSquareEmpty);
+
+  FImageSquareChecked := TCastleImageControl.Create(Self);
+  FImageSquareChecked.SetTransient;
+  FImageSquareChecked.Image := Theme.Images[tiSquareChecked];
+  FImageSquareChecked.OwnsImage := false;
+  FImageSquareChecked.Color := FCheckboxColor;
+  FImageSquareChecked.Exists := FChecked;
+  FImageSquareChecked.Stretch := true;
+  FImageSquareChecked.FullSize := true; // size is determined by FImageContainer
+  FImageContainer.InsertFront(FImageSquareChecked);
 
   FLabelCaption := TCastleLabel.Create(Self);
   FLabelCaption.SetTransient;
   FLabelCaption.Color := FTextColor;
-  FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
+  FLabelCaption.Anchor(hpLeft, FImageContainer.EffectiveWidth + CaptionMargin);
   FLabelCaption.Anchor(vpMiddle);
   InsertFront(FLabelCaption);
 
@@ -154,10 +155,10 @@ begin
   if AutoSize then
   begin
     PreferredWidth := UIScale * (
-      FImageSquare.EffectiveWidth + CaptionMargin +
+      FImageContainer.EffectiveWidth + CaptionMargin +
       FLabelCaption.EffectiveWidth);
     PreferredHeight := UIScale *
-      Max(FImageSquare.EffectiveHeight, FLabelCaption.EffectiveHeight);
+      Max(FImageContainer.EffectiveHeight, FLabelCaption.EffectiveHeight);
   end;
 end;
 
@@ -178,9 +179,10 @@ begin
   if FChecked <> Value then
   begin
     FChecked := Value;
-    FImageCheckmark.Exists := FChecked;
+    FImageSquareEmpty.Exists := not FChecked;
+    FImageSquareChecked.Exists := FChecked;
     { Note that we don't call "VisibleChange([chRender])" here,
-      because the change to "FImageCheckmark.Exists" should already call it.
+      because the change to "FImageSquareChecked.Exists" should already call it.
       In general, since TCastleCheckbox doesn't override Render method,
       it doesn't need to worry about calling "VisibleChange([chRender])". }
   end;
@@ -196,7 +198,7 @@ begin
      Event.IsKey(keyEnter) then
   begin
     FPressed := true;
-    FImagePressed.Exists := FPressed;
+    FImagePressedBackground.Exists := FPressed;
     Exit(ExclusiveEvents);
   end;
 end;
@@ -212,7 +214,7 @@ begin
      Event.IsKey(keyEnter)) then
   begin
     FPressed := false;
-    FImagePressed.Exists := FPressed;
+    FImagePressedBackground.Exists := FPressed;
 
     { Because of mouse capture mechanism in TUIContainer,
       we receive Release notifications about all clicks that started
@@ -222,7 +224,7 @@ begin
       if it happens over our rect. }
     if CapturesEventsAtPosition(Event.Position) then
     begin
-      // change using property, so FImageCheckmark.Exists is switched
+      // change using property, so FImageSquareChecked/Empty.Exists is switched
       Checked := not Checked;
       if Assigned(FOnChange) then
         FOnChange(Self);
@@ -255,9 +257,9 @@ begin
   if not TCastleColor.PerfectlyEquals(FCheckboxColor, Value) then
   begin
     FCheckboxColor := Value;
-    FImageSquare.Color := Value;
-    FImageCheckmark.Color := Value;
-    FImagePressed.Color := Value;
+    FImageSquareEmpty.Color := Value;
+    FImageSquareChecked.Color := Value;
+    FImagePressedBackground.Color := Value;
   end;
 end;
 
@@ -266,13 +268,9 @@ begin
   if FCheckboxSize <> Value then
   begin
     FCheckboxSize := Value;
-    FImageSquare.Width := Value;
-    FImageSquare.Height := Value;
-    FImageCheckmark.Width := Value;
-    FImageCheckmark.Height := Value;
-    FImagePressed.Width := Value;
-    FImagePressed.Height := Value;
-    FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
+    FImageContainer.Width := Value;
+    FImageContainer.Height := Value;
+    FLabelCaption.Anchor(hpLeft, FImageContainer.EffectiveWidth + CaptionMargin);
   end;
 end;
 
@@ -281,7 +279,7 @@ begin
   if FCaptionMargin <> Value then
   begin
     FCaptionMargin := Value;
-    FLabelCaption.Anchor(hpLeft, FImageSquare.EffectiveWidth + CaptionMargin);
+    FLabelCaption.Anchor(hpLeft, FImageContainer.EffectiveWidth + CaptionMargin);
   end;
 end;
 
