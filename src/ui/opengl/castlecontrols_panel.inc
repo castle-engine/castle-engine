@@ -35,7 +35,7 @@
       to this panel @link(Left)). Width of the separator is in SeparatorSize. }
     property VerticalSeparators: TSingleList read FVerticalSeparators;
     class function SeparatorSize: Single;
-  end;
+  end deprecated 'use TCastleHorizontalGroup';
 
 {$endif read_interface}
 
