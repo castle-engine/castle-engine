@@ -343,6 +343,7 @@ type
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
+      DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
 
     var
       { Rendering pass, for user purposes.
@@ -568,7 +569,7 @@ type
       Unless the MainScene has a Background node defined, in which
       case the Background (colored and/or textured) of the 3D scene is used.
 
-      Black by default. }
+      Dark gray (DefaultBackgroundColor) by default. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
 
@@ -1456,7 +1457,7 @@ end;
 constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
-  FBackgroundColor := Black;
+  FBackgroundColor := DefaultBackgroundColor;
   FUseGlobalLights := DefaultUseGlobalLights;
   FUseGlobalFog := DefaultUseGlobalFog;
   FRenderParams := TManagerRenderParams.Create;
