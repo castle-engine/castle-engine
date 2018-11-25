@@ -32,7 +32,7 @@ var
   { user interface }
   ButtonOpen3D, ButtonOpen2D, ButtonOpenDialog: TCastleButton;
   AnimationsPanel: TCastleRectangleControl;
-  SwitchForward, SwitchLoop: TCastleSwitchControl;
+  CheckboxForward, CheckboxLoop: TCastleCheckbox;
   SliderTransition: TCastleFloatSlider;
 
 const
@@ -54,103 +54,72 @@ class procedure TEventsHandler.Open(const Url: string);
   procedure RecreateAnimationsPanel;
   var
     Lab: TCastleLabel;
-    W, H: Single;
     AnimationName: string;
     Button: TCastleButton;
     ScrollView: TCastleScrollView;
+    ScrollGroup: TCastleVerticalGroup;
+    LabelAndSlider: TCastleHorizontalGroup;
   begin
+    { Free previous animation controls.
+      Note that everything below is owned by new AnimationsPanel instance. }
     FreeAndNil(AnimationsPanel);
 
     AnimationsPanel := TCastleRectangleControl.Create(Application);
     AnimationsPanel.Anchor(hpRight, -Margin);
     AnimationsPanel.Anchor(vpTop, -Margin);
-    AnimationsPanel.Color := Vector4(1, 1, 1, 0.1);
+    AnimationsPanel.Color := Vector4(1, 1, 1, 0.5);
 
     { We place TCastleScrollView inside AnimationsPanel,
       in case we have too many animations to fit. }
     ScrollView := TCastleScrollView.Create(AnimationsPanel);
+    ScrollView.ScrollArea.AutoSizeToChildren := true;
     AnimationsPanel.InsertFront(ScrollView);
 
-    W := 0;
-    H := Margin;
+    ScrollGroup := TCastleVerticalGroup.Create(Application);
+    ScrollGroup.Padding := Margin;
+    ScrollGroup.Spacing := Margin;
+    ScrollView.ScrollArea.InsertFront(ScrollGroup);
 
-    Lab := TCastleLabel.Create(AnimationsPanel);
-    Lab.Caption := 'Forward:';
-    Lab.Anchor(hpLeft, Margin);
-    Lab.Anchor(vpTop, -H);
-    Lab.Color := White;
-    ScrollView.ScrollArea.InsertFront(Lab);
+    CheckboxForward := TCastleCheckbox.Create(AnimationsPanel);
+    CheckboxForward.Checked := true;
+    CheckboxForward.Caption := 'Forward';
+    ScrollGroup.InsertFront(CheckboxForward);
 
-    SwitchForward := TCastleSwitchControl.Create(AnimationsPanel);
-    SwitchForward.Checked := true;
-    SwitchForward.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
-    SwitchForward.Anchor(vpTop, -H);
-    ScrollView.ScrollArea.InsertFront(SwitchForward);
+    CheckboxLoop := TCastleCheckbox.Create(AnimationsPanel);
+    CheckboxLoop.Checked := true;
+    CheckboxLoop.Caption := 'Loop';
+    ScrollGroup.InsertFront(CheckboxLoop);
 
-    H := H + (Lab.EffectiveHeight + Margin);
-    MaxVar(W, Lab.EffectiveWidth + SwitchForward.EffectiveWidth + 3 * Margin);
-
-    Lab := TCastleLabel.Create(AnimationsPanel);
-    Lab.Caption := 'Loop:';
-    Lab.Anchor(hpLeft, Margin);
-    Lab.Anchor(vpTop, -H);
-    Lab.Color := White;
-    ScrollView.ScrollArea.InsertFront(Lab);
-
-    SwitchLoop := TCastleSwitchControl.Create(AnimationsPanel);
-    SwitchLoop.Checked := true;
-    SwitchLoop.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
-    SwitchLoop.Anchor(vpTop, -H);
-    ScrollView.ScrollArea.InsertFront(SwitchLoop);
-
-    H := H + (Lab.EffectiveHeight + Margin);
-    MaxVar(W, Lab.EffectiveWidth + SwitchLoop.EffectiveWidth + 3 * Margin);
+    LabelAndSlider := TCastleHorizontalGroup.Create(AnimationsPanel);
+    LabelAndSlider.Spacing := Margin;
+    ScrollGroup.InsertFront(LabelAndSlider);
 
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Transition:';
-    Lab.Anchor(hpLeft, Margin);
-    Lab.Anchor(vpTop, -H);
-    Lab.Color := White;
-    ScrollView.ScrollArea.InsertFront(Lab);
+    Lab.Color := Black;
+    LabelAndSlider.InsertFront(Lab);
 
     SliderTransition := TCastleFloatSlider.Create(AnimationsPanel);
     SliderTransition.Min := 0;
     SliderTransition.Max := 5;
-    SliderTransition.Anchor(hpLeft, Lab.EffectiveWidth + 2 * Margin);
-    SliderTransition.Anchor(vpTop, -H);
-    ScrollView.ScrollArea.InsertFront(SliderTransition);
-
-    H := H + (Lab.EffectiveHeight + Margin);
-    MaxVar(W, Lab.EffectiveWidth + SliderTransition.EffectiveWidth + 3 * Margin);
+    LabelAndSlider.InsertFront(SliderTransition);
 
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Click to play animation...';
-    Lab.Anchor(hpLeft, Margin);
-    Lab.Anchor(vpTop, -H);
-    Lab.Color := White;
-    ScrollView.ScrollArea.InsertFront(Lab);
-
-    H := H + (Lab.EffectiveHeight + Margin);
-    MaxVar(W, Lab.EffectiveWidth + 2 * Margin);
+    Lab.Color := Black;
+    ScrollGroup.InsertFront(Lab);
 
     for AnimationName in Scene.AnimationsList do
     begin
-      Button := TCastleButton.Create(Application);
+      Button := TCastleButton.Create(AnimationsPanel);
       Button.Caption := AnimationName;
-      Button.Anchor(hpLeft, Margin);
-      Button.Anchor(vpTop, -H);
       Button.OnClick := @TEventsHandler(nil).ButtonPlayAnimationClick;
-      ScrollView.ScrollArea.InsertFront(Button);
-
-      H := H + (Button.EffectiveHeight + Margin);
-      MaxVar(W, Button.EffectiveWidth + 2 * Margin);
+      ScrollGroup.InsertFront(Button);
     end;
 
-    ScrollView.ScrollArea.Width := W;
-    ScrollView.ScrollArea.Height := H;
-
-    ScrollView.Width := W;
-    ScrollView.Height := Min(H, Window.Container.UnscaledHeight - 2 * Margin);
+    ScrollView.Width := ScrollGroup.EffectiveWidth;
+    ScrollView.Height := Min(ScrollGroup.EffectiveHeight,
+      Window.Container.UnscaledHeight - 2 * Margin);
 
     AnimationsPanel.Width := ScrollView.Width;
     AnimationsPanel.Height := ScrollView.Height;
@@ -200,8 +169,8 @@ begin
   Params := TPlayAnimationParameters.Create;
   try
     Params.Name := AnimationName;
-    Params.Forward := SwitchForward.Checked;
-    Params.Loop := SwitchLoop.Checked;
+    Params.Forward := CheckboxForward.Checked;
+    Params.Loop := CheckboxLoop.Checked;
     Params.TransitionDuration := SliderTransition.Value;
     Scene.PlayAnimation(Params);
   finally FreeAndNil(Params) end;
