@@ -3868,12 +3868,17 @@ function TTransformChangeHelper.TransformChangeTraverse(
           HandleLightsList(Current.State(true).Lights);
         if Current.State(false) <> Current.OriginalState then
           HandleLightsList(Current.State(false).Lights);
-        ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
       end;
     finally FreeAndNil(SI) end;
 
+    { Update also light state on GlobalLights list, in case other scenes
+      depend on this light. Testcase: planets-demo. }
+    HandleLightsList(ParentScene.GlobalLights);
+
     { force update of GeneratedShadowMap textures that used this light }
     ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
+
+    ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
   procedure HandleProximitySensor(Node: TProximitySensorNode);
