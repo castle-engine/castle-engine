@@ -176,6 +176,8 @@ type
     procedure SetPosition(const Value: TVector3); virtual; abstract;
 
     function ReallyEnableMouseDragging: boolean; virtual;
+
+    procedure SetModelBox(const B: TBox3D);
   public
     const
       { Default value for TCamera.Radius.
@@ -586,7 +588,7 @@ type
       It is crucial to set this to make @link(TExamineCamera) behave OK.
 
       Initially this is TBox3D.Empty. }
-    property ModelBox: TBox3D read FModelBox write FModelBox;
+    property ModelBox: TBox3D read FModelBox write SetModelBox;
   published
     { Input methods available to user. See documentation of TCameraInput
       type for possible values and their meaning.
@@ -1854,6 +1856,17 @@ begin
   FRadius := Value;
 end;
 
+procedure TCamera.SetModelBox(const B: TBox3D);
+var
+  P, D, U: TVector3;
+begin
+  { since changing ModelBox changes also CenterOfRotation for TExamineCamera,
+    explicitly make sure that camera view stays the same. }
+  GetView(P, D, U);
+  FModelBox := B;
+  SetView(P, D, U);
+end;
+
 procedure TCamera.Ray(const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
@@ -2074,7 +2087,8 @@ begin
     HeadBobbing         := SourceCamera.HeadBobbing        ;
     HeadBobbingTime     := SourceCamera.HeadBobbingTime    ;
     ClimbHeight         := SourceCamera.ClimbHeight        ;
-    ModelBox            := SourceCamera.ModelBox           ;
+    // set using FModelBox, as there's no need to preserve view
+    FModelBox           := SourceCamera.ModelBox           ;
     CrouchHeight        := SourceCamera.CrouchHeight       ;
 
     { Always call CorrectPreferredHeight after changing Radius or PreferredHeight }
@@ -2480,7 +2494,7 @@ procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 var
   Pos, Dir, Up, NewGravityUp: TVector3;
 begin
-  ModelBox := AModelBox;
+  FModelBox := AModelBox; // set using FModelBox, as there's no need to preserve view
   Radius := ARadius;
 
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
