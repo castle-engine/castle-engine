@@ -100,6 +100,12 @@ begin
   FImageContainer.Anchor(vpMiddle);
   InsertFront(FImageContainer);
 
+  { TODO: Use
+    Theme.Corners[tiSquarePressedBackground]
+    Theme.Corners[tiSquareEmpty]
+    Theme.Corners[tiSquareChecked]
+    Make sure they cost nothing when corners are 0. }
+
   FImagePressedBackground := TCastleImageControl.Create(Self);
   FImagePressedBackground.SetTransient;
   FImagePressedBackground.Image := Theme.Images[tiSquarePressedBackground];

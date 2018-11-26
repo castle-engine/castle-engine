@@ -222,12 +222,18 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
   FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+
+  { Note that tiSquareEmpty and tiSquarePressedBackground could have
+    corners = (4, 4, 4, 4), but tiSquareChecked cannot.
+    And these 3 images must be consistent.
+    So, do not declare any corners for them. }
   FImages[tiSquareEmpty] := SquareEmpty;
-  FCorners[tiSquareEmpty] := Vector4Integer(4, 4, 4, 4);
+  FCorners[tiSquareEmpty] := Vector4Integer(0, 0, 0, 0);
   FImages[tiSquareChecked] := SquareChecked;
-  FCorners[tiSquareChecked] := Vector4Integer(4, 4, 4, 4);
+  FCorners[tiSquareChecked] := Vector4Integer(0, 0, 0, 0);
   FImages[tiSquarePressedBackground] := SquarePressedBackground;
-  FCorners[tiSquarePressedBackground] := Vector4Integer(4, 4, 4, 4);
+  FCorners[tiSquarePressedBackground] := Vector4Integer(0, 0, 0, 0);
+
   FImages[tiDisclosure] := Disclosure;
   FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
