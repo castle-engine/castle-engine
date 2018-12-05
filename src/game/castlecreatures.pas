@@ -1687,8 +1687,20 @@ begin
       MiddleForceBoxTime := LifeTime + 0.1;
     end;
 
+    { Some states require special finalization here. }
+    case FState of
+      csAttack:
+        { In case we didn't reach AttackTime, make sure to fire the Attack now. }
+        if not AttackDone then
+        begin
+          AttackDone := true;
+          Attack;
+        end;
+    end;
+
     FState := Value;
     FStateChangeTime := LifeTime;
+
     { Some states require special initialization here. }
     case FState of
       csAttack:
