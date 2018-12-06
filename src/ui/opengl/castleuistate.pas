@@ -102,6 +102,7 @@ type
     procedure InternalStop;
 
     class var FStateStack: TUIStateList;
+    class var FDisableStackChange: Cardinal;
     class function GetCurrent: TUIState; static;
     class procedure SetCurrent(const Value: TUIState); static;
     class function GetCurrentTop: TUIState; static;
@@ -250,6 +251,19 @@ implementation
 uses SysUtils,
   CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
+{ TODO: Change this into always exception in the future.
+  Changing state during state Start/Stop/Push/Pop is not reliable,
+  e.g. doing TUIState.Push during another TUIState.Push will not result
+  in proper stack. }
+procedure ErrorStackChangeDisabled(const Message: String);
+begin
+  {$ifdef DEBUG}
+  raise EInternalError.Create(Message);
+  {$else}
+  WritelnWarning('TUIState', Message);
+  {$endif}
+end;
+
 { TUIState --------------------------------------------------------------------- }
 
 class function TUIState.GetCurrent: TUIState;
@@ -264,7 +278,8 @@ class function TUIState.GetCurrentTop: TUIState;
 begin
   if (FStateStack = nil) or
      (FStateStack.Count = 0) then
-    Result := nil else
+    Result := nil
+  else
     Result := FStateStack[FStateStack.Count - 1];
 end;
 
@@ -275,6 +290,9 @@ begin
     Exit;
   if (StateStackCount = 1) and (FStateStack[0] = Value) then
     Exit;
+
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot change TUIState.Current from inside of TUIState.Start/Resume/Pause/Stop');
 
   { Remove and finish topmost state.
     The loop is written to work even when some state Stop method
@@ -292,17 +310,25 @@ class procedure TUIState.Push(const NewState: TUIState);
 begin
   if NewState <> nil then
   begin
-    { pause previous top-most state }
-    if (FStateStack <> nil) and
-       (FStateStack.Count <> 0) then
-      FStateStack.Last.Pause;
+    if FDisableStackChange <> 0 then
+      ErrorStackChangeDisabled('Cannot call TUIState.Push from inside of TUIState.Start/Resume/Pause/Stop');
 
-    { create FStateStack on demand now }
-    if FStateStack = nil then
-      FStateStack := TUIStateList.Create(false);
-    FStateStack.Add(NewState);
-    NewState.InternalStart;
-    NewState.Resume;
+    Inc(FDisableStackChange);
+    try
+      { pause previous top-most state }
+      if (FStateStack <> nil) and
+         (FStateStack.Count <> 0) then
+        FStateStack.Last.Pause;
+
+      { create FStateStack on demand now }
+      if FStateStack = nil then
+        FStateStack := TUIStateList.Create(false);
+      FStateStack.Add(NewState);
+      NewState.InternalStart;
+      NewState.Resume;
+    finally
+      Dec(FDisableStackChange)
+    end;
   end;
 end;
 
@@ -310,17 +336,26 @@ class procedure TUIState.Pop;
 var
   TopState: TUIState;
 begin
-  TopState := FStateStack.Last;
-  TopState.Pause;
-  TopState.InternalStop;
-  if TopState = FStateStack.Last then
-    FStateStack.Delete(FStateStack.Count - 1) else
-    WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+  if FDisableStackChange <> 0 then
+    ErrorStackChangeDisabled('Cannot call TUIState.Pop from inside of TUIState.Start/Resume/Pause/Stop');
 
-  { resume new top-most state }
-  if (FStateStack <> nil) and
-     (FStateStack.Count <> 0) then
-    FStateStack.Last.Resume;
+  Inc(FDisableStackChange);
+  try
+    TopState := FStateStack.Last;
+    TopState.Pause;
+    TopState.InternalStop;
+    if TopState = FStateStack.Last then
+      FStateStack.Delete(FStateStack.Count - 1)
+    else
+      WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+
+    { resume new top-most state }
+    if (FStateStack <> nil) and
+       (FStateStack.Count <> 0) then
+      FStateStack.Last.Resume;
+  finally
+    Dec(FDisableStackChange)
+  end;
 end;
 
 class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
