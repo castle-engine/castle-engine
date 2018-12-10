@@ -46,6 +46,8 @@ var
 begin
 
   Result := FALSE;
+
+  {$ifndef OpenGLES}
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
   if glext_ExtensionSupported('GL_EXT_framebuffer_blit', extstring) then
@@ -54,6 +56,7 @@ begin
     if not Assigned(glBlitFramebufferEXT) then Exit;
     Result := TRUE;
   end;
+  {$endif}
 
 end;
 
