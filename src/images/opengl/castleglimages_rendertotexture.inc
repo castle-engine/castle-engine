@@ -382,7 +382,7 @@ begin
     gsExtension:
       begin
         if AttachmentDepthAndStencil then
-          Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
+          Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
         glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
       end;
     {$endif}
@@ -490,7 +490,7 @@ procedure TGLRenderToTexture.GLContextOpen;
           glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferId);
           glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, InternalFormat, Width, Height);
           if AttachmentDepthAndStencil then
-            Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
+            Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, Attachment, GL_RENDERBUFFER_EXT, RenderbufferId);
         end;
       {$endif}
@@ -560,8 +560,7 @@ begin
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentWithStencil := true;
-      { DepthAttachmentPacked is ignored when DepthAttachmentWithStencil = true. }
-      DepthAttachmentPacked := 0;
+      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
     end else
     // TODO-es This is probably needed on gles too?
     // we have GL_DEPTH_STENCIL_OES.
