@@ -36,6 +36,7 @@ uses SysUtils, Math, Matrix, Generics.Collections,
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_context.inc}
+{$I castleglutils_ext_framebuffer_blit.inc}
 
 {$undef read_interface}
 
@@ -55,6 +56,7 @@ uses
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
 {$I castleglutils_context.inc}
+{$I castleglutils_ext_framebuffer_blit.inc}
 
 { initialization, finalization ----------------------------------------------- }
 

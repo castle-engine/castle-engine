@@ -96,6 +96,7 @@ type
     EXT_texture_filter_anisotropic: boolean;
     NV_multisample_filter_hint: boolean;
     ARB_occlusion_query: boolean;
+    EXT_framebuffer_blit: Boolean;
     {$ifndef OpenGLES}
     EXT_fog_coord: boolean;
     ARB_window_pos: boolean;
@@ -465,6 +466,8 @@ begin
     end;
   end else
     MaxRenderbufferSize := 0;
+
+  EXT_framebuffer_blit := Load_GL_EXT_framebuffer_blit;
 
   { calculate UseMultiTexturing: check extensions required for multitexturing.
 
