@@ -132,7 +132,7 @@ type
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
-    procedure FinishUserInterfaceAnchorsChange(const UI: TCastleUserInterface;
+    procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
 
     { Calculate Selected list, non-nil <=> non-empty }
@@ -1671,11 +1671,11 @@ begin
       UI.VerticalAnchorParent := ParentAnchorsFrame.VerticalAnchor;
     end;
 
-    FinishUserInterfaceAnchorsChange(UI, OldRect);
+    AdjustUserInterfaceAnchorsToKeepRect(UI, OldRect);
   end;
 end;
 
-procedure TDesignFrame.FinishUserInterfaceAnchorsChange(
+procedure TDesignFrame.AdjustUserInterfaceAnchorsToKeepRect(
   const UI: TCastleUserInterface; const RenderRectBeforeChange: TFloatRectangle);
 var
   NewRect: TFloatRectangle;
@@ -1766,7 +1766,10 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   procedure MoveUserInterface(const Src, Dst: TCastleUserInterface);
   var
     Index: Integer;
+    OldRect: TFloatRectangle;
   begin
+    OldRect := Src.RenderRectWithBorder;
+
     case ControlsTreeNodeUnderMouseSide of
       tnsRight:
         begin
@@ -1775,6 +1778,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if Src.Parent <> nil then
               Src.Parent.RemoveControl(Src);
             Dst.InsertFront(Src);
+            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             Refresh;
           end;
         end;
@@ -1790,6 +1794,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
             if ControlsTreeNodeUnderMouseSide = tnsBottom then
               Inc(Index);
             Dst.Parent.InsertControl(Index, Src);
+            AdjustUserInterfaceAnchorsToKeepRect(Src, OldRect);
             Refresh;
           end;
         end;
@@ -1936,7 +1941,7 @@ begin
       UI.HorizontalAnchorParent := UI.HorizontalAnchorSelf;
       UI.VerticalAnchorParent := UI.VerticalAnchorSelf;
 
-      FinishUserInterfaceAnchorsChange(UI, OldRect);
+      AdjustUserInterfaceAnchorsToKeepRect(UI, OldRect);
 
       // update also (invisible now) ParentAnchorsFrame UI state
       UpdateAnchors(UI, false);
