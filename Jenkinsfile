@@ -138,7 +138,5 @@ pipeline {
         subject: "[jenkins] Build is again successfull: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
-    success {
-    }
   }
 }
