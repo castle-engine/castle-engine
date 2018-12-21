@@ -26,12 +26,112 @@ function LoadGLTF(const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, PasGLTF,
-  CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog;
+uses SysUtils, Classes, TypInfo,
+  PasGLTF,
+  CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
+  CastleVectors;
 
 function LoadGLTF(const URL: string): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;
+
+  function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
+  begin
+    Result := GetEnumName(TypeInfo(TPasGLTF.TAccessor.TType), Ord(AccessorType));
+  end;
+
+  function PrimitiveModeToStr(const Mode: TPasGLTF.TMesh.TPrimitive.TMode): String;
+  begin
+    Result := GetEnumName(TypeInfo(TPasGLTF.TMesh.TPrimitive.TMode), Ord(Mode));
+  end;
+
+  function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
+  begin
+    // as it happens, both structures have the same memory layout, so copy fast
+    Assert(SizeOf(V) = SizeOf(Result));
+    Move(V, Result, SizeOf(Result));
+  end;
+
+  procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    AttributeName: TPasGLTFUTF8String;
+    AttributeAccessorIndex: Int64;
+    Indices: TPasGLTFUInt32DynamicArray;
+    Position: TPasGLTF.TVector3DynamicArray;
+    Shape: TShapeNode;
+    Geometry: TAbstractGeometryNode;
+    GeometryTriangleSet: TTriangleSetNode;
+    GeometryIndexedTriangleSet: TIndexedTriangleSetNode;
+    Coordinate: TCoordinateNode;
+    I: Integer;
+  begin
+    WritelnLog('glTF', 'Got primitive ' + PrimitiveModeToStr(Primitive.Mode));
+    if Primitive.Mode <> TPasGLTF.TMesh.TPrimitive.TMode.Triangles then
+      Exit; // we don't handle other types yet
+
+    if Primitive.Indices <> -1 then
+    begin
+      if Primitive.Indices >= Document.Accessors.Count then
+      begin
+        WritelnWarning('glTF', 'glTF missing accessor for indices %d', [Primitive.Indices]);
+        Exit;
+      end;
+
+      Accessor := Document.Accessors[Primitive.Indices];
+      Indices := Accessor.DecodeAsUInt32Array(false); // tested, false is necessary
+      WritelnLog('glTF', '  Primitive has indexes with accessor of type %s, extracted to array with count %d',
+        [AccessorTypeToStr(Accessor.Type_), Length(Indices)]);
+    end;
+
+    for AttributeName in Primitive.Attributes.Keys do
+    begin
+      WritelnLog('glTF', '  Primitive has attribute named ' + AttributeName);
+      AttributeAccessorIndex := Primitive.Attributes[AttributeName];
+
+      if AttributeAccessorIndex >= Document.Accessors.Count then
+      begin
+        WritelnWarning('glTF', 'glTF missing accessor for attribute, accessor %d', [AttributeAccessorIndex]);
+        Exit;
+      end;
+
+      Accessor := Document.Accessors[AttributeAccessorIndex];
+      WritelnLog('glTF', '  Primitive has attribute with accessor of type ' + AccessorTypeToStr(Accessor.Type_));
+      if AttributeName = 'POSITION' then
+      begin
+        Position := Accessor.DecodeAsVector3Array(true);
+        WritelnLog('glTF', '  Extracted position to array with count %d',
+          [Length(Position)]);
+      end;
+    end;
+
+    { Convert Indices, Position to X3D }
+
+    Coordinate := TCoordinateNode.Create;
+    Coordinate.FdPoint.Count := Length(Position);
+    for I := 0 to High(Position) do
+      // TODO: could be copied with one Move
+      Coordinate.FdPoint.Items[I] := Vector3FromGltf(Position[I]);
+
+    if Primitive.Indices <> -1 then
+    begin
+      GeometryIndexedTriangleSet := TIndexedTriangleSetNode.CreateWithShape(Shape);
+      GeometryIndexedTriangleSet.Coord := Coordinate;
+      GeometryIndexedTriangleSet.FdIndex.Count := Length(Indices);
+      for I := 0 to High(Indices) do
+        GeometryIndexedTriangleSet.FdIndex.Items[I] := Indices[I];
+      Geometry := GeometryIndexedTriangleSet;
+    end else
+    begin
+      GeometryTriangleSet := TTriangleSetNode.CreateWithShape(Shape);
+      GeometryTriangleSet.Coord := Coordinate;
+      Geometry := GeometryTriangleSet;
+    end;
+
+    Result.AddChildren(Shape);
+  end;
+
+var
   Stream: TStream;
   Mesh: TPasGLTF.TMesh;
   Primitive: TPasGLTF.TMesh.TPrimitive;
@@ -93,22 +193,14 @@ begin
         if Document.Scene <> -1 then
           WritelnLog('glTF', 'Current scene %d name: "%s"',
             [Document.Scene, Document.Scenes[Document.Scene].Name]);
+        if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
+          WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+
         for Mesh in Document.Meshes do
         begin
           WritelnLog('glTF', 'Mesh %s', [Mesh.Name]);
           for Primitive in Mesh.Primitives do
-          begin
-            case Primitive.Mode of
-              TPasGLTF.TMesh.TPrimitive.TMode.Points       : WritelnLog('glTF', 'Got points, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.Lines        : WritelnLog('glTF', 'Got lines, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : WritelnLog('glTF', 'Got line loop, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : WritelnLog('glTF', 'Got line strip, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : WritelnLog('glTF', 'Got triangles, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: WritelnLog('glTF', 'Got triangle strip, indices %d', [Primitive.Indices]);
-              TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : WritelnLog('glTF', 'Got triangle fan, indices %d', [Primitive.Indices]);
-              else WritelnWarning('Unknown glTF primitive mode %d', [Primitive.Mode]);
-            end;
-          end;
+            ReadPrimitive(Primitive);
         end;
       finally FreeAndNil(Document) end;
     except FreeAndNil(Result); raise end;
@@ -116,3 +208,4 @@ begin
 end;
 
 end.
+
