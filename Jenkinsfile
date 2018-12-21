@@ -114,6 +114,13 @@ pipeline {
         sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
       }
     }
+    /* update Docker image only when the "master" branch changes */
+    stage('Update Docker Image with CGE') {
+      when { branch 'master' }
+      steps {
+        build job: '../castle_game_engine_update_docker_image'
+      }
+    }
   }
   post {
     regression {
@@ -132,7 +139,6 @@ pipeline {
         body: "See the build details on ${env.BUILD_URL}"
     }
     success {
-      build job: '../castle_game_engine_update_docker_image'
     }
   }
 }
