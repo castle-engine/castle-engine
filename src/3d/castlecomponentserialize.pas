@@ -35,7 +35,7 @@ type
   private
     FJsonReader: TJSONDeStreamer;
     FOwner: TComponent;
-    procedure DeStreamerAfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
   public
     property JsonReader: TJSONDeStreamer read FJsonReader;
@@ -126,7 +126,7 @@ type
 implementation
 
 uses JsonParser, RtlConsts,
-  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils;
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils;
 
 { component registration ----------------------------------------------------- }
 
@@ -189,15 +189,27 @@ begin
   Result := ResultClass.Create(Owner);
 end;
 
-procedure TCastleComponentReader.DeStreamerAfterReadObject(
+procedure TCastleComponentReader.AfterReadObject(
   Sender: TObject; AObject: TObject; JSON: TJSONObject);
-var
-  JsonChildren: TJSONArray;
-  JsonChild: TJSONObject;
-  I: Integer;
-  Child: TComponent;
-begin
-  if AObject is TComponent then
+
+  { Because of our TCastleComponentReader.RestoreProperty changing
+    Name to be unique, we may have desynchronized Name with InternalText.
+    Synchronize it again. }
+  procedure SynchronizeNameWithInternalText(const C: TCastleComponent);
+  begin
+    if (C.InternalOriginalName <> '') and
+       (C.InternalOriginalName = C.InternalText) then
+      C.InternalText := C.Name;
+  end;
+
+  { Call C.InternalAddChild for all children.
+    This reverses saving children returned by C.GetChildren. }
+  procedure ReadChildren(const C: TCastleComponent);
+  var
+    JsonChildren: TJSONArray;
+    JsonChild: TJSONObject;
+    I: Integer;
+    Child: TComponent;
   begin
     if Json.Find('$Children') <> nil then
       JsonChildren := Json.Arrays['$Children']
@@ -213,16 +225,7 @@ begin
           raise EInvalidComponentFile.Create('$Children must be an array of JSON objects');
         Child := CreateComponentFromJson(JsonChild, Owner);
         FJsonReader.JSONToObject(JsonChild, Child);
-        if AObject is TCastleUserInterface then
-          // matches TCastleUserInterface.GetChildren implementation
-          TCastleUserInterface(AObject).InsertFront(Child as TCastleUserInterface)
-        else
-        if AObject is TCastleTransform then
-          // matches TCastleTransform.GetChildren implementation
-          TCastleTransform(AObject).Add(Child as TCastleTransform)
-        else
-          raise EInvalidComponentFile.CreateFmt('$Children contains unexpected class, it cannot be added to parent: %s',
-            [Child.ClassName]);
+        C.InternalAddChild(Child);
       end;
     end;
 
@@ -231,6 +234,16 @@ begin
       to not confuse TJSONDeStreamer with extra property.
       But later: it is better to leave JSON structure unmodified
       (allows to read it multiple times, if needed). }
+  end;
+
+var
+  C: TCastleComponent;
+begin
+  if AObject is TCastleComponent then
+  begin
+    C := TCastleComponent(AObject);
+    SynchronizeNameWithInternalText(C);
+    ReadChildren(C);
   end;
 end;
 
@@ -285,7 +298,11 @@ begin
       already reserved). }
     NewName := AValue.AsString;
     if Owner.FindComponent(NewName) <> nil then
+    begin
+      if AObject is TCastleComponent then
+        TCastleComponent(AObject).InternalOriginalName := NewName;
       NewName := RenameUniquely(Owner, NewName);
+    end;
     SetStrProp(AObject, Info, NewName);
     Handled := true;
   end;
@@ -332,7 +349,7 @@ begin
   Reader := TCastleComponentReader.Create;
   try
     Reader.FJsonReader := TJSONDeStreamer.Create(nil);
-    Reader.FJsonReader.AfterReadObject := @Reader.DeStreamerAfterReadObject;
+    Reader.FJsonReader.AfterReadObject := @Reader.AfterReadObject;
     Reader.FJsonReader.OnRestoreProperty := @Reader.RestoreProperty;
     Reader.FOwner := Owner;
 

@@ -47,6 +47,8 @@
     ImageType: TThemeImage;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     const
       DefaultLineSpacing = 2;
@@ -409,6 +411,16 @@ end;
 procedure TCastleLabel.SetText(const Value: TStrings);
 begin
   FText.Assign(Value);
+end;
+
+function TCastleLabel.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleLabel.SetInternalText(const Value: String);
+begin
+  Caption := Value;
 end;
 
 {$define read_implementation_methods}

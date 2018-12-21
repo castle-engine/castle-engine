@@ -780,7 +780,7 @@ type
   end;
 
   { Base class for things that listen to user input. }
-  TInputListener = class(TComponent)
+  TInputListener = class(TCastleComponent)
   private
     FOnVisibleChange: TCastleUserInterfaceChangeEvent;
     FContainer: TUIContainer;
@@ -1291,32 +1291,7 @@ type
     destructor Destroy; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
-
-    { Ignore this component when serializing parent's @link(Controls) list,
-      and do not show this component in CGE editor.
-      This simply sets csTransient flag in ComponentStyle.
-
-      This is useful for children that are automatically managed by the parent,
-      and should not be modified by user code. For example,
-      TCastleCheckbox is internally composed from TCastleImageControl
-      and TCastleLabel children, but we don't want to serialize or even
-      show these children to user.
-
-      Note that if you want to prevent this component from serializing
-      as part of @link(Controls) list,
-      but you still want it to be visible in CGE editor,
-      then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
-
-      In any case (csSubComponent and/or csTransient) the component
-      is just not serialized as part of parent's @link(Controls) list.
-      But if you will make the component published (which is normal for "subcomponents")
-      then it will be published, just as part of it's own property
-      (like TCastleScrollView.ScrollArea).
-      So to @italic(really) avoid serializing the component,
-      make it csSubComponent and/or csTransient,
-      and do not publish it.
-    }
-    procedure SetTransient;
+    procedure InternalAddChild(const C: TComponent); override;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -3903,11 +3878,6 @@ begin
   inherited;
 end;
 
-procedure TCastleUserInterface.SetTransient;
-begin
-  Include(FComponentStyle, csTransient);
-end;
-
 procedure TCastleUserInterface.GetChildren(Proc: TGetChildProc; Root: TComponent);
 var
   I: Integer;
@@ -3922,6 +3892,12 @@ begin
         by the parent, and they should not be saved in normal fashion. }
       if [csSubComponent, csTransient] * FControls[I].ComponentStyle = [] then
         Proc(FControls[I]);
+end;
+
+procedure TCastleUserInterface.InternalAddChild(const C: TComponent);
+begin
+  // matches TCastleUserInterface.GetChildren implementation
+  InsertFront(C as TCastleUserInterface);
 end;
 
 procedure TCastleUserInterface.CreateControls;

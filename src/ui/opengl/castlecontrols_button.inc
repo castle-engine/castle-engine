@@ -108,6 +108,8 @@
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     const
       DefaultImageMargin = 10;
@@ -1101,6 +1103,16 @@ begin
   // react to SetWidth, SetHeight etc.
   if [chRectangle, chChildren] * Changes <> [] then
     FCalculatedPreferred := false;
+end;
+
+function TCastleButton.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleButton.SetInternalText(const Value: String);
+begin
+  Caption := Value;
 end;
 
 {$define read_implementation_methods}

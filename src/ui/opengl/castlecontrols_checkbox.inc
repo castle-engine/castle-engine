@@ -40,6 +40,8 @@
     procedure SetCheckboxSize(const Value: Single);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     const
       DefaultCaptionMargin = 10;
@@ -305,6 +307,16 @@ begin
     FAutoSize := Value;
     VisibleChange([chRectangle]); // our effective size changed now
   end;
+end;
+
+function TCastleCheckbox.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleCheckbox.SetInternalText(const Value: String);
+begin
+  Caption := Value;
 end;
 
 {$define read_implementation_methods}

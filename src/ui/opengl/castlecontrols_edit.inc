@@ -62,6 +62,8 @@
     procedure SetPasswordChar(const Value: Char);
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
     procedure DoChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -513,6 +515,16 @@ begin
     FPasswordChar := Value;
     VisibleChange([chRender]);
   end;
+end;
+
+function TCastleEdit.GetInternalText: String;
+begin
+  Result := Text;
+end;
+
+procedure TCastleEdit.SetInternalText(const Value: String);
+begin
+  Text := Value;
 end;
 
 {$define read_implementation_methods}

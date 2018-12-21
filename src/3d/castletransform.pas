@@ -314,7 +314,7 @@ type
     See the @link(Gravity) property for a simple unrealistic gravity model.
     See the @link(RigidBody) for a proper rigid-bidy simulation,
     with correct gravity model and collisions with other rigid bodies. }
-  TCastleTransform = class(TComponent)
+  TCastleTransform = class(TCastleComponent)
   private
     class var
       NextTransformId: Cardinal;
@@ -677,6 +677,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure InternalAddChild(const C: TComponent); override;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -3154,6 +3156,12 @@ begin
   inherited;
   for I := 0 to List.Count - 1 do
     Proc(List[I]);
+end;
+
+procedure TCastleTransform.InternalAddChild(const C: TComponent);
+begin
+  // matches TCastleTransform.GetChildren implementation
+  Add(C as TCastleTransform)
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.
