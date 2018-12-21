@@ -664,14 +664,15 @@ end;
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 const
-  // Uncomment these if you need to temporarily compile without teapot.inc.
+  // Uncomment these if you need to temporarily compile without
+  // auto_generated_teapot/teapot.inc.
   {
   TeapotCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotCoordIndex: array [0..0] of LongInt = (0);
   TeapotManifoldCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
   }
-  {$I teapot/teapot.inc}
+  {$I auto_generated_teapot/teapot.inc}
 var
   CoordNode: TCoordinateNode;
   IFS: TIndexedFaceSetNode absolute Result;

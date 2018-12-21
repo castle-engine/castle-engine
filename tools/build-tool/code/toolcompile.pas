@@ -31,8 +31,8 @@ type
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings;
-  const ExtraOptions: TStrings = nil);
+  const SearchPaths, LibraryPaths: TStrings;
+  const ExtraOptions: TStrings);
 
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
@@ -215,7 +215,7 @@ end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths, ExtraOptions: TStrings);
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FPCVer: TFPCVersion;
@@ -240,6 +240,15 @@ var
         FpcOptions.Add('-Fu' + SearchPaths[I]);
         FpcOptions.Add('-Fi' + SearchPaths[I]);
       end;
+  end;
+
+  procedure AddLibraryPaths;
+  var
+    I: Integer;
+  begin
+    if LibraryPaths <> nil then
+      for I := 0 to LibraryPaths.Count - 1 do
+        FpcOptions.Add('-Fl' + LibraryPaths[I]);
   end;
 
   function IsIOS: boolean;
@@ -419,7 +428,7 @@ begin
         AddEnginePath('physics/kraft');
         AddEnginePath('pasgltf');
 
-        if not FPCVer.AtLeast(3, 1, 1) or FPCVer.IsCodeTyphon then
+        if (not FPCVer.AtLeast(3, 1, 1)) or FPCVer.IsCodeTyphon then
           AddEnginePath('compatibility/generics.collections/src');
 
         { Do not add castle-fpc.cfg.
@@ -434,6 +443,7 @@ begin
     end;
 
     AddSearchPaths;
+    AddLibraryPaths;
 
     { Specify the compilation options explicitly,
       duplicating logic from ../castle-fpc.cfg .
@@ -478,15 +488,24 @@ begin
       // do not show
       // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
       FpcOptions.Add('-vm5071');
+    end;
 
+    if FPCVer.AtLeast(3, 3, 1) then
+    begin
       // do not show
       // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
+      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
       FpcOptions.Add('-vm6058');
 
       // do not show
       // Warning: Local variable "$1" of a managed type does not seem to be initialized
       // (a lot of false warnings since FPC 3.3.1)
       FpcOptions.Add('-vm5089');
+
+      // do not show
+      // Warning: Variable "OutputFace" of a managed type does not seem to be initialized
+      // (3 false warnings since FPC 3.3.1 in Kraft)
+      FpcOptions.Add('-vm5090');
 
       // do not show
       // Warning: function result variable of a managed type does not seem to be initialized

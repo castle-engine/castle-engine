@@ -70,7 +70,7 @@ const
 
 constructor TButtons.Create(AOwner: TComponent);
 var
-  NextButtonBottom: Integer;
+  NextButtonBottom: Single;
 begin
   inherited;
 
@@ -88,7 +88,7 @@ begin
     ToggleMouseLookButton.Left := ControlsMargin;
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
-    NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.CalculatedHeight + ControlsMargin);
+    NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.EffectiveHeight + ControlsMargin);
 
     { Do not show this on touch device, as Application.Terminate
       (or Window.Close, or anything similar) doesn't make sense on mobile devices.
@@ -101,7 +101,7 @@ begin
     ExitButton.Left := ControlsMargin;
     ExitButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ExitButton);
-    NextButtonBottom := NextButtonBottom + (ExitButton.CalculatedHeight + ControlsMargin);
+    NextButtonBottom := NextButtonBottom + (ExitButton.EffectiveHeight + ControlsMargin);
   end;
 
   RenderDebugCreaturesButton := TCastleButton.Create(Application);
@@ -111,7 +111,7 @@ begin
   RenderDebugCreaturesButton.Left := ControlsMargin;
   RenderDebugCreaturesButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugCreaturesButton);
-  NextButtonBottom := NextButtonBottom + (RenderDebugCreaturesButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (RenderDebugCreaturesButton.EffectiveHeight + ControlsMargin);
 
   RenderDebugItemsButton := TCastleButton.Create(Application);
   RenderDebugItemsButton.Caption := 'Items Debug Visualization';
@@ -120,7 +120,7 @@ begin
   RenderDebugItemsButton.Left := ControlsMargin;
   RenderDebugItemsButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugItemsButton);
-  NextButtonBottom := NextButtonBottom + (RenderDebugItemsButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (RenderDebugItemsButton.EffectiveHeight + ControlsMargin);
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
@@ -128,7 +128,7 @@ begin
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
-  NextButtonBottom := NextButtonBottom + (ScrenshotButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (ScrenshotButton.EffectiveHeight + ControlsMargin);
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
@@ -136,7 +136,7 @@ begin
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
-  NextButtonBottom := NextButtonBottom + (AddCreatureButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (AddCreatureButton.EffectiveHeight + ControlsMargin);
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
@@ -144,7 +144,7 @@ begin
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
-  NextButtonBottom := NextButtonBottom + (AddItemButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (AddItemButton.EffectiveHeight + ControlsMargin);
 
   AttackButton := TCastleButton.Create(Application);
   AttackButton.Caption := 'Attack (Ctrl)';
@@ -152,7 +152,7 @@ begin
   AttackButton.Left := ControlsMargin;
   AttackButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AttackButton);
-  NextButtonBottom := NextButtonBottom + (AttackButton.CalculatedHeight + ControlsMargin);
+  NextButtonBottom := NextButtonBottom + (AttackButton.EffectiveHeight + ControlsMargin);
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);

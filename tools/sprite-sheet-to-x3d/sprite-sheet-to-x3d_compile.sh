@@ -16,4 +16,4 @@ else
 fi
 
 cd tools/sprite-sheet-to-x3d/
-"${CASTLE_ENGINE}" compile
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}

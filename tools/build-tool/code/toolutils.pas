@@ -78,6 +78,11 @@ procedure RunCommandSimple(
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = ''); overload;
 
+{ Run the command, and return immediately, without waiting for finish. }
+procedure RunCommandNoWait(
+  const ProjectPath: string;
+  const ExeName: string; const Options: array of string);
+
 var
   { Trivial verbosity global setting. }
   Verbose: boolean = false;
@@ -113,6 +118,18 @@ type
 
 const
   MaxAndroidTagLength = 23;
+
+{ Like @link(FindExe), but additionally look for the exe in
+  Castle Game Engine bin/ subdirectory. }
+function FindCgeExe(const ExeName: String): String;
+
+{ Path to CGE main directory,
+  obtained from $CASTLE_ENGINE_PATH environment variable.
+
+  Returns empty String if it wasn't possible to get a valid value.
+  Otherwise, the returned path always ends with path delimiter,
+  and always exists. }
+function CastleEnginePath: String;
 
 implementation
 
@@ -266,6 +283,54 @@ begin
   end;
 end;
 
+procedure RunCommandNoWait(
+  const ProjectPath: string;
+  const ExeName: string; const Options: array of string);
+var
+  P: TProcess;
+  I: Integer;
+  {$ifdef UNIX} NoHupExe: String; {$endif}
+begin
+  P := TProcess.Create(nil);
+  try
+    P.Executable := ExeName;
+    // this is useful on Unix, to place nohup.out inside temp directory
+    P.CurrentDirectory := TempOutputPath(ProjectPath);
+
+    { Under Unix, execute using nohup.
+      This way the parent process can die (and destroy child's IO handles)
+      and the new process will keep running OK.
+      This is important when you execute in "castle-editor" the option
+      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
+      and both "castle-editor" and "castle-engine" processes die
+      (while the new CGE editor should continue running). }
+    {$ifdef UNIX}
+    NoHupExe := FindExe('nohup');
+    if NoHupExe <> '' then
+    begin
+      P.Executable := NoHupExe;
+      P.Parameters.Add(ExeName);
+    end;
+    {$endif}
+
+    for I := Low(Options) to High(Options) do
+      P.Parameters.Add(Options[I]);
+
+    { Under Windows, these options should make a process execute OK.
+      Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
+    P.InheritHandles := false;
+    P.ShowWindow := swoShow;
+
+    if Verbose then
+    begin
+      Writeln('Calling ' + ExeName);
+      Writeln(P.Parameters.Text);
+    end;
+
+    P.Execute;
+  finally FreeAndNil(P) end;
+end;
+
 procedure RunCommandSimple(
   const ExeName: string; const Options: array of string);
 begin
@@ -364,6 +429,43 @@ begin
       Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
   end;
   Result := nil;
+end;
+
+function FindCgeExe(const ExeName: String): String;
+var
+  CgePath: String;
+begin
+  CgePath := CastleEnginePath;
+  if CgePath <> '' then
+  begin
+    Result := CgePath + 'bin' + PathDelim + ExeName + ExeExtension;
+    if FileExists(Result) then
+      Exit;
+  end;
+
+  Result := FindExe(ExeName);
+end;
+
+function CastleEnginePath: String;
+begin
+  Result := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+  if Result = '' then Exit;
+
+  Result := InclPathDelim(Result);
+
+  if not DirectoryExists(Result) then
+    Exit('');
+
+  { $CASTLE_ENGINE_PATH environment variable may point to the directory
+    - containing castle_game_engine/ as subdirectory
+    - or containing castle-engine/ as subdirectory
+    - or pointing straight to castle_game_engine/ or castle-engine/
+      directory. }
+  if DirectoryExists(Result + 'castle_game_engine') then
+    Result := Result + 'castle_game_engine' + PathDelim
+  else
+  if DirectoryExists(Result + 'castle-engine') then
+    Result := Result + 'castle-engine' + PathDelim;
 end;
 
 end.

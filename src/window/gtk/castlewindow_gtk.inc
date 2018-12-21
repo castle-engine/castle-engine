@@ -261,6 +261,8 @@ function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
 function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
   cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
+function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
+  cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -715,23 +717,35 @@ procedure TCastleWindowCustom.UpdateCursor;
     { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
     Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
     try
-      Result := gdk_cursor_new_from_pixmap(
-        Pixmap, Pixmap, @Color, @Color, 0, 0);
+      Result := gdk_cursor_new_from_pixmap(Pixmap, Pixmap, @Color, @Color, 0, 0);
     finally gdk_pixmap_unref(Pixmap); end;
   end;
 
 const
-  GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
+  { GDK cursors.
+    See https://developer.gnome.org/gdk3/stable/gdk3-Cursors.html for the list. }
+  GdkCursorTypeFromCastle: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
-  ( { I think that GDK_ARROW was traditionally standard under XWindows
-      (right-top arrow), but then gtk changed standard to much more standard
-      left-top arrow in GDK_LEFT_PTR.
-
-      See for example
-      http://library.gnome.org/devel/gdk/stable/gdk-Cursors.html
-      for the list.
-    }
-    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
+  (
+    GDK_LEFT_PTR, //< mcStandard.
+                  // Note that GDK_ARROW seems standard under XWindows
+                  // (it is a right-top arrow),
+                  // but actually in modern applications it is more standard
+                  // to use left-top arrow in GDK_LEFT_PTR.
+    GDK_WATCH,                // mcWait
+    GDK_XTERM,                // mcText
+    GDK_HAND2,                // mcHand
+    GDK_SB_V_DOUBLE_ARROW,    // mcResizeVertical
+    GDK_SB_H_DOUBLE_ARROW,    // mcResizeHorizontal
+    GDK_TOP_LEFT_CORNER,      // mcResizeTopLeft
+    GDK_TOP_SIDE,             // mcResizeTop
+    GDK_TOP_RIGHT_CORNER,     // mcResizeTopRight
+    GDK_LEFT_SIDE,            // mcResizeLeft
+    GDK_RIGHT_SIDE,           // mcResizeRight
+    GDK_BOTTOM_LEFT_CORNER,   // mcResizeBottomLeft
+    GDK_BOTTOM_SIDE,          // mcResizeBottom
+    GDK_BOTTOM_RIGHT_CORNER   // mcResizeBottomRight
+  );
 begin
   if Application.Cursors[InternalCursor] = nil then
   begin
@@ -745,7 +759,7 @@ begin
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
         Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
-          Application.XDisplayGdk, GdkCursorTypeFromMy[InternalCursor]);
+          Application.XDisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
     end;
   end;
 
@@ -895,6 +909,27 @@ const
   begin
     gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
     FMousePosition := LeftTopToCastle(X, Y);
+  end;
+
+  procedure InitializeDpi;
+  var
+    ScreenWidthMM: Single;
+  begin
+    FDpi := gdk_screen_get_resolution(Application.XScreenGdk);
+    if FDpi <= 0 then
+    begin
+      ScreenWidthMM := gdk_screen_width_mm();
+      if ScreenWidthMM <= 0 then
+      begin
+        { Lazarus LCL also secures from this case, with comment:
+          "some TV-out screens don't know there size" (GetScreenWidthMM). }
+        FDpi := DefaultDpi;
+      end else
+        FDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
+    end;
+
+    WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
 var
@@ -1130,6 +1165,7 @@ begin
 
   GetInitialCursorPos;
   UpdateCursor;
+  InitializeDpi;
 end;
 
 procedure TCastleWindowCustom.CloseBackend;

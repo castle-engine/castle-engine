@@ -108,14 +108,14 @@ type
 
     Note that the UI controls rendered for the screen effects
     (our children and descendants) must always initialize and fill
-    colors of the entire rectangle (@link(ScreenRect)) of this control.
+    colors of the entire rectangle (@link(RenderRect)) of this control.
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
-    You may use e.g. TCastleSimpleBackground or TCastleRectangle
-    or TCastleSceneManager with TCastleSceneManager.Background:=true
+    You may use e.g. @link(TCastleRectangleControl)
+    or TCastleSceneManager with @link(TCastleSceneManager.Background)=true
     to always reliably fill the background.
   }
-  TCastleScreenEffects = class(TCastleUserInterfaceRect)
+  TCastleScreenEffects = class(TCastleUserInterface)
   strict private
     type
       TScreenPoint = packed record
@@ -240,7 +240,7 @@ function ScreenEffectFragment(const Depth: boolean): string;
 begin
   Result := '';
   if Depth then
-    Result += '#define DEPTH' +NL;
+    Result := Result + ('#define DEPTH' +NL);
   if GLFeatures.FBOMultiSampling then
   begin
     if GLFeatures.CurrentMultiSampling > 1 then
@@ -251,7 +251,7 @@ begin
       WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see https://castle-engine.io/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
         [GLFeatures.CurrentMultiSampling]));
   end;
-  Result += {$I screen_effect_library.glsl.inc} + NL;
+  Result := Result + ({$I screen_effect_library.glsl.inc} + NL);
 end;
 
 { TGLSLScreenEffect ---------------------------------------------------------- }
@@ -370,7 +370,7 @@ var
     if not RenderScreenEffects then Exit; // no need to do anything else
 
     { all the checks below should pass on a modern GPU }
-    SR := ScreenRect;
+    SR := RenderRect.Round;
     RenderScreenEffects :=
       GLFeatures.VertexBufferObject { for screen quad } and
       GLFeatures.UseMultiTexturing and
@@ -652,13 +652,13 @@ var
 
     { the last effect gets a texture, and renders straight into screen }
     RenderContext.ViewportDelta := TVector2Integer.Zero;
-    RenderContext.Viewport := ScreenRect;
+    RenderContext.Viewport := RenderRect.Round;
     RenderOneEffect(GetScreenEffect(CurrentScreenEffectsCount - 1));
   end;
 
   procedure EndRenderingToTexture;
   begin
-    SR := ScreenRect;
+    SR := RenderRect.Round;
 
     ScreenEffectRTT.RenderEnd;
 

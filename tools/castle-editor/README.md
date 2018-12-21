@@ -51,6 +51,20 @@ The visual editor is available as a component (`TCastleEditor`) that works in 3 
 
     This is quite like GLScene or FireMonkey experience — a RAD tool to edit your game right inside the environment you know and love.
 
+### Include custom (project-specific) components in the visual designer
+
+Larger projects may define custom components (descendants of the `TCastleUserInterface` or `TCastleTransform`). It is possible to include your custom components within the _Castle Game Engine Editor_, so that they can be used at design-time, just like standard CGE components. To do this:
+
+1. In the initialization section of some unit (it may be the same unit where you define your custom component), register it.
+    * Use unit `CastleComponentSerialize`.
+    * In the `initialization` section add a call like this: `RegisterSerializableComponent(TMyButton, 'My Button');`
+
+2. Inside your [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples), set the attribute `editor_units` to list all the units that call the mentioned `RegisterSerializableComponent`. It is a comma-separated list, like `editor_units="MyButtonUnit, MyMenuUnit"`.
+
+3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `$CASTLE_ENGINE_PATH` is correctly defined.
+
+4. Use the [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`. This will automatically build and run a customized version of the editor that includes your custom components. This step can be replaced by calling _"Project -> Restart Editor (may rebuild editor with custom controls)"_ from the editor.
+
 ### Open and run source code with external applications
 
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).
@@ -63,15 +77,31 @@ You can browse the application files. Our "Files Browser" just displays the file
 
 * It only omits some known unimportant things, like temporary `castle-engine-output` directory. But it displays everything else.
 
-* Note that the `data/` subdirectory, that you will usually create in every non-trivial CGE project, is somewhat special. It is automatically detected (by it's name `data`), it automatically packaged (e.g. in Android apk), and it is used by `ApplicationData` function. You will place there 3D models, 2D images and everything else you load in game.
+* Note that the `data/` subdirectory, that you will usually create in every non-trivial CGE project, is somewhat special. It is automatically detected (by it's name `data`), it is automatically packaged (e.g. in Android apk), and it is used by `ApplicationData` function or `castle-data:/xxx` URL (see https://castle-engine.io/manual_data_directory.php ). You will place there 3D models, 2D images and everything else you load in game.
 
     It is some equivalent to Unity3d `Assets/` subdirectory.
 
-* Note that your Pascal source code should be outside the `data/` subdirectory. Actually, your source code can be anywhere within the project, we don't have any requirement here. You can put it in `code/` subdirectory, `src/` subdirectory, no subdirectory (top level), wherever you like. If you really want, you can also place it in `data/` subdirectory, but it usually doesn't make sense (unless you really want to distribute to end-users your source code this way).
+* Note that your Pascal source code should be outside the `data/` subdirectory. Actually, your source code can be anywhere within the project, we don't have any requirement here. You can put it in `code/` subdirectory, `src/` subdirectory, no subdirectory (top level), wherever you like. Just remember to list this subdirectory in `&lt;search_paths&gt;` in [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples#compiler-options-and-paths) file (for now, just edit this file in any text editor; in the future CGE editor can allow to edit it through a GUI dialog).
+
+    If you really want, you can of course place source code in the `data/` subdirectory, but it usually doesn't make sense. Unless you really want to distribute to end-users your source code this way (but there are better ways to distribute source code, e.g. use _"Package Source"_).
 
     This is in contrast to Unity3d (that requires putting source code also inside `Assets/` directory).
 
-* On various 3D and 2D assets you can run view3dscene. On 2D images you can run glViewImage. On text files you can run a text editor (see above). We also want to auto-generate and show a quick previews of them inside the CGE editor.
+* Clicking on various files runs a CGE tool suitable to preview/edit them:
+
+    * On 3D and 2D models you can run view3dscene.
+    * On 2D images you can run glViewImage.
+    * On text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
+    * On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
+    * On other files, we can run the default OS application for them (`OpenDocument`
+
+* We also want to auto-generate and show a quick previews of models/images inside the CGE editor.
+* Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
+
+    * TCastleScene to load a 3D model,
+    * TCastle2DScene to load a Spine JSON model,
+    * TCastleImageControl to show a 2D image.
+    * This has some requirements (TCastleScene can only be inside a scene manager, TCastleImageControl only inside UI hierarchy).
 
 ### Distributed in a binary form too
 

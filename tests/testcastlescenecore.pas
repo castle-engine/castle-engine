@@ -12,6 +12,7 @@ type
   strict private
     SearchingForDescription: string;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
+    procedure NodeMultipleTimesWarning(Sender: TObject; const Category, S: string);
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -22,13 +23,15 @@ type
     procedure TestFind;
     procedure TestViewpointBillboardTricky;
     procedure TestManifold;
+    procedure TestMultipleScenesOneNodeIncorrect;
+    procedure TestMultipleScenesOneNodeCorrect;
   end;
 
 implementation
 
 uses CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
-  CastleFilesUtils, CastleScene, CastleTransform;
+  CastleFilesUtils, CastleScene, CastleTransform, CastleApplicationProperties;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -267,6 +270,113 @@ begin
     AssertEquals(0, BorderEdges);
     AssertEquals(210, ManifoldEdges);
   finally FreeAndNil(Scene) end;
+end;
+
+type
+  ENodeMultipleTimes = class(Exception);
+
+procedure TTestSceneCore.NodeMultipleTimesWarning(Sender: TObject; const Category, S: string);
+begin
+  if Pos('is already part of another TCastleScene instance', S) <> 0 then
+    raise ENodeMultipleTimes.Create('We want this warning, good: ' + S)
+  else
+    raise Exception.Create('Some invalid warning: ' + S);
+end;
+
+procedure TTestSceneCore.TestMultipleScenesOneNodeIncorrect;
+
+{ Deliberately do something incorrect: place the same TX3DRootNode
+  in multiple TCastleScene instances.
+  Check that we make a warning about it. }
+
+var
+  Node: TX3DRootNode;
+  Scene1, Scene2: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@NodeMultipleTimesWarning);
+  try
+    try
+      Node := nil;
+      Scene1 := nil;
+      Scene2 := nil;
+      try
+        Node := Load3D('castle-data:/game/scene.x3d');
+        Scene1 := TCastleScene.Create(nil);
+        Scene2 := TCastleScene.Create(nil);
+        Scene1.Load(Node, false);
+        Scene2.Load(Node, false);
+        raise Exception.Create('We should not get here, expected ENodeMultipleTimes on the way');
+      finally
+        FreeAndNil(Scene1);
+        FreeAndNil(Scene2);
+        // Note: you must free Node after freeing Scene1,2
+        FreeAndNil(Node);
+      end;
+    except
+      on ENodeMultipleTimes do ; { good, silence this for the sake of test }
+    end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@NodeMultipleTimesWarning);
+  end;
+end;
+
+procedure TTestSceneCore.TestMultipleScenesOneNodeCorrect;
+var
+  Node: TX3DRootNode;
+  Scene1, Scene2, SceneTemplate: TCastleScene;
+begin
+  // When using Static=true, it is allowed to have the same TX3DRootNode reused:
+
+  Node := nil;
+  Scene1 := nil;
+  Scene2 := nil;
+  try
+    Node := Load3D('castle-data:/game/scene.x3d');
+    Scene1 := TCastleScene.Create(nil);
+    Scene1.Static := true;
+    Scene2 := TCastleScene.Create(nil);
+    Scene2.Static := true;
+    Scene1.Load(Node, false);
+    Scene2.Load(Node, false);
+  finally
+    FreeAndNil(Scene1);
+    FreeAndNil(Scene2);
+    // Note: you must free Node after freeing Scene1,2
+    FreeAndNil(Node);
+  end;
+
+  // Using DeepCopy you can overcome this limitation:
+
+  Node := nil;
+  Scene1 := nil;
+  Scene2 := nil;
+  try
+    Node := Load3D('castle-data:/game/scene.x3d');
+    Scene1 := TCastleScene.Create(nil);
+    Scene2 := TCastleScene.Create(nil);
+    Scene1.Load(Node.DeepCopy as TX3DRootNode, true);
+    Scene2.Load(Node.DeepCopy as TX3DRootNode, true);
+  finally
+    FreeAndNil(Node);
+    FreeAndNil(Scene1);
+    FreeAndNil(Scene2);
+  end;
+
+  // Using Clone you can overcome this limitation:
+
+  SceneTemplate := nil;
+  Scene1 := nil;
+  Scene2 := nil;
+  try
+    SceneTemplate := TCastleScene.Create(nil);
+    SceneTemplate.Load('castle-data:/game/scene.x3d');
+    Scene1 := SceneTemplate.Clone(nil);
+    Scene2 := SceneTemplate.Clone(nil);
+  finally
+    FreeAndNil(SceneTemplate);
+    FreeAndNil(Scene1);
+    FreeAndNil(Scene2);
+  end;
 end;
 
 initialization

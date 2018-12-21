@@ -33,7 +33,7 @@ uses SysUtils,
 
 var
   Notifications: TCastleNotifications;
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   Button, ButtonDemo: TCastleButton;
   Image, Image2, ImageInsideMenu, ImageWithBorders: TCastleImageControl;
   OnScreenMenu: TCastleOnScreenMenu;
@@ -137,8 +137,9 @@ begin
   Notifications.Fade := 0.5;
   Window.Controls.InsertBack(Notifications);
 
-  Background := TCastleSimpleBackground.Create(Window);
+  Background := TCastleRectangleControl.Create(Window);
   Background.Color := Green;
+  Background.FullSize := true;
   Window.Controls.InsertBack(Background);
 
   Button := TCastleButton.Create(Window);

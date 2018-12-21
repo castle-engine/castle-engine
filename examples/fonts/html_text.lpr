@@ -84,9 +84,9 @@ begin
     Label1.MaxWidth := Container.UnscaledWidth - Margin * 2 - ScrollView.ScrollBarWidth;
 
   ScrollView.Width := Container.UnscaledWidth;
-  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.CalculatedHeight;
-  ScrollView.ScrollArea.Width := Label1.CalculatedWidth;
-  ScrollView.ScrollArea.Height := Label1.CalculatedHeight;
+  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.EffectiveHeight;
+  ScrollView.ScrollArea.Width := Label1.EffectiveWidth;
+  ScrollView.ScrollArea.Height := Label1.EffectiveHeight;
 end;
 
 var
@@ -122,7 +122,7 @@ begin
   ButtonWrap := TCastleButton.Create(Window);
   ButtonWrap.Caption := 'Wrap';
   ButtonWrap.Toggle := true;
-  ButtonWrap.Left := 2 * Margin + ButtonHtml.CalculatedWidth;
+  ButtonWrap.Left := 2 * Margin + ButtonHtml.EffectiveWidth;
   ButtonWrap.Bottom := Margin;
   ButtonWrap.OnClick := @TButtonHandler(nil).ClickWrap;
   ButtonWrap.Pressed := true;
@@ -139,7 +139,7 @@ begin
   ButtonAlignMiddle := TCastleButton.Create(Window);
   ButtonAlignMiddle.Caption := 'Middle';
   ButtonAlignMiddle.Toggle := true;
-  ButtonAlignMiddle.Anchor(hpRight, -2 * Margin - ButtonAlignRight.CalculatedWidth);
+  ButtonAlignMiddle.Anchor(hpRight, -2 * Margin - ButtonAlignRight.EffectiveWidth);
   ButtonAlignMiddle.Bottom := Margin;
   ButtonAlignMiddle.OnClick := @TButtonHandler(nil).ClickAlignMiddle;
   Window.Controls.InsertFront(ButtonAlignMiddle);
@@ -147,7 +147,7 @@ begin
   ButtonAlignLeft := TCastleButton.Create(Window);
   ButtonAlignLeft.Caption := 'Left';
   ButtonAlignLeft.Toggle := true;
-  ButtonAlignLeft.Anchor(hpRight, -3 * Margin - ButtonAlignRight.CalculatedWidth - ButtonAlignMiddle.CalculatedWidth);
+  ButtonAlignLeft.Anchor(hpRight, -3 * Margin - ButtonAlignRight.EffectiveWidth - ButtonAlignMiddle.EffectiveWidth);
   ButtonAlignLeft.Bottom := Margin;
   ButtonAlignLeft.OnClick := @TButtonHandler(nil).ClickAlignLeft;
   ButtonAlignLeft.Pressed := true;

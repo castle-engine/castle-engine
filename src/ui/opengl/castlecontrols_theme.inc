@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -67,6 +68,11 @@
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
+    { Width of scrollbar for TCastleScrollView. }
+    ScrollBarWidth: Single;
+    { Minumum scrollbar height, to be comfortably visible and draggable. }
+    MinimumScrollbarSliderHeight: Single;
+
     { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
 
       This is internally set and unset by the CastleWindow exception handler
@@ -80,6 +86,8 @@
       (since the application may be in some dirty state, so it's better to avoid
       rendering user stuff). }
     InternalForceOpaqueBackground: boolean;
+
+    DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
 
     constructor Create;
     destructor Destroy; override;
@@ -126,8 +134,10 @@
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single; const Color: TCastleColor);
 
-    { Font used by dialogs. Leave @nil to use UIFont. }
+    { Font used by dialogs.
+      Leave @nil to use @link(TUIContainer.DefaultFont). }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
+
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
 
@@ -155,6 +165,8 @@ begin
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
+  ScrollBarWidth := 20;
+  MinimumScrollbarSliderHeight := 20;
 
   FOwnsMessageFont := true;
 
@@ -210,6 +222,18 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
   FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+
+  { Note that tiSquareEmpty and tiSquarePressedBackground could have
+    corners = (4, 4, 4, 4), but tiSquareChecked cannot.
+    And these 3 images must be consistent.
+    So, do not declare any corners for them. }
+  FImages[tiSquareEmpty] := SquareEmpty;
+  FCorners[tiSquareEmpty] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiSquareChecked] := SquareChecked;
+  FCorners[tiSquareChecked] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiSquarePressedBackground] := SquarePressedBackground;
+  FCorners[tiSquarePressedBackground] := Vector4Integer(0, 0, 0, 0);
+
   FImages[tiDisclosure] := Disclosure;
   FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;

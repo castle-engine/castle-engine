@@ -63,8 +63,8 @@ begin
   Color := HexToColor('5f3939'); // equivalent: Vector4(95/255, 57/255, 57/255, 1.0);
 
   InsideRect := TCastleRectangleControl.Create(Self);
-  InsideRect.Width := CalculatedWidth - 10;
-  InsideRect.Height := CalculatedHeight - 10;
+  InsideRect.Width := EffectiveWidth - 10;
+  InsideRect.Height := EffectiveHeight - 10;
   InsideRect.Color := Silver;
   InsideRect.Anchor(hpMiddle);
   InsideRect.Anchor(vpMiddle);

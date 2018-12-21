@@ -113,7 +113,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="9">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -157,6 +157,22 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormProject"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="framedesign.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="DesignFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="FrameDesign"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="formabout.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AboutForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormAbout"/>
+      </Unit8>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -180,6 +196,9 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
+      <CompilerMessages>
+        <IgnoredMessages idx4046="True"/>
+      </CompilerMessages>
     </Other>
   </CompilerOptions>
   <Debugging>

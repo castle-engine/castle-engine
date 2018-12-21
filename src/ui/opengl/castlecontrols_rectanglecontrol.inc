@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -16,7 +17,7 @@
 {$ifdef read_interface}
 
   { Fill a rectangle on screen with given color or theme image. }
-  TCastleRectangleControl = class(TCastleUserInterfaceRect)
+  TCastleRectangleControl = class(TCastleUserInterface)
   strict private
     FColor: TCastleColor;
     FThemeImage: TThemeImage;
@@ -50,7 +51,7 @@
       default false;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
@@ -68,14 +69,14 @@ begin
   FUseThemeImage := false;
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
 destructor TCastleRectangleControl.Destroy;
 begin
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
 end;
@@ -111,9 +112,9 @@ procedure TCastleRectangleControl.Render;
 begin
   inherited;
   if FUseThemeImage then
-    Theme.Draw(ScreenRect, ThemeImage, UIScale, Color)
+    Theme.Draw(RenderRect, ThemeImage, UIScale, Color)
   else
-    DrawRectangle(ScreenRect, Color);
+    DrawRectangle(RenderRect, Color);
 end;
 
 function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;
@@ -135,7 +136,7 @@ begin
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/castlecontrols_rectanglecontrol_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastlerectanglecontrol_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 {$endif read_implementation}

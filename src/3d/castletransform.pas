@@ -314,7 +314,7 @@ type
     See the @link(Gravity) property for a simple unrealistic gravity model.
     See the @link(RigidBody) for a proper rigid-bidy simulation,
     with correct gravity model and collisions with other rigid bodies. }
-  TCastleTransform = class(TComponent)
+  TCastleTransform = class(TCastleComponent)
   private
     class var
       NextTransformId: Cardinal;
@@ -678,6 +678,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure InternalAddChild(const C: TComponent); override;
+
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
       It TCastleTransform class, returns @true if @link(Exists) and not disabled.
@@ -699,19 +701,6 @@ type
       May be modified in subclasses, to return something more complicated. }
     function GetVisible: boolean; virtual;
 
-    { Is this object visible and colliding.
-
-      Setting this to @false pretty much turns everything of this 3D object
-      to "off". This is useful for objects that disappear completely from
-      the level when something happens. You could just as well remove
-      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
-      comfortable to simply turn this property to @false.
-
-      Descendants may also override GetExists method.
-
-      @noAutoLinkHere }
-    property Exists: boolean read FExists write FExists default true;
-
     { Items that are at least once disabled are treated like not existing.
       Every @link(Disable) call should always be paired with @link(Enable) call
       (usually using @code(try ... finally .... end) block).
@@ -724,62 +713,6 @@ type
     procedure Disable;
     procedure Enable;
     { @groupEnd }
-
-    { Should this 3D object participate in collision detection.
-      You can turn this off, useful to make e.g. "fake" walls
-      (to some secret places on level).
-
-      This describes collision resolution with almost everything --- camera,
-      player (in third-person perspective, camera may differ from player),
-      other creatures. That is because everything
-      resolves collisions through our methods MoveCollision and HeightCollision
-      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
-      PointCollision2D, BoxCollision (low-level).
-
-      (Note that RayCollision is excluded from this,
-      it exceptionally ignores Collides value, as it's primarily used for picking.
-      Same for SegmentCollision with LineOfSight=true.)
-
-      The only exception are the collisions with T3DMoving instances
-      (movable world parts like elevators and doors) that have their own
-      detection routines and look at CollidesWithMoving property of other objects.
-      That is, the T3DMoving instance itself must still have Collides = @true,
-      but it interacts with @italic(other) objects if and only if they have
-      CollidesWithMoving = @true (ignoring their Collides value).
-      This allows items to be moved by elevators, but still player and creatures
-      can pass through them.
-
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects never participate in collision detection).
-
-      Descendants may also override GetCollides method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Collides: boolean read FCollides write FCollides default true;
-
-    { Is item pickable by @link(RayCollision) method.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never pickable).
-      This is independent from @link(Collides), as @link(RayCollision)
-      does not look at @link(Collides), it only looks at @link(Pickable).
-
-      Descendants may also override GetPickable method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Pickable: boolean read FPickable write FPickable default true;
-
-    { Is item visible.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never visible).
-      This is independent from @link(Collides) or @link(Pickable).
-
-      Descendants may also override GetVisible method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Visible: boolean read FVisible write FVisible default true;
 
     { Operate on 3D objects contained in the list.
       You can also operate directly on @link(List) instance.
@@ -798,6 +731,17 @@ type
     procedure Clear;
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
+
+    { Return parent TCastleTransform, but only if this TCastleTransform
+      is a child of exactly one other TCastleTransform.
+
+      In general, the same TCastleTransform instance may be used
+      multiple times as a child of other TCastleTransform instances
+      (as long as they are all within the same TCastleSceneManager),
+      in which case this property is @nil.
+
+      It is also @nil if this is the root transform, not added to any parent. }
+    property UniqueParent: TCastleTransform read FParent;
 
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
@@ -904,11 +848,6 @@ type
       or a couple of first animation frames). To avoid this, call this method,
       showing the user something like "now we're preparing
       the resources --- please wait".
-
-      For OpenGL rendered objects, this method ties this object
-      to the current OpenGL context.
-      But it doesn't change any OpenGL state or buffers contents
-      (at most, it allocates some texture and display list names).
 
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
@@ -1718,6 +1657,74 @@ type
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
   published
+    { Is this object visible and colliding.
+
+      Setting this to @false pretty much turns everything of this 3D object
+      to "off". This is useful for objects that disappear completely from
+      the level when something happens. You could just as well remove
+      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
+      comfortable to simply turn this property to @false.
+
+      Descendants may also override GetExists method.
+
+      @noAutoLinkHere }
+    property Exists: boolean read FExists write FExists default true;
+
+    { Should this 3D object participate in collision detection.
+      You can turn this off, useful to make e.g. "fake" walls
+      (to some secret places on level).
+
+      This describes collision resolution with almost everything --- camera,
+      player (in third-person perspective, camera may differ from player),
+      other creatures. That is because everything
+      resolves collisions through our methods MoveCollision and HeightCollision
+      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
+      PointCollision2D, BoxCollision (low-level).
+
+      (Note that RayCollision is excluded from this,
+      it exceptionally ignores Collides value, as it's primarily used for picking.
+      Same for SegmentCollision with LineOfSight=true.)
+
+      The only exception are the collisions with T3DMoving instances
+      (movable world parts like elevators and doors) that have their own
+      detection routines and look at CollidesWithMoving property of other objects.
+      That is, the T3DMoving instance itself must still have Collides = @true,
+      but it interacts with @italic(other) objects if and only if they have
+      CollidesWithMoving = @true (ignoring their Collides value).
+      This allows items to be moved by elevators, but still player and creatures
+      can pass through them.
+
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects never participate in collision detection).
+
+      Descendants may also override GetCollides method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Collides: boolean read FCollides write FCollides default true;
+
+    { Is item pickable by @link(RayCollision) method.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never pickable).
+      This is independent from @link(Collides), as @link(RayCollision)
+      does not look at @link(Collides), it only looks at @link(Pickable).
+
+      Descendants may also override GetPickable method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Pickable: boolean read FPickable write FPickable default true;
+
+    { Is item visible.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never visible).
+      This is independent from @link(Collides) or @link(Pickable).
+
+      Descendants may also override GetVisible method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Visible: boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleSceneManager,
       and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
@@ -1735,6 +1742,10 @@ type
       @link(TCastleAbstractViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
@@ -1879,7 +1890,7 @@ const
 
 implementation
 
-uses CastleLog, CastleQuaternions;
+uses CastleLog, CastleQuaternions, CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
@@ -2078,10 +2089,18 @@ begin
   FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleTransform.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   PhysicsDestroy;
   FreeAndNil(FList);
   { set to nil, to detach free notification }
@@ -3139,6 +3158,12 @@ begin
     Proc(List[I]);
 end;
 
+procedure TCastleTransform.InternalAddChild(const C: TComponent);
+begin
+  // matches TCastleTransform.GetChildren implementation
+  Add(C as TCastleTransform)
+end;
+
 { We try hard to keep FOnlyTranslation return fast, and return with true.
   This allows TCastleTransform to be optimized and accurate
   for the (often) case of pure translation. }
@@ -3298,6 +3323,10 @@ begin
   Rotation := RotationFromDirectionUp(D, U);
 end;
 
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
 { TSceneManagerWorld ------------------------------------------------------------------- }
 
 constructor TSceneManagerWorld.Create(AOwner: TComponent);
@@ -3348,4 +3377,5 @@ end;
 
 initialization
   GlobalIdentityMatrix := TMatrix4.Identity;
+  RegisterSerializableComponent(TCastleTransform, 'Transform');
 end.

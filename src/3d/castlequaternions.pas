@@ -39,12 +39,11 @@ type
             Vector4: TVector4);
     end;
 
-    const
-      { Quaternion representing @italic("no rotation").
-        Note: this is @italic(not) a quaternion filled with zeros
-        (the @code(Data.Real) component is 1.0), instead this is a unit quaternion
-        that correctly represents @italic("rotation by zero degrees/radians"). }
-      ZeroRotation: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+    { Quaternion representing @italic("no rotation").
+      Note: this is @italic(not) a quaternion filled with zeros
+      (the @code(Data.Real) component is 1.0), instead this is a unit quaternion
+      that correctly represents @italic("rotation by zero degrees/radians"). }
+    class function ZeroRotation: TQuaternion; static;
 
     { Calculate axis (will be normalized) and angle (will be in radians)
       of rotation encoded in unit quaternion Q.
@@ -192,6 +191,13 @@ implementation
 uses Math, CastleUtils;
 
 { TQuaternion ---------------------------------------------------------------- }
+
+class function TQuaternion.ZeroRotation: TQuaternion; static;
+const
+  R: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+begin
+  Result := R;
+end;
 
 procedure TQuaternion.ToAxisAngle(out Axis: TVector3;
   out AngleRad: Single);

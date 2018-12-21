@@ -290,7 +290,6 @@ begin
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
-    P.Targets.AddUnit('castleuicontrols.pas');
     P.Targets.AddUnit('castlejoysticks.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
@@ -306,6 +305,7 @@ begin
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
     P.Targets.AddUnit('castletiledmap.pas');
+    P.Targets.AddUnit('castleuicontrols.pas');
     P.Targets.AddUnit('castleuistate.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');

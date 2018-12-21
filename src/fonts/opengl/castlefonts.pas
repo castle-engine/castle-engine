@@ -114,6 +114,10 @@ type
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition);
+    procedure PrintRect(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
 
     { Print text, aligning within given rectangle.
       Newlines within the text will be automatically honored,
@@ -121,6 +125,13 @@ type
       See @link(PrintStrings) for description of parameters Html,
       LineSpacing, TextHorizontalAlignment. }
     procedure PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+    procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
@@ -295,6 +306,12 @@ type
 
       @groupBegin }
     function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const LineSpacing: Single;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
+    function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
@@ -546,6 +563,11 @@ type
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
 
+{ Protect characters from being interpreted as special HTML sequences
+  by TCastleFont.Print with Html = @true parameter.
+  Replaces '<' with '&lt;' and so on. }
+function SimpleHtmlQuote(const S: String): String;
+
 implementation
 
 uses Math,
@@ -653,6 +675,18 @@ begin
   finally FreeAndNil(Strings) end;
 end;
 
+procedure TCastleFont.PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Html: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+begin
+  PrintRectMultiline(Rect.Round, Color, S,
+    HorizontalAlignment, VerticalAlignment, Html, LineSpacing, TextHorizontalAlignment);
+end;
+
 procedure TCastleFont.PrintRect(const Rect: TRectangle; const Color: TCastleColor;
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
@@ -665,6 +699,15 @@ begin
     Align(HorizontalAlignment, Rect, HorizontalAlignment).
     Align(VerticalAlignment, Rect, VerticalAlignment);
   Print(ThisRect.Left, ThisRect.Bottom, Color, S);
+end;
+
+procedure TCastleFont.PrintRect(
+  const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+begin
+  PrintRect(Rect.Round, Color, S, HorizontalAlignment, VerticalAlignment);
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;
@@ -910,6 +953,17 @@ begin
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;
   finally FreeAndNil(Text) end;
+end;
+
+function TCastleFont.PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
+  const S: string;
+  const LineSpacing: Single;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean = false): Integer;
+begin
+  Result := PrintBrokenString(Rect.Round, Color, S, LineSpacing,
+    AlignHorizontal, AlignVertical, Html);
 end;
 
 function TCastleFont.PrintBrokenString(const S: string;
@@ -1643,6 +1697,16 @@ begin
   ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
   ADescend       := Round(ADescend       * ScaleFactor);
   AMeasuredSize := RealSize;
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+function SimpleHtmlQuote(const S: String): String;
+const
+  Patterns: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
+  Replacements: array [0..4] of String = ('&', '<', '>', '''', '"');
+begin
+  Result := SReplacePatterns(S, Patterns, Replacements, false);
 end;
 
 end.

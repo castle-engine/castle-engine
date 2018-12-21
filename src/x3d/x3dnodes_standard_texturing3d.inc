@@ -305,7 +305,7 @@ var
   I: Integer;
   Slice: TCastleImage;
 begin
-  if FdTexture.Items.Count = 0 then
+  if FdTexture.Count = 0 then
   begin
     WritelnWarning('VRML/X3D', 'ComposedTexture3D has no textures');
     Exit;

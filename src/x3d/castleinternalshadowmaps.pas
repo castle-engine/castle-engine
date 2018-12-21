@@ -221,7 +221,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     { If the texture that we want to add is already present, abort.
       This may happen, as HandleLight may iterate many times over
       the same light. }
-    if MTexture.FdTexture.Items.IndexOf(ShadowMap) <> -1 then
+    if MTexture.FdTexture.IndexOf(ShadowMap) <> -1 then
     begin
       Dec(TexturesCount);
       Exit;
@@ -290,7 +290,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     { If the texcoord that we want to add is already present, abort.
       This may happen, as HandleLight may iterate many times over
       the same light. }
-    if MTexCoord.FdTexCoord.Items.IndexOf(TexGen) = -1 then
+    if MTexCoord.FdTexCoord.IndexOf(TexGen) = -1 then
     begin
       { Add new necessary TextureCoordinateGenerator nodes,
         or remove unused nodes, to make texCoord size right }

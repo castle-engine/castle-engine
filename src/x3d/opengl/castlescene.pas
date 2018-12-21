@@ -822,7 +822,8 @@ implementation
 // to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
-  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes;
+  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
+  CastleComponentSerialize;
 {$warnings on}
 
 var
@@ -830,7 +831,9 @@ var
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleScene]);
+  {$endif}
 end;
 
 { TGLSceneShape -------------------------------------------------------------- }
@@ -1515,7 +1518,7 @@ begin
     PossiblyTimeConsuming := (not PreparedShapesResources) or (not PreparedRender);
 
     if PossiblyTimeConsuming then
-      TimeStart := Profiler.Start('Prepare Resources ' + URL);
+      TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
 
     if not PreparedShapesResources then
     begin
@@ -2440,6 +2443,7 @@ end;
 
 initialization
   GLContextCache := TGLRendererContextCache.Create;
+  RegisterSerializableComponent(TCastleScene, 'Scene');
 finalization
   FreeAndNil(GLContextCache);
 end.

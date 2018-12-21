@@ -112,6 +112,7 @@ type
     var
       Queue: TQueueItemList;
       OutputList: TOutputList;
+      OnSuccessfullyFinishedAll: TNotifyEvent;
 
     constructor Create;
     destructor Destroy; override;
@@ -181,12 +182,15 @@ end;
 procedure TAsynchronousProcessQueue.Update;
 var
   LastLineKind: TOutputKind;
+  SuccessfullyFinishedAll: Boolean;
 begin
   if AsyncProcess <> nil then
   begin
     AsyncProcess.Update;
     if not AsyncProcess.Running then
     begin
+      SuccessfullyFinishedAll := false;
+
       if AsyncProcess.ExitStatus <> 0 then
       begin
         LastLineKind := okError;
@@ -195,6 +199,8 @@ begin
       begin
         Inc(FQueuePosition);
         LastLineKind := okImportantInfo;
+        // if we just finished the last queue item, then success
+        SuccessfullyFinishedAll := FQueuePosition = Queue.Count;
       end;
       OutputList.AddSeparator;
       OutputList.AddLine('Command finished with status ' + IntToStr(AsyncProcess.ExitStatus) + '.',
@@ -204,6 +210,9 @@ begin
       // create next process in queue
       if FQueuePosition < Queue.Count then
         CreateAsyncProcess;
+
+      if SuccessfullyFinishedAll and Assigned(OnSuccessfullyFinishedAll) then
+        OnSuccessfullyFinishedAll(Self);
     end;
   end;
 end;

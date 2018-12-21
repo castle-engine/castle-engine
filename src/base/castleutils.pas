@@ -72,6 +72,7 @@
 
       Use @link(FormatDot) to reliably output floating point values
       with "dot" as a decimal separator.
+      Similarly, use TryStrToFloatDot to read string with dot to a float.
     )
 
     @item(Makes AnsiString (which is usually just called "string")
@@ -95,8 +96,6 @@
 
 unit CastleUtils;
 
-{$I castleconf.inc}
-
 {$ifdef VER3_0}
   { Almost all CGE code uses ObjFpc mode under FPC,
     but this unit needs Delphi mode for FPC 3.0.x
@@ -118,8 +117,11 @@ unit CastleUtils;
     https://bugs.freepascal.org/view.php?id=30227
   }
   {$mode delphi}
-  {$undef CASTLE_OBJFPC}
+  {$define CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 {$endif}
+
+{$I castleconf.inc}
+{$undef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 
 interface
 

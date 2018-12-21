@@ -1,23 +1,23 @@
 object ProjectForm: TProjectForm
-  Left = 88
-  Height = 637
-  Top = 46
-  Width = 1173
+  Left = 483
+  Height = 738
+  Top = 233
+  Width = 1332
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 602
-  ClientWidth = 1173
+  ClientHeight = 703
+  ClientWidth = 1332
   DesignTimePPI = 140
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poMainFormCenter
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '1.9.0.0'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
-    Top = 340
-    Width = 1173
+    Top = 441
+    Width = 1332
     ActivePage = TabFiles
     Align = alBottom
     TabIndex = 0
@@ -25,7 +25,7 @@ object ProjectForm: TProjectForm
     object TabFiles: TTabSheet
       Caption = 'Files'
       ClientHeight = 217
-      ClientWidth = 1167
+      ClientWidth = 1326
       object ShellTreeView1: TShellTreeView
         Left = 0
         Height = 217
@@ -45,7 +45,7 @@ object ProjectForm: TProjectForm
         Left = 374
         Height = 217
         Top = 0
-        Width = 793
+        Width = 952
         Align = alClient
         Color = clDefault
         ReadOnly = True
@@ -64,7 +64,7 @@ object ProjectForm: TProjectForm
     object TabOutput: TTabSheet
       Caption = 'Output'
       ClientHeight = 217
-      ClientWidth = 1167
+      ClientWidth = 1326
       object ListOutput: TListBox
         Left = 0
         Height = 217
@@ -84,150 +84,54 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 333
-    Width = 1173
+    Top = 434
+    Width = 1332
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 333
+    Height = 434
     Top = 0
-    Width = 1173
+    Width = 1332
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 333
-    ClientWidth = 1173
+    ClientHeight = 434
+    ClientWidth = 1332
     TabOrder = 2
-    object SplitterLeft: TSplitter
-      Left = 266
-      Height = 333
-      Top = 0
-      Width = 7
-    end
-    object SplitterRight: TSplitter
-      Left = 810
-      Height = 333
-      Top = 0
-      Width = 7
-      Align = alRight
-      ResizeAnchor = akRight
-    end
-    object PanelRight: TPanel
-      Left = 817
-      Height = 333
-      Top = 0
-      Width = 356
-      Align = alRight
-      BevelOuter = bvNone
-      ClientHeight = 333
-      ClientWidth = 356
-      TabOrder = 2
-      object LabelControlSelected: TLabel
-        Left = 5
-        Height = 54
-        Top = 5
-        Width = 346
-        Align = alTop
-        BorderSpacing.Around = 5
-        Caption = 'Selected:'#13#10'xxx (yyy)'
-        ParentColor = False
-        ParentFont = False
-      end
-      object ControlProperties: TPageControl
-        Left = 0
-        Height = 269
-        Top = 64
-        Width = 356
-        ActivePage = TabSimple
-        Align = alClient
-        TabIndex = 0
-        TabOrder = 0
-        object TabSimple: TTabSheet
-          Caption = 'Simple'
-        end
-        object TabAdvanced: TTabSheet
-          Caption = 'Advanced'
-        end
-        object TabEvents: TTabSheet
-          Caption = 'Events'
-        end
-      end
-    end
-    object PanelLeft: TPanel
-      Left = 0
-      Height = 333
-      Top = 0
-      Width = 266
-      Align = alLeft
-      BevelOuter = bvNone
-      ClientHeight = 333
-      ClientWidth = 266
-      TabOrder = 3
-      object ControlsTree: TTreeView
-        Left = 0
-        Height = 296
-        Hint = 'Select a control to edit it''s properties. Hold down "Ctrl" key to select multiple components at once.'
-        Top = 37
-        Width = 266
-        Align = alClient
-        MultiSelect = True
-        ParentShowHint = False
-        ReadOnly = True
-        RowSelect = True
-        ScrollBars = ssAutoBoth
-        ShowHint = True
-        TabOrder = 0
-        OnSelectionChanged = ControlsTreeSelectionChanged
-        Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
-      end
-      object LabelHierarchy: TLabel
-        Left = 5
-        Height = 27
-        Top = 5
-        Width = 256
-        Align = alTop
-        BorderSpacing.Around = 5
-        Caption = 'Hierarchy'
-        ParentColor = False
-      end
+    object LabelNoDesign: TLabel
+      AnchorSideLeft.Control = PanelAboveTabs
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = PanelAboveTabs
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrCenter
+      AnchorSideBottom.Side = asrCenter
+      Left = 328
+      Height = 216
+      Top = 109
+      Width = 677
+      Alignment = taCenter
+      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Designer" menu.'
+      Font.Height = -39
+      ParentColor = False
+      ParentFont = False
+      WordWrap = True
     end
   end
   object MainMenu1: TMainMenu
-    left = 336
-    top = 97
+    Left = 52
+    Top = 24
     object MenuItemFile: TMenuItem
-      Caption = 'File'
-      object MenuItemNewHierarchyUserInterface: TMenuItem
-        Caption = 'New User Interface Hierarchy'
-        OnClick = MenuItemNewHierarchyUserInterfaceClick
+      Caption = '&Project'
+      object MenuItemRestartRebuildEditor: TMenuItem
+        Caption = 'Restart Editor (may rebuild editor with custom controls)'
+        OnClick = MenuItemRestartRebuildEditorClick
       end
-      object MenuItemNewHierarchySceneTransform: TMenuItem
-        Caption = 'New Scene / Transform Hierarchy'
-        OnClick = MenuItemNewHierarchySceneTransformClick
-      end
-      object MenuItemSeparator201: TMenuItem
-        Caption = '-'
-      end
-      object MenuItemOpen: TMenuItem
-        Caption = 'Open ...'
-        ShortCut = 16463
-        OnClick = MenuItemOpenClick
-      end
-      object MenuItemSaveHierarchy: TMenuItem
-        Caption = 'Save Hierarchy'
-        ShortCut = 16467
-        OnClick = MenuItemSaveHierarchyClick
-      end
-      object MenuItemSaveAsHierarchy: TMenuItem
-        Caption = 'Save Hierarchy As ...'
-        OnClick = MenuItemSaveAsHierarchyClick
-      end
-      object MenuItemSeparator200: TMenuItem
+      object MenuItemSeparator788: TMenuItem
         Caption = '-'
       end
       object MenuItemSwitchProject: TMenuItem
-        Caption = 'Switch Project'
+        Caption = 'Close and Switch Project'
         OnClick = MenuItemSwitchProjectClick
       end
       object MenuItemQuit: TMenuItem
@@ -236,8 +140,103 @@ object ProjectForm: TProjectForm
         OnClick = MenuItemQuitClick
       end
     end
+    object MenuItemDesign: TMenuItem
+      Caption = '&Design'
+      object MenuItemDesignNewUserInterfaceRect: TMenuItem
+        Caption = 'New User Interface (Empty Rectangle as Root)'
+        OnClick = MenuItemDesignNewUserInterfaceRectClick
+      end
+      object MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem
+        Caption = 'New User Interface (Chosen Root)'
+      end
+      object MenuItemDesignNewTransform: TMenuItem
+        Caption = 'New Transform (Empty Transform as Root)'
+        OnClick = MenuItemDesignNewTransformClick
+      end
+      object MenuItemDesignNewTransformCustomRoot: TMenuItem
+        Caption = 'New Transform (Chosen Root)'
+      end
+      object MenuItemSeparator201: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemOpenDesign: TMenuItem
+        Caption = 'Open ...'
+        ShortCut = 16463
+        OnClick = MenuItemOpenDesignClick
+      end
+      object MenuItemSaveDesign: TMenuItem
+        Caption = 'Save'
+        ShortCut = 16467
+        OnClick = MenuItemSaveDesignClick
+      end
+      object MenuItemSaveAsDesign: TMenuItem
+        Caption = 'Save As ...'
+        OnClick = MenuItemSaveAsDesignClick
+      end
+      object MenuItemSeparator150: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignAddUserInterface: TMenuItem
+        Caption = 'Add User Interface Component'
+      end
+      object MenuItemDesignAddTransform: TMenuItem
+        Caption = 'Add Transform Component'
+        object MenuItemSeparatorInAddTransform: TMenuItem
+          Caption = '-'
+        end
+        object MenuItemDesignAddRectangle2D: TMenuItem
+          Caption = 'Rectangle (TCastleScene with TRectangle2DNode)'
+          OnClick = MenuItemDesignAddRectangle2DClick
+        end
+        object MenuItemDesignAddBox: TMenuItem
+          Caption = 'Box (TCastleScene with TBoxNode)'
+          OnClick = MenuItemDesignAddBoxClick
+        end
+        object MenuItemDesignAddSphere: TMenuItem
+          Caption = 'Sphere (TCastleScene with TSphereNode)'
+          OnClick = MenuItemDesignAddSphereClick
+        end
+      end
+      object MenuItemSeparator170: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemCopyComponent: TMenuItem
+        Caption = 'Copy Component'
+        ShortCut = 24643
+        OnClick = MenuItemCopyComponentClick
+      end
+      object MenuItemPasteComponent: TMenuItem
+        Caption = 'Paste Component'
+        ShortCut = 24662
+        OnClick = MenuItemPasteComponentClick
+      end
+      object MenuItemDesignDeleteComponent: TMenuItem
+        Caption = 'Delete Component'
+        ShortCut = 16430
+        OnClick = MenuItemDesignDeleteComponentClick
+      end
+      object MenuItemSeparator400: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemCameraViewAll: TMenuItem
+        Caption = 'Scene Manager Camera View All'
+        ShortCut = 16420
+        OnClick = MenuItemCameraViewAllClick
+      end
+      object MenuItemSortBackToFront2D: TMenuItem
+        Caption = 'Scene Manager Sort For Correct 2D Blending'
+        OnClick = MenuItemSortBackToFront2DClick
+      end
+      object MenuItemSeparator1300: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
+      end
+    end
     object MenuItemRun: TMenuItem
-      Caption = 'Run'
+      Caption = '&Run'
       object MenuItemCompile: TMenuItem
         Caption = 'Compile'
         ShortCut = 16504
@@ -308,7 +307,7 @@ object ProjectForm: TProjectForm
       end
     end
     object MenuItemHelp: TMenuItem
-      Caption = 'Help'
+      Caption = '&Help'
       object MenuItemCgeWww: TMenuItem
         Caption = 'Website'
         OnClick = MenuItemCgeWwwClick
@@ -321,6 +320,10 @@ object ProjectForm: TProjectForm
         Caption = 'API Reference'
         OnClick = MenuItemReferenceClick
       end
+      object MenuItemSupport: TMenuItem
+        Caption = 'Support the development'
+        OnClick = MenuItemSupportClick
+      end
       object MenuItemSeparator: TMenuItem
         Caption = '-'
       end
@@ -332,19 +335,22 @@ object ProjectForm: TProjectForm
   end
   object ProcessUpdateTimer: TTimer
     OnTimer = ProcessUpdateTimerTimer
-    left = 453
-    top = 100
+    Left = 169
+    Top = 27
   end
-  object SaveHierarchyDialog: TCastleSaveDialog
+  object SaveDesignDialog: TCastleSaveDialog
     Title = 'Save Hierarchy As'
-    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
     FilterIndex = 0
-    left = 332
-    top = 170
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    AdviceDataDirectory = True
+    Left = 169
+    Top = 192
   end
-  object OpenHierarchyDialog: TCastleOpenDialog
-    Filter = 'CGE Hierachy (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
-    left = 464
-    top = 184
+  object OpenDesignDialog: TCastleOpenDialog
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    AdviceDataDirectory = True
+    Left = 180
+    Top = 111
   end
 end

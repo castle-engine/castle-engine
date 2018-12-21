@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2017-2018 Michalis Kamburelis and Jan Adamec.
 
@@ -21,19 +22,20 @@
     FChecked: boolean;
     FEnabled: boolean;
     FPressed: boolean;
-    FWidth: Cardinal;
-    FHeight: Cardinal;
     FOnChange: TNotifyEvent;
 
     procedure SetChecked(const Value: boolean);
     procedure SetEnabled(const Value: boolean);
 
   public
+    const
+      DefaultSwitchControlWidth = 50;
+      DefaultSwitchControlHeight = 28;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -43,10 +45,12 @@
     { Switch state. }
     property Checked: boolean read FChecked write SetChecked default false;
     property Enabled: boolean read FEnabled write SetEnabled default true;
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
-    { Event sent when switch value changed. }
+    { Event sent when @link(Checked) value was changed by a user click.
+      Note that this is @italic(not) called when you change @link(Checked)
+      property programmatically by setting the property. }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property Width default DefaultSwitchControlWidth;
+    property Height default DefaultSwitchControlHeight;
   end;
 
 {$endif read_interface}
@@ -62,8 +66,8 @@ begin
   FEnabled := true;
   FPressed := false;
   FOnChange := nil;
-  FWidth := 50;
-  FHeight := 28;
+  Width := DefaultSwitchControlWidth;
+  Height := DefaultSwitchControlHeight;
 end;
 
 destructor TCastleSwitchControl.Destroy;
@@ -73,24 +77,24 @@ end;
 
 procedure TCastleSwitchControl.Render;
 var
-  BaseRect, BackRect, HandleRect: TRectangle;
+  BaseRect, BackRect, HandleRect: TFloatRectangle;
   HandleImage: TThemeImage;
 begin
   inherited;
 
-  BaseRect := ScreenRect;
+  BaseRect := RenderRect;
 
   // background
   BackRect := BaseRect;
-  BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height div 2;
-  BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) div 2);
+  BackRect.Height := Round(BaseRect.Height * 0.5);  //*0.4; //BaseRect.Height / 2;
+  BackRect.Bottom := BaseRect.Bottom + ((BaseRect.Height - BackRect.Height) / 2);
   Theme.Draw(BackRect, tiSwitchControl, UIScale);
   if Checked then
     Theme.Draw(BackRect, tiSwitchControlFill, UIScale);
 
   // handle
   HandleRect := BaseRect;
-  HandleRect.Width := BaseRect.Width div 3; //HandleRect.Height;
+  HandleRect.Width := BaseRect.Width / 3; //HandleRect.Height;
   if Checked then
     HandleRect.Left := BaseRect.Right - HandleRect.Width;
 
@@ -103,11 +107,6 @@ begin
   else
     HandleImage := tiButtonNormal;
   Theme.Draw(HandleRect, HandleImage, UIScale)
-end;
-
-function TCastleSwitchControl.FloatRect: TFloatRectangle;
-begin
-  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleSwitchControl.SetEnabled(const Value: boolean);
@@ -131,20 +130,52 @@ end;
 function TCastleSwitchControl.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  FPressed := true;
-  Result := ExclusiveEvents;
+  if Result then Exit;
+
+  if Event.IsMouseButton(mbLeft) or
+     Event.IsKey(keySpace) or
+     Event.IsKey(keyEnter) then
+  begin
+    FPressed := true;
+    Exit(ExclusiveEvents);
+  end;
 end;
 
 function TCastleSwitchControl.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  FPressed := false;
-  FChecked := not FChecked;
-  VisibleChange([chRender]);
+  if Result then Exit;
 
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-  Result := ExclusiveEvents;
+  if FPressed and (
+     Event.IsMouseButton(mbLeft) or
+     Event.IsKey(keySpace) or
+     Event.IsKey(keyEnter)) then
+  begin
+    FPressed := false;
+
+    { Because of mouse capture mechanism in TUIContainer,
+      we receive Release notifications about all clicks that started
+      within our rect, regardless where they finished.
+
+      Just like TCastleButton, the click only counts
+      if it happens over our rect. }
+    if CapturesEventsAtPosition(Event.Position) then
+    begin
+      FChecked := not FChecked; // FPressed, FChecked changed
+      VisibleChange([chRender]);
+
+      { Make sure to execute FOnChange at the end,
+        to have consistent state when calling the callback that can
+        do anything with this TCastleSwitchControl. }
+      if Assigned(FOnChange) then
+        FOnChange(Self);
+    end else
+    begin
+      VisibleChange([chRender]); // FPressed changed
+    end;
+
+    Exit(ExclusiveEvents);
+  end;
 end;
 
 {$endif read_implementation}

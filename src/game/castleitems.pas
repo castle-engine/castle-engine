@@ -1019,17 +1019,18 @@ begin
   for Result := 0 to Count - 1 do
   begin
     Items[Result].Stack(Item);
-    if Item = nil then Break;
+    if Item = nil then
+    begin
+      // item was stacked with something
+      Item := Items[Result];
+      Item.FOwner3D := Owner3D;
+      Exit;
+    end;
   end;
 
-  if Item <> nil then
-  begin
-    Add(Item);
-    Result := Count - 1;
-  end else
-    Item := Items[Result];
-
+  Add(Item);
   Item.FOwner3D := Owner3D;
+  Result := Count - 1;
 end;
 
 function TInventory.Drop(const ItemIndex: Integer): TInventoryItem;

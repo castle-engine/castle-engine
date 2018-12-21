@@ -444,6 +444,10 @@ end;
 procedure Open(Container: TUIContainer);
 begin
   RenderContext.PointSize := 10;
+  { TODO: This uses some direct GL rendering for now in immediate-mode.
+    Without EnableFixedFunction := true e.g. selected curve color
+    doesn't work, and scaling whole screen doesn't work correctly. }
+  GLFeatures.EnableFixedFunction := true;
 end;
 
 procedure Update(Container: TUIContainer);

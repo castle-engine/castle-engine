@@ -1982,6 +1982,18 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
 
   function HandleIDecls(IDecls: TX3DInterfaceDeclarationList): Pointer; forward;
 
+  function HandleIDecls(Nodes: TMFNode): Pointer;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+    for I := 0 to Nodes.Count - 1 do
+    begin
+      Result := HandleIDecls(Nodes[I].InterfaceDeclarations);
+      if Result <> nil then Exit;
+    end;
+  end;
+
   function HandleIDecls(Nodes: TX3DNodeList): Pointer;
   var
     I: Integer;
@@ -2003,7 +2015,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
     if Tex is TAbstractTextureNode then
     begin
       { Texture node may use more texture nodes through it's "effects" field. }
-      Result := HandleIDecls(TAbstractTextureNode(Tex).FdEffects.Items);
+      Result := HandleIDecls(TAbstractTextureNode(Tex).FdEffects);
       if Result <> nil then Exit;
 
       if Tex is TMultiTextureNode then
@@ -2011,9 +2023,9 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
         Result := Enumerate(Self, TMultiTextureNode(Tex));
         if Result <> nil then Exit;
 
-        for I := 0 to TMultiTextureNode(Tex).FdTexture.Items.Count - 1 do
+        for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
         begin
-          Result := HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture.Items.Items[I]);
+          Result := HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture[I]);
           if Result <> nil then Exit;
         end;
       end else
@@ -2044,7 +2056,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
           begin
             for J := 0 to TMFNode(UniformField).Count - 1 do
             begin
-              Result := HandleTextureNode(TMFNode(UniformField).Items[J]);
+              Result := HandleTextureNode(TMFNode(UniformField)[J]);
               if Result <> nil then Exit;
             end;
           end;
@@ -2108,8 +2120,8 @@ begin
     Result := HandleTextureNode(App.FdNormalMap.Value);
     if Result <> nil then Exit;
 
-    HandleIDecls(App.FdShaders.Items);
-    HandleIDecls(App.FdEffects.Items);
+    HandleIDecls(App.FdShaders);
+    HandleIDecls(App.FdEffects);
 
     { CommonSurfaceShader can be non-nil only when App is non-nil }
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
@@ -2124,7 +2136,7 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
-      Result := HandleIDecls(Lights.L[I].Node.FdEffects.Items);
+      Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
 

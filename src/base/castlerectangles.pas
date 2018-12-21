@@ -27,47 +27,14 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TCastleUserInterface.Align and TRectangle.Align
+    This is used by @link(TCastleUserInterface.Anchor),
+    @link(TRectangle.Align), @link(TFloatRectangle.Align) and other methods
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TCastleUserInterface.Align, this specifies
-    the align of control with respect to the container
-    (TCastleWindow or TCastleControl).
 
-    This is used to talk about position of the control and the container.
-
-    @orderedList(
-      @item(
-        When we talk about the position of the control
-        (for example ControlPosition for TCastleUserInterface.Align),
-        it determines which border of the control to align.)
-      @item(
-        When we talk about the position of the container
-        (for example ContainerPosition for TCastleUserInterface.Align),
-        this specifies the container border.)
-    )
-
-    In most cases you use equal both control and container borders.
-    For example, both ControlPosition and ContainerPosition are usually equal for
-    TCastleUserInterface.Align call. This allows to align left control edge to
-    left container edge, or right control edge to right container edge,
-    or to center control within the container --- which is the most common usage.
-
-    @unorderedList(
-      @item(If both are hpLeft, then X specifies position
-        of left control border relative to left container border.
-        X should be >= 0 if you want to see the control completely
-        within the container.)
-
-      @item(If both are hpMiddle, then X (most often just 0)
-        specifies the shift between container middle to
-        control middle. If X is zero, then control is just in the
-        middle of the container.)
-
-      @item(If both are hpRight, then X specifies position
-        of right control border relative to right container border.
-        X should be <= 0 if you want to see the control completely
-        within the container.)
-    )
+    Note that @link(TCastleUserInterface.Anchor) has various overloaded
+    versions. E.g. you can align the left side of the control to the left side
+    of the parent (most common situation), or you can align left side
+    of the control to the middle of the parent...
 
     @seealso TVerticalPosition
   }
@@ -139,8 +106,8 @@ type
       of the rectangle (by 1 pixel). That's because the rectangle starts at
       pixel @code((Left, Bottom)) and spans the @code((Width, Height)) pixels.
       @groupBegin }
-    property Right: Integer read GetRight {write SetRight} { };
-    property Top: Integer read GetTop {write SetTop} { };
+    property Right: Integer read GetRight;
+    property Top: Integer read GetTop;
     { @groupEnd }
 
     { Return rectangle with given width and height centered
@@ -227,9 +194,9 @@ type
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched.
 
-      These details matter, e.g. when you set @link(TCastleUserInterfaceRect.Width), but not
-      @link(TCastleUserInterfaceRect.Height),
-      and then you expect the @link(TCastleUserInterface.CalculatedWidth) to work.
+      These details matter, e.g. when you set @link(TCastleUserInterface.Width), but not
+      @link(TCastleUserInterface.Height),
+      and then you expect the @link(TCastleUserInterface.EffectiveWidth) to work.
     }
     function ScaleAround0(const Factor: Single): TRectangle;
 
@@ -323,6 +290,7 @@ type
 
     function Contains(const X, Y: Single): boolean; overload;
     function Contains(const Point: TVector2): boolean; overload;
+    function Contains(const R: TFloatRectangle): boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -337,8 +305,8 @@ type
       @code((Round(Left), Round(Bottom))) and
       spans the @code((Round(Width), Round(Height))) pixels.
       @groupBegin }
-    property Right: Single read GetRight {write SetRight} { };
-    property Top: Single read GetTop {write SetTop} { };
+    property Right: Single read GetRight;
+    property Top: Single read GetTop;
     { @groupEnd }
 
     function Middle: TVector2; deprecated 'use Center';
@@ -426,6 +394,9 @@ type
     function Collides(const R: TFloatRectangle): boolean;
 
     function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): boolean;
+
+    function ScaleToWidth(const NewWidth: Single): TFloatRectangle;
+    function ScaleToHeight(const NewHeight: Single): TFloatRectangle;
 
     { Scale rectangle position and size around it's own @link(Center) point.
 
@@ -1036,6 +1007,19 @@ begin
             (Point.Data[1] >= Bottom) and (Point.Data[1] <= Bottom + Height);
 end;
 
+function TFloatRectangle.Contains(const R: TFloatRectangle): boolean;
+begin
+  if R.IsEmpty then
+    Result := true
+  else
+    Result :=
+      (not IsEmpty) and
+      (R.Left >= Left) and
+      (R.Bottom >= Bottom) and
+      (R.Right <= Right) and
+      (R.Top <= Top);
+end;
+
 function TFloatRectangle.Center: TVector2;
 begin
   Result := Vector2(Left + Width / 2, Bottom + Height / 2);
@@ -1115,14 +1099,14 @@ end;
 function TFloatRectangle.GrowLeft(const W: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Left := Result.Left - Integer(W);
+  Result.Left := Result.Left - W;
   Result.Width := Result.Width + W;
 end;
 
 function TFloatRectangle.GrowBottom(const H: Single): TFloatRectangle;
 begin
   Result := Self;
-  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Bottom := Result.Bottom - H;
   Result.Height := Result.Height + H;
 end;
 
@@ -1344,6 +1328,24 @@ begin
     Sqr(DiscCenter.Data[0] - ClosestCornerX) +
     Sqr(DiscCenter.Data[1] - ClosestCornerY) <=
     Sqr(Radius);
+end;
+
+function TFloatRectangle.ScaleToWidth(const NewWidth: Single): TFloatRectangle;
+begin
+  if IsEmpty then Exit(Empty);
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := NewWidth;
+  Result.Height := Height * NewWidth / Width;
+end;
+
+function TFloatRectangle.ScaleToHeight(const NewHeight: Single): TFloatRectangle;
+begin
+  if IsEmpty then Exit(Empty);
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := Width * NewHeight / Height;
+  Result.Height := NewHeight;
 end;
 
 function TFloatRectangle.ScaleAroundCenter(const Factor: Single): TFloatRectangle;

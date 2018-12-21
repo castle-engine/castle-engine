@@ -407,7 +407,14 @@ type
     const Animation: TTimeSensorNode) of object;
 
   { Parameters to use when playing animation,
-    see @link(TCastleSceneCore.PlayAnimation). }
+    see @link(TCastleSceneCore.PlayAnimation).
+
+    Design note: This is a class, not e.g. an advanced record.
+    This way is has always sensible defaults.
+    You will usually create and quickly destroy it around
+    the @link(TCastleSceneCore.PlayAnimation) call.
+    Don't worry, time of creation/destruction of it really doesn't matter
+    in practice, thanks to fast FPC memory allocator. }
   TPlayAnimationParameters = class
     { Animation name.
       You have to set at least this field, otherwise calling
@@ -455,6 +462,14 @@ type
 
     constructor Create;
   end;
+
+  { Possible values for @link(TCastleScene.PrimitiveGeometry). }
+  TPrimitiveGeometry = (
+    pgNone,
+    pgRectangle2D,
+    pgSphere,
+    pgBox
+  );
 
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
@@ -563,6 +578,8 @@ type
       tree. }
     ShapeLODs: TObjectList;
 
+    FPrimitiveGeometry: TPrimitiveGeometry;
+
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
       TInternalTimeDependentHandler.SetTime. }
@@ -605,6 +622,8 @@ type
     { Always assigned to PlayingAnimationNode.EventIsActive. }
     procedure PlayingAnimationIsActive(
       Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
+
+    procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -945,22 +964,76 @@ type
 
     constructor Create(AOwner: TComponent); override;
 
-    { Load new 3D model (from VRML/X3D node tree).
+    { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
 
-      If AResetTime, we will also do ResetTimeAtLoad,
-      changing @link(Time) --- this is usually what you want when you
-      really load a new world. }
+      @param(ARootNode The model to load.
+        This will become a new value of our @link(RootNode) property.)
+
+      @param(AOwnsRootNode Should the scene take care of freeing
+        this root node when it is no longer used. If @false,
+        you are expected to free it yourself, but only after the scene
+        using it was freed.)
+
+      @param(AResetTime If @true then we will reset time at loading
+        (using @link(ResetTimeAtLoad)),
+        changing the @link(Time). This is usually what you want when you
+        load a new world.)
+
+      Note that you should never load the same @link(TX3DRootNode) instance
+      into multiple @link(TCastleScene) instances.
+
+      @longCode(#
+        // DON'T DO THIS!
+        Node := Load3D(URL);
+        Scene1 := TCastleScene.Create(Application);
+        Scene1.Load(Node, false);
+        Scene2 := TCastleScene.Create(Application);
+        Scene2.Load(Node, false);
+      #)
+
+      If you need to load the same model into multiple scenes,
+      it is best to use the @link(Clone) method:
+
+      @longCode(#
+        SceneTemplate := TCastleScene.Create(Application);
+        SceneTemplate.Load(URL);
+        Scene1 := SceneTemplate.Clone(Application);
+        Scene2 := SceneTemplate.Clone(Application);
+      #)
+
+      Using the @link(Clone) makes a copy of the underlying X3D graph,
+      so it is roughly like doing:
+
+      @longCode(#
+        Node := Load3D(URL);
+        Scene1 := TCastleScene.Create(Application);
+        Scene1.Load(Node.DeepCopy as TX3DRootNode, false);
+        Scene2 := TCastleScene.Create(Application);
+        Scene2.Load(Node.DeepCopy as TX3DRootNode, false);
+      #)
+
+      Note that sometimes you don't need to create multiple scenes
+      to show the same model many times.
+      You can simply insert the same TCastleScene instance multiple
+      times to SceneManager.Items.
+      See the manual:
+      https://castle-engine.io/manual_scene.php#section_many_instances
+    }
     procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       const AResetTime: boolean = true);
 
     { Load the 3D model from given URL.
 
-      Model is loaded by Load3D, so this supports all
-      3D model formats that Load3D handles
-      (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
+      We load a number of 3D model formats (X3D, VRML, Collada, Wavefront OBJ...)
+      and some 2D model formats (Spine JSON).
+      See https://castle-engine.io/creating_data_model_formats.php
+      for the complete list.
 
-      URL is downloaded using CastleDownload unit.
+      URL is downloaded using the CastleDownload unit,
+      so it supports files, http resources and more.
+      See https://castle-engine.io/manual_network.php
+      about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
       as the URL parameter.
@@ -2151,7 +2224,10 @@ type
       @code(Scene.Load('blah.x3d')) is that setting the URL will
       @italic(not) reload the scene if you set it to the same value.
       That is, @code(Scene.URL := Scene.URL;) will not reload
-      the scene (you have to use explicit @link(Load) for this.). }
+      the scene (you have to use explicit @link(Load) for this.).
+
+      Pass URL = '' to load an empty scene, this sets @link(RootNode) to @nil.
+    }
     property URL: string read FURL write SetURL;
 
     { At loading, process the scene to support shadow maps.
@@ -2244,6 +2320,12 @@ type
       ) }
     property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
       default 0;
+
+    { Easily turn the scene into a simple primitive, like sphere or box or plane.
+      Changing this to something else than pgNone
+      reloads the scene (calls @link(Load) with a new X3D graph). }
+    property PrimitiveGeometry: TPrimitiveGeometry
+      read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
   end;
 
   {$define read_interface}
@@ -2818,15 +2900,25 @@ procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 var
   TimeStart: TCastleProfilerTime;
+  NewRoot: TX3DRootNode;
 begin
-  TimeStart := Profiler.Start('Loading ' + AURL + ' (TCastleSceneCore)');
+  TimeStart := Profiler.Start('Loading "' + AURL + '" (TCastleSceneCore)');
 
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(Load3D(AURL, AllowStdIn), true, AResetTime);
+  if AURL <> '' then
+    NewRoot := Load3D(AURL, AllowStdIn)
+  else
+    NewRoot := nil;
+  Load(NewRoot, true, AResetTime);
 
   FURL := AURL;
+
+  { When loading from URL, reset FPrimitiveGeometry.
+    Otherwise deserialization would be undefined -- do we load contents
+    from URL or PrimitiveGeometry? }
+  FPrimitiveGeometry := pgNone;
 
   Profiler.Stop(TimeStart);
 end;
@@ -3094,7 +3186,7 @@ function TChangedAllTraverser.Traverse(
       as there are LODNode.FdChildren. Reason: LODTree.CalculateLevel
       uses this Count. }
 
-    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    for I := 0 to LODNode.FdChildren.Count - 1 do
       LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
     if ParentScene.ProcessEvents and
@@ -3352,7 +3444,13 @@ end;
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if not FStatic then
+  begin
+    if (Node.Scene <> nil) and
+       (Node.Scene <> Self) then
+      WritelnWarning('X3D node %s is already part of another TCastleScene instance. You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
+        [Node.NiceName]);
     Node.Scene := Self;
+  end;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -3670,7 +3768,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         Traverse would enter only active child), because changing Transform
         node may be in inactive graph parts. }
 
-      for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+      for I := 0 to SwitchNode.FdChildren.Count - 1 do
       begin
         NewShapes.Group := ShapeSwitch.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
@@ -3679,7 +3777,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         ChildInactive := I <> SwitchNode.FdWhichChoice.Value;
         if ChildInactive then Inc(Inactive);
 
-        SwitchNode.FdChildren.Items[I].TraverseInternal(
+        SwitchNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
@@ -3717,7 +3815,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
         (while normal Traverse would enter only active child),
         because changing Transform  node may be in inactive graph parts. }
 
-      for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+      for I := 0 to LODNode.FdChildren.Count - 1 do
       begin
         NewShapes.Group := ShapeLOD.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
@@ -3725,7 +3823,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
 
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
-        LODNode.FdChildren.Items[I].TraverseInternal(
+        LODNode.FdChildren[I].TraverseInternal(
           StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
@@ -3770,12 +3868,17 @@ function TTransformChangeHelper.TransformChangeTraverse(
           HandleLightsList(Current.State(true).Lights);
         if Current.State(false) <> Current.OriginalState then
           HandleLightsList(Current.State(false).Lights);
-        ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
       end;
     finally FreeAndNil(SI) end;
 
+    { Update also light state on GlobalLights list, in case other scenes
+      depend on this light. Testcase: planets-demo. }
+    HandleLightsList(ParentScene.GlobalLights);
+
     { force update of GeneratedShadowMap textures that used this light }
     ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
+
+    ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
   procedure HandleProximitySensor(Node: TProximitySensorNode);
@@ -7017,7 +7120,7 @@ begin
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
   NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
-  NewViewpointNode.Scene := self;
+  NewViewpointNode.Scene := Self;
 
   { Create NavigationInfo node }
   Walk := nil;
@@ -7055,7 +7158,7 @@ begin
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
   NewNavigationNode.X3DName := 'NavInfo' + IntToStr(Random(10000));
-  NewNavigationNode.Scene := self;
+  NewNavigationNode.Scene := Self;
 
   // Connect viewpoint with navigation info
   NewRoute := TX3DRoute.Create;
@@ -7418,6 +7521,39 @@ procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);
 begin
   inherited;
   RenderingCameraChanged(Params.RenderingCamera);
+end;
+
+procedure TCastleSceneCore.SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
+const
+  Classes: array [TPrimitiveGeometry] of TAbstractGeometryNodeClass =
+  ( nil,
+    TRectangle2DNode,
+    TSphereNode,
+    TBoxNode
+  );
+var
+  Shape: TShapeNode;
+  TransformNode: TTransformNode;
+  NewRootNode: TX3DRootNode;
+begin
+  if FPrimitiveGeometry <> AValue then
+  begin
+    FPrimitiveGeometry := AValue;
+    if Classes[FPrimitiveGeometry] <> nil then
+    begin
+      { Reset FURL if the scene contents are determined by PrimitiveGeometry,
+        otherwise deserialization would be undefined -- do we load contents
+        from URL or PrimitiveGeometry? }
+      FURL := '';
+
+      NewRootNode := TX3DRootNode.Create;
+      Classes[FPrimitiveGeometry].CreateWithTransform(Shape, TransformNode);
+      // default Material, to be lit
+      Shape.Material := TMaterialNode.Create;
+      NewRootNode.AddChildren(TransformNode);
+      Load(NewRootNode, true);
+    end;
+  end;
 end;
 
 end.

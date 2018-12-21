@@ -66,18 +66,61 @@ interface
 uses SysUtils, Classes,
   CastleUtils, CastleVectors, X3DNodes;
 
-{ Load 3D model. Guess model format based on URL extension.
-  VRML/X3D formats are loaded directly,
-  other model formats are converted under the hood to VRML/X3D.
+{ Load a game model. Guesses model format based on the URL extension.
+  We load a number of 3D model formats (X3D, VRML, Collada, Wavefront OBJ...)
+  and some 2D model formats (Spine JSON).
+  See https://castle-engine.io/creating_data_model_formats.php
+  for the complete list.
 
-  URL is downloaded using CastleDownload unit.
+  All the model formats are loaded as a graph of X3D nodes.
+
+  URL is downloaded using the CastleDownload unit,
+  so it supports files, http resources and more.
+  See https://castle-engine.io/manual_network.php
+  about supported URL schemes.
   If you all you care about is loading normal files, then just pass
   a normal filename (absolute or relative to the current directory)
   as the URL parameter.
 
+  To actually display, animate and do many other things with the loaded
+  model, you usually want to load it to TCastleScene, using
+  the @link(TCastleScene.Load) method.
+  Like this:
+
+@longCode(#
+var
+  RootNode: TX3DRootNode;
+  Scene: TCastleScene;
+begin
+  RootNode := Load3D('my_model.x3d');
+  Scene := TCastleScene.Create(Application);
+  Scene.Load(RootNode, true);
+  // The 2nd parameter of Load says that Scene owns RootNode
+end;
+#)
+
+  Actually, in most cases you don't need to use Load3D (or this unit, X3DLoad)
+  at all, and you can simply load from an URL:
+
+@longCode(#
+var
+  Scene: TCastleScene;
+begin
+  Scene := TCastleScene.Create(Application);
+  Scene.Load('my_model.x3d');
+  // you can access Scene.RootNode after loading, if needed
+end;
+#)
+
+  Note that usually you want to load models from the game data,
+  so you would actually use @code('castle-data:/my_model.x3d') URL instead
+  of @code('my_model.x3d').
+
   @param(AllowStdIn If AllowStdIn and URL = '-' then it will load
     a VRML/X3D file from StdInStream (using current working directory
-    as BaseUrl).) }
+    as BaseUrl).)
+
+    }
 function Load3D(const URL: string;
   AllowStdIn: boolean = false;
   NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;

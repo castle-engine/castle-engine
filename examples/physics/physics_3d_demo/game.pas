@@ -139,7 +139,7 @@ begin
   ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
   ButtonLevelComplex.OnClick := @TEventHandler(nil).LoadLevelComplex;
   ButtonLevelComplex.Anchor(hpLeft, 10);
-  ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.CalculatedHeight - 10);
+  ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.EffectiveHeight - 10);
   Window.Controls.InsertFront(ButtonLevelComplex);
 end;
 

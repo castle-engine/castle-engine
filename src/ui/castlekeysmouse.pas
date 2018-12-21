@@ -486,8 +486,19 @@ type
       or that user can click to set focus to the text area. }
     mcText,
     { Indicates something active is under cursor, usually for links. }
-    mcHand);
+    mcHand,
 
+    mcResizeVertical,
+    mcResizeHorizontal,
+    mcResizeTopLeft,
+    mcResizeTop,
+    mcResizeTopRight,
+    mcResizeLeft,
+    mcResizeRight,
+    mcResizeBottomLeft,
+    mcResizeBottom,
+    mcResizeBottomRight
+  );
 const
   MouseButtonStr: array [TMouseButton] of string = (
     'left', 'middle', 'right', 'extra1', 'extra2');
@@ -847,7 +858,7 @@ type
       @groupBegin }
     function Press(const Event: TInputPressRelease): boolean;
     function Release(const Event: TInputPressRelease): boolean;
-    function Motion(const Event: TInputMotion; Dpi: Integer): boolean;
+    function Motion(const Event: TInputMotion; const Dpi: Single): boolean;
     { @groupEnd }
 
     { Gesture type once it's recognized. Check it inside OnGestureChanged event. }
@@ -1459,7 +1470,8 @@ begin
   end;
 end;
 
-function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion; Dpi: Integer): boolean;
+function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
+  const Dpi: Single): boolean;
 var
   OldDist, NewDist: Single;
   Length0, Length1: Single;

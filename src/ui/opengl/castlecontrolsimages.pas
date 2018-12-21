@@ -25,16 +25,16 @@ var
   TooltipRounded: TRGBAlphaImage;
 
 var
-  ButtonPressed: TRGBAlphaImage;
+  ButtonPressed: TGrayscaleAlphaImage;
 
 var
-  ButtonDisabled: TRGBAlphaImage;
+  ButtonDisabled: TGrayscaleAlphaImage;
 
 var
-  ButtonFocused: TRGBAlphaImage;
+  ButtonFocused: TGrayscaleAlphaImage;
 
 var
-  ButtonNormal: TRGBAlphaImage;
+  ButtonNormal: TGrayscaleAlphaImage;
 
 var
   FrameWhite: TRGBAlphaImage;
@@ -82,13 +82,22 @@ var
   Crosshair2: TGrayscaleAlphaImage;
 
 var
-  ScrollbarSlider: TRGBAlphaImage;
+  ScrollbarSlider: TGrayscaleAlphaImage;
 
 var
   Checkmark: TGrayscaleAlphaImage;
 
 var
   Disclosure: TGrayscaleAlphaImage;
+
+var
+  SquareEmpty: TGrayscaleAlphaImage;
+
+var
+  SquarePressedBackground: TGrayscaleAlphaImage;
+
+var
+  SquareChecked: TGrayscaleAlphaImage;
 
 var
   PanelSeparator: TGrayscaleImage;
@@ -135,16 +144,16 @@ initialization
   TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight, TooltipRoundedDepth);
   Move(TooltipRoundedPixels, TooltipRounded.RawPixels^, SizeOf(TooltipRoundedPixels));
   TooltipRounded.URL := 'embedded-image:/TooltipRounded';
-  ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight, ButtonPressedDepth);
+  ButtonPressed := TGrayscaleAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight, ButtonPressedDepth);
   Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
   ButtonPressed.URL := 'embedded-image:/ButtonPressed';
-  ButtonDisabled := TRGBAlphaImage.Create(ButtonDisabledWidth, ButtonDisabledHeight, ButtonDisabledDepth);
+  ButtonDisabled := TGrayscaleAlphaImage.Create(ButtonDisabledWidth, ButtonDisabledHeight, ButtonDisabledDepth);
   Move(ButtonDisabledPixels, ButtonDisabled.RawPixels^, SizeOf(ButtonDisabledPixels));
   ButtonDisabled.URL := 'embedded-image:/ButtonDisabled';
-  ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight, ButtonFocusedDepth);
+  ButtonFocused := TGrayscaleAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight, ButtonFocusedDepth);
   Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
   ButtonFocused.URL := 'embedded-image:/ButtonFocused';
-  ButtonNormal := TRGBAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight, ButtonNormalDepth);
+  ButtonNormal := TGrayscaleAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight, ButtonNormalDepth);
   Move(ButtonNormalPixels, ButtonNormal.RawPixels^, SizeOf(ButtonNormalPixels));
   ButtonNormal.URL := 'embedded-image:/ButtonNormal';
   FrameWhite := TRGBAlphaImage.Create(FrameWhiteWidth, FrameWhiteHeight, FrameWhiteDepth);
@@ -192,7 +201,7 @@ initialization
   Crosshair2 := TGrayscaleAlphaImage.Create(Crosshair2Width, Crosshair2Height, Crosshair2Depth);
   Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
   Crosshair2.URL := 'embedded-image:/Crosshair2';
-  ScrollbarSlider := TRGBAlphaImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
+  ScrollbarSlider := TGrayscaleAlphaImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
   Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
   ScrollbarSlider.URL := 'embedded-image:/ScrollbarSlider';
   Checkmark := TGrayscaleAlphaImage.Create(CheckmarkWidth, CheckmarkHeight, CheckmarkDepth);
@@ -201,6 +210,15 @@ initialization
   Disclosure := TGrayscaleAlphaImage.Create(DisclosureWidth, DisclosureHeight, DisclosureDepth);
   Move(DisclosurePixels, Disclosure.RawPixels^, SizeOf(DisclosurePixels));
   Disclosure.URL := 'embedded-image:/Disclosure';
+  SquareEmpty := TGrayscaleAlphaImage.Create(SquareEmptyWidth, SquareEmptyHeight, SquareEmptyDepth);
+  Move(SquareEmptyPixels, SquareEmpty.RawPixels^, SizeOf(SquareEmptyPixels));
+  SquareEmpty.URL := 'embedded-image:/SquareEmpty';
+  SquarePressedBackground := TGrayscaleAlphaImage.Create(SquarePressedBackgroundWidth, SquarePressedBackgroundHeight, SquarePressedBackgroundDepth);
+  Move(SquarePressedBackgroundPixels, SquarePressedBackground.RawPixels^, SizeOf(SquarePressedBackgroundPixels));
+  SquarePressedBackground.URL := 'embedded-image:/SquarePressedBackground';
+  SquareChecked := TGrayscaleAlphaImage.Create(SquareCheckedWidth, SquareCheckedHeight, SquareCheckedDepth);
+  Move(SquareCheckedPixels, SquareChecked.RawPixels^, SizeOf(SquareCheckedPixels));
+  SquareChecked.URL := 'embedded-image:/SquareChecked';
   PanelSeparator := TGrayscaleImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   PanelSeparator.URL := 'embedded-image:/PanelSeparator';
@@ -247,6 +265,9 @@ finalization
   FreeAndNil(ScrollbarSlider);
   FreeAndNil(Checkmark);
   FreeAndNil(Disclosure);
+  FreeAndNil(SquareEmpty);
+  FreeAndNil(SquarePressedBackground);
+  FreeAndNil(SquareChecked);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

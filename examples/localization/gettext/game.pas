@@ -154,10 +154,12 @@ begin
   BottomGroup.Anchor(vpBottom, 10);
   BottomGroup.Anchor(hpLeft, 10);
   BottomGroup.Frame := true;
+  BottomGroup.Padding := 10;
+  BottomGroup.Spacing := 10;
   Window.Controls.InsertFront(BottomGroup);
 
   ButtonsToSwitchLanguage := TCastleHorizontalGroup.Create(Application);
-  ButtonsToSwitchLanguage.Padding := 0;
+  ButtonsToSwitchLanguage.Spacing := 10;
   BottomGroup.InsertFront(ButtonsToSwitchLanguage);
 
   ButtonSwitchEnglish := TCastleButton.Create(Application);
@@ -197,6 +199,7 @@ begin
 
   Lab := TCastleLabel.Create(Application);
   Lab.Caption := CaptionLabel;
+  Lab.Color := White;
   BottomGroup.InsertFront(Lab);
 
   Language := SystemLanguage;

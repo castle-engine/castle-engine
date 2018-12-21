@@ -448,6 +448,8 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
 
+  TAbstractGeometryNodeClass = class of TAbstractGeometryNode;
+
   { Base node type for all geometric property node types. }
   TAbstractGeometricPropertyNode = class(TAbstractNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}

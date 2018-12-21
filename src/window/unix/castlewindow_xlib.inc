@@ -104,6 +104,19 @@ const
 { TCastleWindowCustom --------------------------------------------------------  }
 
 procedure TCastleWindowCustom.OpenBackend;
+
+  procedure InitializeDpi;
+  var
+    DW, DWMM: Integer;
+  begin
+    DW := XDisplayWidth(Application.XDisplay, Application.XScreen);
+    DWMM := XDisplayWidthMM(Application.XDisplay, Application.XScreen);
+    FDpi := DW / (DWMM / 25.4);
+
+    WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
@@ -264,6 +277,7 @@ begin
   Application.OpenWindowsAdd(Self);
 
   MakeCurrent;
+  InitializeDpi;
 end;
 
 procedure TCastleWindowCustom.CloseBackend;
@@ -347,8 +361,22 @@ procedure TCastleWindowCustom.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromMy: array [mcStandard .. High(TMouseCursor)] of LongWord =
-  ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
+  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of LongWord =
+  ( XC_left_ptr,             // mcStandard
+    XC_watch,                // mcWait
+    XC_xterm,                // mcText
+    XC_hand2,                // mcHand
+    XC_sb_v_double_arrow,    // mcResizeVertical
+    XC_sb_h_double_arrow,    // mcResizeHorizontal
+    XC_top_left_corner,      // mcResizeTopLeft
+    XC_top_side,             // mcResizeTop
+    XC_top_right_corner,     // mcResizeTopRight
+    XC_left_side,            // mcResizeLeft
+    XC_right_side,           // mcResizeRight
+    XC_bottom_left_corner,   // mcResizeBottomLeft
+    XC_bottom_side,          // mcResizeBottom
+    XC_bottom_right_corner   // mcResizeBottomRight
+  );
 begin
   { TODO: for now mcCustom is treated like mcDefault }
   if InternalCursor in [mcDefault, mcCustom] then
@@ -360,9 +388,10 @@ begin
     begin
       { initialize XCursors[InternalCursor] }
       if InternalCursor in [mcNone, mcForceNone] then
-        Application.XCursors[InternalCursor] := CreateNoneCursor else
-        Application.XCursors[InternalCursor] := XCreateFontCursor(Application.XDisplay,
-          XCursorShapeFromMy[InternalCursor]);
+        Application.XCursors[InternalCursor] := CreateNoneCursor
+      else
+        Application.XCursors[InternalCursor] := XCreateFontCursor(
+          Application.XDisplay, XCursorShapeFromCastle[InternalCursor]);
     end;
 
     XDefineCursor(Application.XDisplay, WindowXID, Application.XCursors[InternalCursor]);

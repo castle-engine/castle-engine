@@ -212,6 +212,10 @@ type
       @link(TCastleControlCustom.MainControl) if you use CastleControl. }
     property OverrrideContainer: TUIContainer
       read FOverrrideContainer write FOverrrideContainer;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Wait for simple confirmation ("OK") from user.
@@ -347,11 +351,19 @@ begin
     FBackgroundColor := Theme.BackgroundColor;
   FPopOnAnswered := true;
   FDialog := TDialog.Create(Self);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TStateDialog.Destroy;
 begin
   FreeAndNil(FText);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -721,5 +733,9 @@ begin
   DoAnswered;
   Result := true;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tstatedialog_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 end.

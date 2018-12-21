@@ -24,7 +24,7 @@ unit CastleComponentSerialize;
 
 interface
 
-uses SysUtils, Classes, FpJson, FpJsonRtti,
+uses SysUtils, Classes, FpJson, FpJsonRtti, Generics.Collections, TypInfo,
   CastleUIControls, CastleTransform;
 
 type
@@ -35,52 +35,134 @@ type
   private
     FJsonReader: TJSONDeStreamer;
     FOwner: TComponent;
-    procedure DeStreamerAfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
+    procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
   public
     property JsonReader: TJSONDeStreamer read FJsonReader;
     { Will own all deserialized components. }
     property Owner: TComponent read FOwner;
   end;
 
+{ Save / load TCastleTransform (or descendant) to a .castle-transform file. }
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
 
+{ Save / load TCastleUserInterface (or descendant) to a .castle-user-interface file. }
 procedure UserInterfaceSave(const C: TCastleUserInterface; const Url: String);
 function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleUserInterface;
 
+{ Save / load TComponent (or descendant)
+  to a .castle-user-interface or .castle-transform file.
+
+  Usually it is more comfortable to use stronger typed
+  @link(UserInterfaceSave), @link(UserInterfaceLoad),
+  @link(TransformSave), @link(TransformLoad). }
 procedure ComponentSave(const C: TComponent; const Url: String);
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
+{ Save / load TComponent (or descendant) to a string.
+  The string contents have the same format
+  as a .castle-user-interface or .castle-transform file. }
+function ComponentToString(const C: TComponent): String;
+function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+
+{ Register a component that can be serialized and edited using CGE editor.
+  @param(Caption Nice caption to show user in the editor.) }
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const Caption: String);
+
+type
+  TRegisteredComponent = class
+    ComponentClass: TComponentClass;
+    Caption: String;
+  end;
+  TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
+
+{ Read-only list of currently registered
+  (using @link(RegisterSerializableComponent)) components. }
+function RegisteredComponents: TRegisteredComponents;
+
+type
+  EComponentNotFound = class(Exception);
+
+  TComponentHelper = class helper for TComponent
+    { Find a child component that is owned by this component.
+      This is just like standard TComponent.FindComponent
+      (see https://www.freepascal.org/docs-html/rtl/classes/tcomponent.findcomponent.html )
+      but it makes an exception if component could not be found.
+      @raises EComponentNotFound If child component with given name could not be found.
+    }
+    function FindRequiredComponent(const AName: String): TComponent;
+  end;
+
+  { Load the serialized component once, instantiate it many times. }
+  TSerializedComponent = class
+  strict private
+    JsonObject: TJSONObject;
+  public
+    constructor Create(const Url: String);
+    constructor CreateFromString(const Contents: String);
+    destructor Destroy; override;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.TransformLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function TransformLoad(const Owner: TComponent): TCastleTransform;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.UserInterfaceLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+
+    { Instantiate component.
+      Using this is equivalent to using global
+      @link(CastleComponentSerialize.ComponentLoad),
+      but it is much faster if you want to instantiate the same file many times. }
+    function ComponentLoad(const Owner: TComponent): TComponent;
+  end;
+
 implementation
 
-uses JsonParser, TypInfo,
-  CastleFilesUtils,
-  // TODO: these units are only for temporary FindComponentClass implementation
-  CastleControls, CastleScene, Castle2DSceneManager, CastleSceneManager;
+uses JsonParser, RtlConsts,
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils;
+
+{ component registration ----------------------------------------------------- }
+
+var
+  FRegisteredComponents: TRegisteredComponents;
+
+function RegisteredComponents: TRegisteredComponents;
+begin
+  if FRegisteredComponents = nil then
+    FRegisteredComponents := TRegisteredComponents.Create(true);
+  Result := FRegisteredComponents;
+end;
+
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const Caption: String);
+var
+  R: TRegisteredComponent;
+begin
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := ComponentClass;
+  R.Caption := Caption;
+  RegisteredComponents.Add(R);
+end;
 
 function FindComponentClass(const AClassName: string): TComponentClass;
-const
-  // TODO: should we just register this all, and it should work then automatically?
-  Classes: array [0..8] of TComponentClass = (
-    TCastleUserInterfaceRect,
-    TCastleButton,
-    TCastleLabel,
-    TCastleRectangleControl,
-    TCastleSceneManager,
-    TCastle2DSceneManager,
-    TCastleTransform,
-    TCastleScene,
-    TCastle2DScene
-  );
 var
-  C: TComponentClass;
+  R: TRegisteredComponent;
 begin
-  // TODO: browse also registered classes
-  for C in Classes do
-    if C.ClassName = AClassName then
-      Exit(C);
+  for R in RegisteredComponents do
+    if R.ComponentClass.ClassName = AClassName then
+      Exit(R.ComponentClass);
+  WritelnWarning('Cannot find component class "' + AClassName + '", (de)serialization of it will fail');
   Result := nil;
 end;
+
+{ loading from JSON ---------------------------------------------------------- }
 
 { Read and create suitable component class from JSON. }
 function CreateComponentFromJson(const JsonObject: TJSONObject;
@@ -89,9 +171,16 @@ var
   ResultClassName: String;
   ResultClass: TComponentClass;
 begin
-  ResultClassName := JsonObject.Strings['_ClassName'];
-  // do not confuse TJSONDeStreamer with extra ClassName property
-  JsonObject.Delete('_ClassName');
+  if JsonObject.Find('$ClassName') <> nil then
+    ResultClassName := JsonObject.Strings['$ClassName']
+  else
+    ResultClassName := JsonObject.Strings['_ClassName']; // handle older format
+
+  { Initially we did here
+      JsonObject.Delete('_ClassName');
+    to not confuse TJSONDeStreamer with extra _ClassName property.
+    But later: it is better to leave JSON structure unmodified
+    (allows to read it multiple times, if needed). }
 
   ResultClass := FindComponentClass(ResultClassName);
   if ResultClass = nil then
@@ -100,40 +189,151 @@ begin
   Result := ResultClass.Create(Owner);
 end;
 
-procedure TCastleComponentReader.DeStreamerAfterReadObject(
+procedure TCastleComponentReader.AfterReadObject(
   Sender: TObject; AObject: TObject; JSON: TJSONObject);
-var
-  JsonChildren: TJSONArray;
-  JsonChild: TJSONObject;
-  I: Integer;
-  Child: TComponent;
-begin
-  if AObject is TComponent then
+
+  { Because of our TCastleComponentReader.RestoreProperty changing
+    Name to be unique, we may have desynchronized Name with InternalText.
+    Synchronize it again. }
+  procedure SynchronizeNameWithInternalText(const C: TCastleComponent);
   begin
-    JsonChildren := Json.Arrays['_Children'];
+    if (C.InternalOriginalName <> '') and
+       (C.InternalOriginalName = C.InternalText) then
+      C.InternalText := C.Name;
+  end;
+
+  { Call C.InternalAddChild for all children.
+    This reverses saving children returned by C.GetChildren. }
+  procedure ReadChildren(const C: TCastleComponent);
+  var
+    JsonChildren: TJSONArray;
+    JsonChild: TJSONObject;
+    I: Integer;
+    Child: TComponent;
+  begin
+    if Json.Find('$Children') <> nil then
+      JsonChildren := Json.Arrays['$Children']
+    else
+      JsonChildren := Json.Arrays['_Children']; // handle older format
+
     if JsonChildren <> nil then
     begin
       for I := 0 to JsonChildren.Count - 1 do
       begin
         JsonChild := JsonChildren.Objects[I];
         if JsonChild = nil then
-          raise EInvalidComponentFile.Create('_Children must be an array of JSON objects');
+          raise EInvalidComponentFile.Create('$Children must be an array of JSON objects');
         Child := CreateComponentFromJson(JsonChild, Owner);
         FJsonReader.JSONToObject(JsonChild, Child);
-        if AObject is TCastleUserInterface then
-          // matches TCastleUserInterface.GetChildren implementation
-          TCastleUserInterface(AObject).InsertFront(Child as TCastleUserInterface)
-        else
-        if AObject is TCastleTransform then
-          // matches TCastleTransform.GetChildren implementation
-          TCastleTransform(AObject).Add(Child as TCastleTransform)
-        else
-          raise EInvalidComponentFile.CreateFmt('_Children contains unexpected class, it cannot be added to parent: %s',
-            [Child.ClassName]);
+        C.InternalAddChild(Child);
       end;
     end;
+
+    { Initially we did here
+        Json.Delete('_Children');
+      to not confuse TJSONDeStreamer with extra property.
+      But later: it is better to leave JSON structure unmodified
+      (allows to read it multiple times, if needed). }
+  end;
+
+var
+  C: TCastleComponent;
+begin
+  if AObject is TCastleComponent then
+  begin
+    C := TCastleComponent(AObject);
+    SynchronizeNameWithInternalText(C);
+    ReadChildren(C);
   end;
 end;
+
+procedure TCastleComponentReader.RestoreProperty(Sender: TObject; AObject: TObject;
+  Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
+
+  function RenameUniquely(const Owner: TComponent; const NewName: String): String;
+  var
+    NameWithoutNumber: String;
+    Number: Int64;
+    P: Integer;
+  begin
+    // calculate P (position of last digit)
+    P := Length(NewName) + 1;
+    while (P > 1) and (NewName[P - 1] in ['0'..'9']) do
+      Dec(P);
+
+    // calculate NameWithoutNumber, Number
+    NameWithoutNumber := Copy(NewName, 1, P - 1);
+    try
+      if P <= Length(NewName) then
+        Number := StrToInt(SEnding(NewName, P))
+      else
+        Number := 0;
+    except
+      on EConvertError do
+      begin
+        // StrToInt can fail e.g. if you supply 'Blah99999999999999999999999999'.
+        NameWithoutNumber := NewName;
+        Number := 0;
+      end;
+    end;
+
+    repeat
+      Inc(Number);
+      Result := NameWithoutNumber + IntToStr(Number);
+    until Owner.FindComponent(Result) = nil;
+  end;
+
+var
+  TI: PTypeInfo;
+  NewName: TJSONStringType;
+begin
+  TI := Info^.PropType;
+  if (TI^.Kind in [tkSString, tkLString, tkAString]) and
+     (Info^.Name = 'Name') then
+  begin
+    { We handle setting Name ourselves, this way we can change the Name
+      to avoid conflicts. This is the only way to make Copy+Paste in CGE editor,
+      it is also a useful feature in general (makes it easier to instantiate
+      designs, when you don't have to worry that owner may have this name
+      already reserved). }
+    NewName := AValue.AsString;
+    if Owner.FindComponent(NewName) <> nil then
+    begin
+      if AObject is TCastleComponent then
+        TCastleComponent(AObject).InternalOriginalName := NewName;
+      NewName := RenameUniquely(Owner, NewName);
+    end;
+    SetStrProp(AObject, Info, NewName);
+    Handled := true;
+  end;
+end;
+
+{ TSerializedComponent ------------------------------------------------------- }
+
+constructor TSerializedComponent.Create(const Url: String);
+begin
+  CreateFromString(FileToString(Url));
+end;
+
+constructor TSerializedComponent.CreateFromString(const Contents: String);
+var
+  JsonData: TJSONData;
+begin
+  inherited Create;
+
+  JsonData := GetJson(Contents, true);
+  if not (JsonData is TJSONObject) then
+    raise EInvalidComponentFile.Create('Component JSON file should contain an object');
+  JsonObject := JsonData as TJSONObject;
+end;
+
+destructor TSerializedComponent.Destroy;
+begin
+  FreeAndNil(JsonObject);
+  inherited;
+end;
+
+function TSerializedComponent.ComponentLoad(const Owner: TComponent): TComponent;
 
 { Load any TComponent.
 
@@ -142,38 +342,64 @@ end;
   It expects that they implement InternalAddChild (an analogue to GetChildren
   method), otherwise deserializing custom children (defined by GetChildren)
   is not possible. }
-function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+
 var
   Reader: TCastleComponentReader;
-  JsonData: TJSONData;
-  JsonObject: TJSONObject;
 begin
   Reader := TCastleComponentReader.Create;
   try
     Reader.FJsonReader := TJSONDeStreamer.Create(nil);
-    Reader.FJsonReader.AfterReadObject := @Reader.DeStreamerAfterReadObject;
+    Reader.FJsonReader.AfterReadObject := @Reader.AfterReadObject;
+    Reader.FJsonReader.OnRestoreProperty := @Reader.RestoreProperty;
     Reader.FOwner := Owner;
 
-    JsonData := GetJson(FileToString(Url), true);
-    try
-      if not (JsonData is TJSONObject) then
-        raise EInvalidComponentFile.Create('Component JSON file should contain an object');
-      JsonObject := JsonData as TJSONObject;
+    { create Result with appropriate class }
+    Result := CreateComponentFromJson(JsonObject, Owner);
 
-      { create Result with appropriate class }
-      Result := CreateComponentFromJson(JsonObject, Owner);
-
-      { read Result contents from JSON }
-      Reader.FJsonReader.JSONToObject(JsonObject, Result);
-    finally FreeAndNil(JsonData) end;
+    { read Result contents from JSON }
+    Reader.FJsonReader.JSONToObject(JsonObject, Result);
   finally
     FreeAndNil(Reader.FJsonReader);
     FreeAndNil(Reader);
   end;
 end;
 
+function TSerializedComponent.TransformLoad(const Owner: TComponent): TCastleTransform;
+begin
+  Result := ComponentLoad(Owner) as TCastleTransform;
+end;
+
+function TSerializedComponent.UserInterfaceLoad(const Owner: TComponent): TCastleUserInterface;
+begin
+  Result := ComponentLoad(Owner) as TCastleUserInterface;
+end;
+
+function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
+var
+  SerializedComponent: TSerializedComponent;
+begin
+  SerializedComponent := TSerializedComponent.CreateFromString(Contents);
+  try
+    Result := SerializedComponent.ComponentLoad(Owner);
+  finally FreeAndNil(SerializedComponent) end;
+end;
+
+function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+begin
+  Result := StringToComponent(FileToString(Url), Owner);
+end;
+
+{ saving to JSON ------------------------------------------------------------- }
+
 type
   TCastleComponentWriter = class
+  strict private
+    { Does the property have default value.
+      Written looking closely at what standard FPC writer does,
+      3.0.4/fpcsrc/rtl/objpas/classes/writer.inc ,
+      and simplified a lot for our purposes. }
+    class function HasDefaultValue(const Instance: TPersistent; const PropInfo: PPropInfo): Boolean;
+  public
     class procedure AfterStreamObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     class procedure StreamProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; var Res: TJSONData);
   end;
@@ -182,7 +408,7 @@ class procedure TCastleComponentWriter.AfterStreamObject(
   Sender: TObject; AObject: TObject; JSON: TJSONObject);
 begin
   { set _ClassName string, our reader depends on it }
-  Json.Strings['_ClassName'] := AObject.ClassName;
+  Json.Strings['$ClassName'] := AObject.ClassName;
 end;
 
 class procedure TCastleComponentWriter.StreamProperty(Sender: TObject;
@@ -194,14 +420,106 @@ begin
 
   // do not stream null values, as reader makes errors on them
   if Res is TJSONNull then
+  begin
     FreeAndNil(Res);
+    Exit;
+  end;
 
   // do not stream properties with stored=false or default values
   if not IsStoredProp(AObject as TPersistent, Info) then
+  begin
+    //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because stored function answers false');
     FreeAndNil(Res);
+    Exit;
+  end;
+
+  // do not store properties with default values
+  if HasDefaultValue(AObject as TPersistent, Info) then
+  begin
+    //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because it has default value');
+    FreeAndNil(Res);
+    Exit;
+  end;
 end;
 
-procedure ComponentSave(const C: TComponent; const Url: String);
+class function TCastleComponentWriter.HasDefaultValue(
+  const Instance: TPersistent; const PropInfo: PPropInfo): Boolean;
+var
+  PropType: PTypeInfo;
+  Value, DefValue: LongInt;
+{$ifndef FPUNONE}
+  FloatValue, DefFloatValue: Extended;
+{$endif}
+  MethodValue, DefMethodValue: TMethod;
+  VarValue, DefVarValue : tvardata;
+  BoolValue, DefBoolValue: boolean;
+begin
+  Result := false; // for unknown types, assume false
+
+  PropType := PropInfo^.PropType;
+  case PropType^.Kind of
+    tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
+      begin
+        Value := GetOrdProp(Instance, PropInfo);
+        DefValue := PropInfo^.Default;
+        Result := (Value = DefValue) and (DefValue <> longint($80000000));
+      end;
+{$ifndef FPUNONE}
+    tkFloat:
+      begin
+        FloatValue := GetFloatProp(Instance, PropInfo);
+        DefValue := PropInfo^.Default;
+        DefFloatValue := PSingle(@PropInfo^.Default)^;
+        Result := (FloatValue = DefFloatValue) and (DefValue <> longint($80000000));
+      end;
+{$endif}
+    tkMethod:
+      begin
+        MethodValue := GetMethodProp(Instance, PropInfo);
+        DefMethodValue.Data := nil;
+        DefMethodValue.Code := nil;
+        Result := CompareMethods(MethodValue, DefMethodValue);
+      end;
+    tkSString, tkLString, tkAString:
+      begin
+        Result := GetStrProp(Instance, PropInfo) = '';
+      end;
+    tkWString:
+      begin
+        Result := GetWideStrProp(Instance, PropInfo) = '';
+      end;
+    tkUString:
+      begin
+        Result := GetUnicodeStrProp(Instance, PropInfo) = '';
+      end;
+    tkVariant:
+      begin
+        { Ensure that a Variant manager is installed }
+        if not assigned(VarClearProc) then
+          raise EWriteError.Create(SErrNoVariantSupport);
+        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
+        FillChar(DefVarValue,sizeof(DefVarValue),0);
+        Result := CompareByte(VarValue,DefVarValue,sizeof(VarValue)) = 0;
+      end;
+    tkClass:
+      begin
+        Result := GetObjectProp(Instance, PropInfo) = nil;
+      end;
+    tkInt64, tkQWord:
+      begin
+        Result := GetInt64Prop(Instance, PropInfo) = 0;
+      end;
+    tkBool:
+      begin
+        BoolValue := GetOrdProp(Instance, PropInfo)<>0;
+        DefBoolValue := PropInfo^.Default<>0;
+        DefValue := PropInfo^.Default;
+        Result := (BoolValue = DefBoolValue) and (DefValue <> longint($80000000));
+      end;
+  end;
+end;
+
+function ComponentToString(const C: TComponent): String;
 var
   JsonWriter: TJSONStreamer;
   Json: TJSONObject;
@@ -211,13 +529,20 @@ begin
     JsonWriter.Options := [jsoStreamChildren];
     JsonWriter.AfterStreamObject := @TCastleComponentWriter(nil).AfterStreamObject;
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
-    JsonWriter.ChildProperty := '_Children';
+    JsonWriter.ChildProperty := '$Children';
     Json := JsonWriter.ObjectToJSON(C);
     try
-      StringToFile(Url, Json.FormatJSON);
+      Result := Json.FormatJSON;
     finally FreeAndNil(Json) end;
   finally FreeAndNil(JsonWriter) end;
 end;
+
+procedure ComponentSave(const C: TComponent; const Url: String);
+begin
+  StringToFile(Url, ComponentToString(C));
+end;
+
+{ simple utilities ----------------------------------------------------------- }
 
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 begin
@@ -239,4 +564,15 @@ begin
   Result := ComponentLoad(Url, Owner) as TCastleUserInterface;
 end;
 
+{ TComponentHelper ----------------------------------------------------------- }
+
+function TComponentHelper.FindRequiredComponent(const AName: String): TComponent;
+begin
+  Result := FindComponent(AName);
+  if Result = nil then
+    raise EComponentNotFound.CreateFmt('Cannot find component named "%s"', [AName]);
+end;
+
+finalization
+  FreeAndNil(FRegisteredComponents);
 end.

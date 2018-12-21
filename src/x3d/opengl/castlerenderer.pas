@@ -2283,7 +2283,7 @@ procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
   end;
 
   { Prepare all textures within X3D "interface declarations" of the given Nodes. }
-  procedure PrepareIDeclsList(Nodes: TX3DNodeList; State: TX3DGraphTraverseState);
+  procedure PrepareIDeclsList(Nodes: TMFNode; State: TX3DGraphTraverseState);
   var
     I: Integer;
   begin
@@ -2304,7 +2304,7 @@ begin
     if Node.FdEnabled.Value then
     begin
       { make sure that textures inside shaders are prepared }
-      PrepareIDeclsList(Node.FdShaders.Items, Node.StateForShaderPrepare);
+      PrepareIDeclsList(Node.FdShaders, Node.StateForShaderPrepare);
 
       Shader := TShader.Create;
       try
@@ -2652,6 +2652,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
   function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
   var
     Tex, SubTexture: TX3DNode;
+    I: Integer;
   begin
     Result := false;
     if (Shape.Node <> nil) and
@@ -2664,9 +2665,12 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
 
       if Tex is TMultiTextureNode then
       begin
-        for SubTexture in TMultiTextureNode(Tex).FdTexture.Items do
+        for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
+        begin
+          SubTexture := TMultiTextureNode(Tex).FdTexture[I];
           if SubTexture is TGeneratedShadowMapNode then
             Exit(true);
+        end;
       end;
     end;
   end;

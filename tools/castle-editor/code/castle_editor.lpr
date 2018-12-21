@@ -8,7 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
-  EditorUtils, FormProject
+  EditorUtils, FormProject, FrameDesign, FormAbout
   { you can add units after this };
 
 {$R *.res}
@@ -18,11 +18,7 @@ begin
   Application.Initialize;
   Application.CreateForm(TChooseProjectForm, ChooseProjectForm);
   Application.CreateForm(TNewProjectForm, NewProjectForm);
-  { On Windows, Position = poDefault is all over the place,
-    never where one expects to see a new application. }
-  {$ifdef MSWINDOWS}
-  ChooseProjectForm.Position := poScreenCenter;
-  {$endif}
+  Application.CreateForm(TAboutForm, AboutForm);
   Application.Run;
 end.
 

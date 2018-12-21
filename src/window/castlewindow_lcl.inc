@@ -528,6 +528,8 @@ begin
   Application.OpenWindowsAdd(Self);
 
   GetInitialCursorPos;
+
+  FDpi := Screen.PixelsPerInch;
 end;
 
 const
@@ -908,7 +910,7 @@ begin
   MaybeDoTimer;
 
   { We need Done := false, otherwise the widgetset will hang waiting
-    for next message. See ../components/castlecontrol.pas comments.
+    for next message. See ../lcl/castlecontrol.pas comments.
 
     Done := false also prevents other application idle handlers,
     but fortunately in this case we're the only thing interfacing with LCL,

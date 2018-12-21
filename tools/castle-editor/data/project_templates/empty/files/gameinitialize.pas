@@ -19,7 +19,6 @@ uses SysUtils,
 
 var
   Window: TCastleWindowCustom;
-  Background: TCastleSimpleBackground;
   LabelFps: TCastleLabel;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -35,27 +34,22 @@ end;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
+var
+  Ui: TCastleUserInterface;
 begin
   { Assign Window callbacks }
   Window.OnUpdate := @WindowUpdate;
 
-  { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
-  Window.Container.UIReferenceWidth := 1600;
-  Window.Container.UIReferenceHeight := 900;
-  Window.Container.UIScaling := usEncloseReferenceSize;
+  { Adjust container settings,
+    e.g. for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  Window.Controls.InsertFront(UserInterfaceLoad(
-    'castle-data:/main.castle-user-interface', Application));
+  { Load designed user interface }
+  Ui := UserInterfaceLoad('castle-data:/main.castle-user-interface', Window);
+  Window.Controls.InsertFront(Ui);
 
-  // TODO: LabelFps should be in main.castle-user-interface too, found by Name
-
-  { Show a label with frames per second information }
-  LabelFps := TCastleLabel.Create(Application);
-  LabelFps.Anchor(vpTop, -10);
-  LabelFps.Anchor(hpRight, -10);
-  LabelFps.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
-  LabelFps.FontSize := 20;
-  Window.Controls.InsertFront(LabelFps);
+  { Find a label to show frames per second information }
+  LabelFps := Window.FindRequiredComponent('LabelFps') as TCastleLabel;
 end;
 
 initialization

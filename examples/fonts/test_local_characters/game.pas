@@ -152,10 +152,11 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
+  Background: TCastleRectangleControl;
   Scene: TCastleScene;
   TestLabel: TCastleLabel;
   Config: TCastleConfig;
-  Y: Integer;
+  Y: Single;
   ButtonExternalFont, ButtonExternalFontChinese: TCastleButton;
   ButtonEmbeddedFont, ButtonEmbeddedFontChinese: TCastleButton;
   Doc: TXMLDocument;
@@ -166,7 +167,10 @@ begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
 
-  Window.Controls.InsertBack(TCastleSimpleBackground.Create(Application));
+  Background := TCastleRectangleControl.Create(Application);
+  Background.Color := Black;
+  Background.FullSize := true;
+  Window.Controls.InsertBack(Background);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(ApplicationData('scene.x3dv'));
@@ -195,7 +199,7 @@ begin
   ButtonExternalFont.Left := 10;
   ButtonExternalFont.Bottom := Y;
   Window.Controls.InsertFront(ButtonExternalFont);
-  Y += ButtonExternalFont.CalculatedHeight + 10;
+  Y := Y + (ButtonExternalFont.EffectiveHeight + 10);
 
   ButtonExternalFontChinese := TCastleButton.Create(Application);
   ButtonExternalFontChinese.Caption := 'Switch to external font (only Chinese chars)';
@@ -203,7 +207,7 @@ begin
   ButtonExternalFontChinese.Left := 10;
   ButtonExternalFontChinese.Bottom := Y;
   Window.Controls.InsertFront(ButtonExternalFontChinese);
-  Y += ButtonExternalFontChinese.CalculatedHeight + 10;
+  Y := Y + (ButtonExternalFontChinese.EffectiveHeight + 10);
 
   ButtonEmbeddedFont := TCastleButton.Create(Application);
   ButtonEmbeddedFont.Caption := 'Switch to embedded font (without Chinese chars)';
@@ -211,7 +215,7 @@ begin
   ButtonEmbeddedFont.Left := 10;
   ButtonEmbeddedFont.Bottom := Y;
   Window.Controls.InsertFront(ButtonEmbeddedFont);
-  Y += ButtonEmbeddedFont.CalculatedHeight + 10;
+  Y := Y + (ButtonEmbeddedFont.EffectiveHeight + 10);
 
   ButtonEmbeddedFontChinese := TCastleButton.Create(Application);
   ButtonEmbeddedFontChinese.Caption := 'Switch to embedded font (only Chinese chars)';
@@ -219,7 +223,7 @@ begin
   ButtonEmbeddedFontChinese.Left := 10;
   ButtonEmbeddedFontChinese.Bottom := Y;
   Window.Controls.InsertFront(ButtonEmbeddedFontChinese);
-  Y += ButtonEmbeddedFontChinese.CalculatedHeight + 10;
+  Y := Y + (ButtonEmbeddedFontChinese.EffectiveHeight + 10);
 
   TestLabel := TCastleLabel.Create(Application);
   TestLabel.Caption := 'String hardcoded in Pascal sources:' + NL +
@@ -229,8 +233,9 @@ begin
     'Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!';
   TestLabel.Bottom := Y;
   TestLabel.Left := 100;
+  TestLabel.Color := White;
   Window.Controls.InsertFront(TestLabel);
-  Y += TestLabel.CalculatedHeight + 10;
+  Y := Y + (TestLabel.EffectiveHeight + 10);
 
   Config := TCastleConfig.Create(application);
   try
@@ -242,7 +247,7 @@ begin
     TestLabel.Left := 100;
     TestLabel.Color := Green;
     Window.Controls.InsertFront(TestLabel);
-    Y += TestLabel.CalculatedHeight + 10;
+    Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Config) end;
 
   Doc := URLReadXML(ApplicationData('example_strings.xml'));
@@ -257,7 +262,7 @@ begin
     TestLabel.Left := 100;
     TestLabel.Color := Yellow;
     Window.Controls.InsertFront(TestLabel);
-    Y += TestLabel.CalculatedHeight + 10;
+    Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Doc) end;
 
   TextReader := TTextReader.Create(ApplicationData('example_text.txt'));
@@ -272,7 +277,7 @@ begin
     TestLabel.Left := 100;
     TestLabel.Color := LightBlue;
     Window.Controls.InsertFront(TestLabel);
-    Y += TestLabel.CalculatedHeight + 10;
+    Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(TextReader) end;
 
   StringList := TStringList.Create;
@@ -291,7 +296,7 @@ begin
     TestLabel.Left := 100;
     TestLabel.Color := Olive;
     Window.Controls.InsertFront(TestLabel);
-    Y += TestLabel.CalculatedHeight + 10;
+    Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(StringList) end;
 end;
 

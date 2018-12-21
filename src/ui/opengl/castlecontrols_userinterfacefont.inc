@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -23,7 +24,7 @@
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
-    FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
+    FLastSeenUIFont, FLastSeenDefaultFont: TCastleFont; //< remembered only to call FontChanged
     FFontSize, FFontScale: Single;
     FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
@@ -49,33 +50,46 @@
     procedure Render; override;
 
     { Font used for rendering and measuring this control.
-      Depending on various properties of this class,
-      this method returns @link(UIFont) or @link(CustomFont)
-      or a TCustomizedFont instance that wraps (and scales) one of them. }
+
+      Depending on which one is set, this method returns
+      @link(CustomFont) or @link(TUIContainer.DefaultFont) or global @link(UIFont).
+      It may also return a TCustomizedFont instance that wraps (and scales)
+      one of them. }
     function Font: TCastleFont;
 
     { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed @link(UIFont) (changing
-      @link(CustomFont) automatically calls this automatically)
+      when you just changed @link(UIFont) or @link(TUIContainer.DefaultFont)
       and you want control size to be updated immediately
-      (for example, you need @link(CalculatedHeight)
+      (for example, you need @link(EffectiveHeight)
       to be immediately valid). Without calling this,
-      it could be updated only at next Render call. }
+      it could be updated only at next Render call.
+
+      Changing @link(CustomFont) automatically calls this. }
     procedure CheckFontChanged;
 
     { Force considering font changed (font instance, or glyphs, or sizes changed).
 
       @italic(Usually, you don't need to call this explicitly from the outside.)
-      Changing font, like @link(UIFont) or @link(CustomFont),
+      Changing font, like @link(CustomFont)
+      or @link(TUIContainer.DefaultFont) or @link(UIFont),
       or any property that may affect the font is automatically applied.
 
       But there are exceptions: right now, if you call @link(TTextureFont.Load Load)
       on a font, it's measurements will change but some controls using it will
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;
+
+    property OwnsCustomFont: boolean
+      read FOwnsCustomFont write FOwnsCustomFont default false;
+      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
+
+    { Use smaller font.
+      Right now this just says to scale font by 0.5. }
+    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
 
     { Outline color, used only if Outline <> 0. Default is black.
       @seealso Outline }
@@ -89,25 +103,14 @@
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
-      Otherwise the global @link(UIFont) will be used. }
+      Otherwise the @link(TUIContainer.DefaultFont) will be used,
+      or the global @link(UIFont). }
     property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
-    property OwnsCustomFont: boolean
-      read FOwnsCustomFont write FOwnsCustomFont default false;
-      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
 
     { Use given font size when drawing. Leave at default zero to use
-      the default size of the font (may still be scaled by @link(TCastleUserInterface.UIScale),
-      but this happens only if @link(TUIContainer.UIScaling) is set to
-      something else than default usNone).
-      Font itself is taken from
-      @link(CustomFont) or, if not set, from @link(UIFont). }
+      the default size of the current font. }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
-
-    { Use smaller font.
-      Right now this just says to scale font by 0.5. }
-    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
-      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
 
     { Scale the font. This additionally scales the font defined
       by all other properties of this class, thus you can use it to reliably
@@ -132,6 +135,10 @@
       @seealso Outline }
     property OutlineHighQuality: boolean
       read FOutlineHighQuality write SetOutlineHighQuality default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TUIControlFont = TCastleUserInterfaceFont deprecated 'use TCastleUserInterfaceFont';
@@ -140,18 +147,39 @@
 
 {$ifdef read_implementation}
 
+type
+  TCastleLabelTooltip = class(TCastleLabel)
+  public
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+  end;
+
+procedure TCastleLabelTooltip.PreferredSize(
+  var PreferredWidth, PreferredHeight: Single);
+begin
+  inherited;
+end;
+
 { TCastleUserInterfaceFont ---------------------------------------------------------- }
 
 constructor TCastleUserInterfaceFont.Create(AOwner: TComponent);
 begin
   inherited;
   FFontScale := 1.0;
+  FOutlineColor := Black;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleUserInterfaceFont.Destroy;
 begin
   CustomFont := nil; // make sure to free FCustomFont, if necessary
   FreeAndNil(FCustomizedFont);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -162,12 +190,11 @@ end;
 
 procedure TCastleUserInterfaceFont.TooltipRender;
 var
-  X, Y: Single;
-  TooltipRect: TRectangle;
+  X, Y, TooltipWidth, TooltipHeight: Single;
 begin
   if TooltipLabel = nil then
   begin
-    TooltipLabel := TCastleLabel.Create(nil);
+    TooltipLabel := TCastleLabelTooltip.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
     TooltipLabel.Frame := true;
     TooltipLabel.Container := Container;
@@ -180,15 +207,17 @@ begin
   TooltipLabel.Color := Theme.TooltipTextColor;
   TooltipLabel.Text.Clear;
   TooltipLabel.Text.Append(Tooltip);
-  TooltipRect := TooltipLabel.Rect;
+  TooltipWidth := 0;
+  TooltipHeight := 0;
+  TCastleLabelTooltip(TooltipLabel).PreferredSize(TooltipWidth, TooltipHeight);
 
   { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
   X := Container.TooltipPosition[0] / TooltipLabel.UIScale;
   Y := Container.TooltipPosition[1] / TooltipLabel.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
-  MinVar(X, ContainerWidth - TooltipRect.Width);
-  MinVar(Y, ContainerHeight - TooltipRect.Height);
+  MinVar(X, ContainerWidth  - TooltipWidth );
+  MinVar(Y, ContainerHeight - TooltipHeight);
   MaxVar(X, 0);
   MaxVar(Y, 0);
 
@@ -210,7 +239,12 @@ end;
 function TCastleUserInterfaceFont.Font: TCastleFont;
 begin
   if CustomFont <> nil then
-    Result := CustomFont else
+    Result := CustomFont
+  else
+  if (Container <> nil) and
+     (Container.DefaultFont <> nil) then
+    Result := Container.DefaultFont
+  else
     Result := UIFont;
 
   { if needed, wrap Result in TCustomizedFont instance }
@@ -370,15 +404,29 @@ end;
 
 procedure TCastleUserInterfaceFont.CheckFontChanged;
 var
-  NewUIFont: TCastleFont;
+  NewUIFont, NewDefaultFont: TCastleFont;
 begin
   { we do not use here UIFont but FUIFont, to not create font without need.
     If the corresponding global font is nil now,
     it can remain nil, no need to initialize it yet. }
   NewUIFont := FUIFont;
-  if (CustomFont = nil) and (FLastSeenUIFontXxx <> NewUIFont) then
+
+  if Container <> nil then
+    NewDefaultFont := Container.DefaultFont
+  else
+    NewDefaultFont := nil;
+
+  if (CustomFont = nil) and
+     ( (FLastSeenUIFont <> NewUIFont) or
+       (FLastSeenDefaultFont <> NewDefaultFont) ) then
     FontChanged;
-  FLastSeenUIFontXxx := NewUIFont;
+
+  FLastSeenUIFont := NewUIFont;
+  FLastSeenDefaultFont := NewDefaultFont;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleuserinterfacefont_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

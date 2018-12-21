@@ -124,10 +124,9 @@ type
         @item(tbDepth: the @link(Texture) will contain depth contents.)
         @item(tbColorAndDepth: the @link(Texture) will contain color
           contents, the @link(DepthTexture) will contain depth contents.)
-        @item(tbNone: we will not capture screen contents to any texture
-          at all. This is useful for rendering a screen that you want
-          to manually capture to normal memory with glReadPixels
-          (see also SaveScreen_NoFlush in this unit or TCastleWindowCustom.SaveScreen).
+        @item(tbNone: we will not capture screen contents to any texture at all.
+          This is useful for rendering a screen that you want
+          to capture to normal image with @link(SaveScreen).
           Be sure to capture the screen before RenderEnd.)
       )
 
@@ -252,6 +251,11 @@ type
       Ignored if not GLFBOMultiSampling. }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
+
+    { Save the screen to an image.
+      Call this between RenderBegin and RenderEnd. }
+    function SaveScreen(const ImageClass: TCastleImageClass;
+      const Rect: TRectangle): TCastleImage;
   end;
 
 {$endif read_interface}
@@ -382,7 +386,7 @@ begin
     gsExtension:
       begin
         if AttachmentDepthAndStencil then
-          Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
+          Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
         glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
       end;
     {$endif}
@@ -490,7 +494,7 @@ procedure TGLRenderToTexture.GLContextOpen;
           glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferId);
           glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, InternalFormat, Width, Height);
           if AttachmentDepthAndStencil then
-            Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
+            Assert(Attachment = GL_DEPTH_STENCIL_ATTACHMENT);
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, Attachment, GL_RENDERBUFFER_EXT, RenderbufferId);
         end;
       {$endif}
@@ -560,8 +564,7 @@ begin
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentWithStencil := true;
-      { DepthAttachmentPacked is ignored when DepthAttachmentWithStencil = true. }
-      DepthAttachmentPacked := 0;
+      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
     end else
     // TODO-es This is probably needed on gles too?
     // we have GL_DEPTH_STENCIL_OES.
@@ -811,6 +814,43 @@ begin
   if Framebuffer <> 0 then
     Result := cbColorAttachment0 else
     Result := cbBack;
+end;
+
+function TGLRenderToTexture.SaveScreen(const ImageClass: TCastleImageClass;
+  const Rect: TRectangle): TCastleImage;
+var
+  NonMultiFbo: TGLRenderToTexture;
+begin
+  Assert(FramebufferBound);
+
+  if (MultiSampling > 1) and
+     GLFeatures.FBOMultiSampling then
+  begin
+    if not GLFeatures.EXT_framebuffer_blit then
+      raise Exception.Create('Cannot get FBO contents without EXT_framebuffer_blit supported. You need a newer GPU for this application to work.');
+
+    { In case we used multi-sampling FBO for rendering,
+      we cannot directly use glReadPixels on it. See the bottom of
+      https://www.khronos.org/opengl/wiki/GL_EXT_framebuffer_multisample :
+      we need to blit the Fbo into another non-multisampling FBO first. }
+    NonMultiFbo := TGLRenderToTexture.Create(Width, Height);
+    try
+      NonMultiFbo.Buffer := tbNone;
+      NonMultiFbo.ColorBufferAlpha := ColorBufferAlpha;
+      NonMultiFbo.GLContextOpen;
+
+      glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, Framebuffer);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER_EXT, NonMultiFbo.Framebuffer);
+      glBlitFramebufferEXT(0, 0, Width, Height, 0, 0, Width, Height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+      glBindFramebuffer(GL_FRAMEBUFFER, NonMultiFbo.Framebuffer);
+      Result := SaveScreen_NoFlush(ImageClass, Rect, ColorBuffer);
+
+      // bind again our own FBO, to be consistent with behavior in non-multi-sampling cases
+      glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer);
+    finally FreeAndNil(NonMultiFbo) end;
+  end else
+    Result := SaveScreen_NoFlush(ImageClass, Rect, ColorBuffer);
 end;
 
 {$endif read_implementation}

@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -27,20 +28,28 @@
     FYPosition: Single;
     FProgress: TProgress;
     procedure SetBackground(const Value: TCastleImage);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function FloatRect: TFloatRectangle; override;
+
+    property HorizontalAnchorSelf default hpMiddle;
+    property HorizontalAnchorParent default hpMiddle;
+    property VerticalAnchorSelf default vpMiddle;
+    property VerticalAnchorParent default vpMiddle;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
 
     { Background drawn under the progress bar.
       May be left unassigned (@nil), in which case you're responsible for making
-      sure some other control (like TCastleSimpleBackground or maybe 3D viewport)
+      sure some other control
+      (like @link(TCastleRectangleControl) with FullSize=true
+      or @link(TCastleSceneManager) with FullSize=true and Transparent=false)
       always covers the screen underneath.
 
       When it's assigned, it's always drawn scaled to cover the whole
@@ -154,17 +163,19 @@ begin
     TrimSimple;
 end;
 
-function TCastleProgressBar.FloatRect: TFloatRectangle;
+procedure TCastleProgressBar.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  XMargin, Height, YMiddle, Bot: Single;
+  XMargin, AHeight: Single;
   PR: TFloatRectangle;
 begin
-  PR := ParentFloatRect;
+  inherited;
+
+  PR := ParentRect;
   XMargin := PR.Width / 8;
-  Height := PR.Height / 12;
-  YMiddle := PR.Height * YPosition;
-  Bot := YMiddle - Height / 2;
-  Result := FloatRectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
+  AHeight := PR.Height / 12;
+
+  PreferredWidth := PR.Width - 2 * XMargin;
+  PreferredHeight := AHeight;
 end;
 
 procedure TCastleProgressBar.Render;
@@ -181,10 +192,11 @@ begin
 
   if Progress = nil then Exit;
 
+  // TODO: control should not draw over parent this way
   if FGLBackground <> nil then
-    FGLBackground.Draw(ParentFloatRect);
+    FGLBackground.Draw(ParentRect);
 
-  BarRect := FloatRect;
+  BarRect := RenderRect;
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
@@ -210,6 +222,8 @@ constructor TCastleProgressBar.Create(AOwner: TComponent);
 begin
   inherited;
   FYPosition := TProgressUserInterface.DefaultBarYPosition;
+  Anchor(hpMiddle);
+  Anchor(vpMiddle);
 end;
 
 destructor TCastleProgressBar.Destroy;

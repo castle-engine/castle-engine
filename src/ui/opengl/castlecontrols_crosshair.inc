@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -24,16 +25,15 @@
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
     { By default, crosshair is centered. }
-    property HasHorizontalAnchor default true;
-    property HasVerticalAnchor default true;
     property HorizontalAnchorSelf default hpMiddle;
     property HorizontalAnchorParent default hpMiddle;
     property VerticalAnchorSelf default vpMiddle;
@@ -67,15 +67,17 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.FloatRect: TFloatRectangle;
+procedure TCastleCrosshair.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
-  Result := FloatRectangle(Theme.Images[ImageType].Rect).ScaleAround0(UIScale);
+  inherited;
+  PreferredWidth  := Theme.Images[ImageType].Width  * UIScale;
+  PreferredHeight := Theme.Images[ImageType].Height * UIScale;
 end;
 
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, ImageType, UIScale);
+  Theme.Draw(RenderRect, ImageType, UIScale);
 end;
 
 {$endif read_implementation}

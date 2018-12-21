@@ -603,7 +603,32 @@ begin
     {$ifdef MSWINDOWS}
     ( (VendorType = gvIntel) and
       not VendorVersionAtLeast(9, 0, 0)
-    )
+    ) or
+
+    { Workaround various troubles on HP ProBook
+
+        Version string: 3.3.11672 Compatibility Profile Context
+        Version parsed: major: 3, minor: 3, release exists: True, release: 11672, vendor-specific information: "Compatibility Profile Context"
+        Vendor-specific version parsed: major: 0, minor: 0, release: 0
+        Vendor: ATI Technologies Inc.
+        Vendor type: ATI
+        Renderer: ATI Mobility Radeon HD 4300 Series
+
+      Later: bumped to include all troubles on
+      AMD Radeon HD 8200 / R3 Series
+      reported on https://github.com/castle-engine/view3dscene/issues/9 :
+
+        Version string: 4.5.13492 Compatibility Profile Context 22.19.677.257
+        Version parsed: major: 4, minor: 5, release exists: True, release: 13492,
+        vendor-specific information: "Compatibility Profile Context 22.19.677.257"
+        Vendor-specific version parsed: major: 22, minor: 19, release: 677
+        Vendor: ATI Technologies Inc.
+        Vendor type: ATI
+        Renderer: AMD Radeon HD 8200 / R3 Series
+    }
+    ( (VendorType = gvATI) and
+      ReleaseExists and
+      (Release <= 13492) )
     {$else} false
     {$endif};
 end;

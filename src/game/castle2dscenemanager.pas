@@ -81,6 +81,12 @@ type
       DefaultProjectionSpan = 1000.0;
       DefaultCameraZ = DefaultProjectionSpan / 2;
 
+    constructor Create(AOwner: TComponent); override;
+    procedure AssignDefaultCamera; override;
+
+    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
+    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+  published
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
       ProjectionHeight and ProjectionWidth are ignored then.
@@ -100,8 +106,6 @@ type
       read FProjectionHeight write FProjectionHeight default 0;
     property ProjectionWidth: Single
       read FProjectionWidth write FProjectionWidth default 0;
-    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
-    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
 
     { Determines the minimum and maximum depth visible, relative to the camera Z.
 
@@ -140,9 +144,6 @@ type
     }
     property ProjectionOriginCenter: boolean
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
-
-    constructor Create(AOwner: TComponent); override;
-    procedure AssignDefaultCamera; override;
   end;
 
   T2DSceneManager = class(TCastle2DSceneManager)
@@ -170,7 +171,7 @@ type
 
 implementation
 
-uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
+uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes, CastleComponentSerialize;
 
 { TCastle2DSceneManager -------------------------------------------------------- }
 
@@ -205,14 +206,14 @@ end;
 
 function TCastle2DSceneManager.CalculateProjection: TProjection;
 var
-  ControlWidth, ControlHeight: Integer;
+  ControlWidth, ControlHeight: Single;
 begin
   Result.ProjectionType := ptOrthographic;
   Result.Dimensions.Left := 0;
   Result.Dimensions.Bottom := 0;
 
-  ControlWidth := CalculatedWidth;
-  ControlHeight := CalculatedHeight;
+  ControlWidth := EffectiveWidthForChildren;
+  ControlHeight := EffectiveHeightForChildren;
 
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
@@ -270,4 +271,7 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
+initialization
+  RegisterSerializableComponent(TCastle2DSceneManager, '2D Scene Manager');
+  RegisterSerializableComponent(TCastle2DScene, '2D Scene');
 end.

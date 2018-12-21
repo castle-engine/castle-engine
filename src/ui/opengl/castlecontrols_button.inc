@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -27,14 +28,12 @@
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
-    FFloatWidth, FFloatHeight: Single;
-    FFinalScaledValid: boolean;
-    { The only method that can access these is FloatRect.
+    FCalculatedPreferred: Boolean;
+    { The only method that can access these is PreferredSize.
       Everything else should use
-      FloatRect, ScreenFloatRect, CalculatedFloatWidth, CalculatedFloatHeight
-      or other methods that wrap FloatRect.
-      This makes sure that FFinalScaledValid is honored. }
-    FFinalScaledWidth, FFinalScaledHeight: Single;
+      RenderRect, EffectiveWidth, EffectiveHeight or other methods.
+      This makes sure that FCalculatedPreferred is honored. }
+    FCalculatedPreferredWidth, FCalculatedPreferredHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
@@ -55,6 +54,10 @@
       FOwnsCustomBackgroundDisabled,
       FOwnsCustomBackgroundFocused,
       FOwnsCustomBackgroundNormal: boolean;
+    FCustomColorPressed,
+      FCustomColorDisabled,
+      FCustomColorFocused,
+      FCustomColorNormal: TCastleColor;
     FCustomBackground: boolean;
     FCustomBackgroundCorners: TVector4Integer;
     FCustomTextColor: TCastleColor;
@@ -62,13 +65,13 @@
     FToggle: boolean;
     ClickStarted: boolean;
     ClickStartedPosition: TVector2;
-    FMinImageWidth: Cardinal;
-    FMinImageHeight: Cardinal;
+    FMinImageWidth: Single;
+    FMinImageHeight: Single;
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
-    FMinWidth, FMinHeight: Cardinal;
-    FImageMargin: Cardinal;
-    FPaddingHorizontal, FPaddingVertical: Cardinal;
+    FMinWidth, FMinHeight: Single;
+    FImageMargin: Single;
+    FPaddingHorizontal, FPaddingVertical: Single;
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
     FEnableParentDragging: boolean;
@@ -79,7 +82,11 @@
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
-    { Recalculate TextWidth, TextHeight, and set FFinalScaledValid to false. }
+    procedure SetCustomColorDisabled(const AValue: TCastleColor);
+    procedure SetCustomColorFocused(const AValue: TCastleColor);
+    procedure SetCustomColorNormal(const AValue: TCastleColor);
+    procedure SetCustomColorPressed(const AValue: TCastleColor);
+    { Recalculate TextWidth, TextHeight, and set FCalculatedPreferred to false. }
     procedure UpdateTextSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
@@ -87,23 +94,22 @@
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
-    procedure SetMinWidth(const Value: Cardinal);
-    procedure SetMinHeight(const Value: Cardinal);
-    procedure SetImageMargin(const Value: Cardinal);
+    procedure SetMinWidth(const Value: Single);
+    procedure SetMinHeight(const Value: Single);
+    procedure SetImageMargin(const Value: Single);
     procedure SetEnabled(const Value: boolean);
     procedure SetTextAlignment(const Value: THorizontalPosition);
     procedure SetLineSpacing(const Value: Single);
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
+    procedure SetPaddingHorizontal(const Value: Single);
+    procedure SetPaddingVertical(const Value: Single);
   protected
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     const
       DefaultImageMargin = 10;
@@ -120,8 +126,11 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
-    function FloatRect: TFloatRectangle; override;
     procedure FontChanged; override;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
+    procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
+      out Reason: String); override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -132,15 +141,6 @@
     { Should we free the @link(Image) when you set another one or at destructor. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
-    { Auto-size routines (see @link(AutoSize)) may treat the image
-      like always having at least these minimal sizes.
-      Even if the @link(Image) is empty (@nil).
-      This is useful when you have a row of buttons (typical for toolbar),
-      and you want them to have the same height, and their captions
-      to be displayed at the same level, regardless of their images sizes. }
-    property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
-    property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
-
     { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
     property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
     { Color tint when button is disabled (and not pressed). Opaque white by default. }
@@ -149,17 +149,6 @@
     property TintFocused : TCastleColor read FTintFocused  write FTintFocused;
     { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
     property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
-
-    { Use custom background images. If @true, we use properties
-      @unorderedList(
-        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
-      ).
-      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
-      specified by @link(CustomBackgroundCorners). }
-    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
 
     { Background image on the pressed button. See @link(CustomBackground) for details. }
     property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
@@ -185,12 +174,35 @@
       See @link(CustomBackground) for details. Zero by default. }
     property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
 
-    { Should we use custom text color in @link(CustomTextColor)
-      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
-    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
+
+    { Button colors used when @link(CustomBackground) is @true,
+      but CustomBackgroundXxx images (like @link(CustomBackgroundNormal))
+      are left unassigned.
+
+      By default they are all transparent black, so actually the button
+      is completely transparent in this case.
+
+      They are affected by tint (see @link(TintPressed), @link(TintDisabled),
+      @link(TintFocused), @link(TintNormal)). The tint color is simply multiplied
+      component-wise with these colors. By default all tint colors are
+      opaque white, so the multiplication by tint actually doesn't change anything.
+    }
+    property CustomColorPressed: TCastleColor read FCustomColorPressed write SetCustomColorPressed;
+    property CustomColorDisabled: TCastleColor read FCustomColorDisabled write SetCustomColorDisabled;
+    property CustomColorFocused: TCastleColor read FCustomColorFocused write SetCustomColorFocused;
+    property CustomColorNormal: TCastleColor read FCustomColorNormal write SetCustomColorNormal;
+  published
+    { Auto-size routines (see @link(AutoSize)) may treat the image
+      like always having at least these minimal sizes.
+      Even if the @link(Image) is empty (@nil).
+      This is useful when you have a row of buttons (typical for toolbar),
+      and you want them to have the same height, and their captions
+      to be displayed at the same level, regardless of their images sizes. }
+    property MinImageWidth: Single read FMinImageWidth write FMinImageWidth default 0;
+    property MinImageHeight: Single read FMinImageHeight write FMinImageHeight default 0;
 
     { For multi-line @link(Caption), the horizontal alignment of the lines. }
     property TextAlignment: THorizontalPosition
@@ -213,19 +225,35 @@
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
     property Html: boolean read FHtml write SetHtml default false;
-  published
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
+
+    { Use custom background images. If @true, we use properties
+      @unorderedList(
+        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item(@link(CustomBackgroundNormal) (or fallback on solid color if @nil,
+          see @link(CustomColorPressed),
+          see @link(CustomColorNormal) and so on).)
+      )
+      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
+      specified by @link(CustomBackgroundCorners).
+
+      They are affected by tint (see @link(TintPressed), @link(TintDisabled),
+      @link(TintFocused), @link(TintNormal)).
+    }
+    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+
+    { Should we use custom text color in @link(CustomTextColor)
+      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
+    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
 
     { Horizontal distance between text or @link(Image) and the button border. }
-    property PaddingHorizontal: Cardinal
-      read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
+    property PaddingHorizontal: Single
+      read FPaddingHorizontal write SetPaddingHorizontal default DefaultPaddingHorizontal;
 
     { Vertical distance between text or @link(Image) and the button border. }
-    property PaddingVertical: Cardinal
-      read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
+    property PaddingVertical: Single
+      read FPaddingVertical write SetPaddingVertical default DefaultPaddingVertical;
 
     { When AutoSize is @true (the default) then button sizes are automatically
       calculated when you change the @link(Caption) and @link(Image).
@@ -233,17 +261,17 @@
       and @link(Image) size, plus some margin to make it look nice.
 
       Width is auto-calculated only when AutoSize and AutoSizeWidth
-      (otherwise we just use @link(Width) property value).
+      (otherwise we use @link(Width), @link(WidthFraction) and similar properties).
       Likewise, Height is calculated only when AutoSize and AutoSizeHeight
-      (otherwise we just use @link(Height) property value).
+      (otherwise we use @link(Height), @link(HeightFraction) and similar properties).
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
       AutoSize).
 
       If needed, you can query the resulting button size with the standard
-      TCastleUserInterface methods like @link(TCastleUserInterface.CalculatedWidth) and
-      @link(TCastleUserInterface.CalculatedHeight). Note that they may not be available
+      TCastleUserInterface methods like @link(TCastleUserInterface.EffectiveWidth) and
+      @link(TCastleUserInterface.EffectiveHeight). Note that they may not be available
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
       for UI scaling to determine the font size). }
@@ -255,8 +283,8 @@
       a minimal width/height of the button. This is useful if you want
       to use auto-size (to make sure that the content fits inside),
       but you want to force filling some space. }
-    property MinWidth: Cardinal read FMinWidth write SetMinWidth default 0;
-    property MinHeight: Cardinal read FMinHeight write SetMinHeight default 0;
+    property MinWidth: Single read FMinWidth write SetMinWidth default 0;
+    property MinHeight: Single read FMinHeight write SetMinHeight default 0;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
@@ -290,7 +318,7 @@
       read FImageAlphaTest write FImageAlphaTest default false;
 
     { Distance between text and @link(Image). Unused if @link(Image) not set. }
-    property ImageMargin: Cardinal read FImageMargin write SetImageMargin
+    property ImageMargin: Single read FImageMargin write SetImageMargin
       default DefaultImageMargin;
 
     property Enabled: boolean read FEnabled write SetEnabled default true;
@@ -303,6 +331,10 @@
       all the motion events for dragging. }
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -329,7 +361,12 @@ begin
   FEnabled := true;
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
+  FCustomTextColor := Black;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleButton.Destroy;
@@ -346,6 +383,9 @@ begin
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
 
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -395,13 +435,13 @@ var
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
-  Tint: TCastleColor;
+  Tint, SolidColor: TCastleColor;
 begin
   inherited;
 
   ImageMarginScaled := ImageMargin * UIScale;
 
-  SR := ScreenFloatRect;
+  SR := RenderRect;
 
   { calculate Tint }
   if Pressed then
@@ -417,11 +457,14 @@ begin
   if CustomBackground then
   begin
     if Pressed then
-      CustomBackgroundImage := FGLCustomBackgroundPressed else
+      CustomBackgroundImage := FGLCustomBackgroundPressed
+    else
     if not Enabled then
-      CustomBackgroundImage := FGLCustomBackgroundDisabled else
+      CustomBackgroundImage := FGLCustomBackgroundDisabled
+    else
     if Focused then
-      CustomBackgroundImage := FGLCustomBackgroundFocused else
+      CustomBackgroundImage := FGLCustomBackgroundFocused
+    else
       CustomBackgroundImage := FGLCustomBackgroundNormal;
     { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
@@ -432,15 +475,32 @@ begin
       CustomBackgroundImage.Color := Tint;
       CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+    end else
+    begin
+      if Pressed then
+        SolidColor := FCustomColorPressed
+      else
+      if not Enabled then
+        SolidColor := FCustomColorDisabled
+     else
+      if Focused then
+        SolidColor := FCustomColorFocused
+      else
+        SolidColor := FCustomColorNormal;
+      if SolidColor[3] <> 0 then
+        DrawRectangle(SR, SolidColor * Tint);
     end;
   end else
   begin
     if Pressed then
-      Background := tiButtonPressed else
+      Background := tiButtonPressed
+    else
     if not Enabled then
-      Background := tiButtonDisabled else
+      Background := tiButtonDisabled
+    else
     if Focused then
-      Background := tiButtonFocused else
+      Background := tiButtonFocused
+    else
       Background := tiButtonNormal;
     Theme.Draw(SR, Background, UIScale, Tint);
   end;
@@ -450,6 +510,12 @@ begin
   begin
     ImgScreenWidth  := UIScale * FImage.Width;
     ImgScreenHeight := UIScale * FImage.Height;
+  end else
+  begin
+    { Not really necessary,
+      but silence FPC 3.3.1 warnings that these are not initialized later. }
+    ImgScreenWidth  := 0;
+    ImgScreenHeight := 0;
   end;
 
   UseText := (Length(Caption) > 0);
@@ -458,18 +524,24 @@ begin
   begin
     TextLeft := SR.Left + (SR.Width - TextWidth) / 2;
     if UseImage and (ImageLayout = ilLeft) then
-      TextLeft += (ImgScreenWidth + ImageMarginScaled) / 2 else
+      TextLeft := TextLeft + ((ImgScreenWidth + ImageMarginScaled) / 2) else
     if UseImage and (ImageLayout = ilRight) then
-      TextLeft -= (ImgScreenWidth + ImageMarginScaled) / 2;
+      TextLeft := TextLeft - ((ImgScreenWidth + ImageMarginScaled) / 2);
 
     TextBottom := SR.Bottom + (SR.Height - TextHeight) / 2;
     if UseImage and (ImageLayout = ilBottom) then
-      TextBottom += (ImgScreenHeight + ImageMarginScaled) / 2 else
+      TextBottom := TextBottom + ((ImgScreenHeight + ImageMarginScaled) / 2) else
     if UseImage and (ImageLayout = ilTop) then
-      TextBottom -= (ImgScreenHeight + ImageMarginScaled) / 2;
-    TextBottom += Font.Descend;
+      TextBottom := TextBottom - ((ImgScreenHeight + ImageMarginScaled) / 2);
+    TextBottom := TextBottom + Font.Descend;
 
     RenderText;
+  end else
+  begin
+    { Not really necessary,
+      but silence FPC 3.3.1 warnings that these are not initialized later. }
+    TextLeft := 0;
+    TextBottom := 0;
   end;
 
   if UseImage then
@@ -569,7 +641,7 @@ begin
       mouse down on the button, and then release mouse while still over
       the button.
 
-      We have to check ScreenFloatRect.Contains, since (because we keep "focus"
+      We have to check CapturesEventsAtPosition, since (because we keep "focus"
       on this button, if mouse down was on this) we *always* get release event
       (even if mouse position is no longer over this button).
 
@@ -577,7 +649,7 @@ begin
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
-    if Enabled and ScreenFloatRect.Contains(Event.Position) then
+    if Enabled and CapturesEventsAtPosition(Event.Position) then
       DoClick;
   end;
 end;
@@ -652,6 +724,46 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetCustomColorDisabled(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorDisabled, AValue) then
+  begin
+    FCustomColorDisabled := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorFocused(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorFocused, AValue) then
+  begin
+    FCustomColorFocused := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorNormal(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorNormal, AValue) then
+  begin
+    FCustomColorNormal := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleButton.SetCustomColorPressed(
+  const AValue: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FCustomColorPressed, AValue) then
+  begin
+    FCustomColorPressed := AValue;
+    VisibleChange([chRender]);
+  end;
+end;
+
 procedure TCastleButton.FontChanged;
 begin
   inherited;
@@ -685,14 +797,14 @@ begin
       finally FreeAndNil(TextToRender) end;
     end;
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
 procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
-  FFinalScaledValid := false;
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleButton.SetImage(const Value: TCastleImage);
@@ -709,7 +821,7 @@ begin
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImage.Create(FImage, true, false);
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -727,7 +839,7 @@ begin
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
       FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -745,7 +857,7 @@ begin
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
       FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -763,7 +875,7 @@ begin
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
       FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -781,7 +893,7 @@ begin
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
       FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
 
-    FFinalScaledValid := false;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -820,6 +932,24 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetPaddingHorizontal(const Value: Single);
+begin
+  if FPaddingHorizontal <> Value then
+  begin
+    FPaddingHorizontal := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TCastleButton.SetPaddingVertical(const Value: Single);
+begin
+  if FPaddingVertical <> Value then
+  begin
+    FPaddingVertical := Value;
+    UpdateTextSize;
+  end;
+end;
+
 procedure TCastleButton.SetHtml(const Value: boolean);
 begin
   if FHtml <> Value then
@@ -833,8 +963,12 @@ procedure TCastleButton.SetPressed(const Value: boolean);
 begin
   if FPressed <> Value then
   begin
-    if not Toggle then
-      raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
+    { Allow to change Pressed always.
+      This is necessary for correct deserialization,
+      where Pressed may be deserialized
+      befoire Toggle is deserialized. }
+    // if not Toggle then
+    //   raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
     VisibleChange([chRender]);
   end;
@@ -845,77 +979,33 @@ begin
   if FImageLayout <> Value then
   begin
     FImageLayout := Value;
-    FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
 end;
 
-function TCastleButton.GetWidth: Cardinal;
-begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleButton.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleButton.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleButton.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleButton.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
-  begin
-    FFloatWidth := Value;
-    FFinalScaledValid := false;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetFloatHeight(const Value: Single);
-begin
-  if FFloatHeight <> Value then
-  begin
-    FFloatHeight := Value;
-    FFinalScaledValid := false;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetMinWidth(const Value: Cardinal);
+procedure TCastleButton.SetMinWidth(const Value: Single);
 begin
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;
-    FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleButton.SetMinHeight(const Value: Cardinal);
+procedure TCastleButton.SetMinHeight(const Value: Single);
 begin
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
-    FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleButton.SetImageMargin(const Value: Cardinal);
+procedure TCastleButton.SetImageMargin(const Value: Single);
 begin
   if FImageMargin <> Value then
   begin
     FImageMargin := Value;
-    FFinalScaledValid := false;
     VisibleChange([chRectangle]);
   end;
 end;
@@ -929,78 +1019,104 @@ begin
   end;
 end;
 
-function TCastleButton.FloatRect: TFloatRectangle;
+procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 
-  procedure CalculateFinalScaledSize;
+  procedure CalculatePreferredSize;
   var
     ImgSize: Single;
     MinWidthScaled, MinHeightScaled,
       ImageMarginScaled,
       PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   begin
-    FFinalScaledWidth  := FFloatWidth  * UIScale;
-    FFinalScaledHeight := FFloatHeight * UIScale;
+    PaddingHorizontalScaled := PaddingHorizontal * UIScale;
+    PaddingVerticalScaled   := PaddingVertical   * UIScale;
+    ImageMarginScaled       := ImageMargin       * UIScale;
+    MinWidthScaled          := MinWidth          * UIScale;
+    MinHeightScaled         := MinHeight         * UIScale;
 
-    if AutoSize then
+    FCalculatedPreferredWidth  := TextWidth  + PaddingHorizontalScaled * 2;
+    FCalculatedPreferredHeight := TextHeight + PaddingVerticalScaled * 2;
+
+    if (FImage <> nil) or
+       (MinImageWidth <> 0) or
+       (MinImageHeight <> 0) then
     begin
-      PaddingHorizontalScaled := PaddingHorizontal * UIScale;
-      PaddingVerticalScaled   := PaddingVertical   * UIScale;
-      ImageMarginScaled       := ImageMargin       * UIScale;
-      MinWidthScaled          := MinWidth          * UIScale;
-      MinHeightScaled         := MinHeight         * UIScale;
-
-      { We modify fields FFinalScaledWidth, FFinalScaledHeight,
-        to avoid calling VisibleChange too many times
-        (although it should be optimized, but better play it safe).
-        We'll call it at the end explicitly, with VisibleChange([chRectangle]). }
-      if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
-      if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
-      if (FImage <> nil) or
-         (MinImageWidth <> 0) or
-         (MinImageHeight <> 0) then
-      begin
-        if AutoSizeWidth then
-        begin
-          if FImage <> nil then
-            ImgSize := Max(FImage.Width, MinImageWidth) else
-            ImgSize := MinImageWidth;
-          ImgSize := ImgSize * UIScale;
-          case ImageLayout of
-            ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
-            ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
-          end;
-        end;
-        if AutoSizeHeight then
-        begin
-          if FImage <> nil then
-            ImgSize := Max(FImage.Height, MinImageHeight) else
-            ImgSize := MinImageHeight;
-          ImgSize := ImgSize * UIScale;
-          case ImageLayout of
-            ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
-            ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
-          end;
-        end;
+      if FImage <> nil then
+        ImgSize := Max(FImage.Width, MinImageWidth) else
+        ImgSize := MinImageWidth;
+      ImgSize := ImgSize * UIScale;
+      case ImageLayout of
+        ilLeft, ilRight: FCalculatedPreferredWidth := FCalculatedPreferredWidth + ImgSize + ImageMarginScaled;
+        ilTop, ilBottom: FCalculatedPreferredWidth := Max(FCalculatedPreferredWidth, ImgSize + PaddingHorizontalScaled * 2);
       end;
 
-      { at the end apply MinXxx properties }
-      if AutoSizeWidth then
-        MaxVar(FFinalScaledWidth, MinWidthScaled);
-      if AutoSizeHeight then
-        MaxVar(FFinalScaledHeight, MinHeightScaled);
-
-      if AutoSizeWidth or AutoSizeHeight then
-        VisibleChange([chRectangle]);
+      if FImage <> nil then
+        ImgSize := Max(FImage.Height, MinImageHeight) else
+        ImgSize := MinImageHeight;
+      ImgSize := ImgSize * UIScale;
+      case ImageLayout of
+        ilLeft, ilRight: FCalculatedPreferredHeight := Max(FCalculatedPreferredHeight, ImgSize + PaddingVerticalScaled * 2);
+        ilTop, ilBottom: FCalculatedPreferredHeight := FCalculatedPreferredHeight + ImgSize + ImageMarginScaled;
+      end;
     end;
+
+    { at the end apply MinXxx properties }
+    MaxVar(FCalculatedPreferredWidth, MinWidthScaled);
+    MaxVar(FCalculatedPreferredHeight, MinHeightScaled);
   end;
 
 begin
-  if not FFinalScaledValid then
+  inherited;
+
+  if not FCalculatedPreferred then
   begin
-    FFinalScaledValid := true;
-    CalculateFinalScaledSize;
+    FCalculatedPreferred := true;
+    CalculatePreferredSize;
   end;
-  Result := FloatRectangle(FloatLeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
+
+  if AutoSize and AutoSizeWidth then
+    PreferredWidth := FCalculatedPreferredWidth;
+  if AutoSize and AutoSizeHeight then
+    PreferredHeight := FCalculatedPreferredHeight;
 end;
+
+procedure TCastleButton.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSize and AutoSizeWidth then
+  begin
+    ResizeWidth := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleButton.AutoSize" or "TCastleButton.AutoSizeWidth" to change width.');
+  end;
+  if AutoSize and AutoSizeHeight then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleButton.AutoSize" or "TCastleButton.AutoSizeHeight" to change height.');
+  end;
+end;
+
+procedure TCastleButton.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean = false);
+begin
+  inherited;
+  // react to SetWidth, SetHeight etc.
+  if [chRectangle, chChildren] * Changes <> [] then
+    FCalculatedPreferred := false;
+end;
+
+function TCastleButton.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleButton.SetInternalText(const Value: String);
+begin
+  Caption := Value;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

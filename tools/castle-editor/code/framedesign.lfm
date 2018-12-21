@@ -1,0 +1,288 @@
+object DesignFrame: TDesignFrame
+  Left = 0
+  Height = 510
+  Top = 0
+  Width = 1261
+  ClientHeight = 510
+  ClientWidth = 1261
+  DesignTimePPI = 140
+  ParentFont = False
+  TabOrder = 0
+  DesignLeft = 339
+  DesignTop = 171
+  object SplitterLeft: TSplitter
+    Left = 266
+    Height = 510
+    Top = 0
+    Width = 7
+  end
+  object SplitterRight: TSplitter
+    Left = 898
+    Height = 510
+    Top = 0
+    Width = 7
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object PanelRight: TPanel
+    Left = 905
+    Height = 510
+    Top = 0
+    Width = 356
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 510
+    ClientWidth = 356
+    TabOrder = 2
+    object LabelControlSelected: TLabel
+      Left = 5
+      Height = 54
+      Top = 5
+      Width = 346
+      Align = alTop
+      BorderSpacing.Around = 5
+      Caption = 'Selected:'#13#10'xxx (yyy)'
+      ParentColor = False
+      ParentFont = False
+    end
+    object ControlProperties: TPageControl
+      Left = 0
+      Height = 446
+      Top = 64
+      Width = 356
+      ActivePage = TabAnchors
+      Align = alClient
+      TabIndex = 1
+      TabOrder = 0
+      object TabSimple: TTabSheet
+        Caption = 'Simple'
+      end
+      object TabAnchors: TTabSheet
+        Caption = 'Anchors'
+        ClientHeight = 401
+        ClientWidth = 350
+        object ScrollBox1: TScrollBox
+          Left = 0
+          Height = 401
+          Top = 0
+          Width = 350
+          HorzScrollBar.Page = 1
+          HorzScrollBar.Visible = False
+          VertScrollBar.Page = 311
+          Align = alClient
+          BorderStyle = bsNone
+          ClientHeight = 401
+          ClientWidth = 350
+          TabOrder = 0
+          object LabelSizeInfo: TLabel
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 27
+            Top = 284
+            Width = 338
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 10
+            Caption = 'LabelSizeInfo'
+            ParentColor = False
+            WordWrap = True
+          end
+          object CheckParentSelfAnchorsEqual: TCheckBox
+            Left = 8
+            Height = 31
+            Top = 8
+            Width = 334
+            Caption = 'Anchor to the same side of Parent'
+            OnChange = CheckParentSelfAnchorsEqualChange
+            TabOrder = 0
+          end
+          inline SelfAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 176
+            Top = 49
+            Width = 152
+            BorderSpacing.Top = 10
+            ClientHeight = 176
+            ClientWidth = 152
+            TabOrder = 1
+          end
+          inline ParentAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Side = asrBottom
+            Left = 170
+            Height = 176
+            Top = 49
+            Width = 152
+            BorderSpacing.Left = 10
+            BorderSpacing.Top = 10
+            ClientHeight = 176
+            ClientWidth = 152
+            TabOrder = 2
+            inherited GroupBox1: TGroupBox
+              Caption = 'Parent Side'
+            end
+          end
+          object ButtonClearAnchorDeltas: TButton
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            AnchorSideTop.Control = SelfAnchorsFrame
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 39
+            Top = 235
+            Width = 191
+            AutoSize = True
+            BorderSpacing.Top = 10
+            Caption = 'Move to the anchor'
+            OnClick = ButtonClearAnchorDeltasClick
+            TabOrder = 3
+          end
+        end
+      end
+      object TabAdvanced: TTabSheet
+        Caption = 'Advanced'
+      end
+      object TabEvents: TTabSheet
+        Caption = 'Events'
+      end
+    end
+  end
+  object PanelLeft: TPanel
+    Left = 0
+    Height = 510
+    Top = 0
+    Width = 266
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 510
+    ClientWidth = 266
+    TabOrder = 3
+    object ControlsTree: TTreeView
+      Left = 0
+      Height = 473
+      Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
+      Top = 37
+      Width = 266
+      Align = alClient
+      DragMode = dmAutomatic
+      MultiSelect = True
+      ParentShowHint = False
+      ReadOnly = True
+      RowSelect = True
+      ScrollBars = ssAutoBoth
+      ShowHint = True
+      TabOrder = 0
+      OnAdvancedCustomDrawItem = ControlsTreeAdvancedCustomDrawItem
+      OnDragDrop = ControlsTreeDragDrop
+      OnDragOver = ControlsTreeDragOver
+      OnEndDrag = ControlsTreeEndDrag
+      OnSelectionChanged = ControlsTreeSelectionChanged
+      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    end
+    object LabelHierarchy: TLabel
+      Left = 5
+      Height = 27
+      Top = 5
+      Width = 256
+      Align = alTop
+      BorderSpacing.Around = 5
+      Caption = 'Hierarchy'
+      ParentColor = False
+    end
+  end
+  object PanelMiddle: TPanel
+    Left = 273
+    Height = 510
+    Top = 0
+    Width = 625
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 510
+    ClientWidth = 625
+    TabOrder = 4
+    object PanelMiddleTop: TPanel
+      Left = 5
+      Height = 39
+      Top = 5
+      Width = 615
+      Align = alTop
+      AutoSize = True
+      BorderSpacing.Around = 5
+      BevelOuter = bvNone
+      ClientHeight = 39
+      ClientWidth = 615
+      TabOrder = 0
+      object LabelUIScaling: TLabel
+        Left = 0
+        Height = 27
+        Hint = 'UI Scaling to 1600x900'
+        Top = 0
+        Width = 615
+        Align = alTop
+        Alignment = taRightJustify
+        Caption = '50%'
+        ParentColor = False
+        ParentShowHint = False
+        ShowHint = True
+      end
+      object ToggleInteractMode: TToggleBox
+        Left = 0
+        Height = 39
+        Hint = 'Press buttons, change camera and more.'
+        Top = 0
+        Width = 84
+        AutoSize = True
+        Caption = 'Interact'
+        OnClick = ToggleInteractModeClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+      end
+      object ToggleSelectTranslateResizeMode: TToggleBox
+        AnchorSideLeft.Control = ToggleInteractMode
+        AnchorSideLeft.Side = asrBottom
+        Left = 89
+        Height = 39
+        Hint = 'Select, move and resize user interface controls (with left mouse button).'#10'Use right mouse button to move and resize, without changing the selected object.'
+        Top = 0
+        Width = 241
+        AutoSize = True
+        BorderSpacing.Left = 5
+        Caption = 'Select / Translate / Resize'
+        OnClick = ToggleSelectTranslateResizeModeClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+      object SpinEditSnap: TSpinEdit
+        AnchorSideLeft.Control = LabelSnap
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = LabelSnap
+        AnchorSideTop.Side = asrCenter
+        Left = 406
+        Height = 37
+        Top = 1
+        Width = 55
+        BorderSpacing.Left = 5
+        TabOrder = 2
+      end
+      object LabelSnap: TLabel
+        AnchorSideLeft.Control = ToggleSelectTranslateResizeMode
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = ToggleSelectTranslateResizeMode
+        AnchorSideTop.Side = asrCenter
+        Left = 350
+        Height = 27
+        Top = 6
+        Width = 51
+        BorderSpacing.Left = 20
+        Caption = 'Snap:'
+        ParentColor = False
+      end
+    end
+  end
+end

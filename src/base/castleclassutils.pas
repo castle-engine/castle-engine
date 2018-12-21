@@ -377,6 +377,54 @@ type
 procedure CreateIfNeeded(var Component: TComponent;
   ComponentClass: TComponentClass; Owner: TComponent);
 
+type
+  { Component with small CGE extensions. }
+  TCastleComponent = class(TComponent)
+  protected
+    function GetInternalText: String; virtual;
+    procedure SetInternalText(const Value: String); virtual;
+    procedure SetName(const Value: TComponentName); override;
+  public
+    { Internal field used by CastleComponentSerialize.
+      @exclude }
+    InternalOriginalName: String;
+
+    { Main text property, that is synchronized with Name initially.
+      @exclude }
+    property InternalText: String read GetInternalText write SetInternalText;
+
+    { Deserialization will use this to add components that were previously
+      returned by GetChildren method. }
+    procedure InternalAddChild(const C: TComponent); virtual;
+
+    { Ignore this component when serializing parent's
+      @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
+      and do not show this component in CGE editor.
+      This simply sets csTransient flag in ComponentStyle.
+
+      This is useful for children that are automatically managed by the parent,
+      and should not be modified by user code. For example,
+      TCastleCheckbox is internally composed from TCastleImageControl
+      and TCastleLabel children, but we don't want to serialize or even
+      show these children to user.
+
+      Note that if you want to prevent this component from serializing
+      @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
+      but you still want it to be visible in CGE editor,
+      then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
+
+      In any case (csSubComponent and/or csTransient) the component
+      is just not serialized as part of parent's @link(Controls) list.
+      But if you will make the component published (which is normal for "subcomponents")
+      then it will be serialized anyway, just as part of it's own property
+      (like TCastleScrollView.ScrollArea).
+      So to @italic(really) avoid serializing the component,
+      make it csSubComponent and/or csTransient,
+      and do not publish it.
+    }
+    procedure SetTransient;
+  end;
+
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
   Initialized and finalized in this unit.) }
@@ -1206,6 +1254,49 @@ procedure CreateIfNeeded(var Component: TComponent;
 begin
   if Component = nil then
     Component := ComponentClass.Create(Owner);
+end;
+
+{ TCastleComponent ----------------------------------------------------------- }
+
+procedure TCastleComponent.SetTransient;
+begin
+  Include(FComponentStyle, csTransient);
+end;
+
+function TCastleComponent.GetInternalText: String;
+begin
+  Result := '';
+end;
+
+procedure TCastleComponent.SetInternalText(const Value: String);
+begin
+end;
+
+procedure TCastleComponent.InternalAddChild(const C: TComponent);
+begin
+  raise Exception.CreateFmt('Component of class %s is not expected to have children',
+    [ClassName]);
+end;
+
+procedure TCastleComponent.SetName(const Value: TComponentName);
+var
+  ChangeInternalText: Boolean;
+begin
+  { Implementation similar to procedure TControl.SetName in Lazarus. }
+  if Name = Value then exit;
+  ChangeInternalText :=
+    // TControl.SetName does this even in non-design mode.
+    // ((csDesigning in ComponentState) or CastleDesignMode) and
+    (not (csLoading in ComponentState)) and
+    (Name = InternalText) and
+    // Do not update InternalText when Owner has csLoading.
+    ( (Owner = nil) or
+      (not (Owner is TComponent)) or
+      (not (csLoading in TComponent(Owner).ComponentState)));
+  // Note that this can raise exception is Value is not a valid name.
+  inherited SetName(Value);
+  if ChangeInternalText then
+    InternalText := Value;
 end;
 
 { initialization / finalization ---------------------------------------------- }

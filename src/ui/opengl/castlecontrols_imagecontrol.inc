@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -39,6 +40,7 @@
   TCastleImageControl = class(TCastleUserInterface)
   strict private
     FURL: string;
+    FScaleFromUrl: Single;
     FImage: TEncodedImage;
     FImageLoadedFromCache: boolean;
     FDrawableImage: TGLImage;
@@ -46,10 +48,11 @@
     FOwnsDrawableImage: boolean;
     FStretch: boolean;
     FProportionalScaling: TProportionalScaling;
-    FFullSize: boolean;
-    FFloatWidth, FFloatHeight: Single;
-    FCorners: TVector4Integer;
+    FProtectedSides: TBorder;
     FCache: boolean;
+    FFlipHorizontal: Boolean;
+    FFlipVertical: Boolean;
+    FDetectScaleFromUrl: Boolean;
 
     { Properties simply synchronized with the same properties of FDrawableImage. }
     function GetCenterX: Single;
@@ -76,28 +79,31 @@
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
     procedure SetStretch(const Value: boolean);
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
-    procedure SetFullSize(const Value: boolean);
     procedure SetProportionalScaling(const Value: TProportionalScaling);
     function GetProportional: boolean;
     procedure SetProportional(const Value: boolean);
+    procedure SetFlipVertical(const Value: Boolean);
+    procedure SetFlipHorizontal(const Value: Boolean);
+    procedure SetDetectScaleFromUrl(const Value: Boolean);
 
     { Free FImage if needed, and make it @nil. }
     procedure FreeImage;
     { Free FDrawableImage if needed, and make it @nil. }
     procedure FreeDrawableImage;
     procedure SetDrawableImage(const Value: TGLImage);
+    procedure ProtectedSidesChange(Sender: TObject);
+
+    function GetCorners: TVector4Integer;
+    procedure SetCorners(const Value: TVector4Integer);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     procedure GLContextOpen; override;
-    function FloatRect: TFloatRectangle; override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -171,11 +177,11 @@
       which means that image colors are unchanged. }
     property Color: TCastleColor read GetColor write SetColor;
 
-    { Corners of the image that are not stretched even
-      in case @link(Stretch) is used.
-      See @link(TGLImageCore.Draw3x3) for the details how drawing image
-      with borders work. }
-    property Corners: TVector4Integer read FCorners write FCorners;
+    { Corners and edges of the image that are not stretched even
+      when @link(Stretch) is used.
+      See @link(TGLImageCore.Draw3x3) for the details how such drawing works. }
+    property Corners: TVector4Integer read GetCorners write SetCorners;
+      deprecated 'use ProtectedSides';
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
@@ -194,19 +200,24 @@
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
 
       The equation is calculated in the final scaled screen coordinates
-      (not in the local, unscaled pixels). Adjust it to match the ScreenRect
+      (not in the local, unscaled pixels). Adjust it to match the RenderRect
       if necessary, to make it work with UI scaling. }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
 
     { Custom GLSL shading code.
       See TGLImage.CustomShader for explanation. }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
+
+    { Deprecated, use more flexible AlphaChannel instead. }
+    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
+    property Proportional: boolean read GetProportional write SetProportional
+      stored false default false; deprecated 'use ProportionalScaling';
+    { Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
     property URL: string read FURL write SetURL;
-    { Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
@@ -215,8 +226,6 @@
       Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
       read GetAlphaChannel write SetAlphaChannel default acAuto;
-    { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
@@ -224,26 +233,28 @@
     property SmoothScaling: boolean
       read GetSmoothScaling write SetSmoothScaling default true;
 
-    { Size of the image control.
-
-      If Stretch = @false, then values you set for Width, Height, FullSize,
-      ProportionalScaling properties do not matter (they are still remembered though,
-      so you can set properties in any order).
-      The displayed size (you can check it through @link(Rect) function)
-      always corresponds to the underlying image size.
-      The Left and Bottom properties work as usual, they allow you to move the control.
-
-      If Stretch = @true, then the image will be stretched to fill the requested area.
+    { How does the loaded image size affect the size of the image control.
 
       @unorderedList(
-        @item(If Stretch = @true and FullSize = @true then values of Width,
-          Height, Left, Bottom do not matter:
-          image always fills the whole parent
-          (@link(Rect) corresponds to the parent area).)
+        @item(
+          When @link(FullSize) or @link(AutoSizeToChildren) is @true,
+          then the value of @link(Stretch), and loaded image size, are ignored.
+          When @link(AutoSizeToChildren),
+          the image is always stretched to surround the children.
+          When @link(FullSize),
+          the image is always stretched to fill the parent.
 
-        @item(If Stretch = @true and FullSize = @false then the property
-          ProportionalScaling determines how the the image will be adjusted
-          to fit the requested Width and Height.
+          Otherwise:
+        )
+
+        @item(If Stretch = @false (default), then
+          the displayed size corresponds to the underlying image size.)
+
+        @item(If Stretch = @true, the image will be stretched to fill
+          the requested area. The property
+          @link(ProportionalScaling) determines how the image will
+          be adjusted to fit the requested size
+          (by @link(Width), @link(WidthFraction), @link(Height), @link(HeightFraction)).
 
           @definitionList(
             @itemLabel psNone
@@ -272,22 +283,11 @@
         )
       )
 
-      Note that you can always look at @link(Rect) value to know
-      the current calculated size and position of the image control on screen.
-
       @groupBegin }
     property Stretch: boolean read FStretch write SetStretch default false;
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
-    property FullSize: boolean read FFullSize write SetFullSize default false;
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
     { @groupEnd }
-
-    property Proportional: boolean read GetProportional write SetProportional
-      stored false default false; deprecated 'use ProportionalScaling';
 
     { If @true, the images are loaded and freed using the cache.
       That is, the TEncodedImage in @link(Image) is loaded and freed using
@@ -312,7 +312,7 @@
         ImageControl := TCastleImageControl.Create(Application);
         ImageControl.Cache := true:
         ImageControl.URL := 'my_image.png'; // use already cached URL
-        // somewhere much layer
+        // somewhere much later
         TextureCache.TextureImage_DecReference(CachedImage);
       #)
 
@@ -328,7 +328,32 @@
       Right now, this should be set before assigning Image or URL,
       otherwise the image will not be loaded/freed using the cache.
       This may change at some point. }
-    property Cache: boolean read FCache write FCache;
+    property Cache: boolean read FCache write FCache default false;
+
+    property FlipHorizontal: Boolean read FFlipHorizontal write SetFlipHorizontal
+      default false;
+    property FlipVertical: Boolean read FFlipVertical write SetFlipVertical
+      default false;
+
+    { Corners and edges of the image that are protected from scaling distortion
+      when @link(Stretch) is used.
+      We use the 9-slicing algorithm,
+      described at @link(TGLImageCore.Draw3x3)
+      and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
+    property ProtectedSides: TBorder read FProtectedSides;
+
+    { Set this to auto-detect that image is scaled compared to it's desired size.
+      This detects URL endings like 'xxx@2x.png', and we will automatically adjust
+      to it (the size determined by AutoSize will be actually 2x smaller than
+      the PNG size).
+      Preparing images at a 2x or 4x larger size than "desired" is a useful trick
+      when using UI scaling, when you want the image to look good at various scales. }
+    property DetectScaleFromUrl: Boolean
+      read FDetectScaleFromUrl write SetDetectScaleFromUrl default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -343,12 +368,22 @@ begin
   FOwnsImage := true;
   FOwnsDrawableImage := true;
   FDrawableImage := TGLImage.Create(FImage, true { default SmoothScaling }, false);
+  FProtectedSides := TBorder.Create(@ProtectedSidesChange);
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleImageControl.Destroy;
 begin
   FreeImage;
   FreeDrawableImage;
+  FreeAndNil(FProtectedSides);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -415,6 +450,26 @@ begin
 end;
 
 procedure TCastleImageControl.SetURL(const Value: string);
+
+  function GetScaleFromUrl: Single;
+  var
+    BaseName: String;
+    P: Integer;
+    Scale: Single;
+  begin
+    Result := 1;
+    BaseName := DeleteURIExt(ExtractURIName(URL));
+    if (Length(BaseName) >= 4) and // BaseName must look like at least '?@4x'
+       (BaseName[Length(BaseName)] = 'x') then
+    begin
+      P := BackPos('@', BaseName);
+      if (P > 1) and
+         TryStrToFloatDot(CopyPos(BaseName, P + 1, Length(BaseName) - 1), Scale) and
+         (Scale > 0) then
+        Result := Scale;
+    end;
+  end;
+
 begin
   if Value <> '' then
   begin
@@ -428,6 +483,8 @@ begin
   { only once new Image is successfully loaded, change property value.
     If LoadImage raised exception, URL will remain unchanged. }
   FURL := Value;
+
+  FScaleFromUrl := GetScaleFromUrl;
 end;
 
 function TCastleImageControl.GetCenterX: Single;
@@ -510,57 +567,97 @@ end;
 procedure TCastleImageControl.Render;
 var
   SR: TFloatRectangle;
+  ProtectedSidesVector: TVector4;
 begin
   inherited;
   if (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0) then Exit;
-  SR := ScreenFloatRect;
-  if FCorners.IsZero then
-    FDrawableImage.Draw(SR) else
+  SR := RenderRect;
+
+  if not FProtectedSides.Exists then
   begin
+    if FlipHorizontal or FlipVertical then
+      FDrawableImage.DrawFlipped(SR, FlipHorizontal, FlipVertical)
+    else
+      FDrawableImage.Draw(SR);
+  end else
+  begin
+    // TODO: FlipHorizontal, FlipVertical ignored in this case
     FDrawableImage.ScaleCorners := UIScale;
-    FDrawableImage.Draw3x3(SR, FCorners);
+    ProtectedSidesVector := Vector4(
+      ProtectedSides.TotalTop,
+      ProtectedSides.TotalRight,
+      ProtectedSides.TotalBottom,
+      ProtectedSides.TotalLeft
+    );
+    FDrawableImage.Draw3x3(SR, ProtectedSidesVector);
+
+    if CastleDesignMode and Stretch then
+    begin
+      if ((ProtectedSides.TotalRight + ProtectedSides.TotalLeft) * UIScale < SR.Width) and
+         ((ProtectedSides.TotalTop + ProtectedSides.TotalBottom) * UIScale < SR.Height) then
+      begin
+        DrawPrimitive2D(pmLines, [
+          // vertical lines
+          Vector2(SR.Left + ProtectedSides.TotalLeft * UIScale, SR.Bottom),
+          Vector2(SR.Left + ProtectedSides.TotalLeft * UIScale, SR.Top),
+          Vector2(SR.Right - ProtectedSides.TotalRight * UIScale, SR.Bottom),
+          Vector2(SR.Right - ProtectedSides.TotalRight * UIScale, SR.Top),
+          // horizontal lines
+          Vector2(SR.Left , SR.Bottom + ProtectedSides.TotalBottom * UIScale),
+          Vector2(SR.Right, SR.Bottom + ProtectedSides.TotalBottom * UIScale),
+          Vector2(SR.Left , SR.Top - ProtectedSides.TotalTop * UIScale),
+          Vector2(SR.Right, SR.Top - ProtectedSides.TotalTop * UIScale)
+        ], Vector4(1, 1, 0, 0.5));
+      end;
+    end;
   end;
 end;
 
-function TCastleImageControl.FloatRect: TFloatRectangle;
+procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  NewFloatWidth, NewFloatHeight, NewLeft, NewBottom: Single;
-  ApplyScaling: boolean;
+  ImageWidth, ImageHeight: Single;
 begin
-  ApplyScaling := true;
-  if not Stretch then
+  inherited;
+
+  ImageWidth  := FDrawableImage.Width;
+  ImageHeight := FDrawableImage.Height;
+  if FDetectScaleFromUrl and (FScaleFromUrl <> 1) then
   begin
-    Result := FloatRectangle(Left, Bottom, FDrawableImage.Width, FDrawableImage.Height);
-  end else
-  begin
-    if FullSize then
-    begin
-      Result := ParentFloatRect;
-      ApplyScaling := false;
-    end else
-    if (ProportionalScaling in [psFit, psEnclose]) and
-       (FDrawableImage.Width <> 0) and
-       (FDrawableImage.Height <> 0) then
-    begin
-      if (ProportionalScaling = psFit) =
-         (FloatWidth / FloatHeight > FDrawableImage.Width / FDrawableImage.Height) then
-      begin
-        NewFloatWidth := FDrawableImage.Width * FloatHeight / FDrawableImage.Height;
-        NewLeft := Left + (FloatWidth - NewFloatWidth) / 2;
-        Result := FloatRectangle(NewLeft, Bottom, NewFloatWidth, FloatHeight);
-      end else
-      begin
-        NewFloatHeight := FDrawableImage.Height * FloatWidth / FDrawableImage.Width;
-        NewBottom := Bottom + (FloatHeight - NewFloatHeight) / 2;
-        Result := FloatRectangle(Left, NewBottom, FloatWidth, NewFloatHeight);
-      end;
-    end else
-      Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
+    ImageWidth  /= FScaleFromUrl;
+    ImageHeight /= FScaleFromUrl;
   end;
 
-  if ApplyScaling then
-    // applying UIScale on this is easy...
-    Result := Result.ScaleAround0(UIScale);
+  if not Stretch then
+  begin
+    PreferredWidth  := ImageWidth  * UIScale;
+    PreferredHeight := ImageHeight * UIScale;
+  end else
+  if (ProportionalScaling in [psFit, psEnclose]) and
+     (ImageWidth <> 0) and
+     (ImageHeight <> 0) then
+  begin
+    if (ProportionalScaling = psFit) =
+       (PreferredWidth / PreferredHeight >
+        ImageWidth / ImageHeight) then
+    begin
+      PreferredWidth := ImageWidth * PreferredHeight / ImageHeight;
+    end else
+    begin
+      PreferredHeight := ImageHeight * PreferredWidth / ImageWidth;
+    end;
+  end;
+end;
+
+procedure TCastleImageControl.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if not Stretch then
+  begin
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn on "TCastleImageControl.Stretch" to change size.');
+  end;
 end;
 
 procedure TCastleImageControl.ImageChanged;
@@ -641,53 +738,6 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
-  begin
-    FFloatWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleImageControl.SetFloatHeight(const Value: Single);
-begin
-  if FFloatHeight <> Value then
-  begin
-    FFloatHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-function TCastleImageControl.GetWidth: Cardinal;
-begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleImageControl.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleImageControl.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleImageControl.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleImageControl.SetFullSize(const Value: boolean);
-begin
-  if FFullSize <> Value then
-  begin
-    FFullSize := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
 function TCastleImageControl.GetCustomShader: TGLSLProgram;
 begin
   Result := FDrawableImage.CustomShader;
@@ -711,5 +761,60 @@ begin
     VisibleChange([chRender]);
   end;
 end;
+
+procedure TCastleImageControl.SetFlipVertical(const Value: Boolean);
+begin
+  if FFlipVertical <> Value then
+  begin
+    FFlipVertical := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetFlipHorizontal(const Value: Boolean);
+begin
+  if FFlipHorizontal <> Value then
+  begin
+    FFlipHorizontal := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleImageControl.SetDetectScaleFromUrl(const Value: Boolean);
+begin
+  if FDetectScaleFromUrl <> Value then
+  begin
+    FDetectScaleFromUrl := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+function TCastleImageControl.GetCorners: TVector4Integer;
+begin
+  Result := Vector4Integer(
+    Round(ProtectedSides.TotalTop),
+    Round(ProtectedSides.TotalRight),
+    Round(ProtectedSides.TotalBottom),
+    Round(ProtectedSides.TotalLeft)
+  );
+end;
+
+procedure TCastleImageControl.SetCorners(const Value: TVector4Integer);
+begin
+  ProtectedSides.AllSides := 0;
+  ProtectedSides.Top    := Value[0];
+  ProtectedSides.Right  := Value[1];
+  ProtectedSides.Bottom := Value[2];
+  ProtectedSides.Left   := Value[3];
+end;
+
+procedure TCastleImageControl.ProtectedSidesChange(Sender: TObject);
+begin
+  VisibleChange([chRectangle]);
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

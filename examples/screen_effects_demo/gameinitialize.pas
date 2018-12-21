@@ -224,7 +224,7 @@ procedure ApplicationInitialize;
   end;
 
 var
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   ExampleImage: TCastleImageControl;
   ExampleButton: TCastleButton;
   Example3DScene: TCastleScene;
@@ -239,8 +239,9 @@ begin
 
   { Insert almost-black background, otherwise (as Window is only TCastleWindowCustom)
     the background would be undefined. }
-  Background := TCastleSimpleBackground.Create(Application);
+  Background := TCastleRectangleControl.Create(Application);
   Background.Color := Vector4(0.1, 0.1, 0.1, 1);
+  Background.FullSize := true;
   Window.Controls.InsertBack(Background);
 
   { Show a label with frames per second information }
@@ -316,28 +317,34 @@ begin
   Label1.Caption := 'Example button and image';
   Label1.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label1.Anchor(hpMiddle, -300 - 50);
+  Label1.Color := White;
   Window.Controls.InsertFront(Label1);
 
   Label2 := TCastleLabel.Create(Application);
   Label2.Caption := '2D Scene Manager';
   Label2.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label2.Anchor(hpMiddle);
+  Label2.Color := White;
   Window.Controls.InsertFront(Label2);
 
   Label3 := TCastleLabel.Create(Application);
   Label3.Caption := '3D Scene Manager';
   Label3.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label3.Anchor(hpMiddle, 300 + 50);
+  Label3.Color := White;
   Window.Controls.InsertFront(Label3);
 
   BottomControls := TCastleHorizontalGroup.Create(Application);
   BottomControls.Anchor(hpMiddle);
   BottomControls.Anchor(vpBottom, 10);
   BottomControls.Frame := true;
+  BottomControls.Padding := 10;
+  BottomControls.Spacing := 10;
   Window.Controls.InsertFront(BottomControls);
 
   LabelEffects := TCastleLabel.Create(Application);
   LabelEffects.Caption := 'Toggle Screen Effects:';
+  LabelEffects.Color := White;
   BottomControls.InsertFront(LabelEffects);
 
   FilmGrain.Button := TCastleButton.Create(Application);

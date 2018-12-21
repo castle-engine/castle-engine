@@ -1,74 +1,46 @@
 {
-  "Bottom" : 0,
-  "CapturesEvents" : true,
-  "EnableUIScaling" : true,
-  "Exists" : true,
-  "FloatHeight" : 0.0000000000000000E+000,
-  "FloatWidth" : 0.0000000000000000E+000,
   "FullSize" : true,
-  "HasHorizontalAnchor" : false,
-  "HasVerticalAnchor" : false,
-  "Height" : 0,
-  "HorizontalAnchorDelta" : 0.0000000000000000E+000,
-  "HorizontalAnchorParent" : "hpLeft",
-  "HorizontalAnchorSelf" : "hpLeft",
-  "KeepInFront" : false,
   "Name" : "Group1",
-  "Tag" : 0,
-  "VerticalAnchorDelta" : 0.0000000000000000E+000,
-  "VerticalAnchorParent" : "vpBottom",
-  "VerticalAnchorSelf" : "vpBottom",
-  "Width" : 0,
   "_Children" : [
     {
-      "ApproximateActivation" : false,
-      "BackgroundWireframe" : false,
-      "Bottom" : 0,
-      "CapturesEvents" : true,
-      "ClearDepth" : true,
-      "DefaultViewport" : true,
-      "DefaultVisibilityLimit" : 0.0000000000000000E+000,
-      "EnableUIScaling" : true,
-      "Exists" : true,
-      "FloatHeight" : 0.0000000000000000E+000,
-      "FloatWidth" : 0.0000000000000000E+000,
-      "FullSize" : true,
-      "HasHorizontalAnchor" : false,
-      "HasVerticalAnchor" : false,
-      "HeadlightFromViewport" : false,
       "HeadlightNode" : {
         "_ClassName" : "TDirectionalLightNode"
       },
-      "Height" : 0,
-      "HorizontalAnchorDelta" : 0.0000000000000000E+000,
-      "HorizontalAnchorParent" : "hpLeft",
-      "HorizontalAnchorSelf" : "hpLeft",
       "Items" : {
-        "ExcludeFromGlobalLights" : false,
-        "ExcludeFromStatistics" : false,
+        "CenterPersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
         "Name" : "Items",
-        "Tag" : 0,
+        "RotationPersistent" : {
+          "_ClassName" : "TCastleVector4Persistent"
+        },
+        "ScaleOrientationPersistent" : {
+          "_ClassName" : "TCastleVector4Persistent"
+        },
+        "ScalePersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
+        "TranslationPersistent" : {
+          "_ClassName" : "TCastleVector3Persistent"
+        },
         "_Children" : [
           {
-            "AnimateOnlyWhenVisible" : false,
-            "AnimateSkipTicks" : 0,
-            "DistanceCulling" : 0.0000000000000000E+000,
-            "ExcludeFromGlobalLights" : false,
-            "ExcludeFromStatistics" : false,
-            "FrustumCulling" : "fcBox",
-            "InitialViewpointIndex" : 0,
-            "InitialViewpointName" : "",
+            "CenterPersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
             "Name" : "Scene1",
-            "OctreeFrustumCulling" : "fcBox",
-            "ProcessEvents" : false,
-            "ReceiveShadowVolumes" : true,
-            "ShadowMaps" : true,
-            "ShadowMapsDefaultSize" : 256,
-            "Spatial" : [
-            ],
-            "Tag" : 0,
-            "TimePlaying" : true,
-            "TimePlayingSpeed" : 1.0000000000000000E+000,
+            "RotationPersistent" : {
+              "_ClassName" : "TCastleVector4Persistent"
+            },
+            "ScaleOrientationPersistent" : {
+              "_ClassName" : "TCastleVector4Persistent"
+            },
+            "ScalePersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
+            "TranslationPersistent" : {
+              "_ClassName" : "TCastleVector3Persistent"
+            },
             "URL" : "castle-data:/example.x3dv",
             "_Children" : [
             ],
@@ -77,149 +49,84 @@
         ],
         "_ClassName" : "TSceneManagerWorldConcrete"
       },
-      "KeepInFront" : false,
       "MainScene" : "Scene1",
       "Name" : "SceneManager1",
-      "Paused" : false,
-      "ScreenSpaceAmbientOcclusion" : false,
-      "ShadowVolumes" : true,
-      "ShadowVolumesRender" : false,
-      "Tag" : 0,
-      "TimeScale" : 1.0000000000000000E+000,
-      "Transparent" : false,
-      "UseGlobalFog" : true,
-      "UseGlobalLights" : true,
       "UseHeadlight" : "hlOn",
-      "VerticalAnchorDelta" : 0.0000000000000000E+000,
-      "VerticalAnchorParent" : "vpBottom",
-      "VerticalAnchorSelf" : "vpBottom",
-      "Width" : 0,
       "_Children" : [
       ],
       "_ClassName" : "TCastleSceneManager"
     },
     {
-      "Bottom" : 0,
-      "CapturesEvents" : true,
       "ColorPersistent" : {
-        "A" : 5.0000000000000000E-001,
-        "B" : 1.0000000000000000E+000,
-        "G" : 5.0000000000000000E-001,
-        "R" : 5.0000000000000000E-001,
+        "Alpha" : 5.0000000000000000E-001,
+        "Green" : 5.0000000000000000E-001,
+        "Red" : 5.0000000000000000E-001,
         "_ClassName" : "TCastleColorPersistent"
       },
-      "EnableUIScaling" : true,
-      "Exists" : true,
-      "FloatHeight" : 5.0000000000000000E+002,
-      "FloatWidth" : 5.0000000000000000E+002,
-      "FullSize" : false,
-      "HasHorizontalAnchor" : true,
-      "HasVerticalAnchor" : true,
-      "Height" : 500,
+      "Height" : 5.0000000000000000E+002,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
-      "KeepInFront" : false,
       "Name" : "Rectangle1",
-      "Tag" : 0,
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
-      "Width" : 500,
+      "Width" : 5.0000000000000000E+002,
       "_Children" : [
         {
-          "AutoSize" : true,
-          "AutoSizeHeight" : true,
-          "AutoSizeWidth" : true,
-          "Bottom" : 0,
           "Caption" : "I am a button",
-          "CapturesEvents" : true,
-          "EnableParentDragging" : false,
-          "EnableUIScaling" : true,
-          "Enabled" : true,
-          "Exists" : true,
-          "FloatHeight" : 0.0000000000000000E+000,
-          "FloatWidth" : 0.0000000000000000E+000,
-          "FontScale" : 1.0000000000000000E+000,
           "FontSize" : 5.0000000000000000E+001,
-          "HasHorizontalAnchor" : true,
-          "HasVerticalAnchor" : true,
-          "Height" : 0,
-          "HorizontalAnchorDelta" : 0.0000000000000000E+000,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
-          "ImageAlphaTest" : false,
-          "ImageLayout" : "ilLeft",
-          "ImageMargin" : 10,
-          "KeepInFront" : false,
-          "MinHeight" : 0,
-          "MinWidth" : 0,
           "Name" : "Button1",
-          "Outline" : 0,
-          "OutlineHighQuality" : false,
-          "OwnsCustomFont" : false,
-          "PaddingHorizontal" : 10,
-          "PaddingVertical" : 10,
-          "Pressed" : false,
-          "SmallFont" : false,
-          "Tag" : 0,
-          "Toggle" : false,
-          "Tooltip" : "",
           "VerticalAnchorDelta" : -1.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
-          "Width" : 0,
           "_Children" : [
           ],
           "_ClassName" : "TCastleButton"
         },
         {
-          "Alignment" : "hpLeft",
-          "AutoSize" : true,
-          "Bottom" : 0,
-          "CapturesEvents" : true,
-          "EnableUIScaling" : true,
-          "Exists" : true,
-          "FloatHeight" : 0.0000000000000000E+000,
-          "FloatWidth" : 0.0000000000000000E+000,
-          "FontScale" : 1.0000000000000000E+000,
+          "ColorPersistent" : {
+            "_ClassName" : "TCastleColorPersistent"
+          },
           "FontSize" : 5.0000000000000000E+001,
-          "Frame" : false,
-          "FullSize" : false,
-          "HasHorizontalAnchor" : true,
-          "HasVerticalAnchor" : true,
-          "Height" : 0,
-          "HorizontalAnchorDelta" : 0.0000000000000000E+000,
+          "FrameColorPersistent" : {
+            "_ClassName" : "TCastleColorPersistent"
+          },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
-          "Html" : false,
-          "KeepInFront" : false,
-          "LineSpacing" : 2.0000000000000000E+000,
-          "MaxDisplayChars" : -1,
-          "MaxWidth" : 0.0000000000000000E+000,
           "Name" : "Label1",
-          "Outline" : 0,
-          "OutlineHighQuality" : false,
-          "OwnsCustomFont" : false,
-          "Padding" : 0.0000000000000000E+000,
-          "PaddingHorizontal" : 0.0000000000000000E+000,
-          "PaddingVertical" : 0.0000000000000000E+000,
-          "SmallFont" : false,
-          "Tag" : 0,
           "Text" : "I am a label\n",
-          "Tooltip" : "",
-          "VerticalAlignment" : "vpBottom",
           "VerticalAnchorDelta" : -1.0000000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
-          "Width" : 0,
           "_Children" : [
           ],
           "_ClassName" : "TCastleLabel"
         }
       ],
       "_ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "ColorPersistent" : {
+        "Blue" : 0.0000000000000000E+000,
+        "_ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "FrameColorPersistent" : {
+        "_ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelFps",
+      "Text" : "FPS: xxx\n",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "_Children" : [
+      ],
+      "_ClassName" : "TCastleLabel"
     }
   ],
-  "_ClassName" : "TCastleUserInterfaceRect"
+  "_ClassName" : "TCastleUserInterface"
 }

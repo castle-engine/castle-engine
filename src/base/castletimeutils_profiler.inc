@@ -157,6 +157,9 @@ type
       The profiler output is undefined in this case.
       (However, we guarantee that the profiler will not crash or otherwise cause
       problems in the application.)
+      So, you do not really have to wrap this in "try ... finally ... end" clause,
+      if it's acceptable that the profiler output is useless
+      in exceptional situations.
 
       @seealso Stop
     }

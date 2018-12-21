@@ -61,7 +61,7 @@ type
 
     type
       TPoint = packed record
-        Position: TVector2SmallInt;
+        Position: TVector2;
         TexCoord: TVector2;
       end;
       TPointArray = packed array [0..MaxInt div SizeOf(TPoint) - 1] of TPoint;
@@ -442,13 +442,15 @@ type
       )
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer); overload;
+      const CornerTop, CornerRight, CornerBottom, CornerLeft: Single); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
       const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TFloatRectangle;
       const Corner: TVector4Integer); overload;
+    procedure Draw3x3(const ScreenRect: TFloatRectangle;
+      const Corner: TVector4); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -466,13 +468,17 @@ type
     *)
 
     { Ignore (do not log to CastleLog) situations when Draw3x3
-      cannot work
-      because corners are larger than draw area size.
+      cannot work because corners are larger than draw area size.
       Set this to @true when it's perfectly possible (you do not want to even
       see it in log) for Draw3x3 calls to fail because corners
-      are larger than draw area size. }
+      are larger than draw area size.
+
+      This is @true by default now, since it's safer for UI rendering.
+      Otherwise causing this problem makes a flood of errors to the log file,
+      and it's easy to make this problem when your UI adjusts to the screen size.
+    }
     property IgnoreTooLargeCorners: boolean
-      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
+      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default true;
 
     { Color to multiply the texture contents (all RGBA channels).
       By default this is White, which is (1, 1, 1, 1) as RGBA,
@@ -767,7 +773,7 @@ type
       @unorderedList(
         @item(TGLImage.Draw (to draw @italic(other) TGLImage instances on this one),)
         @item(DrawRectangle, DrawCircle, DrawPrimitive2D and friends in CastleGLUtils,)
-        @item(@link(TGLContainer.RenderControl Window.Container.RenderControl)
+        @item(@link(TUIContainer.RenderControl Window.Container.RenderControl)
           to render any TCastleUserInterface to this image.)
       )
 
@@ -878,6 +884,7 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingConstantColor := DefaultBlendingConstantColor;
+  FIgnoreTooLargeCorners := true;
 
   Load(Image);
 end;
@@ -1196,53 +1203,39 @@ var
   ShiftX, ShiftY: Single;
 
   { Rotate Point by Rotation radians around (ShiftX, ShiftY). }
-  function RotatePoint2DAroundShift(const Point: TVector2SmallInt): TVector2SmallInt;
+  function RotatePoint2DAroundShift(const Point: TVector2): TVector2;
   var
-    PointSingle, ResultSingle: TVector2;
+    PointShift, ResultShift: TVector2;
   begin
-    PointSingle := Vector2(Point[0] - ShiftX, Point[1] - ShiftY);
-    ResultSingle := RotatePoint2D(PointSingle, Rotation);
-    Result := Vector2SmallInt(Round(ResultSingle[0] + ShiftX), Round(ResultSingle[1] + ShiftY));
+    PointShift := Vector2(Point[0] - ShiftX, Point[1] - ShiftY);
+    ResultShift := RotatePoint2D(PointShift, Rotation);
+    Result := Vector2(ResultShift[0] + ShiftX, ResultShift[1] + ShiftY);
   end;
 
   procedure SetupQuadPoints(const ScreenRect, ImageRect: TFloatRectangle;
     QuadPoints: PPointArray);
   var
     TexX0, TexY0, TexX1, TexY1: Single;
-    X0, Y0, X1, Y1: Int64;
+    X0, Y0, X1, Y1: Single;
   begin
     TexX0 := ImageRect.Left   / Width;
     TexY0 := ImageRect.Bottom / Height;
     TexX1 := (ImageRect.Left   + ImageRect.Width ) / Width;
     TexY1 := (ImageRect.Bottom + ImageRect.Height) / Height;
 
-    { We could just pass float values, unrounded, to OpenGL.
-      But this lowers quality (at least without full-screen anti-aliasing),
-      e.g. in case of fonts, since OpenGL can fill only entire pixels anyway,
-      and pixels on the borders would get a little trimmed. }
-    X0 := Round(ScreenRect.Left);
-    Y0 := Round(ScreenRect.Bottom);
-    X1 := Round(ScreenRect.Left   + ScreenRect.Width);
-    Y1 := Round(ScreenRect.Bottom + ScreenRect.Height);
-
-    { Protect from X, Y and sizes going outside of the SmallInt range.
-      We want to squeeze X, Y into SmallInt to make it a little more efficient
-      to render, and there are no displays with resolution outside of SmallInt
-      range anyway. }
-    if (X0 < Low(SmallInt)) or
-       (Y0 < Low(SmallInt)) or
-       (X1 > High(SmallInt)) or
-       (Y1 > High(SmallInt)) then
-      Exit;
+    X0 := ScreenRect.Left;
+    Y0 := ScreenRect.Bottom;
+    X1 := ScreenRect.Left   + ScreenRect.Width;
+    Y1 := ScreenRect.Bottom + ScreenRect.Height;
 
     QuadPoints^[0].TexCoord := Vector2(TexX0, TexY0);
-    QuadPoints^[0].Position := Vector2SmallInt( X0,    Y0);
+    QuadPoints^[0].Position := Vector2(X0,    Y0);
     QuadPoints^[1].TexCoord := Vector2(TexX1, TexY0);
-    QuadPoints^[1].Position := Vector2SmallInt( X1,    Y0);
+    QuadPoints^[1].Position := Vector2(X1,    Y0);
     QuadPoints^[2].TexCoord := Vector2(TexX1, TexY1);
-    QuadPoints^[2].Position := Vector2SmallInt( X1,    Y1);
+    QuadPoints^[2].Position := Vector2(X1,    Y1);
     QuadPoints^[3].TexCoord := Vector2(TexX0, TexY1);
-    QuadPoints^[3].Position := Vector2SmallInt( X0,    Y1);
+    QuadPoints^[3].Position := Vector2(X0,    Y1);
 
     if FRotation <> 0 then
     begin
@@ -1359,7 +1352,7 @@ begin
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
     TGLSLProgram.Current := Prog.Prog;
-    Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
+    Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
     Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
@@ -1386,13 +1379,13 @@ begin
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     if GLFeatures.VertexBufferObject then
     begin
-      glVertexPointer(2, GL_SHORT,
+      glVertexPointer(2, GL_FLOAT,
         SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
       glTexCoordPointer(2, GL_FLOAT,
         SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
     end else
     begin
-      glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Points[0].Position));
+      glVertexPointer  (2, GL_FLOAT, SizeOf(TPoint), @(Points[0].Position));
       glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
     end;
     if Clip then
@@ -1479,7 +1472,7 @@ begin
 end;
 
 procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-  const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
+  const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
   ScreenRects, ImageRects: packed array [0..8] of TFloatRectangle;
   DrawAddCount: Cardinal;
@@ -1519,7 +1512,7 @@ begin
            (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
     if Log and not IgnoreTooLargeCorners then
-      WritelnLog('TGLImageCore.Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %f %f',
+      WritelnLog('TGLImageCore.Draw3x3', 'Image corners are too large to draw it: corners are %f %f %f %f, image size is %d %d, draw area size is %f %f',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Width, Height,
          DrawWidth, DrawHeight]);
@@ -1604,6 +1597,14 @@ end;
 
 procedure TGLImageCore.Draw3x3(const ScreenRect: TFloatRectangle;
   const Corner: TVector4Integer);
+begin
+  Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
+    ScreenRect.Width, ScreenRect.Height,
+    Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImageCore.Draw3x3(const ScreenRect: TFloatRectangle;
+  const Corner: TVector4);
 begin
   Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
     ScreenRect.Width, ScreenRect.Height,

@@ -142,6 +142,8 @@ function Vector2Integer(const X, Y: Integer): TVector2Integer; inline;
 function Vector3Integer(const X, Y, Z: Integer): TVector3Integer; inline;
 function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer; inline;
 
+function Vector2(const V: TVector2Integer): TVector2; overload; inline;
+
 (*
 Not defined for now, it's not obvious whether this is the most intuitive Lerp.
 
@@ -382,6 +384,12 @@ begin
   Result.Data[1] := Y;
   Result.Data[2] := Z;
   Result.Data[3] := W;
+end;
+
+function Vector2(const V: TVector2Integer): TVector2;
+begin
+  Result.Data[0] := V.Data[0];
+  Result.Data[1] := V.Data[1];
 end;
 
 (*

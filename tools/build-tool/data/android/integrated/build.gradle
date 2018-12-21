@@ -2,6 +2,40 @@
 buildscript {
     repositories {
         jcenter()
+
+        /*
+          Workaround missing
+
+            https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.pom
+            https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.jar
+
+          Make building fail with
+          * What went wrong:
+           A problem occurred configuring root project 'project'.
+           > Could not resolve all dependencies for configuration ':classpath'.
+              > Could not find com.android.tools:common:25.2.3.
+                Searched in the following locations:
+                    https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.pom
+                    https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.jar
+                Required by:
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.build:manifest-merger:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.ddms:ddmlib:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.analytics-library:shared:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.analytics-library:tracker:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools.layoutlib:layoutlib-api:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools:dvlib:25.2.3
+                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools:repository:25.2.3
+
+          See also
+          https://stackoverflow.com/questions/53691457/react-native-android-could-not-find-com-android-toolscommon25-2-3
+          https://developer.android.com/studio/build/
+          https://developer.android.com/studio/releases/gradle-plugin
+
+          TODO: Probably upgrading our Gradle version to 3 would also fix this issue,
+          removing the need for this workaround.
+        */
+        maven { url "https://dl.bintray.com/android/android-tools/"  }
     }
     dependencies {
         // This declares the "Android Gradle plugin" version

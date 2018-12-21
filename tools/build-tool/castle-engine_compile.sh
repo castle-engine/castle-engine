@@ -23,6 +23,7 @@ fpc -dRELEASE @castle-fpc.cfg \
   -FEtools/build-tool/ \
   -FUtools/build-tool/castle-engine-output/build-tool-compilation \
   -Futools/build-tool/embedded_images/ \
+  ${CASTLE_FPC_OPTIONS:-} \
   tools/build-tool/code/castle-engine.lpr
 
 # Not needed anymore, we use -FE

@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -20,29 +21,25 @@
   TCastleAbstractSlider = class(TCastleUserInterfaceFont)
   strict private
     FDisplayValue: boolean;
-    FWidth: Cardinal;
-    FHeight: Cardinal;
     FOnChange: TNotifyEvent;
     FCaption: string;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    function IndicatorWidth(const R: TRectangle): Integer;
+    function IndicatorWidth(const R: TFloatRectangle): Single;
     procedure SetCaption(const Value: string);
   private
     { Draw a slider at given Position. If Position is outside 0..1, it is clamped
       to 0..1 (this way we do not show slider at some wild position if it's
       outside the expected range; but DrawSliderText will still show the true,
       unclamped, value). }
-    procedure DrawSliderPosition(const R: TRectangle; const Position: Single);
+    procedure DrawSliderPosition(const R: TFloatRectangle; const Position: Single);
 
     { Returns a value of Position, always in 0..1 range,
       that would result in slider being drawn at XCoord screen position
       by DrawSliderPosition.
       Takes Rectangle as the rectangle currently occupied by the whole slider. }
     function XCoordToSliderPosition(const XCoord: Single;
-      const R: TRectangle): Single;
+      const R: TFloatRectangle): Single;
 
-    procedure DrawSliderText(const R: TRectangle; Text: string);
+    procedure DrawSliderText(const R: TFloatRectangle; Text: string);
   strict protected
     { React to value change. The default implementation simply calls the OnChange
       event, if assigned. This is called when value is changed by user actions
@@ -50,15 +47,14 @@
     procedure DoChange; virtual;
   public
     const
-      DefaultWidth = 200;
-      DefaultHeight = 20;
+      DefaultSliderWidth = 200;
+      DefaultSliderHeight = 20;
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
-    property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
-    property Height: Cardinal read FHeight write SetHeight default DefaultHeight;
+    property Width default DefaultSliderWidth;
+    property Height default DefaultSliderHeight;
 
     property SmallFont default true;
 
@@ -137,7 +133,7 @@
     FValue: Integer;
     FValuePointer: PInteger; //< non-nil only when initiazed with appropriate constructor
     function XCoordToValue(
-      const XCoord: Single; const R: TRectangle): Integer;
+      const XCoord: Single; const R: TFloatRectangle): Integer;
     procedure SetMin(const AMin: Integer);
     procedure SetMax(const AMax: Integer);
     procedure SetValue(const AValue: Integer);
@@ -176,62 +172,57 @@ constructor TCastleAbstractSlider.Create(AOwner: TComponent);
 begin
   inherited;
   FDisplayValue := true;
-  FWidth := DefaultWidth;
-  FHeight := DefaultHeight;
+  Width := DefaultSliderWidth;
+  Height := DefaultSliderHeight;
   SmallFont := true;
-end;
-
-function TCastleAbstractSlider.FloatRect: TFloatRectangle;
-begin
-  Result := FloatRectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
 end;
 
 procedure TCastleAbstractSlider.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, tiSlider, UIScale);
+  Theme.Draw(RenderRect, tiSlider, UIScale);
 end;
 
-function TCastleAbstractSlider.IndicatorWidth(const R: TRectangle): Integer;
+function TCastleAbstractSlider.IndicatorWidth(const R: TFloatRectangle): Single;
 begin
-  Result := R.Height div 2 { guess suitable tiSliderPosition width from height };
+  Result := R.Height / 2 { guess suitable tiSliderPosition width from height };
 end;
 
-procedure TCastleAbstractSlider.DrawSliderPosition(const R: TRectangle;
+procedure TCastleAbstractSlider.DrawSliderPosition(const R: TFloatRectangle;
   const Position: Single);
 var
-  IndicatorW: Integer;
+  IndicatorW: Single;
 begin
   IndicatorW := IndicatorWidth(R);
-  Theme.Draw(Rectangle(
+  Theme.Draw(FloatRectangle(
     R.Left +
-      Round(MapRangeClamped(Position, 0, 1, IndicatorW div 2, R.Width - IndicatorW div 2))
-      - IndicatorW div 2,
+      Round(MapRangeClamped(Position, 0, 1, IndicatorW / 2, R.Width - IndicatorW / 2))
+      - IndicatorW / 2,
     R.Bottom,
     IndicatorW,
     R.Height), tiSliderPosition, UIScale);
 end;
 
 function TCastleAbstractSlider.XCoordToSliderPosition(
-  const XCoord: Single; const R: TRectangle): Single;
+  const XCoord: Single; const R: TFloatRectangle): Single;
 var
-  IndicatorW: Integer;
+  IndicatorW: Single;
 begin
   IndicatorW := IndicatorWidth(R);
   Result := Clamped(MapRange(XCoord,
-    R.Left + IndicatorW div 2,
-    R.Left + R.Width - IndicatorW div 2, 0, 1), 0, 1);
+    R.Left + IndicatorW / 2,
+    R.Left + R.Width - IndicatorW / 2, 0, 1), 0, 1);
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(
-  const R: TRectangle; Text: string);
+  const R: TFloatRectangle; Text: string);
 begin
   if (Caption <> '') and (Text <> '') then
     Text := Caption + ': ' + Text else
     Text := Caption + Text;
   Font.Print(
-    R.Left + (R.Width - Font.TextWidth(Text)) div 2,
-    R.Bottom + (R.Height - Font.RowHeight) div 2,
+    R.Left + (R.Width - Font.TextWidth(Text)) / 2,
+    R.Bottom + (R.Height - Font.RowHeight) / 2,
     Black, Text);
 end;
 
@@ -239,24 +230,6 @@ procedure TCastleAbstractSlider.DoChange;
 begin
   if Assigned(OnChange) then
     OnChange(Self);
-end;
-
-procedure TCastleAbstractSlider.SetWidth(const Value: Cardinal);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleAbstractSlider.SetHeight(const Value: Cardinal);
-begin
-  if FHeight <> Value then
-  begin
-    FHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
 end;
 
 procedure TCastleAbstractSlider.SetCaption(const Value: string);
@@ -310,13 +283,13 @@ end;
 
 procedure TCastleFloatSlider.Render;
 var
-  R: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
-  R := ScreenRect;
-  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  SR := RenderRect;
+  DrawSliderPosition(SR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
-    DrawSliderText(R, ValueToStr(Value));
+    DrawSliderText(SR, ValueToStr(Value));
 end;
 
 function TCastleFloatSlider.Press(const Event: TInputPressRelease): boolean;
@@ -349,7 +322,7 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Value := RoundAndClamp(MapRange(
-      XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1, Min, Max));
+      XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
     DoChange;
     Result := ExclusiveEvents;
   end;
@@ -363,7 +336,7 @@ begin
   if mbLeft in Event.Pressed then
   begin
     Value := RoundAndClamp(MapRange(
-      XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1, Min, Max));
+      XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
     DoChange;
     Result := ExclusiveEvents;
   end;
@@ -465,13 +438,13 @@ end;
 
 procedure TCastleIntegerSlider.Render;
 var
-  R: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
-  R := ScreenRect;
-  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  SR := RenderRect;
+  DrawSliderPosition(SR, MapRange(Value, Min, Max, 0, 1));
   if DisplayValue then
-    DrawSliderText(R, ValueToStr(Value));
+    DrawSliderText(SR, ValueToStr(Value));
 end;
 
 function TCastleIntegerSlider.Press(const Event: TInputPressRelease): boolean;
@@ -495,14 +468,14 @@ begin
   end else
   if Event.IsMouseButton(mbLeft) then
   begin
-    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;
     Result := ExclusiveEvents;
   end;
 end;
 
 function TCastleIntegerSlider.XCoordToValue(
-  const XCoord: Single; const R: TRectangle): Integer;
+  const XCoord: Single; const R: TFloatRectangle): Integer;
 begin
   { We do additional Clamped over Round result to avoid any
     chance of floating-point errors due to lack of precision. }
@@ -518,7 +491,7 @@ begin
 
   if mbLeft in Event.Pressed then
   begin
-    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;
     Result := ExclusiveEvents;
   end;

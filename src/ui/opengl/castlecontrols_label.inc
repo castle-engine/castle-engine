@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -29,27 +30,25 @@
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
-    FFloatWidth, FFloatHeight: Single;
-    FFullSize: boolean;
     FMaxDisplayChars: Integer;
     function GetTextToRender: TRichText;
-    function GetWidth: Cardinal;
-    function GetHeight: Cardinal;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
-    procedure SetFloatWidth(const Value: Single);
-    procedure SetFloatHeight(const Value: Single);
-    procedure SetFullSize(const Value: boolean);
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
+    procedure SetMaxWidth(const Value: Single);
+    procedure TextChange(Sender: TObject);
+    procedure SetText(const Value: TStrings);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
   public
     const
       DefaultLineSpacing = 2;
@@ -57,9 +56,10 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function FloatRect: TFloatRectangle; override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
 
-    { Text color. By default it's white. }
+    { Text color. By default it's opaque black. }
     property Color: TCastleColor read FColor write FColor;
 
     { Color tint of the background image, see @link(Frame). By default white. }
@@ -67,12 +67,6 @@
 
     function DisplayChars: Cardinal;
   published
-    property Width: Cardinal read GetWidth write SetWidth default 0;
-    property Height: Cardinal read GetHeight write SetHeight default 0;
-    property FloatWidth: Single read FFloatWidth write SetFloatWidth default 0;
-    property FloatHeight: Single read FFloatHeight write SetFloatHeight default 0;
-    property FullSize: boolean read FFullSize write SetFullSize default false;
-
     { Should we automatically adjust size to the text size.
       The size of the label determines where does it display the @link(Frame),
       where does it catch events, to what width is it aligned (see @link(Alignment))
@@ -82,8 +76,9 @@
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
 
-    { Caption displayed on the label, each line as a string. }
-    property Text: TStrings read FText;
+    { Caption displayed on the label, each line as a string.
+      Setting this property merely copies the contents using TStrings.Assign. }
+    property Text: TStrings read FText write SetText;
 
     { Caption displayed on the label.
       This is just a shortcut to get/set @link(Text) as a single string.
@@ -142,7 +137,7 @@
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
       (together with @link(PaddingHorizontal)) inside MaxWidth. }
-    property MaxWidth: Single read FMaxWidth write FMaxWidth default 0;
+    property MaxWidth: Single read FMaxWidth write SetMaxWidth default 0;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -166,6 +161,10 @@
       Use DisplayChars as the maximum sensible value for this. }
     property MaxDisplayChars: Integer
       read FMaxDisplayChars write SetMaxDisplayChars default -1;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -179,17 +178,31 @@ begin
   inherited;
 
   FText := TStringList.Create;
-  FColor := White;
+  TStringList(FText).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} TextChange;
+  {$warnings off}
+  if Theme.DefaultLabelWhite then
+  {$warnings on}
+    FColor := White
+  else
+    FColor := Black;
   FFrame := false;
   FFrameColor := White;
   FLineSpacing := DefaultLineSpacing;
   FAutoSize := true;
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleLabel.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   FreeAndNil(FText);
 
   inherited;
@@ -212,13 +225,15 @@ begin
   end;
 end;
 
-function TCastleLabel.FloatRect: TFloatRectangle;
+procedure TCastleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   TextToRender: TRichText;
   TextToRenderWidth, TextToRenderCount: Cardinal;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Single;
   US: Single;
 begin
+  inherited;
+
   if AutoSize then
   begin
     if (not Html) and (MaxWidth = 0) then
@@ -239,19 +254,25 @@ begin
     PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
     PaddingVerticalScaled := US * (PaddingVertical + Padding);
     LineSpacingScaled := US * LineSpacing;
-    Result := FloatRectangle(
-      FloatLeftBottomScaled,
-      TextToRenderWidth + 2 * PaddingHorizontalScaled,
+
+    PreferredWidth := TextToRenderWidth + 2 * PaddingHorizontalScaled;
+    PreferredHeight :=
       Font.RowHeight * TextToRenderCount +
       LineSpacingScaled * (TextToRenderCount - 1) +
       2 * PaddingVerticalScaled +
-      Font.Descend);
-  end else
-  if FullSize then
-    Result := ParentFloatRect else
+      Font.Descend;
+  end;
+end;
+
+procedure TCastleLabel.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSize then
   begin
-    Result := FloatRectangle(Left, Bottom, FloatWidth, FloatHeight);
-    Result := Result.ScaleAround0(UIScale);
+    ResizeWidth := false;
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleLabel.AutoSize" to change size.');
   end;
 end;
 
@@ -273,7 +294,7 @@ begin
   inherited;
   if Text.Count = 0 then Exit; // early exit in case of easy, fast case
 
-  SR := ScreenFloatRect;
+  SR := RenderRect;
   US := UIScale;
   PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
@@ -312,53 +333,6 @@ begin
       TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment,
         MaxDisplayChars);
     finally FreeAndNil(TextToRender) end;
-  end;
-end;
-
-function TCastleLabel.GetWidth: Cardinal;
-begin
-  Result := Round(FloatWidth);
-end;
-
-function TCastleLabel.GetHeight: Cardinal;
-begin
-  Result := Round(FloatHeight);
-end;
-
-procedure TCastleLabel.SetWidth(const Value: Cardinal);
-begin
-  FloatWidth := Value;
-end;
-
-procedure TCastleLabel.SetHeight(const Value: Cardinal);
-begin
-  FloatHeight := Value;
-end;
-
-procedure TCastleLabel.SetFloatWidth(const Value: Single);
-begin
-  if FFloatWidth <> Value then
-  begin
-    FFloatWidth := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleLabel.SetFloatHeight(const Value: Single);
-begin
-  if FFloatHeight <> Value then
-  begin
-    FFloatHeight := Value;
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleLabel.SetFullSize(const Value: boolean);
-begin
-  if FFullSize <> Value then
-  begin
-    FFullSize := Value;
-    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -408,6 +382,15 @@ begin
   end;
 end;
 
+procedure TCastleLabel.SetMaxWidth(const Value: Single);
+begin
+  if FMaxWidth <> Value then
+  begin
+    FMaxWidth := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
 function TCastleLabel.DisplayChars: Cardinal;
 var
   TextToRender: TRichText;
@@ -419,5 +402,29 @@ begin
     Result := TextToRender.DisplayChars;
   finally FreeAndNil(TextToRender) end;
 end;
+
+procedure TCastleLabel.TextChange(Sender: TObject);
+begin
+  VisibleChange([chRectangle]);
+end;
+
+procedure TCastleLabel.SetText(const Value: TStrings);
+begin
+  FText.Assign(Value);
+end;
+
+function TCastleLabel.GetInternalText: String;
+begin
+  Result := Caption;
+end;
+
+procedure TCastleLabel.SetInternalText(const Value: String);
+begin
+  Caption := Value;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

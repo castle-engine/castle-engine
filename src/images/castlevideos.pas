@@ -571,7 +571,7 @@ procedure TVideo.LoadFromFile(const URL: string;
         Inc(Index);
 
       if Length(FItems) = 0 then
-        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format --- in case of png make sure libpng is installed). Cannot load the video',
+        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format). Cannot load the video',
           [FormatNameCounter(URL, 0, false),
            FormatNameCounter(URL, 1, false)]);
     end else

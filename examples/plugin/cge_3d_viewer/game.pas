@@ -105,6 +105,7 @@ begin
 
   Status := TCastleLabel.Create(Self);
   Status.Frame := true;
+  Status.Color := White;
   Parent.Controls.InsertFront(Status);
 
   MessageButton := TCastleButton.Create(Self);

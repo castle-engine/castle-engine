@@ -16,4 +16,4 @@ else
 fi
 
 cd tools/texture-font-to-pascal/
-"${CASTLE_ENGINE}" compile
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}

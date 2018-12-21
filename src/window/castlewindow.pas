@@ -598,9 +598,9 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstact implementation of TGLContainer that cooperates with
+  { Non-abstact implementation of TUIContainer that cooperates with
     TCastleWindowCustom. }
-  TWindowContainer = class(TGLContainer)
+  TWindowContainer = class(TUIContainer)
   private
     Parent: TCastleWindowCustom;
   public
@@ -614,7 +614,7 @@ type
     function ScaledStatusBarHeight: Cardinal; override;
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
-    function Dpi: Integer; override;
+    function Dpi: Single; override;
     function Focused: boolean; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
@@ -638,14 +638,14 @@ type
     For example:
 
     @unorderedList(
-      @item(use @link(TCastleSimpleBackground),)
-
-      @item(or use @link(TCastleRectangleControl) with
-        @link(TCastleUserInterfaceRect.FullSize FullSize) = @true,)
+      @item(Use @link(TCastleRectangleControl) with
+        @link(TCastleUserInterface.FullSize FullSize) = @true and set
+        @link(TCastleRectangleControl.Color) as desired,)
 
       @item(or use @link(TCastleSceneManager) with
-        @link(TCastleUserInterfaceRect.FullSize) = @true and
-        @link(TCastleAbstractViewport.Transparent) = @false,)
+        @link(TCastleUserInterface.FullSize) = @true and
+        @link(TCastleAbstractViewport.Transparent) = @false and set
+        @link(TCastleSceneManager.BackgroundColor) as desired,)
 
       @item(eventually you can also call @link(CastleGLUtils.GLClear)
         at the beginning of your rendering in @link(OnRender).
@@ -728,7 +728,7 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
-    FDpi: Integer;
+    FDpi: Single;
     FContainer: TWindowContainer;
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
@@ -742,8 +742,6 @@ type
     procedure SetPublicCaption(const Value: string);
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
     function GetWholeCaption: string;
-    function GetRenderStyle: TRenderStyle;
-    procedure SetRenderStyle(const Value: TRenderStyle);
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     function GetOnOpen: TContainerEvent;
@@ -1186,13 +1184,15 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch,
-      thus it depends on both the screen resolution
-      and on the physical size of the device.
+    { Dots (pixels) per inch. Describes how many pixels fit on a physical inch.
+      So this is determined by the screen resolution in pixels,
+      and by the physical size of the device.
 
-      Some platforms leave it at default 96 (DefaultDpi constant).
-      For now, only Android and iOS platforms expose the actual DPI here. }
-    property Dpi: integer read FDpi write FDpi default DefaultDpi;
+      Some systems may expose a value that actually reflects user preference
+      "how to scale the user-interface", where 96 (DefaultDpi) is default.
+      So do not depend that it is actually related to the physical monitor size.
+      See https://developer.gnome.org/gdk2/stable/GdkScreen.html#gdk-screen-set-resolution . }
+    property Dpi: Single read FDpi write FDpi default DefaultDpi;
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -1681,8 +1681,8 @@ type
 
       When you have some controls on the @link(Controls) list
       (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
-      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
-      default). So here you can draw on top of the existing controls.
+      the OnRender event is done @bold(last).
+      So here you can draw on top of the existing controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
       and override it's @link(TCastleUserInterface.Render) and insert it to the controls
       using @code(Controls.InsertBack(MyBackgroundControl);). }
@@ -1914,8 +1914,8 @@ type
     property MainMenuVisible: boolean
       read FMainMenuVisible write FMainMenuVisible default true;
 
-    { If true then in TCastleWindowCustom destructor MainMenu will be destroyed too
-      (if not nil, od course). Usually this is something useful. }
+    { If true then the @link(MainMenu) will automatically freed when this
+      TCastleWindowCustom instance is freed. }
     property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
     { Called each time user chooses some menu item and it's not handled
@@ -1970,9 +1970,6 @@ type
       under every CastleWindow backend... sorry, CustomCursor is only a plan. }
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
-
-    property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
-      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TCastleUserInterface.KeepInFront';
 
     { List of user-interface controls currently active.
       See @link(TUIContainer.Controls) for details. }
@@ -2513,6 +2510,7 @@ type
 
   private
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
+    FOnInitializeEvent: TNotifyEvent;
     Initialized, InitializedJavaActivity: boolean;
     FOnUpdate: TUpdateFunc;
     FOnTimer: TProcedure;
@@ -2714,6 +2712,7 @@ type
       when OpenGL context is active, to allow you to display progress
       bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+    property OnInitializeEvent: TNotifyEvent read FOnInitializeEvent write FOnInitializeEvent;
 
     {property OnInitializeJavaActivity: TProcedure
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
@@ -3005,7 +3004,7 @@ begin
   Parent.MousePosition := Value;
 end;
 
-function TWindowContainer.Dpi: Integer;
+function TWindowContainer.Dpi: Single;
 begin
   Result := Parent.Dpi;
 end;
@@ -4435,18 +4434,6 @@ end;
 {$endif}
 {$endif}
 
-{$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
-function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
-begin
-  Result := Container.RenderStyle;
-end;
-
-procedure TCastleWindowCustom.SetRenderStyle(const Value: TRenderStyle);
-begin
-  Container.RenderStyle := Value;
-end;
-{$warnings on}
-
 function TCastleWindowCustom.Controls: TChildrenControls;
 begin
   Result := Container.Controls;
@@ -4811,14 +4798,26 @@ begin
   if not Initialized then
   begin
     Initialized := true;
+
+    // Call OnInitialize and OnInitializeEvent, watched by Profiler
+
     if Assigned(OnInitialize) then
     begin
       TimeStart := Profiler.Start('TCastleApplication.OnInitialize');
       OnInitialize();
       Profiler.Stop(TimeStart);
-      if Profiler.Enabled then
-        WritelnLogMultiline('Time Profile', Profiler.Summary);
     end;
+
+    if Assigned(OnInitializeEvent) then
+    begin
+      TimeStart := Profiler.Start('TCastleApplication.OnInitializeEvent');
+      OnInitializeEvent(Self);
+      Profiler.Stop(TimeStart);
+    end;
+
+    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) and
+       Profiler.Enabled then
+      WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
 end;
 

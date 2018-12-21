@@ -101,6 +101,11 @@ procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
+procedure DrawRectangleOutline(const R: TFloatRectangle; const Color: TCastleColor;
+  const LineWidth: Single = 1;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
 
 { Draw a circle. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -115,6 +120,13 @@ procedure DrawCircle(const Middle: TVector2Integer;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
+procedure DrawCircle(const Middle: TVector2;
+  const HorizontalRadius, VerticalRadius: Single;
+  const Color: TCastleColor;
+  const CircleSlices: Cardinal = DefaultCircleSlices;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
 
 { Draw a circle outline. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -124,6 +136,14 @@ procedure DrawCircle(const Middle: TVector2Integer;
   we use blending only if Color[3] (alpha) < 1.  }
 procedure DrawCircleOutline(const Middle: TVector2Integer;
   const HorizontalRadius, VerticalRadius: Integer;
+  const Color: TCastleColor;
+  const LineWidth: Single = 1;
+  const CircleSlices: Cardinal = DefaultCircleSlices;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
+procedure DrawCircleOutline(const Middle: TVector2;
+  const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
   const LineWidth: Single = 1;
   const CircleSlices: Cardinal = DefaultCircleSlices;
@@ -165,6 +185,14 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const ForceBlending: boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const Points: array of TVector2;
+  const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false;
+  const LineWidth: Single = 1;
+  const PointSize: Cardinal = 1);
 
 { Draw a rectangle that modulates colors underneath,
   making nice animation to AFadeColor while FadeIntensity changes from 1.0
@@ -189,7 +217,13 @@ procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
 procedure GLFadeRectangleDark(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
   const FadeIntensity: Single); overload;
+procedure GLFadeRectangleDark(const Rect: TFloatRectangle;
+  const AFadeColor: TCastleColor;
+  const FadeIntensity: Single); overload;
 procedure GLFadeRectangleLight(const Rect: TRectangle;
+  const AFadeColor: TCastleColor;
+  const FadeIntensity: Single);
+procedure GLFadeRectangleLight(const Rect: TFloatRectangle;
   const AFadeColor: TCastleColor;
   const FadeIntensity: Single);
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
@@ -304,9 +338,30 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const LineWidth: Single;
   const PointSize: Cardinal);
 var
+  PointsSingle: array of TVector2;
+  I: Integer;
+begin
+  SetLength(PointsSingle, Length(Points));
+  for I := 0 to Length(Points) - 1 do
+    PointsSingle[I] := Vector2(
+      Points[I].Data[0],
+      Points[I].Data[1]);
+  DrawPrimitive2D(Mode, PointsSingle, Color,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending,
+    LineWidth, PointSize);
+end;
+
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const Points: array of TVector2; const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor;
+  const BlendingDestinationFactor: TBlendingDestinationFactor;
+  const ForceBlending: boolean;
+  const LineWidth: Single;
+  const PointSize: Cardinal);
+var
   Blending: boolean;
   I, RequiredPointPtrSize: Integer;
-  TargetPointPtr: PVector2SmallInt;
+  TargetPointPtr: PVector2;
 begin
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
@@ -340,7 +395,7 @@ begin
     glGenBuffers(1, @Primitive2DRes.Vbo);
 
   { make Primitive2DRes.PointPtr have necessary size }
-  RequiredPointPtrSize := SizeOf(TVector2SmallInt) * (High(Points) + 1);
+  RequiredPointPtrSize := SizeOf(TVector2) * (High(Points) + 1);
   if Primitive2DRes.PointPtrAllocated < RequiredPointPtrSize then
   begin
     { FreeMem + GetMem, not ReallocMem,
@@ -355,7 +410,7 @@ begin
   TargetPointPtr := Primitive2DRes.PointPtr;
   for I := 0 to High(Points) do
   begin
-    Move(Points[I], TargetPointPtr^, SizeOf(TVector2SmallInt));
+    Move(Points[I], TargetPointPtr^, SizeOf(TVector2));
     Inc(TargetPointPtr);
   end;
 
@@ -370,7 +425,7 @@ begin
   if not GLFeatures.EnableFixedFunction then
   begin
     TGLSLProgram.Current := Primitive2DRes.Prog;
-    Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
+    Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
 
     if (RenderContext.Viewport.Left <> 0) or
        (RenderContext.Viewport.Bottom <> 0) then
@@ -392,8 +447,8 @@ begin
 
     glEnableClientState(GL_VERTEX_ARRAY);
     if GLFeatures.VertexBufferObject then
-      glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
-      glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DRes.PointPtr);
+      glVertexPointer(2, GL_FLOAT, SizeOf(TVector2), nil) else
+      glVertexPointer(2, GL_FLOAT, SizeOf(TVector2), Primitive2DRes.PointPtr);
     {$endif}
   end;
 
@@ -424,29 +479,46 @@ end;
 
 { DrawRectangle ---------------------------------------------------------------- }
 
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
   const ForceBlending: boolean);
 var
-  RectanglePoint: array [0..3] of TVector2SmallInt;
+  RectanglePoint: array [0..3] of TVector2;
 begin
-  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
-  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
-  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
-  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
+  RectanglePoint[0] := Vector2(R.Left          , R.Bottom);
+  RectanglePoint[1] := Vector2(R.Left + R.Width, R.Bottom);
+  RectanglePoint[2] := Vector2(R.Left + R.Width, R.Bottom + R.Height);
+  RectanglePoint[3] := Vector2(R.Left          , R.Bottom + R.Height);
 
   DrawPrimitive2D(pmTriangleFan, RectanglePoint,
     Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
 end;
 
-procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
-  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor;
+  const BlendingDestinationFactor: TBlendingDestinationFactor;
+  const ForceBlending: boolean);
 begin
-  DrawRectangle(R.Round, Color,
+  DrawRectangle(FloatRectangle(R), Color,
     BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
+end;
+
+procedure DrawRectangleOutline(const R: TFloatRectangle; const Color: TCastleColor;
+  const LineWidth: Single;
+  const BlendingSourceFactor: TBlendingSourceFactor;
+  const BlendingDestinationFactor: TBlendingDestinationFactor;
+  const ForceBlending: boolean);
+var
+  RectanglePoint: array [0..3] of TVector2;
+begin
+  RectanglePoint[0] := Vector2(R.Left          , R.Bottom);
+  RectanglePoint[1] := Vector2(R.Left + R.Width, R.Bottom);
+  RectanglePoint[2] := Vector2(R.Left + R.Width, R.Bottom + R.Height);
+  RectanglePoint[3] := Vector2(R.Left          , R.Bottom + R.Height);
+
+  DrawPrimitive2D(pmLineLoop, RectanglePoint,
+    Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending, LineWidth);
 end;
 
 procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
@@ -454,29 +526,22 @@ procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
   const ForceBlending: boolean);
-var
-  RectanglePoint: array [0..3] of TVector2SmallInt;
 begin
-  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
-  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
-  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
-  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
-
-  DrawPrimitive2D(pmLineLoop, RectanglePoint,
-    Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending, LineWidth);
+  DrawRectangleOutline(FloatRectangle(R), Color, LineWidth,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
 end;
 
 { DrawCircle ----------------------------------------------------------------- }
 
-procedure DrawCircle(const Middle: TVector2Integer;
-  const HorizontalRadius, VerticalRadius: Integer;
+procedure DrawCircle(const Middle: TVector2;
+  const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
 var
-  CirclePoint: array of TVector2SmallInt;
+  CirclePoint: array of TVector2;
   PreviousSin, PreviousCos, NextSin, NextCos: Float;
   I: Integer;
 begin
@@ -489,19 +554,60 @@ begin
       SinCos(0, NextSin, NextCos)
     else
       SinCos(2 * Pi * I / CircleSlices, NextSin, NextCos);
-    CirclePoint[(I - 1) * 3    ] := Vector2SmallInt(Middle[0], Middle[1]);
-    CirclePoint[(I - 1) * 3 + 1] := Vector2SmallInt(
-      Middle[0] + Round(PreviousSin * HorizontalRadius),
-      Middle[1] + Round(PreviousCos * VerticalRadius));
-    CirclePoint[(I - 1) * 3 + 2] := Vector2SmallInt(
-      Middle[0] + Round(NextSin     * HorizontalRadius),
-      Middle[1] + Round(NextCos     * VerticalRadius));
+    CirclePoint[(I - 1) * 3    ] := Vector2(
+      Middle[0],
+      Middle[1]);
+    CirclePoint[(I - 1) * 3 + 1] := Vector2(
+      Middle[0] + PreviousSin * HorizontalRadius,
+      Middle[1] + PreviousCos * VerticalRadius);
+    CirclePoint[(I - 1) * 3 + 2] := Vector2(
+      Middle[0] + NextSin     * HorizontalRadius,
+      Middle[1] + NextCos     * VerticalRadius);
     PreviousSin := NextSin;
     PreviousCos := NextCos;
   end;
 
   DrawPrimitive2D(pmTriangleFan, CirclePoint,
     Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
+end;
+
+procedure DrawCircle(const Middle: TVector2Integer;
+  const HorizontalRadius, VerticalRadius: Integer;
+  const Color: TCastleColor;
+  const CircleSlices: Cardinal = DefaultCircleSlices;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
+begin
+  DrawCircle(Vector2(Middle), HorizontalRadius, VerticalRadius,
+    Color, CircleSlices,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
+end;
+
+procedure DrawCircleOutline(const Middle: TVector2;
+  const HorizontalRadius, VerticalRadius: Single;
+  const Color: TCastleColor;
+  const LineWidth: Single = 1;
+  const CircleSlices: Cardinal = DefaultCircleSlices;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false);
+var
+  CirclePoint: array of TVector2;
+  S, C: Float;
+  I: Integer;
+begin
+  SetLength(CirclePoint, CircleSlices);
+  for I := 0 to CircleSlices - 1 do
+  begin
+    SinCos(2 * Pi * I / (CircleSlices - 1), S, C);
+    CirclePoint[I] := Vector2(
+      Middle[0] + S * HorizontalRadius,
+      Middle[1] + C * VerticalRadius);
+  end;
+
+  DrawPrimitive2D(pmLineLoop, CirclePoint,
+    Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending, LineWidth);
 end;
 
 procedure DrawCircleOutline(const Middle: TVector2Integer;
@@ -512,22 +618,10 @@ procedure DrawCircleOutline(const Middle: TVector2Integer;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
-var
-  CirclePoint: array of TVector2SmallInt;
-  S, C: Float;
-  I: Integer;
 begin
-  SetLength(CirclePoint, CircleSlices);
-  for I := 0 to CircleSlices - 1 do
-  begin
-    SinCos(2 * Pi * I / (CircleSlices - 1), S, C);
-    CirclePoint[I] := Vector2SmallInt(
-      Middle[0] + Round(S * HorizontalRadius),
-      Middle[1] + Round(C * VerticalRadius));
-  end;
-
-  DrawPrimitive2D(pmLineLoop, CirclePoint,
-    Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending, LineWidth);
+  DrawCircleOutline(Vector2(Middle), HorizontalRadius, VerticalRadius,
+    Color, LineWidth, CircleSlices,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
 end;
 
 { GLFadeRectangle ------------------------------------------------------------ }
@@ -549,6 +643,12 @@ begin
     Color := FadeDarkColor(AFadeColor, FadeIntensity);
     DrawRectangle(Rect, Color, bsZero, bdSrcColor, true);
   end;
+end;
+
+procedure GLFadeRectangleDark(const Rect: TFloatRectangle;
+  const AFadeColor: TCastleColor; const FadeIntensity: Single);
+begin
+  GLFadeRectangleDark(Rect.Round, AFadeColor, FadeIntensity);
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
@@ -582,6 +682,12 @@ begin
     Color := FadeColor(AFadeColor, FadeIntensity);
     DrawRectangle(Rect, Color, bsSrcAlpha, bdOneMinusSrcAlpha, true);
   end;
+end;
+
+procedure GLFadeRectangleLight(const Rect: TFloatRectangle;
+  const AFadeColor: TCastleColor; const FadeIntensity: Single);
+begin
+  GLFadeRectangleLight(Rect.Round, AFadeColor, FadeIntensity);
 end;
 
 { GLBlendRectangle ----------------------------------------------------------- }

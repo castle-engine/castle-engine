@@ -50,15 +50,15 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
-    GatheringFilesVsData: boolean; //< only for PackageFilesGather
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
-    IncludePaths, ExcludePaths, ExtraCompilerOptions: TCastleStringList;
+    IncludePaths, ExcludePaths: TCastleStringList;
+    ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
-    FSearchPaths: TStringList;
+    FSearchPaths, FLibraryPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
-    FGameUnits: string;
+    FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -71,7 +71,10 @@ type
     FAssociateDocumentTypes: TAssociatedDocTypeList;
     FListLocalizedAppName: TListLocalizedAppName;
     // Helpers only for ExtractTemplateFoundFile.
+    // @groupBegin
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
+    ExtractTemplateOverrideExisting: Boolean;
+    // @groupEnd
     IOSTeam: string;
     procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -149,6 +152,7 @@ type
     procedure DoAutoGenerateTextures;
     procedure DoAutoGenerateClean;
     procedure DoGenerateProgram;
+    procedure DoEditor;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -175,6 +179,7 @@ type
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
+    property LibraryPaths: TStringList read FLibraryPaths;
     property AndroidServices: TServiceList read FAndroidServices;
     property IOSServices: TServiceList read FIOSServices;
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
@@ -192,21 +197,36 @@ type
       to the build tool data) to the DestinationPath (this should be an absolute
       existing directory name).
 
-      Each file is processed by the ReplaceMacros method. }
-    procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
+      Each file is processed by the ReplaceMacros method.
+
+      OverrideExisting says what happens when the destination file already exists.
+
+      - OverrideExisting = @false (default) means that the
+        destination file will be left unchanged
+        (to preserve possible user customization),
+        or source will be merged into destination
+        (in case of special filenames;
+        this allows to e.g. merge AndroidManifest.xml).
+
+      - OverrideExisting = @true means that the destination file
+        will simply be overridden, without any warning, without
+        any merging.
+    }
+    procedure ExtractTemplate(const TemplatePath, DestinationPath: string;
+      const OverrideExisting: Boolean = false);
 
     { Output Android library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
       otherwise a complete absolute path. }
     function AndroidLibraryFile(const AbsolutePath: boolean = true): string;
 
-    { Add platform-independent files that should be included in package,
+    { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
       If OnlyData, then only takes stuff inside DataPath,
-      and assumes that Files are (and will be) URLs relative to DataPath.
-      Otherwise, takes more files,
-      and assumes that Files are (and will be) URLs relative to @link(Path). }
-    procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+      and Files will contain URLs relative to DataPath.
+      Otherwise, takes all files to be packaged in a project,
+      and Files will contain URLs relative to @link(Path). }
+    function PackageFiles(const OnlyData: boolean): TCastleStringList;
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
@@ -427,11 +447,23 @@ constructor TCastleProject.Create(const APath: string);
           [AndroidMinSdkVersion, ReallyMinSdkVersion]);
     end;
 
+    { Change compiler option @xxx to use absolute paths.
+      Important for "castle-engine editor" where ExtraCompilerOptionsAbsolute is inserted
+      into lpk, but lpk is in a different directory.
+      Testcase: unholy_society. }
+    function MakeAbsoluteCompilerOption(const Option: String): String;
+    begin
+      Result := Trim(Option);
+      if (Length(Result) >= 2) and (Result[1] = '@') then
+        Result := '@' + CombinePaths(Path, SEnding(Result, 2));
+    end;
+
   var
     Doc: TXMLDocument;
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
+    NewCompilerOption: String;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -457,6 +489,7 @@ constructor TCastleProject.Create(const APath: string);
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FGameUnits := Doc.DocumentElement.AttributeStringDef('game_units', '');
+        FEditorUnits := Doc.DocumentElement.AttributeStringDef('editor_units', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
         FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
@@ -619,7 +652,11 @@ constructor TCastleProject.Create(const APath: string);
             ChildElements := ChildElement.ChildrenIterator('option');
             try
               while ChildElements.GetNext do
-                ExtraCompilerOptions.Add(ChildElements.Current.TextData);
+              begin
+                NewCompilerOption := ChildElements.Current.TextData;
+                ExtraCompilerOptions.Add(NewCompilerOption);
+                ExtraCompilerOptionsAbsolute.Add(MakeAbsoluteCompilerOption(NewCompilerOption));
+              end;
             finally FreeAndNil(ChildElements) end;
           end;
 
@@ -630,6 +667,16 @@ constructor TCastleProject.Create(const APath: string);
             try
               while ChildElements.GetNext do
                 FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
+            finally FreeAndNil(ChildElements) end;
+          end;
+
+          ChildElement := Element.ChildElement('library_paths', false);
+          if ChildElement <> nil then
+          begin
+            ChildElements := ChildElement.ChildrenIterator('path');
+            try
+              while ChildElements.GetNext do
+                FLibraryPaths.Add(ChildElements.Current.AttributeString('value'));
             finally FreeAndNil(ChildElements) end;
           end;
         end;
@@ -706,10 +753,12 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   ExtraCompilerOptions := TCastleStringList.Create;
+  ExtraCompilerOptionsAbsolute := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
+  FLibraryPaths := TStringList.Create;
   FAndroidProjectType := apBase;
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
@@ -731,9 +780,11 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(ExtraCompilerOptions);
+  FreeAndNil(ExtraCompilerOptionsAbsolute);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
+  FreeAndNil(FLibraryPaths);
   FreeAndNil(FAndroidServices);
   FreeAndNil(FIOSServices);
   FreeAndNil(FAssociateDocumentTypes);
@@ -779,7 +830,7 @@ begin
   try
     ExtraOptions.AddRange(ExtraCompilerOptions);
     if FpcExtraOptions <> nil then
-       ExtraOptions.AddRange(FpcExtraOptions);
+      ExtraOptions.AddRange(FpcExtraOptions);
 
     if Target = targetIOS then
     begin
@@ -787,7 +838,8 @@ begin
         { To compile CastleInternalVorbisFile properly.
           Later PackageIOS will actually add the static tremolo files to the project. }
         ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
-      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths, ExtraOptions);
+      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true),
+        SearchPaths, LibraryPaths, ExtraOptions);
 
       LinkIOSLibrary(Path, IOSLibraryFile);
       Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
@@ -797,7 +849,8 @@ begin
     case OS of
       Android:
         begin
-          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true), SearchPaths, ExtraOptions);
+          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
+            SearchPaths, LibraryPaths, ExtraOptions);
           Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
         end;
       else
@@ -817,7 +870,8 @@ begin
           if OS in AllWindowsOSes then
             GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
 
-          Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths, ExtraOptions);
+          Compile(OS, CPU, Plugin, Mode, Path, MainSource,
+            SearchPaths, LibraryPaths, ExtraOptions);
 
           if Plugin then
           begin
@@ -851,17 +905,13 @@ begin
 end;
 
 procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-var
-  RelativeVs: string;
 begin
-  if GatheringFilesVsData then
-    RelativeVs := DataPath
-  else
-    RelativeVs := Path;
-  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
+  { Add relative paths to GatheringFiles, to make include/exclude
+    only work looking at relative paths. }
+  GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
 end;
 
-procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+function TCastleProject.PackageFiles(const OnlyData: boolean): TCastleStringList;
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
   const
@@ -872,12 +922,6 @@ procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const Only
   begin
     { replace all backslashes with slashes, so that they are equal for comparison }
     PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);
-    { Files are relative to data/ in case of OnlyData.
-      So make sure that PathMaskSlashes is also relative to data/,
-      otherwise stuff like exclude="data/blahblah/*" would not work
-      for things that se OnlyData=true, e.g. for Android packaging. }
-    if OnlyData then
-      PathMaskSlashes := PrefixRemove(DataName + '/', PathMaskSlashes, IgnoreCase);
     I := 0;
     while I < Files.Count do
     begin
@@ -892,8 +936,9 @@ var
   I: Integer;
   FindOptions: TFindFilesOptions;
 begin
-  GatheringFiles := Files;
-  GatheringFilesVsData := OnlyData;
+  Result := TCastleStringList.Create;
+
+  GatheringFiles := Result;
   FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
@@ -909,14 +954,25 @@ begin
     end;
   GatheringFiles := nil;
 
-  Exclude('*.xcf', Files);
-  Exclude('*.blend*', Files);
-  Exclude('*~', Files);
+  Exclude('*.xcf', Result);
+  Exclude('*.blend*', Result);
+  Exclude('*~', Result);
   // Note: slash or backslash below doesn't matter, Exclude function converts them
-  Exclude('*/.DS_Store', Files);
-  Exclude('*/thumbs.db', Files);
+  Exclude('*/.DS_Store', Result);
+  Exclude('*/thumbs.db', Result);
   for I := 0 to ExcludePaths.Count - 1 do
-    Exclude(ExcludePaths[I], Files);
+    Exclude(ExcludePaths[I], Result);
+
+  { Change to relative paths vs DataPath.
+    We do it only at the end, this way inclusion/exclusion mechanism
+    works the same, regardless of OnlyData. So e.g. these work the same:
+      <exclude path="data/blahblah/*" />
+    or
+      <exclude path="*/.svn/*" />
+    (even when "data/.svn" exists). }
+  if OnlyData then
+    for I := 0 to Result.Count - 1 do
+      Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
 end;
 
 function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
@@ -1042,9 +1098,8 @@ begin
   { for Android, the packaging process is special }
   if OS = Android then
   begin
-    Files := TCastleStringList.Create;
+    Files := PackageFiles(true);
     try
-      PackageFiles(Files, true);
       CreateAndroidPackage(Self, OS, CPU, Mode, Files);
     finally FreeAndNil(Files) end;
     Exit;
@@ -1057,9 +1112,8 @@ begin
     AddExecutable;
     AddExternalLibraries;
 
-    Files := TCastleStringList.Create;
+    Files := PackageFiles(false);
     try
-      PackageFiles(Files, false);
       for I := 0 to Files.Count - 1 do
         Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
@@ -1529,6 +1583,47 @@ begin
   Generate('lpi');
 end;
 
+procedure TCastleProject.DoEditor;
+var
+  EditorExe, CgePath, EditorPath, LazbuildExe: String;
+begin
+  if Trim(FEditorUnits) = '' then
+  begin
+    EditorExe := FindCgeExe('castle-editor');
+    if EditorExe = '' then
+      raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
+  end else
+  begin
+    { Check CastleEnginePath, since without this, compiling custom castle-editor.lpi
+      will always fail. }
+    CgePath := CastleEnginePath;
+    if CgePath = '' then
+      raise Exception.Create('Cannot find Castle Game Engine sources. Make sure that the environment variable CASTLE_ENGINE_PATH is correctly defined.');
+
+    // create custom editor directory
+    EditorPath := TempOutputPath(Path) + 'editor' + PathDelim;
+    { Do not remove previous directory contents,
+      allows to reuse previous lazbuild compilation results.
+      Just silence ExtractTemplate warnings when overriding. }
+    ExtractTemplate('custom_editor_template/', EditorPath, true);
+
+    // use lazbuild to compile CGE packages and CGE editor
+    LazbuildExe := FindExe('lazbuild');
+    if LazbuildExe = '' then
+      raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
+    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
+    RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_components.lpk');
+    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor_automatic_package.lpk');
+    RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
+
+    EditorExe := EditorPath + 'castle-editor' + ExeExtension;
+    if not FileExists(EditorExe) then
+      raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
+  end;
+
+  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+end;
+
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
 const
   AndroidScreenOrientation: array [TScreenOrientation] of string =
@@ -1693,16 +1788,20 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
-  function SearchPathsStr: string;
+  function MakePathsStr(const Paths: TStringList; const Absolute: Boolean): String;
   var
-    S: string;
+    S, Dir: string;
   begin
     Result := '';
-    for S in SearchPaths do
+    for S in Paths do
     begin
       if Result <> '' then
         Result := Result + ';';
-      Result := Result + S;
+      if Absolute then
+        Dir := CombinePaths(Path, S)
+      else
+        Dir := S;
+      Result := Result + Dir;
     end;
   end;
 
@@ -1758,7 +1857,17 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , FGameUnits);
-    Macros.Add('SEARCH_PATHS'    , SearchPathsStr);
+    Macros.Add('SEARCH_PATHS'          , MakePathsStr(SearchPaths, false));
+    Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(SearchPaths, true));
+    Macros.Add('LIBRARY_PATHS'          , MakePathsStr(LibraryPaths, false));
+    { Using this is important in ../data/custom_editor_template/castle_editor.lpi ,
+      otherwise with FPC 3.3.1 (rev 40292) doing "castle-engine editor"
+      fails when the project uses some libraries (like mORMot's .o files in static/). }
+    Macros.Add('ABSOLUTE_LIBRARY_PATHS' , MakePathsStr(LibraryPaths, true));
+    Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
+    Macros.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
+    Macros.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', ExtraCompilerOptionsAbsolute.Text);
+    Macros.Add('EDITOR_UNITS'          , FEditorUnits);
 
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
@@ -1776,14 +1885,16 @@ begin
   finally FreeAndNil(Macros) end;
 end;
 
-procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string);
+procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string;
+  const OverrideExisting: boolean);
 var
   TemplateFilesCount: Cardinal;
 begin
+  ExtractTemplateOverrideExisting := OverrideExisting;
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
   ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
-    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
+    raise Exception.Create('Cannot find template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
   TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
     @ExtractTemplateFoundFile, [ffRecursive]);
@@ -1814,7 +1925,8 @@ begin
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
 
   ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName,
-    DestinationRelativeFileName, false);
+    DestinationRelativeFileName,
+    ExtractTemplateOverrideExisting);
 end;
 
 procedure TCastleProject.ExtractTemplateFile(
