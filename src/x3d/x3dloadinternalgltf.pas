@@ -47,85 +47,104 @@ var
 
   function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
   begin
-    // as it happens, both structures have the same memory layout, so copy fast
+    // as it happens, both structures have the same memory layout, so copy by a fast Move
     Assert(SizeOf(V) = SizeOf(Result));
     Move(V, Result, SizeOf(Result));
   end;
 
+  function GetAccessor(const AccessorIndex: Integer): TPasGLTF.TAccessor;
+  begin
+    if AccessorIndex < Document.Accessors.Count then
+      Result := Document.Accessors[AccessorIndex]
+    else
+    begin
+      Result := nil;
+      WritelnWarning('glTF', 'Missing glTF accessor (index %d, but we only have %d accessors)',
+        [AccessorIndex, Document.Accessors.Count]);
+    end;
+  end;
+
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive);
   var
-    Accessor: TPasGLTF.TAccessor;
+    IndicesAccessor, AttributeAccessor: TPasGLTF.TAccessor;
     AttributeName: TPasGLTFUTF8String;
-    AttributeAccessorIndex: Int64;
-    Indices: TPasGLTFUInt32DynamicArray;
-    Position: TPasGLTF.TVector3DynamicArray;
+    IndicesArray: TPasGLTFInt32DynamicArray;
+    PositionArray: TPasGLTF.TVector3DynamicArray;
     Shape: TShapeNode;
-    Geometry: TAbstractGeometryNode;
+    // Geometry: TAbstractGeometryNode; // not needed for now
     GeometryTriangleSet: TTriangleSetNode;
     GeometryIndexedTriangleSet: TIndexedTriangleSetNode;
-    Coordinate: TCoordinateNode;
-    I: Integer;
+    Coord: TCoordinateNode;
+    // TODO: not used yet: TexCoord: TTextureCoordinateNode;
+    Len: Integer;
   begin
-    WritelnLog('glTF', 'Got primitive ' + PrimitiveModeToStr(Primitive.Mode));
     if Primitive.Mode <> TPasGLTF.TMesh.TPrimitive.TMode.Triangles then
-      Exit; // we don't handle other types yet
-
-    if Primitive.Indices <> -1 then
     begin
-      if Primitive.Indices >= Document.Accessors.Count then
-      begin
-        WritelnWarning('glTF', 'glTF missing accessor for indices %d', [Primitive.Indices]);
-        Exit;
-      end;
-
-      Accessor := Document.Accessors[Primitive.Indices];
-      Indices := Accessor.DecodeAsUInt32Array(false); // tested, false is necessary
-      WritelnLog('glTF', '  Primitive has indexes with accessor of type %s, extracted to array with count %d',
-        [AccessorTypeToStr(Accessor.Type_), Length(Indices)]);
+      WritelnWarning('glTF', 'Primitive mode not implemented yet: ' + PrimitiveModeToStr(Primitive.Mode));
+      Exit;
     end;
 
+    Coord := nil;
+    // TODO TexCoord := nil;
+
+    // parse attributes, initializing Coord, TexCoord and other such nodes
     for AttributeName in Primitive.Attributes.Keys do
     begin
-      WritelnLog('glTF', '  Primitive has attribute named ' + AttributeName);
-      AttributeAccessorIndex := Primitive.Attributes[AttributeName];
-
-      if AttributeAccessorIndex >= Document.Accessors.Count then
+      AttributeAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
+      if AttributeAccessor <> nil then
       begin
-        WritelnWarning('glTF', 'glTF missing accessor for attribute, accessor %d', [AttributeAccessorIndex]);
-        Exit;
-      end;
-
-      Accessor := Document.Accessors[AttributeAccessorIndex];
-      WritelnLog('glTF', '  Primitive has attribute with accessor of type ' + AccessorTypeToStr(Accessor.Type_));
-      if AttributeName = 'POSITION' then
-      begin
-        Position := Accessor.DecodeAsVector3Array(true);
-        WritelnLog('glTF', '  Extracted position to array with count %d',
-          [Length(Position)]);
+        if AttributeName = 'POSITION' then
+        begin
+          PositionArray := AttributeAccessor.DecodeAsVector3Array(true);
+          Coord := TCoordinateNode.Create;
+          Len := Length(PositionArray);
+          Coord.FdPoint.Count := Len;
+          // for I := 0 to High(Position) do
+          //   Coord.FdPoint.Items[I] := Vector3FromGltf(Position[I]);
+          // Faster version:
+          if Len <> 0 then
+            Move(PositionArray[0], Coord.FdPoint.Items.List^[0], SizeOf(TVector3) * Len);
+        end;
       end;
     end;
 
-    { Convert Indices, Position to X3D }
+    // read indexes
+    if Primitive.Indices <> -1 then
+    begin
+      IndicesAccessor := GetAccessor(Primitive.Indices);
+      if IndicesAccessor <> nil then
+      begin
+        { The argument aForVertex below is false.
+          Tested that this is correct.
+          This reflects the glTF spec:
+          """
+          For performance and compatibility reasons, each element of
+          a vertex attribute must be aligned to 4-byte boundaries
+          inside bufferView
+          """
+        }
+        IndicesArray := IndicesAccessor.DecodeAsInt32Array(false);
+      end;
+    end;
 
-    Coordinate := TCoordinateNode.Create;
-    Coordinate.FdPoint.Count := Length(Position);
-    for I := 0 to High(Position) do
-      // TODO: could be copied with one Move
-      Coordinate.FdPoint.Items[I] := Vector3FromGltf(Position[I]);
-
+    // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
     begin
       GeometryIndexedTriangleSet := TIndexedTriangleSetNode.CreateWithShape(Shape);
-      GeometryIndexedTriangleSet.Coord := Coordinate;
-      GeometryIndexedTriangleSet.FdIndex.Count := Length(Indices);
-      for I := 0 to High(Indices) do
-        GeometryIndexedTriangleSet.FdIndex.Items[I] := Indices[I];
-      Geometry := GeometryIndexedTriangleSet;
+      GeometryIndexedTriangleSet.Coord := Coord;
+      Len := Length(IndicesArray);
+      GeometryIndexedTriangleSet.FdIndex.Count := Len;
+      // for I := 0 to High(Indices) do
+      //   GeometryIndexedTriangleSet.FdIndex.Items[I] := Indices[I];
+      // Faster version:
+      if Len <> 0 then
+        Move(IndicesArray[0], GeometryIndexedTriangleSet.FdIndex.Items.List^[0], SizeOf(LongInt) * Len);
+      // Geometry := GeometryIndexedTriangleSet;
     end else
     begin
       GeometryTriangleSet := TTriangleSetNode.CreateWithShape(Shape);
-      GeometryTriangleSet.Coord := Coordinate;
-      Geometry := GeometryTriangleSet;
+      GeometryTriangleSet.Coord := Coord;
+      // Geometry := GeometryTriangleSet;
     end;
 
     Result.AddChildren(Shape);
@@ -208,4 +227,3 @@ begin
 end;
 
 end.
-
