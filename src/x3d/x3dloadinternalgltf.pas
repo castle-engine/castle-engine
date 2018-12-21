@@ -29,12 +29,6 @@ implementation
 uses SysUtils, Classes, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog;
 
-// TODO: PasGLTF compilation fails when debug info is included in compilation
-// options (tested on FPC 3.0.4 Linux x86_64).
-//
-// Temporarily, we have <GenerateDebugInfo Value="False"/> in lpk,
-// and it turn must be also done in all applications you're doing.
-
 function LoadGLTF(const URL: string): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;

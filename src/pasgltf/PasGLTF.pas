@@ -929,24 +929,29 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
                    TChannels=TPasGLTFObjectList<TChannel>;
                    TSampler=class(TBaseExtensionsExtrasObject)
                     public
-                     type TType=
+                     // CGE: Workaround FPC problems (when generating debug info):
+                     // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
+                     // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
+                     // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
+                     // TODO: submit to Bero
+                     type TSamplerType=
                            (
                             Linear=0,
                             Step=1,
                             CubicSpline=2
                            );
-                           PType=^TType;
+                           PSamplerType=^TSamplerType;
                     private
                      fInput:TPasGLTFSizeInt;
                      fOutput:TPasGLTFSizeInt;
-                     fInterpolation:TType;
+                     fInterpolation:TSamplerType;
                     public
                      constructor Create(const aDocument:TDocument); override;
                      destructor Destroy; override;
                     published
                      property Input:TPasGLTFSizeInt read fInput write fInput default -1;
                      property Output:TPasGLTFSizeInt read fOutput write fOutput default -1;
-                     property Interpolation:TType read fInterpolation write fInterpolation default TType.Linear;
+                     property Interpolation:TSamplerType read fInterpolation write fInterpolation default TSamplerType.Linear;
                    end;
                    TSamplers=TPasGLTFObjectList<TSampler>;
              private
@@ -1037,7 +1042,12 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
             TBufferViews=TPasGLTFObjectList<TBufferView>;
             TCamera=class(TBaseExtensionsExtrasObject)
              public
-              type TType=
+              // CGE: Workaround FPC problems (when generating debug info):
+              // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
+              // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
+              // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
+              // TODO: submit to Bero
+              type TCameraType=
                     (
                      None=0,
                      Orthographic=1,
@@ -1078,7 +1088,7 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
                      property Empty:boolean read fEmpty;
                    end;
              private
-              fType:TType;
+              fType:TCameraType;
               fOrthographic:TOrthographic;
               fPerspective:TPerspective;
               fName:TPasGLTFUTF8String;
@@ -1086,7 +1096,7 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
               constructor Create(const aDocument:TDocument); override;
               destructor Destroy; override;
              published
-              property Type_:TType read fType write fType;
+              property Type_:TCameraType read fType write fType;
               property Orthographic:TOrthographic read fOrthographic;
               property Perspective:TPerspective read fPerspective;
               property Name:TPasGLTFUTF8String read fName write fName;
@@ -1881,7 +1891,9 @@ begin
 end;
 
 procedure TPasGLTFObjectList<T>.Insert(const pIndex:TPasGLTFSizeInt;const pItem:T);
-var OldCount:TPasGLTFSizeInt;
+var
+  OldCount:TPasGLTFSizeInt;
+  MoveSrc, MoveDst: Pointer;
 begin
  if pIndex>=0 then begin
   OldCount:=fCount;
@@ -1898,7 +1910,13 @@ begin
    FillChar(fItems[OldCount],(fCount-OldCount)*SizeOf(T),#0);
   end;
   if pIndex<OldCount then begin
-   System.Move(fItems[pIndex],fItems[pIndex+1],(OldCount-pIndex)*SizeOf(T));
+   // CGE: (TODO: submit to Bero)
+   // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
+   // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
+   // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
+   MoveSrc := @(fItems[pIndex]);
+   MoveDst := @(fItems[pIndex+1]);
+   System.Move(MoveSrc^, MoveDst^, (OldCount-pIndex)*SizeOf(T));
    FillChar(fItems[pIndex],SizeOf(T),#0);
   end;
   fItems[pIndex]:=pItem;
@@ -1906,7 +1924,9 @@ begin
 end;
 
 procedure TPasGLTFObjectList<T>.Delete(const pIndex:TPasGLTFSizeInt);
-var Old:T;
+var
+  Old:T;
+  MoveSrc, MoveDst: Pointer;
 begin
  if (pIndex<0) or (pIndex>=fCount) then begin
   raise ERangeError.Create('Out of index range');
@@ -1915,7 +1935,13 @@ begin
  dec(fCount);
  FillChar(fItems[pIndex],SizeOf(T),#0);
  if pIndex<>fCount then begin
-  System.Move(fItems[pIndex+1],fItems[pIndex],(fCount-pIndex)*SizeOf(T));
+  // CGE: (TODO: submit to Bero)
+  // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
+  // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
+  // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
+  MoveSrc := @(fItems[pIndex+1]);
+  MoveDst := @(fItems[pIndex]);
+  System.Move(MoveSrc, MoveDst, (fCount-pIndex)*SizeOf(T));
   FillChar(fItems[fCount],SizeOf(T),#0);
  end;
  if fCount<(fAllocated shr 1) then begin
@@ -3051,7 +3077,7 @@ begin
  inherited Create(aDocument);
  fInput:=-1;
  fOutput:=-1;
- fInterpolation:=TType.Linear;
+ fInterpolation:=TSamplerType.Linear;
 end;
 
 destructor TPasGLTF.TAnimation.TSampler.Destroy;
@@ -3285,7 +3311,7 @@ end;
 constructor TPasGLTF.TCamera.Create(const aDocument:TDocument);
 begin
  inherited Create(aDocument);
- fType:=TType.None;
+ fType:=TCameraType.None;
  fOrthographic:=TOrthographic.Create(fDocument);
  fPerspective:=TPerspective.Create(fDocument);
 end;
@@ -3883,11 +3909,11 @@ procedure TPasGLTF.TDocument.LoadFromJSON(const aJSONRootItem:TPasJSONItem);
          end;
          Interpolation:=TPasJSON.GetString(InterpolationItem,'NONE');
          if Interpolation='LINEAR' then begin
-          Sampler.fInterpolation:=TAnimation.TSampler.TType.Linear;
+          Sampler.fInterpolation:=TAnimation.TSampler.TSamplerType.Linear;
          end else if Interpolation='STEP' then begin
-          Sampler.fInterpolation:=TAnimation.TSampler.TType.Step;
+          Sampler.fInterpolation:=TAnimation.TSampler.TSamplerType.Step;
          end else if Interpolation='CUBICSPLINE' then begin
-          Sampler.fInterpolation:=TAnimation.TSampler.TType.CubicSpline;
+          Sampler.fInterpolation:=TAnimation.TSampler.TSamplerType.CubicSpline;
          end else begin
           raise EPasGLTFInvalidDocument.Create('Invalid GLTF document');
          end;
@@ -4007,15 +4033,15 @@ procedure TPasGLTF.TDocument.LoadFromJSON(const aJSONRootItem:TPasJSONItem);
     begin
      Type_:=TPasJSON.GetString(Required(JSONObject.Properties['type'],'type'),'none');
      if Type_='orthographic' then begin
-      result.fType:=TCamera.TType.Orthographic;
+      result.fType:=TCamera.TCameraType.Orthographic;
      end else if Type_='perspective' then begin
-      result.fType:=TCamera.TType.Perspective;
+      result.fType:=TCamera.TCameraType.Perspective;
      end else begin
       raise EPasGLTFInvalidDocument.Create('Invalid GLTF document');
      end;
     end;
     case result.fType of
-     TCamera.TType.Orthographic:begin
+     TCamera.TCameraType.Orthographic:begin
       JSONItem:=JSONObject.Properties['orthographic'];
       if not (assigned(JSONItem) and (JSONItem is TPasJSONItemObject)) then begin
        raise EPasGLTFInvalidDocument.Create('Invalid GLTF document');
@@ -4026,7 +4052,7 @@ procedure TPasGLTF.TDocument.LoadFromJSON(const aJSONRootItem:TPasJSONItem);
       result.fOrthographic.fZNear:=TPasJSON.GetNumber(Required(TPasJSONItemObject(JSONItem).Properties['znear'],'znear'),result.fOrthographic.fZNear);
       result.fOrthographic.fZFar:=TPasJSON.GetNumber(Required(TPasJSONItemObject(JSONItem).Properties['zfar'],'zfar'),result.fOrthographic.fZFar);
      end;
-     TCamera.TType.Perspective:begin
+     TCamera.TCameraType.Perspective:begin
       JSONItem:=JSONObject.Properties['perspective'];
       if not (assigned(JSONItem) and (JSONItem is TPasJSONItemObject)) then begin
        raise EPasGLTFInvalidDocument.Create('Invalid GLTF document');
@@ -4906,13 +4932,13 @@ function TPasGLTF.TDocument.SaveToJSON(const aFormatted:boolean=false):TPasJSONR
          JSONObject.Add('output',TPasJSONItemNumber.Create(Sampler.fOutput));
         end;
         case Sampler.fInterpolation of
-         TPasGLTF.TAnimation.TSampler.TType.Linear:begin
+         TPasGLTF.TAnimation.TSampler.TSamplerType.Linear:begin
           JSONObject.Add('interpolation',TPasJSONItemString.Create('LINEAR'));
          end;
-         TPasGLTF.TAnimation.TSampler.TType.Step:begin
+         TPasGLTF.TAnimation.TSampler.TSamplerType.Step:begin
           JSONObject.Add('interpolation',TPasJSONItemString.Create('STEP'));
          end;
-         TPasGLTF.TAnimation.TSampler.TType.CubicSpline:begin
+         TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:begin
           JSONObject.Add('interpolation',TPasJSONItemString.Create('CUBICSPLINE'));
          end;
          else begin
@@ -5042,7 +5068,7 @@ function TPasGLTF.TDocument.SaveToJSON(const aFormatted:boolean=false):TPasJSONR
      result.Add('name',TPasJSONItemString.Create(aObject.fName));
     end;
     case aObject.Type_ of
-     TPasGLTF.TCamera.TType.Orthographic:begin
+     TPasGLTF.TCamera.TCameraType.Orthographic:begin
       result.Add('type',TPasJSONItemString.Create('orthographic'));
       if not aObject.Orthographic.Empty then begin
        JSONObject:=TPasJSONItemObject.Create;
@@ -5065,7 +5091,7 @@ function TPasGLTF.TDocument.SaveToJSON(const aFormatted:boolean=false):TPasJSONR
        end;
       end;
      end;
-     TPasGLTF.TCamera.TType.Perspective:begin
+     TPasGLTF.TCamera.TCameraType.Perspective:begin
       result.Add('type',TPasJSONItemString.Create('perspective'));
       if not aObject.Perspective.Empty then begin
        JSONObject:=TPasJSONItemObject.Create;
