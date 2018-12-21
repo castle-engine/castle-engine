@@ -460,6 +460,13 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
      EPasGLTFInvalidBase64=class(EPasGLTF);
 
      TPasGLTFTypedSort<T>=class
+      private
+       type TStackItem=record
+            Left:TPasGLTFSizeInt;
+            Right:TPasGLTFSizeInt;
+            Depth:TPasGLTFInt32;
+           end;
+           PStackItem=^TStackItem;
       public
        type TPasGLTFTypedSortCompareFunction=function(const a,b:T):TPasGLTFInt32;
 {$ifndef fpc}
@@ -1448,12 +1455,6 @@ type TItem=T;
      PItem=^TItem;
      TItemArray=array[0..65535] of TItem;
      PItemArray=^TItemArray;
-     TStackItem=record
-      Left:TPasGLTFSizeInt;
-      Right:TPasGLTFSizeInt;
-      Depth:TPasGLTFInt32;
-     end;
-     PStackItem=^TStackItem;
 var Left,Right,i,j,Middle,Size,Parent,Child,Pivot,iA,iB,iC:TPasGLTFSizeInt;
     Depth:TPasGLTFInt32;
     StackItem:PStackItem;

@@ -1,7 +1,7 @@
 (******************************************************************************
  *                                 PasJSON                                    *
  ******************************************************************************
- *                          Version 2018-06-05-16-18                          *
+ *                          Version 2018-12-04-02-58                          *
  ******************************************************************************
  *                                zlib license                                *
  *============================================================================*
@@ -443,11 +443,18 @@ type PPPasJSONInt8=^PPasJSONInt8;
 
      EPasJSONMergeError=class(Exception);
 
+     TPasJSONMergeFlag=
+      (
+       ForceObjectPropertyValueDestinationType
+      );
+
+     TPasJSONMergeFlags=set of TPasJSONMergeFlag;
+
      TPasJSONItem=class
       public
        constructor Create;
        destructor Destroy; override;
-       procedure Merge(const aWith:TPasJSONItem); virtual;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); virtual;
      end;
 
      TPasJSONItems=array of TPasJSONItem;
@@ -456,7 +463,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create;
        destructor Destroy; override;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
      end;
 
      TPasJSONItemBoolean=class(TPasJSONItem)
@@ -465,7 +472,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:boolean);
        destructor Destroy; override;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:boolean read fValue write fValue;
      end;
@@ -476,7 +483,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:TPasJSONDouble);
        destructor Destroy; override;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:TPasJSONDouble read fValue write fValue;
      end;
@@ -487,7 +494,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
       public
        constructor Create(const AValue:TPasJSONUTF8String);
        destructor Destroy; override;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
       published
        property Value:TPasJSONUTF8String read fValue write fValue;
      end;
@@ -533,10 +540,11 @@ type PPPasJSONInt8=^PPasJSONInt8;
        constructor Create;
        destructor Destroy; override;
        function GetEnumerator:TPasJSONItemObjectEnumerator; inline;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Clear;
        procedure Add(const aKey:TPasJSONUTF8String;const aValue:TPasJSONItem);
        procedure Delete(const aIndex:TPasJSONSizeInt); overload;
        procedure Delete(const aKey:TPasJSONUTF8String); overload;
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
        property Count:TPasJSONSizeInt read fCount;
        property Indices[const Key:TPasJSONUTF8String]:TPasJSONInt32 read GetKeyIndex;
        property Keys[const Index:TPasJSONSizeInt]:TPasJSONUTF8String read GetKey write SetKey;
@@ -566,9 +574,10 @@ type PPPasJSONInt8=^PPasJSONInt8;
        constructor Create;
        destructor Destroy; override;
        function GetEnumerator:TPasJSONItemArrayEnumerator; inline;
-       procedure Merge(const aWith:TPasJSONItem); override;
+       procedure Clear;
        procedure Add(const aValue:TPasJSONItem);
        procedure Delete(const aIndex:TPasJSONSizeInt);
+       procedure Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]); override;
        property Count:TPasJSONInt32 read fCount;
        property Items[const Index:TPasJSONInt32]:TPasJSONItem read GetValue write SetValue; default;
      end;
@@ -581,7 +590,8 @@ type PPPasJSONInt8=^PPasJSONInt8;
        ImplicitRootObject,
        OptionalCommas,
        EqualsForColon,
-       MultilineStrings
+       MultilineStrings,
+       HexadecimalNumbers
       );
 
      PPasJSONModeFlags=^TPasJSONModeFlag;
@@ -807,7 +817,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TPasJSONItem.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItem.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 begin
  if not (assigned(aWith) and (aWith is TPasJSONItem)) then begin
   raise EPasJSONMergeError.Create('Incompatible data type');
@@ -824,7 +834,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TPasJSONItemNull.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemNull.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 begin
  if not (assigned(aWith) and (aWith is TPasJSONItemNull)) then begin
   raise EPasJSONMergeError.Create('Incompatible data type');
@@ -842,7 +852,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TPasJSONItemBoolean.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemBoolean.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 begin
  if not (assigned(aWith) and (aWith is TPasJSONItemBoolean)) then begin
   raise EPasJSONMergeError.Create('Incompatible data type');
@@ -861,7 +871,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TPasJSONItemNumber.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemNumber.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 begin
  if not (assigned(aWith) and (aWith is TPasJSONItemNumber)) then begin
   raise EPasJSONMergeError.Create('Incompatible data type');
@@ -881,7 +891,7 @@ begin
  inherited Destroy;
 end;
 
-procedure TPasJSONItemString.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemString.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 begin
  if not (assigned(aWith) and (aWith is TPasJSONItemString)) then begin
   raise EPasJSONMergeError.Create('Incompatible data type');
@@ -996,6 +1006,16 @@ begin
  result:=TPasJSONItemObject.TPasJSONItemObjectEnumerator.Create(self);
 end;
 
+procedure TPasJSONItemObject.Clear;
+var Index:TPasJSONInt32;
+begin
+ for Index:=0 to fCount-1 do begin
+  FreeAndNil(fProperties[Index]);
+ end;
+ SetLength(fProperties,0);
+ fCount:=0;
+end;
+
 procedure TPasJSONItemObject.Add(const aKey:TPasJSONUTF8String;const aValue:TPasJSONItem);
 var Index:TPasJSONSizeInt;
     ObjectProperty:TPasJSONItemObjectProperty;
@@ -1025,7 +1045,7 @@ begin
  Delete(GetKeyIndex(aKey));
 end;
 
-procedure TPasJSONItemObject.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemObject.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 var Index,KeyIndex:TPasJSONSizeint;
     SrcProperty,OurProperty:TPasJSONItemObjectProperty;
     NewItem:TPasJSONItem;
@@ -1038,15 +1058,24 @@ begin
   if assigned(SrcProperty.Value) then begin
    KeyIndex:=GetKeyIndex(SrcProperty.Key);
    if KeyIndex>=0 then begin
-    OurProperty:=@fProperties[KeyIndex];
+    OurProperty:=fProperties[KeyIndex];
+    if (TPasJSONMergeFlag.ForceObjectPropertyValueDestinationType in aFlags) and
+       ((not assigned(OurProperty.Value)) or
+        (assigned(OurProperty.Value) and
+         (OurProperty.Value.ClassType<>SrcProperty.Value.ClassType))) then begin
+     if assigned(OurProperty.Value) then begin
+      OurProperty.Value.Free;
+     end;
+     OurProperty.Value:=TPasJSONItem(SrcProperty.Value.ClassType.Create);
+    end;
     if assigned(OurProperty.Value) and (OurProperty.Value.ClassType=SrcProperty.Value.ClassType) then begin
-     OurProperty.Value.Merge(SrcProperty.Value);
+     OurProperty.Value.Merge(SrcProperty.Value,aFlags);
     end;
    end else begin
     NewItem:=nil;
     try
      NewItem:=TPasJSONItem(SrcProperty.Value.ClassType.Create);
-     NewItem.Merge(SrcProperty.Value);
+     NewItem.Merge(SrcProperty.Value,aFlags);
      Add(SrcProperty.Key,NewItem);
     except
      NewItem.Free;
@@ -1112,6 +1141,16 @@ begin
  result:=TPasJSONItemArray.TPasJSONItemArrayEnumerator.Create(self);
 end;
 
+procedure TPasJSONItemArray.Clear;
+var Index:TPasJSONInt32;
+begin
+ for Index:=0 to fCount-1 do begin
+  FreeAndNil(fItems[Index]);
+ end;
+ SetLength(fItems,0);
+ fCount:=0;
+end;
+
 procedure TPasJSONItemArray.Add(const aValue:TPasJSONItem);
 var Index:TPasJSONSizeInt;
 begin
@@ -1132,7 +1171,7 @@ begin
  end;
 end;
 
-procedure TPasJSONItemArray.Merge(const aWith:TPasJSONItem);
+procedure TPasJSONItemArray.Merge(const aWith:TPasJSONItem;const aFlags:TPasJSONMergeFlags=[]);
 var Index:TPasJSONSizeInt;
     Item,NewItem:TPasJSONItem;
 begin
@@ -1144,7 +1183,7 @@ begin
   if assigned(Item) then begin
    NewItem:=TPasJSONItem(Item.ClassType.Create);
    Add(NewItem);
-   NewItem.Merge(Item);
+   NewItem.Merge(Item,aFlags);
   end;
  end;
 end;
@@ -1523,6 +1562,7 @@ var Position:TPasJSONInt32;
   var s:TPasJSONRawByteString;
       OK:TPasDblStrUtilsBoolean;
       Value:TPasJSONDouble;
+      IsHexadecimal:boolean;
   begin
    result:=nil;
    s:='';
@@ -1540,11 +1580,26 @@ var Position:TPasJSONInt32;
          JSONError;
         end;
        end;
+       IsHexadecimal:=false;
        if (not CharEOF) and (CurrentChar=ord('0')) then begin
         s:=s+ansichar(byte(CurrentChar));
         NextChar;
-        if (not CharEOF) and ((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) then begin
-         JSONError;
+        if (TPasJSONModeFlag.HexadecimalNumbers in aModeFlags) and
+           ((not CharEOF) and (CurrentChar in [ord('x'),ord('X')])) then begin
+         s:=s+ansichar(byte(CurrentChar));
+         NextChar;
+         while (not CharEOF) and
+               (((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) or
+                ((CurrentChar>=ord('a')) and (CurrentChar<=ord('f'))) or
+                ((CurrentChar>=ord('A')) and (CurrentChar<=ord('F')))) do begin
+          s:=s+ansichar(byte(CurrentChar));
+          NextChar;
+         end;
+         IsHexadecimal:=true;
+        end else begin
+         if (not CharEOF) and ((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) then begin
+          JSONError;
+         end;
         end;
        end else begin
         while (not CharEOF) and ((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) do begin
@@ -1555,10 +1610,16 @@ var Position:TPasJSONInt32;
        if IsChar('.') then begin
         s:=s+ansichar(byte(CurrentChar));
         NextChar;
-        if CharEOF or not ((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) then begin
+        if CharEOF or not (((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) or
+                           (IsHexadecimal and
+                            (((CurrentChar>=ord('a')) and (CurrentChar<=ord('f'))) or
+                             ((CurrentChar>=ord('A')) and (CurrentChar<=ord('F')))))) then begin
          JSONError;
         end;
-        while (not CharEOF) and ((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) do begin
+        while (not CharEOF) and (((CurrentChar>=ord('0')) and (CurrentChar<=ord('9'))) or
+                                  (IsHexadecimal and
+                                   (((CurrentChar>=ord('a')) and (CurrentChar<=ord('f'))) or
+                                    ((CurrentChar>=ord('A')) and (CurrentChar<=ord('F')))))) do begin
          s:=s+ansichar(byte(CurrentChar));
          NextChar;
         end;
