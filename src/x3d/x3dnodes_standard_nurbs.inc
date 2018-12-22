@@ -55,6 +55,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+    function CoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
     strict private FFdControlPoint: TSFNode;
@@ -196,6 +197,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+    function CoordField: TSFNode; override;
 
     { Make this NURBS curve equal to a piecewise Bezier curve by setting appropriate
       "knot". This looks at @link(ControlPoint) count and @link(Order)
@@ -858,6 +860,11 @@ begin
   Result := false;
 end;
 
+function TNurbsCurveNode.CoordField: TSFNode;
+begin
+  Result := FdControlPoint;
+end;
+
 { Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()
   override, it is still necessary to react to animation of Coordinate node
   points, see
@@ -1360,6 +1367,11 @@ end;
 function TAbstractNurbsSurfaceGeometryNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
+end;
+
+function TAbstractNurbsSurfaceGeometryNode.CoordField: TSFNode;
+begin
+  Result := FdControlPoint;
 end;
 
 { Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()

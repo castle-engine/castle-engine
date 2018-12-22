@@ -18,7 +18,7 @@ unit X3DLoadInternalGLTF;
 
 interface
 
-uses X3DNodes;
+uses X3DNodes, X3DFields;
 
 { Load 3D model in the GLTF format, converting it to an X3D nodes graph.
   This routine is internally used by the @link(Load3D) to load an GLTF file. }
@@ -26,10 +26,10 @@ function LoadGLTF(const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, TypInfo,
+uses SysUtils, Classes, TypInfo, Math,
   PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors;
+  CastleVectors, CastleStringUtils;
 
 function LoadGLTF(const URL: string): TX3DRootNode;
 var
@@ -64,89 +64,203 @@ var
     end;
   end;
 
-  procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive);
+  { The argument ForVertex addresses this statement of the glTF spec:
+    """
+    For performance and compatibility reasons, each element of
+    a vertex attribute must be aligned to 4-byte boundaries
+    inside bufferView
+    """ }
+
+  procedure AccessorToInt32(const AccessorIndex: Integer; const Field: TMFLong; const ForVertex: Boolean);
   var
-    IndicesAccessor, AttributeAccessor: TPasGLTF.TAccessor;
-    AttributeName: TPasGLTFUTF8String;
-    IndicesArray: TPasGLTFInt32DynamicArray;
-    PositionArray: TPasGLTF.TVector3DynamicArray;
-    Shape: TShapeNode;
-    // Geometry: TAbstractGeometryNode; // not needed for now
-    GeometryTriangleSet: TTriangleSetNode;
-    GeometryIndexedTriangleSet: TIndexedTriangleSetNode;
-    Coord: TCoordinateNode;
-    // TODO: not used yet: TexCoord: TTextureCoordinateNode;
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTFInt32DynamicArray;
     Len: Integer;
   begin
-    if Primitive.Mode <> TPasGLTF.TMesh.TPrimitive.TMode.Triangles then
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
     begin
-      WritelnWarning('glTF', 'Primitive mode not implemented yet: ' + PrimitiveModeToStr(Primitive.Mode));
-      Exit;
+      A := Accessor.DecodeAsInt32Array(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      if Len <> 0 then
+        Move(A[0], Field.Items.List^[0], SizeOf(LongInt) * Len);
+    end;
+  end;
+
+  procedure AccessorToVector2(const AccessorIndex: Integer; const Field: TMFVec2f; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTF.TVector2DynamicArray;
+    Len: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsVector2Array(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      if Len <> 0 then
+        Move(A[0], Field.Items.List^[0], SizeOf(TVector2) * Len);
+    end;
+  end;
+
+  procedure AccessorToVector3(const AccessorIndex: Integer; const Field: TMFVec3f; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTF.TVector3DynamicArray;
+    Len: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsVector3Array(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      if Len <> 0 then
+        Move(A[0], Field.Items.List^[0], SizeOf(TVector3) * Len);
+    end;
+  end;
+
+  procedure AccessorToVector4(const AccessorIndex: Integer; const Field: TMFVec4f; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTF.TVector4DynamicArray;
+    Len: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsVector4Array(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      if Len <> 0 then
+        Move(A[0], Field.Items.List^[0], SizeOf(TVector4) * Len);
+    end;
+  end;
+
+  { Set SingleTexCoord as a texture coordinate.
+    Sets up TexCoordField as a TMultiTextureCoordinateNode instance,
+    in case we have multiple texture coordinates. }
+  procedure SetMultiTextureCoordinate(const TexCoordField: TSFNode;
+    const SingleTexCoord: TTextureCoordinateNode;
+    const SingleTexCoordIndex: Integer);
+  var
+    MultiTexCoord: TMultiTextureCoordinateNode;
+  begin
+    if TexCoordField.Value <> nil then
+      { only this procedure modifies this field,
+        so it has to be TMultiTextureCoordinateNode if assigned. }
+      MultiTexCoord := TexCoordField.Value as TMultiTextureCoordinateNode
+    else
+    begin
+      MultiTexCoord := TMultiTextureCoordinateNode.Create;
+      TexCoordField.Value := MultiTexCoord;
     end;
 
-    Coord := nil;
-    // TODO TexCoord := nil;
+    MultiTexCoord.FdTexCoord.Count := Max(MultiTexCoord.FdTexCoord.Count, SingleTexCoordIndex + 1);
+    MultiTexCoord.FdTexCoord.Items[SingleTexCoordIndex] := SingleTexCoord;
+  end;
 
-    // parse attributes, initializing Coord, TexCoord and other such nodes
-    for AttributeName in Primitive.Attributes.Keys do
+  procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive);
+  var
+    AttributeName: TPasGLTFUTF8String;
+    Shape: TShapeNode;
+    Geometry: TAbstractGeometryNode;
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+    Normal: TNormalNode;
+    Color: TColorNode;
+    ColorRGBA: TColorRGBANode;
+    ColorAccessor: TPasGLTF.TAccessor;
+    IndexField: TMFLong;
+    TexCoordIndex: LongInt;
+  begin
+    // create X3D geometry and shape nodes
+    if Primitive.Indices <> -1 then
     begin
-      AttributeAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
-      if AttributeAccessor <> nil then
-      begin
-        if AttributeName = 'POSITION' then
-        begin
-          PositionArray := AttributeAccessor.DecodeAsVector3Array(true);
-          Coord := TCoordinateNode.Create;
-          Len := Length(PositionArray);
-          Coord.FdPoint.Count := Len;
-          // for I := 0 to High(Position) do
-          //   Coord.FdPoint.Items[I] := Vector3FromGltf(Position[I]);
-          // Faster version:
-          if Len <> 0 then
-            Move(PositionArray[0], Coord.FdPoint.Items.List^[0], SizeOf(TVector3) * Len);
-        end;
+      case Primitive.Mode of
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
+        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TIndexedTriangleSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TIndexedTriangleStripSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TIndexedTriangleFanSetNode.CreateWithShape(Shape);
+        else
+          begin
+            WritelnWarning('glTF', 'Primitive mode not implemented (in indexed mode): ' + PrimitiveModeToStr(Primitive.Mode));
+            Exit;
+          end;
+      end;
+    end else
+    begin
+      case Primitive.Mode of
+        TPasGLTF.TMesh.TPrimitive.TMode.Lines        : Geometry := TLineSetNode.CreateWithShape(Shape);
+        // TODO: these will require unpacking and expressing as TIndexedLineSetNode
+        //TPasGLTF.TMesh.TPrimitive.TMode.LineLoop     : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        //TPasGLTF.TMesh.TPrimitive.TMode.LineStrip    : Geometry := TIndexedLineSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.Triangles    : Geometry := TTriangleSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.TriangleStrip: Geometry := TTriangleStripSetNode.CreateWithShape(Shape);
+        TPasGLTF.TMesh.TPrimitive.TMode.TriangleFan  : Geometry := TTriangleFanSetNode.CreateWithShape(Shape);
+        else
+          begin
+            WritelnWarning('glTF', 'Primitive mode not implemented (in non-indexed) mode: ' + PrimitiveModeToStr(Primitive.Mode));
+            Exit;
+          end;
       end;
     end;
 
     // read indexes
-    if Primitive.Indices <> -1 then
+    IndexField := Geometry.CoordIndexField;
+    if IndexField <> nil then
     begin
-      IndicesAccessor := GetAccessor(Primitive.Indices);
-      if IndicesAccessor <> nil then
+      Assert(Primitive.Indices <> -1);
+      AccessorToInt32(Primitive.Indices, IndexField, false);
+    end;
+
+    // parse attributes (initializing Coord, TexCoord and other such nodes)
+    // TODO: ForVertex true for all, or just for POSITION?
+    for AttributeName in Primitive.Attributes.Keys do
+    begin
+      if (AttributeName = 'POSITION') and (Geometry.CoordField <> nil) then
       begin
-        { The argument aForVertex below is false.
-          Tested that this is correct.
-          This reflects the glTF spec:
-          """
-          For performance and compatibility reasons, each element of
-          a vertex attribute must be aligned to 4-byte boundaries
-          inside bufferView
-          """
-        }
-        IndicesArray := IndicesAccessor.DecodeAsInt32Array(false);
-      end;
+        Coord := TCoordinateNode.Create;
+        AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
+        Geometry.CoordField.Value := Coord;
+      end else
+      if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
+      begin
+        TexCoordIndex := StrToInt(PrefixRemove('TEXCOORD_', AttributeName, false));
+        TexCoord := TTextureCoordinateNode.Create;
+        AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+        SetMultiTextureCoordinate(Geometry.TexCoordField, TexCoord, TexCoordIndex);
+      end else
+      if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
+      begin
+        Normal := TNormalNode.Create;
+        AccessorToVector3(Primitive.Attributes[AttributeName], Normal.FdVector, false);
+        TAbstractComposedGeometryNode(Geometry).FdNormal.Value := Normal;
+      end else
+      if (AttributeName = 'COLOR_0') and (Geometry.ColorField <> nil) then
+      begin
+        ColorAccessor := GetAccessor(Primitive.Attributes[AttributeName]);
+        if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
+        begin
+          ColorRGBA := TColorRGBANode.Create;
+          AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
+          Geometry.ColorField.Value := ColorRGBA;
+        end else
+        begin
+          Color := TColorNode.Create;
+          AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
+          Geometry.ColorField.Value := Color;
+        end;
+      end else
+        WritelnWarning('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
     end;
 
-    // create X3D geometry and shape nodes
-    if Primitive.Indices <> -1 then
-    begin
-      GeometryIndexedTriangleSet := TIndexedTriangleSetNode.CreateWithShape(Shape);
-      GeometryIndexedTriangleSet.Coord := Coord;
-      Len := Length(IndicesArray);
-      GeometryIndexedTriangleSet.FdIndex.Count := Len;
-      // for I := 0 to High(Indices) do
-      //   GeometryIndexedTriangleSet.FdIndex.Items[I] := Indices[I];
-      // Faster version:
-      if Len <> 0 then
-        Move(IndicesArray[0], GeometryIndexedTriangleSet.FdIndex.Items.List^[0], SizeOf(LongInt) * Len);
-      // Geometry := GeometryIndexedTriangleSet;
-    end else
-    begin
-      GeometryTriangleSet := TTriangleSetNode.CreateWithShape(Shape);
-      GeometryTriangleSet.Coord := Coord;
-      // Geometry := GeometryTriangleSet;
-    end;
-
+    // add to X3D
     Result.AddChildren(Shape);
   end;
 

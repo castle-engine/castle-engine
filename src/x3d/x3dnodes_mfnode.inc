@@ -81,8 +81,10 @@
       const AnAllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
+    procedure Replace(Index: Integer; Node: TX3DNode);
+
     { Items of this field. }
-    property Items[Index: Integer]: TX3DNode read GetItems; default;
+    property Items[Index: Integer]: TX3DNode read GetItems write Replace; default;
     property ItemsArray[Index: Integer]: TX3DNode read GetItems; deprecated 'use Items (default array property)';
 
     { Lists of items in this field.
@@ -107,7 +109,6 @@
     procedure Clear;
     procedure AssignItems(const SourceItems: TX3DNodeList);
     procedure AssignItems(const SourceItems: array of TX3DNode);
-    procedure Replace(Index: Integer; Node: TX3DNode);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
