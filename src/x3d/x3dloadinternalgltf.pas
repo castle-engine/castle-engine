@@ -28,15 +28,14 @@ implementation
 
 uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions;
+  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
+  CastleImages;
 
 type
   { X3D Appearance node extended to carry some additional information specified
     in glTF materials. }
   TGltfAppearanceNode = class(TAppearanceNode)
   public
-    AlphaMode: TPasGLTF.TMaterial.TAlphaMode;
-    AlphaCutOff: Single;
     DoubleSided: Boolean;
   end;
 
@@ -209,6 +208,7 @@ var
     BaseColorFactor: TVector4;
     BaseColorTexture, NormalTexture: TImageTextureNode;
     BaseColorTextureCoordinateId, NormalTextureCoordinateId: Integer;
+    AlphaChannel: TAutoAlphaChannel;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -218,8 +218,6 @@ var
     CommonSurfaceShader.AlphaFactor := BaseColorFactor.W;
     Result.SetShaders([CommonSurfaceShader]);
 
-    Result.AlphaMode := Material.AlphaMode;
-    Result.AlphaCutOff := Material.AlphaCutOff;
     Result.DoubleSided := Material.DoubleSided;
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
@@ -231,6 +229,20 @@ var
       NormalTexture, NormalTextureCoordinateId);
     CommonSurfaceShader.NormalTexture := NormalTexture;
     CommonSurfaceShader.NormalTextureCoordinatesId := NormalTextureCoordinateId;
+
+    // read alpha channel treatment
+    case Material.AlphaMode of
+      TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
+      TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
+      TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
+    end;
+    // TODO: This should be applied on whole TAppearanceNode, not at particular textures.
+    if BaseColorTexture <> nil then
+      BaseColorTexture.AlphaChannelField := AlphaChannel;
+
+    // TODO: ignored for now:
+    // Appearance.AlphaCutOff := Material.AlphaCutOff;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -601,8 +613,6 @@ begin
         DefaultAppearance := TGltfAppearanceNode.Create;
         DefaultAppearance.Material := TMaterialNode.Create;
         DefaultAppearance.DoubleSided := false;
-        DefaultAppearance.AlphaCutOff := 0.5;
-        DefaultAppearance.AlphaMode := TPasGLTF.TMaterial.TAlphaMode.Opaque;
         Appearances := TX3DNodeList.Create(false);
         for Material in Document.Materials do
           Appearances.Add(ReadAppearance(Material));
