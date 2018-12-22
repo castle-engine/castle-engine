@@ -28,7 +28,7 @@ implementation
 
 uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils, CastleTextureImages;
+  CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions;
 
 type
   { X3D Appearance node extended to carry some additional information specified
@@ -94,9 +94,6 @@ var
        Document.ExtensionsRequired.Text
       ])
     );
-    if Document.Scene <> -1 then
-      WritelnLog('glTF', 'Current scene %d name: "%s"',
-        [Document.Scene, Document.Scenes[Document.Scene].Name]);
     if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
@@ -113,6 +110,13 @@ var
     // as it happens, both structures have the same memory layout, so copy by a fast Move
     Assert(SizeOf(V) = SizeOf(Result));
     Move(V, Result, SizeOf(Result));
+  end;
+
+  function Matrix4FromGltf(const M: TPasGLTF.TMatrix4x4): TMatrix4;
+  begin
+    // as it happens, both structures have the same memory layout, so copy by a fast Move
+    Assert(SizeOf(M) = SizeOf(Result));
+    Move(M, Result, SizeOf(Result));
   end;
 
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
@@ -448,22 +452,85 @@ var
     ParentGroup.AddChildren(Shape);
   end;
 
-  procedure ReadMesh(const Mesh: TPasGLTF.TMesh);
+  procedure ReadMesh(const Mesh: TPasGLTF.TMesh; const ParentGroup: TAbstractX3DGroupingNode);
   var
     Primitive: TPasGLTF.TMesh.TPrimitive;
     Group: TGroupNode;
   begin
     Group := TGroupNode.Create;
     Group.X3DName := Mesh.Name;
-    Result.AddChildren(Group);
+    ParentGroup.AddChildren(Group);
 
     for Primitive in Mesh.Primitives do
       ReadPrimitive(Primitive, Group);
   end;
 
+  procedure ReadMesh(const MeshIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  begin
+    if Between(MeshIndex, 0, Document.Meshes.Count - 1) then
+      ReadMesh(Document.Meshes[MeshIndex], ParentGroup)
+    else
+      WritelnWarning('glTF', 'Mesh index invalid: %d', [MeshIndex]);
+  end;
+
+  procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  var
+    Node: TPasGLTF.TNode;
+    Transform: TTransformNode;
+    NodeMatrix: TMatrix4;
+    Translation, Scale: TVector3;
+    RotationQuaternion: TQuaternion;
+    Rotation: TVector4;
+    ChildNodeIndex: Integer;
+  begin
+    if Between(NodeIndex, 0, Document.Nodes.Count - 1) then
+    begin
+      Node := Document.Nodes[NodeIndex];
+      NodeMatrix := Matrix4FromGltf(Node.Matrix);
+
+      if not TMatrix4.PerfectlyEquals(NodeMatrix, TMatrix4.Identity) then
+      begin
+        MatrixDecompose(NodeMatrix, Translation, Rotation, Scale);
+      end else
+      begin
+        Translation := Vector3FromGltf(Node.Translation);
+        RotationQuaternion.Data.Vector4 := Vector4FromGltf(Node.Rotation);
+        Rotation := RotationQuaternion.ToAxisAngle;
+        Scale := Vector3FromGltf(Node.Scale);
+      end;
+
+      Transform := TTransformNode.Create;
+      Transform.X3DName := Node.Name;
+      Transform.Translation := Translation;
+      Transform.Rotation := Rotation;
+      Transform.Scale := Scale;
+      ParentGroup.FdChildren.Add(Transform);
+
+      if Node.Mesh <> -1 then
+        ReadMesh(Node.Mesh, Transform);
+
+      for ChildNodeIndex in Node.Children do
+        ReadNode(ChildNodeIndex, Transform);
+    end else
+      WritelnWarning('glTF', 'Node index invalid: %d', [NodeIndex]);
+  end;
+
+  procedure ReadScene(const SceneIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  var
+    Scene: TPasGLTF.TScene;
+    NodeIndex: Integer;
+  begin
+    if Between(SceneIndex, 0, Document.Scenes.Count - 1) then
+    begin
+      Scene := Document.Scenes[SceneIndex];
+      for NodeIndex in Scene.Nodes do
+        ReadNode(NodeIndex, ParentGroup);
+    end else
+      WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
+  end;
+
 var
   Stream: TStream;
-  Mesh: TPasGLTF.TMesh;
   Material: TPasGLTF.TMaterial;
 begin
   Stream := Download(URL, []);
@@ -490,9 +557,9 @@ begin
         for Material in Document.Materials do
           Appearances.Add(ReadAppearance(Material));
 
-        // read meshes
-        for Mesh in Document.Meshes do
-          ReadMesh(Mesh);
+        // read main scene
+        if Document.Scene <> -1 then
+          ReadScene(Document.Scene, Result);
       finally
         FreeIfUnusedAndNil(DefaultAppearance);
         X3DNodeList_FreeUnusedAndNil(Appearances);
