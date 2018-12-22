@@ -452,6 +452,12 @@ var
           Geometry.ColorField.Value := Color;
         end;
       end else
+      if (AttributeName = 'TANGENT') then
+      begin
+        { Don't do anything -- we don't store tangents now,
+          but we can reliably calculate them when needed,
+          so don't warn about them being unimplemented. }
+      end else
         WritelnWarning('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
     end;
 
