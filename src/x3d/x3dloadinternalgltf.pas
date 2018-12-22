@@ -332,6 +332,28 @@ var
     MultiTexCoord.FdTexCoord.Items[SingleTexCoordIndex] := SingleTexCoord;
   end;
 
+  { glTF specification (unfortunately) defines (0,0) texture coord to be
+    at top-left corner, while X3D and OpenGL and OpenGLES expect it be
+    at bottom-left corner.
+    See
+    https://github.com/KhronosGroup/glTF/issues/1021
+    https://github.com/KhronosGroup/glTF/issues/674
+    https://github.com/KhronosGroup/glTF-Sample-Models/issues/82
+
+    So we flip them. }
+  procedure FlipTexCoordY(const TexCoord: TVector2List);
+  var
+    Ptr: PVector2;
+    I: Integer;
+  begin
+    Ptr := TexCoord.Ptr(0);
+    for I := 0 to TexCoord.Count - 1 do
+    begin
+      Ptr^.Data[1] := 1 - Ptr^.Data[1];
+      Inc(Ptr);
+    end;
+  end;
+
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
     const ParentGroup: TGroupNode);
   var
@@ -406,6 +428,7 @@ var
         TexCoordIndex := StrToInt(PrefixRemove('TEXCOORD_', AttributeName, false));
         TexCoord := TTextureCoordinateNode.Create;
         AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
+        FlipTexCoordY(TexCoord.FdPoint.Items);
         SetMultiTextureCoordinate(Geometry.TexCoordField, TexCoord, TexCoordIndex);
       end else
       if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
