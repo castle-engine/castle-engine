@@ -189,6 +189,10 @@ var
         if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
         begin
           GltfImage := Document.Images[GltfTexture.Source];
+          // TODO: Use GltfImage.GetResourceData to optionally load from buffer?
+          // But then, we would not be able to load from URLs that only CGE can handle,
+          // like http/https, castle-data, castle-android-assets etc.
+          // So only use GltfImage.GetResourceData if GltfImage.BufferView >= 0?
           if GltfImage.URI <> '' then
             BaseColorTexture.SetUrl([GltfImage.URI]);
         end;
@@ -206,6 +210,7 @@ var
             TextureProperties := TTexturePropertiesNode.Create;
             TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
             TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+            BaseColorTexture.TextureProperties := TextureProperties;
           end;
         end;
       end;
