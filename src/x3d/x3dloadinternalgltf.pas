@@ -26,14 +26,187 @@ function LoadGLTF(const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, TypInfo, Math,
-  PasGLTF,
+uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
-  CastleVectors, CastleStringUtils;
+  CastleVectors, CastleStringUtils, CastleTextureImages;
+
+type
+  { X3D Appearance node extended to carry some additional information specified
+    in glTF materials. }
+  TGltfAppearanceNode = class(TAppearanceNode)
+  public
+    AlphaMode: TPasGLTF.TMaterial.TAlphaMode;
+    AlphaCutOff: Single;
+    DoubleSided: Boolean;
+  end;
 
 function LoadGLTF(const URL: string): TX3DRootNode;
 var
   Document: TPasGLTF.TDocument;
+  // List of TGltfAppearanceNode nodes, ordered just list glTF materials
+  Appearances: TX3DNodeList;
+  DefaultAppearance: TGltfAppearanceNode;
+
+  procedure ReadHeader;
+  begin
+    WritelnLogMultiline('glTF', Format(
+      'Asset.Copyright: %s' + NL +
+      'Asset.Generator: %s' + NL +
+      'Asset.MinVersion: %s' + NL +
+      'Asset.Version: %s' + NL +
+      'Asset.Empty: %s' + NL +
+      'Accessors: %d' + NL +
+      'Animations: %d' + NL +
+      'Buffers: %d' + NL +
+      'BufferViews: %d' + NL +
+      'Cameras: %d' + NL +
+      'Images: %d' + NL +
+      'Materials: %d' + NL +
+      'Meshes: %d' + NL +
+      'Nodes: %d' + NL +
+      'Samplers: %d' + NL +
+      'Scenes: %d' + NL +
+      'Skins: %d' + NL +
+      'Textures: %d' + NL +
+      'ExtensionsUsed: %s' + NL +
+      'ExtensionsRequired: %s' + NL +
+      '',
+      [Document.Asset.Copyright,
+       Document.Asset.Generator,
+       Document.Asset.MinVersion,
+       Document.Asset.Version,
+       BoolToStr(Document.Asset.Empty, true),
+
+       Document.Accessors.Count,
+       Document.Animations.Count,
+       Document.Buffers.Count,
+       Document.BufferViews.Count,
+       Document.Cameras.Count,
+       Document.Images.Count,
+       Document.Materials.Count,
+       Document.Meshes.Count,
+       Document.Nodes.Count,
+       Document.Samplers.Count,
+       Document.Scenes.Count,
+       Document.Skins.Count,
+       Document.Textures.Count,
+       Document.ExtensionsUsed.Text,
+       Document.ExtensionsRequired.Text
+      ])
+    );
+    if Document.Scene <> -1 then
+      WritelnLog('glTF', 'Current scene %d name: "%s"',
+        [Document.Scene, Document.Scenes[Document.Scene].Name]);
+    if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
+      WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+  end;
+
+  function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
+  begin
+    // as it happens, both structures have the same memory layout, so copy by a fast Move
+    Assert(SizeOf(V) = SizeOf(Result));
+    Move(V, Result, SizeOf(Result));
+  end;
+
+  function Vector4FromGltf(const V: TPasGLTF.TVector4): TVector4;
+  begin
+    // as it happens, both structures have the same memory layout, so copy by a fast Move
+    Assert(SizeOf(V) = SizeOf(Result));
+    Move(V, Result, SizeOf(Result));
+  end;
+
+  function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
+  begin
+    Result :=
+      (Wrap = TPasGLTF.TSampler.TWrappingMode.Repeat_) or
+      (Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat);
+    if Wrap = TPasGLTF.TSampler.TWrappingMode.MirroredRepeat then
+      WritelnWarning('glTF', 'MirroredRepeat wrap mode not supported, using simple Repeat');
+  end;
+
+  function ReadMinificationFilter(const Filter: TPasGLTF.TSampler.TMinFilter): TAutoMinificationFilter;
+  begin
+    case Filter of
+      TPasGLTF.TSampler.TMinFilter.None                : Result := minDefault;
+      TPasGLTF.TSampler.TMinFilter.Nearest             : Result := minNearest;
+      TPasGLTF.TSampler.TMinFilter.Linear              : Result := minLinear;
+      TPasGLTF.TSampler.TMinFilter.NearestMipMapNearest: Result := minNearestMipmapNearest;
+      TPasGLTF.TSampler.TMinFilter.LinearMipMapNearest : Result := minLinearMipmapNearest;
+      TPasGLTF.TSampler.TMinFilter.NearestMipMapLinear : Result := minNearestMipmapLinear;
+      TPasGLTF.TSampler.TMinFilter.LinearMipMapLinear  : Result := minLinearMipmapLinear;
+      else raise EInternalError.Create('Unexpected glTF minification filter');
+    end;
+  end;
+
+  function ReadMagnificationFilter(const Filter: TPasGLTF.TSampler.TMagFilter): TAutoMagnificationFilter;
+  begin
+    case Filter of
+      TPasGLTF.TSampler.TMagFilter.None   : Result := magDefault;
+      TPasGLTF.TSampler.TMagFilter.Nearest: Result := magNearest;
+      TPasGLTF.TSampler.TMagFilter.Linear : Result := magLinear;
+      else raise EInternalError.Create('Unexpected glTF magnification filter');
+    end;
+  end;
+
+  function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
+  var
+    BaseColorTexture: TImageTextureNode;
+    CommonSurfaceShader: TCommonSurfaceShaderNode;
+    GltfBaseColorTexture: TPasGLTF.TMaterial.TTexture;
+    GltfTexture: TPasGLTF.TTexture;
+    GltfImage: TPasGLTF.TImage;
+    GltfSampler: TPasGLTF.TSampler;
+    TextureProperties: TTexturePropertiesNode;
+    BaseColorFactor: TVector4;
+  begin
+    Result := TGltfAppearanceNode.Create(Material.Name);
+
+    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+    CommonSurfaceShader := TCommonSurfaceShaderNode.Create;
+    CommonSurfaceShader.DiffuseFactor := BaseColorFactor.XYZ;
+    CommonSurfaceShader.AlphaFactor := BaseColorFactor.W;
+    Result.SetShaders([CommonSurfaceShader]);
+
+    Result.AlphaMode := Material.AlphaMode;
+    Result.AlphaCutOff := Material.AlphaCutOff;
+    Result.DoubleSided := Material.DoubleSided;
+
+    GltfBaseColorTexture := Material.PBRMetallicRoughness.BaseColorTexture;
+    if not GltfBaseColorTexture.Empty then
+    begin
+      BaseColorTexture := TImageTextureNode.Create('', URL);
+      CommonSurfaceShader.MultiDiffuseAlphaTexture := BaseColorTexture;
+      CommonSurfaceShader.DiffuseTextureCoordinatesId := GltfBaseColorTexture.TexCoord;
+
+      if GltfBaseColorTexture.Index < Document.Textures.Count then
+      begin
+        GltfTexture := Document.Textures[GltfBaseColorTexture.Index];
+
+        if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
+        begin
+          GltfImage := Document.Images[GltfTexture.Source];
+          if GltfImage.URI <> '' then
+            BaseColorTexture.SetUrl([GltfImage.URI]);
+        end;
+
+        if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
+        begin
+          GltfSampler := Document.Samplers[GltfTexture.Sampler];
+
+          BaseColorTexture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
+          BaseColorTexture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
+
+          if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+             (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+          begin
+            TextureProperties := TTexturePropertiesNode.Create;
+            TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
+            TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+          end;
+        end;
+      end;
+    end;
+  end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
   begin
@@ -43,13 +216,6 @@ var
   function PrimitiveModeToStr(const Mode: TPasGLTF.TMesh.TPrimitive.TMode): String;
   begin
     Result := GetEnumName(TypeInfo(TPasGLTF.TMesh.TPrimitive.TMode), Ord(Mode));
-  end;
-
-  function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
-  begin
-    // as it happens, both structures have the same memory layout, so copy by a fast Move
-    Assert(SizeOf(V) = SizeOf(Result));
-    Move(V, Result, SizeOf(Result));
   end;
 
   function GetAccessor(const AccessorIndex: Integer): TPasGLTF.TAccessor;
@@ -162,7 +328,8 @@ var
     MultiTexCoord.FdTexCoord.Items[SingleTexCoordIndex] := SingleTexCoord;
   end;
 
-  procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive);
+  procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
+    const ParentGroup: TGroupNode);
   var
     AttributeName: TPasGLTFUTF8String;
     Shape: TShapeNode;
@@ -175,6 +342,7 @@ var
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
     TexCoordIndex: LongInt;
+    Appearance: TGltfAppearanceNode;
   begin
     // create X3D geometry and shape nodes
     if Primitive.Indices <> -1 then
@@ -260,82 +428,76 @@ var
         WritelnWarning('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
     end;
 
+    // determine Apperance
+    if Between(Primitive.Material, 0, Appearances.Count - 1) then
+      Appearance := Appearances[Primitive.Material] as TGltfAppearanceNode
+    else
+    begin
+      Appearance := DefaultAppearance;
+      if Primitive.Material <> -1 then
+        WritelnWarning('glTF', 'Primitive specifies invalid material index %d',
+          [Primitive.Material]);
+    end;
+    Shape.Appearance := Appearance;
+
+    // apply additional TGltfAppearanceNode parameters, not handled by X3D renderer
+    Geometry.Solid := not Appearance.DoubleSided;
+    // TODO: For now we ignore Appearance.AlphaMode, Appearance.AlphaCutoff.
+
     // add to X3D
-    Result.AddChildren(Shape);
+    ParentGroup.AddChildren(Shape);
+  end;
+
+  procedure ReadMesh(const Mesh: TPasGLTF.TMesh);
+  var
+    Primitive: TPasGLTF.TMesh.TPrimitive;
+    Group: TGroupNode;
+  begin
+    Group := TGroupNode.Create;
+    Group.X3DName := Mesh.Name;
+    Result.AddChildren(Group);
+
+    for Primitive in Mesh.Primitives do
+      ReadPrimitive(Primitive, Group);
   end;
 
 var
   Stream: TStream;
   Mesh: TPasGLTF.TMesh;
-  Primitive: TPasGLTF.TMesh.TPrimitive;
+  Material: TPasGLTF.TMaterial;
 begin
   Stream := Download(URL, []);
   try
     Result := TX3DRootNode.Create('', URL);
     try
-      Document := TPasGLTF.TDocument.Create;
+      Document := nil;
+      DefaultAppearance := nil;
+      Appearances := nil;
       try
+        Document := TPasGLTF.TDocument.Create;
         Document.RootPath := InclPathDelim(ExtractFilePath(URIToFilenameSafe(URL)));
         Document.LoadFromStream(Stream);
 
-        WritelnLogMultiline('glTF', Format(
-          'Asset.Copyright: %s' + NL +
-          'Asset.Generator: %s' + NL +
-          'Asset.MinVersion: %s' + NL +
-          'Asset.Version: %s' + NL +
-          'Asset.Empty: %s' + NL +
-          'Accessors: %d' + NL +
-          'Animations: %d' + NL +
-          'Buffers: %d' + NL +
-          'BufferViews: %d' + NL +
-          'Cameras: %d' + NL +
-          'Images: %d' + NL +
-          'Materials: %d' + NL +
-          'Meshes: %d' + NL +
-          'Nodes: %d' + NL +
-          'Samplers: %d' + NL +
-          'Scenes: %d' + NL +
-          'Skins: %d' + NL +
-          'Textures: %d' + NL +
-          'ExtensionsUsed: %s' + NL +
-          'ExtensionsRequired: %s' + NL +
-          '',
-          [Document.Asset.Copyright,
-           Document.Asset.Generator,
-           Document.Asset.MinVersion,
-           Document.Asset.Version,
-           BoolToStr(Document.Asset.Empty, true),
+        ReadHeader;
 
-           Document.Accessors.Count,
-           Document.Animations.Count,
-           Document.Buffers.Count,
-           Document.BufferViews.Count,
-           Document.Cameras.Count,
-           Document.Images.Count,
-           Document.Materials.Count,
-           Document.Meshes.Count,
-           Document.Nodes.Count,
-           Document.Samplers.Count,
-           Document.Scenes.Count,
-           Document.Skins.Count,
-           Document.Textures.Count,
-           Document.ExtensionsUsed.Text,
-           Document.ExtensionsRequired.Text
-          ])
-        );
-        if Document.Scene <> -1 then
-          WritelnLog('glTF', 'Current scene %d name: "%s"',
-            [Document.Scene, Document.Scenes[Document.Scene].Name]);
-        if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
-          WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
+        // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
+        DefaultAppearance := TGltfAppearanceNode.Create;
+        DefaultAppearance.Material := TMaterialNode.Create;
+        DefaultAppearance.DoubleSided := false;
+        DefaultAppearance.AlphaCutOff := 0.5;
+        DefaultAppearance.AlphaMode := TPasGLTF.TMaterial.TAlphaMode.Opaque;
+        Appearances := TX3DNodeList.Create(false);
+        for Material in Document.Materials do
+          Appearances.Add(ReadAppearance(Material));
 
+        // read meshes
         for Mesh in Document.Meshes do
-        begin
-          WritelnLog('glTF', 'Mesh %s', [Mesh.Name]);
-          for Primitive in Mesh.Primitives do
-            ReadPrimitive(Primitive);
-        end;
-      finally FreeAndNil(Document) end;
+          ReadMesh(Mesh);
+      finally
+        FreeIfUnusedAndNil(DefaultAppearance);
+        X3DNodeList_FreeUnusedAndNil(Appearances);
+        FreeAndNil(Document);
+      end;
     except FreeAndNil(Result); raise end;
   finally FreeAndNil(Stream) end;
 end;
