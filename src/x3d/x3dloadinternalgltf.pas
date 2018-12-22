@@ -463,7 +463,7 @@ var
           but we can reliably calculate them when needed,
           so don't warn about them being unimplemented. }
       end else
-        WritelnWarning('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
+        WritelnLog('glTF', 'Ignoring vertex attribute ' + AttributeName + ', not implemented (for this primitive mode)');
     end;
 
     // determine Apperance
