@@ -152,16 +152,63 @@ var
     end;
   end;
 
-  function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
+  procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
+    out ImageTexture: TImageTextureNode; out TexCoordinateId: Integer);
   var
-    BaseColorTexture: TImageTextureNode;
-    CommonSurfaceShader: TCommonSurfaceShaderNode;
-    GltfBaseColorTexture: TPasGLTF.TMaterial.TTexture;
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
     GltfSampler: TPasGLTF.TSampler;
     TextureProperties: TTexturePropertiesNode;
+  begin
+    ImageTexture := nil;
+    TexCoordinateId := 0;
+
+    if not GltfTextureAtMaterial.Empty then
+    begin
+      ImageTexture := TImageTextureNode.Create('', URL);
+      TexCoordinateId := GltfTextureAtMaterial.TexCoord;
+
+      if GltfTextureAtMaterial.Index < Document.Textures.Count then
+      begin
+        GltfTexture := Document.Textures[GltfTextureAtMaterial.Index];
+
+        if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
+        begin
+          GltfImage := Document.Images[GltfTexture.Source];
+          // TODO: Use GltfImage.GetResourceData to optionally load from buffer?
+          // But then, we would not be able to load from URLs that only CGE can handle,
+          // like http/https, castle-data, castle-android-assets etc.
+          // So only use GltfImage.GetResourceData if GltfImage.BufferView >= 0?
+          if GltfImage.URI <> '' then
+            ImageTexture.SetUrl([GltfImage.URI]);
+        end;
+
+        if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
+        begin
+          GltfSampler := Document.Samplers[GltfTexture.Sampler];
+
+          ImageTexture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
+          ImageTexture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
+
+          if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+             (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+          begin
+            TextureProperties := TTexturePropertiesNode.Create;
+            TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
+            TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+            ImageTexture.TextureProperties := TextureProperties;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
+  var
+    CommonSurfaceShader: TCommonSurfaceShaderNode;
     BaseColorFactor: TVector4;
+    BaseColorTexture, NormalTexture: TImageTextureNode;
+    BaseColorTextureCoordinateId, NormalTextureCoordinateId: Integer;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
@@ -175,46 +222,15 @@ var
     Result.AlphaCutOff := Material.AlphaCutOff;
     Result.DoubleSided := Material.DoubleSided;
 
-    GltfBaseColorTexture := Material.PBRMetallicRoughness.BaseColorTexture;
-    if not GltfBaseColorTexture.Empty then
-    begin
-      BaseColorTexture := TImageTextureNode.Create('', URL);
-      CommonSurfaceShader.MultiDiffuseAlphaTexture := BaseColorTexture;
-      CommonSurfaceShader.DiffuseTextureCoordinatesId := GltfBaseColorTexture.TexCoord;
+    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
+      BaseColorTexture, BaseColorTextureCoordinateId);
+    CommonSurfaceShader.MultiDiffuseAlphaTexture := BaseColorTexture;
+    CommonSurfaceShader.DiffuseTextureCoordinatesId := BaseColorTextureCoordinateId;
 
-      if GltfBaseColorTexture.Index < Document.Textures.Count then
-      begin
-        GltfTexture := Document.Textures[GltfBaseColorTexture.Index];
-
-        if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
-        begin
-          GltfImage := Document.Images[GltfTexture.Source];
-          // TODO: Use GltfImage.GetResourceData to optionally load from buffer?
-          // But then, we would not be able to load from URLs that only CGE can handle,
-          // like http/https, castle-data, castle-android-assets etc.
-          // So only use GltfImage.GetResourceData if GltfImage.BufferView >= 0?
-          if GltfImage.URI <> '' then
-            BaseColorTexture.SetUrl([GltfImage.URI]);
-        end;
-
-        if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
-        begin
-          GltfSampler := Document.Samplers[GltfTexture.Sampler];
-
-          BaseColorTexture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-          BaseColorTexture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
-
-          if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
-             (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
-          begin
-            TextureProperties := TTexturePropertiesNode.Create;
-            TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
-            TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
-            BaseColorTexture.TextureProperties := TextureProperties;
-          end;
-        end;
-      end;
-    end;
+    ReadTexture(Material.NormalTexture,
+      NormalTexture, NormalTextureCoordinateId);
+    CommonSurfaceShader.NormalTexture := NormalTexture;
+    CommonSurfaceShader.NormalTextureCoordinatesId := NormalTextureCoordinateId;
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
