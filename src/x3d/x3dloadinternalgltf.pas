@@ -592,6 +592,32 @@ var
       WritelnWarning('glTF', 'Mesh index invalid: %d', [MeshIndex]);
   end;
 
+  procedure ReadCamera(const Camera: TPasGLTF.TCamera; const ParentGroup: TAbstractX3DGroupingNode);
+  var
+    OrthoViewpoint: TOrthoViewpointNode;
+    Viewpoint: TViewpointNode;
+  begin
+    if Camera.Type_ = TPasGLTF.TCamera.TCameraType.Orthographic then
+    begin
+      OrthoViewpoint := TOrthoViewpointNode.Create;
+      ParentGroup.FdChildren.Add(OrthoViewpoint);
+    end else
+    begin
+      Viewpoint := TViewpointNode.Create;
+      if Camera.Perspective.YFov <> 0 then
+        Viewpoint.FieldOfView := Camera.Perspective.YFov;
+      ParentGroup.FdChildren.Add(Viewpoint);
+    end;
+  end;
+
+  procedure ReadCamera(const CameraIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
+  begin
+    if Between(CameraIndex, 0, Document.Cameras.Count - 1) then
+      ReadCamera(Document.Cameras[CameraIndex], ParentGroup)
+    else
+      WritelnWarning('glTF', 'Camera index invalid: %d', [CameraIndex]);
+  end;
+
   procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
   var
     Node: TPasGLTF.TNode;
@@ -627,6 +653,9 @@ var
 
       if Node.Mesh <> -1 then
         ReadMesh(Node.Mesh, Transform);
+
+      if Node.Camera <> -1 then
+        ReadCamera(Node.Camera, Transform);
 
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);
