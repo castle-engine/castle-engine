@@ -31,6 +31,30 @@ uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages;
 
+{ Reading glTF using PasGLTF from Bero:
+  https://github.com/BeRo1985/pasgltf/
+
+  To understand glTF, and PasGLTF API, see the glTF specification:
+  https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
+  This unit converts glTF to an X3D scene graph,
+  so you should be familiar with X3D as well:
+  https://castle-engine.io/vrml_x3d.php
+
+  Some larger TODOs:
+
+  - In the future, we would like to avoid using
+    Accessor.DecodeAsXxx. Instead we should load binary data straight to GPU,
+    looking at buffers, already exposed by PasGLTF.
+    New X3D node, like BufferGeometry (same as X3DOM) will need to be
+    invented for this, and CastleGeometryArrays will need to be rearranged.
+
+  - We do not support PBR materials yet.
+
+  - glTF animations are not supported.
+
+  See https://castle-engine.io/planned_features.php .
+}
+
 type
   { X3D Appearance node extended to carry some additional information specified
     in glTF materials. }
@@ -373,7 +397,12 @@ var
     https://github.com/KhronosGroup/glTF/issues/674
     https://github.com/KhronosGroup/glTF-Sample-Models/issues/82
 
-    So we flip them. }
+    So we flip them.
+
+    TODO: This procedure should be removed, instead we should add
+    TImageTextureNode field like "flipY" to flip image at reading.
+    This way tex coords will be possible to pass directly from glTF binary
+    blob, without additional processing. }
   procedure FlipTexCoordY(const TexCoord: TVector2List);
   var
     Ptr: PVector2;
