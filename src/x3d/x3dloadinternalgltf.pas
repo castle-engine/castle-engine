@@ -176,21 +176,19 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
-    out ImageTexture: TImageTextureNode; out TexCoordinateId: Integer);
+    out Texture: TAbstractX3DTexture2DNode; out TexCoordinateId: Integer);
   var
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
     GltfSampler: TPasGLTF.TSampler;
     TextureProperties: TTexturePropertiesNode;
+    Stream: TMemoryStream;
   begin
-    ImageTexture := nil;
-    TexCoordinateId := 0;
+    Texture := nil;
+    TexCoordinateId := GltfTextureAtMaterial.TexCoord;
 
     if not GltfTextureAtMaterial.Empty then
     begin
-      ImageTexture := TImageTextureNode.Create('', URL);
-      TexCoordinateId := GltfTextureAtMaterial.TexCoord;
-
       if GltfTextureAtMaterial.Index < Document.Textures.Count then
       begin
         GltfTexture := Document.Textures[GltfTextureAtMaterial.Index];
@@ -198,20 +196,50 @@ var
         if Between(GltfTexture.Source, 0, Document.Images.Count - 1) then
         begin
           GltfImage := Document.Images[GltfTexture.Source];
-          // TODO: Use GltfImage.GetResourceData to optionally load from buffer?
-          // But then, we would not be able to load from URLs that only CGE can handle,
-          // like http/https, castle-data, castle-android-assets etc.
-          // So only use GltfImage.GetResourceData if GltfImage.BufferView >= 0?
           if GltfImage.URI <> '' then
-            ImageTexture.SetUrl([GltfImage.URI]);
+          begin
+            Texture := TImageTextureNode.Create('', URL);
+            TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
+          end else
+          if GltfImage.BufferView >= 0 then
+          begin
+            { Use GltfImage.GetResourceData to load from buffer
+              (instead of an external file). In particular, this is necessary to
+              support GLB format with textures.
+
+              Note that we use GltfImage.GetResourceData only when
+              GltfImage.BufferView was set. Otherwise, we want to interpret URI
+              by CGE code, thus allowing to read files using our Download()
+              that understands also http/https, castle-data, castle-android-assets etc.
+            }
+            Stream := TMemoryStream.Create;
+            try
+              GltfImage.GetResourceData(Stream);
+              Stream.Position := 0;
+
+              { TODO: In case this is a DDS/KTX file, by using LoadImage
+                we lose information about additional mipmaps,
+                cubemap faces etc. }
+
+              Texture := TPixelTextureNode.Create('', URL);
+              try
+                TPixelTextureNode(Texture).FdImage.Value :=
+                  LoadImage(Stream, GltfImage.MimeType, []);
+              except
+                on E: Exception do
+                  WritelnWarning('glTF', 'Cannot load the texture from glTF binary buffer with mime type %s: %s',
+                    [GltfImage.MimeType, ExceptMessage(E)]);
+              end;
+            finally FreeAndNil(Stream) end;
+          end;
         end;
 
         if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
         begin
           GltfSampler := Document.Samplers[GltfTexture.Sampler];
 
-          ImageTexture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-          ImageTexture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
+          Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
+          Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
 
           if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
              (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
@@ -219,7 +247,7 @@ var
             TextureProperties := TTexturePropertiesNode.Create;
             TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
             TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
-            ImageTexture.TextureProperties := TextureProperties;
+            Texture.TextureProperties := TextureProperties;
           end;
         end;
       end;
@@ -230,7 +258,7 @@ var
   var
     CommonSurfaceShader: TCommonSurfaceShaderNode;
     BaseColorFactor: TVector4;
-    BaseColorTexture, NormalTexture: TImageTextureNode;
+    BaseColorTexture, NormalTexture: TAbstractX3DTexture2DNode;
     BaseColorTextureCoordinateId, NormalTextureCoordinateId: Integer;
     AlphaChannel: TAutoAlphaChannel;
   begin
