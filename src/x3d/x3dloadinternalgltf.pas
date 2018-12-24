@@ -613,7 +613,7 @@ var
   procedure ReadCamera(const CameraIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
   begin
     if Between(CameraIndex, 0, Document.Cameras.Count - 1) then
-      ReadMesh(Document.Cameras[CameraIndex], ParentGroup)
+      ReadCamera(Document.Cameras[CameraIndex], ParentGroup)
     else
       WritelnWarning('glTF', 'Camera index invalid: %d', [CameraIndex]);
   end;
