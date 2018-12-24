@@ -40,6 +40,8 @@
     procedure SetStartTime(const Value: TFloatTime);
     function GetStopTime: TFloatTime;
     procedure SetStopTime(const Value: TFloatTime);
+    function GetFlipVertically: boolean;
+    procedure SetFlipVertically(const Value: boolean);
   public
     { X3D field "description". } { }
     property Description: string read GetDescription write SetDescription;
@@ -59,6 +61,8 @@
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
+    { X3D field "flipVertically". } { }
+    property FlipVertically: boolean read GetFlipVertically write SetFlipVertically;
 
 {$endif read_interface}
 
@@ -144,6 +148,16 @@ end;
 procedure TMovieTextureNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+function TMovieTextureNode.GetFlipVertically: boolean;
+begin
+  Result := FdFlipVertically.Value;
+end;
+
+procedure TMovieTextureNode.SetFlipVertically(const Value: boolean);
+begin
+  FdFlipVertically.Send(Value);
 end;
 
 {$endif read_implementation}

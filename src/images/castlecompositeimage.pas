@@ -183,10 +183,11 @@ type
       so make sure that you provide at least one of these parameters.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
     procedure LoadFromStream(Stream: TStream; const URL: string;
-      MimeType: string = '');
+      MimeType: string = '';
+      const Options: TLoadImageOptions = []);
 
     { Load composite (KTX or DDS) image from this URL. }
-    procedure LoadFromFile(URL: string);
+    procedure LoadFromFile(URL: string; const Options: TLoadImageOptions = []);
 
     procedure SaveToStream(Stream: TStream; const MimeType: string);
     procedure SaveToFile(const URL: string);
@@ -316,11 +317,15 @@ begin
 end;
 
 procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
-  MimeType: string);
+  MimeType: string;
+  const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;
 begin
   Close;
+
+  if liFlipVertically in Options then
+    WritelnWarning('ImageTexture.flipVertically for DDS/KTX not implemented yet, the image will be inverted');
 
   if MimeType = '' then
     MimeType := URIMimeType(URL);
@@ -339,7 +344,8 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.LoadFromFile(URL: string);
+procedure TCompositeImage.LoadFromFile(URL: string;
+  const Options: TLoadImageOptions = []);
 var
   S: TStream;
 begin
@@ -347,7 +353,7 @@ begin
 
   S := Download(URL, [soForceMemoryStream]);
   try
-    LoadFromStream(S, URL);
+    LoadFromStream(S, URL, '', Options);
   finally FreeAndNil(S) end;
 end;
 

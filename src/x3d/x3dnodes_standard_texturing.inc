@@ -273,6 +273,9 @@
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
+    strict private FFdFlipVertically: TSFBool;
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
+
     function TextureDescription: string; override;
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
@@ -318,6 +321,9 @@
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
+
+    strict private FFdFlipVertically: TSFBool;
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
 
     { Event out } { }
     strict private FEventDuration_changed: TSFTimeEvent;
@@ -830,6 +836,9 @@ begin
    FdUrl.ChangesAlways := [chTextureImage];
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
+
+  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
+  AddField(FFdFlipVertically);
 end;
 
 class function TImageTextureNode.ClassX3DType: string;
@@ -845,6 +854,14 @@ begin
 end;
 
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+
+  function LoadOptions: TLoadImageOptions;
+  begin
+    Result := [];
+    if FlipVertically then
+      Include(Result, liFlipVertically);
+  end;
+
 var
   I: Integer;
   FullUrl, ErrorMessage: string;
@@ -866,8 +883,8 @@ begin
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
-        FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
-          FAlphaChannelData);
+        FTextureImage := X3DCache.TextureImage_IncReference(
+          FullUrl, FTextureComposite, FAlphaChannelData, LoadOptions);
         WasCacheUsed := true;
         if WarnAboutAbsoluteFilenames and
            AbsoluteFileURI(FdUrl.Items[I]) and
@@ -945,6 +962,9 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
+  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
+  AddField(FFdFlipVertically);
+
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
   AddEvent(FEventDuration_changed);
 
@@ -997,6 +1017,14 @@ begin
 end;
 
 procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+
+  function LoadOptions: TLoadImageOptions;
+  begin
+    Result := [];
+    if FlipVertically then
+      Include(Result, liFlipVertically);
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -1008,7 +1036,8 @@ begin
   begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
     try
-      FTextureVideo := X3DCache.Video_IncReference(FullUrl, FAlphaChannelData);
+      FTextureVideo := X3DCache.Video_IncReference(
+        FullUrl, FAlphaChannelData, LoadOptions);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;

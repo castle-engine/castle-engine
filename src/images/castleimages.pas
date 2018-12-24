@@ -216,6 +216,9 @@ type
     { Create a new image object that has exactly the same class
       and the same data (size, pixels) as this image. }
     function CreateCopy: TEncodedImage; virtual; abstract;
+
+    { Mirror image vertically. }
+    procedure FlipVertical; virtual; abstract;
   end;
 
   { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
@@ -566,7 +569,7 @@ type
     procedure FlipHorizontal;
 
     { Mirror image vertically. }
-    procedure FlipVertical;
+    procedure FlipVertical; override;
 
     { Make rotated version of the image.
       See @link(Rotate) for description of parameters. }
@@ -1000,7 +1003,7 @@ type
       to losslessly flip the image, without re-compressing it.
       The idea is described here
       [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm]. }
-    procedure FlipVertical;
+    procedure FlipVertical; override;
 
     { Decompress the image.
 
@@ -1563,6 +1566,10 @@ type
 
   EImageFormatNotSupported = class(Exception);
 
+type
+  TLoadImageOption = (liFlipVertically);
+  TLoadImageOptions = set of TLoadImageOption;
+
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
 
@@ -1657,7 +1664,8 @@ function LoadImage(const URL: string;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation = riBilinear): TCastleImage; overload;
+  const Interpolation: TResizeInterpolation = riBilinear;
+  const Options: TLoadImageOptions = []): TCastleImage; overload;
 { @groupEnd }
 
 { Load image to TEncodedImage format.
@@ -1670,12 +1678,14 @@ function LoadImage(const URL: string;
 
   @groupBegin }
 function LoadEncodedImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
-
-function LoadEncodedImage(const URL: string): TEncodedImage; overload;
+function LoadEncodedImage(const URL: string;
+  const Options: TLoadImageOptions = []): TEncodedImage; overload;
 function LoadEncodedImage(URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
 { @groupEnd }
 
@@ -4365,7 +4375,8 @@ begin
 end;
 
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage;
 
   { ClassAllowed is only a shortcut to global utility. }
@@ -4500,25 +4511,38 @@ begin
         else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
       end;
     end else
-    raise EImageFormatNotSupported.Create('Can''t load image format "'+
-      ImageFormatInfos[StreamFormat].FormatName+'"');
+    begin
+      raise EImageFormatNotSupported.Create('Can''t load image format "'+
+        ImageFormatInfos[StreamFormat].FormatName+'"');
+    end;
 
-  except Result.Free; raise end;
+    { This may be implemented at lower level, inside particular image loaders,
+      some day. It would have 0 cost then. }
+    if liFlipVertically in Options then
+      Result.FlipVertical;
+
+  except
+    Result.Free;
+    raise
+  end;
 end;
 
 function LoadEncodedImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage;
 var
   iff: TImageFormat;
 begin
   if MimeTypeToImageFormat(MimeType, true, false, iff) then
-    result := LoadEncodedImage(Stream, iff, AllowedImageClasses) else
+    result := LoadEncodedImage(Stream, iff, AllowedImageClasses, Options)
+  else
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
 function LoadEncodedImage(URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = []): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
@@ -4537,7 +4561,7 @@ begin
     end;
 
     try
-      Result := LoadEncodedImage(F, MimeType, AllowedImageClasses);
+      Result := LoadEncodedImage(F, MimeType, AllowedImageClasses, Options);
       Result.FURL := URL;
     finally F.Free end;
   except
@@ -4557,9 +4581,10 @@ begin
   Profiler.Stop(TimeStart);
 end;
 
-function LoadEncodedImage(const URL: string): TEncodedImage;
+function LoadEncodedImage(const URL: string;
+  const Options: TLoadImageOptions = []): TEncodedImage;
 begin
-  Result := LoadEncodedImage(URL, []);
+  Result := LoadEncodedImage(URL, [], Options);
 end;
 
 { LoadImage ------------------------------------------------------------------ }
@@ -4612,11 +4637,12 @@ end;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation): TCastleImage;
+  const Interpolation: TResizeInterpolation;
+  const Options: TLoadImageOptions = []): TCastleImage;
 var
   E: TEncodedImage;
 begin
-  E := LoadEncodedImage(URL, AllowedImageClasses);
+  E := LoadEncodedImage(URL, AllowedImageClasses, Options);
   if not (E is TCastleImage) then
     raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
       [URIDisplay(URL)]);

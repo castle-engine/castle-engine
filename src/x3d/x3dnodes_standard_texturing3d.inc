@@ -391,8 +391,8 @@ begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
     try
-      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
-        FAlphaChannelData);
+      FTextureImage := X3DCache.TextureImage_IncReference(
+        FullUrl, FTextureComposite, FAlphaChannelData);
     except
       on E: Exception do
       begin

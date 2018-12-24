@@ -25,11 +25,16 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetFlipVertically: boolean;
+    procedure SetFlipVertically(const Value: boolean);
   public
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
+    { X3D field "flipVertically". } { }
+    property FlipVertically: boolean read GetFlipVertically write SetFlipVertically;
 
 {$endif read_interface}
 
@@ -45,6 +50,16 @@ end;
 procedure TImageTextureNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+function TImageTextureNode.GetFlipVertically: boolean;
+begin
+  Result := FdFlipVertically.Value;
+end;
+
+procedure TImageTextureNode.SetFlipVertically(const Value: boolean);
+begin
+  FdFlipVertically.Send(Value);
 end;
 
 {$endif read_implementation}

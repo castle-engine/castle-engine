@@ -200,6 +200,19 @@ var
           begin
             Texture := TImageTextureNode.Create('', URL);
             TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
+
+            { glTF specification defines (0,0) texture coord to be
+              at top-left corner, while X3D and OpenGL and OpenGLES expect it be
+              at bottom-left corner.
+              See
+              https://github.com/KhronosGroup/glTF/issues/1021
+              https://github.com/KhronosGroup/glTF/issues/674
+              https://github.com/KhronosGroup/glTF-Sample-Models/issues/82
+
+              So we flip the textures.
+              This way we can use original texture coordinates from glTF
+              file (no need to process them, by doing "y := 1 - y"). }
+            TImageTextureNode(Texture).FlipVertically := true;
           end else
           if GltfImage.BufferView >= 0 then
           begin
@@ -230,6 +243,11 @@ var
                   WritelnWarning('glTF', 'Cannot load the texture from glTF binary buffer with mime type %s: %s',
                     [GltfImage.MimeType, ExceptMessage(E)]);
               end;
+
+              { Same reason as for TImageTextureNode.FlipVertically above:
+                glTF specification defines (0,0) texture coord to be
+                at top-left corner. }
+              TPixelTextureNode(Texture).FdImage.Value.FlipVertical;
             finally FreeAndNil(Stream) end;
           end;
         end;
@@ -417,33 +435,6 @@ var
     MultiTexCoord.FdTexCoord.Items[SingleTexCoordIndex] := SingleTexCoord;
   end;
 
-  { glTF specification (unfortunately) defines (0,0) texture coord to be
-    at top-left corner, while X3D and OpenGL and OpenGLES expect it be
-    at bottom-left corner.
-    See
-    https://github.com/KhronosGroup/glTF/issues/1021
-    https://github.com/KhronosGroup/glTF/issues/674
-    https://github.com/KhronosGroup/glTF-Sample-Models/issues/82
-
-    So we flip them.
-
-    TODO: This procedure should be removed, instead we should add
-    TImageTextureNode field like "flipY" to flip image at reading.
-    This way tex coords will be possible to pass directly from glTF binary
-    blob, without additional processing. }
-  procedure FlipTexCoordY(const TexCoord: TVector2List);
-  var
-    Ptr: PVector2;
-    I: Integer;
-  begin
-    Ptr := TexCoord.Ptr(0);
-    for I := 0 to TexCoord.Count - 1 do
-    begin
-      Ptr^.Data[1] := 1 - Ptr^.Data[1];
-      Inc(Ptr);
-    end;
-  end;
-
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
     const ParentGroup: TGroupNode);
   var
@@ -518,7 +509,6 @@ var
         TexCoordIndex := StrToInt(PrefixRemove('TEXCOORD_', AttributeName, false));
         TexCoord := TTextureCoordinateNode.Create;
         AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
-        FlipTexCoordY(TexCoord.FdPoint.Items);
         SetMultiTextureCoordinate(Geometry.TexCoordField, TexCoord, TexCoordIndex);
       end else
       if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then

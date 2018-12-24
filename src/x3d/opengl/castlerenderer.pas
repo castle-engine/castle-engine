@@ -464,6 +464,7 @@ type
       It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
     InitialNode: TAbstractTextureNode;
 
+    FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
@@ -486,6 +487,7 @@ type
       of MovieTexture nodes related to this video texture! }
     InitialNode: TMovieTextureNode;
 
+    FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
@@ -622,7 +624,8 @@ type
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
-      const GUITexture: boolean): TGLuint;
+      const GUITexture: boolean;
+      const FlipVertically: Boolean): TGLuint;
 
     procedure TextureImage_DecReference(
       const TextureGLName: TGLuint);
@@ -1152,7 +1155,8 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
-  const GUITexture: boolean): TGLuint;
+  const GUITexture: boolean;
+  const FlipVertically: Boolean): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureImageCache;
@@ -1185,6 +1189,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
@@ -1208,6 +1213,7 @@ begin
   TextureCached := TTextureImageCache.Create;
   TextureImageCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.FlipVertically := FlipVertically;
   TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
@@ -1264,6 +1270,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.FlipVertically = TextureNode.FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
@@ -1285,6 +1292,7 @@ begin
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.FlipVertically := TextureNode.FlipVertically;
   TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;

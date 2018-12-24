@@ -1709,8 +1709,8 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromBaseUrl(FdFilename.Value);
-    FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
-      FAlphaChannelData);
+    FTextureImage := X3DCache.TextureImage_IncReference(
+      FullUrl, FTextureComposite, FAlphaChannelData);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;

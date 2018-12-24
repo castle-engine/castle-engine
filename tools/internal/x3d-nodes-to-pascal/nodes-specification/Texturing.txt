@@ -26,6 +26,7 @@ X3DTextureTransformNode : X3DAppearanceChildNode {
 
 ImageTexture : X3DTexture2DNode, X3DUrlObject {
   MFString [in,out] url               []   [URI]
+  SFBool   []       flipVertically    FALSE
 }
 
 MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
@@ -37,6 +38,7 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
   SFTime   [in,out] startTime         0     (-Inf,Inf)
   SFTime   [in,out] stopTime          0     (-Inf,Inf)
   MFString [in,out] url               []    [URI]
+  SFBool   []       flipVertically    FALSE
   SFTime   [out]    duration_changed
   SFTime   [out]    elapsedTime
   SFBool   [out]    isActive

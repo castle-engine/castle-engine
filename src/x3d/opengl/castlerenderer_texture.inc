@@ -893,7 +893,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
-  GUITexture: boolean;
+  GUITexture, FlipVertically: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
@@ -905,6 +905,10 @@ begin
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
+  FlipVertically :=
+    (TextureNode is TImageTextureNode) and
+    TImageTextureNode(TextureNode).FlipVertically;
+
   FGLName := Renderer.Cache.TextureImage_IncReference(
     TextureNode.TextureImage,
     TextureNode.TextureUsedFullUrl,
@@ -913,7 +917,8 @@ begin
     Anisotropy,
     TextureWrap,
     TextureNode.TextureComposite,
-    GUITexture);
+    GUITexture,
+    FlipVertically);
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1151,7 +1156,8 @@ begin
         Anisotropy,
         TextureWrap,
         nil,
-        GUITexture);
+        GUITexture,
+        false);
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory

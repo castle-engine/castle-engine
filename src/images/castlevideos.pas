@@ -157,7 +157,8 @@ type
     procedure LoadFromFile(const URL: string;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riBilinear);
+      const Interpolation: TResizeInterpolation = riBilinear;
+      const LoadOptions: TLoadImageOptions = []);
 
     { Save video to file (or image sequence).
 
@@ -319,6 +320,7 @@ type
       TCachedVideo = class
         References: Cardinal;
         URL: string;
+        LoadOptions: TLoadImageOptions;
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
@@ -335,7 +337,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const URL: string; out AlphaChannel: TAlphaChannel): TVideo;
+    function Video_IncReference(const URL: string;
+      out AlphaChannel: TAlphaChannel;
+      const LoadOptions: TLoadImageOptions = []): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
     function Empty: boolean; virtual;
@@ -515,12 +519,13 @@ end;
 procedure TVideo.LoadFromFile(const URL: string;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
-  const Interpolation: TResizeInterpolation = riBilinear);
+  const Interpolation: TResizeInterpolation = riBilinear;
+  const LoadOptions: TLoadImageOptions = []);
 
   function LoadSingleImage(const URL: string): TCastleImage;
   begin
     Result := LoadImage(URL, TextureImageClasses,
-      ResizeToX, ResizeToY, Interpolation);
+      ResizeToX, ResizeToY, Interpolation, LoadOptions);
   end;
 
   { Load from an image sequence (possibly just a single image).
@@ -640,7 +645,8 @@ begin
   Close;
 
   if FfmpegVideoMimeType(URIMimeType(URL), true) then
-    LoadFromFfmpeg(URL) else
+    LoadFromFfmpeg(URL)
+  else
     LoadFromImages(URL, false);
 
   FLoaded := true;
@@ -859,7 +865,8 @@ begin
 end;
 
 function TVideosCache.Video_IncReference(const URL: string;
-  out AlphaChannel: TAlphaChannel): TVideo;
+  out AlphaChannel: TAlphaChannel;
+  const LoadOptions: TLoadImageOptions): TVideo;
 var
   I: Integer;
   C: TCachedVideo;
@@ -869,7 +876,8 @@ begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
     C := CachedVideos[I];
-    if C.URL = URL then
+    if (C.URL = URL) and
+       (C.LoadOptions = LoadOptions) then
     begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
@@ -891,7 +899,7 @@ begin
 
   Result := TVideo.Create;
   try
-    Result.LoadFromFile(URL);
+    Result.LoadFromFile(URL, 0, 0, riBilinear, LoadOptions);
   except
     FreeAndNil(Result);
     raise;
@@ -901,6 +909,7 @@ begin
   CachedVideos.Add(C);
   C.References := 1;
   C.URL := URL;
+  C.LoadOptions := LoadOptions;
   C.Video := Result;
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
