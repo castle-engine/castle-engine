@@ -3006,6 +3006,11 @@ procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
 var
   I: Integer;
 begin
+  { Call SetFocused(false) for all focused controls,
+    to e.g. enable DB-aware controls to react. }
+  for I := 0 to FFocus.Count - 1 do
+    FFocus[I].Focused := false;
+
   { Call GLContextClose on controls after OnClose,
     consistent with inverse order in OnOpen. }
   if Assigned(OnCloseObject) then OnCloseObject(Self);
