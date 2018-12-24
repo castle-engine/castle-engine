@@ -933,7 +933,7 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
                      // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
                      // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
                      // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
-                     // TODO: submit to Bero
+                     // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
                      type TSamplerType=
                            (
                             Linear=0,
@@ -1046,7 +1046,7 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
               // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
               // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
               // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
-              // TODO: submit to Bero
+              // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
               type TCameraType=
                     (
                      None=0,
@@ -1910,7 +1910,7 @@ begin
    FillChar(fItems[OldCount],(fCount-OldCount)*SizeOf(T),#0);
   end;
   if pIndex<OldCount then begin
-   // CGE: (TODO: submit to Bero)
+   // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
    // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
    // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
    // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
@@ -1935,7 +1935,7 @@ begin
  dec(fCount);
  FillChar(fItems[pIndex],SizeOf(T),#0);
  if pIndex<>fCount then begin
-  // CGE: (TODO: submit to Bero)
+  // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
   // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
   // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
   // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
@@ -4697,7 +4697,7 @@ begin
  SetLength(RawJSONRawByteString,GLBHeader.JSONChunkHeader.ChunkLength);
  aStream.ReadBuffer(RawJSONRawByteString[1],length(RawJSONRawByteString));
  // CGE modified to free Parse result, otherwise we have memory leak
- // TODO: submit to BeRo
+ // This is also applied upstream, after https://github.com/BeRo1985/pasgltf/pull/2
  Parsed := TPasJSON.Parse(RawJSONRawByteString,[],TPasJSONEncoding.UTF8);
  try
   LoadFromJSON(Parsed);
@@ -4723,7 +4723,7 @@ end;
 
 procedure TPasGLTF.TDocument.LoadFromStream(const aStream:TStream);
 var FirstFourBytes:array[0..3] of TPasGLTFUInt8;
-    Parsed:TPasJSONItem; 
+    Parsed:TPasJSONItem;
 begin
  aStream.ReadBuffer(FirstFourBytes,SizeOf(FirstFourBytes));
  aStream.Seek(-SizeOf(FirstFourBytes),soCurrent);
@@ -4734,7 +4734,7 @@ begin
   LoadFromBinary(aStream);
  end else begin
   // CGE modified to free Parse result, otherwise we have memory leak
-  // TODO: submit to BeRo
+  // This is also applied upstream, after https://github.com/BeRo1985/pasgltf/pull/2
   Parsed := TPasJSON.Parse(aStream,[],TPasJSONEncoding.AutomaticDetection);
   try
    LoadFromJSON(Parsed);
