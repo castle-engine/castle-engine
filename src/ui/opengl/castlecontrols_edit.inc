@@ -357,10 +357,10 @@ begin
     { make smaller RectInside, by frame size }
     FrameCorners := Theme.Corners[tiEdit];
     RectInside := RectInside.
-      RemoveTop(FrameCorners[0]).
-      RemoveRight(FrameCorners[1]).
-      RemoveBottom(FrameCorners[2]).
-      RemoveLeft(FrameCorners[3]);
+      RemoveTop(FrameCorners[0] * US).
+      RemoveRight(FrameCorners[1] * US).
+      RemoveBottom(FrameCorners[2] * US).
+      RemoveLeft(FrameCorners[3] * US);
 
     { draw frame }
     Theme.Draw(SR, tiEdit, US);
@@ -406,7 +406,8 @@ begin
 
   TextLeft := RectInside.Left;
   // center in RectInside, important when AutoSize = false
-  TextBottom := RectInside.Bottom + (RectInside.Height - Font.RowHeight) / 2;
+  TextBottom := RectInside.Bottom +
+    (RectInside.Height - Font.RowHeight) / 2 + Font.Descend;
   Font.Print(TextLeft, TextBottom, Color, S);
 
   { Note that we have to display Caret even when Text = '' and S = Placeholder. }
