@@ -54,8 +54,8 @@ type
 procedure TCastleTiledMapControl.RenderOrthogonal;
 var
   j, k, l: Integer;
-  Lay: TLayer;
-  Tileset: TTileset;
+  Lay: TTiledMap.TLayer;
+  Tileset: TTiledMap.TTileset;
   Spr: TSprite;
   GID, Dat: Cardinal;
 const
@@ -68,8 +68,8 @@ begin
   for Lay in FTiledMap.Layers do
   begin
     if not Lay.Visible then Continue;
-    if (Lay is TObjectGroupLayer) or
-       (Lay is TImageLayer) then
+    if (Lay is TTiledMap.TObjectGroupLayer) or
+       (Lay is TTiledMap.TImageLayer) then
       Continue;
     //todo: use opacity
     //todo: use offset
@@ -108,21 +108,20 @@ end;
 
 procedure TCastleTiledMapControl.RenderObjects;
 var
-  Lay: TLayer;
+  Lay: TTiledMap.TLayer;
 begin
   { Object groups. }
   for Lay in FTiledMap.Layers do
   begin
-    if Lay is TObjectGroupLayer then
-      // TODO: draw TObjectGroupLayer here
-      // TODO: when to draw TImageLayer?
-    ;
+    // if Lay is TTiledMap.TObjectGroupLayer then
+    // TODO: draw TObjectGroupLayer here
+    // TODO: when to draw TImageLayer?
   end;
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
 var
-  Tileset: TTileset;
+  Tileset: TTiledMap.TTileset;
   Spr: TSprite;
 begin
   if FTiledMap <> nil then
@@ -152,7 +151,7 @@ end;
 
 procedure TCastleTiledMapControl.FreeTilesetsImages;
 var
-  Tileset: TTileset;
+  Tileset: TTiledMap.TTileset;
 begin
   if FTiledMap <> nil then
     for Tileset in FTiledMap.Tilesets do

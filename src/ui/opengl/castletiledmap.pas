@@ -26,270 +26,272 @@ uses
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages;
 
 type
-  TProperty = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { The name of the property. }
-    Name: string;
-    { The value of the property. }
-    Value: string;
-    { The type of the property. Can be string (default), int, float, bool, color
-      or file (since 0.16, with color and file added in 0.17). }
-    AType: string;
-  end;
-
-  { List of properties. }
-  TPropertyList = class(specialize TObjectList<TProperty>)
-  private
-    procedure Load(const Element: TDOMElement);
-  end;
-
-  TEncodingType = (etNone, etBase64, etCSV);
-  TCompressionType = (ctNone, ctGZip, ctZLib);
-
-  { Binary data definition. }
-  TData = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { The encoding used to encode the tile layer data. When used, it can be
-      "base64" and "csv" at the moment. }
-    Encoding: TEncodingType;
-    { The compression used to compress the tile layer data. Tiled Qt supports
-      "gzip" and "zlib". }
-    Compression: TCompressionType;
-    { Binary data. Uncompressed and decoded. }
-    Data: array of Cardinal;
-  end;
-
-  { Image definition. }
-  TImage = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { Used for embedded images, in combination with a data child element.
-      Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
-    Format: string;
-    { The reference to the tileset image file (Tiled supports most common
-      image formats). }
-    Source: string;
-    { Defines a specific color that is treated as transparent (example value:
-      "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
-      without a # but this is planned to change. }
-    Trans: TCastleColorRGB;
-    { The image width in pixels (optional, used for tile index correction when
-      the image changes). }
-    Width: Cardinal;
-    { The image height in pixels (optional). }
-    Height: Cardinal;
-    { Embedded image data (since 0.9). }
-    Data: TData;
-    destructor Destroy; override;
-  end;
-
-  TObjectsDrawOrder = (odoIndex, odoTopDown);
-
-  TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
-
-  { Object definition. }
-  TTiledObject = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { Unique ID of the object. Each object that is placed on a map gets
-      a unique id. Even if an object was deleted, no object gets the same ID.
-      Can not be changed in Tiled Qt. (since Tiled 0.11) }
-    Id: Integer;
-    { The name of the object. An arbitrary string. }
-    Name: string;
-    { The type of the object. An arbitrary string. }
-    Type_: string;
-    { The x coordinate of the object in pixels. }
-    X: Single;
-    { The y coordinate of the object in pixels. }
-    Y: Single;
-    { The width of the object in pixels (defaults to 0). }
-    Width: Single;
-    { The height of the object in pixels (defaults to 0). }
-    Height: Single;
-    { The rotation of the object in degrees clockwise (defaults to 0). (since 0.10) }
-    Rotation: Single;
-    { An reference to a tile (optional). }
-    GId: Integer;
-    { Whether the object is shown (1) or hidden (0). Defaults to 1. (since 0.9) }
-    Visible: Boolean;
-    Properties: TPropertyList;
-    { List of points for poligon and poliline. }
-    Points: TVector2List;
-    Primitive: TTileObjectPrimitive;
-    Image: TImage;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  TTiledObjectList = specialize TObjectList<TTiledObject>;
-
-  TLayer = class
-  private
-    procedure Load(const Element: TDOMElement); virtual;
-  public
-    { The name of the layer. }
-    Name: string;
-    { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
-    Opacity: Single;
-    { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
-    Visible: Boolean;
-    { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
-    OffsetX: Integer;
-    { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
-    OffsetY: Integer;
-    Properties: TPropertyList;
-    Data: TData;
-    { The color used to display the objects in this group. }
-    Color: TCastleColorRGB;
-    { The width of the object group in tiles. Meaningless. }
-    Width: Integer;
-    { The height of the object group in tiles. Meaningless. }
-    Height: Integer;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  TObjectGroupLayer = class(TLayer)
-  private
-    procedure Load(const Element: TDOMElement); override;
-  public
-    { Whether the objects are drawn according to the order of appearance
-      ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
-    DrawOrder: TObjectsDrawOrder;
-    Objects: TTiledObjectList;
-    destructor Destroy; override;
-  end;
-
-  TImageLayer = class(TLayer)
-  private
-    procedure Load(const Element: TDOMElement); override;
-  public
-    { Used by ImageLayer. }
-    Image: TImage;
-    destructor Destroy; override;
-  end;
-
-  { List of layers. }
-  TLayerList = specialize TObjectList<TLayer>;
-
-  { Single frame of animation. }
-  TFrame = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { The local ID of a tile within the parent tileset. }
-    TileId: Cardinal;
-    { How long (in milliseconds) this frame should be displayed before advancing
-      to the next frame. }
-    Duration: Cardinal;
-  end;
-
-  { Contains a list of animation frames.
-    As of Tiled 0.10, each tile can have exactly one animation associated with it.
-    In the future, there could be support for multiple named animations on a tile. }
-  TAnimation = class(specialize TObjectList<TFrame>)
-  private
-    procedure Load(const Element: TDOMElement);
-  end;
-
-  TTile = class
-  private
-    procedure Load(const Element: TDOMElement);
-  public
-    { The local tile ID within its tileset. }
-    Id: Cardinal;
-    { Defines the terrain type of each corner of the tile, given as
-      comma-separated indexes in the terrain types array in the order top-left,
-      top-right, bottom-left, bottom-right. Leaving out a value means that corner
-      has no terrain. (optional) (since 0.9) }
-    Terrain: TVector4Integer;
-    { A percentage indicating the probability that this tile is chosen when it
-      competes with others while editing with the terrain tool. (optional) (since 0.9) }
-    Probability: Single;
-    Properties: TPropertyList;
-    Image: TImage;
-    { ObjectGroup since 0.10. }
-    ObjectGroup: TObjectGroupLayer;
-    Animation: TAnimation;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  { Tiles list. }
-  TTileList = specialize TObjectList<TTile>;
-
-  TTerrain = class
-    { The name of the terrain type. }
-    Name: string;
-    { The local tile-id of the tile that represents the terrain visually. }
-    Tile: Cardinal;
-    Properties: TPropertyList;
-  end;
-
-  { This element defines an array of terrain types, which can be referenced from
-    the terrain attribute of the tile element. }
-  TTerrainTypes = specialize TObjectList<TTerrain>;
-
-  { Tileset definition. }
-  TTileset = class
-  private
-    procedure Load(const Element: TDOMElement; const BaseUrl: String);
-  public
-    { The first global tile ID of this tileset (this global ID maps to the first
-    tile in this tileset). }
-    FirstGID: Cardinal;
-    { If this tileset is stored in an external TSX (Tile Set XML) file, this
-      attribute refers to that file. That TSX file has the same structure as the
-      <tileset> element described here. (There is the firstgid attribute missing
-      and this source attribute is also not there. These two attributes
-      are kept in the TMX map, since they are map specific.) }
-    Source: string;
-    { The name of this tileset. }
-    Name: string;
-    { The (maximum) width of the tiles in this tileset. }
-    TileWidth: Cardinal;
-    { The (maximum) height of the tiles in this tileset. }
-    TileHeight: Cardinal;
-    { The spacing in pixels between the tiles in this tileset (applies to the
-      tileset image). }
-    Spacing: Cardinal;
-    { The margin around the tiles in this tileset (applies to the tileset image). }
-    Margin: Cardinal;
-    { The number of tiles in this tileset (since 0.13) }
-    TileCount: Cardinal;
-    { The number of tile columns in the tileset. For image collection tilesets
-    it is editable and is used when displaying the tileset. (since 0.15) }
-    Columns: Cardinal;
-    { This element is used to specify an offset in pixels, to be applied when
-      drawing a tile from the related tileset. When not present, no offset is applied. }
-    TileOffset: TVector2Integer;
-    Properties: TPropertyList;
-    Image: TImage;
-    Tiles: TTileList;
-    TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
-    { Use to render the tileset. Not a part of the file format. }
-    ImageData: TSprite;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  { List of tilesets. }
-  TTilesetList = specialize TObjectList<TTileset>;
-
-  TMapOrientation = (moOrthogonal, moIsometric, moStaggered);
-  TMapRenderOrder = (mroRightDown, mroRightUp, mroLeftDown, mroLeftUp);
-
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
   TTiledMap = class
-  private
+  public
+    type
+      TProperty = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { The name of the property. }
+        Name: string;
+        { The value of the property. }
+        Value: string;
+        { The type of the property. Can be string (default), int, float, bool, color
+          or file (since 0.16, with color and file added in 0.17). }
+        AType: string;
+      end;
+
+      { List of properties. }
+      TPropertyList = class(specialize TObjectList<TProperty>)
+      private
+        procedure Load(const Element: TDOMElement);
+      end;
+
+      TEncodingType = (etNone, etBase64, etCSV);
+      TCompressionType = (ctNone, ctGZip, ctZLib);
+
+      { Binary data definition. }
+      TData = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { The encoding used to encode the tile layer data. When used, it can be
+          "base64" and "csv" at the moment. }
+        Encoding: TEncodingType;
+        { The compression used to compress the tile layer data. Tiled Qt supports
+          "gzip" and "zlib". }
+        Compression: TCompressionType;
+        { Binary data. Uncompressed and decoded. }
+        Data: array of Cardinal;
+      end;
+
+      { Image definition. }
+      TImage = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { Used for embedded images, in combination with a data child element.
+          Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
+        Format: string;
+        { The reference to the tileset image file (Tiled supports most common
+          image formats). }
+        Source: string;
+        { Defines a specific color that is treated as transparent (example value:
+          "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
+          without a # but this is planned to change. }
+        Trans: TCastleColorRGB;
+        { The image width in pixels (optional, used for tile index correction when
+          the image changes). }
+        Width: Cardinal;
+        { The image height in pixels (optional). }
+        Height: Cardinal;
+        { Embedded image data (since 0.9). }
+        Data: TData;
+        destructor Destroy; override;
+      end;
+
+      TObjectsDrawOrder = (odoIndex, odoTopDown);
+
+      TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
+
+      { Object definition. }
+      TTiledObject = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { Unique ID of the object. Each object that is placed on a map gets
+          a unique id. Even if an object was deleted, no object gets the same ID.
+          Can not be changed in Tiled Qt. (since Tiled 0.11) }
+        Id: Integer;
+        { The name of the object. An arbitrary string. }
+        Name: string;
+        { The type of the object. An arbitrary string. }
+        Type_: string;
+        { The x coordinate of the object in pixels. }
+        X: Single;
+        { The y coordinate of the object in pixels. }
+        Y: Single;
+        { The width of the object in pixels (defaults to 0). }
+        Width: Single;
+        { The height of the object in pixels (defaults to 0). }
+        Height: Single;
+        { The rotation of the object in degrees clockwise (defaults to 0). (since 0.10) }
+        Rotation: Single;
+        { An reference to a tile (optional). }
+        GId: Integer;
+        { Whether the object is shown (1) or hidden (0). Defaults to 1. (since 0.9) }
+        Visible: Boolean;
+        Properties: TPropertyList;
+        { List of points for poligon and poliline. }
+        Points: TVector2List;
+        Primitive: TTileObjectPrimitive;
+        Image: TImage;
+        constructor Create;
+        destructor Destroy; override;
+      end;
+
+      TTiledObjectList = specialize TObjectList<TTiledObject>;
+
+      TLayer = class
+      private
+        procedure Load(const Element: TDOMElement); virtual;
+      public
+        { The name of the layer. }
+        Name: string;
+        { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
+        Opacity: Single;
+        { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+        Visible: Boolean;
+        { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
+        OffsetX: Integer;
+        { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
+        OffsetY: Integer;
+        Properties: TPropertyList;
+        Data: TData;
+        { The color used to display the objects in this group. }
+        Color: TCastleColorRGB;
+        { The width of the object group in tiles. Meaningless. }
+        Width: Integer;
+        { The height of the object group in tiles. Meaningless. }
+        Height: Integer;
+        constructor Create;
+        destructor Destroy; override;
+      end;
+
+      TObjectGroupLayer = class(TLayer)
+      private
+        procedure Load(const Element: TDOMElement); override;
+      public
+        { Whether the objects are drawn according to the order of appearance
+          ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
+        DrawOrder: TObjectsDrawOrder;
+        Objects: TTiledObjectList;
+        destructor Destroy; override;
+      end;
+
+      TImageLayer = class(TLayer)
+      private
+        procedure Load(const Element: TDOMElement); override;
+      public
+        { Used by ImageLayer. }
+        Image: TImage;
+        destructor Destroy; override;
+      end;
+
+      { List of layers. }
+      TLayerList = specialize TObjectList<TLayer>;
+
+      { Single frame of animation. }
+      TFrame = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { The local ID of a tile within the parent tileset. }
+        TileId: Cardinal;
+        { How long (in milliseconds) this frame should be displayed before advancing
+          to the next frame. }
+        Duration: Cardinal;
+      end;
+
+      { Contains a list of animation frames.
+        As of Tiled 0.10, each tile can have exactly one animation associated with it.
+        In the future, there could be support for multiple named animations on a tile. }
+      TAnimation = class(specialize TObjectList<TFrame>)
+      private
+        procedure Load(const Element: TDOMElement);
+      end;
+
+      TTile = class
+      private
+        procedure Load(const Element: TDOMElement);
+      public
+        { The local tile ID within its tileset. }
+        Id: Cardinal;
+        { Defines the terrain type of each corner of the tile, given as
+          comma-separated indexes in the terrain types array in the order top-left,
+          top-right, bottom-left, bottom-right. Leaving out a value means that corner
+          has no terrain. (optional) (since 0.9) }
+        Terrain: TVector4Integer;
+        { A percentage indicating the probability that this tile is chosen when it
+          competes with others while editing with the terrain tool. (optional) (since 0.9) }
+        Probability: Single;
+        Properties: TPropertyList;
+        Image: TImage;
+        { ObjectGroup since 0.10. }
+        ObjectGroup: TObjectGroupLayer;
+        Animation: TAnimation;
+        constructor Create;
+        destructor Destroy; override;
+      end;
+
+      { Tiles list. }
+      TTileList = specialize TObjectList<TTile>;
+
+      TTerrain = class
+        { The name of the terrain type. }
+        Name: string;
+        { The local tile-id of the tile that represents the terrain visually. }
+        Tile: Cardinal;
+        Properties: TPropertyList;
+      end;
+
+      { This element defines an array of terrain types, which can be referenced from
+        the terrain attribute of the tile element. }
+      TTerrainTypes = specialize TObjectList<TTerrain>;
+
+      { Tileset definition. }
+      TTileset = class
+      private
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
+      public
+        { The first global tile ID of this tileset (this global ID maps to the first
+        tile in this tileset). }
+        FirstGID: Cardinal;
+        { If this tileset is stored in an external TSX (Tile Set XML) file, this
+          attribute refers to that file. That TSX file has the same structure as the
+          <tileset> element described here. (There is the firstgid attribute missing
+          and this source attribute is also not there. These two attributes
+          are kept in the TMX map, since they are map specific.) }
+        Source: string;
+        { The name of this tileset. }
+        Name: string;
+        { The (maximum) width of the tiles in this tileset. }
+        TileWidth: Cardinal;
+        { The (maximum) height of the tiles in this tileset. }
+        TileHeight: Cardinal;
+        { The spacing in pixels between the tiles in this tileset (applies to the
+          tileset image). }
+        Spacing: Cardinal;
+        { The margin around the tiles in this tileset (applies to the tileset image). }
+        Margin: Cardinal;
+        { The number of tiles in this tileset (since 0.13) }
+        TileCount: Cardinal;
+        { The number of tile columns in the tileset. For image collection tilesets
+        it is editable and is used when displaying the tileset. (since 0.15) }
+        Columns: Cardinal;
+        { This element is used to specify an offset in pixels, to be applied when
+          drawing a tile from the related tileset. When not present, no offset is applied. }
+        TileOffset: TVector2Integer;
+        Properties: TPropertyList;
+        Image: TImage;
+        Tiles: TTileList;
+        TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
+        { Use to render the tileset. Not a part of the file format. }
+        ImageData: TSprite;
+        constructor Create;
+        destructor Destroy; override;
+      end;
+
+      { List of tilesets. }
+      TTilesetList = specialize TObjectList<TTileset>;
+
+      TMapOrientation = (moOrthogonal, moIsometric, moStaggered);
+      TMapRenderOrder = (mroRightDown, mroRightUp, mroLeftDown, mroLeftUp);
+
+  strict private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
     FVersion: string;
@@ -302,7 +304,6 @@ type
     FBackgroundColor: TCastleColorRGB;
     FRenderOrder: TMapRenderOrder;
     BaseUrl: string;
-  private
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
@@ -343,7 +344,7 @@ implementation
 
 { TProperty ------------------------------------------------------------------ }
 
-procedure TProperty.Load(const Element: TDOMElement);
+procedure TTiledMap.TProperty.Load(const Element: TDOMElement);
 begin
   Name := Element.AttributeStringDef('name', '');
   Value := Element.AttributeStringDef('value', '');
@@ -352,7 +353,7 @@ end;
 
 { TPropertyList -------------------------------------------------------------- }
 
-procedure TPropertyList.Load(const Element: TDOMElement);
+procedure TTiledMap.TPropertyList.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewProperty: TProperty;
@@ -375,7 +376,7 @@ end;
 
 { TData ---------------------------------------------------------------------- }
 
-procedure TData.Load(const Element: TDOMElement);
+procedure TTiledMap.TData.Load(const Element: TDOMElement);
 const
   BufferSize = 16;
   CSVDataSeparator = Char(',');
@@ -492,13 +493,13 @@ end;
 
 { TImage --------------------------------------------------------------------- }
 
-destructor TImage.Destroy;
+destructor TTiledMap.TImage.Destroy;
 begin
   FreeAndNil(Data);
   inherited;
 end;
 
-procedure TImage.Load(const Element: TDOMElement);
+procedure TTiledMap.TImage.Load(const Element: TDOMElement);
 const
   DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
 var
@@ -538,7 +539,7 @@ end;
 
 { TFrame --------------------------------------------------------------------- }
 
-procedure TFrame.Load(const Element: TDOMElement);
+procedure TTiledMap.TFrame.Load(const Element: TDOMElement);
 var
   TmpStr: string;
 begin
@@ -550,7 +551,7 @@ end;
 
 { TAnimation ----------------------------------------------------------------- }
 
-procedure TAnimation.Load(const Element: TDOMElement);
+procedure TTiledMap.TAnimation.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewFrame: TFrame;
@@ -573,7 +574,7 @@ end;
 
 { TTile ------------------------------------------------------------------- }
 
-constructor TTile.Create;
+constructor TTiledMap.TTile.Create;
 begin
   inherited;
   Properties := TPropertyList.Create;
@@ -581,7 +582,7 @@ begin
   Image := TImage.Create;
 end;
 
-destructor TTile.Destroy;
+destructor TTiledMap.TTile.Destroy;
 begin
   FreeAndNil(Properties);
   FreeAndNil(Animation);
@@ -590,7 +591,7 @@ begin
   inherited;
 end;
 
-procedure TTile.Load(const Element: TDOMElement);
+procedure TTiledMap.TTile.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -630,20 +631,20 @@ end;
 
 { TTiledObject ------------------------------------------------------------------- }
 
-constructor TTiledObject.Create;
+constructor TTiledMap.TTiledObject.Create;
 begin
   inherited;
   Properties := TPropertyList.Create;
 end;
 
-destructor TTiledObject.Destroy;
+destructor TTiledMap.TTiledObject.Destroy;
 begin
   FreeAndNil(Properties);
   FreeAndNil(Points);
   inherited;
 end;
 
-procedure TTiledObject.Load(const Element: TDOMElement);
+procedure TTiledMap.TTiledObject.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -731,20 +732,20 @@ end;
 
 { TLayer ------------------------------------------------------------------- }
 
-constructor TLayer.Create;
+constructor TTiledMap.TLayer.Create;
 begin
   inherited;
   Properties := TPropertyList.Create;
 end;
 
-destructor TLayer.Destroy;
+destructor TTiledMap.TLayer.Destroy;
 begin
   FreeAndNil(Properties);
   FreeAndNil(Data);
   inherited;
 end;
 
-procedure TLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TLayer.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -782,13 +783,13 @@ end;
 
 { TObjectGroupLayer ---------------------------------------------------------- }
 
-destructor TObjectGroupLayer.Destroy;
+destructor TTiledMap.TObjectGroupLayer.Destroy;
 begin
   FreeAndNil(Objects);
   inherited;
 end;
 
-procedure TObjectGroupLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TObjectGroupLayer.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewObject: TTiledObject;
@@ -824,13 +825,13 @@ end;
 
 { TImageLayer ---------------------------------------------------------------- }
 
-destructor TImageLayer.Destroy;
+destructor TTiledMap.TImageLayer.Destroy;
 begin
   FreeAndNil(Image);
   inherited;
 end;
 
-procedure TImageLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TImageLayer.Load(const Element: TDOMElement);
 var
   I: TXMLElementIterator;
 begin
@@ -854,7 +855,7 @@ end;
 
 { TTileset ------------------------------------------------------------------- }
 
-constructor TTileset.Create;
+constructor TTiledMap.TTileset.Create;
 begin
   inherited;
   Properties := TPropertyList.Create;
@@ -862,7 +863,7 @@ begin
   Image := TImage.Create;
 end;
 
-destructor TTileset.Destroy;
+destructor TTiledMap.TTileset.Destroy;
 begin
   FreeAndNil(Image);
   FreeAndNil(Tiles);
@@ -870,7 +871,7 @@ begin
   inherited;
 end;
 
-procedure TTileset.Load(const Element: TDOMElement;
+procedure TTiledMap.TTileset.Load(const Element: TDOMElement;
   const BaseUrl: String);
 
   { TSX file loading. }
