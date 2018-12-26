@@ -13,8 +13,6 @@
   ----------------------------------------------------------------------------
 }
 
-{$mode objfpc}{$H+}
-
 { Game initialization and logic. }
 unit Game;
 
@@ -40,17 +38,15 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  DefaultTmxFile: string;
-  FilePath: string;
+  URL: string;
 begin
   { Load the map from given parameter filepath or default. }
-  DefaultTmxFile := ApplicationData('desert.tmx');
   if Parameters.High = 1 then
-    FilePath := Parameters[1]
+    URL := Parameters[1]
   else
-    FilePath := DefaultTmxFile;
-  TiledMap := TCastleTiledMapControl.Create(Window, FilePath);
-  WriteLnLog('filepath', FilePath);
+    URL := 'castle-data:/desert.tmx';
+  TiledMap := TCastleTiledMapControl.Create(Window);
+  TiledMap.URL := URL;
   Window.Controls.InsertFront(TiledMap);
 end;
 
