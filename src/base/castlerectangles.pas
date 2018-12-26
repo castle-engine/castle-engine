@@ -275,6 +275,8 @@ type
     procedure SetRight(const Value: Single);
     procedure SetTop(const Value: Single);
     }
+    function GetLeftBottom: TVector2;
+    procedure SetLeftBottom(const Value: TVector2);
   public
     Left, Bottom: Single;
     Width, Height: Single;
@@ -309,6 +311,7 @@ type
     property Top: Single read GetTop;
     { @groupEnd }
 
+    property LeftBottom: TVector2 read GetLeftBottom write SetLeftBottom;
     function Middle: TVector2; deprecated 'use Center';
     function Center: TVector2;
 
@@ -1018,6 +1021,18 @@ begin
       (R.Bottom >= Bottom) and
       (R.Right <= Right) and
       (R.Top <= Top);
+end;
+
+function TFloatRectangle.GetLeftBottom: TVector2;
+begin
+  Result.Data[0] := Left;
+  Result.Data[1] := Bottom;
+end;
+
+procedure TFloatRectangle.SetLeftBottom(const Value: TVector2);
+begin
+  Left := Value.Data[0];
+  Bottom := Value.Data[1];
 end;
 
 function TFloatRectangle.Center: TVector2;

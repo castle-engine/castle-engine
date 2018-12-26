@@ -32,9 +32,13 @@ uses
 
 implementation
 
+uses CastleComponentSerialize, CastleRectangles;
+
 {$define read_implementation}
 {$I castletiledmap_map.inc}
 {$I castletiledmap_control.inc}
 {$undef read_implementation}
 
+initialization
+  RegisterSerializableComponent(TCastleTiledMapControl, 'Tiled Map');
 end.

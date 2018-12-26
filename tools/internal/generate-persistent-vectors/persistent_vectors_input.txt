@@ -42,6 +42,8 @@
 ../../../src/ui/opengl/ TCastleCheckbox TextColor TCastleColor
 ../../../src/ui/opengl/ TCastleCheckbox CheckboxColor TCastleColor
 
+../../../src/ui/opengl/ TCastleTiledMapControl Origin TVector2
+
 ../../../src/3d/ TCastleTransform Center TVector3
 ../../../src/3d/ TCastleTransform Rotation TVector4
 ../../../src/3d/ TCastleTransform Scale TVector3

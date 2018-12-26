@@ -24,6 +24,7 @@ type
     FTiledMap: TTiledMap;
     FURL: String;
     FObjectsVisible: Boolean;
+    FOrigin: TVector2;
     procedure RenderOrthogonal;
     procedure RenderHexagonal;
     procedure RenderIsometric;
@@ -34,6 +35,7 @@ type
     { Free everything created by SetURL. }
     procedure Close;
     procedure SetURL(const Value: string);
+    procedure SetOrigin(const Value: TVector2);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -41,10 +43,23 @@ type
 
     { Load given TMX file to memory and creates structures. }
     procedure LoadFromFile(const AURL: string); deprecated 'set URL instead of calling LoadFromFile';
-    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+
+    { Origin determines the map position at control's left-bottom corner.
+      Increasing Origin.X moves visually the map to the left,
+      increasing Origin.Y moves it down. }
+    property Origin: TVector2 read FOrigin write SetOrigin;
   published
+    property ClipChildren default true;
+
     { URL (or just filename) of the Tiled map file (TMX). }
     property URL: String read FURL write SetURL;
+
+    // TODO: not implemented yet
+    // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -58,12 +73,15 @@ var
   Tileset: TTiledMap.TTileset;
   Spr: TSprite;
   GID, Dat: Cardinal;
+  RR, SpriteScreenRect: TFloatRectangle;
 const
   HorizontalFlag = $80000000;
   VerticalFlag   = $40000000;
   DiagonalFlag   = $20000000;
   ClearFlag      = $1FFFFFFF;
 begin
+  RR := RenderRect;
+
   { Layers. }
   for Lay in FTiledMap.Layers do
   begin
@@ -84,14 +102,24 @@ begin
         if GID = 0 then Continue;
         Tileset := FTiledMap.GIDToTileset(GID);
         Spr := Tileset.ImageData;
-        Spr.X := k * FTiledMap.TileWidth;
-        Spr.Y := j * FTiledMap.TileHeight;
         Spr.Frame := GID - Tileset.FirstGID;
         Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
         Spr.VerticalFlip := Dat and VerticalFlag > 0;
         //todo: test flipping diagonally
         Spr.DiagonalFlip := Dat and DiagonalFlag > 0;
-        Spr.Draw;
+
+        SpriteScreenRect := FloatRectangle(
+          k * FTiledMap.TileWidth,
+          j * FTiledMap.TileHeight,
+          Spr.DrawingWidth,
+          Spr.DrawingHeight
+        ).
+        Translate(-Origin).
+        // Apply UIScale and RenderRect (anchors etc.) to rendered images
+        ScaleAround0(UIScale).
+        Translate(RR.LeftBottom);
+
+        Spr.Draw(SpriteScreenRect);
       end;
   end;
 end;
@@ -161,13 +189,22 @@ end;
 constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  ClipChildren := true;
   FObjectsVisible := False;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleTiledMapControl.Destroy;
 begin
   Close;
-  inherited Destroy;
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleTiledMapControl.Close;
@@ -206,5 +243,18 @@ begin
 
   if FObjectsVisible then RenderObjects;
 end;
+
+procedure TCastleTiledMapControl.SetOrigin(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FOrigin, Value) then
+  begin
+    FOrigin := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

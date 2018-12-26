@@ -38,7 +38,8 @@ uses SysUtils, Classes,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs;
+  CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
+  CastleTiledMap;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -139,6 +140,35 @@ begin
   Dialog := TCastleOpenDialog.Create(nil);
   try
     Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
+    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
+    Dialog.URL := GetStrValue;
+    if Dialog.Execute then
+      SetStrValue(Dialog.URL);
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ TTiledMapURLPropertyEditor ---------------------------------------------------- }
+
+type
+  { Property editor for URL that refers to a Tiled Map file. }
+  TTiledMapURLPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paRevertable];
+end;
+
+procedure TTiledMapURLPropertyEditor.Edit;
+var
+  Dialog: TCastleOpenDialog;
+begin
+  Dialog := TCastleOpenDialog.Create(nil);
+  try
+    Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
     Dialog.URL := GetStrValue;
     if Dialog.Execute then
@@ -372,6 +402,8 @@ begin
     'URL', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
+    'URL', TTiledMapURLPropertyEditor);
 
   // TODO: the SceneManager.Items, actually complete TCastleControl,
   // should be editable using new CGE editor now.

@@ -47,6 +47,7 @@ begin
     URL := 'castle-data:/desert.tmx';
   TiledMap := TCastleTiledMapControl.Create(Window);
   TiledMap.URL := URL;
+  TiledMap.FullSize := true;
   Window.Controls.InsertFront(TiledMap);
 end;
 

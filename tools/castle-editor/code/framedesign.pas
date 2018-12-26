@@ -30,7 +30,7 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager, FrameAnchors, CastleControls;
+  CastleSceneManager, FrameAnchors, CastleControls, CastleTiledMap;
 
 type
   { Frame to visually design component hierarchy. }

@@ -18,10 +18,42 @@
 {$ifdef read_interface}
 
 type
+  TGetVector2Event = function: TVector2 of object;
+  TSetVector2Event = procedure (const Value: TVector2) of object;
   TGetVector3Event = function: TVector3 of object;
   TSetVector3Event = procedure (const Value: TVector3) of object;
   TGetVector4Event = function: TVector4 of object;
   TSetVector4Event = procedure (const Value: TVector4) of object;
+
+  { TVector2 record represented as a TPersistent descendant,
+    to be able to visually edit it (in Lazarus and Delphi visual designer,
+    and Castle Game Engine visual designer) and to serialize it.
+
+    Normal user code does not need to deal with this class or it's instances.
+    Instead directly operate on TVector2 values,
+    which is faster and more natural.
+    TVector2 are simple records, so they are naturally copied on assignment,
+    and various operators like additions work in a natural way too.
+  }
+  TCastleVector2Persistent = class(TPersistent)
+  strict private
+    function GetValue: TVector2;
+    function GetX: Single;
+    function GetY: Single;
+    procedure SetValue(const AValue: TVector2);
+    procedure SetX(const AValue: Single);
+    procedure SetY(const AValue: Single);
+    function XIsStored: Boolean;
+    function YIsStored: Boolean;
+  public
+    InternalGetValue: TGetVector2Event;
+    InternalSetValue: TSetVector2Event;
+    InternalDefaultValue: TVector2;
+    property Value: TVector2 read GetValue write SetValue;
+  published
+    property X: Single read GetX write SetX stored XIsStored nodefault;
+    property Y: Single read GetY write SetY stored YIsStored nodefault;
+  end;
 
   { TVector3 record represented as a TPersistent descendant,
     to be able to visually edit it (in Lazarus and Delphi visual designer,
@@ -98,6 +130,56 @@ type
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TCastleVector2Persistent ---------------------------------------------------- }
+
+function TCastleVector2Persistent.GetValue: TVector2;
+begin
+  Result := InternalGetValue();
+end;
+
+procedure TCastleVector2Persistent.SetValue(const AValue: TVector2);
+begin
+  InternalSetValue(AValue);
+end;
+
+function TCastleVector2Persistent.GetX: Single;
+begin
+  Result := Value.Data[0];
+end;
+
+function TCastleVector2Persistent.GetY: Single;
+begin
+  Result := Value.Data[1];
+end;
+
+procedure TCastleVector2Persistent.SetX(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := Value;
+  V.Data[0] := AValue;
+  Value := V;
+end;
+
+procedure TCastleVector2Persistent.SetY(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := Value;
+  V.Data[1] := AValue;
+  Value := V;
+end;
+
+function TCastleVector2Persistent.XIsStored: Boolean;
+begin
+  Result := Value.Data[0] <> InternalDefaultValue.Data[0];
+end;
+
+function TCastleVector2Persistent.YIsStored: Boolean;
+begin
+  Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
 
 { TCastleVector3Persistent ---------------------------------------------------- }
 
