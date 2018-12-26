@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Tomasz Wojtyś
+  Copyright 2015-2018 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Display a 2D tiled map (TMX) (TCastleTiledMap class). }
+{ Display a 2D tiled map (TMX) (TCastleTiledMapControl class). }
 
 {$ifdef read_interface}
 
