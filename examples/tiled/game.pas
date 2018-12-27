@@ -38,6 +38,7 @@ type
     LabelFps: TCastleLabel;
     TiledMap: TCastleTiledMapControl;
     ButtonOpen: TCastleButton;
+    CheckboxSmoothScaling: TCastleCheckbox;
 
     { One-time initialization of resources. }
     procedure Initialize(Sender: TObject);
@@ -50,6 +51,7 @@ type
       const Event: TInputMotion; var Handled: Boolean);
     procedure MapPress(const Sender: TInputListener;
       const Event: TInputPressRelease; var Handled: Boolean);
+    procedure CheckboxSmoothScalingChange(Sender: TObject);
   end;
 
 procedure TEventsHandler.Initialize(Sender: TObject);
@@ -64,12 +66,14 @@ begin
   LabelFps := Window.FindRequiredComponent('LabelFps') as TCastleLabel;
   TiledMap := Window.FindRequiredComponent('TiledMap') as TCastleTiledMapControl;
   ButtonOpen := Window.FindRequiredComponent('ButtonOpen') as TCastleButton;
+  CheckboxSmoothScaling := Window.FindRequiredComponent('CheckboxSmoothScaling') as TCastleCheckbox;
 
   { Assign events }
   Ui.OnUpdate := @Update;
   ButtonOpen.OnClick := @ClickOpen;
   TiledMap.OnMotion := @MapMotion;
   TiledMap.OnPress := @MapPress;
+  CheckboxSmoothScaling.OnChange := @CheckboxSmoothScalingChange;
 
   { Load the map from parameter or default. }
   if Parameters.High = 1 then
@@ -120,6 +124,11 @@ begin
     TiledMap.Scale := Clamped(TiledMap.Scale / 1.1, MinScale, MaxScale);
     Handled := true;
   end;
+end;
+
+procedure TEventsHandler.CheckboxSmoothScalingChange(Sender: TObject);
+begin
+  TiledMap.SmoothScaling := CheckboxSmoothScaling.Checked;
 end;
 
 var
