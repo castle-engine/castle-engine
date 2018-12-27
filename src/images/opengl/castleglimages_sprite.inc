@@ -334,7 +334,8 @@ type
     { Is sprite diagonal flipped? }
     property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
 
-    { Prevent the color outside of rendered frame from creeping in.
+    { Prevent the color outside of rendered frame from creeping in,
+      by scaling image a bit to the inside.
       Because of bilinear filtering (used when @link(SmoothScaling)),
       the colors of neighboring pixels may be visible when you render
       the sprite frame, and the sprite is significantly scaled.
@@ -350,7 +351,10 @@ type
       Another workaround is to use this property.
       This renders a slightly smaller sprite frame, such that bilinear
       filtering doesn't have a chance to introduce colors from outside
-      of the desired sprite frame. }
+      of the desired sprite frame.
+
+      The downside is that everything is slightly scaled,
+      and doesn't look perfect if you look closely at each pixel. }
     property RenderingFrameSafeMargin: Boolean
       read FRenderingFrameSafeMargin write FRenderingFrameSafeMargin
       default false;

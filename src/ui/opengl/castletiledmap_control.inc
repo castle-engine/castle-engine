@@ -62,9 +62,16 @@ type
 
     { How are images scaled (because of UI scaling, because of @link(Scale)).
       @true means we use nice "bilinear" filter.
-      @false means we use pixelated "nearest" filter. }
+      @false means we use pixelated "nearest" filter.
+
+      Beware that using @true, and scaling the map, requires preparing
+      the tileset (atlas of tile images) in a proper way. The space
+      around each tile must have at least 1-pixel margin
+      filled with the same color and alpha ("color bleeding"),
+      otherwise bad colors will creep in because of bilinear filtering.
+    }
     property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling
-      default true;
+      default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
@@ -81,7 +88,7 @@ begin
   ClipChildren := true;
   FObjectsVisible := false;
   FScale := 1;
-  FSmoothScaling := true;
+  FSmoothScaling := false;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
@@ -146,8 +153,6 @@ begin
       Spr.HorizontalSpacing := Tileset.Spacing;
       Spr.VerticalSpacing := Tileset.Spacing;
       Spr.VerticalSpacingBottom := true;
-      // Necessary when TiledMap is scaled (because of Scale or UIScaling)
-      Spr.RenderingFrameSafeMargin := true;
       Tileset.RendererData := Spr;
     end;
 end;
