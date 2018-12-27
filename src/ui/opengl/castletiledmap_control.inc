@@ -216,12 +216,12 @@ var
     Result.Frame := GID - Tileset.FirstGID;
     Result.HorizontalFlip := Dat and HorizontalFlag > 0;
     Result.VerticalFlip := Dat and VerticalFlag > 0;
-    //todo: test flipping diagonally
+    // TODO: test flipping diagonally
     Result.DiagonalFlip := Dat and DiagonalFlag > 0;
   end;
 
   procedure RenderTile(const Layer: TTiledMap.TLayer; const X, Y: Integer;
-    const RenderX, RenderY: Integer);
+    const RenderX, RenderY: Single);
   var
     Spr: TSprite;
     SpriteScreenRect: TFloatRectangle;
@@ -230,8 +230,8 @@ var
     if Spr = nil then Exit;
 
     SpriteScreenRect := FloatRectangle(
-      X * FTiledMap.TileWidth,
-      Y * FTiledMap.TileHeight,
+      RenderX,
+      RenderY,
       Spr.DrawingWidth,
       Spr.DrawingHeight
     ).
@@ -242,6 +242,9 @@ var
     // to honor standard TCastleUserInterface conventions
     ScaleAround0(UIScale).
     Translate(RR.LeftBottom);
+
+    // TODO: use Layer opacity
+    // TODO: use Layer offset
 
     Spr.Draw(SpriteScreenRect);
   end;
@@ -258,15 +261,38 @@ var
          (Layer is TTiledMap.TImageLayer) then
         Continue;
 
-      //todo: use opacity
-      //todo: use offset
-      //todo: use map render order
+      // TODO: use map render order
 
       for Y := FTiledMap.Height - 1 downto 0 do
         for X := 0 to FTiledMap.Width - 1 do
           RenderTile(Layer, X, Y,
             X * FTiledMap.TileWidth,
             Y * FTiledMap.TileHeight);
+    end;
+  end;
+
+  procedure RenderIsometric;
+  var
+    X, Y, YFromTop: Integer;
+    Layer: TTiledMap.TLayer;
+  begin
+    for Layer in FTiledMap.Layers do
+    begin
+      if not Layer.Visible then Continue;
+      if (Layer is TTiledMap.TObjectGroupLayer) or
+         (Layer is TTiledMap.TImageLayer) then
+        Continue;
+
+      // TODO: use map render order
+
+      for Y := FTiledMap.Height - 1 downto 0 do
+        for X := 0 to FTiledMap.Width - 1 do
+        begin
+          YFromTop := FTiledMap.Height - 1 - Y;
+          RenderTile(Layer, X, Y,
+            (FTiledMap.Width  - 1 + X - YFromTop) * FTiledMap.TileWidth  / 2,
+            (FTiledMap.Height - 2 + Y - X       ) * FTiledMap.TileHeight / 2);
+        end;
     end;
   end;
 
@@ -281,7 +307,7 @@ begin
 
   case FTiledMap.Orientation of
     moOrthogonal: RenderOrthogonal;
-    // moIsometric: RenderIsometric;
+    moIsometric: RenderIsometric;
     // moIsometricStaggered: RenderIsometricStaggered;
     // moHexagonal: RenderHexagonal;
     // As a fallback, render unsupported modes as orthogonal
