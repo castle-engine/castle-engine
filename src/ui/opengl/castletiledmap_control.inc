@@ -188,63 +188,85 @@ procedure TCastleTiledMapControl.Render;
 var
   RR: TFloatRectangle;
 
-  procedure RenderOrthogonal;
+  { Return TSprite to render this tile,
+    with sprite's Frame, HorizontalFlip, VerticalFlip, DiagonalFlip already set.
+    May return @nil if nothing to render. }
+  function TileSprite(const Layer: TTiledMap.TLayer; const X, Y: Integer): TSprite;
   var
-    j, k, l: Integer;
-    Lay: TTiledMap.TLayer;
-    Tileset: TTiledMap.TTileset;
-    Spr: TSprite;
+    Index: Integer;
     GID, Dat: Cardinal;
-    SpriteScreenRect: TFloatRectangle;
+    Tileset: TTiledMap.TTileset;
   const
     HorizontalFlag = $80000000;
     VerticalFlag   = $40000000;
     DiagonalFlag   = $20000000;
     ClearFlag      = $1FFFFFFF;
   begin
-    { Layers. }
-    for Lay in FTiledMap.Layers do
+    Result := nil;
+
+    Index := X + (FTiledMap.Height - 1 - Y) * FTiledMap.Width;
+    Dat := Layer.Data.Data[Index];
+    GID := Dat and ClearFlag;
+    if GID = 0 then Exit;
+
+    Tileset := FTiledMap.GIDToTileset(GID);
+    Result := Tileset.RendererData as TSprite;
+    if Result = nil then Exit;
+
+    Result.Frame := GID - Tileset.FirstGID;
+    Result.HorizontalFlip := Dat and HorizontalFlag > 0;
+    Result.VerticalFlip := Dat and VerticalFlag > 0;
+    //todo: test flipping diagonally
+    Result.DiagonalFlip := Dat and DiagonalFlag > 0;
+  end;
+
+  procedure RenderTile(const Layer: TTiledMap.TLayer; const X, Y: Integer;
+    const RenderX, RenderY: Integer);
+  var
+    Spr: TSprite;
+    SpriteScreenRect: TFloatRectangle;
+  begin
+    Spr := TileSprite(Layer, X, Y);
+    if Spr = nil then Exit;
+
+    SpriteScreenRect := FloatRectangle(
+      X * FTiledMap.TileWidth,
+      Y * FTiledMap.TileHeight,
+      Spr.DrawingWidth,
+      Spr.DrawingHeight
+    ).
+    // Apply Origin and Scale
+    Translate(-Origin).
+    ScaleAround0(Scale).
+    // Apply UIScale and RenderRect (anchors etc.)
+    // to honor standard TCastleUserInterface conventions
+    ScaleAround0(UIScale).
+    Translate(RR.LeftBottom);
+
+    Spr.Draw(SpriteScreenRect);
+  end;
+
+  procedure RenderOrthogonal;
+  var
+    X, Y: Integer;
+    Layer: TTiledMap.TLayer;
+  begin
+    for Layer in FTiledMap.Layers do
     begin
-      if not Lay.Visible then Continue;
-      if (Lay is TTiledMap.TObjectGroupLayer) or
-         (Lay is TTiledMap.TImageLayer) then
+      if not Layer.Visible then Continue;
+      if (Layer is TTiledMap.TObjectGroupLayer) or
+         (Layer is TTiledMap.TImageLayer) then
         Continue;
+
       //todo: use opacity
       //todo: use offset
       //todo: use map render order
-      l := 0;
-      for j := FTiledMap.Height - 1 downto 0 do
-        for k := 0 to FTiledMap.Width - 1 do
-        begin     // writelnlog('tiled control','data high:%d',[High(Lay.Data.Data)]);
-          Dat := Lay.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[GID]);
-          GID := Dat and ClearFlag;
-          Inc(l);
-          if GID = 0 then Continue;
-          Tileset := FTiledMap.GIDToTileset(GID);
-          Spr := Tileset.RendererData as TSprite;
-          if Spr = nil then Continue;
-          Spr.Frame := GID - Tileset.FirstGID;
-          Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
-          Spr.VerticalFlip := Dat and VerticalFlag > 0;
-          //todo: test flipping diagonally
-          Spr.DiagonalFlip := Dat and DiagonalFlag > 0;
 
-          SpriteScreenRect := FloatRectangle(
-            k * FTiledMap.TileWidth,
-            j * FTiledMap.TileHeight,
-            Spr.DrawingWidth,
-            Spr.DrawingHeight
-          ).
-          // Apply Origin and Scale
-          Translate(-Origin).
-          ScaleAround0(Scale).
-          // Apply UIScale and RenderRect (anchors etc.)
-          // to honor standard TCastleUserInterface conventions
-          ScaleAround0(UIScale).
-          Translate(RR.LeftBottom);
-
-          Spr.Draw(SpriteScreenRect);
-        end;
+      for Y := FTiledMap.Height - 1 downto 0 do
+        for X := 0 to FTiledMap.Width - 1 do
+          RenderTile(Layer, X, Y,
+            X * FTiledMap.TileWidth,
+            Y * FTiledMap.TileHeight);
     end;
   end;
 
