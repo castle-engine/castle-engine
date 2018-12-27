@@ -18,53 +18,77 @@ unit Game;
 
 interface
 
-uses CastleWindowTouch;
+uses CastleWindow;
 
 var
-  Window: TCastleWindowTouch;
+  Window: TCastleWindowCustom;
 
 implementation
 
-uses SysUtils,
-  CastleWindow, CastleScene, CastleControls,
+uses SysUtils, Classes,
+  CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
-  CastleParameters, CastleTiledMap, CastleApplicationProperties;
-
-var
-  TiledMap: TCastleTiledMapControl;
+  CastleParameters, CastleTiledMap, CastleApplicationProperties,
+  CastleUIControls, CastleComponentSerialize;
 
 { routines ------------------------------------------------------------------- }
 
-{ One-time initialization of resources. }
-procedure ApplicationInitialize;
+type
+  TEventsHandler = class(TComponent)
+    LabelFps: TCastleLabel;
+    TiledMap: TCastleTiledMapControl;
+    ButtonOpen: TCastleButton;
+
+    { One-time initialization of resources. }
+    procedure Initialize(Sender: TObject);
+
+    { Various events. }
+    procedure Update(const Sender: TInputListener;
+      const SecondsPassed: Single; var HandleInput: Boolean);
+    procedure ClickOpen(Sender: TObject);
+  end;
+
+procedure TEventsHandler.Initialize(Sender: TObject);
 var
-  URL: string;
+  Ui: TCastleUserInterface;
 begin
-  { Load the map from given parameter filepath or default. }
+  { Load designed user interface }
+  Ui := UserInterfaceLoad('castle-data:/main.castle-user-interface', Window);
+  Window.Controls.InsertFront(Ui);
+
+  { Find necessary controls from main.castle-user-interface }
+  LabelFps := Window.FindRequiredComponent('LabelFps') as TCastleLabel;
+  TiledMap := Window.FindRequiredComponent('TiledMap') as TCastleTiledMapControl;
+  ButtonOpen := Window.FindRequiredComponent('ButtonOpen') as TCastleButton;
+
+  { Assign events }
+  Ui.OnUpdate := @Update;
+  ButtonOpen.OnClick := @ClickOpen;
+
+  { Load the map from parameter or default. }
   if Parameters.High = 1 then
-    URL := Parameters[1]
+    TiledMap.URL := Parameters[1]
   else
-    URL := 'castle-data:/desert.tmx';
-  TiledMap := TCastleTiledMapControl.Create(Window);
-  TiledMap.URL := URL;
-  TiledMap.FullSize := true;
-  Window.Controls.InsertFront(TiledMap);
+    TiledMap.URL := 'castle-data:/desert.tmx';
 end;
 
-procedure WindowRender(Container: TUIContainer);
+procedure TEventsHandler.Update(const Sender: TInputListener;
+  const SecondsPassed: Single; var HandleInput: Boolean);
 begin
-  UIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
+  LabelFps.Caption := 'FPS: ' + Window.Fps.ToString;
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
+procedure TEventsHandler.ClickOpen(Sender: TObject);
+var
+  URL: String;
 begin
-  // ... do something every frame
+  URL := TiledMap.URL;
+  if Window.FileDialog('Open Map', URL, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
+    TiledMap.URL := URL;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
-begin
-  // ... react to press of key, mouse, touch
-end;
+var
+  EventsHandler: TEventsHandler;
 
 initialization
   { Set ApplicationName early, as our log uses it. }
@@ -73,13 +97,10 @@ initialization
   InitializeLog;
 
   { initialize Application callbacks }
-  Application.OnInitialize := @ApplicationInitialize;
+  EventsHandler := TEventsHandler.Create(Application);
+  Application.OnInitializeEvent := @EventsHandler.Initialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Application.MainWindow := Window;
-  Window.OnRender := @WindowRender;
-  Window.OnUpdate := @WindowUpdate;
-  Window.OnPress := @WindowPress;
-  Window.AutoRedisplay := True;
 end.
