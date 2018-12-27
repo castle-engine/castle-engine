@@ -32,7 +32,8 @@ uses
 
 implementation
 
-uses CastleComponentSerialize, CastleRectangles, CastleImages;
+uses CastleComponentSerialize, CastleRectangles, CastleImages,
+  CastleGLUtils;
 
 {$define read_implementation}
 {$I castletiledmap_map.inc}

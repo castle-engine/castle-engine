@@ -76,7 +76,7 @@ type
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
-    FRenderingFrameSafeMargin: Boolean;
+    FRenderingFrameSafeMargin, FSmoothScaling: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
@@ -95,6 +95,7 @@ type
     procedure SetPosition(const APosition: TVector2Single);
     procedure SetRotation(const AValue: Single);
     procedure SetColor(const AValue: TCastleColor);
+    procedure SetSmoothScaling(const Value: Boolean);
   public
     { Constructor.
       @param(URL URL of source image.)
@@ -353,6 +354,9 @@ type
     property RenderingFrameSafeMargin: Boolean
       read FRenderingFrameSafeMargin write FRenderingFrameSafeMargin
       default false;
+
+    { Use smooth "bilinear" filtering when this is scaled. }
+    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
   end;
 
   { List of sprites. }
@@ -569,7 +573,8 @@ constructor TSprite.CreateFrameSize(const URL: string;
 var
   Img: TGLImage;
 begin
-  Img := TGLImage.Create(URL, ASmoothScaling);
+  FSmoothScaling := ASmoothScaling;
+  Img := TGLImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
@@ -581,7 +586,8 @@ constructor TSprite.Create(const URL: string;
 var
   Img: TGLImage;
 begin
-  Img := TGLImage.Create(URL, ASmoothScaling);
+  FSmoothScaling := ASmoothScaling;
+  Img := TGLImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can
@@ -711,6 +717,15 @@ begin
     Result := FCustomAnimations[FCurrentAnimation].Duration
   else
     Result := Frames / FramesPerSecond;
+end;
+
+procedure TSprite.SetSmoothScaling(const Value: Boolean);
+begin
+  if FSmoothScaling <> Value then
+  begin
+    FSmoothScaling := Value;
+    FImage.SmoothScaling := Value;
+  end;
 end;
 
 {$endif read_implementation}

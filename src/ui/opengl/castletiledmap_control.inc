@@ -26,9 +26,7 @@ type
     FObjectsVisible: Boolean;
     FOrigin: TVector2;
     FScale: Single;
-    procedure RenderOrthogonal;
-    procedure RenderHexagonal;
-    procedure RenderIsometric;
+    FSmoothScaling: Boolean;
     procedure RenderObjects;
     procedure LoadTilesetsImages;
     { Free images created by LoadTilesetsImages. }
@@ -38,6 +36,7 @@ type
     procedure SetURL(const Value: string);
     procedure SetOrigin(const Value: TVector2);
     procedure SetScale(const Value: Single);
+    procedure SetSmoothScaling(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -61,6 +60,12 @@ type
     // TODO: not implemented yet
     // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
 
+    { How are images scaled (because of UI scaling, because of @link(Scale)).
+      @true means we use nice "bilinear" filter.
+      @false means we use pixelated "nearest" filter. }
+    property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling
+      default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -74,8 +79,9 @@ constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   ClipChildren := true;
-  FObjectsVisible := False;
+  FObjectsVisible := false;
   FScale := 1;
+  FSmoothScaling := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
@@ -90,78 +96,6 @@ begin
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
-end;
-
-procedure TCastleTiledMapControl.RenderOrthogonal;
-var
-  j, k, l: Integer;
-  Lay: TTiledMap.TLayer;
-  Tileset: TTiledMap.TTileset;
-  Spr: TSprite;
-  GID, Dat: Cardinal;
-  RR, SpriteScreenRect: TFloatRectangle;
-const
-  HorizontalFlag = $80000000;
-  VerticalFlag   = $40000000;
-  DiagonalFlag   = $20000000;
-  ClearFlag      = $1FFFFFFF;
-begin
-  RR := RenderRect;
-
-  { Layers. }
-  for Lay in FTiledMap.Layers do
-  begin
-    if not Lay.Visible then Continue;
-    if (Lay is TTiledMap.TObjectGroupLayer) or
-       (Lay is TTiledMap.TImageLayer) then
-      Continue;
-    //todo: use opacity
-    //todo: use offset
-    //todo: use map render order
-    l := 0;
-    for j := FTiledMap.Height - 1 downto 0 do
-      for k := 0 to FTiledMap.Width - 1 do
-      begin     // writelnlog('tiled control','data high:%d',[High(Lay.Data.Data)]);
-        Dat := Lay.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[GID]);
-        GID := Dat and ClearFlag;
-        Inc(l);
-        if GID = 0 then Continue;
-        Tileset := FTiledMap.GIDToTileset(GID);
-        Spr := Tileset.RendererData as TSprite;
-        if Spr = nil then Continue;
-        Spr.Frame := GID - Tileset.FirstGID;
-        Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
-        Spr.VerticalFlip := Dat and VerticalFlag > 0;
-        //todo: test flipping diagonally
-        Spr.DiagonalFlip := Dat and DiagonalFlag > 0;
-
-        SpriteScreenRect := FloatRectangle(
-          k * FTiledMap.TileWidth,
-          j * FTiledMap.TileHeight,
-          Spr.DrawingWidth,
-          Spr.DrawingHeight
-        ).
-        // Apply Origin and Scale
-        Translate(-Origin).
-        ScaleAround0(Scale).
-        // Apply UIScale and RenderRect (anchors etc.)
-        // to honor standard TCastleUserInterface conventions
-        ScaleAround0(UIScale).
-        Translate(RR.LeftBottom);
-
-        Spr.Draw(SpriteScreenRect);
-      end;
-  end;
-end;
-
-procedure TCastleTiledMapControl.RenderHexagonal;
-begin
-  //todo: implement me
-end;
-
-procedure TCastleTiledMapControl.RenderIsometric;
-begin
-  //todo: implement me
 end;
 
 procedure TCastleTiledMapControl.RenderObjects;
@@ -198,7 +132,7 @@ begin
       Spr := TSprite.Create(
         Tileset.Image.URL, Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
-        True, False);
+        SmoothScaling, false);
       { Note that we use here Tileset.TileWidth/Height,
         which may difer from FTiledMap.TileWidth/Height.
         This is important in case of e.g. "perspective_walls.tmx" test
@@ -251,14 +185,85 @@ begin
 end;
 
 procedure TCastleTiledMapControl.Render;
+var
+  RR: TFloatRectangle;
+
+  procedure RenderOrthogonal;
+  var
+    j, k, l: Integer;
+    Lay: TTiledMap.TLayer;
+    Tileset: TTiledMap.TTileset;
+    Spr: TSprite;
+    GID, Dat: Cardinal;
+    SpriteScreenRect: TFloatRectangle;
+  const
+    HorizontalFlag = $80000000;
+    VerticalFlag   = $40000000;
+    DiagonalFlag   = $20000000;
+    ClearFlag      = $1FFFFFFF;
+  begin
+    { Layers. }
+    for Lay in FTiledMap.Layers do
+    begin
+      if not Lay.Visible then Continue;
+      if (Lay is TTiledMap.TObjectGroupLayer) or
+         (Lay is TTiledMap.TImageLayer) then
+        Continue;
+      //todo: use opacity
+      //todo: use offset
+      //todo: use map render order
+      l := 0;
+      for j := FTiledMap.Height - 1 downto 0 do
+        for k := 0 to FTiledMap.Width - 1 do
+        begin     // writelnlog('tiled control','data high:%d',[High(Lay.Data.Data)]);
+          Dat := Lay.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[GID]);
+          GID := Dat and ClearFlag;
+          Inc(l);
+          if GID = 0 then Continue;
+          Tileset := FTiledMap.GIDToTileset(GID);
+          Spr := Tileset.RendererData as TSprite;
+          if Spr = nil then Continue;
+          Spr.Frame := GID - Tileset.FirstGID;
+          Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
+          Spr.VerticalFlip := Dat and VerticalFlag > 0;
+          //todo: test flipping diagonally
+          Spr.DiagonalFlip := Dat and DiagonalFlag > 0;
+
+          SpriteScreenRect := FloatRectangle(
+            k * FTiledMap.TileWidth,
+            j * FTiledMap.TileHeight,
+            Spr.DrawingWidth,
+            Spr.DrawingHeight
+          ).
+          // Apply Origin and Scale
+          Translate(-Origin).
+          ScaleAround0(Scale).
+          // Apply UIScale and RenderRect (anchors etc.)
+          // to honor standard TCastleUserInterface conventions
+          ScaleAround0(UIScale).
+          Translate(RR.LeftBottom);
+
+          Spr.Draw(SpriteScreenRect);
+        end;
+    end;
+  end;
+
 begin
   inherited Render;
   if FTiledMap = nil then Exit;
 
+  RR := RenderRect;
+
+  if FTiledMap.BackgroundColor[3] <> 0 then
+    DrawRectangle(RR, FTiledMap.BackgroundColor);
+
   case FTiledMap.Orientation of
     moOrthogonal: RenderOrthogonal;
-    moIsometric: RenderIsometric;
-    moStaggered: RenderHexagonal;
+    // moIsometric: RenderIsometric;
+    // moIsometricStaggered: RenderIsometricStaggered;
+    // moHexagonal: RenderHexagonal;
+    // As a fallback, render unsupported modes as orthogonal
+    else RenderOrthogonal;
   end;
 
   if FObjectsVisible then RenderObjects;
@@ -278,6 +283,27 @@ begin
   if FScale <> Value then
   begin
     FScale := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleTiledMapControl.SetSmoothScaling(const Value: Boolean);
+
+  procedure ChangeExistingImages;
+  var
+    Tileset: TTiledMap.TTileset;
+  begin
+    if FTiledMap <> nil then
+      for Tileset in FTiledMap.Tilesets do
+        if Tileset.RendererData <> nil then
+          (Tileset.RendererData as TSprite).SmoothScaling := SmoothScaling;
+  end;
+
+begin
+  if FSmoothScaling <> Value then
+  begin
+    FSmoothScaling := Value;
+    ChangeExistingImages;
     VisibleChange([chRectangle]);
   end;
 end;

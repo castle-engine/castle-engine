@@ -18,8 +18,7 @@
 {$ifdef read_interface}
 
 type
-  { Loading and manipulating "Tiled" map files (http://mapeditor.org).
-    Based on Tiled version 0.14. }
+  { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
   TTiledMap = class
   public
     type
@@ -71,9 +70,7 @@ type
         { The reference to the tileset image file (Tiled supports most common
           image formats). }
         URL: string;
-        { Defines a specific color that is treated as transparent (example value:
-          "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
-          without a # but this is planned to change. }
+        { Defines a specific color that is treated as transparent. }
         Trans: TCastleColorRGB;
         { The image width in pixels (optional, used for tile index correction when
           the image changes). }
@@ -139,9 +136,9 @@ type
         { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
         Visible: Boolean;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
-        OffsetX: Integer;
+        OffsetX: Single;
         { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
-        OffsetY: Integer;
+        OffsetY: Single;
         Properties: TPropertyList;
         Data: TData;
         { The color used to display the objects in this group. }
@@ -282,7 +279,12 @@ type
       { List of tilesets. }
       TTilesetList = specialize TObjectList<TTileset>;
 
-      TMapOrientation = (moOrthogonal, moIsometric, moStaggered);
+      TMapOrientation = (
+        moOrthogonal,
+        moIsometric,
+        moIsometricStaggered,
+        moHexagonal
+      );
       TMapRenderOrder = (mroRightDown, mroRightUp, mroLeftDown, mroLeftUp);
 
   strict private
@@ -294,8 +296,7 @@ type
     FHeight: Cardinal;
     FTileWidth: Cardinal;
     FTileHeight: Cardinal;
-    { The background color of the map. (since 0.9, optional) }
-    FBackgroundColor: TCastleColorRGB;
+    FBackgroundColor: TCastleColor;
     FRenderOrder: TMapRenderOrder;
     BaseUrl: string;
     FTilesets: TTilesetList;
@@ -304,8 +305,7 @@ type
     procedure LoadTMXFile(const AURL: string);
   public
     property Layers: TLayerList read FLayers;
-    { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
-      (since 0.9) at the moment. }
+    { Map orientation. }
     property Orientation: TMapOrientation read FOrientation;
     property Properties: TPropertyList read FProperties;
     property Tilesets: TTilesetList read FTilesets;
@@ -317,6 +317,9 @@ type
     property TileWidth: Cardinal read FTileWidth;
     { The height of a tile. }
     property TileHeight: Cardinal read FTileHeight;
+    { Background color of the map.
+      It may be unset in Tiled, which results in transparent color here. }
+    property BackgroundColor: TCastleColor read FBackgroundColor;
     { The order in which tiles on tile layers are rendered. Valid values are
       right-down (the default), right-up, left-down and left-up. In all cases,
       the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
@@ -333,6 +336,20 @@ type
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ global helpers ------------------------------------------------------------- }
+
+function TiledToColorRGB(S: String): TCastleColorRGB;
+begin
+  if SCharIs(S, 1, '#') then
+    Delete(S, 1, 1);
+  Result := HexToColorRGB(S);
+end;
+
+function TiledToColor(const S: String): TCastleColor;
+begin
+  Result := Vector4(TiledToColorRGB(S), 1);
+end;
 
 { TProperty ------------------------------------------------------------------ }
 
@@ -503,10 +520,8 @@ begin
   if Element.AttributeString('source', TmpStr) then
     URL := CombineURI(BaseUrl, TmpStr);
   if Element.AttributeString('trans', TmpStr) then
-  begin
-    if TmpStr[1]='#' then Delete(TmpStr, 1, 1);
-    Trans := HexToColorRGB(TmpStr);
-  end else
+    Trans := TiledToColorRGB(TmpStr)
+  else
     Trans := DefaultTrans;
   if Element.AttributeString('width', TmpStr) then
     Width := StrToInt(TmpStr);
@@ -766,10 +781,8 @@ begin
     Opacity := StrToFloat(TmpStr);
   if Element.GetAttribute('visible') = '0' then
     Visible := False;
-  if Element.AttributeString('offsetx', TmpStr) then
-    OffsetX := StrToInt(TmpStr);
-  if Element.AttributeString('offsety', TmpStr) then
-    OffsetY := StrToInt(TmpStr);
+  OffsetX := Element.AttributeSingleDef('offsetx', 0);
+  OffsetY := Element.AttributeSingleDef('offsety', 0);
 
   I := TXMLElementIterator.Create(Element);
   try
@@ -983,7 +996,8 @@ begin
       case TmpStr of
         'orthogonal': FOrientation := moOrthogonal;
         'isometric': FOrientation := moIsometric;
-        'staggered': FOrientation := moStaggered;
+        'staggered': FOrientation := moIsometricStaggered;
+        'hexagonal': FOrientation := moHexagonal;
       end;
     if Doc.DocumentElement.AttributeString('width', TmpStr) then
       FWidth := StrToInt(TmpStr);
@@ -994,7 +1008,7 @@ begin
     if Doc.DocumentElement.AttributeString('tileheight', TmpStr) then
       FTileHeight := StrToInt(TmpStr);
     if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
-      FBackgroundColor := HexToColorRGB(TmpStr);
+      FBackgroundColor := TiledToColor(TmpStr);
     if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
       case TmpStr of
         'right-down': FRenderOrder := mroRightDown;
