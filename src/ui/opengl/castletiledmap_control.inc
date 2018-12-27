@@ -196,7 +196,7 @@ begin
         Continue;
       end;
       Spr := TSprite.Create(
-        CombineURI(URL, Tileset.Image.Source), Tileset.TileCount,
+        Tileset.Image.URL, Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
         True, False);
       Spr.DrawingWidth := FTiledMap.TileWidth;

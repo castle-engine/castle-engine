@@ -25,7 +25,7 @@ type
     type
       TProperty = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The name of the property. }
         Name: string;
@@ -39,7 +39,7 @@ type
       { List of properties. }
       TPropertyList = class(specialize TObjectList<TProperty>)
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       end;
 
       TEncodingType = (etNone, etBase64, etCSV);
@@ -48,7 +48,7 @@ type
       { Binary data definition. }
       TData = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The encoding used to encode the tile layer data. When used, it can be
           "base64" and "csv" at the moment. }
@@ -63,14 +63,14 @@ type
       { Image definition. }
       TImage = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { Used for embedded images, in combination with a data child element.
           Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
         Format: string;
         { The reference to the tileset image file (Tiled supports most common
           image formats). }
-        Source: string;
+        URL: string;
         { Defines a specific color that is treated as transparent (example value:
           "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
           without a # but this is planned to change. }
@@ -83,6 +83,7 @@ type
         { Embedded image data (since 0.9). }
         Data: TData;
         destructor Destroy; override;
+        procedure DetermineSize;
       end;
 
       TObjectsDrawOrder = (odoIndex, odoTopDown);
@@ -92,7 +93,7 @@ type
       { Object definition. }
       TTiledObject = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { Unique ID of the object. Each object that is placed on a map gets
           a unique id. Even if an object was deleted, no object gets the same ID.
@@ -129,7 +130,7 @@ type
 
       TLayer = class
       private
-        procedure Load(const Element: TDOMElement); virtual;
+        procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
       public
         { The name of the layer. }
         Name: string;
@@ -155,7 +156,7 @@ type
 
       TObjectGroupLayer = class(TLayer)
       private
-        procedure Load(const Element: TDOMElement); override;
+        procedure Load(const Element: TDOMElement; const BaseUrl: String); override;
       public
         { Whether the objects are drawn according to the order of appearance
           ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
@@ -166,7 +167,7 @@ type
 
       TImageLayer = class(TLayer)
       private
-        procedure Load(const Element: TDOMElement); override;
+        procedure Load(const Element: TDOMElement; const BaseUrl: String); override;
       public
         { Used by ImageLayer. }
         Image: TImage;
@@ -179,7 +180,7 @@ type
       { Single frame of animation. }
       TFrame = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The local ID of a tile within the parent tileset. }
         TileId: Cardinal;
@@ -193,12 +194,12 @@ type
         In the future, there could be support for multiple named animations on a tile. }
       TAnimation = class(specialize TObjectList<TFrame>)
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       end;
 
       TTile = class
       private
-        procedure Load(const Element: TDOMElement);
+        procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The local tile ID within its tileset. }
         Id: Cardinal;
@@ -247,7 +248,7 @@ type
           <tileset> element described here. (There is the firstgid attribute missing
           and this source attribute is also not there. These two attributes
           are kept in the TMX map, since they are map specific.) }
-        Source: string;
+        URL: string;
         { The name of this tileset. }
         Name: string;
         { The (maximum) width of the tiles in this tileset. }
@@ -335,7 +336,7 @@ type
 
 { TProperty ------------------------------------------------------------------ }
 
-procedure TTiledMap.TProperty.Load(const Element: TDOMElement);
+procedure TTiledMap.TProperty.Load(const Element: TDOMElement; const BaseUrl: String);
 begin
   Name := Element.AttributeStringDef('name', '');
   Value := Element.AttributeStringDef('value', '');
@@ -344,7 +345,7 @@ end;
 
 { TPropertyList -------------------------------------------------------------- }
 
-procedure TTiledMap.TPropertyList.Load(const Element: TDOMElement);
+procedure TTiledMap.TPropertyList.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   NewProperty: TProperty;
@@ -357,7 +358,7 @@ begin
         'property':
           begin
             NewProperty := TProperty.Create;
-            NewProperty.Load(I.Current);
+            NewProperty.Load(I.Current, BaseUrl);
             Add(NewProperty);
           end;
       end;
@@ -367,7 +368,7 @@ end;
 
 { TData ---------------------------------------------------------------------- }
 
-procedure TTiledMap.TData.Load(const Element: TDOMElement);
+procedure TTiledMap.TData.Load(const Element: TDOMElement; const BaseUrl: String);
 const
   BufferSize = 16;
   CSVDataSeparator = Char(',');
@@ -490,7 +491,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TImage.Load(const Element: TDOMElement);
+procedure TTiledMap.TImage.Load(const Element: TDOMElement; const BaseUrl: String);
 const
   DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
 var
@@ -500,7 +501,7 @@ begin
   if Element.AttributeString('format', TmpStr) then
     Format := TmpStr;
   if Element.AttributeString('source', TmpStr) then
-    Source := TmpStr;
+    URL := CombineURI(BaseUrl, TmpStr);
   if Element.AttributeString('trans', TmpStr) then
   begin
     if TmpStr[1]='#' then Delete(TmpStr, 1, 1);
@@ -521,16 +522,31 @@ begin
           begin
             if Data = nil then
               Data := TData.Create;
-            Data.Load(I.Current);
+            Data.Load(I.Current, BaseUrl);
           end;
       end;
     end;
   finally FreeAndNil(I) end;
 end;
 
+procedure TTiledMap.TImage.DetermineSize;
+var
+ ImageData: TEncodedImage;
+begin
+  if (Width = 0) and (Height = 0) then
+  begin
+    WritelnLog('Determining image size by loading it. It is more efficient to store image size in TMX file.');
+    ImageData := LoadEncodedImage(URL);
+    try
+      Width := ImageData.Width;
+      Height := ImageData.Height;
+    finally FreeAndNil(ImageData) end;
+  end;
+end;
+
 { TFrame --------------------------------------------------------------------- }
 
-procedure TTiledMap.TFrame.Load(const Element: TDOMElement);
+procedure TTiledMap.TFrame.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   TmpStr: string;
 begin
@@ -542,7 +558,7 @@ end;
 
 { TAnimation ----------------------------------------------------------------- }
 
-procedure TTiledMap.TAnimation.Load(const Element: TDOMElement);
+procedure TTiledMap.TAnimation.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   NewFrame: TFrame;
@@ -555,7 +571,7 @@ begin
         'frame':
           begin
             NewFrame := TFrame.Create;
-            NewFrame.Load(I.Current);
+            NewFrame.Load(I.Current, BaseUrl);
             Add(NewFrame);
           end;
       end;
@@ -582,7 +598,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TTile.Load(const Element: TDOMElement);
+procedure TTiledMap.TTile.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -606,14 +622,14 @@ begin
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current);
-        'image': Image.Load(I.Current);
-        'animation': Animation.Load(I.Current);
+        'properties': Properties.Load(I.Current, BaseUrl);
+        'image': Image.Load(I.Current, BaseUrl);
+        'animation': Animation.Load(I.Current, BaseUrl);
         'objectgroup':
           begin
             if ObjectGroup = nil then
               ObjectGroup := TObjectGroupLayer.Create;
-            ObjectGroup.Load(I.Current);
+            ObjectGroup.Load(I.Current, BaseUrl);
           end;
       end;
     end;
@@ -635,7 +651,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TTiledObject.Load(const Element: TDOMElement);
+procedure TTiledMap.TTiledObject.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -703,7 +719,7 @@ begin
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current);
+        'properties': Properties.Load(I.Current, BaseUrl);
         'ellipse': Primitive := topEllipse;
         'polygon':
           begin
@@ -715,7 +731,7 @@ begin
             Primitive := topPolyLine;
             ReadPoints(I.Current.AttributeStringDef('points', ''), Points);
           end;
-        'image': Image.Load(I.Current);
+        'image': Image.Load(I.Current, BaseUrl);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -736,7 +752,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -760,12 +776,12 @@ begin
     while I.GetNext do
     begin
       case LowerCase(I.Current.TagName) of
-        'properties': Properties.Load(I.Current);
+        'properties': Properties.Load(I.Current, BaseUrl);
         'data':
           begin
             if Data = nil then
               Data := TData.Create;
-            Data.Load(I.Current);
+            Data.Load(I.Current, BaseUrl);
           end;
       end;
     end;
@@ -780,7 +796,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TObjectGroupLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TObjectGroupLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
   NewObject: TTiledObject;
@@ -804,7 +820,7 @@ begin
         'object':
           begin
             NewObject := TTiledObject.Create;
-            NewObject.Load(I.Current);
+            NewObject.Load(I.Current, BaseUrl);
             if not Assigned(Objects) then
               Objects := TTiledObjectList.Create;
             Objects.Add(NewObject);
@@ -822,7 +838,7 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TImageLayer.Load(const Element: TDOMElement);
+procedure TTiledMap.TImageLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
 begin
@@ -837,7 +853,7 @@ begin
           begin
             if Image = nil then
               Image := TImage.Create;
-            Image.Load(I.Current);
+            Image.Load(I.Current, BaseUrl);
           end;
       end;
     end;
@@ -862,15 +878,14 @@ begin
   inherited;
 end;
 
-procedure TTiledMap.TTileset.Load(const Element: TDOMElement;
-  const BaseUrl: String);
+procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: String);
 
   { TSX file loading. }
-  procedure LoadTilesetFromFile(const AFileName: string);
+  procedure LoadTilesetFromURL;
   var
     Doc: TXMLDocument;
   begin
-    Doc := URLReadXML(CombineURI(BaseUrl, AFileName));
+    Doc := URLReadXML(URL);
     try
       Check(LowerCase(Doc.DocumentElement.TagName) = 'tileset',
         'Root element of TSX file must be <tileset>');
@@ -895,8 +910,8 @@ begin
     FirstGID := 1;
   if Element.AttributeString('source', TmpStr) then
   begin
-    Source := TmpStr;
-    LoadTilesetFromFile(Source);
+    URL := CombineURI(BaseUrl, TmpStr);
+    LoadTilesetFromURL;
     Exit;
   end;
   if Element.AttributeString('name', TmpStr) then
@@ -928,17 +943,23 @@ begin
             TileOffset[0] := I.Current.AttributeIntegerDef('x', 0);
             TileOffset[1] := I.Current.AttributeIntegerDef('y', 0);
           end;
-        'properties': Properties.Load(I.Current);
-        'image': Image.Load(I.Current);
+        'properties': Properties.Load(I.Current, BaseUrl);
+        'image': Image.Load(I.Current, BaseUrl);
         'tile':
           begin
             NewTile := TTile.Create;
-            NewTile.Load(I.Current);
+            NewTile.Load(I.Current, BaseUrl);
             Tiles.Add(NewTile);
           end;
       end;
     end;
   finally FreeAndNil(I) end;
+
+  if TileCount = 0 then
+  begin
+    Image.DetermineSize;
+    TileCount := (Image.Width div TileWidth) * (Image.Height div TileHeight);
+  end;
 end;
 
 { TTiledMap ------------------------------------------------------------------ }
@@ -996,22 +1017,22 @@ begin
           'layer':
             begin
               NewLayer := TLayer.Create;
-              NewLayer.Load(I.Current);
+              NewLayer.Load(I.Current, BaseUrl);
               FLayers.Add(NewLayer);
             end;
           'objectgroup':
             begin
               NewLayer := TObjectGroupLayer.Create;
-              NewLayer.Load(I.Current);
+              NewLayer.Load(I.Current, BaseUrl);
               FLayers.Add(NewLayer);
             end;
           'imagelayer':
             begin
               NewLayer := TImageLayer.Create;
-              NewLayer.Load(I.Current);
+              NewLayer.Load(I.Current, BaseUrl);
               FLayers.Add(NewLayer);
             end;
-          'properties': FProperties.Load(I.Current);
+          'properties': FProperties.Load(I.Current, BaseUrl);
         end;
       end;
     finally FreeAndNil(I) end;
