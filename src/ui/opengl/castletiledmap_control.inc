@@ -199,10 +199,14 @@ begin
         Tileset.Image.URL, Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
         True, False);
-      Spr.DrawingWidth := FTiledMap.TileWidth;
-      Spr.DrawingHeight := FTiledMap.TileHeight;
-      Spr.FrameWidth := FTiledMap.TileWidth;
-      Spr.FrameHeight := FTiledMap.TileHeight;
+      { Note that we use here Tileset.TileWidth/Height,
+        which may difer from FTiledMap.TileWidth/Height.
+        This is important in case of e.g. "perspective_walls.tmx" test
+        from https://github.com/bjorn/tiled/tree/master/examples . }
+      Spr.DrawingWidth := Tileset.TileWidth;
+      Spr.DrawingHeight := Tileset.TileHeight;
+      Spr.FrameWidth := Tileset.TileWidth;
+      Spr.FrameHeight := Tileset.TileHeight;
       Spr.LeftMargin := Tileset.Margin;
       Spr.TopMargin := Tileset.Margin;
       Spr.HorizontalSpacing := Tileset.Spacing;
