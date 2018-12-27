@@ -26,7 +26,7 @@ var
 implementation
 
 uses SysUtils, Classes,
-  CastleScene, CastleControls,
+  CastleScene, CastleControls, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
   CastleParameters, CastleTiledMap, CastleApplicationProperties,
   CastleUIControls, CastleComponentSerialize;
@@ -46,6 +46,10 @@ type
     procedure Update(const Sender: TInputListener;
       const SecondsPassed: Single; var HandleInput: Boolean);
     procedure ClickOpen(Sender: TObject);
+    procedure MapMotion(const Sender: TInputListener;
+      const Event: TInputMotion; var Handled: Boolean);
+    procedure MapPress(const Sender: TInputListener;
+      const Event: TInputPressRelease; var Handled: Boolean);
   end;
 
 procedure TEventsHandler.Initialize(Sender: TObject);
@@ -64,6 +68,8 @@ begin
   { Assign events }
   Ui.OnUpdate := @Update;
   ButtonOpen.OnClick := @ClickOpen;
+  TiledMap.OnMotion := @MapMotion;
+  TiledMap.OnPress := @MapPress;
 
   { Load the map from parameter or default. }
   if Parameters.High = 1 then
@@ -85,6 +91,35 @@ begin
   URL := TiledMap.URL;
   if Window.FileDialog('Open Map', URL, true, 'Tiled Map (*.tmx)|*.tmx|All Files|*') then
     TiledMap.URL := URL;
+end;
+
+procedure TEventsHandler.MapMotion(const Sender: TInputListener;
+  const Event: TInputMotion; var Handled: Boolean);
+begin
+  if mbLeft in Event.Pressed then
+  begin
+    TiledMap.Origin := TiledMap.Origin -
+      (Event.Position - Event.OldPosition) / TiledMap.Scale;
+    Handled := true;
+  end;
+end;
+
+procedure TEventsHandler.MapPress(const Sender: TInputListener;
+  const Event: TInputPressRelease; var Handled: Boolean);
+const
+  MinScale = 0.1;
+  MaxScale = 10;
+begin
+  if Event.IsMouseWheel(mwUp) then
+  begin
+    TiledMap.Scale := Clamped(TiledMap.Scale * 1.1, MinScale, MaxScale);
+    Handled := true;
+  end else
+  if Event.IsMouseWheel(mwDown) then
+  begin
+    TiledMap.Scale := Clamped(TiledMap.Scale / 1.1, MinScale, MaxScale);
+    Handled := true;
+  end;
 end;
 
 var

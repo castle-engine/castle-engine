@@ -25,6 +25,7 @@ type
     FURL: String;
     FObjectsVisible: Boolean;
     FOrigin: TVector2;
+    FScale: Single;
     procedure RenderOrthogonal;
     procedure RenderHexagonal;
     procedure RenderIsometric;
@@ -36,6 +37,7 @@ type
     procedure Close;
     procedure SetURL(const Value: string);
     procedure SetOrigin(const Value: TVector2);
+    procedure SetScale(const Value: Single);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -54,6 +56,8 @@ type
     { URL (or just filename) of the Tiled map file (TMX). }
     property URL: String read FURL write SetURL;
 
+    property Scale: Single read FScale write SetScale default 1;
+
     // TODO: not implemented yet
     // property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
 
@@ -65,6 +69,28 @@ type
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+constructor TCastleTiledMapControl.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  ClipChildren := true;
+  FObjectsVisible := False;
+  FScale := 1;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleTiledMapControl.Destroy;
+begin
+  Close;
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
+end;
 
 procedure TCastleTiledMapControl.RenderOrthogonal;
 var
@@ -114,8 +140,11 @@ begin
           Spr.DrawingWidth,
           Spr.DrawingHeight
         ).
+        // Apply Origin and Scale
         Translate(-Origin).
-        // Apply UIScale and RenderRect (anchors etc.) to rendered images
+        ScaleAround0(Scale).
+        // Apply UIScale and RenderRect (anchors etc.)
+        // to honor standard TCastleUserInterface conventions
         ScaleAround0(UIScale).
         Translate(RR.LeftBottom);
 
@@ -186,27 +215,6 @@ begin
       FreeAndNil(Tileset.ImageData);
 end;
 
-constructor TCastleTiledMapControl.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  ClipChildren := true;
-  FObjectsVisible := False;
-
-  {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
-  {$undef read_implementation_constructor}
-end;
-
-destructor TCastleTiledMapControl.Destroy;
-begin
-  Close;
-
-  {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
-  {$undef read_implementation_destructor}
-  inherited;
-end;
-
 procedure TCastleTiledMapControl.Close;
 begin
   FreeTilesetsImages;
@@ -249,6 +257,15 @@ begin
   if not TVector2.PerfectlyEquals(FOrigin, Value) then
   begin
     FOrigin := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleTiledMapControl.SetScale(const Value: Single);
+begin
+  if FScale <> Value then
+  begin
+    FScale := Value;
     VisibleChange([chRectangle]);
   end;
 end;
