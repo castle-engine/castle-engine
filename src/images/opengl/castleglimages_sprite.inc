@@ -76,6 +76,7 @@ type
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
+    FRenderingFrameSafeMargin: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
@@ -331,6 +332,27 @@ type
 
     { Is sprite diagonal flipped? }
     property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
+
+    { Prevent the color outside of rendered frame from creeping in.
+      Because of bilinear filtering (used when @link(SmoothScaling)),
+      the colors of neighboring pixels may be visible when you render
+      the sprite frame, and the sprite is significantly scaled.
+      The "neighboring pixels" may mean
+      "pixels from the adjacent sprite frame",
+      or sprite border (in case sprite frame is at the edge of the image),
+      or spacing between sprite frames (if any).
+
+      One way to workaround this is to add a 1-pixel or 2-pixel
+      spacing between each sprite frames, and fill this spacing
+      with the same color (including alpha) as the neighbor pixels.
+
+      Another workaround is to use this property.
+      This renders a slightly smaller sprite frame, such that bilinear
+      filtering doesn't have a chance to introduce colors from outside
+      of the desired sprite frame. }
+    property RenderingFrameSafeMargin: Boolean
+      read FRenderingFrameSafeMargin write FRenderingFrameSafeMargin
+      default false;
   end;
 
   { List of sprites. }
@@ -619,7 +641,7 @@ end;
 
 procedure TSprite.Draw(const ScreenRectangle: TFloatRectangle);
 begin
-  FImage.DrawFlipped(ScreenRectangle, GetFrameRect,
+  DrawFlipped(ScreenRectangle,
     HorizontalFlip xor DiagonalFlip,
     VerticalFlip xor DiagonalFlip);
 end;
@@ -632,9 +654,13 @@ end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
   const FlipHorizontal, FlipVertical: boolean);
+var
+  F: TFloatRectangle;
 begin
-  FImage.DrawFlipped(ScreenRect, GetFrameRect,
-    FlipHorizontal, FlipVertical);
+  F := GetFrameRect;
+  if RenderingFrameSafeMargin then
+    F := F.Grow(-0.51);
+  FImage.DrawFlipped(ScreenRect, F, FlipHorizontal, FlipVertical);
 end;
 
 procedure TSprite.Move(AX, AY: Single; ARot: Single);

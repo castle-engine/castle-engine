@@ -202,6 +202,8 @@ begin
       Spr.HorizontalSpacing := Tileset.Spacing;
       Spr.VerticalSpacing := Tileset.Spacing;
       Spr.VerticalSpacingBottom := true;
+      // Necessary when TiledMap is scaled (because of Scale or UIScaling)
+      Spr.RenderingFrameSafeMargin := true;
       Tileset.ImageData := Spr;
     end;
 end;
