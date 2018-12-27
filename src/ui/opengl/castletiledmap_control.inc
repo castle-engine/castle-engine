@@ -296,6 +296,34 @@ var
     end;
   end;
 
+  procedure RenderIsometricStaggered;
+  var
+    X, Y: Integer;
+    Layer: TTiledMap.TLayer;
+    RenderX, RenderY: Single;
+  begin
+    for Layer in FTiledMap.Layers do
+    begin
+      if not Layer.Visible then Continue;
+      if (Layer is TTiledMap.TObjectGroupLayer) or
+         (Layer is TTiledMap.TImageLayer) then
+        Continue;
+
+      // TODO: use map render order
+      // TODO: right now this assumes Stagger Axis = Y, Stagger Index = Odd
+
+      for Y := FTiledMap.Height - 1 downto 0 do
+        for X := 0 to FTiledMap.Width - 1 do
+        begin
+          RenderX := X * FTiledMap.TileWidth;
+          if not Odd(Y) then
+            RenderX += FTiledMap.TileWidth / 2;
+          RenderY := (Y - 1) * FTiledMap.TileHeight / 2;
+          RenderTile(Layer, X, Y, RenderX, RenderY);
+        end;
+    end;
+  end;
+
 begin
   inherited Render;
   if FTiledMap = nil then Exit;
@@ -308,7 +336,7 @@ begin
   case FTiledMap.Orientation of
     moOrthogonal: RenderOrthogonal;
     moIsometric: RenderIsometric;
-    // moIsometricStaggered: RenderIsometricStaggered;
+    moIsometricStaggered: RenderIsometricStaggered;
     // moHexagonal: RenderHexagonal;
     // As a fallback, render unsupported modes as orthogonal
     else RenderOrthogonal;
