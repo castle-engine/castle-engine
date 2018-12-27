@@ -120,7 +120,6 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "Checked" : true,
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxSmoothScaling",
           "TextColorPersistent" : {
