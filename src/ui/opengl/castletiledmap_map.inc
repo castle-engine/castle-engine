@@ -271,8 +271,9 @@ type
         Image: TImage;
         Tiles: TTileList;
         TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
-        { Use to render the tileset. Not a part of the file format. }
-        ImageData: TSprite;
+        { Use to render the tileset. Not a part of the file format.
+          In case of TCastleTiledMapControl, this is always TSprite. }
+        RendererData: TObject;
         constructor Create;
         destructor Destroy; override;
       end;

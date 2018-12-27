@@ -127,7 +127,8 @@ begin
         Inc(l);
         if GID = 0 then Continue;
         Tileset := FTiledMap.GIDToTileset(GID);
-        Spr := Tileset.ImageData;
+        Spr := Tileset.RendererData as TSprite;
+        if Spr = nil then Continue;
         Spr.Frame := GID - Tileset.FirstGID;
         Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
         Spr.VerticalFlip := Dat and VerticalFlag > 0;
@@ -189,6 +190,11 @@ begin
         Tileset.Columns := Tileset.Image.Width div Tileset.TileWidth;
       if Tileset.TileCount = 0 then
         Tileset.TileCount := (Tileset.Image.Height div Tileset.TileHeight) * Tileset.Columns;
+      if (Tileset.TileCount = 0) or (Tileset.Columns = 0) then
+      begin
+        WriteLnWarning('Empty Tileset');
+        Continue;
+      end;
       Spr := TSprite.Create(
         CombineURI(URL, Tileset.Image.Source), Tileset.TileCount,
         Tileset.Columns, Tileset.TileCount div Tileset.Columns,
@@ -204,7 +210,7 @@ begin
       Spr.VerticalSpacingBottom := true;
       // Necessary when TiledMap is scaled (because of Scale or UIScaling)
       Spr.RenderingFrameSafeMargin := true;
-      Tileset.ImageData := Spr;
+      Tileset.RendererData := Spr;
     end;
 end;
 
@@ -214,7 +220,7 @@ var
 begin
   if FTiledMap <> nil then
     for Tileset in FTiledMap.Tilesets do
-      FreeAndNil(Tileset.ImageData);
+      FreeAndNil(Tileset.RendererData);
 end;
 
 procedure TCastleTiledMapControl.Close;
