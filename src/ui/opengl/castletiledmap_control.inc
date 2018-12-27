@@ -310,15 +310,46 @@ var
         Continue;
 
       // TODO: use map render order
-      // TODO: right now this assumes Stagger Axis = Y, Stagger Index = Odd
+      // TODO: right now this assumes Stagger Axis = Y
 
       for Y := FTiledMap.Height - 1 downto 0 do
         for X := 0 to FTiledMap.Width - 1 do
         begin
           RenderX := X * FTiledMap.TileWidth;
-          if not Odd(Y) then
+          if (not Odd(Y)) xor (FTiledMap.StaggerIndex <> siOdd) then
             RenderX += FTiledMap.TileWidth / 2;
           RenderY := (Y - 1) * FTiledMap.TileHeight / 2;
+          RenderTile(Layer, X, Y, RenderX, RenderY);
+        end;
+    end;
+  end;
+
+  procedure RenderHexagonal;
+  var
+    X, Y: Integer;
+    Layer: TTiledMap.TLayer;
+    RenderX, RenderY, RowIncreaseY: Single;
+  begin
+    for Layer in FTiledMap.Layers do
+    begin
+      if not Layer.Visible then Continue;
+      if (Layer is TTiledMap.TObjectGroupLayer) or
+         (Layer is TTiledMap.TImageLayer) then
+        Continue;
+
+      // TODO: use map render order
+      // TODO: right now this assumes Stagger Axis = Y
+
+      RowIncreaseY := FTiledMap.TileHeight -
+        (FTiledMap.TileHeight - FTiledMap.HexSideLength) / 2;
+
+      for Y := FTiledMap.Height - 1 downto 0 do
+        for X := 0 to FTiledMap.Width - 1 do
+        begin
+          RenderX := X * FTiledMap.TileWidth;
+          if (not Odd(Y)) xor (FTiledMap.StaggerIndex <> siOdd) then
+            RenderX += FTiledMap.TileWidth / 2;
+          RenderY := Y * RowIncreaseY;
           RenderTile(Layer, X, Y, RenderX, RenderY);
         end;
     end;
@@ -337,7 +368,7 @@ begin
     moOrthogonal: RenderOrthogonal;
     moIsometric: RenderIsometric;
     moIsometricStaggered: RenderIsometricStaggered;
-    // moHexagonal: RenderHexagonal;
+    moHexagonal: RenderHexagonal;
     // As a fallback, render unsupported modes as orthogonal
     else RenderOrthogonal;
   end;

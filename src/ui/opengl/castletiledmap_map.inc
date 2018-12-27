@@ -286,6 +286,8 @@ type
         moHexagonal
       );
       TMapRenderOrder = (mroRightDown, mroRightUp, mroLeftDown, mroLeftUp);
+      TStaggerAxis = (saX, saY);
+      TStaggerIndex = (siOdd, siEven);
 
   strict private
     { Map stuff. }
@@ -296,6 +298,9 @@ type
     FHeight: Cardinal;
     FTileWidth: Cardinal;
     FTileHeight: Cardinal;
+    FHexSideLength: Cardinal;
+    FStaggerAxis: TStaggerAxis;
+    FStaggerIndex: TStaggerIndex;
     FBackgroundColor: TCastleColor;
     FRenderOrder: TMapRenderOrder;
     BaseUrl: string;
@@ -317,6 +322,14 @@ type
     property TileWidth: Cardinal read FTileWidth;
     { The height of a tile. }
     property TileHeight: Cardinal read FTileHeight;
+    { The height of a hexagon side.
+      Only relevant when @link(Orientation) = moHexagonal. }
+    property HexSideLength: Cardinal read FHexSideLength;
+    { Only relevant when @link(Orientation) = moIsometricStaggered or moHexagonal. }
+    property StaggerAxis: TStaggerAxis read FStaggerAxis;
+    { Which rows are shifted by 1.
+      Only relevant when @link(Orientation) = moIsometricStaggered or moHexagonal. }
+    property StaggerIndex: TStaggerIndex read FStaggerIndex;
     { Background color of the map.
       It may be unset in Tiled, which results in transparent color here. }
     property BackgroundColor: TCastleColor read FBackgroundColor;
@@ -1012,6 +1025,20 @@ begin
       FTileWidth := StrToInt(TmpStr);
     if Doc.DocumentElement.AttributeString('tileheight', TmpStr) then
       FTileHeight := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('hexsidelength', TmpStr) then
+      FHexSideLength := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('staggeraxis', TmpStr) then
+      case TmpStr of
+        'x': FStaggerAxis := saX;
+        'y': FStaggerAxis := saY;
+        else WritelnWarning('Invalid staggeraxis "%s" in Tiled map file (TMX)', [TmpStr]);
+      end;
+    if Doc.DocumentElement.AttributeString('staggerindex', TmpStr) then
+      case TmpStr of
+        'odd': FStaggerIndex := siOdd;
+        'even': FStaggerIndex := siEven;
+        else WritelnWarning('Invalid staggerindex "%s" in Tiled map file (TMX)', [TmpStr]);
+      end;
     if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
       FBackgroundColor := TiledToColor(TmpStr);
     if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
