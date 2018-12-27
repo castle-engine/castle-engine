@@ -447,7 +447,12 @@ begin
             tmpChar := StrPos(p, CSVDataSeparator);
             if tmpChar = nil then tmpChar := StrScan(p, #0);
             SetString(CSVItem, p, tmpChar - p);
-            Data[DataCount] := StrToInt(CSVItem);
+            { Note that any value in 32-bit unsigned range is OK,
+              even values > 32-bit signed range.
+              E.g. test_hexagonal_tile_60x60x30.tmx on
+              https://github.com/bjorn/tiled/tree/master/examples
+              has values like 3221225473 . }
+            Data[DataCount] := StrToDWord(CSVItem);
             Inc(DataCount);
             p := tmpChar + 1;
           until tmpChar^ = #0;
