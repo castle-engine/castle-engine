@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Display a 2D tiled map (TMX) (TCastleTiledMapControl class). }
+{ Display a map created in Tiled (https://www.mapeditor.org/) (TCastleTiledMapControl class). }
 
 {$ifdef read_interface}
 
 type
-  { Display a 2D tiled map (TMX). }
+  { Display a map created in Tiled (https://www.mapeditor.org/). }
   TCastleTiledMapControl = class(TCastleUserInterface)
   strict private
     FTiledMap: TTiledMap;

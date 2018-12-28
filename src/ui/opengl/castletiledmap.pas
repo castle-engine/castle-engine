@@ -13,7 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ TMX files processing unit. Based on Tiled v0.17. }
+{ Loading and rendering maps created in Tiled (https://www.mapeditor.org/).
+
+  In the usual case,
+  create @link(TCastleTiledMapControl) and set @link(TCastleTiledMapControl.URL)
+  to indicate your Tiled map (TMX file).
+  @link(TCastleTiledMapControl) is a standard Castle Game Engine user interface
+  control (descendant of @link(TCastleUserInterface)), you can display it
+  like any other UI control, you can also design it using CGE Editor.
+
+  See the examples/tiled/ directory of Castle Game Engine
+  ( https://github.com/castle-engine/castle-engine/tree/master/examples/tiled ). }
 unit CastleTiledMap;
 
 {$I castleconf.inc}
