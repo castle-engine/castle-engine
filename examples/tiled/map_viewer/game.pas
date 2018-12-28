@@ -79,7 +79,7 @@ begin
   if Parameters.High = 1 then
     TiledMap.URL := Parameters[1]
   else
-    TiledMap.URL := 'castle-data:/desert.tmx';
+    TiledMap.URL := 'castle-data:/maps/desert.tmx';
 end;
 
 procedure TEventsHandler.Update(const Sender: TInputListener;

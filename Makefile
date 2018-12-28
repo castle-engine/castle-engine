@@ -224,7 +224,7 @@ EXAMPLES_BASE_NAMES := \
   examples/simple_command_line_utilities/stringoper \
   examples/space_filling_curve/draw_space_filling_curve \
   examples/terrain/terrain \
-  examples/tiled/tiled_demo_standalone \
+  examples/tiled/map_viewer/tiled_demo_standalone \
   examples/window/multi_window \
   examples/window/window_events \
   examples/window/window_gtk_mix \
