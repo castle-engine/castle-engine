@@ -76,7 +76,7 @@ type
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
-    FRenderingFrameSafeMargin, FSmoothScaling: Boolean;
+    FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
@@ -334,6 +334,9 @@ type
     { Is sprite diagonal flipped? }
     property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
 
+     { Use smooth "bilinear" filtering when this is scaled. }
+    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+
     { Prevent the color outside of rendered frame from creeping in,
       by scaling image a bit to the inside.
       Because of bilinear filtering (used when @link(SmoothScaling)),
@@ -352,16 +355,16 @@ type
       This renders a slightly smaller sprite frame, such that bilinear
       filtering doesn't have a chance to introduce colors from outside
       of the desired sprite frame.
+      This is done only when @link(SmoothScaling), otherwise this property
+      is ignored.
 
       The downside is that everything is slightly scaled,
-      and doesn't look perfect if you look closely at each pixel. }
-    property RenderingFrameSafeMargin: Boolean
-      read FRenderingFrameSafeMargin write FRenderingFrameSafeMargin
+      and doesn't look perfect if you look closely at each pixel.
+      This property is ignored  }
+    property SmoothScalingSafeBorder: Boolean
+      read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
       default false;
-
-    { Use smooth "bilinear" filtering when this is scaled. }
-    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
-  end;
+ end;
 
   { List of sprites. }
   TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
@@ -668,7 +671,7 @@ var
   F: TFloatRectangle;
 begin
   F := GetFrameRect;
-  if RenderingFrameSafeMargin then
+  if SmoothScaling and SmoothScalingSafeBorder then
     F := F.Grow(-0.51);
   FImage.DrawFlipped(ScreenRect, F, FlipHorizontal, FlipVertical);
 end;

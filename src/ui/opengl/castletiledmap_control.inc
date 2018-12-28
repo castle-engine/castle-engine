@@ -26,7 +26,7 @@ type
     FObjectsVisible: Boolean;
     FOrigin: TVector2;
     FScale: Single;
-    FSmoothScaling: Boolean;
+    FSmoothScaling, FSmoothScalingSafeBorder: Boolean;
     procedure RenderObjects;
     procedure LoadTilesetsImages;
     { Free images created by LoadTilesetsImages. }
@@ -37,6 +37,7 @@ type
     procedure SetOrigin(const Value: TVector2);
     procedure SetScale(const Value: Single);
     procedure SetSmoothScaling(const Value: Boolean);
+    procedure SetSmoothScalingSafeBorder(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -69,8 +70,23 @@ type
       around each tile must have at least 1-pixel margin
       filled with the same color and alpha ("color bleeding"),
       otherwise bad colors will creep in because of bilinear filtering.
+      Alternatively, you can use @link(SmoothScalingSafeBorder).
     }
     property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling
+      default false;
+
+    { In case of @link(SmoothScaling),
+      prevent the color outside of rendered frame from creeping in,
+      by stretching the rendered frame a bit.
+      See @link(TSprite.SmoothScalingSafeBorder).
+
+      It is better to prepare the sprite (tileset) images
+      with some spacing between tiles, and color bleeding,
+      instead of using this property.
+      This property workarounds the fact that some sprite (tileset) images
+      lack proper spacing and color bleeding, but it distorts the image
+      a bit, so it's no longer pixel-perfect. }
+    property SmoothScalingSafeBorder: Boolean read FSmoothScalingSafeBorder write SetSmoothScalingSafeBorder
       default false;
 
   {$define read_interface_class}
@@ -89,6 +105,7 @@ begin
   FObjectsVisible := false;
   FScale := 1;
   FSmoothScaling := false;
+  FSmoothScalingSafeBorder := false;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastletiledmapcontrol_persistent_vectors.inc}
@@ -153,6 +170,7 @@ begin
       Spr.HorizontalSpacing := Tileset.Spacing;
       Spr.VerticalSpacing := Tileset.Spacing;
       Spr.VerticalSpacingBottom := true;
+      Spr.SmoothScalingSafeBorder := SmoothScalingSafeBorder;
       Tileset.RendererData := Spr;
     end;
 end;
@@ -415,6 +433,28 @@ begin
   if FSmoothScaling <> Value then
   begin
     FSmoothScaling := Value;
+    ChangeExistingImages;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleTiledMapControl.SetSmoothScalingSafeBorder(const Value: Boolean);
+
+  procedure ChangeExistingImages;
+  var
+    Tileset: TTiledMap.TTileset;
+  begin
+    if FTiledMap <> nil then
+      for Tileset in FTiledMap.Tilesets do
+        if Tileset.RendererData <> nil then
+          (Tileset.RendererData as TSprite).SmoothScalingSafeBorder :=
+            SmoothScalingSafeBorder;
+  end;
+
+begin
+  if FSmoothScalingSafeBorder <> Value then
+  begin
+    FSmoothScalingSafeBorder := Value;
     ChangeExistingImages;
     VisibleChange([chRectangle]);
   end;

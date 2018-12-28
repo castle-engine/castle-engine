@@ -142,13 +142,73 @@
           "BorderColorPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
+          "Caption" : "Smooth Scaling Safe Border",
+          "CheckboxColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "CheckboxSmoothScalingSafeBorder",
+          "TextColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "VerticalAnchorDelta" : -1.2900000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleCheckbox"
+        },
+        {
+          "Border" : {
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "ColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 1.5000000000000000E+001,
+          "FrameColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "Label1",
+          "OutlineColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "PaddingHorizontal" : 4.0000000000000000E+001,
+          "Text" : "\"Safe Border\" workarounds scaling artifacts \non Tileset images that don't have correct spacing and \"color bleeding\".\nIt is only used when \"Smooth Scaling\" is on.\n",
+          "VerticalAnchorDelta" : -1.6300000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        },
+        {
+          "Border" : {
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
           "FrameColorPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "HorizontalGroup1",
           "Spacing" : 1.0000000000000000E+001,
-          "VerticalAnchorDelta" : -1.2900000000000000E+002,
+          "VerticalAnchorDelta" : -2.2100000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
