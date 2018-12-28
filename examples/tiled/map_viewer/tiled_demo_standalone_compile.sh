@@ -6,7 +6,7 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f tiled_demo_standalone.lpr ]; then cd ../../; fi
+if [ -f tiled_demo_standalone.lpr ]; then cd ../../../; fi
 
 # Find the build tool, use it to compile
 if which tools/build-tool/castle-engine > /dev/null; then
@@ -15,5 +15,5 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-cd examples/tiled/
+cd examples/tiled/map_viewer/
 "${CASTLE_ENGINE}" compile
