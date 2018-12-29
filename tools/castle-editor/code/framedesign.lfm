@@ -269,6 +269,7 @@ object DesignFrame: TDesignFrame
         Width = 55
         BorderSpacing.Left = 5
         TabOrder = 2
+        Value = 10
       end
       object LabelSnap: TLabel
         AnchorSideLeft.Control = ToggleSelectTranslateResizeMode
