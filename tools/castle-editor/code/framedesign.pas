@@ -2128,7 +2128,7 @@ begin
   InspectorSimple.RefreshPropertyValues;
   InspectorAdvanced.RefreshPropertyValues;
   InspectorEvents.RefreshPropertyValues;
-  // do not call PropertyGridModified if nothing selected, e.g. after delete opration
+  // do not call PropertyGridModified if nothing selected, e.g. after delete operation
   if ControlsTree.Selected <> nil then
     PropertyGridModified(nil);
   MarkModified;
@@ -2145,8 +2145,12 @@ begin
   NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
   UpdateComponentCaptionFromName(NewRoot);
 
-  //if NewRoot is TCastleUserInterface then
-  //  (NewRoot as TCastleUserInterface).FullSize := true;
+  { In these special cases, set FullSize to true,
+    since this is almost certainly what user wants when creating a new UI
+    that has this component class as root. }
+  if (ComponentClass = TCastleUserInterface) or
+     (ComponentClass = TCastleRectangleControl) then
+    (NewRoot as TCastleUserInterface).FullSize := true;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 end;
