@@ -39,6 +39,7 @@ var
 begin
   { Assign Window callbacks }
   Window.OnUpdate := @WindowUpdate;
+  Window.OnPress := @WindowPress;
 
   { Adjust container settings,
     e.g. for a scalable UI (adjusts to any window size in a smart way). }
