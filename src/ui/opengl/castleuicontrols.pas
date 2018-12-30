@@ -2287,7 +2287,7 @@ begin
   FPressed := TKeysPressed.Create;
   FContext := TRenderContext.Create;
   FBackgroundEnable := true;
-  FBackgroundColor := BackgroundColor;
+  FBackgroundColor := DefaultBackgroundColor;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
