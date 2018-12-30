@@ -148,12 +148,16 @@ begin
     StringStream.CopyFrom(AFileStream, AFileStream.Size);
 
     Data := GetJSON(StringStream.DataString);
-    FreeAndNil(StringStream); //Save RAM.
+    try
+      FreeAndNil(StringStream); //Save RAM.
 
-    for i := 0 to Data.Count - 1 do
-    begin
-      Key := TJSONObject(Data).Names[i];
-      ALanguageDictionary.AddOrSetValue(Key, Data.FindPath(Key).AsString);
+      for i := 0 to Data.Count - 1 do
+      begin
+        Key := TJSONObject(Data).Names[i];
+        ALanguageDictionary.AddOrSetValue(Key, Data.FindPath(Key).AsString);
+      end;
+    finally
+      Data.Free;
     end;
   finally
     StringStream.Free;
