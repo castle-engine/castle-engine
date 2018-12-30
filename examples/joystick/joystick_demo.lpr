@@ -27,13 +27,20 @@ uses SysUtils,
   Classes;
 
 const
-  AXIS_NAMES: array[JOY_AXIS_X..JOY_POVY] of string = ('JOY_AXIS_X', 'JOY_AXIS_Y',
-              'JOY_AXIS_Z', 'JOY_AXIS_R', 'JOY_AXIS_U', 'JOY_AXIS_V', 'JOY_POVX', 'JOY_POVY');
+  AxisNames: array [JOY_AXIS_X..JOY_POVY] of string =
+  ( 'JOY_AXIS_X',
+    'JOY_AXIS_Y',
+    'JOY_AXIS_Z',
+    'JOY_AXIS_R',
+    'JOY_AXIS_U',
+    'JOY_AXIS_V',
+    'JOY_POVX',
+    'JOY_POVY'
+  );
 
 var
   Window: TCastleWindowCustom;
   Notifications: TCastleNotifications;
-  Background: TCastleSimpleBackground;
   btnReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
   Title: TCastleLabel;
@@ -89,13 +96,17 @@ end;
 procedure TEventsHandler.JoyAxisMove(const Joy: PJoy; const Axis: Byte;
   const Value: Single);
 begin
-  // We showing axes position only for selected joystick.
+  // We show axes position only for the selected joystick.
   if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
 
   // If axes labels not initialized yet then exit.
   if Length(JoyAxes) = 0 then Exit;
 
-  JoyAxes[Axis].Caption := AXIS_NAMES[Axis] + ': ' + FloatToStr(Value);
+  // Check whether Axis is in range, because some joysticks report Axis
+  // numbers outside of their declared Axis count,
+  // see https://github.com/castle-engine/castle-engine/issues/106 .
+  if Axis <= High(JoyAxes) then
+    JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStr(Value);
 end;
 
 procedure TEventsHandler.JoyButtonPress(const Joy: PJoy; const Button: Byte);
@@ -187,6 +198,7 @@ end;
 
 begin
   Window := TCastleWindowCustom.Create(Application);
+  Window.Container.BackgroundColor := Green;
 
   InitializeLog;
 
@@ -201,10 +213,6 @@ begin
   Notifications.Timeout := 2.0;
   Notifications.Fade := 0.5;
   Window.Controls.InsertBack(Notifications);
-
-  Background := TCastleSimpleBackground.Create(Window);
-  Background.Color := Green;
-  Window.Controls.InsertBack(Background);
 
   btnReinitialize := TCastleButton.Create(Window);
   btnReinitialize.Caption := 'Reinitialize joysticks';
