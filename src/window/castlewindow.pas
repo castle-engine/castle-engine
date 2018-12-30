@@ -632,28 +632,8 @@ type
     you can add there scene manager instances (like @link(TCastleSceneManager)
     and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
 
-    Note that the screen contents at the beginning are undefined.
-    So as the first control on @link(TCastleWindowCustom.Controls),
-    you must place something that fills the whole screen.
-    For example:
-
-    @unorderedList(
-      @item(Use @link(TCastleRectangleControl) with
-        @link(TCastleUserInterface.FullSize FullSize) = @true and set
-        @link(TCastleRectangleControl.Color) as desired,)
-
-      @item(or use @link(TCastleSceneManager) with
-        @link(TCastleUserInterface.FullSize) = @true and
-        @link(TCastleAbstractViewport.Transparent) = @false and set
-        @link(TCastleSceneManager.BackgroundColor) as desired,)
-
-      @item(eventually you can also call @link(CastleGLUtils.GLClear)
-        at the beginning of your rendering in @link(OnRender).
-        But this is the least advised method, as @link(OnRender)
-        is performed after drawing all other controls,
-        so doing @link(CastleGLUtils.GLClear) there would force you to make
-        all your drawing in @link(OnRender).)
-    )
+    By default, the window is filled with simple color from
+    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
 
     If you're looking for an analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)

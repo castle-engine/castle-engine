@@ -285,6 +285,8 @@ type
     FOverrideCursor: TMouseCursor;
     FDefaultFont: TCastleFont;
     FContext: TRenderContext;
+    FBackgroundEnable: Boolean;
+    FBackgroundColor: TCastleColor;
 
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
@@ -337,6 +339,9 @@ type
       Container.FCalculatedUIScale. }
     function DefaultUIScale: Single;
   public
+    const
+      DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -686,7 +691,7 @@ type
       In the future, it may load more things configurable by the CGE editor
       and CastleSettings.xml file. }
     procedure LoadSettings(const SettingsUrl: String);
-  published
+
     { Delay in seconds before showing the tooltip. }
     property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
       default DefaultTooltipDelay;
@@ -740,6 +745,47 @@ type
       If this is @nil, we use the global font @link(UIFont)
       that is always assigned. }
     property DefaultFont: TCastleFont read FDefaultFont write FDefaultFont;
+
+    { Before rendering anything else,
+      fill the color buffer with @link(BackgroundColor).
+      By default this is @true.
+
+      You can set this to @false to gain a little speed,
+      if you know you always draw something that fills the whole container.
+      For example:
+
+      @unorderedList(
+        @item(Use @link(TCastleRectangleControl) with
+          @link(TCastleUserInterface.FullSize FullSize) = @true and set
+          @link(TCastleRectangleControl.Color) as desired,)
+
+        @item(or use @link(TCastleSceneManager) with
+          @link(TCastleUserInterface.FullSize) = @true and
+          @link(TCastleAbstractViewport.Transparent) = @false and set
+          @link(TCastleSceneManager.BackgroundColor) as desired,)
+
+        @item(eventually you can also call
+          @link(TRenderContext.Clear RenderContext.Clear)
+          at the beginning of your rendering in @link(OnRender).
+          This is the least advised method, as @link(OnRender)
+          is performed after drawing all other controls,
+          so doing
+          @link(TRenderContext.Clear RenderContext.Clear)
+          there would force you to make
+          all your drawing in @link(OnRender).)
+      )
+
+      If you set this to @false, but do not draw something else
+      over the entire container, then the
+      screen contents at the beginning are undefined.
+    }
+    property BackgroundEnable: Boolean
+      read FBackgroundEnable write FBackgroundEnable default true;
+
+    { Color that fills the window by default.
+      By default it is @link(DefaultBackgroundColor), which is very dark gray. }
+    property BackgroundColor: TCastleColor
+      read FBackgroundColor write FBackgroundColor;
   end;
 
   { Configurable border size for @link(TCastleUserInterface.Border). }
@@ -2240,6 +2286,8 @@ begin
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
   FContext := TRenderContext.Create;
+  FBackgroundEnable := true;
+  FBackgroundColor := BackgroundColor;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -3211,6 +3259,9 @@ procedure TUIContainer.EventRender;
 var
   I: Integer;
 begin
+  if BackgroundEnable then
+    RenderContext.Clear([cbColor], BackgroundColor);
+
   { draw controls in "to" order, back to front }
   for I := 0 to Controls.Count - 1 do
     Controls[I].RecursiveRender(Rect);

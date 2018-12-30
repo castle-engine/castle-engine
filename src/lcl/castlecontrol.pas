@@ -55,28 +55,8 @@ type
     more comfort: TCastleControl gives you a ready
     @link(TCastleControl.SceneManager) for your world.
 
-    Note that the screen contents at the beginning are undefined.
-    So as the first control on @link(Controls),
-    you must place something that fills the whole screen.
-    For example:
-
-    @unorderedList(
-      @item(Use @link(TCastleRectangleControl) with
-        @link(TCastleUserInterface.FullSize FullSize) = @true and set
-        @link(TCastleRectangleControl.Color) as desired,)
-
-      @item(or use @link(TCastleSceneManager) with
-        @link(TCastleUserInterface.FullSize) = @true and
-        @link(TCastleAbstractViewport.Transparent) = @false and set
-        @link(TCastleSceneManager.BackgroundColor) as desired,)
-
-      @item(eventually you can also call @link(CastleGLUtils.GLClear)
-        at the beginning of your rendering in @link(OnRender).
-        But this is the least advised method, as @link(OnRender)
-        is performed after drawing all other controls,
-        so doing @link(CastleGLUtils.GLClear) there would force you to make
-        all your drawing in @link(OnRender).)
-    )
+    By default, the control is filled with simple color from
+    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
   }
   TCastleControlCustom = class(TCustomOpenGLControl)
   private
