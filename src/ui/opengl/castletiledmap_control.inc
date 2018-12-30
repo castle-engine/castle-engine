@@ -314,7 +314,7 @@ var
           YFromTop := FTiledMap.Height - 1 - Y;
           RenderTile(Layer, X, Y,
             (FTiledMap.Width  - 1 + X - YFromTop) * FTiledMap.TileWidth  / 2,
-            (FTiledMap.Height - 2 + Y - X       ) * FTiledMap.TileHeight / 2);
+            (FTiledMap.Height - 1 + Y - X       ) * FTiledMap.TileHeight / 2);
         end;
     end;
   end;
@@ -341,7 +341,7 @@ var
           RenderX := X * FTiledMap.TileWidth;
           if (not Odd(Y)) xor (FTiledMap.StaggerIndex <> siOdd) then
             RenderX += FTiledMap.TileWidth / 2;
-          RenderY := (Y - 1) * FTiledMap.TileHeight / 2;
+          RenderY := Y * FTiledMap.TileHeight / 2;
           RenderTile(Layer, X, Y, RenderX, RenderY);
         end;
     end;
