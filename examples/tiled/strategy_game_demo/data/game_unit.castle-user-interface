@@ -1,0 +1,100 @@
+{
+  "Border" : {
+    "AllSides" : 2.0000000000000000E+000,
+    "$ClassName" : "TBorder"
+  },
+  "BorderColorPersistent" : {
+    "Alpha" : 1.0000000000000000E+000,
+    "Blue" : 4.0000000596046448E-001,
+    "Green" : 4.0000000596046448E-001,
+    "Red" : 4.3921568989753723E-001,
+    "$ClassName" : "TCastleColorPersistent"
+  },
+  "ColorPersistent" : {
+    "Blue" : 4.1960784792900085E-001,
+    "Green" : 5.0196081399917603E-001,
+    "$ClassName" : "TCastleColorPersistent"
+  },
+  "Name" : "RectangleControl1",
+  "$Children" : [
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FrameColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 4.0000000000000000E+000,
+      "Name" : "LabelDefense",
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Text" : "6\n",
+      "VerticalAnchorDelta" : 6.0000000000000000E+000,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Border" : {
+        "AllSides" : 1.0000000000000000E+001,
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Cache" : true,
+      "ColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HeightFraction" : 1.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "ImageIcon",
+      "ProportionalScaling" : "psFit",
+      "ProtectedSides" : {
+        "$ClassName" : "TBorder"
+      },
+      "Stretch" : true,
+      "URL" : "castle-data:/game_units/human1.png",
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleImageControl"
+    },
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FrameColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : 4.0000000000000000E+000,
+      "Name" : "LabelAttack",
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Text" : "6\n",
+      "VerticalAnchorDelta" : -6.0000000000000000E+000,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    }
+  ],
+  "$ClassName" : "TCastleRectangleControl"
+}
