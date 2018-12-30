@@ -44,7 +44,7 @@ castle-engine-output
 # fpmake stuff
 castle-game-engine-*.fpm
 fpmake
-units/
+/units/
 
 # alphabetic list of specific subdirs (and files inside)
 

@@ -62,7 +62,7 @@
         "$ClassName" : "TBorder"
       },
       "Stretch" : true,
-      "URL" : "castle-data:/game_units/human1.png",
+      "URL" : "castle-data:/units/human1.png",
       "VerticalAnchorParent" : "vpMiddle",
       "VerticalAnchorSelf" : "vpMiddle",
       "$Children" : [
@@ -91,6 +91,32 @@
       "VerticalAnchorDelta" : -6.0000000000000000E+000,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FrameColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "HorizontalAnchorDelta" : -6.0000000000000000E+000,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelMovement",
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Text" : "6\n",
+      "VerticalAnchorDelta" : 6.0000000000000000E+000,
       "$Children" : [
       ],
       "$ClassName" : "TCastleLabel"

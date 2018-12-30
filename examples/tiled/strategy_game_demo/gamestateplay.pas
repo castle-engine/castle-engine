@@ -38,13 +38,15 @@ var
 implementation
 
 uses SysUtils, Classes,
-  CastleComponentSerialize,
-  GameStateMainMenu;
+  CastleComponentSerialize, CastleUtils,
+  GameStateMainMenu, GameUnit;
 
 procedure TStatePlay.Start;
 var
   Ui: TCastleUserInterface;
   UiOwner: TComponent;
+  RandomUnit: TUnit;
+  I: Integer;
 begin
   inherited;
 
@@ -62,6 +64,18 @@ begin
 
   ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
   ButtonQuit.OnClick := @ClickQuit;
+
+  for I := 1 to 10 do
+  begin
+    RandomUnit := TUnit.Create(FreeAtStop);
+    RandomUnit.Initialize(TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
+      RandomIntRange(3, 10),
+      RandomIntRange(3, 10),
+      RandomIntRange(3, 10));
+    RandomUnit.Ui.Left := Random(Round(MapControl.EffectiveWidth));
+    RandomUnit.Ui.Bottom := Random(Round(MapControl.EffectiveHeight));
+    MapControl.InsertFront(RandomUnit.Ui);
+  end;
 end;
 
 procedure TStatePlay.ClickQuit(Sender: TObject);
