@@ -45,7 +45,7 @@ type
   end;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowCustom;
   HostEdit, PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
   Client: TClient;
@@ -176,7 +176,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Application.MainWindow := Window;
 
 finalization

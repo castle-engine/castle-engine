@@ -33,25 +33,20 @@ uses SysUtils, CastleWindow, CastleControls, CastleFonts, CastleImages,
   CastleUIControls;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowCustom;
   Label1, Label2,
     LabelDeja, LabelDejaBW, LabelDejaLarge, LabelDejaLargeOutline,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
 var
-  Background: TCastleRectangleControl;
   MyTextureFont: TTextureFont;
   MySimpleTextureFont: TSimpleTextureFont;
   LabelsGroup: TCastleVerticalGroup;
 begin
   InitializeLog;
 
-  Window := TCastleWindow.Create(Application);
-
-  Background := TCastleRectangleControl.Create(Window);
-  Background.Color := Vector4(0.4, 0.4, 0.0, 1.0);
-  Background.FullSize := true;
-  Window.Controls.InsertFront(Background);
+  Window := TCastleWindowCustom.Create(Application);
+  Window.Container.BackgroundColor := Vector4(0.4, 0.4, 0.0, 1.0);
 
   LabelsGroup := TCastleVerticalGroup.Create(Window);
   LabelsGroup.Alignment := hpMiddle;
