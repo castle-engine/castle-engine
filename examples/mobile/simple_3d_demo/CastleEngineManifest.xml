@@ -3,7 +3,7 @@
   caption="Castle Game Engine 3D Test"
   qualified_name="net.sourceforge.castleengine.simple3ddemo"
   standalone_source="simple_3d_demo_standalone.lpr"
-  game_units="Game">
+  game_units="GameInitialize">
   <version value="1.0" code="1" />
   <package>
     <include path="README.txt" />

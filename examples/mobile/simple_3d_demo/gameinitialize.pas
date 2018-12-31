@@ -15,7 +15,7 @@
 
 { Simple 3D application. This unit implements the application logic,
   actually independent from the target (mobile, desktop...). }
-unit Game;
+unit GameInitialize;
 
 interface
 

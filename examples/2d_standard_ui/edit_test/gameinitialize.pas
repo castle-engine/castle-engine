@@ -14,7 +14,7 @@
 }
 
 { Initialize the game window and states. }
-unit Game;
+unit GameInitialize;
 
 interface
 

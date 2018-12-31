@@ -17,7 +17,7 @@
   This is the main game unit, which contains most of the code.
   This is a cross-platform game code that will work on any platform
   (desktop or mobile). }
-unit Game;
+unit GameInitialize;
 
 interface
 

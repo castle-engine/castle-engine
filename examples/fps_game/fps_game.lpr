@@ -25,7 +25,7 @@ program fps_game;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 
 begin
   { Set default Window size, and parse command-line parameters

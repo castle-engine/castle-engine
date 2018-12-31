@@ -20,7 +20,7 @@ uses
 {$ifdef UNIX}{$ifndef ANDROID}
   cthreads,
 {$endif}{$endif}
-  CastleWindow, Game;
+  CastleWindow, GameInitialize;
 
 begin
   Window.OpenAndRun;

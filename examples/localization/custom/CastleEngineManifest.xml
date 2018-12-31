@@ -4,7 +4,7 @@
   caption="Localization with Castle"
   qualified_name="io.castleengine.localization.castlelocalization"
   executable_name="castle_localization"
-  game_units="Game"
+  game_units="GameInitialize"
   author="Benedikt Magnus"
   screen_orientation="portrait">
   <localization>

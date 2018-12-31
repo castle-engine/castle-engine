@@ -3,6 +3,6 @@
   caption="Localization Test"
   qualified_name="io.castleengine.localization.test"
   standalone_source="localization_test.lpr"
-  game_units="Game"
+  game_units="GameInitialize"
   author="Michalis Kamburelis">
 </project>

@@ -22,7 +22,7 @@
 
 { Simple demo of a couple of 2D controls.
   This is the program code for the standalone version. }
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 
 begin
   // Window.Width := 400;

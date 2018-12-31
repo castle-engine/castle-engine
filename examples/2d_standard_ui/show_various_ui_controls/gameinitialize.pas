@@ -15,7 +15,7 @@
 
 { Simple demo of a couple of 2D controls.
   This is the unit with common code for both Android and standalone. }
-unit Game;
+unit GameInitialize;
 
 interface
 

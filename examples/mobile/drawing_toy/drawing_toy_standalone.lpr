@@ -19,7 +19,7 @@
   This allows you to compile the same game game (in Game unit)
   as a normal, standalone executable for normal OSes (Linux, Windows, MacOSX...). }
 program drawing_toy_standalone;
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 begin
   Window.OpenAndRun;
 end.

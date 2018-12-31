@@ -3,7 +3,7 @@
   caption="Isometric Game Example"
   qualified_name="io.castleengine.isometric.game"
   standalone_source="isometric_game_standalone.lpr"
-  game_units="Game, GameWindow"
+  game_units="GameInitialize, GameWindow"
   author="Michalis Kamburelis"
   screen_orientation="landscape">
 </project>

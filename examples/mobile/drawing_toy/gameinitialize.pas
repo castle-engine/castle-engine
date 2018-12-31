@@ -14,7 +14,7 @@
 }
 
 { Simple drawing toy. }
-unit Game;
+unit GameInitialize;
 
 interface
 

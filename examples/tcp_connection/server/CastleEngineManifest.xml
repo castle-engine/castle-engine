@@ -3,7 +3,7 @@
   caption="Castle TCP server"
   qualified_name="io.castleengine.tcpserver"
   standalone_source="server.lpr"
-  game_units="Game"
+  game_units="GameInitialize"
   author="Benedikt Magnus"
   screen_orientation="portrait">
   <version value="0.1" code="1" />

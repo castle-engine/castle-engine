@@ -14,7 +14,7 @@
 }
 
 { Game initialization and logic. }
-unit Game;
+unit GameInitialize;
 
 interface
 
@@ -25,16 +25,16 @@ uses
   CastleClientServer;
 
 type
-  TServer = class
+  TClient = class
     protected
-      FServer: TCastleTCPServer;
-      procedure OnConnected(AClient: TClientConnection);
-      procedure OnDisconnected(AClient: TClientConnection);
-      procedure OnMessageRecieved(const AMessage: String; AClient: TClientConnection);
+      FClient: TCastleTCPClient;
+      procedure OnConnected;
+      procedure OnDisconnected;
+      procedure OnMessageRecieved (const AMessage: String);
     public
-      constructor Create(const APort: Word);
+      constructor Create (const AHost: String; const APort: Word);
       destructor Destroy; override;
-      procedure Send(const AMessage: String);
+      procedure Send (const AMessage: String);
     published
   end;
 
@@ -46,9 +46,9 @@ type
 
 var
   Window: TCastleWindowCustom;
-  PortEdit, SendEdit: TCastleEdit;
+  HostEdit, PortEdit, SendEdit: TCastleEdit;
   ResponseLabel: TCastleLabel;
-  Server: TServer;
+  Client: TClient;
   Connection: TClientConnection;
 
 implementation
@@ -60,103 +60,117 @@ var
   MyLabel: TCastleLabel;
 begin
   MyLabel := TCastleLabel.Create(Application);
-  MyLabel.Caption := 'Port:';
+  MyLabel.Caption := 'Hostname:';
   MyLabel.Anchor(hpMiddle);
   MyLabel.Anchor(vpTop, -10);
+  MyLabel.Color := White;
+  Window.Controls.InsertFront(MyLabel);
+
+  HostEdit := TCastleEdit.Create(Application);
+  HostEdit.Text := 'localhost';
+  HostEdit.Anchor(hpMiddle);
+  HostEdit.Anchor(vpTop, -60);
+  Window.Controls.InsertFront(HostEdit);
+
+  MyLabel := TCastleLabel.Create(Application);
+  MyLabel.Caption := 'Port:';
+  MyLabel.Anchor(hpMiddle);
+  MyLabel.Anchor(vpTop, -110);
   MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   PortEdit := TCastleEdit.Create(Application);
   PortEdit.Text := '10244';
   PortEdit.Anchor(hpMiddle);
-  PortEdit.Anchor(vpTop, -60);
+  PortEdit.Anchor(vpTop, -160);
   Window.Controls.InsertFront(PortEdit);
 
   MyButton := TCastleButton.Create(Application);
-  MyButton.Caption := 'Create server';
+  MyButton.Caption := 'Create client';
   MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -110);
+  MyButton.Anchor(vpTop, -210);
   MyButton.OnClick := @TClickHandler.CreateClick;
   Window.Controls.InsertFront(MyButton);
 
   SendEdit := TCastleEdit.Create(Application);
   SendEdit.Anchor(hpMiddle);
-  SendEdit.Anchor(vpTop, -210);
+  SendEdit.Anchor(vpTop, -310);
   Window.Controls.InsertFront(SendEdit);
 
   MyButton := TCastleButton.Create(Application);
   MyButton.Caption := 'Send';
   MyButton.Anchor(hpMiddle);
-  MyButton.Anchor(vpTop, -260);
+  MyButton.Anchor(vpTop, -360);
   MyButton.OnClick := @TClickHandler.SendClick;
   Window.Controls.InsertFront(MyButton);
 
   MyLabel := TCastleLabel.Create(Application);
   MyLabel.Caption := 'Response:';
   MyLabel.Anchor(hpMiddle);
-  MyLabel.Anchor(vpTop, -310);
+  MyLabel.Anchor(vpTop, -410);
   MyLabel.Color := White;
   Window.Controls.InsertFront(MyLabel);
 
   ResponseLabel := TCastleLabel.Create(Application);
   ResponseLabel.Anchor(hpMiddle);
-  ResponseLabel.Anchor(vpTop, -360);
+  ResponseLabel.Anchor(vpTop, -460);
   ResponseLabel.Color := White;
   Window.Controls.InsertFront(ResponseLabel);
 end;
 
-constructor TServer.Create(const APort: Word);
+constructor TClient.Create (const AHost: String; const APort: Word);
 begin
-  FServer := TCastleTCPServer.Create;
-  FServer.Port := APort;
+  FClient := TCastleTCPClient.Create;
+  FClient.Hostname := AHost;
+  FClient.Port := APort;
 
-  FServer.OnConnected := @OnConnected;
-  FServer.OnDisconnected := @OnDisconnected;
-  FServer.OnMessageRecieved := @OnMessageRecieved;
+  FClient.OnConnected := @OnConnected;
+  FClient.OnDisconnected := @OnDisconnected;
+  FClient.OnMessageRecieved := @OnMessageRecieved;
 
-  FServer.Start;
+  FClient.Connect;
 end;
 
-destructor TServer.Destroy;
+destructor TClient.Destroy;
 begin
-  FServer.Free;
+  FClient.Free;
 
   inherited;
 end;
 
-procedure TServer.OnConnected(AClient: TClientConnection);
+procedure TClient.OnConnected;
 begin
   ResponseLabel.Caption := 'Connected!';
 end;
 
-procedure TServer.OnDisconnected(AClient: TClientConnection);
+procedure TClient.OnDisconnected;
 begin
   ResponseLabel.Caption := 'Disconnected!';
 end;
 
-procedure TServer.OnMessageRecieved(const AMessage: String; AClient: TClientConnection);
+procedure TClient.OnMessageRecieved (const AMessage: String);
 begin
   ResponseLabel.Caption := AMessage;
 end;
 
-procedure TServer.Send(const AMessage: String);
+procedure TClient.Send (const AMessage: String);
 begin
-  FServer.SendToAll(SendEdit.Text);
+  FClient.Send(SendEdit.Text);
 end;
 
 class procedure TClickHandler.CreateClick(Sender: TObject);
 begin
-  Server := TServer.Create(StrToInt(PortEdit.Text));
+  Client := TClient.Create(HostEdit.Text, StrToInt(PortEdit.Text));
 end;
 
 class procedure TClickHandler.SendClick(Sender: TObject);
 begin
-  if Assigned(Server) then
-    Server.Send(SendEdit.Text);
+  if Assigned(Client) then
+    Client.Send(SendEdit.Text);
 end;
 
 initialization
-  ApplicationProperties.ApplicationName := 'server';
+  ApplicationProperties.ApplicationName := 'client';
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;

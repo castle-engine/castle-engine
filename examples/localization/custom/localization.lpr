@@ -17,7 +17,7 @@
 program localization;
 
 uses
-  CastleWindow, Game;
+  CastleWindow, GameInitialize;
 
 begin
   Window.OpenAndRun;

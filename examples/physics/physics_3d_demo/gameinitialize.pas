@@ -14,7 +14,7 @@
 }
 
 { Implements the game logic. }
-unit Game;
+unit GameInitialize;
 
 interface
 

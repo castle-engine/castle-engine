@@ -14,7 +14,7 @@
 }
 
 { Game initialisation and logic. }
-unit Game;
+unit GameInitialize;
 
 interface
 

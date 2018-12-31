@@ -3,6 +3,6 @@
   caption="Edit Test"
   qualified_name="io.castleengine.edit.test"
   standalone_source="edit_test.lpr"
-  game_units="Game"
+  game_units="GameInitialize"
   author="Michalis Kamburelis">
 </project>
