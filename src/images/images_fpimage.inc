@@ -509,6 +509,7 @@ begin
         CanvasDestination := TFPImageCanvas.Create(Result);
         {$warnings on}
         try
+          CanvasDestination.Interpolation := Interpolator;
           CanvasDestination.StretchDraw(0, 0, ResizeWidth, ResizeHeight, FPImageSource);
         finally FreeAndNil(CanvasDestination) end;
       except FreeAndNil(Result); raise end;
