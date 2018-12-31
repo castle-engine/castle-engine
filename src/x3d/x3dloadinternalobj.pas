@@ -38,7 +38,7 @@ type
   TWavefrontMaterial = class
     Name: string;
     AmbientColor, DiffuseColor, SpecularColor, TransmissionColor: TVector3;
-    IlluminationModel: Cardinal;
+    IlluminationModel: Single;
     Opacity: Single;
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
@@ -400,7 +400,7 @@ var
              end;
           5: begin
                CheckIsMaterial('illumination model (illum)');
-               Materials.Last.IlluminationModel := StrToInt(LineAfterMarker);
+               Materials.Last.IlluminationModel := StrToFloat(LineAfterMarker);
              end;
           6: begin
                CheckIsMaterial('dissolve (d)');
