@@ -1324,6 +1324,15 @@ type
       added later. }
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); virtual;
 
+    { Called right before calculating size.
+      This is your only chance to adjust e.g. children size,
+      if you need them to be synchronized with something,
+      and you may use @link(AutoSizeToChildren).
+
+      In most use-cases, you rather adjust preferred size by overriding
+      @link(PreferredSize). }
+    procedure BeforeSizing; virtual;
+
     { @link(EffectiveWidth) without @link(Border) size. }
     function EffectiveWidthForChildren: Single;
     { @link(EffectiveHeight) without @link(Border) size. }
@@ -4482,6 +4491,10 @@ begin
   Result := TFloatRectangle.Empty;
 end;
 
+procedure TCastleUserInterface.BeforeSizing;
+begin
+end;
+
 procedure TCastleUserInterface.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   R: TFloatRectangle;
@@ -4570,6 +4583,8 @@ begin
     Exit(TFloatRectangle.Empty);
   end;
   FInsideRectWithoutAnchors := true;
+
+  BeforeSizing;
 
   if AutoSizeToChildren then
   begin

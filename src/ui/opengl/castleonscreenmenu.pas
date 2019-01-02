@@ -63,7 +63,7 @@ type
   end deprecated 'use TCastleOnScreenMenuItemToggle';
 
   { Clickable menu item of @link(TCastleOnScreenMenu). }
-  TCastleOnScreenMenuItem = class(TCastleUserInterfaceFont)
+  TCastleOnScreenMenuItem = class(TCastleUserInterface)
   strict private
     const
       Padding = 5;
@@ -86,6 +86,7 @@ type
     procedure PositionChildren(const MaxLeftColumnWidth: Single);
   protected
     procedure DoClick; virtual;
+    procedure BeforeSizing; override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -169,6 +170,8 @@ type
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
     procedure SetRegularSpaceBetweenItems(const Value: Single);
+  protected
+    procedure BeforeSizing; override;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
@@ -444,6 +447,20 @@ begin
     FRightCaptionLabel.Caption := Value;
     FRightCaptionLabel.Exists := Value <> '';
     VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleOnScreenMenuItem.BeforeSizing;
+var
+  M: TCastleOnScreenMenu;
+begin
+  inherited;
+
+  M := Menu;
+  if M <> nil then
+  begin
+    FCaptionLabel.AssignFont(M);
+    FRightCaptionLabel.AssignFont(M);
   end;
 end;
 
@@ -725,18 +742,14 @@ begin
   Result := RegularSpaceBetweenItems;
 end;
 
-procedure TCastleOnScreenMenu.Render;
+procedure TCastleOnScreenMenu.BeforeSizing;
 const
   MarginBeforeAccessory = 20;
 var
-  BgColor, CurrentItemBorderColor: TCastleColor;
-  SR: TFloatRectangle;
   MaxLeftColumnWidth: Single;
   I: Integer;
 begin
   inherited;
-
-  SR := RenderRect;
 
   { recalculate MaxLeftColumnWidth and update children position based on it }
   MaxLeftColumnWidth := 0;
@@ -748,6 +761,16 @@ begin
   for I := 0 to MenuItems.ControlsCount - 1 do
     if MenuItems.Controls[I] is TCastleOnScreenMenuItem then
       TCastleOnScreenMenuItem(MenuItems.Controls[I]).PositionChildren(MaxLeftColumnWidth);
+end;
+
+procedure TCastleOnScreenMenu.Render;
+var
+  BgColor, CurrentItemBorderColor: TCastleColor;
+  SR: TFloatRectangle;
+begin
+  inherited;
+
+  SR := RenderRect;
 
   if DrawBackgroundRectangle then
   begin
@@ -856,35 +879,8 @@ begin
 end;
 
 procedure TCastleOnScreenMenu.Add(const NewItem: TCastleUserInterface);
-var
-  I: Integer;
 begin
   MenuItems.InsertFront(NewItem);
-
-  { Pass our CustomFont / FontSize to NewItem and NewItem.Controls[I].
-    TODO:
-    - This is dirty, as the changes are not updated later when we change
-      CustomFont/FontSize again.
-    - And it's not recursive.
-    - And we don't update all properties, e.g. FontScale.
-      Updating FontScale/SmallFont would make sliders have large font,
-      which may look bad.
-  }
-
-  if NewItem is TCastleUserInterfaceFont then
-  begin
-    TCastleUserInterfaceFont(NewItem).CustomFont := CustomFont;
-    TCastleUserInterfaceFont(NewItem).FontSize := FontSize;
-  end;
-
-  for I := 0 to NewItem.ControlsCount - 1 do
-  begin
-    if NewItem.Controls[I] is TCastleUserInterfaceFont then
-    begin
-      TCastleUserInterfaceFont(NewItem.Controls[I]).CustomFont := CustomFont;
-      TCastleUserInterfaceFont(NewItem.Controls[I]).FontSize := FontSize;
-    end;
-  end;
 end;
 
 procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TCastleUserInterface);

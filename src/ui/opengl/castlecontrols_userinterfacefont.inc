@@ -49,6 +49,9 @@
     procedure TooltipRender; override;
     procedure Render; override;
 
+    { Copy font properties from another control. }
+    procedure AssignFont(const Source: TCastleUserInterfaceFont);
+
     { Font used for rendering and measuring this control.
 
       Depending on which one is set, this method returns
@@ -423,6 +426,13 @@ begin
 
   FLastSeenUIFont := NewUIFont;
   FLastSeenDefaultFont := NewDefaultFont;
+end;
+
+procedure TCastleUserInterfaceFont.AssignFont(const Source: TCastleUserInterfaceFont);
+begin
+  CustomFont := Source.CustomFont;
+  FontSize := Source.FontSize;
+  FontScale := Source.FontScale;
 end;
 
 {$define read_implementation_methods}
