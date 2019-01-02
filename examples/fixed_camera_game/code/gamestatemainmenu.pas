@@ -51,7 +51,7 @@ type
         procedure ClickChangeDevice(Sender: TObject);
         procedure ClickBack(Sender: TObject);
       public
-        SoundDeviceArgument: TCastleMenuButton;
+        SoundDeviceArgument: TCastleOnScreenMenuItem;
         constructor Create(AOwner: TComponent); override;
       end;
 
@@ -154,15 +154,16 @@ constructor TStateMainMenu.TRiftSoundMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  SoundDeviceArgument := TCastleMenuButton.Create(Self);
-  SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  SoundDeviceArgument := TCastleOnScreenMenuItem.Create(Self);
+  SoundDeviceArgument.Caption := 'Sound output device';
+  SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
   SoundDeviceArgument.OnClick := @ClickChangeDevice;
 
   Add('Sound options:');
   Add(TSoundInfoMenuItem.Create(Self));
   Add(TSoundVolumeMenuItem.Create(Self));
   Add(TMusicVolumeMenuItem.Create(Self));
-  Add('Sound output device', SoundDeviceArgument);
+  Add(SoundDeviceArgument);
   Add('Back to main menu', @ClickBack);
 
   // select item 1 as default, because item 0 is the label
@@ -182,7 +183,7 @@ end;
 { TSoundDeviceMenuButton ---------------------------------------------------- }
 
 type
-  TSoundDeviceMenuButton = class(TCastleMenuButton)
+  TSoundDeviceMenuButton = class(TCastleOnScreenMenuItem)
   public
     Device: TSoundDevice;
     procedure DoClick; override;
@@ -193,7 +194,7 @@ begin
   inherited;
 
   SoundEngine.Device := Device.Name;
-  StateMainMenu.SoundMenu.SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  StateMainMenu.SoundMenu.SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
   if not SoundEngine.ALActive then
     MessageOK(Application.MainWindow, SoundEngine.Information);
 
@@ -214,7 +215,8 @@ begin
   begin
     D := TSoundDeviceMenuButton.Create(Self);
     D.Device := SoundEngine.Devices[I];
-    Add(D.Device.Caption, D);
+    D.Caption := D.Device.Caption;
+    Add(D);
   end;
   Add('Cancel', @ClickBack);
 

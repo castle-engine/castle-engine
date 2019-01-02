@@ -137,7 +137,7 @@ procedure TClicksHandler.btnReinitializeClick(Sender: TObject);
 begin
   // If any joystick is plugged or unplugged then reinitialize is needed
   Notifications.Show('Reinitialization...');
-  OnScreenMenu.ClearControls;
+  OnScreenMenu.MenuItems.ClearControls;
   Joysticks.Free;
   InitializeJoysticks;
 end;

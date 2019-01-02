@@ -28,8 +28,8 @@
       procedure OnUpdateLocalization(const ALocalizedText: String);
     end;
 
-    { A descendent of TCastleMenuButton that can be localised with CastleLocalization. }
-    TCastleMenuButtonLocalizable = class (TCastleMenuButton, ICastleLocalization)
+    { A descendent of TCastleOnScreenMenuItem that can be localised with CastleLocalization. }
+    TCastleOnScreenMenuItemLocalizable = class (TCastleOnScreenMenuItem, ICastleLocalization)
     public
       procedure OnUpdateLocalization(const ALocalizedText: String);
     end;
@@ -60,9 +60,9 @@ begin
   Caption := ALocalizedText;
 end;
 
-{ TCastleMenuButtonLocalizable ----------------------------------------------------- }
+{ TCastleOnScreenMenuItemLocalizable ----------------------------------------------------- }
 
-procedure TCastleMenuButtonLocalizable.OnUpdateLocalization(const ALocalizedText: String);
+procedure TCastleOnScreenMenuItemLocalizable.OnUpdateLocalization(const ALocalizedText: String);
 begin
   Caption := ALocalizedText;
 end;
