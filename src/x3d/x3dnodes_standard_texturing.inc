@@ -288,6 +288,7 @@
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function GetCycleInterval: TFloatTime;
+  private
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;

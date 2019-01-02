@@ -201,6 +201,7 @@
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   strict private
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
+  private
     { To satify IAbstractTimeDependentNode }
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
