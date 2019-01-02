@@ -71,6 +71,7 @@ type
     procedure SetCurrentMenu(const NewValue: TAbstractMenu);
   public
     procedure Start; override;
+    procedure Stop; override;
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
@@ -256,13 +257,7 @@ begin
 
   SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
 
-  { TODO: There's a bug (unknown reason) when using
-    TCastleImageControl.Create(FreeAtStop) below:
-    If you do "Replay Intro" and they go back to TStateMainMenu (2nd time),
-    the image is not visible.
-  }
-
-  MenuBg := TCastleImageControl.Create(Self);//FreeAtStop);
+  MenuBg := TCastleImageControl.Create(FreeAtStop);
   MenuBg.URL := GameConfig.GetURL('main_menu/image');
   MenuBg.FullSize := true;
   MenuBg.Stretch := true;
@@ -273,6 +268,19 @@ begin
   SoundDeviceMenu := TSoundDeviceMenu.Create(FreeAtStop);
 
   SetCurrentMenu(MainMenu);
+end;
+
+procedure TStateMainMenu.Stop;
+begin
+  { The menu instance will be freed because it's owned by FreeAtStop.
+
+    We should still set CurrentMenu back to nil,
+    otherwise starting state again would have CurrentMenu <> nil.
+    It may lead to subtle bugs: in case CurrentMenu is (by accident)
+    equal to MenuBg in Start, then "SetCurrentMenu(MainMenu)"
+    will free the MenuBg. }
+  CurrentMenu := nil;
+  inherited;
 end;
 
 end.
