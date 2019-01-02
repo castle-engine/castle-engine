@@ -256,7 +256,13 @@ begin
 
   SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
 
-  MenuBg := TCastleImageControl.Create(FreeAtStop);
+  { TODO: There's a bug (unknown reason) when using
+    TCastleImageControl.Create(FreeAtStop) below:
+    If you do "Replay Intro" and they go back to TStateMainMenu (2nd time),
+    the image is not visible.
+  }
+
+  MenuBg := TCastleImageControl.Create(Self);//FreeAtStop);
   MenuBg.URL := GameConfig.GetURL('main_menu/image');
   MenuBg.FullSize := true;
   MenuBg.Stretch := true;
