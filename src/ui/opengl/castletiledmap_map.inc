@@ -1131,7 +1131,6 @@ begin
   inherited Destroy;
 end;
 
-
 function TTiledMap.TilePositionValid(const TilePosition: TVector2Integer): Boolean;
 begin
   Result :=
@@ -1145,14 +1144,11 @@ function TTiledMap.PositionToTile(const Position: TVector2;
   out TilePosition: TVector2Integer): Boolean;
 var
   X, Y, ResultYPlusX, ResultYMinusX: Single;
+  RowIncreaseY: Single;
 begin
   { unpack vector, for simpler code and for speed }
   X := Position.Data[0];
   Y := Position.Data[1];
-
-  // Without this check, Trunc(-0.5) could result in valid position 0 for orthogonal
-  if (X < 0) or (Y < 0) then
-    Exit(false);
 
   case Orientation of
     moIsometric:
@@ -1160,22 +1156,40 @@ begin
         Y -= (Width - 1) * TileHeight / 2;
         ResultYPlusX  := X / (TileWidth  / 2);
         ResultYMinusX := Y / (TileHeight / 2) - 1; // not sure why this -1 at end is needed...
-        TilePosition.Data[0] := Trunc((ResultYPlusX - ResultYMinusX) / 2);
-        TilePosition.Data[1] := Trunc((ResultYPlusX + ResultYMinusX) / 2);
+        TilePosition.Data[0] := Floor((ResultYPlusX - ResultYMinusX) / 2);
+        TilePosition.Data[1] := Floor((ResultYPlusX + ResultYMinusX) / 2);
       end;
-    // moIsometricStaggered:
-    //   begin
-    //     // TODO: right now this assumes Stagger Axis = Y
-    //   end;
-    // moHexagonal:
-    //   begin
-    //     // TODO: right now this assumes Stagger Axis = Y
-    //   end;
+    moIsometricStaggered:
+      begin
+        // TODO: right now this assumes Stagger Axis = Y
+        { TODO: This doesn't have smart logic to account for diagonals.
+          To hide this fact, we do "- 0.25" below, to at least match correct tile
+          when we're over it's center. }
+        TilePosition.Data[1] := Floor(Y / (TileHeight / 2) - 0.25);
+        if (not Odd(TilePosition.Data[1])) xor (StaggerIndex <> siOdd) then
+          TilePosition.Data[0] := Floor(X / TileWidth - 0.5)
+        else
+          TilePosition.Data[0] := Floor(X / TileWidth);
+      end;
+    moHexagonal:
+      begin
+        // TODO: right now this assumes Stagger Axis = Y
+        { TODO: This doesn't have smart logic to detect exact tile under mouse
+          in case position is between diagonals.
+          As such, this works sensibly only for large HexSideLength,
+          when TileHeight - HexSideLength is small. }
+        RowIncreaseY := TileHeight - (TileHeight - HexSideLength) / 2;
+        TilePosition.Data[1] := Floor(Y / RowIncreaseY);
+        if (not Odd(TilePosition.Data[1])) xor (StaggerIndex <> siOdd) then
+          TilePosition.Data[0] := Floor(X / TileWidth - 0.5)
+        else
+          TilePosition.Data[0] := Floor(X / TileWidth);
+      end;
     // As a fallback, unsupported modes are as orthogonal
     else
       begin
-        TilePosition.Data[0] := Trunc(X / TileWidth);
-        TilePosition.Data[1] := Trunc(Y / TileHeight);
+        TilePosition.Data[0] := Floor(X / TileWidth);
+        TilePosition.Data[1] := Floor(Y / TileHeight);
       end;
   end;
   Result := TilePositionValid(TilePosition);

@@ -42,7 +42,8 @@ uses
 
 implementation
 
-uses CastleComponentSerialize, CastleImages,
+uses Math,
+  CastleComponentSerialize, CastleImages,
   CastleGLUtils;
 
 {$define read_implementation}
