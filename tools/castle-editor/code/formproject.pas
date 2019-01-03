@@ -158,6 +158,7 @@ type
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
   public
+    { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
   end;
 
@@ -636,6 +637,9 @@ begin
     ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
   finally FreeAndNil(ManifestDoc) end;
 
+  { Below we assume ManifestUrl contains an absolute path,
+    otherwise ProjectPathUrl could be '',
+    and OpenDesignDialog.InitialDir would be left '' and so on. }
   ProjectPathUrl := ExtractURIPath(ManifestUrl);
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
 
