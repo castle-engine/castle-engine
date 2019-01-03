@@ -342,8 +342,33 @@ type
       @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(const AURL: string);
     destructor Destroy; override;
-    { Returns the tileset that contains the global ID. }
-    function GIDToTileset(const AGID: Cardinal): TTileSet;
+
+    { Is the given tile number valid.
+      Valid map tiles are from (0, 0) (lower-left) to
+      (@link(Width) - 1, @link(Height) - 1) (upper-right). }
+    function TilePositionValid(const TilePosition: TVector2Integer): Boolean;
+
+    { Detect tile under given position.
+
+      Similar to @link(TCastleTiledMapControl.PositionToTile).
+      Given TilePosition must be in local map coordinates,
+      where each map piece has size (TileWidth, TileHeight),
+      and map bottom-left corner is in (0, 0).
+
+      This method returns @false if the position is outside of the map.
+      Valid map tiles are defined as by @link(TilePositionValid). }
+    function PositionToTile(const Position: TVector2;
+      out TilePosition: TVector2Integer): Boolean;
+
+    { Left-bottom corner where the given tile should be rendered. }
+    function TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
+
+    { Information about which image (and how) should be displayed at given map position. }
+    function TileRenderData(const TilePosition: TVector2Integer;
+      const Layer: TTiledMap.TLayer;
+      out Tileset: TTiledMap.TTileset;
+      out Frame: Integer;
+      out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Boolean;
   end;
 
 {$endif read_interface}
@@ -1106,17 +1131,132 @@ begin
   inherited Destroy;
 end;
 
-function TTiledMap.GIDToTileset(const AGID: Cardinal): TTileSet;
-var
-  i: Integer;
+
+function TTiledMap.TilePositionValid(const TilePosition: TVector2Integer): Boolean;
 begin
-  for i := 0 to FTilesets.Count - 1 do
-    if FTilesets.Items[i].FirstGID > AGID then
-    begin
-      Result := FTilesets[i-1];
-      Exit;
-    end;
-  Result := FTilesets[FTilesets.Count - 1];
+  Result :=
+    (TilePosition.Data[0] >= 0) and
+    (TilePosition.Data[0] < Width) and
+    (TilePosition.Data[1] >= 0) and
+    (TilePosition.Data[1] < Height);
+end;
+
+function TTiledMap.PositionToTile(const Position: TVector2;
+  out TilePosition: TVector2Integer): Boolean;
+begin
+  // Without this check, Trunc(-0.5) could result in valid position 0 below
+  if (Position.Data[0] < 0) or
+     (Position.Data[1] < 0) then
+    Exit(false);
+
+  //case Orientation of
+    // TODO:
+    // moIsometric:
+    //   begin
+    //   end;
+    // moIsometricStaggered:
+    //   begin
+    //     // TODO: right now this assumes Stagger Axis = Y
+    //   end;
+    // moHexagonal:
+    //   begin
+    //     // TODO: right now this assumes Stagger Axis = Y
+    //   end;
+    // As a fallback, unsupported modes are as orthogonal
+    // else
+      begin
+        TilePosition.Data[0] := Trunc(Position.Data[0] / TileWidth);
+        TilePosition.Data[1] := Trunc(Position.Data[1] / TileHeight);
+      end;
+  //end;
+  Result := TilePositionValid(TilePosition);
+end;
+
+function TTiledMap.TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
+var
+  X, Y, YFromTop: Integer;
+  RowIncreaseY: Single;
+begin
+  { unpack vector, for speed }
+  X := TilePosition.Data[0];
+  Y := TilePosition.Data[1];
+
+  case Orientation of
+    moIsometric:
+      begin
+        YFromTop := Height - 1 - Y;
+        Result.X := (Width  - 1 + X - YFromTop) * TileWidth  / 2;
+        Result.Y := (Height - 1 + Y - X       ) * TileHeight / 2;
+      end;
+    moIsometricStaggered:
+      begin
+        // TODO: right now this assumes Stagger Axis = Y
+        Result.X := X * TileWidth;
+        if (not Odd(Y)) xor (StaggerIndex <> siOdd) then
+          Result.X := Result.X + TileWidth / 2;
+        Result.Y := Y * TileHeight / 2;
+      end;
+    moHexagonal:
+      begin
+        // TODO: right now this assumes Stagger Axis = Y
+        RowIncreaseY := TileHeight - (TileHeight - HexSideLength) / 2;
+        Result.X := X * TileWidth;
+        if (not Odd(Y)) xor (StaggerIndex <> siOdd) then
+          Result.X := Result.X + TileWidth / 2;
+        Result.Y := Y * RowIncreaseY;
+      end;
+    // As a fallback, unsupported modes are as orthogonal
+    else
+      begin
+        Result.X := X * TileWidth;
+        Result.Y := Y * TileHeight;
+      end;
+  end;
+end;
+
+function TTiledMap.TileRenderData(const TilePosition: TVector2Integer;
+  const Layer: TTiledMap.TLayer;
+  out Tileset: TTiledMap.TTileset;
+  out Frame: Integer;
+  out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Boolean;
+
+  { Returns the tileset that contains the global ID. }
+  function GIDToTileset(const AGID: Cardinal): TTileSet;
+  var
+    i: Integer;
+  begin
+    for i := 0 to FTilesets.Count - 1 do
+      if FTilesets.Items[i].FirstGID > AGID then
+      begin
+        Result := FTilesets[i-1];
+        Exit;
+      end;
+    Result := FTilesets[FTilesets.Count - 1];
+  end;
+
+const
+  HorizontalFlag = $80000000;
+  VerticalFlag   = $40000000;
+  DiagonalFlag   = $20000000;
+  ClearFlag      = $1FFFFFFF;
+var
+  Index: Integer;
+  GID, Dat: Cardinal;
+begin
+  Result := false;
+
+  Index := TilePosition.X + (Height - 1 - TilePosition.Y) * Width;
+  Dat := Layer.Data.Data[Index];
+  GID := Dat and ClearFlag;
+  if GID = 0 then Exit;
+
+  Tileset := GIDToTileset(GID);
+  Frame := GID - Tileset.FirstGID;
+  HorizontalFlip := Dat and HorizontalFlag > 0;
+  VerticalFlip := Dat and VerticalFlag > 0;
+  DiagonalFlip := Dat and DiagonalFlag > 0;
+
+  Result := true;
 end;
 
 {$endif read_implementation}

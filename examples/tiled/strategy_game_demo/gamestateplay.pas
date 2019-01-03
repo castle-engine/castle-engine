@@ -18,18 +18,26 @@ unit GameStatePlay;
 
 interface
 
-uses CastleUIState, CastleControls, CastleTiledMap, CastleUIControls;
+uses CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
+  CastleVectors;
 
 type
   TStatePlay = class(TUIState)
   strict private
     MapControl: TCastleTiledMapControl;
     ButtonQuit: TCastleButton;
+    LabelStatus: TCastleLabel;
+    TileUnderMouseImage: TCastleImageControl;
+    TileUnderMouseExists: Boolean;
+    TileUnderMouse: TVector2Integer;
     procedure ClickQuit(Sender: TObject);
+    function IsWater(const TilePosition: TVector2Integer): Boolean;
   public
     { Set this before starting this state. }
     MapName: String;
     procedure Start; override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
   end;
 
 var
@@ -38,7 +46,7 @@ var
 implementation
 
 uses SysUtils, Classes,
-  CastleComponentSerialize, CastleUtils,
+  CastleComponentSerialize, CastleUtils, CastleRectangles,
   GameStateMainMenu, GameUnit;
 
 procedure TStatePlay.Start;
@@ -65,6 +73,8 @@ begin
   ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
   ButtonQuit.OnClick := @ClickQuit;
 
+  LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
+
   for I := 1 to 10 do
   begin
     RandomUnit := TUnit.Create(FreeAtStop);
@@ -76,11 +86,68 @@ begin
     RandomUnit.Ui.Bottom := Random(Round(MapControl.EffectiveHeight));
     MapControl.InsertFront(RandomUnit.Ui);
   end;
+
+  TileUnderMouseImage := TCastleImageControl.Create(FreeAtStop);
+  TileUnderMouseImage.Stretch := true;
+  TileUnderMouseImage.Color := Vector4(0, 1, 0, 0.75);
+  case MapControl.Map.Orientation of
+    moOrthogonal: TileUnderMouseImage.URL := 'castle-data:/tile_hover/orthogonal.png';
+    moHexagonal : TileUnderMouseImage.URL := 'castle-data:/tile_hover/hexagonal.png';
+    else          TileUnderMouseImage.URL := 'castle-data:/tile_hover/isometric.png';
+  end;
+  TileUnderMouseImage.Exists := false;
+  MapControl.InsertFront(TileUnderMouseImage);
 end;
 
 procedure TStatePlay.ClickQuit(Sender: TObject);
 begin
   TUIState.Current := StateMainMenu;
+end;
+
+function TStatePlay.IsWater(const TilePosition: TVector2Integer): Boolean;
+var
+  Tileset: TTiledMap.TTileset;
+  Frame: Integer;
+  HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+begin
+  Result := MapControl.Map.TileRenderData(TilePosition,
+    MapControl.Map.Layers[0],
+    Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) and
+    { Water is on 1, 5, 9 tiles (counting from 0) in data/maps/tileset-terrain.png . }
+    ((Frame mod 4) = 1);
+end;
+
+procedure TStatePlay.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+var
+  TileStr: String;
+  TileRect: TFloatRectangle;
+begin
+  { update TileUnderMouseExists, TileUnderMouse }
+  TileUnderMouseExists := MapControl.PositionToTile(
+    Container.MousePosition, true, TileUnderMouse);
+
+  { update TileUnderMouseImage }
+  TileUnderMouseImage.Exists := TileUnderMouseExists;
+  if TileUnderMouseExists then
+  begin
+    TileRect := MapControl.TileRectangle(TileUnderMouse, false);
+    TileUnderMouseImage.Left := TileRect.Left;
+    TileUnderMouseImage.Bottom := TileRect.Bottom;
+    TileUnderMouseImage.Width := TileRect.Width;
+    TileUnderMouseImage.Height := TileRect.Height;
+  end;
+
+  { update LabelStatus }
+  if TileUnderMouseExists then
+    TileStr := TileUnderMouse.ToString +
+      ' (water: ' + BoolToStr(IsWater(TileUnderMouse), true) + ')'
+  else
+    TileStr := 'none';
+  LabelStatus.Caption := Format('FPS: %s, Tile: %s', [
+    Container.Fps.ToString,
+    TileStr
+  ]);
 end;
 
 end.

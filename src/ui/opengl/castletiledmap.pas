@@ -33,7 +33,7 @@ interface
 uses
   Classes, SysUtils, DOM, XMLRead, base64, zstream, Generics.Collections,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
-  CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages;
+  CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages, CastleRectangles;
 
 {$define read_interface}
 {$I castletiledmap_map.inc}
@@ -42,7 +42,7 @@ uses
 
 implementation
 
-uses CastleComponentSerialize, CastleRectangles, CastleImages,
+uses CastleComponentSerialize, CastleImages,
   CastleGLUtils;
 
 {$define read_implementation}
