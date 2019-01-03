@@ -135,8 +135,9 @@ function CombineURI(const Base, Relative: string): string;
 function AbsoluteURI(const URI: string): string;
 
 { Does URI contain only an absolute filename.
-  Useful for warnings, since you usually do not want to have such paths
-  in your data, as they it impossible to transfer the data (move/copy files)
+  Useful to detect unwanted paths in data files,
+  you usually do not want to have such paths in data files,
+  as they make it impossible to transfer the data (move/copy files)
   to other system/location. }
 function AbsoluteFileURI(const URI: string): boolean;
 
