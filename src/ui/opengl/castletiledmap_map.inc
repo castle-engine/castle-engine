@@ -1143,17 +1143,26 @@ end;
 
 function TTiledMap.PositionToTile(const Position: TVector2;
   out TilePosition: TVector2Integer): Boolean;
+var
+  X, Y, ResultYPlusX, ResultYMinusX: Single;
 begin
-  // Without this check, Trunc(-0.5) could result in valid position 0 below
-  if (Position.Data[0] < 0) or
-     (Position.Data[1] < 0) then
+  { unpack vector, for simpler code and for speed }
+  X := Position.Data[0];
+  Y := Position.Data[1];
+
+  // Without this check, Trunc(-0.5) could result in valid position 0 for orthogonal
+  if (X < 0) or (Y < 0) then
     Exit(false);
 
-  //case Orientation of
-    // TODO:
-    // moIsometric:
-    //   begin
-    //   end;
+  case Orientation of
+    moIsometric:
+      begin
+        Y -= (Width - 1) * TileHeight / 2;
+        ResultYPlusX  := X / (TileWidth  / 2);
+        ResultYMinusX := Y / (TileHeight / 2) - 1; // not sure why this -1 at end is needed...
+        TilePosition.Data[0] := Trunc((ResultYPlusX - ResultYMinusX) / 2);
+        TilePosition.Data[1] := Trunc((ResultYPlusX + ResultYMinusX) / 2);
+      end;
     // moIsometricStaggered:
     //   begin
     //     // TODO: right now this assumes Stagger Axis = Y
@@ -1163,30 +1172,38 @@ begin
     //     // TODO: right now this assumes Stagger Axis = Y
     //   end;
     // As a fallback, unsupported modes are as orthogonal
-    // else
+    else
       begin
-        TilePosition.Data[0] := Trunc(Position.Data[0] / TileWidth);
-        TilePosition.Data[1] := Trunc(Position.Data[1] / TileHeight);
+        TilePosition.Data[0] := Trunc(X / TileWidth);
+        TilePosition.Data[1] := Trunc(Y / TileHeight);
       end;
-  //end;
+  end;
   Result := TilePositionValid(TilePosition);
 end;
 
 function TTiledMap.TileRenderPosition(const TilePosition: TVector2Integer): TVector2;
 var
-  X, Y, YFromTop: Integer;
+  X, Y: Integer;
   RowIncreaseY: Single;
 begin
-  { unpack vector, for speed }
+  { unpack vector, for simpler code and for speed }
   X := TilePosition.Data[0];
   Y := TilePosition.Data[1];
 
   case Orientation of
     moIsometric:
       begin
-        YFromTop := Height - 1 - Y;
-        Result.X := (Width  - 1 + X - YFromTop) * TileWidth  / 2;
-        Result.Y := (Height - 1 + Y - X       ) * TileHeight / 2;
+        { At the beginning imagine a simpler equation:
+
+            Result.X := (X + Y) * TileWidth  / 2;
+            Result.Y := (Y - X) * TileHeight / 2;
+
+          The Y position of the bottom-most tile, at (Width - 1, 0),
+          would be -(Width - 1) * TileHeight / 2.
+          So adjust Result.Y to place the map always at positive Y. }
+
+        Result.X := (            X + Y) * TileWidth  / 2;
+        Result.Y := (Width - 1 + Y - X) * TileHeight / 2;
       end;
     moIsometricStaggered:
       begin
