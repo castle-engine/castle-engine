@@ -65,6 +65,7 @@ type
 
 function LoadGLTF(const URL: string): TX3DRootNode;
 var
+  BaseUrl: String;
   Document: TPasGLTF.TDocument;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
@@ -200,13 +201,13 @@ var
           begin
             if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
             begin
-              Texture := TMovieTextureNode.Create('', URL);
+              Texture := TMovieTextureNode.Create('', BaseUrl);
               TMovieTextureNode(Texture).SetUrl([GltfImage.URI]);
               TMovieTextureNode(Texture).FlipVertically := true;
               TMovieTextureNode(Texture).Loop := true;
             end else
             begin
-              Texture := TImageTextureNode.Create('', URL);
+              Texture := TImageTextureNode.Create('', BaseUrl);
               TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
 
               { glTF specification defines (0,0) texture coord to be
@@ -242,7 +243,7 @@ var
                 we lose information about additional mipmaps,
                 cubemap faces etc. }
 
-              Texture := TPixelTextureNode.Create('', URL);
+              Texture := TPixelTextureNode.Create;
               try
                 TPixelTextureNode(Texture).FdImage.Value :=
                   LoadImage(Stream, GltfImage.MimeType, []);
@@ -679,16 +680,25 @@ var
   Stream: TStream;
   Material: TPasGLTF.TMaterial;
 begin
+  { Make absolute URL.
+
+    This also makes the later Document.RootPath calculation correct.
+    Otherwise "InclPathDelim(ExtractFilePath(URIToFilenameSafe('my_file.gtlf')))"
+    would result in '/' (accidentally making all TPasGLTF.TImage.URI values
+    relative to root directory on Unix). This was reproducible doing
+    "view3dscene my_file.gtlf" on the command-line. }
+  BaseUrl := AbsoluteURI(URL);
+
   Stream := Download(URL, []);
   try
-    Result := TX3DRootNode.Create('', URL);
+    Result := TX3DRootNode.Create('', BaseUrl);
     try
       Document := nil;
       DefaultAppearance := nil;
       Appearances := nil;
       try
         Document := TPasGLTF.TDocument.Create;
-        Document.RootPath := InclPathDelim(ExtractFilePath(URIToFilenameSafe(URL)));
+        Document.RootPath := InclPathDelim(ExtractFilePath(URIToFilenameSafe(BaseUrl)));
         Document.LoadFromStream(Stream);
 
         ReadHeader;
