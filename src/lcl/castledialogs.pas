@@ -121,7 +121,8 @@ procedure Register;
 
 implementation
 
-uses CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
+uses SysUtils,
+  CastleURIUtils, CastleLCLUtils, X3DLoad, CastleImages, CastleFilesUtils,
   CastleStringUtils, CastleUtils;
 
 procedure Register;
@@ -162,11 +163,27 @@ begin
       mtWarning, [mbOK], 0);
 end;
 
+function CleanupFileName(const FileName: String): String;
+begin
+  { Using GTK 2 file open dialog under Ubuntu Mate,
+    you can get filenames with // .
+    They are mostly harmless (opening such filenames with various
+    routines work) but they make MaybeUseDataProtocol less often possible
+    (since sometimes paths will not match, because one contains //),
+    and thus would cause unnecessary calls to WarningIfOutsideDataDirectory . }
+  Result :=
+    {$ifdef UNIX}
+    StringReplace(FileName, '//', '/', [rfReplaceAll]);
+    {$else}
+    FileName;
+    {$endif}
+end;
+
 { TCastleOpen3DDialog ----------------------------------------------------- }
 
 function TCastleOpen3DDialog.GetURL: string;
 begin
-  Result := FilenameToURISafeUTF8(FileName);
+  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   Result := MaybeUseDataProtocol(Result);
 end;
 
@@ -199,7 +216,7 @@ end;
 
 function TCastleSaveImageDialog.GetURL: string;
 begin
-  Result := FilenameToURISafeUTF8(FileName);
+  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   Result := MaybeUseDataProtocol(Result);
 end;
 
@@ -232,7 +249,7 @@ end;
 
 function TCastleOpenImageDialog.GetURL: string;
 begin
-  Result := FilenameToURISafeUTF8(FileName);
+  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   Result := MaybeUseDataProtocol(Result);
 end;
 
@@ -265,7 +282,7 @@ end;
 
 function TCastleSaveDialog.GetURL: string;
 begin
-  Result := FilenameToURISafeUTF8(FileName);
+  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   Result := MaybeUseDataProtocol(Result);
 end;
 
@@ -285,7 +302,7 @@ end;
 
 function TCastleOpenDialog.GetURL: string;
 begin
-  Result := FilenameToURISafeUTF8(FileName);
+  Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   Result := MaybeUseDataProtocol(Result);
 end;
 
