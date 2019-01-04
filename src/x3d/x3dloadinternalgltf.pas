@@ -29,7 +29,7 @@ implementation
 uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages;
+  CastleImages, CastleVideos;
 
 { Reading glTF using PasGLTF from Bero:
   https://github.com/BeRo1985/pasgltf/
@@ -198,21 +198,29 @@ var
           GltfImage := Document.Images[GltfTexture.Source];
           if GltfImage.URI <> '' then
           begin
-            Texture := TImageTextureNode.Create('', URL);
-            TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
+            if FfmpegVideoMimeType(URIMimeType(GltfImage.URI), false) then
+            begin
+              Texture := TMovieTextureNode.Create('', URL);
+              TMovieTextureNode(Texture).SetUrl([GltfImage.URI]);
+              TMovieTextureNode(Texture).FlipVertically := true;
+              TMovieTextureNode(Texture).Loop := true;
+            end else
+            begin
+              Texture := TImageTextureNode.Create('', URL);
+              TImageTextureNode(Texture).SetUrl([GltfImage.URI]);
 
-            { glTF specification defines (0,0) texture coord to be
-              at top-left corner, while X3D and OpenGL and OpenGLES expect it be
-              at bottom-left corner.
-              See
-              https://github.com/KhronosGroup/glTF/issues/1021
-              https://github.com/KhronosGroup/glTF/issues/674
-              https://github.com/KhronosGroup/glTF-Sample-Models/issues/82
+              { glTF specification defines (0,0) texture coord to be
+                at top-left corner, while X3D and OpenGL and OpenGLES expect it be
+                at bottom-left corner.
+                See
+                https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_flip_vertically
+                for a detailed discussion.
 
-              So we flip the textures.
-              This way we can use original texture coordinates from glTF
-              file (no need to process them, by doing "y := 1 - y"). }
-            TImageTextureNode(Texture).FlipVertically := true;
+                So we flip the textures.
+                This way we can use original texture coordinates from glTF
+                file (no need to process them, by doing "y := 1 - y"). }
+              TImageTextureNode(Texture).FlipVertically := true;
+            end;
           end else
           if GltfImage.BufferView >= 0 then
           begin
