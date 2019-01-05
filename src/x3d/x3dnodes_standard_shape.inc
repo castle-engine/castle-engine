@@ -175,6 +175,8 @@
     procedure SetMaterial(const Value: TMaterialNode);
     function GetNormalMap: TAbstractTexture2DNode;
     procedure SetNormalMap(const Value: TAbstractTexture2DNode);
+    function GetAlphaChannel: TAutoAlphaChannel;
+    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
@@ -266,6 +268,10 @@
 
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
+
+    strict private FFdAlphaChannel: TSFStringEnum;
+    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
+    property AlphaChannel: TAutoAlphaChannel read GetAlphaChannel write SetAlphaChannel;
 
     {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
@@ -930,6 +936,9 @@ begin
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
+  FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
+  AddField(FFdAlphaChannel);
+
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,
     Appearance node may only occur within Shape.appearance field
@@ -947,6 +956,16 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassX3DType) or
     (URN = URNX3DNodes + ClassX3DType);
+end;
+
+function TAppearanceNode.GetAlphaChannel: TAutoAlphaChannel;
+begin
+  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
+end;
+
+procedure TAppearanceNode.SetAlphaChannel(const Value: TAutoAlphaChannel);
+begin
+  FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
 class function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
@@ -1224,7 +1243,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', TMaterialInfo.DefaultTransparency);
-   FdTransparency.ChangesAlways := [chMaterial2, chUseBlending];
+   FdTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 
@@ -1524,7 +1543,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdBackTransparency := TSFFloat.Create(Self, true, 'backTransparency', 0);
-   FdBackTransparency.ChangesAlways := [chMaterial2, chUseBlending];
+   FdBackTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
   AddField(FFdBackTransparency);
   { X3D specification comment: [0,1] }
 
@@ -1553,7 +1572,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chMaterial2, chUseBlending];
+   FdTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 end;

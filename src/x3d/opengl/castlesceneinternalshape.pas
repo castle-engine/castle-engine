@@ -21,7 +21,7 @@ unit CastleSceneInternalShape;
 
 interface
 
-uses X3DNodes, X3DFields,
+uses X3DNodes, X3DFields, CastleImages,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleRenderer;
 
@@ -34,9 +34,9 @@ type
     { Keeps track if this shape was passed to Renderer.Prepare. }
     PreparedForRenderer: boolean;
 
-    UseBlending: boolean;
-    { Is UseBlending calculated and current. }
-    PreparedUseBlending: boolean;
+    UseAlphaChannel: TAlphaChannel;
+    { Is UseAlphaChannel calculated and current. }
+    PreparedUseAlphaChannel: boolean;
 
     { Used only by RenderFrustumOctree. }
     RenderFrustumOctree_Visible: boolean;
@@ -62,6 +62,8 @@ type
 
     { Request from parent TCastleScene to call our PrepareResources at next time. }
     procedure SchedulePrepareResources; virtual; abstract;
+
+    function UseBlending: Boolean;
   end;
 
 implementation
@@ -91,14 +93,14 @@ begin
   begin
     Renderer.UnprepareTexture(State.DiffuseAlphaTexture);
     PreparedForRenderer := false;
-    PreparedUseBlending := false;
+    PreparedUseAlphaChannel := false;
     SchedulePrepareResources;
   end;
 
-  { When Material.transparency changes, recalculate UseBlending. }
-  if chUseBlending in Changes then
+  { When Material.transparency changes, recalculate UseAlphaChannel. }
+  if chAlphaChannel in Changes then
   begin
-    PreparedUseBlending := false;
+    PreparedUseAlphaChannel := false;
     SchedulePrepareResources;
   end;
 end;
@@ -111,12 +113,12 @@ begin
     PreparedForRenderer := true;
   end;
 
-  if not PreparedUseBlending then
+  if not PreparedUseAlphaChannel then
   begin
-    { UseBlending is used by RenderScene to decide is Blending used for given
+    { UseAlphaChannel is used by RenderScene to decide is Blending used for given
       shape. }
-    UseBlending := Blending;
-    PreparedUseBlending := true;
+    UseAlphaChannel := AlphaChannel;
+    PreparedUseAlphaChannel := true;
   end;
 
   {$ifndef OpenGLES}
@@ -132,7 +134,7 @@ end;
 procedure TGLShape.GLContextClose;
 begin
   PreparedForRenderer := false;
-  PreparedUseBlending := false;
+  PreparedUseAlphaChannel := false;
 
   {$ifndef OpenGLES}
   if OcclusionQueryId <> 0 then
@@ -141,6 +143,11 @@ begin
     OcclusionQueryId := 0;
   end;
   {$endif}
+end;
+
+function TGLShape.UseBlending: Boolean;
+begin
+  Result := UseAlphaChannel = acBlending;
 end;
 
 end.

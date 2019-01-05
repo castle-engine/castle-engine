@@ -69,7 +69,7 @@ implementation
 // to keep it working for backward compatibility.
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes;
+  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages;
 {$warnings on}
 
 {$ifndef OpenGLES}
@@ -399,7 +399,7 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.Data[3] <> 0);
 
-    if ForceOpaque or not TShape(FShape).Blending then
+    if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesBegin else
       TransparentTrianglesBegin;
 
@@ -409,7 +409,7 @@ var
       Inc(TrianglePtr);
     end;
 
-    if ForceOpaque or not TShape(FShape).Blending then
+    if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesEnd else
       TransparentTrianglesEnd;
   end;

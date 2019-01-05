@@ -59,7 +59,7 @@ type
     procedure TestGeometryNodesChanges;
 
     { Almost all VRML 1 state nodes should have Changes = [chVisibleVRML1State]
-      (and possibly more, like chUseBlending). }
+      (and possibly more, like chAlphaChannel). }
     procedure TestVisibleVRML1StateChanges;
 
     { All Color nodes should have Changes = [chColorNode] }

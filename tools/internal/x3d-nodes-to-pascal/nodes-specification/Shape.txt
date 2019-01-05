@@ -37,6 +37,11 @@ Appearance : X3DAppearanceNode {
   SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
   SFNode     [in,out]      blendMode        NULL        # [BlendMode]
   MFNode     []            effects          []          # [Effect]
+
+  # EXTENSIONS:
+  # Commented out to not be seen by x3d-nodes-to-pascal,
+  # this is implemented specially in Pascal.
+  # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
 }
 
 FillProperties : X3DAppearanceChildNode {

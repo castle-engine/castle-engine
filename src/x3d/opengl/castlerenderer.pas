@@ -1058,7 +1058,8 @@ implementation
 
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
-  X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles;
+  X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
+  CastleSceneInternalShape;
 
 {$define read_implementation}
 
@@ -3352,7 +3353,6 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     AlphaTest: boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
-    TexturesAlphaChannel: TAlphaChannel;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3383,14 +3383,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     if Attributes.EnableTextures and
        NodeTextured(Shape.Geometry) then
     begin
-      { This works also for TextureNode being TMultiTextureNode,
-        since it has smartly calculated AlphaChannel based on children. }
-      TexturesAlphaChannel := acNone;
-      if TextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
-      if FontTextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
-      AlphaTest := TexturesAlphaChannel = acTest;
+      AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;
 
       if GLFontTextureNode <> nil then
         GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);

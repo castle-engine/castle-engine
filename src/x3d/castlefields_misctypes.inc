@@ -87,7 +87,7 @@
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
-      Exception: you can (and should) include chUseBlending and
+      Exception: you can (and should) include chAlphaChannel and
       chTextureImage for appropriate changes. }
     chVisibleVRML1State,
 
@@ -104,15 +104,15 @@
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
-      Exception: you can (and should) include chUseBlending for appropriate
+      Exception: you can (and should) include chAlphaChannel for appropriate
       Material changes. }
     chMaterial2,
 
-    { Something that may affect UseBlending calculation possibly changed.
+    { Something that may affect TShape.AlphaChannel calculation possibly changed.
       This is guaranteed to work only when used together with
       chVisibleVRML1State and chMaterial2. It's understood that only
-      shapes that use given material need UseBlending recalculated. }
-    chUseBlending,
+      shapes that use given material need AlphaChannel recalculated. }
+    chAlphaChannel,
 
     { Light property that is also reflected in TLightInstance structure.
       Only allowed on node's descending from TAbstractLightNode.

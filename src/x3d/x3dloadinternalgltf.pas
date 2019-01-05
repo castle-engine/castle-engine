@@ -316,12 +316,14 @@ var
       TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
     end;
-    // TODO: This should be applied on whole TAppearanceNode, not at particular textures.
-    if BaseColorTexture <> nil then
-      BaseColorTexture.AlphaChannelField := AlphaChannel;
+    Result.AlphaChannel := AlphaChannel;
 
     // TODO: ignored for now:
-    // Appearance.AlphaCutOff := Material.AlphaCutOff;
+    // Result.AlphaClipThreshold := Material.AlphaCutOff;
+    // Implement AlphaClipThreshold from X3DOM / InstantReality:
+    // https://doc.x3dom.org/author/Shape/Appearance.html
+    // https://www.x3dom.org/news/
+    // (our default 0.5?)
   end;
 
   function AccessorTypeToStr(const AccessorType: TPasGLTF.TAccessor.TType): String;
@@ -564,7 +566,6 @@ var
 
     // apply additional TGltfAppearanceNode parameters, not handled by X3D renderer
     Geometry.Solid := not Appearance.DoubleSided;
-    // TODO: For now we ignore Appearance.AlphaMode, Appearance.AlphaCutoff.
 
     // add to X3D
     ParentGroup.AddChildren(Shape);
