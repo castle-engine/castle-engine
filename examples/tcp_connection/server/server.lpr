@@ -20,6 +20,11 @@ uses
 {$ifdef UNIX}{$ifndef ANDROID}
   cthreads,
 {$endif}{$endif}
+{$ifdef LCL}
+  // add Interfaces to workaround linking error
+  // "undefined reference to `WSRegisterCustomPage'"
+  Interfaces,
+{$endif}
   CastleWindow, GameInitialize;
 
 begin
