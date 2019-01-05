@@ -19,7 +19,8 @@ unit GameStatePlay;
 interface
 
 uses CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
-  CastleVectors;
+  CastleVectors,
+  GameUnit;
 
 type
   TStatePlay = class(TUIState)
@@ -30,6 +31,7 @@ type
     TileUnderMouseImage: TCastleImageControl;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
+    UnitsOnMap: TUnitsOnMap;
     procedure ClickQuit(Sender: TObject);
     function IsWater(const TilePosition: TVector2Integer): Boolean;
   public
@@ -47,7 +49,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleComponentSerialize, CastleUtils, CastleRectangles,
-  GameStateMainMenu, GameUnit;
+  GameStateMainMenu;
 
 procedure TStatePlay.Start;
 var
@@ -75,15 +77,20 @@ begin
 
   LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
 
+  UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
+
   for I := 1 to 10 do
   begin
     RandomUnit := TUnit.Create(FreeAtStop);
-    RandomUnit.Initialize(TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
+    RandomUnit.TilePosition := Vector2Integer(
+      Random(MapControl.Map.Width),
+      Random(MapControl.Map.Height)
+    );
+    RandomUnit.Initialize(UnitsOnMap,
+      TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
       RandomIntRange(3, 10),
       RandomIntRange(3, 10),
       RandomIntRange(3, 10));
-    RandomUnit.Ui.Left := Random(Round(MapControl.EffectiveWidth));
-    RandomUnit.Ui.Bottom := Random(Round(MapControl.EffectiveHeight));
     MapControl.InsertFront(RandomUnit.Ui);
   end;
 
@@ -122,6 +129,7 @@ procedure TStatePlay.Update(const SecondsPassed: Single;
 var
   TileStr: String;
   TileRect: TFloatRectangle;
+  UnitUnderMouse: TUnit;
 begin
   { update TileUnderMouseExists, TileUnderMouse }
   TileUnderMouseExists := MapControl.PositionToTile(
@@ -140,11 +148,16 @@ begin
 
   { update LabelStatus }
   if TileUnderMouseExists then
-    TileStr := TileUnderMouse.ToString +
-      ' (water: ' + BoolToStr(IsWater(TileUnderMouse), true) + ')'
-  else
+  begin
+    TileStr := TileUnderMouse.ToString;
+    if IsWater(TileUnderMouse) then
+      TileStr += NL + ' Water';
+    UnitUnderMouse := UnitsOnMap[TileUnderMouse];
+    if UnitUnderMouse <> nil then
+      TileStr += NL + ' Unit: ' + UnitUnderMouse.ToString;
+  end else
     TileStr := 'none';
-  LabelStatus.Caption := Format('FPS: %s, Tile: %s', [
+  LabelStatus.Caption := Format('FPS: %s' + NL + 'Tile: %s', [
     Container.Fps.ToString,
     TileStr
   ]);
