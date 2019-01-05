@@ -7,7 +7,6 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -15,9 +14,6 @@
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -29,10 +25,13 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_window"/>
+        <PackageName Value="indylaz"/>
       </Item1>
+      <Item2>
+        <PackageName Value="castle_window"/>
+      </Item2>
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
@@ -42,6 +41,7 @@
       <Unit1>
         <Filename Value="../../../src/files/castleclientserver.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleClientServer"/>
       </Unit1>
     </Units>
   </ProjectOptions>
