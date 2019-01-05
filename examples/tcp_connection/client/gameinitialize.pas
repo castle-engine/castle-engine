@@ -53,6 +53,8 @@ var
 
 implementation
 
+uses CastleColors;
+
 { One-time initialization. }
 procedure ApplicationInitialize;
 var
@@ -89,7 +91,7 @@ begin
   MyButton.Caption := 'Create client';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -210);
-  MyButton.OnClick := @TClickHandler.CreateClick;
+  MyButton.OnClick := @TClickHandler(nil).CreateClick;
   Window.Controls.InsertFront(MyButton);
 
   SendEdit := TCastleEdit.Create(Application);
@@ -101,7 +103,7 @@ begin
   MyButton.Caption := 'Send';
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -360);
-  MyButton.OnClick := @TClickHandler.SendClick;
+  MyButton.OnClick := @TClickHandler(nil).SendClick;
   Window.Controls.InsertFront(MyButton);
 
   MyLabel := TCastleLabel.Create(Application);
