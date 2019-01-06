@@ -19,21 +19,19 @@ unit GameInitialize;
 
 interface
 
-uses CastleWindowTouch;
-
-var
-  Window: TCastleWindowTouch;
-
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
+  CastleWindowTouch, CastleWindow, CastleControls, CastleUIControls,
+  CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
   CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
   CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine,
   CastleApplicationProperties;
 
 var
+  Window: TCastleWindowTouch;
+
   {$ifdef SOLID_BACKGROUND}
   Background: TCastleSimpleBackground;
   {$endif}

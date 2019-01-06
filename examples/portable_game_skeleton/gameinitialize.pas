@@ -10,26 +10,17 @@
   is covered by the LGPL license variant, see the COPYING.txt file.) }
 unit GameInitialize;
 
-{ Compilation options adviced by the Castle Game Engine.
-  But actually you can use any options suitable for you (although you will
-  most likely want to use ObjFpc or Delphi mode, to have classes support).
-
-  Feel free to remove this line if you know that you configure proper
-  compilation options elsewhere (e.g. in the Lazarus project options;
-  the CGE build tool automatically defines these options). }
-{$mode objfpc}{$H+}{$J-}
-
 interface
 
 implementation
 
 uses SysUtils,
-  CastleWindowTouch, CastleWindow, CastleScene, CastleControls, CastleLog,
+  CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties;
 
 var
-  Window: TCastleWindowTouch;
+  Window: TCastleWindow;
   Status: TCastleLabel;
   ExampleImage: TCastleImageControl;
   ExampleScene: TCastleScene;
@@ -96,7 +87,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

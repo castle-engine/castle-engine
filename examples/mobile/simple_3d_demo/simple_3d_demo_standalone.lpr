@@ -21,5 +21,5 @@
 program simple_3d_demo_standalone;
 uses CastleWindow, GameInitialize;
 begin
-  Window.OpenAndRun;
+  Application.MainWindow.OpenAndRun;
 end.

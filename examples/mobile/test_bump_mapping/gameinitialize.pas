@@ -18,11 +18,6 @@ unit GameInitialize;
 
 interface
 
-uses CastleWindowTouch;
-
-var
-  Window: TCastleWindowTouch;
-
 implementation
 
 uses SysUtils, Math,
@@ -32,6 +27,7 @@ uses SysUtils, Math,
   CastleApplicationProperties;
 
 var
+  Window: TCastleWindow;
   SceneVisualizeLight: TCastleScene;
   MainLight: TPointLightNode;
   Time: TFloatTime;
@@ -115,7 +111,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;

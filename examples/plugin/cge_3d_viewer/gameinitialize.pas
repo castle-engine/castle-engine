@@ -21,7 +21,7 @@ interface
 implementation
 
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleWindowTouch,
+  CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
   CastleDownload, CastleMessages, CastleApplicationProperties;
@@ -29,7 +29,7 @@ uses SysUtils, CastleWindow, CastleScene, CastleControls,
 { routines ------------------------------------------------------------------- }
 
 type
-  TPluginWindow = class(TCastleWindowTouch)
+  TPluginWindow = class(TCastleWindow)
   protected
     function CreateContainer: TWindowContainer; override;
   end;
