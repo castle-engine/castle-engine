@@ -178,14 +178,32 @@ end;
 
 procedure TStatePlay.MapPress(const Sender: TInputListener;
   const Event: TInputPressRelease; var Handled: Boolean);
+
+  procedure CheckWin;
+  var
+    FoundEnemy: Boolean;
+    I: Integer;
+  begin
+    FoundEnemy := false;
+    for I := 0 to UnitsOnMap.UnitsCount - 1 do
+      if UnitsOnMap.Units[I].Human <> HumanTurn then
+      begin
+        FoundEnemy := true;
+        Break;
+      end;
+
+    if not FoundEnemy then
+    begin
+      StateWin.HumansWin := HumanTurn;
+      TUIState.Push(StateWin);
+    end;
+  end;
+
 var
   UnitUnderMouse: TUnit;
 begin
   if Event.IsMouseButton(mbLeft) and TileUnderMouseExists then
   begin
-    StateWin.HumansWin := HumanTurn;
-    TUIState.Push(StateWin);
-
     Handled := true;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];
     if (UnitUnderMouse <> nil) and (UnitUnderMouse.Human = HumanTurn) then
@@ -206,6 +224,7 @@ begin
         // so UnitUnderMouse pointer afterwards is no longer valid.
         UnitUnderMouse := nil;
         SelectedUnit.Movement := 0;
+        CheckWin;
       end else
       begin
         // move
