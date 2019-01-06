@@ -31,6 +31,7 @@ type
   { Main project management. }
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
+    ListWarnings: TListBox;
     MenuItemPasteComponent: TMenuItem;
     MenuItemCopyComponent: TMenuItem;
     MenuItemSupport: TMenuItem;
@@ -98,6 +99,7 @@ type
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
+    TabWarnings: TTabSheet;
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -157,6 +159,7 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
+    procedure WarningNotification(Sender: TObject; const Category, Message: string);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -287,40 +290,47 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     Result.Tag := PtrInt(Pointer(R.ComponentClass));
   end;
 
-var
-  MenuItem: TMenuItem;
-  R: TRegisteredComponent;
-  SeparatorIndex: Integer;
-begin
-  OutputList := TOutputList.Create(ListOutput);
-  for R in RegisteredComponents do
+  procedure BuildComponentsMenu;
+  var
+    MenuItem: TMenuItem;
+    R: TRegisteredComponent;
+    SeparatorIndex: Integer;
   begin
-    if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+    for R in RegisteredComponents do
     begin
-      MenuItem := CreateMenuItemForComponent(R);
-      MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-      MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+      begin
+        MenuItem := CreateMenuItemForComponent(R);
+        MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+        MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
 
-      MenuItem := CreateMenuItemForComponent(R);
-      MenuItem.OnClick := @MenuItemAddComponentClick;
-      MenuItemDesignAddUserInterface.Add(MenuItem);
-    end else
-    if R.ComponentClass.InheritsFrom(TCastleTransform) then
-    begin
-      MenuItem := CreateMenuItemForComponent(R);
-      MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-      MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
+        MenuItem := CreateMenuItemForComponent(R);
+        MenuItem.OnClick := @MenuItemAddComponentClick;
+        MenuItemDesignAddUserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(R);
+        MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+        MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
 
-      MenuItem := CreateMenuItemForComponent(R);
-      MenuItem.OnClick := @MenuItemAddComponentClick;
-      SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
-      MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+        MenuItem := CreateMenuItemForComponent(R);
+        MenuItem.OnClick := @MenuItemAddComponentClick;
+        SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
+        MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+      end;
     end;
   end;
+
+begin
+  OutputList := TOutputList.Create(ListOutput);
+  BuildComponentsMenu;
+  ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
 procedure TProjectForm.FormDestroy(Sender: TObject);
 begin
+  ApplicationProperties.OnWarning.Remove(@WarningNotification);
   ApplicationDataOverride := '';
   FreeProcess;
   FreeAndNil(OutputList);
@@ -429,6 +439,14 @@ begin
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     DesignExistenceChanged;
   end;
+end;
+
+procedure TProjectForm.WarningNotification(Sender: TObject; const Category,
+  Message: string);
+begin
+  ListWarnings.Items.Add(Category + ': ' + Message);
+  TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
+  TabWarnings.TabVisible := true;
 end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);

@@ -101,7 +101,20 @@ begin
 
     if Value <> '' then
     begin
-      FDesign := UserInterfaceLoad(Value, Self);
+      try
+        FDesign := UserInterfaceLoad(Value, Self);
+      except
+        on E: Exception do
+        begin
+          if CastleDesignMode then
+          begin
+            WritelnWarning('TCastleDesign', 'Failed to load design "%s": %s', [URIDisplay(URL), ExceptMessage(E)]);
+            Exit;
+          end else
+            raise;
+        end;
+      end;
+
       { This prevents this child from
         - being serialized (in case TCastleDesign is placed inside
           a hierachy saved using UserInterfaceSave. Only URL should be saved.)

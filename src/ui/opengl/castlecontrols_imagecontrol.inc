@@ -473,10 +473,23 @@ procedure TCastleImageControl.SetURL(const Value: string);
 begin
   if Value <> '' then
   begin
-    if Cache then
-      Image := TextureCache.TextureImage_IncReference(Value)
-    else
-      Image := LoadEncodedImage(Value);
+    try
+      if Cache then
+        Image := TextureCache.TextureImage_IncReference(Value)
+      else
+        Image := LoadEncodedImage(Value);
+    except
+      on E: Exception do
+      begin
+        if CastleDesignMode then
+        begin
+          WritelnWarning('TCastleImageControl', 'Failed to load image "%s": %s', [URIDisplay(Value), ExceptMessage(E)]);
+          Image := nil;
+          Exit;
+        end else
+          raise;
+      end;
+    end;
   end else
     Image := nil;
 
