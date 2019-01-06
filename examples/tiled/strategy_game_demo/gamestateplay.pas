@@ -110,19 +110,12 @@ procedure TStatePlay.Start;
   end;
 
 var
-  Ui: TCastleUserInterface;
   UiOwner: TComponent;
 begin
   inherited;
 
-  { UiOwner allows to search for components using FindRequiredComponent,
-    and makes sure the entire UI will be freed when state stops
-    (because UiOwner is owned by FreeAtStop). }
-  UiOwner := TComponent.Create(FreeAtStop);
-
   { Load designed user interface }
-  Ui := UserInterfaceLoad('castle-data:/state_play.castle-user-interface', UiOwner);
-  InsertFront(Ui);
+  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
 
   // find components in designed user interface
   MapControl := UiOwner.FindRequiredComponent('MapControl') as TCastleTiledMapControl;

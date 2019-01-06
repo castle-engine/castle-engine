@@ -48,19 +48,12 @@ uses SysUtils, Classes,
 
 procedure TStateMainMenu.Start;
 var
-  Ui: TCastleUserInterface;
   UiOwner: TComponent;
 begin
   inherited;
 
-  { UiOwner allows to search for components using FindRequiredComponent,
-    and makes sure the entire UI will be freed when state stops
-    (because UiOwner is owned by FreeAtStop). }
-  UiOwner := TComponent.Create(FreeAtStop);
-
   { Load designed user interface }
-  Ui := UserInterfaceLoad('castle-data:/state_main_menu.castle-user-interface', UiOwner);
-  InsertFront(Ui);
+  InsertUserInterface('castle-data:/state_main_menu.castle-user-interface', FreeAtStop, UiOwner);
 
   ButtonPlayHexagonal := UiOwner.FindRequiredComponent('ButtonPlayHexagonal') as TCastleButton;
   ButtonPlayIsometricStaggered := UiOwner.FindRequiredComponent('ButtonPlayIsometricStaggered') as TCastleButton;

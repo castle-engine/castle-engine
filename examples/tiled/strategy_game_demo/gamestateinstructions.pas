@@ -40,19 +40,12 @@ uses SysUtils, Classes,
 
 procedure TStateInstructions.Start;
 var
-  Ui: TCastleUserInterface;
   UiOwner: TComponent;
 begin
   inherited;
 
-  { UiOwner allows to search for components using FindRequiredComponent,
-    and makes sure the entire UI will be freed when state stops
-    (because UiOwner is owned by FreeAtStop). }
-  UiOwner := TComponent.Create(FreeAtStop);
-
   { Load designed user interface }
-  Ui := UserInterfaceLoad('castle-data:/state_instructions.castle-user-interface', UiOwner);
-  InsertFront(Ui);
+  InsertUserInterface('castle-data:/state_instructions.castle-user-interface', FreeAtStop, UiOwner);
 
   ButtonClose := UiOwner.FindRequiredComponent('ButtonClose') as TCastleButton;
   ButtonClose.OnClick := @ClickClose;

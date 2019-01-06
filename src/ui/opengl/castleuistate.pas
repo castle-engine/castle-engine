@@ -234,6 +234,35 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+
+    { Load and show a user interface from a .castle-user-interface file,
+      designed in Castle Game Engine Editor.
+
+      This is an utility method, loading a UI in a typical way into the TUIState.
+      It is not the only way to load a .castle-user-interface file,
+      a more general approach is to use @link(UserInterfaceLoad) from
+      @link(CastleComponentSerialize) unit, and manually call InsertFront
+      to add it to the state UI.
+
+      The loaded UI is returned under the @code(Ui) parameter,
+      unless you use an overloaded version that omits this parameter.
+
+      It is owned by @code(UiOwner), which is useful to find the components
+      by name, like
+      @longCode(#
+        ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+      #)
+
+      The UiOwner, in turn, is owned by the FinalOwner.
+      You typically use this method inside overridden @link(Start),
+      and as FinalOwner you pass @link(FreeAtStop) -- this way the user interface
+      is freed when the state is stopped.
+    }
+    procedure InsertUserInterface(const DesignUrl: String;
+      const FinalOwner: TComponent;
+      out Ui: TCastleUserInterface; out UiOwner: TComponent);
+    procedure InsertUserInterface(const DesignUrl: String;
+      const FinalOwner: TComponent; out UiOwner: TComponent);
   published
     { TUIState control makes most sense when it is FullSize,
       filling the whole window.
@@ -249,7 +278,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
+  CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog,
+  CastleComponentSerialize;
 
 { TODO: Change this into always exception in the future.
   Changing state during state Start/Stop/Push/Pop is not reliable,
@@ -529,6 +559,24 @@ begin
   { do not allow controls underneath to handle input }
   if InterceptInput then
     HandleInput := false;
+end;
+
+procedure TUIState.InsertUserInterface(const DesignUrl: String;
+  const FinalOwner: TComponent;
+  out Ui: TCastleUserInterface; out UiOwner: TComponent);
+begin
+  UiOwner := TComponent.Create(FinalOwner);
+  Ui := UserInterfaceLoad(DesignUrl, UiOwner);
+  InsertFront(Ui);
+end;
+
+procedure TUIState.InsertUserInterface(const DesignUrl: String;
+  const FinalOwner: TComponent; out UiOwner: TComponent);
+var
+  Ui: TCastleUserInterface;
+begin
+  InsertUserInterface(DesignUrl, FinalOwner, Ui, UiOwner);
+  // ignore the returned Ui reference
 end;
 
 end.
