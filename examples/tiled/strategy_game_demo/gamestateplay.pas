@@ -104,7 +104,7 @@ begin
       TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
       RandomIntRange(3, 10),
       RandomIntRange(10, 20),
-      RandomIntRange(1, 3));
+      RandomIntRange(2, 4));
     MapControl.InsertFront(RandomUnit.Ui);
   end;
 
@@ -165,6 +165,7 @@ begin
       UpdateTurnStatus;
     end else
     if (SelectedUnit <> nil) and
+       // CanMove also checks that SelectedUnit.Movement > 0
        (SelectedUnit.CanMove(TileUnderMouse)) then
     begin
       if UnitUnderMouse <> nil then
@@ -174,12 +175,13 @@ begin
         // Above operation *maybe* freed and removed enemy from the map,
         // so UnitUnderMouse pointer afterwards is no longer valid.
         UnitUnderMouse := nil;
+        SelectedUnit.Movement := 0;
       end else
       begin
         // move
         SelectedUnit.TilePosition := TileUnderMouse;
+        SelectedUnit.Movement := SelectedUnit.Movement - 1;
       end;
-      SelectedUnit.Movement := SelectedUnit.Movement - 1;
     end;
   end;
 end;
