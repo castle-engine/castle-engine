@@ -23,7 +23,7 @@ uses Classes, Contnrs,
   CastleTiledMap;
 
 type
-  TUnitKind = (ukAlien1, ukAlien2, ukHuman1, ukHuman2);
+  TUnitKind = (ukAlienLight, ukAlienHeavy, ukHumanLight, ukHumanHeavy);
 
   TUnit = class;
 
@@ -91,6 +91,9 @@ type
     destructor Destroy; override;
     procedure Initialize(const AUnitsOnMap: TUnitsOnMap;
       const AKind: TUnitKind; const AnAttack, ALife, AMovement: Integer);
+    { Initialize, choosing default statistics for this TUnitKind. }
+    procedure Initialize(const AUnitsOnMap: TUnitsOnMap;
+      const AKind: TUnitKind);
     function ToString: String; override;
     function Human: Boolean;
     function CanMove(const NewTilePosition: TVector2Integer): Boolean;
@@ -107,7 +110,7 @@ type
 
 implementation
 
-uses SysUtils, TypInfo,
+uses SysUtils, TypInfo, Math,
   CastleRectangles, CastleStringUtils, CastleColors;
 
 { TUnitsOnMap ---------------------------------------------------------------- }
@@ -218,6 +221,18 @@ begin
   PlaceOnMap;
 end;
 
+procedure TUnit.Initialize(const AUnitsOnMap: TUnitsOnMap; const AKind: TUnitKind);
+var
+  Heavy: Boolean;
+  AnAttack, ALife, AMovement: Integer;
+begin
+  Heavy := AKind in [ukAlienHeavy, ukHumanHeavy];
+  AnAttack := IfThen(Heavy, 7, 3);
+  ALife := IfThen(Heavy, 20, 10);
+  AMovement := IfThen(Heavy, 2, 5);
+  Initialize(AUnitsOnMap, AKind, AnAttack, ALife, AMovement);
+end;
+
 destructor TUnit.Destroy;
 begin
   if UnitsOnMap <> nil then
@@ -273,7 +288,7 @@ end;
 
 function TUnit.Human: Boolean;
 begin
-  Result := FKind in [ukHuman1, ukHuman2];
+  Result := FKind in [ukHumanLight, ukHumanHeavy];
 end;
 
 function TUnit.CanMove(const NewTilePosition: TVector2Integer): Boolean;

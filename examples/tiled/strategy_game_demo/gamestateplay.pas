@@ -60,11 +60,58 @@ uses SysUtils, Classes,
   GameStateMainMenu, GameStateInstructions;
 
 procedure TStatePlay.Start;
+
+  procedure PlaceInitialUnits;
+
+    procedure AddUnit(const Kind: TUnitKind; const XBegin, XEnd, YBegin, YEnd: Integer);
+    const
+      MaxTries = 50;
+    var
+      I: Integer;
+      Pos: TVector2Integer;
+      Un: TUnit;
+    begin
+      { Choose a random position, within given X and Y ranges.
+        Since we may play on various map sizes, with various rivers
+        --- prepare that the units may not fit, and resign after MaxTries
+        from adding a new unit. }
+      for I := 1 to MaxTries do
+      begin
+        Pos.X := RandomIntRangeInclusive(XBegin, XEnd);
+        Pos.Y := RandomIntRangeInclusive(YBegin, YEnd);
+        if (UnitsOnMap[Pos] = nil) and
+           (not UnitsOnMap.IsWater(Pos)) then
+        begin
+          Un := TUnit.Create(FreeAtStop);
+          Un.TilePosition := Pos;
+          Un.Initialize(UnitsOnMap, Kind);
+          MapControl.InsertFront(Un.Ui);
+          Exit;
+        end;
+      end;
+    end;
+
+  var
+    I, W, H, YBegin, YEnd: Integer;
+  begin
+    W := MapControl.Map.Width;
+    H := MapControl.Map.Height;
+    YBegin := H div 3;
+    YEnd := H - 1 - H div 3;
+
+    for I := 0 to 2 do
+      AddUnit(ukAlienHeavy, W div 8 + 0, W div 8 + 0, YBegin, YEnd);
+    for I := 0 to 3 do
+      AddUnit(ukAlienLight, W div 8 + 2, W div 8 + 2, YBegin, YEnd);
+    for I := 0 to 2 do
+      AddUnit(ukHumanHeavy, W - 1 - W div 8 - 0, W - 1 - W div 8 - 0, YBegin, YEnd);
+    for I := 0 to 3 do
+      AddUnit(ukHumanLight, W - 1 - W div 8 - 2, W - 1 - W div 8 - 2, YBegin, YEnd);
+  end;
+
 var
   Ui: TCastleUserInterface;
   UiOwner: TComponent;
-  RandomUnit: TUnit;
-  I: Integer;
 begin
   inherited;
 
@@ -93,20 +140,7 @@ begin
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
 
-  for I := 1 to 10 do
-  begin
-    RandomUnit := TUnit.Create(FreeAtStop);
-    RandomUnit.TilePosition := Vector2Integer(
-      Random(MapControl.Map.Width),
-      Random(MapControl.Map.Height)
-    );
-    RandomUnit.Initialize(UnitsOnMap,
-      TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
-      RandomIntRange(3, 10),
-      RandomIntRange(10, 20),
-      RandomIntRange(2, 4));
-    MapControl.InsertFront(RandomUnit.Ui);
-  end;
+  PlaceInitialUnits;
 
   TileUnderMouseImage := TCastleImageControl.Create(FreeAtStop);
   TileUnderMouseImage.Stretch := true;
