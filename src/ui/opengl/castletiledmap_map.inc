@@ -1310,16 +1310,59 @@ begin
   XDiff := Tile1.Data[0] - Tile2.Data[0];
   YDiff := Tile1.Data[1] - Tile2.Data[1];
 
-  // case Orientation of
-  //   moIsometricStaggered:
-  //     begin
-  //     end;
-  //   moHexagonal:
-  //     begin
-  //     end;
+  case Orientation of
+    moIsometricStaggered:
+      begin
+        // first check for neighbors touching edges (not only corners)
+        Result := Between(XDiff, -1, 1) and ((YDiff = -1) or (YDiff = 1));
+
+        if Result then
+        begin
+          // TODO: right now this assumes Stagger Axis = Y
+          { The above condition allowed 6 tiles to be neighbors to Tile2.
+            We need to eliminate 2 cases now.
+            Which 2 cases to eliminate depends on whether we're on odd or even row. }
+          if (not Odd(Tile2.Y)) xor (StaggerIndex <> siOdd) then
+          begin
+            if (XDiff = -1) and ((YDiff = -1) or (YDiff = 1)) then
+              Result := false;
+          end else
+          begin
+            if (XDiff = 1) and ((YDiff = -1) or (YDiff = 1)) then
+              Result := false;
+          end;
+        end;
+
+        // check for neighbors touching corners
+        if CornersAreNeighbors then
+          Result := Result or
+            ((YDiff = 0) and ((XDiff = -1) or (XDiff = 1))) or
+            ((XDiff = 0) and ((YDiff = -2) or (YDiff = 2)));
+      end;
+    moHexagonal:
+      begin
+        Result := Between(XDiff, -1, 1) and Between(YDiff, -1, 1);
+        if Result then
+        begin
+          // TODO: right now this assumes Stagger Axis = Y
+          { The above condition allowed 8 tiles to be neighbors to Tile2.
+            We need to eliminate 2 cases now, since there are only 6 neighbors
+            on hexagonal map. Which 2 cases to eliminate depends on whether
+            we're on odd or even row. }
+          if (not Odd(Tile2.Y)) xor (StaggerIndex <> siOdd) then
+          begin
+            if (XDiff = -1) and ((YDiff = -1) or (YDiff = 1)) then
+              Result := false;
+          end else
+          begin
+            if (XDiff = 1) and ((YDiff = -1) or (YDiff = 1)) then
+              Result := false;
+          end;
+        end;
+      end;
     { As a fallback, unsupported modes are as moOrthogonal.
       This logic matches also moIsometric. }
-    // else
+    else
       begin
         if CornersAreNeighbors then
           Result := Between(XDiff, -1, 1) and Between(YDiff, -1, 1)
@@ -1328,7 +1371,7 @@ begin
             ( (XDiff = 0) and ((YDiff = -1) or (YDiff = 1)) ) or
             ( (YDiff = 0) and ((XDiff = -1) or (XDiff = 1)) );
       end;
-  // end;
+  end;
 end;
 
 {$endif read_implementation}

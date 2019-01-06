@@ -277,6 +277,10 @@ begin
 end;
 
 function TUnit.CanMove(const NewTilePosition: TVector2Integer): Boolean;
+const
+  { Both true and false work OK, change to determine
+    whether you can move/attack along diagonals. }
+  CornersAreNeighbors = true;
 var
   UnitOnNewPosition: TUnit;
 begin
@@ -284,7 +288,8 @@ begin
     (UnitsOnMap <> nil) and
     (Movement > 0) and
     // can only move over neighbor tile, that is not water
-    (UnitsOnMap.MapControl.Map.TileNeighbor(TilePosition, NewTilePosition, true)) and
+    (UnitsOnMap.MapControl.Map.TileNeighbor(
+      TilePosition, NewTilePosition, CornersAreNeighbors)) and
     not UnitsOnMap.IsWater(NewTilePosition);
 
   // cannot move over a unit of the same side
