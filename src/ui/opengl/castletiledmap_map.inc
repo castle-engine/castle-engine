@@ -369,6 +369,12 @@ type
       out Tileset: TTiledMap.TTileset;
       out Frame: Integer;
       out HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean): Boolean;
+
+    { Are the two given tiles neighbors.
+      Takes into account map @link(Orientation), so it works for hexagonal,
+      orthogonal etc. maps. }
+    function TileNeighbor(const Tile1, Tile2: TVector2Integer;
+      const CornersAreNeighbors: Boolean): Boolean;
   end;
 
 {$endif read_interface}
@@ -1288,6 +1294,41 @@ begin
   DiagonalFlip := Dat and DiagonalFlag > 0;
 
   Result := true;
+end;
+
+function TTiledMap.TileNeighbor(const Tile1, Tile2: TVector2Integer;
+  const CornersAreNeighbors: Boolean): Boolean;
+var
+  XDiff, YDiff: Integer;
+begin
+  // eliminate easy cases first
+  if (not TilePositionValid(Tile1)) or
+     (not TilePositionValid(Tile2)) or
+     TVector2Integer.Equals(Tile1, Tile2) then
+    Exit(false);
+
+  XDiff := Tile1.Data[0] - Tile2.Data[0];
+  YDiff := Tile1.Data[1] - Tile2.Data[1];
+
+  // case Orientation of
+  //   moIsometricStaggered:
+  //     begin
+  //     end;
+  //   moHexagonal:
+  //     begin
+  //     end;
+    { As a fallback, unsupported modes are as moOrthogonal.
+      This logic matches also moIsometric. }
+    // else
+      begin
+        if CornersAreNeighbors then
+          Result := Between(XDiff, -1, 1) and Between(YDiff, -1, 1)
+        else
+          Result :=
+            ( (XDiff = 0) and ((YDiff = -1) or (YDiff = 1)) ) or
+            ( (YDiff = 0) and ((XDiff = -1) or (XDiff = 1)) );
+      end;
+  // end;
 end;
 
 {$endif read_implementation}

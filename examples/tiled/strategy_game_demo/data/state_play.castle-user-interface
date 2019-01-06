@@ -74,6 +74,7 @@
         "$ClassName" : "TCastleColorPersistent"
       },
       "CustomTextColorUse" : false,
+      "FontSize" : 3.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "ButtonQuit",
       "OutlineColorPersistent" : {
@@ -111,11 +112,13 @@
         "Red" : 1.0000000000000000E+000,
         "$ClassName" : "TCastleColorPersistent"
       },
+      "FontSize" : 3.0000000000000000E+001,
       "FrameColorPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelStatus",
+      "Outline" : 1,
       "OutlineColorPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
@@ -123,6 +126,87 @@
       "VerticalAnchorDelta" : -7.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Caption" : "End Turn",
+      "CustomColorDisabledPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorFocusedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorNormalPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorPressedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorUse" : false,
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "ButtonEndTurn",
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintDisabledPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintFocusedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintNormalPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintPressedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    },
+    {
+      "AutoSize" : false,
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "Blue" : 4.8235294222831726E-001,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 3.0000000000000000E+001,
+      "FrameColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Height" : 2.4000000000000000E+002,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelTurnStatus",
+      "Outline" : 1,
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Text" : "Humans Turn\nSelect Human Unit or Press \"End Turn\"\n",
+      "VerticalAnchorDelta" : -5.9000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 9.7000000000000000E+002,
       "$Children" : [
       ],
       "$ClassName" : "TCastleLabel"

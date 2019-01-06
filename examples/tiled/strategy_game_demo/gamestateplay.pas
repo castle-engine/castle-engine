@@ -19,7 +19,7 @@ unit GameStatePlay;
 interface
 
 uses CastleUIState, CastleControls, CastleTiledMap, CastleUIControls,
-  CastleVectors,
+  CastleVectors, CastleKeysMouse,
   GameUnit;
 
 type
@@ -27,13 +27,19 @@ type
   strict private
     MapControl: TCastleTiledMapControl;
     ButtonQuit: TCastleButton;
-    LabelStatus: TCastleLabel;
+    ButtonEndTurn: TCastleButton;
+    LabelStatus, LabelTurnStatus: TCastleLabel;
     TileUnderMouseImage: TCastleImageControl;
     TileUnderMouseExists: Boolean;
     TileUnderMouse: TVector2Integer;
     UnitsOnMap: TUnitsOnMap;
+    HumanTurn: Boolean;
+    SelectedUnit: TUnit;
     procedure ClickQuit(Sender: TObject);
-    function IsWater(const TilePosition: TVector2Integer): Boolean;
+    procedure ClickEndTurn(Sender: TObject);
+    procedure MapPress(const Sender: TInputListener;
+      const Event: TInputPressRelease; var Handled: Boolean);
+    procedure UpdateTurnStatus;
   public
     { Set this before starting this state. }
     MapName: String;
@@ -69,13 +75,17 @@ begin
   Ui := UserInterfaceLoad('castle-data:/state_play.castle-user-interface', UiOwner);
   InsertFront(Ui);
 
+  // find components in designed user interface
   MapControl := UiOwner.FindRequiredComponent('MapControl') as TCastleTiledMapControl;
-  MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
-
   ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
-  ButtonQuit.OnClick := @ClickQuit;
-
+  ButtonEndTurn := UiOwner.FindRequiredComponent('ButtonEndTurn') as TCastleButton;
   LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
+  LabelTurnStatus := UiOwner.FindRequiredComponent('LabelTurnStatus') as TCastleLabel;
+
+  MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
+  MapControl.OnPress := @MapPress;
+  ButtonQuit.OnClick := @ClickQuit;
+  ButtonEndTurn.OnClick := @ClickEndTurn;
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
 
@@ -96,7 +106,6 @@ begin
 
   TileUnderMouseImage := TCastleImageControl.Create(FreeAtStop);
   TileUnderMouseImage.Stretch := true;
-  TileUnderMouseImage.Color := Vector4(0, 1, 0, 0.75);
   case MapControl.Map.Orientation of
     moOrthogonal: TileUnderMouseImage.URL := 'castle-data:/tile_hover/orthogonal.png';
     moHexagonal : TileUnderMouseImage.URL := 'castle-data:/tile_hover/hexagonal.png';
@@ -104,6 +113,9 @@ begin
   end;
   TileUnderMouseImage.Exists := false;
   MapControl.InsertFront(TileUnderMouseImage);
+
+  HumanTurn := true;
+  UpdateTurnStatus;
 end;
 
 procedure TStatePlay.ClickQuit(Sender: TObject);
@@ -111,17 +123,81 @@ begin
   TUIState.Current := StateMainMenu;
 end;
 
-function TStatePlay.IsWater(const TilePosition: TVector2Integer): Boolean;
-var
-  Tileset: TTiledMap.TTileset;
-  Frame: Integer;
-  HorizontalFlip, VerticalFlip, DiagonalFlip: Boolean;
+procedure TStatePlay.ClickEndTurn(Sender: TObject);
+
+  procedure ResetMovement;
+  var
+    I: Integer;
+  begin
+    for I := 0 to UnitsOnMap.UnitsCount - 1 do
+      UnitsOnMap.Units[I].Movement := UnitsOnMap.Units[I].InitialMovement;
+  end;
+
 begin
-  Result := MapControl.Map.TileRenderData(TilePosition,
-    MapControl.Map.Layers[0],
-    Tileset, Frame, HorizontalFlip, VerticalFlip, DiagonalFlip) and
-    { Water is on 1, 5, 9 tiles (counting from 0) in data/maps/tileset-terrain.png . }
-    ((Frame mod 4) = 1);
+  HumanTurn := not HumanTurn;
+  SelectedUnit := nil;
+  ResetMovement;
+  UpdateTurnStatus;
+end;
+
+procedure TStatePlay.MapPress(const Sender: TInputListener;
+  const Event: TInputPressRelease; var Handled: Boolean);
+var
+  UnitUnderMouse: TUnit;
+begin
+  if Event.IsMouseButton(mbLeft) and TileUnderMouseExists then
+  begin
+    Handled := true;
+    UnitUnderMouse := UnitsOnMap[TileUnderMouse];
+    if (UnitUnderMouse <> nil) and (UnitUnderMouse.Human = HumanTurn) then
+    begin
+      // select new unit
+      SelectedUnit := UnitUnderMouse;
+      UpdateTurnStatus;
+    end else
+    if (SelectedUnit <> nil) and
+       (SelectedUnit.CanMove(TileUnderMouse)) then
+    begin
+      if UnitUnderMouse <> nil then
+      begin
+        // hurt enemy UnitUnderMouse.
+        UnitUnderMouse.Life := UnitUnderMouse.Life - SelectedUnit.Attack;
+        // Above operation *maybe* freed and removed enemy from the map,
+        // so UnitUnderMouse pointer afterwards is no longer valid.
+        UnitUnderMouse := nil;
+      end else
+      begin
+        // move
+        SelectedUnit.TilePosition := TileUnderMouse;
+      end;
+      SelectedUnit.Movement := SelectedUnit.Movement - 1;
+    end;
+  end;
+end;
+
+procedure TStatePlay.UpdateTurnStatus;
+var
+  SideName: String;
+begin
+  if HumanTurn then
+    SideName := 'Human'
+  else
+    SideName := 'Alien';
+  LabelTurnStatus.Caption := SideName + ' Turn';
+  LabelTurnStatus.Text.Add(''); // newline
+
+  if SelectedUnit <> nil then
+  begin
+    LabelTurnStatus.Text.Add('Selected: ' + SelectedUnit.ToString);
+    LabelTurnStatus.Text.Add('Move or attack');
+    LabelTurnStatus.Text.Add('  or select another ' + SideName + ' unit');
+    LabelTurnStatus.Text.Add('  or press "End Turn".');
+  end else
+  begin
+    LabelTurnStatus.Text.Add('No unit selected.');
+    LabelTurnStatus.Text.Add('Select ' + SideName + ' unit');
+    LabelTurnStatus.Text.Add('  or press "End Turn".');
+  end;
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single;
@@ -135,7 +211,7 @@ begin
   TileUnderMouseExists := MapControl.PositionToTile(
     Container.MousePosition, true, TileUnderMouse);
 
-  { update TileUnderMouseImage }
+  { update TileUnderMouseImage, UnitUnderMouse }
   TileUnderMouseImage.Exists := TileUnderMouseExists;
   if TileUnderMouseExists then
   begin
@@ -144,15 +220,32 @@ begin
     TileUnderMouseImage.Bottom := TileRect.Bottom;
     TileUnderMouseImage.Width := TileRect.Width;
     TileUnderMouseImage.Height := TileRect.Height;
-  end;
+    UnitUnderMouse := UnitsOnMap[TileUnderMouse];
+  end else
+    UnitUnderMouse := nil;
+
+  { update TileUnderMouseImage.Color }
+  if SelectedUnit = nil then
+    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
+  else
+  if SelectedUnit.CanMove(TileUnderMouse) then
+    // can move by clicking here
+    TileUnderMouseImage.Color := Vector4(0, 1, 0, 0.75)
+  else
+  if (UnitUnderMouse <> nil) and
+     (UnitUnderMouse.Human = HumanTurn) then
+    // can select by clicking here
+    TileUnderMouseImage.Color := Vector4(1, 1, 1, 0.75)
+  else
+    // cannot do anything by clicking here
+    TileUnderMouseImage.Color := Vector4(1, 0, 0, 0.75);
 
   { update LabelStatus }
   if TileUnderMouseExists then
   begin
     TileStr := TileUnderMouse.ToString;
-    if IsWater(TileUnderMouse) then
+    if UnitsOnMap.IsWater(TileUnderMouse) then
       TileStr += NL + ' Water';
-    UnitUnderMouse := UnitsOnMap[TileUnderMouse];
     if UnitUnderMouse <> nil then
       TileStr += NL + ' Unit: ' + UnitUnderMouse.ToString;
   end else

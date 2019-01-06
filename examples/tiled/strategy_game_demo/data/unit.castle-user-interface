@@ -11,11 +11,11 @@
     "$ClassName" : "TCastleColorPersistent"
   },
   "ColorPersistent" : {
-    "Blue" : 4.1960784792900085E-001,
-    "Green" : 5.0196081399917603E-001,
+    "Blue" : 3.0000001192092896E-001,
+    "Green" : 4.0000000596046448E-001,
     "$ClassName" : "TCastleColorPersistent"
   },
-  "Name" : "RectangleControl1",
+  "Name" : "RectangleBackground",
   "$Children" : [
     {
       "Border" : {
@@ -31,7 +31,7 @@
         "$ClassName" : "TCastleColorPersistent"
       },
       "HorizontalAnchorDelta" : 4.0000000000000000E+000,
-      "Name" : "LabelDefense",
+      "Name" : "LabelLife",
       "OutlineColorPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
