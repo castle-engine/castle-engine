@@ -1,0 +1,113 @@
+{
+  "Border" : {
+    "$ClassName" : "TBorder"
+  },
+  "BorderColorPersistent" : {
+    "$ClassName" : "TCastleColorPersistent"
+  },
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "Alpha" : 8.9999997615814209E-001,
+        "Blue" : 0.0000000000000000E+000,
+        "Green" : 0.0000000000000000E+000,
+        "Red" : 0.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FullSize" : true,
+      "Name" : "RectangleControl1",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "ColorPersistent" : {
+        "Blue" : 4.1960784792900085E-001,
+        "Red" : 2.9803922772407532E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Height" : 5.8000000000000000E+002,
+      "HorizontalAnchorParent" : "hpMiddle",
+      "HorizontalAnchorSelf" : "hpMiddle",
+      "Name" : "RectangleControl2",
+      "VerticalAnchorParent" : "vpMiddle",
+      "VerticalAnchorSelf" : "vpMiddle",
+      "Width" : 6.7000000000000000E+002,
+      "$Children" : [
+        {
+          "Border" : {
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "ColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "Height" : 4.1000000000000000E+002,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "ImageControl1",
+          "ProportionalScaling" : "psFit",
+          "ProtectedSides" : {
+            "$ClassName" : "TBorder"
+          },
+          "Stretch" : true,
+          "URL" : "castle-data:/images/humans_win.png",
+          "VerticalAnchorDelta" : -2.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "Width" : 4.5000000000000000E+002,
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleImageControl"
+        },
+        {
+          "Border" : {
+            "$ClassName" : "TBorder"
+          },
+          "BorderColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "ColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 5.0000000000000000E+001,
+          "FrameColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Label1",
+          "OutlineColorPersistent" : {
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "Text" : "Humans Win!\n",
+          "VerticalAnchorDelta" : -4.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}

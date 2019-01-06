@@ -57,7 +57,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleComponentSerialize, CastleUtils, CastleRectangles,
-  GameStateMainMenu, GameStateInstructions;
+  GameStateMainMenu, GameStateInstructions, GameStateWin;
 
 procedure TStatePlay.Start;
 
@@ -183,6 +183,9 @@ var
 begin
   if Event.IsMouseButton(mbLeft) and TileUnderMouseExists then
   begin
+    StateWin.HumansWin := HumanTurn;
+    TUIState.Push(StateWin);
+
     Handled := true;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];
     if (UnitUnderMouse <> nil) and (UnitUnderMouse.Human = HumanTurn) then

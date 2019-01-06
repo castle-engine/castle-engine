@@ -24,7 +24,7 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState,
-  GameStateMainMenu, GameStatePlay, GameStateInstructions;
+  GameStateMainMenu, GameStatePlay, GameStateInstructions, GameStateWin;
 
 var
   Window: TCastleWindowCustom;
@@ -42,6 +42,7 @@ begin
   StateMainMenu := TStateMainMenu.Create(Application);
   StatePlay := TStatePlay.Create(Application);
   StateInstructions := TStateInstructions.Create(Application);
+  StateWin := TStateWin.Create(Application);
 
   TUIState.Current := StateMainMenu;
 end;
