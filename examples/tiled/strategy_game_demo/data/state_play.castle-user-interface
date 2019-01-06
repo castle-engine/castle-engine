@@ -57,7 +57,7 @@
       "BorderColorPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
-      "Caption" : "Back to menu",
+      "Caption" : "Back to Menu",
       "CustomColorDisabledPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
@@ -123,7 +123,7 @@
         "$ClassName" : "TCastleColorPersistent"
       },
       "Text" : "LabelStatus\n",
-      "VerticalAnchorDelta" : -7.0000000000000000E+001,
+      "VerticalAnchorDelta" : -1.4000000000000000E+002,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
@@ -210,6 +210,55 @@
       "$Children" : [
       ],
       "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Border" : {
+        "$ClassName" : "TBorder"
+      },
+      "BorderColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Caption" : "How to Play",
+      "CustomColorDisabledPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorFocusedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorNormalPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomColorPressedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorUse" : false,
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "ButtonInstructions",
+      "OutlineColorPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintDisabledPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintFocusedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintNormalPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintPressedPersistent" : {
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "VerticalAnchorDelta" : -7.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
     }
   ],
   "$ClassName" : "TCastleUserInterface"

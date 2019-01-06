@@ -27,6 +27,7 @@ type
   strict private
     MapControl: TCastleTiledMapControl;
     ButtonQuit: TCastleButton;
+    ButtonInstructions: TCastleButton;
     ButtonEndTurn: TCastleButton;
     LabelStatus, LabelTurnStatus: TCastleLabel;
     TileUnderMouseImage: TCastleImageControl;
@@ -36,6 +37,7 @@ type
     HumanTurn: Boolean;
     SelectedUnit: TUnit;
     procedure ClickQuit(Sender: TObject);
+    procedure ClickInstructions(Sender: TObject);
     procedure ClickEndTurn(Sender: TObject);
     procedure MapPress(const Sender: TInputListener;
       const Event: TInputPressRelease; var Handled: Boolean);
@@ -55,7 +57,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleComponentSerialize, CastleUtils, CastleRectangles,
-  GameStateMainMenu;
+  GameStateMainMenu, GameStateInstructions;
 
 procedure TStatePlay.Start;
 var
@@ -78,6 +80,7 @@ begin
   // find components in designed user interface
   MapControl := UiOwner.FindRequiredComponent('MapControl') as TCastleTiledMapControl;
   ButtonQuit := UiOwner.FindRequiredComponent('ButtonQuit') as TCastleButton;
+  ButtonInstructions := UiOwner.FindRequiredComponent('ButtonInstructions') as TCastleButton;
   ButtonEndTurn := UiOwner.FindRequiredComponent('ButtonEndTurn') as TCastleButton;
   LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
   LabelTurnStatus := UiOwner.FindRequiredComponent('LabelTurnStatus') as TCastleLabel;
@@ -85,6 +88,7 @@ begin
   MapControl.URL := 'castle-data:/maps/' + MapName + '.tmx';
   MapControl.OnPress := @MapPress;
   ButtonQuit.OnClick := @ClickQuit;
+  ButtonInstructions.OnClick := @ClickInstructions;
   ButtonEndTurn.OnClick := @ClickEndTurn;
 
   UnitsOnMap := TUnitsOnMap.Create(FreeAtStop, MapControl);
@@ -99,8 +103,8 @@ begin
     RandomUnit.Initialize(UnitsOnMap,
       TUnitKind(Random(Ord(High(TUnitKind)) + 1)),
       RandomIntRange(3, 10),
-      RandomIntRange(3, 10),
-      RandomIntRange(3, 10));
+      RandomIntRange(10, 20),
+      RandomIntRange(1, 3));
     MapControl.InsertFront(RandomUnit.Ui);
   end;
 
@@ -121,6 +125,11 @@ end;
 procedure TStatePlay.ClickQuit(Sender: TObject);
 begin
   TUIState.Current := StateMainMenu;
+end;
+
+procedure TStatePlay.ClickInstructions(Sender: TObject);
+begin
+  TUIState.Push(StateInstructions);
 end;
 
 procedure TStatePlay.ClickEndTurn(Sender: TObject);

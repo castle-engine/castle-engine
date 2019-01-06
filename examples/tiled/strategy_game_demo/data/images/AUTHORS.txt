@@ -1,0 +1,4 @@
+parchment_alpha
+  from https://opengameart.org/content/old-parchment-paper
+  by cron ( https://opengameart.org/users/cron )
+  License: CC0 (public domain)
