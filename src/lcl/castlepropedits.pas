@@ -278,7 +278,7 @@ var
   Root: TX3DRootNode;
   Shape: TShapeNode;
 begin
-  if MessageDlg('Edit game world',
+  if MessageDlg('Edit Game World',
     'TODO: Here we will implement a real editor to edit SceneManager.Items.' + NL +
     NL +
     'For now: do you want to add a yellow 3D sphere to your world (with a little randomized location)?',

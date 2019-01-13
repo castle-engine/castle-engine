@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Cross-platform recoginition of the system language/locale. }
+{ Cross-platform recognition of the system language/locale. }
 unit CastleSystemLanguage;
 
 {$I castleconf.inc}
