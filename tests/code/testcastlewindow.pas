@@ -39,9 +39,9 @@ uses SysUtils,
 
 procedure TTestWindow.Test1;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
-  Window := TCastleWindowCustom.Create(nil);
+  Window := TCastleWindowBase.Create(nil);
   try
     Window.Open;
     Window.Close;
@@ -50,10 +50,10 @@ end;
 
 procedure TTestWindow.TestNotifications;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   C: TCastleButton;
 begin
-  Window := TCastleWindowCustom.Create(nil);
+  Window := TCastleWindowBase.Create(nil);
   try
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
@@ -87,7 +87,7 @@ end;
 
 procedure TTestWindow.TestAutoSizeToChildren;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Parent, Child1, Child2: TCastleUserInterface;
 begin
   Window := nil;
@@ -95,7 +95,7 @@ begin
   Child1 := nil;
   Child2 := nil;
   try
-    Window := TCastleWindowCustom.Create(nil);
+    Window := TCastleWindowBase.Create(nil);
     Window.Width := 500;
     Window.Height := 500;
     Window.ResizeAllowed := raNotAllowed;

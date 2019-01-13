@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   CastleApplicationProperties;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Edit1, Edit2, EditNumbers: TCastleEdit;
   ButtonCopyText: TCastleButton;
 
@@ -123,7 +123,7 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'edit_test';
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.OnResize := @WindowResize;
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;

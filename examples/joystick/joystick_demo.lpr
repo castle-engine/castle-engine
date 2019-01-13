@@ -39,7 +39,7 @@ const
   );
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Notifications: TCastleNotifications;
   btnReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
@@ -197,7 +197,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Container.BackgroundColor := Green;
 
   InitializeLog;

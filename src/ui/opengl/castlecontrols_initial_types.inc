@@ -31,7 +31,7 @@
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      and @link(TCastleWindowCustom.OnOpen Window.OnOpen).
+      and @link(TCastleWindowBase.OnOpen Window.OnOpen).
       And @link(TCastleUserInterface.GLContextOpen) for all initially present UI controls.
       This "loading image" is loaded and displayed first,
       so that user does not see a black screen while the resources are prepared.

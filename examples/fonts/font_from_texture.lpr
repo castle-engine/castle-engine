@@ -33,7 +33,7 @@ uses SysUtils, CastleWindow, CastleControls, CastleFonts, CastleImages,
   CastleUIControls;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Label1, Label2,
     LabelDeja, LabelDejaBW, LabelDejaLarge, LabelDejaLargeOutline,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
@@ -45,7 +45,7 @@ var
 begin
   InitializeLog;
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Container.BackgroundColor := Vector4(0.4, 0.4, 0.0, 1.0);
 
   LabelsGroup := TCastleVerticalGroup.Create(Window);

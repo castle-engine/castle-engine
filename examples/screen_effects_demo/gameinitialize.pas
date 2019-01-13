@@ -30,7 +30,7 @@ uses SysUtils,
   CastleRendererBaseTypes, CastleVectors;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   LabelFPS: TCastleLabel;
 
   { 3 controls below have methods AddScreenEffect / RemoveScreenEffect
@@ -237,7 +237,7 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  { Insert almost-black background, otherwise (as Window is only TCastleWindowCustom)
+  { Insert almost-black background, otherwise (as Window is only TCastleWindowBase)
     the background would be undefined. }
   Background := TCastleRectangleControl.Create(Application);
   Background.Color := Vector4(0.1, 0.1, 0.1, 1);
@@ -375,6 +375,6 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 end.

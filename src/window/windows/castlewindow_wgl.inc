@@ -32,7 +32,7 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
+procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some
@@ -344,7 +344,7 @@ begin
     OSCheck(wglShareLists(Application.OpenWindows[0].h_GLRc, h_GLRc), 'wglShareLists');
 end;
 
-procedure TCastleWindowCustom.ContextDestroy;
+procedure TCastleWindowBase.ContextDestroy;
 begin
   if h_GLRc <> 0 then
   begin
@@ -356,13 +356,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   Assert(not Closed);
   OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
-procedure TCastleWindowCustom.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
   Windows.SwapBuffers(h_Dc);
 end;

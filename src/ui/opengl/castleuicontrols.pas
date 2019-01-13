@@ -223,8 +223,8 @@ type
 
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TCastleUserInterface, that is the basis
-    for all our 2D and 3D rendering). When you use TCastleWindowCustom
-    (a window) or TCastleControlCustom (Lazarus component), they provide
+    for all our 2D and 3D rendering). When you use TCastleWindowBase
+    (a window) or TCastleControlBase (Lazarus component), they provide
     you a non-abstact implementation of TUIContainer.
 
     Basically, this class manages a @link(Controls) list.
@@ -948,7 +948,7 @@ type
       rotating model in Examine mode, and many more.
 
       @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
-        and usually it's in fact just taken from TCastleWindowCustom.Fps.SecondsPassed.)
+        and usually it's in fact just taken from TCastleWindowBase.Fps.SecondsPassed.)
 
       This method may be used, among many other things, to continously
       react to the fact that user pressed some key (or mouse button).
@@ -1045,7 +1045,7 @@ type
 
       In this class, this simply returns always @true.
 
-      @seeAlso TCastleWindowCustom.AllowSuspendForInput }
+      @seeAlso TCastleWindowBase.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
     { You can resize/reposition your component here,
@@ -1058,8 +1058,8 @@ type
 
       We also make sure to call this once when inserting into
       the controls list
-      (like @link(TCastleWindowCustom.Controls) or
-      @link(TCastleControlCustom.Controls) or inside parent TCastleUserInterface),
+      (like @link(TCastleWindowBase.Controls) or
+      @link(TCastleControlBase.Controls) or inside parent TCastleUserInterface),
       if inserting into the container/parent
       with already initialized OpenGL context. If inserting into the container/parent
       without OpenGL context initialized, it will be called later,
@@ -1073,7 +1073,7 @@ type
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
 
     { Container of this control. When adding control to container's Controls
-      list (like TCastleWindowCustom.Controls) container will automatically
+      list (like TCastleWindowBase.Controls) container will automatically
       set itself here, and when removing from container this will be changed
       back to @nil.
 
@@ -1462,7 +1462,7 @@ type
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
-      Then the TCastleWindowCustom.TooltipVisible will be detected,
+      Then the TCastleWindowBase.TooltipVisible will be detected,
       and your TooltipRender will be called.
 
       TooltipRender is called in the same way as @link(Render),
@@ -1745,7 +1745,7 @@ type
       since you only need to set anchor once (for example, right after creating
       the control). In contract, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowCustom.OnResize). }
+      like in @link(TCastleWindowBase.OnResize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1766,7 +1766,7 @@ type
       since you only need to set anchor once (for example, right after creating
       the control). In contract, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowCustom.OnResize). }
+      like in @link(TCastleWindowBase.OnResize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1780,7 +1780,7 @@ type
       the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
       In contrast, adjusting position using this method
       will typically need to be repeated at each window on resize,
-      like in @link(TCastleWindowCustom.OnResize). }
+      like in @link(TCastleWindowBase.OnResize). }
     procedure Center;
 
     { UI scale of this control, derived from container
@@ -1827,7 +1827,7 @@ type
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
       You can also remove this from controls list (like
-      @link(TCastleWindowCustom.Controls)), but often it's more comfortable
+      @link(TCastleWindowBase.Controls)), but often it's more comfortable
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
 
@@ -3074,7 +3074,7 @@ begin
   if Assigned(OnClose) then OnClose(Self);
 
   { call GLContextClose on controls before OnClose.
-    This may be called from Close, which may be called from TCastleWindowCustom destructor,
+    This may be called from Close, which may be called from TCastleWindowBase destructor,
     so prepare for Controls being possibly nil now. }
   if Controls <> nil then
     for I := Controls.Count - 1 downto 0 do

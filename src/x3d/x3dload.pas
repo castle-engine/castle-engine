@@ -127,7 +127,7 @@ function Load3D(const URL: string;
 
 const
   { File filters for files loaded by Load3D, suitable
-    for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
+    for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf|' +
@@ -182,7 +182,7 @@ procedure Load3DSequence(
 
 const
   { File filters for files loaded by Load3DSequence, suitable
-    for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
+    for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
   Load3DSequence_FileFilters = Load3D_FileFilters deprecated 'use Load3D_FileFilters, and use Load3D instead of Load3DSequence';
 
 const

@@ -24,7 +24,7 @@ uses SysUtils, Classes,
 const
   Margin = 10;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Label1: TCastleLabel;
   ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
   ScrollView: TCastleScrollView;
@@ -93,7 +93,7 @@ var
   Background: TCastleSimpleBackground;
   Font: TFontFamily;
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   { prepare TFontFamily with font varians for bold, italic }
   Font := TFontFamily.Create(Window);

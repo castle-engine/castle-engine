@@ -287,7 +287,7 @@ type
 
       The ParseOnlyKnownLongOptions = @true is useful if you want to handle
       some command-line options, but you still want to leave final options
-      parsing to a later code. For example TCastleWindowCustom.ParseParameters parses
+      parsing to a later code. For example TCastleWindowBase.ParseParameters parses
       some window parameters (like --geometry), leaving your program-specific
       stuff in peace.
 
@@ -295,7 +295,7 @@ type
       fool-proof solution, for example the command-line
       @code(view3dscene --navigation --geometry 800x600 Walk) is actually invalid.
       But we will handle it, by first detecting and removing @code(--geometry 800x600)
-      from TCastleWindowCustom.ParseParameters, and then detecting and removing
+      from TCastleWindowBase.ParseParameters, and then detecting and removing
       @code(--navigation Walk) from view3dscene code.
       Basically, processing by Parse many times is not fool-proof
       in some weird situations.

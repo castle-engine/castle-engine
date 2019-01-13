@@ -37,7 +37,7 @@
       See TGLImage class and friends.)
 
     @item(Save the current OpenGL screen contents to our TCastleImage.
-      You usually use this through TCastleWindowCustom.SaveScreen
+      You usually use this through TCastleWindowBase.SaveScreen
       or TCastleControl.SaveScreen,
       based on SaveScreen_NoFlush in this unit.)
 

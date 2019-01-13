@@ -33,7 +33,7 @@ const
   MissileShootInterval = 0.1;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   SceneManager: TCastle2DSceneManager;
   Status: TCastleLabel;
   Level: TCastleScene;
@@ -303,7 +303,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;

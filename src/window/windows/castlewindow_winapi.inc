@@ -147,7 +147,7 @@ begin
   result := LRESULT(msg.Result);
 end;
 
-{ TCastleWindowCustom ------------------------------------------------- }
+{ TCastleWindowBase ------------------------------------------------- }
 
 const
   { Some constants missing from FPC's Windows unit. }
@@ -167,7 +167,7 @@ const
 
 { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
   available. }
-function TCastleWindowCustom.VirtualKeyToKey(VirtualKey: Byte): TKey;
+function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
@@ -262,9 +262,9 @@ end;
 
 function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
-  Window := TCastleWindowCustom(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
   Result := Application.FindWindow(Window) >= 0;
   if Result then
     Window.WindowProc(uMsg, wParm, lParm);
@@ -272,9 +272,9 @@ end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
-  Window := TCastleWindowCustom(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
   { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
     (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
     not this). Ale zanim
@@ -297,7 +297,7 @@ begin
     result := DefWindowProc(hWnd, uMsg, wParm, lParm);
 end;
 
-function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
   (so they probably should check InCloseBackend):
@@ -353,7 +353,7 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
     The frequency of "key repeat" depends on user settings.
 
     And... that's completely OK. We still pass each WM_KEYDOWN to DoKeyDown.
-    This way our API (TCastleUserInterface.Press, TCastleWindowCustom.OnPress)
+    This way our API (TCastleUserInterface.Press, TCastleWindowBase.OnPress)
     will generate repeated key presses.
     This is documented and desired (e.g. for implementing UI like edit box).
     User can check TInputPressRelease.KeyRepeated that is calculated
@@ -767,12 +767,12 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 var
   Old_H_Menu: HMenu;
 begin
@@ -783,35 +783,35 @@ begin
   MainMenu.ClearHandles;
 end;
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)), 'SetMenu');
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -819,7 +819,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -827,7 +827,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 
   // Get initial MousePosition, even before the first mouse move/down event.
   procedure GetInitialCursorPos(const ClientRect: TRect);
@@ -1005,7 +1005,7 @@ begin
   InitializeDpi;
 end;
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 var
   Point: Windows.TPoint;
 begin
@@ -1026,13 +1026,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
@@ -1048,7 +1048,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   InCloseBackend := true;
   try
@@ -1065,17 +1065,17 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
 end;
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-function TCastleWindowCustom.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
@@ -1299,7 +1299,7 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
@@ -1361,7 +1361,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1380,7 +1380,7 @@ begin
   *)
 end;
 
-function TCastleWindowCustom.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
@@ -1397,7 +1397,7 @@ begin
   *)
 end;
 
-procedure TCastleWindowCustom.UpdateFullScreenBackend;
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
   SimpleUpdateFullScreenBackend;
 end;

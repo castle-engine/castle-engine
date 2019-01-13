@@ -21,8 +21,8 @@ type
   { Image ready to be drawn on 2D screen.
     This image can be drawn in various rendering methods and events,
     e.g. inside overridden @link(TCastleUserInterface.Render) or from events
-    @link(TCastleWindowCustom.OnRender) or
-    @link(TCastleControlCustom.OnRender).
+    @link(TCastleWindowBase.OnRender) or
+    @link(TCastleControlBase.OnRender).
 
     See the manual about drawing using TGLImage:
     https://castle-engine.io/manual_quick_2d_game.php ,
@@ -33,8 +33,8 @@ type
     An alternative way to show a 2D image is to use the full-featured
     2D control @link(TCastleImageControl). This will perform the drawing
     by itself, you only add it to
-    @link(TCastleWindowCustom.Controls) or
-    @link(TCastleControlCustom.Controls).
+    @link(TCastleWindowBase.Controls) or
+    @link(TCastleControlBase.Controls).
 
     @bold(You should always create an instance of @link(TGLImage),
     never an instance of TGLImageCore. The class TGLImageCore is separate
@@ -50,8 +50,8 @@ type
       An instance of TGLImageCore class can only exist when the OpenGL context is open.
       So usually you create this in @link(TCastleUserInterface.GLContextOpen)
       and destroy in @link(TCastleUserInterface.GLContextClose).
-      Or create in @link(TCastleWindowCustom.OnOpen) and destroy
-      in @link(TCastleWindowCustom.OnClose).
+      Or create in @link(TCastleWindowBase.OnOpen) and destroy
+      in @link(TCastleWindowBase.OnClose).
       Use the descendant class @link(TGLImage) for more comfort.
       The @link(TGLImage) instance can be created / destroyed at any moment,
       regardless of the OpenGL context. This is especially important
@@ -512,8 +512,8 @@ type
       the image contents from @link(TEncodedImage) to GPU, which is not something
       you want to do every frame. Doing this occasionally,
       or during the loading/preparation stage, is OK.
-      Doing this often, e.g. during every @link(TCastleWindowCustom.OnRender)
-      or @link(TCastleWindowCustom.OnUpdate), will hurt your performance.
+      Doing this often, e.g. during every @link(TCastleWindowBase.OnRender)
+      or @link(TCastleWindowBase.OnUpdate), will hurt your performance.
       During the game, it's most efficient to treat the @link(TGLImage) instances
       as "constant" -- avoid changing their contents, avoid creating new ones. }
     procedure Load(const AImage: TEncodedImage); virtual;

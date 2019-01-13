@@ -22,7 +22,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
 implementation
 
@@ -319,7 +319,7 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'show_various_ui_controls';
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;

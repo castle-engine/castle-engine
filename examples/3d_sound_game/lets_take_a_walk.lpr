@@ -246,7 +246,7 @@ begin
           VersionOptionHelp +nl+
           SoundEngine.ParseParametersHelp +nl+
           nl+
-          TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) +nl+
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +nl+
           nl+
           SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
         Halt;

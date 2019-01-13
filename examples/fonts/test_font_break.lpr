@@ -31,7 +31,7 @@ uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleLog, CastleApplicationProperties;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   BoxWidth: Integer;
 
 procedure Render(Container: TUIContainer);
@@ -75,7 +75,7 @@ end;
 
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);

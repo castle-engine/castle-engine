@@ -100,7 +100,7 @@ private
 procedure OpenContext;
 var
   Width, Height: Integer;
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   NativeWindow: PANativeWindow;
 begin
   Window := Application.MainWindow;
@@ -143,7 +143,7 @@ end;
   It's important that we release all OpenGL resources, to recreate them later. }
 procedure CloseContext;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
   AndroidLog(alInfo, 'CloseContext');
 
@@ -458,9 +458,9 @@ begin
   Application.Run;
 end;
 
-{ TCastleWindowCustom ---------------------------------------------------------- }
+{ TCastleWindowBase ---------------------------------------------------------- }
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
@@ -468,58 +468,58 @@ end;
   But we cannot do this from NDK, it would require implementing Java code
   connected to us. }
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
-begin
-  MenuFinalize;
-  MenuInitialize;
-end;
-
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 begin
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowCustom.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   ContextDestroy;
   { Note that we do not clear NativeWindow now, because we may need it
@@ -530,13 +530,13 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
 end;
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -546,13 +546,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   { Call menu shortcuts on key presses.
     Since we don't show MainMenu, this is the only way how we can at least
@@ -560,7 +560,7 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
@@ -570,7 +570,7 @@ begin
     FMousePosition := Value;
 end;
 
-procedure TCastleWindowCustom.UpdateFullScreenBackend;
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
   FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;

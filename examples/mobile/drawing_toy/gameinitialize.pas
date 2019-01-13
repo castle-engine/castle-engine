@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
 implementation
 
@@ -142,7 +142,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnResize := @WindowResize;

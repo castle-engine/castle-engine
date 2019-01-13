@@ -26,7 +26,7 @@ uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
   GameStateMainMenu, GameStatePlay, GameStateAskDialog;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
 procedure ApplicationInitialize;
 begin
@@ -47,7 +47,7 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'zombie_fighter';
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;

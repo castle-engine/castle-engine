@@ -18,7 +18,7 @@ uses SysUtils,
   CastleUIControls, CastleApplicationProperties, CastleComponentSerialize;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   LabelFps: TCastleLabel;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -66,7 +66,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

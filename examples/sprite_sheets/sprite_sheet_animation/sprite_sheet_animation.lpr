@@ -21,7 +21,7 @@ uses SysUtils,
   CastleColors, CastleTimeUtils, CastleRectangles;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Sprite: TSprite;
   X, Y: Single;
 
@@ -86,7 +86,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
   Initialize;
   Window.OnRender := @WindowRender;

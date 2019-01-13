@@ -46,7 +46,7 @@ private
     { Descendant of LCL TMenuItem used for our menu. }
     TGoodMenuItem = class(Menus.TMenuItem)
     public
-      Window: TCastleWindowCustom;
+      Window: TCastleWindowBase;
       Entry: TMenuEntry;
 
       { Capture IntfDoSelect, which is fired on GTK2
@@ -68,7 +68,7 @@ private
       so that Window knows when it's invalidated by the OS. }
     TGoodOpenGLControl = class(TOpenGLControl)
     public
-      Window: TCastleWindowCustom;
+      Window: TCastleWindowBase;
       procedure Invalidate; override;
     end;
 
@@ -121,7 +121,7 @@ const
 
 { TGoodMenuItem ---------------------------------------------------------------- }
 
-procedure TCastleWindowCustom.TGoodMenuItem.IntfDoSelect;
+procedure TCastleWindowBase.TGoodMenuItem.IntfDoSelect;
 begin
   inherited;
   Window.ReleaseAllKeysAndMouse;
@@ -129,20 +129,20 @@ end;
 
 { TGoodOpenGLControl --------------------------------------------------------- }
 
-procedure TCastleWindowCustom.TGoodOpenGLControl.Invalidate;
+procedure TCastleWindowBase.TGoodOpenGLControl.Invalidate;
 begin
   // track our own Invalidated state, although still cooperate with LCL invalidate
   Window.Invalidated := true;
   inherited;
 end;
 
-{ TCastleWindowCustom ------------------------------------------------------------------ }
+{ TCastleWindowBase ------------------------------------------------------------------ }
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-function TCastleWindowCustom.MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
+function TCastleWindowBase.MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
 begin
   Result := TGoodMenuItem.Create(Form);
   Result.Window := Self;
@@ -172,7 +172,7 @@ begin
     MenuCastleToLCL(TMenu(MyEntry), Result);
 end;
 
-procedure TCastleWindowCustom.MenuCastleToLCL(const MyMenu: TMenu;
+procedure TCastleWindowBase.MenuCastleToLCL(const MyMenu: TMenu;
   const AMenu: Menus.TMenuItem);
 var
   I: Integer;
@@ -181,7 +181,7 @@ begin
     AMenu.Add(MenuEntryCastleToLCL(MyMenu[I]));
 end;
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   Menu := TMainMenu.Create(Form);
   { connet Menu with Form }
@@ -190,7 +190,7 @@ begin
   MenuCastleToLCL(MainMenu, Menu.Items);
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   FreeAndNil(Menu);
   MainMenu.ClearHandles;
@@ -205,7 +205,7 @@ begin
     WritelnLog('Menu', 'Warning: menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
 
-procedure TCastleWindowCustom.MenuUpdateShortcut(Entry: TMenuItem);
+procedure TCastleWindowBase.MenuUpdateShortcut(Entry: TMenuItem);
 var
   LazKey: Word;
   Shift: TShiftState;
@@ -240,7 +240,7 @@ begin
   EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 
   function MenuCaptionCastleToLCL(const S: string): string;
   begin
@@ -259,7 +259,7 @@ begin
   EntryLCL.Caption := MenuCaptionCastleToLCL(Entry.Caption);
 end;
 
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 
   procedure RefreshEnabled(MyMenu: TMenu);
 
@@ -325,7 +325,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   EntryLCL: Menus.TMenuItem;
 begin
@@ -333,12 +333,12 @@ begin
   EntryLCL.Checked := Entry.Checked;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
   ParentLCL: Menus.TMenuItem;
@@ -347,7 +347,7 @@ begin
   ParentLCL.Insert(ParentPosition, MenuEntryCastleToLCL(Entry));
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 var
   EntryLCL: Menus.TMenuItem;
@@ -393,12 +393,12 @@ begin
   {$endif}
 end;
 
-procedure TCastleWindowCustom.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
   OpenGLControl.SwapBuffers;
 end;
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 
   procedure GetInitialCursorPos;
   var
@@ -521,7 +521,7 @@ begin
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
     (it may not happen automatically, testcase: glViewImage on Carbon).
-    TCastleWindowCustom.OpenCore will call MakeCurrent next. }
+    TCastleWindowBase.OpenCore will call MakeCurrent next. }
   OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;
 
@@ -535,7 +535,7 @@ end;
 const
   BorderNone = Controls.bsNone;
 
-procedure TCastleWindowCustom.UpdateFullScreenForm;
+procedure TCastleWindowBase.UpdateFullScreenForm;
 begin
   if FullScreen then
   begin
@@ -550,7 +550,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.UpdateFullScreenBackend;
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
   if FFullScreenBackend <> FFullScreenWanted then
   begin
@@ -560,7 +560,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   try
     FreeAndNil(Form);
@@ -574,22 +574,22 @@ begin
   Menu := nil;
 
   { although Menu was already freed, but make sure we also change state,
-    like TCastleWindowCustom.MenuInitialized and clear TMenuItem.Handle. }
+    like TCastleWindowBase.MenuInitialized and clear TMenuItem.Handle. }
   MenuFinalize;
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then Form.Caption := GetWholeCaption;
 end;
 
-procedure TCastleWindowCustom.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   OpenGLControl.MakeCurrent;
 end;
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -601,18 +601,18 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 var
   P: TVector2Integer;
 begin
@@ -628,7 +628,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.MenuItemClick(Sender: TObject);
+procedure TCastleWindowBase.MenuItemClick(Sender: TObject);
 var
   Entry: TMenuEntry;
 begin
@@ -644,29 +644,29 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.FormCloseQuery(Sender: TObject;
+procedure TCastleWindowBase.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
   DoCloseQuery;
   CanClose := false; // DoCloseQuery will call Close when needed
 end;
 
-procedure TCastleWindowCustom.FormDeactivate(Sender: TObject);
+procedure TCastleWindowBase.FormDeactivate(Sender: TObject);
 begin
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleWindowCustom.OpenGLControlPaint(Sender: TObject);
+procedure TCastleWindowBase.OpenGLControlPaint(Sender: TObject);
 begin
   DoRender;
 end;
 
-procedure TCastleWindowCustom.OpenGLControlResize(Sender: TObject);
+procedure TCastleWindowBase.OpenGLControlResize(Sender: TObject);
 begin
   DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
 end;
 
-procedure TCastleWindowCustom.OpenGLControlKeyDown(Sender: TObject;
+procedure TCastleWindowBase.OpenGLControlKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
@@ -677,7 +677,7 @@ begin
     DoKeyDown(MyKey, MyCharKey);
 end;
 
-procedure TCastleWindowCustom.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
+procedure TCastleWindowBase.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   MyKey: TKey;
@@ -688,7 +688,7 @@ begin
     DoKeyUp(MyKey);
 end;
 
-procedure TCastleWindowCustom.OpenGLControlMouseDown(Sender: TObject;
+procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: CastleKeysMouse.TMouseButton;
@@ -697,7 +697,7 @@ begin
     DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
 end;
 
-procedure TCastleWindowCustom.OpenGLControlMouseUp(Sender: TObject;
+procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: CastleKeysMouse.TMouseButton;
@@ -711,7 +711,7 @@ end;
   from time to time.
   See TCastleControl implementation for analogous AggressiveUpdate
   procedure with detailed discussion about why this is needed. }
-procedure TCastleWindowCustom.AggressiveUpdate;
+procedure TCastleWindowBase.AggressiveUpdate;
 var
   DesiredFPS: Single;
 begin
@@ -737,13 +737,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.Invalidate;
+procedure TCastleWindowBase.Invalidate;
 begin
   if not Closed then
     OpenGLControl.Invalidate;
 end;
 
-procedure TCastleWindowCustom.OpenGLControlMouseMove(Sender: TObject;
+procedure TCastleWindowBase.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 begin
   DoMotion(InputMotion(MousePosition, LeftTopToCastle(X, Y),
@@ -751,16 +751,16 @@ begin
   AggressiveUpdate;
 end;
 
-procedure TCastleWindowCustom.OpenGLControlMouseWheel(Sender: TObject;
+procedure TCastleWindowBase.OpenGLControlMouseWheel(Sender: TObject;
   Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
   var Handled: Boolean);
 begin
   DoMouseWheel(WheelDelta/120, true);
 end;
 
-{ TCastleWindowCustom dialogs ---------------------------------------------------------- }
+{ TCastleWindowBase dialogs ---------------------------------------------------------- }
 
-function TCastleWindowCustom.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 var
   Dialog: TFileDialog;
@@ -786,7 +786,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
@@ -805,7 +805,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 const
   MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType =
   (Dialogs.mtInformation, Dialogs.mtWarning, Dialogs.mtConfirmation, Dialogs.mtError, Dialogs.mtCustom);
@@ -814,14 +814,14 @@ begin
   MessageDlg(S, MessageTypeCastleToLCL[MessageType], [mbOK], 0);
 end;
 
-function TCastleWindowCustom.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   ReleaseAllKeysAndMouse; // do it manually
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
 end;
 
-procedure TCastleWindowCustom.FormDropFiles(Sender: TObject; const FileNames: array of string);
+procedure TCastleWindowBase.FormDropFiles(Sender: TObject; const FileNames: array of string);
 begin
   DoDropFiles(FileNames);
 end;
@@ -983,7 +983,7 @@ begin
     TCarbonWidgetSet.AppRun inside lcl/interfaces/carbon/carbonobject.inc.
     Without this, global menu on Carbon is always blocked.
 
-    TODO: that's unfortunate, as our TCastleWindowCustom interface
+    TODO: that's unfortunate, as our TCastleWindowBase interface
     promises that it's not necessary to call Run, it should be always
     equivalent to call just ProcessMessage in a loop.
 

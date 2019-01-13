@@ -75,7 +75,7 @@ begin
 end;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   SceneManager: TCastle2DSceneManager;
   Scene: TCastle2DScene;
   SceneDebugVisualization: TCastle2DScene;
@@ -90,7 +90,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
   SceneManager := TCastle2DSceneManager.Create(Application);

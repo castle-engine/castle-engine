@@ -78,7 +78,7 @@
       This is internally set and unset by the CastleWindow exception handler
       (you should not modify this yourself).
       It allows to request showing opaque color under
-      @link(TCastleWindowCustom.MessageOK) and friends,
+      @link(TCastleWindowBase.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
       This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),

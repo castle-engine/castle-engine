@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo numerous TCastleWindowCustom events.
+{ Demo numerous TCastleWindowBase events.
   Displays many OnXxx events as they happen,
   also shows Pressed and Pressed.Characters.
   Also a demo of CastleNotifications unit. }
@@ -27,7 +27,7 @@ uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleControls, CastleVectors, CastleRectangles;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Notifications: TCastleNotifications;
 
 procedure Open(Container: TUIContainer);
@@ -134,7 +134,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Window.ParseParameters;
 

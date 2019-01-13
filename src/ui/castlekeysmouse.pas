@@ -454,7 +454,7 @@ type
 
   { Look of the mouse cursor.
     Used for various properties:
-    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowCustom.Cursor.
+    TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowBase.Cursor.
 
     mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
@@ -471,11 +471,11 @@ type
       This is in contrast to mcNone, that only hides the cursor if
       the currently focused control (under the mouse cursor) sets it. }
     mcForceNone,
-    { Use a custom cursor image in TCastleWindowCustom.CustomCursor.
+    { Use a custom cursor image in TCastleWindowBase.CustomCursor.
 
       In normal circumstances, this should not be used for
       TCastleUserInterface.Cursor, TCastleTransform.Cursor and others, as they have no way
-      to set TCastleWindowCustom.CustomCursor. }
+      to set TCastleWindowBase.CustomCursor. }
     mcCustom,
     { Standard arrow, indicates, well, that user can point / click something. }
     mcStandard,
@@ -650,8 +650,8 @@ const
   ('none', 'up', 'down', 'left', 'right');
 
 { Determine simple mouse wheel direction from a Scroll and Vertical
-  parameters received from TCastleWindowCustom.OnMouseWheel.
-  Assumes that Scroll <> 0, like TCastleWindowCustom.OnMouseWheel guarantees. }
+  parameters received from TCastleWindowBase.OnMouseWheel.
+  Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
 
 { Convert string value back to a key name, reversing KeyToStr.

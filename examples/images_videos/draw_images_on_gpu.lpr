@@ -31,11 +31,11 @@ begin
 end;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   DestImageInitial, DestImageFinal: TCastleImage;
 begin
   try
-    Window := TCastleWindowCustom.Create(Application);
+    Window := TCastleWindowBase.Create(Application);
     // uncomment these to test that viewport setting in RenderToImageBegin works
     // Window.Width := 100;
     // Window.Height := 100;

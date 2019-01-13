@@ -170,7 +170,7 @@ type
       Value = 1 means that no multi-sampling is initialized.
       Values > 1 mean that you have multi-sampling, with given number of samples
       per pixel.
-      Contrast this with TCastleWindowCustom.MultiSampling or TOpenGLControl.MultiSampling,
+      Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
       that say @italic(how many samples you wanted to get). }
     CurrentMultiSampling: Cardinal;
 
@@ -239,7 +239,7 @@ type
           most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
           on desktops.)
         @item(It also allows you to use fixed-function pipeline calls in the
-          @link(TCastleWindowCustom.OnRender) callback, @link(TCastleUserInterface.Render)
+          @link(TCastleWindowBase.OnRender) callback, @link(TCastleUserInterface.Render)
           override and related places.)
         @item(It also allows some deprecated rendering features like WindowPos
           to continue to work.)

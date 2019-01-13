@@ -301,7 +301,7 @@ type
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
-      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
+      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
       using this method.
 
       Projection (read-only here) describe your projection,
@@ -317,7 +317,7 @@ type
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
       mouse position), which means that you have to add this camera
-      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
+      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
       using this method.
 
       @seealso Ray
@@ -4478,7 +4478,7 @@ function TWalkCamera.Motion(const Event: TInputMotion): boolean;
             - Setting MousePosition sets mouse to the Middle,
               but this time no Motion is generated
             - player moved mouse to MiddleX+10. Although mouse was
-              positioned on Middle, TCastleWindowCustom thinks that the mouse
+              positioned on Middle, TCastleWindowBase thinks that the mouse
               is still positioned on Middle-10, and I will get "+20" move
               for player (while I should get only "+10")
 

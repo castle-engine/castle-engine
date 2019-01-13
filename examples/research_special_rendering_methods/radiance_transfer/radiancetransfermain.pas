@@ -43,7 +43,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Scene: TCastleScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
@@ -315,7 +315,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;

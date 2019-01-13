@@ -21,7 +21,7 @@ uses SysUtils,
   CastleSceneManager, CastleURIUtils;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   SceneManager: TCastleSceneManager;
   Image: TGLImage;
 
@@ -73,7 +73,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
   { Make the window invisible, as it will only be used as OpenGL context
@@ -87,7 +87,7 @@ begin
     so it is a 2D control that shows 3D world.
 
     Note that in this simple demo, we could as well create
-    TCastleWindow instead of TCastleWindowCustom.
+    TCastleWindow instead of TCastleWindowBase.
     And then
     - Instead of creating "TCastleSceneManager.Create",
       we could have just used ready Window.SceneManager.

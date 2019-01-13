@@ -25,7 +25,7 @@ program quick_2d_game;
 uses SysUtils, CastleWindow, CastleGLImages, CastleFilesUtils, CastleKeysMouse;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Image: TGLImage;
   X: Single = 0.0;
   Y: Single = 0.0;
@@ -56,7 +56,7 @@ end;
 begin
   Image := TGLImage.Create(ApplicationData('my_image.png'));
   try
-    Window := TCastleWindowCustom.Create(Application);
+    Window := TCastleWindowBase.Create(Application);
     Window.OnRender := @WindowRender;
     Window.OnUpdate := @WindowUpdate;
     Window.OnPress := @WindowPress;

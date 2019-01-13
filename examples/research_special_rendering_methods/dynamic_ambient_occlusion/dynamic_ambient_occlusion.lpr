@@ -42,7 +42,7 @@ type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
   Scene: TCastleScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
@@ -896,7 +896,7 @@ var
     //'data/chinchilla_awakens.x3dv';
     'data/peach.wrl.gz';
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Elements := TAOElementList.Create;
 

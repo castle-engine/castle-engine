@@ -752,7 +752,7 @@ type
       of objects, and some of them are partially-transparent and may
       be visible at the same place on the screen.
       It may even make sense to call this method every frame (like in every
-      @link(TCastleWindowCustom.OnUpdate)),
+      @link(TCastleWindowBase.OnUpdate)),
       if you move or otherwise change the objects (changing their bounding boxes),
       or if the CameraPosition may change (note that CameraPosition is only
       relevant if BlendingSort = bs3D).

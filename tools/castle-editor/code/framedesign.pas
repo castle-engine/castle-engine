@@ -121,7 +121,7 @@ type
         Everything specific to this hierarchy in CastleControl. }
       DesignOwner: TComponent;
       FDesignModified: Boolean;
-      CastleControl: TCastleControlCustom;
+      CastleControl: TCastleControlBase;
       TreeNodeMap: TTreeNodeMap;
       Mode: TMode;
       InsideToggleModeClick: Boolean;
@@ -314,7 +314,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     end;
   end;
 
-  function MouseOverControl(const Control: TCastleControlCustom): Boolean;
+  function MouseOverControl(const Control: TCastleControlBase): Boolean;
   var
     PosInClient: TPoint;
   begin
@@ -776,7 +776,7 @@ begin
   InspectorEvents.Parent := TabEvents;
   InspectorEvents.Filter := tkMethods;
 
-  CastleControl := TCastleControlCustom.Create(Self);
+  CastleControl := TCastleControlBase.Create(Self);
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;

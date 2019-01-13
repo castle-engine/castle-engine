@@ -409,7 +409,7 @@ begin
   // should be editable using new CGE editor now.
 
   { TODO: crashes
-  RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlCustom,
+  RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlBase,
     'Controls', TChildrenControlsPropertyEditor);
   }
   // RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);

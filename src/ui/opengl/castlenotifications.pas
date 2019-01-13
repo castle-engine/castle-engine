@@ -32,7 +32,7 @@ type
     Call @link(Show) to display a message.
 
     This is a TCastleUserInterface descendant, so to use it --- just add it
-    to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
+    to TCastleWindowBase.Controls or TCastleControlBase.Controls.
     Use TCastleUserInterface anchors to automatically position it on the screen,
     for example:
 

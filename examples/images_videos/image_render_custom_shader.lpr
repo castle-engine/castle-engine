@@ -31,7 +31,7 @@ uses SysUtils,
   CastleFilesUtils, CastleUtils, CastleColors;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Image: TCastleImageControl;
   Shader: TGLSLProgram;
   LifeTime: TFloatTime;
@@ -124,7 +124,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Application.OnInitialize := @ApplicationInitialize;
   Window.OnOpen := @WindowOpen;

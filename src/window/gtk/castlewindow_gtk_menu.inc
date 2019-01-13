@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := false;
 end;
@@ -32,7 +32,7 @@ function gtk_check_menu_item_get_draw_as_radio(
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowCustom absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
     comments. }
@@ -78,7 +78,7 @@ end;
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowCustom absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   Inc(Window.MenuRecreateForbidden);
   try
@@ -132,7 +132,7 @@ end;
   that window_vbox is empty and current value of MainMenu.Handle
   is clear. }
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 
   { Install GTK menu accelerator (key shortcut) from given MenuItem. }
   procedure InstallGtkAccelerator(const Item: PGtkMenuItem;
@@ -369,7 +369,7 @@ begin
     g_false, g_false, 0);
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
@@ -412,7 +412,7 @@ begin
     WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -425,7 +425,7 @@ begin
     gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(Entry.Caption));
 end;
 
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -434,7 +434,7 @@ begin
   gtk_widget_set_sensitive(PGtkWidget(EntryGtk), Entry.Enabled);
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -451,12 +451,12 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -464,7 +464,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }

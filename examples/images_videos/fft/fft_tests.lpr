@@ -28,7 +28,7 @@ uses SysUtils, Classes, CastleUtils, CastleImages, ImagesFftw, CastleWindow,
   Math, CastleParameters, CastleColors, CastleControls;
 
 type
-  TWindowImage = class(TCastleWindowCustom)
+  TWindowImage = class(TCastleWindowBase)
   strict private
     Background: TCastleSimpleBackground;
     ImageControl: TCastleImageControl;

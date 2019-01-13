@@ -30,7 +30,7 @@ uses SysUtils, Classes, GetText,
   Font_DejaVuSans;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
 { Translatable strings ------------------------------------------------------- }
 
@@ -303,7 +303,7 @@ initialization
 
   InitializeLog;
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;
 end.

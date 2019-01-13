@@ -892,7 +892,7 @@ type
     For some of these features, you'll have to set the @link(MainScene) property.
 
     This is a TCastleUserInterface descendant, which means it's advised usage
-    is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
+    is to add this to TCastleWindowBase.Controls or TCastleControlBase.Controls.
     This passes relevant TCastleUserInterface events to all the TCastleTransform objects inside.
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TCastleViewport class, to render your 3D world),
@@ -1326,7 +1326,7 @@ type
     Viewports may be overlapping, that is one viewport may (partially)
     obscure another viewport. Just like with any other TCastleUserInterface,
     position of viewport on the Controls list
-    (like TCastleControlCustom.Controls or TCastleWindowCustom.Controls)
+    (like TCastleControlBase.Controls or TCastleWindowBase.Controls)
     is important: Controls are specified in the back-to-front order.
     That is, if the viewport A may obscure viewport B,
     then A must be after B on the Controls list.
@@ -1487,8 +1487,8 @@ begin
     pointer.
 
     And when SceneManager is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TCastleWindowCustom instance,
-    which causes removing us from TCastleWindowCustom.Controls list,
+    (this is also done in "inherited" destructor) to TCastleWindowBase instance,
+    which causes removing us from TCastleWindowBase.Controls list,
     which causes SetContainer(nil) call that tries to access Camera.
 
     This scenario would cause segfault, as FCamera pointer is invalid
@@ -1552,7 +1552,7 @@ begin
     if FCamera <> nil then
     begin
       { Unconditionally change FCamera.OnVisibleChange callback,
-        to override TCastleWindowCustom / TCastleControlCustom that also try
+        to override TCastleWindowBase / TCastleControlBase that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
       if FCamera is TWalkCamera then

@@ -16,7 +16,7 @@
 { Checking OpenGL version, vendors and such (GLVersion, GLUVersion).
   These should be initialized by calling GLInformationInitialize,
   which is done automatically when opening OpenGL context using
-  TCastleWindowCustom or TCastleControlCustom.
+  TCastleWindowBase or TCastleControlBase.
 }
 unit CastleGLVersion;
 

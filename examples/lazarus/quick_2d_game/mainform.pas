@@ -13,7 +13,7 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
-    CastleControl1: TCastleControlCustom;
+    CastleControl1: TCastleControlBase;
     procedure CastleControl1Press(Sender: TObject;
       const Event: TInputPressRelease);
     procedure CastleControl1Render(Sender: TObject);

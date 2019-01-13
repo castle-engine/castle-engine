@@ -31,7 +31,7 @@ const
   ALDistanceScaling = 0.02;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3;
   { Playing sound. It may be @nil if we couldn't allocate it,
     which practically will happen only when OpenAL is not installed
@@ -78,7 +78,7 @@ var
   Buffer: TSoundBuffer;
   Parameters: TSoundParameters;
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
