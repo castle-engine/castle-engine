@@ -253,6 +253,7 @@ type
       since we have to assume that results of this function change. }
     property OnRadianceTransfer: TRadianceTransferFunction
       read FOnRadianceTransfer write SetOnRadianceTransfer;
+      deprecated 'use Color node, or shaders, to change per-vertex colors';
 
     { Calculate vertex color for given vertex by a callback.
       If this is assigned, then this is used to calculate
@@ -263,6 +264,7 @@ type
       since we have to assume that results of this function change. }
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
+      deprecated 'use Color node, or shaders, to change per-vertex colors';
 
     { Enable OpenGL lighting when rendering.
       This is @true by default, since it's almost always wanted.
@@ -1714,6 +1716,7 @@ var
       (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     Result := not (
       { If we use any features that (may) render shape differently
         if shape's transform (or other stuff handled outside arrays
@@ -1721,6 +1724,7 @@ var
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
       FogVolumetric);
+    {$warnings on}
   end;
 
   function FogVolumetricEqual(
@@ -1886,8 +1890,10 @@ procedure TRenderingAttributes.Assign(Source: TPersistent);
 begin
   if Source is TRenderingAttributes then
   begin
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     OnRadianceTransfer := TRenderingAttributes(Source).OnRadianceTransfer;
     OnVertexColor := TRenderingAttributes(Source).OnVertexColor;
+    {$warnings on}
     Lighting := TRenderingAttributes(Source).Lighting;
     UseSceneLights := TRenderingAttributes(Source).UseSceneLights;
     Opacity := TRenderingAttributes(Source).Opacity;
@@ -1903,10 +1909,12 @@ end;
 function TRenderingAttributes.EqualForShapeCache(
   SecondValue: TRenderingAttributes): boolean;
 begin
+  {$warnings off} // consciously using deprecated stuff, to keep it working
   Result :=
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
     (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.EnableTextures = EnableTextures);
+  {$warnings on}
 end;
 
 constructor TRenderingAttributes.Create;
@@ -1936,7 +1944,7 @@ end;
 procedure TRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
-  if OnRadianceTransfer <> Value then
+  if FOnRadianceTransfer <> Value then
   begin
     ReleaseCachedResources;
     FOnRadianceTransfer := Value;
@@ -1946,7 +1954,7 @@ end;
 procedure TRenderingAttributes.SetOnVertexColor(
   const Value: TVertexColorFunction);
 begin
-  if OnVertexColor <> Value then
+  if FOnVertexColor <> Value then
   begin
     ReleaseCachedResources;
     FOnVertexColor := Value;
@@ -3486,8 +3494,10 @@ begin
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
         Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
+        {$warnings off} // consciously using deprecated stuff, to keep it working
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
+        {$warnings on}
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 

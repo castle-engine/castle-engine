@@ -1147,10 +1147,12 @@ var
       Inc(Params.Statistics.ShapesRendered);
 
     { Optionally free Shape arrays data now, if they need to be regenerated. }
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     if (Assigned(Attributes.OnVertexColor) or
         Assigned(Attributes.OnRadianceTransfer)) and
        (Shape.Cache <> nil) then
       Shape.Cache.FreeArrays([vtAttribute]);
+    {$warnings on}
 
     Shape.ModelView := ModelView;
     Renderer.RenderShape(Shape, ShapeFog(Shape, Params.GlobalFog));
@@ -1537,10 +1539,12 @@ begin
       { Do not prepare when OnVertexColor or OnRadianceTransfer used,
         as we can only call these callbacks during render (otherwise they
         may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
+      {$warnings off} // consciously using deprecated stuff, to keep it working
       if not
         (Assigned(Attributes.OnVertexColor) or
          Assigned(Attributes.OnRadianceTransfer)) then
         PrepareRenderShapes;
+      {$warnings on}
     end;
 
     if prBackground in Options then
