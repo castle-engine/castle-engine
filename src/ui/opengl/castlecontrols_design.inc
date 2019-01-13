@@ -104,6 +104,9 @@ begin
       try
         FDesign := UserInterfaceLoad(Value, Self);
       except
+        { If loading design file failed, and we're inside CGE editor,
+          merely report a warning. This allows deserializing in CGE editor
+          designs with broken URLs. }
         on E: Exception do
         begin
           if CastleDesignMode then

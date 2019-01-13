@@ -471,33 +471,39 @@ procedure TCastleImageControl.SetURL(const Value: string);
   end;
 
 begin
-  if Value <> '' then
+  if FURL <> Value then
   begin
-    try
-      if Cache then
-        Image := TextureCache.TextureImage_IncReference(Value)
-      else
-        Image := LoadEncodedImage(Value);
-    except
-      on E: Exception do
-      begin
-        if CastleDesignMode then
+    { We deliberately change URL even though loading image failed.
+      This way URL property is always correctly deserialized in CGE editor,
+      even when loading the image failed. }
+    FURL := Value;
+    FScaleFromUrl := GetScaleFromUrl;
+
+    if Value <> '' then
+    begin
+      try
+        if Cache then
+          Image := TextureCache.TextureImage_IncReference(Value)
+        else
+          Image := LoadEncodedImage(Value);
+      except
+        { If loading design file failed, and we're inside CGE editor,
+          merely report a warning. This allows deserializing in CGE editor
+          designs with broken URLs. }
+        on E: Exception do
         begin
-          WritelnWarning('TCastleImageControl', 'Failed to load image "%s": %s', [URIDisplay(Value), ExceptMessage(E)]);
-          Image := nil;
-          Exit;
-        end else
-          raise;
+          if CastleDesignMode then
+          begin
+            WritelnWarning('TCastleImageControl', 'Failed to load image "%s": %s', [URIDisplay(Value), ExceptMessage(E)]);
+            Image := nil;
+            Exit;
+          end else
+            raise;
+        end;
       end;
-    end;
-  end else
-    Image := nil;
-
-  { only once new Image is successfully loaded, change property value.
-    If LoadImage raised exception, URL will remain unchanged. }
-  FURL := Value;
-
-  FScaleFromUrl := GetScaleFromUrl;
+    end else
+      Image := nil;
+  end;
 end;
 
 function TCastleImageControl.GetCenterX: Single;
