@@ -208,6 +208,8 @@ function ApplicationConfig(const Path: string): string;
 
   See the manual about the purpose of "data" directory:
   https://castle-engine.io/manual_data_directory.php .
+  Since Castle Game Engine 6.5, using @code('castle-data:/xxx') is more adviced
+  than explicitly calling @code(ApplicationData('xxx')).
 
   Given Path parameter must specify a path under the data directory,
   with possible subdirectories, with possible filename at the end.

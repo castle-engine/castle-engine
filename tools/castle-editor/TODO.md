@@ -1,26 +1,15 @@
 ## TODO
 
 ------------------------------------------------------------------------------
-Now:
+Before 6.6 release:
 
 * warning when project with editor_units opened in vanilla editor
 
-* do not allow sizing (not even such cursor) when control is autosized
+* when trying to drag to resize, we could show a hint from EditorAllowResize
+  (ResizeDisabledReason) somewhere
+  (at tooltip)?
 
-  how? virtual function IsAutoSize at TCastleUserInterface
-  maybe like
-  IsAutoSize(out AWidth, AHeight: Boolean; out Reason: String)
-    and descendants could set e.g.
-      Reason = 'Turn off TCastleButton.AutoSizeWidth to change button width.'
-      Reason = 'Turn off TCastleLabel.AutoSize to change label size.'
-      Reason = 'Turn off FullSize to change control size.'
-
-  utility:
-  when trying to drag to resize, we could show a suitable hint
-
-  DO NOT use it for "stored" for width/height, store them always, safer.
-
-  Remains for:
+* Define EditorAllowResize for
   castledialogstates_dialog.inc
   castlecontrols_progressbar.inc
   castleonscreenmenu.pas
@@ -30,11 +19,8 @@ Now:
   castlecontrols_groups.inc
   castlecontrols_crosshair.inc
 
-  show ResizeDisabledReason somewhere?
-  at tooltip?
-
 * Add TCastleImageComponent, manually make all UI controls use it
-  See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
+  See /home/michalis/common/TODO/castle-engine/editor-castleimages_components.inc
 
   *All* images from theme should also be customizable at the control level,
   and naming should be consistent
@@ -46,25 +32,15 @@ Now:
   See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
   Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
 - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
+- Test a way to upgrade names in design files.
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
-    * Smartly detect castl-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
+    * Smartly detect castle-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
 
 * Show on recent list %20 as spaces, use URICaption or such ready function?
-
-------------------------------------------------------------------------------
-Before 6.6 release:
-
-* more colors, vectors published props:
-
-  grep for TCastleColor*, TVector* properties and add everything.
-  For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
-
-* F1 help to API reference, show also in menu
-    for now just go to API reference main page?
 
 * rename TUIState -> TCastleState? (best)
   TCastleUserInterfaceState?
@@ -79,7 +55,10 @@ Before 6.6 release:
 
 * force non-empty Name on all, to have wokring streaming?
 
-* show checkerboard instead of Background.Color := Vector4(0.5, 0.5, 0.5, 1);, to make it clear it's undefind
+  unless it's already forced, is it possible to set name='' without
+  exception from SetName?
+
+* show Background.Color := Vector4(0.1, 0.1, 0.1, 1); under default control
 
 * publish and save SceneManager.NavigationType
   and last camera
@@ -98,6 +77,7 @@ Before 6.6 release:
     * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
       (need to use custom draw for this? grep, search code)
     * "Files" showroot=false doesn't work?
+    * need to fork Lazarus shell control for this, no other solution?
 
 * TEditDirectory use at "new project"
 
@@ -111,23 +91,28 @@ Before 6.6 release:
 
     The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
 
-* castle-data:/ finish
-  - support castlefindfiles.pas too
-  - document at ApplicationData
-    See /home/michalis/common/TODO/castle-engine/editor/castle-data-url.txt
-
 * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
 
 * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
+
+------------------------------------------------------------------------------
+Lower priority:
+OK if after nearest release:
+
+* castle-data:/ support in castlefindfiles.pas too
 
 * make https://github.com/castle-engine/blaise-pascal-article-examples/
   version using editor for level,
   3d_game_alternative_using_editor
   mention in README
 
-------------------------------------------------------------------------------
-Lower priority:
-OK if after nearest release:
+* more colors, vectors published props:
+
+  grep for TCastleColor*, TVector* properties and add everything.
+  For now we only browsed stuff in src/ui/opengl/ , and TCastleTransform.
+
+* F1 help to API reference, show also in menu
+    for now just go to API reference main page?
 
 * When adding new item to hierarchy,
   in general: when doing UpdateDesign,
@@ -219,12 +204,6 @@ OK if after nearest release:
 
 * move CastleComponentSerialize to src/base/
   And UserInterfaceLoad, TransformLoad move to appropriate units with these classes.
-  Use interface like ICastleChildrenSerialize
-
-* right after opening recent project, caption shows my-project instead of my-project45
-
-------------------------------------------------------------------------------
-Lowest priority (OK if not in 1st release):
 
 * Project options:
     * Allow to configure project qualified name from "Project Options" in editor
