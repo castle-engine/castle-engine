@@ -684,7 +684,7 @@ type
     procedure ReleaseCapture(const C: TCastleUserInterface);
 
     { Load visual settings from an XML file.
-      See https://github.com/castle-engine/castle-engine/blob/master/tools/castle-editor/EDITOR_SETTINGS.md
+      See https://castle-engine.io/manual_castle_settings.php
       for a documentation of the file format.
 
       This loads UIScaling, UIReferenceWidth, UIReferenceHeight, DefaultFont.
