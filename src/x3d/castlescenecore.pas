@@ -938,6 +938,7 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
+
   public
     { Nonzero value prevents rendering of this scene,
       and generally means that our state isn't complete.
@@ -963,6 +964,7 @@ type
       DefaultShadowMapsDefaultSize = 256;
 
     constructor Create(AOwner: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Load the model given as a X3D nodes graph.
       This replaces RootNode with new value.
@@ -7480,6 +7482,16 @@ begin
   Result.FURL := FURL + '[Clone]';
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
+end;
+
+function TCastleSceneCore.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'URL') or
+     (PropertyName = 'ProcessEvents') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);

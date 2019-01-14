@@ -210,6 +210,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
+  CastleClassUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -1300,57 +1301,18 @@ begin
   if aEditor.GetPropInfo = nil then
     Exit;
 
-  { TODO: This if-else list should be replaced by a nice registration
-    of "main text property" in CastleComponentSerialize. Like:
-
-    RegisterSerializableComponent(TCastleLabel, 'Label',
-      ['Caption', 'Color', 'Text'], // properties in "Simple" tab in CGE editor
-      'Caption' // main text property, initially reflecting Name in CGE editor
-    );
-
-    Internally RegisterSerializableComponent can save TypeInfo() or such
-    for each property, not just the name.
-  }
-
   PropertyName := aEditor.GetPropInfo^.Name;
-  // some property names quality as "Simple" on all components
-  if (PropertyName = 'URL') or
-     (PropertyName = 'Name') or
-     (PropertyName = 'Exists') or
-     (PropertyName = 'FullSize') or
-     (PropertyName = 'ProcessEvents') then
-  begin
-    AShow := true;
-    Exit;
-  end;
 
   if (aEditor.GetInstProp <> nil) and
      (aEditor.GetInstProp^.Instance <> nil) then
   begin
     Instance := aEditor.GetInstProp^.Instance;
-    if  (Instance is TCastleColorPersistent) or
-        (Instance is TCastleColorRGBPersistent) or
-        (Instance is TCastleVector3Persistent) or
-        (Instance is TCastleVector4Persistent) or
-       ((Instance is TCastleShape) and (PropertyName = 'ColorPersistent')) or
-       ((Instance is TCastleShape) and (PropertyName = 'ShapeType')) or
-       ((Instance is TCastleUserInterfaceFont) and (PropertyName = 'FontSize')) or
-       ((Instance is TCastleRectangleControl) and (PropertyName = 'ColorPersistent')) or
-       ((Instance is TCastleLabel) and (PropertyName = 'ColorPersistent')) or
-       ((Instance is TCastleVerticalGroup) and (PropertyName = 'Alignment')) or
-       ((Instance is TCastleHorizontalGroup) and (PropertyName = 'Alignment')) or
-       ((Instance is TCastleImageControl) and (PropertyName = 'Stretch')) or
-       ((Instance is TCastleImageControl) and (PropertyName = 'ProportionalScaling')) or
-       ((Instance is TCastleImageControl) and (PropertyName = 'ColorPersistent')) or
-       ((Instance is TCastleTimer) and (PropertyName = 'IntervalSeconds')) or
-       ((Instance is TCastleCheckbox) and (PropertyName = 'Checked')) or
-       ((Instance is TCastleCheckbox) and (PropertyName = 'Caption')) or
-       ((Instance is TCastleSwitchControl) and (PropertyName = 'Checked')) or
-       ((Instance is TCastleButton) and (PropertyName = 'Caption')) or
-       ((Instance is TCastleLabel) and (PropertyName = 'Caption')) or // expresses the same thing as Text, but easier to access
-       ((Instance is TCastleLabel) and (PropertyName = 'Text')) or
-       ((Instance is TCastleDesign) and (PropertyName = 'Stretch')) or
-       false then // this line is just to allow easily adding above
+    if ( (Instance is TCastleComponent) and
+         (TCastleComponent(Instance).PropertySection(PropertyName) = psBasic) ) or
+       (Instance is TCastleColorPersistent) or
+       (Instance is TCastleColorRGBPersistent) or
+       (Instance is TCastleVector3Persistent) or
+       (Instance is TCastleVector4Persistent) then
     begin
       AShow := true;
       Exit;

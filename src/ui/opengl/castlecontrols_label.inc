@@ -58,6 +58,7 @@
     procedure Render; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Text color. By default it's opaque black. }
     property Color: TCastleColor read FColor write FColor;
@@ -421,6 +422,16 @@ end;
 procedure TCastleLabel.SetInternalText(const Value: String);
 begin
   Caption := Value;
+end;
+
+function TCastleLabel.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Text') or
+     (PropertyName = 'Caption') or // expresses the same thing as Text, but easier to access
+     (PropertyName = 'ColorPersistent') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$define read_implementation_methods}

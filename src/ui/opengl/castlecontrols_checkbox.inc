@@ -50,6 +50,7 @@
     destructor Destroy; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
 
@@ -317,6 +318,16 @@ end;
 procedure TCastleCheckbox.SetInternalText(const Value: String);
 begin
   Caption := Value;
+end;
+
+function TCastleCheckbox.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Caption') or
+     (PropertyName = 'Checked') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$define read_implementation_methods}

@@ -1347,6 +1347,7 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure InternalAddChild(const C: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -4424,6 +4425,36 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} readtop,
     {$ifdef CASTLE_OBJFPC}@{$endif} writetop,
     (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
+end;
+
+function TCastleUserInterface.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Exists':
+      Result := psBasic;
+    'FullSize',
+    'Width',
+    'Height',
+    'HeightFraction',
+    'WidthFraction',
+    'AutoSizeToChildren',
+    'AutoSizeToChildrenPaddingTop',
+    'AutoSizeToChildrenPaddingRight',
+    'HorizontalAnchorSelf',
+    'HorizontalAnchorDelta',
+    'HorizontalAnchorParent',
+    'VerticalAnchorSelf',
+    'VerticalAnchorDelta',
+    'VerticalAnchorParent',
+    'Left',
+    'Bottom',
+    'Border',
+    'BorderColorPersistent':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 procedure TCastleUserInterface.SetLeft(const Value: Single);

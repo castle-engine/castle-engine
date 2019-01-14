@@ -33,6 +33,7 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Rectangle color. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
@@ -133,6 +134,15 @@ function TCastleRectangleControl.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
+end;
+
+function TCastleRectangleControl.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'ColorPersistent') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$define read_implementation_methods}

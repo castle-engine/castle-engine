@@ -104,6 +104,8 @@
     procedure GLContextOpen; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
+
     procedure ImageChanged;
 
     { Image displayed, or @nil if none. You can set it by setting @link(URL),
@@ -830,6 +832,17 @@ end;
 procedure TCastleImageControl.ProtectedSidesChange(Sender: TObject);
 begin
   VisibleChange([chRectangle]);
+end;
+
+function TCastleImageControl.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'URL') or
+     (PropertyName = 'ProportionalScaling') or
+     (PropertyName = 'ColorPersistent') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$define read_implementation_methods}

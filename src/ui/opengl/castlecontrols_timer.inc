@@ -23,11 +23,12 @@
     FIntervalSeconds, IntervalRemaining: TFloatTime;
     FOnTimer: TNotifyEvent;
     procedure SetIntervalSeconds(AValue: TFloatTime);
-  strict protected
+  protected
     procedure DoTimer; virtual;
   public
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { How often should we call OnTimer. Value of 0 means to call OnTimer
       in every Update event. }
@@ -91,6 +92,15 @@ begin
     { for IntervalSeconds = 0, just call timer at every Update. }
     DoTimer;
   end;
+end;
+
+function TCastleTimer.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'IntervalSeconds') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$endif read_implementation}

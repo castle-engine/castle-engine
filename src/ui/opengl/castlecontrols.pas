@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders;
+  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils;
 
 type
   {$define read_interface}

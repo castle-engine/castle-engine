@@ -32,10 +32,9 @@
     procedure SetSpacing(const Value: Single);
     procedure SetAutoSizeWidth(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
-  strict protected
+  protected
     FPackingValid: boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
-  protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
@@ -49,6 +48,7 @@
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
@@ -97,10 +97,11 @@
     FLeftToRight: boolean;
     procedure SetLeftToRight(const Value: boolean);
     procedure SetAlignment(const Value: TVerticalPosition);
-  strict protected
+  protected
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { The alignment of children inside this control. }
     property Alignment: TVerticalPosition
@@ -122,10 +123,11 @@
     FTopToBottom: boolean;
     procedure SetTopToBottom(const Value: boolean);
     procedure SetAlignment(const Value: THorizontalPosition);
-  strict protected
+  protected
     procedure DoPackChildren(out W, H: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
@@ -266,6 +268,15 @@ begin
   end;
 end;
 
+function TCastlePackedGroup.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Spacing') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastlepackedgroup_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -332,6 +343,15 @@ begin
   H := H + 2 * Padding;
 end;
 
+function TCastleHorizontalGroup.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Spacing') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
+end;
+
 { TCastleVerticalGroup ----------------------------------------------------- }
 
 constructor TCastleVerticalGroup.Create(AOwner: TComponent);
@@ -392,6 +412,15 @@ begin
 
   W := W + 2 * Padding;
   H := H - Spacing + Padding;
+end;
+
+function TCastleVerticalGroup.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Spacing') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$endif read_implementation}

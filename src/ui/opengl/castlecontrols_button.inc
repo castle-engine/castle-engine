@@ -131,6 +131,7 @@
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -1113,6 +1114,15 @@ end;
 procedure TCastleButton.SetInternalText(const Value: String);
 begin
   Caption := Value;
+end;
+
+function TCastleButton.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Caption') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$define read_implementation_methods}

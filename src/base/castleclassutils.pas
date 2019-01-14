@@ -378,6 +378,9 @@ procedure CreateIfNeeded(var Component: TComponent;
   ComponentClass: TComponentClass; Owner: TComponent);
 
 type
+  { Used by @link(TCastleComponent.PropertySection). }
+  TPropertySection = (psBasic, psLayout, psOther);
+
   { Component with small CGE extensions. }
   TCastleComponent = class(TComponent)
   protected
@@ -405,6 +408,9 @@ type
     { Remove csLoading. Used when deserializing.
       @exclude }
     procedure InternalLoaded;
+
+    { Section where to show property in the editor. }
+    function PropertySection(const PropertyName: String): TPropertySection; virtual;
 
     { Ignore this component when serializing parent's
       @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
@@ -1322,6 +1328,14 @@ begin
   inherited SetName(Value);
   if ChangeInternalText then
     InternalText := Value;
+end;
+
+function TCastleComponent.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  if PropertyName = 'Name' then
+    Result := psBasic
+  else
+    Result := psOther;
 end;
 
 { initialization / finalization ---------------------------------------------- }

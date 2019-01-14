@@ -679,6 +679,7 @@ type
     destructor Destroy; override;
 
     procedure InternalAddChild(const C: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -3162,6 +3163,23 @@ procedure TCastleTransform.InternalAddChild(const C: TComponent);
 begin
   // matches TCastleTransform.GetChildren implementation
   Add(C as TCastleTransform)
+end;
+
+function TCastleTransform.PropertySection(const PropertyName: String
+  ): TPropertySection;
+begin
+  case PropertyName of
+    'Exists':
+      Result := psBasic;
+    'CenterPersistent',
+    'RotationPersistent',
+    'ScalePersistent',
+    'ScaleOrientationPersistent',
+    'TranslationPersistent':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.

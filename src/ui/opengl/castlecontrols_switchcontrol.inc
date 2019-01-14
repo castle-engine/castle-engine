@@ -26,7 +26,6 @@
 
     procedure SetChecked(const Value: boolean);
     procedure SetEnabled(const Value: boolean);
-
   public
     const
       DefaultSwitchControlWidth = 50;
@@ -34,10 +33,10 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     property IsOn: boolean read FChecked write SetChecked default false;
       deprecated 'use Checked instead, consistent with LCL TCheckBox.Checked';
@@ -176,6 +175,15 @@ begin
 
     Exit(ExclusiveEvents);
   end;
+end;
+
+function TCastleSwitchControl.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Checked') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 {$endif read_implementation}
