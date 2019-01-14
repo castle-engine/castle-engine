@@ -24,11 +24,13 @@ uses
 type
   TTestCastleComponentSerialize = class(TCastleBaseTestCase)
     procedure TestDefaultValues;
+    procedure TestEmptyCaption;
   end;
 
 implementation
 
-uses CastleFilesUtils, CastleComponentSerialize, CastleVectors;
+uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
+  CastleUIControls, CastleControls;
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -127,6 +129,7 @@ end;
 procedure TTestCastleComponentSerialize.TestDefaultValues;
 var
   TempFileName: String;
+  TestOutputOwner: TComponent;
   TestInput, TestOutput: TMyComponent;
 begin
   TempFileName := GetTempFileNameCheck;
@@ -151,17 +154,32 @@ begin
     FreeAndNil(TestInput);
   end;
 
-  TestOutput := ComponentLoad(TempFileName, nil) as TMyComponent;
+  TestOutputOwner := TComponent.Create(nil);
   try
+    TestOutput := ComponentLoad(TempFileName, TestOutputOwner) as TMyComponent;
     AssertVectorEquals(Vector3(0, 20, 30), TestOutput.PositionPersistent.Value);
     AssertVectorEquals(Vector3(0, 20, 30), TestOutput.Position);
     AssertVectorEquals(Vector3(0, 1, 2), TestOutput.ScalePersistent.Value);
     AssertVectorEquals(Vector3(0, 1, 2), TestOutput.Scale);
   finally
-    FreeAndNil(TestOutput);
+    FreeAndNil(TestOutputOwner);
   end;
 
   CheckDeleteFile(TempFileName, true);
+end;
+
+procedure TTestCastleComponentSerialize.TestEmptyCaption;
+var
+  UiOwner: TComponent;
+  //C: TCastleUserInterface;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    UserInterfaceLoad('castle-data:/designs/test_caption_empty.castle-user-interface', UiOwner);
+    AssertEquals('Button1', (UiOwner.FindRequiredComponent('Button1') as TCastleButton).Caption);
+    AssertEquals('', (UiOwner.FindRequiredComponent('Button2') as TCastleButton).Caption);
+    AssertEquals('Button3', (UiOwner.FindRequiredComponent('Button3') as TCastleButton).Caption);
+  finally FreeAndNil(UiOwner) end;
 end;
 
 initialization

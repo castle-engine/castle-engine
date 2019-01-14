@@ -394,8 +394,17 @@ type
     property InternalText: String read GetInternalText write SetInternalText;
 
     { Deserialization will use this to add components that were previously
-      returned by GetChildren method. }
+      returned by GetChildren method.
+      @exclude }
     procedure InternalAddChild(const C: TComponent); virtual;
+
+    { Add csLoading. Used when deserializing.
+      @exclude }
+    procedure InternalLoading;
+
+    { Remove csLoading. Used when deserializing.
+      @exclude }
+    procedure InternalLoaded;
 
     { Ignore this component when serializing parent's
       @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
@@ -1278,6 +1287,16 @@ begin
     [ClassName]);
 end;
 
+procedure TCastleComponent.InternalLoading;
+begin
+  Loading;
+end;
+
+procedure TCastleComponent.InternalLoaded;
+begin
+  Loaded;
+end;
+
 procedure TCastleComponent.SetName(const Value: TComponentName);
 var
   ChangeInternalText: Boolean;
@@ -1287,6 +1306,12 @@ begin
   ChangeInternalText :=
     // TControl.SetName does this even in non-design mode.
     // ((csDesigning in ComponentState) or CastleDesignMode) and
+    //
+    // Note that we don't do it during loading, otherwise having empty
+    // Caption e.g. on TCastleButton would be impossible:
+    // reading Name would set Caption.
+    // During loading, we assume that all component properties are to be deserialized from file,
+    // and InternalText should not be automatically modified.
     (not (csLoading in ComponentState)) and
     (Name = InternalText) and
     // Do not update InternalText when Owner has csLoading.

@@ -35,6 +35,7 @@ type
   private
     FJsonReader: TJSONDeStreamer;
     FOwner: TComponent;
+    procedure BeforeReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
   public
@@ -171,6 +172,9 @@ var
   ResultClassName: String;
   ResultClass: TComponentClass;
 begin
+  if Owner = nil then
+    raise Exception.Create('You must provide non-nil Owner when deserializing a component. Without an Owner, it is not possible to free the component hierarchy easily, and you will most likely have memory leaks.');
+
   if JsonObject.Find('$ClassName') <> nil then
     ResultClassName := JsonObject.Strings['$ClassName']
   else
@@ -187,6 +191,18 @@ begin
     raise EInvalidComponentFile.CreateFmt('Component JSON file contains unrecognized class "%s"',
       [ResultClassName]);
   Result := ResultClass.Create(Owner);
+end;
+
+procedure TCastleComponentReader.BeforeReadObject(
+  Sender: TObject; AObject: TObject; JSON: TJSONObject);
+var
+  C: TCastleComponent;
+begin
+  if AObject is TCastleComponent then
+  begin
+    C := TCastleComponent(AObject);
+    C.InternalLoading; // add csLoading flag to ComponentState
+  end;
 end;
 
 procedure TCastleComponentReader.AfterReadObject(
@@ -244,6 +260,7 @@ begin
     C := TCastleComponent(AObject);
     SynchronizeNameWithInternalText(C);
     ReadChildren(C);
+    C.InternalLoaded; // remove csLoading flag from ComponentState
   end;
 end;
 
@@ -349,6 +366,7 @@ begin
   Reader := TCastleComponentReader.Create;
   try
     Reader.FJsonReader := TJSONDeStreamer.Create(nil);
+    Reader.FJsonReader.BeforeReadObject := @Reader.BeforeReadObject;
     Reader.FJsonReader.AfterReadObject := @Reader.AfterReadObject;
     Reader.FJsonReader.OnRestoreProperty := @Reader.RestoreProperty;
     Reader.FOwner := Owner;
