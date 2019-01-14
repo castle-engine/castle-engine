@@ -114,6 +114,8 @@ initialization
   RegisterSerializableComponent(TCastleFloatSlider, 'Float Slider');
   RegisterSerializableComponent(TCastleTimer, 'Timer');
   RegisterSerializableComponent(TCastleEdit, 'Edit');
+  RegisterSerializableComponent(TCastleFloatEdit, 'Edit (Float)');
+  RegisterSerializableComponent(TCastleIntegerEdit, 'Edit (Integer)');
   RegisterSerializableComponent(TCastleVerticalGroup, 'Vertical Group');
   RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
   RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');

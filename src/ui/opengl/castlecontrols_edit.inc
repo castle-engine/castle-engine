@@ -161,6 +161,58 @@
   {$undef read_interface_class}
   end;
 
+  { Descendant of TCastleEdit specialized for editing floating-point numbers.
+    Use @link(Value) instead of @link(Text). }
+  TCastleFloatEdit = class(TCastleEdit)
+  strict private
+    FDecimalDigits: Integer;
+    FMax: Single;
+    FMin: Single;
+    function GetValue: Single;
+    procedure SetValue(const AValue: Single);
+    procedure SetDecimalDigits(const AValue: Integer);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure SetFocused(const AValue: Boolean); override;
+  published
+    { In case of this descendant, Text is always derived from Value. }
+    property Text stored false;
+    property Value: Single read GetValue write SetValue default 0;
+    { Minimum and maximum limits.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Min: Single read FMin write FMin default 1.0;
+    property Max: Single read FMax write FMax default 0.0;
+    { How many decimal digits to display (and preserve).
+      Set to -1 to display (and preserve) all digits,
+      but beware that many numbers will then look hard to
+      read, because they cannot be represented perfectly as a float.
+      E.g. inputting "0.2" will change (in SetFocused) to something like
+      "0.200000003" since the number 0.2 cannot be represented precisely. }
+    property DecimalDigits: Integer
+      read FDecimalDigits write SetDecimalDigits default 2;
+  end;
+
+  { Descendant of TCastleEdit specialized for editing integer numbers.
+    Use @link(Value) instead of @link(Text). }
+  TCastleIntegerEdit = class(TCastleEdit)
+  strict private
+    FMax: Int64;
+    FMin: Int64;
+    function GetValue: Int64;
+    procedure SetValue(const AValue: Int64);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure SetFocused(const AValue: Boolean); override;
+  published
+    { In case of this descendant, Text is always derived from Value. }
+    property Text stored false;
+    property Value: Int64 read GetValue write SetValue default 0;
+    { Minimum and maximum limits.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Min: Int64 read FMin write FMin default 1;
+    property Max: Int64 read FMax write FMax default 0;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -531,5 +583,81 @@ end;
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
 {$undef read_implementation_methods}
+
+{ TCastleFloatEdit ---------------------------------------------------------- }
+
+constructor TCastleFloatEdit.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMin := 1;
+  FMax := 0;
+  Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
+  AllowedChars := ['-', '+', '0'..'9'] + [DefaultFormatSettings.DecimalSeparator];
+  FDecimalDigits := 2;
+  Value := 0.0; // will also assign Text
+end;
+
+procedure TCastleFloatEdit.SetFocused(const AValue: Boolean);
+begin
+  inherited SetFocused(AValue);
+  { Apply to Text limits (Min, Max) and fix invalid input (like Text empty). }
+  Value := Value;
+end;
+
+function TCastleFloatEdit.GetValue: Single;
+begin
+  Result := StrToFloatDef(Text, 0);
+  if Min <= Max then
+    ClampVar(Result, Min, Max);
+end;
+
+procedure TCastleFloatEdit.SetValue(const AValue: Single);
+begin
+  if DecimalDigits < 0 then
+    Text := FloatToStr(AValue)
+  else
+    Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
+end;
+
+procedure TCastleFloatEdit.SetDecimalDigits(const AValue: Integer);
+begin
+  if FDecimalDigits <> AValue then
+  begin
+    FDecimalDigits := AValue;
+    { Apply the DecimalDigits to current Text look }
+    Value := Value;
+  end;
+end;
+
+{ TCastleIntegerEdit ---------------------------------------------------------- }
+
+constructor TCastleIntegerEdit.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMin := 1;
+  FMax := 0;
+  Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
+  AllowedChars := ['-', '+', '0'..'9'];
+  Value := 0; // will also assign Text
+end;
+
+procedure TCastleIntegerEdit.SetFocused(const AValue: Boolean);
+begin
+  inherited SetFocused(AValue);
+  { Apply to Text limits (Min, Max) and fix invalid input (like Text empty). }
+  Value := Value;
+end;
+
+function TCastleIntegerEdit.GetValue: Int64;
+begin
+  Result := StrToInt64Def(Text, 0);
+  if Min <= Max then
+    ClampVar(Result, Min, Max);
+end;
+
+procedure TCastleIntegerEdit.SetValue(const AValue: Int64);
+begin
+  Text := IntToStr(AValue);
+end;
 
 {$endif read_implementation}
