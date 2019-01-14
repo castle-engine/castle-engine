@@ -153,6 +153,14 @@ function TryStrToFloatDot(const S: String; out Value: Double): Boolean; overload
 function TryStrToFloatDot(const S: String; out Value: Extended): Boolean; overload;
 {$endif}
 
+{ Like standard StrToFloat, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings. }
+function StrToFloatDot(const S: String): Extended;
+
+{ Like standard StrToFloatDef, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings. }
+function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -321,4 +329,23 @@ begin
 end;
 {$endif}
 
+function StrToFloatDot(const S: String): Extended;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := StrToFloat(S, FormatSettings);
+end;
+
+function StrToFloatDefDot(const S: String; const Default: Extended): Extended;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  Result := StrToFloatDef(S, Default, FormatSettings);
+end;
+
 {$endif read_implementation}
+
