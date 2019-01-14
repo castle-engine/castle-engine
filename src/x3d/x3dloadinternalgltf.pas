@@ -16,6 +16,8 @@
 { Load 3D models in the glTF 2.0 format (@link(LoadGLTF)). }
 unit X3DLoadInternalGLTF;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes, X3DFields;
