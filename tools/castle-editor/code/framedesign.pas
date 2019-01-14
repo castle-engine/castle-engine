@@ -162,7 +162,6 @@ type
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
       const ComponentsOwner: TComponent): String;
-    procedure UpdateComponentCaptionFromName(const C: TComponent);
     procedure UpdateLabelSizeInfo(const UI: TCastleUserInterface);
     { Update anchors shown, based on UI state.
       Updates which buttons are pressed inside 2 TAnchorFrame instances.
@@ -943,7 +942,6 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     begin
       NewTransform := ComponentClass.Create(DesignOwner) as TCastleTransform;
       NewTransform.Name := ProposeName(ComponentClass, DesignOwner);
-      UpdateComponentCaptionFromName(NewTransform);
       if PrimitiveGeometry <> pgNone then
       begin
         Assert(NewTransform is TCastleSceneCore);
@@ -964,7 +962,6 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     begin
       NewUserInterface := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
       NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
-      UpdateComponentCaptionFromName(NewUserInterface);
       ParentComponent.InsertFront(NewUserInterface);
       FinishAddingComponent(NewUserInterface);
     end else
@@ -2033,30 +2030,6 @@ begin
   end;
 end;
 
-procedure TDesignFrame.UpdateComponentCaptionFromName(const C: TComponent);
-begin
-  { TODO: This if-else list should be replaced by a nice registration
-    of "main text property" in CastleComponentSerialize. Like:
-
-    RegisterSerializableComponent(TCastleLabel, 'Label',
-      ['Caption', 'Color', 'Text'], // properties in "Simple" tab in CGE editor
-      'Caption' // main text property, initially reflecting Name in CGE editor
-    );
-  }
-
-  if C is TCastleLabel then
-    TCastleLabel(C).Caption := C.Name
-  else
-  if C is TCastleButton then
-    TCastleButton(C).Caption := C.Name
-  else
-  if C is TCastleEdit then
-    TCastleEdit(C).Text := C.Name
-  else
-  if C is TCastleCheckbox then
-    TCastleCheckbox(C).Caption := C.Name;
-end;
-
 procedure TDesignFrame.UpdateLabelSizeInfo(const UI: TCastleUserInterface);
 var
   RR: TFloatRectangle;
@@ -2143,7 +2116,6 @@ begin
 
   NewRoot := ComponentClass.Create(NewDesignOwner);
   NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
-  UpdateComponentCaptionFromName(NewRoot);
 
   { In these special cases, set FullSize to true,
     since this is almost certainly what user wants when creating a new UI
