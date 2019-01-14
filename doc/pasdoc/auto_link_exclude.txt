@@ -145,6 +145,7 @@ generation
 geometry
 glw
 gravity
+gray
 grayscale
 green
 group
