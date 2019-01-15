@@ -16,20 +16,16 @@
 
 {$ifdef read_interface}
 
-  { Edit box to input 1 line of text.
+  { Edit box to input a single line of text.
+    The contents are in the @link(Text) property, you can get or set them
+    at any time.
 
-    The edit control @link(Width TCastleUserInterface.Width)
-    is never auto-calculated, since there's no "natural width" for the edit box.
-    We use the property @link(Width TCastleUserInterface.Width) to determine
-    width. The @link(Width TCastleUserInterface.Width) must include also
-    space for the border frame (if @link(Frame) is @true),
-    and padding (see @link(Padding) + @link(PaddingHorizontal)).
-    So, we are similar to CSS box model called box-sizing, width includes also
-    padding and border.
-
-    In contrast, our height is by default
-    (see @link(AutoSizeHeight)) auto-calculated,
-    based on frame, padding and font size.
+    Note that you should set a suitable
+    @link(Width TCastleUserInterface.Width) of the edit box,
+    to nicely display a typical content.
+    The height is by default auto-calculated (see @link(AutoSizeHeight))
+    looking at font size (and other properties, like padding and frame size),
+    and usually is reasonable automatically.
   }
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
@@ -76,6 +72,7 @@
     procedure SetFocused(const Value: boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
@@ -174,6 +171,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -203,6 +201,7 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetFocused(const AValue: Boolean); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
@@ -383,6 +382,14 @@ begin
     ResizeHeight := false;
     Reason := SAppendPart(Reason, NL, 'Turn off "TCastleEdit.AutoSizeHeight" to change height.');
   end;
+end;
+
+function TCastleEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Text') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 procedure TCastleEdit.Render;
@@ -604,6 +611,18 @@ begin
   Value := Value;
 end;
 
+function TCastleFloatEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Text':
+      Result := psOther; // override TCastleEdit making it psBasic
+    'Value', 'Min', 'Max':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
 function TCastleFloatEdit.GetValue: Single;
 begin
   Result := StrToFloatDef(Text, 0);
@@ -646,6 +665,18 @@ begin
   inherited SetFocused(AValue);
   { Apply to Text limits (Min, Max) and fix invalid input (like Text empty). }
   Value := Value;
+end;
+
+function TCastleIntegerEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Text':
+      Result := psOther; // override TCastleEdit making it psBasic
+    'Value', 'Min', 'Max':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 function TCastleIntegerEdit.GetValue: Int64;
