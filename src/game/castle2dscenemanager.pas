@@ -21,7 +21,8 @@ unit Castle2DSceneManager;
 interface
 
 uses Classes,
-  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleProjection;
+  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras,
+  CastleProjection, CastleVectors;
 
 type
   { Scene manager best suited for 2D worlds.
@@ -86,6 +87,40 @@ type
 
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+
+    { Convert 2D position into "world coordinates", which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressReleaseEvent.Position)
+          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This assumes that camera up is +Y, and it is looking along the negative Z
+      axis, which is the default camera direction and up.
+      In other words, you can only change the camera position,
+      compared to the initial camera vectors.
+    }
+    function PositionTo2DWorld(const Position: TVector2;
+      const ScreenCoordinates: Boolean): TVector2;
   published
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
@@ -171,7 +206,9 @@ type
 
 implementation
 
-uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes, CastleComponentSerialize;
+uses SysUtils,
+  CastleBoxes, CastleGLUtils, X3DNodes, CastleComponentSerialize, CastleUtils,
+  CastleRectangles;
 
 { TCastle2DSceneManager -------------------------------------------------------- }
 
@@ -202,6 +239,99 @@ begin
     { up } Vector3(0, 1, 0), false);
   Camera.GoToInitial;
   Camera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
+end;
+
+function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
+  const ScreenCoordinates: Boolean): TVector2;
+
+{ Version 1:
+  This makes sense, but ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
+
+var
+  P: TVector2;
+  Proj: TProjection;
+  ProjRect: TFloatRectangle;
+begin
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+
+  Proj := Projection;
+  if Proj.ProjectionType <> ptOrthographic then
+    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
+  ProjRect := Proj.Dimensions;
+
+  if Camera <> nil then
+    ProjRect := ProjRect.Translate(Camera.Position.XY);
+
+  Result := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , ProjRect.Left  , ProjRect.Right),
+    MapRange(P.Y, 0, EffectiveHeight, ProjRect.Bottom, ProjRect.Top)
+  );
+end; }
+
+{ Version 2:
+  This also makes sense, but also
+  ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
+  TCamera.CustomRay looks only at camera pos/dir/up and ignores scaling.
+
+var
+  P: TVector2;
+  Proj: TProjection;
+  RayOrigin, RayDirection: TVector3;
+begin
+  if not ScreenCoordinates then
+    P := Position * UIScale + RenderRect.LeftBottom
+  else
+    P := Position;
+  RequiredCamera.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
+  Result := RayOrigin.XY;
+end; }
+
+{ Version 3:
+  Should work, but
+  1. Cannot invert projection matrix,
+  2. Also it's not efficient, since camera has ready InverseMatrix calculated
+     more efficiently.
+
+var
+  WorldToScreenMatrix: TMatrix4;
+  ScreenToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  WorldToScreenMatrix := RequiredCamera.ProjectionMatrix * RequiredCamera.Matrix;
+  if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
+    raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , -1, 1),
+    MapRange(P.Y, 0, EffectiveHeight, -1, 1)
+  );
+
+  Result := ScreenToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end; }
+
+var
+  CameraToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  CameraToWorldMatrix := RequiredCamera.MatrixInverse;
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , Projection.Dimensions.Left  , Projection.Dimensions.Right),
+    MapRange(P.Y, 0, EffectiveHeight, Projection.Dimensions.Bottom, Projection.Dimensions.Top)
+  );
+
+  Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
 end;
 
 function TCastle2DSceneManager.CalculateProjection: TProjection;

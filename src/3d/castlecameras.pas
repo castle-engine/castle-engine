@@ -194,10 +194,11 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
 
-    { Current camera matrix. You should multiply every 3D point of your
-      scene by this matrix, which usually simply means that you should
-      do @code(glLoadMatrix) or @code(glMultMatrix) of this matrix. }
+    { Camera matrix, transforming from world space into camera space. }
     function Matrix: TMatrix4; virtual; abstract;
+
+    { Inverse of @link(Matrix), transforming from camera space into world space. }
+    function MatrixInverse: TMatrix4; virtual;
 
     { Extract only rotation from your current camera @link(Matrix).
       This is useful for rendering skybox in 3D programs
@@ -683,8 +684,7 @@ type
     destructor Destroy; override;
 
     function Matrix: TMatrix4; override;
-
-    function MatrixInverse: TMatrix4;
+    function MatrixInverse: TMatrix4; override;
 
     function RotationMatrix: TMatrix4; override;
     procedure Update(const SecondsPassed: Single;
@@ -1797,6 +1797,12 @@ procedure TCamera.VisibleChange(const Changes: TCastleUserInterfaceChanges;
 begin
   RecalculateFrustum;
   inherited;
+end;
+
+function TCamera.MatrixInverse: TMatrix4;
+begin
+  if not Matrix.TryInverse(Result) then
+    raise Exception.Create('Cannot invert camera matrix, possibly it contains scaling to zero');
 end;
 
 procedure TCamera.BeginVisibleChangeSchedule;
