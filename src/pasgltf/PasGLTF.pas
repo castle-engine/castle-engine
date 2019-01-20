@@ -933,7 +933,9 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
                      // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
                      // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
                      // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
-                     // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
+                     //
+                     // TODO: BeRo says fixed in FPC trunk, test.
+                     // We need a workaround for FPC 3.0.4 anyway.
                      type TSamplerType=
                            (
                             Linear=0,
@@ -1046,7 +1048,9 @@ type PPPasGLTFInt8=^PPasGLTFInt8;
               // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBG_$PASGLTF_$$_TTYPE
               // PasGLTF.pas(5785,1) Error: Asm: Duplicate label DBGREF_$PASGLTF_$$_TTYPE
               // You cannot define TType multiple times, so we rename to TCameraType, TSamplerType
-              // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
+              //
+              // TODO: BeRo says fixed in FPC trunk, test.
+              // We need a workaround for FPC 3.0.4 anyway.
               type TCameraType=
                     (
                      None=0,
@@ -1910,7 +1914,8 @@ begin
    FillChar(fItems[OldCount],(fCount-OldCount)*SizeOf(T),#0);
   end;
   if pIndex<OldCount then begin
-   // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
+   // TODO: should be fixed in FPC ( https://bugs.freepascal.org/view.php?id=34893 ), retest.
+   //
    // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
    // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
    // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
@@ -1935,7 +1940,8 @@ begin
  dec(fCount);
  FillChar(fItems[pIndex],SizeOf(T),#0);
  if pIndex<>fCount then begin
-  // TODO: submit as FPC bugs (workaround submitted to BeRo, https://github.com/BeRo1985/pasgltf/pull/2)
+  // TODO: should be fixed in FPC ( https://bugs.freepascal.org/view.php?id=34893 ), retest.
+  //
   // Use MoveSrc/Dst to workaround FPC 3.3.1 error:
   // Error: Incompatible type for arg no. 1: Got "$gendef124", expected "<Formal type>"
   // (FPC 3.3.1-r40366 [2018/11/24], on Linux/x86_64).
