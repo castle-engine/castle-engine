@@ -719,7 +719,7 @@ type
     }
     property MouseButtonRotate: TMouseButton
       read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
-    { Drag with this mouse button to move the model (look closer / further). }
+    { Drag with this mouse button to move the model. }
     property MouseButtonMove: TMouseButton
       read FMouseButtonMove write FMouseButtonMove default mbMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
