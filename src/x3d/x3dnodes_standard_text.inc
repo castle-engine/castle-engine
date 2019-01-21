@@ -47,8 +47,6 @@
     procedure SetJustify(const Value: TX3DFontJustify);
     function GetJustifyMinor: TX3DFontJustify;
     procedure SetJustifyMinor(const Value: TX3DFontJustify);
-  private
-    function Font: TTextureFontData;
   public
     const
       DefaultSize = 1.0;
@@ -124,6 +122,10 @@
       to free this font later, but only after all possible Text nodes
       using this font are destroyed. }
     class var OnFont: TFontEvent;
+
+    { Font used by this node, determined by our fields (like @link(Bold))
+      and @link(OnFont). }
+    function Font: TTextureFontData;
 
     {$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
   end;
