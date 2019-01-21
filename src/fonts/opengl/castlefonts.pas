@@ -460,6 +460,9 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
+
+    { Underlying font data. }
+    property FontData: TTextureFontData read FFont;
   end;
 
   { @deprecated Deprecated name, use TTextureFont now. }
