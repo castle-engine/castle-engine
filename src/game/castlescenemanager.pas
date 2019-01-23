@@ -1630,46 +1630,67 @@ begin
 
   LastPressEvent := TInputPressRelease(Event);
 
-  if GetItems <> nil then
-  begin
-    Result := GetItems.Press(Event);
-    if Result then Exit;
-  end;
+  if (GetItems <> nil) and
+     GetItems.Press(Event) then
+    Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
-  begin
-    Result := PointingDeviceActivate(true);
-    if Result then Exit;
-  end;
+  if PlayerNotBlocked and
+     Input_Interact.IsEvent(Event) and
+     PointingDeviceActivate(true) then
+    Exit(ExclusiveEvents);
 
   P := GetPlayer;
   if (P <> nil) and not (P.Blocked or P.Dead) then
   begin
     if Input_Attack.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.Attack; end;
+    begin
+      P.Attack;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_CancelFlying.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.Flying := false; end;
+    begin
+      P.Flying := false;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryShow.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.InventoryVisible := not P.InventoryVisible; end;
+    begin
+      P.InventoryVisible := not P.InventoryVisible;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryPrevious.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(-1); end;
+    begin
+      P.ChangeInventoryCurrentItem(-1);
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryNext.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(+1); end;
+    begin
+      P.ChangeInventoryCurrentItem(+1);
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_DropItem.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.DropCurrentItem; end;
+    begin
+      P.DropCurrentItem;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_UseItem.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.UseCurrentItem; end;
-    if Result then Exit;
+    begin
+      P.UseCurrentItem;
+      Exit(ExclusiveEvents);
+    end;
   end;
 
   { Let Camera only work after PointingDeviceActivate, to let pointing
     device sensors under camera work, even when camera allows to navigate
     by dragging. }
-  if Camera <> nil then
-  begin
-    Result := Camera.Press(Event);
-    if Result then Exit;
-  end;
+  if (Camera <> nil) and
+     Camera.Press(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
