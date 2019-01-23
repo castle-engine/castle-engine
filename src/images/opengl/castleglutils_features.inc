@@ -256,6 +256,8 @@ type
       Call Memory.Refresh whenever needed. }
     Memory: TGLMemoryInfo;
 
+    MaxViewportDimensions: TVector2Integer;
+
     { Maximum number of texture units you can safely always use.
       If EnableFixedFunction, this is MaxTextureUnitsFixedFunction,
       otherwise MaxTextureUnitsShaders. }
@@ -339,6 +341,16 @@ end;
 {$endif}
 
 constructor TGLFeatures.Create;
+
+  function GetVector2Integer(const Param: TGLenum): TVector2Integer;
+  var
+    V: packed array [0..1] of TGLInt;
+  begin
+    glGetIntegerv(Param, @V);
+    Result.Data[0] := V[0];
+    Result.Data[1] := V[1];
+  end;
+
 var
   SupportedExtensions: string;
 begin
@@ -623,6 +635,8 @@ begin
     of GL_MAX_CLIP_DISTANCES. }
   MaxClipPlanes := 8;
   {$endif}
+
+  MaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
   GLFeatures := Self;

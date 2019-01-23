@@ -87,6 +87,8 @@ type
       FColorChannels: TColorChannels;
       FViewport: TRectangle;
       FViewportDelta: TVector2Integer;
+      WarningViewportTooLargeDone: Boolean;
+
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
       procedure SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -101,6 +103,7 @@ type
       procedure SetViewport(const Value: TRectangle);
       procedure SetViewportDelta(const Value: TVector2Integer);
       procedure UpdateViewport;
+      procedure WarningViewportTooLarge;
   private
     FEnabledScissors: TScissorList;
   public
@@ -502,6 +505,18 @@ begin
       FViewport.Height);
 end;
 
+procedure TRenderContext.WarningViewportTooLarge;
+begin
+  if not WarningViewportTooLargeDone then
+  begin
+    WritelnWarning('Setting viewport %s, with has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
+      FViewport.ToString,
+      GLFeatures.MaxViewportDimensions.ToString
+    ]);
+    WarningViewportTooLargeDone := true;
+  end;
+end;
+
 procedure TRenderContext.SetViewport(const Value: TRectangle);
 begin
   if Self <> RenderContext then
@@ -509,6 +524,11 @@ begin
 
   if not FViewport.Equals(Value) then
   begin
+    if (GLFeatures <> nil) and
+       ((FViewport.Width > GLFeatures.MaxViewportDimensions.Data[0]) or
+        (FViewport.Height > GLFeatures.MaxViewportDimensions.Data[1])) then
+      WarningViewportTooLarge;
+
     FViewport := Value;
     UpdateViewport;
   end;

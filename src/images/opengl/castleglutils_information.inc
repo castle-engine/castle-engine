@@ -40,14 +40,6 @@ const
     Result := IntToStr(glGetInteger(param));
   end;
 
-  function GetInteger2(param: TGLenum; const form: string): string;
-  var
-    v: packed array [0..1] of TGLint;
-  begin
-    glGetIntegerv(param, @v);
-    result := Format(form, [v[0], v[1]]);
-  end;
-
   function GetBoolean(param: TGLenum): string;
   begin
     Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
@@ -272,7 +264,7 @@ begin
     '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) + NL +
     {$endif}
     '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) + NL +
-    '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') + NL +
+    '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
     '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
     '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) + NL +
     '  Max cube map texture size: ' + GetMaxCubeMapTextureSize + NL +
