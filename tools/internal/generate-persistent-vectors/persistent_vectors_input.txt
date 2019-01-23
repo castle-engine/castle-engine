@@ -2,7 +2,7 @@
 
 ../../../src/ui/opengl/ TCastleRectangleControl Color TCastleColor
 ../../../src/ui/opengl/ TStateDialog BackgroundColor TCastleColor
-../../../src/ui/opengl/ TCastleScrollView TintScrollBarInactive TCastleColor
+../../../src/ui/opengl/ TCastleScrollViewCustom TintScrollBarInactive TCastleColor
 
 ../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor1 TCastleColor
 ../../../src/ui/opengl/ TCastleOnScreenMenu CurrentItemBorderColor2 TCastleColor

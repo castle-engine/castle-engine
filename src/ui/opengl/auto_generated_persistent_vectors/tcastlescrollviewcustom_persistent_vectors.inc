@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleScrollView.GetTintScrollBarInactiveForPersistent: TCastleColor;
+function TCastleScrollViewCustom.GetTintScrollBarInactiveForPersistent: TCastleColor;
 begin
   Result := TintScrollBarInactive;
 end;
 
-procedure TCastleScrollView.SetTintScrollBarInactiveForPersistent(const AValue: TCastleColor);
+procedure TCastleScrollViewCustom.SetTintScrollBarInactiveForPersistent(const AValue: TCastleColor);
 begin
   TintScrollBarInactive := AValue;
 end;
