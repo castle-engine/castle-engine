@@ -120,6 +120,7 @@ initialization
   RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
   RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');
   RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
+  RegisterSerializableComponent(TCastleScrollViewManual, 'Scroll View Manual');
   RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
   RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
   RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
