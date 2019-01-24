@@ -84,12 +84,35 @@
 
   { Base type for all touch-style pointing device sensors. }
   TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
+  strict private
+    FOnClick: TNotifyEvent;
+    procedure EventTouchTimeReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
 
     { Event out } { }
     strict private FEventTouchTime: TSFTimeEvent;
     public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
+
+    { Event generated when we register a "click" on the shapes within
+      the same group as this TouchSensor node.
+      The "click" definition corresponds to the X3D touchTime event generation.
+
+      Note that, in order to register clicks, TCastleScene must
+      be configured to process events (@link(TCastleSceneCore.ProcessEvents))
+      and be able to detect clicks on particular shapes
+      (@link(TCastleSceneCore.Spatial) should contain ssDynamicCollisions).
+      Usually you will initialize scene like this:
+
+      @longCode(#
+        MyScene := TCastleScene.Create(...);
+        MyScene.Load(...); // load X3D graph with TouchSensor node
+        MyScene.Spatial := [ssRendering, ssDynamicCollisions];
+        MyScene.ProcessEvents := true;
+      #)
+    }
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
   end;
@@ -338,7 +361,15 @@ begin
   inherited;
 
   FEventTouchTime := TSFTimeEvent.Create(Self, 'touchTime', false);
+   EventTouchTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTouchTimeReceive);
   AddEvent(FEventTouchTime);
+end;
+
+procedure TAbstractTouchSensorNode.EventTouchTimeReceive(
+  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+begin
+  if Assigned(FOnClick) then
+    FOnClick(Self);
 end;
 
 procedure TCylinderSensorNode.CreateNode;
