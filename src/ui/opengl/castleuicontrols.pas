@@ -1332,11 +1332,6 @@ type
       In most use-cases, you rather adjust preferred size by overriding
       @link(PreferredSize). }
     procedure BeforeSizing; virtual;
-
-    { @link(EffectiveWidth) without @link(Border) size. }
-    function EffectiveWidthForChildren: Single;
-    { @link(EffectiveHeight) without @link(Border) size. }
-    function EffectiveHeightForChildren: Single;
   public
     const
       DefaultWidth = 100.0;
@@ -1676,6 +1671,11 @@ type
 
       @seealso EffectiveRect }
     function EffectiveHeight: Single;
+
+    { @link(EffectiveWidth) without @link(Border) size. }
+    function EffectiveWidthForChildren: Single;
+    { @link(EffectiveHeight) without @link(Border) size. }
+    function EffectiveHeightForChildren: Single;
 
     function CalculatedWidth: Cardinal; deprecated 'use EffectiveWidth';
     function CalculatedHeight: Cardinal; deprecated 'use EffectiveHeight';
