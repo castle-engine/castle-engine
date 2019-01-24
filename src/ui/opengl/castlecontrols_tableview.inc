@@ -14,6 +14,39 @@
   ----------------------------------------------------------------------------
 }
 
+{ TODO:
+
+  The API of TCastleTableViewCell and TCastleTableView requires creating
+  ICastleTableViewDataSource instead of "just" adding
+  stuff by calling a method like "AddRow".
+  And it doesn't allow visual designing by CGE editor.
+
+  Compare this with TCastleVerticalGroup, to which you can add stuff like this:
+
+    Group := TCastleVerticalGroup.Create;
+    Group.InsertFront(Label1);
+    Group.InsertFront(Label2);
+
+  Ideally, we should have a grid component, that allows to add stuff in an easy
+  way like this:
+
+    Grid := TCastleGrid.Create(Owner);
+    Grid.Rows := 5;
+    Grid.Columns := 3;
+    Grid.Cells[0, 0] := Label1;
+    Grid.Cells[0, 2] := Label2;
+
+  or
+
+    Grid := TCastleGrid.Create(Owner);
+    Grid.Columns := 3;
+    GridRow1 := TCastleGridRow.Create(Owner);
+    GridRow1.InsertFront(Label1);
+    GridRow1.InsertFront(Label2);
+    GridRow1.InsertFront(Label3);
+    Grid.InsertFront(GridRow1);
+}
+
 {$ifdef read_interface}
 
   TCastleTableView = class;
