@@ -35,6 +35,8 @@
     FTintScrollBarInactive: TCastleColor;
     function ScrollBarWidthScaled: Single;
     procedure SetScroll(Value: Single);
+    { Stop any movement due to inertial force. }
+    procedure ResetInertialForce;
   protected
     procedure DoScrollChange; virtual;
 
@@ -250,6 +252,12 @@ begin
   end;
 end;
 
+procedure TCastleScrollViewCustom.ResetInertialForce;
+begin
+  DragSpeed := 0;
+  TimeSinceDraggingStopped := 0;
+end;
+
 procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 
@@ -291,9 +299,8 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
     begin
       ScrollBarDragging := false;
       Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
-      DragSpeed := 0;
-      TimeSinceDraggingStopped := 0;
       ScrollbarActive := 0;
+      ResetInertialForce;
     end;
   end;
 
@@ -304,12 +311,12 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
       if Container.Pressed[K_Up  ] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
-        TimeSinceDraggingStopped := 0;
+        ResetInertialForce;
       end;
       if Container.Pressed[K_Down] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
-        TimeSinceDraggingStopped := 0;
+        ResetInertialForce;
       end;
       HandleInput := not ExclusiveEvents;
     end;
@@ -414,12 +421,12 @@ begin
     if Event.Position[1] < ScrollbarSlider.Bottom then
     begin
       Scroll := Scroll + GetPageSize;
-      TimeSinceDraggingStopped := 0;
+      ResetInertialForce;
     end else
     if Event.Position[1] >= ScrollbarSlider.Top then
     begin
       Scroll := Scroll - GetPageSize;
-      TimeSinceDraggingStopped := 0;
+      ResetInertialForce;
     end else
       ScrollBarDragging := true;
     Exit(ExclusiveEvents);
@@ -445,16 +452,36 @@ begin
     case Event.EventType of
       itKey:
         case Event.Key of
-          K_PageUp:   begin Scroll := Scroll - GetPageSize; Result := ExclusiveEvents; end;
-          K_PageDown: begin Scroll := Scroll + GetPageSize; Result := ExclusiveEvents; end;
-          K_Home:     begin Scroll := ScrollMin; Result := ExclusiveEvents; end;
-          K_End:      begin Scroll := ScrollMax; Result := ExclusiveEvents; end;
+          K_PageUp:
+            begin
+              Scroll := Scroll - GetPageSize;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+            end;
+          K_PageDown:
+            begin
+              Scroll := Scroll + GetPageSize;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+            end;
+          K_Home:
+            begin
+              Scroll := ScrollMin;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+            end;
+          K_End:
+            begin
+              Scroll := ScrollMax;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+            end;
         end;
       itMouseWheel:
         if Event.MouseWheelVertical then
         begin
           Scroll := Scroll - Event.MouseWheelScroll * WheelScrollSpeed;
-          TimeSinceDraggingStopped := 0;
+          ResetInertialForce;
           Result := ExclusiveEvents;
         end;
     end;
@@ -504,7 +531,7 @@ begin
       Scroll by GetCompleteSize. }
     Scroll := Scroll + GetCompleteSize *
       (Event.OldPosition[1] - Event.Position[1]) / ScrollbarFrame.Height;
-    TimeSinceDraggingStopped := 0;
+    ResetInertialForce;
     Result := ExclusiveEvents;
   end else
   if EnableDragging and (mbLeft in Event.Pressed) then
