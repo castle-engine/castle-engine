@@ -99,6 +99,7 @@
     function GetExports(const Index: Integer): TX3DExport;
     function GetFields(const Index: Integer): TX3DField;
     function GetEvents(const Index: Integer): TX3DEvent;
+    procedure UnregisterSceneCallback(Node: TX3DNode);
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -1024,6 +1025,40 @@
     { Nice and concise node description for user.
       Shows node type and name. }
     function NiceName: string;
+
+    { Detach this node from parent scene, recursively.
+      Useful if you take a node and want to put it in another TCastleSceneCore.
+
+      @italic(You almost never need to call this method from your application).
+      This is done automatically for you when TCastleSceneCore is destroyed.
+      And a node can only be part of one TCastleSceneCore instance
+      at one time.
+
+      Notable exceptions when you need to call this:
+
+      @orderedList(
+        @item(
+          If you process RootNode graph and extract some node from it
+          (that is, delete node from one RootNode graph,
+          but instead of freeing it you insert it into some other VRML/X3D graph)
+          you must call it to manually
+          detach this node (and all it's children) from a previous TCastleSceneCore
+          instance.
+        )
+
+        @item(
+          Right now the TCastleSceneCore doesn't call RootNode.UnregisterScene
+          when TCastleSceneCore.OwnsRootNode.
+          This is done for speed, because it's not needed in 99% cases.
+
+          However, if your scene contains some node that isn't freed
+          because of @link(KeepExistingBegin),
+          then such node will remain attached to non-existing scene.
+          You should call UnregisterScene on such node manually, for now.
+        )
+      )
+    }
+    procedure UnregisterScene;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -3292,6 +3327,16 @@ begin
   if FExports = nil then
     FExports := TX3DFileItemList.Create(true);
   FExports.Add(Value);
+end;
+
+procedure TX3DNode.UnregisterSceneCallback(Node: TX3DNode);
+begin
+  Node.Scene := nil;
+end;
+
+procedure TX3DNode.UnregisterScene;
+begin
+  EnumerateNodes(TX3DNode, {$ifdef CASTLE_OBJFPC}@{$endif} UnregisterSceneCallback, false);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

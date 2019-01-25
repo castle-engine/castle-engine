@@ -675,7 +675,6 @@ type
     procedure ChangedAllEnumerateCallback(Node: TX3DNode);
     procedure ScriptsInitializeCallback(Node: TX3DNode);
     procedure ScriptsFinalizeCallback(Node: TX3DNode);
-    procedure UnregisterSceneCallback(Node: TX3DNode);
 
     procedure ScriptsInitialize;
     procedure ScriptsFinalize;
@@ -1458,17 +1457,9 @@ type
       See TSceneFreeResources documentation. }
     procedure FreeResources(Resources: TSceneFreeResources); virtual;
 
-    { Recursively unset node's TX3DNode.Scene. Useful if you want to remove
-      part of a node graph and put it in some other scene.
-
-      @italic(You almost never need to call this method) --- this
-      is done automatically for you when TCastleSceneCore is destroyed.
-      However, if you process RootNode graph
-      and extract some node from it (that is, delete node from our
-      RootNode graph, but instead of freeing it you insert it
-      into some other VRML/X3D graph) you must call it to manually
-      "untie" this node (and all it's children) from this TCastleSceneCore instance. }
+    { Recursively unset node's TX3DNode.Scene. }
     procedure UnregisterScene(Node: TX3DNode);
+      deprecated 'use Node.UnregisterScene';
 
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -2847,11 +2838,11 @@ begin
   if OwnsRootNode then
     FreeAndNil(FRootNode) else
   begin
-    { This will call UnregisterScene(RootNode). }
+    { This will call RootNode.UnregisterScene. }
     {$warnings off}
     { consciously using deprecated feature; in the future,
       we will just explicitly call
-        if RootNode <> nil then UnregisterScene(RootNode);
+        if RootNode <> nil then RootNode.UnregisterScene;
       here. }
     Static := true;
     {$warnings on}
@@ -5424,7 +5415,7 @@ begin
     begin
       { Clear TX3DNode.Scene for all nodes }
       if RootNode <> nil then
-        UnregisterScene(RootNode);
+        RootNode.UnregisterScene;
     end else
       { Set TX3DNode.Scene for all nodes.
         This is done as part of ChangedAll when Static = true. }
@@ -7049,14 +7040,9 @@ procedure TCastleSceneCore.InvalidateBackground;
 begin
 end;
 
-procedure TCastleSceneCore.UnregisterSceneCallback(Node: TX3DNode);
-begin
-  Node.Scene := nil;
-end;
-
 procedure TCastleSceneCore.UnregisterScene(Node: TX3DNode);
 begin
-  Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
+  Node.UnregisterScene;
 end;
 
 function TCastleSceneCore.ViewpointsCount: Cardinal;
