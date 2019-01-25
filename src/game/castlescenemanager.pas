@@ -123,6 +123,7 @@ type
     FWithinSetNavigationType: boolean;
     LastPressEvent: TInputPressRelease;
     FOnProjection: TProjectionEvent;
+    FEnableParentDragging: boolean;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -845,6 +846,18 @@ type
       See the @link(CalculateProjection) for a description how to default
       projection parameters are calculated. }
     property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
+
+    { Enable to drag a parent control, for example to drag a TCastleScrollView
+      that contains this scene manager, even when the scene inside contains
+      clickable elements (using TouchSensor node).
+
+      To do this, you need to turn on
+      TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
+      here. In effect, scene manager will cancel the click operation
+      once you start dragging, which allows the parent to handle
+      all the motion events for dragging. }
+    property EnableParentDragging: boolean
+      read FEnableParentDragging write FEnableParentDragging default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
@@ -1698,26 +1711,21 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  if GetItems <> nil then
-  begin
-    Result := GetItems.Release(Event);
-    if Result then Exit;
-  end;
+  if (GetItems <> nil) and
+     GetItems.Release(Event) then
+    Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
-  begin
-    Result := PointingDeviceActivate(false);
-    if Result then Exit;
-  end;
+  if PlayerNotBlocked and
+     Input_Interact.IsEvent(Event) and
+     PointingDeviceActivate(false) then
+    Exit(ExclusiveEvents);
 
   { Let Camera only work after PointingDeviceActivate, to let pointing
     device sensors under camera work, even when camera allows to navigate
     by dragging. }
-  if Camera <> nil then
-  begin
-    Result := Camera.Release(Event);
-    if Result then Exit;
-  end;
+  if (Camera <> nil) and
+     Camera.Release(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
@@ -1738,6 +1746,8 @@ function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
     end;
   end;
 
+const
+  DistanceToHijackDragging = 5 * 96;
 var
   TopMostScene: TCastleTransform;
 begin
@@ -1746,16 +1756,26 @@ begin
   begin
     if (GetMouseRayHit <> nil) and
        (GetMouseRayHit.Count <> 0) then
-      TopMostScene := GetMouseRayHit.First.Item else
+      TopMostScene := GetMouseRayHit.First.Item
+    else
       TopMostScene := nil;
 
     { Test if dragging TTouchSensorNode. In that case cancel its dragging
       and let camera move instead. }
     if (TopMostScene <> nil) and
        IsTouchSensorActiveInScene(TopMostScene) and
-       (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
+       (PointsDistance(LastPressEvent.Position, Event.Position) >
+        DistanceToHijackDragging / Container.Dpi) then
     begin
       TopMostScene.PointingDeviceActivate(false, 0, true);
+
+      if EnableParentDragging then
+      begin
+        { Without ReleaseCapture, the parent (like TCastleScrollView) would still
+          not receive the following motion events. }
+        Container.ReleaseCapture(Self);
+      end;
+
       Camera.Press(LastPressEvent);
     end;
 
@@ -1765,7 +1785,8 @@ begin
       This means that if you drag X3D sensors like TouchSensor, then your
       dragging will not simultaneously also affect the camera (which would be very
       disorienting). }
-    Result := Camera.Motion(Event);
+    if Camera.Motion(Event) then
+      Result := ExclusiveEvents;
 
     { Do PointingDeviceMove, which updates MouseRayHit, even when Camera.Motion
       is true. On Windows 10 with MouseLook, Camera.Motion is always true. }
