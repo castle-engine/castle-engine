@@ -24,6 +24,12 @@ type
     FTimeStart: TTimerResult;
     FProcessTimeStart: TProcessTimerResult;
     FTime: TObject; //< Always TCastleProfiler.TTime
+  public
+    { Elapsed time in seconds since calling @link(TProfiler.Start)
+      that returned this. Useful if you use @link(TProfiler),
+      but in addition to @link(TProfiler.Summary) you also want to show
+      the operation time in some other way. }
+    function ElapsedTime: TFloatTime;
   end;
 
   { Profiler, to measure the speed of execution of your code.
@@ -178,6 +184,13 @@ function Profiler: TCastleProfiler;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TCastleProfilerTime -------------------------------------------------------- }
+
+function TCastleProfilerTime.ElapsedTime: TFloatTime;
+begin
+  Result := FTimeStart.ElapsedTime;
+end;
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
 
