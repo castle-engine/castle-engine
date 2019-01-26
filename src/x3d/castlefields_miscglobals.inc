@@ -66,7 +66,8 @@ const
     'Background',
     'Everything',
     'Shadow maps',
-    'Wireframe');
+    'Wireframe',
+    'Children');
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
 

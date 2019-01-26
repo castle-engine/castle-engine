@@ -566,7 +566,7 @@ begin
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
-   FdChildren.ChangesAlways := [chEverything];
+   FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
@@ -909,7 +909,7 @@ begin
   inherited;
 
   FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
-   FdChildren.ChangesAlways := [chEverything];
+   FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));

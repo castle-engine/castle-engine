@@ -4693,6 +4693,13 @@ var
     finally FreeAndNil(SI) end;
   end;
 
+  procedure HandleChangeChildren;
+  begin
+    if Log and LogChanges then
+      WritelnLog('TODO: Children change (add/remove) is not optimized yet, but could be. Report if you need it.');
+    HandleChangeEverything;
+  end;
+
 begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
@@ -4755,6 +4762,7 @@ begin
     if chEverything in Changes then HandleChangeEverything;
     if chShadowMaps in Changes then HandleChangeShadowMaps;
     if chWireframe in Changes then HandleChangeWireframe;
+    if chChildren in Changes then HandleChangeChildren;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] <> [] then
       HandleVisibleChange;

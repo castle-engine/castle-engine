@@ -249,7 +249,7 @@
       changed. }
     chNavigationInfo,
 
-    { ScreenEffect.enabled changed }
+    { ScreenEffect.enabled changed. }
     chScreenEffectEnabled,
 
     { X3DBackgroundNode properties that are stored inside TBackground
@@ -275,7 +275,10 @@
     chShadowMaps,
 
     { Shading changed from wireframe to non-wireframe. }
-    chWireframe);
+    chWireframe,
+
+    { Children of X3D (or VRML 2) grouping node have been added or removed. }
+    chChildren);
   TX3DChanges = set of TX3DChange;
 
 {$endif read_interface}
