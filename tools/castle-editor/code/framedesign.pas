@@ -157,7 +157,7 @@ type
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
-    class function Selectable(const AParent, Child: TComponent): Boolean; static;
+    class function Selectable(const Child: TComponent): Boolean; static;
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
@@ -303,7 +303,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     if C.GetExists then
     begin
       for I := C.ControlsCount - 1 downto 0 do
-        if TDesignFrame.Selectable(C, C.Controls[I]) then
+        if TDesignFrame.Selectable(C.Controls[I]) then
         begin
           Result := ControlUnder(C.Controls[I], MousePos);
           if Result <> nil then Exit;
@@ -1359,8 +1359,7 @@ begin
   OnUpdateFormCaption(Self);
 end;
 
-class function TDesignFrame.Selectable(
-  const AParent, Child: TComponent): Boolean;
+class function TDesignFrame.Selectable(const Child: TComponent): Boolean;
 begin
   { Do not show in hierarchy the TCastleDesign loaded hierarchy,
     as it will not be saved.
@@ -1380,7 +1379,8 @@ procedure TDesignFrame.UpdateDesign;
     Result := ControlsTree.Items.AddChildObject(Parent, S, T);
     TreeNodeMap.AddOrSetValue(T, Result);
     for I := 0 to T.Count - 1 do
-      AddTransform(Result, T[I]);
+      if Selectable(T[I]) then
+        AddTransform(Result, T[I]);
   end;
 
   function AddControl(const Parent: TTreeNode; const C: TCastleUserInterface): TTreeNode;
@@ -1394,14 +1394,15 @@ procedure TDesignFrame.UpdateDesign;
     TreeNodeMap.AddOrSetValue(C, Result);
     for I := 0 to C.ControlsCount - 1 do
     begin
-      if Selectable(C, C.Controls[I]) then
+      if Selectable(C.Controls[I]) then
         AddControl(Result, C.Controls[I]);
     end;
 
     if C is TCastleSceneManager then
     begin
       SceneManager := TCastleSceneManager(C);
-      AddTransform(Result, SceneManager.Items);
+      if Selectable(SceneManager.Items) then
+        AddTransform(Result, SceneManager.Items);
     end;
   end;
 
