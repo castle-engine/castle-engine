@@ -698,7 +698,8 @@ constructor TCastleProject.Create(const APath: string);
     begin
       if Verbose then
         Writeln('Found data in "' + DataPath + '"');
-      if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) then
+      if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) or
+         FindFirstFile(DataPath, '*.otf', false, [ffRecursive], FileInfo) then
         AddDependency(depFreetype, FileInfo);
       if FindFirstFile(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
         AddDependency(depZlib, FileInfo);
