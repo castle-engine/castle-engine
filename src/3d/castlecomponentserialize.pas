@@ -230,7 +230,10 @@ procedure TCastleComponentReader.AfterReadObject(
     if Json.Find('$Children') <> nil then
       JsonChildren := Json.Arrays['$Children']
     else
-      JsonChildren := Json.Arrays['_Children']; // handle older format
+    if Json.Find('_Children') <> nil then
+      JsonChildren := Json.Arrays['_Children'] // handle older format
+    else
+      JsonChildren := nil;
 
     if JsonChildren <> nil then
     begin
