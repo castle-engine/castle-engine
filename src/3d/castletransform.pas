@@ -3156,7 +3156,8 @@ var
 begin
   inherited;
   for I := 0 to List.Count - 1 do
-    Proc(List[I]);
+    if [csSubComponent, csTransient] * List[I].ComponentStyle = [] then
+      Proc(List[I]);
 end;
 
 procedure TCastleTransform.InternalAddChild(const C: TComponent);
