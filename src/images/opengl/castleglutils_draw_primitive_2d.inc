@@ -71,6 +71,15 @@ type
     bdConstantAlpha,
     bdOneMinusConstantAlpha
   );
+  TLineStipple = record
+    { Makes pattern scaled to be longer.
+      See glLineStipple parameter. }
+    Factor: Integer;
+
+    { The line pattern, each bit in 16-bit integer says if the line is visible.
+      See glLineStipple parameter. }
+    Pattern: Word;
+  end;
 
 const
   DefaultCircleSlices = 32;
@@ -186,6 +195,15 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const Points: array of TVector2;
+  const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false;
+  const LineWidth: Single = 1;
+  const PointSize: Cardinal = 1);
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const LineStipple: TLineStipple;
   const Points: array of TVector2;
   const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
@@ -475,6 +493,26 @@ begin
 
   if Blending then
     glDisable(GL_BLEND);
+end;
+
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const LineStipple: TLineStipple;
+  const Points: array of TVector2;
+  const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
+  const ForceBlending: boolean = false;
+  const LineWidth: Single = 1;
+  const PointSize: Cardinal = 1);
+begin
+  glLineStipple(1, LineStipple.Pattern);
+  glEnable(GL_LINE_STIPPLE);
+
+  DrawPrimitive2D(Mode, Points, Color,
+    BlendingSourceFactor, BlendingDestinationFactor, ForceBlending,
+    LineWidth, PointSize);
+
+  glDisable(GL_LINE_STIPPLE);
 end;
 
 { DrawRectangle ---------------------------------------------------------------- }
