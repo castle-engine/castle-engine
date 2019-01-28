@@ -1052,7 +1052,7 @@ var
       win64:
         begin
           if depFreetype in Dependencies then
-            WritelnWarning('Libraries', 'We do not know how to satisfy freetype dependency on win64');
+            AddExternalLibrary('freetype-6.dll');
           if depZlib in Dependencies then
             AddExternalLibrary('zlib1.dll');
           if depPng in Dependencies then
