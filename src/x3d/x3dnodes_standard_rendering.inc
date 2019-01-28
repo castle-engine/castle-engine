@@ -1203,9 +1203,9 @@ var
 begin
   F := ColorField;
   if (F <> nil) and
-     (F.Value <> nil) and
      (F.Value is TColorNode) then
-    Result := TColorNode(F.Value).FdColor else
+    Result := TColorNode(F.Value).FdColor
+  else
     Result := nil;
 end;
 
@@ -1215,9 +1215,9 @@ var
 begin
   F := ColorField;
   if (F <> nil) and
-     (F.Value <> nil) and
      (F.Value is TColorRGBANode) then
-    Result := TColorRGBANode(F.Value).FdColor else
+    Result := TColorRGBANode(F.Value).FdColor
+  else
     Result := nil;
 end;
 
