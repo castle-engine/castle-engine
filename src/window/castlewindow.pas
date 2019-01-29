@@ -1020,10 +1020,11 @@ type
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
-      Only DoKeyDown: pass also CharKey. Pass Key = K_None if this is not
-      representable as TKey, pass CharKey =#0 if this is not representable
-      as char. But never pass both Key = K_None and CharKey = #0
-      (this would have no meaning).
+      Only DoKeyDown: pass also KeyString. Pass Key = K_None if this is not
+      representable as TKey, pass KeyString = '' if this is not representable
+      as char. But never pass both Key = K_None and KeyString = ''
+      (this would mean that nothing is pressed, at least nothing that can be represented
+      in CGE).
 
       Only DoKeyUp: never pass Key = K_None.
 
@@ -1037,8 +1038,8 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(Key: TKey; StringKey: string);
-    procedure DoKeyUp(key: TKey);
+    procedure DoKeyDown(const Key: TKey; const KeyString: string);
+    procedure DoKeyUp(const key: TKey);
     { Do MakeCurrent,
          EventMotion,
          update MousePosition }
@@ -1860,7 +1861,7 @@ type
 
       You can change this almost freely while not Closed: you can use
       various properties of TMenuEntry descendants (adding, deleting items
-      from TMenu, changing Caption, Key, CharKey, Checked properties --
+      from TMenu, changing Caption, Key, KeyString, Checked properties --
       anything) and you can change value of MainMenu BUT you must not
       change MainMenu <> nil state when the window is not Closed.
       I.e. if you called Open with MainMenu = nil, then MainMenu must stay
@@ -2337,7 +2338,7 @@ type
     LastFpsOutputTime: TTimerResult;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
-    FClose_CharKey: char;
+    FClose_KeyString: String;
     FFpsCaptionUpdateDelay: Single;
   public
     { Show current frames per second on window caption.
@@ -2359,11 +2360,11 @@ type
       read FSwapFullScreen_Key write FSwapFullScreen_Key default K_None;
 
     { Key to use to close the window.
-      Set to #0 (default) to disable this functionality.
+      Set to '' (default) to disable this functionality.
       Suggested value to enable this functionality is CharEscape.
       You can freely modify it at any time, even after calling @link(Open). }
-    property Close_CharKey: char
-      read FClose_CharKey write FClose_CharKey default #0;
+    property Close_KeyString: String
+      read FClose_KeyString write FClose_KeyString;
 
     { The amount of time (in seconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
@@ -2377,9 +2378,9 @@ type
       default DefaultFpsCaptionUpdateDelay;
 
     { Configure some options typically used by "demo" applications. }
-    procedure SetDemoOptions(ASwapFullScreen_Key: TKey;
-      AClose_CharKey: char;
-      AFpsShowOnCaption: boolean);
+    procedure SetDemoOptions(const ASwapFullScreen_Key: TKey;
+      AClose_KeyString: String;
+      const AFpsShowOnCaption: boolean);
   end;
 
   TCastleWindowCustom = TCastleWindowBase deprecated 'use TCastleWindowBase';
@@ -2901,15 +2902,15 @@ function Application: TCastleApplication;
   #) }
 procedure Resize2D(Container: TUIContainer);
 
-{ Describe given key. Key is given as combination of character code (may be #0)
+{ Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
   and Key code (may be K_None), and additional required @code(Modifiers)
-  (although some modifiers may be already implied by CharKey).
-  See @link(TMenuItem.Key) and @link(TMenuItem.CharKey) and @link(TMenuItem.Modifiers).
+  (although some modifiers may be already implied by KeyString, e.g. when it is CtrlA).
+  See @link(TMenuItem.Key) and @link(TMenuItem.KeyString) and @link(TMenuItem.Modifiers).
 
-  Only when both CharKey = #0 and Key = K_None
+  Only when Key = K_None and KeyString = ''
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
-function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModifierKeys;
+function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
   out S: string): boolean;
 
 {$undef read_interface}
@@ -3046,7 +3047,7 @@ begin
   FMousePosition := Vector2(-1, -1);
   FMainMenuVisible := true;
   FContainer := CreateContainer;
-  Close_CharKey := #0;
+  Close_KeyString := '';
   SwapFullScreen_Key := K_None;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
@@ -3499,7 +3500,7 @@ begin
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
 
-procedure TCastleWindowBase.DoKeyDown(Key: TKey; StringKey: string);
+procedure TCastleWindowBase.DoKeyDown(const Key: TKey; const KeyString: string);
 var
   Event: TInputPressRelease;
 
@@ -3519,7 +3520,7 @@ var
         end;
       end else
       if (Entry is TMenuItem) and
-         TMenuItem(Entry).KeyMatches(Key, Event.KeyCharacter, Pressed.Modifiers) then
+         TMenuItem(Entry).KeyMatches(Key, Event.KeyString, Pressed.Modifiers) then
         Result := TMenuItem(Entry);
     end;
 
@@ -3533,18 +3534,17 @@ var
   MatchingMI: TMenuItem;
   KeyRepeated: boolean;
 begin
-  {we need to create event beforehand to correctly convert StringKey to CharKey)}
-  Event := InputKey(MousePosition, Key, StringKey, ModifiersDown(Container.Pressed));
+  Event := InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed));
 
   KeyRepeated :=
     // Key or KeyString non-empty
-    ((Key <> keyNone) or (Event.KeyString <> '')) and
+    ((Key <> keyNone) or (KeyString <> '')) and
     // Key already pressed
     ((Key = keyNone) or Pressed.Keys[Key]) and
-    // CharKey already pressed
-    ((Event.KeyCharacter = #0) or Pressed.Characters[Event.KeyCharacter]);
+    // KeyString already pressed
+    ((KeyString = '') or Pressed.Strings[KeyString]);
 
-  Pressed.KeyDown(Key, Event.KeyCharacter);
+  Pressed.KeyDown(Key, KeyString);
 
   MatchingMI := SeekMatchingMenuItem;
   if (MainMenu <> nil) and
@@ -3559,24 +3559,24 @@ begin
     Event.KeyRepeated := KeyRepeated;
     Container.EventPress(Event);
 
-    if Event.IsKey(Close_CharKey) then
+    if Event.IsKey(Close_KeyString) then
       Close else
     if Event.IsKey(SwapFullScreen_Key) then
       FullScreen := not FullScreen;
   end;
 end;
 
-procedure TCastleWindowBase.DoKeyUp(Key: TKey);
+procedure TCastleWindowBase.DoKeyUp(const Key: TKey);
 var
-  C: char;
+  KeyString: String;
 begin
   if Pressed[Key] then
   begin
     { K_None key is never pressed, DoKeyDown guarentees this }
     Assert(Key <> K_None);
-    Pressed.KeyUp(Key, C);
+    Pressed.KeyUp(Key, KeyString);
     MakeCurrent;
-    Container.EventRelease(InputKey(MousePosition, Key, C, ModifiersDown(Container.Pressed)));
+    Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
   end;
 end;
 
@@ -4528,12 +4528,16 @@ begin
   Container.OnMotion := Value;
 end;
 
-procedure TCastleWindowBase.SetDemoOptions(ASwapFullScreen_Key: TKey;
-  AClose_CharKey: char;
-  AFpsShowOnCaption: boolean);
+procedure TCastleWindowBase.SetDemoOptions(const ASwapFullScreen_Key: TKey;
+  AClose_KeyString: String;
+  const AFpsShowOnCaption: boolean);
 begin
+  // only for backward compatibility (when this parameter was Char) convert #0 to ''
+  if AClose_KeyString = #0 then
+    AClose_KeyString := '';
+
   SwapFullScreen_Key := ASwapFullScreen_Key;
-  Close_CharKey := AClose_CharKey;
+  Close_KeyString := AClose_KeyString;
   FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
@@ -5296,12 +5300,12 @@ begin
   OrthoProjection(FloatRectangle(Container.Rect));
 end;
 
-function KeyString(const CharKey: char; const Key: TKey;
+function KeyToString(const KeyString: String; const Key: TKey;
   const Modifiers: TModifierKeys; out S: string): boolean;
 begin
-  if CharKey <> #0 then
+  if KeyString <> '' then
   begin
-    S := CharToNiceStr(CharKey, Modifiers, false
+    S := KeyStringToNiceStr(KeyString, Modifiers, false
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else

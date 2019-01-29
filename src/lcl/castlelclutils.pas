@@ -65,28 +65,32 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
 
 { Convert Key (Lazarus key code) to Castle Game Engine TKey.
 
-  In addition, this tries to convert Key to a character (MyCharKey).
-  It's awful that this function has to do conversion to Char,
+  In addition, this tries to convert Key to a character (MyKeyString).
+  Character is represented using String (not Char) as it may be UTF-8 character.
+
+  It's not nice that this function has to do conversion to String,
   but that's the way of VCL and LCL: KeyPress and KeyDown
-  are separate events. While I want to have them in one event,
-  and passed as one event to TCastleUserInterface.KeyDown. }
+  are separate events. While in CGE they are one event,
+  and passed as one event to TCastleUserInterface.KeyDown,
+  because this is more comfortable to process (as it corresponds
+  to one user action, and allows configurable TInputShortcut to work). }
 procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
-  out MyKey: TKey; out MyCharKey: char);
+  out MyKey: TKey; out MyKeyString: String);
 
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
   Sets LazKey to VK_UNKNOWN (zero) when conversion not possible
-  (or when Key is K_None and CharKey = #0).
+  (or when Key = K_None and KeyString = '').
 
   Note that this is not a perfect reverse of KeyLCLToCastle function.
   It can't, as there are ambiguities (e.g. character 'A' may
   be a key K_A with mkShift in modifiers).
 
   @groupBegin }
-procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
   const Modifiers: TModifierKeys;
   out LazKey: Word; out Shift: TShiftState);
-procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
   out LazKey: Word; out Shift: TShiftState);
 { @groupEnd }
 
@@ -241,20 +245,20 @@ const
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
 procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
-  out MyKey: TKey; out MyCharKey: char);
+  out MyKey: TKey; out MyKeyString: String);
 begin
   MyKey := K_None;
-  MyCharKey := #0;
+  MyKeyString := '';
 
   case Key of
-    VK_BACK:       begin MyKey := K_BackSpace;       MyCharKey := CharBackSpace; end;
-    VK_TAB:        begin MyKey := K_Tab;             MyCharKey := CharTab;       end;
-    VK_RETURN:     begin MyKey := K_Enter;           MyCharKey := CharEnter;     end;
+    VK_BACK:       begin MyKey := K_BackSpace;       MyKeyString := CharBackSpace; end;
+    VK_TAB:        begin MyKey := K_Tab;             MyKeyString := CharTab;       end;
+    VK_RETURN:     begin MyKey := K_Enter;           MyKeyString := CharEnter;     end;
     VK_SHIFT:            MyKey := K_Shift;
     VK_CONTROL:          MyKey := K_Ctrl;
     VK_MENU:             MyKey := K_Alt;
-    VK_ESCAPE:     begin MyKey := K_Escape;          MyCharKey := CharEscape;    end;
-    VK_SPACE:      begin MyKey := K_Space;           MyCharKey := ' ';           end;
+    VK_ESCAPE:     begin MyKey := K_Escape;          MyKeyString := CharEscape;    end;
+    VK_SPACE:      begin MyKey := K_Space;           MyKeyString := ' ';           end;
     VK_PRIOR:            MyKey := K_PageUp;
     VK_NEXT:             MyKey := K_PageDown;
     VK_END:              MyKey := K_End;
@@ -264,75 +268,81 @@ begin
     VK_RIGHT:            MyKey := K_Right;
     VK_DOWN:             MyKey := K_Down;
     VK_INSERT:           MyKey := K_Insert;
-    VK_DELETE:     begin MyKey := K_Delete;          MyCharKey := CharDelete; end;
-    VK_ADD:        begin MyKey := K_Numpad_Plus;     MyCharKey := '+';        end;
-    VK_SUBTRACT:   begin MyKey := K_Numpad_Minus;    MyCharKey := '-';        end;
+    VK_DELETE:     begin MyKey := K_Delete;          MyKeyString := CharDelete; end;
+    VK_ADD:        begin MyKey := K_Numpad_Plus;     MyKeyString := '+';        end;
+    VK_SUBTRACT:   begin MyKey := K_Numpad_Minus;    MyKeyString := '-';        end;
     VK_SNAPSHOT:         MyKey := K_PrintScreen;
     VK_NUMLOCK:          MyKey := K_NumLock;
     VK_SCROLL:           MyKey := K_ScrollLock;
     VK_CAPITAL:          MyKey := K_CapsLock;
     VK_PAUSE:            MyKey := K_Pause;
-    VK_OEM_COMMA:  begin MyKey := K_Comma;           MyCharKey := ','; end;
-    VK_OEM_PERIOD: begin MyKey := K_Period;          MyCharKey := '.'; end;
-    VK_NUMPAD0:    begin MyKey := K_Numpad_0;        MyCharKey := '0'; end;
-    VK_NUMPAD1:    begin MyKey := K_Numpad_1;        MyCharKey := '1'; end;
-    VK_NUMPAD2:    begin MyKey := K_Numpad_2;        MyCharKey := '2'; end;
-    VK_NUMPAD3:    begin MyKey := K_Numpad_3;        MyCharKey := '3'; end;
-    VK_NUMPAD4:    begin MyKey := K_Numpad_4;        MyCharKey := '4'; end;
-    VK_NUMPAD5:    begin MyKey := K_Numpad_5;        MyCharKey := '5'; end;
-    VK_NUMPAD6:    begin MyKey := K_Numpad_6;        MyCharKey := '6'; end;
-    VK_NUMPAD7:    begin MyKey := K_Numpad_7;        MyCharKey := '7'; end;
-    VK_NUMPAD8:    begin MyKey := K_Numpad_8;        MyCharKey := '8'; end;
-    VK_NUMPAD9:    begin MyKey := K_Numpad_9;        MyCharKey := '9'; end;
+    VK_OEM_COMMA:  begin MyKey := K_Comma;           MyKeyString := ','; end;
+    VK_OEM_PERIOD: begin MyKey := K_Period;          MyKeyString := '.'; end;
+    VK_NUMPAD0:    begin MyKey := K_Numpad_0;        MyKeyString := '0'; end;
+    VK_NUMPAD1:    begin MyKey := K_Numpad_1;        MyKeyString := '1'; end;
+    VK_NUMPAD2:    begin MyKey := K_Numpad_2;        MyKeyString := '2'; end;
+    VK_NUMPAD3:    begin MyKey := K_Numpad_3;        MyKeyString := '3'; end;
+    VK_NUMPAD4:    begin MyKey := K_Numpad_4;        MyKeyString := '4'; end;
+    VK_NUMPAD5:    begin MyKey := K_Numpad_5;        MyKeyString := '5'; end;
+    VK_NUMPAD6:    begin MyKey := K_Numpad_6;        MyKeyString := '6'; end;
+    VK_NUMPAD7:    begin MyKey := K_Numpad_7;        MyKeyString := '7'; end;
+    VK_NUMPAD8:    begin MyKey := K_Numpad_8;        MyKeyString := '8'; end;
+    VK_NUMPAD9:    begin MyKey := K_Numpad_9;        MyKeyString := '9'; end;
     VK_CLEAR:            MyKey := K_Numpad_Begin;
-    VK_MULTIPLY:   begin MyKey := K_Numpad_Multiply; MyCharKey := '*'; end;
-    VK_DIVIDE:     begin MyKey := K_Numpad_Divide;   MyCharKey := '/'; end;
-    VK_OEM_MINUS:  begin MyKey := K_Minus;           MyCharKey := '-'; end;
+    VK_MULTIPLY:   begin MyKey := K_Numpad_Multiply; MyKeyString := '*'; end;
+    VK_DIVIDE:     begin MyKey := K_Numpad_Divide;   MyKeyString := '/'; end;
+    VK_OEM_MINUS:  begin MyKey := K_Minus;           MyKeyString := '-'; end;
     VK_OEM_PLUS:
       if ssShift in Shift then
       begin
-        MyKey := K_Plus ; MyCharKey := '+';
+        MyKey := K_Plus ; MyKeyString := '+';
       end else
       begin
-        MyKey := K_Equal; MyCharKey := '=';
+        MyKey := K_Equal; MyKeyString := '=';
       end;
 
     Ord('0') .. Ord('9'):
       begin
         MyKey := TKey(Ord(K_0)  + Ord(Key) - Ord('0'));
-        MyCharKey := Chr(Key);
+        MyKeyString := Chr(Key);
       end;
 
     Ord('A') .. Ord('Z'):
       begin
         MyKey := TKey(Ord(K_A)  + Ord(Key) - Ord('A'));
         if ssCtrlOrCommand in Shift then
-          MyCharKey := Chr(Ord(CtrlA) + Ord(Key) - Ord('A')) else
+          MyKeyString := Chr(Ord(CtrlA) + Ord(Key) - Ord('A')) else
         begin
-          MyCharKey := Chr(Key);
+          MyKeyString := Chr(Key);
           if not (ssShift in Shift) then
-            MyCharKey := LoCase(MyCharKey);
+            MyKeyString := LowerCase(MyKeyString);
         end;
       end;
 
     VK_F1 .. VK_F12  : MyKey := TKey(Ord(K_F1) + Ord(Key) - VK_F1);
   end;
 
-  if (MyKey = K_None) and (MyCharKey = #0) then
+  if (MyKey = K_None) and (MyKeyString = '') then
     WritelnLog('LCL', 'Cannot translate LCL VK_xxx key %s with shift %s to Castle Game Engine key',
       [DbgsVKCode(Key), DbgS(Shift)]);
 end;
 
-procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
   out LazKey: Word; out Shift: TShiftState);
 begin
-  KeyCastleToLCL(Key, CharKey, [], LazKey, Shift);
+  KeyCastleToLCL(Key, KeyString, [], LazKey, Shift);
 end;
 
-procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   const Modifiers: TModifierKeys;
   out LazKey: Word; out Shift: TShiftState);
+var
+  KeyChar: Char;
 begin
+  // only for backward compatibility (when this parameter was Char) convert #0 to ''
+  if KeyString = #0 then
+    KeyString := '';
+
   Shift := [];
   LazKey := VK_UNKNOWN;
   case Key of
@@ -385,33 +395,37 @@ begin
     K_F1..K_F12: LazKey :=    VK_F1 + Ord(Key) - Ord(K_F1);
 
     else
-      case CharKey of
-        { follow TMenuItem.Key docs: when Key is K_None, only CharKey indicates
-          CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
-        //CharBackSpace:              LazKey := VK_BACK;
-        //CharTab:                    LazKey := VK_TAB;
-        //CharEnter:                  LazKey := VK_RETURN;
-        CharEscape:                 LazKey := VK_ESCAPE;
-        ' ':                        LazKey := VK_SPACE;
-        CharDelete:                 LazKey := VK_DELETE;
-        '+':                        LazKey := VK_ADD;
-        '-':                        LazKey := VK_SUBTRACT;
-        ',':                        LazKey := VK_OEM_COMMA;
-        '.':                        LazKey := VK_OEM_PERIOD;
-        '*':                        LazKey := VK_MULTIPLY;
-        '/':                        LazKey := VK_DIVIDE;
-        '=':                        LazKey := VK_OEM_PLUS;
+      if Length(KeyString) = 1 then
+      begin
+        KeyChar := KeyString[1];
+        case KeyChar of
+          { follow TMenuItem.Key docs: when Key is K_None, only KeyChar indicates
+            CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
+          //CharBackSpace:              LazKey := VK_BACK;
+          //CharTab:                    LazKey := VK_TAB;
+          //CharEnter:                  LazKey := VK_RETURN;
+          CharEscape:                 LazKey := VK_ESCAPE;
+          ' ':                        LazKey := VK_SPACE;
+          CharDelete:                 LazKey := VK_DELETE;
+          '+':                        LazKey := VK_ADD;
+          '-':                        LazKey := VK_SUBTRACT;
+          ',':                        LazKey := VK_OEM_COMMA;
+          '.':                        LazKey := VK_OEM_PERIOD;
+          '*':                        LazKey := VK_MULTIPLY;
+          '/':                        LazKey := VK_DIVIDE;
+          '=':                        LazKey := VK_OEM_PLUS;
 
-        { Char ranges }
-        '0' .. '9' : LazKey := Ord(CharKey);
-        { for latter: uppercase letters are VK_xxx codes }
-        'A' .. 'Z' : begin LazKey := Ord(CharKey); Shift := [ssShift]; end;
-        'a' .. 'z' : begin LazKey := Ord(UpCase(CharKey)); end;
-        CtrlA .. CtrlZ:
-          begin
-            LazKey := Ord('A') + Ord(CharKey) - Ord(CtrlA);
-            Shift := [ssCtrlOrCommand];
-          end;
+          { Char ranges }
+          '0' .. '9' : LazKey := Ord(KeyChar);
+          { for latter: uppercase letters are VK_xxx codes }
+          'A' .. 'Z' : begin LazKey := Ord(KeyChar); Shift := [ssShift]; end;
+          'a' .. 'z' : begin LazKey := Ord(UpCase(KeyChar)); end;
+          CtrlA .. CtrlZ:
+            begin
+              LazKey := Ord('A') + Ord(KeyChar) - Ord(CtrlA);
+              Shift := [ssCtrlOrCommand];
+            end;
+        end;
       end;
   end;
 

@@ -85,7 +85,7 @@ begin
   Window.SceneManager.Items.Add(Scene);
 
   // fake pressing "F" to turn on FogCulling correctly
-  Press(nil, InputKey(TVector2.Zero, K_F, #0));
+  Press(nil, InputKey(TVector2.Zero, K_F, ''));
 
   Window.OnPress := @Press;
   Window.OnRender := @Render;

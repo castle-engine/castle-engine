@@ -1007,22 +1007,22 @@ end;
 procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
-  Ch: char;
+  MyKeyString: String;
   KeyRepeated: boolean;
   Event: TInputPressRelease;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, Ch);
+  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
 
   KeyRepeated :=
     // MyKey or Ch non-empty
-    ((MyKey <> keyNone) or (Ch <> #0)) and
+    ((MyKey <> keyNone) or (MyKeyString <> '')) and
     // MyKey already pressed
     ((MyKey = keyNone) or Pressed.Keys[MyKey]) and
     // Ch already pressed
-    ((Ch = #0) or Pressed.Characters[Ch]);
+    ((MyKeyString = '') or Pressed.Strings[MyKeyString]);
 
-  if (MyKey <> K_None) or (Ch <> #0) then
-    Pressed.KeyDown(MyKey, Ch);
+  if (MyKey <> K_None) or (MyKeyString <> '') then
+    Pressed.KeyDown(MyKey, MyKeyString);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventPress }
 
@@ -1030,7 +1030,7 @@ begin
     over TCastleControl. We can prevent Lazarus from interpreting these
     keys as focus-changing (actually, Lazarus tells widget manager that these
     are already handled) by setting them to zero.
-    Note: our MyKey/Ch (passed to KeyDownEvent) are calculated earlier,
+    Note: our MyKey/MyKeyString (passed to KeyDownEvent) are calculated earlier,
     so they will correctly capture arrow keys. }
   if (Key = VK_Down) or
      (Key = VK_Up) or
@@ -1040,9 +1040,9 @@ begin
 
   inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
 
-  if (MyKey <> K_None) or (Ch <> #0) then
+  if (MyKey <> K_None) or (MyKeyString <> '') then
   begin
-    Event := InputKey(MousePosition, MyKey, Ch);
+    Event := InputKey(MousePosition, MyKey, MyKeyString);
     Event.KeyRepeated := KeyRepeated;
     if Container.EventPress(Event) then
       Key := 0; // handled
@@ -1052,11 +1052,11 @@ end;
 procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
-  Ch: char;
+  MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, Ch);
+  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
   if MyKey <> K_None then
-    Pressed.KeyUp(MyKey, Ch);
+    Pressed.KeyUp(MyKey, MyKeyString);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventRelease }
 
@@ -1070,8 +1070,8 @@ begin
 
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
-  if (MyKey <> K_None) or (Ch <> #0) then
-    if Container.EventRelease(InputKey(MousePosition, MyKey, Ch)) then
+  if (MyKey <> K_None) or (MyKeyString <> '') then
+    if Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString)) then
       Key := 0; // handled
 end;
 

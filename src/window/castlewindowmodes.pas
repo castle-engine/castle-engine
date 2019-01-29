@@ -63,7 +63,7 @@ type
         OldCursor: TMouseCursor;
         OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
-        OldClose_charkey: char;
+        OldClose_KeyString: String;
         OldControls: TChildrenControls;
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
@@ -201,7 +201,7 @@ type
         @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
-        @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
+        @item(TCastleWindowDemo.Close_KeyString will be reset to ''.)
 
         @item(All TCastleWindowBase.Controls are temporarily removed.)
       )
@@ -273,7 +273,7 @@ begin
   OldCursor := Window.InternalCursor;
   OldCustomCursor := Window.CustomCursor;
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
-  oldClose_charkey := Window.Close_charkey;
+  oldClose_KeyString := Window.Close_KeyString;
 
   OldControls := TChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
@@ -312,7 +312,7 @@ begin
   Window.InternalCursor := OldCursor;
   Window.CustomCursor := OldCustomCursor;
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
-  Window.Close_charkey := oldClose_charkey;
+  Window.Close_KeyString := oldClose_KeyString;
 
   if OldControls <> nil then
   begin
@@ -392,7 +392,7 @@ begin
   {Window.MainMenu := leave current value}
   Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := K_None;
-  Window.Close_charkey := #0;
+  Window.Close_KeyString := '';
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   Window.Controls.Clear;

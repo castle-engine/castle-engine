@@ -26,6 +26,7 @@ type
     procedure TestKey;
     procedure TestKeyToStrAndBack;
     procedure TestCharToNiceStr;
+    procedure TestKeyStringToNiceStr;
   end;
 
 implementation
@@ -104,6 +105,22 @@ begin
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl, mkShift]) = 'Shift+Ctrl+A');
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl], false, true) = 'Command+A');
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl, mkShift], false, true) = 'Shift+Command+A');
+  AssertTrue(KeyToStr(K_F11, []) = 'F11');
+  AssertTrue(KeyToStr(K_F11, [mkCtrl]) = 'Ctrl+F11');
+  AssertTrue(KeyToStr(K_F11, [mkCtrl], true) = 'Command+F11');
+end;
+
+procedure TTestKeysMouse.TestKeyStringToNiceStr;
+begin
+  AssertTrue(KeyStringToNiceStr('') = 'none');
+  AssertTrue(KeyStringToNiceStr('aa') = 'aa'); // UTF-8 char, untouched by KeyStringToNiceStr
+  AssertTrue(KeyStringToNiceStr('a') = 'A');
+  AssertTrue(KeyStringToNiceStr('A') = 'Shift+A');
+  AssertTrue(KeyStringToNiceStr(CtrlA) = 'Ctrl+A');
+  AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl]) = 'Ctrl+A');
+  AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl, mkShift]) = 'Shift+Ctrl+A');
+  AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl], false, true) = 'Command+A');
+  AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl, mkShift], false, true) = 'Shift+Command+A');
   AssertTrue(KeyToStr(K_F11, []) = 'F11');
   AssertTrue(KeyToStr(K_F11, [mkCtrl]) = 'Ctrl+F11');
   AssertTrue(KeyToStr(K_F11, [mkCtrl], true) = 'Command+F11');

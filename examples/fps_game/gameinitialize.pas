@@ -529,7 +529,7 @@ begin
   Input_DropItem.Assign(K_R);
   if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
-    Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
+    Input_Attack.Assign(K_Ctrl, K_None, '', true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }

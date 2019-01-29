@@ -194,9 +194,12 @@
     FIntData: Integer;
     FSmallId: Integer;
 
-    FCharKey: char;
+    FKeyString: String;
     FKey: TKey;
     FModifiers: TModifierKeys;
+
+    function GetCharKey: Char;
+    procedure SetCharKey(const AValue: Char);
   public
     { An integer value, for any purpose you want. Useful to identify this item in
       TCastleWindowBase.OnMenuClick callback. }
@@ -232,7 +235,7 @@
     { Key shortcut for this menu item.
 
       When user presses indicated Key (if it's not K_None)
-      or CharKey (if it's not #0) then DoClick will be called
+      or KeyString (if it's not '') then DoClick will be called
       (which results in TCastleWindowBase.EventMenuClick,
       and TCastleWindowBase.OnMenuClick,
       if DoClick returns false).
@@ -244,22 +247,22 @@
       still appropriately updated.
 
       Note that Caption of this object should not contain
-      description of Key or CharKey. The backend will automatically show the
+      description of Key or KeyString. The backend will automatically show the
       key description in an appropriate way.
 
       You should use at most one of these properties, not both.
-      So either use Key or CharKey, and leave the other one at default
-      value (Key = K_None, CharKey = #0).
+      So either use Key or KeyString, and leave the other one at default
+      value (Key = K_None, KeyString = '').
 
-      The CharKey values within range CtrlA..CtrlZ mean
+      The KeyString values within range CtrlA..CtrlZ mean
       that user must press the given letter with Ctrl modfier. This rule
       includes some special chars like
       @unorderedList(
-        @item CharKey = #8 (equal to CharBackSpace, also equal to CtrlH) or
-        @item CharKey = #9 (equal to CharTab, also equal to CtrlI) or
-        @item CharKey = #13 (equal to CharEnter, also equal to CtrlM).
+        @item KeyString = #8 (equal to CharBackSpace, also equal to CtrlH) or
+        @item KeyString = #9 (equal to CharTab, also equal to CtrlI) or
+        @item KeyString = #13 (equal to CharEnter, also equal to CtrlM).
       )
-      The CharKey values above do @bold(not) mean the backspace or tab or enter
+      The KeyString values above do @bold(not) mean the backspace or tab or enter
       keys, they mean the combination of Ctrl key + respective letter.
       If you want to have backspace/tab/enter keys to activate the menu item,
       use Key = K_BackSpace, Key = K_Tab or Key =  K_Enter.
@@ -270,14 +273,17 @@
       Usually, you will set this property by an argument to the constructor.
 
       @groupBegin }
-    property CharKey: char read FCharKey write FCharKey default #0;
+    property KeyString: String read FKeyString write FKeyString;
     property Key: TKey read FKey write FKey default K_None;
     { @groupEnd }
 
-    { Modifiers (shift, ctrl and such) required to activate this menu item.
-      These have to be pressed along with @link(Key) or @link(CharKey).
+    property CharKey: Char read GetCharKey write SetCharKey;
+      deprecated 'use KeyString';
 
-      Note that CharKey may already indicate some modifiers,
+    { Modifiers (shift, ctrl and such) required to activate this menu item.
+      These have to be pressed along with @link(Key) or @link(KeyString).
+
+      Note that KeyString may already indicate some modifiers,
       if it's one of the CtrlA ... CtrlZ then the Ctrl key is required
       and if it's an uppercase letter then the Shift key is required.
       There's no need to include this modifier in this property then.
@@ -288,12 +294,12 @@
     property Modifiers: TModifierKeys read FModifiers write FModifiers;
 
     { Returns as S the string that describes key shortcut
-      (@link(CharKey), @link(Key), @link(Modifiers)) and then returns true.
-      If both CharKey = #0 and Key = K_None then returns false and
+      (@link(KeyString), @link(Key), @link(Modifiers)) and then returns true.
+      If KeyString = '' and Key = K_None then returns false and
       S is undefined. }
-    function KeyString(out S: string): boolean;
+    function KeyToString(out S: string): boolean;
 
-    function KeyMatches(const AKey: TKey; const ACharKey: char;
+    function KeyMatches(const AKey: TKey; const AKeyString: String;
       const AModifiers: TModifierKeys): boolean;
 
     { Caption with optional key description (returned by KeyString)
@@ -301,7 +307,7 @@
     function CaptionWithKey: string;
 
     constructor Create(const ACaption: String; AIntData: Integer);
-    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char);
+    constructor Create(const ACaption: String; AIntData: Integer; AKeyString: String);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey);
 
     destructor Destroy; override;
@@ -343,7 +349,7 @@
 
     constructor Create(const ACaption: String; AIntData: Integer;
       AChecked, AAutoCheckedToggle: boolean);
-    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char;
+    constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
       AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
       AChecked, AAutoCheckedToggle: boolean);
@@ -370,7 +376,7 @@
   public
     constructor Create(const ACaption: String; AIntData: Integer;
       AChecked, AAutoCheckedToggle: boolean);
-    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char;
+    constructor Create(const ACaption: String; AIntData: Integer; const AKeyString: String;
       AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
       AChecked, AAutoCheckedToggle: boolean);
@@ -709,17 +715,33 @@ var
     this for them. }
   MenuItems: TMenuEntryList;
 
+function TMenuItem.GetCharKey: Char;
+begin
+  if Length(KeyString) = 1 then
+    Result := KeyString[1]
+  else
+    Result := #0;
+end;
+
+procedure TMenuItem.SetCharKey(const AValue: Char);
+begin
+  if AValue = #0 then
+    KeyString := ''
+  else
+    KeyString := AValue;
+end;
+
 function TMenuItem.DoClick: boolean;
 begin
  Result := false;
 end;
 
-function TMenuItem.KeyString(out S: string): boolean;
+function TMenuItem.KeyToString(out S: string): boolean;
 begin
-  Result := CastleWindow.KeyString(CharKey, Key, Modifiers, S);
+  Result := CastleWindow.KeyToString(KeyString, Key, Modifiers, S);
 end;
 
-function TMenuItem.KeyMatches(const AKey: TKey; const ACharKey: char;
+function TMenuItem.KeyMatches(const AKey: TKey; const AKeyString: String;
   const AModifiers: TModifierKeys): boolean;
 begin
   { AModifiers (currently pressed) must be a superset of required Modifiers. }
@@ -727,25 +749,25 @@ begin
     Exit(false);
 
   { For CtrlH (= CharBackspace), *do not* match backspace key. }
-  if (Key = K_None) and (CharKey = CharBackSpace) then
-    Result := (ACharKey = CharBackSpace) and not (AKey = K_BackSpace) else
+  if (Key = K_None) and (KeyString = CharBackSpace) then
+    Result := (AKeyString = CharBackSpace) and not (AKey = K_BackSpace) else
 
-  if (Key = K_None) and (CharKey = CharEnter) then
-    Result := (ACharKey = CharEnter) and not (AKey = K_Enter) else
+  if (Key = K_None) and (KeyString = CharEnter) then
+    Result := (AKeyString = CharEnter) and not (AKey = K_Enter) else
 
-  if (Key = K_None) and (CharKey = CharTab) then
-    Result := (ACharKey = CharTab) and not (AKey = K_Tab) else
+  if (Key = K_None) and (KeyString = CharTab) then
+    Result := (AKeyString = CharTab) and not (AKey = K_Tab) else
 
     Result :=
       ( (AKey <> K_None) and (Key = AKey) ) or
-      ( (ACharKey <> #0) and (CharKey = ACharKey) );
+      ( (AKeyString <> '') and (KeyString = AKeyString) );
 end;
 
 function TMenuItem.CaptionWithKey: string;
 var KeyStr: string;
 begin
  Result := Caption;
- if KeyString(KeyStr) then
+ if KeyToString(KeyStr) then
   Result += ' [' + KeyStr + ']';
 end;
 
@@ -759,10 +781,14 @@ begin
 end;
 
 constructor TMenuItem.Create(const ACaption: String; AIntData: Integer;
-  ACharKey: char);
+  AKeyString: String);
 begin
- Create(ACaption, AIntData);
- FCharKey := ACharKey;
+  // only for backward compatibility (when this parameter was Char) convert #0 to ''
+  if AKeyString = #0 then
+    AKeyString := '';
+
+  Create(ACaption, AIntData);
+  FKeyString := AKeyString;
 end;
 
 constructor TMenuItem.Create(const ACaption: String; AIntData: Integer;
@@ -837,10 +863,10 @@ begin
 end;
 
 constructor TMenuItemChecked.Create(const ACaption: String; AIntData: Integer;
-  ACharKey: char;
+  const AKeyString: String;
   AChecked, AAutoCheckedToggle: boolean);
 begin
- inherited Create(ACaption, AIntData, ACharKey);
+ inherited Create(ACaption, AIntData, AKeyString);
  FChecked := AChecked;
  FAutoCheckedToggle := AAutoCheckedToggle;
 end;
@@ -864,7 +890,7 @@ begin
 end;
 
 constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
-  ACharKey: char;
+  const AKeyString: String;
   AChecked, AAutoCheckedToggle: boolean);
 begin
   inherited;

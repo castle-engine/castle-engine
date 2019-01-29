@@ -236,7 +236,7 @@ begin
   end;
   {$endif}
 
-  KeyCastleToLCL(Entry.Key, Entry.CharKey, Entry.Modifiers, LazKey, Shift);
+  KeyCastleToLCL(Entry.Key, Entry.KeyString, Entry.Modifiers, LazKey, Shift);
   EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
 end;
 
@@ -670,20 +670,20 @@ procedure TCastleWindowBase.OpenGLControlKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
-  MyCharKey: char;
+  MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyCharKey);
-  if (MyKey <> K_None) or (MyCharKey <> #0) then
-    DoKeyDown(MyKey, MyCharKey);
+  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
+  if (MyKey <> K_None) or (MyKeyString <> '') then
+    DoKeyDown(MyKey, MyKeyString);
 end;
 
 procedure TCastleWindowBase.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   MyKey: TKey;
-  MyCharKey: char;
+  MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyCharKey);
+  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
   if MyKey <> K_None then
     DoKeyUp(MyKey);
 end;

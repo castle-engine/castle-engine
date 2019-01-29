@@ -74,8 +74,10 @@ begin
 
   M := TMenuItem.Create('blah', 123, K_F11);
   AssertTrue(M.KeyMatches(K_F11, #0, []));
+  AssertTrue(M.KeyMatches(K_F11, '', [])); // string '' and #0 should be treated equal, for backward compat
   { below may be improved in the future, for now our KeyMatches is probably too forgiving }
   AssertTrue(M.KeyMatches(K_F11, #0, [mkCtrl]));
+  AssertTrue(M.KeyMatches(K_F11, '', [mkCtrl])); // string '' and #0 should be treated equal, for backward compat
   FreeAndNil(M);
 
   M := TMenuItem.Create('blah', 123, K_F11);

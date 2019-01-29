@@ -490,7 +490,7 @@ begin
     CheckMainWindow;
     if TKey(eKey)<>K_None then
       // TODO: calculate sensible char
-      Application.MainWindow.DoKeyDown(TKey(eKey), #0);
+      Application.MainWindow.DoKeyDown(TKey(eKey), '');
   except
     on E: TObject do WritelnWarning('CGEApp_KeyDown', ExceptMessage(E));
   end;

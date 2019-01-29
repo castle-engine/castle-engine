@@ -500,74 +500,77 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
   no DoResize will be called. And that's good -- there's no point in calling
   DoResize when only Left/Top changed. }
 SIGNAL_GLAREA_BEGIN
- DoResize(Event^.Width, Event^.Height, false);
- { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := g_false;
+  DoResize(Event^.Width, Event^.Height, false);
+  { for the sake of gtk, I can't tell that I "handled" this in any way }
+  Result := g_false;
 SIGNAL_GLAREA_END;
 
 function signal_delete_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
- DoCloseQuery;
- Result := g_true;
+  DoCloseQuery;
+  Result := g_true;
 SIGNAL_WINDOW_END;
 
 function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
-var Key: TKey;
-    StringKey: string;
+var
+  Key: TKey;
+  KeyString: string;
 SIGNAL_WINDOW_BEGIN
- case Event^.KeyVal of
-  GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
-  GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
-  GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
-  GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
-  GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
-  GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
-  else
-  begin
-   Key := GdkKeysymToKey(Event^.KeyVal);
-   StringKey := Event^._string;
+  case Event^.KeyVal of
+    GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
+    GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
+    GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
+    GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
+    GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
+    GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
+    else
+    begin
+      Key := GdkKeysymToKey(Event^.KeyVal);
+      KeyString := Event^._string;
 
-   if (Key <> K_None) or (StringKey <> '') then DoKeyDown(Key, StringKey);
+      if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
+    end;
   end;
- end;
 
- { It would be nice to say here Result := true if key was handled
-   in DoKeyDown. But I don't have any indicator whether key was handled
-   in EventPress or OnPress (because such thing would complicate
-   implementation of OnPress callback in every program using
-   CastleWindow). So I must assume that either (1) always or (2) never
-   when I called DoKeyDown key is handled.
-   But (1) is actually not acceptable, because it disallows user
-   to activate menu using F10 key. So I must set Result := false here.
+  { It would be nice to say here Result := true if key was handled
+    in DoKeyDown. But I don't have any indicator whether key was handled
+    in EventPress or OnPress (because such thing would complicate
+    implementation of OnPress callback in every program using
+    CastleWindow). So I must assume that either (1) always or (2) never
+    when I called DoKeyDown key is handled.
+    But (1) is actually not acceptable, because it disallows user
+    to activate menu using F10 key. So I must set Result := false here.
 
-   I'm also setting Result := false in signal_key_release_event,
-   to be consequent.
- }
- Result := g_false;
+    I'm also setting Result := false in signal_key_release_event,
+    to be consequent.
+  }
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_key_release_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
-var Key: TKey;
+var
+  Key: TKey;
 SIGNAL_WINDOW_BEGIN
- case Event^.KeyVal of
-  GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
-  GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
-  GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
-  GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
-  GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
-  GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
-  else begin
-   Key := GdkKeysymToKey(Event^.KeyVal);
-   if Key <> K_None then DoKeyUp(Key);
+  case Event^.KeyVal of
+    GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
+    GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
+    GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
+    GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
+    GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
+    GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
+    else
+    begin
+      Key := GdkKeysymToKey(Event^.KeyVal);
+      if Key <> K_None then DoKeyUp(Key);
+    end;
   end;
- end;
 
- { Why false, not true ? See comments at the end of
-   signal_key_press_event. }
- Result := g_false;
+  { Why false, not true ? See comments at the end of
+    signal_key_press_event. }
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;

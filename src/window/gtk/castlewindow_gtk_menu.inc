@@ -139,13 +139,16 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     const MenuItem: TMenuItem);
   var
     Key: TKey;
-    CharKey: char;
+    CharKey: Char;
     Modifiers: TModifierKeys;
     gdk_keyval: GUint;
     modifier_type: TGdkModifierType;
   begin
     Key := MenuItem.Key;
-    CharKey := MenuItem.CharKey;
+    if Length(MenuItem.KeyString) = 1 then
+      CharKey := MenuItem.KeyString[1]
+    else
+      CharKey := #0;
     Modifiers := MenuItem.Modifiers;
 
     { Calculate GDK keyval gdk_keyval and modifier_type.

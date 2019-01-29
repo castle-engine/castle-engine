@@ -2203,7 +2203,7 @@ begin
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(K_Space, K_None, #0, true, mbLeft);
+   Input_StopRotating.Assign(K_Space, K_None, '', true, mbLeft);
 end;
 
 destructor TExamineCamera.Destroy;

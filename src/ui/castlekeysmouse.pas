@@ -546,7 +546,8 @@ type
     PressedKeyToCharacter: array [TKey] of Char;
     PressedCharacterToKey: array [Char] of TKey;
 
-    function GetItems(const Key: TKey): boolean;
+    function GetItems(const Key: TKey): Boolean;
+    function GetStrings(const KeyString: String): Boolean;
   public
     { Check is a key (TKey) pressed.
 
@@ -575,27 +576,33 @@ type
       so you can write e.g.
       @code(Window.Pressed[keyX]) instead of
       @code(Window.Pressed.Keys[keyX]). }
-    property Items [Key: TKey]: boolean read GetItems; default;
+    property Items [const Key: TKey]: boolean read GetItems; default;
+
+    { Does an UTF-8 key represented by this String is pressed.
+      Note that internallly we only track 8-bit keys (Char) for now,
+      but this will change some day. }
+    property Strings [const KeyString: String]: Boolean read GetStrings;
 
     { Check which modifier keys are pressed.
       The result it based on current Keys[keyCtrl], Keys[keyShift] etc. values. }
     function Modifiers: TModifierKeys;
 
     { Call when key is pressed.
-      Pass TKey, and corresponding character (Char).
+      Pass TKey, and corresponding character (as String, since it may be UTF-8 character).
 
-      Pass Key = keyNone if this is not
-      representable as TKey, pass CharKey = #0 if this is not representable
-      as char. But never pass both Key = keyNone and CharKey = #0
-      (this would have no meaning). }
-    procedure KeyDown(const Key: TKey; const CharKey: char);
+      Pass Key = keyNone if this is not representable as TKey,
+      pass KeyString = '' if this is not representable as String.
+      But never pass both Key = keyNone and KeyString = ''
+      (this would mean that nothing was pressed, as least nothing that can be
+      represented by CGE). }
+    procedure KeyDown(const Key: TKey; const KeyString: String);
 
     { Call when key is released.
       Never pass Key = keyNone here.
 
       It returns which character was released as a consequence of this
       key release. }
-    procedure KeyUp(const Key: TKey; out CharKey: char);
+    procedure KeyUp(const Key: TKey; out KeyString: String);
 
     { Mark all keys as released. That is, this sets all @link(Keys) and
       @link(Characters) items to @false. Also resets internal arrays
@@ -639,6 +646,13 @@ function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
   (if BackSpaceTabEnterString = true)
   or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys = [];
+  const BackSpaceTabEnterString: boolean = true;
+  const CtrlIsCommand: boolean = false): string;
+
+{ Like @link(CharToNiceStr), but accepts UTF-8 characters expressed as String.
+  KeyString = '' means "none". }
+function KeyStringToNiceStr(const KeyString: String;
+  const Modifiers: TModifierKeys = [];
   const BackSpaceTabEnterString: boolean = true;
   const CtrlIsCommand: boolean = false): string;
 
@@ -772,11 +786,11 @@ type
     function MouseWheel: TMouseWheelDirection;
     { @groupEnd }
 
-    { Check is event type correct, and then check if event Key or KeyCharacter
-      matches. Always false for AKey = keyNone or AKeyCharacter = #0.
+    { Check is event type correct, and then check if event Key or KeyString
+      matches. Always false for AKey = keyNone or AKeyString = ''.
       @groupBegin }
     function IsKey(const AKey: TKey): boolean; overload;
-    function IsKey(const AKeyCharacter: char): boolean; overload;
+    function IsKey(AKeyString: String): boolean; overload;
     { @groupEnd }
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
@@ -1149,6 +1163,18 @@ begin
  Result := Result + ']';
 end;
 
+function KeyStringToNiceStr(const KeyString: String;
+  const Modifiers: TModifierKeys = [];
+  const BackSpaceTabEnterString: boolean = true;
+  const CtrlIsCommand: boolean = false): string;
+begin
+  case Length(KeyString) of
+    0: Result := 'none';
+    1: Result := CharToNiceStr(KeyString[1], Modifiers, BackSpaceTabEnterString, CtrlIsCommand);
+    else Result := KeyString; // UTF-8 multi-byte char, just show it
+  end;
+end;
+
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
   const BackSpaceTabEnterString, CtrlIsCommand: boolean): string;
 var
@@ -1210,9 +1236,14 @@ end;
 
 { TKeysPressed --------------------------------------------------------------- }
 
-function TKeysPressed.GetItems(const Key: TKey): boolean;
+function TKeysPressed.GetItems(const Key: TKey): Boolean;
 begin
   Result := Keys[Key];
+end;
+
+function TKeysPressed.GetStrings(const KeyString: String): Boolean;
+begin
+  Result := (Length(KeyString) = 1) and Characters[KeyString[1]];
 end;
 
 function TKeysPressed.Modifiers: TModifierKeys;
@@ -1220,47 +1251,60 @@ begin
   Result := ModifiersDown(Keys);
 end;
 
-procedure TKeysPressed.KeyDown(const Key: TKey; const CharKey: char);
+procedure TKeysPressed.KeyDown(const Key: TKey; const KeyString: String);
+var
+  KeyChar: Char;
 begin
   if Key <> keyNone then
     Keys[Key] := true;
 
+  { Although the API of TKeysPressed.KeyDown accepts String,
+    we can actually store only Char as being pressed for now,
+    in Characters and PressedCharacterToKey. }
+  if Length(KeyString) = 1 then
+    KeyChar := KeyString[1]
+  else
+    KeyChar := #0;
+
   if (Key <> keyNone) and
-     (CharKey <> #0) and
+     (KeyChar <> #0) and
      (PressedKeyToCharacter[Key] = #0) then
   begin
     { update Characters and PressedXxx mapping arrays }
-    if PressedCharacterToKey[CharKey] = keyNone then
+    if PressedCharacterToKey[KeyChar] = keyNone then
     begin
-      Assert(not Characters[CharKey]);
-      Characters[CharKey] := true;
+      Assert(not Characters[KeyChar]);
+      Characters[KeyChar] := true;
     end else
     begin
       { some key already recorded as generating this character }
-      Assert(Characters[CharKey]);
-      Assert(PressedKeyToCharacter[PressedCharacterToKey[CharKey]] = CharKey);
+      Assert(Characters[KeyChar]);
+      Assert(PressedKeyToCharacter[PressedCharacterToKey[KeyChar]] = KeyChar);
 
-      PressedKeyToCharacter[PressedCharacterToKey[CharKey]] := #0;
-      PressedCharacterToKey[CharKey] := keyNone;
+      PressedKeyToCharacter[PressedCharacterToKey[KeyChar]] := #0;
+      PressedCharacterToKey[KeyChar] := keyNone;
     end;
 
-    PressedKeyToCharacter[Key] := CharKey;
-    PressedCharacterToKey[CharKey] := Key;
+    PressedKeyToCharacter[Key] := KeyChar;
+    PressedCharacterToKey[KeyChar] := Key;
   end;
-
 end;
 
-procedure TKeysPressed.KeyUp(const Key: TKey; out CharKey: char);
+procedure TKeysPressed.KeyUp(const Key: TKey; out KeyString: String);
+var
+  KeyChar: Char;
 begin
-  CharKey := PressedKeyToCharacter[Key];
-  if CharKey <> #0 then
+  KeyChar := PressedKeyToCharacter[Key];
+  if KeyChar <> #0 then
   begin
     { update Characters and PressedXxx mapping arrays }
-    Assert(Characters[CharKey]);
-    Characters[CharKey] := false;
-    PressedCharacterToKey[CharKey] := keyNone;
+    Assert(Characters[KeyChar]);
+    Characters[KeyChar] := false;
+    PressedCharacterToKey[KeyChar] := keyNone;
     PressedKeyToCharacter[Key] := #0;
-  end;
+    KeyString := KeyChar;
+  end else
+    KeyString := '';
 
   Keys[key] := false;
 end;
@@ -1287,9 +1331,13 @@ begin
   Result := (AKey <> keyNone) and (EventType = itKey) and (Key = AKey);
 end;
 
-function TInputPressRelease.IsKey(const AKeyCharacter: char): boolean;
+function TInputPressRelease.IsKey(AKeystring: String): boolean;
 begin
-  Result := (AKeyCharacter <> #0) and (EventType = itKey) and (KeyCharacter = AKeyCharacter);
+  // only for backward compatibility (when this parameter was Char) convert #0 to ''
+  if AKeystring = #0 then
+    AKeystring := '';
+
+  Result := (AKeystring <> '') and (EventType = itKey) and (KeyString = AKeystring);
 end;
 
 function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
@@ -1306,8 +1354,8 @@ function TInputPressRelease.ToString: string;
 begin
   case EventType of
     itKey:
-      Result := Format('key %s, character %s (code %d)',
-      [ KeyToStr(Key), CharToNiceStr(KeyCharacter), Ord(KeyCharacter)]);
+      Result := Format('key %s, character %s',
+      [ KeyToStr(Key), KeyStringToNiceStr(KeyString) ]);
     itMouseButton:
       Result := 'mouse ' + MouseButtonStr[MouseButton];
     itMouseWheel:
