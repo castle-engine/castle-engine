@@ -202,6 +202,9 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const ForceBlending: boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
+
+{ Draw primitive, using a stipple (pattern) for line rendering.
+  Note that the stipple is ignored on mobile (OpenGLES). }
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const LineStipple: TLineStipple;
   const Points: array of TVector2;
@@ -505,14 +508,18 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 begin
+  {$ifndef OpenGLES}
   glLineStipple(1, LineStipple.Pattern);
   glEnable(GL_LINE_STIPPLE);
+  {$endif}
 
   DrawPrimitive2D(Mode, Points, Color,
     BlendingSourceFactor, BlendingDestinationFactor, ForceBlending,
     LineWidth, PointSize);
 
+  {$ifndef OpenGLES}
   glDisable(GL_LINE_STIPPLE);
+  {$endif}
 end;
 
 { DrawRectangle ---------------------------------------------------------------- }
