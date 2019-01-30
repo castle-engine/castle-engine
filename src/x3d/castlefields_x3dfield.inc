@@ -684,8 +684,7 @@ begin
     (Although we still have to call FExposedEvents[false].Send,
     to push the change through the routes.)
     This may be an important optimization when simple field's change
-    causes large time-consuming work in InternalChangedField, e.g. consider
-    Switch.whichChoice which means currently rebuilding a lot of things. }
+    causes large time-consuming work in InternalChangedField. }
   ValuePossiblyChanged := not FastEqualsValue(Value);
 
   { This is trivial handling of exposed events: just set our value,
