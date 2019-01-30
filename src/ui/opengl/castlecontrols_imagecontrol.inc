@@ -210,12 +210,13 @@
       See TGLImage.CustomShader for explanation. }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
 
-    { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
+    property Blending: boolean read GetBlending write SetBlending stored false;
+      deprecated 'use AlphaChannel';
     property Proportional: boolean read GetProportional write SetProportional
-      stored false default false; deprecated 'use ProportionalScaling';
-    { Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
+      stored false default false;
+      deprecated 'use ProportionalScaling';
+    property FileName: string read FURL write SetURL;
+      deprecated 'use URL';
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -838,6 +839,7 @@ function TCastleImageControl.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
   if (PropertyName = 'URL') or
+     (PropertyName = 'Stretch') or
      (PropertyName = 'ProportionalScaling') or
      (PropertyName = 'ColorPersistent') then
     Result := psBasic
