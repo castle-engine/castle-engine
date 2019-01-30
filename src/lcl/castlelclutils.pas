@@ -88,9 +88,9 @@ procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
 
   @groupBegin }
 procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
-  const Modifiers: TModifierKeys;
   out LazKey: Word; out Shift: TShiftState);
-procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
+procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
+  const Modifiers: TModifierKeys;
   out LazKey: Word; out Shift: TShiftState);
 { @groupEnd }
 
