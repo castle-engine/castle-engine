@@ -297,6 +297,7 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
 { Returns Ceil(A / B), but calculated faster and more precisely
   (without floating-point help). }
 function CeilDiv(const A, B: Cardinal): Cardinal;
+function CeilDiv(const A, B: Int64): Int64;
 
 { Calculate Integer division and modulo on two Float arguments.
   Requires that A >= 0 and B > 0, and the Result is always >= 0.
@@ -900,12 +901,29 @@ function CeilDiv(const A, B: Cardinal): Cardinal;
 var
   DivResult, ModResult: Cardinal;
 begin
-  { I would like to use DivMod, but it's limited to 16-bit values.
-    DivMod(A, B, DivResult, ModResult); }
+  { DivMod was limited to 16-bit values in older FPC versions.
+    It may be possible to change below to
+      DivMod(A, B, DivResult, ModResult);
+    on new FPC, after adding auto-test that it works OK even with result
+    that doesn't fit in 16-bit range. }
   DivResult := A div B;
   ModResult := A mod B;
   if ModResult = 0 then
-    Result := DivResult else
+    Result := DivResult
+  else
+    Result := DivResult + 1;
+end;
+
+function CeilDiv(const A, B: Int64): Int64;
+var
+  DivResult, ModResult: Int64;
+begin
+  { DivMod is limited to 32-bit values, so we cannot use it below. }
+  DivResult := A div B;
+  ModResult := A mod B;
+  if ModResult = 0 then
+    Result := DivResult
+  else
     Result := DivResult + 1;
 end;
 
