@@ -2004,9 +2004,9 @@ begin
   else
   begin
     S := Format(
-      'Calculated size: %f x %f' + NL +
+      'Effective size: %f x %f' + NL +
       NL +
-      'Screen rectangle (scaled and with anchors):' + NL +
+      'Render rectangle (scaled and with anchors):' + NL +
       '  Left x Bottom: %f x %f' + NL +
       '  Size: %f x %f',
       [ UI.EffectiveWidth,
