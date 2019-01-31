@@ -296,8 +296,8 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
 
 { Returns Ceil(A / B), but calculated faster and more precisely
   (without floating-point help). }
-function CeilDiv(const A, B: Cardinal): Cardinal;
-function CeilDiv(const A, B: Int64): Int64;
+function CeilDiv(const A, B: Cardinal): Cardinal; overload;
+function CeilDiv(const A, B: Int64): Int64; overload;
 
 { Calculate Integer division and modulo on two Float arguments.
   Requires that A >= 0 and B > 0, and the Result is always >= 0.
