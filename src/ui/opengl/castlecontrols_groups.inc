@@ -246,7 +246,7 @@ procedure TCastlePackedGroup.VisibleChange(const Changes: TCastleUserInterfaceCh
   const ChangeInitiatedByChildren: boolean);
 begin
   inherited;
-  if [chRectangle, chChildren] * Changes <> [] then
+  if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
     FPackingValid := false;
 end;
 

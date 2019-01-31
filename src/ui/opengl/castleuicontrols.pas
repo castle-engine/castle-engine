@@ -213,8 +213,11 @@ type
 
     chExists,
 
-    { A child control was added or removed. }
-    chChildren
+    { A (direct) child control was added or removed. }
+    chChildren,
+
+    { A (direct) child control @link(TCastleUserInterface.Exists) value changed. }
+    chChildrenExists
   );
   TCastleUserInterfaceChanges = set of TCastleUserInterfaceChange;
   TCastleUserInterfaceChangeEvent = procedure(const Sender: TInputListener;
@@ -4338,6 +4341,8 @@ begin
   begin
     FExists := Value;
     VisibleChange([chExists]);
+    if Parent <> nil then
+      Parent.VisibleChange([chChildrenExists]);
   end;
 end;
 
