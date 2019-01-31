@@ -191,6 +191,7 @@ type
     procedure DeleteComponent;
     procedure CopyComponent;
     procedure PasteComponent;
+    procedure DuplicateComponent;
     procedure CameraViewAll;
     procedure SortBackToFront2D;
     { set UIScaling values. }
@@ -1123,6 +1124,42 @@ begin
     ErrorBox(Format('Clipboard contains an instance of %s class, cannot insert it into the design',
       [NewComponent.ClassName]));
     FreeAndNil(NewComponent);
+  end;
+end;
+
+procedure TDesignFrame.DuplicateComponent;
+
+  procedure FinishAddingComponent(const NewComponent: TComponent);
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+    SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+  end;
+
+var
+  Sel: TComponent;
+  ParentUi, NewUi, SelectedUi: TCastleUserInterface;
+  ComponentString: String;
+  InsertIndex: Integer;
+begin
+  // TODO: works only for TCastleUserInterface for now
+
+  Sel := SelectedComponent;
+  if (Sel <> nil) and
+     (Sel is TCastleUserInterface) and
+     (TCastleUserInterface(Sel).Parent <> nil) and
+     (not (csSubComponent in Sel.ComponentStyle)) then
+  begin
+    SelectedUi := TCastleUserInterface(Sel);
+    ParentUi := SelectedUi.Parent;
+    ComponentString := ComponentToString(SelectedUi);
+    NewUi := StringToComponent(ComponentString, DesignOwner) as TCastleUserInterface;
+    InsertIndex := ParentUi.IndexOfControl(SelectedUi);
+    ParentUi.InsertControl(InsertIndex + 1, NewUi);
+    FinishAddingComponent(NewUi);
+  end else
+  begin
+    ErrorBox('Select exactly one user interface component, that has a parent and is not a subcomponent, to duplicate');
   end;
 end;
 

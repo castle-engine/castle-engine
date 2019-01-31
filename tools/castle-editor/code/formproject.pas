@@ -32,6 +32,7 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemDuplicateComponent: TMenuItem;
     MenuItemPasteComponent: TMenuItem;
     MenuItemCopyComponent: TMenuItem;
     MenuItemSupport: TMenuItem;
@@ -119,6 +120,7 @@ type
     procedure MenuItemDesignAddSphereClick(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
     procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
+    procedure MenuItemDuplicateComponentClick(Sender: TObject);
     procedure MenuItemManualClick(Sender: TObject);
     procedure MenuItemModeDebugClick(Sender: TObject);
     procedure MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
@@ -399,7 +401,14 @@ end;
 
 procedure TProjectForm.MenuItemDesignDeleteComponentClick(Sender: TObject);
 begin
+  Assert(Design <> nil); // menu item is disabled otherwise
   Design.DeleteComponent;
+end;
+
+procedure TProjectForm.MenuItemDuplicateComponentClick(Sender: TObject);
+begin
+  Assert(Design <> nil); // menu item is disabled otherwise
+  Design.DuplicateComponent;
 end;
 
 procedure TProjectForm.MenuItemManualClick(Sender: TObject);
@@ -425,6 +434,7 @@ begin
   MenuItemSortBackToFront2D.Enabled := Design <> nil;
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
+  MenuItemDuplicateComponent.Enabled := Design <> nil;
 
   LabelNoDesign.Visible := Design = nil;
 end;

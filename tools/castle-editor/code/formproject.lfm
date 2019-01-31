@@ -227,6 +227,11 @@ object ProjectForm: TProjectForm
         ShortCut = 24662
         OnClick = MenuItemPasteComponentClick
       end
+      object MenuItemDuplicateComponent: TMenuItem
+        Caption = 'Duplicate Component'
+        ShortCut = 24644
+        OnClick = MenuItemDuplicateComponentClick
+      end
       object MenuItemDesignDeleteComponent: TMenuItem
         Caption = 'Delete Component'
         ShortCut = 16430
