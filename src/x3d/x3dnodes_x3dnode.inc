@@ -65,6 +65,7 @@
     FDestructionNotifications: TNodeDestructionNotificationList;
     FScene: TX3DEventsEngine;
     FShapeTrees: TObject;
+    FInternalSceneShape: TObject;
 
     { Internally used by PROTO instantiating mechanism,
       in TX3DPrototypeNode.InstantiateIsClauses
@@ -989,8 +990,14 @@
       This means it can be placed only within one TCastleScene. }
     property Scene: TX3DEventsEngine read FScene write FScene;
 
-    { Managed and used by TCastleSceneCore to keep TShapeTreesList
-      for every ITransformNode. }
+    { Internally used by @link(Scene) to store some information at node.
+      @exclude }
+    property InternalSceneShape: TObject
+      read FInternalSceneShape write FInternalSceneShape;
+
+    { Internally used by @link(Scene) to store TShapeTreesList
+      for every ITransformNode.
+      @exclude }
     property ShapeTrees: TObject read FShapeTrees write FShapeTrees;
 
     { This will be always called by VRML parsers after adding new item

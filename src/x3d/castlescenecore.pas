@@ -959,6 +959,12 @@ type
       @exclude }
     InternalDirty: Cardinal;
 
+    { Optimize scenes, for scenes that do not change structure (new/removed nodes)
+      but often change field contents (e.g. coordinates contents, color contents).
+      This is unstable now, you may even get access violations as the cached
+      data is not always cleared from nodes. }
+    OptimizeDynamicShapes: Boolean experimental;
+
     const
       DefaultShadowMapsDefaultSize = 256;
 
@@ -4187,6 +4193,7 @@ var
   var
     Coord: TMFVec3f;
     SI: TShapeTreeIterator;
+    ConnectedShapes: Cardinal;
   begin
     { TCoordinateNode is special, although it's part of VRML 1.0 state,
       it can also occur within coordinate-based nodes of VRML >= 2.0.
@@ -4195,20 +4202,35 @@ var
       In fact, code below takes into account both VRML 1.0 and 2.0 situation.
       That's why chCoordinate should not be used with chVisibleVRML1State
       --- chVisibleVRML1State handling is not needed after this. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.Geometry.InternalCoord(SI.Current.State, Coord) and
-            (Coord = Field)) or
-           { Change to OriginalGeometry.Coord should also be reported,
-             since it may cause FreeProxy for shape. This is necessary
-             for animation of NURBS controlPoint to work. }
-           (SI.Current.OriginalGeometry.InternalCoord(SI.Current.State, Coord) and
-            (Coord = Field)) then
-          SI.Current.Changed(false, Changes);
 
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    finally FreeAndNil(SI) end;
+    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
+    begin
+      TShape(ANode.InternalSceneShape).Changed(false, Changes);
+    end else
+    begin
+      SI := TShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if (SI.Current.Geometry.InternalCoord(SI.Current.State, Coord) and
+              (Coord = Field)) or
+             { Change to OriginalGeometry.Coord should also be reported,
+               since it may cause FreeProxy for shape. This is necessary
+               for animation of NURBS controlPoint to work. }
+             (SI.Current.OriginalGeometry.InternalCoord(SI.Current.State, Coord) and
+              (Coord = Field)) then
+          begin
+            SI.Current.Changed(false, Changes);
+            if ConnectedShapes = 0 then
+            begin
+              ANode.InternalSceneShape := SI.Current;
+              Inc(ConnectedShapes);
+            end else
+              ANode.InternalSceneShape := nil;
+          end;
+      finally FreeAndNil(SI) end;
+    end;
+
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
   { Good for both chVisibleVRML1State and chGeometryVRML1State
@@ -4361,6 +4383,7 @@ var
   procedure HandleChangeColorNode;
   var
     SI: TShapeTreeIterator;
+    ConnectedShapes: Cardinal;
   begin
     { Affects all geometry nodes with "color" field referencing this node.
 
@@ -4368,13 +4391,28 @@ var
       This is not detected for now, and doesn't matter (we do not handle
       particle systems at all now). }
 
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.Geometry.ColorField <> nil) and
-           (SI.Current.Geometry.ColorField.Value = ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
+    begin
+      TShape(ANode.InternalSceneShape).Changed(false, Changes);
+    end else
+    begin
+      ConnectedShapes := 0;
+      SI := TShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if (SI.Current.Geometry.ColorField <> nil) and
+             (SI.Current.Geometry.ColorField.Value = ANode) then
+          begin
+            SI.Current.Changed(false, Changes);
+            if ConnectedShapes = 0 then
+            begin
+              ANode.InternalSceneShape := SI.Current;
+              Inc(ConnectedShapes);
+            end else
+              ANode.InternalSceneShape := nil;
+          end;
+      finally FreeAndNil(SI) end;
+    end;
   end;
 
   procedure HandleChangeTextureCoordinate;
