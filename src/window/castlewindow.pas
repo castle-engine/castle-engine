@@ -2912,6 +2912,8 @@ procedure Resize2D(Container: TUIContainer);
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
   out S: string): boolean;
+function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
+  out S: string): boolean; deprecated 'use KeyToString';
 
 {$undef read_interface}
 
@@ -5316,6 +5318,12 @@ begin
     Result := true;
   end else
   Result := false;
+end;
+
+function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
+  out S: string): boolean;
+begin
+  Result := KeyToString(AKeyString, Key, Modifiers, S);
 end;
 
 function Application: TCastleApplication;
