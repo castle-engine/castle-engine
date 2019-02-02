@@ -31,7 +31,8 @@ implementation
 uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos;
+  CastleImages, CastleVideos,
+  X3DLoadInternalUtils;
 
 { Reading glTF using PasGLTF from Bero:
   https://github.com/BeRo1985/pasgltf/
@@ -291,7 +292,7 @@ var
     BaseColorTextureCoordinateId, NormalTextureCoordinateId: Integer;
     AlphaChannel: TAutoAlphaChannel;
   begin
-    Result := TGltfAppearanceNode.Create(Material.Name);
+    Result := TGltfAppearanceNode.Create(ToX3DName(Material.Name));
 
     BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
     CommonSurfaceShader := TCommonSurfaceShaderNode.Create;
@@ -579,7 +580,7 @@ var
     Group: TGroupNode;
   begin
     Group := TGroupNode.Create;
-    Group.X3DName := Mesh.Name;
+    Group.X3DName := ToX3DName(Mesh.Name);
     ParentGroup.AddChildren(Group);
 
     for Primitive in Mesh.Primitives do
@@ -647,7 +648,7 @@ var
       end;
 
       Transform := TTransformNode.Create;
-      Transform.X3DName := Node.Name;
+      Transform.X3DName := ToX3DName(Node.Name);
       Transform.Translation := Translation;
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
