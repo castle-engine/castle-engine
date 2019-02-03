@@ -499,7 +499,7 @@ begin
         MethodValue := GetMethodProp(Instance, PropInfo);
         DefMethodValue.Data := nil;
         DefMethodValue.Code := nil;
-        Result := CompareMethods(MethodValue, DefMethodValue);
+        Result := SameMethods(MethodValue, DefMethodValue);
       end;
     tkSString, tkLString, tkAString:
       begin
