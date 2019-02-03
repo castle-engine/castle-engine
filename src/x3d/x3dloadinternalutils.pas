@@ -25,6 +25,7 @@ uses CastleVectors, X3DNodes;
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
 
+{ Sanitize name to be valid X3D node name (@link(TX3DNode.X3DName)). }
 function ToX3DName(const S: String): String;
 
 { Calculate best possible ambientIntensity. This is a float that tries to
@@ -67,6 +68,9 @@ const
   NonAllowedNameChars = AllChars - AllowedNameChars;
 begin
   Result := SReplaceChars(S, NonAllowedNameChars, '_');
+  // first character cannot be digit
+  if SCharIs(S, 1, ['0'..'9']) then
+    Result := '_' + Result;
 end;
 
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;

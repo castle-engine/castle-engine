@@ -77,7 +77,8 @@ uses
   TestCastleControls,
   TestCastleRandom,
   TestCastleSoundEngine,
-  TestCastleComponentSerialize
+  TestCastleComponentSerialize,
+  TestX3DLoadInternalUtils
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
