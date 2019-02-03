@@ -616,20 +616,19 @@ function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys = [];
 const
   ModifierKeyToKey: array[TModifierKey]of TKey = (keyCtrl, keyShift, keyAlt);
 
-{ @abstract(This "packs" values like KeysDown[keyCtrl], KeysDown[keyShift] etc.
-  -- KeysDown for all TModifierKey.)
+{ Determine pressed modifier keys (ctrl, shift and so on).
 
-  Version with TKeysPressed parameter returns [] (empty set)
-  when argument is @nil. This may be useful sometimes.
+  Overloaded version with TKeysPressed parameter allows the parameter to be @nil,
+  and returns [] (empty set) then.
 
   @groupBegin }
 function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys; overload;
-function ModifiersDown(Pressed: TKeysPressed): TModifierKeys; overload;
+function ModifiersDown(const Pressed: TKeysPressed): TModifierKeys; overload;
 { @groupEnd }
 
 function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
 
-{ Return a nice very short description of the character.
+{ Nice short description of the character.
   When Modifiers is not empty, these are the additional modifiers
   required to be pressed (although some C values, like CtrlA ... CtrlZ,
   may already indicate some modifier).
@@ -708,9 +707,6 @@ type
       we merely take what system gives us). For example, you can get "a" or "A"
       depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
 
-      ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)
-      which were pressed at the moment of the Event.
-
       When the user holds the key pressed, we will get consecutive
       key down events. Under some OSes, you will also get consecutive
       key up events, but it's not guaranteed (on some OSes, you may
@@ -720,8 +716,11 @@ type
       @groupBegin }
     Key: TKey;
     KeyString: string;
-    ModifiersDown: TModifierKeys;
     { @groupEnd }
+
+    { ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)
+      which were pressed at the moment of this Event. }
+    ModifiersDown: TModifierKeys;
 
     { Was this key already pressed before this event.
       May be @true only for key events, and only on press (not on release).
@@ -816,11 +815,14 @@ type
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Position: TVector2; const Key: TKey;
-  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
+  const KeyString: string;
+  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
+  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
-  const Scroll: Single; const Vertical: boolean): TInputPressRelease;
+  const Scroll: Single; const Vertical: boolean;
+  const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 { @groupEnd }
 
 { Construct TInputMotion. }
@@ -1138,29 +1140,31 @@ begin
 end;
 
 function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys;
-var mk: TModifierKey;
+var
+  mk: TModifierKey;
 begin
- result:=[];
- for mk := Low(TModifierKey) to High(TModifierKey) do
-  if KeysDown[ModifierKeyToKey[mk]] then Include(result, mk);
+  Result := [];
+  for mk := Low(TModifierKey) to High(TModifierKey) do
+    if KeysDown[ModifierKeyToKey[mk]] then
+      Include(Result, mk);
 end;
 
-function ModifiersDown(Pressed: TKeysPressed): TModifierKeys;
+function ModifiersDown(const Pressed: TKeysPressed): TModifierKeys;
 begin
- if Pressed <> nil then result := ModifiersDown(Pressed.Keys) else result:=[];
+  if Pressed <> nil then
+    Result := ModifiersDown(Pressed.Keys)
+  else
+    Result := [];
 end;
 
 function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
-var k: TModifierKey;
+var
+  K: TModifierKey;
 begin
- Result := '[';
- for k := Low(k) to High(k) do
-  if k in MK then
-   Result := Result + KeyToStr(ModifierKeyToKey[k]) + ',';
- { we know that Length(result) >= 1 (because Result starts with '[')
-   so it's safe to check Result[Length(result)]. }
- if Result[Length(result)] = ',' then SetLength(result, Length(result)-1);
- Result := Result + ']';
+  Result := '';
+  for K in MK do
+    Result := SAppendPart(Result, ', ', KeyToStr(ModifierKeyToKey[K]));
+  Result := '[' + Result + ']';
 end;
 
 function KeyStringToNiceStr(const KeyString: String;
@@ -1367,6 +1371,8 @@ begin
   end;
   if KeyRepeated then
     Result := Result + ', key repeated';
+  if ModifiersDown <> [] then
+    Result := Result + ', modifiers pressed ' + ModifierKeysToNiceStr(ModifiersDown);
 end;
 
 function TInputPressRelease.KeyCharacter: char;
@@ -1402,7 +1408,8 @@ begin
 end;
 
 function InputKey(const Position: TVector2; const Key: TKey;
-  const KeyString: string; const ModifiersDown: TModifierKeys = []): TInputPressRelease;
+  const KeyString: string;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
@@ -1413,23 +1420,27 @@ begin
 end;
 
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
+  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itMouseButton;
   Result.MouseButton := MouseButton;
   Result.FingerIndex := FingerIndex;
+  Result.ModifiersDown := ModifiersDown;
 end;
 
 function InputMouseWheel(const Position: TVector2;
-  const Scroll: Single; const Vertical: boolean): TInputPressRelease;
+  const Scroll: Single; const Vertical: boolean;
+  const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Position := Position;
   Result.EventType := itMouseWheel;
   Result.MouseWheelScroll := Scroll;
   Result.MouseWheelVertical := Vertical;
+  Result.ModifiersDown := ModifiersDown;
 end;
 
 function InputMotion(const OldPosition, Position: TVector2;

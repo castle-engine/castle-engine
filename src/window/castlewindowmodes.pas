@@ -407,18 +407,20 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase);
     Button: TMouseButton;
     Key: TKey;
     C: char;
+    ModifiersDown: TModifierKeys;
   begin
     { Simulate (to original callbacks) that user releases
       all mouse buttons and key presses now. }
     for Button := Low(Button) to High(Button) do
       if Button in Window.MousePressed then
-        Window.Container.EventRelease(InputMouseButton(Window.MousePosition, Button, 0));
+        Window.Container.EventRelease(InputMouseButton(Window.MousePosition, Button, 0, []));
+    ModifiersDown := CastleKeysMouse.ModifiersDown(Window.Container.Pressed);
     for Key := Low(Key) to High(Key) do
       if Window.Pressed[Key] then
-        Window.Container.EventRelease(InputKey(Window.MousePosition, Key, '', ModifiersDown(Window.Container.Pressed)));
+        Window.Container.EventRelease(InputKey(Window.MousePosition, Key, '', ModifiersDown));
     for C := Low(C) to High(C) do
       if Window.Pressed.Characters[C] then
-        Window.Container.EventRelease(InputKey(Window.MousePosition, K_None, C, ModifiersDown(Window.Container.Pressed)));
+        Window.Container.EventRelease(InputKey(Window.MousePosition, K_None, C, ModifiersDown));
   end;
 
 begin
@@ -468,7 +470,7 @@ begin
       Window.Container.EventResize;
     if FakeMouseDown then
       for Btn in Window.MousePressed do
-        Window.Container.EventPress(InputMouseButton(Window.MousePosition, Btn, 0));
+        Window.Container.EventPress(InputMouseButton(Window.MousePosition, Btn, 0, []));
 
     Window.Invalidate;
 

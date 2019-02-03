@@ -3603,7 +3603,8 @@ begin
     Container.MousePressed := Container.MousePressed + [Button];
   end;
   MakeCurrent;
-  Event := InputMouseButton(Position, Button, FingerIndex);
+  Event := InputMouseButton(Position, Button, FingerIndex,
+    ModifiersDown(Container.Pressed));
   Container.EventPress(Event);
   FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
@@ -3620,7 +3621,8 @@ begin
     Container.MousePressed := Container.MousePressed - [Button];
   end;
   MakeCurrent;
-  Event := InputMouseButton(Position, Button, FingerIndex);
+  Event := InputMouseButton(Position, Button, FingerIndex,
+    ModifiersDown(Container.Pressed));
   Container.EventRelease(Event);
   if TrackReleased then
     { for desktops, when the mouse is used, we track the position of the mouse
@@ -3635,7 +3637,8 @@ end;
 procedure TCastleWindowBase.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   MakeCurrent;
-  Container.EventPress(InputMouseWheel(MousePosition, Scroll, Vertical));
+  Container.EventPress(InputMouseWheel(MousePosition, Scroll, Vertical,
+    ModifiersDown(Container.Pressed)));
 end;
 
 procedure TCastleWindowBase.DoUpdate;

@@ -1090,7 +1090,8 @@ begin
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(MousePosition, MyButton, 0));
+    Container.EventPress(InputMouseButton(MousePosition, MyButton, 0,
+      ModifiersDown(Container.Pressed)));
 end;
 
 procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
@@ -1152,7 +1153,8 @@ end;
 function TCastleControlBase.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
-  Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true));
+  Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true,
+    ModifiersDown(Container.Pressed)));
   AggressiveUpdate;
   if Result then Exit;
 
