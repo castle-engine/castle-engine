@@ -4208,6 +4208,7 @@ var
       TShape(ANode.InternalSceneShape).Changed(false, Changes);
     end else
     begin
+      ConnectedShapes := 0;
       SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
