@@ -229,7 +229,8 @@ end;
 procedure TCastleLabel.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   TextToRender: TRichText;
-  TextToRenderWidth, TextToRenderCount: Cardinal;
+  TextToRenderWidth: Single;
+  TextToRenderCount: Cardinal;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Single;
   US: Single;
 begin

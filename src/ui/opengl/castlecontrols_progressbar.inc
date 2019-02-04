@@ -82,7 +82,7 @@ const
 procedure MakeTextFit(var Text: string; const Font: TCastleFont;
   const MaxWidth: Integer);
 var
-  DotsWidth: Integer;
+  DotsWidth: Single;
 
   { Make Text shorter by preserving first and last words, inserting
     dots inside, and preserving as much as possible text between first and last
@@ -127,7 +127,7 @@ var
     the prefix + Dots. }
   procedure TrimSimple;
   var
-    NewTextDotsWidth, PotentialNewTextDotsWidth: Integer;
+    NewTextDotsWidth, PotentialNewTextDotsWidth: Single;
     NewText, PotentialNewText: string;
     C: char;
   begin
@@ -146,7 +146,7 @@ var
   end;
 
 var
-  TextWidth: Integer;
+  TextWidth: Single;
 begin
   TextWidth := Font.TextWidth(Text);
   if TextWidth <= MaxWidth then

@@ -403,7 +403,7 @@ var
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
-  CaretShift: Integer;
+  CaretShift: Single;
 begin
   inherited;
 

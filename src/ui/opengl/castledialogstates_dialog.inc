@@ -118,7 +118,7 @@ type
     Text: string; const TextAlign: THorizontalPosition;
     const Caret: TCaretMode);
   var
-    CaretWidth: Integer;
+    CaretWidth: Single;
   begin
     if Caret <> cmNone then
       CaretWidth := Dialog.Font.TextWidth(CaretChar) else

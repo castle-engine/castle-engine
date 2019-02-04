@@ -48,7 +48,7 @@ type
       TNotification = class
         Text: string;
         Time: TTimerResult; {< appear time }
-        Width: Integer;
+        Width: Single;
         Color: TCastleColor;
       end;
       TNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNotification>)

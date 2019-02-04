@@ -67,7 +67,7 @@ begin
     'A simple test of a font from an image.' + NL +
     'Do cats eat bats?' + NL +
     'and sometimes, Do bats eat cats?' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       Label1.Font.Size,
       Label1.Font.RowHeight,
       Label1.Font.RowHeightBase,
@@ -86,7 +86,7 @@ begin
   Label2.Caption :=
     'Yet another label.' + NL +
     'With different font. Just to show that we can :)' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       Label2.Font.Size,
       Label2.Font.RowHeight,
       Label2.Font.RowHeightBase,
@@ -105,7 +105,7 @@ begin
   LabelDeja.Caption :=
     'DejaVuSans font' + NL +
     'with anti-aliasing.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelDeja.Font.Size,
       LabelDeja.Font.RowHeight,
       LabelDeja.Font.RowHeightBase,
@@ -124,7 +124,7 @@ begin
   LabelDejaBW.Caption :=
     'DejaVuSans font' + NL +
     'without anti-aliasing.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelDejaBW.Font.Size,
       LabelDejaBW.Font.RowHeight,
       LabelDejaBW.Font.RowHeightBase,
@@ -143,7 +143,7 @@ begin
   LabelDejaLarge.Caption :=
     'DejaVuSans font with anti-aliasing' + NL +
     'and larger size.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelDejaLarge.Font.Size,
       LabelDejaLarge.Font.RowHeight,
       LabelDejaLarge.Font.RowHeightBase,
@@ -165,7 +165,7 @@ begin
   LabelDejaLargeOutline.Caption :=
     'DejaVuSans font with anti-aliasing' + NL +
     'and larger size and outline.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelDejaLargeOutline.Font.Size,
       LabelDejaLargeOutline.Font.RowHeight,
       LabelDejaLargeOutline.Font.RowHeightBase,
@@ -185,7 +185,7 @@ begin
   LabelStylish.Caption :=
     'Stylish "old typewriter" font' + NL +
     'with anti-aliasing.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelStylish.Font.Size,
       LabelStylish.Font.RowHeight,
       LabelStylish.Font.RowHeightBase,
@@ -204,7 +204,7 @@ begin
   LabelStylishBW.Caption :=
     'Stylish "old typewriter" font' + NL +
     'without anti-aliasing.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelStylishBW.Font.Size,
       LabelStylishBW.Font.RowHeight,
       LabelStylishBW.Font.RowHeightBase,
@@ -225,7 +225,7 @@ begin
     'Stylish "old typewriter" font' + NL +
     'with anti-aliasing' + NL +
     'and larger size.' + NL +
-    Format('Font properties: Size %f, RowHeight %d, RowHeightBase %d, Descend %d.', [
+    Format('Font properties: Size %f, RowHeight %f, RowHeightBase %f, Descend %f.', [
       LabelStylishLarge.Font.Size,
       LabelStylishLarge.Font.RowHeight,
       LabelStylishLarge.Font.RowHeightBase,
