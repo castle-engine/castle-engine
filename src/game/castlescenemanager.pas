@@ -1174,6 +1174,47 @@ type
       the simplest directional headlight. }
     property HeadlightNode: TAbstractLightNode
       read GetHeadlightNode write SetHeadlightNode;
+
+    { Convert 2D position on the viewport into "world coordinates",
+      which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+      This is a more general version of @link(TCastle2DSceneManager.PositionTo2DWorld),
+      that works with any projection (perspective or not).
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressReleaseEvent.Position)
+          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This intersects the ray cast by @link(RequiredCamera)
+      with a plane at Z = PlaneZ.
+
+      Returns true and sets 3D PlanePosition (the Z component of this vector
+      must always be equal to PlaneZ) if such intersection is found.
+      Returns false if it's not possible to determine such point (when
+      the camera looks in the other direction).
+    }
+    function PositionToWorldPlane(const Position: TVector2;
+      const ScreenCoordinates: Boolean;
+      const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -3998,6 +4039,27 @@ begin
       end;
     else raise EInternalError.Create(2018081902);
   end;
+end;
+
+function TCastleSceneManager.PositionToWorldPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+var
+  R: TFloatRectangle;
+  ScreenPosition: TVector2;
+  RayOrigin, RayDirection: TVector3;
+begin
+  R := RenderRect;
+
+  if ScreenCoordinates then
+    ScreenPosition := Position
+  else
+    ScreenPosition := Position * UIScale + R.LeftBottom;
+
+  RequiredCamera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+
+  Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
+    RayOrigin, RayDirection);
 end;
 
 { TCastleViewport --------------------------------------------------------------- }

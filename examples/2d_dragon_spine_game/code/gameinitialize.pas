@@ -81,6 +81,26 @@ const
   DragonSpeedY =  500.0;
   DragonScale = 0.5;
 
+{ Change the curent animation played by the Dragon scene. }
+procedure DragonChangeAnimation(const AnimationName: String;
+  const AnimationBlending: Boolean = true);
+var
+  Parameters: TPlayAnimationParameters;
+begin
+  { Without blending, this could be called simpler:
+      Dragon.PlayAnimation(AnimationName, true);
+  }
+
+  Parameters := TPlayAnimationParameters.Create;
+  try
+    Parameters.Name := AnimationName;
+    Parameters.Loop := true;
+    if AnimationBlending then
+      Parameters.TransitionDuration := 0.5;
+    Dragon.PlayAnimation(Parameters);
+  finally FreeAndNil(Parameters) end;
+end;
+
 procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
@@ -179,7 +199,7 @@ begin
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
-  Dragon.PlayAnimation('idle', true);
+  DragonChangeAnimation('idle', false);
   Dragon.Pickable := false;
   Dragon.Scale := Vector3(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
@@ -320,7 +340,7 @@ begin
        (T[1] = DragonFlyingTarget[1]) then
     begin
       DragonFlying := false;
-      Dragon.PlayAnimation('idle', true);
+      DragonChangeAnimation('idle');
     end;
 
     if (T[0] < 1000) and not AchievementSeeLeftSubmitted then
@@ -345,6 +365,7 @@ end;
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   S: TVector3;
+  WorldPosition: TVector3;
 begin
   if Event.IsKey(K_F5) then
     Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
@@ -353,25 +374,12 @@ begin
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    { The mouse click position is in Event.Position,
-      but instead we look at Background.PointingDeviceOverPoint that
-      contains a ready position in our world coordinates.
-      So we do not have to care about translating mouse positions
-      into world positions (in case camera moves over the world),
-      it is already done for us. }
-    if { check "PointingDeviceOverItem <> nil" before accessing
-         Background.PointingDeviceOverPoint, because when we're in 3D-like view
-         (when CameraView3D.Pressed) then user can press on empty black space
-         outside of our space. }
-       (Background.PointingDeviceOverItem <> nil) then
+    if SceneManager.PositionToWorldPlane(Event.Position, true, 0, WorldPosition) then
     begin
       if not DragonFlying then
-        Dragon.PlayAnimation('flying', true);
+        DragonChangeAnimation('flying');
       DragonFlying := true;
-      DragonFlyingTarget := Vector2(
-        { ignore 3rd dimension from Background.PointingDeviceOverPoint }
-        Background.PointingDeviceOverPoint[0],
-        Background.PointingDeviceOverPoint[1]);
+      DragonFlyingTarget := WorldPosition.XY;
 
       { force scale in X to be negative or positive, to easily make
         flying left/right animations from single "flying" animation. }
