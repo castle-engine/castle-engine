@@ -609,7 +609,9 @@ type
     rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
+    FMoveEnabled: Boolean;
     FRotationEnabled: Boolean;
+    FZoomEnabled: Boolean;
     FTranslation: TVector3;
     FRotations: TQuaternion;
     FDragMoveSpeed, FKeysMoveSpeed: Single;
@@ -699,9 +701,28 @@ type
 
     { Current camera properties ---------------------------------------------- }
 
-    { Enable rotating the model.
-      When @false, no keys / mouse dragging / 3d mouse etc. can make a rotation. }
-    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled;
+    { Enable rotating the camera around the model by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
+
+      Note that this doesn't prevent from rotating by code, e.g. by setting
+      @link(Rotations) property or calling @link(SetView). }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
+
+    { Enable moving the camera by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
+
+      Note that this doesn't prevent from moving by code, e.g. by setting
+      @link(Translation) property or calling @link(SetView). }
+    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
+
+    { Enable zooming the camera on the model by user input.
+      Depending on the projection, zooming either moves camera or scales the model.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
+
+      Note that this doesn't prevent from zooming by code, e.g. by setting
+      @link(ScaleFactor) property (to scale the model)
+      or calling @link(SetView) (to move closer to the model). }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
 
     { Drag with this mouse button to rotate the model.
 
@@ -2151,6 +2172,8 @@ begin
   inherited;
 
   FRotationEnabled := true;
+  FMoveEnabled := true;
+  FZoomEnabled := true;
   FTranslation := TVector3.Zero;
   FRotations := TQuaternion.ZeroRotation;
   FRotationsAnim := TVector3.Zero;
@@ -2330,7 +2353,7 @@ begin
 
     ModsDown := ModifiersDown(Container.Pressed);
 
-    if ModsDown = [mkCtrl] then
+    if MoveEnabled and (ModsDown = [mkCtrl]) then
     begin
       for i := 0 to 2 do
       begin
@@ -2352,7 +2375,7 @@ begin
         end;
       end;
     end else
-    if ModsDown = [] then
+    if RotationEnabled and (ModsDown = []) then
     begin
       for i := 0 to 2 do
       begin
@@ -2426,6 +2449,7 @@ var
   MoveSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit(false);
+  if not MoveEnabled then Exit(false);
   if FModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
@@ -2593,6 +2617,7 @@ begin
     end else
       Result := false;
   end else
+  if ZoomEnabled then
   begin
     { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
@@ -2778,14 +2803,16 @@ begin
     Result := ExclusiveEvents;
   end;
 
-  if MouseButtonZoom = DraggingMouseButton then
+  if ZoomEnabled and
+     (MouseButtonZoom = DraggingMouseButton) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
   { Moving uses box size, so requires non-empty box. }
-  if (not FModelBox.IsEmpty) and
+  if MoveEnabled and
+     (not FModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
     Size := FModelBox.AverageSize;
@@ -2808,7 +2835,7 @@ begin
     MoveDivConst := Container.Dpi else
     MoveDivConst := 100;
 
-  if Recognizer.Gesture = gtPinch then
+  if ZoomEnabled and (Recognizer.Gesture = gtPinch) then
   begin
     if Recognizer.PinchScaleFactor > 1.0 then
       Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
@@ -2821,7 +2848,7 @@ begin
     Zoom(Factor / ZoomScale);
   end;
 
-  if Recognizer.Gesture = gtPan then
+  if MoveEnabled and (Recognizer.Gesture = gtPan) then
   begin
     Size := FModelBox.AverageSize;
     FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst));
