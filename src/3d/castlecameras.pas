@@ -2670,7 +2670,7 @@ begin
       FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
 
       { Cancel zoom in, don't allow to go to the other side of the model too far.
-        Note that Box3DPointDistance = 0 when you're inside the box,
+        Note that TBox3D.PointDistance = 0 when you're inside the box,
         so zoomin in/out inside the box is still always allowed.
         See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
       if (Factor > 0) and
