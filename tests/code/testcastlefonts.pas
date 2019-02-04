@@ -79,7 +79,7 @@ begin
   Font := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
   try
     AssertEquals(15, Font.Size);
-    AssertEquals(15, Font.RealSize);
+    AssertEquals(15, Font.EffectiveSize);
     AssertEquals(14, Font.RowHeight);
 
     Family := TFontFamily.Create(nil);
@@ -87,12 +87,12 @@ begin
       Family.RegularFont := Font;
 
       AssertEquals(0, Family.Size);
-      AssertEquals(15, Family.RealSize);
+      AssertEquals(15, Family.EffectiveSize);
       AssertEquals(14, Family.RowHeight);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
-      AssertEquals(30, Family.RealSize);
+      AssertEquals(30, Family.EffectiveSize);
       AssertEquals(28, Family.RowHeight);
     finally FreeAndNil(Family) end;
 
@@ -101,18 +101,18 @@ begin
       Customized.SourceFont := Font;
 
       AssertEquals(0, Customized.Size);
-      AssertEquals(15, Customized.RealSize);
+      AssertEquals(15, Customized.EffectiveSize);
       AssertEquals(14, Customized.RowHeight);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
-      AssertEquals(30, Customized.RealSize);
+      AssertEquals(30, Customized.EffectiveSize);
       AssertEquals(28, Customized.RowHeight);
     finally FreeAndNil(Customized) end;
 
     Font.Size := 60;
     AssertEquals(60, Font.Size);
-    AssertEquals(60, Font.RealSize);
+    AssertEquals(60, Font.EffectiveSize);
     AssertEquals(56, Font.RowHeight);
 
     Family := TFontFamily.Create(nil);
@@ -120,12 +120,12 @@ begin
       Family.RegularFont := Font;
 
       AssertEquals(0, Family.Size);
-      AssertEquals(60, Family.RealSize);
+      AssertEquals(60, Family.EffectiveSize);
       AssertEquals(56, Family.RowHeight);
 
       Family.Size := 30;
       AssertEquals(30, Family.Size);
-      AssertEquals(30, Family.RealSize);
+      AssertEquals(30, Family.EffectiveSize);
       AssertEquals(28, Family.RowHeight);
     finally FreeAndNil(Family) end;
 
@@ -134,12 +134,12 @@ begin
       Customized.SourceFont := Font;
 
       AssertEquals(0, Customized.Size);
-      AssertEquals(60, Customized.RealSize);
+      AssertEquals(60, Customized.EffectiveSize);
       AssertEquals(56, Customized.RowHeight);
 
       Customized.Size := 30;
       AssertEquals(30, Customized.Size);
-      AssertEquals(30, Customized.RealSize);
+      AssertEquals(30, Customized.EffectiveSize);
       AssertEquals(28, Customized.RowHeight);
     finally FreeAndNil(Customized) end;
   finally FreeAndNil(Font) end;

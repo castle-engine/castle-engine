@@ -265,7 +265,7 @@ begin
     if FontSize <> 0 then
       FCustomizedFont.Size := FontSize
     else
-      FCustomizedFont.Size := Result.RealSize; // to have something to multiply in line below
+      FCustomizedFont.Size := Result.EffectiveSize; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale * FontScale;
     {$warnings off} // using deprecated to keep it working
     if SmallFont then

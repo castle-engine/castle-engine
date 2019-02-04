@@ -95,7 +95,7 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
-    function RealSize: Single; override;
+    function EffectiveSize: Single; override;
 
     { Should we customize the outline of the underlying font. }
     property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
@@ -436,11 +436,12 @@ begin
   Result := SubFont(Bold, Italic);
 end;
 
-function TFontFamily.RealSize: Single;
+function TFontFamily.EffectiveSize: Single;
 begin
   if Size <> 0 then
-    Result := Size else
-    Result := SubFont.RealSize;
+    Result := Size
+  else
+    Result := SubFont.EffectiveSize;
 end;
 
 procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
@@ -461,14 +462,14 @@ begin
     unscaled. It may be scaled if user adjusted SubFont.Size (e.g. changed
     TTextureFont.Size from original value derived from TTextureFont.FFont.Size),
     or if user adjusted our own Size (set it non-zero).
-    The RealSize right now indicates our actual size (accounts for both
+    The EffectiveSize right now indicates our actual size (accounts for both
     cases when we're scaled mentioned above),
     and the AMeasuredSize describes for what size the measurement was done. }
-  ScaleFactor := RealSize / AMeasuredSize;
+  ScaleFactor := EffectiveSize / AMeasuredSize;
   ARowHeight     := Round(ARowHeight     * ScaleFactor);
   ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
   ADescend       := Round(ADescend       * ScaleFactor);
-  AMeasuredSize := RealSize;
+  AMeasuredSize := EffectiveSize;
 end;
 
 { TPrintState ---------------------------------------------------------------- }
@@ -681,7 +682,7 @@ begin
           State.FontStack := TTextLine.TFontStateList.Create;
         FontState := TTextLine.TFontState.Create;
         FontState.Color := State.Color;
-        FontState.Size := Font.RealSize;
+        FontState.Size := Font.EffectiveSize;
         State.FontStack.Add(FontState);
 
         State.Color := Color;
@@ -692,7 +693,7 @@ begin
           State.FontStack := TTextLine.TFontStateList.Create;
         FontState := TTextLine.TFontState.Create;
         FontState.Color := State.Color;
-        FontState.Size := Font.RealSize;
+        FontState.Size := Font.EffectiveSize;
         State.FontStack.Add(FontState);
 
         if HtmlSize <> 0 then
@@ -705,10 +706,10 @@ begin
           State.FontStack := TTextLine.TFontStateList.Create;
         FontState := TTextLine.TFontState.Create;
         FontState.Color := State.Color;
-        FontState.Size := Font.RealSize;
+        FontState.Size := Font.EffectiveSize;
         State.FontStack.Add(FontState);
 
-        Font.Size := Font.RealSize * SizeSmaller;
+        Font.Size := Font.EffectiveSize * SizeSmaller;
       end;
     tcFontEnd, tcSmallEnd:
       if (State.FontStack = nil) or (State.FontStack.Count = 0) then
@@ -1129,7 +1130,7 @@ begin
   FFont.Italic := false;
 
   Result.Color := InitialColor;
-  Result.DefaultSize := FFont.RealSize;
+  Result.DefaultSize := FFont.EffectiveSize;
 end;
 
 procedure TRichText.EndProcessing(var State: TTextLine.TPrintState);

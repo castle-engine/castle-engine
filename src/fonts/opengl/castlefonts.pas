@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 2D fonts (TCastleFont, TTextureFont, TSimpleTextureFont). }
+{ Fonts (TCastleFont and various descendants). }
 unit CastleFonts;
 
 {$I castleconf.inc}
@@ -370,10 +370,13 @@ type
     procedure PushProperties;
     procedure PopProperties;
 
-    { Actual font-size. Usually same thing as @link(Size), but in case of proxy
-      font classes (like TCustomizedFont) it makes sure to never return zero
-      (which, in case of font proxies, means "use underlying font size"). }
-    function RealSize: Single; virtual;
+    { Non-zero font size. Usually same thing as @link(Size), but in case of proxy
+      font classes (like TCustomizedFont and TFontFamily) it makes sure to
+      never return zero (which, in case of font proxies,
+      is allowed value for @link(Size) and means "use underlying font size"). }
+    function EffectiveSize: Single; virtual;
+
+    function RealSize: Single; deprecated 'use EffectiveSize';
 
     { The image where we render the font.
       Usually (when this is @nil) our rendering routines render to the screen
@@ -556,7 +559,7 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
-    function RealSize: Single; override;
+    function EffectiveSize: Single; override;
   end;
 
   { Raised by
@@ -1064,9 +1067,14 @@ begin
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
 end;
 
-function TCastleFont.RealSize: Single;
+function TCastleFont.EffectiveSize: Single;
 begin
   Result := Size;
+end;
+
+function TCastleFont.RealSize: Single;
+begin
+  Result := EffectiveSize;
 end;
 
 { TTextureFont --------------------------------------------------------------- }
@@ -1667,11 +1675,11 @@ begin
     FSourceFont.PopProperties;
 end;
 
-function TCustomizedFont.RealSize: Single;
+function TCustomizedFont.EffectiveSize: Single;
 begin
   if Size <> 0 then
     Result := Size else
-    Result := SourceFont.RealSize;
+    Result := SourceFont.EffectiveSize;
 end;
 
 procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer;
@@ -1692,14 +1700,14 @@ begin
     unscaled. It may be scaled if user adjusted FSourceFont.Size (e.g. changed
     TTextureFont.Size from original value derived from TTextureFont.FFont.Size),
     or if user adjusted our own Size (set it non-zero).
-    The RealSize right now indicates our actual size (accounts for both
+    The EffectiveSize right now indicates our actual size (accounts for both
     cases when we're scaled mentioned above),
     and the AMeasuredSize describes for what size the measurement was done. }
-  ScaleFactor := RealSize / AMeasuredSize;
+  ScaleFactor := EffectiveSize / AMeasuredSize;
   ARowHeight     := Round(ARowHeight     * ScaleFactor);
   ARowHeightBase := Round(ARowHeightBase * ScaleFactor);
   ADescend       := Round(ADescend       * ScaleFactor);
-  AMeasuredSize := RealSize;
+  AMeasuredSize := EffectiveSize;
 end;
 
 { globals -------------------------------------------------------------------- }
