@@ -57,7 +57,7 @@
 
       Depending on which one is set, this method returns
       @link(CustomFont) or @link(TUIContainer.DefaultFont) or global @link(UIFont).
-      It may also return a TCustomizedFont instance that wraps (and scales)
+      It may also return a TFontFamily instance that wraps (and scales)
       one of them. }
     function Font: TCastleFont;
 
@@ -251,7 +251,7 @@ begin
   else
     Result := UIFont;
 
-  { if needed, wrap Result in TCustomizedFont instance }
+  { if needed, wrap Result in TFontFamily instance }
   if (FontSize <> 0) or
      (FontScale <> 1) or
      (UIScale <> 1) or
