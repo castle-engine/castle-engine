@@ -69,6 +69,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { Desired font size to use when rendering (@link(Print)) and measuring
+      (@link(TextWidth), @link(TextHeight) and related).
+
+      The font size should correspond to the font height (@link(RowHeight)),
+      but actually we don't assume it, and querying @link(RowHeightBase)
+      and @link(RowHeight) is independent from this property. }
+    property Size: Single read GetSize write SetSize;
+
     { Draw text at the current WindowPos, and move
       the WindowPos at the end. This way you can immediately
       call another PrintAndMove again, to add something at the end.
@@ -330,9 +338,6 @@ type
 
     property Scale: Single read FScale write SetScale;
 
-    { Adjust font size by scaling. Underneath, it scales the font using
-      @link(Scale) property, to adjust it to requested size. }
-    property Size: Single read GetSize write SetSize;
 
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
