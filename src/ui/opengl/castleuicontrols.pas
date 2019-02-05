@@ -3593,6 +3593,31 @@ procedure TUIContainer.LoadSettings(const SettingsUrl: String);
     raise Exception.CreateFmt('Not a valid value for UIScaling: %s', [S]);
   end;
 
+type
+  TDynIntegerArray = array of Integer;
+
+  function ParseIntegerList(const S: String): TDynIntegerArray;
+  var
+    IntegerList: TIntegerList;
+    SeekPos: Integer;
+    Token: String;
+  begin
+    IntegerList := TIntegerList.Create;
+    try
+      SeekPos := 1;
+      repeat
+        Token := NextToken(S, SeekPos);
+        if Token = '' then Break;
+        IntegerList.Add(StrToInt(Token));
+      until false;
+
+      if IntegerList.Count = 0 then
+        raise Exception.Create('sizes_at_load parameter is an empty list in CastleSettings.xml');
+
+      Result := IntegerList.ToArray;
+    finally FreeAndNil(IntegerList) end;
+  end;
+
 const
   DefaultUIScaling = usNone;
   DefaultUIReferenceWidth = 0;
@@ -3601,10 +3626,13 @@ var
   SettingsDoc: TXMLDocument;
   E: TDOMElement;
 
+  // font stuff
   DefaultFontUrl: String;
   DefaultFontSize, DefaultFontLoadSize: Cardinal;
   DefaultFontAntiAliased: Boolean;
-  NewDefaultFont: TTextureFont;
+  NewDefaultFont: TCastleFont;
+  AllSizesAtLoadStr: String;
+  AllSizesAtLoad: TDynIntegerArray;
 
   NewUIScaling: TUIScaling;
   NewUIReferenceWidth, NewUIReferenceHeight: Single;
@@ -3636,11 +3664,19 @@ begin
     begin
       DefaultFontUrl := E.AttributeURL('url', SettingsUrl);
       DefaultFontSize := E.AttributeCardinalDef('size', 20);
-      DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
       DefaultFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
 
-      NewDefaultFont := TTextureFont.Create(Self);
-      NewDefaultFont.Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
+      if E.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
+      begin
+        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
+        NewDefaultFont := TCustomizedFont.Create(Self);
+        TCustomizedFont(NewDefaultFont).Load(DefaultFontUrl, AllSizesAtLoad, DefaultFontAntiAliased);
+      end else
+      begin
+        DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
+        NewDefaultFont := TTextureFont.Create(Self);
+        TTextureFont(NewDefaultFont).Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
+      end;
       NewDefaultFont.Size := DefaultFontSize;
     end;
   finally FreeAndNil(SettingsDoc) end;

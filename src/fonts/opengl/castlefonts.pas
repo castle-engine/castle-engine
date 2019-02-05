@@ -20,13 +20,13 @@ unit CastleFonts;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleGLImages, CastleStringUtils, CastleColors, CastleVectors,
   CastleTextureFontData, CastleImages, CastleUnicode, CastleRectangles,
   CastleApplicationProperties;
 
 type
-  { Abstract class for 2D font. }
+  { Abstract class for a font that can be used to render text. }
   TCastleFont = class abstract(TComponent)
   strict private
   type
@@ -390,7 +390,7 @@ type
   { @deprecated Deprecated name for TCastleFont. }
   TGLBitmapFontAbstract = TCastleFont deprecated;
 
-  { 2D font using a texture initialized from a FreeType font file.
+  { Font using a texture initialized from a FreeType font file.
 
     This can load a font file, or it can use ready data in TTextureFontData.
     The latter allows to use this for fonts embedded in a Pascal source code,
@@ -463,7 +463,7 @@ type
   { @deprecated Deprecated name, use TTextureFont now. }
   TGLBitmapFont = TTextureFont deprecated;
 
-  { 2D font using a texture to define character images
+  { Font using a texture to define character images
     with constant width and height.
 
     This class has some assumptions about how the font image looks like:
@@ -523,10 +523,18 @@ type
   TCustomizedFont = class(TCastleFont)
   strict private
     FSourceFont: TCastleFont;
+    FAlternativeSizes: TComponentList;
+    SubFont: TCastleFont;
+    { Set SubFont to one of SourceFont of FAlternativeSizes,
+      depending on the current Size. }
+    procedure UpdateSubFont;
+    procedure SubFontCustomizeBegin;
+    procedure SubFontCustomizeEnd;
     procedure SetSourceFont(const Value: TCastleFont);
   strict protected
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
     procedure GLContextClose; override;
+    procedure SetSize(const Value: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -543,6 +551,26 @@ type
     function TextHeightBase(const S: string): Single; override;
     function TextMove(const S: string): TVector2; override;
     function EffectiveSize: Single; override;
+
+    { Add any number of alternative source fonts.
+      Before actually using them for rendering,
+      we always choose the one with size most matching our desired @link(Size).
+      This way you can e.g. load the same font in sizes 10, 50, 100,
+      and have good quality font rendering in various sizes. }
+    procedure AddAlternativeSourceFont(const ASourceFont: TCastleFont);
+
+    { Load the same font to a number of textures with different sizes.
+      At rendering, we will automatically use the best size.
+      This sets @link(SourceFont) and @link(AddAlternativeSourceFont).
+
+      This allows to achieve better look than TTexturedFont with one size. }
+    procedure Load(const URL: string;
+      const ASizes: array of Integer; const AnAntiAliased: boolean;
+      const ACharacters: TUnicodeCharList = nil);
+
+    { Return SourceFont or one of the fonts added by @link(AddAlternativeSourceFont),
+      to have the font with @link(TCastleFont.Size) closest to the given ASize. }
+    function BestSourceFont(const ASize: Single): TCastleFont;
   end;
 
   { Raised by
@@ -1557,6 +1585,7 @@ end;
 destructor TCustomizedFont.Destroy;
 begin
   SourceFont := nil; // this will free FSourceFont if needed
+  FreeAndNil(FAlternativeSizes);
   inherited;
 end;
 
@@ -1569,6 +1598,11 @@ begin
     FSourceFont := Value;
     if FSourceFont <> nil then
       FSourceFont.FreeNotification(Self);
+
+    { Recalculate SubFont, since fonts changed.
+      TODO: This will not fire when a font on FAlternativeSizes list is freed,
+      SubFont may be left pointing to one of freed fonts. }
+    UpdateSubFont;
   end;
 end;
 
@@ -1584,82 +1618,139 @@ begin
 end;
 
 procedure TCustomizedFont.PrepareResources;
+var
+  I: Integer;
 begin
   if FSourceFont <> nil then
     FSourceFont.PrepareResources;
+
+  if FAlternativeSizes <> nil then
+  begin
+    for I := 0 to FAlternativeSizes.Count - 1 do
+      TCastleFont(FAlternativeSizes[I]).PrepareResources;
+  end;
 end;
 
 procedure TCustomizedFont.GLContextClose;
+var
+  I: Integer;
 begin
   if FSourceFont <> nil then
     FSourceFont.GLContextClose;
+
+  if FAlternativeSizes <> nil then
+  begin
+    for I := 0 to FAlternativeSizes.Count - 1 do
+      TCastleFont(FAlternativeSizes[I]).GLContextClose;
+  end;
+end;
+
+procedure TCustomizedFont.SetSize(const Value: Single);
+begin
+  if Size <> Value then
+  begin
+    inherited SetSize(Value);
+    UpdateSubFont;
+  end;
+end;
+
+function TCustomizedFont.BestSourceFont(const ASize: Single): TCastleFont;
+var
+  SizeDist, NewSizeDist: Single;
+  AltFont: TCastleFont;
+  I: Integer;
+begin
+  Result := SourceFont;
+
+  if (FAlternativeSizes <> nil) and (ASize <> 0) then
+  begin
+    SizeDist := Abs(SourceFont.Size - ASize);
+
+    for I := 0 to FAlternativeSizes.Count - 1 do
+    begin
+      AltFont := TCastleFont(FAlternativeSizes[I]);
+      NewSizeDist := Abs(AltFont.Size - ASize);
+      if NewSizeDist < SizeDist then
+      begin
+        Result := AltFont;
+        SizeDist := NewSizeDist;
+      end;
+    end;
+  end;
+
+  // Writeln('for size ', Size:1:2, ' using font with size ', Result.Size:1:2);
+end;
+
+procedure TCustomizedFont.UpdateSubFont;
+begin
+  SubFont := BestSourceFont(Size);
+end;
+
+procedure TCustomizedFont.SubFontCustomizeBegin;
+begin
+  if Size <> 0 then
+  begin
+    SubFont.PushProperties;
+    SubFont.Size := Size;
+  end;
+end;
+
+procedure TCustomizedFont.SubFontCustomizeEnd;
+begin
+  if Size <> 0 then
+    SubFont.PopProperties;
 end;
 
 procedure TCustomizedFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  FSourceFont.Print(X, Y, Color, S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  SubFont.Print(X, Y, Color, S);
+  SubFontCustomizeEnd;
 end;
 
 function TCustomizedFont.TextWidth(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextWidth(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  { One may think that only for rendering (Print) we have to use SubFont,
+    for sizing it's enough to use SourceFont (since all alternatives should
+    be the same font, just scaled).
+
+    In practice it's important to use best font (always SubFont),
+    since the underlying fonts data have integer sizes,
+    so taking sizes of a different font always introduces some imprecision,
+    this is visible by slightly misaligned labels etc. }
+
+  SubFontCustomizeBegin;
+  Result := SubFont.TextWidth(S);
+  SubFontCustomizeEnd;
 end;
 
 function TCustomizedFont.TextHeight(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextHeight(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextHeight(S);
+  SubFontCustomizeEnd;
 end;
 
 function TCustomizedFont.TextHeightBase(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextHeightBase(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextHeightBase(S);
+  SubFontCustomizeEnd;
 end;
 
 function TCustomizedFont.TextMove(const S: string): TVector2;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextMove(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextMove(S);
+  SubFontCustomizeEnd;
 end;
 
 function TCustomizedFont.EffectiveSize: Single;
 begin
   if Size <> 0 then
-    Result := Size else
+    Result := Size
+  else
     Result := SourceFont.EffectiveSize;
 end;
 
@@ -1682,14 +1773,42 @@ begin
 
     So instead we implement our Measure we calling FSourceFont.Measure. }
 
-  if Size <> 0 then
+  SubFontCustomizeBegin;
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SubFontCustomizeEnd;
+end;
+
+procedure TCustomizedFont.AddAlternativeSourceFont(const ASourceFont: TCastleFont);
+begin
+  if FAlternativeSizes = nil then
+    FAlternativeSizes := TComponentList.Create(false);
+  FAlternativeSizes.Add(ASourceFont);
+  UpdateSubFont;
+end;
+
+procedure TCustomizedFont.Load(const URL: string;
+  const ASizes: array of Integer; const AnAntiAliased: boolean;
+  const ACharacters: TUnicodeCharList);
+var
+  F: TTextureFont;
+  I: Integer;
+begin
+  Assert(Length(ASizes) > 0);
+
+  // clear previous
+  SourceFont := nil;
+  if FAlternativeSizes <> nil then
+    FAlternativeSizes.Clear;
+
+  for I := 0 to Length(ASizes) - 1 do
   begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
+    F := TTextureFont.Create(Self);
+    F.Load(URL, ASizes[I], AnAntiAliased, ACharacters);
+    if SourceFont = nil then
+      SourceFont := F
+    else
+      AddAlternativeSourceFont(F);
   end;
-  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
 end;
 
 { globals -------------------------------------------------------------------- }
