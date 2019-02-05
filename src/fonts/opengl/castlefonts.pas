@@ -1664,7 +1664,12 @@ begin
 
   if (FAlternativeSizes <> nil) and (ASize <> 0) then
   begin
-    SizeDist := Abs(SourceFont.Size - ASize);
+    { At destruction it can happen that SourceFont is nil,
+      while FAlternativeSizes is non-nil. }
+    if SourceFont <> nil then
+      SizeDist := Abs(SourceFont.Size - ASize)
+    else
+      SizeDist := MaxSingle;
 
     for I := 0 to FAlternativeSizes.Count - 1 do
     begin
