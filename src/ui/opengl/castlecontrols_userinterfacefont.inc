@@ -131,6 +131,9 @@
       Specifying a non-zero outline for a label overrides the default outline
       settings for the current font. By default, fonts do not have an outline.
 
+      TODO: UI scaling (@link(TUIContainer.UIScaling))
+      doesn't affect outline size now.
+
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write SetOutline default 0;
 

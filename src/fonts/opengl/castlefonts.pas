@@ -31,7 +31,7 @@ type
   strict private
   type
     TSavedProperties = class
-      Scale: Single;
+      Size: Single;
       Outline: Cardinal;
       OutlineColor: TCastleColor;
       OutlineHighQuality: boolean;
@@ -40,12 +40,12 @@ type
     TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
   var
     FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
-    FScale: Single;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
     FTargetImage: TCastleImage;
     FPropertiesStack: TSavedPropertiesList;
+    FSize: Single;
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
   strict protected
@@ -54,14 +54,8 @@ type
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
-    { Call when data calculated by Measure changed,
-      because TextWidth / TextHeight results changed (but not by Scale,
-      that is taken care of automatically). }
-    procedure InvalidateMeasure;
-    procedure SetScale(const Value: Single); virtual;
-    function GetSize: Single; virtual; abstract;
-    procedure SetSize(const Value: Single); virtual; abstract;
     procedure GLContextClose; virtual;
+    procedure SetSize(const Value: Single); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -73,7 +67,7 @@ type
       The font size should correspond to the font height (@link(RowHeight)),
       but actually we don't assume it, and querying @link(RowHeightBase)
       and @link(RowHeight) is independent from this property. }
-    property Size: Single read GetSize write SetSize;
+    property Size: Single read FSize write SetSize;
 
     { Draw text at the current WindowPos, and move
       the WindowPos at the end. This way you can immediately
@@ -334,24 +328,15 @@ type
       const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
-    property Scale: Single read FScale write SetScale;
-
-
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
       look sensible for small outline values (like 1 or 2).
 
-      TOO: Note that outline size, in pixels, is @bold(right now) not scaled by
-      font scale. Which may be sensible (this way you can change font "base size"
-      when generating texture freely, as long as you always set font
-      @link(Size) in your code explicitly, and things will keep looking the same
-      --- bacause Scale only matters as a multiplier of original "base size").
-      It also helps our poor outline implementation --- it may look bad
-      at non-integer values.
-      But it has disadvantages: UI scaling (@link(TUIContainer.UIScaling))
-      doesn't affect outline size now.
-      This will be fixed in the future, please speak up on Castle Game Engine
-      forum if interested.
+      Note that outline size, in pixels, is not scaled along with font size.
+      Which makes sense: whether you load TTF with size 10 and then set size 20,
+      or you load TTF with size 40 and then set size 20
+      --- the font is internally scaled differently, but the resulting sizes
+      and outline sizes remain the same.
 
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write FOutline default 0;
@@ -367,8 +352,7 @@ type
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
 
     { Save draw properties to a stack. Saves:
-      @link(Scale) (synchronized with @link(Size)),
-      @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
+      @link(Size), @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
       @link(TargetImage). }
     procedure PushProperties;
     procedure PopProperties;
@@ -389,14 +373,16 @@ type
 
       The PushProperties and PopProperties methods save/restore this.
 
-      @bold(TODO: Font scaling is not done when drawing font to an image.)
-      So leave the @link(Scale) at 1 and don't touch the @link(Size)
+      TODO: Font scaling (normally done by TTextureFont and TSimpleTextureFont
+      if you change @link(Size) from default)
+      is not done when drawing font to an image.
+      So don't touch the @link(Size)
       if you plan on rendering to image. Also, when using HTML tags,
       do not change the font size by them.
       Otherwise TextWidth / TextHeight will be unsynchronized
       with what @link(Print) actually does --- so not only your font will
       remain constant size, also it will overlap with itself.
-      This may get fixed one day --- TCastleImage.Draw just needs to support scaling.
+      This will get fixed one day --- TCastleImage.Draw just needs to support scaling.
     }
     property TargetImage: TCastleImage read FTargetImage write FTargetImage;
   end;
@@ -417,9 +403,9 @@ type
     GLImage: TGLImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
+    { Scale applied to the rendered FFont to honor changing the Size property. }
+    function Scale: Single;
   strict protected
-    procedure SetScale(const Value: Single); override;
-    function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   public
@@ -434,7 +420,10 @@ type
       Providing charaters list as @nil means that we only create glyphs
       for SimpleAsciiCharacters, which includes only the basic ASCII characters.
       The ACharacters instance @italic(does not) become owned by this object,
-      so remember to free it after calling this constructor. }
+      so remember to free it after calling this constructor.
+
+      Loading a font data also changes @link(Size) to the underlying
+      (optimal to render) font data size. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TUnicodeCharList = nil); reintroduce;
@@ -495,13 +484,13 @@ type
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
-    function ScaledCharWidth: Integer;
-    function ScaledCharHeight: Integer;
-    function ScaledCharDisplayMargin: Integer;
+    function ScaledCharWidth: Single;
+    function ScaledCharHeight: Single;
+    function ScaledCharDisplayMargin: Single;
     function GetSmoothScaling: boolean;
+    { Scale applied to the rendered GLImage to honor changing the Size property. }
+    function Scale: Single;
   strict protected
-    procedure SetScale(const Value: Single); override;
-    function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   public
@@ -524,26 +513,18 @@ type
   end;
 
   { Font that uses @italic(another) TCastleFont for rendering and sizing,
-    but modifies the underlying font size (by simple scaling).
+    but modifies the underlying font size.
     Simply set the @code(Size) property of this instance to non-zero
     to force the specific size.
 
     The underlying font properties remain unchanged
     (so it can be still used for other purposes,
-    directly or by other TCustomizedFont wrappers).
-
-    @italic(Do not get / set the @code(Scale) property of this instance),
-    it will not do anything in current implementation and should always
-    stay equal to 1. }
+    directly or by other TCustomizedFont wrappers). }
   TCustomizedFont = class(TCastleFont)
   strict private
     FSourceFont: TCastleFont;
-    // Note that we leave inherited Scale at == 1, always.
-    FSize: Single;
     procedure SetSourceFont(const Value: TCastleFont);
   strict protected
-    function GetSize: Single; override;
-    procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -586,7 +567,6 @@ constructor TCastleFont.Create(AOwner: TComponent);
 begin
   inherited;
   FMeasuredSize := -1; // not measured at all
-  FScale := 1;
   FOutlineColor := Black;
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
 end;
@@ -598,6 +578,15 @@ begin
   GLContextClose;
   FreeAndNil(FPropertiesStack);
   inherited;
+end;
+
+procedure TCastleFont.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    Assert(not IsInfinite(Value));
+    FSize := Value;
+  end;
 end;
 
 procedure TCastleFont.GLContextCloseEvent(Sender: TObject);
@@ -1007,11 +996,6 @@ begin
   end;
 end;
 
-procedure TCastleFont.InvalidateMeasure;
-begin
-  FMeasuredSize := - 1;
-end;
-
 function TCastleFont.RowHeight: Single;
 begin
   MakeMeasure;
@@ -1030,11 +1014,6 @@ begin
   Result := FMeasuredDescend;
 end;
 
-procedure TCastleFont.SetScale(const Value: Single);
-begin
-  FScale := Value;
-end;
-
 procedure TCastleFont.PushProperties;
 var
   SavedProperites: TSavedProperties;
@@ -1043,7 +1022,7 @@ begin
     FPropertiesStack := TSavedPropertiesList.Create;
 
   SavedProperites := TSavedProperties.Create;
-  SavedProperites.Scale := Scale;
+  SavedProperites.Size := Size;
   SavedProperites.Outline := Outline;
   SavedProperites.OutlineColor := OutlineColor;
   SavedProperites.OutlineHighQuality := OutlineHighQuality;
@@ -1059,7 +1038,7 @@ begin
     raise Exception.Create('Cannot do TCastleFont.PopProperties, stack empty. Every PopProperties should match previous PushProperties');
 
   SavedProperites := FPropertiesStack.Last;
-  Scale        := SavedProperites.Scale;
+  Size         := SavedProperites.Size;
   Outline      := SavedProperites.Outline;
   OutlineColor := SavedProperites.OutlineColor;
   OutlineHighQuality := SavedProperites.OutlineHighQuality;
@@ -1141,11 +1120,32 @@ begin
 
   FOwnsFont := OwnsData;
   FFont := Data;
+
+  if FFont <> nil then
+    Size := FFont.Size;
+  { Load(nil) is called by our own code.
+    Leave Size as it was then, it should not matter. }
+end;
+
+function TTextureFont.Scale: Single;
+begin
+  Result := Size / FFont.Size;
+end;
+
+procedure TTextureFont.SetSize(const Value: Single);
+begin
+  inherited SetSize(Value);
+
+  Assert(FFont.Size <> 0);
+  Assert(not IsInfinite(Value));
+
+  if GLImage <> nil then
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TTextureFont.GetSmoothScaling: boolean;
 begin
-  Result := Scale <> 1;
+  Result := Size <> FFont.Size;
 end;
 
 procedure TTextureFont.PrepareResources;
@@ -1354,26 +1354,6 @@ begin
   Result.Data[1] := Result.Data[1] * Scale;
 end;
 
-procedure TTextureFont.SetScale(const Value: Single);
-begin
-  inherited;
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
-end;
-
-function TTextureFont.GetSize: Single;
-begin
-  Assert(FFont <> nil, 'Use TTextureFont.Load before looking at font Size or rendering it');
-  Result := FFont.Size * Scale;
-end;
-
-procedure TTextureFont.SetSize(const Value: Single);
-begin
-  Assert(FFont.Size <> 0);
-  Assert(not IsInfinite(Value));
-  Scale := Value / FFont.Size;
-end;
-
 { TSimpleTextureFont --------------------------------------------------------- }
 
 constructor TSimpleTextureFont.Create(AOwner: TComponent);
@@ -1405,26 +1385,40 @@ begin
   CharWidth := Image.Width div ImageCols - CharMargin;
   CharHeight := Image.Height div ImageRows - CharMargin;
   CharDisplayMargin := ACharDisplayMargin;
+
+  Size := CharHeight;
 end;
 
-function TSimpleTextureFont.ScaledCharWidth: Integer;
+function TSimpleTextureFont.ScaledCharWidth: Single;
 begin
-  Result := Round(CharWidth * Scale) + Outline * 2;
+  Result := CharWidth * Scale + Outline * 2;
 end;
 
-function TSimpleTextureFont.ScaledCharHeight: Integer;
+function TSimpleTextureFont.ScaledCharHeight: Single;
 begin
-  Result := Round(CharHeight * Scale) + Outline * 2;
+  Result := CharHeight * Scale + Outline * 2;
 end;
 
-function TSimpleTextureFont.ScaledCharDisplayMargin: Integer;
+function TSimpleTextureFont.ScaledCharDisplayMargin: Single;
 begin
-  Result := Round(CharDisplayMargin * Scale);
+  Result := CharDisplayMargin * Scale;
+end;
+
+function TSimpleTextureFont.Scale: Single;
+begin
+  Result := Size / CharHeight;
+end;
+
+procedure TSimpleTextureFont.SetSize(const Value: Single);
+begin
+  inherited SetSize(Value);
+  if GLImage <> nil then
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TSimpleTextureFont.GetSmoothScaling: boolean;
 begin
-  Result := Scale <> 1;
+  Result := Size <> CharHeight;
 end;
 
 procedure TSimpleTextureFont.PrepareResources;
@@ -1466,7 +1460,7 @@ var
   end;
 
 var
-  ImageX, ImageY, ScreenX, ScreenY: Single;
+  ImageX, ImageY, ScreenX, ScreenY, InitialMargin: Single;
   CharIndex: Integer;
   C: TUnicodeChar;
   TextPtr: PChar;
@@ -1482,6 +1476,19 @@ begin
 
   GlyphsToRender := 0;
 
+  { Using Floor(ScaledCharDisplayMargin / 2)
+    instead of just "ScaledCharDisplayMargin / 2",
+    because it looks better in case of rendering the unscaled font
+    (Scale = 1), at integer coordinates (e.g. X=10.0, Y=10.0),
+    and ScaledCharDisplayMargin is odd ineger (e.g. 1.0).
+
+    You expect then the font to hit pixels exactly,
+    while "ScaledCharDisplayMargin / 2" would mean that everything is shifted
+    by 0.5 pixel.
+
+    Testcase: font_from_texture.lpr using null_terminator_0.png font. }
+  InitialMargin := Floor(ScaledCharDisplayMargin / 2);
+
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
   I := 0;
@@ -1496,8 +1503,8 @@ begin
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
       ImageY := Image.Height - (ImageY + 1) * (CharHeight + CharMargin);
-      ScreenX := ScaledCharDisplayMargin div 2 + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
-      ScreenY := ScaledCharDisplayMargin div 2 + Y;
+      ScreenX := InitialMargin + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
+      ScreenY := InitialMargin + Y;
       Inc(I);
 
       { TODO: this ignores Outline and related properties now, always renders like Outline = 0. }
@@ -1539,23 +1546,6 @@ begin
   Result := Vector2(TextWidth(S), TextHeight(S));
 end;
 
-procedure TSimpleTextureFont.SetScale(const Value: Single);
-begin
-  inherited;
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
-end;
-
-function TSimpleTextureFont.GetSize: Single;
-begin
-  Result := CharHeight * Scale;
-end;
-
-procedure TSimpleTextureFont.SetSize(const Value: Single);
-begin
-  Scale := Value / CharHeight;
-end;
-
 { TCustomizedFont ------------------------------------------------------------ }
 
 constructor TCustomizedFont.Create(AOwner: TComponent);
@@ -1567,16 +1557,6 @@ destructor TCustomizedFont.Destroy;
 begin
   SourceFont := nil; // this will free FSourceFont if needed
   inherited;
-end;
-
-function TCustomizedFont.GetSize: Single;
-begin
-  Result := FSize;
-end;
-
-procedure TCustomizedFont.SetSize(const Value: Single);
-begin
-  FSize := Value;
 end;
 
 procedure TCustomizedFont.SetSourceFont(const Value: TCastleFont);

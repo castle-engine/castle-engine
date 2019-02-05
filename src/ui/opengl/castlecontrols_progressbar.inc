@@ -210,7 +210,7 @@ begin
   Font.PushProperties;
   HeightForText := BarRect.Height - 2 * MinPaddingVertical;
   if Font.RowHeight > HeightForText then
-    Font.Scale := Font.Scale / (Font.RowHeight / HeightForText);
+    Font.Size := Font.Size / (Font.RowHeight / HeightForText);
   MakeTextFit(Caption, Font, MaxTextWidth);
   Font.Print(BarRect.Left + PaddingHorizontal,
     BarRect.Bottom + Round(BarRect.Height - Font.RowHeight) div 2,

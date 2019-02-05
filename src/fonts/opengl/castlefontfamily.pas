@@ -45,18 +45,10 @@ type
     You can also change the subfont outline, if CustomizeOutline is used.
     The underlying font properties remain unchanged for subfonts
     (so they can be still used for other purposes,
-    directly or by other TCustomizedFont or TFontFamily wrappers).
-
-    @italic(Do not get / set the @code(Scale) property of this instance),
-    it will not do anything in current implementation and should always
-    stay equal to 1.
-    TODO: remove the Scale property of TCastleFont,
-    or make it only a protected read-only property? }
+    directly or by other TCustomizedFont or TFontFamily wrappers). }
   TFontFamily = class(TCastleFont)
   strict private
     FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleFont;
-    // Note that we leave inherited Scale at == 1, always.
-    FSize: Single;
     FBold, FItalic: boolean;
     FCustomizeOutline: boolean;
     procedure SetRegularFont(const Value: TCastleFont);
@@ -69,8 +61,6 @@ type
     function SubFont(const ABold, AItalic: boolean): TCastleFont;
     function SubFont: TCastleFont;
   strict protected
-    function GetSize: Single; override;
-    procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -254,20 +244,6 @@ begin
   ItalicFont := nil;
   BoldItalicFont := nil;
   inherited;
-end;
-
-function TFontFamily.GetSize: Single;
-begin
-  Result := FSize;
-end;
-
-procedure TFontFamily.SetSize(const Value: Single);
-begin
-  if FSize <> Value then
-  begin
-    Assert(not IsInfinite(Value));
-    FSize := Value;
-  end;
 end;
 
 procedure TFontFamily.SetRegularFont(const Value: TCastleFont);
