@@ -260,7 +260,8 @@ const
   InventoryImageSize = 128;
 var
   Player: TPlayer;
-  I, X, Y: Integer;
+  I: Integer;
+  X, Y: Single;
   S: string;
 begin
   inherited;
@@ -295,7 +296,7 @@ begin
       (and choosing one of your own images or one of the predefined images
       in CastleControlsImages, see main program code for example),
       or by creating and using TGLImageCore.Draw3x3 or TGLImage.Draw directly. }
-    Theme.Draw(Rectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
+    Theme.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
 
   { A simple way to draw player inventory.
