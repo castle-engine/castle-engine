@@ -525,6 +525,7 @@ type
     FSourceFont: TCastleFont;
     procedure SetSourceFont(const Value: TCastleFont);
   strict protected
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
     procedure GLContextClose; override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -1660,6 +1661,35 @@ begin
   if Size <> 0 then
     Result := Size else
     Result := SourceFont.EffectiveSize;
+end;
+
+procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+begin
+  { In usual circumstances, overriding Measure in TCustomizedFont is not needed.
+    The default implementation of ancestor would work OK,
+    by calling TextHeight to measure "Wy" for RowHeight,
+    and TCustomizedFont.TextHeight refers to FSourceFont.TextHeight already.
+
+    But if the FSourceFont has some custom override for Measure,
+    like TLargeDigitsFont.Measure in testcastlefonts.pas
+    that returns constant instead of measuring "Wy" height for RowHeight
+    (because TLargeDigitsFont doesn't have "Wy" letters)
+    then it would be ignored.
+    This would cause problems when wrapping a font in TCustomizedFont
+    (which is what e.g. TCastleLabel does when it has some size),
+    wrapping TLargeDigitsFont in TCustomizedFont would ignore the
+    TLargeDigitsFont.Measure override.
+
+    So instead we implement our Measure we calling FSourceFont.Measure. }
+
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
 end;
 
 { globals -------------------------------------------------------------------- }

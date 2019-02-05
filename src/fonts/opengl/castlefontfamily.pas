@@ -62,6 +62,7 @@ type
     function SubFont: TCastleFont;
   strict protected
     procedure GLContextClose; override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -415,6 +416,15 @@ begin
     Result := Size
   else
     Result := SubFont.EffectiveSize;
+end;
+
+procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
+begin
+  { See TCustomizedFont.Measure for explanation why we need to override
+    Measure. }
+  SubFontCustomizeBegin;
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SubFontCustomizeEnd;
 end;
 
 { TPrintState ---------------------------------------------------------------- }
