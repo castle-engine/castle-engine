@@ -17,19 +17,21 @@ unit TestCastleFonts;
 
 interface
 
-uses fpcunit, testutils, testregistry;
+uses fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastleFonts = class(TTestCase)
+  TTestCastleFonts = class(TCastleBaseTestCase)
   published
     procedure TestMaxTextWidthHtml;
     procedure TestSizeFontFamily;
+    procedure TestOverrideFont;
   end;
 
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily;
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily,
+  Font_LatoRegular_300;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
 var
@@ -143,6 +145,58 @@ begin
       AssertEquals(28, Customized.RowHeight);
     finally FreeAndNil(Customized) end;
   finally FreeAndNil(Font) end;
+end;
+
+type
+  TLargeDigitsFont = class(TTextureFont)
+    { The "Font_LatoRegular_300" font has only digits, misses other chars.
+      So default calculation of RowHeight and friends doesn't work. }
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
+  end;
+
+procedure TLargeDigitsFont.Measure(
+  out ARowHeight, ARowHeightBase, ADescend: Single);
+const
+  ForSize = 300;
+begin
+  ARowHeight := 220; // this is font digit height, assuming font Size = 300
+  ARowHeightBase := ARowHeight;
+  ADescend := 0;
+
+  // make the values valid for current size
+  ARowHeight *= Size / ForSize;
+  ARowHeightBase *= Size / ForSize;
+  ADescend *= Size / ForSize;
+end;
+
+procedure TTestCastleFonts.TestOverrideFont;
+var
+  LargeDigitsFont: TLargeDigitsFont;
+begin
+  LargeDigitsFont := TLargeDigitsFont.Create(TComponent(nil));
+  try
+    LargeDigitsFont.Load(TextureFont_LatoRegular_300);
+    AssertEquals(300, TextureFont_LatoRegular_300.Size);
+
+    AssertSameValue(300, LargeDigitsFont.Size);
+    AssertSameValue(522, LargeDigitsFont.TextWidth('123'), 1);
+    AssertSameValue(221, LargeDigitsFont.TextHeight('123'), 1);
+    AssertSameValue(0, LargeDigitsFont.TextWidth('abc'));
+    AssertSameValue(0, LargeDigitsFont.TextHeight('abc'));
+    AssertSameValue(220, LargeDigitsFont.RowHeight);
+    AssertSameValue(220, LargeDigitsFont.RowHeightBase);
+    AssertSameValue(0, LargeDigitsFont.Descend);
+
+    LargeDigitsFont.Size := 1000;
+    AssertSameValue(1000, LargeDigitsFont.Size);
+    AssertSameValue(522 * 10/3, LargeDigitsFont.TextWidth('123'), 10/3);
+    AssertSameValue(221 * 10/3, LargeDigitsFont.TextHeight('123'), 10/3);
+    AssertSameValue(0, LargeDigitsFont.TextWidth('abc'));
+    AssertSameValue(0, LargeDigitsFont.TextHeight('abc'));
+    AssertSameValue(220 * 10/3, LargeDigitsFont.RowHeight, 10/3);
+    AssertSameValue(220 * 10/3, LargeDigitsFont.RowHeightBase, 10/3);
+    AssertSameValue(0, LargeDigitsFont.Descend);
+  finally FreeAndNil(LargeDigitsFont) end;
 end;
 
 initialization

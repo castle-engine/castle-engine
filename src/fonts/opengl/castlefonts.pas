@@ -1363,6 +1363,7 @@ end;
 
 function TTextureFont.GetSize: Single;
 begin
+  Assert(FFont <> nil, 'Use TTextureFont.Load before looking at font Size or rendering it');
   Result := FFont.Size * Scale;
 end;
 
