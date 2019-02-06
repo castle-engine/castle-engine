@@ -32,12 +32,12 @@ android {
         //     jniDebuggable true
         // }
     }
-}
 
-// See https://developer.android.com/studio/projects/gradle-external-native-builds
-externalNativeBuild {
-    ndkBuild {
-        path "src/main/jni/Android.mk"
+    // See https://developer.android.com/studio/projects/gradle-external-native-builds
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
     }
 }
 
