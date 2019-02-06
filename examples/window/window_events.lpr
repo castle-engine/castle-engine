@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo numerous TCastleWindowCustom events.
+{ Demo numerous TCastleWindowBase events.
   Displays many OnXxx events as they happen,
   also shows Pressed and Pressed.Characters.
   Also a demo of CastleNotifications unit. }
@@ -27,7 +27,7 @@ uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleControls, CastleVectors, CastleRectangles;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Notifications: TCastleNotifications;
 
 procedure Open(Container: TUIContainer);
@@ -100,9 +100,10 @@ begin
 
   { Cursor tests: }
   case Event.KeyCharacter of
-    'n': Notifications.Cursor := mcNone;
-    'd': Notifications.Cursor := mcDefault;
-    'w': Notifications.Cursor := mcWait;
+    'n': Container.OverrideCursor := mcNone;
+    'd': Container.OverrideCursor := mcDefault;
+    'w': Container.OverrideCursor := mcWait;
+    's': Container.OverrideCursor := mcResizeHorizontal;
     '1': Window.MousePosition := Vector2(0           , 0);
     '2': Window.MousePosition := Vector2(Window.Width, 0);
     '3': Window.MousePosition := Vector2(Window.Width, Window.Height);
@@ -122,15 +123,18 @@ end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  Notifications.Show(Format('Motion : old pos %f %f, new pos %f %f',
+  Notifications.Show(Format('Motion : old pos %f %f, new pos %f %f, delta %f %f',
     [ Event.OldPosition[0],
       Event.OldPosition[1],
       Event.Position[0],
-      Event.Position[1] ]));
+      Event.Position[1],
+      Event.Position[0] - Event.OldPosition[0],
+      Event.Position[1] - Event.OldPosition[1]
+    ]));
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Window.ParseParameters;
 

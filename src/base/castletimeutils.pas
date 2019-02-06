@@ -23,7 +23,7 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  SysUtils, Math,
+  SysUtils, Math, Generics.Collections,
   CastleUtils;
 
 type
@@ -258,12 +258,12 @@ function TimerSeconds(const A, B: TTimerResult): TFloatTime;
 
 type
   { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindowCustom
-    (see TCastleWindowCustom.Fps) or Lazarus GL control (see TCastleControlCustom.Fps).
+    rendering API. For example, it can be easily "plugged" into TCastleWindowBase
+    (see TCastleWindowBase.Fps) or Lazarus GL control (see TCastleControlBase.Fps).
 
-    Things named "_" here are supposed to be internal to the TCastleWindowCustom /
-    TCastleControlCustom and such implementations. Other properties can be
-    controlled by the user of TCastleWindowCustom / TCastleControlCustom. }
+    Things named "_" here are supposed to be internal to the TCastleWindowBase /
+    TCastleControlBase and such implementations. Other properties can be
+    controlled by the user of TCastleWindowBase / TCastleControlBase. }
   TFramesPerSecond = class
   private
     FOnlyRenderFps: TFloatTime;
@@ -304,14 +304,14 @@ type
       physics and other logic).
 
       This measures only time spend in @link(TUIContainer.EventRender)
-      method (and it's subordinates, like @link(TUIControl.Render),
+      method (and it's subordinates, like @link(TCastleUserInterface.Render),
       @link(TCastleScene.LocalRender),
-      @link(TCastleWindowCustom.OnRender)).
+      @link(TCastleWindowBase.OnRender)).
       It does not take into account time spent on other activities,
       like "update" calls, and it doesn't take into account that frames are possibly
       not rendered all the time (when AutoRedisplay = @false).
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what FPS mean and how they should be interpreted.
 
       @seealso RealFps }
@@ -326,8 +326,8 @@ type
       Anything can slow this down, not only long rendering,
       but also slow processing of other events (like "update" that does physics).
 
-      When @link(TCastleWindowCustom.AutoRedisplay) or
-      @link(TCastleControlCustom.AutoRedisplay) is @false,
+      When @link(TCastleWindowBase.AutoRedisplay) or
+      @link(TCastleControlBase.AutoRedisplay) is @false,
       this may be very low, since we may not
       render the frames all the time (we may sleep for some time,
       or perform updates without rendering).
@@ -336,7 +336,7 @@ type
       Use the WasSleeping to detect this, and potentially hide the display
       of RealFps from user.
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what FPS mean and how they should be interpreted.
 
       @seealso OnlyRenderFps }
@@ -345,12 +345,12 @@ type
 
     { Some of the frames were not rendered, because the scene and camera
       were not moving. This happens only when
-      @link(TCastleWindowCustom.AutoRedisplay)
-      or @link(TCastleControlCustom.AutoRedisplay) are @false,
+      @link(TCastleWindowBase.AutoRedisplay)
+      or @link(TCastleControlBase.AutoRedisplay) are @false,
       and it basically indicates that the @link(RealFps) value is not a useful
       indicator of your application speed.
 
-      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      See https://castle-engine.io/manual_optimization.php#section_fps
       for a detailed description what this means. }
     property WasSleeping: boolean read FWasSleeping;
 
@@ -385,10 +385,10 @@ type
     { Forces SecondsPassed for the next "update" call to be zero.
 
       This is useful if you just came back from some modal state,
-      like a modal dialog box (like TCastleWindowCustom.FileDialog or modal boxes
+      like a modal dialog box (like TCastleWindowBase.FileDialog or modal boxes
       in CastleMessages -- they already call this method).
       SecondsPassed could be ridicoulously long in such case
-      (if our message loop is totally paused, as in TCastleWindowCustom.FileDialog
+      (if our message loop is totally paused, as in TCastleWindowBase.FileDialog
       on Windows) or not relevant (if we do our message loop,
       but we display something entirely different, like CastleMessages).
       So it's best to pretend that SecondsPassed is 0.0,
@@ -406,7 +406,7 @@ type
 
       Changed when each container "update" event occurs,
       so this is equal during all @link(TInputListener.Update),
-      @link(TUIControl.Render), @link(TCastleTransform.Update),
+      @link(TCastleUserInterface.Render), @link(TCastleTransform.Update),
       @link(TCastleTransform.LocalRender) occuring within the same frame.
       You can use this to avoid performing the same job many times
       in a single frame.
@@ -417,13 +417,21 @@ type
       @code(TFramesPerSecond.FrameId),
       no need to have a TFramesPerSecond instance (which is usually
       accessed from TUIContainer, like @link(TUIContainer.Fps),
-      @link(TCastleWindowCustom.Fps), @link(TCastleControlCustom.Fps). }
+      @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
     class function FrameId: Int64;
   end;
 
+{$define read_interface}
+{$I castletimeutils_profiler.inc}
+{$undef read_interface}
+
 implementation
 
-uses CastleLog;
+uses Generics.Defaults,
+  CastleLog;
+
+{$define read_implementation}
+{$I castletimeutils_profiler.inc}
 
 function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
 var
@@ -834,4 +842,7 @@ begin
   Result := FFrameId;
 end;
 
+initialization
+finalization
+  FreeAndNil(FProfiler);
 end.

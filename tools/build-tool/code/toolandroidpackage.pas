@@ -25,14 +25,14 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 
 procedure RunAndroidPackage(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, Classes,
-  CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
+uses SysUtils, Classes, DOM, XMLWrite,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
@@ -209,6 +209,9 @@ var
       if (depOggVorbis in Project.Dependencies) and
          not Project.AndroidServices.HasService('ogg_vorbis') then
         ExtractService('ogg_vorbis');
+      if (depFreeType in Project.Dependencies) and
+         not Project.AndroidServices.HasService('freetype') then
+        ExtractService('freetype');
     end;
   end;
 
@@ -261,6 +264,67 @@ var
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
         Writeln('Packaging data file: ' + Files[I]);
+    end;
+  end;
+
+  procedure GenerateLocalization;
+  var
+    LocalizedAppName: TLocalizedAppName;
+    Doc: TXMLDocument;
+    RootNode, StringNode: TDOMNode;
+    I: TXMLElementIterator;
+    Language, StringsPath: String;
+  begin
+    if not Assigned(Project.ListLocalizedAppName) then Exit;
+
+    //Change default app_name to translatable:
+    StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim + 'values' + PathDelim + 'strings.xml';
+    URLReadXML(Doc, StringsPath);
+    try
+      I := Doc.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          if (I.Current.TagName = 'string') and (I.Current.AttributeString('name') = 'app_name') then
+          begin
+            I.Current.AttributeSet('translatable', 'true');
+            Break; //There can only be one string 'app_name', so we don't need to continue the loop.
+          end;
+      finally
+        I.Free;
+      end;
+
+      WriteXMLFile(Doc, StringsPath);
+    finally
+      Doc.Free;
+    end;
+
+    //Write strings for every chosen language:
+    for LocalizedAppName in Project.ListLocalizedAppName do
+    begin
+      Doc := TXMLDocument.Create;
+      try
+        RootNode := Doc.CreateElement('resources');
+        Doc.Appendchild(RootNode);
+        RootNode:= Doc.DocumentElement;
+
+        StringNode := Doc.CreateElement('string');
+        TDOMElement(StringNode).AttributeSet('name', 'app_name');
+        StringNode.AppendChild(Doc.CreateTextNode(UTF8Decode(LocalizedAppName.AppName)));
+        RootNode.AppendChild(StringNode);
+
+        if LocalizedAppName.Language = 'default' then
+          Language := ''
+        else
+          Language := '-' + LocalizedAppName.Language;
+
+        StringsPath := AndroidProjectPath + 'app' + PathDelim +'src' + PathDelim + 'main' + PathDelim + 'res' + PathDelim +
+                                            'values' + Language + PathDelim + 'strings.xml';
+
+        CheckForceDirectories(ExtractFilePath(StringsPath));
+        WriteXMLFile(Doc, StringsPath);
+      finally
+        Doc.Free;
+      end;
     end;
   end;
 
@@ -398,27 +462,29 @@ var
         Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
       {$ifdef MSWINDOWS}
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      try
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      finally
+        { Gradle deamon is automatically initialized since Gradle version 3.0
+          (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
+          but it prevents removing the castle-engine-output/android/project/ .
+          E.g. you cannot run "castle-engine package --os=android --cpu=arm"
+          again in the same directory, because it cannot remove the
+          "castle-engine-output/android/project/" at the beginning.
 
-      { Gradle deamon is automatically initialized since Gradle version 3.0
-        (see https://docs.gradle.org/current/userguide/gradle_daemon.html)
-        but it prevents removing the castle-engine-output/android/project/ .
-        E.g. you cannot run "castle-engine package --os=android --cpu=arm"
-        again in the same directory, because it cannot remove the
-        "castle-engine-output/android/project/" at the beginning.
+          It seems the current directory of Java (Gradle) process is inside
+          castle-engine-output/android/project/, and Windows doesn't allow to remove such
+          directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
+          also fails with
 
-        It seems the current directory of Java (Gradle) process is inside
-        castle-engine-output/android/project/, and Windows doesn't allow to remove such
-        directory. Doing "rm -Rf castle-engine-output/android/project/" (rm.exe from Cygwin)
-        also fails with
+            rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
 
-          rm: cannot remove 'castle-engine-output/android/project/': Device or resource busy
+          This may be related to
+          https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
 
-        This may be related to
-        https://discuss.gradle.org/t/the-gradle-daemon-prevents-a-clean/2473/13
-
-        The solution for now is to kill the daemon afterwards. }
-      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+          The solution for now is to kill the daemon afterwards. }
+        RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', ['--stop']);
+      end;
 
       {$else}
       if FileExists(AndroidProjectPath + 'gradlew') then
@@ -452,6 +518,7 @@ begin
   GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
+  GenerateLocalization;
   GenerateLibrary;
   RunNdkBuild;
   RunGradle(PackageMode);
@@ -465,12 +532,12 @@ begin
   Writeln('Build ' + ApkName);
 end;
 
-procedure InstallAndroidPackage(const Name, QualifiedName: string);
+procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
 var
   ApkDebugName, ApkReleaseName, ApkName: string;
 begin
-  ApkReleaseName := Name + '-' + PackageModeToName[cmRelease] + '.apk';
-  ApkDebugName   := Name + '-' + PackageModeToName[cmDebug  ] + '.apk';
+  ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
+  ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
   if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
     raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);
@@ -492,7 +559,7 @@ end;
 
 procedure RunAndroidPackage(const Project: TCastleProject);
 var
-  ActivityName: string;
+  ActivityName, LogTag: string;
 begin
   if Project.AndroidProjectType = apBase then
     ActivityName := 'android.app.NativeActivity'
@@ -502,15 +569,16 @@ begin
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Run successful.');
-  if (FindExe('bash') <> '') and
-     (FindExe('grep') <> '') then
-  begin
-    Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
-    { run through ExecuteProcess, because we don't want to capture output,
-      we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', '"' + AdbExe + '" logcat | grep --text "' + Project.Name + '"']);
-  end else
-    Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
+
+  LogTag := Copy(Project.Name, 1, MaxAndroidTagLength);
+
+  Writeln('Running "adb logcat -s ' + LogTag + ':V".');
+  Writeln('We are assuming that your ApplicationName is "' + Project.Name + '".');
+  Writeln('Break this process with Ctrl+C.');
+
+  { run through ExecuteProcess, because we don't want to capture output,
+    we want to immediately pass it to user }
+  ExecuteProcess(AdbExe, ['logcat', '-s', LogTag + ':V']);
 end;
 
 end.

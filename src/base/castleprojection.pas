@@ -149,7 +149,7 @@ begin
         Dimensions,
         ProjectionNear,
         ProjectionFar);
-    else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
+    else raise EInternalError.Create(2018081901);
   end;
 end;
 

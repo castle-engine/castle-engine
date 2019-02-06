@@ -64,8 +64,12 @@
   { Abstract base type for all bindable children nodes. }
   TAbstractBindableNode = class(TAbstractChildNode)
   strict private
+    FBound: Boolean;
     FTransform: TMatrix4;
     FTransformScale: Single;
+    procedure EventIsBoundReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime);
+    procedure SetBound(const Value: Boolean);
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
@@ -82,6 +86,35 @@
     { Event out } { }
     strict private FEventIsBound: TSFBoolEvent;
     public property EventIsBound: TSFBoolEvent read FEventIsBound;
+
+    { "Bound" node is the node currently used, for example the "bound" background
+      determines the current background look.
+      Setting this to @true means that the node becomes the current node
+      of the given type in the scene.
+
+      In every scene (TCastleScene), there are four "stacks" of bindable nodes:
+
+      @orderedList(
+        @item(Viewpoints determine the camera position/orientation,
+          field of view, orthographic/perspective projection etc.)
+        @item(NavigationInfo determines the current navigation type,
+          avatar size etc.)
+        @item(Background determines the dispayed background (like a skybox
+          or a simple solid color).)
+        @item(Fog determines the current fog.)
+      )
+
+      The top-most node of each stack is called "bound".
+      If the scene is set as TCastleSceneManager.MainScene,
+      then the "bound" node determines the camera, background or fog settings.
+
+      Setting this property to @true sends an X3D event "set_bind := true".
+      This adds the node to the stack, and makes sure it is at the top.
+      Setting this to @false pops the node from the stack.
+      See the X3D specification about the "bindable nodes" foe details:
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/core.html#BindableChildrenNodes
+    }
+    property Bound: Boolean read FBound write SetBound;
 
     { Transformation of this bindable node.
 
@@ -315,6 +348,7 @@ begin
   AddEvent(FEventBindTime);
 
   FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
+   EventIsBound.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventIsBoundReceive);
   AddEvent(FEventIsBound);
 
   FTransform := TMatrix4.Identity;
@@ -328,6 +362,17 @@ begin
 
   FTransform := StateStack.Top.Transform;
   FTransformScale := StateStack.Top.TransformScale;
+end;
+
+procedure TAbstractBindableNode.EventIsBoundReceive(
+  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
+begin
+  FBound := (AValue as TSFBool).Value;
+end;
+
+procedure TAbstractBindableNode.SetBound(const Value: Boolean);
+begin
+  EventSet_bind.Send(Value);
 end;
 
 procedure TAbstractSensorNode.CreateNode;

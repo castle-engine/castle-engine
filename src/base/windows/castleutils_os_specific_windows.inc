@@ -28,7 +28,7 @@ const
   (all our windows), since we use MB_TASKMODAL.
 
   @deprecated Deprecated. Instead of these it's much better to use:
-  - TCastleWindowCustom.MessageOK, TCastleWindowCustom.MessageYesNo if you use
+  - TCastleWindowBase.MessageOK, TCastleWindowBase.MessageYesNo if you use
     CastleWindow.
   - or LCL dialog routines (like ShowMessage and everything in Dialogs unit)
     if you use LCL.

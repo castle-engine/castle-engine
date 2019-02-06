@@ -8,4 +8,11 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f animate_3d_model_by_code.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/animate_3d_model_by_code.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile examples/3d_rendering_processing/animate_3d_model_by_code.lpr

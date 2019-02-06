@@ -26,6 +26,13 @@
    files).
 */
 
+.cge-version-form {
+  margin-top: 2em;
+}
+.cge-version-form label {
+  font-weight: normal;
+}
+
 /* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> */
 .pasdoc-container code {
   background: transparent;
@@ -66,6 +73,11 @@
   border-radius: 4px;
   margin-bottom: 20px;
   padding: 19px;
+}
+
+/* Disable the max-width 100% rule which breaks these images. */
+.pasdoc-container img {
+  max-width: none !important;
 }
 
 /* Adjusted original pasdoc.css below ---------------------------------------- */

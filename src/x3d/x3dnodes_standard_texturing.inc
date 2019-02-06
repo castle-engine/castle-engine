@@ -57,7 +57,7 @@
 
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
-      (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
+      (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ) }
     function AlphaChannelFinal: TAlphaChannel;
 
     strict private FFdAlphaChannel: TSFStringEnum;
@@ -273,6 +273,9 @@
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
+    strict private FFdFlipVertically: TSFBool;
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
+
     function TextureDescription: string; override;
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
@@ -285,6 +288,7 @@
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function GetCycleInterval: TFloatTime;
+  private
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -318,6 +322,9 @@
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
+
+    strict private FFdFlipVertically: TSFBool;
+    public property FdFlipVertically: TSFBool read FFdFlipVertically;
 
     { Event out } { }
     strict private FEventDuration_changed: TSFTimeEvent;
@@ -830,6 +837,9 @@ begin
    FdUrl.ChangesAlways := [chTextureImage];
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
+
+  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
+  AddField(FFdFlipVertically);
 end;
 
 class function TImageTextureNode.ClassX3DType: string;
@@ -845,25 +855,37 @@ begin
 end;
 
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+
+  function LoadOptions: TLoadImageOptions;
+  begin
+    Result := [];
+    if FlipVertically then
+      Include(Result, liFlipVertically);
+  end;
+
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl, ErrorMessage: string;
+  Success: boolean;
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
+  Success := false;
+  ErrorMessage := '';
 
   for I := 0 to FdUrl.Count - 1 do
     if FdUrl.Items[I] = '' then
     begin
-      { Empty URL would be expanded by PathFromBaseUrl to directory
+      { Special error message in this case, otherwise empty URL
+        would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [X3DType]));
+      ErrorMessage := ErrorMessage + NL + '  Empty URL ignored';
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
-        FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
-          FAlphaChannelData);
+        FTextureImage := X3DCache.TextureImage_IncReference(
+          FullUrl, FTextureComposite, FAlphaChannelData, LoadOptions);
         WasCacheUsed := true;
         if WarnAboutAbsoluteFilenames and
            AbsoluteFileURI(FdUrl.Items[I]) and
@@ -873,14 +895,26 @@ begin
           WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
+        Success := true;
         Break;
       except
         on E: Exception do
-          { Remember that WritelnWarning *may* raise an exception. }
-          WritelnWarning('Texture', Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
+          { Silence the Exception, continue trying to load more textures. }
+          ErrorMessage := ErrorMessage + NL + '  ' + Format(SLoadError,
+            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]);
       end;
     end;
+
+  if ErrorMessage <> '' then
+  begin
+    if Success then
+      WritelnLog('Texture', 'Some of the texture URLs failed to load, although we found one URL that succeeded:' +
+        ErrorMessage)
+    else
+      WritelnWarning('Texture', 'Cannot load the texture:' + ErrorMessage);
+  end;
+  { Note that when Success = false but ErrorMessage = '', then we're quiet
+    about it. This happens when Urls.Count = 0. }
 end;
 
 function TImageTextureNode.TextureDescription: string;
@@ -928,6 +962,9 @@ begin
    FdUrl.ChangesAlways := [chTextureImage];
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
+
+  FFdFlipVertically := TSFBool.Create(Self, false, 'flipVertically', false);
+  AddField(FFdFlipVertically);
 
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
   AddEvent(FEventDuration_changed);
@@ -981,6 +1018,14 @@ begin
 end;
 
 procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+
+  function LoadOptions: TLoadImageOptions;
+  begin
+    Result := [];
+    if FlipVertically then
+      Include(Result, liFlipVertically);
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -992,7 +1037,8 @@ begin
   begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
     try
-      FTextureVideo := X3DCache.Video_IncReference(FullUrl, FAlphaChannelData);
+      FTextureVideo := X3DCache.Video_IncReference(
+        FullUrl, FAlphaChannelData, LoadOptions);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;

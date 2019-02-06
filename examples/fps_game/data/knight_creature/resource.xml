@@ -2,7 +2,7 @@
 
 <!--
   Define the "Knight" creature properties. See
-  http://castle-engine.sourceforge.net/creating_data_resources.php
+  https://castle-engine.io/creating_data_resources.php
   for extensive documentation of available properties, in short:
 
   - name: used to refer to this creature from ObjectPascal code,
@@ -19,7 +19,7 @@
   - model: animations 3D models. There are many ways to define them,
     in this case we use castle-anim-frames.
     We export animations from Blender to castle-anim-frames using our exporter on
-    http://castle-engine.sourceforge.net/castle_animation_frames.php .
+    https://castle-engine.io/castle_animation_frames.php .
 
   - radius and preferred_height: important for collision detection.
     These are best visualized with "Render debug 3D" in fps_game.

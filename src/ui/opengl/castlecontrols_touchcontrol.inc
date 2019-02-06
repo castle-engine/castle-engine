@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -27,7 +28,7 @@
     Usually, this control is created and used through the @link(TCastleWindowTouch)
     properties. There is no need to directly create TCastleTouchControl instance
     in this case. }
-  TCastleTouchControl = class(TUIControl)
+  TCastleTouchControl = class(TCastleUserInterface)
   strict private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2;
@@ -38,13 +39,11 @@
     procedure SetPosition(const Value: TCastleTouchPosition);
     procedure SetScale(const Value: Single);
     function MaxOffsetDist: Integer;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-
-    { Size of this control, ignoring GetExists. }
-    function Rect: TRectangle; override;
-
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -56,7 +55,7 @@
       read FTouchMode write SetTouchMode default ctcmWalking;
 
     { Set position of touch control. Right now this simply sets
-      the anchor using @link(TUIControl.HasHorizontalAnchor) and friends.
+      the anchor using @link(TCastleUserInterface.Anchor) and friends.
       Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
       scale with screen size.
 
@@ -87,7 +86,7 @@ begin
   if FScale <> Value then
   begin
     FScale := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -98,13 +97,13 @@ begin
     Result := 1;
 end;
 
-function TCastleTouchControl.Rect: TRectangle;
+procedure TCastleTouchControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
+  inherited;
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
-  Result := Rectangle(LeftBottomScaled,
-    Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
-    Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
+  PreferredWidth  := Theme.Images[tiTouchCtlOuter].Width  * TotalScale;
+  PreferredHeight := Theme.Images[tiTouchCtlOuter].Height * TotalScale;
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
@@ -115,6 +114,11 @@ begin
   begin
     FPosition := Value;
     case Position of
+      tpManual:
+        begin
+          Anchor(hpLeft, 0);
+          Anchor(vpBottom, 0);
+        end;
       tpLeft:
         begin
           Anchor(hpLeft, CtlBorder);
@@ -126,7 +130,7 @@ begin
           Anchor(vpBottom, CtlBorder);
         end;
     end;
-    VisibleChange;
+    // VisibleChange([chRectangle]); // no need to call this, Anchor already called it
   end;
 end;
 
@@ -141,12 +145,12 @@ procedure TCastleTouchControl.Render;
 var
   LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
   LeverDist: Double;
-  InnerRect: TRectangle;
+  InnerRect: TFloatRectangle;
   ImageInner, ImageOuter: TThemeImage;
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
   inherited;
-  SR := ScreenRect;
+  SR := RenderRect;
 
   if FTouchMode = ctcmFlyUpdown then
   begin
@@ -174,11 +178,11 @@ begin
   if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
 
   // draw lever
-  InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
-  InnerRect.Width  := Round(InnerRect.Width  * TotalScale);
-  InnerRect.Height := Round(InnerRect.Height * TotalScale);
-  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
-  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
+  InnerRect := FloatRectangle(Theme.Images[ImageInner].Rect); // rectangle at (0,0)
+  InnerRect.Width  := InnerRect.Width  * TotalScale;
+  InnerRect.Height := InnerRect.Height * TotalScale;
+  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) / 2 + LevOffsetTrimmedX;
+  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) / 2 + LevOffsetTrimmedY;
 
   Theme.Draw(InnerRect, ImageInner, UIScale);
 end;
@@ -189,7 +193,7 @@ begin
   begin
     FTouchMode := Value;
     { we may swap outer image depending on the TouchMode in some later version }
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -214,7 +218,7 @@ begin
 
     FDragging := -1;
     FLeverOffset := TVector2.Zero;
-    VisibleChange; { repaint with lever back in the center }
+    VisibleChange([chRender]); { repaint with lever back in the center }
   end;
 end;
 
@@ -225,7 +229,7 @@ begin
   if (not Result) and (FDragging = Event.FingerIndex) then
   begin
     FLeverOffset := FLeverOffset + Event.Position - Event.OldPosition;
-    VisibleChange;
+    VisibleChange([chRender]);
     Result := ExclusiveEvents;
   end;
 end;

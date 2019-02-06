@@ -13,10 +13,10 @@ shadows and mirrors *now*, consider the algorithms already integrated
 with our engine core:
 
 - Shadow maps:
-  http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php
+  https://castle-engine.io/x3d_extensions_shadow_maps.php
 - Shadow volumes:
-  http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows
+  https://castle-engine.io/x3d_extensions.php#section_ext_shadows
 - Cube map reflections:
-  http://castle-engine.sourceforge.net/x3d_implementation_cubemaptexturing.php
+  https://castle-engine.io/x3d_implementation_cubemaptexturing.php
 - Reflections using a RenderedTexture:
-  http://castle-engine.sourceforge.net/x3d_implementation_texturing_extensions.php#section_ext_rendered_texture
+  https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_rendered_texture

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage a list of recently opened files, and show a menu in TCastleWindowCustom.
+{ Manage a list of recently opened files, and show a menu in TCastleWindowBase.
   See TRecentFiles class. }
 unit CastleWindowRecentFiles;
 
@@ -24,7 +24,7 @@ interface
 uses Classes, CastleWindow, CastleRecentFiles;
 
 type
-  { Manage a list of recently opened files, and show a menu in TCastleWindowCustom. }
+  { Manage a list of recently opened files, and show a menu in TCastleWindowBase. }
   TWindowRecentFiles = class(TRecentFiles)
   private
     FNextMenuItem: TMenuEntry;

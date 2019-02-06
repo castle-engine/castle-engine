@@ -44,7 +44,7 @@ type
       Usually, most models are mostly 2-manifold (only the real border
       edges are, well, in BorderEdges), and this works great.
       See "VRML engine documentation" on
-      [http://castle-engine.sourceforge.net/engine_doc.php],
+      [https://castle-engine.io/engine_doc.php],
       chapter "Shadows", for description and pictures of possible artifacts
       when trying to use this on models that are not 2-manifold.)
 
@@ -64,9 +64,13 @@ type
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep it working for backward compatibility.
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes, CastleRenderingCamera;
+  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages;
+{$warnings on}
 
 {$ifndef OpenGLES}
 { Rendering in this unit for now uses fixed-function pipeline,
@@ -395,7 +399,7 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos.Data[3] <> 0);
 
-    if ForceOpaque or not TShape(FShape).Blending then
+    if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesBegin else
       TransparentTrianglesBegin;
 
@@ -405,7 +409,7 @@ var
       Inc(TrianglePtr);
     end;
 
-    if ForceOpaque or not TShape(FShape).Blending then
+    if ForceOpaque or not (TShape(FShape).AlphaChannel = acBlending) then
       OpaqueTrianglesEnd else
       TransparentTrianglesEnd;
   end;

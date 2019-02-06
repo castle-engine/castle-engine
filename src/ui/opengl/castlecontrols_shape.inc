@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -19,7 +20,7 @@
   TShapeType = (stRectangle, stCircle);
 
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }
-  TCastleShape = class(TUIControlSizeable)
+  TCastleShape = class(TCastleUserInterface)
   strict private
     FFilled, FOutline, FOutlineThick: boolean;
     FColor, FOutlineColor: TCastleColor;
@@ -34,16 +35,12 @@
     procedure SetOutlineThick(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Render; override;
-
-    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
-
-    property Filled: boolean read FFilled write SetFilled default true;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { The fill color, used if @link(Filled). By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
-
-    property Outline: boolean read FOutline write SetOutline default false;
 
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
@@ -94,6 +91,16 @@
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
       Change OutlineThick to @true to have reliable thick outlines. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
+  published
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
+
+    property Filled: boolean read FFilled write SetFilled default true;
+
+    property Outline: boolean read FOutline write SetOutline default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 {$endif read_interface}
@@ -111,6 +118,18 @@ begin
   FOutline := false;
   FOutlineWidth := 1.0;
   FOutlineColor := Black;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleShape.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleShape.SetShapeType(const Value: TShapeType);
@@ -118,7 +137,7 @@ begin
   if FShapeType <> Value then
   begin
     FShapeType := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -127,7 +146,7 @@ begin
   if FFilled <> Value then
   begin
     FFilled := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -136,7 +155,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -145,7 +164,7 @@ begin
   if FOutline <> Value then
   begin
     FOutline := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -154,7 +173,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FOutlineColor, Value) then
   begin
     FOutlineColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -163,7 +182,7 @@ begin
   if FOutlineWidth <> Value then
   begin
     FOutlineWidth := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -172,17 +191,17 @@ begin
   if FOutlineThick <> Value then
   begin
     FOutlineThick := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
 procedure TCastleShape.Render;
 var
-  SR: TRectangle;
+  SR: TFloatRectangle;
   OutlineW, OutlineIn, OutlineOut: Integer;
 begin
   inherited;
-  SR := ScreenRect;
+  SR := RenderRect;
 
   if Filled and Outline and OutlineThick then
   begin
@@ -200,8 +219,8 @@ begin
         end;
       stCircle   :
         begin
-          DrawCircle(SR.Center, SR.Width div 2 + OutlineOut, SR.Height div 2 + OutlineOut, OutlineColor);
-          DrawCircle(SR.Center, SR.Width div 2 + OutlineIn , SR.Height div 2 + OutlineIn , Color);
+          DrawCircle(SR.Center, SR.Width / 2 + OutlineOut, SR.Height / 2 + OutlineOut, OutlineColor);
+          DrawCircle(SR.Center, SR.Width / 2 + OutlineIn , SR.Height / 2 + OutlineIn , Color);
         end;
       else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
     end;
@@ -210,17 +229,31 @@ begin
     if Filled then
       case ShapeType of
         stRectangle: DrawRectangle(SR, Color);
-        stCircle   : DrawCircle(SR.Center, SR.Width div 2, SR.Height div 2, Color);
+        stCircle   : DrawCircle(SR.Center, SR.Width / 2, SR.Height / 2, Color);
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
       end;
 
     if Outline then
       case ShapeType of
         stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
-        stCircle   : DrawCircleOutline(SR.Center, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+        stCircle   : DrawCircleOutline(SR.Center, SR.Width / 2, SR.Height / 2, OutlineColor, UIScale * OutlineWidth);
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
       end;
   end;
 end;
+
+function TCastleShape.PropertySection(
+  const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'ColorPersistent') or
+     (PropertyName = 'ShapeType') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}

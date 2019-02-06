@@ -16,7 +16,7 @@
 { Process arbitrary model for PRT. Computes and adds "radianceTransfer"
   field to all geometry nodes (descending from X3DComposedGeometryNode,
   this includes most often used nodes).
-  See https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_radiance_transfer
+  See https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer
   about the radiance transfer.
 
   Command-line usage:
@@ -51,7 +51,7 @@
   move with respect to other shapes. But note that then self-shadowing
   takes only this shape into account... TODO: make this possible,
   and document on
-  https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_radiance_transfer
+  https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer
 
   We compute radianceTransfer in scene space (not in local shape
   space). This is important, otherwise incoming light SH (calculated

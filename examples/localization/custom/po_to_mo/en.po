@@ -1,0 +1,23 @@
+msgid "LangCode"
+msgstr "en"
+
+msgid "LabelTop"
+msgstr "English and MO"
+
+msgid "ButtonEnglishXML"
+msgstr "English XML"
+
+msgid "ButtonEnglishJSON"
+msgstr "English JSON"
+
+msgid "ButtonEnglishJSONObj"
+msgstr "English JSONObj"
+
+msgid "ButtonEnglishCSV"
+msgstr "English CSV"
+
+msgid "ButtonEnglishMO"
+msgstr "English MO"
+
+msgid "ButtonGermanXML"
+msgstr "German XML"

@@ -151,7 +151,7 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Classes,
   CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
 
 {$define read_interface}
@@ -169,6 +169,7 @@ uses SysUtils, Generics.Collections,
 {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_miscellaneous.inc}
+{$I castlevectors_persistent.inc}
 
 {$undef read_interface}
 
@@ -191,5 +192,6 @@ uses Math, CastleStringUtils, CastleColors, CastleLog;
   {$I castlevectors_lists_double.inc}
 {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$I castlevectors_compatibility_deprecated.inc}
+{$I castlevectors_persistent.inc}
 
 end.

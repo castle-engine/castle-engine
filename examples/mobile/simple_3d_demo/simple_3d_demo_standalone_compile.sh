@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f simple_3d_demo_standalone.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/mobile/simple_3d_demo/simple_3d_demo_standalone.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd examples/mobile/simple_3d_demo/
+"${CASTLE_ENGINE}" compile

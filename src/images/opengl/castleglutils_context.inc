@@ -42,9 +42,11 @@ type
     property Enabled: boolean read FEnabled write SetEnabled;
   end;
 
-  type
-    { Possible values of @link(TRenderContext.DepthRange). }
-    TDepthRange = (drFull, drNear, drFar);
+  { Possible values of @link(TRenderContext.DepthRange). }
+  TDepthRange = (drFull, drNear, drFar);
+
+  TColorChannel = 0..3;
+  TColorChannels = set of TColorChannel;
 
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
@@ -57,7 +59,7 @@ type
     which means it's set as @link(RenderContext) value.
 
     Do not depend on the context state being persistent.
-    The @link(RenderContext) does not change during a single TUIControl.OnRender
+    The @link(RenderContext) does not change during a single TCastleUserInterface.OnRender
     method (with all 2D and 3D stuff rendered inside),
     but that's all we guarantee. On desktops, you control the context
     creation / destruction explicitly (by opening / closing the TCastleWindow).
@@ -71,6 +73,7 @@ type
     type
       TScissorList = class(specialize TObjectList<TScissor>)
       public
+        FFinalScissor: TRectangle; // only defined when Count <> 0
         procedure Update;
       end;
     var
@@ -81,7 +84,11 @@ type
       FProjectionMatrix: TMatrix4;
       FDepthRange: TDepthRange;
       FCullFace, FFrontFaceCcw: boolean;
-      FColorMask: boolean;
+      FColorChannels: TColorChannels;
+      FViewport: TRectangle;
+      FViewportDelta: TVector2Integer;
+      WarningViewportTooLargeDone: Boolean;
+
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
       procedure SetGlobalAmbient(const Value: TCastleColorRGB);
@@ -90,7 +97,13 @@ type
       procedure SetDepthRange(const Value: TDepthRange);
       procedure SetCullFace(const Value: boolean);
       procedure SetFrontFaceCcw(const Value: boolean);
+      function GetColorMask: boolean;
       procedure SetColorMask(const Value: boolean);
+      procedure SetColorChannels(const Value: TColorChannels);
+      procedure SetViewport(const Value: TRectangle);
+      procedure SetViewportDelta(const Value: TVector2Integer);
+      procedure UpdateViewport;
+      procedure WarningViewportTooLarge;
   private
     FEnabledScissors: TScissorList;
   public
@@ -154,26 +167,69 @@ type
 
     { Is the front face ordered counter-clockwise.
       The "front face" is important to interpreting the @link(CullFace)
-      and to interpret the normal vectors (they point ourward from front face). }
+      and to interpret the normal vectors (they point outward from front face). }
     property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
       default true;
 
-    { When this is @false, the color buffer is untouched by rendering. }
-    property ColorMask: boolean read FColorMask write SetColorMask default true;
+    { Which color buffer channels are touched by rendering. }
+    property ColorMask: boolean
+      read GetColorMask write SetColorMask default true;
+      deprecated 'use ColorChannels';
+
+    { Which color buffer channels are touched by rendering.
+      This affects all rendering, including @link(TGLImage.Draw).
+
+      Note that this state may be internally modified by various engine rendering
+      functions too, e.g. by @link(TCastleScene.LocalRender), depending on rendering
+      attributes.
+      So it is only reliable for you to modify this temporarily,
+      and during your own rendering.
+      E.g. change ColorChannels right before and right after calling a couple of
+      @link(TGLImage.Draw). Always restore it afterwards to default [0..3].
+
+      Example uses:
+
+      @unorderedList(
+        @item(
+          Set this to ccNone to temporarily turn off writing to the color buffer.
+          This is useful e.g. if you only want to write
+          to the delph and stencil buffer.)
+        @item(
+          Set this to [0..2] to temporarily turn off writing to the alpha channel,
+          or to [3] to temporarily turn off writing to the RGB channels.)
+        @item(
+          Set this [0..3] to go back to default (write all channels).)
+      )
+    }
+    property ColorChannels: TColorChannels
+      read FColorChannels write SetColorChannels default [0..3];
+
+    { Controls OpenGL viewport. This is always shifted by ViewportDelta. }
+    property Viewport: TRectangle read FViewport write SetViewport;
+
+    { Shifts the rectangle passed to @link(Viewport).
+      Only the @link(TCastleScreenEffects) should control this. }
+    property ViewportDelta: TVector2Integer read FViewportDelta write SetViewportDelta;
+
+    { Scissor rectangle to which we clip the view.
+      This is determined by all @link(TScissor) that are currently enabled.
+      Returns @true and sets Rect if any scissor is active.
+      Returns @false if we don't clip the view now. }
+    function FinalScissor(out Rect: TRectangle): Boolean;
   end;
 
 var
   { Current OpenGL / OpenGLES context state.
-    @bold(Only access it during the rendering, i.e. in TUIControl.Render.)
+    @bold(Only access it during the rendering, i.e. in TCastleUserInterface.Render.)
 
     TODO: In the future, this global singleton may be removed,
-    and this may be accessible instead through a new TUIControl.Render parameter. }
+    and this may be accessible instead through a new TCastleUserInterface.Render parameter. }
   RenderContext: TRenderContext;
 
 procedure GLClear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor); deprecated 'use RenderContext.Clear';
 
-{ Projection matrix -------------------------------------------------------- }
+{ Projection matrix -------------------------------------------------------- } { }
 
 {$ifdef CASTLE_OBJFPC}
 function GetProjectionMatrix: TMatrix4;
@@ -182,14 +238,7 @@ procedure SetProjectionMatrix(const Value: TMatrix4);
   deprecated 'use RenderContext.ProjectionMatrix';
 
 { Current projection matrix.
-
-  For OpenGLES, this is merely a global ProjectionMatrix variable.
-  It must be passed to shaders used by TCastleScene rendering
-  to honour the projection.
-
-  For desktop OpenGL, setting this also sets fixed-function projection matrix.
-  The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
-  then changed back to GL_MODELVIEW. }
+  @deprecated Use RenderContext.ProjectionMatrix instead. }
 property ProjectionMatrix: TMatrix4
   read GetProjectionMatrix write SetProjectionMatrix;
 {$endif}
@@ -209,13 +258,14 @@ function OrthoProjection(const Dimensions: TFloatRectangle;
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
-{ depth range ---------------------------------------------------------------- }
+{ depth range ---------------------------------------------------------------- } { }
 
 {$ifdef CASTLE_OBJFPC}
 function GetDepthRange: TDepthRange;
   deprecated 'use RenderContext.DepthRange';
 procedure SetDepthRange(const Value: TDepthRange);
   deprecated 'use RenderContext.DepthRange';
+{ @deprecated Use @link(TRenderContext.DepthRange RenderContext.DepthRange) instead. }
 property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
 {$endif CASTLE_OBJFPC}
 
@@ -234,7 +284,8 @@ begin
   FDepthRange := drFull;
   FCullFace := false;
   FFrontFaceCcw := true;
-  FColorMask := true;
+  FColorChannels := [0..3];
+  FViewport := TRectangle.Empty;
 end;
 
 destructor TRenderContext.Destroy;
@@ -414,19 +465,94 @@ begin
   end;
 end;
 
+function TRenderContext.GetColorMask: boolean;
+begin
+  Result := ColorChannels <> [];
+end;
+
 procedure TRenderContext.SetColorMask(const Value: boolean);
+begin
+  if Value then
+    ColorChannels := [0..3]
+  else
+    ColorChannels := [];
+end;
+
+procedure TRenderContext.SetColorChannels(const Value: TColorChannels);
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if FColorMask <> Value then
+  if FColorChannels <> Value then
   begin
-    FColorMask := Value;
-    if Value then
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)
-    else
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    FColorChannels := Value;
+    glColorMask(
+      BoolToGL(0 in FColorChannels),
+      BoolToGL(1 in FColorChannels),
+      BoolToGL(2 in FColorChannels),
+      BoolToGL(3 in FColorChannels)
+    );
   end;
+end;
+
+procedure TRenderContext.UpdateViewport;
+begin
+  {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
+    .glViewport(
+      FViewport.Left   + FViewportDelta.X,
+      FViewport.Bottom + FViewportDelta.Y,
+      FViewport.Width,
+      FViewport.Height);
+end;
+
+procedure TRenderContext.WarningViewportTooLarge;
+begin
+  if not WarningViewportTooLargeDone then
+  begin
+    WritelnWarning('Setting viewport %s, with has dimensions larger than maximum allowed %s. (Further warnings of the same type will not be shown.)', [
+      FViewport.ToString,
+      GLFeatures.MaxViewportDimensions.ToString
+    ]);
+    WarningViewportTooLargeDone := true;
+  end;
+end;
+
+procedure TRenderContext.SetViewport(const Value: TRectangle);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if not FViewport.Equals(Value) then
+  begin
+    if (GLFeatures <> nil) and
+       ((FViewport.Width > GLFeatures.MaxViewportDimensions.Data[0]) or
+        (FViewport.Height > GLFeatures.MaxViewportDimensions.Data[1])) then
+      WarningViewportTooLarge;
+
+    FViewport := Value;
+    UpdateViewport;
+  end;
+end;
+
+procedure TRenderContext.SetViewportDelta(const Value: TVector2Integer);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if not TVector2Integer.Equals(FViewportDelta, Value) then
+  begin
+    FViewportDelta := Value;
+    UpdateViewport;
+  end;
+end;
+
+function TRenderContext.FinalScissor(out Rect: TRectangle): Boolean;
+begin
+  Result :=
+    (FEnabledScissors <> nil) and
+    (FEnabledScissors.Count <> 0);
+  if Result then
+    Rect := FEnabledScissors.FFinalScissor;
 end;
 
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
@@ -441,6 +567,7 @@ begin
     R := Items[0].Rect;
     for I := 1 to Count - 1 do
       R := R * Items[I].Rect;
+    FFinalScissor := R;
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else

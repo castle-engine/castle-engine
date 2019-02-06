@@ -25,7 +25,8 @@ uses CastleVectors, X3DNodes;
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
 
-function ToX3DName(const S: string): string;
+{ Sanitize name to be valid X3D node name (@link(TX3DNode.X3DName)). }
+function ToX3DName(const S: String): String;
 
 { Calculate best possible ambientIntensity. This is a float that tries to
   satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
@@ -57,16 +58,19 @@ implementation
 uses SysUtils, Math, URIParser,
   CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils;
 
-function ToX3DName(const s: string): string;
+function ToX3DName(const S: String): String;
 const
   { We could use here TX3DLexer.VRMLNameChars that contains
     *all* allowed characters in X3D name.
-    But, for readability, better to avoid even more weird characters,
+    But, for best readability, better to avoid even more weird characters,
     and limit ourselves to the below character set. }
-  AllowedNameChars = ['a'..'z','A'..'Z','0'..'9'];
+  AllowedNameChars = ['a'..'z', 'A'..'Z', '0'..'9'];
   NonAllowedNameChars = AllChars - AllowedNameChars;
 begin
-  result := SReplaceChars(S, NonAllowedNameChars, '_');
+  Result := SReplaceChars(S, NonAllowedNameChars, '_');
+  // first character cannot be digit
+  if SCharIs(S, 1, ['0'..'9']) then
+    Result := '_' + Result;
 end;
 
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;

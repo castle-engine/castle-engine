@@ -29,7 +29,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
-  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
+  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles, CastleImages,
   CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
 type
@@ -503,16 +503,19 @@ type
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
-    { Decide should the shape use alpha blending (partial transparency),
-      looking at material, color, texture nodes (including at texture
-      images contents).
+    { How should the alpha of the resulting calculation be used.
+      Should we use alpha blending (partial transparency),
+      or alpha test (yes-or-no transparency)
+      or none of it (shape is simply opaque).
 
-      This may look at the data of the texture node,
-      so it should be called before any calls to TCastleSceneCore.FreeResources.
-      It checks AlphaChannel of textures, so assumes that given shape
-      textures are already loaded. }
-    function Blending: boolean;
-    function Transparent: boolean; deprecated 'use Blending';
+      This is determined looking at the @link(TShapeNode.AlphaChannel) field.
+      By default, it is acAuto, which in turn means that the final value
+      of this method (which cannot be acAuto) is calculated
+      looking at material, color, texture nodes data (including at texture
+      images contents). }
+    function AlphaChannel: TAlphaChannel;
+    function Blending: boolean; deprecated 'use "AlphaChannel = acBlending"';
+    function Transparent: boolean; deprecated 'use "AlphaChannel = acBlending"';
 
     procedure Traverse(Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
@@ -600,7 +603,7 @@ type
 
     { Check is shape a shadow caster. Looks at Shape's
       Appearance.shadowCaster field (see
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_caster). }
+      https://castle-engine.io/x3d_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
 
     { Triangulate shape. Calls TriangleEvent callback for each triangle.
@@ -980,7 +983,7 @@ implementation
 
 uses Generics.Defaults,
   CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
-  CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
+  CastleStringUtils, CastleArraysGenerator, CastleURIUtils;
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (
@@ -1680,84 +1683,131 @@ begin
   end;
 end;
 
-function TShape.Transparent: boolean;
+function TShape.Transparent: Boolean;
 begin
-  Result := Blending;
+  Result := AlphaChannel = acBlending;
 end;
 
-function TShape.Blending: boolean;
+function TShape.Blending: Boolean;
+begin
+  Result := AlphaChannel = acBlending;
+end;
 
-  { All the "transparency" field values are greater than zero.
-    So the blending should be used when rendering.
+function TShape.AlphaChannel: TAlphaChannel;
 
-    Note that when "transparency" field is empty, then we assume
-    a default transparency (0) should be used. So AllMaterialsTransparent
-    is @false then (contrary to the strict definition of "all",
-    which should be true for empty sets). }
-  function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
-  var
-    i: Integer;
-  begin
-    if Node.FdTransparency.Items.Count = 0 then
-      result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
+  function DetectAlphaBlending: boolean;
+
+    { All the "transparency" field values are greater than zero.
+      So the blending should be used when rendering.
+
+      Note that when "transparency" field is empty, then we assume
+      a default transparency (0) should be used. So AllMaterialsTransparent
+      is @false then (contrary to the strict definition of "all",
+      which should be true for empty sets). }
+    function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
+    var
+      i: Integer;
     begin
-      for i := 0 to Node.FdTransparency.Items.Count-1 do
-        if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
-          Exit(false);
-      result := true;
+      if Node.FdTransparency.Items.Count = 0 then
+        result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
+      begin
+        for i := 0 to Node.FdTransparency.Items.Count-1 do
+          if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
+            Exit(false);
+        result := true;
+      end;
     end;
+
+  var
+    SurfaceShader: TCommonSurfaceShaderNode;
+    M: TMaterialNode;
+    Tex: TAbstractTextureNode;
+  begin
+    if State.ShapeNode <> nil then
+    begin
+      SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+      if SurfaceShader <> nil then
+      begin
+        Result := SurfaceShader.Transparency > SingleEpsilon;
+      end else
+      begin
+        M := State.ShapeNode.Material;
+        Result := (M <> nil) and (M.FdTransparency.Value > SingleEpsilon);
+      end;
+    end else
+      { For VRML 1.0, there may be multiple materials on a node.
+        Some of them may be transparent, some not --- we arbitrarily
+        decide for now that AllMaterialsTransparent decides whether
+        blending should be used or not. We may change this in the
+        future to AnyMaterialsTransparent, since this will be more
+        consistent with X3D ColorRGBA treatment?
+
+        We do not try to split node into multiple instances.
+        This is difficult and memory-consuming task, so we just
+        depend on VRML author to split his geometry nodes if he
+        wants it.
+
+        Obviously, we also drop the idea of splitting the geometry
+        into separate triangles and deciding whether to use blending
+        for each separate triangle. Or to sort every separate triangle.
+        This would obviously get very very slow for models with lots
+        of triangles.  }
+      Result := AllMaterialsTransparent(State.VRML1State.Material);
+
+    if Geometry.InternalColorRGBA <> nil then
+      Result := true;
+
+    { If texture exists with full range alpha channel then use blending.
+      Note that State.Texture may be TMultiTextureNode --- that's Ok,
+      it has AlphaChannel = atFullRange
+      if any child has atFullRange. So it automatically works Ok too. }
+    Tex := State.DiffuseAlphaTexture;
+    if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
+      Result := true;
+
+    Tex := OriginalGeometry.FontTextureNode;
+    if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
+      Result := true;
   end;
 
-var
-  SurfaceShader: TCommonSurfaceShaderNode;
-  M: TMaterialNode;
-  Tex: TAbstractTextureNode;
-begin
-  if State.ShapeNode <> nil then
+  function DetectAlphaTest: Boolean;
+  var
+    TextureNode: TAbstractTextureNode;
+    FontTextureNode: TAbstractTexture2DNode;
+    TexturesAlphaChannel: TAlphaChannel;
   begin
-    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-    if SurfaceShader <> nil then
-    begin
-      Result := SurfaceShader.Transparency > SingleEpsilon;
-    end else
-    begin
-      M := State.ShapeNode.Material;
-      Result := (M <> nil) and (M.FdTransparency.Value > SingleEpsilon);
-    end;
-  end else
-    { For VRML 1.0, there may be multiple materials on a node.
-      Some of them may be transparent, some not --- we arbitrarily
-      decide for now that AllMaterialsTransparent decides whether
-      blending should be used or not. We may change this in the
-      future to AnyMaterialsTransparent, since this will be more
-      consistent with X3D ColorRGBA treatment?
+    TextureNode := State.DiffuseAlphaTexture;
+    FontTextureNode := OriginalGeometry.FontTextureNode;
 
-      We do not try to split node into multiple instances.
-      This is difficult and memory-consuming task, so we just
-      depend on VRML author to split his geometry nodes if he
-      wants it.
+    { This works also for TextureNode being TMultiTextureNode,
+      since it has smartly calculated AlphaChannel based on children. }
+    TexturesAlphaChannel := acNone;
+    if TextureNode <> nil then
+      AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
+    if FontTextureNode <> nil then
+      AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
+    Result := TexturesAlphaChannel = acTest;
+  end;
 
-      Obviously, we also drop the idea of splitting the geometry
-      into separate triangles and deciding whether to use blending
-      for each separate triangle. Or to sort every separate triangle.
-      This would obviously get very very slow for models with lots
-      of triangles.  }
-    Result := AllMaterialsTransparent(State.VRML1State.Material);
+  { TODO: DetectAlphaBlending and DetectAlphaTest both look at alpha channel
+    of textures. They should share some part of a single implementation. }
 
-  if Geometry.InternalColorRGBA <> nil then
-    Result := true;
+begin
+  { Check whether Appearance.alphaChannel field is set to something <> "AUTO".
+    This is the simplest option, in which we don't need to run our "auto detection"
+    below. }
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) and
+     (State.ShapeNode.Appearance.AlphaChannel <> acAuto) then
+    Exit(State.ShapeNode.Appearance.AlphaChannel);
 
-  { If texture exists with full range alpha channel then use blending.
-    Note that State.Texture may be TMultiTextureNode --- that's Ok,
-    it has AlphaChannel = atFullRange
-    if any child has atFullRange. So it automatically works Ok too. }
-  Tex := State.DiffuseAlphaTexture;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
-    Result := true;
-
-  Tex := OriginalGeometry.FontTextureNode;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
-    Result := true;
+  if DetectAlphaBlending then
+    Exit(acBlending)
+  else
+  if DetectAlphaTest then
+    Exit(acTest)
+  else
+    Exit(acNone);
 end;
 
 procedure TShape.Traverse(Func: TShapeTraverseFunc;
@@ -1982,6 +2032,18 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
 
   function HandleIDecls(IDecls: TX3DInterfaceDeclarationList): Pointer; forward;
 
+  function HandleIDecls(Nodes: TMFNode): Pointer;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+    for I := 0 to Nodes.Count - 1 do
+    begin
+      Result := HandleIDecls(Nodes[I].InterfaceDeclarations);
+      if Result <> nil then Exit;
+    end;
+  end;
+
   function HandleIDecls(Nodes: TX3DNodeList): Pointer;
   var
     I: Integer;
@@ -2003,7 +2065,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
     if Tex is TAbstractTextureNode then
     begin
       { Texture node may use more texture nodes through it's "effects" field. }
-      Result := HandleIDecls(TAbstractTextureNode(Tex).FdEffects.Items);
+      Result := HandleIDecls(TAbstractTextureNode(Tex).FdEffects);
       if Result <> nil then Exit;
 
       if Tex is TMultiTextureNode then
@@ -2011,9 +2073,9 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
         Result := Enumerate(Self, TMultiTextureNode(Tex));
         if Result <> nil then Exit;
 
-        for I := 0 to TMultiTextureNode(Tex).FdTexture.Items.Count - 1 do
+        for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
         begin
-          Result := HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture.Items.Items[I]);
+          Result := HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture[I]);
           if Result <> nil then Exit;
         end;
       end else
@@ -2044,7 +2106,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
           begin
             for J := 0 to TMFNode(UniformField).Count - 1 do
             begin
-              Result := HandleTextureNode(TMFNode(UniformField).Items[J]);
+              Result := HandleTextureNode(TMFNode(UniformField)[J]);
               if Result <> nil then Exit;
             end;
           end;
@@ -2108,8 +2170,8 @@ begin
     Result := HandleTextureNode(App.FdNormalMap.Value);
     if Result <> nil then Exit;
 
-    HandleIDecls(App.FdShaders.Items);
-    HandleIDecls(App.FdEffects.Items);
+    HandleIDecls(App.FdShaders);
+    HandleIDecls(App.FdEffects);
 
     { CommonSurfaceShader can be non-nil only when App is non-nil }
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
@@ -2124,7 +2186,7 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
-      Result := HandleIDecls(Lights.L[I].Node.FdEffects.Items);
+      Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;
 

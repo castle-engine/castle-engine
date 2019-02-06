@@ -13,25 +13,25 @@
   ----------------------------------------------------------------------------
 }
 
-{ 2D fonts (TCastleFont, TTextureFont, TSimpleTextureFont). }
+{ Fonts (TCastleFont and various descendants). }
 unit CastleFonts;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleGLImages, CastleStringUtils, CastleColors, CastleVectors,
   CastleTextureFontData, CastleImages, CastleUnicode, CastleRectangles,
   CastleApplicationProperties;
 
 type
-  { Abstract class for 2D font. }
+  { Abstract class for a font that can be used to render text. }
   TCastleFont = class abstract(TComponent)
   strict private
   type
     TSavedProperties = class
-      Scale: Single;
+      Size: Single;
       Outline: Cardinal;
       OutlineColor: TCastleColor;
       OutlineHighQuality: boolean;
@@ -39,32 +39,35 @@ type
     end;
     TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
   var
-    MeasureDone: boolean;
-    FRowHeight, FRowHeightBase, FDescend: Integer;
-    FScale: Single;
+    FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
     FTargetImage: TCastleImage;
     FPropertiesStack: TSavedPropertiesList;
+    FSize: Single;
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
   strict protected
-    { Calculate properties based on measuring the font.
+    { Calculate properties based on measuring the current font
+      (with current @link(Size)).
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
-    { Call when data calculated by Measure changed,
-      because TextWidth / TextHeight results changed (but not by Scale,
-      that is taken care of automatically). }
-    procedure InvalidateMeasure;
-    procedure SetScale(const Value: Single); virtual;
-    function GetSize: Single; virtual; abstract;
-    procedure SetSize(const Value: Single); virtual; abstract;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); virtual;
     procedure GLContextClose; virtual;
+    procedure SetSize(const Value: Single); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Desired font size to use when rendering (@link(Print)) and measuring
+      (@link(TextWidth), @link(TextHeight) and related).
+      Should be always > 0.
+
+      The font size should correspond to the font height (@link(RowHeight)),
+      but actually we don't assume it, and querying @link(RowHeightBase)
+      and @link(RowHeight) is independent from this property. }
+    property Size: Single read FSize write SetSize;
 
     { Draw text at the current WindowPos, and move
       the WindowPos at the end. This way you can immediately
@@ -95,12 +98,12 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
 
-    procedure Print(const X, Y: Integer; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+    procedure Print(const X, Y: Single; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
     procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
 
     { Print text, aligning within given rectangle.
@@ -108,6 +111,10 @@ type
       Hint: Use TRectangle.Grow(-10) or similar to align within a rectangle
       with padding. }
     procedure PrintRect(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
+    procedure PrintRect(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition);
@@ -124,6 +131,13 @@ type
       const Html: boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+    procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
 
     { The font may require some OpenGL resources for drawing.
       You can explicitly create them using PrepareResources (although it is never
@@ -134,29 +148,29 @@ type
     procedure PrepareResources; virtual;
     { @groupEnd }
 
-    function TextWidth(const S: string): Integer; virtual; abstract;
-    function TextHeight(const S: string): Integer; virtual; abstract;
+    function TextWidth(const S: string): Single; virtual; abstract;
+    function TextHeight(const S: string): Single; virtual; abstract;
     { The height (above the baseline) of the text.
       This doesn't take into account height of the text below the baseline
       (for example letter "y" has the tail below the baseline in most fonts). }
-    function TextHeightBase(const S: string): Integer; virtual; abstract;
-    function TextMove(const S: string): TVector2Integer; virtual; abstract;
-    function TextSize(const S: string): TVector2Integer;
+    function TextHeightBase(const S: string): Single; virtual; abstract;
+    function TextMove(const S: string): TVector2; virtual; abstract;
+    function TextSize(const S: string): TVector2;
 
     { Height of a row of text in this font.
       This may be calculated as simply @code(TextHeight('Wy')) for most
       normal fonts. }
-    function RowHeight: Integer;
+    function RowHeight: Single;
 
     { Height (above the baseline) of a row of text in this font.
       Similar to TextHeightBase and TextHeight,
       note that RowHeightBase is generally smaller than RowHeight,
       because RowHeightBase doesn't care how low the letter may go below
       the baseline. }
-    function RowHeightBase: Integer;
+    function RowHeightBase: Single;
 
     { How low the text may go below the baseline. }
-    function Descend: Integer;
+    function Descend: Single;
 
     { Break lines (possibly break one long string into more strings)
       to fit the text with given MaxLineWidth.
@@ -187,9 +201,9 @@ type
       (from the line FirstToBreak).
 
       @groupBegin }
-    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: integer); overload;
-    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: integer); overload;
-    procedure BreakLines(broken: TStrings; MaxLineWidth: Integer; FirstToBreak: integer); overload;
+    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: Single); overload;
+    procedure BreakLines(broken: TStrings; MaxLineWidth: Single; FirstToBreak: integer); overload;
     { @groupEnd }
 
     { Largest width of the line of text in given list.
@@ -202,7 +216,7 @@ type
         Otherwise, MaxTextWidth will treat HTML markup (like @code(<font ...>))
         like a normal text, usually making the width incorrectly large.)
     }
-    function MaxTextWidth(SList: TStrings; const Html: boolean = false): Integer;
+    function MaxTextWidth(SList: TStrings; const Html: boolean = false): Single;
 
     { Print all strings from the list.
 
@@ -245,20 +259,20 @@ type
         (RowHeight + LineSpacing) is > 0.)
 
       @groupBegin }
-    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
       const Strs: TStrings; const Html: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
-    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
+    procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
       const Strs: array of string; const Html: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     procedure PrintStrings(const Strs: array of string;
-      const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
+      const Html: boolean; const LineSpacing: Single;
+      const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -293,42 +307,36 @@ type
       @groupBegin }
     function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
       const Html: boolean = false): Integer;
-    function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
-      const S: string; const MaxLineWidth: Integer;
+    function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
+      const S: string;
+      const LineSpacing: Single;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
+    function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
+      const S: string; const MaxLineWidth: Single;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer;
+      const LineSpacing: Single;
       const Html: boolean = false): Integer;
     function PrintBrokenString(const S: string;
-      const MaxLineWidth, X0, Y0: Integer;
+      const MaxLineWidth, X0, Y0: Single;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
+      const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
-
-    property Scale: Single read FScale write SetScale;
-
-    { Adjust font size by scaling. Underneath, it scales the font using
-      @link(Scale) property, to adjust it to requested size. }
-    property Size: Single read GetSize write SetSize;
 
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
       look sensible for small outline values (like 1 or 2).
 
-      TOO: Note that outline size, in pixels, is @bold(right now) not scaled by
-      font scale. Which may be sensible (this way you can change font "base size"
-      when generating texture freely, as long as you always set font
-      @link(Size) in your code explicitly, and things will keep looking the same
-      --- bacause Scale only matters as a multiplier of original "base size").
-      It also helps our poor outline implementation --- it may look bad
-      at non-integer values.
-      But it has disadvantages: UI scaling (@link(TUIContainer.UIScaling))
-      doesn't affect outline size now.
-      This will be fixed in the future, please speak up on Castle Game Engine
-      forum if interested.
+      Note that outline size, in pixels, is not scaled along with font size.
+      Which makes sense: whether you load TTF with size 10 and then set size 20,
+      or you load TTF with size 40 and then set size 20
+      --- the font is internally scaled differently, but the resulting sizes
+      and outline sizes remain the same.
 
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write FOutline default 0;
@@ -344,16 +352,18 @@ type
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
 
     { Save draw properties to a stack. Saves:
-      @link(Scale) (synchronized with @link(Size)),
-      @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
+      @link(Size), @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
       @link(TargetImage). }
     procedure PushProperties;
     procedure PopProperties;
 
-    { Actual font-size. Usually same thing as @link(Size), but in case of proxy
-      font classes (like TCustomizedFont) it makes sure to never return zero
-      (which, in case of font proxies, means "use underlying font size"). }
-    function RealSize: Single; virtual;
+    { Non-zero font size. Usually same thing as @link(Size), but in case of proxy
+      font classes (like TCustomizedFont and TFontFamily) it makes sure to
+      never return zero (which, in case of font proxies,
+      is allowed value for @link(Size) and means "use underlying font size"). }
+    function EffectiveSize: Single; virtual;
+
+    function RealSize: Single; deprecated 'use EffectiveSize';
 
     { The image where we render the font.
       Usually (when this is @nil) our rendering routines render to the screen
@@ -363,14 +373,16 @@ type
 
       The PushProperties and PopProperties methods save/restore this.
 
-      @bold(TODO: Font scaling is not done when drawing font to an image.)
-      So leave the @link(Scale) at 1 and don't touch the @link(Size)
+      TODO: Font scaling (normally done by TTextureFont and TSimpleTextureFont
+      if you change @link(Size) from default)
+      is not done when drawing font to an image.
+      So don't touch the @link(Size)
       if you plan on rendering to image. Also, when using HTML tags,
       do not change the font size by them.
       Otherwise TextWidth / TextHeight will be unsynchronized
       with what @link(Print) actually does --- so not only your font will
       remain constant size, also it will overlap with itself.
-      This may get fixed one day --- TCastleImage.Draw just needs to support scaling.
+      This will get fixed one day --- TCastleImage.Draw just needs to support scaling.
     }
     property TargetImage: TCastleImage read FTargetImage write FTargetImage;
   end;
@@ -378,7 +390,7 @@ type
   { @deprecated Deprecated name for TCastleFont. }
   TGLBitmapFontAbstract = TCastleFont deprecated;
 
-  { 2D font using a texture initialized from a FreeType font file.
+  { Font using a texture initialized from a FreeType font file.
 
     This can load a font file, or it can use ready data in TTextureFontData.
     The latter allows to use this for fonts embedded in a Pascal source code,
@@ -388,12 +400,12 @@ type
   strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    GLImage: TGLImageCore;
+    GLImage: TGLImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
+    { Scale applied to the rendered FFont to honor changing the Size property. }
+    function Scale: Single;
   strict protected
-    procedure SetScale(const Value: Single); override;
-    function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   public
@@ -408,7 +420,10 @@ type
       Providing charaters list as @nil means that we only create glyphs
       for SimpleAsciiCharacters, which includes only the basic ASCII characters.
       The ACharacters instance @italic(does not) become owned by this object,
-      so remember to free it after calling this constructor. }
+      so remember to free it after calling this constructor.
+
+      Loading a font data also changes @link(Size) to the underlying
+      (optimal to render) font data size. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TUnicodeCharList = nil); reintroduce;
@@ -434,18 +449,21 @@ type
     procedure Load(const Data: TTextureFontData;
       const OwnsData: boolean = false);
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
-    function TextWidth(const S: string): Integer; override;
-    function TextHeight(const S: string): Integer; override;
-    function TextHeightBase(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
+    function TextWidth(const S: string): Single; override;
+    function TextHeight(const S: string): Single; override;
+    function TextHeightBase(const S: string): Single; override;
+    function TextMove(const S: string): TVector2; override;
+
+    { Underlying font data. }
+    property FontData: TTextureFontData read FFont;
   end;
 
   { @deprecated Deprecated name, use TTextureFont now. }
   TGLBitmapFont = TTextureFont deprecated;
 
-  { 2D font using a texture to define character images
+  { Font using a texture to define character images
     with constant width and height.
 
     This class has some assumptions about how the font image looks like:
@@ -461,18 +479,18 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   strict private
-    GLImage: TGLImageCore;
+    GLImage: TGLImage;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
-    function ScaledCharWidth: Integer;
-    function ScaledCharHeight: Integer;
-    function ScaledCharDisplayMargin: Integer;
+    function ScaledCharWidth: Single;
+    function ScaledCharHeight: Single;
+    function ScaledCharDisplayMargin: Single;
     function GetSmoothScaling: boolean;
+    { Scale applied to the rendered GLImage to honor changing the Size property. }
+    function Scale: Single;
   strict protected
-    procedure SetScale(const Value: Single); override;
-    function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
   public
@@ -486,37 +504,37 @@ type
     procedure Load(AImage: TCastleImage;
       const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
-    function TextWidth(const S: string): Integer; override;
-    function TextHeight(const S: string): Integer; override;
-    function TextHeightBase(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
+    function TextWidth(const S: string): Single; override;
+    function TextHeight(const S: string): Single; override;
+    function TextHeightBase(const S: string): Single; override;
+    function TextMove(const S: string): TVector2; override;
   end;
 
   { Font that uses @italic(another) TCastleFont for rendering and sizing,
-    but modifies the underlying font size (by simple scaling).
+    but modifies the underlying font size.
     Simply set the @code(Size) property of this instance to non-zero
     to force the specific size.
 
     The underlying font properties remain unchanged
     (so it can be still used for other purposes,
-    directly or by other TCustomizedFont wrappers).
-
-    @italic(Do not get / set the @code(Scale) property of this instance),
-    it will not do anything in current implementation and should always
-    stay equal to 1. }
+    directly or by other TCustomizedFont wrappers). }
   TCustomizedFont = class(TCastleFont)
   strict private
     FSourceFont: TCastleFont;
-    // Note that we leave inherited Scale at == 1, always.
-    FSize: Single;
+    FAlternativeSizes: TComponentList;
+    SubFont: TCastleFont;
+    { Set SubFont to one of SourceFont of FAlternativeSizes,
+      depending on the current Size. }
+    procedure UpdateSubFont;
+    procedure SubFontCustomizeBegin;
+    procedure SubFontCustomizeEnd;
     procedure SetSourceFont(const Value: TCastleFont);
   strict protected
-    function GetSize: Single; override;
-    procedure SetSize(const Value: Single); override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Single); override;
     procedure GLContextClose; override;
-    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
+    procedure SetSize(const Value: Single); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -526,13 +544,33 @@ type
     property SourceFont: TCastleFont read FSourceFont write SetSourceFont;
 
     procedure PrepareResources; override;
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+    procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
-    function TextWidth(const S: string): Integer; override;
-    function TextHeight(const S: string): Integer; override;
-    function TextHeightBase(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
-    function RealSize: Single; override;
+    function TextWidth(const S: string): Single; override;
+    function TextHeight(const S: string): Single; override;
+    function TextHeightBase(const S: string): Single; override;
+    function TextMove(const S: string): TVector2; override;
+    function EffectiveSize: Single; override;
+
+    { Add any number of alternative source fonts.
+      Before actually using them for rendering,
+      we always choose the one with size most matching our desired @link(Size).
+      This way you can e.g. load the same font in sizes 10, 50, 100,
+      and have good quality font rendering in various sizes. }
+    procedure AddAlternativeSourceFont(const ASourceFont: TCastleFont);
+
+    { Load the same font to a number of textures with different sizes.
+      At rendering, we will automatically use the best size.
+      This sets @link(SourceFont) and @link(AddAlternativeSourceFont).
+
+      This allows to achieve better look than TTexturedFont with one size. }
+    procedure Load(const URL: string;
+      const ASizes: array of Integer; const AnAntiAliased: boolean;
+      const ACharacters: TUnicodeCharList = nil);
+
+    { Return SourceFont or one of the fonts added by @link(AddAlternativeSourceFont),
+      to have the font with @link(TCastleFont.Size) closest to the given ASize. }
+    function BestSourceFont(const ASize: Single): TCastleFont;
   end;
 
   { Raised by
@@ -541,6 +579,11 @@ type
     @link(TTextureFont.Load TTextureFont.Load(URL, ...)) when
     the freetype library cannot be found, and thus font files cannot be read. }
   EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
+
+{ Protect characters from being interpreted as special HTML sequences
+  by TCastleFont.Print with Html = @true parameter.
+  Replaces '<' with '&lt;' and so on. }
+function SimpleHtmlQuote(const S: String): String;
 
 implementation
 
@@ -552,7 +595,7 @@ uses Math,
 constructor TCastleFont.Create(AOwner: TComponent);
 begin
   inherited;
-  FScale := 1;
+  FMeasuredSize := -1; // not measured at all
   FOutlineColor := Black;
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
 end;
@@ -564,6 +607,15 @@ begin
   GLContextClose;
   FreeAndNil(FPropertiesStack);
   inherited;
+end;
+
+procedure TCastleFont.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    Assert(not IsInfinite(Value));
+    FSize := Value;
+  end;
 end;
 
 procedure TCastleFont.GLContextCloseEvent(Sender: TObject);
@@ -579,9 +631,9 @@ procedure TCastleFont.GLContextClose;
 begin
 end;
 
-function TCastleFont.TextSize(const S: string): TVector2Integer;
+function TCastleFont.TextSize(const S: string): TVector2;
 begin
-  Result := Vector2Integer(TextWidth(S), TextHeight(S));
+  Result := Vector2(TextWidth(S), TextHeight(S));
 end;
 
 procedure TCastleFont.Print(const Pos: TVector2Integer;
@@ -599,15 +651,18 @@ begin
 end;
 
 procedure TCastleFont.PrintAndMove(const s: string);
+var
+  M: TVector2;
 begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
   Print(S);
-  WindowPos := WindowPos + TextMove(S);
+  M := TextMove(S);
+  WindowPos := WindowPos + Vector2Integer(Round(M.X), Round(M.Y));
   {$warnings on}
 end;
 
-procedure TCastleFont.Print(const X, Y: Integer; const S: string);
+procedure TCastleFont.Print(const X, Y: Single; const S: string);
 begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
@@ -615,7 +670,7 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+procedure TCastleFont.PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
   const VerticalAlignment: TVerticalPosition;
@@ -624,15 +679,15 @@ procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TC
   const TextHorizontalAlignment: THorizontalPosition);
 var
   Strings: TStringList;
-  ThisRect: TRectangle;
-  X: Integer;
+  ThisRect: TFloatRectangle;
+  X: Single;
 begin
   Strings := TStringList.Create;
   try
     Strings.Text := S;
     if Strings.Count <> 0 then
     begin
-      ThisRect := Rectangle(0, 0, MaxTextWidth(Strings, Html),
+      ThisRect := FloatRectangle(0, 0, MaxTextWidth(Strings, Html),
         Strings.Count * (LineSpacing + RowHeight) - LineSpacing);
       ThisRect := ThisRect.
         Align(HorizontalAlignment, Rect, HorizontalAlignment).
@@ -649,22 +704,44 @@ begin
   finally FreeAndNil(Strings) end;
 end;
 
-procedure TCastleFont.PrintRect(const Rect: TRectangle; const Color: TCastleColor;
+procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Html: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+begin
+  PrintRectMultiline(FloatRectangle(Rect), Color, S,
+    HorizontalAlignment, VerticalAlignment, Html, LineSpacing, TextHorizontalAlignment);
+end;
+
+procedure TCastleFont.PrintRect(
+  const Rect: TFloatRectangle; const Color: TCastleColor;
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
   const VerticalAlignment: TVerticalPosition);
 var
-  ThisRect: TRectangle;
+  ThisRect: TFloatRectangle;
 begin
   ThisRect :=
-    Rectangle(0, 0, TextWidth(S), TextHeight(S)).
+    FloatRectangle(0, 0, TextWidth(S), TextHeight(S)).
     Align(HorizontalAlignment, Rect, HorizontalAlignment).
     Align(VerticalAlignment, Rect, VerticalAlignment);
   Print(ThisRect.Left, ThisRect.Bottom, Color, S);
 end;
 
+procedure TCastleFont.PrintRect(
+  const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+begin
+  PrintRect(FloatRectangle(Rect), Color, S, HorizontalAlignment, VerticalAlignment);
+end;
+
 procedure TCastleFont.BreakLines(const unbroken: string;
-  broken: TStrings; MaxLineWidth: integer);
+  broken: TStrings; MaxLineWidth: Single);
 var
   unbrokenlist: TStringList;
 begin
@@ -676,7 +753,7 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(unbroken, broken: TStrings;
-  MaxLineWidth: integer);
+  MaxLineWidth: Single);
 var
   i, FirstToBreak: Integer;
 begin
@@ -686,10 +763,11 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(broken: TStrings;
-  MaxLineWidth: Integer; FirstToBreak: integer);
+  MaxLineWidth: Single; FirstToBreak: integer);
 var
   I: Integer;
-  LineWidth, LineWidthBytes: Integer;
+  LineWidthBytes: Integer;
+  LineWidth: Single;
   P: Integer;
   BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
   C: TUnicodeChar;
@@ -756,7 +834,7 @@ begin
   end;
 end;
 
-function TCastleFont.MaxTextWidth(SList: TStrings; const Html: boolean): Integer;
+function TCastleFont.MaxTextWidth(SList: TStrings; const Html: boolean): Single;
 var
   I: Integer;
   Text: TRichText;
@@ -776,22 +854,22 @@ begin
   end;
 end;
 
-procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
+procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 
-  function XPos(const Line: Integer; const S: string): Integer;
+  function XPos(const Line: Integer; const S: string): Single;
   begin
     case TextHorizontalAlignment of
       hpLeft  : Result := X0;
-      hpMiddle: Result := X0 - TextWidth(S) div 2;
+      hpMiddle: Result := X0 - TextWidth(S) / 2;
       hpRight : Result := X0 - TextWidth(S);
       else raise EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
     end;
   end;
 
-  function YPos(const Line: Integer): Integer;
+  function YPos(const Line: Integer): Single;
   begin
     Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
   end;
@@ -818,9 +896,9 @@ begin
   end;
 end;
 
-procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
+procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: array of string;
-  const Html: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 var
   SList: TStringList;
@@ -833,8 +911,8 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Integer;
-  const X0: Integer; const Y0: Integer);
+  const Html: boolean; const LineSpacing: Single;
+  const X0: Single; const Y0: Single);
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
   {$warnings off}
@@ -843,8 +921,8 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
-  const Html: boolean; const LineSpacing: Integer; const X0: Integer;
-  const Y0: Integer);
+  const Html: boolean; const LineSpacing: Single; const X0: Single;
+  const Y0: Single);
 var
   SList: TStringList;
 begin
@@ -858,9 +936,9 @@ begin
   {$warnings on}
 end;
 
-function TCastleFont.PrintBrokenString(X0, Y0: Integer;
-  const Color: TCastleColor; const S: string; const MaxLineWidth: Integer;
-  const PositionsFirst: boolean; const LineSpacing: Integer;
+function TCastleFont.PrintBrokenString(X0, Y0: Single;
+  const Color: TCastleColor; const S: string; const MaxLineWidth: Single;
+  const PositionsFirst: boolean; const LineSpacing: Single;
   const Html: boolean): Integer;
 var
   Text: TRichText;
@@ -875,15 +953,15 @@ begin
   finally FreeAndNil(Text) end;
 end;
 
-function TCastleFont.PrintBrokenString(const Rect: TRectangle;
+function TCastleFont.PrintBrokenString(const Rect: TFloatRectangle;
   const Color: TCastleColor; const S: string;
-  const LineSpacing: Integer;
+  const LineSpacing: Single;
   const AlignHorizontal: THorizontalPosition;
   const AlignVertical: TVerticalPosition;
   const Html: boolean): Integer;
 var
   Text: TRichText;
-  X0, Y0, BrokenHeight: Integer;
+  X0, Y0, BrokenHeight: Single;
 begin
   Text := TRichText.Create(Self, S, Html);
   try
@@ -891,7 +969,7 @@ begin
     { calculate X0 based on Rect and Text.Width }
     case AlignHorizontal of
       hpLeft  : X0 := Rect.Left;
-      hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) div 2;
+      hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) / 2;
       hpRight : X0 := Rect.Right - Text.Width;
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
     end;
@@ -899,7 +977,7 @@ begin
     BrokenHeight := Text.Count * (LineSpacing + RowHeight);
     case AlignVertical of
       vpBottom: Y0 := Rect.Bottom;
-      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
+      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
       vpTop   : Y0 := Rect.Top - BrokenHeight;
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
     end;
@@ -908,10 +986,21 @@ begin
   finally FreeAndNil(Text) end;
 end;
 
+function TCastleFont.PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const LineSpacing: Single;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean = false): Integer;
+begin
+  Result := PrintBrokenString(FloatRectangle(Rect), Color, S, LineSpacing,
+    AlignHorizontal, AlignVertical, Html);
+end;
+
 function TCastleFont.PrintBrokenString(const S: string;
-  const MaxLineWidth, X0, Y0: Integer;
+  const MaxLineWidth, X0, Y0: Single;
   const PositionsFirst: boolean;
-  const LineSpacing: Integer): Integer; deprecated;
+  const LineSpacing: Single): Integer; deprecated;
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
   {$warnings off}
@@ -920,53 +1009,38 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
-var
-  OldScale: Single;
+procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
 begin
-  OldScale := Scale;
-  Scale := 1;
   ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
   ADescend := Max(0, TextHeight('y') - TextHeight('a'));
-  Scale := OldScale;
 end;
 
 procedure TCastleFont.MakeMeasure;
 begin
-  if not MeasureDone then
+  if FMeasuredSize <> Size then
   begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
+    Measure(FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend);
+    FMeasuredSize := Size;
   end;
 end;
 
-procedure TCastleFont.InvalidateMeasure;
-begin
-  MeasureDone := false;
-end;
-
-function TCastleFont.RowHeight: Integer;
+function TCastleFont.RowHeight: Single;
 begin
   MakeMeasure;
-  Result := Round(FRowHeight * Scale);
+  Result := FMeasuredRowHeight;
 end;
 
-function TCastleFont.RowHeightBase: Integer;
+function TCastleFont.RowHeightBase: Single;
 begin
   MakeMeasure;
-  Result := Round(FRowHeightBase * Scale);
+  Result := FMeasuredRowHeightBase;
 end;
 
-function TCastleFont.Descend: Integer;
+function TCastleFont.Descend: Single;
 begin
   MakeMeasure;
-  Result := Round(FDescend * Scale);
-end;
-
-procedure TCastleFont.SetScale(const Value: Single);
-begin
-  FScale := Value;
+  Result := FMeasuredDescend;
 end;
 
 procedure TCastleFont.PushProperties;
@@ -977,7 +1051,7 @@ begin
     FPropertiesStack := TSavedPropertiesList.Create;
 
   SavedProperites := TSavedProperties.Create;
-  SavedProperites.Scale := Scale;
+  SavedProperites.Size := Size;
   SavedProperites.Outline := Outline;
   SavedProperites.OutlineColor := OutlineColor;
   SavedProperites.OutlineHighQuality := OutlineHighQuality;
@@ -993,7 +1067,7 @@ begin
     raise Exception.Create('Cannot do TCastleFont.PopProperties, stack empty. Every PopProperties should match previous PushProperties');
 
   SavedProperites := FPropertiesStack.Last;
-  Scale        := SavedProperites.Scale;
+  Size         := SavedProperites.Size;
   Outline      := SavedProperites.Outline;
   OutlineColor := SavedProperites.OutlineColor;
   OutlineHighQuality := SavedProperites.OutlineHighQuality;
@@ -1001,9 +1075,14 @@ begin
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
 end;
 
-function TCastleFont.RealSize: Single;
+function TCastleFont.EffectiveSize: Single;
 begin
   Result := Size;
+end;
+
+function TCastleFont.RealSize: Single;
+begin
+  Result := EffectiveSize;
 end;
 
 { TTextureFont --------------------------------------------------------------- }
@@ -1070,18 +1149,39 @@ begin
 
   FOwnsFont := OwnsData;
   FFont := Data;
+
+  if FFont <> nil then
+    Size := FFont.Size;
+  { Load(nil) is called by our own code.
+    Leave Size as it was then, it should not matter. }
+end;
+
+function TTextureFont.Scale: Single;
+begin
+  Result := Size / FFont.Size;
+end;
+
+procedure TTextureFont.SetSize(const Value: Single);
+begin
+  inherited SetSize(Value);
+
+  Assert(FFont.Size <> 0);
+  Assert(not IsInfinite(Value));
+
+  if GLImage <> nil then
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TTextureFont.GetSmoothScaling: boolean;
 begin
-  Result := Scale <> 1;
+  Result := Size <> FFont.Size;
 end;
 
 procedure TTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImageCore.Create(FFont.Image, GetSmoothScaling);
+    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling, false);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -1098,7 +1198,7 @@ const
     So it costs 32 bytes per item. }
   MinimumGlyphsAllocated = 100;
 
-procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TTextureFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 var
   ScreenX, ScreenY: Single;
@@ -1170,8 +1270,10 @@ begin
   if Outline <> 0 then
   begin
     GlyphsToRender := 0;
-    ScreenX := X;
-    ScreenY := Y;
+    { While Round() below is not needed, it improves the quality of rendered
+      text. Compare e.g. view3dscene button captions. }
+    ScreenX := Round(X);
+    ScreenY := Round(Y);
     if TargetImage <> nil then
       FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
@@ -1216,8 +1318,10 @@ begin
   end;
 
   GlyphsToRender := 0;
-  ScreenX := X;
-  ScreenY := Y;
+  { While Round() below is not needed, it improves the quality of rendered
+    text. }
+  ScreenX := Round(X);
+  ScreenY := Round(Y);
   if TargetImage <> nil then
     FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
@@ -1250,49 +1354,33 @@ begin
   end;
 end;
 
-function TTextureFont.TextWidth(const S: string): Integer;
+function TTextureFont.TextWidth(const S: string): Single;
 begin
-  Result := Round(FFont.TextWidth(S) * Scale);
+  Result := FFont.TextWidth(S) * Scale;
   if Outline <> 0 then
     Result += Outline * 2 * UTF8Length(S);
 end;
 
-function TTextureFont.TextHeight(const S: string): Integer;
+function TTextureFont.TextHeight(const S: string): Single;
 begin
-  Result := Round(FFont.TextHeight(S) * Scale) + Outline * 2;
+  Result := FFont.TextHeight(S) * Scale + Outline * 2;
 end;
 
-function TTextureFont.TextHeightBase(const S: string): Integer;
+function TTextureFont.TextHeightBase(const S: string): Single;
 begin
-  Result := Round(FFont.TextHeightBase(S) * Scale) + Outline * 2;
+  Result := FFont.TextHeightBase(S) * Scale + Outline * 2;
 end;
 
-function TTextureFont.TextMove(const S: string): TVector2Integer;
+function TTextureFont.TextMove(const S: string): TVector2;
+var
+  M: TVector2Integer;
 begin
-  Result := FFont.TextMove(S);
-  Result.Data[0] := Round(Result.Data[0] * Scale);
+  M := FFont.TextMove(S);
+  Result := Vector2(M.X, M.Y);
+  Result.Data[0] := Result.Data[0] * Scale;
   if Outline <> 0 then
     Result.Data[0] += Outline * 2 * UTF8Length(S);
-  Result.Data[1] := Round(Result.Data[1] * Scale);
-end;
-
-procedure TTextureFont.SetScale(const Value: Single);
-begin
-  inherited;
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
-end;
-
-function TTextureFont.GetSize: Single;
-begin
-  Result := FFont.Size * Scale;
-end;
-
-procedure TTextureFont.SetSize(const Value: Single);
-begin
-  Assert(FFont.Size <> 0);
-  Assert(not IsInfinite(Value));
-  Scale := Value / FFont.Size;
+  Result.Data[1] := Result.Data[1] * Scale;
 end;
 
 { TSimpleTextureFont --------------------------------------------------------- }
@@ -1326,33 +1414,47 @@ begin
   CharWidth := Image.Width div ImageCols - CharMargin;
   CharHeight := Image.Height div ImageRows - CharMargin;
   CharDisplayMargin := ACharDisplayMargin;
+
+  Size := CharHeight;
 end;
 
-function TSimpleTextureFont.ScaledCharWidth: Integer;
+function TSimpleTextureFont.ScaledCharWidth: Single;
 begin
-  Result := Round(CharWidth * Scale) + Outline * 2;
+  Result := CharWidth * Scale + Outline * 2;
 end;
 
-function TSimpleTextureFont.ScaledCharHeight: Integer;
+function TSimpleTextureFont.ScaledCharHeight: Single;
 begin
-  Result := Round(CharHeight * Scale) + Outline * 2;
+  Result := CharHeight * Scale + Outline * 2;
 end;
 
-function TSimpleTextureFont.ScaledCharDisplayMargin: Integer;
+function TSimpleTextureFont.ScaledCharDisplayMargin: Single;
 begin
-  Result := Round(CharDisplayMargin * Scale);
+  Result := CharDisplayMargin * Scale;
+end;
+
+function TSimpleTextureFont.Scale: Single;
+begin
+  Result := Size / CharHeight;
+end;
+
+procedure TSimpleTextureFont.SetSize(const Value: Single);
+begin
+  inherited SetSize(Value);
+  if GLImage <> nil then
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TSimpleTextureFont.GetSmoothScaling: boolean;
 begin
-  Result := Scale <> 1;
+  Result := Size <> CharHeight;
 end;
 
 procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImageCore.Create(Image, GetSmoothScaling);
+    GLImage := TGLImage.Create(Image, GetSmoothScaling, false);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
@@ -1361,7 +1463,7 @@ begin
   inherited;
 end;
 
-procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TSimpleTextureFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 var
   GlyphsToRender: Integer;
@@ -1387,8 +1489,8 @@ var
   end;
 
 var
-  ImageX, ImageY: Single;
-  CharIndex, ScreenX, ScreenY: Integer;
+  ImageX, ImageY, ScreenX, ScreenY, InitialMargin: Single;
+  CharIndex: Integer;
   C: TUnicodeChar;
   TextPtr: PChar;
   I, CharLen: Integer;
@@ -1402,6 +1504,19 @@ begin
   end;
 
   GlyphsToRender := 0;
+
+  { Using Floor(ScaledCharDisplayMargin / 2)
+    instead of just "ScaledCharDisplayMargin / 2",
+    because it looks better in case of rendering the unscaled font
+    (Scale = 1), at integer coordinates (e.g. X=10.0, Y=10.0),
+    and ScaledCharDisplayMargin is odd ineger (e.g. 1.0).
+
+    You expect then the font to hit pixels exactly,
+    while "ScaledCharDisplayMargin / 2" would mean that everything is shifted
+    by 0.5 pixel.
+
+    Testcase: font_from_texture.lpr using null_terminator_0.png font. }
+  InitialMargin := Floor(ScaledCharDisplayMargin / 2);
 
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1417,8 +1532,8 @@ begin
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
       ImageY := Image.Height - (ImageY + 1) * (CharHeight + CharMargin);
-      ScreenX := ScaledCharDisplayMargin div 2 + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
-      ScreenY := ScaledCharDisplayMargin div 2 + Y;
+      ScreenX := InitialMargin + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
+      ScreenY := InitialMargin + Y;
       Inc(I);
 
       { TODO: this ignores Outline and related properties now, always renders like Outline = 0. }
@@ -1440,41 +1555,24 @@ begin
   end;
 end;
 
-function TSimpleTextureFont.TextWidth(const S: string): Integer;
+function TSimpleTextureFont.TextWidth(const S: string): Single;
 begin
   Result := Length(S) * (ScaledCharWidth + ScaledCharDisplayMargin);
 end;
 
-function TSimpleTextureFont.TextHeight(const S: string): Integer;
+function TSimpleTextureFont.TextHeight(const S: string): Single;
 begin
   Result := ScaledCharHeight + ScaledCharDisplayMargin;
 end;
 
-function TSimpleTextureFont.TextHeightBase(const S: string): Integer;
+function TSimpleTextureFont.TextHeightBase(const S: string): Single;
 begin
   Result := ScaledCharHeight + ScaledCharDisplayMargin;
 end;
 
-function TSimpleTextureFont.TextMove(const S: string): TVector2Integer;
+function TSimpleTextureFont.TextMove(const S: string): TVector2;
 begin
-  Result := Vector2Integer(TextWidth(S), TextHeight(S));
-end;
-
-procedure TSimpleTextureFont.SetScale(const Value: Single);
-begin
-  inherited;
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
-end;
-
-function TSimpleTextureFont.GetSize: Single;
-begin
-  Result := CharHeight * Scale;
-end;
-
-procedure TSimpleTextureFont.SetSize(const Value: Single);
-begin
-  Scale := Value / CharHeight;
+  Result := Vector2(TextWidth(S), TextHeight(S));
 end;
 
 { TCustomizedFont ------------------------------------------------------------ }
@@ -1487,21 +1585,8 @@ end;
 destructor TCustomizedFont.Destroy;
 begin
   SourceFont := nil; // this will free FSourceFont if needed
+  FreeAndNil(FAlternativeSizes);
   inherited;
-end;
-
-function TCustomizedFont.GetSize: Single;
-begin
-  Result := FSize;
-end;
-
-procedure TCustomizedFont.SetSize(const Value: Single);
-begin
-  if FSize <> Value then
-  begin
-    FSize := Value;
-    InvalidateMeasure;
-  end;
 end;
 
 procedure TCustomizedFont.SetSourceFont(const Value: TCastleFont);
@@ -1513,6 +1598,11 @@ begin
     FSourceFont := Value;
     if FSourceFont <> nil then
       FSourceFont.FreeNotification(Self);
+
+    { Recalculate SubFont, since fonts changed.
+      TODO: This will not fire when a font on FAlternativeSizes list is freed,
+      SubFont may be left pointing to one of freed fonts. }
+    UpdateSubFont;
   end;
 end;
 
@@ -1528,100 +1618,212 @@ begin
 end;
 
 procedure TCustomizedFont.PrepareResources;
+var
+  I: Integer;
 begin
   if FSourceFont <> nil then
     FSourceFont.PrepareResources;
+
+  if FAlternativeSizes <> nil then
+  begin
+    for I := 0 to FAlternativeSizes.Count - 1 do
+      TCastleFont(FAlternativeSizes[I]).PrepareResources;
+  end;
 end;
 
 procedure TCustomizedFont.GLContextClose;
+var
+  I: Integer;
 begin
   if FSourceFont <> nil then
     FSourceFont.GLContextClose;
+
+  if FAlternativeSizes <> nil then
+  begin
+    for I := 0 to FAlternativeSizes.Count - 1 do
+      TCastleFont(FAlternativeSizes[I]).GLContextClose;
+  end;
 end;
 
-procedure TCustomizedFont.Print(const X, Y: Integer; const Color: TCastleColor;
+procedure TCustomizedFont.SetSize(const Value: Single);
+begin
+  if Size <> Value then
+  begin
+    inherited SetSize(Value);
+    UpdateSubFont;
+  end;
+end;
+
+function TCustomizedFont.BestSourceFont(const ASize: Single): TCastleFont;
+var
+  SizeDist, NewSizeDist: Single;
+  AltFont: TCastleFont;
+  I: Integer;
+begin
+  Result := SourceFont;
+
+  if (FAlternativeSizes <> nil) and (ASize <> 0) then
+  begin
+    { At destruction it can happen that SourceFont is nil,
+      while FAlternativeSizes is non-nil. }
+    if SourceFont <> nil then
+      SizeDist := Abs(SourceFont.Size - ASize)
+    else
+      SizeDist := MaxSingle;
+
+    for I := 0 to FAlternativeSizes.Count - 1 do
+    begin
+      AltFont := TCastleFont(FAlternativeSizes[I]);
+      NewSizeDist := Abs(AltFont.Size - ASize);
+      if NewSizeDist < SizeDist then
+      begin
+        Result := AltFont;
+        SizeDist := NewSizeDist;
+      end;
+    end;
+  end;
+
+  // Writeln('for size ', Size:1:2, ' using font with size ', Result.Size:1:2);
+end;
+
+procedure TCustomizedFont.UpdateSubFont;
+begin
+  SubFont := BestSourceFont(Size);
+end;
+
+procedure TCustomizedFont.SubFontCustomizeBegin;
+begin
+  if Size <> 0 then
+  begin
+    SubFont.PushProperties;
+    SubFont.Size := Size;
+  end;
+end;
+
+procedure TCustomizedFont.SubFontCustomizeEnd;
+begin
+  if Size <> 0 then
+    SubFont.PopProperties;
+end;
+
+procedure TCustomizedFont.Print(const X, Y: Single; const Color: TCastleColor;
   const S: string);
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  FSourceFont.Print(X, Y, Color, S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  SubFont.Print(X, Y, Color, S);
+  SubFontCustomizeEnd;
 end;
 
-function TCustomizedFont.TextWidth(const S: string): Integer;
+function TCustomizedFont.TextWidth(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextWidth(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  { One may think that only for rendering (Print) we have to use SubFont,
+    for sizing it's enough to use SourceFont (since all alternatives should
+    be the same font, just scaled).
+
+    In practice it's important to use best font (always SubFont),
+    since the underlying fonts data have integer sizes,
+    so taking sizes of a different font always introduces some imprecision,
+    this is visible by slightly misaligned labels etc. }
+
+  SubFontCustomizeBegin;
+  Result := SubFont.TextWidth(S);
+  SubFontCustomizeEnd;
 end;
 
-function TCustomizedFont.TextHeight(const S: string): Integer;
+function TCustomizedFont.TextHeight(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextHeight(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextHeight(S);
+  SubFontCustomizeEnd;
 end;
 
-function TCustomizedFont.TextHeightBase(const S: string): Integer;
+function TCustomizedFont.TextHeightBase(const S: string): Single;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextHeightBase(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextHeightBase(S);
+  SubFontCustomizeEnd;
 end;
 
-function TCustomizedFont.TextMove(const S: string): TVector2Integer;
+function TCustomizedFont.TextMove(const S: string): TVector2;
 begin
-  if Size <> 0 then
-  begin
-    FSourceFont.PushProperties;
-    FSourceFont.Size := Size;
-  end;
-  Result := FSourceFont.TextMove(S);
-  if Size <> 0 then
-    FSourceFont.PopProperties;
+  SubFontCustomizeBegin;
+  Result := SubFont.TextMove(S);
+  SubFontCustomizeEnd;
 end;
 
-function TCustomizedFont.RealSize: Single;
+function TCustomizedFont.EffectiveSize: Single;
 begin
   if Size <> 0 then
-    Result := Size else
-    Result := SourceFont.RealSize;
+    Result := Size
+  else
+    Result := SourceFont.EffectiveSize;
 end;
 
-procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Single);
 begin
-  { in usual circumstances, overriding Measure in TCustomizedFont is not needed,
-    the default implementation would work OK. But if the FSourceFont has some custom
-    override fot Measure(), than we need to call it here, otherwise wrapping
-    a font in TCustomizedFont (which is what e.g. TCastleLabel does when it has some
-    size) would not use the user Measure implementation. }
-  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  { our Scale is always 1, to scale the resulting sizes manually now }
-  if Size <> 0 then
+  { In usual circumstances, overriding Measure in TCustomizedFont is not needed.
+    The default implementation of ancestor would work OK,
+    by calling TextHeight to measure "Wy" for RowHeight,
+    and TCustomizedFont.TextHeight refers to FSourceFont.TextHeight already.
+
+    But if the FSourceFont has some custom override for Measure,
+    like TLargeDigitsFont.Measure in testcastlefonts.pas
+    that returns constant instead of measuring "Wy" height for RowHeight
+    (because TLargeDigitsFont doesn't have "Wy" letters)
+    then it would be ignored.
+    This would cause problems when wrapping a font in TCustomizedFont
+    (which is what e.g. TCastleLabel does when it has some size),
+    wrapping TLargeDigitsFont in TCustomizedFont would ignore the
+    TLargeDigitsFont.Measure override.
+
+    So instead we implement our Measure we calling FSourceFont.Measure. }
+
+  SubFontCustomizeBegin;
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  SubFontCustomizeEnd;
+end;
+
+procedure TCustomizedFont.AddAlternativeSourceFont(const ASourceFont: TCastleFont);
+begin
+  if FAlternativeSizes = nil then
+    FAlternativeSizes := TComponentList.Create(false);
+  FAlternativeSizes.Add(ASourceFont);
+  UpdateSubFont;
+end;
+
+procedure TCustomizedFont.Load(const URL: string;
+  const ASizes: array of Integer; const AnAntiAliased: boolean;
+  const ACharacters: TUnicodeCharList);
+var
+  F: TTextureFont;
+  I: Integer;
+begin
+  Assert(Length(ASizes) > 0);
+
+  // clear previous
+  SourceFont := nil;
+  if FAlternativeSizes <> nil then
+    FAlternativeSizes.Clear;
+
+  for I := 0 to Length(ASizes) - 1 do
   begin
-    ARowHeight     := Round(ARowHeight     * Size / FSourceFont.Size);
-    ARowHeightBase := Round(ARowHeightBase * Size / FSourceFont.Size);
-    ADescend       := Round(ADescend       * Size / FSourceFont.Size);
+    F := TTextureFont.Create(Self);
+    F.Load(URL, ASizes[I], AnAntiAliased, ACharacters);
+    if SourceFont = nil then
+      SourceFont := F
+    else
+      AddAlternativeSourceFont(F);
   end;
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+function SimpleHtmlQuote(const S: String): String;
+const
+  Patterns: array [0..4] of String = ('&amp;', '&lt;', '&gt;', '&apos;', '&quot;');
+  Replacements: array [0..4] of String = ('&', '<', '>', '''', '"');
+begin
+  Result := SReplacePatterns(S, Patterns, Replacements, false);
 end;
 
 end.

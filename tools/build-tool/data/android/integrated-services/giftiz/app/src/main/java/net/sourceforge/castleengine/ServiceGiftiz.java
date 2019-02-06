@@ -13,7 +13,7 @@ import com.purplebrain.giftiz.sdk.GiftizSDK.Inner.ButtonNeedsUpdateDelegate;
 public class ServiceGiftiz extends ServiceAbstract
     implements ButtonNeedsUpdateDelegate
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceGiftiz";
+    private static final String CATEGORY = "ServiceGiftiz";
 
     public ServiceGiftiz(MainActivity activity)
     {

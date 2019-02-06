@@ -68,7 +68,7 @@ type
   TInstanceData = record
     Npp: PNPP;
     Window: TNPWindow;
-    CastleWindow: TCastleWindowCustom;
+    CastleWindow: TCastleWindowBase;
     FreeCastleWindow: boolean;
     NamedParameters: TCastleStringList;
     {$ifndef DEBUG_WINDOWLESS}
@@ -311,9 +311,10 @@ begin
     Application.FUserAgent := sBrowserFuncs.uagent(instance);
 
     {$ifndef DEBUG_WINDOWLESS}
-    if Round(Application.LimitFPS) <= 0 then
-      TimerInterval := MinTimerInterval else
-      TimerInterval := Max(MinTimerInterval, 1000 div Round(Application.LimitFPS));
+    if Round(ApplicationProperties.LimitFPS) <= 0 then
+      TimerInterval := MinTimerInterval
+    else
+      TimerInterval := Max(MinTimerInterval, 1000 div Round(ApplicationProperties.LimitFPS));
     WritelnLog('Plugin', Format('Timer to watch events interval: %d', [TimerInterval]));
     InstanceData^.EventCheckTimerId := sBrowserFuncs.scheduletimer(instance, TimerInterval, 1, @EventCheckTimer);
     InstanceData^.HasEventCheckTimer := true;

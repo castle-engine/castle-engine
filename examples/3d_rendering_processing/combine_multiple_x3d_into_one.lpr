@@ -22,7 +22,7 @@
   it, and use a single TCastleScene, than to use multiple TCastleScenes.
   Using a single TCastleScene means that e.g. frustum culling will be
   efficient.
-  See http://castle-engine.sourceforge.net/tutorial_transformation_hierarchy.php .
+  See https://castle-engine.io/tutorial_transformation_hierarchy.php .
 }
 program combine_multiple_x3d_into_one;
 

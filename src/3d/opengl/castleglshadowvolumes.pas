@@ -39,7 +39,7 @@ type
     is provided by T3D descendants, like TCastleScene.RenderShadowVolume).
 
     For general usage tutorial of this class,
-    see [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
+    see [https://castle-engine.io/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
   TGLShadowVolumeRenderer = class(TBaseShadowVolumeRenderer)
   private
     FrustumAndLightPlanes: array [0..5] of TVector4;
@@ -772,8 +772,9 @@ begin
     ----------------------------------------
   }
 
-  Assert(Params.Pass = 0); { for now, Pass is only 0 or 1, and 1 is used only here }
-  Inc(Params.Pass);
+  { for now, InternalPass is only 0 or 1, and 1 is used only here }
+  Assert(Params.InternalPass = 0);
+  Inc(Params.InternalPass);
 
   glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
     glDepthFunc(GL_LEQUAL);

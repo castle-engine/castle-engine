@@ -40,7 +40,7 @@
 
 uses SysUtils, TypInfo, Classes,
   CastleVectors, CastleCameras, X3DNodes, CastleSceneCore, CastleShapes,
-  CastleTransform, CastleRenderingCamera, CastleProjection, CastleFrustum,
+  CastleTransform, CastleProjection, CastleFrustum,
   CastleGeometryArrays;
 
 var
@@ -118,10 +118,10 @@ procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
   var
     CameraMatrix: PMatrix4;
   begin
-    if RenderingCamera.RotationOnly then
-      CameraMatrix := @RenderingCamera.RotationMatrix
+    if Params.RenderingCamera.RotationOnly then
+      CameraMatrix := @Params.RenderingCamera.RotationMatrix
     else
-      CameraMatrix := @RenderingCamera.Matrix;
+      CameraMatrix := @Params.RenderingCamera.Matrix;
 
     if Params.TransformIdentity then
       Result := CameraMatrix^
@@ -154,16 +154,18 @@ begin
       Writeln(ShapeModelView.ToString('    '));
 
       GeometryArrays := Shape.GeometryArrays(true);
-      Writeln('Geometry:',
-        ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
-        ', HasIndexes: ',  GeometryArrays.HasIndexes,
-        ', IndexesCount: ', GeometryArrays.IndexesCount,
-        ', Count: ', GeometryArrays.Count);
+      try
+        Writeln('Geometry:',
+          ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
+          ', HasIndexes: ',  GeometryArrays.HasIndexes,
+          ', IndexesCount: ', GeometryArrays.IndexesCount,
+          ', Count: ', GeometryArrays.Count);
 
-      { TODO: Render Shape here.
-        Load Shape.GeometryArrays to GPU,
-        and pass parameters (like projection and modelview matrix) to shaders.
-      }
+        { TODO: Render Shape here.
+          Load Shape.GeometryArrays to GPU,
+          and pass parameters (like projection and modelview matrix) to shaders.
+        }
+      finally FreeAndNil(GeometryArrays) end;
     end;
   finally FreeAndNil(SI) end;
 end;
@@ -195,7 +197,7 @@ var
   Window: TVulkanWindow;
   Scene: TCastleSceneVulkan;
   Camera: TWalkCamera;
-  Params: TRenderParams;
+  RenderParams: TRenderParams;
 begin
   Application := TVulkanApplication.Create(nil);
   try
@@ -218,33 +220,49 @@ begin
     Scene.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
     Scene.PrepareResources([], false, nil);
 
-    { TODO: Creating TRenderParams explicitly, and with abstract methods (BaseLights).
-      Ignore this temporarily, you don't need BaseLights to test your new renderer
-      (BaseLights are only used for a configurable headlight, and for shining
-      lights from one TCastleScene over another TCastleScene). }
-    Params := TRenderParams.Create;
-    Params.Frustum := @RenderingCamera.Frustum;
+    { Prepare rendering parameters
+      (this is done by TCastleAbstractViewport in normal circumstances).
+
+      Note: Creating and using TRenderParams instance (or any descendant of it)
+      means that you deal with internal stuff.
+
+      - The API of TRenderParams is internal, it may change at any moment.
+
+      - Moreover here we create TRenderParams with abstract methods (BaseLights).
+        Ignore this temporarily, you don't need BaseLights to test your new renderer
+        (BaseLights are only used for a configurable headlight, and for shining
+        lights from one TCastleScene over another TCastleScene).
+
+      - You should not do this in a normal CGE application. In normal application,
+        SceneManager (or other TCastleAbstractViewport descendant) prepares render
+        parameters, and TCastleScene uses them.
+        How are they are prepared, and how are they used -- it's
+        internal for normal applications.
+    }
+    RenderParams := TRenderParams.Create;
+    RenderParams.RenderingCamera := TRenderingCamera.Create;
+    RenderParams.RenderingCamera.Target := rtScreen;
+    RenderParams.RenderingCamera.FromCameraObject(Camera);
+    RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
 
     while not Application.Quit do
     begin
       { TODO: Clear the screen contents (color, depth) now. }
 
-      { Prepare projection, camera matrix, rendering parameters
-        (this is done by TCastleSceneManager in normal circumstances). }
+      { Prepare projection
+        (this is done by TCastleAbstractViewport in normal circumstances). }
       ProjectionMatrix := PerspectiveProjectionMatrixDeg(
         60, Window.Width / Window.Height, 0.1, 1000);
-      RenderingCamera.Matrix := Camera.Matrix;
-      RenderingCamera.RotationMatrix := Camera.RotationMatrix;
 
       { In a real rendering, Scene.Render may be called more than once
         per frame, with different values of
-        Params.Transparent and Params.ShadowVolumesReceivers,
+        RenderParams.Transparent and RenderParams.ShadowVolumesReceivers,
         that filter various shapes.
         You can temporarily ignore this issue (until you will want to
         support blending (partial transparency) in your renderer). }
 
       // Render the Scene
-      Scene.Render(Params);
+      Scene.Render(RenderParams);
 
       { TODO: do something like Window.Flush or Window.SwapBuffers,
         to make sure GPU will execute the rendering commands ASAP. }
@@ -252,5 +270,10 @@ begin
       { Testing: Wait for a key press, give user's a chance to press Ctrl + C :) }
       Readln;
     end;
-  finally FreeAndNil(Application) end;
+  finally
+    if RenderParams <> nil then
+      FreeAndNil(RenderParams.RenderingCamera);
+    FreeAndNil(RenderParams);
+    FreeAndNil(Application);
+  end;
 end.

@@ -234,7 +234,7 @@ type
         @item(If your exporter doesn't rotate the world.
           (You can configure Blender exporter to behave like this.
           You may also then configure engine to use +Z as up vector for everything,
-          see "Which way is up?" on [http://castle-engine.sourceforge.net/tutorial_up.php].))
+          see "Which way is up?" on [https://castle-engine.io/tutorial_up.php].))
       )
 
       In Blender it's useful to enable the "Display -> Wire" option for placeholder
@@ -262,7 +262,7 @@ type
       directory.
       Overloaded version without parameter just looks inside ApplicationData.
       For the specification of level.xml format see
-      [http://castle-engine.sourceforge.net/creating_data_levels.php] .
+      [https://castle-engine.io/creating_data_levels.php] .
 
       This should be called after resources (creatures and items) are known,
       as they may be referenced by level.xml files.
@@ -287,7 +287,7 @@ type
     { Add a single level information from the XML file at given location.
       The given XML file must have <level> root element and be written
       according to
-      http://castle-engine.sourceforge.net/creating_data_levels.php .  }
+      https://castle-engine.io/creating_data_levels.php .  }
     procedure AddFromFile(const URL: string);
 
     { Sort by @link(TLevelInfo.Number).
@@ -958,12 +958,7 @@ begin
     Player.LevelChanged;
 
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
-
-  { Initialize SoundEngine if we're sure that this game uses sounds.
-    Doing this now is good to avoid making a delay later in the middle
-    of the game when 1st sound is playing. }
-  if (not SoundEngine.ALInitialized) and (SoundEngine.Sounds.Count > 1) then
-    SoundEngine.ALContextOpen;
+  SoundEngine.PrepareResources;
 
   MainScene.ProcessEvents := true;
 

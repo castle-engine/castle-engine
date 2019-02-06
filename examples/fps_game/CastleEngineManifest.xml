@@ -2,7 +2,7 @@
 <project
   name="fps_game"
   standalone_source="fps_game.lpr"
-  game_units="Game"
+  game_units="GameInitialize"
   caption="FPS Game Example"
   qualified_name="io.castleengine.fps.game"
 >

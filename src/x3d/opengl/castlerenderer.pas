@@ -20,7 +20,7 @@
   TODO: this unit should be renamed to Internal at some point.
 
   The overview of the renderer can also be found in engine documentation
-  [http://castle-engine.sourceforge.net/engine_doc.php]
+  [https://castle-engine.io/engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
 
   @bold(Usage:)
@@ -126,7 +126,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  CastleRendererInternalTextureEnv;
+  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform;
 
 {$define read_interface}
 
@@ -192,6 +192,7 @@ type
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
+    FSeparateDiffuseTexture: boolean;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
   protected
@@ -244,7 +245,7 @@ type
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
-      field (see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_radiance_transfer])
+      field (see [https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer])
       then this is used to calculate the color of each vertex.
 
       Note that this is evaluated when object is rendered.
@@ -252,6 +253,7 @@ type
       since we have to assume that results of this function change. }
     property OnRadianceTransfer: TRadianceTransferFunction
       read FOnRadianceTransfer write SetOnRadianceTransfer;
+      deprecated 'use Color node, or shaders, to change per-vertex colors';
 
     { Calculate vertex color for given vertex by a callback.
       If this is assigned, then this is used to calculate
@@ -262,6 +264,7 @@ type
       since we have to assume that results of this function change. }
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
+      deprecated 'use Color node, or shaders, to change per-vertex colors';
 
     { Enable OpenGL lighting when rendering.
       This is @true by default, since it's almost always wanted.
@@ -368,7 +371,7 @@ type
 
       @italic(Avoid using this.) It's not easy to create portable shaders,
       that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
-      http://castle-engine.sourceforge.net/compositing_shaders.php which still allow you
+      https://castle-engine.io/compositing_shaders.php which still allow you
       to write GLSL effects, but they are integrated into standard shader code. }
     property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
 
@@ -423,6 +426,26 @@ type
 
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
+
+    { Set to @true to make diffuse texture affect only material diffuse color
+      when the shape is lit and shading is Phong.
+      This affects both textures from X3D Appearance.texture,
+      and textures from CommonSurfaceShader.diffuseTexture.
+      This is more correct (following X3D lighting equations),
+      and is more impressive (e.g. specular highlights may be better visible,
+      as they are not darkened by a dark diffuse texture).
+
+      For historic reasons and for Gouraud shading, by default, this is @false.
+      Which means that "diffuse texture" is actually used to multiply
+      a complete result of the lighting calculation.
+      This is not correct, but it is necessary for Gouraud shading,
+      and it is also depended upon by some applications (since the "diffuse texture"
+      effectively multiplies all factors, so it also multiplies
+      e.g. emissive factor for "pure emissive materials",
+      which may be useful sometimes). }
+    property SeparateDiffuseTexture: boolean
+      read FSeparateDiffuseTexture
+      write FSeparateDiffuseTexture default false;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -443,6 +466,7 @@ type
       It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
     InitialNode: TAbstractTextureNode;
 
+    FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
@@ -465,6 +489,7 @@ type
       of MovieTexture nodes related to this video texture! }
     InitialNode: TMovieTextureNode;
 
+    FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
@@ -601,7 +626,8 @@ type
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
-      const GUITexture: boolean): TGLuint;
+      const GUITexture: boolean;
+      const FlipVertically: Boolean): TGLuint;
 
     procedure TextureImage_DecReference(
       const TextureGLName: TGLuint);
@@ -635,14 +661,12 @@ type
       const TextureGLName: TGLuint);
 
     { Required GLFeatures.TextureDepth before calling this.
-
-      For interpreating DepthCompareField, ARB_shadow will be needed
-      (but we'll make nice warning if it's not available).
-      DepthCompareField may be @nil, then it's equivalent to "NONE". }
+      For interpreating CompareMode, ARB_shadow will be needed
+      (but we'll make nice warning if it's not available). }
     function TextureDepth_IncReference(
       Node: TAbstractTextureNode;
       const TextureWrap: TTextureWrap2D;
-      DepthCompareField: TSFString;
+      CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
       const VisualizeDepthMap: boolean): TGLuint;
 
@@ -700,6 +724,7 @@ type
   {$I castlerenderer_resource.inc}
   {$I castlerenderer_texture.inc}
   {$I castlerenderer_glsl.inc}
+  {$I castlerenderer_pass.inc}
 
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
@@ -724,12 +749,17 @@ type
       shaders. This makes multi-pass rendering, like for shadow volumes,
       play nicely with shaders. Otherwise we could recreate shaders at each
       rendering pass. }
-    ProgramCache: array [TRenderingPass] of TShaderProgramCache;
+    ProgramCache: array [TTotalRenderingPass] of TShaderProgramCache;
 
     Cache: TShapeCache;
 
     { Assign this each time before passing this shape to RenderShape. }
     ModelView: TMatrix4;
+
+    { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
+    MirrorPlaneUniforms: TMirrorPlaneUniforms;
+
+    destructor Destroy; override;
   end;
 
   TGLRenderer = class
@@ -855,8 +885,11 @@ type
     { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
 
+    { Rendering camera. Set in each RenderBegin, cleared in RenderEnd. }
+    RenderingCamera: TRenderingCamera;
+
     { Rendering pass. Set in each RenderBegin. }
-    Pass: TRenderingPass;
+    Pass: TTotalRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: IAbstractFogObject;
@@ -957,11 +990,16 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(ABaseLights: TLightInstancesList;
-      LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
+    procedure RenderBegin(const ABaseLights: TLightInstancesList;
+      const ARenderingCamera: TRenderingCamera;
+      const LightRenderEvent: TLightRenderEvent;
+      const AInternalPass: TInternalRenderingPass;
+      const AInternalScenePass: TInternalSceneRenderingPass;
+      const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
+    procedure RenderShape(const Shape: TX3DRendererShape;
+      const Fog: IAbstractFogObject);
 
     { Update generated texture for this shape.
 
@@ -972,7 +1010,7 @@ type
       The given camera position, direction, up should be in world space
       (that is, in TCastleSceneManager space,
       not in space local to this TCastleScene). }
-    procedure UpdateGeneratedTextures(Shape: TShape;
+    procedure UpdateGeneratedTextures(Shape: TX3DRendererShape;
       TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -1021,8 +1059,9 @@ var
 implementation
 
 uses Math,
-  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
-  X3DCameraUtils, CastleProjection, CastleRectangles;
+  CastleStringUtils, CastleGLVersion, CastleLog,
+  X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
+  CastleSceneInternalShape;
 
 {$define read_implementation}
 
@@ -1119,7 +1158,8 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
-  const GUITexture: boolean): TGLuint;
+  const GUITexture: boolean;
+  const FlipVertically: Boolean): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureImageCache;
@@ -1152,6 +1192,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
@@ -1175,6 +1216,7 @@ begin
   TextureCached := TTextureImageCache.Create;
   TextureImageCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.FlipVertically := FlipVertically;
   TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
@@ -1231,6 +1273,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.FlipVertically = TextureNode.FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
@@ -1252,6 +1295,7 @@ begin
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.FlipVertically := TextureNode.FlipVertically;
   TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
@@ -1447,7 +1491,7 @@ end;
 function TGLRendererContextCache.TextureDepth_IncReference(
   Node: TAbstractTextureNode;
   const TextureWrap: TTextureWrap2D;
-  DepthCompareField: TSFString;
+  CompareMode: TShadowMapCompareMode;
   const Width, Height: Cardinal;
   const VisualizeDepthMap: boolean): TGLuint;
 var
@@ -1500,33 +1544,33 @@ begin
 
   if GLFeatures.ARB_shadow then
   begin
-    if DepthCompareField <> nil then
-    begin
-      if VisualizeDepthMap or (DepthCompareField.Value = 'NONE') then
-      begin
-        { Using Attributes.VisualizeDepthMap effectively forces
-          every shadow map's compareMode to be NONE.
-          Although on some GPUs (Radeon X1600 (fglrx, chantal))
-          setting compareMode to NONE is not needed (one can use them
-          as sampler2D in shaders anyway, and extract depth as grayscale),
-          on other GPUs (NVidia GeForce 450 (kocury)) it is needed
-          (otherwise depth map only returns 0/1 values, not grayscale).
-          Spec suggests it should be needed. }
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
-      end else
-      if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
-      begin
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
-      end else
-      if DepthCompareField.Value = 'COMPARE_R_GEQUAL' then
-      begin
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
-      end else
-        WritelnWarning('VRML/X3D', Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
-    end else
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+    if VisualizeDepthMap then
+      CompareMode := smNone;
+    case CompareMode of
+      smNone:
+        begin
+          { Using Attributes.VisualizeDepthMap effectively forces
+            every shadow map's compareMode to be NONE.
+            Although on some GPUs (Radeon X1600 (fglrx, chantal))
+            setting compareMode to NONE is not needed (one can use them
+            as sampler2D in shaders anyway, and extract depth as grayscale),
+            on other GPUs (NVidia GeForce 450 (kocury)) it is needed
+            (otherwise depth map only returns 0/1 values, not grayscale).
+            Spec suggests it should be needed. }
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+        end;
+      smCompareRLEqual:
+        begin
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+        end;
+      smCompareRGEqual:
+        begin
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
+        end;
+      else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
+    end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
@@ -1672,6 +1716,7 @@ var
       (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     Result := not (
       { If we use any features that (may) render shape differently
         if shape's transform (or other stuff handled outside arrays
@@ -1679,6 +1724,7 @@ var
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
       FogVolumetric);
+    {$warnings on}
   end;
 
   function FogVolumetricEqual(
@@ -1844,8 +1890,10 @@ procedure TRenderingAttributes.Assign(Source: TPersistent);
 begin
   if Source is TRenderingAttributes then
   begin
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     OnRadianceTransfer := TRenderingAttributes(Source).OnRadianceTransfer;
     OnVertexColor := TRenderingAttributes(Source).OnVertexColor;
+    {$warnings on}
     Lighting := TRenderingAttributes(Source).Lighting;
     UseSceneLights := TRenderingAttributes(Source).UseSceneLights;
     Opacity := TRenderingAttributes(Source).Opacity;
@@ -1861,10 +1909,12 @@ end;
 function TRenderingAttributes.EqualForShapeCache(
   SecondValue: TRenderingAttributes): boolean;
 begin
+  {$warnings off} // consciously using deprecated stuff, to keep it working
   Result :=
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
     (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.EnableTextures = EnableTextures);
+  {$warnings on}
 end;
 
 constructor TRenderingAttributes.Create;
@@ -1894,7 +1944,7 @@ end;
 procedure TRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
-  if OnRadianceTransfer <> Value then
+  if FOnRadianceTransfer <> Value then
   begin
     ReleaseCachedResources;
     FOnRadianceTransfer := Value;
@@ -1904,7 +1954,7 @@ end;
 procedure TRenderingAttributes.SetOnVertexColor(
   const Value: TVertexColorFunction);
 begin
-  if OnVertexColor <> Value then
+  if FOnVertexColor <> Value then
   begin
     ReleaseCachedResources;
     FOnVertexColor := Value;
@@ -2186,6 +2236,12 @@ end;
 
 { TX3DRendererShape --------------------------------------------------------- }
 
+destructor TX3DRendererShape.Destroy;
+begin
+  FreeAndNil(MirrorPlaneUniforms);
+  inherited;
+end;
+
 procedure TX3DRendererShape.LoadArraysToVbo;
 begin
   Assert(Cache <> nil);
@@ -2244,7 +2300,7 @@ procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
   end;
 
   { Prepare all textures within X3D "interface declarations" of the given Nodes. }
-  procedure PrepareIDeclsList(Nodes: TX3DNodeList; State: TX3DGraphTraverseState);
+  procedure PrepareIDeclsList(Nodes: TMFNode; State: TX3DGraphTraverseState);
   var
     I: Integer;
   begin
@@ -2256,6 +2312,7 @@ var
   Shader: TShader;
   ShaderProgram: TX3DGLSLProgram;
   ShaderNode: TComposedShaderNode;
+  DummyCamera: TRenderingCamera;
 begin
   if not Node.ShaderLoaded then
   begin
@@ -2264,32 +2321,37 @@ begin
     if Node.FdEnabled.Value then
     begin
       { make sure that textures inside shaders are prepared }
-      PrepareIDeclsList(Node.FdShaders.Items, Node.StateForShaderPrepare);
+      PrepareIDeclsList(Node.FdShaders, Node.StateForShaderPrepare);
 
       Shader := TShader.Create;
       try
-        { for ScreenEffect, we require that some ComposedShader was present.
-          Rendering with default TShader shader makes no sense. }
-        if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
+        DummyCamera := TRenderingCamera.Create;
         try
-          ShaderProgram := TX3DGLSLProgram.Create(Self);
-          Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
-          Shader.LinkProgram(ShaderProgram, Node.NiceName);
+          Shader.RenderingCamera := DummyCamera;
 
-          { We have to ignore invalid uniforms, as it's normal that when
-            rendering screen effect we will pass some screen_* variables
-            that you will not use. }
-          ShaderProgram.UniformNotFoundAction := uaIgnore;
+          { for ScreenEffect, we require that some ComposedShader was present.
+            Rendering with default TShader shader makes no sense. }
+          if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
+          try
+            ShaderProgram := TX3DGLSLProgram.Create(Self);
+            Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
+            Shader.LinkProgram(ShaderProgram, Node.NiceName);
 
-          Node.Shader := ShaderProgram;
-          ScreenEffectPrograms.Add(ShaderProgram);
-        except on E: EGLSLError do
-          begin
-            FreeAndNil(ShaderProgram);
-            WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
-              [E.Message]));
+            { We have to ignore invalid uniforms, as it's normal that when
+              rendering screen effect we will pass some screen_* variables
+              that you will not use. }
+            ShaderProgram.UniformNotFoundAction := uaIgnore;
+
+            Node.Shader := ShaderProgram;
+            ScreenEffectPrograms.Add(ShaderProgram);
+          except on E: EGLSLError do
+            begin
+              FreeAndNil(ShaderProgram);
+              WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
+                [E.Message]));
+            end;
           end;
-        end;
+        finally FreeAndNil(DummyCamera) end;
       finally FreeAndNil(Shader) end;
     end;
   end;
@@ -2512,11 +2574,46 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
-  LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
+procedure TGLRenderer.RenderBegin(
+  const ABaseLights: TLightInstancesList;
+  const ARenderingCamera: TRenderingCamera;
+  const LightRenderEvent: TLightRenderEvent;
+  const AInternalPass: TInternalRenderingPass;
+  const AInternalScenePass: TInternalSceneRenderingPass;
+  const AUserPass: TUserRenderingPass);
+
+  { Combine a set of numbers (each in their own range) into one unique number.
+    This is like combining a couple of digits into a whole number,
+    but each digit is in a separate numeric system.
+
+    This is used to calculate TTotalRenderingPass from a couple of numbers.
+    The goal is that changing *any* number must also change the result,
+    so that result is a unique representation of all the numbers. }
+  function GetTotalPass(
+    const Digits: array of Cardinal;
+    const Ranges: array of Cardinal): Cardinal;
+  var
+    I: Integer;
+    Multiplier: Cardinal;
+  begin
+    Result := 0;
+    Multiplier := 1;
+    Assert(Length(Digits) = Length(Ranges));
+    for I := 0 to Length(Digits) - 1 do
+    begin
+      Result := Result + Digits[I] * Multiplier;
+      Multiplier := Multiplier * Ranges[I];
+    end;
+  end;
+
 begin
   BaseLights := ABaseLights;
-  Pass := APass;
+  RenderingCamera := ARenderingCamera;
+  Assert(RenderingCamera <> nil);
+
+  Pass := GetTotalPass(
+    [     AInternalPass,       AInternalScenePass,       AUserPass ],
+    [High(AInternalPass), High(AInternalScenePass), High(AUserPass)]);
 
   RenderCleanState(true);
 
@@ -2535,6 +2632,7 @@ begin
   Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
+  LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
 procedure TGLRenderer.RenderEnd;
@@ -2562,14 +2660,16 @@ begin
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
   TGLSLProgram.Current := nil;
+  RenderingCamera := nil;
 end;
 
-procedure TGLRenderer.RenderShape(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject);
+procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
+  const Fog: IAbstractFogObject);
 
   function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
   var
     Tex, SubTexture: TX3DNode;
+    I: Integer;
   begin
     Result := false;
     if (Shape.Node <> nil) and
@@ -2582,9 +2682,12 @@ procedure TGLRenderer.RenderShape(Shape: TX3DRendererShape;
 
       if Tex is TMultiTextureNode then
       begin
-        for SubTexture in TMultiTextureNode(Tex).FdTexture.Items do
+        for I := 0 to TMultiTextureNode(Tex).FdTexture.Count - 1 do
+        begin
+          SubTexture := TMultiTextureNode(Tex).FdTexture[I];
           if SubTexture is TGeneratedShadowMapNode then
             Exit(true);
+        end;
       end;
     end;
   end;
@@ -2596,6 +2699,8 @@ begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
+  Shader.SeparateDiffuseTexture := Attributes.SeparateDiffuseTexture;
+  Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
   PhongShading := Attributes.PhongShading;
@@ -3003,24 +3108,8 @@ var
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
-
-          { Note: do *not* multiply
-
-              ClipPlane^.Transform * ClipPlane^.Node.Plane
-
-            The plane equation cannot be transformed like that,
-            it's not a 4D vertex / direction.
-
-            OpenGL does smart calculatations such that we can
-            provide modelview matrix, and then specify
-            plane equation in the local space.
-            See e.g. http://www2.imm.dtu.dk/~jab/texgen.pdf .
-            glClipPlane docs say that glClipPlane is multiplied by
-            the *inverse* of modelview. The wording is crucial here:
-            plane is multiplied by the matrix, not the other way around. }
-
           Shader.EnableClipPlane(ClipPlanesEnabled,
-            ClipPlane^.Transform, ClipPlane^.Node.FdPlane.Value);
+            PlaneTransform(ClipPlane^.Node.FdPlane.Value, ClipPlane^.Transform));
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more
@@ -3041,6 +3130,10 @@ var
   end;
 
 begin
+  { This must be done before "glMultMatrix(Shape.State.Transform)" below,
+    as in case of fixed-function pipeline the ClipPlanesBegin
+    causes glClipPlane that sets clip plane assuming the current matrix
+    contains only camera. }
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
   {$ifndef OpenGLES}
@@ -3225,6 +3318,42 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       (Node is TIndexedLineSetNode));
   end;
 
+  procedure EnableOneShadowMap(const Texture: TGeneratedShadowMapNode;
+    var TexCoordsNeeded: Cardinal; const Shader: TShader);
+  var
+    GLTexture: TGLTextureNode;
+  begin
+    if Texture.CompareMode <> smNone then
+    begin
+      GLTexture := GLTextureNodes.TextureNode(Texture);
+      if GLTexture <> nil then
+        GLTexture.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+    end;
+  end;
+
+  procedure EnableShadowMaps(const Texture: TAbstractTextureNode;
+    var TexCoordsNeeded: Cardinal; const Shader: TShader);
+  var
+    I: Integer;
+    ChildNode: TX3DNode;
+  begin
+    if Texture is TGeneratedShadowMapNode then
+    begin
+      EnableOneShadowMap(TGeneratedShadowMapNode(Texture), TexCoordsNeeded, Shader);
+    end else
+    if Texture is TMultiTextureNode then
+      for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
+      begin
+        { TODO: This is not really correct, the texture unit number
+          (TexCoordsNeeded) may not correspond to the texture coordinate number
+          where the ProjectedTextureCoordinate node is. }
+
+        ChildNode := TMultiTextureNode(Texture).FdTexture[I];
+        if ChildNode is TGeneratedShadowMapNode then
+          EnableOneShadowMap(TGeneratedShadowMapNode(ChildNode), TexCoordsNeeded, Shader);
+      end;
+  end;
+
   procedure RenderTexturesBegin;
   var
     TextureNode: TAbstractTextureNode;
@@ -3232,7 +3361,6 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     AlphaTest: boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
-    TexturesAlphaChannel: TAlphaChannel;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3263,20 +3391,26 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     if Attributes.EnableTextures and
        NodeTextured(Shape.Geometry) then
     begin
-      { This works also for TextureNode being TMultiTextureNode,
-        since it has smartly calculated AlphaChannel based on children. }
-      TexturesAlphaChannel := acNone;
-      if TextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
-      if FontTextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
-      AlphaTest := TexturesAlphaChannel = acTest;
+      AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;
 
       if GLFontTextureNode <> nil then
         GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       if GLTextureNode <> nil then
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
+
+      if (Shape.Node <> nil) and
+         (Shape.Node.Appearance <> nil) and
+         (Shape.Node.Appearance.Texture <> nil) and
+         (TextureNode <> Shape.Node.Appearance.Texture) then
+      begin
+        { This means that Shape.State.DiffuseAlphaTexture comes
+          from CommonSurfaceShader (or a weird mix of VRML 1.0 and X3D which
+          is undefined).
+          Make sure to still enable shadow maps from Shape.Appearance.Texture
+          then. }
+        EnableShadowMaps(Shape.Node.Appearance.Texture, TexCoordsNeeded, Shader);
+      end;
 
       { If there is special texture like a normalmap, enable it. }
       BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
@@ -3360,8 +3494,10 @@ begin
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
         Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
+        {$warnings off} // consciously using deprecated stuff, to keep it working
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
+        {$warnings on}
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 
@@ -3440,7 +3576,7 @@ begin
 end;
 {$endif}
 
-procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
+procedure TGLRenderer.UpdateGeneratedTextures(Shape: TX3DRendererShape;
   TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
@@ -3528,16 +3664,28 @@ var
   procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
   var
     GLNode: TGLRenderedTextureNode;
+    GeometryCoordsField: TMFVec3f;
+    GeometryCoords: TVector3List;
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       GLNode := TGLRenderedTextureNode(GLTextureNodes.TextureNode(TexNode));
       if GLNode <> nil then
       begin
+        { calculate GeometryCoords }
+        GeometryCoords := nil;
+        if Shape.Geometry.InternalCoord(Shape.State, GeometryCoordsField) and
+           (GeometryCoordsField <> nil) then
+          GeometryCoords := GeometryCoordsField.Items;
+
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
-          CameraPosition, CameraDirection, CameraUp);
+          CameraPosition, CameraDirection, CameraUp,
+          Shape.BoundingBox,
+          Shape.State.Transform,
+          GeometryCoords,
+          Shape.MirrorPlaneUniforms);
 
         PostUpdate;
 

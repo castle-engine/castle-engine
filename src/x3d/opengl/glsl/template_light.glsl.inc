@@ -43,6 +43,14 @@
 'uniform float castle_LightSource<Light>Radius;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
+'#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
+'#ifndef GL_ES' + LineEnding +
+'void separate_diffuse_apply_texture(inout vec4 fragment_color,' + LineEnding +
+'  const in vec4 vertex_eye,' + LineEnding +
+'  const in vec3 normal_eye);' + LineEnding +
+'#endif' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'void PLUG_add_light_contribution(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
@@ -116,6 +124,10 @@
 '#else' + LineEnding +
 '  castle_SideLightProduct<Light>Diffuse;' + LineEnding +
 '#endif' + LineEnding +
+'' + LineEnding +
+'  #ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
+'  separate_diffuse_apply_texture(diffuse, vertex_eye, normal_eye);' + LineEnding +
+'  #endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +

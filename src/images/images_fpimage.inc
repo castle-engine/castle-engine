@@ -457,6 +457,10 @@ begin
   { without this, Writer.UseAlpha is always false and TFPWriterPNG never
     stores alpha channel of png image. }
   Writer.UseAlpha := Img.HasAlpha;
+  { By default, we produce 16-bit PNG. Which usually is useless
+    (as our inputs is 8-bit), and makes "nvcompress" on macOS fail
+    on PNG files produced by our "downscaling". }
+  Writer.WordSized := false;
   SaveFpImage(Img, Stream, Writer);
 end;
 {$endif}
@@ -505,6 +509,7 @@ begin
         CanvasDestination := TFPImageCanvas.Create(Result);
         {$warnings on}
         try
+          CanvasDestination.Interpolation := Interpolator;
           CanvasDestination.StretchDraw(0, 0, ResizeWidth, ResizeHeight, FPImageSource);
         finally FreeAndNil(CanvasDestination) end;
       except FreeAndNil(Result); raise end;

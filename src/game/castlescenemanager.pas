@@ -52,15 +52,52 @@ type
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
-  { Event for TCastleSceneManager.OnMoveAllowed. }
+  { Event for @link(TCastleSceneManager.OnMoveAllowed). }
   TWorldMoveAllowedEvent = procedure (Sender: TCastleSceneManager;
     var Allowed: boolean;
     const OldPosition, NewPosition: TVector3;
     const BecauseOfGravity: boolean) of object;
 
+  { Event for @link(TCastleAbstractViewport.OnProjection). }
+  TProjectionEvent = procedure (var Parameters: TProjection) of object;
+
+  { Possible value of @link(TCastleSceneManager.UseHeadlight). }
+  TUseHeadlight = (
+    { Always show a headlight.
+      The headlight properties (color, intensity, shape)
+      are taken from @link(TCastleSceneManager.HeadlightNode). }
+    hlOn,
+
+    { Never show a headlight. }
+    hlOff,
+
+    { Show a headlight following the @link(TCastleSceneManager.MainScene)
+      properties.
+
+      If @link(TCastleSceneManager.MainScene) is @nil,
+      there is no headlight.
+
+      If @link(TCastleSceneManager.MainScene) is assigned,
+      the headlight is shown if
+      @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+      is @true.
+      @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) in turn
+      is configutable, and by default looks at X3D NavigationInfo.headlight field.
+      (If no NavigationInfo node is present, the headlight is shown,
+      as NavigationInfo.headlight is @true by default.)
+
+      The headlight properties (color, intensity, shape)
+      follow @link(TCastleSceneCore.CustomHeadlight MainScene.CustomHeadlight),
+      which can be customized in an X3D file using
+      https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
+      If no @link(TCastleSceneCore.CustomHeadlight MainScene.CustomHeadlight)
+      is set, we use @link(TCastleSceneManager.HeadlightNode). }
+    hlMainScene
+  );
+
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TUIControlSizeable)
+  TCastleAbstractViewport = class(TCastleScreenEffects)
   private
     type
       TScreenPoint = packed record
@@ -85,6 +122,8 @@ type
     FInternalWalkCamera: TWalkCamera;
     FWithinSetNavigationType: boolean;
     LastPressEvent: TInputPressRelease;
+    FOnProjection: TProjectionEvent;
+    FEnableParentDragging: boolean;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -108,6 +147,7 @@ type
 
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLScreenEffect;
+    SSAOShaderInitialized: Boolean;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -115,13 +155,15 @@ type
     DistortFieldOfViewY, DistortViewAspect: Single;
     SickProjectionTime: TFloatTime;
 
+    function FillsWholeContainer: boolean;
     procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
+    procedure SSAOShaderInitialize;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
-      and takes care to apply Scissor if not FullSize,
+      and takes care to apply Scissor if not FillsWholeContainer,
       and calls RenderFromViewEverything.
 
       Takes care of using ScreenEffects. For this,
@@ -134,7 +176,7 @@ type
     procedure RenderOnScreen(ACamera: TCamera);
 
     procedure RenderWithScreenEffectsCore;
-    function RenderWithScreenEffects: boolean;
+    function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
 
     { Set the projection parameters and matrix.
       Used by our Render method.
@@ -157,27 +199,31 @@ type
       or orthogonal and exact field of view parameters.
       Used by our Render method.
 
-      The default implementation is TCastleAbstractViewport
-      calculates projection based on MainScene currently bound Viewpoint,
-      NavigationInfo and used @link(Camera).
-      If scene manager's MainScene is not assigned, we use some default
-      sensible perspective projection. }
+      The default implementation of this method in TCastleAbstractViewport
+      calculates projection based on the @link(Camera) parameters,
+      and based on the currently bound Viewpoint/OrthoViewpoint, NavigationInfo
+      nodes in @link(TCastleSceneManager.MainScene).
+      If the scene manager's MainScene is not assigned, or it doesn't have
+      a Viewpoint/OrthoViewpoint node, we use a default perspective projection.
+
+      Note that the TCastle2DSceneManager overrides this method
+      to calculate always orthographic projection, using it's own properties
+      like @link(TCastle2DSceneManager.ProjectionAutoSize),
+      @link(TCastle2DSceneManager.ProjectionWidth),
+      @link(TCastle2DSceneManager.ProjectionHeight).
+      It doesn't look at MainScene settings or Viewpoint/OrthoViewpoint nodes.
+
+      You can override this method, or assign the @link(OnProjection) event
+      to adjust the projection settings. }
     function CalculateProjection: TProjection; virtual;
 
     { Render one pass, with current camera and parameters.
-      All current camera settings are saved in RenderingCamera,
-      and the camera matrix is already loaded to OpenGL.
-
-      If you want to display something 3D during rendering,
+      All current camera settings are saved in RenderParams.RenderingCamera.
+      If you want to write custom OpenGL rendering code,
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
-      Alternatively, you can create new TCastleTransform descendant and add it
-      to the @link(GetItems) list.
 
-      @param(Params Parameters specify what lights should be used
-        (Params.BaseLights, Params.InShadow), and which parts of the 3D scene
-        should be rendered (Params.Transparent, Params.ShadowVolumesReceivers
-        --- only matching 3D objects should be rendered by this method).) }
+      @param(Params Rendering parameters, see @link(TRenderParams).) }
     procedure Render3D(const Params: TRenderParams); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
@@ -186,11 +232,11 @@ type
       so you can do shadow volumes culling. }
     procedure RenderShadowVolume; virtual;
 
-    { Render everything from current (in RenderingCamera) camera view.
-      Current RenderingCamera.Target says to where we generate the image.
+    { Render everything from given camera view (as TRenderingCamera).
+      Given RenderingCamera.Target says to where we generate the image.
       Takes method must take care of making many rendering passes
       for shadow volumes, but doesn't take care of updating generated textures. }
-    procedure RenderFromViewEverything; virtual;
+    procedure RenderFromViewEverything(const RenderingCamera: TRenderingCamera); virtual;
 
     { Prepare lights shining on everything.
       BaseLights contents should be initialized here.
@@ -201,23 +247,21 @@ type
       KambiNavigationInfo.headlightNode properties. }
     procedure InitializeLights(const Lights: TLightInstancesList); virtual;
 
-    { Headlight used to light the scene. Returns non-nil headlight node,
-      if headlight is present, or @nil when no headlight.
+    { Headlight used to light the scene.
 
       Default implementation of this method in TCastleSceneManager
-      looks at the MainScene headlight. We return if MainScene is assigned
-      and TCastleSceneCore.HeadlightOn is @true.
-      (HeadlightOn in turn looks
-      at information in VRML/X3D file (NavigationInfo.headlight)
-      and you can also always set HeadlightOn explicitly by code.)
-      The custom light node
-      is obtained from TCastleSceneCore.CustomHeadlight,
-      eventually using a default directional light node for a simple headlight.
+      returns non-nil headlight node
+      if the algorithm described at @link(UseHeadlight) and
+      @link(TUseHeadlight) indicates we should use a headlight.
+      Otherwise returns @nil, to indicate we do not show a headlight now.
 
-      Default implementation of this method in TCastleViewport looks at
-      SceneManager.Headlight.
+      Default implementation of this method in TCastleViewport just refers
+      to SceneManager.Headlight.
 
-      You can override this method to determine the headlight in any other way. }
+      You can override this method to determine the headlight in any other way.
+      Instead of overriding this method, you can often also
+      change the @link(UseHeadlight) value,
+      or @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) value. }
     function Headlight: TAbstractLightNode; virtual; abstract;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
@@ -277,7 +321,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
-    procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
@@ -299,6 +344,16 @@ type
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
+      DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
+
+    var
+      { Rendering pass, for user purposes.
+        Useful to keep shaders cached when you render the same scene multiple times
+        in the same frame (under different lighting conditions or other things
+        that change shaders).
+        By default this is always 0, the engine doesn't modify this.
+        You can set this field manually. }
+      CustomRenderingPass: TUserRenderingPass;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -314,9 +369,16 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
+    { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
+      about the current pointing device.
+      You usually don't need to call this, as it is done at every mouse move. }
+    procedure UpdateMouseRayHit;
+
     { Current projection parameters,
-      calculated by last @link(CalculateProjection) call.
-      @bold(Read only), change these parameters only by overriding CalculateProjection. }
+      calculated by last @link(CalculateProjection) call,
+      adjusted by @link(OnProjection).
+      @bold(This is read only). To change the projection parameters,
+      override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
 
     { Return current camera. Automatically creates it if missing. }
@@ -470,7 +532,7 @@ type
 
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php]).
+      nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
       and ScreenEffectsNeedDepth to add screen effects by code.
       Each viewport may have it's own, different screen effects.
@@ -487,17 +549,7 @@ type
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: boolean;
 
-    procedure GLContextOpen; override;
     procedure GLContextClose; override;
-
-    { Instance for headlight that should be used for this scene.
-      Uses @link(Headlight) method, applies appropriate camera position/direction.
-      Returns @true only if @link(Headlight) method returned @true
-      and a suitable camera was present.
-
-      Instance should be considered undefined ("out" parameter)
-      when we return @false. }
-    function HeadlightInstance(out Instance: TLightInstance): boolean;
 
     { Parameters to prepare items that are to be rendered
       within this world. This should be passed to
@@ -518,7 +570,7 @@ type
       Unless the MainScene has a Background node defined, in which
       case the Background (colored and/or textured) of the 3D scene is used.
 
-      Black by default. }
+      Dark gray (DefaultBackgroundColor) by default. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
 
@@ -543,7 +595,7 @@ type
       An exception to this is assigning events to the camera instance.
       The scene manager or viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnHeight, TCamera.OnCursorChange.
+      TWalkCamera.OnHeight.
       We will handle them in a proper way. Do not assign them yourself.
 
       @italic(Comments for TCastleViewport only:)
@@ -559,6 +611,20 @@ type
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
+    { Instance for headlight that should be used for this scene.
+      Uses @link(Headlight) method, applies appropriate camera position/direction.
+      Returns @true only if @link(Headlight) method returned @true
+      and a suitable camera was present.
+
+      Instance should be considered undefined ("out" parameter)
+      when we return @false. }
+    function HeadlightInstance(out Instance: TLightInstance): boolean;
+      deprecated 'internal information, do not use this';
+
+    { Enable built-in SSAO screen effect in the world. }
+    property ScreenSpaceAmbientOcclusion: boolean
+      read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
+      default DefaultScreenSpaceAmbientOcclusion;
   published
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
@@ -615,7 +681,7 @@ type
       is 2-manifold, that is has a correctly closed volume.
       Also you need a light source
       marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]
       for details. }
     property ShadowVolumes: boolean
       read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
@@ -667,9 +733,9 @@ type
 
       It's your responsibility in such case to clear the depth buffer.
       E.g. place one scene manager in the back that has ClearDepth = @true.
-      Or place a TUIControl descendant in the back, that calls
+      Or place a TCastleUserInterface descendant in the back, that calls
       @code(TRenderContent.Clear RenderContent.Clear) in overridden
-      @link(TUIControl.Render).
+      @link(TCastleUserInterface.Render).
 
       Note: to disable clearning the color buffer, set @link(Transparent)
       to @false.
@@ -773,13 +839,29 @@ type
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
 
-    { Enable built-in SSAO screen effect in the world. }
-    property ScreenSpaceAmbientOcclusion: boolean
-      read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
-      default DefaultScreenSpaceAmbientOcclusion;
-
-    { Viewports are by default full size (fill the parent container completely). }
+    { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
+
+    { Adjust the projection parameters. This event is called before every render.
+      See the @link(CalculateProjection) for a description how to default
+      projection parameters are calculated. }
+    property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
+
+    { Enable to drag a parent control, for example to drag a TCastleScrollView
+      that contains this scene manager, even when the scene inside contains
+      clickable elements (using TouchSensor node).
+
+      To do this, you need to turn on
+      TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
+      here. In effect, scene manager will cancel the click operation
+      once you start dragging, which allows the parent to handle
+      all the motion events for dragging. }
+    property EnableParentDragging: boolean
+      read FEnableParentDragging write FEnableParentDragging default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
@@ -822,9 +904,9 @@ type
 
     For some of these features, you'll have to set the @link(MainScene) property.
 
-    This is a TUIControl descendant, which means it's advised usage
-    is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    This passes relevant TUIControl events to all the TCastleTransform objects inside.
+    This is a TCastleUserInterface descendant, which means it's advised usage
+    is to add this to TCastleWindowBase.Controls or TCastleControlBase.Controls.
+    This passes relevant TCastleUserInterface events to all the TCastleTransform objects inside.
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TCastleViewport class, to render your 3D world),
     you still should add scene manager to the controls list
@@ -852,7 +934,8 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
-    DefaultHeadlightNode: TDirectionalLightNode;
+    FHeadlightNode: TAbstractLightNode;
+    FUseHeadlight: TUseHeadlight;
 
     ScheduledVisibleChangeNotification: boolean;
     ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
@@ -876,6 +959,9 @@ type
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
     procedure SetPlayer(const Value: TPlayer);
     procedure SetNavigationType(const Value: TNavigationType); override;
+
+    function GetHeadlightNode: TAbstractLightNode;
+    procedure SetHeadlightNode(const Node: TAbstractLightNode);
   protected
     FSectors: TSectorList;
     Waypoints: TWaypointList;
@@ -898,7 +984,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
 
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -934,12 +1021,14 @@ type
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
     function Headlight: TAbstractLightNode; override;
+    //procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
+    //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
 
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
@@ -1042,80 +1131,6 @@ type
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
 
-    function Rect: TRectangle; override;
-  published
-    { Time scale used when not @link(Paused). }
-    property TimeScale: Single read FTimeScale write FTimeScale default 1;
-
-    { Tree of 3D objects within your world. This is the place where you should
-      add your scenes to have them handled by scene manager.
-      You may also set your main TCastleScene (if you have any) as MainScene. }
-    property Items: TSceneManagerWorld read FItems;
-
-    { The main scene of your 3D world. It's not necessary to set this
-      (after all, your 3D world doesn't even need to have any TCastleScene
-      instance). This @italic(must be) also added to our @link(Items)
-      (otherwise things will work strangely).
-
-      When set, this is used for a couple of things:
-
-      @unorderedList(
-        @item Decides what headlight is used (by TCastleScene.Headlight).
-
-        @item(Decides what background is rendered.
-          @italic(Notes for implementing descendants of this class:)
-          You can change this by overriding Background method.)
-
-        @item(Decides if, and where, the main light casting shadows is.
-          @italic(Notes for implementing descendants of this class:)
-          You can change this by overriding MainLightForShadows method.)
-
-        @item(Determines projection for viewing (if you use
-          default @link(CalculateProjection) implementation).)
-
-        @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints
-          and navigation info.
-          This means that @link(Camera) will be updated when VRML/X3D events
-          change current Viewpoint or NavigationInfo, for example
-          you can animate the camera by animating the viewpoint
-          (or it's transformation) or bind camera to a viewpoint.
-
-          Note that scene manager "hijacks" some Scene events:
-          TCastleSceneCore.OnBoundViewpointVectorsChanged,
-          TCastleSceneCore.ViewpointStack.OnBoundChanged,
-          TCastleSceneCore.NavigationInfoStack.OnBoundChanged
-          for this purpose. If you want to know when viewpoint changes,
-          you can use scene manager's event OnBoundViewpointChanged,
-          OnBoundNavigationInfoChanged.)
-      )
-
-      The above stuff is only sensible when done once per scene manager,
-      that's why we need MainScene property to indicate this.
-      (We cannot just use every 3D object from @link(Items) for this.)
-
-      Freeing MainScene will automatically set this to @nil. }
-    property MainScene: TCastleScene read FMainScene write SetMainScene;
-
-    { Called on any camera change. Exactly when TCamera generates it's
-      OnVisibleChange event. }
-    property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
-
-    { Called when bound Viewpoint node changes.
-      Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
-    property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
-
-    { Called when bound NavigationInfo changes (to a different node,
-      or just a field changes). }
-    property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
-
-    { Should we render the 3D world in a default viewport that covers
-      the whole window. This is usually what you want. For more complicated
-      uses, you can turn this off, and use explicit TCastleViewport
-      (connected to this scene manager by TCastleViewport.SceneManager property)
-      for making your world visible. }
-    property DefaultViewport: boolean
-      read FDefaultViewport write SetDefaultViewport default true;
-
     { Player in this 3D world. This currently serves various purposes:
 
       @unorderedList(
@@ -1145,6 +1160,151 @@ type
       )
     }
     property Player: TPlayer read FPlayer write SetPlayer;
+
+    { Determines the headlight look, if we use a headlight
+      (which is determined by the algorithm described at @link(UseHeadlight) and
+      @link(TUseHeadlight)).
+      By default it's a simplest directional headlight,
+      but you can customize it, and thus you can use a point light
+      or a spot light for a headlight.
+      Just like https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
+
+      This is never @nil.
+      Assigning here @nil simply causes us to recreate it using
+      the simplest directional headlight. }
+    property HeadlightNode: TAbstractLightNode
+      read GetHeadlightNode write SetHeadlightNode;
+
+    { Convert 2D position on the viewport into "world coordinates",
+      which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+      This is a more general version of @link(TCastle2DSceneManager.PositionTo2DWorld),
+      that works with any projection (perspective or not).
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressReleaseEvent.Position)
+          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This intersects the ray cast by @link(RequiredCamera)
+      with a plane at Z = PlaneZ.
+
+      Returns true and sets 3D PlanePosition (the Z component of this vector
+      must always be equal to PlaneZ) if such intersection is found.
+      Returns false if it's not possible to determine such point (when
+      the camera looks in the other direction).
+    }
+    function PositionToWorldPlane(const Position: TVector2;
+      const ScreenCoordinates: Boolean;
+      const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+  published
+    { Time scale used when not @link(Paused). }
+    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+
+    { Tree of 3D objects within your world. This is the place where you should
+      add your scenes to have them handled by scene manager.
+      You may also set your main TCastleScene (if you have any) as MainScene. }
+    property Items: TSceneManagerWorld read FItems;
+
+    { The main scene of your 3D world. It's not necessary to set this.
+      It adds some optional features that require a notion of
+      the "main" scene to make sense.
+
+      The scene you set here @italic(must) also be added to our @link(Items).
+
+      The MainScene is used for a couple of things:
+
+      @unorderedList(
+        @item(Determines initial camera position, orientation, projection,
+          move speed and other details.
+          The initial camera follows the X3D Viewpoint, OrthoViewpoint
+          and NavigationInfo nodes inside the MainScene.
+
+          The camera will also stay synchronized with the X3D nodes in MainScene.
+          This means that @link(Camera) will be updated when X3D events
+          change current X3D Viewpoint or X3D NavigationInfo, for example
+          you can animate the camera by animating the viewpoint
+          (or it's transformation) or bind camera to a viewpoint.
+
+          Note that scene manager "hijacks" some TCastleSceneCore events
+          for this purpose:
+          TCastleSceneCore.OnBoundViewpointVectorsChanged,
+          TCastleSceneCore.ViewpointStack.OnBoundChanged,
+          TCastleSceneCore.NavigationInfoStack.OnBoundChanged
+          for this purpose. If you want to know when viewpoint changes,
+          you can use scene manager's event OnBoundViewpointChanged,
+          OnBoundNavigationInfoChanged.
+
+          Note that descendants that overrride @link(CalculateProjection)
+          can change this behaviour.
+          For example @link(TCastle2DSceneManager) completely ignores the camera
+          parameters in MainScene, and instead always sets up a suitable
+          orthogonal camera.
+        )
+
+        @item(Determines what background is rendered.
+          If the MainScene contains an X3D Background node, it will be used.
+          Otherwise we render a background using @link(BackgroundColor).
+
+          Note that when @link(Transparent) is @true,
+          we never render any background (neither from MainScene,
+          nor from @link(BackgroundColor)).
+        )
+
+        @item(Determines whether headlight is used if @link(UseHeadlight)
+          is hlMainScene. The value of
+          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+          then determines the headlight.
+          The initial
+          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+          value depends on the X3D NavigationInfo node inside MainScene.)
+
+        @item(Determines if, and where, the main light casting shadow volumes is.)
+
+        @item(Determines lights shining on all scenes, if @link(UseGlobalLights).)
+
+        @item(Determines fog on all scenes, if @link(UseGlobalFog).)
+      )
+
+      Freeing MainScene will automatically set this property to @nil. }
+    property MainScene: TCastleScene read FMainScene write SetMainScene;
+
+    { Called on any camera change. }
+    property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
+
+    { Called when bound Viewpoint node changes.
+      Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
+    property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
+
+    { Called when bound NavigationInfo changes (to a different node,
+      or just a field changes). }
+    property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
+
+    { Should we render the 3D world in a default viewport that covers
+      the whole window. This is usually what you want. For more complicated
+      uses, you can turn this off, and use explicit TCastleViewport
+      (connected to this scene manager by TCastleViewport.SceneManager property)
+      for making your world visible. }
+    property DefaultViewport: boolean
+      read FDefaultViewport write SetDefaultViewport default true;
 
     (*Enable or disable movement of the player, items and creatures.
       This applies to all 3D objects using TCastleTransform.WorldMoveAllowed for movement.
@@ -1191,6 +1351,10 @@ type
       ) *)
     property OnMoveAllowed: TWorldMoveAllowedEvent
       read FOnMoveAllowed write FOnMoveAllowed;
+
+    { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
+    property UseHeadlight: TUseHeadlight
+      read FUseHeadlight write FUseHeadlight default hlMainScene;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -1205,18 +1369,18 @@ type
     but they always share the same 3D world (in scene manager).
 
     You can control the size of this viewport by
-    @link(TUIControlSizeable.FullSize FullSize),
-    @link(TUIControl.Left Left),
-    @link(TUIControl.Bottom Bottom),
-    @link(TUIControlSizeable.Width Width),
-    @link(TUIControlSizeable.Height Height) properties. For custom
+    @link(TCastleUserInterface.FullSize FullSize),
+    @link(TCastleUserInterface.Left Left),
+    @link(TCastleUserInterface.Bottom Bottom),
+    @link(TCastleUserInterface.Width Width),
+    @link(TCastleUserInterface.Height Height) properties. For custom
     viewports, you often want to set FullSize = @false
     and control viewport's position and size explicitly.
 
     Viewports may be overlapping, that is one viewport may (partially)
-    obscure another viewport. Just like with any other TUIControl,
+    obscure another viewport. Just like with any other TCastleUserInterface,
     position of viewport on the Controls list
-    (like TCastleControlCustom.Controls or TCastleWindowCustom.Controls)
+    (like TCastleControlBase.Controls or TCastleWindowBase.Controls)
     is important: Controls are specified in the back-to-front order.
     That is, if the viewport A may obscure viewport B,
     then A must be after B on the Controls list.
@@ -1231,7 +1395,7 @@ type
 
     @unorderedList(
       @item(Explanation with an example:
-        http://castle-engine.sourceforge.net/tutorial_2d_user_interface.php#section_viewport)
+        https://castle-engine.io/tutorial_2d_user_interface.php#section_viewport)
       @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
       @item(Example in engine sources: examples/fps_game/)
     )
@@ -1258,7 +1422,8 @@ type
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure CameraVisibleChange(ACamera: TObject); override;
+    procedure CameraVisibleChange(const Sender: TInputListener;
+      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
@@ -1301,10 +1466,15 @@ var
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep it working for backward compatibility.
 uses Math,
-  CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleLog,
-  CastleStringUtils, CastleSoundEngine, CastleGLVersion, CastleShapes,
-  CastleTextureImages;
+  CastleRenderingCamera,
+  CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
+  CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
+  CastleComponentSerialize;
+{$warnings on}
 
 procedure Register;
 begin
@@ -1341,7 +1511,7 @@ end;
 constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
-  FBackgroundColor := Black;
+  FBackgroundColor := DefaultBackgroundColor;
   FUseGlobalLights := DefaultUseGlobalLights;
   FUseGlobalFog := DefaultUseGlobalFog;
   FRenderParams := TManagerRenderParams.Create;
@@ -1351,6 +1521,10 @@ begin
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   FullSize := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -1367,8 +1541,8 @@ begin
     pointer.
 
     And when SceneManager is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TCastleWindowCustom instance,
-    which causes removing us from TCastleWindowCustom.Controls list,
+    (this is also done in "inherited" destructor) to TCastleWindowBase instance,
+    which causes removing us from TCastleWindowBase.Controls list,
     which causes SetContainer(nil) call that tries to access Camera.
 
     This scenario would cause segfault, as FCamera pointer is invalid
@@ -1378,7 +1552,18 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(FPrepareParams);
 
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
+end;
+
+function TCastleAbstractViewport.FillsWholeContainer: boolean;
+begin
+  if Container = nil then
+    Result := FullSize
+  else
+    Result := RenderRect.Round.Equals(Container.Rect);
 end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
@@ -1406,7 +1591,6 @@ begin
     if (FCamera <> nil) and not (csDestroying in FCamera.ComponentState) then
     begin
       FCamera.OnVisibleChange := nil;
-      FCamera.OnCursorChange := nil;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
@@ -1422,10 +1606,9 @@ begin
     if FCamera <> nil then
     begin
       { Unconditionally change FCamera.OnVisibleChange callback,
-        to override TCastleWindowCustom / TCastleControlCustom that also try
+        to override TCastleWindowBase / TCastleControlBase that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
-      FCamera.OnCursorChange := @RecalculateCursor;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -1492,52 +1675,76 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  { Call PointingDeviceMove, set MouseHitRay and such --- otherwise
-    the 1st mouse down event over a 3D object (like a TouchSensor) will be ignored
-    if it happens before any mouse move (which is normal on touch devices).
-    OldX,OldY and NewX,NewY are equal for the fake Motion call,
-    in case a camera would base some movement based on the position delta. }
-  Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
+  { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
+    about the current pointing device.
+    Otherwise the 1st mouse down event over a 3D object (like a TouchSensor)
+    will be ignored
+    if it happens before any mouse move (which is normal on touch devices). }
+  UpdateMouseRayHit;
 
   LastPressEvent := TInputPressRelease(Event);
 
-  Result := GetItems.Press(Event);
-  if Result then Exit;
+  if (GetItems <> nil) and
+     GetItems.Press(Event) then
+    Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
-  begin
-    Result := PointingDeviceActivate(true);
-    if Result then Exit;
-  end;
+  if PlayerNotBlocked and
+     Input_Interact.IsEvent(Event) and
+     PointingDeviceActivate(true) then
+    Exit(ExclusiveEvents);
 
   P := GetPlayer;
   if (P <> nil) and not (P.Blocked or P.Dead) then
   begin
     if Input_Attack.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.Attack; end;
+    begin
+      P.Attack;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_CancelFlying.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.Flying := false; end;
+    begin
+      P.Flying := false;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryShow.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.InventoryVisible := not P.InventoryVisible; end;
+    begin
+      P.InventoryVisible := not P.InventoryVisible;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryPrevious.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(-1); end;
+    begin
+      P.ChangeInventoryCurrentItem(-1);
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_InventoryNext.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(+1); end;
+    begin
+      P.ChangeInventoryCurrentItem(+1);
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_DropItem.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.DropCurrentItem; end;
+    begin
+      P.DropCurrentItem;
+      Exit(ExclusiveEvents);
+    end;
+
     if Input_UseItem.IsEvent(Event) then
-      begin Result := ExclusiveEvents; P.UseCurrentItem; end;
-    if Result then Exit;
+    begin
+      P.UseCurrentItem;
+      Exit(ExclusiveEvents);
+    end;
   end;
 
   { Let Camera only work after PointingDeviceActivate, to let pointing
     device sensors under camera work, even when camera allows to navigate
     by dragging. }
-  if Camera <> nil then
-  begin
-    Result := Camera.Press(Event);
-    if Result then Exit;
-  end;
+  if (Camera <> nil) and
+     Camera.Press(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
@@ -1545,23 +1752,21 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  Result := GetItems.Release(Event);
-  if Result then Exit;
+  if (GetItems <> nil) and
+     GetItems.Release(Event) then
+    Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
-  begin
-    Result := PointingDeviceActivate(false);
-    if Result then Exit;
-  end;
+  if PlayerNotBlocked and
+     Input_Interact.IsEvent(Event) and
+     PointingDeviceActivate(false) then
+    Exit(ExclusiveEvents);
 
   { Let Camera only work after PointingDeviceActivate, to let pointing
     device sensors under camera work, even when camera allows to navigate
     by dragging. }
-  if Camera <> nil then
-  begin
-    Result := Camera.Release(Event);
-    if Result then Exit;
-  end;
+  if (Camera <> nil) and
+     Camera.Release(Event) then
+    Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
@@ -1582,8 +1787,9 @@ function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
     end;
   end;
 
+const
+  DistanceToHijackDragging = 5 * 96;
 var
-  RayOrigin, RayDirection: TVector3;
   TopMostScene: TCastleTransform;
 begin
   Result := inherited;
@@ -1591,32 +1797,48 @@ begin
   begin
     if (GetMouseRayHit <> nil) and
        (GetMouseRayHit.Count <> 0) then
-      TopMostScene := GetMouseRayHit.First.Item else
+      TopMostScene := GetMouseRayHit.First.Item
+    else
       TopMostScene := nil;
 
     { Test if dragging TTouchSensorNode. In that case cancel its dragging
       and let camera move instead. }
     if (TopMostScene <> nil) and
        IsTouchSensorActiveInScene(TopMostScene) and
-       (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
+       (PointsDistance(LastPressEvent.Position, Event.Position) >
+        DistanceToHijackDragging / Container.Dpi) then
     begin
       TopMostScene.PointingDeviceActivate(false, 0, true);
+
+      if EnableParentDragging then
+      begin
+        { Without ReleaseCapture, the parent (like TCastleScrollView) would still
+          not receive the following motion events. }
+        Container.ReleaseCapture(Self);
+      end;
+
       Camera.Press(LastPressEvent);
     end;
 
-    Camera.EnableDragging := not GetItems.Dragging;
+    Camera.EnableDragging := (GetItems = nil) or (not GetItems.Dragging);
     { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
       when we're already dragging a 3D item.
       This means that if you drag X3D sensors like TouchSensor, then your
       dragging will not simultaneously also affect the camera (which would be very
       disorienting). }
-    Result := Camera.Motion(Event);
-    if not Result then
-    begin
-      Camera.CustomRay(ScreenRect, Event.Position, FProjection, RayOrigin, RayDirection);
-      { TODO: do Result := PointingDeviceMove below? }
-      PointingDeviceMove(RayOrigin, RayDirection);
-    end;
+    if Camera.Motion(Event) then
+      Result := ExclusiveEvents;
+
+    { Do PointingDeviceMove, which updates MouseRayHit, even when Camera.Motion
+      is true. On Windows 10 with MouseLook, Camera.Motion is always true. }
+    //if not Result then
+    UpdateMouseRayHit;
+
+    { Note: UpdateMouseRayHit above calls PointingDeviceMove and ignores
+      PointingDeviceMove result.
+      Maybe we should use PointingDeviceMove result as our Motion result?
+      Answer unknown. Historically we do not do this, and I found no practical
+      use-case when it would be useful to do this. }
   end;
 
   { update the cursor, since 3D object under the cursor possibly changed.
@@ -1628,6 +1850,17 @@ begin
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
   RecalculateCursor(Self);
+end;
+
+procedure TCastleAbstractViewport.UpdateMouseRayHit;
+var
+  RayOrigin, RayDirection: TVector3;
+begin
+  if Camera <> nil then
+  begin
+    Camera.CustomRay(RenderRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
+    PointingDeviceMove(RayOrigin, RayDirection);
+  end;
 end;
 
 procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
@@ -1642,7 +1875,9 @@ end;
 
 procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
 begin
-  if { This may be called from
+  if { This may be called from TCastleViewport without SceneManager assigned. }
+     (GetItems = nil) or
+     { This may be called from
        TCastleTransformList.Notify when removing stuff owned by other
        stuff, in particular during our own destructor when FItems is freed
        and we're in half-destructed state. }
@@ -1679,7 +1914,8 @@ begin
 
   if (GetMouseRayHit <> nil) and
      (GetMouseRayHit.Count <> 0) then
-    Cursor := GetMouseRayHit.First.Item.Cursor else
+    Cursor := GetMouseRayHit.First.Item.Cursor
+  else
     Cursor := mcDefault;
 end;
 
@@ -1707,7 +1943,7 @@ begin
   SecondsPassedScaled := SecondsPassed * GetTimeScale;
 
   { As for HandleInput: let Camera decide.
-    By default, camera (like all TUIControl) has ExclusiveEvents = true
+    By default, camera (like all TCastleUserInterface) has ExclusiveEvents = true
     and so will cause HandleInput := false, so things under this
     viewport do not get keys/mouse events. This is good when you have
     one viewport covering another, like in fps_game. This means pressing
@@ -1754,10 +1990,12 @@ begin
   { We need to know container size now. }
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
-  Viewport := ScreenRect;
-  glViewport(Viewport);
+  Viewport := RenderRect.Round;
+  RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
+  if Assigned(OnProjection) then
+    OnProjection(FProjection);
 
   { take into account Distort* properties }
   AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
@@ -1784,18 +2022,7 @@ var
   Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
 
-  procedure DoPerspective;
-  begin
-    { Only perspective projection supports z far in infinity. }
-    if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-      Result.ProjectionFar := ZFarInfinity;
-
-    { Note that Result.PerspectiveAngles is already calculated here,
-      because we calculate correct PerspectiveAngles regardless
-      of whether we actually apply perspective or orthogonal projection. }
-  end;
-
-  procedure DoOrthographic;
+  procedure CalculateDimensions;
   var
     FieldOfView: TSingleList;
     MaxSize: Single;
@@ -1841,10 +2068,12 @@ var
   PerspectiveFieldOfView: Single;
   PerspectiveFieldOfViewForceVertical: boolean;
   PerspectiveAnglesRad: TVector2;
-  ProjectionType: TProjectionType;
 begin
-  Box := GetItems.BoundingBox;
-  Viewport := ScreenRect;
+  if GetItems <> nil then
+    Box := GetItems.BoundingBox
+  else
+    Box := TBox3D.Empty;
+  Viewport := RenderRect.Round;
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
@@ -1889,7 +2118,8 @@ begin
     Result.ProjectionFar := DefaultVisibilityLimit;
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := Box.AverageSize(false,
-      { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
+      { When box is empty (or has 0 sizes), ProjectionFar is not simply
+        "any dummy value".
         It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }
       Result.ProjectionNear) * 20.0;
@@ -1902,22 +2132,24 @@ begin
     in Examine mode will be some day implemented (VRML/X3D spec require this). }
 
   if ViewpointNode <> nil then
-    ProjectionType := ViewpointNode.ProjectionType
+    Result.ProjectionType := ViewpointNode.ProjectionType
   else
-    ProjectionType := ptPerspective;
+    Result.ProjectionType := ptPerspective;
 
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
   Result.ProjectionFarFinite := Result.ProjectionFar;
 
-  Result.ProjectionType := ProjectionType;
+ { We need infinite ZFar in case of shadow volumes.
+   But only perspective projection supports ZFar in infinity. }
+  if (Result.ProjectionType = ptPerspective) and
+     GLFeatures.ShadowVolumesPossible and
+     ShadowVolumes then
+    Result.ProjectionFar := ZFarInfinity;
 
-  case ProjectionType of
-    ptPerspective: DoPerspective;
-    ptOrthographic: DoOrthographic;
-    ptFrustum: raise EInternalError.Create('TCastleAbstractViewport.CalculateProjection: X3D Viewpoint node should not be able to specify ptFrustum projection');
-    else raise EInternalError.Create('TCastleAbstractViewport.Projection-ProjectionType?');
-  end;
+  { Calculate Result.Dimensions regardless of Result.ProjectionType,
+    this way OnProjection can easily change projectio type to orthographic. }
+  CalculateDimensions;
 end;
 
 function TCastleAbstractViewport.Background: TBackground;
@@ -1937,7 +2169,7 @@ end;
 
 procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
-  Params.Frustum := @RenderingCamera.Frustum;
+  Params.Frustum := @Params.RenderingCamera.Frustum;
   GetItems.Render(Params);
   if Assigned(OnRender3D) then
     OnRender3D(Self, Params);
@@ -1946,6 +2178,16 @@ end;
 procedure TCastleAbstractViewport.RenderShadowVolume;
 begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, TMatrix4.Identity);
+end;
+
+procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
+var
+  HI: TLightInstance;
+begin
+  {$warnings off}
+  if HeadlightInstance(HI) then
+    Lights.Add(HI);
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
@@ -1957,7 +2199,6 @@ var
   var
     Position, Direction, Up: TVector3;
   begin
-
     Assert(Node <> nil);
 
     HC.GetView(Position, Direction, Up);
@@ -2020,14 +2261,6 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
-var
-  HI: TLightInstance;
-begin
-  if HeadlightInstance(HI) then
-    Lights.Add(HI);
-end;
-
 function TCastleAbstractViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
@@ -2077,7 +2310,7 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
-    GetShadowVolumeRenderer.InitFrustumAndLight(RenderingCamera.Frustum, MainLightPosition);
+    GetShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
     GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
   end;
 
@@ -2091,14 +2324,26 @@ begin
     RenderNoShadows;
 end;
 
-procedure TCastleAbstractViewport.RenderFromViewEverything;
+procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
 var
   ClearBuffers: TClearBuffers;
   ClearColor: TCastleColor;
   UsedBackground: TBackground;
   MainLightPosition: TVector4; { ignored }
   SavedProjectionMatrix: TMatrix4;
+  R: TFloatRectangle;
 begin
+  { TODO: Temporary compatibiliy cludge:
+    Because some rendering code still depends on
+    the CastleRenderingCamera.RenderingCamera singleton being initialized,
+    so initialize it from current parameter. }
+  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
+    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
+
+  { Make ClearColor anything defined.
+    If we will include cbColor in ClearBuffers, it will actually always
+    be adjusted to something appropriate. }
+  ClearColor := Black;
   ClearBuffers := [];
   if ClearDepth then
     Include(ClearBuffers, cbDepth);
@@ -2125,19 +2370,20 @@ begin
       { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
-        testcase. So temporary set good perspective projection. }
+        testcase. So temporary set good perspective projection.
+
+        The code below always calls "UsedBackground.Render(...)" }
       if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-        PerspectiveProjection(45, Rect.Width / Rect.Height,
+        R := RenderRect;
+        PerspectiveProjection(45, R.Width / R.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
-      end;
-
-      UsedBackground.Render(BackgroundWireframe);
-
-      if FProjection.ProjectionType = ptOrthographic then
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      end else
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
 
       RenderingCamera.RotationOnly := false;
     end else
@@ -2163,7 +2409,9 @@ begin
 
   { clear FRenderParams instance }
 
-  FRenderParams.Pass := 0;
+  FRenderParams.InternalPass := 0;
+  FRenderParams.UserPass := CustomRenderingPass;
+  FRenderParams.RenderingCamera := RenderingCamera;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
   FRenderParams.FBaseLights[false].Clear;
@@ -2259,7 +2507,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
     { Note that there's no need to worry about Rect.Left or Rect.Bottom,
       here or inside RenderWithScreenEffectsCore, because we're already within
-      glViewport that takes care of this. }
+      RenderContext.Viewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
     AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
@@ -2291,15 +2539,15 @@ begin
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
   end;
 
-  { Restore glViewport set by ApplyProjection }
-  if not FullSize then
-    glViewport(ScreenRect);
+  { Restore RenderContext.Viewport set by ApplyProjection }
+  if not FillsWholeContainer then
+    RenderContext.Viewport := RenderRect.Round;
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
 end;
 
-function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
+function TCastleAbstractViewport.RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
@@ -2391,7 +2639,7 @@ begin
     CurrentScreenEffects* values are constant, even if overridden
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
-  SR := ScreenRect;
+  SR := RenderRect.Round;
 
   Result := GLFeatures.VertexBufferObject { for screen quad } and
     { check IsTextureSized, to gracefully work (without screen effects)
@@ -2469,15 +2717,15 @@ begin
             BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
-    { We have to adjust glViewport.
+    { We have to adjust RenderContext.Viewport.
       It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
-    if not FullSize then
-      glViewport(Rectangle(0, 0, SR.Width, SR.Height));
+    if not FillsWholeContainer then
+      RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-    RenderFromViewEverything;
+    RenderFromViewEverything(RenderingCamera);
     ScreenEffectRTT.RenderEnd;
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
@@ -2532,24 +2780,28 @@ end;
 procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 begin
   RenderingCamera.Target := rtScreen;
-  RenderingCamera.FromCameraObject(ACamera, nil);
+  RenderingCamera.FromCameraObject(ACamera);
 
-  if not RenderWithScreenEffects then
+  if not RenderWithScreenEffects(RenderingCamera) then
   begin
     { Rendering directly to the screen, when no screen effects are used. }
-    if not FullSize then
+    if not FillsWholeContainer then
       { Use Scissor to limit what RenderContext.Clear clears. }
-      RenderContext.ScissorEnable(ScreenRect);
+      RenderContext.ScissorEnable(
+        RenderRect.Translate(Vector2(RenderContext.ViewportDelta)).Round);
 
-    RenderFromViewEverything;
+    RenderFromViewEverything(RenderingCamera);
 
-    if not FullSize then
+    if not FillsWholeContainer then
       RenderContext.ScissorDisable;
   end;
 end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
   begin
     if Index = 0 then
@@ -2564,6 +2816,9 @@ end;
 
 function TCastleAbstractViewport.ScreenEffectsCount: Integer;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsCount else
     Result := 0;
@@ -2573,6 +2828,9 @@ end;
 
 function TCastleAbstractViewport.ScreenEffectsNeedDepth: boolean;
 begin
+  if ScreenSpaceAmbientOcclusion then
+    SSAOShaderInitialize;
+
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Exit(true);
   if GetMainScene <> nil then
@@ -2580,30 +2838,34 @@ begin
     Result := false;
 end;
 
-procedure TCastleAbstractViewport.GLContextOpen;
+procedure TCastleAbstractViewport.SSAOShaderInitialize;
 begin
-  inherited;
+  { Do not retry creating SSAOShader if SSAOShaderInitialize was already called.
+    Even if SSAOShader is nil (when SSAOShaderInitialize = true but
+    SSAOShader = nil it means that compiling SSAO shader fails on this GPU). }
+  if SSAOShaderInitialized then Exit;
 
-  if SSAOShader = nil then
+  // SSAOShaderInitialized = false implies SSAOShader = nil
+  Assert(SSAOShader = nil);
+
+  if GLFeatures.Shaders <> gsNone then
   begin
-    if GLFeatures.Shaders <> gsNone then
-    begin
-      try
-        SSAOShader := TGLSLScreenEffect.Create;
-        SSAOShader.NeedsDepth := true;
-        SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
-        SSAOShader.Link;
-      except
-        on E: EGLSLError do
-        begin
-          if Log then
-            WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
-          FreeAndNil(SSAOShader);
-          ScreenSpaceAmbientOcclusion := false;
-        end;
+    try
+      SSAOShader := TGLSLScreenEffect.Create;
+      SSAOShader.NeedsDepth := true;
+      SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
+      SSAOShader.Link;
+    except
+      on E: EGLSLError do
+      begin
+        if Log then
+          WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
+        FreeAndNil(SSAOShader);
+        ScreenSpaceAmbientOcclusion := false;
       end;
     end;
   end;
+  SSAOShaderInitialized := true;
 end;
 
 procedure TCastleAbstractViewport.GLContextClose;
@@ -2614,13 +2876,15 @@ begin
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   FreeAndNil(SSAOShader);
+  SSAOShaderInitialized := false;
   glFreeBuffer(ScreenPointVbo);
   inherited;
 end;
 
 function TCastleAbstractViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
 begin
-  Result := (SSAOShader<>nil);
+  SSAOShaderInitialize;
+  Result := (SSAOShader <> nil);
 end;
 
 procedure TCastleAbstractViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
@@ -2628,7 +2892,7 @@ begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
     FScreenSpaceAmbientOcclusion := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -2795,7 +3059,10 @@ var
   C: TExamineCamera;
   Nav: TNavigationType;
 begin
-  Box := GetItems.BoundingBox;
+  if GetItems <> nil then
+    Box := GetItems.BoundingBox
+  else
+    Box := TBox3D.Empty;
   Scene := GetMainScene;
   if Scene <> nil then
   begin
@@ -2834,6 +3101,10 @@ function TCastleAbstractViewport.SensorTranslation(const X, Y, Z, Length: Double
 begin
   Result := (Camera <> nil) and Camera.SensorTranslation(X, Y, Z, Length, SecondsPassed * GetTimeScale);
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleAbstractViewportList -------------------------------------------------- }
 
@@ -2990,8 +3261,8 @@ begin
   FMoveLimit := TBox3D.Empty;
   FWater := TBox3D.Empty;
   FTimeScale := 1;
-
   FDefaultViewport := true;
+  FUseHeadlight := hlMainScene;
 
   FViewports := TCastleAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
@@ -3026,10 +3297,28 @@ begin
 
   FreeAndNil(FSectors);
   FreeAndNil(Waypoints);
-  FreeAndNil(DefaultHeadlightNode);
+  FreeIfUnusedAndNil(FHeadlightNode);
 
   inherited;
 end;
+
+// Not needed anymore, Items are automatically saved/restored by FpJsonRtti.
+//
+//procedure TCastleSceneManager.GetChildren(Proc: TGetChildProc; Root: TComponent);
+//begin
+//  inherited;
+//  Proc(Items);
+//end;
+//
+//function TCastleSceneManager.InternalGetChild(
+//  const ResultName, ResultClassName: String): TComponent;
+//begin
+//  if (ResultName = 'Items') and
+//     (ResultClassName = 'TSceneManagerWorldConcrete') then
+//    Result := Items
+//  else
+//    Result := inherited InternalGetChild(ResultName, ResultClassName);
+//end;
 
 procedure TCastleSceneManager.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 begin
@@ -3058,7 +3347,8 @@ end;
 
 procedure TCastleSceneManager.GLContextClose;
 begin
-  Items.GLContextClose;
+  if Items <> nil then
+    Items.GLContextClose;
 
   FreeAndNil(FShadowVolumeRenderer);
 
@@ -3251,6 +3541,9 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
+    { call TCastleScreenEffects.PrepareResources. }
+    ChosenViewport.PrepareResources;
+
     if ChosenViewport.ContainerSizeKnown then
     begin
       { Apply projection now, as TCastleScene.GLProjection calculates
@@ -3268,7 +3561,7 @@ begin
     { RenderingCamera properties must be already set,
       since PrepareResources may do some operations on texture gen modes
       in WORLDSPACE*. }
-    RenderingCamera.FromCameraObject(ChosenViewport.Camera, nil);
+    RenderingCamera.FromCameraObject(ChosenViewport.Camera);
 
     if DisplayProgressTitle <> '' then
     begin
@@ -3297,8 +3590,9 @@ end;
 
 function TCastleSceneManager.CameraToChanges: TVisibleChanges;
 begin
-  if (MainScene <> nil) and MainScene.HeadlightOn then
-    Result := [vcVisibleNonGeometry] else
+  if Headlight <> nil then
+    Result := [vcVisibleNonGeometry]
+  else
     Result := [];
 end;
 
@@ -3321,7 +3615,7 @@ begin
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
       ChosenViewport.FProjection.ProjectionNear,
       ChosenViewport.FProjection.ProjectionFar,
-      ChosenViewport.ScreenRect);
+      ChosenViewport.RenderRect.Round);
   end;
 end;
 
@@ -3377,7 +3671,7 @@ var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(ScreenRect, MousePosition + Change,
+    Camera.CustomRay(RenderRect, MousePosition + Change,
       FProjection, RayOrigin, RayDirection);
 
     RayHit := CameraRayCollision(RayOrigin, RayDirection);
@@ -3504,8 +3798,8 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
       Changes := ScheduledVisibleChangeNotificationChanges;
       ScheduledVisibleChangeNotificationChanges := [];
 
-      { pass visible change notification "upward" (as a TUIControl, to container) }
-      VisibleChange;
+      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      VisibleChange([chRender]);
       { pass visible change notification "downward", to all children TCastleTransform }
       Items.VisibleChangeNotification(Changes);
     end;
@@ -3529,27 +3823,33 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
+procedure TCastleSceneManager.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 var
   Pos, Dir, Up: TVector3;
 begin
-  (ACamera as TCamera).GetView(Pos, Dir, Up);
-
-  if ACamera = Camera then
+  if chCamera in Changes then
   begin
-    { Call CameraChanged for all Items, not just MainScene.
-      This allows ProximitySensor and Billboard and such nodes
-      to work in all 3D scenes, not just in MainScene. }
-    Items.CameraChanged(Camera);
-    { ItemsVisibleChange will also cause our own VisibleChange. }
-    ItemsVisibleChange(Items, CameraToChanges);
-  end else
-    VisibleChange;
+    if Sender = Camera then
+    begin
+      { Call CameraChanged for all Items, not just MainScene.
+        This allows ProximitySensor and Billboard and such nodes
+        to work in all 3D scenes, not just in MainScene. }
+      Items.CameraChanged(Camera);
+      { ItemsVisibleChange will also cause our own VisibleChange. }
+      ItemsVisibleChange(Items, CameraToChanges);
+    end else
+      VisibleChange(Changes, true);
 
-  SoundEngine.UpdateListener(Pos, Dir, Up);
+    (Sender as TCamera).GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
 
-  if Assigned(OnCameraChanged) then
-    OnCameraChanged(ACamera);
+    if Assigned(OnCameraChanged) then
+      OnCameraChanged(Sender);
+  end;
+
+  if chCursor in Changes then
+    RecalculateCursor(Sender);
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
@@ -3701,29 +4001,65 @@ begin
     OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);
 end;
 
-function TCastleSceneManager.Headlight: TAbstractLightNode;
+function TCastleSceneManager.GetHeadlightNode: TAbstractLightNode;
 begin
-  if (MainScene <> nil) and MainScene.HeadlightOn then
-  begin
-    Result := MainScene.CustomHeadlight;
-    if Result = nil then
-    begin
-      if DefaultHeadlightNode = nil then
-        { Nothing more needed, all DirectionalLight default properties
-          are suitable for default headlight. }
-        DefaultHeadlightNode := TDirectionalLightNode.Create;
-      Result := DefaultHeadlightNode;
-    end;
-    Assert(Result <> nil);
-  end else
-    Result := nil;
+  { HeadlightNode is never nil, so recreate it now if nil. }
+
+  if FHeadlightNode = nil then
+    { Nothing more needed, all DirectionalLight default properties
+      are suitable for default headlight. }
+    FHeadlightNode := TDirectionalLightNode.Create;
+
+  Result := FHeadlightNode;
 end;
 
-function TCastleSceneManager.Rect: TRectangle;
+procedure TCastleSceneManager.SetHeadlightNode(const Node: TAbstractLightNode);
 begin
-  if DefaultViewport then
-    Result := inherited Rect else
-    Result := TRectangle.Empty;
+  if FHeadlightNode <> Node then
+  begin
+    FreeIfUnusedAndNil(FHeadlightNode);
+    FHeadlightNode := Node;
+  end;
+end;
+
+function TCastleSceneManager.Headlight: TAbstractLightNode;
+begin
+  Result := nil;
+
+  case UseHeadlight of
+    hlOn : Result := HeadlightNode;
+    hlOff: Result := nil;
+    hlMainScene:
+      if (MainScene <> nil) and MainScene.HeadlightOn then
+      begin
+        Result := MainScene.CustomHeadlight;
+        if Result = nil then
+          Result := HeadlightNode;
+        Assert(Result <> nil);
+      end;
+    else raise EInternalError.Create(2018081902);
+  end;
+end;
+
+function TCastleSceneManager.PositionToWorldPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+var
+  R: TFloatRectangle;
+  ScreenPosition: TVector2;
+  RayOrigin, RayDirection: TVector3;
+begin
+  R := RenderRect;
+
+  if ScreenCoordinates then
+    ScreenPosition := Position
+  else
+    ScreenPosition := Position * UIScale + R.LeftBottom;
+
+  RequiredCamera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+
+  Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
+    RayOrigin, RayDirection);
 end;
 
 { TCastleViewport --------------------------------------------------------------- }
@@ -3740,9 +4076,10 @@ begin
     raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
 end;
 
-procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
+procedure TCastleViewport.CameraVisibleChange(const Sender: TInputListener;
+  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
 begin
-  VisibleChange;
+  VisibleChange(Changes, true);
 end;
 
 function TCastleViewport.CameraMoveAllowed(ACamera: TWalkCamera;
@@ -3780,8 +4117,10 @@ end;
 
 function TCastleViewport.GetItems: TSceneManagerWorld;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.Items;
+  if SceneManager <> nil then
+    Result := SceneManager.Items
+  else
+    Result := nil; // to work even before SceneManager is assigned
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
@@ -3810,19 +4149,23 @@ end;
 
 function TCastleViewport.GetPlayer: TPlayer;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.Player;
+  if SceneManager <> nil then
+    Result := SceneManager.Player
+  else
+    Result := nil; // to make Update work without errors when SceneManager=nil
 end;
 
 function TCastleViewport.GetTimeScale: Single;
 begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.TimeScale;
+  if SceneManager <> nil then
+    Result := SceneManager.TimeScale
+  else
+    Result := 1; // to make Update work without errors when SceneManager=nil
 end;
 
 procedure TCastleViewport.Render;
 begin
-  if not GetExists then Exit;
+  if (not GetExists) or (SceneManager = nil) then Exit;
 
   CheckSceneManagerAssigned;
   SceneManager.UpdateGeneratedTexturesIfNeeded;
@@ -3860,35 +4203,38 @@ end;
 function TCastleViewport.Headlight: TAbstractLightNode;
 begin
   CheckSceneManagerAssigned;
-  { Using the SceneManager.Headlight allows to share a DefaultHeadlightNode
+  { Using the SceneManager.Headlight allows to share a HeadlightNode
     with all viewports sharing the same SceneManager.
     This is useful for tricks like view3dscene scene manager,
     that like to have a headlight node common for the 3D world,
-    regardless if it's coming from MainScene or from DefaultHeadlightNode. }
+    regardless if it's coming from MainScene or from HeadlightNode. }
   Result := SceneManager.Headlight;
 end;
 
 initialization
   { Basic shortcuts. }
   Input_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
-  Input_Attack.Assign(K_Ctrl, K_None, #0, false, mbLeft);
+  Input_Attack.Assign(K_Ctrl, K_None, '', false, mbLeft);
   Input_Attack.GroupOrder := -100; { before other (player) shortcuts }
 
   { Items shortcuts. }
   Input_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
-  Input_InventoryShow.Assign(K_None, K_None, #0, false, mbLeft);
+  Input_InventoryShow.Assign(K_None, K_None, '', false, mbLeft);
   Input_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
-  Input_InventoryPrevious.Assign(K_LeftBracket, K_None, #0, false, mbLeft, mwUp);
+  Input_InventoryPrevious.Assign(K_LeftBracket, K_None, '', false, mbLeft, mwUp);
   Input_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
-  Input_InventoryNext.Assign(K_RightBracket, K_None, #0, false, mbLeft, mwDown);
+  Input_InventoryNext.Assign(K_RightBracket, K_None, '', false, mbLeft, mwDown);
   Input_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
-  Input_UseItem.Assign(K_Enter, K_None, #0, false, mbLeft);
+  Input_UseItem.Assign(K_Enter, K_None, '', false, mbLeft);
   Input_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
-  Input_DropItem.Assign(K_None, K_None, #0, false, mbLeft);
+  Input_DropItem.Assign(K_None, K_None, '', false, mbLeft);
 
   { Other shortcuts. }
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
-  Input_Interact.Assign(K_None, K_None, #0, true, mbLeft);
+  Input_Interact.Assign(K_None, K_None, '', true, mbLeft);
   Input_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
-  Input_CancelFlying.Assign(K_None, K_None, #0, false, mbLeft);
+  Input_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
+
+  RegisterSerializableComponent(TCastleSceneManager, 'Scene Manager');
+  RegisterSerializableComponent(TCastleViewport, 'Viewport');
 end.

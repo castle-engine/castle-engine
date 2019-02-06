@@ -56,7 +56,7 @@ Mini-FAQ about these packages:
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in castle_game_engine don't use
   any Lazarus units (LCL) (besides Lazarus-specific components in
-  ../src/components/ subdirectory, corresponding to castle_components package).
+  ../src/lcl/ subdirectory, corresponding to castle_components package).
 
   So all you actually need is bare FPC installation.
   Use castle_game_engine/Makefile to compile all units and use compile.sh
@@ -83,7 +83,7 @@ Mini-FAQ about these packages:
 
   In practice, use this only for macOS, see
 
-    http://castle-engine.sourceforge.net/macosx_requirements.php
+    https://castle-engine.io/macosx_requirements.php
 
   In principle you can use this for other systems as well (Linux, Windows and such),
   but the standard castle_window.lpk package will usually give you a better

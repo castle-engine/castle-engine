@@ -485,33 +485,43 @@ end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
-  function TranslationFromMatrix(const M: TMatrix4): TVector3;
-  begin
-    Result := PVector3(@M.Data[3])^;
-  end;
+  // function TranslationFromMatrix(const M: TMatrix4): TVector3;
+  // begin
+  //   Result := PVector3(@M.Data[3])^;
+  // end;
 
   { Update current transformation from Kraft rigid body parameters. }
   procedure TransformationFromKraft;
   var
-    Q: TKraftQuaternion;
-    Axis: TKraftVector3;
-    Angle: TKraftScalar;
+    // Q: TKraftQuaternion;
+    // Axis: TKraftVector3;
+    // Angle: TKraftScalar;
     Shape: TKraftShape;
     LocalTransform: TMatrix4;
+    Translation, Scale: TVector3;
+    Rotation: TVector4;
   begin
     Shape := FCollider.FKraftShape;
 
     LocalTransform := Transform.Parent.WorldInverseTransform *
       MatrixFromKraft(Shape.InterpolatedWorldTransform);
 
-    Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
-    QuaternionToAxisAngle(Q, Axis, Angle);
-    Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
+    MatrixDecompose(LocalTransform, Translation, Rotation, Scale);
+    Transform.Rotation := Rotation;
+    Transform.Translation := Translation;
 
-    Transform.Translation := TranslationFromMatrix(LocalTransform);
+    { This is an alternative version using Kraft to do matrix decomposition. }
+    // Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
+    // QuaternionToAxisAngle(Q, Axis, Angle);
+    // Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
+
+    // Transform.Translation := TranslationFromMatrix(LocalTransform);
   end;
 
 begin
+  if (Transform.World <> nil) and (not Transform.World.EnablePhysics) then
+    Exit;
+
   InitializeTransform(Transform);
   UpdateCollides(Transform);
   if Dynamic then
@@ -621,7 +631,7 @@ var
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
 begin
-  if FKraftEngine <> nil then
+  if EnablePhysics and (FKraftEngine <> nil) then
   begin
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?

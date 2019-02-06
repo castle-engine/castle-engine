@@ -196,7 +196,7 @@ type
     { Blending function parameters, used when @link(Blending).
       Note that this is only a default, VRML/X3D model can override this
       for specific shapes by using our extension BlendMode node.
-      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
+      See [https://castle-engine.io/x3d_extensions.php#section_ext_blending].
       @groupBegin }
     property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -392,27 +392,6 @@ type
     fcBoth
   );
 
-  { Basic non-abstact implementation of render params for calling
-    TCastleTransform.LocalRender.
-
-    @exclude
-    @bold(This is exposed here only to support some experiments with non-standard
-    rendering in engine example programs. Do not use this in your own code.)
-    This can be used when you have to call TCastleTransform.LocalRender,
-    but you don't use scene manager.
-    Usually this should not be needed.
-    This class may be removed at some point!
-    You should always try to use TCastleSceneManager to manage and render
-    3D stuff in new programs, and then TCastleSceneManager will take care of creating
-    proper render params instance for you. }
-  TBasicRenderParams = class(TRenderParams)
-  public
-    FBaseLights: TLightInstancesList;
-    constructor Create;
-    destructor Destroy; override;
-    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
-  end;
-
   { Complete loading, processing and rendering of a scene.
     This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
@@ -428,6 +407,8 @@ type
 
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
+
+    InternalScenePass: TInternalSceneRenderingPass;
 
     { Render everything using Renderer.
 
@@ -560,7 +541,7 @@ type
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
       shadowVolumes = TRUE (see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]).
+      [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]).
 
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
@@ -784,8 +765,30 @@ type
     procedure ViewChangedSuddenly;
   end;
 
-type
   TTriangle4List = specialize TStructList<TTriangle4>;
+
+  { @exclude Internal.
+
+    Basic non-abstact implementation of render params for calling
+    TCastleTransform.LocalRender.
+
+    @bold(This is exposed here only to support some experiments with non-standard
+    rendering in engine example programs. Do not use this in your own code.)
+
+    This can be used when you have to call TCastleTransform.LocalRender,
+    but you don't use scene manager.
+    Usually this should not be needed.
+    This class may be removed at some point!
+    You should always try to use TCastleSceneManager to manage and render
+    3D stuff in new programs, and then TCastleSceneManager will take care of creating
+    proper render params instance for you. }
+  TBasicRenderParams = class(TRenderParams)
+  public
+    FBaseLights: TLightInstancesList;
+    constructor Create;
+    destructor Destroy; override;
+    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
+  end;
 
 procedure Register;
 
@@ -814,16 +817,23 @@ const
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton,
+// to keep TBasicRenderParams working for backward compatibility.
 uses CastleGLVersion, CastleImages, CastleLog,
-  CastleStringUtils, CastleRenderingCamera, CastleApplicationProperties,
-  CastleShapeInternalRenderShadowVolumes;
+  CastleStringUtils, CastleApplicationProperties, CastleTimeUtils,
+  CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
+  CastleComponentSerialize;
+{$warnings on}
 
 var
   TemporaryAttributeChange: Cardinal = 0;
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleScene]);
+  {$endif}
 end;
 
 { TGLSceneShape -------------------------------------------------------------- }
@@ -844,33 +854,6 @@ end;
 procedure TGLSceneShape.SchedulePrepareResources;
 begin
   TCastleScene(ParentScene).PreparedShapesResources := false;
-end;
-
-{ TBasicRenderParams --------------------------------------------------------- }
-
-constructor TBasicRenderParams.Create;
-begin
-  inherited;
-  FBaseLights := TLightInstancesList.Create;
-  InShadow := false;
-  { Transparent and ShadowVolumesReceivers do not have good default values.
-    User of TBasicRenderParams should call Render method with
-    all 4 combinations of them, to really render everything correctly.
-    We just set them here to capture most 3D objects
-    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  ShadowVolumesReceivers := true;
-  Transparent := false;
-end;
-
-destructor TBasicRenderParams.Destroy;
-begin
-  FreeAndNil(FBaseLights);
-  inherited;
-end;
-
-function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
-begin
-  Result := FBaseLights;
 end;
 
 { TCastleScene.TCustomShaders ------------------------------------------------ }
@@ -1045,7 +1028,7 @@ var
   SI: TShapeTreeIterator;
   S: TGLShape;
   I: Integer;
-  Pass: TRenderingPass;
+  Pass: TTotalRenderingPass;
 begin
   PreparedRender := false;
   PreparedShapesResources := false;
@@ -1141,10 +1124,10 @@ var
   var
     CameraMatrix: PMatrix4;
   begin
-    if RenderingCamera.RotationOnly then
-      CameraMatrix := @RenderingCamera.RotationMatrix
+    if Params.RenderingCamera.RotationOnly then
+      CameraMatrix := @Params.RenderingCamera.RotationMatrix
     else
-      CameraMatrix := @RenderingCamera.Matrix;
+      CameraMatrix := @Params.RenderingCamera.Matrix;
 
     if Params.TransformIdentity then
       Result := CameraMatrix^
@@ -1160,14 +1143,16 @@ var
 
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
-    if (Params.Pass = 0) and not ExcludeFromStatistics then
+    if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
 
     { Optionally free Shape arrays data now, if they need to be regenerated. }
+    {$warnings off} // consciously using deprecated stuff, to keep it working
     if (Assigned(Attributes.OnVertexColor) or
         Assigned(Attributes.OnRadianceTransfer)) and
        (Shape.Cache <> nil) then
       Shape.Cache.FreeArrays([vtAttribute]);
+    {$warnings on}
 
     Shape.ModelView := ModelView;
     Renderer.RenderShape(Shape, ShapeFog(Shape, Params.GlobalFog));
@@ -1194,7 +1179,7 @@ var
         should have a map "target->oq state" for various rendering targets. }
 
       if Attributes.ReallyUseOcclusionQuery and
-         (RenderingCamera.Target = rtScreen) then
+         (Params.RenderingCamera.Target = rtScreen) then
       begin
         SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
       end else
@@ -1292,7 +1277,7 @@ begin
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
-  if (not Params.Transparent) and (Params.Pass = 0) then
+  if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
       Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
@@ -1319,7 +1304,8 @@ begin
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
-    LightRenderEvent, Params.Pass);
+    Params.RenderingCamera,
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
     if Attributes.Mode <> rmFull then
     begin
@@ -1333,7 +1319,7 @@ begin
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
-       (RenderingCamera.Target = rtScreen) and
+       (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
@@ -1436,6 +1422,7 @@ procedure TCastleScene.PrepareResources(
     Shape: TGLShape;
     BaseLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
+    DummyCamera: TRenderingCamera;
   begin
     if Log and LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -1457,16 +1444,31 @@ procedure TCastleScene.PrepareResources(
           GoodParams := Params;
         end;
 
-        { prepare resources by doing rendering (but with
-          Renderer.PrepareRenderShape <> 0, so nothing will be actually drawn). }
+        { Prepare resources by doing rendering.
+          But with Renderer.PrepareRenderShape <> 0,
+          so nothing will be actually drawn). }
+
         BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
-        Renderer.RenderBegin(BaseLights, nil, 0);
-        while SI.GetNext do
-        begin
-          Shape := TGLShape(SI.Current);
-          Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
-        end;
-        Renderer.RenderEnd;
+
+        { We need some non-nil TRenderingCamera instance to be able
+          to render with lights. }
+        DummyCamera := TRenderingCamera.Create;
+        try
+          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+          while SI.GetNext do
+          begin
+            Shape := TGLShape(SI.Current);
+
+            { set sensible Shape.ModelView, otherwise it is zero
+              and TShader.EnableClipPlane will raise an exception since
+              PlaneTransform(Plane, SceneModelView); will fail,
+              with SceneModelView matrix = zero. }
+            Shape.ModelView := TMatrix4.Identity;
+
+            Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
+          end;
+          Renderer.RenderEnd;
+        finally FreeAndNil(DummyCamera) end;
 
         FreeAndNil(OwnParams);
       finally Dec(Renderer.PrepareRenderShape) end;
@@ -1475,6 +1477,8 @@ procedure TCastleScene.PrepareResources(
 
 var
   I: Integer;
+  PossiblyTimeConsuming: Boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
 
@@ -1513,6 +1517,11 @@ begin
 
   Inc(InternalDirty);
   try
+    PossiblyTimeConsuming := (not PreparedShapesResources) or (not PreparedRender);
+
+    if PossiblyTimeConsuming then
+      TimeStart := Profiler.Start('Prepare Scene Resources ' + URL);
+
     if not PreparedShapesResources then
     begin
       { Use PreparedShapesResources to avoid expensive (for large scenes)
@@ -1530,10 +1539,12 @@ begin
       { Do not prepare when OnVertexColor or OnRadianceTransfer used,
         as we can only call these callbacks during render (otherwise they
         may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
+      {$warnings off} // consciously using deprecated stuff, to keep it working
       if not
         (Assigned(Attributes.OnVertexColor) or
          Assigned(Attributes.OnRadianceTransfer)) then
         PrepareRenderShapes;
+      {$warnings on}
     end;
 
     if prBackground in Options then
@@ -1544,6 +1555,9 @@ begin
       for I := 0 to ScreenEffectNodes.Count - 1 do
         Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
     end;
+
+    if PossiblyTimeConsuming then
+      Profiler.Stop(TimeStart);
   finally Dec(InternalDirty) end;
 end;
 
@@ -1587,7 +1601,10 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings on}
   {$endif}
 
-  { Render taking Attributes.WireframeEffect into account. }
+  { Render taking Attributes.WireframeEffect into account.
+    Also controls InternalScenePass,
+    this way shaders from RenderNormal and RenderWireframe can coexist,
+    which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
   procedure RenderWithWireframeEffect;
   // TODO-es For OpenGLES, wireframe must be done differently
   {$ifndef OpenGLES}
@@ -1595,10 +1612,19 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings off}
   begin
     case Attributes.WireframeEffect of
-      weNormal: RenderNormal;
-      weWireframeOnly: RenderWireframe(Attributes.Mode = rmSolidColor);
+      weNormal:
+        begin
+          InternalScenePass := 0;
+          RenderNormal;
+        end;
+      weWireframeOnly:
+        begin
+          InternalScenePass := 1;
+          RenderWireframe(Attributes.Mode = rmSolidColor);
+        end;
       weSolidWireframe:
         begin
+          InternalScenePass := 0;
           glPushAttrib(GL_POLYGON_BIT);
             { enable polygon offset for everything (whole scene) }
             glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
@@ -1607,14 +1633,22 @@ procedure TCastleScene.LocalRenderOutside(
             glPolygonOffset(Attributes.SolidWireframeScale, Attributes.SolidWireframeBias); { saved by GL_POLYGON_BIT }
             RenderNormal;
           glPopAttrib;
+
+          InternalScenePass := 1;
           RenderWireframe(true);
         end;
       weSilhouette:
         begin
+          InternalScenePass := 0;
           RenderNormal;
+
+          InternalScenePass := 1;
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
+
+            (* Old idea, may be resurrected one day:
+
             { rmSolidColor still does backface culling.
               This is very good in this case. When rmSolidColor and weSilhouette,
               and objects are solid (so backface culling is used) we can
@@ -1623,9 +1657,17 @@ procedure TCastleScene.LocalRenderOutside(
               in case of rmSolidColor will single solid color, and it will
               improve the silhouette look, since front-face edges will not be
               rendered at all (no need to even hide them by glPolygonOffset,
-              which is somewhat sloppy). }
+              which is somewhat sloppy).
+
+              TODO: this is probably incorrect now, that some meshes
+              may have FrontFaceCcw = false.
+              What we really would like to is to negate the FrontFaceCcw
+              interpretation inside this RenderWireframe call.
+            }
             if Attributes.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
+            *)
+
             RenderWireframe(true);
           glPopAttrib;
         end;
@@ -1634,6 +1676,7 @@ procedure TCastleScene.LocalRenderOutside(
   {$warnings on}
   {$else}
   begin
+    InternalScenePass := 0;
     RenderNormal;
   {$endif}
   end;
@@ -1646,12 +1689,12 @@ procedure TCastleScene.LocalRenderOutside(
   begin
     { For shadow maps, speed up rendering by using only features that affect
       depth output. Also set up specialized shaders. }
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       SavedMode := Attributes.Mode;
       Attributes.Mode := rmDepth;
 
-      if RenderingCamera.Target = rtVarianceShadowMap then
+      if Params.RenderingCamera.Target = rtVarianceShadowMap then
       begin
         VarianceShadowMapsProgram.Initialize(
           '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
@@ -1673,7 +1716,7 @@ procedure TCastleScene.LocalRenderOutside(
 
     RenderWithWireframeEffect;
 
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       Attributes.Mode := SavedMode;
       Attributes.CustomShader          := SavedShaders.Shader;
@@ -2031,7 +2074,7 @@ begin
   end;
 
   if NeedsRestoreViewport then
-    glViewport(OriginalViewport);
+    RenderContext.Viewport := OriginalViewport;
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;
@@ -2103,6 +2146,17 @@ var
 begin
   Result := 0;
 
+  { This ties our scene to OpenGL (by calling Renderer.PrepareScreenEffect),
+    so we must be notified when OpenGL is closed.
+    Testcase: otherwise the noise1 texture of the screen effect in
+    "The Unholy Society" is not released from OpenGL, we get warning from
+    TextureMemoryProfiler. }
+  if not RegisteredGLContextCloseListener then
+  begin
+    RegisteredGLContextCloseListener := true;
+    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  end;
+
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TScreenEffectNode(ScreenEffectNodes[I]);
@@ -2159,9 +2213,7 @@ end;
 
 function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
 begin
-  Result := TComponentClass(ClassType).Create(AOwner) as TCastleScene;
-  if RootNode <> nil then
-    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
+  Result := (inherited Clone(AOwner)) as TCastleScene;
 end;
 
 { TSceneRenderingAttributes ---------------------------------------------- }
@@ -2364,8 +2416,38 @@ begin
       Items[I].ViewChangedSuddenly;
 end;
 
+{ TBasicRenderParams --------------------------------------------------------- }
+
+constructor TBasicRenderParams.Create;
+begin
+  inherited;
+  FBaseLights := TLightInstancesList.Create;
+  InShadow := false;
+  { Transparent and ShadowVolumesReceivers do not have good default values.
+    User of TBasicRenderParams should call Render method with
+    all 4 combinations of them, to really render everything correctly.
+    We just set them here to capture most 3D objects
+    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
+  ShadowVolumesReceivers := true;
+  Transparent := false;
+  RenderingCamera := CastleRenderingCamera.RenderingCamera;
+  Frustum := @RenderingCamera.Frustum;
+end;
+
+destructor TBasicRenderParams.Destroy;
+begin
+  FreeAndNil(FBaseLights);
+  inherited;
+end;
+
+function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
+begin
+  Result := FBaseLights;
+end;
+
 initialization
   GLContextCache := TGLRendererContextCache.Create;
+  RegisterSerializableComponent(TCastleScene, 'Scene');
 finalization
   FreeAndNil(GLContextCache);
 end.

@@ -32,7 +32,7 @@ type
   end;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
   { Fills Window background with a simple color.
     Add all the other controls as children of this. }
@@ -79,9 +79,9 @@ begin
     for j := 1 to 4 do
     begin
       try
-        Data[i,j].Image := Data[i,0].Image.MakeCopy;
-        Dest := Data[i,j].Image;
-        Source := Data[0,j].Image;
+        Data[i,j].Image := (Data[i,0].Image as TCastleImage).MakeCopy;
+        Dest := Data[i,j].Image as TCastleImage;
+        Source := Data[0,j].Image as TCastleImage;
         Dest.DrawFrom(Source, 0, 0, 0, 0, Source.Width, Source.Height, DrawMode);
       except
         Data[i,j].Image := NotApplicable;
@@ -162,7 +162,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Background := TCastleRectangleControl.Create(Application);
   Background.FullSize := true;

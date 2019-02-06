@@ -39,7 +39,7 @@ type
 
 { Initialize logging.
   The default log output is documented on
-  https://castle-engine.sourceforge.io/manual_log.php .
+  https://castle-engine.io/manual_log.php .
 
   @param(ALogStream Where to generate the log.
 
@@ -47,6 +47,8 @@ type
     is determined as follows:
 
     @unorderedList(
+      @item(To a file called LogFileName, if you set this.)
+
       @item(On Unix and on console Windows applications,
         the output goes to the standard output, StdOut.
         This is most useful and common behavior on Unix, where most programs
@@ -58,9 +60,6 @@ type
         or just overwrite old file, or append to it?" or "which directory
         is user-writeable". Since the user must explicitly redirect the output
         to the file, (s)he knows where the log file is.
-
-        Note that on Android, we also automatically log to Android-specific
-        log facility (that you can browse using "adb logcat".)
       )
 
       @item(On Windows GUI applications, we create a file xxx.log
@@ -70,6 +69,11 @@ type
         under Windows (at least not always).
       )
     )
+
+    Note that on Android, we also automatically log to Android-specific
+    log facility (that you can browse using "adb logcat").
+    This happens regardless of the ALogStream or LogFileName variables,
+    all log entries *always* go to Android log.
   )
 
   @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
@@ -107,7 +111,7 @@ procedure WriteLog(const Category: string; const Message: string); overload;
   deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
-  The Message may, but doesn't have to, terminate with newline --
+  The Message may, but doesn't have to, terminate with a newline --
   we will format it OK either way. }
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 
@@ -125,7 +129,7 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   we also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning).
   This allows to react to warnings e.g. by displaying a message dialog
   (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
-  or @link(TCastleWindowCustom.MessageOK)).
+  or @link(TCastleWindowBase.MessageOK)).
   Or by raising an exception, if you want to be strict about warnings. }
 procedure WritelnWarning(const Category: string; const Message: string); overload;
 procedure WritelnWarning(const Message: string); overload;
@@ -144,10 +148,19 @@ var
   { Current log date&time prefix style. Can be changed runtime. }
   LogTimePrefix: TLogTimePrefix;
 
+  { Set this to a filename that should contain log,
+    before calling @link(InitializeLog).
+    This may be an absolute or relative (to the current directory
+    at the time of InitializeLog call) path.
+    It's your responsibility to choose a path that is writeable on current OS
+    (you can e.g. use GetAppConfigDir function from FPC RTL). }
+  LogFileName: String = '';
+
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils
+  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils,
+  CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
@@ -203,6 +216,8 @@ var
         [Result]);
   end;
 
+var
+  InsideEditor: Boolean;
 begin
   LogTimePrefix := ALogTimePrefix;
 
@@ -210,34 +225,51 @@ begin
 
   LogStreamOwned := false;
 
-  if ALogStream = nil then
-  begin
-    {$ifdef MSWINDOWS} {$define LOG_TO_USER_DIR} {$endif}
-    {$ifdef LOG_TO_USER_DIR}
-    { In Windows DLL, which may also be NPAPI plugin, be even more cautious:
-      create .log file in user's directory. }
-    if IsLibrary then
-    begin
-      if not InitializeLogFile(ApplicationConfigPath + ApplicationName + '.log') then
-        Exit;
-    end else
-    {$endif}
-    if not IsConsole then
-    begin
-      { Under Windows GUI program, by default write to file .log
-	in the current directory.
+  InsideEditor := GetEnvironmentVariable('CASTLE_ENGINE_INSIDE_EDITOR') = 'true';
 
-	Do not try to use StdOutStream anymore. In some cases, GUI program
-	may have an stdout, when it is explicitly run like
-	"xxx.exe --debug-log > xxx.log". But do not depend on it.
-	Simply writing to xxx.log is more what people expect. }
-      if not InitializeLogFile(
-        ExpandFileName(ApplicationName + '.log')) then
-	Exit;
-    end else
-      LogStream := StdOutStream;
-  end else
+  if ALogStream <> nil then
+  begin
     LogStream := ALogStream;
+  end else
+  if InsideEditor and (not IsLibrary) and (StdOutStream <> nil) then
+  begin
+    { In this case, we know we have StdOutStream initialized OK,
+      even when IsConsole = false (because "castle-engine run"
+      and "castle-editor" are calling subprocesses to capture output
+      through pipes always).
+
+      We want to log to StdOutStream, to send them to "castle-editor"
+      output list. }
+    LogStream := StdOutStream;
+  end else
+  { If not in CGE editor, then LogFileName takes precedence over everything else. }
+  if LogFileName <> '' then
+  begin
+    if not InitializeLogFile(LogFileName) then
+      Exit;
+  end else
+  { In a library (like Windows DLL), which may also be NPAPI plugin,
+    be more cautious: create .log file in user's directory. }
+  if IsLibrary then
+  begin
+    if not InitializeLogFile(ApplicationConfigPath + ApplicationName + '.log') then
+      Exit;
+  end else
+  if not IsConsole then
+  begin
+    { Under Windows GUI program, by default write to file .log
+      in the current directory.
+
+      Do not try to use StdOutStream anymore. In some cases, GUI program
+      may have an stdout, when it is explicitly run like
+      "xxx.exe --debug-log > xxx.log". But do not depend on it.
+      Simply writing to xxx.log is more what people expect. }
+    if not InitializeLogFile(ExpandFileName(ApplicationName + '.log')) then
+      Exit;
+  end else
+  begin
+    LogStream := StdOutStream;
+  end;
 
   FirstLine := 'Log for "' + ApplicationName + '".';
   if ApplicationProperties.Version <> '' then
@@ -255,6 +287,9 @@ begin
     try to write something to uninitialized log. }
 
   FLog := true;
+
+  if InsideEditor and (not IsLibrary) and (StdOutStream = nil) then
+    WritelnWarning('Cannot send logs to the Castle Game Engine Editor through pipes.');
 end;
 
 procedure WriteLogRaw(const S: string); {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -333,7 +368,7 @@ begin
     WriteLogRaw(
       '-------------------- ' + Category + ' begin' + NL +
       // trim newlines at the end of Message
-      TrimRight(Message) + NL +
+      TrimEndingNewline(Message) + NL +
       '-------------------- ' + Category + ' end' + NL)
   end;
 end;

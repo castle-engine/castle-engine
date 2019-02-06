@@ -20,7 +20,8 @@ unit CastleRendererInternalLights;
 
 interface
 
-uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader;
+uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader,
+  CastleTransform;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -54,6 +55,8 @@ type
       that using a cache of LightsDone inside this class was useful. }
     Statistics: array [boolean] of Cardinal;
 
+    RenderingCamera: TRenderingCamera;
+
     constructor Create(const ALightRenderEvent: TLightRenderEvent);
 
     { Set OpenGL lights properties.
@@ -82,7 +85,7 @@ implementation
 
 uses SysUtils, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleUtils, CastleRenderingCamera;
+  CastleUtils;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 
@@ -99,7 +102,10 @@ uses SysUtils, Math,
   then we set GL_SPOT_CUTOFF to 180 (indicates that light has no spot),
   but don't necessarily set GL_SPOT_DIRECTION or GL_SPOT_EXPONENT
   (as OpenGL will not use them anyway). }
-procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance);
+procedure glLightFromVRMLLight(
+  glLightNum: Integer;
+  const Light: TLightInstance;
+  const RenderingCamera: TRenderingCamera);
 
 {$ifndef OpenGLES}
 
@@ -265,7 +271,7 @@ var
       if LightOn then
       begin
         if NeedRenderLight(LightsEnabled, Light) then
-          glLightFromVRMLLight(LightsEnabled, Light^);
+          glLightFromVRMLLight(LightsEnabled, Light^, RenderingCamera);
         Shader.EnableLight(LightsEnabled, Light);
         Inc(LightsEnabled);
         if LightsEnabled >= GLFeatures.MaxLights then Exit;
@@ -278,6 +284,8 @@ var
   I: Integer;
 {$endif}
 begin
+  Assert(RenderingCamera <> nil);
+
   LightsEnabled := 0;
   if LightsEnabled >= GLFeatures.MaxLights then Exit;
 

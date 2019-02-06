@@ -55,6 +55,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+    function CoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
     strict private FFdControlPoint: TSFNode;
@@ -196,11 +197,24 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+    function CoordField: TSFNode; override;
 
     { Make this NURBS curve equal to a piecewise Bezier curve by setting appropriate
       "knot". This looks at @link(ControlPoint) count and @link(Order)
       (set Order = 4 for a typical cubic Bezier curve). }
     procedure PiecewiseBezier;
+
+    { Get the position of a point on the curve.
+
+      The returned position is in the local transformation space of this shape.
+      This method is guaranteed to work the same,
+      regardless if this node is part of any TX3DRootNode and TCastleSceneCore
+      or not.
+
+      @param U The place on a curve, in [0..1] range.
+      @param(Tangent Optional. If non-nil, will be set to the tangent,
+        that is, direction in 3D in which the curve is going.) }
+    function Point(const U: Single; const Tangent: PVector3 = nil): TVector3;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
   end;
@@ -781,6 +795,7 @@ var
   I: Integer;
   Increase: Double;
   Knot: TDoubleList;
+  NurbsCalculator: TNurbsCurveCalculator;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -809,11 +824,12 @@ begin
 
   { calculate result Coordinate.point field }
   ResultCoord.FdPoint.Items.Count := Tess;
-  for I := 0 to Tess - 1 do
-    ResultCoord.FdPoint.Items.List^[I] :=
-      NurbsCurvePoint(ControlPoint,
-        Knot.First + Increase * I,
-        Order, Knot, Weight, nil);
+  NurbsCalculator := TNurbsCurveCalculator.Create(ControlPoint, Order, Knot, Weight);
+  try
+    for I := 0 to Tess - 1 do
+      ResultCoord.FdPoint.Items.List^[I] := NurbsCalculator.GetPoint(
+        Knot.First + Increase * I, nil);
+  finally FreeAndNil(NurbsCalculator) end;
 
   { set LineSet.vertexCount (otherwise it's coord will be ignored) }
   LS.FdVertexCount.Items.Add(Tess);
@@ -842,6 +858,11 @@ end;
 function TNurbsCurveNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
+end;
+
+function TNurbsCurveNode.CoordField: TSFNode;
+begin
+  Result := FdControlPoint;
 end;
 
 { Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()
@@ -897,6 +918,34 @@ begin
     ControlPointCount := TCoordinateNode(ControlPoint).FdPoint.Count;
     NurbsKnotIfNeeded(FdKnot.Items, ControlPointCount, Order, nkPiecewiseBezier);
   end;
+end;
+
+function TNurbsCurveNode.Point(const U: Single; const Tangent: PVector3): TVector3;
+var
+  ControlPointList: TVector3List;
+  CurrentKnot: TDoubleList;
+begin
+  if ControlPoint is TCoordinateNode then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
+    raise EInvalidNurbs.Create('Only NURBS with Coordinate node are supported');
+
+  if ControlPointList.Count = 0 then
+    raise EInvalidNurbs.Create('Only NURBS with at least 1 controlPoint are supported');
+
+  if Order < 2 then
+    raise EInvalidNurbs.Create('NURBS order must be >= 2');
+
+  { calculate correct CurrentKnot vector }
+  CurrentKnot := TDoubleList.Create;
+  CurrentKnot.Assign(FdKnot.Items);
+  NurbsKnotIfNeeded(CurrentKnot, ControlPointList.Count, Order, nkEndpointUniform);
+
+  Result := NurbsCurvePoint(ControlPointList,
+    MapRange(U, 0, 1, CurrentKnot.First, CurrentKnot.Last),
+    Order, CurrentKnot, FdWeight.Items, Tangent);
+
+  FreeAndNil(CurrentKnot);
 end;
 
 procedure TNurbsCurve2DNode.CreateNode;
@@ -1129,6 +1178,7 @@ var
   UKnot, VKnot: TDoubleList;
   ResultTexCoord: TVector2List;
   Normal: TVector3;
+  NurbsCalculator: TNurbsSurfaceCalculator;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -1214,26 +1264,26 @@ begin
   ResultNormal := (QS.FdNormal.Value as TNormalNode).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
-  { calculate result Coordinate.point and Normal.vector field }
-  for I := 0 to UTess - 1 do
-    for J := 0 to VTess - 1 do
-    begin
-      ResultCoord.List^[I + J * UTess] :=
-        NurbsSurfacePoint(ControlPoint,
-          UDimension,
-          VDimension,
-          UKnot.First + UIncrease * I,
-          VKnot.First + VIncrease * J,
-          UOrder,
-          VOrder,
-          UKnot,
-          VKnot,
-          Weight,
-          @Normal);
-      if Ccw then
-        ResultNormal.List^[I + J * UTess] := Normal else
-        ResultNormal.List^[I + J * UTess] := -Normal;
-    end;
+  NurbsCalculator := TNurbsSurfaceCalculator.Create(ControlPoint,
+    UDimension, VDimension,
+    UOrder, VOrder,
+    UKnot, VKnot,
+    Weight);
+  try
+    { calculate result Coordinate.point and Normal.vector field }
+    for I := 0 to UTess - 1 do
+      for J := 0 to VTess - 1 do
+      begin
+        ResultCoord.List^[I + J * UTess] :=
+          NurbsCalculator.GetPoint(
+            UKnot.First + UIncrease * I,
+            VKnot.First + VIncrease * J,
+            @Normal);
+        if Ccw then
+          ResultNormal.List^[I + J * UTess] := Normal else
+          ResultNormal.List^[I + J * UTess] := -Normal;
+      end;
+  finally FreeAndNil(NurbsCalculator) end;
 
   { For now, don't use normal values --- they are nonsense at the edges
     of the surface? See nurbs_curve_interpolators.x3dv for demo. }
@@ -1317,6 +1367,11 @@ end;
 function TAbstractNurbsSurfaceGeometryNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
+end;
+
+function TAbstractNurbsSurfaceGeometryNode.CoordField: TSFNode;
+begin
+  Result := FdControlPoint;
 end;
 
 { Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()

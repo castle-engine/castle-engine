@@ -19,7 +19,7 @@
   This allows you to compile the same game game (in Game unit)
   as a normal, standalone executable for normal OSes (Linux, Windows, MacOSX...). }
 program simple_3d_demo_standalone;
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 begin
-  Window.OpenAndRun;
+  Application.MainWindow.OpenAndRun;
 end.

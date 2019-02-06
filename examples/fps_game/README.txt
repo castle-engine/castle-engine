@@ -26,13 +26,13 @@ using Lazarus (http://www.lazarus.freepascal.org/):
 The example code, as well as the data files in data/ subdirectory,
 are full of (hopefully) helpful comments :)
 You will probably want to read engine tutorial, see
-  http://castle-engine.sourceforge.net/tutorial_intro.php
+  https://castle-engine.io/tutorial_intro.php
 along with browsing this code. And the engine reference
-  http://castle-engine.sourceforge.net/apidoc/html/index.html
+  https://castle-engine.io/apidoc/html/index.html
 should be helpful too.
 
 If you have any questions, see our website on
-http://castle-engine.sourceforge.net/
+https://castle-engine.io/
 and in particular our forum
 https://sourceforge.net/p/castle-engine/discussion/ .
 

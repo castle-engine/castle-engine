@@ -20,7 +20,7 @@
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleLog, CastleApplicationProperties, CastleWindow, Game;
+uses CastleLog, CastleApplicationProperties, CastleWindow, GameInitialize;
 begin
   Application.ParseStandardParameters;
 

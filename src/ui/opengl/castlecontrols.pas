@@ -20,58 +20,17 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+uses Classes, Generics.Collections,
+  CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils;
+  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils;
 
 type
-  TCastleLabel = class;
-  TCastleScrollView = class;
-
-  TThemeImage = (
-    tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
-    tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
-    tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
-    tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2,
-
-    { Image displayed when the application is initializing,
-      during @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      and @link(TCastleWindowCustom.OnOpen Window.OnOpen).
-      And @link(TUIControl.GLContextOpen) for all initially present UI controls.
-      This "loading image" is loaded and displayed first,
-      so that user does not see a black screen while the resources are prepared.
-
-      It is especially useful on Android, where we can lose the OpenGL context
-      at any moment, as user may switch applications in the middle of the game.
-      When getting back to the application, we need to initiailize some
-      resources, and during this process we also show this image.
-      So this serves as a universal "please wait, we're loading" screen.
-
-      You can customize this image, by setting
-      @link(TCastleTheme.Images Theme.Images[tiLoading]),
-      @link(TCastleTheme.LoadingBackgroundColor LoadingBackgroundColor),
-      @link(TCastleTheme.LoadingTextColor LoadingTextColor).
-      See http://castle-engine.sourceforge.net/tutorial_player_2d_controls.php
-      for a sample code that sets a theme image.
-
-      Note that the customization of this image should be done before
-      @link(TCastleApplication.OnInitialize Application.OnInitialize) has
-      started, so it has to be usually done from the "initialization" section
-      of some unit. And in the "initialization" section of a unit,
-      you cannot load files (doing @link(LoadImage) at this point may fail on
-      some Android devices, as we cannot load assets before activity is started).
-      So you can only assign images already available in code ---
-      use image-to-pascal tool to convert any image to a Pascal code for this purpose. }
-    tiLoading,
-
-    { TCastleEdit frame. }
-    tiEdit);
-
   {$define read_interface}
-  {$I castlecontrols_uicontrolfont.inc}
+  {$I castlecontrols_initial_types.inc} // this must be included first
+
+  {$I castlecontrols_userinterfacefont.inc}
   {$I castlecontrols_button.inc}
   {$I castlecontrols_panel.inc}
   {$I castlecontrols_imagecontrol.inc}
@@ -84,8 +43,13 @@ type
   {$I castlecontrols_progressbar.inc}
   {$I castlecontrols_sliders.inc}
   {$I castlecontrols_scrollview.inc}
+  {$I castlecontrols_switchcontrol.inc}
+  {$I castlecontrols_checkbox.inc}
+  {$I castlecontrols_tableview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
+  {$I castlecontrols_groups.inc}
+  {$I castlecontrols_design.inc}
   // Add more UI controls include files here.
 
   // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
@@ -99,12 +63,12 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10,
-  CastleApplicationProperties;
+  CastleTextureFont_DejaVuSans_10, CastleTextureImages,
+  CastleApplicationProperties, CastleMessaging, CastleComponentSerialize;
 
 {$define read_implementation}
-{$I castlecontrols_uifont.inc} //< Keep this on top, to allow uicontrolfont.inc to access internals
-{$I castlecontrols_uicontrolfont.inc}
+{$I castlecontrols_uifont.inc} //< Keep this on top, to allow castlecontrols_userinterfacefont.inc to access internals
+{$I castlecontrols_userinterfacefont.inc}
 {$I castlecontrols_button.inc}
 {$I castlecontrols_panel.inc}
 {$I castlecontrols_imagecontrol.inc}
@@ -117,22 +81,49 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_progressbar.inc}
 {$I castlecontrols_sliders.inc}
 {$I castlecontrols_scrollview.inc}
+{$I castlecontrols_switchcontrol.inc}
+{$I castlecontrols_checkbox.inc}
+{$I castlecontrols_tableview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
+{$I castlecontrols_groups.inc}
+{$I castlecontrols_design.inc}
 {$I castlecontrols_theme.inc}
 {$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [
     TCastleButton, TCastleImageControl, TCastleRectangleControl,
     TCastleLabel, TCastleCrosshair, TCastleIntegerSlider, TCastleFloatSlider,
-    TCastleScrollView]);
+    TCastleScrollView, TCastleSwitchControl]);
+  {$endif}
 end;
 
 initialization
   FTheme := TCastleTheme.Create;
+
+  RegisterSerializableComponent(TCastleButton, 'Button');
+  RegisterSerializableComponent(TCastleImageControl, 'Image');
+  RegisterSerializableComponent(TCastleRectangleControl, 'Color Rectangle');
+  RegisterSerializableComponent(TCastleLabel, 'Label');
+  RegisterSerializableComponent(TCastleShape, 'Shape');
+  RegisterSerializableComponent(TCastleIntegerSlider, 'Integer Slider');
+  RegisterSerializableComponent(TCastleFloatSlider, 'Float Slider');
+  RegisterSerializableComponent(TCastleTimer, 'Timer');
+  RegisterSerializableComponent(TCastleEdit, 'Edit');
+  RegisterSerializableComponent(TCastleFloatEdit, 'Edit (Float)');
+  RegisterSerializableComponent(TCastleIntegerEdit, 'Edit (Integer)');
+  RegisterSerializableComponent(TCastleVerticalGroup, 'Vertical Group');
+  RegisterSerializableComponent(TCastleHorizontalGroup, 'Horizontal Group');
+  RegisterSerializableComponent(TCastleCrosshair, 'Crosshair');
+  RegisterSerializableComponent(TCastleScrollView, 'Scroll View');
+  RegisterSerializableComponent(TCastleScrollViewManual, 'Scroll View Manual');
+  RegisterSerializableComponent(TCastleCheckbox, 'Checkbox');
+  RegisterSerializableComponent(TCastleSwitchControl, 'Switch');
+  RegisterSerializableComponent(TCastleDesign, 'Design (Reference Another castle-user-interface File)');
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;

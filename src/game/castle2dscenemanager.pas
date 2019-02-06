@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager (T2DSceneManager) and scene (T2DScene) best suited for 2D worlds. }
+{ Scene manager (TCastle2DSceneManager) and scene (TCastle2DScene) best suited for 2D worlds. }
 unit Castle2DSceneManager;
 
 {$I castleconf.inc}
@@ -21,7 +21,8 @@ unit Castle2DSceneManager;
 interface
 
 uses Classes,
-  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleProjection;
+  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras,
+  CastleProjection, CastleVectors;
 
 type
   { Scene manager best suited for 2D worlds.
@@ -41,15 +42,23 @@ type
 
       @item(The @bold(camera does not give the user any automatic way
         to move in the world). Because you typically want to
-        code from scratch all your own movement for 2D.
+        code yourself all your camera movement for 2D games.
 
         More precisely, the NavigationType is ntNone by default.
       )
 
       @item(Sets @bold(2D projection). By default
         our visible X range is @code([0..scene manager width in pixels]),
-        visible Y is @code([0..scene manager height in pixels]).
-        See the @link(ProjectionOriginCenter) for other options.
+        visible Y range is @code([0..scene manager height in pixels]).
+
+        You can set the @link(ProjectionAutoSize) to @false,
+        and then set @link(ProjectionWidth) or @link(ProjectionHeight)
+        to explicitly control the size of the game world @italic(inside the scene manager),
+        regardless of the size of the scene manager control.
+        This is a trivial way to scale your 2D game contents.
+
+        You can set the @link(ProjectionOriginCenter) to control where the
+        origin is (how does the Camera.Position affect the view).
 
         Such projection is set regardless of the X3D viewpoint nodes
         present in the MainScene.
@@ -58,15 +67,8 @@ type
         algorithm that takes into account X3D viewpoint nodes,
         @link(TViewpointNode), in @link(TCastleSceneManager.MainScene).
       )
-
-      @item(Sets Transparent = @true by default, which means that
-        @bold(background underneath the scene manager is visible).
-        Useful for 2D games where you often have an image or
-        another background underneath,
-        like TCastleImage or TCastleSimpleBackground.
-      )
     ) }
-  T2DSceneManager = class(TCastleSceneManager)
+  TCastle2DSceneManager = class(TCastleSceneManager)
   private
     FProjectionAutoSize: boolean;
     FProjectionHeight, FProjectionWidth: Single;
@@ -80,6 +82,46 @@ type
       DefaultProjectionSpan = 1000.0;
       DefaultCameraZ = DefaultProjectionSpan / 2;
 
+    constructor Create(AOwner: TComponent); override;
+    procedure AssignDefaultCamera; override;
+
+    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
+    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+
+    { Convert 2D position into "world coordinates", which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressReleaseEvent.Position)
+          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This assumes that camera up is +Y, and it is looking along the negative Z
+      axis, which is the default camera direction and up.
+      In other words, you can only change the camera position,
+      compared to the initial camera vectors.
+    }
+    function PositionTo2DWorld(const Position: TVector2;
+      const ScreenCoordinates: Boolean): TVector2;
+  published
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
       ProjectionHeight and ProjectionWidth are ignored then.
@@ -99,8 +141,6 @@ type
       read FProjectionHeight write FProjectionHeight default 0;
     property ProjectionWidth: Single
       read FProjectionWidth write FProjectionWidth default 0;
-    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
-    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
 
     { Determines the minimum and maximum depth visible, relative to the camera Z.
 
@@ -139,17 +179,19 @@ type
     }
     property ProjectionOriginCenter: boolean
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
+  end;
 
+  T2DSceneManager = class(TCastle2DSceneManager)
+  public
     constructor Create(AOwner: TComponent); override;
-    procedure AssignDefaultCamera; override;
   published
     property Transparent default true;
-  end;
+  end deprecated 'use TCastle2DSceneManager instead (and note that it has different default Transparent value)';
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
     good when your transparent objects have proper order along the Z axis
     (useful e.g. for Spine animations). }
-  T2DScene = class(TCastleScene)
+  TCastle2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -157,19 +199,22 @@ type
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
-    function Clone(const AOwner: TComponent): T2DScene;
+    function Clone(const AOwner: TComponent): TCastle2DScene;
   end;
+
+  T2DScene = TCastle2DScene deprecated 'use TCastle2DScene';
 
 implementation
 
-uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
+uses SysUtils,
+  CastleBoxes, CastleGLUtils, X3DNodes, CastleComponentSerialize, CastleUtils,
+  CastleRectangles;
 
-{ T2DSceneManager -------------------------------------------------------- }
+{ TCastle2DSceneManager -------------------------------------------------------- }
 
-constructor T2DSceneManager.Create(AOwner: TComponent);
+constructor TCastle2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
-  Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;
   FProjectionHeight := 0;
@@ -180,7 +225,7 @@ begin
   AssignDefaultCamera;
 end;
 
-procedure T2DSceneManager.AssignDefaultCamera;
+procedure TCastle2DSceneManager.AssignDefaultCamera;
 begin
   { Set Camera explicitly, otherwise SetNavigationType below could call
     ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
@@ -196,16 +241,109 @@ begin
   Camera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
 end;
 
-function T2DSceneManager.CalculateProjection: TProjection;
+function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
+  const ScreenCoordinates: Boolean): TVector2;
+
+{ Version 1:
+  This makes sense, but ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
+
 var
-  ControlWidth, ControlHeight: Integer;
+  P: TVector2;
+  Proj: TProjection;
+  ProjRect: TFloatRectangle;
+begin
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+
+  Proj := Projection;
+  if Proj.ProjectionType <> ptOrthographic then
+    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
+  ProjRect := Proj.Dimensions;
+
+  if Camera <> nil then
+    ProjRect := ProjRect.Translate(Camera.Position.XY);
+
+  Result := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , ProjRect.Left  , ProjRect.Right),
+    MapRange(P.Y, 0, EffectiveHeight, ProjRect.Bottom, ProjRect.Top)
+  );
+end; }
+
+{ Version 2:
+  This also makes sense, but also
+  ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
+  TCamera.CustomRay looks only at camera pos/dir/up and ignores scaling.
+
+var
+  P: TVector2;
+  Proj: TProjection;
+  RayOrigin, RayDirection: TVector3;
+begin
+  if not ScreenCoordinates then
+    P := Position * UIScale + RenderRect.LeftBottom
+  else
+    P := Position;
+  RequiredCamera.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
+  Result := RayOrigin.XY;
+end; }
+
+{ Version 3:
+  Should work, but
+  1. Cannot invert projection matrix,
+  2. Also it's not efficient, since camera has ready InverseMatrix calculated
+     more efficiently.
+
+var
+  WorldToScreenMatrix: TMatrix4;
+  ScreenToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  WorldToScreenMatrix := RequiredCamera.ProjectionMatrix * RequiredCamera.Matrix;
+  if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
+    raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , -1, 1),
+    MapRange(P.Y, 0, EffectiveHeight, -1, 1)
+  );
+
+  Result := ScreenToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end; }
+
+var
+  CameraToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  CameraToWorldMatrix := RequiredCamera.MatrixInverse;
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , Projection.Dimensions.Left  , Projection.Dimensions.Right),
+    MapRange(P.Y, 0, EffectiveHeight, Projection.Dimensions.Bottom, Projection.Dimensions.Top)
+  );
+
+  Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end;
+
+function TCastle2DSceneManager.CalculateProjection: TProjection;
+var
+  ControlWidth, ControlHeight: Single;
 begin
   Result.ProjectionType := ptOrthographic;
   Result.Dimensions.Left := 0;
   Result.Dimensions.Bottom := 0;
 
-  ControlWidth := CalculatedWidth;
-  ControlHeight := CalculatedHeight;
+  ControlWidth := EffectiveWidthForChildren;
+  ControlHeight := EffectiveHeightForChildren;
 
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
@@ -240,19 +378,30 @@ begin
   Result.ProjectionFarFinite := Result.ProjectionFar;
 end;
 
-{ T2DScene --------------------------------------------------------------- }
+{ T2DSceneManager ------------------------------------------------------------ }
 
-constructor T2DScene.Create(AOwner: TComponent);
+constructor T2DSceneManager.Create(AOwner: TComponent);
+begin
+  inherited;
+  Transparent := true;
+end;
+
+{ TCastle2DScene --------------------------------------------------------------- }
+
+constructor TCastle2DScene.Create(AOwner: TComponent);
 begin
   inherited;
   Attributes.BlendingSort := bs2D;
 end;
 
-function T2DScene.Clone(const AOwner: TComponent): T2DScene;
+function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;
 begin
-  Result := T2DScene.Create(AOwner);
+  Result := TCastle2DScene.Create(AOwner);
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
+initialization
+  RegisterSerializableComponent(TCastle2DSceneManager, '2D Scene Manager');
+  RegisterSerializableComponent(TCastle2DScene, '2D Scene');
 end.

@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -18,9 +19,9 @@
   { Panel or a toolbar control.
     Use as a background for other controls like buttons.
     You can add vertical separators to separate groups of controls on the panel. }
-  TCastlePanel = class(TUIControlSizeable)
+  TCastlePanel = class(TCastleUserInterface)
   strict private
-    FVerticalSeparators: TCardinalList;
+    FVerticalSeparators: TSingleList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -32,9 +33,9 @@
 
       Values are the horizontal positions of the separators (with respect
       to this panel @link(Left)). Width of the separator is in SeparatorSize. }
-    property VerticalSeparators: TCardinalList read FVerticalSeparators;
-    class function SeparatorSize: Cardinal;
-  end;
+    property VerticalSeparators: TSingleList read FVerticalSeparators;
+    class function SeparatorSize: Single;
+  end deprecated 'use TCastleHorizontalGroup';
 
 {$endif read_interface}
 
@@ -45,7 +46,7 @@
 constructor TCastlePanel.Create(AOwner: TComponent);
 begin
   inherited;
-  FVerticalSeparators := TCardinalList.Create;
+  FVerticalSeparators := TSingleList.Create;
 end;
 
 destructor TCastlePanel.Destroy;
@@ -58,26 +59,27 @@ procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
-  I, SeparatorMarginScaled: Integer;
-  SR: TRectangle;
+  I: Integer;
+  SeparatorMarginScaled: Single;
+  SR: TFloatRectangle;
 begin
   inherited;
 
-  SR := ScreenRect;
+  SR := RenderRect;
   Theme.Draw(SR, tiPanel, UIScale);
 
-  SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
+  SeparatorMarginScaled := SeparatorMargin * UIScale;
   if SR.Height <= 2 * SeparatorMarginScaled then
     Exit; // no space
   for I := 0 to VerticalSeparators.Count - 1 do
-    Theme.Draw(Rectangle(
-      SR.Left + Round(VerticalSeparators[I] * UIScale),
+    Theme.Draw(FloatRectangle(
+      SR.Left + VerticalSeparators[I] * UIScale,
       SR.Bottom + SeparatorMarginScaled,
       Theme.Images[tiPanelSeparator].Width, SR.Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);
 end;
 
-class function TCastlePanel.SeparatorSize: Cardinal;
+class function TCastlePanel.SeparatorSize: Single;
 begin
   Result := 2;
 end;

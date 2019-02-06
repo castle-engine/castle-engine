@@ -81,7 +81,7 @@
 
       Additionally, as an extension, we also look at FdDirection and FdUp
       and FdGravityUp vectors. See
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_cameras_alt_orient
+      https://castle-engine.io/x3d_extensions.php#section_ext_cameras_alt_orient
 
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
@@ -913,7 +913,7 @@ begin
   Result := nil;
   { For now we simply always use the best LOD version,
     avoiding whole issue of choosing proper LOD child. }
-  if FdChildren.Items.Count >= 1 then
+  if FdChildren.Count >= 1 then
   begin
     Result := Func(Self, FdChildren[0]);
     if Result <> nil then Exit;

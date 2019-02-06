@@ -108,12 +108,12 @@ if (( $# == 0 )); then
               '(' -iwholename '*/base/android/*.pas' ')' -or \
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
               '(' -iwholename '*/castlegles20.pas' ')' -or \
-              '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
+              '(' -iwholename '*/pasgltf/*' ')' -or \
               '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
               '(' -iwholename '*fonts/castletexturefont_*.pas' ')' \
             ')' \
@@ -156,11 +156,11 @@ PASDOC_INCLUDE_DIRS="\
 # - reporting as missing links the exceptions from standard units.
 
 pasdoc \
-   --format "$PASDOC_FORMAT" \
+  --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS \
   --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
-  --define FPC --define VER2 --define VER2_6 --define VER2_6_0 --define PASDOC \
+  --define FPC --define VER3 --define VER3_0 --define VER3_0_4 --define PASDOC \
   --write-uses-list \
   --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \

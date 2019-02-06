@@ -26,6 +26,6 @@ resourcestring
     'inputOutput keyword) but found %s';
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
-  SLoadError        = 'Error %s when loading %s from URL "%s": %s';
+  SLoadError = 'Error %s when loading %s from URL "%s": %s';
 
 {$endif read_implementation}

@@ -61,13 +61,16 @@
       observe when @link(IsActive) changed to @false, by registering
       a callback on @code(EventIsActive.AddNotification).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+      Or, even better (simpler and more reliable) register a stop
+      notification using @link(TPlayAnimationParameters.StopNotification) with
+      @link(TCastleSceneCore.PlayAnimation).
 
       BTW, the @italic("duration") mentioned above is usually just
       @link(GetCycleInterval), but sometimes it's a @link(GetCycleInterval)
       multiplied by some scaling factor, like in case of @link(TAudioClipNode)
       or @link(TMovieTextureNode)).
 
-      For a precise (and complicated:) specification of how this behaves,
+      For a precise (and more complicated) specification of how this behaves,
       see the X3D TimeSensor.elapsedTime specification at
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
     function ElapsedTime: TFloatTime;
@@ -122,6 +125,9 @@
     EventIsPaused: TSFBoolEvent;
     { May be @nil if node doesn't have a "cycleTime" event. }
     EventCycleTime: TSFTimeEvent;
+
+    { Propagate this to all send events, to make animation fade-in/out. }
+    PartialSend: TPartialSend;
 
     { Cycle interval for this time-dependent node. }
     function CycleInterval: TFloatTime;
@@ -195,6 +201,7 @@
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   strict private
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
+  private
     { To satify IAbstractTimeDependentNode }
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
@@ -364,10 +371,12 @@
 
       @groupBegin }
     procedure FakeTime(const TimeInAnimation: TFloatTime;
-      const ALoop, AFractionIncreasing: boolean); overload;
+      const ALoop, AFractionIncreasing: boolean;
+      const PartialSend: TPartialSend = nil); overload;
     procedure FakeTime(const TimeInAnimation: TFloatTime;
       const ALoop, AFractionIncreasing: boolean;
-      const TimeOfEvents: TX3DTime); overload;
+      const TimeOfEvents: TX3DTime;
+      const PartialSend: TPartialSend = nil); overload;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
@@ -473,7 +482,7 @@ begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value, Node.Scene.NextEventTime);
+    EventIsActive.Send(Value, Node.Scene.NextEventTime, PartialSend);
   end;
 end;
 
@@ -482,7 +491,7 @@ begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value, Node.Scene.NextEventTime);
+    EventIsPaused.Send(Value, Node.Scene.NextEventTime, PartialSend);
   end;
 end;
 
@@ -506,7 +515,7 @@ begin
       for next elapsedTime send
       (reproduction: escape_universe game restart.) }
 
-    EventElapsedTime.Send(Value, Node.Scene.NextEventTime);
+    EventElapsedTime.Send(Value, Node.Scene.NextEventTime, PartialSend);
   end;
 end;
 
@@ -801,7 +810,7 @@ begin
     end;
 
     if CycleTimeSend and (EventCycleTime <> nil) then
-      EventCycleTime.Send(CycleTime, Node.Scene.NextEventTime);
+      EventCycleTime.Send(CycleTime, Node.Scene.NextEventTime, PartialSend);
   end else
   begin
     if not NewIsPaused then
@@ -1002,9 +1011,9 @@ begin
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
     if not FdFractionIncreasing.Value then
       Fraction := 1 - Fraction;
-    Eventfraction_changed.Send(Fraction, Time);
+    Eventfraction_changed.Send(Fraction, Time, Value.InternalPartialSend);
 
-    EventTime.Send(Time.Seconds, Time);
+    EventTime.Send(Time.Seconds, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -1012,7 +1021,8 @@ var
   FakeX3DTime: TX3DTime;
 
 procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
-  const ALoop, AFractionIncreasing: boolean);
+  const ALoop, AFractionIncreasing: boolean;
+  const PartialSend: TPartialSend);
 begin
   { This method may be called with any TimeInAnimation values sequence,
     e.g. decreasing.
@@ -1028,17 +1038,18 @@ begin
     FakeX3DTime.PlusTicks := 0;
   end;
 
-  FakeTime(TimeInAnimation, ALoop, AFractionIncreasing, FakeX3DTime);
+  FakeTime(TimeInAnimation, ALoop, AFractionIncreasing, FakeX3DTime, PartialSend);
 end;
 
 procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
   const ALoop, AFractionIncreasing: boolean;
-  const TimeOfEvents: TX3DTime);
+  const TimeOfEvents: TX3DTime;
+  const PartialSend: TPartialSend);
 var
   Fraction: Single;
 begin
   Inc(FakingTime);
-  EventIsActive.Send(true, TimeOfEvents);
+  EventIsActive.Send(true, TimeOfEvents, PartialSend);
 
   if ALoop then
     Fraction := Frac(TimeInAnimation / SafeCycleInterval)
@@ -1046,10 +1057,10 @@ begin
     Fraction := Clamped(TimeInAnimation / SafeCycleInterval, 0, 1);
   if not AFractionIncreasing then
     Fraction := 1 - Fraction;
-  EventFraction_changed.Send(Fraction, TimeOfEvents);
+  EventFraction_changed.Send(Fraction, TimeOfEvents, PartialSend);
 
-  EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
-  EventTime.Send(TimeInAnimation, TimeOfEvents);
+  EventElapsedTime.Send(TimeInAnimation, TimeOfEvents, PartialSend);
+  EventTime.Send(TimeInAnimation, TimeOfEvents, PartialSend);
   Dec(FakingTime);
 end;
 

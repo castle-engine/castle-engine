@@ -57,7 +57,8 @@ function OffsetUInt(var A, B): PtrUInt;
 function Offset(var A, B): Pointer;
 
 { Compare two methods. }
-function CompareMethods(AMethod1, AMethod2: TMethod): boolean;
+function CompareMethods(const AMethod1, AMethod2: TMethod): boolean; deprecated 'use SameMethods';
+function SameMethods(const AMethod1, AMethod2: TMethod): boolean;
 
 {$endif read_interface}
 
@@ -189,7 +190,12 @@ begin
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
 end;
 
-function CompareMethods(AMethod1, AMethod2: TMethod): boolean;
+function CompareMethods(const AMethod1, AMethod2: TMethod): boolean;
+begin
+  Result := SameMethods(AMethod1, AMethod2);
+end;
+
+function SameMethods(const AMethod1, AMethod2: TMethod): boolean;
 begin
   Result := (AMethod1.Code = AMethod2.Code) and
             (AMethod1.Data = AMethod2.Data);

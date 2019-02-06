@@ -29,7 +29,7 @@ uses SysUtils, Classes, Math,
   CastleApplicationProperties;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
   Curves: TControlPointsCurveList;
   { -1 (none selected) or in [0 .. Curves.Count-1].
@@ -71,7 +71,7 @@ var
 const
   Version = '2.0.0';
   CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
-  DonateURL = 'http://castle-engine.sourceforge.net/donate.php';
+  DonateURL = 'https://castle-engine.io/donate.php';
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
   Curves[SelectedCurve] changes. It is always called from
@@ -186,7 +186,7 @@ var
 { TCurvesDisplay ------------------------------------------------------------- }
 
 type
-  TCurvesDisplay = class(TUIControl)
+  TCurvesDisplay = class(TCastleUserInterface)
     procedure Render; override;
   end;
 
@@ -444,6 +444,10 @@ end;
 procedure Open(Container: TUIContainer);
 begin
   RenderContext.PointSize := 10;
+  { TODO: This uses some direct GL rendering for now in immediate-mode.
+    Without EnableFixedFunction := true e.g. selected curve color
+    doesn't work, and scaling whole screen doesn't work correctly. }
+  GLFeatures.EnableFixedFunction := true;
 end;
 
 procedure Update(Container: TUIContainer);
@@ -738,7 +742,7 @@ begin
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           NL +
-          TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL +
+          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) + NL +
           NL +
           'Full documentation on' + NL +
           'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
@@ -760,7 +764,7 @@ end;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);

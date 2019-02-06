@@ -27,7 +27,7 @@ Notes about modelers and exporters:
 
 - For Blender, you will probably export your animations to
   "castle-anim-frames" file.
-  See http://castle-engine.sourceforge.net/creating_data_blender.php .
+  See https://castle-engine.io/creating_data_blender.php .
 
   Although it is possible to convert "castle-anim-frames" later to X3D,
   but it may require some manual work (you can help yourself with our tool

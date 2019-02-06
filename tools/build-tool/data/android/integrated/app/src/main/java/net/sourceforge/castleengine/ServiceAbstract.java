@@ -12,13 +12,36 @@ import android.app.Activity;
  */
 public abstract class ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceAbstract";
+    private static final String CATEGORY = "ServiceAbstract";
 
     private MainActivity mActivity;
 
     public ServiceAbstract(MainActivity activity)
     {
         mActivity = activity;
+    }
+
+    /* Log information.
+       Use this instead of Log.i throughout the whole Java code.
+       This way we always pass the same "tag" for logging,
+       and our logs can be filtered using "adb logcat" filtering features.
+       And the length of "category" is not limited this way (contrary
+       to Android log "tag", that has limited length). */
+    public static final void logInfo(String category, String message)
+    {
+        Log.i("${ANDROID_LOG_TAG}", category + ": " + message);
+    }
+
+    /* Log error. See logInfo for more comments. */
+    public static final void logError(String category, String message)
+    {
+        Log.e("${ANDROID_LOG_TAG}", category + ": " + message);
+    }
+
+    /* Log warning. See logInfo for more comments. */
+    public static final void logWarning(String category, String message)
+    {
+        Log.w("${ANDROID_LOG_TAG}", category + ": " + message);
     }
 
     public abstract String getName();
@@ -41,7 +64,7 @@ public abstract class ServiceAbstract
         if (value.equals("false")) {
             return false;
         } else {
-            Log.w(TAG, "Invalid boolean value in message: " + value);
+            logWarning(CATEGORY, "Invalid boolean value in message: " + value);
             return false;
         }
     }

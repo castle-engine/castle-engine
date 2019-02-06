@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="screen_effects_demo"
+  standalone_source="screen_effects_demo_standalone.lpr"
+  game_units="GameInitialize">
+</project>

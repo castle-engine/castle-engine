@@ -28,7 +28,7 @@
   any of their children nodes, fields, and generally do everything.
   Remember to call "Changed" on every changed field (or change it only
   by Send methods, see more info on
-  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].)
+  [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].)
 
   Of course, in case of trivial animation in this program, we could
   also express it directly in VRML/X3D and just load the scene,

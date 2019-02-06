@@ -24,7 +24,7 @@ type
   TStructList<T> = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<T>)
   public
     type
-      PT = ^T;
+      PtrT = ^T;
       TTypeList = array [0 .. {$ifdef FPC} MaxInt div SizeOf(T) - 1 {$else} 1000 * 1000 {$endif}] of T;
       PTypeList = ^TTypeList;
 
@@ -70,15 +70,15 @@ type
 
       See the @link(List) description for a more detailed explanation and example.
       @seealso List }
-    function L: PT;
+    function L: PtrT;
 
     { Increase Count and return pointer to new item.
       Comfortable and efficient way to add a new item that you want to immediately
       initialize. }
-    function Add: PT; overload;
+    function Add: PtrT; overload;
 
     { Pointer to ith item. }
-    function Ptr(I: Integer): PT;
+    function Ptr(I: Integer): PtrT;
 
     procedure Assign(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); overload;
     procedure Assign(const A: array of T); overload;
@@ -101,18 +101,18 @@ begin
   Result := PTypeList({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.L: PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.L: PtrT;
 begin
-  Result := PT({$ifdef FPC} FItems {$else} inherited List {$endif});
+  Result := PtrT({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Add: PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Add: PtrT;
 begin
   Count := Count + 1;
   Result := Addr(List^[Count - 1]);
 end;
 
-function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Ptr(I: Integer): PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Ptr(I: Integer): PtrT;
 begin
   Result := Addr(List^[I]);
 end;

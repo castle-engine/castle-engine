@@ -24,7 +24,7 @@ program physics_3d_demo_standalone;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleApplicationProperties, CastleLog, CastleWindow, Game;
+uses CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize;
 
 begin
   ApplicationProperties.Version := '';

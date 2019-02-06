@@ -31,8 +31,9 @@ type
     csMaterial,
     { Current texture unit color. }
     csCurrentTexture,
-    { Constant color. (MultiTexture.color/alpha fields;
-      for TInterpolateAlphaSource, actually this indicates only MultiTexture.alpha.) }
+    { Constant color. (MultiTexture.color/alpha fields.)
+      When this value is used for @link(TTextureEnv.BlendAlphaSource),
+      it indicates only MultiTexture.alpha. }
     csConstant,
     { Previous texture unit color, or material (in case this is the first texture unit). }
     csPreviousTexture);
@@ -44,7 +45,7 @@ type
   TTextureFunction = (tfNone, tfComplement, tfAlphaReplicate);
 
   { How to combine textures, on a single channel. }
-  TCombine = (coModulate, coReplace, coAddSigned, coAdd, coSubtract, coInterpolate,
+  TCombine = (coModulate, coReplace, coAddSigned, coAdd, coSubtract, coBlend,
     coDot3Rgb, coDot3Rgba);
 
   TChannel = (cRGB, cAlpha);
@@ -87,10 +88,10 @@ type
 
     TextureFunction: TTextureFunction;
 
-    { If, and only if, one of Combine is coInterpolate,
+    { If, and only if, one of Combine is coBlend,
       then this specifies what is the OpenGL GL_SOURCE2.
       It should be filled (both RGB and alpha) with alpha from this source. }
-    InterpolateAlphaSource: TColorSource;
+    BlendAlphaSource: TColorSource;
 
     { Initialize based on MultiTexture.mode, MultiTexture.source,
       MultiTexture.function values.
@@ -156,7 +157,7 @@ procedure ModeFromString(const S: string;
   out Scale: TScalePerChannel;
   out Disabled: boolean;
   out NeedsConstantColor: boolean;
-  out InterpolateAlphaSource: TColorSource);
+  out BlendAlphaSource: TColorSource);
 
   { Interpret simple mode name (this is for sure only one mode,
     without any "/" and whitespaces). This handles only the simplest
@@ -201,7 +202,7 @@ procedure ModeFromString(const S: string;
         "REPLACE" takes the Arg2, that's an error, it takes
         from Arg1 to be consistent with other spec words.
         I wrote some remarks about this on
-        http://castle-engine.sourceforge.net/x3d_implementation_status.php }
+        https://castle-engine.io/x3d_implementation_status.php }
 
       Combine := coReplace;
       CurrentTextureArgument := ta0;
@@ -264,6 +265,39 @@ procedure ModeFromString(const S: string;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
+    if LS = 'blenddiffusealpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      { Note that BlendAlphaSource is one variable, not split into RGB or alpha
+        parts. Fortunately, the BLEND* mode is either on RGBA or RGB,
+        it cannot be used on alpha channel only for now,
+        so we can keep BlendAlphaSource in one variable. }
+      BlendAlphaSource := csMaterial;
+    end else
+    if LS = 'blendtexturealpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csCurrentTexture;
+    end else
+    if LS = 'blendfactoralpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csConstant;
+      NeedsConstantColor := true;
+    end else
+    if LS = 'blendcurrentalpha' then
+    begin
+      Combine := coBlend;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
+      BlendAlphaSource := csPreviousTexture;
+    end else
       SimpleModeFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale, 'RGB');
   end;
 
@@ -315,32 +349,32 @@ procedure ModeFromString(const S: string;
     end else
     if LS = 'blenddiffusealpha' then
     begin
-      Combine := CombinePerChannel(coInterpolate);
+      Combine := CombinePerChannel(coBlend);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
-      InterpolateAlphaSource := csMaterial;
+      BlendAlphaSource := csMaterial;
     end else
     if LS = 'blendtexturealpha' then
     begin
-      Combine := CombinePerChannel(coInterpolate);
+      Combine := CombinePerChannel(coBlend);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
-      InterpolateAlphaSource := csCurrentTexture;
+      BlendAlphaSource := csCurrentTexture;
     end else
     if LS = 'blendfactoralpha' then
     begin
-      Combine := CombinePerChannel(coInterpolate);
+      Combine := CombinePerChannel(coBlend);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
-      InterpolateAlphaSource := csConstant;
+      BlendAlphaSource := csConstant;
       NeedsConstantColor := true;
     end else
     if LS = 'blendcurrentalpha' then
     begin
-      Combine := CombinePerChannel(coInterpolate);
+      Combine := CombinePerChannel(coBlend);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
-      InterpolateAlphaSource := csPreviousTexture;
+      BlendAlphaSource := csPreviousTexture;
     end else
     begin
       SimpleModeFromString(LS,
@@ -361,7 +395,7 @@ begin
   Scale[cRGB] := 1;
   Scale[cAlpha] := 1;
   NeedsConstantColor := false;
-  InterpolateAlphaSource := csMaterial; { unused, will define to be safe }
+  BlendAlphaSource := csMaterial; { unused, will define to be safe }
 
   LS := LowerCase(S);
   if SplitStringPerChannel(LS, StringPerChannel) then
@@ -432,7 +466,7 @@ end;
 constructor TTextureEnv.Init(const Mode, SourceStr, FunctionStr: string);
 begin
   ModeFromString(Mode, Combine, CurrentTextureArgument, SourceArgument, Scale, Disabled,
-    NeedsConstantColor, InterpolateAlphaSource);
+    NeedsConstantColor, BlendAlphaSource);
   if (SourceArgument[cRGB] <> taNone) or
      (SourceArgument[cAlpha] <> taNone) then
     SourceFromString(SourceStr, Source, NeedsConstantColor);
@@ -450,7 +484,7 @@ begin
   Scale[cAlpha] := 1.0;
   Disabled := false;
   NeedsConstantColor := false;
-  InterpolateAlphaSource := csMaterial;
+  BlendAlphaSource := csMaterial;
   Source[cRGB  ] := csMaterial;
   Source[cAlpha] := csMaterial;
   TextureFunction := tfNone;
@@ -472,7 +506,7 @@ begin
     1753 * (1 + Ord(NeedsConstantColor            )) +
     1759 * (1 + Ord(Source[cRGB]                  )) +
     1777 * (1 + Ord(Source[cAlpha]                )) +
-    1783 * (1 + Ord(InterpolateAlphaSource        )) +
+    1783 * (1 + Ord(BlendAlphaSource        )) +
     1787 * (1 + Ord(TextureFunction               ));
 end;
 {$include norqcheckend.inc}

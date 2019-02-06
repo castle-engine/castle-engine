@@ -23,7 +23,7 @@ uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu;
 type
   TStateMainMenu = class(TUIState)
   strict private
-    SimpleBackground: TCastleSimpleBackground;
+    Background: TCastleRectangleControl;
     Menu: TCastleOnScreenMenu;
     procedure NewGameClick(Sender: TObject);
     procedure QuitClick(Sender: TObject);
@@ -46,9 +46,10 @@ procedure TStateMainMenu.Start;
 begin
   inherited;
 
-  SimpleBackground := TCastleSimpleBackground.Create(FreeAtStop);
-  SimpleBackground.Color := LightBlue;
-  InsertFront(SimpleBackground);
+  Background := TCastleRectangleControl.Create(FreeAtStop);
+  Background.FullSize := true;
+  Background.Color := LightBlue;
+  InsertFront(Background);
 
   Menu := TCastleOnScreenMenu.Create(FreeAtStop);
   Menu.FontSize := 30;

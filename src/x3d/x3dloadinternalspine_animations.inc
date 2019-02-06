@@ -196,6 +196,8 @@ begin
   end;
 
   ChildArray := Json.Find('draworder', jtArray) as TJSONArray;
+  if ChildArray = nil then
+    ChildArray := Json.Find('drawOrder', jtArray) as TJSONArray; // try different case
   if ChildArray <> nil then
     DrawOrderTimelines.Parse(ChildArray, Slots, SlotsAnimated);
 end;

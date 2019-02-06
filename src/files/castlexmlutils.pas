@@ -141,6 +141,13 @@ type
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
     function AttributeVector3(const AttrName: string; var Value: TVector3): boolean; overload;
 
+    { Read from Element attribute as a 4D vector(4 floats, e.g. rotation), and returns @true,
+      or (if there is no such attribute) returns @false
+      and does not modify Value.
+
+      @raises EConvertError If the attribute exists in XML, but has invalid format. }
+    function AttributeVector4(const AttrName: string; var Value: TVector4): boolean; overload;
+
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
 
@@ -229,6 +236,11 @@ type
       @raises EDOMAttributeMissing }
     function AttributeVector3(const AttrName: string): TVector3; overload;
 
+    { Retrieves from Element given attribute as a 4D vector (4 floats, e.g. rotation),
+      raises EDOMAttributeMissing if missing or has invalid format.
+      @raises EDOMAttributeMissing }
+    function AttributeVector4(const AttrName: string): TVector4; overload;
+
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
 
@@ -275,6 +287,10 @@ type
       @raises EConvertError If the value exists in XML, but has invalid format. }
     function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3): TVector3;
 
+    { Retrieves from Element given attribute as a 4D vector (4 floats), or a default value.
+      @raises EConvertError If the value exists in XML, but has invalid format. }
+    function AttributeVector4Def(const AttrName: string; const DefaultValue: TVector4): TVector4;
+
     { Attribute setting ------------------------------------------------------ }
 
     { Set the attribute as string. Equivalent to standard SetAttribute in DOM unit,
@@ -309,11 +325,15 @@ type
       such that it's readable back by @link(AttributeVector3) and @link(AttributeVector3Def). }
     procedure AttributeSet(const AttrName: string; const Value: TVector3); overload;
 
+    { Set the attribute as TVector4,
+      such that it's readable back by @link(AttributeVector4) and @link(AttributeVector4Def). }
+    procedure AttributeSet(const AttrName: string; const Value: TVector4); overload;
+
     { Other methods ---------------------------------------------------------- }
 
     { Get child element with given ChildName.
 
-      For example use @code(LevelElement.ChildElement('items'))
+      For example use @code(LevelElement.Child('items'))
       to get the <items> element within <level> element, as in example below.
 
       @preformatted(
@@ -334,7 +354,13 @@ type
 
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
+    function Child(const ChildName: string; const Required: boolean = true): TDOMElement;
+
+    { Same as @link(Child). }
     function ChildElement(const ChildName: string; const Required: boolean = true): TDOMElement;
+
+    { Create a new child element under this element, and return it. }
+    function CreateChild(const ChildName: string): TDOMElement;
 
     { Iterator over all children elements. Use like this:
 
@@ -747,6 +773,16 @@ begin
     Value := Vector3FromStr(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeVector4(
+  const AttrName: string; var Value: TVector4): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := Vector4FromStr(ValueStr);
+end;
+
 { ------------------------------------------------------------------------
   TDOMElementHelper:
   Get a required attribute, returns value (exception if not found). }
@@ -823,6 +859,12 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector3) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
+function TDOMElementHelper.AttributeVector4(const AttrName: string): TVector4;
+begin
+  if not AttributeVector4(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector4) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
 { ------------------------------------------------------------------------
   TDOMElementHelper:
   Get an optional attribute, returns attribute or a default value. }
@@ -893,6 +935,12 @@ begin
     Result := DefaultValue;
 end;
 
+function TDOMElementHelper.AttributeVector4Def(const AttrName: string; const DefaultValue: TVector4): TVector4;
+begin
+  if not AttributeVector4(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
 { TDOMElementHelper: Attribute setting ------------------------------------------------------ }
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: string);
@@ -935,10 +983,21 @@ begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
 end;
 
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector4);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value.ToRawString));
+end;
+
 { ------------------------------------------------------------------------
   TDOMElementHelper: Other methods. }
 
 function TDOMElementHelper.ChildElement(const ChildName: string;
+  const Required: boolean): TDOMElement;
+begin
+  Result := Child(ChildName, Required);
+end;
+
+function TDOMElementHelper.Child(const ChildName: string;
   const Required: boolean): TDOMElement;
 var
   Children: TDOMNodeList;
@@ -1003,6 +1062,12 @@ begin
           [TagName, (Node as TDOMElement).TagName]);
     end;
   end;
+end;
+
+function TDOMElementHelper.CreateChild(const ChildName: string): TDOMElement;
+begin
+  Result := OwnerDocument.CreateElement(UTF8Decode(ChildName));
+  AppendChild(Result);
 end;
 
 function TDOMElementHelper.ChildrenIterator: TXMLElementIterator;

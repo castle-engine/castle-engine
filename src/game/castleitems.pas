@@ -81,7 +81,7 @@ type
 
       If you're wondering how to generate such image:
       one option is to open the item 3D model in
-      [http://castle-engine.sourceforge.net/view3dscene.php]
+      [https://castle-engine.io/view3dscene.php]
       and use "Display -> Screenshot ..." menu option (maybe the one
       that makes transparent background).
       It is usually a good idea to also remember the camera used for such
@@ -106,7 +106,7 @@ type
 
       You usually define your own item resources by adding a subdirectory with
       resource.xml file to your game data. See
-      [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      [https://castle-engine.io/creating_data_resources.php]
       and engine tutorial for examples how to do this. Then you load the item
       resources with
 
@@ -1019,17 +1019,18 @@ begin
   for Result := 0 to Count - 1 do
   begin
     Items[Result].Stack(Item);
-    if Item = nil then Break;
+    if Item = nil then
+    begin
+      // item was stacked with something
+      Item := Items[Result];
+      Item.FOwner3D := Owner3D;
+      Exit;
+    end;
   end;
 
-  if Item <> nil then
-  begin
-    Add(Item);
-    Result := Count - 1;
-  end else
-    Item := Items[Result];
-
+  Add(Item);
   Item.FOwner3D := Owner3D;
+  Result := Count - 1;
 end;
 
 function TInventory.Drop(const ItemIndex: Integer): TInventoryItem;

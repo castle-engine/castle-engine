@@ -27,24 +27,25 @@ uses Classes,
 type
   { Add this on top of your 2D controls to have a nice inspector
     displaying names and borders of stuff under the mouse cursor. }
-  TCastleInspectorControl = class(TUIControlFont)
+  TCastleInspectorControl = class(TCastleUserInterfaceFont)
   private
     FColor: TCastleColor;
-    FPadding: Integer;
+    FPadding: Single;
     FText: TStringList;
-    FControlsUnderMouse: TUIControlList;
+    FControlsUnderMouse: TCastleUserInterfaceList;
     FControlsInitialized: boolean;
-    FRectWhenControlsInitialized: TRectangle;
+    FSizeWhenControlsInitialized: TVector2;
     FShowNotExisting: boolean;
-    function ControlColor(const C: TUIControl): TCastleColor;
-    function ControlDescription(const C: TUIControl): string;
+    function ControlColor(const C: TCastleUserInterface): TCastleColor;
+    function ControlDescription(const C: TCastleUserInterface): string;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultPadding = 10;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Rect: TRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -54,10 +55,8 @@ type
     property Color: TCastleColor read FColor write FColor;
   published
     { Padding between rect borders and text. }
-    property Padding: Integer read FPadding write FPadding
+    property Padding: Single read FPadding write FPadding
       default DefaultPadding;
-    property HasHorizontalAnchor stored false;
-    property HasVerticalAnchor stored false;
     property HorizontalAnchorSelf stored false;
     property HorizontalAnchorParent stored false;
     property VerticalAnchorSelf stored false;
@@ -75,13 +74,13 @@ begin
   inherited;
   FColor := White;
   FPadding := DefaultPadding;
-  FRectWhenControlsInitialized := TRectangle.Empty;
+  FSizeWhenControlsInitialized := TVector2.Zero;
   Anchor(hpLeft);
   Anchor(vpBottom);
   KeepInFront := true;
 
   FText := TStringList.Create;
-  FControlsUnderMouse := TUIControlList.Create(false);
+  FControlsUnderMouse := TCastleUserInterfaceList.Create(false);
 end;
 
 destructor TCastleInspectorControl.Destroy;
@@ -91,26 +90,27 @@ begin
   inherited;
 end;
 
-function TCastleInspectorControl.Rect: TRectangle;
+procedure TCastleInspectorControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   US: Single;
-  PaddingScaled: Integer;
+  PaddingScaled: Single;
 begin
+  inherited;
   if FControlsInitialized then
   begin
     US := UIScale;
-    PaddingScaled := Round(US * Padding);
-    FRectWhenControlsInitialized := Rectangle(
-      LeftBottomScaled,
+    PaddingScaled := US * Padding;
+    FSizeWhenControlsInitialized := Vector2(
       Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
       Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
   end;
   { note that when FControlsInitialized = false, this simply returns last value calculated
     when FControlsInitialized = true. }
-  Result := FRectWhenControlsInitialized;
+  PreferredWidth  := FSizeWhenControlsInitialized.Data[0];
+  PreferredHeight := FSizeWhenControlsInitialized.Data[1];
 end;
 
-function TCastleInspectorControl.ControlColor(const C: TUIControl): TCastleColor;
+function TCastleInspectorControl.ControlColor(const C: TCastleUserInterface): TCastleColor;
 const
   Transparency = 0.1;
 var
@@ -136,7 +136,7 @@ begin
     Transparency);
 end;
 
-function TCastleInspectorControl.ControlDescription(const C: TUIControl): string;
+function TCastleInspectorControl.ControlDescription(const C: TCastleUserInterface): string;
 begin
   if C.Name <> '' then
     Result := C.Name + ':' + C.ClassName else
@@ -155,14 +155,15 @@ procedure TCastleInspectorControl.Render;
 
 var
   US: Single;
-  SR: TRectangle;
-  PaddingScaled, I: Integer;
+  SR: TFloatRectangle;
+  PaddingScaled: Single;
+  I: Integer;
   C: TCastleColor;
 begin
   inherited;
-  SR := ScreenRect;
+  SR := RenderRect;
   US := UIScale;
-  PaddingScaled := Round(US * Padding);
+  PaddingScaled := US * Padding;
 
   if FText.Count <> 0 then
   begin
@@ -175,7 +176,7 @@ begin
 
     for I := 0 to FControlsUnderMouse.Count - 1 do
     begin
-      SR := FControlsUnderMouse[I].ScreenRect;
+      SR := FControlsUnderMouse[I].RenderRect;
       if SR.IsEmpty then Continue;
       C := ControlColor(FControlsUnderMouse[I]);
       DrawRectangle(SR, InvertColorRGB(C));
@@ -197,7 +198,7 @@ end;
 
 procedure TCastleInspectorControl.BeforeRender;
 
-  procedure CheckControl(C: TUIControl; const Level: Integer);
+  procedure CheckControl(C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
     Col: TCastleColor;
@@ -209,11 +210,11 @@ procedure TCastleInspectorControl.BeforeRender;
         C.CapturesEventsAtPosition(Container.MousePosition) and
         (C.GetExists or FShowNotExisting) then
     begin
-      S := ControlDescription(C) + ' ' + C.ScreenRect.ToString;
+      S := ControlDescription(C) + ' ' + C.RenderRect.ToString;
       if not C.GetExists then
-        S += ' (hidden)';
+        S := S + ' (hidden)';
       if C.Focused then
-        S += ' (focused)';
+        S := S + ' (focused)';
       S := StringOfChar(' ', Level) + S;
       S := '<font color="#' + ColorToHex(Col) + '">' + S + '</font>';
       FText.Add(S);
@@ -255,7 +256,7 @@ begin
   { escape to bottom or top, to not be under mouse }
   if Event.FingerIndex = 0 then
   begin
-    if ScreenRect.Contains(Event.Position) then
+    if RenderRect.Contains(Event.Position) then
     begin
       if HorizontalAnchorSelf = hpLeft then
         Anchor(hpRight) else
@@ -263,7 +264,7 @@ begin
     end;
   end;
 
-  VisibleChange;
+  VisibleChange([chRender]);
 end;
 
 end.

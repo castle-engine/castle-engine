@@ -40,14 +40,6 @@ const
     Result := IntToStr(glGetInteger(param));
   end;
 
-  function GetInteger2(param: TGLenum; const form: string): string;
-  var
-    v: packed array [0..1] of TGLint;
-  begin
-    glGetIntegerv(param, @v);
-    result := Format(form, [v[0], v[1]]);
-  end;
-
   function GetBoolean(param: TGLenum): string;
   begin
     Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
@@ -65,24 +57,25 @@ const
   begin
     Result :=
       Format(
-        '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' +nl+
-        '  Vendor: %s' +nl+
-        '  Vendor type: %s' +nl+
-        nl+
-        '  Renderer: %s' +nl+
-        '  Fglrx (ATI on Linux): %s' +nl+
-        '  Mesa: %s' +nl+
-        nl+
-        '  Buggy glGenerateMipmap(EXT): %s' +nl+
-        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
-        '  Buggy VBO: %s' +nl+
-        '  Buggy shader shadow map: %s' +nl+
-        '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
-        '  Buggy FBO rendering to cube map texture: %s' +nl+
-        '  Buggy swap buffers with non-standard glViewport: %s' +nl+
-        '  Buggy 32-bit depth buffer: %s' +nl+
-        '  Buggy GLSL gl_FrontFacing: %s' +nl+
-        '  Buggy GLSL read varying: %s',
+        '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' + NL +
+        '  Vendor: %s' + NL +
+        '  Vendor type: %s' + NL +
+        NL +
+        '  Renderer: %s' + NL +
+        '  Fglrx (ATI on Linux): %s' + NL +
+        '  Mesa: %s' + NL +
+        NL +
+        '  Buggy glGenerateMipmap(EXT): %s' + NL +
+        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' + NL +
+        '  Buggy VBO: %s' + NL +
+        '  Buggy shader shadow map: %s' + NL +
+        '  Buggy FBO rendering to multi-sampling texture: %s' + NL +
+        '  Buggy FBO rendering to cube map texture: %s' + NL +
+        '  Buggy swap buffers with non-standard glViewport: %s' + NL +
+        '  Buggy 32-bit depth buffer: %s' + NL +
+        '  Buggy GLSL gl_FrontFacing: %s' + NL +
+        '  Buggy GLSL read varying: %s' + NL +
+        '  Buggy Pure Shader Pipeline: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
           PChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
@@ -99,7 +92,8 @@ const
           BoolToStr(Version.BuggySwapNonStandardViewport, true),
           BoolToStr(Version.BuggyDepth32, true),
           BoolToStr(Version.BuggyGLSLFrontFacing, true),
-          BoolToStr(Version.BuggyGLSLReadVarying, true)
+          BoolToStr(Version.BuggyGLSLReadVarying, true),
+          BoolToStr(Version.BuggyPureShaderPipeline, true)
         ]);
   end;
 
@@ -161,125 +155,125 @@ const
 
 begin
   Result:=
-    'OpenGL information (detected by ' + ApplicationName +'):' +nl+
-    nl+
+    'OpenGL information (detected by ' + ApplicationName +'):' + NL +
+    NL +
 
-    '--------' +nl+
-    'Version:' +nl+
-    '  Version string: ' +PChar(glGetString(GL_VERSION)) +nl+
-    VersionReport(GLVersion) +nl+
-    VendorReport(GLVersion) +nl+
-    nl+
+    '--------' + NL +
+    'Version:' + NL +
+    '  Version string: ' +PChar(glGetString(GL_VERSION)) + NL +
+    VersionReport(GLVersion) + NL +
+    VendorReport(GLVersion) + NL +
+    NL +
 
     {$ifndef OpenGLES}
-    '------------------------' +nl+
-    'Real versions available:' +nl+
-    '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
-    nl+
-    '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) +nl+
-    '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) +nl+
-    '  1.4: ' + BoolToStr(GLFeatures.Version_1_4, true) +nl+
-    '  1.5: ' + BoolToStr(GLFeatures.Version_1_5, true) +nl+
-    '  2.0: ' + BoolToStr(GLFeatures.Version_2_0, true) +nl+
-    '  2.1: ' + BoolToStr(GLFeatures.Version_2_1, true) +nl+
-    '  3.0: ' + BoolToStr(GLFeatures.Version_3_0, true) +nl+
-    '  3.1: ' + BoolToStr(GLFeatures.Version_3_1, true) +nl+
-    '  3.2: ' + BoolToStr(GLFeatures.Version_3_2, true) +nl+
-    '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) +nl+
-    '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) +nl+
-    nl+
+    '------------------------' + NL +
+    'Real versions available:' + NL +
+    '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' + NL +
+    NL +
+    '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) + NL +
+    '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) + NL +
+    '  1.4: ' + BoolToStr(GLFeatures.Version_1_4, true) + NL +
+    '  1.5: ' + BoolToStr(GLFeatures.Version_1_5, true) + NL +
+    '  2.0: ' + BoolToStr(GLFeatures.Version_2_0, true) + NL +
+    '  2.1: ' + BoolToStr(GLFeatures.Version_2_1, true) + NL +
+    '  3.0: ' + BoolToStr(GLFeatures.Version_3_0, true) + NL +
+    '  3.1: ' + BoolToStr(GLFeatures.Version_3_1, true) + NL +
+    '  3.2: ' + BoolToStr(GLFeatures.Version_3_2, true) + NL +
+    '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) + NL +
+    '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) + NL +
+    NL +
     {$endif}
 
-    '---------' +nl+
-    'Features:' +nl+
-    '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] +nl+
-    '  => Enable deprecated (fixed-function) support: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) +nl+
-    '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) +nl+
-    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
-    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) +nl+
-    '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) +nl+
-    '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) +nl+
-    '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
-    '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) +nl+
-    '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
-    '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) +nl+
-    '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) +nl+
-    '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) +nl+
-    '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) +nl+
-    '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) +nl+
-    nl+
-    '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) +nl+
-    nl+
+    '---------' + NL +
+    'Features:' + NL +
+    '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] + NL +
+    '  => Enable deprecated (fixed-function) support: ' + BoolToStr(GLFeatures.EnableFixedFunction, true) + NL +
+    '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) + NL +
+    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] + NL +
+    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) + NL +
+    '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) + NL +
+    '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) + NL +
+    '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] + NL +
+    '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) + NL +
+    '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] + NL +
+    '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) + NL +
+    '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) + NL +
+    '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) + NL +
+    '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) + NL +
+    '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) + NL +
+    NL +
+    '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) + NL +
+    NL +
 
     {$ifndef OpenGLES}
     {$ifdef CASTLE_OBJFPC}
     {$warnings off} // consciously initializing deprecated stuff, to keep it working
-    '-----------------------------' +nl+
-    'OpenGL utility (GLU) version:' +nl+
-    '  Version string: ' +gluGetString(GLU_VERSION) +nl+
-    VersionReport(GLUVersion) +nl+
-    '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
-    nl+
+    '-----------------------------' + NL +
+    'OpenGL utility (GLU) version:' + NL +
+    '  Version string: ' +gluGetString(GLU_VERSION) + NL +
+    VersionReport(GLUVersion) + NL +
+    '  Extensions: '+gluGetString(GLU_EXTENSIONS) + NL +
+    NL +
     {$warnings on}
     {$endif CASTLE_OBJFPC}
     {$endif}
 
-    '---------------------------' +nl+
-    'Current buffers bit depths:' +nl+
+    '---------------------------' + NL +
+    'Current buffers bit depths:' + NL +
     '  Color (red / green / blue / alpha): '
       +GetInteger(GL_RED_BITS) +' / '
       +GetInteger(GL_GREEN_BITS) +' / '
       +GetInteger(GL_BLUE_BITS) +' / '
-      +GetInteger(GL_ALPHA_BITS) +nl+
-    '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
+      +GetInteger(GL_ALPHA_BITS) + NL +
+    '  Depth: ' +GetInteger(GL_DEPTH_BITS) + NL +
     {$ifndef OpenGLES}
-    '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
+    '  Index: ' +GetInteger(GL_INDEX_BITS) + NL +
     {$endif}
-    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
+    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) + NL +
     {$ifndef OpenGLES}
     '  Accumulation (red / green / blue / alpha): '
       +GetInteger(GL_ACCUM_RED_BITS) +' / '
       +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
       +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-      +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
-    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
+      +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
+    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
     {$endif}
-    '  Multisampling (full-screen antialiasing): ' + BoolToStr(GLFeatures.Multisample, true) +nl+
-    '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
-    nl+
+    '  Multisampling (full-screen antialiasing): ' + BoolToStr(GLFeatures.Multisample, true) + NL +
+    '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
+    NL +
 
     {$ifndef OpenGLES}
-    '-------------' +nl+
-    'Stack depths:' +nl+
-    '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
-    '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
-    '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
-    '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
-    '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
-    '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
-    nl+
+    '-------------' + NL +
+    'Stack depths:' + NL +
+    '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) + NL +
+    '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) + NL +
+    '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) + NL +
+    '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) + NL +
+    '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) + NL +
+    '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) + NL +
+    NL +
     {$endif}
 
-    '-------' +nl+
-    'Limits:' +nl+
-    '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) +nl+
-    '  Max lights: ' + IntToStr(GLFeatures.MaxLights) +nl+
+    '-------' + NL +
+    'Limits:' + NL +
+    '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
+    '  Max lights: ' + IntToStr(GLFeatures.MaxLights) + NL +
     {$ifndef OpenGLES}
-    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-    '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
-    '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
+    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) + NL +
+    '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) + NL +
+    '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) + NL +
     {$endif}
-    '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) +nl+
-    '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-    '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) +nl+
-    '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) +nl+
-    '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
-    '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
-    '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
+    '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) + NL +
+    '  Max viewport dims (width, height): ' +GLFeatures.MaxViewportDimensions.ToString + NL +
+    '  Max texture units (shader pipeline): ' + IntToStr(GLFeatures.MaxTextureUnitsShaders) + NL +
+    '  Max texture units (fixed-function): ' + IntToStr(GLFeatures.MaxTextureUnitsFixedFunction) + NL +
+    '  Max cube map texture size: ' + GetMaxCubeMapTextureSize + NL +
+    '  Max 3d texture size: ' + GetMaxTexture3DSize + NL +
+    '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy + NL +
     '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
-      GetQueryCounterBits +nl+
+      GetQueryCounterBits + NL +
     '  Max renderbuffer size: ' + GetMaxRenderbufferSize
-    {$ifdef OpenGLES} +NL+
+    {$ifdef OpenGLES} + NL +
     '  Max line width: ' + GetInteger(GL_ALIASED_LINE_WIDTH_RANGE)
     {$endif} + NL +
     NL +

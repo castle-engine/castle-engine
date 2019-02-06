@@ -44,6 +44,7 @@ uses
   TestCastleVectors,
   TestCastleTriangles,
   TestCastleColors,
+  TestCastleQuaternions,
   TestCastleKeysMouse,
   TestCastleImages,
   TestCastleImagesDraw,
@@ -51,6 +52,7 @@ uses
   TestCastleFrustum,
   TestCastleTransform,
   TestCastleParameters,
+  TestCastleUIControls,
   TestCastleCameras,
   TestX3DFields,
   TestX3DNodes,
@@ -74,12 +76,14 @@ uses
   TestCastleTimeUtils,
   TestCastleControls,
   TestCastleRandom,
-  TestCastleSoundEngine
+  TestCastleSoundEngine,
+  TestCastleComponentSerialize,
+  TestX3DLoadInternalUtils
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
-  TestCastleGLFonts,
+  TestCastleFonts,
   TestCastleWindowOpen
   {$endif} {$endif}
 

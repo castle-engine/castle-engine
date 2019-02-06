@@ -16,6 +16,7 @@
 {$ifdef read_interface}
 
   TX3DField = class;
+  TX3DFieldList = class;
 
   TX3DFieldClass = class of TX3DField;
 
@@ -23,6 +24,20 @@
     see @link(TX3DEvent.AddNotification). }
   TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
     const Time: TX3DTime) of object;
+
+  { Send along with the animation that should be applied only partially
+    (because it fades-out or fades-in). }
+  TPartialSend = class
+    { Strength of the fading-in/out animation, in 0..1. }
+    Partial: Single;
+
+    { All fields affected by sending of this TPartialSend should
+      add themselves to this list. }
+    AffectedFields: TX3DFieldList;
+
+    constructor Create;
+    destructor Destroy; override;
+  end;
 
   { Base class for all VRML/X3D fields.
 
@@ -67,6 +82,85 @@
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
+  private
+    type
+      { Tracking of fading-in/out animation state on this particular field. }
+      TPartialReceived = class
+        { Strength of the fading-in/out value accumulated inside PartialValue.
+          Reset each frame.
+
+          Sending value with TPartialSend.Partial = X always adds X to this
+          TPartialReceived.Partial, when send in the same frame.
+          So e.g. sending two values, one with TPartialSend.Partial = 0.3,
+          one with TPartialSend.Partial = 0.7, sets TPartialReceived.Partial = 1.0.
+
+          At the end, PartialValue will be mixed (lerp) with SettledValue,
+          to produce final Value.
+          This way animation blending works in various cases:
+          - New animations fades-in, old animation fades-out
+            (at the end, Partial = 1.0).
+          - New animations fades-in, no old animation fades-out
+            (maybe fading-out animation does not affect this field,
+            or maybe there is no fading-out animation)
+            (at the end, Partial <= 1.0).
+        }
+        Partial: Single;
+
+        { Accumulated (this frame) partial values. }
+        PartialValue: TX3DField;
+
+        { Last known value when animation blending did not occur. }
+        SettledValue: TX3DField;
+
+        { Should the PartialValue, SettledValue be used to determine
+          field value this frame.
+
+          Why do we need this?
+
+            Checking this in InternalAffectedPartial avoids processing the field
+            twice, in case it was added twice to PartialSend.AffectedFields
+            (easily possible if it was under the influence of both old and new
+            animations).
+
+          Why not using Partial <> 0 for this?
+
+            Because sometimes Partial may be 0.
+
+            When starting a 1st animation, and it has TransitionDuration <> 0,
+            then the SetTime in HandleChangeTimeStopStart
+            activates the sensor, and the next SetTime (from Update)
+            may produce PartialReceived instance with PartialReceived.Partial = 0.
+
+            We *want* to apply this PartialReceived.Partial with 0.
+            Otherwise, the field value would be set immediately to the 1st pose
+            of new animation, disregarding smooth animation blending.
+
+            Testcase: examples/play_animation/ , switch to sample 3D,
+            increase transition = max, play "idle".
+            When "Partial <> 0" is used instead of ToBeApplied,
+            the 1st frame of "idle" quickly blinks at the beginning.
+
+            We could hack it by not doing SetTime in HandleChangeTimeStopStart,
+            but it's better to behave reliably in this case (Partial = 0) alwatys.
+
+          This is now just a shortcut for "PartialValue <> nil", as this satisfies
+          our needs.
+        }
+        function ToBeApplied: boolean;
+
+        destructor Destroy; override;
+      end;
+
+    var
+      { Internally set to non-nil only on fields representing event value
+        (Value parameter in TX3DEventReceive callback),
+        in case they correspond to a fading-in or fading-out animation. }
+      FPartialSend: TPartialSend;
+      FPartialSendIgnore: Cardinal; static;
+
+      { Used by fields that have their value affected by the fading-in/fading-out
+        animation. }
+      PartialReceived: TPartialReceived;
   strict protected
     function SendsByEvent: boolean;
 
@@ -473,6 +567,13 @@
       cause appropriate action on this change. }
     procedure AddNotification(const Notification: TX3DEventReceive);
     procedure RemoveNotification(const Notification: TX3DEventReceive);
+
+    { @exclude Internal routine, needed by animation blending. }
+    procedure InternalAffectedPartial;
+    { @exclude Internal routine, needed by animation blending. }
+    procedure InternalRemovePartial;
+    { @exclude Internal property, needed by animation blending. }
+    property InternalPartialSend: TPartialSend read FPartialSend write FPartialSend;
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
@@ -499,6 +600,34 @@
 
 {$ifdef read_implementation}
 
+{ TPartialSend --------------------------------------------------------------- }
+
+constructor TPartialSend.Create;
+begin
+  AffectedFields := TX3DFieldList.Create(false);
+  inherited;
+end;
+
+destructor TPartialSend.Destroy;
+begin
+  FreeAndNil(AffectedFields);
+  inherited;
+end;
+
+{ TX3DField.TPartialReceived --------------------------------------------------------------- }
+
+function TX3DField.TPartialReceived.ToBeApplied: boolean;
+begin
+  Result := PartialValue <> nil;
+end;
+
+destructor TX3DField.TPartialReceived.Destroy;
+begin
+  FreeAndNil(SettledValue);
+  FreeAndNil(PartialValue);
+  inherited;
+end;
+
 { TX3DField ------------------------------------------------------------- }
 
 constructor TX3DField.Create(const AParentNode: TX3DFileItem;
@@ -522,6 +651,8 @@ destructor TX3DField.Destroy;
 begin
   FreeAndNil(FExposedEvents[false]);
   FreeAndNil(FExposedEvents[true]);
+  // FreeAndNil(FPartialSend); // do not free this, TCastleSceneCore frees it
+  FreeAndNil(PartialReceived);
   inherited;
 end;
 
@@ -553,8 +684,7 @@ begin
     (Although we still have to call FExposedEvents[false].Send,
     to push the change through the routes.)
     This may be an important optimization when simple field's change
-    causes large time-consuming work in InternalChangedField, e.g. consider
-    Switch.whichChoice which means currently rebuilding a lot of things. }
+    causes large time-consuming work in InternalChangedField. }
   ValuePossiblyChanged := not FastEqualsValue(Value);
 
   { This is trivial handling of exposed events: just set our value,
@@ -567,7 +697,9 @@ begin
   { Tests:
   if not ValuePossiblyChanged then
     writeln('ignored field ', Name, ' change, since values the same'); }
-  if ValuePossiblyChanged then
+  if ValuePossiblyChanged and
+    // do not send Changed if it will be send later by InternalAffectedPartial
+    not ((PartialReceived <> nil) and PartialReceived.ToBeApplied) then
     Changed;
 end;
 
@@ -863,8 +995,82 @@ begin
 end;
 
 procedure TX3DField.AssignValue(Source: TX3DField);
+
+  procedure UpdatePartialReceived(const PartialSend: TPartialSend);
+  begin
+    if PartialReceived = nil then
+    begin
+      PartialReceived := TPartialReceived.Create;
+      { when PartialReceived is created, initialize SettledValue by copying Self }
+      PartialReceived.SettledValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
+      PartialReceived.SettledValue.AssignValue(Self);
+    end;
+
+    { update PartialReceived.PartialValue, by lerp with weights
+        PartialReceived.Partial, PartialSend.Partial
+      between these two values:
+        PartialReceived.PartialValue, new Source value. }
+    if PartialReceived.PartialValue = nil then
+    begin
+      PartialReceived.PartialValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
+      { For the first assignment, it's faster to use AssignValue then AssignLerp.
+        Also, AssignLerp expects MF fields to have correct counts. }
+      PartialReceived.PartialValue.AssignValue(Source);
+    end else
+    begin
+      PartialReceived.PartialValue.AssignLerp(
+        1 - PartialReceived.Partial / (PartialReceived.Partial + PartialSend.Partial),
+        PartialReceived.PartialValue, Source);
+    end;
+    Assert(PartialReceived.ToBeApplied); // we have initialized PartialReceived.PartialValue
+    PartialReceived.Partial += PartialSend.Partial;
+    // note that we can add duplicates to PartialSend.AffectedFields, that's OK
+    PartialSend.AffectedFields.Add(Self);
+  end;
+
 begin
   ValueFromIsClause := false;
+
+  if (Source.InternalPartialSend <> nil) and
+     (FPartialSendIgnore = 0) and
+     CanAssignLerp then
+  begin
+    { using FPartialSendIgnore, to ignore Source.InternalPartialSend
+      in recursive AssignValue inside UpdatePartialReceived. }
+    Inc(FPartialSendIgnore);
+    UpdatePartialReceived(Source.InternalPartialSend);
+    Dec(FPartialSendIgnore);
+  end;
+
+  { fade-in/out overridden by another animation that is not fading-in/out }
+  if (PartialReceived <> nil) and (Source.InternalPartialSend = nil) then
+    FreeAndNil(PartialReceived);
+end;
+
+procedure TX3DField.InternalAffectedPartial;
+begin
+  { About PartialReceived <> nil: usually PartialReceived <> nil now,
+    but in some corner-cases it may be nil: if it was freed by
+    "fade-in/out overridden by another animation that is not fading-in/out".. }
+
+  if (PartialReceived <> nil) and PartialReceived.ToBeApplied then
+  begin
+    AssignLerp(PartialReceived.Partial, PartialReceived.SettledValue, PartialReceived.PartialValue);
+    PartialReceived.Partial := 0;
+    FreeAndNil(PartialReceived.PartialValue);
+    Assert(not PartialReceived.ToBeApplied); // we have destroyed PartialReceived.PartialValue
+
+    Changed;
+  end;
+end;
+
+procedure TX3DField.InternalRemovePartial;
+begin
+  { Field is no longer affected by faded-in/out animation.
+    Next time it *will* become affected,
+    PartialReceived and in particular PartialReceived.SettledValue
+    will be initialized again. }
+  FreeAndNil(PartialReceived);
 end;
 
 procedure TX3DField.AssignDefaultValueFromValue;

@@ -141,8 +141,10 @@ type
   end;
 
   TColorPerVertexCoordinateRenderer = class(TFogCoordinateRenderer)
+  {$ifndef OpenGLES}
   private
     MaterialFromColorEnabled: boolean;
+  {$endif}
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -184,8 +186,6 @@ var
       Attribs := TGLSLAttributeList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
     begin
-      // TODO: would be faster to not query GLSLProgram.Attribute every frame,
-      // but save it in GLSLProgram.
       A := GLSLProgram.AttributeOptional(Arrays.Attribs[I].Name);
       if A.Location = -1 then
       begin
@@ -534,8 +534,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       { CameraMatrix transforms from world space to camera space,
         we want to transform directions from camera space to world
         space below. So inverted CameraMatrix is exactly what we need. }
-      RenderingCamera.InverseMatrixNeeded;
-      glMultMatrix(RenderingCamera.InverseMatrix);
+      Renderer.RenderingCamera.InverseMatrixNeeded;
+      glMultMatrix(Renderer.RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
 
       (*
@@ -697,7 +697,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             begin
               {$ifndef OpenGLES}
               glPushMatrix;
-                glLoadMatrix(RenderingCamera.Matrix);
+                glLoadMatrix(Renderer.RenderingCamera.Matrix);
 
                 glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
                 glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
@@ -714,8 +714,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
               {$endif}
             end;
 
-            RenderingCamera.InverseMatrixNeeded;
-            ProjectorMatrix :=  ProjectorMatrix * RenderingCamera.InverseMatrix;
+            Renderer.RenderingCamera.InverseMatrixNeeded;
+            ProjectorMatrix :=  ProjectorMatrix * Renderer.RenderingCamera.InverseMatrix;
 
             Shader.EnableTexGen(TexUnit, tgEye, 0, ProjectorMatrix.Rows[0]);
             Shader.EnableTexGen(TexUnit, tgEye, 1, ProjectorMatrix.Rows[1]);
@@ -753,6 +753,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Shader.EnableTexGen(TexUnit, tgObject, 0, TexCoord.GenerationBoundsVector[0]);
           Shader.EnableTexGen(TexUnit, tgObject, 1, TexCoord.GenerationBoundsVector[1]);
           Shader.EnableTexGen(TexUnit, tgObject, 2, TexCoord.GenerationBoundsVector[2]);
+        end;
+      tgMirrorPlane:
+        begin
+          Shader.EnableTexGen(TexUnit, tgcMirrorPlane, false);
+          Shader.MirrorPlaneUniforms := Shape.MirrorPlaneUniforms;
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;

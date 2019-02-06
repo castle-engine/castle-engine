@@ -69,19 +69,12 @@ type
       when Time is < 0, we show the first frame,
       and when Time is > @link(Duration), we show the last frame forever.
 
-      This looping (or not looping) is done regardless of whether the 3D model
-      wants (or not) looping. For example, in case of castle-anim-frames files,
-      we ignore their loop boolean attribute.
-      In case of X3D, we ignore TimeSensor.loop field.
-      In other words, any looping settings inside 3D model are ignored.
-      You control looping fully by the Loop parameter to this method.
-
       This returns the scene (TCastleScene) with state reflecting given time
       (TimeSensor forced to given time). }
     function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
     { Scene URL, only when each animation is inside a separate 3D file.
-      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
     property URL: string read FURL write FURL;
 
@@ -94,7 +87,7 @@ type
       animation model (from @link(URL)) or, when not defined,
       inside whole resource model (from @link(T3DResource.ModelURL)).
 
-      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
     property AnimationName: string read FAnimationName write FAnimationName;
     property TimeSensor: string read FAnimationName write FAnimationName;
@@ -292,7 +285,7 @@ type
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
       see "Which way is up" section in the engine tutorial
-      [http://castle-engine.sourceforge.net/tutorial_up.php].
+      [https://castle-engine.io/tutorial_up.php].
 
       Currently, falling down of creatures and items just uses this constant speed.
       In the future, we plan to add properties to control mass and air friction
@@ -304,7 +297,7 @@ type
       to gravity).
 
       See TCastleTransform.FallSpeed for precise definition, this works the same,
-      except our default value is non-zero, and by default T3D.Gravity
+      except our default value is non-zero, and by default TCastleTransform.Gravity
       and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
       read FFallSpeed write FFallSpeed default DefaultFallSpeed;
@@ -333,7 +326,7 @@ type
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
-      [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      [https://castle-engine.io/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
     property ModelURL: string read FModelURL write FModelURL;
   end;
@@ -459,7 +452,6 @@ var
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 var
-  Looping: TPlayAnimationLooping;
   GoodAnimationName: string;
   ActualTime: TFloatTime;
   ForceNecessary: boolean;
@@ -478,10 +470,6 @@ begin
       GoodAnimationName := AnimationName
     else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
-    if Loop then
-      Looping := paLooping
-    else
-      Looping := paNotLooping;
 
     // if Defined and (Duration = 0) then
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',
@@ -507,7 +495,7 @@ begin
       LastForcedAnimationName := AnimationName;
       LastForcedLoop := Loop;
       LastForcedActualTime := ActualTime;
-      Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+      Result.ForceAnimationPose(GoodAnimationName, Time, Loop);
     end;
 
     {$ifdef STATISTICS_FORCING_OPTIMIZATION}
@@ -544,7 +532,7 @@ procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
     Loads the resource only if URL is not empty,
     and only if it's not already loaded (that is,
     when Scene = nil).
-    Prepares for fast rendering and other processing by T3D.PrepareResources.
+    Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
     Calls Progress.Step 2 times, if DoProgress. }
   procedure PrepareScene(var Scene: TCastleScene; const URL: string);
   begin
@@ -683,9 +671,14 @@ procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
   I: Integer;
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Prepare Animations of Resource ' + Name);
+
   for I := 0 to Animations.Count - 1 do
     Animations[I].Prepare(Params, DoProgress);
+
+  Profiler.Stop(TimeStart);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
@@ -735,7 +728,7 @@ begin
   if DoProgress then Progress.Init(PrepareCoreSteps, 'Loading ' + Name);
   try
     { It's important to do ReleaseCore after Progress.Init.
-      That is because Progress.Init may do TCastleWindowCustom.SaveScreenToDisplayList,
+      That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
       and this may call Window.OnRender, and this may want to redraw
       the object (e.g. if creature of given resource already exists
       on the screen) and this requires Prepare to be already done.
@@ -803,8 +796,8 @@ begin
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
       Xml.URL := URL;
-      if Log then
-        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+      // if Log then
+      //   WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
       if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
@@ -914,8 +907,8 @@ var
   I: Integer;
   Resource: T3DResource;
   PrepareSteps: Cardinal;
-  TimeBegin: TProcessTimerResult;
   PrepareNeeded, DoProgress: boolean;
+  TimeStart: TCastleProfilerTime;
 begin
   { We iterate two times over Items, first time only to calculate
     PrepareSteps, 2nd time does actual work.
@@ -937,8 +930,7 @@ begin
 
   if PrepareNeeded then
   begin
-    if Log then
-      TimeBegin := ProcessTimer;
+    TimeStart := Profiler.Start('Loading ' + ResourcesName);
 
     DoProgress := not Progress.Active;
     if DoProgress then Progress.Init(PrepareSteps, 'Loading ' + ResourcesName);
@@ -948,9 +940,6 @@ begin
         Resource := Items[I];
         if Resource.UsageCount = 1 then
         begin
-          if Log then
-            WritelnLog('Resources', Format(
-              'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
           Resource.PrepareCore(Params, DoProgress);
           Resource.FPrepared := true;
@@ -960,10 +949,7 @@ begin
       if DoProgress then Progress.Fini;
     end;
 
-    if Log then
-      WritelnLog('Resources', Format('Loading %s time: %f seconds',
-        [ ResourcesName,
-          ProcessTimerSeconds(ProcessTimer, TimeBegin) ]));
+    Profiler.Stop(TimeStart);
   end;
 end;
 

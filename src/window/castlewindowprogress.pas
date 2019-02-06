@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Progress bar displayed in a TCastleWindowCustom.
+{ Progress bar displayed in a TCastleWindowBase.
 
-  Simply set @code(WindowProgressInterface.Window) to your TCastleWindowCustom
+  Simply set @code(WindowProgressInterface.Window) to your TCastleWindowBase
   instance, and assign
 
   @longCode(#  Progress.UserInterface := WindowProgressInterface;#)
@@ -54,14 +54,14 @@ type
     { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    UsedWindow: TCastleWindowCustom;
+    UsedWindow: TCastleWindowBase;
     SavedMode: TGLMode;
-    function GetWindow: TCastleWindowCustom;
-    procedure SetWindow(const Value: TCastleWindowCustom);
+    function GetWindow: TCastleWindowBase;
+    procedure SetWindow(const Value: TCastleWindowBase);
   public
     { @deprecated Using this is deprecated, you should rather assign to
       Application.MainWindow. }
-    property Window: TCastleWindowCustom read GetWindow write SetWindow; deprecated;
+    property Window: TCastleWindowBase read GetWindow write SetWindow; deprecated;
 
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -76,16 +76,19 @@ var
 
 implementation
 
+{$warnings off}
+// TODO: This unit temporarily uses RenderingCamera singleton.
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
+{$warnings on}
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
-function TWindowProgressInterface.GetWindow: TCastleWindowCustom;
+function TWindowProgressInterface.GetWindow: TCastleWindowBase;
 begin
   Result := Application.MainWindow;
 end;
 
-procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindowCustom);
+procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindowBase);
 begin
   Application.MainWindow := Value;
 end;

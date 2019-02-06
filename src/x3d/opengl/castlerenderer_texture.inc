@@ -271,9 +271,13 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TAbstractViewpointNode;
-      CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3);
+      const CurrentViewpoint: TAbstractViewpointNode;
+      const CameraViewKnown: boolean;
+      const CameraPosition, CameraDirection, CameraUp: TVector3;
+      const ShapeBoundingBox: TBox3D;
+      const GeometryTransform: TMatrix4;
+      const GeometryCoords: TVector3List;
+      var MirrorPlaneUniforms: TMirrorPlaneUniforms);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -608,7 +612,7 @@ procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   replace material color (see "Lighting model" spec) *in case of RGB
   (not grayscale) textures*. We contradict spec, instead modulating
   with material color because of GL_MODULATE below. See
-  http://castle-engine.sourceforge.net/x3d_multi_texturing.php#section_default_texture_mode .
+  https://castle-engine.io/x3d_multi_texturing.php#section_default_texture_mode .
 
   For alpha channel: specification says clearly that texture alpha
   should replace (never modulate) alpha channel, if only texture
@@ -841,13 +845,13 @@ begin
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.SourceArgument[cAlpha]], GL_SRC_ALPHA);
             end;
 
-            if (Env.Combine[cRGB] = coInterpolate) or
-               (Env.Combine[cAlpha] = coInterpolate) then
+            if (Env.Combine[cRGB] = coBlend) or
+               (Env.Combine[cAlpha] = coBlend) then
             begin
               { Whole source2 (both RGB and alpha) is filled by alpha from color
-                specified by InterpolateAlphaSource. }
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.InterpolateAlphaSource]);
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.InterpolateAlphaSource]);
+                specified by BlendAlphaSource. }
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.BlendAlphaSource]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.BlendAlphaSource]);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
             end;
@@ -889,7 +893,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
-  GUITexture: boolean;
+  GUITexture, FlipVertically: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
@@ -901,6 +905,10 @@ begin
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
+  FlipVertically :=
+    (TextureNode is TImageTextureNode) and
+    TImageTextureNode(TextureNode).FlipVertically;
+
   FGLName := Renderer.Cache.TextureImage_IncReference(
     TextureNode.TextureImage,
     TextureNode.TextureUsedFullUrl,
@@ -909,7 +917,8 @@ begin
     Anisotropy,
     TextureWrap,
     TextureNode.TextureComposite,
-    GUITexture);
+    GUITexture,
+    FlipVertically);
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1126,7 +1135,7 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, nil, Width, Height, false);
+      TextureNode, TextureWrap, smNone, Width, Height, false);
   end else
   begin
     InitialImage := TRGBImage.Create(Width, Height);
@@ -1147,7 +1156,8 @@ begin
         Anisotropy,
         TextureWrap,
         nil,
-        GUITexture);
+        GUITexture,
+        false);
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory
@@ -1210,14 +1220,15 @@ procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TAbstractViewpointNode;
-  CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3);
+  const CurrentViewpoint: TAbstractViewpointNode;
+  const CameraViewKnown: boolean;
+  const CameraPosition, CameraDirection, CameraUp: TVector3;
+  const ShapeBoundingBox: TBox3D;
+  const GeometryTransform: TMatrix4;
+  const GeometryCoords: TVector3List;
+  var MirrorPlaneUniforms: TMirrorPlaneUniforms);
 
-var
-  Viewpoint: TAbstractViewpointNode;
-
-  function GetProjectionMatrix: TMatrix4;
+  function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
     we have to calculate projection, given Viewpoint node.
 
@@ -1311,7 +1322,8 @@ var
     end;
   end;
 
-  procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3);
+  procedure GetRenderedTextureCamera(const Viewpoint: TAbstractViewpointNode;
+    out Pos, Dir, Up: TVector3);
   var
     { It's returned by Viewpoint.GetView, but we'll ignore it. }
     GravityUp: TVector3;
@@ -1346,44 +1358,182 @@ var
     end;
   end;
 
+  { Best plane for a set of points.
+    The plane direction (first 3 components) is guaranteed to be normalized. }
+  function PointsPlane(const Points: TVector3List; out Plane: TVector4): Boolean;
+  var
+    Normal: TVector3 absolute Plane;
+    Tri: TTriangle3;
+    I: Integer;
+    PlaneShift: Single;
+    Point: TVector3;
+  begin
+    if Points.Count < 3 then Exit(false);
+
+    { Calculate plane Normal, averaging normals of all valid triangles.
+      Assumes polygon is convex. }
+
+    Normal := TVector3.Zero;
+
+    Tri[0] := Points.List^[0];
+    Tri[1] := Points.List^[1];
+    Tri[2] := Points.List^[2];
+    if Tri.IsValid then
+      Normal := Tri.Normal;
+
+    for I := 3 to Points.Count - 1 do
+    begin
+      Tri[1] := Tri[2];
+      Tri[2] := Points.List^[I];
+      if Tri.IsValid then
+        Normal := Normal + Tri.Normal;
+    end;
+
+    if Normal.IsPerfectlyZero then
+      Exit(false); // no valid triangle
+
+    { calculate Plane[3] by averaging possible shift for all Points }
+    PlaneShift := 0;
+    for Point in Points do
+    begin
+      PlaneShift := PlaneShift +
+        -Normal.Data[0] * Point.Data[0]
+        -Normal.Data[1] * Point.Data[1]
+        -Normal.Data[2] * Point.Data[2];
+    end;
+    PlaneShift := PlaneShift / Points.Count;
+
+    Plane[3] := PlaneShift;
+    Result := true;
+  end;
+
+  procedure GetMatricesForViewpoint(const Viewpoint: TAbstractViewpointNode;
+    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
+  var
+    Pos, Dir, Up: TVector3;
+  begin
+    ProjectionMatrix := GetProjectionMatrix(Viewpoint);
+
+    GetRenderedTextureCamera(Viewpoint, Pos, Dir, Up);
+    CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
+  end;
+
+  procedure GetMatricesForViewpointMirror(const Viewpoint: TViewpointMirrorNode;
+    out CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4);
+  var
+    Pos, Dir, Up, PosOnPlane, Side, Coord, PlaneCoord: TVector3;
+    PlaneCoordProjected: TVector2;
+    Plane: TVector4;
+    ZNear: Single;
+    FrustumDimensions: TFloatRectangle;
+    ShapeCorners: TBoxCorners;
+  begin
+    if GeometryCoords = nil then
+    begin
+      WritelnWarning('ViewpointMirror can only be used on node with coordinates');
+      GetMatricesForViewpoint(
+        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+
+    GetRenderedTextureCamera(CurrentViewpoint, Pos, Dir, Up);
+
+    { calculate Plane of the mirror }
+    if not PointsPlane(GeometryCoords, Plane) then
+    begin
+      WritelnWarning('ViewpointMirror plane cannot be determined, the shape does not define a plane');
+      GetMatricesForViewpoint(
+        CurrentViewpoint, CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+      Exit;
+    end;
+    Plane := PlaneTransform(Plane, GeometryTransform);
+
+    { reflect Pos, Dir, Up for mirror view }
+    PosOnPlane := PointOnPlaneClosestToPoint(Plane, Pos);
+    Pos := 2 * PosOnPlane - Pos; // mirror Pos versus Plane
+    Dir := PosOnPlane - Pos;
+    //Up := keep current Up
+
+    { calculate Side, and make Dir, Up normalized and orthogonal }
+    Dir.NormalizeMe;
+    //Up.NormalizeMe; // no need to
+    MakeVectorsOrthoOnTheirPlane(Up, Dir);
+    Side := TVector3.CrossProduct(Dir, Up);
+
+    CameraMatrix := LookDirMatrix(Pos, Dir, Side, Up);
+    CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Side, Up);
+
+    { calculate FrustumDimensions,
+      to include ShapeBoundingBox projected on the Plane. }
+    ShapeBoundingBox.Corners(ShapeCorners);
+    FrustumDimensions := TFloatRectangle.Empty;
+    for Coord in ShapeCorners do
+    begin
+      PlaneCoord := PointOnPlaneClosestToPoint(Plane, Coord) - PosOnPlane;
+      PlaneCoordProjected := Vector2(
+        TVector3.DotProduct(PlaneCoord, Side),
+        TVector3.DotProduct(PlaneCoord, Up)
+      );
+      FrustumDimensions := FrustumDimensions.Include(PlaneCoordProjected);
+    end;
+
+    ZNear := PointsDistance(Pos, PosOnPlane) + Viewpoint.DistanceFromShape;
+    ProjectionMatrix := FrustumProjectionMatrix(FrustumDimensions,
+      ZNear, ProjectionFar);
+
+    if MirrorPlaneUniforms = nil then
+      MirrorPlaneUniforms := TMirrorPlaneUniforms.Create;
+    MirrorPlaneUniforms.NormalizedPlane := Plane;
+    MirrorPlaneUniforms.CameraPositionOnPlane := PosOnPlane;
+    MirrorPlaneUniforms.CameraSide := Side;
+    MirrorPlaneUniforms.CameraUp := Up;
+    MirrorPlaneUniforms.FrustumDimensions := FrustumDimensions;
+  end;
+
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
-  Pos, Dir, Up: TVector3;
+  Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
 
   { calculate Viewpoint }
-  if (TextureNode.FdViewpoint.Value <> nil) and
-     (TextureNode.FdViewpoint.Value is TAbstractViewpointNode) then
-    Viewpoint := TAbstractViewpointNode(TextureNode.FdViewpoint.Value) else
-    Viewpoint := CurrentViewpoint;
+  if TextureNode.FdViewpoint.Value is TViewpointMirrorNode then
+    GetMatricesForViewpointMirror(
+      TViewpointMirrorNode(TextureNode.FdViewpoint.Value),
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+  else
+  if TextureNode.FdViewpoint.Value is TAbstractViewpointNode then
+    GetMatricesForViewpoint(
+      TAbstractViewpointNode(TextureNode.FdViewpoint.Value),
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix)
+  else
+    GetMatricesForViewpoint(
+      CurrentViewpoint,
+      CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
-  NewProjectionMatrix := GetProjectionMatrix;
   TextureNode.EventProjection.Send(NewProjectionMatrix);
-
-  GetRenderedTextureCamera(Pos, Dir, Up);
-  CameraMatrix := LookDirMatrix(Pos, Dir, Up);
-  CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   TextureNode.EventViewing.Send(CameraMatrix);
-
   TextureNode.EventRendering.Send(true);
 
-  RenderingCamera.Target := rfOffScreen;
-  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix,
-    Viewpoint);
+  Camera := TRenderingCamera.Create;
+  try
+    Camera.Target := rfRenderedTexture;
+    Camera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix);
 
-  RenderToTexture.RenderBegin;
+    RenderToTexture.RenderBegin;
 
-    glViewport(Rectangle(0, 0, Width, Height));
+      RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    RenderContext.ProjectionMatrix := NewProjectionMatrix;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-    Render;
+      Render(Camera);
 
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
-  RenderToTexture.RenderEnd;
+    RenderToTexture.RenderEnd;
+  finally FreeAndNil(Camera) end;
 
   { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
     cannot have mipmaps regenerated. On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
@@ -1848,7 +1998,7 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size,
+      TextureNode, TextureWrap, TextureNode.CompareMode, Size, Size,
       VisualizeDepthMap);
   end;
 
@@ -1908,57 +2058,63 @@ procedure TGLGeneratedShadowMap.Update(
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedDepthRange: TDepthRange;
+  Camera: TRenderingCamera;
 begin
   if FGLName = 0 then Exit;
 
   { Render view for shadow map }
   NewProjectionMatrix := Light.ProjectionMatrix;
 
-  if VarianceShadowMaps then
-    RenderingCamera.Target := rtVarianceShadowMap else
-    RenderingCamera.Target := rtShadowMap;
+  Camera := TRenderingCamera.Create;
+  try
+    if VarianceShadowMaps then
+      Camera.Target := rtVarianceShadowMap
+    else
+      Camera.Target := rtShadowMap;
 
-  RenderingCamera.FromMatrix(
-    Light.ModelviewMatrix,
-    Light.ModelviewRotationMatrix,
-    NewProjectionMatrix, nil);
+    Camera.FromMatrix(
+      Light.ModelviewMatrix,
+      Light.ModelviewRotationMatrix,
+      NewProjectionMatrix);
 
-  RenderToTexture.RenderBegin;
+    RenderToTexture.RenderBegin;
 
-    glViewport(Rectangle(0, 0, Size, Size));
+      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    RenderContext.ProjectionMatrix := NewProjectionMatrix;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-      { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
-      SavedDepthRange := RenderContext.DepthRange;
-      RenderContext.DepthRange := drFull;
+        { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
+        SavedDepthRange := RenderContext.DepthRange;
+        RenderContext.DepthRange := drFull;
 
-      {$ifndef OpenGLES} // TODO-es
-      glPushAttrib(GL_POLYGON_BIT);
-        { enable polygon offset for everything (whole scene).
+        {$ifndef OpenGLES} // TODO-es
+        glPushAttrib(GL_POLYGON_BIT);
+          { enable polygon offset for everything (whole scene).
 
-          VarianceShadowMaps notes: can offset be avoided in this case?
-          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
-          offset is still needed for VSM. Without offset, VSM has some noise,
-          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
-        glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-        glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-        glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-        glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
-      {$endif}
+            VarianceShadowMaps notes: can offset be avoided in this case?
+            Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+            offset is still needed for VSM. Without offset, VSM has some noise,
+            and sunny_street demos have noise on walls. With offset, VSM is perfect. }
+          glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+          glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+        {$endif}
 
-        Render;
+          Render(Camera);
 
-      {$ifndef OpenGLES} // TODO-es
-      glPopAttrib;
-      {$endif}
+        {$ifndef OpenGLES} // TODO-es
+        glPopAttrib;
+        {$endif}
 
-      RenderContext.DepthRange := SavedDepthRange;
+        RenderContext.DepthRange := SavedDepthRange;
 
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
-  RenderToTexture.RenderEnd;
+    RenderToTexture.RenderEnd;
+
+  finally FreeAndNil(Camera) end;
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;

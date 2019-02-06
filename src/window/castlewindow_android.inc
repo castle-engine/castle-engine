@@ -80,6 +80,7 @@ private
 
   var
     FScreenWidth, FScreenHeight: Integer;
+    FScreenStatusBarHeight: Cardinal;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
@@ -99,7 +100,7 @@ private
 procedure OpenContext;
 var
   Width, Height: Integer;
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   NativeWindow: PANativeWindow;
 begin
   Window := Application.MainWindow;
@@ -111,6 +112,7 @@ begin
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
+  Application.FScreenStatusBarHeight := Round(24 * Window.Dpi / 96); // TODO
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
   Window.FLeft := 0;
   Window.FTop := 0;
@@ -141,7 +143,7 @@ end;
   It's important that we release all OpenGL resources, to recreate them later. }
 procedure CloseContext;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
   AndroidLog(alInfo, 'CloseContext');
 
@@ -153,13 +155,14 @@ begin
   end;
 end;
 
-function DetermineDpi(App: PAndroid_app): Integer;
+function DetermineDpi(App: PAndroid_app): Single;
 type
   TAConfiguration_getScreenHeightDp = function (config: PAConfiguration): cint32; cdecl;
 var
-  Dpi, ScreenHeightDp: Integer;
+  ScreenHeightDp: Integer;
   AndroidLibrary: TDynLib;
   AConfiguration_getScreenHeightDp: TAConfiguration_getScreenHeightDp;
+  Dpi: Single;
 begin
   Dpi := 0;
 
@@ -173,7 +176,7 @@ begin
     begin
       ScreenHeightDp := AConfiguration_getScreenHeightDp(App^.Config);
       if ScreenHeightDp <> 0 {ACONFIGURATION_SCREEN_HEIGHT_DP_ANY} then
-        Dpi := Round((ANativeWindow_getHeight(App^.Window) * DefaultDpi) / ScreenHeightDp);
+        Dpi := (ANativeWindow_getHeight(App^.Window) * DefaultDpi) / ScreenHeightDp;
     end;
     FreeAndNil(AndroidLibrary);
   end;
@@ -182,7 +185,8 @@ begin
   if Dpi = 0 then
   begin
     Dpi := AConfiguration_getDensity(App^.Config);
-    if (Dpi = ACONFIGURATION_DENSITY_DEFAULT) or (Dpi = ACONFIGURATION_DENSITY_NONE) then
+    if (Dpi = ACONFIGURATION_DENSITY_DEFAULT) or
+       (Dpi = ACONFIGURATION_DENSITY_NONE) then
       Dpi := 0;
   end;
 
@@ -246,6 +250,8 @@ function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent):
 
   function CurrentPosition(const PointerIndex: Integer): TVector2;
   begin
+    // TODO: Use LeftTopToCastle, test
+    // (It should be OK, since ScreenHeight should equal FRealHeight always)
     Result := Vector2(
       AMotionEvent_getX(Event, PointerIndex),
       ScreenHeight - AMotionEvent_getY(Event, PointerIndex));
@@ -452,9 +458,9 @@ begin
   Application.Run;
 end;
 
-{ TCastleWindowCustom ---------------------------------------------------------- }
+{ TCastleWindowBase ---------------------------------------------------------- }
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
@@ -462,58 +468,58 @@ end;
   But we cannot do this from NDK, it would require implementing Java code
   connected to us. }
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
-begin
-  MenuFinalize;
-  MenuInitialize;
-end;
-
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 begin
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowCustom.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   ContextDestroy;
   { Note that we do not clear NativeWindow now, because we may need it
@@ -524,13 +530,13 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
 end;
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -540,13 +546,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   { Call menu shortcuts on key presses.
     Since we don't show MainMenu, this is the only way how we can at least
@@ -554,7 +560,7 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
@@ -564,9 +570,9 @@ begin
     FMousePosition := Value;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
-  FFullScreen := Value; //< does nothing on Android
+  FFullScreenBackend := FFullScreenWanted; // does nothing on Android
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -668,7 +674,8 @@ begin
     end;
 
   // loop condition avoids being clogged with motion events
-  until TimerSeconds(Timer, MessageHandlingBegin) > 1 / LimitFPS;
+  until TimerSeconds(Timer, MessageHandlingBegin) >
+    1 / ApplicationProperties.LimitFPS;
 
   if (MainWindow <> nil) and not MainWindow.Closed then
   begin
@@ -765,6 +772,11 @@ begin
   if FScreenHeight = 0 then
     WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
   Result := FScreenHeight;
+end;
+
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
+begin
+  Result := FScreenStatusBarHeight;
 end;
 
 function TCastleApplication.BackendName: string;

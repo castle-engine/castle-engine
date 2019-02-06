@@ -54,7 +54,7 @@
     if ([fileManager fileExistsAtPath:saveFilename]) {
         NSMutableDictionary* saveData;
 
-        NSDictionary* unarchivedObj = [NSKeyedUnarchiver unarchiveObjectWithFile:saveFilename];;
+        NSDictionary* unarchivedObj = [NSKeyedUnarchiver unarchiveObjectWithFile:saveFilename];
         if (unarchivedObj) {
             saveData = [[NSMutableDictionary alloc] initWithDictionary:unarchivedObj];
             NSNumber* autoSignInValue = [saveData objectForKey:@"autoSignIn"];

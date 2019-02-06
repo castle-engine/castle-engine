@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -26,16 +27,18 @@
     TCastleSceneManager.BackgroundColor .
     So if you use @link(TCastleSceneManager) that fills the whole screen,
     then there's no need to use this control. }
-  TCastleSimpleBackground = class(TUIControl)
+  TCastleSimpleBackground = class(TCastleUserInterface)
   strict private
     FColor: TCastleColor;
     procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
+    property Width default 0;
+    property Height default 0;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
-  end;
+  end deprecated 'use TCastleRectangleControl with FullSize=true; note that by default it has White color, while TCastleSimpleBackground has by default Black color.';
 
 {$endif read_interface}
 
@@ -47,6 +50,9 @@ constructor TCastleSimpleBackground.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := Black;
+  // This should have size = 0, to have empty rectangle, to never catch events
+  Width := 0;
+  Height := 0;
 end;
 
 procedure TCastleSimpleBackground.SetColor(const Value: TCastleColor);
@@ -54,7 +60,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 

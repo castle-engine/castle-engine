@@ -1,3 +1,4 @@
+{%MainUnit x3dnodes.pas}
 {
   Copyright 2008-2018 Michalis Kamburelis.
 
@@ -51,7 +52,7 @@ begin
      SCharIs(Id, 1, '#') then
   begin
     Delete(Id, 1, 1);
-    Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id) as TAbstractChildNode;
+    Node := LibraryNodesSwitch.FdChildren.FindName(Id) as TAbstractChildNode;
 
     { try to load required node on-demand from LibraryNodesAvailable }
     if Node = nil then
@@ -64,7 +65,7 @@ begin
           begin
             LibraryNodesAvailable.List^[J].Handled := true;
             ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.List^[J].Element);
-            Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id) as TAbstractChildNode;
+            Node := LibraryNodesSwitch.FdChildren.FindName(Id) as TAbstractChildNode;
             break;
           end;
       end;

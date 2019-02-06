@@ -278,11 +278,13 @@ procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
 begin
   { such implementation works a tiny bit faster (+4%) due to better optimization
     by compiler (uses CPU registers instead of a variable) }
-  Seed := ((Seed xor (Seed shl 1)) xor ((Seed xor (Seed shl 1)) shr 15)) xor
-         (((Seed xor (Seed shl 1)) xor ((Seed xor (Seed shl 1)) shr 15)) shl 4);
-  {Seed := Seed xor (Seed shl 1);
-  Seed := Seed xor (Seed shr 15);
-  Seed := Seed xor (Seed shl 4); }
+
+  Seed := ((Seed xor (Seed shl 7)) xor ((Seed xor (Seed shl 7)) shr 25)) xor
+         (((Seed xor (Seed shl 7)) xor ((Seed xor (Seed shl 7)) shr 25)) shl 12);
+
+  {Seed := Seed xor (Seed shl 7);
+  Seed := Seed xor (Seed shr 25);
+  Seed := Seed xor (Seed shl 12);}
 end;
 
 { This procedure is slow so it is better to use XorShiftCycle + direct access

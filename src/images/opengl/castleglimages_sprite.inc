@@ -60,8 +60,8 @@ type
       TSpriteAnimations = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSpriteAnimation>;
     var
     FImage: TGLImage;
-    FX, FY: Integer;
-    FDrawingWidth, FDrawingHeight: Cardinal;
+    FX, FY: Single;
+    FDrawingWidth, FDrawingHeight: Single;
     FFrames, FFrameWidth, FFrameHeight, FColumns: Cardinal;
     FFramesPerSecond: Single;
     FTime: TFloatTime;
@@ -76,22 +76,26 @@ type
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
+    FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
-    function GetFrameRect: TRectangle;
-    function GetDrawRect: TRectangle;
+    function GetFrameRect: TFloatRectangle;
+    function GetDrawRect: TFloatRectangle;
     function GetCenter: TVector2;
-    function GetPosition: TVector2Integer;
+    function GetPosition: TVector2Single;
     function GetRotation: Single;
-    procedure SetTime(AValue: TFloatTime);
-    procedure SetCenter(AValue: TVector2);
-    procedure SetCenterX(AValue: Single);
-    procedure SetCenterY(AValue: Single);
-    procedure SetDrawRect(AValue: TRectangle);
-    procedure SetFramesPerSecond(AValue: Single);
-    procedure SetFrame(AValue: Cardinal);
-    procedure SetPosition(APosition: TVector2Integer);
-    procedure SetRotation(AValue: Single);
+    function GetColor: TCastleColor;
+    procedure SetTime(const AValue: TFloatTime);
+    procedure SetCenter(const AValue: TVector2);
+    procedure SetCenterX(const AValue: Single);
+    procedure SetCenterY(const AValue: Single);
+    procedure SetDrawRect(const AValue: TFloatRectangle);
+    procedure SetFramesPerSecond(const AValue: Single);
+    procedure SetFrame(const AValue: Cardinal);
+    procedure SetPosition(const APosition: TVector2Single);
+    procedure SetRotation(const AValue: Single);
+    procedure SetColor(const AValue: TCastleColor);
+    procedure SetSmoothScaling(const Value: Boolean);
   public
     { Constructor.
       @param(URL URL of source image.)
@@ -186,11 +190,11 @@ type
     { @groupEnd }
 
     { Move sprite to position and rotation. }
-    procedure Move(AX, AY: Integer; ARot: Single=0);
+    procedure Move(AX, AY: Single; ARot: Single=0);
   public
-    property X: Integer read FX write FX;
-    property Y: Integer read FY write FY;
-    property Position: TVector2Integer read GetPosition write SetPosition;
+    property X: Single read FX write FX;
+    property Y: Single read FY write FY;
+    property Position: TVector2 read GetPosition write SetPosition;
 
     { Center X of rotation. Values between 0 and 1. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
@@ -199,20 +203,23 @@ type
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
 
     { Destination frame width to draw. }
-    property DrawingWidth: Cardinal read FDrawingWidth write FDrawingWidth;
+    property DrawingWidth: Single read FDrawingWidth write FDrawingWidth;
 
     { Destination frame height to draw. }
-    property DrawingHeight: Cardinal read FDrawingHeight write FDrawingHeight;
+    property DrawingHeight: Single read FDrawingHeight write FDrawingHeight;
 
     { Drawing rectangle. This is just a shortcut to get / set
       properties @link(X), @link(Y), DrawingWidth, DrawingHeight. }
-    property DrawRect: TRectangle read GetDrawRect write SetDrawRect;
+    property DrawRect: TFloatRectangle read GetDrawRect write SetDrawRect;
 
     { Center of rotation. Values between 0 and 1. }
     property Center: TVector2 read GetCenter write SetCenter;
 
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
+
+    { Color multiplier of the sprite, see @link(TGLImageCore.Color) }
+    property Color: TCastleColor read GetColor write SetColor;
 
     { Total number of frames. Readonly. Defined at creation. }
     property Frames: Cardinal read FFrames;
@@ -326,7 +333,38 @@ type
 
     { Is sprite diagonal flipped? }
     property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
-  end;
+
+     { Use smooth "bilinear" filtering when this is scaled. }
+    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+
+    { Prevent the color outside of rendered frame from creeping in,
+      by scaling image a bit to the inside.
+      Because of bilinear filtering (used when @link(SmoothScaling)),
+      the colors of neighboring pixels may be visible when you render
+      the sprite frame, and the sprite is significantly scaled.
+      The "neighboring pixels" may mean
+      "pixels from the adjacent sprite frame",
+      or sprite border (in case sprite frame is at the edge of the image),
+      or spacing between sprite frames (if any).
+
+      One way to workaround this is to add a 1-pixel or 2-pixel
+      spacing between each sprite frames, and fill this spacing
+      with the same color (including alpha) as the neighbor pixels.
+
+      Another workaround is to use this property.
+      This renders a slightly smaller sprite frame, such that bilinear
+      filtering doesn't have a chance to introduce colors from outside
+      of the desired sprite frame.
+      This is done only when @link(SmoothScaling), otherwise this property
+      is ignored.
+
+      The downside is that everything is slightly scaled,
+      and doesn't look perfect if you look closely at each pixel.
+      This property is ignored  }
+    property SmoothScalingSafeBorder: Boolean
+      read FSmoothScalingSafeBorder write FSmoothScalingSafeBorder
+      default false;
+ end;
 
   { List of sprites. }
   TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
@@ -372,7 +410,7 @@ end;
 
 { TSprite -------------------------------------------------------------------- }
 
-function TSprite.GetPosition: TVector2Integer;
+function TSprite.GetPosition: TVector2;
 begin
   Result[0] := FX;
   Result[1] := FY;
@@ -383,7 +421,12 @@ begin
   Result := FImage.Rotation;
 end;
 
-procedure TSprite.SetTime(AValue: TFloatTime);
+function TSprite.GetColor: TCastleColor;
+begin
+  Result := FImage.Color;
+end;
+
+procedure TSprite.SetTime(const AValue: TFloatTime);
 var
   Anim: TSpriteAnimation;
 begin
@@ -411,7 +454,7 @@ begin
     FFrame := TVideo.FrameIndexFromTime(FTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
 end;
 
-function TSprite.GetFrameRect: TRectangle;
+function TSprite.GetFrameRect: TFloatRectangle;
 var
   FullFrameWidth, FullFrameHeight: Cardinal;
 begin
@@ -437,7 +480,7 @@ begin
   Result := FImage.CenterY;
 end;
 
-function TSprite.GetDrawRect: TRectangle;
+function TSprite.GetDrawRect: TFloatRectangle;
 begin
   Result.Left := FX;
   Result.Bottom := FY;
@@ -451,23 +494,23 @@ begin
   Result[1] := CenterY;
 end;
 
-procedure TSprite.SetCenter(AValue: TVector2);
+procedure TSprite.SetCenter(const AValue: TVector2);
 begin
   CenterX := AValue[0];
   CenterY := AValue[1];
 end;
 
-procedure TSprite.SetCenterX(AValue: Single);
+procedure TSprite.SetCenterX(const AValue: Single);
 begin
   FImage.CenterX := AValue;
 end;
 
-procedure TSprite.SetCenterY(AValue: Single);
+procedure TSprite.SetCenterY(const AValue: Single);
 begin
   FImage.CenterY := AValue;
 end;
 
-procedure TSprite.SetDrawRect(AValue: TRectangle);
+procedure TSprite.SetDrawRect(const AValue: TFloatRectangle);
 begin
   FX := AValue.Left;
   FY := AValue.Bottom;
@@ -475,27 +518,32 @@ begin
   FDrawingHeight := AValue.Height;
 end;
 
-procedure TSprite.SetFramesPerSecond(AValue: Single);
+procedure TSprite.SetFramesPerSecond(const AValue: Single);
 begin
   if FFramesPerSecond = AValue then Exit;
   FFramesPerSecond := AValue;
 end;
 
-procedure TSprite.SetFrame(AValue: Cardinal);
+procedure TSprite.SetFrame(const AValue: Cardinal);
 begin
   if (FFrame = AValue) or (AValue >= FFrames) then Exit;
   FFrame := AValue;
 end;
 
-procedure TSprite.SetPosition(APosition: TVector2Integer);
+procedure TSprite.SetPosition(const APosition: TVector2);
 begin
   FX := APosition[0];
   FY := APosition[1];
 end;
 
-procedure TSprite.SetRotation(AValue: Single);
+procedure TSprite.SetRotation(const AValue: Single);
 begin
   FImage.Rotation := AValue;
+end;
+
+procedure TSprite.SetColor(const AValue: TCastleColor);
+begin
+  FImage.Color := AValue;
 end;
 
 constructor TSprite.CreateFrameSize(const AImage: TGLImage;
@@ -532,7 +580,8 @@ constructor TSprite.CreateFrameSize(const URL: string;
 var
   Img: TGLImage;
 begin
-  Img := TGLImage.Create(URL, ASmoothScaling);
+  FSmoothScaling := ASmoothScaling;
+  Img := TGLImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
@@ -544,7 +593,8 @@ constructor TSprite.Create(const URL: string;
 var
   Img: TGLImage;
 begin
-  Img := TGLImage.Create(URL, ASmoothScaling);
+  FSmoothScaling := ASmoothScaling;
+  Img := TGLImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can
@@ -604,7 +654,7 @@ end;
 
 procedure TSprite.Draw(const ScreenRectangle: TFloatRectangle);
 begin
-  FImage.DrawFlipped(ScreenRectangle, FloatRectangle(GetFrameRect),
+  DrawFlipped(ScreenRectangle,
     HorizontalFlip xor DiagonalFlip,
     VerticalFlip xor DiagonalFlip);
 end;
@@ -617,12 +667,16 @@ end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
   const FlipHorizontal, FlipVertical: boolean);
+var
+  F: TFloatRectangle;
 begin
-  FImage.DrawFlipped(ScreenRect, FloatRectangle(GetFrameRect),
-    FlipHorizontal, FlipVertical);
+  F := GetFrameRect;
+  if SmoothScaling and SmoothScalingSafeBorder then
+    F := F.Grow(-0.51);
+  FImage.DrawFlipped(ScreenRect, F, FlipHorizontal, FlipVertical);
 end;
 
-procedure TSprite.Move(AX, AY: Integer; ARot: Single);
+procedure TSprite.Move(AX, AY: Single; ARot: Single);
 begin
   FX := AX;
   FY := AY;
@@ -670,6 +724,15 @@ begin
     Result := FCustomAnimations[FCurrentAnimation].Duration
   else
     Result := Frames / FramesPerSecond;
+end;
+
+procedure TSprite.SetSmoothScaling(const Value: Boolean);
+begin
+  if FSmoothScaling <> Value then
+  begin
+    FSmoothScaling := Value;
+    FImage.SmoothScaling := Value;
+  end;
 end;
 
 {$endif read_implementation}

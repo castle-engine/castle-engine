@@ -44,7 +44,7 @@ type
   redraw the screen to the back buffer, and call this function to capture
   back buffer @italic(before) swapping, since this is the only reliable
   way to capture OpenGL screen.
-  Just use TCastleWindowCustom.SaveScreen to do it automatically.
+  Just use TCastleWindowBase.SaveScreen to do it automatically.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
@@ -69,7 +69,7 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
 { Captures current screen as a TGLImageCore instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean = false): TGLImageCore;
+  const SmoothScaling: boolean = false): TGLImage;
 
 {$endif read_interface}
 
@@ -139,14 +139,12 @@ end;
 
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean): TGLImageCore;
+  const SmoothScaling: boolean): TGLImage;
 var
   ScreenImage: TRGBImage;
 begin
   ScreenImage := SaveScreen_NoFlush(Rect, ReadBuffer);
-  try
-    Result := TGLImageCore.Create(ScreenImage, SmoothScaling);
-  finally FreeAndNil(ScreenImage) end;
+  Result := TGLImage.Create(ScreenImage, SmoothScaling, true);
 end;
 
 {$endif read_implementation}

@@ -1,20 +1,17 @@
 <?php
 
-global $castle_php_relative_path;
-$castle_php_relative_path = '../../../../cge-www/htdocs/';
+require_once 'cge-www-configure.php';
 
-require_once $castle_php_relative_path . 'castle_engine_functions.php';
-
-/* Below is copied from kambi-php-lib/kambi_common.php */
+/* Below is copied from castle-engine-website-base/kambi_common.php */
 ?>
 
 <!-- Bootstrap -->
-<link href="<?php echo CURRENT_URL; ?>kambi-php-lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/bootstrap/css/bootstrap.min.css'); ?>" rel="stylesheet">
 <!-- Bootstrap theme -->
-<link href="<?php echo CURRENT_URL; ?>kambi-php-lib/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/bootstrap/css/bootstrap-theme.min.css'); ?>" rel="stylesheet">
 
 <!-- Colorbox -->
-<link href="<?php echo CURRENT_URL; ?>kambi-php-lib/colorbox/example3/colorbox.css" type="text/css" rel="stylesheet">
+<link href="<?php echo page_requisite('castle-engine-website-base/colorbox/example3/colorbox.css'); ?>" type="text/css" rel="stylesheet">
 
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

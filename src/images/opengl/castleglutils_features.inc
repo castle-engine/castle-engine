@@ -96,6 +96,7 @@ type
     EXT_texture_filter_anisotropic: boolean;
     NV_multisample_filter_hint: boolean;
     ARB_occlusion_query: boolean;
+    EXT_framebuffer_blit: Boolean;
     {$ifndef OpenGLES}
     EXT_fog_coord: boolean;
     ARB_window_pos: boolean;
@@ -169,7 +170,7 @@ type
       Value = 1 means that no multi-sampling is initialized.
       Values > 1 mean that you have multi-sampling, with given number of samples
       per pixel.
-      Contrast this with TCastleWindowCustom.MultiSampling or TOpenGLControl.MultiSampling,
+      Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
       that say @italic(how many samples you wanted to get). }
     CurrentMultiSampling: Cardinal;
 
@@ -238,7 +239,7 @@ type
           most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
           on desktops.)
         @item(It also allows you to use fixed-function pipeline calls in the
-          @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render)
+          @link(TCastleWindowBase.OnRender) callback, @link(TCastleUserInterface.Render)
           override and related places.)
         @item(It also allows some deprecated rendering features like WindowPos
           to continue to work.)
@@ -254,6 +255,8 @@ type
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
     Memory: TGLMemoryInfo;
+
+    MaxViewportDimensions: TVector2Integer;
 
     { Maximum number of texture units you can safely always use.
       If EnableFixedFunction, this is MaxTextureUnitsFixedFunction,
@@ -338,6 +341,16 @@ end;
 {$endif}
 
 constructor TGLFeatures.Create;
+
+  function GetVector2Integer(const Param: TGLenum): TVector2Integer;
+  var
+    V: packed array [0..1] of TGLInt;
+  begin
+    glGetIntegerv(Param, @V);
+    Result.Data[0] := V[0];
+    Result.Data[1] := V[1];
+  end;
+
 var
   SupportedExtensions: string;
 begin
@@ -466,9 +479,7 @@ begin
   end else
     MaxRenderbufferSize := 0;
 
-  { TODO: this should be completely configurable in shader pipeline.
-    Make it configurable at Attributes.MaxClipPlanes? }
-  MaxClipPlanes := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_CLIP_PLANES) {$endif};
+  EXT_framebuffer_blit := Load_GL_EXT_framebuffer_blit;
 
   { calculate UseMultiTexturing: check extensions required for multitexturing.
 
@@ -597,9 +608,35 @@ begin
 
   EnableFixedFunction :=
     {$ifdef OpenGLES} false
+    {$else}
+    (Shaders <> gsStandard) or
     // checking for VertexBufferObject also makes sure that BuggyVBO = false
-    {$else} (Shaders <> gsStandard) or (not VertexBufferObject)
+    (not VertexBufferObject) or
+    GLVersion.BuggyPureShaderPipeline
     {$endif};
+
+  { Calculate MaxClipPlanes.
+    The logic follows various approaches to clip planes in TShader.EnableClipPlane.
+    TODO: If you later switch EnableFixedFunction to true,
+    our code doesn't recalculate this limit now. }
+  {$ifndef OpenGLES}
+  if EnableFixedFunction or (not Version_3_0) then
+    MaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES)
+  else
+    MaxClipPlanes := glGetInteger(GL_MAX_CLIP_DISTANCES);
+  {$else}
+  { Any value is in theory correct for OpenGLES.
+    The only limit is number of varying variables we can pass from vertex
+    to fragment shader, and fragment code speed.
+    With OpenGLES 2, the clipping requires
+    passing data to the fragment shader, and discarding fragments there.
+
+    We set 8, as it seems reasonable, and is the minimal guaranteed value
+    of GL_MAX_CLIP_DISTANCES. }
+  MaxClipPlanes := 8;
+  {$endif}
+
+  MaxViewportDimensions := GetVector2Integer(GL_MAX_VIEWPORT_DIMS);
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
   GLFeatures := Self;

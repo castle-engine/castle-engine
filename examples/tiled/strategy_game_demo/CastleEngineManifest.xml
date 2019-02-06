@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="strategy_game_demo"
+  standalone_source="strategy_game_demo_standalone.lpr"
+  game_units="GameInitialize">
+</project>

@@ -41,7 +41,7 @@ begin
   if Window.FileDialog('Open 3D model', URL, true, Load3D_FileFilters) then
   begin
     Scene.Load(URL);
-    Scene.PlayAnimation('animation', paLooping); // play animation named "animation", if exists.
+    Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
     { camera is separate from the 3D world, and so it is *not* reinitialized
       by simple reloading of the scene. In this demo, we want to move camera
@@ -67,7 +67,7 @@ begin
   { Enable rendering models using shadow volumes. This requires some special
     code, as OpenGL must be prepared in a special way to enable it,
     and some GPUs (really ancient ones) may simply not support it.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows
+    See https://castle-engine.io/x3d_extensions.php#section_ext_shadows
     for documentation how to prepare your model to have shadow volumes,
     and for links to demo models using shadow volumes.
 
@@ -85,7 +85,7 @@ begin
   { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
-  Scene.PlayAnimation('animation', paLooping); // play animation named "animation", if exists.
+  Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
   { set titles for progress bars, otherwise progress bars are not used.
     This should be done before setting Scene.Spatial, since setting it may

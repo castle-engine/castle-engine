@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f image-to-pascal.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/image-to-pascal/image-to-pascal.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd tools/image-to-pascal/
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}

@@ -21,7 +21,7 @@
   { Transform children by an explicit 4x4 matrix.
 
     This is an extension, not present in the X3D standard.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_matrix_transform .
+    See https://castle-engine.io/x3d_extensions.php#section_ext_matrix_transform .
     It is compatible with InstantReality,
     see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
@@ -44,7 +44,7 @@
   TMatrixTransformNode_2 = TMatrixTransformNode;
 
   { Teapot geometry, useful for testing purposes.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_teapot . }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_teapot . }
   TTeapotNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -76,7 +76,7 @@
   end;
 
   { X3D events logging.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_logger . }
+    See https://castle-engine.io/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   strict private
     WriteStream: TStream;
@@ -664,14 +664,15 @@ end;
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 const
-  // Uncomment these if you need to temporarily compile without teapot.inc.
+  // Uncomment these if you need to temporarily compile without
+  // auto_generated_teapot/teapot.inc.
   {
   TeapotCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotCoordIndex: array [0..0] of LongInt = (0);
   TeapotManifoldCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
   }
-  {$I teapot/teapot.inc}
+  {$I auto_generated_teapot/teapot.inc}
 var
   CoordNode: TCoordinateNode;
   IFS: TIndexedFaceSetNode absolute Result;
@@ -895,8 +896,8 @@ procedure TConverterNode.EventInReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
-      convert... Conversion must be done along the route, when destination
+    { TODO: we cannot convert here (as we don't know to what we should
+      convert...) Conversion must be done along the route, when destination
       is known. }
     EventOut.Send(Value, Time);
 end;
@@ -916,7 +917,7 @@ procedure TRenderedTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode]);
+  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode, TViewpointMirrorNode]);
    FdViewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdViewpoint);
 
@@ -1144,10 +1145,10 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    FdnotStatus.Send(not FdStatus.Value);
-    EventChanged.Send(true, Time);
-    if FdStatus.Value then EventOn.Send(true, Time);
-    if not FdStatus.Value then EventOff.Send(true, Time);
+    FdnotStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
+    EventChanged.Send(true, Time, Value.InternalPartialSend);
+    if FdStatus.Value then EventOn.Send(true, Time, Value.InternalPartialSend);
+    if not FdStatus.Value then EventOff.Send(true, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -1160,10 +1161,10 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    FdStatus.Send(not FdnotStatus.Value);
-    EventChanged.Send(true, Time);
-    if FdStatus.Value then EventOn.Send(true, Time);
-    if not FdStatus.Value then EventOff.Send(true, Time);
+    FdStatus.Send(not FdnotStatus.Value, Value.InternalPartialSend);
+    EventChanged.Send(true, Time, Value.InternalPartialSend);
+    if FdStatus.Value then EventOn.Send(true, Time, Value.InternalPartialSend);
+    if not FdStatus.Value then EventOff.Send(true, Time, Value.InternalPartialSend);
   end;
 end;
 
@@ -1171,21 +1172,21 @@ procedure TTogglerNode.EventToggleReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(not FdStatus.Value);
+    FdStatus.Send(not FdStatus.Value, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventSetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(true);
+    FdStatus.Send(true, Value.InternalPartialSend);
 end;
 
 procedure TTogglerNode.EventResetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.Send(false);
+    FdStatus.Send(false, Value.InternalPartialSend);
 end;
 
 { TCommonSurfaceShaderInfo --------------------------------------------------- }

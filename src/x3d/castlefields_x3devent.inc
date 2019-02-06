@@ -48,9 +48,9 @@
       const AFieldClass: TX3DFieldClass; const AInEvent: boolean);
     destructor Destroy; override;
 
-    { Internal helper utility for SendXxx implementations. }
-    function CreateTemp: TX3DField;
-    { Internal helper utility for SendXxx implementations. }
+    { Internal helper utility for SendXxx implementations. @exclude }
+    function CreateTemp(const PartialSend: TPartialSend): TX3DField;
+    { Internal helper utility for SendXxx implementations. @exclude }
     procedure FreeTemp(const Field: TX3DField);
 
     property FieldClass: TX3DFieldClass read FFieldClass;
@@ -273,7 +273,7 @@ begin
   end;
 end;
 
-function TX3DEvent.CreateTemp: TX3DField;
+function TX3DEvent.CreateTemp(const PartialSend: TPartialSend): TX3DField;
 begin
   if not TempUsed then
   begin
@@ -283,6 +283,7 @@ begin
     TempUsed := true;
   end else
     Result := FieldClass.CreateUndefined(ParentNode, false, X3DName);
+  Result.InternalPartialSend := PartialSend;
 end;
 
 procedure TX3DEvent.FreeTemp(const Field: TX3DField);
@@ -312,7 +313,7 @@ procedure TX3DEvent.RemoveNotificationNow(const Notification: TX3DEventReceive);
 begin
   { The "else" below is important to remove only the first notification present,
     if you added multiple notifications. }
-  if CompareMethods(TMethod(FFirstNotification), TMethod(Notification)) then
+  if SameMethods(TMethod(FFirstNotification), TMethod(Notification)) then
     FFirstNotification := nil
   else
   if FNotifications <> nil then

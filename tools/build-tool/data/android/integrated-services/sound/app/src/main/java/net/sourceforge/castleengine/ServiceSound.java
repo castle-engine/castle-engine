@@ -6,7 +6,7 @@ package net.sourceforge.castleengine;
  */
 public class ServiceSound extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceSound";
+    private static final String CATEGORY = "ServiceSound";
 
     public ServiceSound(MainActivity activity)
     {

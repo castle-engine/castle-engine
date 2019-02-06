@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2017-2018 Michalis Kamburelis.
 
@@ -15,43 +16,72 @@
 
 {$ifdef read_interface}
 
-  { Edit box to input 1 line of text. }
-  TCastleEdit = class(TUIControlFont)
+  { Edit box to input a single line of text.
+    The contents are in the @link(Text) property, you can get or set them
+    at any time.
+
+    Note that you should set a suitable
+    @link(Width TCastleUserInterface.Width) of the edit box,
+    to nicely display a typical content.
+    The height is by default auto-calculated (see @link(AutoSizeHeight))
+    looking at font size (and other properties, like padding and frame size),
+    and usually is reasonable automatically.
+  }
+  TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
     FText: string;
-    FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
+    FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
+    FPlaceholderColor: TCastleColor;
     FFrame: boolean;
-    FWidth: Cardinal;
     LifeTime: TFloatTime;
     FMaxLength: Cardinal;
     FAllowedChars: TSetOfChars;
     FCaptureAllInput: boolean;
+    FAutoOnScreenKeyboard: Boolean;
     Scissor: TScissor;
+    FAutoSizeHeight: Boolean;
+    FPlaceholder: String;
+    FOnChange: TNotifyEvent;
+    FPasswordChar: Char;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
+    procedure SetPlaceholderColor(const Value: TCastleColor);
     procedure SetBackgroundColor(const Value: TCastleColor);
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetPadding(const Value: Integer);
-    procedure SetPaddingHorizontal(const Value: Integer);
-    procedure SetPaddingVertical(const Value: Integer);
+    procedure SetPadding(const Value: Single);
+    procedure SetPaddingHorizontal(const Value: Single);
+    procedure SetPaddingVertical(const Value: Single);
     procedure SetFrame(const Value: boolean);
+    procedure SetAutoSizeHeight(const Value: Boolean);
+    procedure SetPlaceholder(const Value: String);
+    procedure SetPasswordChar(const Value: Char);
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    function GetInternalText: String; override;
+    procedure SetInternalText(const Value: String); override;
+    procedure DoChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TRectangle; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    procedure SetFocused(const Value: boolean); override;
+    procedure EditorAllowResize(
+      out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
 
     { Unfocused text color. By default it's dark gray. }
     property UnfocusedColor: TCastleColor read FUnfocusedColor write SetUnfocusedColor;
+
+    { Color for @link(Placeholder). By default it's light gray. }
+    property PlaceholderColor: TCastleColor read FPlaceholderColor write SetPlaceholderColor;
 
     { Background color. Fills the area under @link(Text) and the padding.
       By default it's white.
@@ -74,20 +104,8 @@
     property MaxLength: Cardinal read FMaxLength write FMaxLength;
   published
     const
-      DefaultWidth = 100;
       DefaultPadding = 4;
-
-    { Width, in pixels.
-
-      Inside it, we will put the border frame (if @link(Frame) is @true),
-      and padding (see @link(Padding) + @link(PaddingHorizontal)).
-      So, similar to CSS box model called box-sizing, width includes also
-      padding and border.
-
-      Note that the edit control width is never auto-calculated,
-      since there's no "natural width" for the edit box.
-      In contrast, our height is always (for now) auto-calculated. }
-    property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
+      DefaultAutoOnScreenKeyboard = false;
 
     { Currently input text. }
     property Text: string read FText write SetText;
@@ -96,11 +114,11 @@
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
       total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
-    property PaddingHorizontal: Integer
+    property PaddingHorizontal: Single
       read FPaddingHorizontal write SetPaddingHorizontal default 0;
-    property PaddingVertical: Integer
+    property PaddingVertical: Single
       read FPaddingVertical write SetPaddingVertical default 0;
-    property Padding: Integer
+    property Padding: Single
       read FPadding write SetPadding default DefaultPadding;
     { @groupEnd }
 
@@ -112,6 +130,86 @@
       This is in practice only sensible if this is the only edit box currently
       visible on the screen. }
     property CaptureAllInput: boolean read FCaptureAllInput write FCaptureAllInput;
+
+    { When true, it shows the software keyboard on Android. }
+    property AutoOnScreenKeyboard: Boolean
+      read FAutoOnScreenKeyboard write FAutoOnScreenKeyboard
+      default DefaultAutoOnScreenKeyboard;
+
+    property AutoSizeHeight: Boolean
+      read FAutoSizeHeight write SetAutoSizeHeight default true;
+
+    { Displayed when @link(Text) is empty. }
+    property Placeholder: String
+      read FPlaceholder write SetPlaceholder;
+
+    { Event sent when @link(Text) value was changed by a user.
+      Note that this is @italic(not) called when you change @link(Text)
+      property programmatically. }
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+
+    { Show given character (usually "*") instead of actual input characters.
+      Useful for password input fields. }
+    property PasswordChar: Char
+      read FPasswordChar write SetPasswordChar default #0;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_interface_class}
+  end;
+
+  { Descendant of TCastleEdit specialized for editing floating-point numbers.
+    Use @link(Value) instead of @link(Text). }
+  TCastleFloatEdit = class(TCastleEdit)
+  strict private
+    FDecimalDigits: Integer;
+    FMax: Single;
+    FMin: Single;
+    function GetValue: Single;
+    procedure SetValue(const AValue: Single);
+    procedure SetDecimalDigits(const AValue: Integer);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure SetFocused(const AValue: Boolean); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
+  published
+    { In case of this descendant, Text is always derived from Value. }
+    property Text stored false;
+    property Value: Single read GetValue write SetValue default 0;
+    { Minimum and maximum limits.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Min: Single read FMin write FMin default 1.0;
+    property Max: Single read FMax write FMax default 0.0;
+    { How many decimal digits to display (and preserve).
+      Set to -1 to display (and preserve) all digits,
+      but beware that many numbers will then look hard to
+      read, because they cannot be represented perfectly as a float.
+      E.g. inputting "0.2" will change (in SetFocused) to something like
+      "0.200000003" since the number 0.2 cannot be represented precisely. }
+    property DecimalDigits: Integer
+      read FDecimalDigits write SetDecimalDigits default 2;
+  end;
+
+  { Descendant of TCastleEdit specialized for editing integer numbers.
+    Use @link(Value) instead of @link(Text). }
+  TCastleIntegerEdit = class(TCastleEdit)
+  strict private
+    FMax: Int64;
+    FMin: Int64;
+    function GetValue: Int64;
+    procedure SetValue(const AValue: Int64);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure SetFocused(const AValue: Boolean); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
+  published
+    { In case of this descendant, Text is always derived from Value. }
+    property Text stored false;
+    property Value: Int64 read GetValue write SetValue default 0;
+    { Minimum and maximum limits.
+      Applied only if Min <= Max, which is not the case by default. }
+    property Min: Int64 read FMin write FMin default 1;
+    property Max: Int64 read FMax write FMax default 0;
   end;
 
 {$endif read_interface}
@@ -128,18 +226,28 @@ begin
   inherited;
   FFocusedColor := Black;
   FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
+  FPlaceholderColor := Vector4(0.75, 0.75, 0.75, 1);
   FBackgroundColor := White;
-  FWidth := DefaultWidth;
   FPadding := DefaultPadding;
   FFrame := true;
   FAllowedChars := AllChars;
   FMaxLength := 0;
+  FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
+  FAutoSizeHeight := true;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleEdit.Destroy;
 begin
   FreeAndNil(Scissor);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -148,7 +256,7 @@ begin
   if FText <> Value then
   begin
     FText := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -157,7 +265,7 @@ begin
   if not TCastleColor.PerfectlyEquals(FFocusedColor, Value) then
   begin
     FFocusedColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -166,7 +274,16 @@ begin
   if not TCastleColor.PerfectlyEquals(FUnfocusedColor, Value) then
   begin
     FUnfocusedColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetPlaceholderColor(const Value: TCastleColor);
+begin
+  if not TCastleColor.PerfectlyEquals(FPlaceholderColor, Value) then
+  begin
+    FPlaceholderColor := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -175,43 +292,34 @@ begin
   if not TCastleColor.PerfectlyEquals(FBackgroundColor, Value) then
   begin
     FBackgroundColor := Value;
-    VisibleChange;
+    VisibleChange([chRender]);
   end;
 end;
 
-procedure TCastleEdit.SetWidth(const Value: Cardinal);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    VisibleChange;
-  end;
-end;
-
-procedure TCastleEdit.SetPadding(const Value: Integer);
+procedure TCastleEdit.SetPadding(const Value: Single);
 begin
   if FPadding <> Value then
   begin
     FPadding := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleEdit.SetPaddingHorizontal(const Value: Integer);
+procedure TCastleEdit.SetPaddingHorizontal(const Value: Single);
 begin
   if FPaddingHorizontal <> Value then
   begin
     FPaddingHorizontal := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
-procedure TCastleEdit.SetPaddingVertical(const Value: Integer);
+procedure TCastleEdit.SetPaddingVertical(const Value: Single);
 begin
   if FPaddingVertical <> Value then
   begin
     FPaddingVertical := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -220,44 +328,86 @@ begin
   if FFrame <> Value then
   begin
     FFrame := Value;
-    VisibleChange;
+    VisibleChange([chRectangle]);
   end;
 end;
 
-function TCastleEdit.Rect: TRectangle;
+procedure TCastleEdit.SetAutoSizeHeight(const Value: Boolean);
+begin
+  if FAutoSizeHeight <> Value then
+  begin
+    FAutoSizeHeight := Value;
+    VisibleChange([chRectangle]);
+  end;
+end;
+
+procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  PaddingVerticalScaled, HeightScaled: Integer;
+  PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
   FrameCorners: TVector4Integer;
 begin
-  US := UIScale;
-  PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+  inherited;
 
-  HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
-  if Frame then
+  if AutoSizeHeight then
   begin
-    FrameCorners := Theme.Corners[tiEdit];
-    HeightScaled := HeightScaled + Round(US * FrameCorners[0]) + Round(US * FrameCorners[2]);
-  end;
+    US := UIScale;
+    PaddingVerticalScaled := US * (PaddingVertical + Padding);
 
-  Result := Rectangle(LeftBottomScaled, Round(Width * US), HeightScaled);
+    HeightScaled := Font.RowHeight + 2 * PaddingVerticalScaled;
+    if Frame then
+    begin
+      FrameCorners := Theme.Corners[tiEdit];
+      HeightScaled := HeightScaled +
+        US * FrameCorners[0] +
+        US * FrameCorners[2];
+    end;
+
+    PreferredHeight := HeightScaled;
+  end;
+end;
+
+procedure TCastleEdit.DoChange;
+begin
+  if Assigned(OnChange) then
+    OnChange(Self);
+end;
+
+procedure TCastleEdit.EditorAllowResize(
+  out ResizeWidth, ResizeHeight: Boolean; out Reason: String);
+begin
+  inherited;
+  if AutoSizeHeight then
+  begin
+    ResizeHeight := false;
+    Reason := SAppendPart(Reason, NL, 'Turn off "TCastleEdit.AutoSizeHeight" to change height.');
+  end;
+end;
+
+function TCastleEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  if (PropertyName = 'Text') then
+    Result := psBasic
+  else
+    Result := inherited PropertySection(PropertyName);
 end;
 
 procedure TCastleEdit.Render;
 const
   CaretSpeed = 1; //< how many blinks per second
 var
-  SR, RectInside: TRectangle;
-  PaddingHorizontalScaled, PaddingVerticalScaled: Integer;
-  US: Single;
+  SR, RectInside: TFloatRectangle;
+  PaddingHorizontalScaled, PaddingVerticalScaled: Single;
+  US, TextLeft, TextBottom: Single;
   FrameCorners: TVector4Integer;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
+  CaretShift: Single;
 begin
   inherited;
 
-  SR := ScreenRect;
+  SR := RenderRect;
   US := UIScale;
   RectInside := SR;
 
@@ -266,10 +416,10 @@ begin
     { make smaller RectInside, by frame size }
     FrameCorners := Theme.Corners[tiEdit];
     RectInside := RectInside.
-      RemoveTop(FrameCorners[0]).
-      RemoveRight(FrameCorners[1]).
-      RemoveBottom(FrameCorners[2]).
-      RemoveLeft(FrameCorners[3]);
+      RemoveTop(FrameCorners[0] * US).
+      RemoveRight(FrameCorners[1] * US).
+      RemoveBottom(FrameCorners[2] * US).
+      RemoveLeft(FrameCorners[3] * US);
 
     { draw frame }
     Theme.Draw(SR, tiEdit, US);
@@ -279,24 +429,53 @@ begin
   DrawRectangle(RectInside, BackgroundColor);
 
   { make smaller RectInside, by padding }
-  PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
-  PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+  PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
+  PaddingVerticalScaled := US * (PaddingVertical + Padding);
   RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
 
-  S := Text;
+  // calculate S, Color, CaretShift
+  CaretShift := 0;
+  if Text <> '' then
+  begin
+    S := Text;
+
+    { in case PasswordChar is non-zero, replace S with repeated PasswordChar }
+    if PasswordChar <> #0 then
+      S := StringOfChar(PasswordChar, Length(S));
+
+    if Focused then
+    begin
+      { Note that S here may be already processed by PasswordChar. }
+      CaretShift := Font.TextWidth(S);
+      Color := FocusedColor
+    end else
+    begin
+      Color := UnfocusedColor;
+      { CaretShift doesn't matter in this case,
+        so we don't have to calculate TextWidth, saving a small time. }
+    end;
+  end else
+  begin
+    S := Placeholder;
+    Color := PlaceholderColor;
+  end;
+
+  Scissor.Rect := RectInside.Round;
+  Scissor.Enabled := true;
+
+  TextLeft := RectInside.Left;
+  // center in RectInside, important when AutoSize = false
+  TextBottom := RectInside.Bottom +
+    (RectInside.Height - Font.RowHeight) / 2 + Font.Descend;
+  Font.Print(TextLeft, TextBottom, Color, S);
+
+  { Note that we have to display Caret even when Text = '' and S = Placeholder. }
   if Focused then
   begin
     CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
     if CaretVisible then
-      S := S + CaretChar;
-    Color := FocusedColor;
-  end else
-    Color := UnfocusedColor;
-
-  Scissor.Rect := RectInside;
-  Scissor.Enabled := true;
-
-  Font.Print(RectInside.Left, RectInside.Bottom + Font.Descend, Color, S);
+      Font.Print(TextLeft + CaretShift, TextBottom, FocusedColor, CaretChar);
+  end;
 
   Scissor.Enabled := false;
 end;
@@ -305,7 +484,7 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
   { do not allow other controls to handle key presses
     (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
   if ExclusiveEvents then
@@ -320,7 +499,10 @@ begin
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
     if Text <> '' then
+    begin
       Text := Copy(Text, 1, Length(Text) - 1);
+      DoChange;
+    end;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlC) then
@@ -335,20 +517,28 @@ begin
     begin
       Clipboard.AsText := Text;
       Text := '';
+      DoChange;
     end;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
+    DoChange;
     Result := ExclusiveEvents;
   end else
   if (Event.EventType = itKey) and
-     (Event.KeyCharacter <> #0) and
+     (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
-     ((MaxLength = 0) or (Length(Text) < MaxLength)) then
+     ((MaxLength = 0) or (Length(Text) < MaxLength)) and
+     { Do not add unprintable special characters, like Enter and Escape.
+       TCastleEdit doesn't process them,
+       but also users don't expect these keys are something added to the edit field.
+       Note: The range CtrlA..CtrlZ includes CharEnter. }
+     (not (Event.KeyCharacter in [CtrlA..CtrlZ, CharEscape])) then
   begin
-    Text := Text + Event.KeyCharacter;
+    Text := Text + Event.KeyString;
+    DoChange;
     Result := ExclusiveEvents;
   end;
 end;
@@ -359,6 +549,146 @@ begin
     Result := true // always capture
   else
     Result := inherited CapturesEventsAtPosition(Position);
+end;
+
+procedure TCastleEdit.SetFocused(const Value: boolean);
+begin
+  inherited;
+
+  if FAutoOnScreenKeyboard then
+    Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
+end;
+
+procedure TCastleEdit.SetPlaceholder(const Value: string);
+begin
+  if FPlaceholder <> Value then
+  begin
+    FPlaceholder := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetPasswordChar(const Value: Char);
+begin
+  if FPasswordChar <> Value then
+  begin
+    FPasswordChar := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+function TCastleEdit.GetInternalText: String;
+begin
+  Result := Text;
+end;
+
+procedure TCastleEdit.SetInternalText(const Value: String);
+begin
+  Text := Value;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+{ TCastleFloatEdit ---------------------------------------------------------- }
+
+constructor TCastleFloatEdit.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMin := 1;
+  FMax := 0;
+  Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
+  AllowedChars := ['-', '+', '0'..'9'] + [DefaultFormatSettings.DecimalSeparator];
+  FDecimalDigits := 2;
+  Value := 0.0; // will also assign Text
+end;
+
+procedure TCastleFloatEdit.SetFocused(const AValue: Boolean);
+begin
+  inherited SetFocused(AValue);
+  { Apply to Text limits (Min, Max) and fix invalid input (like Text empty). }
+  Value := Value;
+end;
+
+function TCastleFloatEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Text':
+      Result := psOther; // override TCastleEdit making it psBasic
+    'Value', 'Min', 'Max':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
+function TCastleFloatEdit.GetValue: Single;
+begin
+  Result := StrToFloatDef(Text, 0);
+  if Min <= Max then
+    ClampVar(Result, Min, Max);
+end;
+
+procedure TCastleFloatEdit.SetValue(const AValue: Single);
+begin
+  if DecimalDigits < 0 then
+    Text := FloatToStr(AValue)
+  else
+    Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
+end;
+
+procedure TCastleFloatEdit.SetDecimalDigits(const AValue: Integer);
+begin
+  if FDecimalDigits <> AValue then
+  begin
+    FDecimalDigits := AValue;
+    { Apply the DecimalDigits to current Text look }
+    Value := Value;
+  end;
+end;
+
+{ TCastleIntegerEdit ---------------------------------------------------------- }
+
+constructor TCastleIntegerEdit.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FMin := 1;
+  FMax := 0;
+  Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
+  AllowedChars := ['-', '+', '0'..'9'];
+  Value := 0; // will also assign Text
+end;
+
+procedure TCastleIntegerEdit.SetFocused(const AValue: Boolean);
+begin
+  inherited SetFocused(AValue);
+  { Apply to Text limits (Min, Max) and fix invalid input (like Text empty). }
+  Value := Value;
+end;
+
+function TCastleIntegerEdit.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'Text':
+      Result := psOther; // override TCastleEdit making it psBasic
+    'Value', 'Min', 'Max':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
+function TCastleIntegerEdit.GetValue: Int64;
+begin
+  Result := StrToInt64Def(Text, 0);
+  if Min <= Max then
+    ClampVar(Result, Min, Max);
+end;
+
+procedure TCastleIntegerEdit.SetValue(const AValue: Int64);
+begin
+  Text := IntToStr(AValue);
 end;
 
 {$endif read_implementation}

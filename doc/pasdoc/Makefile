@@ -2,9 +2,7 @@
 
 .PHONY: default html pdf ps rtf latex
 
-# html and pdf are two most useful versions of documentation,
-# shown on [http://castle-engine.sourceforge.net/reference.php]
-# Later: pdf now removed, useless and ugly.
+# html is shown on https://castle-engine.io/apidoc/html/
 default: html
 
 # Run "make" in logo/ first,
@@ -17,9 +15,15 @@ default: html
 
 html:
 	./mk_docs.sh html
-	rm -Rf ../reference/html
+# For quick testing of docs look (CSS etc.), you can run this instead
+#	./mk_docs.sh html base/castleutils.pas
+	rm -Rf ../reference/
 	mv html ../reference/
-	cp logo/castle_game_engine_icon.png ../reference/
+	cp -R logo/castle_game_engine_icon.png \
+	      html-parts/images/ \
+	      html-parts/castle-engine-website-base/ \
+	      html-parts/cge-pasdoc.js \
+	      ../reference/
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf
@@ -70,21 +74,21 @@ clean: clean-cache
 
 # upload ---------------------------------------------------------------------
 
-SF_USERNAME=kambi
-SF_HOST=web.sourceforge.net
-SF_PATH=/home/project-web/castle-engine/htdocs/apidoc/
-
-SF_CONNECT=$(SF_USERNAME),castle-engine@$(SF_HOST):$(SF_PATH)
-SCP_OPTIONS=
+SSH_USERNAME=michalis
+SSH_HOST=ssh.castle-engine.io
+SSH_PATH=/home/michalis/cge-html/apidoc/
+# Use this for unstable docs:
+#SSH_PATH=/home/michalis/cge-html/apidoc-unstable/
 
 # Prepare and upload all the stuff referenced under
-# [http://castle-engine.sourceforge.net/reference.php].
+# https://castle-engine.io/apidoc/html/ .
 # Uploads as tar.gz and unpacks on server, this is *much* faster than
 # uploading separate HTML files.
 .PHONY: upload
 upload: clean html
 	rm -Rf ../reference/html
 	mv ../reference/ html
-	tar czvf html.tar.gz html
-	scp $(SCP_OPTIONS) -r html.tar.gz $(SF_CONNECT)
-	./sf_upload_finalize.sh $(SF_USERNAME) $(SF_PATH)
+	tar czf html.tar.gz html
+	scp -r html.tar.gz $(SSH_USERNAME)@$(SSH_HOST):$(SSH_PATH)
+	rm -f html.tar.gz
+	./ssh_upload_finalize.sh $(SSH_USERNAME) $(SSH_HOST) $(SSH_PATH)

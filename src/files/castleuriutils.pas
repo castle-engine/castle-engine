@@ -135,12 +135,14 @@ function CombineURI(const Base, Relative: string): string;
 function AbsoluteURI(const URI: string): string;
 
 { Does URI contain only an absolute filename.
-  Useful for warnings, since you usually do not want to have such paths
-  in your data, as they it impossible to transfer the data (move/copy files)
+  Useful to detect unwanted paths in data files,
+  you usually do not want to have such paths in data files,
+  as they make it impossible to transfer the data (move/copy files)
   to other system/location. }
 function AbsoluteFileURI(const URI: string): boolean;
 
 { Convert URI (or filename) to a filename.
+
   This is an improved URIToFilename from URIParser.
   When URI is already a filename, this does a better job than URIToFilename,
   as it handles also Windows absolute filenames (see URIProtocol).
@@ -148,7 +150,9 @@ function AbsoluteFileURI(const URI: string): boolean;
   a file URI.
 
   Just like URIParser.URIToFilename, this percent-decodes the parameter.
-  For example, @code(%4d) in URI will turn into letter @code(M) in result. }
+  For example, @code(%4d) in URI will turn into letter @code(M) in result.
+
+  It also handles our castle-data: protocol.}
 function URIToFilenameSafe(const URI: string): string;
 
 { Convert filename to URI.
@@ -247,10 +251,13 @@ function URIFileExists(const URL: string): boolean;
   including always final slash at the end. }
 function URICurrentPath: string;
 
+{ If this is castle-data:... URL, resolve it using ApplicationData. }
+function ResolveCastleDataURL(const URL: String): String;
+
 implementation
 
 uses SysUtils, URIParser,
-  CastleUtils, CastleDataURI, CastleLog;
+  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
@@ -464,6 +471,12 @@ begin
      (RelativeProtocol = 'compiled') then
     Exit(Relative);
 
+  { When Base is like 'castle-data:/CastleSettings.xml'
+    and Relative is like '../gfx/font.ttf',
+    you need to resolve the Base to use the file:/ protocol. }
+  if (URIProtocol(Base) = 'castle-data') and IsPrefix('../', Relative) then
+    Exit(CombineURI(ResolveCastleDataURL(Base), Relative));
+
   try
     if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
     begin
@@ -506,7 +519,8 @@ begin
     filenames like "c:\foo" as filenames. }
   P := URIProtocol(URI);
   if P = '' then
-    Result := URI else
+    Result := URI
+  else
   if P = 'file' then
   begin
     try
@@ -522,6 +536,9 @@ begin
       end;
     end;
   end else
+  if P = 'castle-data' then
+    Result := URIToFilenameSafe(ResolveCastleDataURL(URI))
+  else
     Result := '';
 end;
 
@@ -669,6 +686,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       application/wavefront-stl
       application/vnd.ms-pki.stl }
     if Ext = '.stl' then Result := 'application/x-stl' else
+    if Ext = '.glb' then Result := 'model/gltf-binary' else
+    if Ext = '.gltf' then Result := 'model/gltf+json' else
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
       For handled images, their extensions and mime types are recorded
@@ -743,8 +762,9 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
-    if Ext = '.js' then Result := 'application/javascript'
-    else
+    if Ext = '.js' then Result := 'application/javascript' else
+    if Ext = '.castle-user-interface' then Result := 'text/x-castle-user-interface' else
+    if Ext = '.castle-transform' then Result := 'text/x-castle-transform' else
       { as a last resort, check URIMimeExtensions }
       URIMimeExtensions.TryGetValue(Ext, Result);
   end;
@@ -764,7 +784,8 @@ begin
      (P = 'ftp') or
      (P = 'https') or
      (P = 'assets') or
-     (P = 'castle-android-assets') then
+     (P = 'castle-android-assets') or
+     (P = 'castle-data') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames.
       Note that this unit does not define public functions like ExtractURIExt
@@ -883,6 +904,14 @@ end;
 function URICurrentPath: string;
 begin
   Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+end;
+
+function ResolveCastleDataURL(const URL: String): String;
+begin
+  if URIProtocol(URL) = 'castle-data' then
+    Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false))
+  else
+    Result := URL;
 end;
 
 finalization

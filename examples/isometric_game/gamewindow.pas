@@ -26,7 +26,7 @@ const
   BaseHeight = 36;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 
   { Game time, in seconds. Updated in Update. }
   GameTime: Single;

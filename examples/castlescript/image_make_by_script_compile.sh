@@ -8,4 +8,11 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f image_make_by_script.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/castlescript/image_make_by_script.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile examples/castlescript/image_make_by_script.lpr

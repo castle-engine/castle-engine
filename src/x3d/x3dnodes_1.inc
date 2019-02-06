@@ -869,15 +869,15 @@ end;
 
 destructor TAsciiTextNode_1.Destroy;
 begin
-  { actually FreeAndNil would also be OK, as this is never
-    a child of another node. But for safety... }
-  FreeIfUnusedAndNil(FFontTextureNode);
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
   inherited;
 end;
 
 procedure TAsciiTextNode_1.FontChanged;
 begin
-  FreeIfUnusedAndNil(FFontTextureNode);
+  if X3DCache <> nil then
+    X3DCache.FreeFontTexture(FFontTextureNode);
 end;
 
 class function TAsciiTextNode_1.ClassX3DType: string;
@@ -943,7 +943,7 @@ begin
   except FreeAndNil(FaceSet); raise end;
 
   if FFontTextureNode = nil then
-    FFontTextureNode := CreateFontTextureNode(
+    FFontTextureNode := X3DCache.LoadFontTexture(
       State.VRML1State.FontStyle.Font,
       State.VRML1State.FontStyle.Blending);
 end;
@@ -1396,7 +1396,7 @@ begin
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, true, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangesAlways := [chVisibleVRML1State, chUseBlending];
+   FdTransparency.ChangesAlways := [chVisibleVRML1State, chAlphaChannel];
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, true, 'mirror', [0.0]);
@@ -1709,8 +1709,8 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromBaseUrl(FdFilename.Value);
-    FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
-      FAlphaChannelData);
+    FTextureImage := X3DCache.TextureImage_IncReference(
+      FullUrl, FTextureComposite, FAlphaChannelData);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;
@@ -2173,7 +2173,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 end;
@@ -2195,7 +2195,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 
@@ -2226,7 +2226,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://castle-engine.sourceforge.net/x3d_extensions.php#ext_light_attenuation }
+    See https://castle-engine.io/x3d_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 

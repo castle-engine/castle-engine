@@ -1,7 +1,7 @@
 Castle Game Engine
 ==================
 
-"Castle Game Engine" ( https://castle-engine.sourceforge.io/ )
+"Castle Game Engine" ( https://castle-engine.io/ )
 is an open-source 3D and 2D game engine.
 
 We have many graphic features (shadows, mirrors, screen effects...)
@@ -10,19 +10,19 @@ We have a nice scene manager, with many optional components
 (like instant creatures with simple walking and attacking intelligence).
 We're cross-platform (desktop, mobile, web browser plugin).
 
-See https://castle-engine.sourceforge.io/features.php
+See https://castle-engine.io/features.php
 for the complete list of engine features.
 
 Documentation:
 
 - The "Getting Started" page on
-  https://castle-engine.sourceforge.io/documentation.php
+  https://castle-engine.io/documentation.php
   describes what to install and how to compile. See also the section below.
 
-- Manual: See https://castle-engine.sourceforge.io/manual_intro.php .
+- Manual: See https://castle-engine.io/manual_intro.php .
 
 - API reference:
-  Online on https://castle-engine.sourceforge.io/apidoc/html/index.html .
+  Online on https://castle-engine.io/apidoc/html/index.html .
   Offline in doc/reference/ subdirectory of the engine archive
   (if you downloaded the zip or tar.gz engine release),
   just open the file doc/reference/index.html in your WWW browser.
@@ -32,9 +32,9 @@ Documentation:
   the examples/fps_game/ subdirectory.
 
 - Guide to creating game data:
-  https://castle-engine.sourceforge.io/creating_data_intro.php
+  https://castle-engine.io/creating_data_intro.php
 
-Questions? Ask on our forum: https://castle-engine.sourceforge.io/forum.php .
+Questions? Ask on our forum: https://castle-engine.io/forum.php .
 
 Support us on http://patreon.com/castleengine .
 
@@ -70,7 +70,7 @@ If you prefer to use bare FPC and the command-line, you can:
   all the examples.
 
 See the "Getting Started" page on
-https://castle-engine.sourceforge.io/documentation.php
+https://castle-engine.io/documentation.php
 for more information.
 
 License

@@ -18,12 +18,13 @@
 
 library ${NAME_PASCAL};
 
-uses CastleAndroidNativeAppGlue, CastleMessaging, ${GAME_UNITS};
+uses CastleAndroidNativeAppGlue, CastleMessaging, CastleSystemLanguage, ${GAME_UNITS};
 
 { Qualify identifiers by unit names below,
   to prevent GAME_UNITS from changing the meaning of code below. }
 
 exports
   CastleMessaging.Java_net_sourceforge_castleengine_MainActivity_jniMessage,
+  CastleSystemLanguage.Java_net_sourceforge_castleengine_MainActivity_jniLanguage,
   CastleAndroidNativeAppGlue.ANativeActivity_onCreate;
 end.

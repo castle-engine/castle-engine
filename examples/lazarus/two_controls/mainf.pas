@@ -1,3 +1,19 @@
+{
+  Copyright 2014-2018 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main form. }
 unit mainf;
 
 {$mode objfpc}{$H+}
@@ -57,7 +73,7 @@ uses X3DLoad, CastleLCLUtils, CastleSceneCore;
      it continously. (Alternatively, you could make any 3D model spin
      in Examine mode by pressing "right arrow" key.)
      For example: load demo_models/movie_texture/fireplace_final.wrl
-     from demo models [http://castle-engine.sourceforge.net/demo_models.php] .
+     from demo models [https://castle-engine.io/demo_models.php] .
   Now observe the "real" FPS number under both controls:
   it should reach roughly 100 (default LimitFPS value), and stay there.
   Small differences from 100 (+/- 5) are Ok, it's not a precise mechanism.

@@ -1,9 +1,6 @@
 <?php
 
-global $castle_php_relative_path;
-$castle_php_relative_path = '../../../../cge-www/htdocs/';
-
-require_once $castle_php_relative_path . 'castle_engine_functions.php';
+require_once 'cge-www-configure.php';
 
 /* For the navigation purposes (which main menu tab to show as "chosen"),
    we're the page 'reference' under 'documentation'. */

@@ -46,6 +46,9 @@ type
       @link(TWalkCamera.MouseLook) is used. }
     ciMouseDragging,
 
+    { Touch gestures, like multi-touch pinch or pan gesture. }
+    ciGesture,
+
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
@@ -173,12 +176,14 @@ type
     procedure SetPosition(const Value: TVector3); virtual; abstract;
 
     function ReallyEnableMouseDragging: boolean; virtual;
+
+    procedure SetModelBox(const B: TBox3D);
   public
     const
       { Default value for TCamera.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
-      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse];
+      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse, ciGesture];
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
@@ -186,20 +191,14 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
 
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
 
-      In case of the TCamera class, we assume that changes
-      to the @link(TCamera.Matrix), and other properties (for example even
-      changes to TWalkCamera.MoveSpeed), are "visible",
-      and they also result in this event. }
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
-
-    { Current camera matrix. You should multiply every 3D point of your
-      scene by this matrix, which usually simply means that you should
-      do @code(glLoadMatrix) or @code(glMultMatrix) of this matrix. }
+    { Camera matrix, transforming from world space into camera space. }
     function Matrix: TMatrix4; virtual; abstract;
+
+    { Inverse of @link(Matrix), transforming from camera space into world space. }
+    function MatrixInverse: TMatrix4; virtual;
 
     { Extract only rotation from your current camera @link(Matrix).
       This is useful for rendering skybox in 3D programs
@@ -303,7 +302,7 @@ type
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
-      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
+      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
       using this method.
 
       Projection (read-only here) describe your projection,
@@ -319,7 +318,7 @@ type
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
       mouse position), which means that you have to add this camera
-      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
+      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
       using this method.
 
       @seealso Ray
@@ -343,7 +342,13 @@ type
       const Viewport: TRectangle;
       const WindowPosition: TVector2;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3);
+      out RayOrigin, RayDirection: TVector3); overload;
+      deprecated 'use the overloaded version of CustomRay with TFloatRectangle';
+    procedure CustomRay(
+      const Viewport: TFloatRectangle;
+      const WindowPosition: TVector2;
+      const Projection: TProjection;
+      out RayOrigin, RayDirection: TVector3); overload;
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -584,7 +589,7 @@ type
       It is crucial to set this to make @link(TExamineCamera) behave OK.
 
       Initially this is TBox3D.Empty. }
-    property ModelBox: TBox3D read FModelBox write FModelBox;
+    property ModelBox: TBox3D read FModelBox write SetModelBox;
   published
     { Input methods available to user. See documentation of TCameraInput
       type for possible values and their meaning.
@@ -604,6 +609,9 @@ type
     rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
+    FMoveEnabled: Boolean;
+    FRotationEnabled: Boolean;
+    FZoomEnabled: Boolean;
     FTranslation: TVector3;
     FRotations: TQuaternion;
     FDragMoveSpeed, FKeysMoveSpeed: Single;
@@ -619,12 +627,13 @@ type
       then scale angle, then convert back to quaternion... which makes
       the whole exercise useless. }
     FRotationsAnim: TVector3;
-    FScaleFactor: Single;
+    FScaleFactor, FScaleFactorMin, FScaleFactorMax: Single;
     FRotationAccelerate: boolean;
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3;
     FTurntable: boolean;
+    FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -633,12 +642,17 @@ type
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
 
+    FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TMouseButton;
+
     procedure SetRotationsAnim(const Value: TVector3);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
+    procedure SetScaleFactorMin(const Value: Single);
+    procedure SetScaleFactorMax(const Value: Single);
     procedure SetTranslation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
+    procedure OnGestureRecognized(Sender: TObject);
 
     function GetInput_MoveXInc: TInputShortcut;
     function GetInput_MoveXDec: TInputShortcut;
@@ -672,20 +686,66 @@ type
     destructor Destroy; override;
 
     function Matrix: TMatrix4; override;
-
-    function MatrixInverse: TMatrix4;
+    function MatrixInverse: TMatrix4; override;
 
     function RotationMatrix: TMatrix4; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
+
+    { Enable rotating the camera around the model by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
+
+      Note that this doesn't prevent from rotating by code, e.g. by setting
+      @link(Rotations) property or calling @link(SetView). }
+    property RotationEnabled: Boolean read FRotationEnabled write FRotationEnabled default true;
+
+    { Enable moving the camera by user input.
+      When @false, no keys / mouse dragging / 3D mouse etc. can make a move.
+
+      Note that this doesn't prevent from moving by code, e.g. by setting
+      @link(Translation) property or calling @link(SetView). }
+    property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
+
+    { Enable zooming the camera on the model by user input.
+      Depending on the projection, zooming either moves camera or scales the model.
+      When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
+
+      Note that this doesn't prevent from zooming by code, e.g. by setting
+      @link(ScaleFactor) property (to scale the model)
+      or calling @link(SetView) (to move closer to the model). }
+    property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
+
+    { Drag with this mouse button to rotate the model.
+
+      See the discussion in castlecameras_default_examine_mouse_buttons.txt
+      why these defaults were chosen for MouseButtonRotate (left),
+      MouseButtonMove (middle), MouseButtonZoom (right).
+      Also note that for this camera:
+
+      @unorderedList(
+        @item(pressing left mouse button with Ctrl is considered like
+          pressing right mouse button,)
+        @item(pressing left mouse button with Shift is considered like
+          pressing middle mouse button.)
+      )
+    }
+    property MouseButtonRotate: TMouseButton
+      read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
+    { Drag with this mouse button to move the model. }
+    property MouseButtonMove: TMouseButton
+      read FMouseButtonMove write FMouseButtonMove default mbMiddle;
+    { Drag with this mouse button to zoom the model (look closer / further). }
+    property MouseButtonZoom: TMouseButton
+      read FMouseButtonZoom write FMouseButtonZoom default mbRight;
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -710,10 +770,13 @@ type
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
-    { How the model is scaled.
-      @italic(This property may never be zero (or close to zero).) }
+    { Scale of the model. }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
+    property ScaleFactorMin: Single
+      read FScaleFactorMin write SetScaleFactorMin default 0.01;
+    property ScaleFactorMax: Single
+      read FScaleFactorMax write SetScaleFactorMax default 100.0;
 
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
@@ -746,7 +809,8 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
 
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
     function GetNavigationType: TNavigationType; override;
 
     { TODO: Input_Xxx not published, although setting them in object inspector
@@ -1684,6 +1748,33 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirectionPositive, WantedUpPositive: boolean;
   out Position, Direction, Up, GravityUp: TVector3);
 
+{ Calculate suitable camera to see everything using an orthographic projection.
+
+  Assumes that the camera direction is -Z, and camera up is +Y.
+  So the horizontal axis of the world is X,
+  vertical axis is Y.
+  These are default values of camera in TCastle2DSceneManager.
+
+  The meaning of ProjectionOriginCenter is the same as
+  @link(TCastle2DSceneManager.ProjectionOriginCenter).
+
+  Returns new correct values of
+  @link(TCastle2DSceneManager.ProjectionWidth),
+  @link(TCastle2DSceneManager.ProjectionHeight),
+  @link(TCastle2DSceneManager.ProjectionSpan) and camera position
+  (set it like @code(SceneManager.RequiredCamera.Position := NewPosition;)).
+
+  Remember to set @link(TCastle2DSceneManager.ProjectionAutoSize) to @false,
+  otherwise
+  @link(TCastle2DSceneManager.ProjectionWidth),
+  @link(TCastle2DSceneManager.ProjectionHeight) are ignored.
+}
+procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
+  const ViewportWidth, ViewportHeight: Single;
+  const ProjectionOriginCenter: Boolean;
+  out Position: TVector3;
+  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+
 procedure Register;
 
 implementation
@@ -1692,7 +1783,9 @@ uses Math, CastleStringUtils, CastleLog;
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TExamineCamera, TWalkCamera]);
+  {$endif}
 end;
 
 { TCamera ------------------------------------------------------------ }
@@ -1720,10 +1813,17 @@ begin
   MouseDraggingStarted := -1;
 end;
 
-procedure TCamera.VisibleChange(const RectOrCursorChanged: boolean);
+procedure TCamera.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean);
 begin
   RecalculateFrustum;
   inherited;
+end;
+
+function TCamera.MatrixInverse: TMatrix4;
+begin
+  if not Matrix.TryInverse(Result) then
+    raise Exception.Create('Cannot invert camera matrix, possibly it contains scaling to zero');
 end;
 
 procedure TCamera.BeginVisibleChangeSchedule;
@@ -1737,7 +1837,8 @@ end;
 procedure TCamera.ScheduleVisibleChange;
 begin
   if VisibleChangeSchedule = 0 then
-    VisibleChange else
+    VisibleChange([chCamera])
+  else
     IsVisibleChangeScheduled := true;
 end;
 
@@ -1752,7 +1853,7 @@ begin
       BeginVisibleChangeSchedule. And BeginVisibleChangeSchedule must start
       with good state, see assertion there. }
     IsVisibleChangeScheduled := false;
-    VisibleChange;
+    VisibleChange([chCamera]);
   end;
 end;
 
@@ -1782,12 +1883,23 @@ begin
   FRadius := Value;
 end;
 
+procedure TCamera.SetModelBox(const B: TBox3D);
+var
+  P, D, U: TVector3;
+begin
+  { since changing ModelBox changes also CenterOfRotation for TExamineCamera,
+    explicitly make sure that camera view stays the same. }
+  GetView(P, D, U);
+  FModelBox := B;
+  SetView(P, D, U);
+end;
+
 procedure TCamera.Ray(const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
-  CustomRay(ContainerRect, WindowPosition, Projection, RayOrigin, RayDirection);
+  CustomRay(FloatRectangle(ContainerRect), WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.MouseRay(
@@ -1795,11 +1907,11 @@ procedure TCamera.MouseRay(
   out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
-  CustomRay(ContainerRect, Container.MousePosition, Projection, RayOrigin, RayDirection);
+  CustomRay(FloatRectangle(ContainerRect), Container.MousePosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
-  const Viewport: TRectangle;
+  const Viewport: TFloatRectangle;
   const WindowPosition: TVector2;
   const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3);
@@ -1815,6 +1927,16 @@ begin
     Pos, Dir, Up,
     Projection,
     RayOrigin, RayDirection);
+end;
+
+procedure TCamera.CustomRay(
+  const Viewport: TRectangle;
+  const WindowPosition: TVector2;
+  const Projection: TProjection;
+  out RayOrigin, RayDirection: TVector3);
+begin
+  CustomRay(FloatRectangle(Viewport),
+    WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.Update(const SecondsPassed: Single;
@@ -1992,7 +2114,8 @@ begin
     HeadBobbing         := SourceCamera.HeadBobbing        ;
     HeadBobbingTime     := SourceCamera.HeadBobbingTime    ;
     ClimbHeight         := SourceCamera.ClimbHeight        ;
-    ModelBox            := SourceCamera.ModelBox           ;
+    // set using FModelBox, as there's no need to preserve view
+    FModelBox           := SourceCamera.ModelBox           ;
     CrouchHeight        := SourceCamera.CrouchHeight       ;
 
     { Always call CorrectPreferredHeight after changing Radius or PreferredHeight }
@@ -2048,15 +2171,26 @@ var
 begin
   inherited;
 
+  FRotationEnabled := true;
+  FMoveEnabled := true;
+  FZoomEnabled := true;
   FTranslation := TVector3.Zero;
   FRotations := TQuaternion.ZeroRotation;
   FRotationsAnim := TVector3.Zero;
   FScaleFactor := 1;
   FDragMoveSpeed := 1;
   FKeysMoveSpeed := 1;
+  FScaleFactorMin := 0.01;
+  FScaleFactorMax := 100.0;
   FRotationAccelerate := true;
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
+  FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
+  FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
+
+  FMouseButtonRotate := mbLeft;
+  FMouseButtonMove := mbMiddle;
+  FMouseButtonZoom := mbRight;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2092,7 +2226,7 @@ begin
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(K_Space, K_None, #0, true, mbLeft);
+   Input_StopRotating.Assign(K_Space, K_None, '', true, mbLeft);
 end;
 
 destructor TExamineCamera.Destroy;
@@ -2110,6 +2244,7 @@ begin
   FreeAndNil(FInput_ScaleSmaller);
   FreeAndNil(FInput_Home);
   FreeAndNil(FInput_StopRotating);
+  FreeAndNil(FPinchGestureRecognizer);
   inherited;
 end;
 
@@ -2147,6 +2282,8 @@ procedure TExamineCamera.Update(const SecondsPassed: Single;
   const
     MaxRotationSpeed = 6.0; { this prevents rotations getting too wild speed }
   begin
+    if not RotationEnabled then Exit;
+
     if RotationAccelerate then
       FRotationsAnim[coord] :=
         Clamped(FRotationsAnim[coord] +
@@ -2179,7 +2316,7 @@ begin
     keys (that increase RotationsAnim). Exact equality is Ok check
     to detect this. }
 
-  if not FRotationsAnim.IsPerfectlyZero then
+  if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
     RotChange := SecondsPassed;
 
@@ -2216,7 +2353,7 @@ begin
 
     ModsDown := ModifiersDown(Container.Pressed);
 
-    if ModsDown = [mkCtrl] then
+    if MoveEnabled and (ModsDown = [mkCtrl]) then
     begin
       for i := 0 to 2 do
       begin
@@ -2238,7 +2375,7 @@ begin
         end;
       end;
     end else
-    if ModsDown = [] then
+    if RotationEnabled and (ModsDown = []) then
     begin
       for i := 0 to 2 do
       begin
@@ -2312,6 +2449,7 @@ var
   MoveSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit(false);
+  if not MoveEnabled then Exit(false);
   if FModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
@@ -2346,6 +2484,7 @@ var
   RotationSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit(false);
+  if not RotationEnabled then Exit(false);
   Result := true;
 
   Moved := false;
@@ -2385,7 +2524,7 @@ procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 var
   Pos, Dir, Up, NewGravityUp: TVector3;
 begin
-  ModelBox := AModelBox;
+  FModelBox := AModelBox; // set using FModelBox, as there's no need to preserve view
   Radius := ARadius;
 
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
@@ -2404,7 +2543,35 @@ procedure TExamineCamera.SetRotations(const Value: TQuaternion);
 begin FRotations := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetScaleFactor(const Value: Single);
-begin FScaleFactor := Value; ScheduleVisibleChange; end;
+begin
+  if FScaleFactor <> Value then
+  begin
+    FScaleFactor := Clamped(Value, FScaleFactorMin, FScaleFactorMax);
+    ScheduleVisibleChange;
+  end;
+end;
+
+procedure TExamineCamera.SetScaleFactorMin(const Value: Single);
+begin
+  if FScaleFactorMin <> Value then
+  begin
+    FScaleFactorMin := Value;
+    { Correct ScaleFactor now.
+      Using a property, so it causes ScheduleVisibleChange if changed. }
+    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
+  end;
+end;
+
+procedure TExamineCamera.SetScaleFactorMax(const Value: Single);
+begin
+  if FScaleFactorMax <> Value then
+  begin
+    FScaleFactorMax := Value;
+    { Correct ScaleFactor now.
+      Using a property, so it causes ScheduleVisibleChange if changed. }
+    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
+  end;
+end;
 
 procedure TExamineCamera.SetTranslation(const Value: TVector3);
 begin FTranslation := Value; ScheduleVisibleChange; end;
@@ -2423,10 +2590,14 @@ var
 begin
   Result := inherited;
   if Result or
-     (not (ciNormal in Input)) or
      Animation or
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Press(Event) then
+    Exit(ExclusiveEvents);
+
+  if not (ciNormal in Input) then Exit;
 
   if Event.EventType <> itMouseWheel then
   begin
@@ -2446,6 +2617,7 @@ begin
     end else
       Result := false;
   end else
+  if ZoomEnabled then
   begin
     { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
@@ -2457,7 +2629,24 @@ begin
   end;
 end;
 
+function TExamineCamera.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (ciGesture in Input) and FPinchGestureRecognizer.Release(Event) then
+    Exit(ExclusiveEvents);
+end;
+
 function TExamineCamera.Zoom(const Factor: Single): boolean;
+
+  function OrthographicProjection: Boolean;
+  begin
+    { See how perspective (and more flexible frustum) projection matrices
+      look like in CastleProjection, they have always -1 in this field. }
+    Result := FProjectionMatrix.Data[2, 3] = 0;
+  end;
+
 var
   Size: Single;
   OldTranslation, OldPosition: TVector3;
@@ -2465,26 +2654,35 @@ begin
   Result := not FModelBox.IsEmptyOrZero;
   if Result then
   begin
-    Size := FModelBox.AverageSize;
-
-    OldTranslation := FTranslation;
-    OldPosition := Position;
-
-    FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
-
-    { Cancel zoom in, don't allow to go to the other side of the model too far.
-      Note that Box3DPointDistance = 0 when you're inside the box,
-      so zoomin in/out inside the box is still always allowed.
-      See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
-    if (Factor > 0) and
-       (FModelBox.PointDistance(Position) >
-        FModelBox.PointDistance(OldPosition)) then
+    if OrthographicProjection then
     begin
-      FTranslation := OldTranslation;
-      Exit(false);
+      { In case of OrthographicProjection, changing Translation
+        would have no effect. So instead scale the model. }
+      ScaleFactor := ScaleFactor * Exp(Factor);
+    end else
+    begin
+      { zoom by changing Translation }
+      Size := FModelBox.AverageSize;
+
+      OldTranslation := FTranslation;
+      OldPosition := Position;
+
+      FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
+
+      { Cancel zoom in, don't allow to go to the other side of the model too far.
+        Note that TBox3D.PointDistance = 0 when you're inside the box,
+        so zoomin in/out inside the box is still always allowed.
+        See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
+      if (Factor > 0) and
+         (FModelBox.PointDistance(Position) >
+          FModelBox.PointDistance(OldPosition)) then
+      begin
+        FTranslation := OldTranslation;
+        Exit(false);
+      end;
     end;
 
-    VisibleChange
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -2492,8 +2690,8 @@ function TExamineCamera.Motion(const Event: TInputMotion): boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
-  DoZooming, DoMoving: boolean;
   MoveDivConst: Single;
+  Dpi: Single;
 
   function DragRotation: TQuaternion;
 
@@ -2552,60 +2750,21 @@ var
     end;
   end;
 
+var
+  DraggingMouseButton: TMouseButton;
 begin
   Result := inherited;
   if Result then Exit;
 
   if Container <> nil then
-    MoveDivConst := Container.Dpi else
-    MoveDivConst := 100;
+    Dpi := Container.Dpi
+  else
+    Dpi := DefaultDpi;
 
-  { Shortcuts: I'll try to make them intelligent, which means
-    "mostly matching shortcuts in other programs" (like Blender) and
-    "accessible to all users" (which means that e.g. I don't want to use
-    middle mouse button, as many users have only 2 mouse buttons (or even 1),
-    besides GNOME hig says users seldom try out other than the 1st button).
+  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
+    Exit(ExclusiveEvents);
 
-    Let's check what others use:
-
-    Blender:
-    - rotating: on bmMiddle
-    - moving left/right/down/up: on Shift + mbMiddle
-    - moving closer/further: on Ctrl + mbMiddle
-      (moving down brings closer, up brings further; horizontal move ignored)
-    Both Shift and Ctrl pressed do nothing.
-
-    vrweb:
-    - rotating: mbMiddle
-    - moving closer/further: mbRight (like in Blender: down closer, up further,
-      horizontal doesn't matter)
-    - moving left/right/down/up: mbLeft
-
-    GIMP normalmap 3d preview:
-    - rotating: mbLeft
-    - moving closer/further: mbRight (like in Blender: down closer, up further,
-      horizontal doesn't matter)
-    - no moving left/right/down/up.
-
-    My thoughts and conclusions:
-    - rotating seems most natural in Examine mode (that's where this navigation
-      mode is the most comfortable), so it should be on mbLeft (like normalmap)
-      with no modifiers (like Blender).
-    - moving closer/further: 2nd most important action in Examine mode, IMO.
-      Goes to mbRight. For people with 1 mouse button, and for Blender analogy,
-      it's also on Ctrl + mbLeft.
-    - moving left/right/down/up: mbMiddle.
-      For people with no middle button, and Blender analogy, it's also on
-      Shift + mbLeft.
-
-    This achieves a couple of nice goals:
-    - everything is available with only mbLeft, for people with 1 mouse button.
-    - Blender analogy: you can say to just switch "mbMiddle" to "mbLeft",
-      and it works the same
-    - OTOH, for people with 3 mouse buttons, that do not catch the fact that
-      keyboard modifiers change the navigation, also each mb (without modifier)
-      does something different.
-  }
+  MoveDivConst := Dpi;
 
   { When dragging should be ignored, or (it's an optimization to check it
     here early, Motion occurs very often) when nothing pressed, do nothing. }
@@ -2617,49 +2776,84 @@ begin
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
 
-  { Rotating }
+  { Look at Container.MousePressed and ModsDown to determine
+    which mouse button is "dragging" now. }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
+    DraggingMouseButton := mbLeft
+  else
+  if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
+     ((mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
+    DraggingMouseButton := mbRight
+  else
+  if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
+     ((mbLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
+    DraggingMouseButton := mbMiddle
+  else
+    Exit;
+
+  { Rotating }
+  if RotationEnabled and
+     (MouseButtonRotate = DraggingMouseButton) then
   begin
     if Turntable then
-      FRotations := DragRotation {old FRotations already included in XYRotation} else
+      FRotations := DragRotation {old FRotations already included in XYRotation}
+    else
       FRotations := DragRotation * FRotations;
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
 
-  { Moving uses box size, so requires non-empty box. }
-
-  { Note: checks for (ModsDown = []) are not really needed below,
-    mkRight / Middle don't serve any other purpose anyway.
-    But I think that it improves user ability to "discover" these shortcuts
-    and keys, otherwise it seems strange that shift/ctrl change the
-    meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
-
-  { Moving closer/further }
-  if Turntable then
-    DoZooming := (mbMiddle in Container.MousePressed) else
-    DoZooming := ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
-                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
-  if DoZooming then
+  if ZoomEnabled and
+     (MouseButtonZoom = DraggingMouseButton) then
   begin
     if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
-  { Moving left/right/down/up }
-  if Turntable then
-    DoMoving := (not FModelBox.IsEmpty) and (mbRight in Container.MousePressed)
-  else
-    DoMoving := (not FModelBox.IsEmpty) and
-               ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
-                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) );
-  if DoMoving then
+  { Moving uses box size, so requires non-empty box. }
+  if MoveEnabled and
+     (not FModelBox.IsEmpty) and
+     (MouseButtonMove = DraggingMouseButton) then
   begin
     Size := FModelBox.AverageSize;
     FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst));
     FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst));
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
+  end;
+end;
+
+procedure TExamineCamera.OnGestureRecognized(Sender: TObject);
+var
+  Recognizer: TCastlePinchPanGestureRecognizer;
+  Factor, Size, MoveDivConst, ZoomScale: Single;
+begin
+  Recognizer := Sender as TCastlePinchPanGestureRecognizer;
+  if Recognizer = nil then Exit;
+
+  if Container <> nil then
+    MoveDivConst := Container.Dpi else
+    MoveDivConst := 100;
+
+  if ZoomEnabled and (Recognizer.Gesture = gtPinch) then
+  begin
+    if Recognizer.PinchScaleFactor > 1.0 then
+      Factor := 40 * (Recognizer.PinchScaleFactor - 1.0)
+    else
+      Factor := -40 * (1.0/Recognizer.PinchScaleFactor - 1.0);
+    if Turntable then
+      ZoomScale := 30
+    else
+      ZoomScale := 10;
+    Zoom(Factor / ZoomScale);
+  end;
+
+  if MoveEnabled and (Recognizer.Gesture = gtPan) then
+  begin
+    Size := FModelBox.AverageSize;
+    FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst));
+    FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst));
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -2670,7 +2864,8 @@ begin
   AUp  := FUp;
 end;
 
-procedure TExamineCamera.VisibleChange(const RectOrCursorChanged: boolean);
+procedure TExamineCamera.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean);
 var
   M: TMatrix4;
 begin
@@ -4284,74 +4479,105 @@ begin
   begin
     FMouseLook := Value;
     if FMouseLook then
-      Cursor := mcForceNone else
+      Cursor := mcForceNone
+    else
       Cursor := mcDefault;
+    { do not trust that MousePosition is suitable for next mouse look }
+    if Container <> nil then
+      Container.IsMousePositionForMouseLook := false;
   end;
 end;
 
 function TWalkCamera.Motion(const Event: TInputMotion): boolean;
-var
-  MouseChange: TVector2;
-begin
-  Result := inherited;
-  if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (ciNormal in Input) and MouseLook and Container.Focused and
-    ContainerSizeKnown and (not Animation) then
+  procedure HandleMouseLook;
+  var
+    Middle, MouseChange: TVector2;
   begin
-    { Note that setting MousePosition may (but doesn't have to)
-      generate another Motion in the container to destination position.
-      This can cause some problems:
+    { 1. Note that setting MousePosition may (but doesn't have to)
+         generate another Motion in the container to destination position.
 
-      1. Consider this:
+         Subtracting Middle (instead of Container.Position, previous
+         known mouse position) solves it. This way
 
-         - player moves mouse to MiddleX-10
-         - Motion is generated, I rotate camera by "-10" horizontally
-         - Setting MousePosition sets mouse to the Middle,
-           but this time no Motion is generated
-         - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TCastleWindowCustom thinks that the mouse
-           is still positioned on Middle-10, and I will get "+20" move
-           for player (while I should get only "+10")
+         - The Motion caused by MakeMousePositionForMouseLook will not do
+           anything bad, as MouseChange wil be 0 then.
 
-         Fine solution for this would be to always subtract
-         MiddleWidth and MiddleHeight below
-         (instead of previous values, OldX and OldY).
-         But this causes another problem:
+         - In case MakeMousePositionForMouseLook does not cause Motion,
+           we will not measure the changes as too much. Consider this:
 
-      2. What if player switches to another window, moves the mouse,
-         than goes alt+tab back to our window ? Next mouse move will
-         be stupid, because it's really *not* from the middle of the screen.
+            - player moves mouse to MiddleX-10
+            - Motion is generated, I rotate camera by "-10" horizontally
+            - Setting MousePosition sets mouse to the Middle,
+              but this time no Motion is generated
+            - player moved mouse to MiddleX+10. Although mouse was
+              positioned on Middle, TCastleWindowBase thinks that the mouse
+              is still positioned on Middle-10, and I will get "+20" move
+              for player (while I should get only "+10")
 
-      The solution for both problems: you have to check that previous
-      position, OldX and OldY, are indeed equal to
-      MiddleWidth and MiddleHeight. This way we know that
-      this is good move, that qualifies to perform mouse move.
+      2. Another problem is when player switches to another window, moves the mouse,
+         than goes Alt+Tab back to our window.
+         Next mouse move would cause huge change,
+         because it's really *not* from the middle of the screen.
 
-      And inside, we can calculate the difference
-      by subtracing new - old position, knowing that old = middle this
-      will always be Ok.
+         Solution to this is to track that previous position was set
+         by MakeMousePositionForMouseLook.
+         This is done by IsMousePositionForMouseLook. }
 
-      Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
-      we actually depend on the fact that MouseLook checks and works
-      only if mouse position is at the middle. }
     if Container.IsMousePositionForMouseLook then
     begin
-      MouseChange := Event.Position - Container.MousePosition;
+      Middle := Vector2(ContainerWidth div 2, ContainerHeight div 2);
+      MouseChange := Event.Position - Middle;
+
+      { Only make RotateHorizontal/Vertical if the mouse move does not seem
+        too wild. This prevents taking into account MousePosition that is wild,
+        and visible after Alt+Tabbing back to this window.
+        Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
+        100% reliable, see IsMousePositionForMouseLook comments. }
+      if (Abs(MouseChange.X) > ContainerWidth / 3) or
+         (Abs(MouseChange.Y) > ContainerHeight / 3) then
+        Exit;
 
       if MouseChange[0] <> 0 then
+      begin
         RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
+        Result := ExclusiveEvents;
+      end;
+
       if MouseChange[1] <> 0 then
       begin
         if InvertVerticalMouseLook then
           MouseChange[1] := -MouseChange[1];
         RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
+        Result := ExclusiveEvents;
       end;
-
-      Result := ExclusiveEvents;
     end;
 
     Container.MakeMousePositionForMouseLook;
+  end;
+
+  procedure HandleMouseDrag;
+  var
+    MouseChange: TVector2;
+  begin
+    MouseChange := Event.Position - Container.MousePosition;
+    if MouseChange[0] <> 0 then
+      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
+    if MouseChange[1] <> 0 then
+      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+  end;
+
+begin
+  Result := inherited;
+  if Result or (Event.FingerIndex <> 0) then Exit;
+
+  if (ciNormal in Input) and
+    MouseLook and
+    Container.Focused and
+    ContainerSizeKnown and
+    (not Animation) then
+  begin
+    HandleMouseLook;
     Exit;
   end;
 
@@ -4362,11 +4588,7 @@ begin
     (not Animation) and
     (not MouseLook) then
   begin
-    MouseChange := Event.Position - Container.MousePosition;
-    if MouseChange[0] <> 0 then
-      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
-    if MouseChange[1] <> 0 then
-      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
+    HandleMouseDrag;
     Result := ExclusiveEvents;
   end;
 end;
@@ -4628,6 +4850,89 @@ begin
 
   { GravityUp is just always equal Up here. }
   GravityUp := Up;
+end;
+
+procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
+  const ViewportWidth, ViewportHeight: Single;
+  const ProjectionOriginCenter: Boolean;
+  out Position: TVector3;
+  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+
+  { Calculate Position.XY and AProjectionWidth, AProjectionHeight. }
+  function PositionXY: TVector2;
+  var
+    Rect: TFloatRectangle;
+    ResultingProjectionWidth, ResultingProjectionHeight: Single;
+  begin
+    if Box.IsEmpty then
+    begin
+      Result := Vector2(0, 0);
+      AProjectionWidth := 0;
+      AProjectionHeight := 0;
+    end else
+    begin
+      Rect := Box.RectangleXY;
+
+      if ViewportWidth / ViewportHeight >
+         Rect.Width / Rect.Height then
+      begin
+        AProjectionWidth := 0;
+        AProjectionHeight := Rect.Height;
+        { Calculate ResultingProjectionXxx
+          the same way that CurrentProjectionWidth/Height would be calculated. }
+        ResultingProjectionWidth := Rect.Height * ViewportWidth / ViewportHeight;
+        ResultingProjectionHeight := AProjectionHeight;
+      end else
+      begin
+        AProjectionWidth := Rect.Width;
+        AProjectionHeight := 0;
+        { Calculate ResultingProjectionXxx
+          the same way that CurrentProjectionWidth/Height would be calculated. }
+        ResultingProjectionWidth := AProjectionWidth;
+        ResultingProjectionHeight := Rect.Width * ViewportHeight / ViewportWidth;
+      end;
+
+      // calculate PositionXY
+      Result := Rect.Center;
+      if not ProjectionOriginCenter then
+        Result := Result - Vector2(
+          ResultingProjectionWidth / 2,
+          ResultingProjectionHeight / 2);
+    end;
+  end;
+
+  { Calculate Position.Z and AProjectionSpan. }
+  function PositionZ: Single;
+  const
+    // Same as TCastle2DSceneManager constants
+    DefaultProjectionSpan = 1000.0;
+    DefaultCameraZ = DefaultProjectionSpan / 2;
+  var
+    MinZ, MaxZ: Single;
+  begin
+    if Box.IsEmpty then
+    begin
+      Result := DefaultCameraZ;
+      AProjectionSpan := DefaultProjectionSpan;
+    end else
+    begin
+      MinZ := Box.Min.Z;
+      MaxZ := Box.Max.Z;
+      if (MinZ > - DefaultProjectionSpan / 2) and
+         (MaxZ < DefaultProjectionSpan / 2) then
+      begin
+        Result := DefaultCameraZ;
+        AProjectionSpan := DefaultProjectionSpan;
+      end else
+      begin
+        Result := MaxZ + 1;
+        AProjectionSpan := MaxZ - MinZ;
+      end;
+    end;
+  end;
+
+begin
+  Position := Vector3(PositionXY, PositionZ);
 end;
 
 end.

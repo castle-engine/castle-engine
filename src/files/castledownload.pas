@@ -88,8 +88,8 @@ type
 
   It also automatically supports protocols to embed script contents:
   ecmascript, javascript (see VRML and X3D specifications),
-  castlescript, kambiscript (see http://castle-engine.sourceforge.net/castle_script.php),
-  compiled (http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled).
+  castlescript, kambiscript (see https://castle-engine.io/castle_script.php),
+  compiled (https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled).
   The MIME type for these is implied by the protocol (like "application/javascript"
   for ecmascript/javascript), and the returned stream simply contains
   script code.
@@ -237,8 +237,13 @@ function Downloads: TDownloadList;
 
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
-  Right now, this only works for @code(file) URLs, and the only advantage
-  it has over manually creating TFileStream is that this accepts URLs.
+
+  Right now, this only works for @code(file) and @code(castle-data) URLs,
+  and (as all engine functions) can also accept simple filenames.
+
+  When saving to @code(castle-data) URL, remember that on some platforms
+  the game data is read-only. Use this only during development on desktop,
+  when you know that "data" is just your regular data directory.
 
   @raises(ESaveError In case of problems saving this URL.)
 
@@ -298,7 +303,7 @@ type
     instance, or you can read an URL. Reading from URL supports all kinds
     of URL protocols supportted by @link(Download),
     including @code(file), @code(http) and Android @code(assets)
-    (see http://castle-engine.sourceforge.net/tutorial_network.php ).
+    (see https://castle-engine.io/tutorial_network.php ).
 
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).
@@ -377,13 +382,25 @@ type
     procedure Writeln(const S: string; const Args: array of const); overload;
   end;
 
+  TStringsHelper = class helper for TStrings
+    { Load the contents from URL.
+      Uses Castle Game Engine @link(Download) to get the contents,
+      then uses standard LoadFromStream to load them. }
+    procedure LoadFromURL(const URL: string);
+
+    { Save the contents to URL.
+      Uses standard SaveToStream combined with
+      Castle Game Engine @link(URLSaveStream) to save the contents. }
+    procedure SaveToURL(const URL: string);
+  end;
+
 implementation
 
 uses URIParser, Math,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
-  CastleApplicationProperties
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
+  CastleApplicationProperties, CastleFilesUtils
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 
@@ -578,6 +595,56 @@ end;
 
 {$endif HAS_FP_HTTP_CLIENT}
 
+{$ifdef ANDROID}
+type
+  TAndroidDownloadService = class
+    Finished, FinishedSuccess: boolean;
+    TemporaryFileName, ErrorMessage: string;
+    function HandleDownloadMessages(const Received: TCastleStringList): boolean;
+    function Wait(const URL: string): TStream;
+  end;
+
+function TAndroidDownloadService.HandleDownloadMessages(const Received: TCastleStringList): boolean;
+begin
+  if (Received.Count = 2) and (Received[0] = 'download-error') then
+  begin
+    Finished := true;
+    FinishedSuccess := false;
+    ErrorMessage := Received[1];
+    Result := true;
+  end;
+  if (Received.Count = 2) and (Received[0] = 'download-finished') then
+  begin
+    Finished := true;
+    FinishedSuccess := true;
+    TemporaryFileName := Received[1];
+    Result := true;
+  end;
+end;
+
+function TAndroidDownloadService.Wait(const URL: string): TStream;
+begin
+  Finished := false;
+  Messaging.OnReceive.Add(@HandleDownloadMessages);
+  Messaging.Send(['download-url', URL]);
+  try
+    { TODO: introduce download-progress messages,
+       use them to make Progress.Init/Step/Fini calls,
+       allowing to show user progress bar during this loop. }
+    repeat
+      ApplicationProperties._Update; // process CastleMessages
+      Sleep(200)
+    until Finished;
+  finally
+    Messaging.OnReceive.Remove(@HandleDownloadMessages);
+  end;
+  if FinishedSuccess then
+    Result := TFileStream.Create(TemporaryFileName, fmOpenRead)
+  else
+    raise Exception.Create(ErrorMessage);
+end;
+{$endif ANDROID}
+
 { Load FileName to TMemoryStream. }
 function CreateMemoryStream(const FileName: string): TMemoryStream; overload;
 begin
@@ -645,6 +712,7 @@ var
   DataURI: TDataURI;
   {$ifdef ANDROID}
   AssetStream: TReadAssetStream;
+  DownloadService: TAndroidDownloadService;
   {$endif}
 const
   MaxRedirects = 32;
@@ -653,6 +721,24 @@ begin
 
   if LogAllLoading and Log then
     WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
+
+  {$ifdef ANDROID}
+  if (P = 'http') or (P = 'https') then
+  begin
+    if not EnableNetwork then
+      raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
+
+    CheckFileAccessSafe(URL);
+    WritelnLog('Network', 'Download service started for "%s"', [URIDisplay(URL)]);
+    DownloadService := TAndroidDownloadService.Create;
+    try
+      Result := DownloadService.Wait(URL);
+      MimeType := URIMimeType(URL);
+    finally
+      FreeAndNil(DownloadService);
+    end;
+  end else
+  {$endif ANDROID}
 
   {$ifdef HAS_FP_HTTP_CLIENT}
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
@@ -715,6 +801,12 @@ begin
     raise EDownloadError.CreateFmt('Cannot download an asset URL, because we are not compiled for Android: %s',
       [URL]);
     {$endif}
+  end else
+
+  { castle-data: to access ApplicationData }
+  if P = 'castle-data' then
+  begin
+    Result := Download(ResolveCastleDataURL(URL), Options, MimeType);
   end else
 
   { data: URI scheme }
@@ -787,7 +879,12 @@ begin
     if FileName = '' then
       raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
   end else
+  if P = 'castle-data' then
+  begin
+    Exit(URLSaveStream(ResolveCastleDataURL(URL), Options));
+  end else
     raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
+
   if ssoGzip in Options then
   begin
     Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
@@ -984,6 +1081,28 @@ end;
 procedure TTextWriter.Writeln(const S: string; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
+end;
+
+{ TStringsHelper ---------------------------------------------------------- }
+
+procedure TStringsHelper.LoadFromURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := Download(URL);
+  try
+    LoadFromStream(Stream);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TStringsHelper.SaveToURL(const URL: string);
+var
+  Stream: TStream;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    SaveToStream(Stream);
+  finally FreeAndNil(Stream) end;
 end;
 
 end.

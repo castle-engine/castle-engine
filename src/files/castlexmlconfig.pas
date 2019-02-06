@@ -51,7 +51,7 @@ type
         (this is actually built-in in our modified TXMLConfig).)
     )
 
-    See http://castle-engine.sourceforge.net/tutorial_user_prefs.php
+    See https://castle-engine.io/tutorial_user_prefs.php
     for more documentation. }
   TCastleConfig = class(TXMLConfig)
   private
@@ -68,9 +68,12 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Get a @italic(required) integer attribute, raise exception if missing or invalid.
-      @raises(EMissingAttribute If the attribute is missing or empty.)
+    { Integer values reading/writing to config file.
+      @raises(EMissingAttribute Raised by GetInteger(string) (overloaded
+      version without the ADefaultValue parameter) if the attribute is missing.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
+    function GetInteger(const APath: string;
+      const ADefaultValue: Integer): Integer; overload;
     function GetInteger(const APath: String): Integer; overload;
 
     { Get a @italic(required) boolean attribute, raise exception if missing or invalid.
@@ -126,7 +129,7 @@ type
     { @groupEnd }
 
     { Int64 values reading/writing to config file.
-      @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
+      @raises(EMissingAttribute Raised by GetInt64(string) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.) }
     function GetInt64(const APath: string;
       const ADefaultValue: Int64): Int64; overload;
@@ -385,6 +388,8 @@ type
     procedure NotModified;
     procedure MarkModified;
 
+    function Document: TDOMDocument;
+
     { Listeners, automatically called at the @link(Load) or @link(Save)
       calls.
 
@@ -433,7 +438,7 @@ type
           to just load a file from the local filesystem.
           It can also be a full-blown URL, with a 'file://' protocol,
           or 'http://', or other supported protocols, see
-          http://castle-engine.sourceforge.net/tutorial_network.php )
+          https://castle-engine.io/tutorial_network.php )
 
         @item(The overloaded @code(Load) version with TStream loads from a stream.
           URL is set to PretendURL (just pass empty string if you don't
@@ -476,7 +481,9 @@ uses //Base64,
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleConfig]);
+  {$endif}
 end;
 
 { TCastleConfigEventList ----------------------------------------------------- }
@@ -503,6 +510,15 @@ begin
   FreeAndNil(FOnLoad);
   FreeAndNil(FOnSave);
   inherited;
+end;
+
+function TCastleConfig.GetInteger(const APath: string;
+  const ADefaultValue: Integer): Integer;
+var
+  ResultString: string;
+begin
+  ResultString := GetValue(APath, IntToStr(ADefaultValue));
+  Result := StrToIntDef(ResultString, ADefaultValue);
 end;
 
 function TCastleConfig.GetInteger(const APath: String): Integer;
@@ -918,7 +934,7 @@ var
   SeekPos: Integer;
   PathComponent: string;
 begin
-  Result := Doc.DocumentElement;
+  Result := Document.DocumentElement;
   SeekPos := 1;
   while Result <> nil do
   begin
@@ -937,7 +953,7 @@ var
   PathComponent: string;
   NewResult: TDOMElement;
 begin
-  Result := Doc.DocumentElement;
+  Result := Document.DocumentElement;
   SeekPos := 1;
   { only exits by break, for consistency with PathElement implementation above }
   while true do
@@ -948,7 +964,7 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Doc.CreateElement(UTF8Decode(PathComponent));
+      NewResult := Document.CreateElement(UTF8Decode(PathComponent));
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;
@@ -1012,6 +1028,11 @@ end;
 procedure TCastleConfig.MarkModified;
 begin
   FModified := true;
+end;
+
+function TCastleConfig.Document: TDOMDocument;
+begin
+  Result := Doc;
 end;
 
 { loading and saving --------------------------------------------------------- }

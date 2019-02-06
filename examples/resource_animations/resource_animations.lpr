@@ -71,7 +71,7 @@ procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemo
   end;
 
 begin
-  Time += SecondsPassed;
+  Time := Time + SecondsPassed;
   VisibleChangeHere([vcVisibleGeometry]);
   UpdateChild;
 end;
@@ -219,35 +219,36 @@ procedure Resize(Container: TUIContainer);
 const
   Margin = 8;
 var
-  MaxWidth: Cardinal;
-  Bottom, I: Integer;
+  MaxWidth: Single;
+  Bottom: Single;
+  I: Integer;
 begin
   MaxWidth := 0;
   for I := 0 to ResButtons.Count - 1 do
-    MaxVar(MaxWidth, ResButtons[I].CalculatedWidth);
+    MaxVar(MaxWidth, ResButtons[I].EffectiveWidth);
 
   Bottom := Window.Height;
   for I := 0 to ResButtons.Count - 1 do
   begin
-    Bottom -= Margin + ResButtons[I].CalculatedHeight;
+    Bottom := Bottom - (Margin + ResButtons[I].EffectiveHeight);
     ResButtons[I].Bottom := Bottom;
     ResButtons[I].Left := Margin;
     ResButtons[I].AutoSizeWidth := false;
     ResButtons[I].Width := MaxWidth;
   end;
 
-  Bottom -= Margin * 2 + ResButtons[I].CalculatedHeight;
+  Bottom := Bottom - (Margin * 2 + ResButtons[I].EffectiveHeight);
   LoadResourceButton.Bottom := Bottom;
   LoadResourceButton.Left := Margin;
 
   MaxWidth := 0;
   for I := 0 to AnimButtons.Count - 1 do
-    MaxVar(MaxWidth, AnimButtons[I].CalculatedWidth);
+    MaxVar(MaxWidth, AnimButtons[I].EffectiveWidth);
 
   Bottom := Window.Height;
   for I := 0 to AnimButtons.Count - 1 do
   begin
-    Bottom -= Margin + AnimButtons[I].CalculatedHeight;
+    Bottom := Bottom - (Margin + AnimButtons[I].EffectiveHeight);
     AnimButtons[I].Bottom := Bottom;
     AnimButtons[I].Left := Window.Width - Margin - MaxWidth;
     AnimButtons[I].AutoSizeWidth := false;

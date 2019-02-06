@@ -1,5 +1,5 @@
 /* OpenGL shader effect (used to enhance the Castle Game Engine shaders,
-   see https://castle-engine.sourceforge.io/compositing_shaders.php ),
+   see https://castle-engine.io/compositing_shaders.php ),
    applied over terrain.
 
    This simply saves position and normal in object space,

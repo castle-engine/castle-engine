@@ -26,7 +26,7 @@
       behaves like a grouping node. If @false, this allows everything
       to "leak out" (transform changes, VRML 1.0 state changes etc.).
       Possibility useful for VRML 1.0 extension
-      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_wwwinline_separate }
+      https://castle-engine.io/x3d_extensions.php#section_ext_wwwinline_separate }
     function SeparateGroup: boolean; virtual;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -566,7 +566,7 @@ begin
   EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
-   FdChildren.ChangesAlways := [chEverything];
+   FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
@@ -588,16 +588,16 @@ function TAbstractX3DGroupingNode.ToChildrenArray(
 var
   I: Integer;
 begin
-  SetLength(Result, Nodes.Items.Count);
-  for I := 0 to Nodes.Items.Count - 1 do
+  SetLength(Result, Nodes.Count);
+  for I := 0 to Nodes.Count - 1 do
   begin
-    if not (Nodes.Items[I] is TAbstractChildNode) then
+    if not (Nodes[I] is TAbstractChildNode) then
     begin
       WritelnWarning('X3D', 'Node on addChildren or removeChildren list is not a TAbstractChildNode, ignoring event');
       SetLength(Result, 0);
       Exit;
     end;
-    Result[I] := TAbstractChildNode(Nodes.Items[I]);
+    Result[I] := TAbstractChildNode(Nodes[I]);
   end;
 end;
 
@@ -631,7 +631,7 @@ begin
     for each AddChildren call). Do we don't do it now. }
 
   for N in Children do
-    if FdChildren.Items.IndexOf(N) = -1 then
+    if FdChildren.IndexOf(N) = -1 then
       FdChildren.Add(N);
 
   if Scene <> nil then
@@ -909,7 +909,7 @@ begin
   inherited;
 
   FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
-   FdChildren.ChangesAlways := [chEverything];
+   FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
@@ -1084,7 +1084,7 @@ var
   TransformData: TTransformData;
 begin
   TransformData.Transform := State.Transform;
-  TransformData.InverseTransform := State.InvertedTransform;;
+  TransformData.InverseTransform := State.InvertedTransform;
   TransformData.Center := Center;
   TransformData.Rotation := Rotation;
   TransformData.Scale := Scale;

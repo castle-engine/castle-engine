@@ -16,12 +16,8 @@ varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
 
-/* Wrapper for calling PLUG texture_coord_shift */
-vec2 texture_coord_shifted(in vec2 tex_coord)
-{
-  /* PLUG: texture_coord_shift (tex_coord) */
-  return tex_coord;
-}
+/* Include fragment shader utilities used by both Gouraud and Phong shading. */
+/* CASTLE-COMMON-CODE */
 
 void main(void)
 {

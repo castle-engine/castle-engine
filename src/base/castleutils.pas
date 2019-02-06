@@ -68,16 +68,33 @@
       Maybe we had good reasons to do this,
       but in the long run it may be unexpected to new developers
       that the engine overrides a global DecimalSeparator.
-      We will eventually remove this feature in the future.)
-      Of course, our functions will continue to return the values
-      with "dot" inside, regardless of the DecimalSeparator.
+      We will remove this feature in the future.)
+
+      Use @link(FormatDot) to reliably output floating point values
+      with "dot" as a decimal separator.
+      Similarly, use TryStrToFloatDot to read string with dot to a float.
+    )
+
+    @item(Makes AnsiString (which is usually just called "string")
+      have UTF-8 encoding.
+
+      This is consistent with Lazarus, that already does the same:
+      http://wiki.lazarus.freepascal.org/Unicode_Support_in_Lazarus .
+      This way you can just use "string" (not UTF8String or UnicodeString)
+      throughout your code, and everything will just work.
+
+      This way your applications will behave the same, whether they use LCL
+      (which happens if you use TCastleControl on Lazarus form) or not
+      (which happens if you use TCastleWindow).
+
+      This is also consistent with what our TCastleFont expects (it's
+      rendering assumes UTF-8 encoding of strings) and what some of our
+      XML manipulation routines expect.
     )
   )
 }
 
 unit CastleUtils;
-
-{$I castleconf.inc}
 
 {$ifdef VER3_0}
   { Almost all CGE code uses ObjFpc mode under FPC,
@@ -100,8 +117,11 @@ unit CastleUtils;
     https://bugs.freepascal.org/view.php?id=30227
   }
   {$mode delphi}
-  {$undef CASTLE_OBJFPC}
+  {$define CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 {$endif}
+
+{$I castleconf.inc}
+{$undef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
 
 interface
 
@@ -162,26 +182,35 @@ implementation
 {$undef read_implementation}
 
 initialization
- InitializationOSSpecific;
+  InitializationOSSpecific;
 
- Randomize; { required by e.g. GetTempFname }
+  Randomize; { required by e.g. GetTempFname }
 
- LocaleDecimalSeparator :=
-   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
- {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
-   .DecimalSeparator := '.';
+  LocaleDecimalSeparator :=
+    {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
+  {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
+    .DecimalSeparator := '.';
 
- { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
-   so backslash will be considered as directory separator by
-   Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
-   since normal OS routines on Unix *do not* consider backslash to be any
-   special character in a filename, it certainly does not separate dirs.
-   So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
+  { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
+    so backslash will be considered as directory separator by
+    Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
+    since normal OS routines on Unix *do not* consider backslash to be any
+    special character in a filename, it certainly does not separate dirs.
+    So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
 
-   Fortunately we can fix it by globally changing AllowDirectorySeparators. }
- {$ifndef MSWINDOWS}
- AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
- {$endif}
+    Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+  {$ifndef MSWINDOWS}
+  AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
+  {$endif}
+
+  { Set UTF-8 in AnsiStrings, just like Lazarus
+    (see initialization of lazarus/components/lazutils/fpcadds.pas in Lazarus sources) }
+  SetMultiByteConversionCodePage(CP_UTF8);
+  // SetMultiByteFileSystemCodePage(CP_UTF8); not needed, this is the default under Windows
+
+{$IFDEF FPC}
+  SetMultiByteRTLFileSystemCodePage(CP_UTF8);
+ {$ENDIF}
 finalization
- FinalizationOSSpecific;
+  FinalizationOSSpecific;
 end.

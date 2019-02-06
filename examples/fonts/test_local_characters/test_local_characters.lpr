@@ -6,7 +6,7 @@
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
 program test_local_characters;
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 begin
   Window.OpenAndRun;
 end.

@@ -32,12 +32,17 @@
 'varying vec4 castle_ColorPerVertexFragment;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding +
-'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding +
+'/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
+'/* CASTLE-COMMON-CODE */' + LineEnding +
+'' + LineEnding +
+'#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
+'void separate_diffuse_apply_texture(inout vec4 fragment_color,' + LineEnding +
+'  const in vec4 vertex_eye,' + LineEnding +
+'  const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
-'  /* PLUG: texture_coord_shift (tex_coord) */' + LineEnding +
-'  return tex_coord;' + LineEnding +
+'  /* PLUG: separate_diffuse_apply_texture (fragment_color, normal_eye) */' + LineEnding +
 '}' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +

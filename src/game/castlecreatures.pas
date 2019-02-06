@@ -77,6 +77,7 @@ type
     FKnockBackDistance: Single;
     FKnockBackSpeed: Single;
     FCollidesWhenDead: boolean;
+    FScaleMin, FScaleMax: Single;
 
     FRadiusOverride: Single;
 
@@ -127,7 +128,7 @@ type
     { Flying creatures are not affected by gravity and
       (in case of TWalkAttackCreatureResource) their move direction is free.
 
-      For all creatures, TCreature.Gravity (inherited from T3D.Gravity)
+      For all creatures, TCreature.Gravity (inherited from TCastleTransform.Gravity)
       is set to @code("not Flying") at creation. (Except TMissileCreatureResource,
       that has special approach to gravity,
       see TMissileCreatureResource.DirectionFallSpeed.)
@@ -163,7 +164,7 @@ type
       instance. You can use a special creature placeholder with
       a specific starting life value
       (see TGameSceneManager.LoadLevel for placeholders docs,
-      and see http://castle-engine.sourceforge.net/castle-development.php
+      and see https://castle-engine.io/castle-development.php
       about the creature placeholders).
       Or you can use CreateCreature overloaded version that takes extra MaxLife
       parameter.
@@ -227,6 +228,18 @@ type
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
       read FCollidesWhenDead write FCollidesWhenDead default false;
+
+    { Minimum scale when spawning, must be <= ScaleMax.
+      When we spawn a creature, we set it's scale to random number in
+      [ScaleMin, ScaleMax] range. By default both ScaleMin and ScaleMax are 1,
+      resulting in no scaling. }
+    property ScaleMin: Single read FScaleMin write FScaleMin default 1;
+
+    { Maximum scale when spawning, must be >= ScaleMin.
+      When we spawn a creature, we set it's scale to random number in
+      [ScaleMin, ScaleMax] range. By default both ScaleMin and ScaleMax are 1,
+      resulting in no scaling. }
+    property ScaleMax: Single read FScaleMax write FScaleMax default 1;
 
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
@@ -313,7 +326,7 @@ type
       The sphere center is the Middle point ("eye position") of the given creature.
       If the creature may be affected by gravity then
       make sure radius is < than PreferredHeight of the creature,
-      see T3D.PreferredHeight, otherwise creature may get stuck into ground.
+      see TCastleTransform.PreferredHeight, otherwise creature may get stuck into ground.
       In short, if you use the default implementations,
       PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
       bounding box height). Your radius must be smaller
@@ -524,7 +537,7 @@ type
 
       More precisely, the attack is allowed to start only when
       the angle between current creature @link(TCastleTransform.Direction Direction)
-      and the vector from creature's Middle to the enemy's Middle (see T3D.Middle)
+      and the vector from creature's Middle to the enemy's Middle (see TCastleTransform.Middle)
       is <= AttackMaxAngle.
 
       This is in radians. }
@@ -732,8 +745,8 @@ type
       downward, this way missile flies downward eventually.
 
       This is quite different (in different units and with slightly different
-      effect) than T3D.FallSpeed, hence a different name and property.
-      TMissileCreatureResource doesn't use T3D.Gravity and so ignores
+      effect) than TCastleTransform.FallSpeed, hence a different name and property.
+      TMissileCreatureResource doesn't use TCastleTransform.Gravity and so ignores
       T3DResource.FallSpeed, T3DResource.GrowSpeed and other properties.
 
       0 means to not fall down (missile is not affected by gravity). }
@@ -1026,6 +1039,8 @@ begin
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
     TAlive.DefaultKnockBackSpeed);
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
+  ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
+  ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
   KnockBackDistance := ResourceConfig.GetFloat('knockback_distance',
     DefaultKnockBackDistance);
   Flying := ResourceConfig.GetValue('flying',
@@ -1063,6 +1078,8 @@ end;
 function TCreatureResource.CreateCreature(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
+var
+  Scale: Single;
 begin
   { This is only needed if you did not add creature to <resources>.
 
@@ -1087,6 +1104,8 @@ begin
   Result.GrowSpeed := GrowSpeed;
   Result.CastShadowVolumes := CastShadowVolumes;
   Result.MiddleHeight := MiddleHeight;
+  Scale := RandomFloatRange(ScaleMin, ScaleMax);
+  Result.Scale := Vector3(Scale, Scale, Scale);
 
   World.Add(Result);
 end;
@@ -1155,7 +1174,7 @@ begin
     Result := Box.MaxSize / 2 else
   begin
     { Maximum radius value that allows gravity to work,
-      assuming default T3D.PreferredHeight implementation,
+      assuming default TCastleTransform.PreferredHeight implementation,
       and assuming that Box is the smallest possible bounding box of our creature. }
     MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1].Data[GC];
     Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
@@ -1687,8 +1706,20 @@ begin
       MiddleForceBoxTime := LifeTime + 0.1;
     end;
 
+    { Some states require special finalization here. }
+    case FState of
+      csAttack:
+        { In case we didn't reach AttackTime, make sure to fire the Attack now. }
+        if not AttackDone then
+        begin
+          AttackDone := true;
+          Attack;
+        end;
+    end;
+
     FState := Value;
     FStateChangeTime := LifeTime;
+
     { Some states require special initialization here. }
     case FState of
       csAttack:

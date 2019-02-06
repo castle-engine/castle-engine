@@ -1,0 +1,378 @@
+object ProjectForm: TProjectForm
+  Left = 483
+  Height = 738
+  Top = 233
+  Width = 1332
+  Caption = ' my-project | Castle Game Engine'
+  ClientHeight = 703
+  ClientWidth = 1332
+  DesignTimePPI = 140
+  Menu = MainMenu1
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poMainFormCenter
+  LCLVersion = '1.8.0.6'
+  object PageControlBottom: TPageControl
+    Left = 0
+    Height = 262
+    Top = 441
+    Width = 1332
+    ActivePage = TabWarnings
+    Align = alBottom
+    TabIndex = 2
+    TabOrder = 0
+    object TabFiles: TTabSheet
+      Caption = 'Files'
+      ClientHeight = 217
+      ClientWidth = 1326
+      object ShellTreeView1: TShellTreeView
+        Left = 0
+        Height = 217
+        Top = 0
+        Width = 367
+        Align = alLeft
+        FileSortType = fstAlphabet
+        HotTrack = True
+        ReadOnly = True
+        ShowRoot = False
+        TabOrder = 0
+        Options = [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
+        ObjectTypes = [otFolders]
+        ShellListView = ShellListView1
+      end
+      object ShellListView1: TShellListView
+        Left = 374
+        Height = 217
+        Top = 0
+        Width = 952
+        Align = alClient
+        Color = clDefault
+        ReadOnly = True
+        SortColumn = 0
+        TabOrder = 1
+        ObjectTypes = [otNonFolders]
+        ShellTreeView = ShellTreeView1
+      end
+      object SplitterBetweenFiles: TSplitter
+        Left = 367
+        Height = 217
+        Top = 0
+        Width = 7
+      end
+    end
+    object TabOutput: TTabSheet
+      Caption = 'Output'
+      ClientHeight = 217
+      ClientWidth = 1326
+      object ListOutput: TListBox
+        Left = 0
+        Height = 217
+        Top = 0
+        Width = 1326
+        Align = alClient
+        ItemHeight = 30
+        OnClick = ListOutputClick
+        ScrollWidth = 1324
+        Style = lbOwnerDrawFixed
+        TabOrder = 0
+        TopIndex = -1
+      end
+    end
+    object TabWarnings: TTabSheet
+      Caption = 'Warnings'
+      ClientHeight = 217
+      ClientWidth = 1326
+      TabVisible = False
+      object ListWarnings: TListBox
+        Left = 0
+        Height = 217
+        Top = 0
+        Width = 1326
+        Align = alClient
+        ItemHeight = 0
+        ScrollWidth = 1324
+        TabOrder = 0
+        TopIndex = -1
+      end
+    end
+  end
+  object Splitter2: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 7
+    Top = 434
+    Width = 1332
+    Align = alBottom
+    ResizeAnchor = akBottom
+  end
+  object PanelAboveTabs: TPanel
+    Left = 0
+    Height = 434
+    Top = 0
+    Width = 1332
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 434
+    ClientWidth = 1332
+    TabOrder = 2
+    object LabelNoDesign: TLabel
+      AnchorSideLeft.Control = PanelAboveTabs
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = PanelAboveTabs
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrCenter
+      AnchorSideBottom.Side = asrCenter
+      Left = 328
+      Height = 216
+      Top = 109
+      Width = 677
+      Alignment = taCenter
+      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Designer" menu.'
+      Font.Height = -39
+      ParentColor = False
+      ParentFont = False
+      WordWrap = True
+    end
+  end
+  object MainMenu1: TMainMenu
+    left = 52
+    top = 24
+    object MenuItemFile: TMenuItem
+      Caption = '&Project'
+      object MenuItemRestartRebuildEditor: TMenuItem
+        Caption = 'Restart Editor (may rebuild editor with custom controls)'
+        OnClick = MenuItemRestartRebuildEditorClick
+      end
+      object MenuItemSeparator788: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemSwitchProject: TMenuItem
+        Caption = 'Close and Switch Project'
+        OnClick = MenuItemSwitchProjectClick
+      end
+      object MenuItemQuit: TMenuItem
+        Caption = 'Quit'
+        ShortCut = 16465
+        OnClick = MenuItemQuitClick
+      end
+    end
+    object MenuItemDesign: TMenuItem
+      Caption = '&Design'
+      object MenuItemDesignNewUserInterfaceRect: TMenuItem
+        Caption = 'New User Interface (Empty Rectangle as Root)'
+        OnClick = MenuItemDesignNewUserInterfaceRectClick
+      end
+      object MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem
+        Caption = 'New User Interface (Chosen Root)'
+      end
+      object MenuItemDesignNewTransform: TMenuItem
+        Caption = 'New Transform (Empty Transform as Root)'
+        OnClick = MenuItemDesignNewTransformClick
+      end
+      object MenuItemDesignNewTransformCustomRoot: TMenuItem
+        Caption = 'New Transform (Chosen Root)'
+      end
+      object MenuItemSeparator201: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemOpenDesign: TMenuItem
+        Caption = 'Open ...'
+        ShortCut = 16463
+        OnClick = MenuItemOpenDesignClick
+      end
+      object MenuItemSaveDesign: TMenuItem
+        Caption = 'Save'
+        ShortCut = 16467
+        OnClick = MenuItemSaveDesignClick
+      end
+      object MenuItemSaveAsDesign: TMenuItem
+        Caption = 'Save As ...'
+        OnClick = MenuItemSaveAsDesignClick
+      end
+      object MenuItemSeparator150: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignAddUserInterface: TMenuItem
+        Caption = 'Add User Interface Component'
+      end
+      object MenuItemDesignAddTransform: TMenuItem
+        Caption = 'Add Transform Component'
+        object MenuItemSeparatorInAddTransform: TMenuItem
+          Caption = '-'
+        end
+        object MenuItemDesignAddRectangle2D: TMenuItem
+          Caption = 'Rectangle (TCastleScene with TRectangle2DNode)'
+          OnClick = MenuItemDesignAddRectangle2DClick
+        end
+        object MenuItemDesignAddBox: TMenuItem
+          Caption = 'Box (TCastleScene with TBoxNode)'
+          OnClick = MenuItemDesignAddBoxClick
+        end
+        object MenuItemDesignAddSphere: TMenuItem
+          Caption = 'Sphere (TCastleScene with TSphereNode)'
+          OnClick = MenuItemDesignAddSphereClick
+        end
+      end
+      object MenuItemSeparator170: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemCopyComponent: TMenuItem
+        Caption = 'Copy Component'
+        ShortCut = 24643
+        OnClick = MenuItemCopyComponentClick
+      end
+      object MenuItemPasteComponent: TMenuItem
+        Caption = 'Paste Component'
+        ShortCut = 24662
+        OnClick = MenuItemPasteComponentClick
+      end
+      object MenuItemDuplicateComponent: TMenuItem
+        Caption = 'Duplicate Component'
+        ShortCut = 24644
+        OnClick = MenuItemDuplicateComponentClick
+      end
+      object MenuItemDesignDeleteComponent: TMenuItem
+        Caption = 'Delete Component'
+        ShortCut = 16430
+        OnClick = MenuItemDesignDeleteComponentClick
+      end
+      object MenuItemSeparator400: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemCameraViewAll: TMenuItem
+        Caption = 'Scene Manager Camera View All'
+        ShortCut = 16420
+        OnClick = MenuItemCameraViewAllClick
+      end
+      object MenuItemSortBackToFront2D: TMenuItem
+        Caption = 'Scene Manager Sort For Correct 2D Blending'
+        OnClick = MenuItemSortBackToFront2DClick
+      end
+      object MenuItemSeparator1300: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemDesignClose: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItemDesignCloseClick
+      end
+    end
+    object MenuItemRun: TMenuItem
+      Caption = '&Run'
+      object MenuItemCompile: TMenuItem
+        Caption = 'Compile'
+        ShortCut = 16504
+        OnClick = MenuItemCompileClick
+      end
+      object MenuItemCompileRun: TMenuItem
+        Caption = 'Compile And Run'
+        ShortCut = 120
+        OnClick = MenuItemCompileRunClick
+      end
+      object MenuItemOnlyRun: TMenuItem
+        Caption = 'Run (Without Compiling)'
+        ShortCut = 8312
+        OnClick = MenuItemOnlyRunClick
+      end
+      object MenuItemSeprator100: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemModeDebug: TMenuItem
+        Caption = 'Debug Mode'
+        GroupIndex = 1
+        RadioItem = True
+        ShowAlwaysCheckable = True
+        OnClick = MenuItemModeDebugClick
+      end
+      object MenuItemModeRelease: TMenuItem
+        Caption = 'Release Mode'
+        GroupIndex = 1
+        RadioItem = True
+        OnClick = MenuItemModeReleaseClick
+      end
+      object MenuItemSeparator2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemClean: TMenuItem
+        Caption = 'Clean'
+        OnClick = MenuItemCleanClick
+      end
+      object MenuItem3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPackage: TMenuItem
+        Caption = 'Package (Release to Users)'
+        OnClick = MenuItemPackageClick
+      end
+      object MenuItemPackageSource: TMenuItem
+        Caption = 'Package Source'
+        OnClick = MenuItemPackageSourceClick
+      end
+      object MenuItemSeparator3: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemAutoGenerateTextures: TMenuItem
+        Caption = 'Auto-Generate Textures'
+        OnClick = MenuItemAutoGenerateTexturesClick
+      end
+      object MenuItemAutoGenerateClean: TMenuItem
+        Caption = 'Clean Auto-Generated Textures'
+        OnClick = MenuItemAutoGenerateCleanClick
+      end
+      object MenuItemSeparator101: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemBreakProcess: TMenuItem
+        Caption = 'Forcefully Kill External Process'
+        ShortCut = 16497
+        OnClick = MenuItemBreakProcessClick
+      end
+    end
+    object MenuItemHelp: TMenuItem
+      Caption = '&Help'
+      object MenuItemCgeWww: TMenuItem
+        Caption = 'Website'
+        OnClick = MenuItemCgeWwwClick
+      end
+      object MenuItemManual: TMenuItem
+        Caption = 'Castle Game Engine Manual'
+        OnClick = MenuItemManualClick
+      end
+      object MenuItemReference: TMenuItem
+        Caption = 'API Reference'
+        OnClick = MenuItemReferenceClick
+      end
+      object MenuItemSupport: TMenuItem
+        Caption = 'Support the development'
+        OnClick = MenuItemSupportClick
+      end
+      object MenuItemSeparator: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemAbout: TMenuItem
+        Caption = 'About Castle Game Engine Editor'
+        OnClick = MenuItemAboutClick
+      end
+    end
+  end
+  object ProcessUpdateTimer: TTimer
+    OnTimer = ProcessUpdateTimerTimer
+    left = 169
+    top = 27
+  end
+  object SaveDesignDialog: TCastleSaveDialog
+    Title = 'Save Hierarchy As'
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    FilterIndex = 0
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    AdviceDataDirectory = True
+    left = 169
+    top = 192
+  end
+  object OpenDesignDialog: TCastleOpenDialog
+    Filter = 'CGE Design (*.castle-user-interface, *.castle-transform)|*.castle-user-interface;*.castle-transform|All Files|*'
+    AdviceDataDirectory = True
+    left = 180
+    top = 111
+  end
+end

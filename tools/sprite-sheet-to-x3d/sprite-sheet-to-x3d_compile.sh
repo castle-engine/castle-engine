@@ -8,4 +8,12 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f sprite-sheet-to-x3d.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+cd tools/sprite-sheet-to-x3d/
+"${CASTLE_ENGINE}" compile ${CASTLE_BUILD_TOOL_OPTIONS:-}

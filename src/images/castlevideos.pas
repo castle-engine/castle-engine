@@ -157,7 +157,8 @@ type
     procedure LoadFromFile(const URL: string;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riBilinear);
+      const Interpolation: TResizeInterpolation = riBilinear;
+      const LoadOptions: TLoadImageOptions = []);
 
     { Save video to file (or image sequence).
 
@@ -319,6 +320,7 @@ type
       TCachedVideo = class
         References: Cardinal;
         URL: string;
+        LoadOptions: TLoadImageOptions;
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
@@ -335,7 +337,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const URL: string; out AlphaChannel: TAlphaChannel): TVideo;
+    function Video_IncReference(const URL: string;
+      out AlphaChannel: TAlphaChannel;
+      const LoadOptions: TLoadImageOptions = []): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
     function Empty: boolean; virtual;
@@ -387,7 +391,7 @@ var
     This prevents using up all the memory by accidentaly trying to read
     a long movie. Remember that our current implementation is @bold(not)
     suited for long movies, it will load very slowly and consume a lot of memory.
-    See http://castle-engine.sourceforge.net/x3d_implementation_texturing.php
+    See https://castle-engine.io/x3d_implementation_texturing.php
     notes about MovieTexture.
 
     By default this is equal to 1 minute, for 25 frames-per-second movie.
@@ -515,12 +519,13 @@ end;
 procedure TVideo.LoadFromFile(const URL: string;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
-  const Interpolation: TResizeInterpolation = riBilinear);
+  const Interpolation: TResizeInterpolation = riBilinear;
+  const LoadOptions: TLoadImageOptions = []);
 
   function LoadSingleImage(const URL: string): TCastleImage;
   begin
     Result := LoadImage(URL, TextureImageClasses,
-      ResizeToX, ResizeToY, Interpolation);
+      ResizeToX, ResizeToY, Interpolation, LoadOptions);
   end;
 
   { Load from an image sequence (possibly just a single image).
@@ -571,7 +576,7 @@ procedure TVideo.LoadFromFile(const URL: string;
         Inc(Index);
 
       if Length(FItems) = 0 then
-        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format --- in case of png make sure libpng is installed). Cannot load the video',
+        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format). Cannot load the video',
           [FormatNameCounter(URL, 0, false),
            FormatNameCounter(URL, 1, false)]);
     end else
@@ -640,7 +645,8 @@ begin
   Close;
 
   if FfmpegVideoMimeType(URIMimeType(URL), true) then
-    LoadFromFfmpeg(URL) else
+    LoadFromFfmpeg(URL)
+  else
     LoadFromImages(URL, false);
 
   FLoaded := true;
@@ -679,7 +685,7 @@ procedure TVideo.SaveToFile(const URL: string);
     Index, ReplacementsDone: Cardinal;
     S: string;
   begin
-    Write(Output, 'Removing temporary image files "', FileName, '" ...');
+    WritelnLog('Removing temporary image files "' + FileName + '" ...');
     FormatNameCounter(FileName, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
@@ -694,7 +700,7 @@ procedure TVideo.SaveToFile(const URL: string);
       if not DeleteFile(FileName) then
         WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [FileName]));
     end;
-    Writeln('done.');
+    WritelnLog('Done removing temporary image files.');
   end;
 
   procedure SaveToFfmpeg(const FileName: string);
@@ -721,8 +727,8 @@ procedure TVideo.SaveToFile(const URL: string);
         So it's Ok that we also output something, stdout is required
         by ffmpeg anyway... }
 
-      Writeln(Output, 'FFMpeg found, executing...');
-      Writeln(Output, Executable + ' -f image2 -i "' + TemporaryImagesPattern +
+      WritelnLog('FFMpeg found, executing...');
+      WritelnLog(Executable + ' -f image2 -i "' + TemporaryImagesPattern +
         '" -y -qscale 1 "' + FileName + '"');
 
       ExecuteProcess(Executable,
@@ -859,7 +865,8 @@ begin
 end;
 
 function TVideosCache.Video_IncReference(const URL: string;
-  out AlphaChannel: TAlphaChannel): TVideo;
+  out AlphaChannel: TAlphaChannel;
+  const LoadOptions: TLoadImageOptions): TVideo;
 var
   I: Integer;
   C: TCachedVideo;
@@ -869,7 +876,8 @@ begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
     C := CachedVideos[I];
-    if C.URL = URL then
+    if (C.URL = URL) and
+       (C.LoadOptions = LoadOptions) then
     begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
@@ -891,7 +899,7 @@ begin
 
   Result := TVideo.Create;
   try
-    Result.LoadFromFile(URL);
+    Result.LoadFromFile(URL, 0, 0, riBilinear, LoadOptions);
   except
     FreeAndNil(Result);
     raise;
@@ -901,6 +909,7 @@ begin
   CachedVideos.Add(C);
   C.References := 1;
   C.URL := URL;
+  C.LoadOptions := LoadOptions;
   C.Video := Result;
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
@@ -999,10 +1008,7 @@ procedure FfmpegExecute(const Executable: string;
 var
   S, Parameter: string;
 begin
-  { ffmpeg call will output some things on stdout anyway.
-    So it's Ok that we also output something, stdout is required
-    by ffmpeg anyway... }
-  Writeln(Output, 'FFMpeg found, executing...');
+  WritelnLog('FFMpeg found, executing...');
   { Only for the sake of logging we glue Parameters together.
     For actual execution, we pass Parameters as an array, which is *much*
     safer (no need to worry whether Parameter contains " inside etc.) }
@@ -1015,7 +1021,7 @@ begin
     else
       S := S + Parameter;
   end;
-  Writeln(Output, S);
+  WritelnLog(S);
   ExecuteProcess(Executable, Parameters);
 end;
 

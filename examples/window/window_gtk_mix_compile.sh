@@ -8,13 +8,20 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f window_gtk_mix.lpr ]; then cd ../../; fi
 
-# To make sure that CastleWindow unit is compiled with GTK2 backend
-# (this is not the default on Windows).
-make --quiet clean-window
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
 
-fpc -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_GTK_2 \
+# Use -dCASTLE_WINDOW_GTK_2 to make sure that CastleWindow unit is compiled
+# with GTK2 backend (this is not the default on Windows).
+# Do not make other examples in this dir compiled with GTK_2 backend
+rm -Rf castle-engine-output
+
+"${CASTLE_ENGINE}" simple-compile --compiler-option=-dCASTLE_WINDOW_GTK_2 \
   examples/window/window_gtk_mix.lpr
 
-# Allow other examples to be compiled by default with WinAPI backend
-# (instead of GTK2).
-make --quiet clean-window
+# Do not make other examples in this dir compiled with GTK_2 backend
+rm -Rf castle-engine-output

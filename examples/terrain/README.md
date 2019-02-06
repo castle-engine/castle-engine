@@ -1,7 +1,7 @@
 # Overview
 
 Terrain generation and visualization toy using Castle Game Engine
-( https://castle-engine.sourceforge.io/ ).
+( https://castle-engine.io/ ).
 
 Compile using Castle Game Engine build tool
 ( https://github.com/castle-engine/castle-engine/wiki/Build-Tool ).
@@ -32,7 +32,7 @@ Terrain heights may be generated in various ways:
 
     You can run the program with command-line parameter to pass URL of such .hgt file to load on start.
 
-3. You can also define terrain as an explicit function using CastleScript expression syntax ( http://castle-engine.sourceforge.net/castle_script.php ).
+3. You can also define terrain as an explicit function using CastleScript expression syntax ( https://castle-engine.io/castle_script.php ).
 
     Try e.g. function like
     - sin(x) + sin(y)

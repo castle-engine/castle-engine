@@ -6,9 +6,11 @@ object Form1: TForm1
   Caption = 'Form1'
   ClientHeight = 399
   ClientWidth = 646
+  DesignTimePPI = 140
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '1.7'
+  LCLVersion = '1.8.0.6'
   object OpenGLControl1: TOpenGLControl
     Left = 25
     Height = 326
@@ -24,9 +26,9 @@ object Form1: TForm1
   end
   object BtnScreenshot: TButton
     Left = 24
-    Height = 34
+    Height = 39
     Top = 8
-    Width = 115
+    Width = 114
     AutoSize = True
     Caption = 'Screenshot'
     Color = clNone

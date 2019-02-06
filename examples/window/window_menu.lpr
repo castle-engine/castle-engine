@@ -14,7 +14,7 @@
 }
 
 { A simple program using CastleWindow.
-  Demonstrates the use of MainMenu in TCastleWindowCustom.
+  Demonstrates the use of MainMenu in TCastleWindowBase.
 
   Shows
   - menu,

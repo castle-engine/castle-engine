@@ -3,11 +3,11 @@
 setlocal
 
 :: You can pass additional FPC parameters as this script parameters
-:: So you can call, for example, 'castleengine_compile_win32.bat -dCASTLE_ENGINE_LGPL'
+:: So you can call, for example, 'castleengine_compile_win32.bat -dSOME_SYMBOL'
 set FPC_CONFIG=%*
 
 :: First auto-detect fpc.exe location
-for /f "tokens=*" %%i in ('..\..\tools\fpc_path_detect.bat') do set FPC_EXE_DIR=%%i
+for /f "tokens=*" %%i in ('fpc_path_detect.bat') do set FPC_EXE_DIR=%%i
 echo fpc folder: %FPC_EXE_DIR%fpc.exe
 
 :: Supposing you have cross-compilers for win32 or win64 in that folder, let's compile the library

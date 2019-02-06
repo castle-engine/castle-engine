@@ -1,21 +1,14 @@
 {
   Copyright 2007-2018 Michalis Kamburelis.
 
-  This file is part of "The Rift".
+  This file is part of "Castle Game Engine".
 
-  "The Rift" is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
 
-  "The Rift" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with "The Rift"; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   ----------------------------------------------------------------------------
 }
@@ -58,7 +51,7 @@ type
         procedure ClickChangeDevice(Sender: TObject);
         procedure ClickBack(Sender: TObject);
       public
-        SoundDeviceArgument: TCastleMenuButton;
+        SoundDeviceArgument: TCastleOnScreenMenuItem;
         constructor Create(AOwner: TComponent); override;
       end;
 
@@ -78,6 +71,7 @@ type
     procedure SetCurrentMenu(const NewValue: TAbstractMenu);
   public
     procedure Start; override;
+    procedure Stop; override;
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
@@ -161,15 +155,16 @@ constructor TStateMainMenu.TRiftSoundMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  SoundDeviceArgument := TCastleMenuButton.Create(Self);
-  SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  SoundDeviceArgument := TCastleOnScreenMenuItem.Create(Self);
+  SoundDeviceArgument.Caption := 'Sound output device';
+  SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
   SoundDeviceArgument.OnClick := @ClickChangeDevice;
 
   Add('Sound options:');
   Add(TSoundInfoMenuItem.Create(Self));
   Add(TSoundVolumeMenuItem.Create(Self));
   Add(TMusicVolumeMenuItem.Create(Self));
-  Add('Sound output device', SoundDeviceArgument);
+  Add(SoundDeviceArgument);
   Add('Back to main menu', @ClickBack);
 
   // select item 1 as default, because item 0 is the label
@@ -189,7 +184,7 @@ end;
 { TSoundDeviceMenuButton ---------------------------------------------------- }
 
 type
-  TSoundDeviceMenuButton = class(TCastleMenuButton)
+  TSoundDeviceMenuButton = class(TCastleOnScreenMenuItem)
   public
     Device: TSoundDevice;
     procedure DoClick; override;
@@ -200,7 +195,7 @@ begin
   inherited;
 
   SoundEngine.Device := Device.Name;
-  StateMainMenu.SoundMenu.SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  StateMainMenu.SoundMenu.SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
   if not SoundEngine.ALActive then
     MessageOK(Application.MainWindow, SoundEngine.Information);
 
@@ -221,7 +216,8 @@ begin
   begin
     D := TSoundDeviceMenuButton.Create(Self);
     D.Device := SoundEngine.Devices[I];
-    Add(D.Device.Caption, D);
+    D.Caption := D.Device.Caption;
+    Add(D);
   end;
   Add('Cancel', @ClickBack);
 
@@ -272,6 +268,19 @@ begin
   SoundDeviceMenu := TSoundDeviceMenu.Create(FreeAtStop);
 
   SetCurrentMenu(MainMenu);
+end;
+
+procedure TStateMainMenu.Stop;
+begin
+  { The menu instance will be freed because it's owned by FreeAtStop.
+
+    We should still set CurrentMenu back to nil,
+    otherwise starting state again would have CurrentMenu <> nil.
+    It may lead to subtle bugs: in case CurrentMenu is (by accident)
+    equal to MenuBg in Start, then "SetCurrentMenu(MainMenu)"
+    will free the MenuBg. }
+  CurrentMenu := nil;
+  inherited;
 end;
 
 end.

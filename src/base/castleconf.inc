@@ -39,39 +39,53 @@
 { Compiler version check ----------------------------------------------------- }
 
 {$ifndef FPC}
-  {$if CompilerVersion < 30}
-    // 30 is Delphi 10 Seattle, see http://delphi.wikia.com/wiki/CompilerVersion_Constant
-    {$error Use FPC (Free Pascal Compiler) or Delphi >= 10 to compile Castle Game Engine. The older Delphi versions are not supported. Patches to fix older Delphi versions are welcome, although some really old Delphi versions may be out of reach (e.g. we need Delphi >= 2009 for generics).}
+  // See http://delphi.wikia.com/wiki/CompilerVersion_Constant
+  {$if CompilerVersion < 20}
+    {$error Use FPC (Free Pascal Compiler) or Delphi >= 2009 to compile Castle Game Engine. The older Delphi versions are not supported (we need generics).}
   {$endif}
 {$endif}
 
 {$ifdef VER2}
-  {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php}
+  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
+{$endif}
+{$ifdef VER3_0_0}
+  {$fatal You need FPC version >= 3.0.2 to compile Castle Game Engine. See https://castle-engine.io/supported_compilers.php}
 {$endif}
 
 { Configure syntax ----------------------------------------------------------- }
 
-{ These should be set on the command-line always.
-  - NOT setting them here forces the user to use correct compilation method
-    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
-    instead of hacking something, which is GOOD.
-  - Also, not setting them allows to check compilation of the engine without macros
-    and in Delphi mode, which is useful to keep Delphi compatibility.
+{ Although these options are also specified by the CGE build tool
+  on the command-line,
+  and are in Lazarus packages too,
+  we still need to repeat them here.
+
+  That is because user can specify "<option>-Mdelphi</option>"
+  in CastleEngineManifest.xml, to compile the application in Delphi mode.
 }
-{ $mode objfpc}
-{ $H+}
-{ $macro on}
+{$ifdef FPC}
+  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
+
+    // CASTLE_CONF_DO_NOT_OVERRIDE_MODE is a hack for CastleUtils unit and FPC 3.0.x
+    {$ifndef CASTLE_CONF_DO_NOT_OVERRIDE_MODE}
+      {$mode objfpc}
+      // Using CASTLE_OBJFPC instead of FPC_OBJFPC
+      // allows to workaround FPC bug in some units, FPC seems to "lose"
+      // the fact that FPC_OBJFPC should be defined.
+      // The cleanest solution seems to just ignore FPC_OBJFPC,
+      // and define equivalent symbol (CASTLE_OBJFPC) on our own.
+      {$define CASTLE_OBJFPC}
+    {$endif}
+
+    {$H+}
+    {$macro on}
+  {$endif}
+{$endif}
 
 { For FPC, these can only be specified here, not on the FPC command-line. }
 {$writeableconst off}
 {$ifdef FPC} {$modeswitch advancedrecords} {$endif}
 
 { Define various necessary things -------------------------------------------- }
-
-{ Configurable: define CASTLE_ENGINE_LGPL to compile only
-  components available on permissive LGPL (see
-  http://castle-engine.sourceforge.net/engine.php#section_license) }
-{ $define CASTLE_ENGINE_LGPL}
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
@@ -115,7 +129,9 @@
 
 { Define CPU32/64, like FPC. }
 {$ifndef FPC}
+  {$ifdef CPUX86} {$define CPU32} {$endif}
   {$ifdef CPU32BITS} {$define CPU32} {$endif}
+  {$ifdef CPUX64} {$define CPU64} {$endif}
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
 {$endif}
 
@@ -142,36 +158,29 @@
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
 
-// This serves two purposes:
+// *Not* define ENABLE_SELF_RECORD_CONSTANTS because:
+//
 // - Declaring something like TVector3.Zero (constant filled with zeros,
 //   inside a record, which type is the same record)
 //   causes internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
 //   so already fixed in FPC).
+//
 // - Declaring something like TVector3.Zero or TVector3.One
 //   (any constant inside a record, which type is the same record)
 //   is not allowed in Delphi, causes error that type is not completely defined.
-{$ifdef FPC}
-  {$define ENABLE_SELF_RECORD_CONSTANTS}
-  {$ifdef VER3_0}
-    {$ifndef VER3_0_0}
-      {$undef ENABLE_SELF_RECORD_CONSTANTS}
-    {$endif}
-  {$endif}
-{$endif}
+//
+// - Since FPC 3.3.1 (at least revision 40292, revision 40000 was OK)
+//   FPC reports the same error as Delphi
+//   (Error: Type "TGenericVector2" is not completely defined).
+//
+// So ENABLE_SELF_RECORD_CONSTANTS is just *never* defined for now.
+// If FPC 3.3.1 will keep this behaviour, we'll just simplify the code
+// in the future to not make this optional.
+{.$define ENABLE_SELF_RECORD_CONSTANTS}
 
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-{$endif}
-
-// Allows to workaround FPC bug in some units, FPC seems to "lose"
-// the fact that FPC_OBJFPC should be defined.
-// The cleanest solution seems to just ignore FPC_OBJFPC,
-// and define equivalent symbol (CASTLE_OBJFPC) on our own.
-{$ifdef FPC}
-  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$define CASTLE_OBJFPC}
-  {$endif}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
@@ -273,7 +282,7 @@
     warnings, see
     https://sourceforge.net/p/castle-engine/discussion/general/thread/2fd412b1/ .
 
-  - IF CASTLE_PNG_DYNAMIC is defined,
+  - If CASTLE_PNG_DYNAMIC is defined,
     we use libpng from a dynamic library (.so or .dll).
     This is a bit harder to set up for developer, but may result in drastically
     faster PNG loading (even 4x times).
@@ -292,7 +301,7 @@
       ../../tools/build-tool/data/external_libraries/ to your project exe dir,
       or to place these DLLs in a directory listed on the PATH environment variable.
 
-    - For macOS, see https://castle-engine.sourceforge.io/macosx_requirements.php .
+    - For macOS, see https://castle-engine.io/macosx_requirements.php .
 
   - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
     unit that allows static linking to png, see castleinternalpng_static.inc.
@@ -341,7 +350,7 @@
 
 { If defined, the compiled code will have embedded all the variations
   of basic fonts for the X3D Text node
-  (see [http://castle-engine.sourceforge.net/x3d_implementation_text.php]).
+  (see [https://castle-engine.io/x3d_implementation_text.php]).
   This is comfortable (the FontStyle font works, with 3 * 4 font variations,
   out of the box), but it increases your exe size --- possibly without a reason,
   if you don't use FontStyle X3D node.

@@ -34,9 +34,9 @@ type
 
     Also be sure to assign Application.MainWindow, it is used
     as the window from which we show modal dialog box with sound information. }
-  TSoundInfoMenuItem = class(TCastleLabel)
-  strict private
-    procedure ButtonClick(Sender: TObject);
+  TSoundInfoMenuItem = class(TCastleOnScreenMenuItem)
+  protected
+    procedure DoClick; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -54,7 +54,7 @@ type
     @longCode(#
       OnScreenMenu.Add(TSoundVolumeMenuItem.Create(OnScreenMenu));
     #) }
-  TSoundVolumeMenuItem = class(TCastleLabel)
+  TSoundVolumeMenuItem = class(TCastleOnScreenMenuItem)
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
@@ -71,7 +71,7 @@ type
     @longCode(#
       OnScreenMenu.Add(TMusicVolumeMenuItem.Create(OnScreenMenu));
     #) }
-  TMusicVolumeMenuItem = class(TCastleLabel)
+  TMusicVolumeMenuItem = class(TCastleOnScreenMenuItem)
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
@@ -89,20 +89,16 @@ uses CastleWindow, CastleClassUtils, CastleUtils, CastleMessages;
 { TSoundInfoMenuItem ------------------------------------------------------- }
 
 constructor TSoundInfoMenuItem.Create(AOwner: TComponent);
-var
-  Button: TCastleMenuButton;
 begin
   inherited;
   Caption := 'View sound information';
-  Button := TCastleMenuButton.Create(Self);
-  Button.OnClick := @ButtonClick;
-  InsertFront(Button);
 end;
 
-procedure TSoundInfoMenuItem.ButtonClick(Sender: TObject);
+procedure TSoundInfoMenuItem.DoClick;
 var
   S: TStringList;
 begin
+  inherited;
   S := TStringList.Create;
   try
     S.Append('Sound library (OpenAL) status:');
@@ -156,19 +152,19 @@ begin
   Caption := 'Music volume';
 
   FSlider := TMenuVolumeSlider.Create(Self);
-  FSlider.Value := SoundEngine.MusicPlayer.MusicVolume;
+  FSlider.Value := SoundEngine.MusicPlayer.Volume;
   FSlider.OnChange := @SliderValueChanged;
   InsertFront(FSlider);
 end;
 
 procedure TMusicVolumeMenuItem.SliderValueChanged(Sender: TObject);
 begin
-  SoundEngine.MusicPlayer.MusicVolume := Slider.Value;
+  SoundEngine.MusicPlayer.Volume := Slider.Value;
 end;
 
 procedure TMusicVolumeMenuItem.Refresh;
 begin
-  Slider.Value := SoundEngine.MusicPlayer.MusicVolume;
+  Slider.Value := SoundEngine.MusicPlayer.Volume;
 end;
 
 end.

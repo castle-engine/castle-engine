@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="localization_test"
+  caption="Localization Test"
+  qualified_name="io.castleengine.localization.test"
+  standalone_source="localization_test.lpr"
+  game_units="GameInitialize"
+  author="Michalis Kamburelis">
+</project>

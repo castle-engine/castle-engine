@@ -1,0 +1,14 @@
+parchment_alpha
+  from https://opengameart.org/content/old-parchment-paper
+  by cron ( https://opengameart.org/users/cron )
+  License: CC0 (public domain)
+
+humans_win
+  from https://openclipart.org/detail/158611/vietnam-soldier-profile-silhouette-dingbat
+  by studio_hades (https://openclipart.org/user-detail/studio_hades)
+  License: CC0 (public domain)
+
+aliens_win
+  from https://openclipart.org/detail/270230/impressed-alien-fixed
+  by The Martin (https://openclipart.org/user-detail/The%20Martin)
+  License: CC0 (public domain)

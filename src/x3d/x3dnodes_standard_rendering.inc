@@ -219,6 +219,14 @@
     }
     function InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 
+    { Node's "coord" field where you can place TCoordinateNode, or @nil if not available.
+
+      This gives you more possibilities than the @link(InternalCoord)
+      and @link(InternalCoordinates) methods (as you can assign texCoord using this).
+      However, it doesn't work for old VRML 1.0 (since they have coordinate
+      information, but no "coord" field). }
+    function CoordField: TSFNode; virtual;
+
     { Node's list of coordinate indexes.
 
       In base TAbstractGeometryNode class this always returns @nil.
@@ -379,8 +387,9 @@
       (not by Appearance node). }
     function FontTextureNode: TAbstractTexture2DNode; virtual;
 
-    { Are faces convex. This knowledge is used when calculating normal vectors
-      by CastleInternalNormals. }
+    { Are faces guaranteed to be convex.
+      If your faces may be concave, you must set this to @false,
+      otherwise the results (rendering and collisions) may be incorrect. }
     property Convex: boolean read GetConvex write SetConvex;
 
     { Is backface culling used. }
@@ -447,6 +456,8 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
 
+  TAbstractGeometryNodeClass = class of TAbstractGeometryNode;
+
   { Base node type for all geometric property node types. }
   TAbstractGeometricPropertyNode = class(TAbstractNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
@@ -507,7 +518,7 @@
     { Access the coordinate node, and inside this node access it's points list. }
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-
+    function CoordField: TSFNode; override;
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
@@ -649,7 +660,7 @@
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
-
+    function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -774,7 +785,7 @@
 
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-
+    function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -833,7 +844,7 @@
 
     function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-
+    function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
@@ -968,6 +979,11 @@ begin
   if not InternalCoord(State, Result) then
     raise ENotCoordinateBasedNode.CreateFmt('Node %s is not a coordinate-based node',
       [X3DType]);
+end;
+
+function TAbstractGeometryNode.CoordField: TSFNode;
+begin
+  Result := nil;
 end;
 
 function TAbstractGeometryNode.CoordIndexField: TMFLong;
@@ -1187,9 +1203,9 @@ var
 begin
   F := ColorField;
   if (F <> nil) and
-     (F.Value <> nil) and
      (F.Value is TColorNode) then
-    Result := TColorNode(F.Value).FdColor else
+    Result := TColorNode(F.Value).FdColor
+  else
     Result := nil;
 end;
 
@@ -1199,9 +1215,9 @@ var
 begin
   F := ColorField;
   if (F <> nil) and
-     (F.Value <> nil) and
      (F.Value is TColorRGBANode) then
-    Result := TColorRGBANode(F.Value).FdColor else
+    Result := TColorRGBANode(F.Value).FdColor
+  else
     Result := nil;
 end;
 
@@ -1266,6 +1282,11 @@ begin
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
   AddField(FFdRadianceTransfer);
+end;
+
+function TAbstractComposedGeometryNode.CoordField: TSFNode;
+begin
+  Result := FdCoord;
 end;
 
 function TAbstractComposedGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
@@ -1504,6 +1525,11 @@ begin
   Result := Version.Major >= 2;
 end;
 
+function TIndexedLineSetNode.CoordField: TSFNode;
+begin
+  Result := FdCoord;
+end;
+
 function TIndexedLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
@@ -1705,6 +1731,11 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
+function TLineSetNode.CoordField: TSFNode;
+begin
+  Result := FdCoord;
+end;
+
 function TLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
@@ -1826,6 +1857,11 @@ end;
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
+end;
+
+function TPointSetNode.CoordField: TSFNode;
+begin
+  Result := FdCoord;
 end;
 
 function TPointSetNode.InternalCoord(State: TX3DGraphTraverseState;

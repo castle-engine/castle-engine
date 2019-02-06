@@ -19,7 +19,7 @@ import android.util.Log;
  */
 public class ActivityPopup implements View.OnLayoutChangeListener
 {
-    private static final String TAG = "${NAME}.castleengine.ActivityPopup";
+    private static final String CATEGORY = "ActivityPopup";
 
     private View parentView;
     private PopupWindow popup;
@@ -86,7 +86,7 @@ public class ActivityPopup implements View.OnLayoutChangeListener
         // see http://stackoverflow.com/questions/17787011/android-view-windowmanagerbadtokenexception-unable-to-add-window-token-null
         popup.showAtLocation(parentView, gravity, 0, 0);
 
-        //Log.i(TAG, "build version is " + Build.VERSION.SDK_INT);
+        //ServiceAbstract.logInfo(CATEGORY, "build version is " + Build.VERSION.SDK_INT);
         if (Build.VERSION.SDK_INT >= 11) {
             layout.addOnLayoutChangeListener(this);
         }

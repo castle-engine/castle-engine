@@ -15,7 +15,7 @@ import com.google.android.gms.ads.AdListener;
  */
 public class ServiceAdMob extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceAdMob";
+    private static final String CATEGORY = "ServiceAdMob";
 
     private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId;
@@ -44,7 +44,7 @@ public class ServiceAdMob extends ServiceAbstract
         mInterstitialUnitId = interstitialUnitId;
         testDeviceIds = aTestDeviceIds;
         interstitialInitialize();
-        Log.i(TAG, "AdMob initialized");
+        logInfo(CATEGORY, "AdMob initialized");
     }
 
     private void fullScreenAdClosed(boolean watched)
@@ -66,7 +66,7 @@ public class ServiceAdMob extends ServiceAbstract
 
             @Override
             public void onAdClosed() {
-                Log.i(TAG, "Ad Closed");
+                logInfo(CATEGORY, "Ad Closed");
                 fullScreenAdClosed(true);
             }
         });
@@ -133,7 +133,7 @@ public class ServiceAdMob extends ServiceAbstract
         if (initialized) {
             if (waitUntilLoaded || interstitial.isLoaded()) {
                 if (waitUntilLoaded && !interstitial.isLoaded()) {
-                    Log.i(TAG, "Requested showing interstitial ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");
+                    logInfo(CATEGORY, "Requested showing interstitial ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");
                 }
                 interstitial.show();
                 interstitialInitialize(); // load next interstitial ad

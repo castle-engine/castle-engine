@@ -6,14 +6,15 @@ object Main: TMain
   Caption = 'Main'
   ClientHeight = 474
   ClientWidth = 617
+  DesignTimePPI = 140
   OnCreate = FormCreate
-  LCLVersion = '1.1'
+  LCLVersion = '1.8.0.6'
   object CastleControl2: TCastleControl
     AnchorSideLeft.Control = CastleControl1
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = LabelFps2
     Left = 304
-    Height = 375
+    Height = 372
     Top = 8
     Width = 302
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -24,7 +25,7 @@ object Main: TMain
   object CastleControl1: TCastleControl
     AnchorSideBottom.Control = LabelFps1
     Left = 8
-    Height = 375
+    Height = 372
     Top = 8
     Width = 288
     Anchors = [akTop, akLeft, akBottom]
@@ -35,9 +36,9 @@ object Main: TMain
     AnchorSideTop.Control = CastleControl1
     AnchorSideTop.Side = asrBottom
     Left = 9
-    Height = 37
-    Top = 425
-    Width = 131
+    Height = 39
+    Top = 423
+    Width = 146
     Anchors = [akLeft, akBottom]
     AutoSize = True
     BorderSpacing.Top = 8
@@ -51,9 +52,9 @@ object Main: TMain
     AnchorSideTop.Control = CastleControl2
     AnchorSideTop.Side = asrBottom
     Left = 304
-    Height = 37
-    Top = 425
-    Width = 134
+    Height = 39
+    Top = 423
+    Width = 154
     Anchors = [akLeft, akBottom]
     AutoSize = True
     BorderSpacing.Left = 8
@@ -65,9 +66,9 @@ object Main: TMain
   object LabelFps1: TLabel
     AnchorSideBottom.Control = ButtonLoad1
     Left = 8
-    Height = 26
-    Top = 391
-    Width = 166
+    Height = 27
+    Top = 388
+    Width = 171
     Anchors = [akLeft, akBottom]
     BorderSpacing.Bottom = 8
     Caption = 'FPS: 123 (real: 456)'
@@ -78,9 +79,9 @@ object Main: TMain
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = ButtonLoad2
     Left = 304
-    Height = 26
-    Top = 391
-    Width = 166
+    Height = 27
+    Top = 388
+    Width = 171
     Anchors = [akLeft, akBottom]
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 8

@@ -7,7 +7,7 @@ program cge_3d_viewer_standalone;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleWindow, Game;
+uses CastleWindow, GameInitialize;
 begin
   { explicitly initialize MainWindow with useful NamedParameters,
     to make it similar to what happens when you run a plugin. }

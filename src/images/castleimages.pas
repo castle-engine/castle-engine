@@ -42,7 +42,7 @@
 
   When reading and writing image files, we understand various image
   formats. See glViewImage documentation
-  ( http://castle-engine.sourceforge.net/glviewimage.php )
+  ( https://castle-engine.io/glviewimage.php )
   for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
@@ -216,6 +216,9 @@ type
     { Create a new image object that has exactly the same class
       and the same data (size, pixels) as this image. }
     function CreateCopy: TEncodedImage; virtual; abstract;
+
+    { Mirror image vertically. }
+    procedure FlipVertical; virtual; abstract;
   end;
 
   { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
@@ -545,6 +548,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -565,7 +569,7 @@ type
     procedure FlipHorizontal;
 
     { Mirror image vertically. }
-    procedure FlipVertical;
+    procedure FlipVertical; override;
 
     { Make rotated version of the image.
       See @link(Rotate) for description of parameters. }
@@ -725,10 +729,16 @@ type
       The coordinates and sizes are carefully checked, so that we do not
       try to take some pixels outside of the source or destination image.
 
-      Note that this method of drawing image-on-image is not GPU-accelerated
-      in any way. It may be slow (esp. for larger source images),
-      and should be avoided for often occuring events (e.g. think twice
-      before using this method at every mouse move, or at every frame draw).
+      @italic(Warning: It is not efficient to use this drawing method.)
+      This drawing is performed on CPU and cannot be fast.
+      If possible, use instead @link(TGLImage.DrawFrom),
+      that performs image-on-image drawing using GPU,
+      or just draw @link(TGLImage) straight to the screen by @link(TGLImage.Draw).
+      See examples/images_videos/draw_images_on_gpu.lpr for an example of
+      @link(TGLImage.DrawFrom).
+      Using this method makes most sense in image manipulation tools,
+      or during the loading / preparation stage of your game,
+      not during actual game.
 
       @italic(Note for descendants implementors:)
       The default implementation of this function in TCastleImage
@@ -757,6 +767,41 @@ type
     procedure DrawTo(Destination: TCastleImage; const X, Y: Integer;
       const Mode: TDrawMode = dmBlend);
     { @groupEnd }
+
+    { Draw the Source image on this image,
+      dividing the source image into 3x3 parts for corners,
+      sides, and inside.
+
+      The source image is divided into 3 * 3 = 9 parts:
+
+      @unorderedList(
+        @item(4 corners, used to fill the corners of the DestinationRect.
+          They are not stretched.)
+        @item(4 sides, used to fill the sides of the DestinationRect
+          between the corners. They are scaled in one dimension, to fill
+          the space between corners completely.)
+        @item(the inside. Used to fill the rectangular inside.
+          Scaled in both dimensions as necessary.)
+      )
+
+      The size of corners is specified in the SourceCorners parameter,
+      in the order: top, right, bottom, left.
+      (It's the same order as e.g. CSS margins.)
+
+      @italic(Warning: It is not efficient to use this drawing method.)
+      This drawing is performed on CPU and cannot be fast.
+      If possible, use instead @link(TGLImage),
+      and either draw it to the screen by @link(TGLImageCore.Draw3x3),
+      or draw it to another @link(TGLImage) by combining @link(TGLImageCore.Draw3x3)
+      with @link(TGLImage.RenderToImageBegin).
+      Using this method makes most sense in image manipulation tools,
+      or during the loading / preparation stage of your game,
+      not during actual game.
+    }
+    procedure DrawFrom3x3(const DestinationRect: TRectangle;
+      const Source: TCastleImage; const SourceCorners: TVector4Integer;
+      const DrawMode: TDrawMode;
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
@@ -857,25 +902,19 @@ type
 
   { Possible compression of textures for GPU. }
   TTextureCompression = (
-    { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
+    { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
       It is also supported by a small number of Android devices.
 
-      tcDxt1_RGB and tcDxt1_RGBA are the same compression method,
-      except in tcDxt1_RGB the alpha information is ignored while rendering,
-      while in tcDxt1_RGBA the rendering assumes we have simple yes/no alpha.
-
-      The difference is equivalent to OpenGL differences in treating
-      @unorderedList(
-        @itemSpacing compact
-        @item GL_COMPRESSED_RGB_S3TC_DXT1_EXT and
-        @item GL_COMPRESSED_RGBA_S3TC_DXT1_EXT.
-      )
-    }
+      Note that the tcDxt1_RGB and tcDxt1_RGBA are the same compression method.
+      Their behaviour only differs when rendering:
+      in case of tcDxt1_RGB, the alpha information is not used,
+      while in case of tcDxt1_RGBA, the renderer is using alpha-testing. }
     tcDxt1_RGB,
 
-    { S3TC DXT1 compression, @bold(for RGB images with no alpha or simple yes/no alpha).
+    { S3TC DXT1 compression, @bold(for RGBA images with simple yes/no alpha channel).
+      The renderer will use alpha-testing when rendering such images.
       See above tcDxt1_RGB description for details. }
     tcDxt1_RGBA,
 
@@ -885,7 +924,7 @@ type
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
     tcDxt3,
 
-    { S3TC DXT3 compression, @bold(for RGBA images with full alpha channel),
+    { S3TC DXT5 compression, @bold(for RGBA images with full alpha channel),
       best for images with smooth alpha transitions.
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
@@ -894,10 +933,7 @@ type
     { PowerVR texture compression (PVRTC) format.
       Supported by some Android and iOS devices,
       using PowerVR GPU by Imagination Technologies.
-      See http://en.wikipedia.org/wiki/PVRTC .
-
-      To generate such textures, PowerVR provides a nice tool PVRTexTool,
-      see http://community.imgtec.com/developers/powervr/tools/pvrtextool/ . }
+      See http://en.wikipedia.org/wiki/PVRTC . }
     tcPvrtc1_4bpp_RGB,
     tcPvrtc1_2bpp_RGB,
     tcPvrtc1_4bpp_RGBA,
@@ -905,7 +941,7 @@ type
     tcPvrtc2_4bpp,
     tcPvrtc2_2bpp,
 
-    { ATI texture compression format, @bold(without alpha).
+    { ATI texture compression format, @bold(for RGB images without alpha).
       Supported by some Android devices (Adreno GPU from Qualcomm).
 
       There is no perfect program to generate such texture, unfortunately.
@@ -967,7 +1003,7 @@ type
       to losslessly flip the image, without re-compressing it.
       The idea is described here
       [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm]. }
-    procedure FlipVertical;
+    procedure FlipVertical; override;
 
     { Decompress the image.
 
@@ -1502,7 +1538,7 @@ function IsImageMimeType(const MimeType: string;
   to let him know which formats are supported (and by which extensions
   they are recognized). Although almost always a better way to show
   this to user is just to use SaveImage_FileFilters with a save dialog
-  like TCastleWindowCustom.FileDialog,
+  like TCastleWindowBase.FileDialog,
   this shows file types in the open/save dialog,
   so it's most natural and convenient to user.
 
@@ -1529,6 +1565,10 @@ type
   EUnableToLoadImage = class(EImageLoadError);
 
   EImageFormatNotSupported = class(Exception);
+
+type
+  TLoadImageOption = (liFlipVertically);
+  TLoadImageOptions = set of TLoadImageOption;
 
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
@@ -1624,7 +1664,8 @@ function LoadImage(const URL: string;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation = riBilinear): TCastleImage; overload;
+  const Interpolation: TResizeInterpolation = riBilinear;
+  const Options: TLoadImageOptions = []): TCastleImage; overload;
 { @groupEnd }
 
 { Load image to TEncodedImage format.
@@ -1637,19 +1678,21 @@ function LoadImage(const URL: string;
 
   @groupBegin }
 function LoadEncodedImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
-
-function LoadEncodedImage(const URL: string): TEncodedImage; overload;
+function LoadEncodedImage(const URL: string;
+  const Options: TLoadImageOptions = []): TEncodedImage; overload;
 function LoadEncodedImage(URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
 { @groupEnd }
 
 { saving image --------------------------------------------------------------- }
 
 type
-  { }
+  { Raised by SaveImage when it's not possible to save image. }
   EImageSaveError = class(Exception);
 
 { Save image to a file. Takes URL as parameter, you can give @code(file) URL
@@ -1731,7 +1774,7 @@ type
 
     { When generating to DDS (that has reverted row order with respect to OpenGL),
       most of the compressed textures should be stored as flipped.
-      When reading, we except them to be already flipped.
+      When reading, we expect them to be already flipped.
       When loading to OpenGL, they will effectively be flipped again
       (since OpenGL expects bottom-to-top order, while we load it
       image in top-to-bottom order), thus making the image correct.
@@ -1805,7 +1848,7 @@ var
   The URL processing is automatically registered by
   @link(TMaterialProperties MaterialProperties)
   to automatically use GPU compressed textures.
-  See http://castle-engine.sourceforge.net/creating_data_material_properties.php .
+  See https://castle-engine.io/creating_data_material_properties.php .
   You can also use it yourself, instead or in addition
   to @link(TMaterialProperties MaterialProperties) processing.
 
@@ -1858,7 +1901,7 @@ implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleCompositeImage, CastleDownload, CastleURIUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils, CastleTimeUtils;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2685,6 +2728,101 @@ begin
   Result := MakeCopy;
 end;
 
+procedure TCastleImage.DrawFrom3x3(const DestinationRect: TRectangle;
+  const Source: TCastleImage; const SourceCorners: TVector4Integer;
+  const DrawMode: TDrawMode; const Interpolation: TResizeInterpolation);
+
+  procedure Draw(
+    const DestX, DestY, DestWidth, DestHeight: Integer;
+    const SourceX, SourceY, SourceWidth, SourceHeight: Integer);
+  var
+    Temp: TCastleImage;
+  begin
+    if (DestWidth = SourceWidth) and (DestHeight = SourceHeight) then
+      { Optimized version -- no need to scale.
+        This should happen at least for 4 corners. }
+      DrawFrom(Source, DestX, DestY, SourceX, SourceY, SourceWidth, SourceHeight, DrawMode)
+    else
+    begin
+      // create Temp with the same type as Source, to make Draw with dmOverwrite fast
+      Temp := TCastleImageClass(Source.ClassType).Create(SourceWidth, SourceHeight);
+      try
+        Temp.DrawFrom(Source, 0, 0, SourceX, SourceY, SourceWidth, SourceHeight, dmOverwrite);
+        Temp.Resize(DestWidth, DestHeight, Interpolation);
+        DrawFrom(Temp, DestX, DestY, 0, 0, DestWidth, DestHeight, DrawMode);
+      finally FreeAndNil(Temp) end;
+    end;
+  end;
+
+var
+  CornerTop, CornerRight, CornerBottom, CornerLeft: Integer;
+  DestWidth, DestHeight: Integer;
+  XDestLeft, XDestRight, YDestBottom, YDestTop,
+    HorizontalDestSize, VerticalDestSize: Integer;
+  XSourceLeft, XSourceRight, YSourceBottom, YSourceTop,
+    HorizontalSourceSize, VerticalSourceSize: Integer;
+begin
+  CornerTop := SourceCorners[0];
+  CornerRight := SourceCorners[1];
+  CornerBottom := SourceCorners[2];
+  CornerLeft := SourceCorners[3];
+
+  DestWidth := DestinationRect.Width;
+  DestHeight := DestinationRect.Height;
+
+  if not ( (CornerLeft + CornerRight < Source.Width) and
+           (CornerLeft + CornerRight < DestWidth) and
+           (CornerBottom + CornerTop < Source.Height) and
+           (CornerBottom + CornerTop < DestHeight)) then
+  begin
+    if Log then
+      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
+        [CornerTop, CornerRight, CornerBottom, CornerLeft,
+         Source.Width, Source.Height,
+         DestWidth, DestHeight]);
+    Exit;
+  end;
+
+  XDestLeft := DestinationRect.Left;
+  XSourceLeft := 0;
+  XDestRight := DestinationRect.Left + DestWidth - CornerRight;
+  XSourceRight :=                   Source.Width - CornerRight;
+
+  YDestBottom := DestinationRect.Bottom;
+  YSourceBottom := 0;
+  YDestTop := DestinationRect.Bottom + DestHeight - CornerTop;
+  YSourceTop :=                     Source.Height - CornerTop;
+
+  { 4 corners }
+  Draw(XDestLeft  , YDestBottom  , CornerLeft, CornerBottom,
+       XSourceLeft, YSourceBottom, CornerLeft, CornerBottom);
+  Draw(XDestRight  , YDestBottom  , CornerRight, CornerBottom,
+       XSourceRight, YSourceBottom, CornerRight, CornerBottom);
+  Draw(XDestRight  , YDestTop  , CornerRight, CornerTop,
+       XSourceRight, YSourceTop, CornerRight, CornerTop);
+  Draw(XDestLeft  , YDestTop  , CornerLeft, CornerTop,
+       XSourceLeft, YSourceTop, CornerLeft, CornerTop);
+
+  { 4 sides }
+  HorizontalDestSize    := DestWidth    - CornerLeft - CornerRight;
+  HorizontalSourceSize  := Source.Width - CornerLeft - CornerRight;
+  VerticalDestSize    := DestHeight    - CornerTop - CornerBottom;
+  VerticalSourceSize  := Source.Height - CornerTop - CornerBottom;
+
+  Draw(XDestLeft   + CornerLeft, YDestBottom  , HorizontalDestSize,   CornerBottom,
+       XSourceLeft + CornerLeft, YSourceBottom, HorizontalSourceSize, CornerBottom);
+  Draw(XDestLeft   + CornerLeft, YDestTop  , HorizontalDestSize,   CornerTop,
+       XSourceLeft + CornerLeft, YSourceTop, HorizontalSourceSize, CornerTop);
+
+  Draw(XDestLeft   , YDestBottom   + CornerBottom, CornerLeft, VerticalDestSize,
+        XSourceLeft, YSourceBottom + CornerBottom, CornerLeft, VerticalSourceSize);
+  Draw(XDestRight   , YDestBottom   + CornerBottom, CornerRight, VerticalDestSize,
+        XSourceRight, YSourceBottom + CornerBottom, CornerRight, VerticalSourceSize);
+
+  Draw(DestinationRect.Left + CornerLeft, DestinationRect.Bottom + CornerBottom, HorizontalDestSize, VerticalDestSize,
+                              CornerLeft,                          CornerBottom, HorizontalSourceSize, VerticalSourceSize);
+end;
+
 { TGPUCompressedImage ----------------------------------------------------------------- }
 
 constructor TGPUCompressedImage.Create(
@@ -3370,18 +3508,21 @@ function TRGBAlphaImage.ToRGBImage: TRGBImage;
 begin
   Result := TRGBImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToRGBImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleImage: TGrayscaleImage;
 begin
   Result := TGrayscaleImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleImage]';
 end;
 
 function TRGBAlphaImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 begin
   Result := TGrayscaleAlphaImage.Create(0, 0);
   Result.Assign(Self);
+  Result.URL := URL + '[ToGrayscaleAlphaImage]';
 end;
 
 procedure TRGBAlphaImage.PremultiplyAlpha;
@@ -3786,6 +3927,7 @@ var
   I: Cardinal;
 begin
   Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+  Result.URL := URL + '[ToGrayscaleAlphaImage]';
   pg := Pixels;
   pa := Result.Pixels;
 
@@ -4233,7 +4375,8 @@ begin
 end;
 
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage;
 
   { ClassAllowed is only a shortcut to global utility. }
@@ -4368,31 +4511,47 @@ begin
         else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
       end;
     end else
-    raise EImageFormatNotSupported.Create('Can''t load image format "'+
-      ImageFormatInfos[StreamFormat].FormatName+'"');
+    begin
+      raise EImageFormatNotSupported.Create('Can''t load image format "'+
+        ImageFormatInfos[StreamFormat].FormatName+'"');
+    end;
 
-  except Result.Free; raise end;
+    { This may be implemented at lower level, inside particular image loaders,
+      some day. It would have 0 cost then. }
+    if liFlipVertically in Options then
+      Result.FlipVertical;
+
+  except
+    Result.Free;
+    raise
+  end;
 end;
 
 function LoadEncodedImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TEncodedImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = [])
   :TEncodedImage;
 var
   iff: TImageFormat;
 begin
   if MimeTypeToImageFormat(MimeType, true, false, iff) then
-    result := LoadEncodedImage(Stream, iff, AllowedImageClasses) else
+    result := LoadEncodedImage(Stream, iff, AllowedImageClasses, Options)
+  else
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
 function LoadEncodedImage(URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const Options: TLoadImageOptions = []): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
   F: TStream;
   MimeType: string;
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Loading ' + URL + ' (CastleImages)');
+
   try
     try
       LoadImageEvents.Execute(URL);
@@ -4402,7 +4561,7 @@ begin
     end;
 
     try
-      Result := LoadEncodedImage(F, MimeType, AllowedImageClasses);
+      Result := LoadEncodedImage(F, MimeType, AllowedImageClasses, Options);
       Result.FURL := URL;
     finally F.Free end;
   except
@@ -4418,11 +4577,14 @@ begin
       raise;
     end;
   end;
+
+  Profiler.Stop(TimeStart);
 end;
 
-function LoadEncodedImage(const URL: string): TEncodedImage;
+function LoadEncodedImage(const URL: string;
+  const Options: TLoadImageOptions = []): TEncodedImage;
 begin
-  Result := LoadEncodedImage(URL, []);
+  Result := LoadEncodedImage(URL, [], Options);
 end;
 
 { LoadImage ------------------------------------------------------------------ }
@@ -4475,11 +4637,12 @@ end;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation): TCastleImage;
+  const Interpolation: TResizeInterpolation;
+  const Options: TLoadImageOptions = []): TCastleImage;
 var
   E: TEncodedImage;
 begin
-  E := LoadEncodedImage(URL, AllowedImageClasses);
+  E := LoadEncodedImage(URL, AllowedImageClasses, Options);
   if not (E is TCastleImage) then
     raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
       [URIDisplay(URL)]);

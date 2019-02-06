@@ -566,6 +566,16 @@ end;
 procedure our_png_warning_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 begin
+  { Ignore this warning.
+
+    It can be safely ignored as I can see:
+    https://stackoverflow.com/questions/22745076/libpng-warning-iccp-known-incorrect-srgb-profile
+    https://tex.stackexchange.com/questions/125612/warning-pdflatex-libpng-warning-iccp-known-incorrect-srgb-profile
+
+    Not ignoring this would be bothersome, as it seems Photoshop produces
+    such files by default. We can get flooded with these warnings easily. }
+  if S = 'iCCP: known incorrect sRGB profile' then Exit;
+
   WritelnWarning('PNG', S);
 end;
 

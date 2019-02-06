@@ -8,4 +8,11 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f call_pascal_code_from_3d_model_script.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/call_pascal_code_from_3d_model_script.lpr
+# Find the build tool, use it to compile
+if which tools/build-tool/castle-engine > /dev/null; then
+  CASTLE_ENGINE="`pwd`/tools/build-tool/castle-engine"
+else
+  CASTLE_ENGINE=castle-engine
+fi
+
+"${CASTLE_ENGINE}" simple-compile examples/3d_rendering_processing/call_pascal_code_from_3d_model_script.lpr

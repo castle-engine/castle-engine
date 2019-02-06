@@ -9,7 +9,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/base"/>
-        <OtherUnitFiles Value="../src/components"/>
+        <OtherUnitFiles Value="../src/lcl"/>
         <UnitOutputDirectory Value="lib/castle_components/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -36,38 +36,41 @@
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine - Lazarus components.
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (X3D, Collada, Spine...), we are cross-platform (desktop, mobile), we have an optimized renderer with many cool graphic effects (shadows, mirror, bump mapping...). See https://castle-engine.io/features.php for a complete list of features.
+
+This package, castle_components.lpk, contains the Lazarus visual components based on LCL. Most of all: the TCastleControl component. You can install this package in Lazarus."/>
+    <License Value="GNU LGPL with static linking exception >= 2.
+This is the same license as used by Lazarus LCL and FPC RTL.
+See https://castle-engine.io/license.php for details.
 "/>
-    <License Value="GNU GPL >= 2
-(or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="5"/>
     <Files Count="6">
       <Item1>
-        <Filename Value="../src/components/castlecontrol.pas"/>
+        <Filename Value="../src/lcl/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleControl"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/components/castledialogs.pas"/>
+        <Filename Value="../src/lcl/castledialogs.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="castledialogs"/>
+        <UnitName Value="CastleDialogs"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/components/castlelclrecentfiles.pas"/>
+        <Filename Value="../src/lcl/castlelclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleLCLRecentFiles"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/components/castlelclutils.pas"/>
+        <Filename Value="../src/lcl/castlelclutils.pas"/>
         <UnitName Value="CastleLCLUtils"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/components/castlepropedits.pas"/>
+        <Filename Value="../src/lcl/castlepropedits.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastlePropEdits"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/components/icons/castleicons.lrs"/>
+        <Filename Value="../src/lcl/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
       </Item6>
     </Files>

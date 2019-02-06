@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -67,12 +68,17 @@
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
+    { Width of scrollbar for TCastleScrollView. }
+    ScrollBarWidth: Single;
+    { Minumum scrollbar height, to be comfortably visible and draggable. }
+    MinimumScrollbarSliderHeight: Single;
+
     { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
 
       This is internally set and unset by the CastleWindow exception handler
       (you should not modify this yourself).
       It allows to request showing opaque color under
-      @link(TCastleWindowCustom.MessageOK) and friends,
+      @link(TCastleWindowBase.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
       This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
@@ -80,6 +86,8 @@
       (since the application may be in some dirty state, so it's better to avoid
       rendering user stuff). }
     InternalForceOpaqueBackground: boolean;
+
+    DefaultLabelWhite: Boolean deprecated 'if you want the labels to be white, adjust TCastleLabel.Color to White after creating every TCastleLabel';
 
     constructor Create;
     destructor Destroy; override;
@@ -117,13 +125,19 @@
         This parameter does @italic(not) scale the place where image is displayed,
         to do this just scale the given Rect parameter yourself.)
     }
+    procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
+      const UIScale: Single = 1.0);
+    procedure Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
+      const UIScale: Single; const Color: TCastleColor);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single; const Color: TCastleColor);
 
-    { Font used by dialogs. Leave @nil to use UIFont. }
+    { Font used by dialogs.
+      Leave @nil to use @link(TUIContainer.DefaultFont). }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
+
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
 
@@ -151,6 +165,8 @@ begin
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
+  ScrollBarWidth := 20;
+  MinimumScrollbarSliderHeight := 20;
 
   FOwnsMessageFont := true;
 
@@ -159,9 +175,13 @@ begin
   FImages[tiPanelSeparator] := PanelSeparator;
   FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
   FImages[tiProgressBar] := ProgressBar;
-  FCorners[tiProgressBar] := Vector4Integer(7, 7, 7, 7);
+  FCorners[tiProgressBar] := Vector4Integer(2, 2, 2, 2);
   FImages[tiProgressFill] := ProgressFill;
-  FCorners[tiProgressFill] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiProgressFill] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiSwitchControl] := ProgressBar;      // reuse same images as ProgressBar
+  FCorners[tiSwitchControl] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiSwitchControlFill] := ProgressFill;
+  FCorners[tiSwitchControlFill] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonNormal] := ButtonNormal;
   FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonDisabled] := ButtonDisabled;
@@ -182,6 +202,8 @@ begin
   FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
   FImages[tiLabel] := FrameWhiteBlack;
   FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiGroup] := FrameWhiteBlack;
+  FCorners[tiGroup] := Vector4Integer(2, 2, 2, 2);
   FImages[tiActiveFrame] := FrameWhite;
   FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;
@@ -198,6 +220,22 @@ begin
   FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiCheckmark] := Checkmark;
+  FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+
+  { Note that tiSquareEmpty and tiSquarePressedBackground could have
+    corners = (4, 4, 4, 4), but tiSquareChecked cannot.
+    And these 3 images must be consistent.
+    So, do not declare any corners for them. }
+  FImages[tiSquareEmpty] := SquareEmpty;
+  FCorners[tiSquareEmpty] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiSquareChecked] := SquareChecked;
+  FCorners[tiSquareChecked] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiSquarePressedBackground] := SquarePressedBackground;
+  FCorners[tiSquarePressedBackground] := Vector4Integer(0, 0, 0, 0);
+
+  FImages[tiDisclosure] := Disclosure;
+  FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
   FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
   FImages[tiEdit] := Edit;
@@ -261,7 +299,7 @@ end;
 function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImageCore;
 begin
   if FGLImages[ImageType] = nil then
-    FGLImages[ImageType] := TGLImageCore.Create(FImages[ImageType], true);
+    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true, false);
   Result := FGLImages[ImageType];
 end;
 
@@ -273,18 +311,30 @@ begin
     FreeAndNil(FGLImages[ImageType]);
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single);
 begin
   Draw(Rect, ImageType, UIScale, White);
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single; const Color: TCastleColor);
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single);
+begin
+  Draw(FloatRectangle(Rect), ImageType, UIScale);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single; const Color: TCastleColor);
+begin
+  Draw(FloatRectangle(Rect), ImageType, UIScale, Color);
 end;
 
 procedure TCastleTheme.SetMessageFont(const Value: TCastleFont);

@@ -1,6 +1,6 @@
 # TAbstractX3DViewpointNode.GravityUp
 Specify the gravity vector explicitly.
-See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php .
+See https://castle-engine.io/x3d_implementation_navigation_extensions.php .
 @deprecated
 
 # TTransformNode.Center
@@ -27,7 +27,7 @@ Translate (move) the children.
 
 # TAbstractShapeNode.Render
 Is the shape visible.
-See https://castle-engine.sourceforge.io/x3d_implementation_shape_extensions.php#section_ext_shape_render
+See https://castle-engine.io/x3d_implementation_shape_extensions.php#section_ext_shape_render
 
 # TCommonSurfaceShaderNode.DiffuseTexture
 The texture controlling the diffuse color, multiplied by @link(DiffuseFactor).

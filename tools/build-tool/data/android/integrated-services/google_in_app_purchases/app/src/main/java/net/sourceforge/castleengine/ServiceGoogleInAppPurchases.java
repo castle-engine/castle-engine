@@ -34,7 +34,7 @@ import com.android.vending.billing.IInAppBillingService;
  */
 public class ServiceGoogleInAppPurchases extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ServiceGoogleInAppPurchases";
+    private static final String CATEGORY = "ServiceGoogleInAppPurchases";
     private static int REQUEST_PURCHASE = 9200;
     // Log some internal information.
     private final boolean debug = false;
@@ -71,7 +71,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     private final void currentOperationFinished()
     {
         if (operationQueue.poll() == null) {
-            Log.e(TAG, "currentOperationFinished(), but operationQueue is empty");
+            logError(CATEGORY, "currentOperationFinished(), but operationQueue is empty");
             return;
         }
         Operation o = operationQueue.peek();
@@ -104,7 +104,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         /* You may override and handle the result here. */
         public void purchaseActivityResult(int resultCode, Intent data)
         {
-            Log.i(TAG, "Received REQUEST_PURCHASE activity result, but the current operation is not a purchase.");
+            logInfo(CATEGORY, "Received REQUEST_PURCHASE activity result, but the current operation is not a purchase.");
         }
     }
 
@@ -144,7 +144,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 try {
                     return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", queryProducts);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException at getSkuDetails: " + e.getMessage());
+                    logError(CATEGORY, "RemoteException at getSkuDetails: " + e.getMessage());
                     return null;
                 }
             }
@@ -160,7 +160,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                             ArrayList<String> responseList
                               = productDetails.getStringArrayList("DETAILS_LIST");
 
-                            Log.i(TAG, responseList.size() + " items available for purchase.");
+                            logInfo(CATEGORY, responseList.size() + " items available for purchase.");
                             for (String thisResponse : responseList) {
                                 JSONObject object = new JSONObject(thisResponse);
                                 String productId = object.getString("productId");
@@ -169,7 +169,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                                 if (availableProducts.containsKey(productId)) {
                                     product = availableProducts.get(productId);
                                 } else {
-                                    Log.w(TAG, "Product " + productId + " reported by getSkuDetails, but not in availableProducts");
+                                    logWarning(CATEGORY, "Product " + productId + " reported by getSkuDetails, but not in availableProducts");
                                     product = new AvailableProduct(productId);
                                     availableProducts.put(product.id, product);
                                 }
@@ -188,16 +188,16 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                                     product.priceCurrencyCode
                                 });
                                 if (debug) {
-                                    Log.i(TAG, "Product " + productId + " available for purchase, details: " + thisResponse);
+                                    logInfo(CATEGORY, "Product " + productId + " available for purchase, details: " + thisResponse);
                                 }
                             }
 
                             messageSend(new String[]{"in-app-purchases-refreshed-prices"});
                         } else {
-                            Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
+                            logWarning(CATEGORY, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
                         }
                     } catch (JSONException e) {
-                        Log.e(TAG, "Failed to parse getSkuDetails data:  " + e.getMessage());
+                        logError(CATEGORY, "Failed to parse getSkuDetails data:  " + e.getMessage());
                     }
                 } finally {
                     currentOperationFinished();
@@ -244,7 +244,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 try {
                     return mBillingService.getPurchases(3, getActivity().getPackageName(), "inapp", null);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException when getting purchased stuff: " + e.getMessage());
+                    logError(CATEGORY, "RemoteException when getting purchased stuff: " + e.getMessage());
                     return null;
                 }
             }
@@ -266,7 +266,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                         String continuationToken =
                             ownedItems.getString("INAPP_CONTINUATION_TOKEN");
                         // if (signatureList == null) {
-                        //     Log.w(TAG, "Missing INAPP_DATA_SIGNATURE");
+                        //     logWarning(CATEGORY, "Missing INAPP_DATA_SIGNATURE");
                         // }
 
                         for (int i = 0; i < purchaseDataList.size(); ++i) {
@@ -284,10 +284,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                         messageSend(new String[]{"in-app-purchases-refreshed-purchases"});
 
                         if (continuationToken != null) {
-                            Log.e(TAG, "getPurchases returned continuationToken != null, not supported now");
+                            logError(CATEGORY, "getPurchases returned continuationToken != null, not supported now");
                         }
                     } else {
-                        Log.w(TAG, "Error when getting owned items: " + InAppPurchasesHelper.billingResponseToStr(response));
+                        logWarning(CATEGORY, "Error when getting owned items: " + InAppPurchasesHelper.billingResponseToStr(response));
                     }
                 } finally {
                     currentOperationFinished();
@@ -318,7 +318,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     // Watch out, signature may be null, tested on Pawel Android 4.3.
                     String signature = data.getStringExtra("INAPP_DATA_SIGNATURE");
                     if (signature == null) {
-                        Log.w(TAG, "Missing INAPP_DATA_SIGNATURE");
+                        logWarning(CATEGORY, "Missing INAPP_DATA_SIGNATURE");
                     }
 
                     try {
@@ -326,7 +326,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                         String productId = jo.getString("productId");
                         String payLoadReceived = jo.getString("developerPayload");
                         if (debug) {
-                            Log.i(TAG, "Product " + productId + " purchased, details: " + purchaseData);
+                            logInfo(CATEGORY, "Product " + productId + " purchased, details: " + purchaseData);
                         }
                         if (payLoadReceived.equals(mPayLoad)) {
                             AvailableProduct product;
@@ -338,14 +338,14 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                             getActivity().onPurchase(product, purchaseData, signature);
                             owns(productId, purchaseData);
                         } else {
-                            Log.e(TAG, "Rejecting buying the " + productId + " because received payload (" + payLoadReceived + ")  does not match send payload");
+                            logError(CATEGORY, "Rejecting buying the " + productId + " because received payload (" + payLoadReceived + ")  does not match send payload");
                         }
                     }
                     catch (JSONException e) {
-                        Log.e(TAG, "Failed to parse purchase data: " + e.getMessage());
+                        logError(CATEGORY, "Failed to parse purchase data: " + e.getMessage());
                     }
                 } else {
-                    Log.w(TAG, "Purchase result not OK: " +resultCode);
+                    logWarning(CATEGORY, "Purchase result not OK: " +resultCode);
                 }
             } finally {
                 currentOperationFinished();
@@ -366,13 +366,13 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     3, getActivity().getPackageName(), productName, "inapp", mPayLoad);
                 int responseCode = buyIntentBundle.getInt("RESPONSE_CODE");
                 if (responseCode != InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                    Log.e(TAG, "Error when starting buy intent: " + InAppPurchasesHelper.billingResponseToStr(responseCode));
+                    logError(CATEGORY, "Error when starting buy intent: " + InAppPurchasesHelper.billingResponseToStr(responseCode));
                     currentOperationFinished();
                     return;
                 }
                 PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                 if (pendingIntent == null) {
-                    Log.e(TAG, "pendingIntent == null, this should not happen");
+                    logError(CATEGORY, "pendingIntent == null, this should not happen");
                     currentOperationFinished();
                     return;
                 }
@@ -380,9 +380,9 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     REQUEST_PURCHASE, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
                     Integer.valueOf(0));
             } catch (SendIntentException e) {
-                Log.e(TAG, "SendIntentException when sending buy intent: " + e.getMessage());
+                logError(CATEGORY, "SendIntentException when sending buy intent: " + e.getMessage());
             } catch (RemoteException e) {
-                Log.e(TAG, "RemoteException when sending buy intent: " + e.getMessage());
+                logError(CATEGORY, "RemoteException when sending buy intent: " + e.getMessage());
             }
         }
     }
@@ -411,7 +411,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                     return mBillingService.consumePurchase(3, getActivity().getPackageName(),
                         consumeInput.purchaseToken);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException when getting purchased stuff: " + e.getMessage());
+                    logError(CATEGORY, "RemoteException when getting purchased stuff: " + e.getMessage());
                     return REMOTE_EXCEPTION_ERROR;
                 }
             }
@@ -419,10 +419,10 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             protected void onPostExecute(Integer response) {
                 try {
                     if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                        Log.i(TAG, "Consumed item " + mProductName);
+                        logInfo(CATEGORY, "Consumed item " + mProductName);
                         messageSend(new String[]{"in-app-purchases-consumed", mProductName});
                     } else {
-                        Log.e(TAG, "Failed to consume item " + mProductName + ", response: " + response);
+                        logError(CATEGORY, "Failed to consume item " + mProductName + ", response: " + response);
                     }
                 } finally {
                     currentOperationFinished();
@@ -435,7 +435,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         public final void run()
         {
             if (!purchaseTokens.containsKey(productName)) {
-                Log.e(TAG, "Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)");
+                logError(CATEGORY, "Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)");
                 currentOperationFinished();
                 return;
             }
@@ -483,7 +483,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         // This avoids thinking what happens when user initiated 2 purchases
         // in a short time.
         mPayLoad = randomString.nextString();
-        //Log.i(TAG, "Billing payload: " + mPayLoad);
+        //logInfo(CATEGORY, "Billing payload: " + mPayLoad);
 
         myPromoReceiver = new MyPromoReceiver();
 
@@ -502,7 +502,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     private class MyPromoReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "PURCHASES_UPDATED received, possibly user redeemed promo code now, refreshing.");
+            logInfo(CATEGORY, "PURCHASES_UPDATED received, possibly user redeemed promo code now, refreshing.");
             addOperation(new OperationRefreshPurchased());
         }
     }
@@ -553,7 +553,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             JSONObject jo = new JSONObject(purchaseData);
             int purchaseState = jo.getInt("purchaseState");
             if (purchaseState == 1) {
-                Log.w(TAG, "Ignoring ownage of a cancelled item " + productName);
+                logWarning(CATEGORY, "Ignoring ownage of a cancelled item " + productName);
                 return;
             }
             purchaseToken = jo.getString("purchaseToken");
@@ -583,7 +583,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                 messageSend(new String[]{"in-app-purchases-owns", productName});
             }
         } catch (JSONException e) {
-            Log.e(TAG, "Failed to parse purchaseData in owns: " + e.getMessage());
+            logError(CATEGORY, "Failed to parse purchaseData in owns: " + e.getMessage());
         }
     }
 
@@ -592,7 +592,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         if (requestCode == REQUEST_PURCHASE) {
             Operation o = operationQueue.peek();
             if (o == null) {
-                Log.e(TAG, "Received REQUEST_PURCHASE activity result, but no purchase operation is in progress now.");
+                logError(CATEGORY, "Received REQUEST_PURCHASE activity result, but no purchase operation is in progress now.");
             } else {
                 o.purchaseActivityResult(resultCode, intent);
             }
@@ -606,7 +606,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         for (String productStr : productsList) {
             String[] productInfo = splitString(productStr, 3);
             if (productInfo.length != 2) {
-                Log.e(TAG, "Product info invalid: " + productStr);
+                logError(CATEGORY, "Product info invalid: " + productStr);
                 continue;
             }
             AvailableProduct product = new AvailableProduct(productInfo[0]);

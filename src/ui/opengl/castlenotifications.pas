@@ -31,9 +31,9 @@ type
     Suitable for game messages like "Picked up 20 ammo".
     Call @link(Show) to display a message.
 
-    This is a TUIControl descendant, so to use it --- just add it
-    to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    Use TUIControl anchors to automatically position it on the screen,
+    This is a TCastleUserInterface descendant, so to use it --- just add it
+    to TCastleWindowBase.Controls or TCastleControlBase.Controls.
+    Use TCastleUserInterface anchors to automatically position it on the screen,
     for example:
 
     @longCode(#
@@ -42,16 +42,16 @@ type
       Notifications.Anchor(vpMiddle);
       Notifications.TextAlignment := hpMiddle; // looks best, when anchor is also in the middle
     #) }
-  TCastleNotifications = class(TUIControlFont)
+  TCastleNotifications = class(TCastleUserInterfaceFont)
   private
     type
       TNotification = class
         Text: string;
         Time: TTimerResult; {< appear time }
-        Width: Integer;
+        Width: Single;
         Color: TCastleColor;
       end;
-      TNotificationList = class(specialize TObjectList<TNotification>)
+      TNotificationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TNotification>)
         procedure DeleteFirst(DelCount: Integer);
       end;
     var
@@ -63,6 +63,8 @@ type
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
     FTextAlignment: THorizontalPosition;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     const
       DefaultMaxMessages = 4;
@@ -88,7 +90,6 @@ type
       var HandleInput: boolean); override;
 
     procedure Render; override;
-    function Rect: TRectangle; override;
 
     { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
@@ -103,7 +104,11 @@ type
 
     { How long a given message should be visible on the screen, in seconds.
       Message stops being visible when this timeout passed,
-      or when we need more space for new messages (see MaxMessages). }
+      or when we need more space for new messages (see MaxMessages).
+
+      Note that the @link(Fade) time is already included in this value,
+      so a message is normally visible only for the @code(Timeout - Fade) seconds,
+      and then it starts fading out. }
     property Timeout: Single
       read FTimeout write FTimeout default DefaultTimeout;
 
@@ -124,6 +129,10 @@ type
     { Alignment of the text inside. }
     property TextAlignment: THorizontalPosition
       read FTextAlignment write FTextAlignment default hpLeft;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 procedure Register;
@@ -131,11 +140,13 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleLog;
+  CastleLog, CastleComponentSerialize;
 
 procedure Register;
 begin
+  {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleNotifications]);
+  {$endif}
 end;
 
 { TNotificationList ---------------------------------------------------------- }
@@ -162,12 +173,20 @@ begin
   Timeout := DefaultTimeout;
   Fade := DefaultFade;
   FColor := White;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleNotifications.Destroy;
 begin
   FreeAndNil(Messages);
   FreeAndNil(FHistory);
+
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
   inherited;
 end;
 
@@ -213,7 +232,7 @@ begin
   if CollectHistory then
     History.AddRange(S);
 
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleNotifications.Show(const s: string);
@@ -232,27 +251,29 @@ begin
   Messages.Clear;
   if CollectHistory then
     History.Clear;
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
-function TCastleNotifications.Rect: TRectangle;
+procedure TCastleNotifications.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
   I: integer;
 begin
-  Result := Rectangle(LeftBottomScaled, 0, Font.RowHeight * Messages.Count);
+  inherited;
+  PreferredWidth := 0;
+  PreferredHeight := Font.RowHeight * Messages.Count;
   for I := 0 to Messages.Count - 1 do
-    Result.Width := Max(Result.Width, Messages[I].Width);
+    PreferredWidth := Max(PreferredWidth, Messages[I].Width);
 end;
 
 procedure TCastleNotifications.Render;
 var
   I: integer;
-  SR: TRectangle;
+  SR: TFloatRectangle;
 begin
-  SR := ScreenRect;
+  SR := RenderRect;
   for I := 0 to Messages.Count - 1 do
   begin
-    Font.PrintRect(Rectangle(SR.Left,
+    Font.PrintRect(FloatRectangle(SR.Left,
       SR.Bottom + (Messages.Count - 1 - I) * Font.RowHeight,
       SR.Width, Font.RowHeight), Messages[i].Color, Messages[i].Text,
       TextAlignment, vpBottom);
@@ -274,7 +295,7 @@ begin
     if TimerSeconds(TimerNow, Messages[I].Time) > Timeout then
     begin { delete messages 0..I }
       Messages.DeleteFirst(I + 1);
-      VisibleChange;
+      VisibleChange([chRectangle]);
       break;
     end else
     if TimerSeconds(TimerNow, Messages[I].Time) > TimeoutToFade then
@@ -283,8 +304,14 @@ begin
       C[3] := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
         TimeoutToFade, Timeout, 1, 0);
       Messages[I].Color := C;
-      VisibleChange;
+      VisibleChange([chRectangle]);
     end;
 end;
 
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlenotifications_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
+initialization
+  RegisterSerializableComponent(TCastleNotifications, 'Notifications');
 end.

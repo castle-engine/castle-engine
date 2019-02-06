@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.1" orientation="staggered" renderorder="right-down" width="12" height="14" tilewidth="56" tileheight="56" infinite="0" staggeraxis="y" staggerindex="odd" nextlayerid="5" nextobjectid="1">
+ <tileset firstgid="1" source="tileset-terrain.tsx"/>
+ <layer id="4" name="Tile Layer 1" width="12" height="14">
+  <data encoding="csv">
+7,7,7,7,7,6,6,7,7,7,7,7,
+7,7,7,7,6,6,7,7,7,7,7,7,
+7,7,7,7,7,6,6,7,7,7,7,7,
+7,7,7,7,7,6,7,7,7,7,7,7,
+7,7,7,7,7,6,6,7,7,7,7,7,
+7,7,7,7,7,6,6,5,7,7,7,7,
+5,5,7,7,7,5,5,5,5,7,7,7,
+5,5,5,5,5,5,5,7,5,5,7,5,
+7,5,5,5,5,7,5,7,7,5,5,5,
+7,7,7,7,7,6,6,7,7,7,5,7,
+7,7,7,7,7,6,6,8,7,8,7,7,
+7,7,7,8,8,8,8,8,8,8,7,7,
+7,7,7,8,8,8,8,8,8,8,8,7,
+7,7,8,8,8,8,8,8,8,8,8,7
+</data>
+ </layer>
+</map>

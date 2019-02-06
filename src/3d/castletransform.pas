@@ -27,6 +27,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
 type
   TSceneManagerWorld = class;
   TCastleTransform = class;
+  TRenderingCamera = class;
 
   TCastleTransformClass = class of TCastleTransform;
 
@@ -36,7 +37,7 @@ type
   ENotAddedToWorld = class(ETransformParentUndefined);
   EPhysicsError = class(Exception);
 
-  TRenderFromViewFunction = procedure of object;
+  TRenderFromViewFunction = procedure (const RenderingCamera: TRenderingCamera) of object;
 
   { Describe what visible thing changed for TCastleTransform.VisibleChangeHere. }
   TVisibleChange = (
@@ -183,44 +184,12 @@ type
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
-    procedure Add(const Item: TCastleTransform);
+    procedure Add(const Item: TCastleTransform); reintroduce;
   end;
 
-  { Statistics about what was rendered during last frame.
-    You will usually access this by scene manager property,
-    see @link(TCastleAbstractViewport.Statistics). }
-  TRenderStatistics = record
-    { How many shapes were rendered (send to OpenGL)
-      versus all shapes that were potentially visible.
-      Potentially visible shapes are the ones with
-      TShape.Visible inside a 3D object with TCastleTransform.GetExists.
-
-      When ShapesRendered is much smaller than ShapesVisible,
-      it means that the algorithm for removing invisible scene parts
-      works good. This includes frustum culling (automatically
-      used by TCastleScene), or occlusion culling (see
-      TSceneRenderingAttributes.UseOcclusionQuery),
-      or any custom algorithm you implement by using TTestShapeVisibility
-      callback with @link(TCastleScene.LocalRender). }
-    ShapesRendered, ShapesVisible: Cardinal;
-
-    { The number of shapes that were not rendered,
-      but their bounding box was rendered to check with occlusion query.
-      This is always zero when not using occlusion query (see
-      TSceneRenderingAttributes.UseOcclusionQuery).
-      Basically, this measures the "invisible overhead" of occlusion query. }
-    BoxesOcclusionQueriedCount: Cardinal;
-  end;
-
-  { List of lights. Always TLightInstancesList, but we cannot declare it here
-    as such. Internal. @exclude }
-  TAbstractLightInstancesList = TObject;
-
-  { Fog node. Always TFogNode, but we cannot declare it here as such.
-    Internal. @exclude }
-  TAbstractFogNode = TObject;
-
-  TRenderingPass = 0..1;
+  {$define read_interface}
+  {$I castletransform_renderparams.inc}
+  {$undef read_interface}
 
   { Information that a TCastleTransform object needs to prepare rendering.
 
@@ -248,68 +217,6 @@ type
     { World fog, in any, to prepare for.
       @exclude }
     InternalGlobalFog: TAbstractFogNode;
-  end;
-
-  { Information that a TCastleTransform object needs to render.
-    Read-only for @link(TCastleTransform.LocalRender)
-    (except Statistics, which should be updated during rendering).
-
-    This is @bold(mostly an internal class). You should not need to create it,
-    you should not need to read anything inside or deal with this class otherwise,
-    and actually you should not need to override
-    @link(TCastleTransform.LocalRender) during normal engine usage.
-    But it may be useful for special customized rendering. }
-  TRenderParams = class
-    { Which parts should be rendered: opaque (@false) or transparent (@true).
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    Transparent: boolean;
-
-    { Should we render parts that may receive shadow volumes, or ones that don't.
-      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
-      This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    ShadowVolumesReceivers: boolean;
-
-    { If @true, means that we're using multi-pass
-      shadowing technique (like shadow volumes),
-      and currently doing the "shadowed" pass.
-
-      Which means that most lights (ones with shadowVolumes = TRUE)
-      should be turned off, see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows].) }
-    InShadow: boolean;
-
-    { Value > 0 means we're inside some stencil test (like for
-      InShadow = @false pass of shadow volumes). }
-    StencilTest: Cardinal;
-
-    { Rendering pass number, for multi-pass rendering, like for shadow volumes. }
-    Pass: TRenderingPass;
-
-    { Transformation that should be applied to the rendered result.
-      If TransformIdentity, then Transform and InverseTransform is always identity.
-      @groupBegin }
-    Transform, InverseTransform: PMatrix4;
-    TransformIdentity: boolean;
-    { @groupEnd }
-
-    { Current rendering statistics, should be updated by each
-      @link(TCastleTransform.LocalRender) call. }
-    Statistics: TRenderStatistics;
-
-    { Fog that affects all scenes. }
-    GlobalFog: TAbstractFogNode;
-
-    { Camera frustum in local coordinates. Local for the TCastleTransform instance
-      receiving this TRenderParams as @link(TCastleTransform.LocalRender)
-      parameter. }
-    Frustum: PFrustum;
-
-    constructor Create;
-
-    { Lights that shine on given 3D object. }
-    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
-
-    function RenderTransform: TMatrix4; deprecated 'use Transform';
-    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
@@ -407,7 +314,7 @@ type
     See the @link(Gravity) property for a simple unrealistic gravity model.
     See the @link(RigidBody) for a proper rigid-bidy simulation,
     with correct gravity model and collisions with other rigid bodies. }
-  TCastleTransform = class(TComponent)
+  TCastleTransform = class(TCastleComponent)
   private
     class var
       NextTransformId: Cardinal;
@@ -461,6 +368,8 @@ type
     procedure SetScale(const Value: TVector3);
     procedure SetScaleOrientation(const Value: TVector4);
     procedure SetTranslation(const Value: TVector3);
+    function GetTranslationXY: TVector2;
+    procedure SetTranslationXY(const Value: TVector2);
     procedure SetRigidBody(const Value: TRigidBody);
     function GetDirection: TVector3;
     function GetUp: TVector3;
@@ -723,7 +632,7 @@ type
     function OnlyTranslation: boolean;
 
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
-    function Translation2D: TVector2;
+    function Translation2D: TVector2; deprecated 'use TranslationXY';
 
     { Transformation matrices, like @link(Transform) and @link(InverseTransform). }
     procedure TransformMatricesMult(var M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
@@ -746,6 +655,8 @@ type
     { Override this to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
     procedure ChangedTransform; virtual;
+
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -766,6 +677,9 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure InternalAddChild(const C: TComponent); override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -788,19 +702,6 @@ type
       May be modified in subclasses, to return something more complicated. }
     function GetVisible: boolean; virtual;
 
-    { Is this object visible and colliding.
-
-      Setting this to @false pretty much turns everything of this 3D object
-      to "off". This is useful for objects that disappear completely from
-      the level when something happens. You could just as well remove
-      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
-      comfortable to simply turn this property to @false.
-
-      Descendants may also override GetExists method.
-
-      @noAutoLinkHere }
-    property Exists: boolean read FExists write FExists default true;
-
     { Items that are at least once disabled are treated like not existing.
       Every @link(Disable) call should always be paired with @link(Enable) call
       (usually using @code(try ... finally .... end) block).
@@ -814,64 +715,14 @@ type
     procedure Enable;
     { @groupEnd }
 
-    { Should this 3D object participate in collision detection.
-      You can turn this off, useful to make e.g. "fake" walls
-      (to some secret places on level).
-
-      This describes collision resolution with almost everything --- camera,
-      player (in third-person perspective, camera may differ from player),
-      other creatures. That is because everything
-      resolves collisions through our methods MoveCollision and HeightCollision
-      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
-      PointCollision2D, BoxCollision (low-level).
-
-      (Note that RayCollision is excluded from this,
-      it exceptionally ignores Collides value, as it's primarily used for picking.
-      Same for SegmentCollision with LineOfSight=true.)
-
-      The only exception are the collisions with T3DMoving instances
-      (movable world parts like elevators and doors) that have their own
-      detection routines and look at CollidesWithMoving property of other objects.
-      That is, the T3DMoving instance itself must still have Collides = @true,
-      but it interacts with @italic(other) objects if and only if they have
-      CollidesWithMoving = @true (ignoring their Collides value).
-      This allows items to be moved by elevators, but still player and creatures
-      can pass through them.
-
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects never participate in collision detection).
-
-      Descendants may also override GetCollides method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Collides: boolean read FCollides write FCollides default true;
-
-    { Is item pickable by @link(RayCollision) method.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never pickable).
-      This is independent from @link(Collides), as @link(RayCollision)
-      does not look at @link(Collides), it only looks at @link(Pickable).
-
-      Descendants may also override GetPickable method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Pickable: boolean read FPickable write FPickable default true;
-
-    { Is item visible.
-      Note that if not @link(Exists) then this doesn't matter
-      (not existing objects are never visible).
-      This is independent from @link(Collides) or @link(Pickable).
-
-      Descendants may also override GetVisible method. Sometimes it's more
-      comfortable than changing the property value.
-
-      @noAutoLinkHere }
-    property Visible: boolean read FVisible write FVisible default true;
-
     { Operate on 3D objects contained in the list.
       You can also operate directly on @link(List) instance.
+
+      Note that adding and removing from this hierarchy is guaranteed to be fast,
+      so you can do it even in the middle of the game.
+      In particular calling @link(Remove) doesn't free OpenGL reasources
+      of the removed scene,
+      so removing scene only to add it later to another scene manager is blazingly fast.
       @groupBegin }
     procedure Add(const Item: TCastleTransform);
     procedure Insert(const Index: Integer; const Item: TCastleTransform);
@@ -882,6 +733,17 @@ type
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
+    { Return parent TCastleTransform, but only if this TCastleTransform
+      is a child of exactly one other TCastleTransform.
+
+      In general, the same TCastleTransform instance may be used
+      multiple times as a child of other TCastleTransform instances
+      (as long as they are all within the same TCastleSceneManager),
+      in which case this property is @nil.
+
+      It is also @nil if this is the root transform, not added to any parent. }
+    property UniqueParent: TCastleTransform read FParent;
+
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.
       Only the immediate list items are reordered,
@@ -891,7 +753,7 @@ type
       of objects, and some of them are partially-transparent and may
       be visible at the same place on the screen.
       It may even make sense to call this method every frame (like in every
-      @link(TCastleWindowCustom.OnUpdate)),
+      @link(TCastleWindowBase.OnUpdate)),
       if you move or otherwise change the objects (changing their bounding boxes),
       or if the CameraPosition may change (note that CameraPosition is only
       relevant if BlendingSort = bs3D).
@@ -934,7 +796,7 @@ type
 
       The rendering transformation, frustum, and filtering
       is specified inside TRenderParams class.
-      This method should only update @link(TRenderParams.Statistics). }
+      This method should only update @code(TRenderParams.Statistics). }
     procedure Render(const Params: TRenderParams); overload;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); overload;
@@ -988,11 +850,6 @@ type
       showing the user something like "now we're preparing
       the resources --- please wait".
 
-      For OpenGL rendered objects, this method ties this object
-      to the current OpenGL context.
-      But it doesn't change any OpenGL state or buffers contents
-      (at most, it allocates some texture and display list names).
-
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
@@ -1019,7 +876,7 @@ type
     function PrepareResourcesSteps: Cardinal; virtual;
 
     { Press and release events of key and mouse. Return @true if you handled them.
-      See also TUIControl analogous events.
+      See also TCastleUserInterface analogous events.
       @groupBegin }
     function Press(const Event: TInputPressRelease): boolean; virtual;
     function Release(const Event: TInputPressRelease): boolean; virtual;
@@ -1471,7 +1328,7 @@ type
 
     { Transformation (from local to outside) as a matrix.
       This matrix represents a concise version of properties like @link(Translation),
-      @link(Rotation), @link(Scale). It does not takie into account the
+      @link(Rotation), @link(Scale). It does not take into account the
       transformation of parent TCastleTransform (for this, use @link(WorldTransform)). }
     function Transform: TMatrix4;
 
@@ -1575,6 +1432,10 @@ type
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
+    { Get or set the XY components of the translation.
+      Useful for 2D games. }
+    property TranslationXY: TVector2 read GetTranslationXY write SetTranslationXY;
+
     function GetTranslation: TVector3; deprecated 'use Translation';
 
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
@@ -1609,8 +1470,9 @@ type
         )
 
         @item(All scale components should > 0 if you want 3D lighting
-          to work corrrectly. That is, avoid negative scale, that flips
-          the orientation of faces (CCW becomes CW), or standard
+          to work corrrectly. That is, avoid negative scale, that changes
+          the normals and orientation of faces (counter-clockwise becomes clockwise,
+          if all scale components are -1), or standard
           lighting may not work Ok.
 
           For unlit stuff, or custom lighting, negative scale may be Ok.
@@ -1792,10 +1654,79 @@ type
       Generally, it applies to every 3D model that is used as
       a child of this TCastleTransform instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
-  published
+
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
     property List: TCastleTransformList read FList;
+  published
+    { Is this object visible and colliding.
+
+      Setting this to @false pretty much turns everything of this 3D object
+      to "off". This is useful for objects that disappear completely from
+      the level when something happens. You could just as well remove
+      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
+      comfortable to simply turn this property to @false.
+
+      Descendants may also override GetExists method.
+
+      @noAutoLinkHere }
+    property Exists: boolean read FExists write FExists default true;
+
+    { Should this 3D object participate in collision detection.
+      You can turn this off, useful to make e.g. "fake" walls
+      (to some secret places on level).
+
+      This describes collision resolution with almost everything --- camera,
+      player (in third-person perspective, camera may differ from player),
+      other creatures. That is because everything
+      resolves collisions through our methods MoveCollision and HeightCollision
+      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
+      PointCollision2D, BoxCollision (low-level).
+
+      (Note that RayCollision is excluded from this,
+      it exceptionally ignores Collides value, as it's primarily used for picking.
+      Same for SegmentCollision with LineOfSight=true.)
+
+      The only exception are the collisions with T3DMoving instances
+      (movable world parts like elevators and doors) that have their own
+      detection routines and look at CollidesWithMoving property of other objects.
+      That is, the T3DMoving instance itself must still have Collides = @true,
+      but it interacts with @italic(other) objects if and only if they have
+      CollidesWithMoving = @true (ignoring their Collides value).
+      This allows items to be moved by elevators, but still player and creatures
+      can pass through them.
+
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects never participate in collision detection).
+
+      Descendants may also override GetCollides method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Collides: boolean read FCollides write FCollides default true;
+
+    { Is item pickable by @link(RayCollision) method.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never pickable).
+      This is independent from @link(Collides), as @link(RayCollision)
+      does not look at @link(Collides), it only looks at @link(Pickable).
+
+      Descendants may also override GetPickable method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Pickable: boolean read FPickable write FPickable default true;
+
+    { Is item visible.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never visible).
+      This is independent from @link(Collides) or @link(Pickable).
+
+      Descendants may also override GetVisible method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Visible: boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleSceneManager,
       and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
@@ -1813,6 +1744,10 @@ type
       @link(TCastleAbstractViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
@@ -1823,6 +1758,7 @@ type
     TimeAccumulator: TFloatTime;
     FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraKnown: boolean;
+    FEnablePhysics: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1921,6 +1857,11 @@ type
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
+
+    { Yoo can temporarily disable physics (no transformations will be updated
+      by the physics engine) by setting this property to @false. }
+    property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
+      default true;
   end;
 
   {$define read_interface}
@@ -1946,13 +1887,17 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
 
+const
+  rfOffScreen = rfRenderedTexture deprecated 'use rfRenderedTexture';
+
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleQuaternions, CastleComponentSerialize;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
 {$I castletransform_collisions.inc}
+{$I castletransform_renderparams.inc}
 {$undef read_implementation}
 
 { TransformMatricesMult ------------------------------------------------------ }
@@ -2051,29 +1996,6 @@ begin
   NewItem^.Item := Item;
 end;
 
-{ TRenderParams -------------------------------------------------------------- }
-
-var
-  GlobalIdentityMatrix: TMatrix4;
-
-constructor TRenderParams.Create;
-begin
-  inherited;
-  Transform := @GlobalIdentityMatrix;
-  InverseTransform := @GlobalIdentityMatrix;
-  TransformIdentity := true;
-end;
-
-function TRenderParams.RenderTransform: TMatrix4;
-begin
-  Result := Transform^;
-end;
-
-function TRenderParams.RenderTransformIdentity: boolean;
-begin
-  Result := TransformIdentity;
-end;
-
 { TCastleTransformList ------------------------------------------------------------ }
 
 constructor TCastleTransformList.Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
@@ -2169,10 +2091,18 @@ begin
   FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
 end;
 
 destructor TCastleTransform.Destroy;
 begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+
   PhysicsDestroy;
   FreeAndNil(FList);
   { set to nil, to detach free notification }
@@ -3194,7 +3124,7 @@ begin
 end;
 
 function TCastleTransform.Move(const ATranslation: TVector3;
-  const BecauseOfGravity, EnableWallSliding: boolean): boolean;
+  const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
 begin
@@ -3219,6 +3149,39 @@ begin
   FTransformAndInverseValid := false;
   FWorldTransformAndInverseValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
+end;
+
+procedure TCastleTransform.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to List.Count - 1 do
+    if [csSubComponent, csTransient] * List[I].ComponentStyle = [] then
+      Proc(List[I]);
+end;
+
+procedure TCastleTransform.InternalAddChild(const C: TComponent);
+begin
+  // matches TCastleTransform.GetChildren implementation
+  Add(C as TCastleTransform)
+end;
+
+function TCastleTransform.PropertySection(const PropertyName: String
+  ): TPropertySection;
+begin
+  case PropertyName of
+    'Exists':
+      Result := psBasic;
+    'CenterPersistent',
+    'RotationPersistent',
+    'ScalePersistent',
+    'ScaleOrientationPersistent',
+    'TranslationPersistent':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 { We try hard to keep FOnlyTranslation return fast, and return with true.
@@ -3268,6 +3231,16 @@ procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
   ChangedTransform;
+end;
+
+function TCastleTransform.GetTranslationXY: TVector2;
+begin
+  Result := Translation.XY;
+end;
+
+procedure TCastleTransform.SetTranslationXY(const Value: TVector2);
+begin
+  Translation := Vector3(Value, Translation.Data[2]);
 end;
 
 procedure TCastleTransform.Translate(const T: TVector3);
@@ -3370,11 +3343,16 @@ begin
   Rotation := RotationFromDirectionUp(D, U);
 end;
 
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
+{$undef read_implementation_methods}
+
 { TSceneManagerWorld ------------------------------------------------------------------- }
 
 constructor TSceneManagerWorld.Create(AOwner: TComponent);
 begin
   inherited;
+  FEnablePhysics := true;
   { everything inside is part of this world }
   AddToWorld(Self);
 end;
@@ -3419,4 +3397,5 @@ end;
 
 initialization
   GlobalIdentityMatrix := TMatrix4.Identity;
+  RegisterSerializableComponent(TCastleTransform, 'Transform');
 end.

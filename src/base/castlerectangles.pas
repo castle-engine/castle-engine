@@ -27,47 +27,14 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TUIControl.Align and TRectangle.Align
+    This is used by @link(TCastleUserInterface.Anchor),
+    @link(TRectangle.Align), @link(TFloatRectangle.Align) and other methods
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TUIControl.Align, this specifies
-    the align of control with respect to the container
-    (TCastleWindow or TCastleControl).
 
-    This is used to talk about position of the control and the container.
-
-    @orderedList(
-      @item(
-        When we talk about the position of the control
-        (for example ControlPosition for TUIControl.Align),
-        it determines which border of the control to align.)
-      @item(
-        When we talk about the position of the container
-        (for example ContainerPosition for TUIControl.Align),
-        this specifies the container border.)
-    )
-
-    In most cases you use equal both control and container borders.
-    For example, both ControlPosition and ContainerPosition are usually equal for
-    TUIControlPos.Align call. This allows to align left control edge to
-    left container edge, or right control edge to right container edge,
-    or to center control within the container --- which is the most common usage.
-
-    @unorderedList(
-      @item(If both are hpLeft, then X specifies position
-        of left control border relative to left container border.
-        X should be >= 0 if you want to see the control completely
-        within the container.)
-
-      @item(If both are hpMiddle, then X (most often just 0)
-        specifies the shift between container middle to
-        control middle. If X is zero, then control is just in the
-        middle of the container.)
-
-      @item(If both are hpRight, then X specifies position
-        of right control border relative to right container border.
-        X should be <= 0 if you want to see the control completely
-        within the container.)
-    )
+    Note that @link(TCastleUserInterface.Anchor) has various overloaded
+    versions. E.g. you can align the left side of the control to the left side
+    of the parent (most common situation), or you can align left side
+    of the control to the middle of the parent...
 
     @seealso TVerticalPosition
   }
@@ -139,8 +106,8 @@ type
       of the rectangle (by 1 pixel). That's because the rectangle starts at
       pixel @code((Left, Bottom)) and spans the @code((Width, Height)) pixels.
       @groupBegin }
-    property Right: Integer read GetRight {write SetRight} { };
-    property Top: Integer read GetTop {write SetTop} { };
+    property Right: Integer read GetRight;
+    property Top: Integer read GetTop;
     { @groupEnd }
 
     { Return rectangle with given width and height centered
@@ -227,9 +194,9 @@ type
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched.
 
-      These details matter, e.g. when you set @link(TUIControlSizeable.Width), but not
-      @link(TUIControlSizeable.Height),
-      and then you expect the @link(TUIControl.CalculatedWidth) to work.
+      These details matter, e.g. when you set @link(TCastleUserInterface.Width), but not
+      @link(TCastleUserInterface.Height),
+      and then you expect the @link(TCastleUserInterface.EffectiveWidth) to work.
     }
     function ScaleAround0(const Factor: Single): TRectangle;
 
@@ -283,6 +250,8 @@ type
 
     { Common part of the two rectangles. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
+
+    function Equals(const R: TRectangle): boolean;
   end;
 
   { 2D rectangle with @bold(float) coordinates.
@@ -306,6 +275,8 @@ type
     procedure SetRight(const Value: Single);
     procedure SetTop(const Value: Single);
     }
+    function GetLeftBottom: TVector2;
+    procedure SetLeftBottom(const Value: TVector2);
   public
     Left, Bottom: Single;
     Width, Height: Single;
@@ -321,6 +292,7 @@ type
 
     function Contains(const X, Y: Single): boolean; overload;
     function Contains(const Point: TVector2): boolean; overload;
+    function Contains(const R: TFloatRectangle): boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -335,12 +307,18 @@ type
       @code((Round(Left), Round(Bottom))) and
       spans the @code((Round(Width), Round(Height))) pixels.
       @groupBegin }
-    property Right: Single read GetRight {write SetRight} { };
-    property Top: Single read GetTop {write SetTop} { };
+    property Right: Single read GetRight;
+    property Top: Single read GetTop;
     { @groupEnd }
 
+    property LeftBottom: TVector2 read GetLeftBottom write SetLeftBottom;
     function Middle: TVector2; deprecated 'use Center';
     function Center: TVector2;
+
+    { Return rectangle with given width and height centered
+      in the middle of this rectangle. The given W, H may be smaller or larger
+      than this rectangle sizes. }
+    function CenterInside(const W, H: Single): TFloatRectangle;
 
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
@@ -352,6 +330,64 @@ type
     function Grow(const Delta: Single): TFloatRectangle; overload;
     function Grow(const DeltaX, DeltaY: Single): TFloatRectangle; overload;
 
+    { Returns the rectangle with a number of pixels from given
+      side removed. Returns an empty rectangle if you try to remove too much.
+      @groupBegin }
+    function RemoveLeft(W: Single): TFloatRectangle;
+    function RemoveBottom(H: Single): TFloatRectangle;
+    function RemoveRight(W: Single): TFloatRectangle;
+    function RemoveTop(H: Single): TFloatRectangle;
+    { @groupEnd }
+
+    { Returns the rectangle with a number of pixels on given side added.
+      @groupBegin }
+    function GrowLeft(const W: Single): TFloatRectangle;
+    function GrowBottom(const H: Single): TFloatRectangle;
+    function GrowRight(const W: Single): TFloatRectangle;
+    function GrowTop(const H: Single): TFloatRectangle;
+    { @groupEnd }
+
+    { Returns the given side of the rectangle, cut down to given number of pixels
+      from given side. This is similar to RemoveXxx methods, but here you specify
+      which side to keep, as opposed to RemoveXxx methods where you specify which
+      side you remove.
+
+      If the requested size is larger than current size (for example,
+      W > Width for LeftPart) then the unmodified rectangle is returned.
+
+      @groupBegin }
+    function LeftPart(W: Single): TFloatRectangle;
+    function BottomPart(H: Single): TFloatRectangle;
+    function RightPart(W: Single): TFloatRectangle;
+    function TopPart(H: Single): TFloatRectangle;
+    { @groupEnd }
+
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Left). }
+    function AlignCore(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Single = 0): Single; overload;
+    function Align(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Single = 0): TFloatRectangle; overload;
+
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Bottom). }
+    function AlignCore(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Single = 0): Single; overload;
+    function Align(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TFloatRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Single = 0): TFloatRectangle; overload;
+
     function ToString: string;
 
     { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
@@ -361,6 +397,19 @@ type
     function Collides(const R: TFloatRectangle): boolean;
 
     function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): boolean;
+
+    function ScaleToWidth(const NewWidth: Single): TFloatRectangle;
+    function ScaleToHeight(const NewHeight: Single): TFloatRectangle;
+
+    { Scale rectangle position and size around it's own @link(Center) point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched. }
+    function ScaleAroundCenter(const Factor: Single): TFloatRectangle;
 
     { Scale rectangle position and size around the (0,0) point. }
     function ScaleAround0(const Factor: Single): TFloatRectangle;
@@ -375,6 +424,17 @@ type
     { Convert from a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
     class function FromX3DVector(const V: TVector4): TFloatRectangle; static;
+
+    { Round rectangle coordinates, converting TFloatRectangle to TRectangle. }
+    function Round: TRectangle;
+
+    { Is another rectangle equal to this one.
+      Floating-point values are compared with an epsilon tolerance. }
+    function Equals(const R: TFloatRectangle): Boolean;
+
+    { Is another rectangle equal to this one.
+      Floating-point values are compared with an epsilon tolerance. }
+    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
@@ -643,7 +703,10 @@ end;
 
 function TRectangle.ToString: string;
 begin
-  Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TRectangle: Empty'
+  else
+    Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
 end;
 
 function TRectangle.Center: TVector2Integer;
@@ -879,6 +942,19 @@ begin
   end;
 end;
 
+function TRectangle.Equals(const R: TRectangle): boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (Left   = R.Left) and
+      (Bottom = R.Bottom) and
+      (Width  = R.Width) and
+      (Height = R.Height);
+end;
+
 { TFloatRectangle ----------------------------------------------------------------- }
 
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
@@ -891,6 +967,8 @@ end;
 
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
 begin
+  if R.IsEmpty then
+    Exit(TFloatRectangle.Empty);
   Result.Left   := R.Left;
   Result.Bottom := R.Bottom;
   Result.Width  := R.Width;
@@ -932,6 +1010,31 @@ begin
             (Point.Data[1] >= Bottom) and (Point.Data[1] <= Bottom + Height);
 end;
 
+function TFloatRectangle.Contains(const R: TFloatRectangle): boolean;
+begin
+  if R.IsEmpty then
+    Result := true
+  else
+    Result :=
+      (not IsEmpty) and
+      (R.Left >= Left) and
+      (R.Bottom >= Bottom) and
+      (R.Right <= Right) and
+      (R.Top <= Top);
+end;
+
+function TFloatRectangle.GetLeftBottom: TVector2;
+begin
+  Result.Data[0] := Left;
+  Result.Data[1] := Bottom;
+end;
+
+procedure TFloatRectangle.SetLeftBottom(const Value: TVector2);
+begin
+  Left := Value.Data[0];
+  Bottom := Value.Data[1];
+end;
+
 function TFloatRectangle.Center: TVector2;
 begin
   Result := Vector2(Left + Width / 2, Bottom + Height / 2);
@@ -940,6 +1043,14 @@ end;
 function TFloatRectangle.Middle: TVector2;
 begin
   Result := Center;
+end;
+
+function TFloatRectangle.CenterInside(const W, H: Single): TFloatRectangle;
+begin
+  Result.Left   := Left   + (Width  - W) / 2;
+  Result.Bottom := Bottom + (Height - H) / 2;
+  Result.Width  := W;
+  Result.Height := H;
 end;
 
 function TFloatRectangle.Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
@@ -970,6 +1081,92 @@ begin
   Result := Grow(Delta, Delta);
 end;
 
+function TFloatRectangle.RemoveLeft(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Left := Result.Left + W;
+  Result.Width := Result.Width - W;
+end;
+
+function TFloatRectangle.RemoveBottom(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Bottom := Result.Bottom + H;
+  Result.Height := Result.Height - H;
+end;
+
+function TFloatRectangle.RemoveRight(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Width := Result.Width - W;
+end;
+
+function TFloatRectangle.RemoveTop(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Height := Result.Height - H;
+end;
+
+function TFloatRectangle.GrowLeft(const W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Left := Result.Left - W;
+  Result.Width := Result.Width + W;
+end;
+
+function TFloatRectangle.GrowBottom(const H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Bottom := Result.Bottom - H;
+  Result.Height := Result.Height + H;
+end;
+
+function TFloatRectangle.GrowRight(const W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Width := Result.Width + W;
+end;
+
+function TFloatRectangle.GrowTop(const H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  Result.Height := Result.Height + H;
+end;
+
+function TFloatRectangle.LeftPart(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Width := W;
+end;
+
+function TFloatRectangle.BottomPart(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Height := H;
+end;
+
+function TFloatRectangle.RightPart(W: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(W, Width);
+  Result.Left := Result.Left + Width - W;
+  Result.Width := W;
+end;
+
+function TFloatRectangle.TopPart(H: Single): TFloatRectangle;
+begin
+  Result := Self;
+  MinVar(H, Height);
+  Result.Bottom := Result.Bottom + Height - H;
+  Result.Height := H;
+end;
+
 function TFloatRectangle.GetRight: Single;
 begin
   Result := Left + Width;
@@ -992,9 +1189,74 @@ begin
 end;
 }
 
+function TFloatRectangle.AlignCore(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Single = 0): Single;
+begin
+  Result := OtherRect.Left + X;
+  case ThisPosition of
+    hpLeft  : ;
+    hpMiddle: Result := Result - Width / 2;
+    hpRight : Result := Result - Width;
+  end;
+  case OtherPosition of
+    hpLeft  : ;
+    hpMiddle: Result := Result + OtherRect.Width / 2;
+    hpRight : Result := Result + OtherRect.Width;
+  end;
+end;
+
+function TFloatRectangle.AlignCore(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Single = 0): Single;
+begin
+  Result := OtherRect.Bottom + Y;
+  case ThisPosition of
+    vpBottom: ;
+    vpMiddle: Result := Result - Height / 2;
+    vpTop   : Result := Result - Height;
+  end;
+  case OtherPosition of
+    vpBottom: ;
+    vpMiddle: Result := Result + OtherRect.Height / 2;
+    vpTop   : Result := Result + OtherRect.Height;
+  end;
+end;
+
+function TFloatRectangle.Align(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Single = 0): TFloatRectangle;
+begin
+  Result.Left := AlignCore(ThisPosition, OtherRect, OtherPosition, X);
+  Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TFloatRectangle.Align(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TFloatRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Single = 0): TFloatRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := AlignCore(ThisPosition, OtherRect, OtherPosition, Y);
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
 function TFloatRectangle.ToString: string;
 begin
-  Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
+  if IsEmpty then
+    Result := 'TFloatRectangle: Empty'
+  else
+    Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
 end;
 
 function TFloatRectangle.Translate(const V: TVector2): TFloatRectangle;
@@ -1083,6 +1345,47 @@ begin
     Sqr(Radius);
 end;
 
+function TFloatRectangle.ScaleToWidth(const NewWidth: Single): TFloatRectangle;
+begin
+  if IsEmpty then Exit(Empty);
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := NewWidth;
+  Result.Height := Height * NewWidth / Width;
+end;
+
+function TFloatRectangle.ScaleToHeight(const NewHeight: Single): TFloatRectangle;
+begin
+  if IsEmpty then Exit(Empty);
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := Width * NewHeight / Height;
+  Result.Height := NewHeight;
+end;
+
+function TFloatRectangle.ScaleAroundCenter(const Factor: Single): TFloatRectangle;
+begin
+  if Width >= 0 then
+  begin
+    Result.Width  := Width  * Factor;
+    Result.Left   := Left   + (Width  - Result.Width ) / 2;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height >= 0 then
+  begin
+    Result.Height := Height * Factor;
+    Result.Bottom := Bottom + (Height - Result.Height) / 2;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
+end;
+
 function TFloatRectangle.ScaleAround0(const Factor: Single): TFloatRectangle;
 var
   ResultRight, ResultTop: Single;
@@ -1163,6 +1466,44 @@ begin
   Result.Bottom := V.Data[1];
   Result.Width  := V.Data[2] - V.Data[0];
   Result.Height := V.Data[3] - V.Data[1];
+end;
+
+function TFloatRectangle.Round: TRectangle;
+begin
+  if IsEmpty then
+    Result := TRectangle.Empty
+  else
+    Result := Rectangle(
+      System.Round(Left),
+      System.Round(Bottom),
+      System.Round(Width),
+      System.Round(Height));
+end;
+
+function TFloatRectangle.Equals(const R: TFloatRectangle): Boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (SameValue(Left  , R.Left)) and
+      (SameValue(Bottom, R.Bottom)) and
+      (SameValue(Width , R.Width)) and
+      (SameValue(Height, R.Height));
+end;
+
+function TFloatRectangle.Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
+begin
+  if IsEmpty then
+    Result := R.IsEmpty
+  else
+    Result :=
+      (not R.IsEmpty) and
+      (SameValue(Left  , R.Left  , Epsilon)) and
+      (SameValue(Bottom, R.Bottom, Epsilon)) and
+      (SameValue(Width , R.Width , Epsilon)) and
+      (SameValue(Height, R.Height, Epsilon));
 end;
 
 class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;

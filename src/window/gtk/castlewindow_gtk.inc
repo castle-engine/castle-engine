@@ -110,7 +110,7 @@ protected
     You can e.g. create in MakeGLAreaContainer some complex container,
     put there many various GTK widgets, connect your signals to them,
     and then put GLArea inside it.
-    This way using this function you can extend window TCastleWindowCustom
+    This way using this function you can extend window TCastleWindowBase
     with whatever GTK GUI you like.
 
     The only requirement is that GLArea widget must be placed
@@ -144,17 +144,17 @@ protected
 private
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
-  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
+  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
   { Find in OpenWindows window with GLAreaGtk = given seekGLAreaGtk.
     Return nil if no such window is found. }
-  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
+  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 
   { Same as TryFindWindowGtk, but exception EInternalError when
     no such window is found. }
-  function FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
+  function FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
   { Same as TryFindGLAreaGtk, but exception EInternalError when
     no such window is found. }
-  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
+  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 
   { This must be constantly called.
     We use it for two tasks currently:
@@ -190,8 +190,8 @@ private
   function XScreen: Integer;
   {$endif}
 public
-  { Set XDisplay name, this will be used for all TCastleWindowCustom
-    that will be subsequently initialized by TCastleWindowCustom.Open.
+  { Set XDisplay name, this will be used for all TCastleWindowBase
+    that will be subsequently initialized by TCastleWindowBase.Open.
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
@@ -261,6 +261,8 @@ function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
 function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
   cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
+function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
+  cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -389,7 +391,7 @@ end;
     gtk_main_iteration_do(WaitForMessage);
 
   in ProcessMessage. The result? At the end of HandleException, you get
-  SEGFAULT at the end of TCastleWindowCustom.MessageOK...
+  SEGFAULT at the end of TCastleWindowBase.MessageOK...
   (debugger doesn't show sensible stuff, it's like GtkDialogRun is Ok,
   and then any instruction just crashes.)
   I found no other explanation other than GTK memory got corrupted.
@@ -498,94 +500,77 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
   no DoResize will be called. And that's good -- there's no point in calling
   DoResize when only Left/Top changed. }
 SIGNAL_GLAREA_BEGIN
- DoResize(Event^.Width, Event^.Height, false);
- { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := g_false;
+  DoResize(Event^.Width, Event^.Height, false);
+  { for the sake of gtk, I can't tell that I "handled" this in any way }
+  Result := g_false;
 SIGNAL_GLAREA_END;
 
 function signal_delete_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
- DoCloseQuery;
- Result := g_true;
+  DoCloseQuery;
+  Result := g_true;
 SIGNAL_WINDOW_END;
 
 function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
-var Key: TKey;
-    CharKey: char;
+var
+  Key: TKey;
+  KeyString: string;
 SIGNAL_WINDOW_BEGIN
- case Event^.KeyVal of
-  GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
-  GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
-  GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
-  GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
-  GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
-  GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
-  else
-  begin
-   Key := GdkKeysymToKey(Event^.KeyVal);
+  case Event^.KeyVal of
+    GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
+    GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
+    GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
+    GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
+    GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
+    GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
+    else
+    begin
+      Key := GdkKeysymToKey(Event^.KeyVal);
+      KeyString := Event^._string;
 
-   {$ifdef MSWINDOWS}
-   { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
-     GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
-   if Key = K_Escape then
-    CharKey := CharEscape else
-   if Key = K_Enter then
-    CharKey := CharEnter else
-   {$endif}
-   { It seems that GTK 2 doesn't translate backspace and tab to
-     appropriate chars. So I'm fixing it here. }
-   if Key = K_Tab then
-    CharKey := CharTab else
-   if Key = K_BackSpace then
-    CharKey := CharBackSpace else
-   { note: testing is Event.Length = 1 not only makes sure that we can
-     safely take Event.TheString[0] as a whole CharKey,
-     but it also makes sure that this is not something MBCS encoded. }
-   if Event^.Length = 1 then
-    CharKey := Event^._string[0] else
-    CharKey := #0;
-
-   if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+      if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
+    end;
   end;
- end;
 
- { It would be nice to say here Result := true if key was handled
-   in DoKeyDown. But I don't have any indicator whether key was handled
-   in EventPress or OnPress (because such thing would complicate
-   implementation of OnPress callback in every program using
-   CastleWindow). So I must assume that either (1) always or (2) never
-   when I called DoKeyDown key is handled.
-   But (1) is actually not acceptable, because it disallows user
-   to activate menu using F10 key. So I must set Result := false here.
+  { It would be nice to say here Result := true if key was handled
+    in DoKeyDown. But I don't have any indicator whether key was handled
+    in EventPress or OnPress (because such thing would complicate
+    implementation of OnPress callback in every program using
+    CastleWindow). So I must assume that either (1) always or (2) never
+    when I called DoKeyDown key is handled.
+    But (1) is actually not acceptable, because it disallows user
+    to activate menu using F10 key. So I must set Result := false here.
 
-   I'm also setting Result := false in signal_key_release_event,
-   to be consequent.
- }
- Result := g_false;
+    I'm also setting Result := false in signal_key_release_event,
+    to be consequent.
+  }
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_key_release_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
-var Key: TKey;
+var
+  Key: TKey;
 SIGNAL_WINDOW_BEGIN
- case Event^.KeyVal of
-  GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
-  GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
-  GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
-  GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
-  GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
-  GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
-  else begin
-   Key := GdkKeysymToKey(Event^.KeyVal);
-   if Key <> K_None then DoKeyUp(Key);
+  case Event^.KeyVal of
+    GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
+    GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
+    GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
+    GDK_KEY_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
+    GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
+    GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
+    else
+    begin
+      Key := GdkKeysymToKey(Event^.KeyVal);
+      if Key <> K_None then DoKeyUp(Key);
+    end;
   end;
- end;
 
- { Why false, not true ? See comments at the end of
-   signal_key_press_event. }
- Result := g_false;
+  { Why false, not true ? See comments at the end of
+    signal_key_press_event. }
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -595,7 +580,7 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseDown(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseDown(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -605,14 +590,14 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseUp(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseUp(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(MousePosition,
-    Vector2(Event^.x, Height - 1 - Event^.y), MousePressed, 0));
+    LeftTopToCastle(Event^.x, Event^.y), MousePressed, 0));
   Result := g_true;
 SIGNAL_GLAREA_END;
 
@@ -633,11 +618,11 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
 var
   MenuItem: TMenuItem;
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
   SIGNAL_GENERAL_BEGIN
     MenuItem := MenuItemFromSmallId( PtrInt(Data) );
-    Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+    Window := TCastleWindowBase( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
     if MenuItem is TMenuItemChecked then
     begin
@@ -698,15 +683,16 @@ function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
   { reset FMousePosition, since mouse position is unknown now,
-    and do not activate mouse look at next frame (IsMousePositionForMouseLook should be false). }
+    and do not activate mouse look at next frame. }
   FMousePosition := Vector2(-1, -1);
+  Container.IsMousePositionForMouseLook := false;
   FFocused := true;
   Result := g_false;
 SIGNAL_WINDOW_END;
 
-{ TCastleWindowCustom ------------------------------------------------------------ }
+{ TCastleWindowBase ------------------------------------------------------------ }
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -716,13 +702,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TCastleWindowCustom.UpdateCursor;
+procedure TCastleWindowBase.UpdateCursor;
 
   function CreateNoneCursor: PGdkCursor;
   const
@@ -734,23 +720,35 @@ procedure TCastleWindowCustom.UpdateCursor;
     { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
     Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
     try
-      Result := gdk_cursor_new_from_pixmap(
-        Pixmap, Pixmap, @Color, @Color, 0, 0);
+      Result := gdk_cursor_new_from_pixmap(Pixmap, Pixmap, @Color, @Color, 0, 0);
     finally gdk_pixmap_unref(Pixmap); end;
   end;
 
 const
-  GdkCursorTypeFromMy: array [mcStandard .. High(TMouseCursor)] of
+  { GDK cursors.
+    See https://developer.gnome.org/gdk3/stable/gdk3-Cursors.html for the list. }
+  GdkCursorTypeFromCastle: array [mcStandard .. High(TMouseCursor)] of
     TGdkCursorType =
-  ( { I think that GDK_ARROW was traditionally standard under XWindows
-      (right-top arrow), but then gtk changed standard to much more standard
-      left-top arrow in GDK_LEFT_PTR.
-
-      See for example
-      http://library.gnome.org/devel/gdk/stable/gdk-Cursors.html
-      for the list.
-    }
-    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
+  (
+    GDK_LEFT_PTR, //< mcStandard.
+                  // Note that GDK_ARROW seems standard under XWindows
+                  // (it is a right-top arrow),
+                  // but actually in modern applications it is more standard
+                  // to use left-top arrow in GDK_LEFT_PTR.
+    GDK_WATCH,                // mcWait
+    GDK_XTERM,                // mcText
+    GDK_HAND2,                // mcHand
+    GDK_SB_V_DOUBLE_ARROW,    // mcResizeVertical
+    GDK_SB_H_DOUBLE_ARROW,    // mcResizeHorizontal
+    GDK_TOP_LEFT_CORNER,      // mcResizeTopLeft
+    GDK_TOP_SIDE,             // mcResizeTop
+    GDK_TOP_RIGHT_CORNER,     // mcResizeTopRight
+    GDK_LEFT_SIDE,            // mcResizeLeft
+    GDK_RIGHT_SIDE,           // mcResizeRight
+    GDK_BOTTOM_LEFT_CORNER,   // mcResizeBottomLeft
+    GDK_BOTTOM_SIDE,          // mcResizeBottom
+    GDK_BOTTOM_RIGHT_CORNER   // mcResizeBottomRight
+  );
 begin
   if Application.Cursors[InternalCursor] = nil then
   begin
@@ -764,7 +762,7 @@ begin
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
         Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
-          Application.XDisplayGdk, GdkCursorTypeFromMy[InternalCursor]);
+          Application.XDisplayGdk, GdkCursorTypeFromCastle[InternalCursor]);
     end;
   end;
 
@@ -780,9 +778,10 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
   X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
 {$endif}
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
-{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
 var
+  P: TVector2Integer;
+{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
   RootX, RootY: GInt;
 {$endif}
 begin
@@ -793,6 +792,8 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
+    P := CastleToLeftTopInt(Value);
+
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     { With older GDK/GTK, you had to use XWarpPointer to position mouse.
       We still use it, for now, for GTK under Xlib --- this way we work
@@ -801,60 +802,60 @@ begin
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
-      0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
+      0, 0, 0, 0, P.X, P.Y);
     {$else}
       gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-        Floor(Value[0]), Height - 1 - Floor(Value[1]), @RootX, @RootY);
+        P.X, P.Y, @RootX, @RootY);
       gdk_display_warp_pointer(Application.XDisplayGdk,
         Application.XScreenGdk, RootX, RootY);
     {$endif}
   end;
 end;
 
-procedure TCastleWindowCustom.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
- gdk_gl_drawable_swap_buffers(GLDrawable);
+  gdk_gl_drawable_swap_buffers(GLDrawable);
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then
     gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
 end;
 
-procedure TCastleWindowCustom.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
- Assert(not Closed);
+  Assert(not Closed);
 
- { When GLAreaGtk is implemented by gdkglwindow-x11 or
-   gdkglpixmap-x11 or gdkglwindow-win32:
-   gdk_gl_drawable_gl_begin simply calls
-   gdk_gl_window_impl_x11_make_context_current
-   and gdk_gl_drawable_gl_end doesn't do anything.
-   So I can simply forget about gdk_gl_drawable_gl
-   and call gdk_gl_drawable_gl_begin on BackendMakeCurrent.
+  { When GLAreaGtk is implemented by gdkglwindow-x11 or
+    gdkglpixmap-x11 or gdkglwindow-win32:
+    gdk_gl_drawable_gl_begin simply calls
+    gdk_gl_window_impl_x11_make_context_current
+    and gdk_gl_drawable_gl_end doesn't do anything.
+    So I can simply forget about gdk_gl_drawable_gl
+    and call gdk_gl_drawable_gl_begin on BackendMakeCurrent.
 
-   In case GLAreaGtk is implemented by gdkglpixmap-win32
-   (this is not possible to achieve now in CastleWindow, but maybe
-   in the future will be) or just in case it will be implemented
-   on some system differently, I will have to only slghtly
-   improve this procedure: I will keep track of currently current
-   GLAreaGtk, and I will do something like
-     gdk_gl_drawable_gl_end(currently active);
-     currently active := newly active;
-     gdk_gl_drawable_gl_begin(currently active);
- }
+    In case GLAreaGtk is implemented by gdkglpixmap-win32
+    (this is not possible to achieve now in CastleWindow, but maybe
+    in the future will be) or just in case it will be implemented
+    on some system differently, I will have to only slghtly
+    improve this procedure: I will keep track of currently current
+    GLAreaGtk, and I will do something like
+      gdk_gl_drawable_gl_end(currently active);
+      currently active := newly active;
+      gdk_gl_drawable_gl_begin(currently active);
+  }
 
- gdk_gl_drawable_gl_begin(GLDrawable, GLContext);
+  gdk_gl_drawable_gl_begin(GLDrawable, GLContext);
 end;
 
-function TCastleWindowCustom.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
+function TCastleWindowBase.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
- Result := GTK_WIDGET(GLArea);
+  Result := GTK_WIDGET(GLArea);
 end;
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 
 { Notes about FullScreen implementation for GTK_2:
 
@@ -873,29 +874,30 @@ const
   procedure set_default_glarea_size(Width, Height: Integer);
   { This requires MainMenu.Handle to be initialized (only if MainMenu <> nil,
     of course ) }
-  var WindowWidth, WindowHeight: Integer;
-      WindowReq: TGtkRequisition;
+  var
+    WindowWidth, WindowHeight: Integer;
+    WindowReq: TGtkRequisition;
   begin
-   { Implementation of this is really non-elegant.
-     But I do not know how to implement this in GTK+ (even if I would use
-     GTK+ 2.x). I would like something like
-       gtk_widget_set_default_size(GLAreaGtk, Width, Height)
-     but there is no gtk_widget_set_default_size function, there is only
-     gtk_window_set_default_size. I do NOT want to set minimal area of a widget,
-     I want default size (that could be later made smaller by a user),
-     and I do not want to give non-standard configuration values to
-     gtk_window_set_policy. So I do the only solution that I know of:
-     I'm simply doing gtk_window_set_default_size, enlarging my Height
-     by menu height and VBoxSpacing. }
-   WindowWidth := Width;
-   WindowHeight := Height;
-   if (MainMenu <> nil) and MainMenuVisible then
-   begin
-    gtk_widget_size_request(GTK_WIDGET(MainMenu.Handle), @WindowReq);
-    WindowHeight += WindowReq.Height + VBoxSpacing;
-   end;
-   gtk_window_set_default_size(WindowGtk, WindowWidth, WindowHeight);
- end;
+    { Implementation of this is really non-elegant.
+      But I do not know how to implement this in GTK+ (even if I would use
+      GTK+ 2.x). I would like something like
+        gtk_widget_set_default_size(GLAreaGtk, Width, Height)
+      but there is no gtk_widget_set_default_size function, there is only
+      gtk_window_set_default_size. I do NOT want to set minimal area of a widget,
+      I want default size (that could be later made smaller by a user),
+      and I do not want to give non-standard configuration values to
+      gtk_window_set_policy. So I do the only solution that I know of:
+      I'm simply doing gtk_window_set_default_size, enlarging my Height
+      by menu height and VBoxSpacing. }
+    WindowWidth := Width;
+    WindowHeight := Height;
+    if (MainMenu <> nil) and MainMenuVisible then
+    begin
+      gtk_widget_size_request(GTK_WIDGET(MainMenu.Handle), @WindowReq);
+      WindowHeight += WindowReq.Height + VBoxSpacing;
+    end;
+    gtk_window_set_default_size(WindowGtk, WindowWidth, WindowHeight);
+  end;
 
   procedure ContextNotPossible;
   begin
@@ -904,301 +906,333 @@ const
      [ RequestedBufferAttributes ]);
   end;
 
+  procedure GetInitialCursorPos;
+  var
+    X, Y: GInt;
+  begin
+    gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
+    FMousePosition := LeftTopToCastle(X, Y);
+  end;
+
+  procedure InitializeDpi;
+  var
+    ScreenWidthMM: Single;
+  begin
+    FDpi := gdk_screen_get_resolution(Application.XScreenGdk);
+    if FDpi <= 0 then
+    begin
+      ScreenWidthMM := gdk_screen_width_mm();
+      if ScreenWidthMM <= 0 then
+      begin
+        { Lazarus LCL also secures from this case, with comment:
+          "some TV-out screens don't know there size" (GetScreenWidthMM). }
+        FDpi := DefaultDpi;
+      end else
+        FDpi := gdk_screen_width() / (ScreenWidthMM / 25.4);
+    end;
+
+    WritelnLog('GTK', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   ShareContext: PGdkGLContext;
   VisualAttr: TLongIntList;
   GLAreaContainer: PGtkWidget;
 begin
- Application.InitializeXDisplay;
+  Application.InitializeXDisplay;
 
- WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
- if (GtkIconName <> '') and
-    { gtk_window_set_icon_name exists since GTK 2.6.
-      (Although I officially require GTK 2.6, this function is really
-      not critical, so we check it dynamically.) }
-    Assigned(@gtk_window_set_icon_name) then
-   gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
+  if (GtkIconName <> '') and
+     { gtk_window_set_icon_name exists since GTK 2.6.
+       (Although I officially require GTK 2.6, this function is really
+       not critical, so we check it dynamically.) }
+     Assigned(@gtk_window_set_icon_name) then
+    gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
 
- gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
- gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
+  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
+  gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
- { Create VisualAttr and then create appropriate GLAreaGtk
-   (and GLConfig in case of GTK 2) honouring this VisualAttr.
+  { Create VisualAttr and then create appropriate GLAreaGtk
+    (and GLConfig in case of GTK 2) honouring this VisualAttr.
 
-   The code for initializing VisualAttr is quite the same
-   as the code from castlewindow_xlib.inc because the meaning of GDK_GL_
-   constants is the same as GLX_ constants. }
- VisualAttr := TLongIntList.Create;
- try
-  if DoubleBuffer then
-    VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
-  VisualAttr.AddRange([
-    GDK_GL_RGBA,
+    The code for initializing VisualAttr is quite the same
+    as the code from castlewindow_xlib.inc because the meaning of GDK_GL_
+    constants is the same as GLX_ constants. }
+  VisualAttr := TLongIntList.Create;
+  try
+   if DoubleBuffer then
+     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
+   VisualAttr.AddRange([
+     GDK_GL_RGBA,
 
-    GDK_GL_RED_SIZE, RedBits,
-    GDK_GL_GREEN_SIZE, GreenBits,
-    GDK_GL_BLUE_SIZE, BlueBits,
+     GDK_GL_RED_SIZE, RedBits,
+     GDK_GL_GREEN_SIZE, GreenBits,
+     GDK_GL_BLUE_SIZE, BlueBits,
 
-    { Note that sizes of buffers in VisualAttr must be given in bits
-      (not in e.g. bytes), so this is exactly what I have in my variables. }
-    GDK_GL_DEPTH_SIZE, DepthBits,
+     { Note that sizes of buffers in VisualAttr must be given in bits
+       (not in e.g. bytes), so this is exactly what I have in my variables. }
+     GDK_GL_DEPTH_SIZE, DepthBits,
 
-    { This is a workaround for gtkglext Windows bug,
-      one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise
-      gtkglext will request 32-bits sized color buffer (instead of just accepting
-      any bit depth), that may not be available.
+     { This is a workaround for gtkglext Windows bug,
+       one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise
+       gtkglext will request 32-bits sized color buffer (instead of just accepting
+       any bit depth), that may not be available.
 
-      I know how to fix it in gtkglext, I submitted this to gtkglext list
-      (mail "Bug at creation of GdkGLConfig on Win32" from 2005-03-01),
-      unfortunately with no response to this day. }
-    GDK_GL_BUFFER_SIZE, 1,
-    GDK_GL_STENCIL_SIZE, StencilBits,
-    GDK_GL_ALPHA_SIZE, AlphaBits,
-    GDK_GL_ACCUM_RED_SIZE, FAccumBits[0],
-    GDK_GL_ACCUM_GREEN_SIZE, FAccumBits[1],
-    GDK_GL_ACCUM_BLUE_SIZE, FAccumBits[2],
-    GDK_GL_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
+       I know how to fix it in gtkglext, I submitted this to gtkglext list
+       (mail "Bug at creation of GdkGLConfig on Win32" from 2005-03-01),
+       unfortunately with no response to this day. }
+     GDK_GL_BUFFER_SIZE, 1,
+     GDK_GL_STENCIL_SIZE, StencilBits,
+     GDK_GL_ALPHA_SIZE, AlphaBits,
+     GDK_GL_ACCUM_RED_SIZE, FAccumBits[0],
+     GDK_GL_ACCUM_GREEN_SIZE, FAccumBits[1],
+     GDK_GL_ACCUM_BLUE_SIZE, FAccumBits[2],
+     GDK_GL_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
 
-  if MultiSampling > 1 then
-    { I guess that gtkglext should internally check for
-      glXQueryExtensionsString and GLX_ARB_multisample availability. }
-    VisualAttr.AddRange([
-      GDK_GL_SAMPLE_BUFFERS, 1,
-      GDK_GL_SAMPLES, MultiSampling ]);
+   if MultiSampling > 1 then
+     { I guess that gtkglext should internally check for
+       glXQueryExtensionsString and GLX_ARB_multisample availability. }
+     VisualAttr.AddRange([
+       GDK_GL_SAMPLE_BUFFERS, 1,
+       GDK_GL_SAMPLES, MultiSampling ]);
 
-  { end of VisualAttr list }
-  VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
+   { end of VisualAttr list }
+   VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
 
-  GLConfig := gdk_gl_config_new(PInteger(VisualAttr.L));
-  { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
-    to know whether such gl configuration was possible. }
-  if GLConfig = nil then
-   ContextNotPossible;
+   GLConfig := gdk_gl_config_new(PInteger(VisualAttr.L));
+   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
+     to know whether such gl configuration was possible. }
+   if GLConfig = nil then
+    ContextNotPossible;
 
-  { All OpenGL contexts should be shared }
-  if Application.OpenWindowsCount <> 0 then
-    ShareContext := Application.OpenWindows[0].GLContext else
-    ShareContext := nil;
+   { All OpenGL contexts should be shared }
+   if Application.OpenWindowsCount <> 0 then
+     ShareContext := Application.OpenWindows[0].GLContext else
+     ShareContext := nil;
 
-  GLAreaGtk := gtk_drawing_area_new;
-  if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, ShareContext,
-    g_true, GDK_GL_RGBA_TYPE)) then
-   ContextNotPossible;
- finally FreeAndNil(VisualAttr) end;
+   GLAreaGtk := gtk_drawing_area_new;
+   if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, ShareContext,
+     g_true, GDK_GL_RGBA_TYPE)) then
+    ContextNotPossible;
+  finally FreeAndNil(VisualAttr) end;
 
- gtk_widget_show(GTK_WIDGET(GLAreaGtk));
+  gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
- { connect signal handlers to GLAreaGtk }
- { What events to catch ? It must cover all signal_yyy_event functions that we
-   will connect. This must be called before X Window is created. }
- gtk_widget_set_events(GTK_WIDGET(GLAreaGtk),
-     GDK_EXPOSURE_MASK {for expose_event} or
-     GDK_BUTTON_PRESS_MASK {for button_press_event} or
-     GDK_BUTTON_RELEASE_MASK {for button_release_event} or
-     GDK_POINTER_MOTION_MASK {for motion_notify_event}
-     { we don't have to tell here that we want configure_event,
-       it is always called });
+  { connect signal handlers to GLAreaGtk }
+  { What events to catch ? It must cover all signal_yyy_event functions that we
+    will connect. This must be called before X Window is created. }
+  gtk_widget_set_events(GTK_WIDGET(GLAreaGtk),
+      GDK_EXPOSURE_MASK {for expose_event} or
+      GDK_BUTTON_PRESS_MASK {for button_press_event} or
+      GDK_BUTTON_RELEASE_MASK {for button_release_event} or
+      GDK_POINTER_MOTION_MASK {for motion_notify_event}
+      { we don't have to tell here that we want configure_event,
+        it is always called });
 
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'configure_event',
-   GTK_SIGNAL_FUNC(@signal_glarea_configure_event), nil);
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'expose_event',
-   GTK_SIGNAL_FUNC(@signal_expose_event), nil);
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'button_press_event',
-   GTK_SIGNAL_FUNC(@signal_button_press_event), nil);
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'button_release_event',
-   GTK_SIGNAL_FUNC(@signal_button_release_event), nil);
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'motion_notify_event',
-   GTK_SIGNAL_FUNC(@signal_motion_notify_event), nil);
- gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'scroll_event',
-   GTK_SIGNAL_FUNC(@signal_scroll_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'configure_event',
+    GTK_SIGNAL_FUNC(@signal_glarea_configure_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'expose_event',
+    GTK_SIGNAL_FUNC(@signal_expose_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'button_press_event',
+    GTK_SIGNAL_FUNC(@signal_button_press_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'button_release_event',
+    GTK_SIGNAL_FUNC(@signal_button_release_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'motion_notify_event',
+    GTK_SIGNAL_FUNC(@signal_motion_notify_event), nil);
+  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'scroll_event',
+    GTK_SIGNAL_FUNC(@signal_scroll_event), nil);
 
- { connect signal handlers to WindowGtk }
- gtk_widget_set_events(GTK_WIDGET(WindowGtk),
-     GDK_KEY_PRESS_MASK {for key_press} or
-     GDK_KEY_RELEASE_MASK {for key_release}
-     { we don't have to tell here that we want configure_event,
-       it is always called });
+  { connect signal handlers to WindowGtk }
+  gtk_widget_set_events(GTK_WIDGET(WindowGtk),
+      GDK_KEY_PRESS_MASK {for key_press} or
+      GDK_KEY_RELEASE_MASK {for key_release}
+      { we don't have to tell here that we want configure_event,
+        it is always called });
 
- gtk_signal_connect(GTK_OBJECT(WindowGtk), 'configure_event',
-   GTK_SIGNAL_FUNC(@signal_window_configure_event), nil);
- gtk_signal_connect (GTK_OBJECT(WindowGtk), 'delete_event',
-   GTK_SIGNAL_FUNC(@signal_delete_event), nil);
- gtk_signal_connect(GTK_OBJECT(WindowGtk), 'key_press_event',
-   GTK_SIGNAL_FUNC(@signal_key_press_event), nil);
- gtk_signal_connect(GTK_OBJECT(WindowGtk), 'key_release_event',
-   GTK_SIGNAL_FUNC(@signal_key_release_event), nil);
- gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_out_event',
-   GTK_SIGNAL_FUNC(@signal_window_focus_out_event), nil);
- gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_in_event',
-   GTK_SIGNAL_FUNC(@signal_window_focus_in_event), nil);
+  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'configure_event',
+    GTK_SIGNAL_FUNC(@signal_window_configure_event), nil);
+  gtk_signal_connect (GTK_OBJECT(WindowGtk), 'delete_event',
+    GTK_SIGNAL_FUNC(@signal_delete_event), nil);
+  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'key_press_event',
+    GTK_SIGNAL_FUNC(@signal_key_press_event), nil);
+  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'key_release_event',
+    GTK_SIGNAL_FUNC(@signal_key_release_event), nil);
+  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_out_event',
+    GTK_SIGNAL_FUNC(@signal_window_focus_out_event), nil);
+  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_in_event',
+    GTK_SIGNAL_FUNC(@signal_window_focus_in_event), nil);
 
- { Add us to OpenWindows windows to ensure that all callbacks that are
-   eventually called by procedures below will be able to use
-   Application.FindGLAreaGtk and Application.FindWindowGtk. }
- Application.OpenWindowsAdd(Self);
+  { Add us to OpenWindows windows to ensure that all callbacks that are
+    eventually called by procedures below will be able to use
+    Application.FindGLAreaGtk and Application.FindWindowGtk. }
+  Application.OpenWindowsAdd(Self);
 
- { setup window position from Left, Top }
- gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
+  { setup window position from Left, Top }
+  gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
 
- GLAreaContainer := MakeGLAreaContainer(GLAreaGtk);
+  GLAreaContainer := MakeGLAreaContainer(GLAreaGtk);
 
- if (MainMenu <> nil) and MainMenuVisible then
- begin
-  window_accel_group := gtk_accel_group_new;
-  gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
+  if (MainMenu <> nil) and MainMenuVisible then
+  begin
+    window_accel_group := gtk_accel_group_new;
+    gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
-  window_vbox := PGtkVBox(gtk_vbox_new(g_false, VBoxSpacing));
-  gtk_widget_show(GTK_WIDGET(window_vbox));
-  MenuInitialize;
-  gtk_box_pack_end_defaults(PGtkBox(window_vbox), GLAreaContainer);
-  gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
- end else
-  gtk_container_add(GTK_CONTAINER(WindowGtk), GLAreaContainer);
+    window_vbox := PGtkVBox(gtk_vbox_new(g_false, VBoxSpacing));
+    gtk_widget_show(GTK_WIDGET(window_vbox));
+    MenuInitialize;
+    gtk_box_pack_end_defaults(PGtkBox(window_vbox), GLAreaContainer);
+    gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
+  end else
+    gtk_container_add(GTK_CONTAINER(WindowGtk), GLAreaContainer);
 
- { setup window/glarea size and resize policy from
-   MinWidth, MinHeight, Width, Height, ResizeAllowed }
- if FullScreen then
- begin
-  { Applying FullScreen changes to the Left / Top / Width / Height.
-    Call DoResize (not perfect, since it doesn't account for menu bar
-    height, but better than nothing), in case GTK will not send
-    us proper resize event (but it will send up proper resize event,
-    tests show). }
-  FLeft := 0;
-  FTop := 0;
-  DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  { setup window/glarea size and resize policy from
+    MinWidth, MinHeight, Width, Height, ResizeAllowed }
+  if FullScreen then
+  begin
+    { Applying FullScreen changes to the Left / Top / Width / Height.
+      Call DoResize (not perfect, since it doesn't account for menu bar
+      height, but better than nothing), in case GTK will not send
+      us proper resize event (but it will send up proper resize event,
+      tests show). }
+    FLeft := 0;
+    FTop := 0;
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
-  { When in FullScreen we set whole window size, not just GLArea size, to screen size.
-    This is the ultimate sense of FullScreen,
-    so there is no discussion, no matter what value has ResizeAllowed.
-    So I'm doing gtk_widget_set_usize(WindowGtk, ...) and
-                 gtk_window_set_default_size
-    instead of
-                 gtk_widget_set_usize(GLAreaGtk, ...) and
-                 set_default_glarea_size
-  }
-  gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
-  gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
+    { When in FullScreen we set whole window size, not just GLArea size, to screen size.
+      This is the ultimate sense of FullScreen,
+      so there is no discussion, no matter what value has ResizeAllowed.
+      So I'm doing gtk_widget_set_usize(WindowGtk, ...) and
+                   gtk_window_set_default_size
+      instead of
+                   gtk_widget_set_usize(GLAreaGtk, ...) and
+                   set_default_glarea_size
+    }
+    gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
+    gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
-  gtk_window_fullscreen(WindowGtk);
- end else
- begin
-  if ResizeAllowed <> raAllowed then
-   gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height) else
-   gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
-  set_default_glarea_size(Width, Height);
-  gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
- end;
+    gtk_window_fullscreen(WindowGtk);
+  end else
+  begin
+    if ResizeAllowed <> raAllowed then
+      gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height)
+    else
+      gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
+    set_default_glarea_size(Width, Height);
+    gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
+  end;
 
- { Honour display (XScreenGdk is default screen on chosen display)
-   chosen by user. }
- gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
+  { Honour display (XScreenGdk is default screen on chosen display)
+    chosen by user. }
+  gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
 
- if Visible then
- begin
-   { Show WindowGtk, it will also make visible all other widgets.
-     (Their "gtk_widget_show" calls only scheduled them to be shown
-     when this top-level window is shown.)
-
-     gtk_widget_show also realizes (allocates X resources) the widget
-     and all it's children before returning (but does not necessarily
-     map the Gdk window *now*, one can use gtk_widget_show_now for this;
-     but I don't need it) }
-   gtk_widget_show(GTK_WIDGET(WindowGtk));
- end else
- begin
-   { We want to realize all our GTK resources now, to finish
-     our initialization. So we can call gtk_widget_realize.
-     This automatically realizes parents of passed object, so if I pass here
-     GLAreaGtk, then also WindowGtk will get realized, and that's all I need.
-
-     See [http://library.gnome.org/devel/gtk/stable/GtkWidget.html#gtk-widget-realize]
-     and [http://developer.gnome.org/doc/GGAD/faqs.html]
-     ("When do I need to call gtk_widget_realize() vs. gtk_widget_show()?"
-     question). }
-   gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
- end;
-
- { From this point I require that WindowGtk is realized (has associated
-   GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
-   It also means that I can do MakeCurrent (and call OpenGL commands)
-   from now. In particular, we have valid gl context when we leave OpenBackend. }
- if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
-  raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
-
- { These must be initialized only when I'm sure that window is realized.
-   I checked this even in gtkglext sources:
-   yes, gtk_widget_get_gl_drawable and gtk_widget_get_gl_context check
-   and always return nil if their widget is not realized. }
- GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
- GLContext := gtk_widget_get_gl_context(GLAreaGtk);
-
- UpdateCursor;
-end;
-
-procedure TCastleWindowCustom.CloseBackend;
-begin
- { Do not unref here GLAreaGtk.
-   GLAreaGtk is placed inside WindowGtk when we do
-   gtk_container_add(WindowGtk, GLAreaGtk). During gtk_container_add
-   WindowGtk calls sink on GLAreaGtk, so GLAreaGtk has reference 1 and it
-   means that it is referenced from WindowGtk. So WindowGtk is responsible
-   for calling unref on GLAreaGtk. }
- GLAreaGtk := nil;
-
- if (MainMenu <> nil) and MainMenuVisible then
-   MenuFinalize;
-
- window_vbox := nil;
-
- GLDrawable := nil; { TODO -- unref it ? }
- GLConfig := nil; { TODO -- unref it ? }
-
- if window_accel_group <> nil then
- begin
-  g_object_unref(G_OBJECT(window_accel_group));
-  window_accel_group := nil;
- end;
-
- { Note: we could use
-   gtk_quit_add_destroy(1, GTK_OBJECT(WindowGtk));
-   in OpenBackend instead of doing gtk_widget_unref below.
-   But doing gtk_widget_unref below is a cleaner way (we're freeing WindowGtk
-   as soon as it can be freed). }
- if WindowGtk <> nil then
- begin
   if Visible then
-    gtk_widget_hide(GTK_WIDGET(WindowGtk));
+  begin
+    { Show WindowGtk, it will also make visible all other widgets.
+      (Their "gtk_widget_show" calls only scheduled them to be shown
+      when this top-level window is shown.)
 
-  { Doing here
-      gtk_widget_unref(GTK_WIDGET(WindowGtk));
-    instead of gtk_widget_destroy causes
-      Gtk-CRITICAL **: file gtkobject.c: line 1179 (gtk_object_unref):
-      assertion `object->ref_count > 0' failed.
+      gtk_widget_show also realizes (allocates X resources) the widget
+      and all it's children before returning (but does not necessarily
+      map the Gdk window *now*, one can use gtk_widget_show_now for this;
+      but I don't need it) }
+    gtk_widget_show(GTK_WIDGET(WindowGtk));
+  end else
+  begin
+    { We want to realize all our GTK resources now, to finish
+      our initialization. So we can call gtk_widget_realize.
+      This automatically realizes parents of passed object, so if I pass here
+      GLAreaGtk, then also WindowGtk will get realized, and that's all I need.
 
-    If I understand some comments (e.g. at GtkWidget.gtk_widget_destroy)
-    properly GTK+ holds a reference to toplevel windows. Again, if I understand
-    it properly, this means that my program is NOT treated as the owner
-    of a reference to WindowGtk. So my program should not do unref on
-    WindowGtk. Instead my program should call gtk_widget_destroy and
-    gtk_widget_destroy will automatically do unref to release the
-    reference GTK+ has to toplevel WindowGtk window (and gtk_widget_destroy
-    will also tell GTK+ to remove WindowGtk from it's internal list of
-    toplevel windows and do some other needed by GTK+ things). }
-  gtk_widget_destroy(GTK_WIDGET(WindowGtk));
-  WindowGtk := nil;
- end;
+      See [http://library.gnome.org/devel/gtk/stable/GtkWidget.html#gtk-widget-realize]
+      and [http://developer.gnome.org/doc/GGAD/faqs.html]
+      ("When do I need to call gtk_widget_realize() vs. gtk_widget_show()?"
+      question). }
+    gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
+  end;
+
+  { From this point I require that WindowGtk is realized (has associated
+    GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
+    It also means that I can do MakeCurrent (and call OpenGL commands)
+    from now. In particular, we have valid gl context when we leave OpenBackend. }
+  if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
+    raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
+
+  { These must be initialized only when I'm sure that window is realized.
+    I checked this even in gtkglext sources:
+    yes, gtk_widget_get_gl_drawable and gtk_widget_get_gl_context check
+    and always return nil if their widget is not realized. }
+  GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
+  GLContext := gtk_widget_get_gl_context(GLAreaGtk);
+
+  GetInitialCursorPos;
+  UpdateCursor;
+  InitializeDpi;
 end;
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CloseBackend;
+begin
+  { Do not unref here GLAreaGtk.
+    GLAreaGtk is placed inside WindowGtk when we do
+    gtk_container_add(WindowGtk, GLAreaGtk). During gtk_container_add
+    WindowGtk calls sink on GLAreaGtk, so GLAreaGtk has reference 1 and it
+    means that it is referenced from WindowGtk. So WindowGtk is responsible
+    for calling unref on GLAreaGtk. }
+  GLAreaGtk := nil;
+
+  if (MainMenu <> nil) and MainMenuVisible then
+    MenuFinalize;
+
+  window_vbox := nil;
+
+  GLDrawable := nil; { TODO -- unref it ? }
+  GLConfig := nil; { TODO -- unref it ? }
+
+  if window_accel_group <> nil then
+  begin
+    g_object_unref(G_OBJECT(window_accel_group));
+    window_accel_group := nil;
+  end;
+
+  { Note: we could use
+    gtk_quit_add_destroy(1, GTK_OBJECT(WindowGtk));
+    in OpenBackend instead of doing gtk_widget_unref below.
+    But doing gtk_widget_unref below is a cleaner way (we're freeing WindowGtk
+    as soon as it can be freed). }
+  if WindowGtk <> nil then
+  begin
+    if Visible then
+      gtk_widget_hide(GTK_WIDGET(WindowGtk));
+
+    { Doing here
+        gtk_widget_unref(GTK_WIDGET(WindowGtk));
+      instead of gtk_widget_destroy causes
+        Gtk-CRITICAL **: file gtkobject.c: line 1179 (gtk_object_unref):
+        assertion `object->ref_count > 0' failed.
+
+      If I understand some comments (e.g. at GtkWidget.gtk_widget_destroy)
+      properly GTK+ holds a reference to toplevel windows. Again, if I understand
+      it properly, this means that my program is NOT treated as the owner
+      of a reference to WindowGtk. So my program should not do unref on
+      WindowGtk. Instead my program should call gtk_widget_destroy and
+      gtk_widget_destroy will automatically do unref to release the
+      reference GTK+ has to toplevel WindowGtk window (and gtk_widget_destroy
+      will also tell GTK+ to remove WindowGtk from it's internal list of
+      toplevel windows and do some other needed by GTK+ things). }
+    gtk_widget_destroy(GTK_WIDGET(WindowGtk));
+    WindowGtk := nil;
+  end;
+end;
+
+procedure TCastleWindowBase.CreateBackend;
 begin
   { We don't do here anything, and thus it doesn't require calling
     Application.InitializeXDisplay. This way, merely calling
-    TCastleWindowCustom.Create doesn't require X server runnning. }
+    TCastleWindowBase.Create doesn't require X server runnning. }
 end;
 
-{ TCastleWindowCustom.*Dialog --------------------------------------------------- }
+{ TCastleWindowBase.*Dialog --------------------------------------------------- }
 
 type
   { Data type for GtkDialogRun (both variants).
@@ -1246,7 +1280,7 @@ begin
   Data^.Answer := ResponseId;
 end;
 
-function TCastleWindowCustom.GtkDialogRun(ADialog: PGtkWindow;
+function TCastleWindowBase.GtkDialogRun(ADialog: PGtkWindow;
   ok_button, cancel_button: PGtkWidget): boolean;
 var
   Data: TDialogData;
@@ -1274,7 +1308,7 @@ begin
   Result := Data.Answer = GTK_RESPONSE_ACCEPT;
 end;
 
-function TCastleWindowCustom.GtkDialogRun(ADialog: PGtkDialog): gint;
+function TCastleWindowBase.GtkDialogRun(ADialog: PGtkDialog): gint;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1327,7 +1361,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindowCustom.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 { FileChooser is available only in GTK >= 2.4.
@@ -1494,7 +1528,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1528,7 +1562,7 @@ const
     Ord(GTK_MESSAGE_ERROR),
     { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
-procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
   SNew: string;
@@ -1541,7 +1575,7 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindowCustom.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
 var
   Dialog: PGtkMessageDialog;
   SNew: string;
@@ -1554,15 +1588,18 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
-  if FFullScreen <> Value then
+  if FFullScreenBackend <> FFullScreenWanted then
   begin
-    FFullScreen := Value;
+    FFullScreenBackend := FFullScreenWanted;
     if not Closed then
-      if Value then
-        gtk_window_fullscreen(WindowGtk) else
+    begin
+      if FFullScreenBackend then
+        gtk_window_fullscreen(WindowGtk)
+      else
         gtk_window_unfullscreen(WindowGtk);
+    end;
   end;
 end;
 
@@ -1622,7 +1659,7 @@ begin
   UpdateAndRenderEverything;
 end;
 
-function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
+function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1632,7 +1669,7 @@ begin
   Result := nil;
 end;
 
-function TCastleApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
+function TCastleApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1642,14 +1679,14 @@ begin
   Result := nil;
 end;
 
-function TCastleApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
+function TCastleApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 begin
  Result := TryFindWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such WindowGtk found');
 end;
 
-function TCastleApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
+function TCastleApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 begin
  Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(
@@ -1832,6 +1869,11 @@ begin
   Result := Rect.Height;
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
+
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
+begin
+  Result := 0;
+end;
 
 function TCastleApplication.BackendName: string;
 begin

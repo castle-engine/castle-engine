@@ -12,7 +12,7 @@ Transform {
           repeatS FALSE
           repeatT FALSE
           # avoid scaling the texture to power-of-2, see
-          # http://castle-engine.sourceforge.net/x3d_implementation_texturing_extensions.php#section_texture_properties_gui_texture
+          # https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_texture_properties_gui_texture
           textureProperties TextureProperties {
             minificationFilter "DEFAULT"
             magnificationFilter "DEFAULT"

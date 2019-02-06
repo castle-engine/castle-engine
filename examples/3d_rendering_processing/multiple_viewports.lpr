@@ -25,8 +25,8 @@
 
 {$I castleconf.inc}
 
-uses SysUtils,
-  CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
+uses SysUtils, Classes,
+  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
@@ -71,58 +71,43 @@ end;
 
 type
   TScreenEffectDemoViewport = class(TMyViewport)
-  private
-    GLSLProgram: TGLSLScreenEffect;
-  protected
-    function GetScreenEffects(const Index: Integer): TGLSLProgram; override;
-  public
-    function ScreenEffectsCount: Integer; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
+    constructor Create(AOwner: TComponent); override;
   end;
 
-function TScreenEffectDemoViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
-begin
-  if Index = 0 then
-    Result := GLSLProgram else
-    Result := nil;
-end;
-
-function TScreenEffectDemoViewport.ScreenEffectsCount: Integer;
-begin
-  if GLSLProgram <> nil then Result := 1 else Result := 0;
-end;
-
-procedure TScreenEffectDemoViewport.GLContextOpen;
+constructor TScreenEffectDemoViewport.Create(AOwner: TComponent);
+var
+  ScreenEffect: TScreenEffectNode;
+  ComposedShader: TComposedShaderNode;
+  FragmentShader: TShaderPartNode;
 begin
   inherited;
-  if GLFeatures.Shaders <> gsNone then
-  begin
-    GLSLProgram := TGLSLScreenEffect.Create;
-    GLSLProgram.ScreenEffectShader :=
-      'void main (void)' +NL+
-      '{' +NL+
-      '  gl_FragColor = (' +NL+
-      '    screen_get_color(ivec2(screen_x() - 1, screen_y())) -' +NL+
-      '    screen_get_color(ivec2(screen_x() + 1, screen_y()))' +NL+
-      '  ) + vec4(1.0) / 2.0;' +NL+
-      '}';
-    GLSLProgram.Link;
-    Writeln(GLSLProgram.DebugInfo);
-  end;
-end;
 
-procedure TScreenEffectDemoViewport.GLContextClose;
-begin
-  FreeAndNil(GLSLProgram);
-  inherited;
+  FragmentShader := TShaderPartNode.Create;
+  FragmentShader.ShaderType := stFragment;
+  FragmentShader.Contents :=
+    'void main (void)' +NL+
+    '{' +NL+
+      '  vec4 left   = screen_get_color(ivec2(screen_x() - 1, screen_y()));' + NL +
+      '  vec4 right  = screen_get_color(ivec2(screen_x() + 1, screen_y()));' + NL +
+      '  vec4 top    = screen_get_color(ivec2(screen_x(), screen_y() - 1));' + NL +
+      '  vec4 bottom = screen_get_color(ivec2(screen_x(), screen_y() + 1));' + NL +
+      '  gl_FragColor = (1.0 + abs(left - right) + abs(top - bottom)) / 2.0;' + NL +
+    '}';
+
+  ComposedShader := TComposedShaderNode.Create;
+  ComposedShader.SetParts([FragmentShader]);
+
+  ScreenEffect := TScreenEffectNode.Create;
+  ScreenEffect.SetShaders([ComposedShader]);
+
+  AddScreenEffect(ScreenEffect);
 end;
 
 { TFocusedFrame -------------------------------------------------------------- }
 
 type
   { Draw frame around the control's rectangle, if focused (under cursor). }
-  TFocusedFrame = class(TUIControlSizeable)
+  TFocusedFrame = class(TCastleUserInterface)
   public
     procedure Render; override;
     procedure SetFocused(const Value: boolean); override;
@@ -131,14 +116,14 @@ type
 procedure TFocusedFrame.Render;
 begin
   if Focused then
-    Theme.Draw(ScreenRect, tiActiveFrame);
+    Theme.Draw(RenderRect, tiActiveFrame);
 end;
 
 procedure TFocusedFrame.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
     { The TFocusedFrame.Render is based on Focused value. }
-    VisibleChange;
+    VisibleChange([chRender]);
 
   inherited;
 end;
@@ -158,11 +143,11 @@ const
 
 procedure Resize(Container: TUIContainer);
 var
-  W, H, TopMargin: Integer;
+  W, H, TopMargin: Single;
 begin
-  TopMargin := OpenButton.CalculatedHeight + 2 * Margin;
-  W := Window.Width div 2;
-  H := (Window.Height - TopMargin) div 2;
+  TopMargin := OpenButton.EffectiveHeight + 2 * Margin;
+  W := Window.Width / 2;
+  H := (Window.Height - TopMargin) / 2;
 
   Viewports[0].Left   :=       Margin;
   Viewports[0].Bottom :=       Margin;
@@ -342,7 +327,7 @@ end;
 
   In a cross-platform application, everything above (including
   the ApplicationInitialize) would be in a cross-platform unit.
-  See https://castle-engine.sourceforge.io/manual_cross_platform.php . }
+  See https://castle-engine.io/manual_cross_platform.php . }
 begin
   Window := TCastleWindow.Create(Application);
   Window.StencilBits := 8;
@@ -352,4 +337,3 @@ begin
 
   Window.OpenAndRun;
 end.
-

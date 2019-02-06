@@ -1,3 +1,4 @@
+{%MainUnit castlecontrols.pas}
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -19,23 +20,20 @@
   TCastleCrosshairShape = (csCross, csCrossRect);
 
   { Display a simple crosshair in the middle of the parent control. }
-  TCastleCrosshair = class(TUIControl)
+  TCastleCrosshair = class(TCastleUserInterface)
   strict private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
+  protected
+    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-
-    { Size of this control, ignoring GetExists. }
-    function Rect: TRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
 
     { By default, crosshair is centered. }
-    property HasHorizontalAnchor default true;
-    property HasVerticalAnchor default true;
     property HorizontalAnchorSelf default hpMiddle;
     property HorizontalAnchorParent default hpMiddle;
     property VerticalAnchorSelf default vpMiddle;
@@ -59,7 +57,7 @@ end;
 procedure TCastleCrosshair.SetShape(const Value: TCastleCrosshairShape);
 begin
   FShape := Value;
-  VisibleChange;
+  VisibleChange([chRectangle]);
 end;
 
 function TCastleCrosshair.ImageType: TThemeImage;
@@ -69,18 +67,17 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.Rect: TRectangle;
+procedure TCastleCrosshair.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 begin
-  Result := Theme.Images[ImageType].Rect;
-
-  // applying UIScale on this is easy...
-  Result := Result.ScaleAround0(UIScale);
+  inherited;
+  PreferredWidth  := Theme.Images[ImageType].Width  * UIScale;
+  PreferredHeight := Theme.Images[ImageType].Height * UIScale;
 end;
 
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, ImageType, UIScale);
+  Theme.Draw(RenderRect, ImageType, UIScale);
 end;
 
 {$endif read_implementation}

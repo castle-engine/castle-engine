@@ -41,7 +41,7 @@ uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   CastleKeysMouse, CastleColors;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (Data: (255, 255, 255));
@@ -124,7 +124,7 @@ var
   InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   { parse params }
   if Parameters.High >= 1 then

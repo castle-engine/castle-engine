@@ -127,7 +127,10 @@ var
   C: TSoundFileClass;
   S: TStream;
   MimeType: string;
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Loading ' + URL + ' (TSoundFile)');
+
   try
     { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
     S := Download(URL, [soForceMemoryStream], MimeType);
@@ -161,6 +164,8 @@ begin
       { Reraise as ESoundFileError, and add URL to exception message }
       raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message);
   end;
+
+  Profiler.Stop(TimeStart);
 end;
 
 procedure TSoundFile.CheckALExtension(const S: string);

@@ -162,7 +162,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
       Instead use #9 to delimit key names.
       This way our key shortcuts will be drawn nicely. }
     S := SMnemonicsToWin(MenuItem.Caption);
-    if MenuItem.KeyString(KeyStr) then
+    if MenuItem.KeyToString(KeyStr) then
       S := S + #9 + KeyStr;
 
     OSCheck( AppendMenu(Result, Flags, MenuItem.SmallId, PChar(S)) );

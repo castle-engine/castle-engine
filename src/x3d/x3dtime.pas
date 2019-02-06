@@ -74,8 +74,7 @@ type
     Seconds: TFloatTime;
     PlusTicks: Cardinal;
 
-    const
-      Oldest: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
+    class function Oldest: TX3DTime; static;
 
     class operator {$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
     class operator {$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
@@ -94,6 +93,13 @@ type
   TX3DTimeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DTime>;
 
 implementation
+
+class function TX3DTime.Oldest: TX3DTime; static;
+const
+  R: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
+begin
+  Result := R;
+end;
 
 class operator TX3DTime.{$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin

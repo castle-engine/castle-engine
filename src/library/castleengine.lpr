@@ -31,13 +31,13 @@
   See FPC CTypes unit (source rtl/unix/ctypes.inc) for a full list of c-types.
 }
 
-{$mode objfpc}{$H+}
 library castleengine;
 
-uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
+uses CTypes, Math, SysUtils, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleApplicationProperties;
+  CastleBoxes, CastleControls, CastleApplicationProperties,
+  CastleWindow, CastleWindowTouch;
 
 type
   TCrosshairManager = class(TObject)
@@ -85,7 +85,7 @@ begin
     Window := TCastleWindowTouch.Create(nil);
     Application.MainWindow := Window;
 
-    CGEApp_Open(InitialWidth, InitialHeight, Dpi, ApplicationConfigDirectory);
+    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi, ApplicationConfigDirectory);
 
     Crosshair := TCrosshairManager.Create;
   except
@@ -125,7 +125,7 @@ procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Resize') then exit;
-    CGEApp_Resize(uiViewWidth, uiViewHeight);
+    CGEApp_Resize(uiViewWidth, uiViewHeight, 0);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -144,14 +144,14 @@ end;
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl;
 var
   Image: TRGBImage;
-  Restore2D: TUIControlList;
+  Restore2D: TCastleUserInterfaceList;
   I: Integer;
-  C: TUIControl;
+  C: TCastleUserInterface;
 begin
   try
     if not CGE_VerifyWindow('CGE_SaveScreenshotToFile') then exit;
 
-    Restore2D := TUIControlList.Create(false);
+    Restore2D := TCastleUserInterfaceList.Create(false);
     try
       // hide touch controls
       for I := 0 to Window.Controls.Count - 1 do
@@ -517,8 +517,7 @@ begin
             Crosshair.CrosshairCtl.Shape := csCross;
           Crosshair.UpdateCrosshairImage;
           Window.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
-        end else
-          Crosshair.CrosshairCtl.VisibleChange;
+        end;
       end;
 
       5: begin    // ecgevarWalkTouchCtl

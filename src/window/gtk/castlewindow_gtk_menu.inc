@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := false;
 end;
@@ -32,7 +32,7 @@ function gtk_check_menu_item_get_draw_as_radio(
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowCustom absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
     comments. }
@@ -78,7 +78,7 @@ end;
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
 var
-  Window: TCastleWindowCustom absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   Inc(Window.MenuRecreateForbidden);
   try
@@ -132,20 +132,23 @@ end;
   that window_vbox is empty and current value of MainMenu.Handle
   is clear. }
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 
   { Install GTK menu accelerator (key shortcut) from given MenuItem. }
   procedure InstallGtkAccelerator(const Item: PGtkMenuItem;
     const MenuItem: TMenuItem);
   var
     Key: TKey;
-    CharKey: char;
+    CharKey: Char;
     Modifiers: TModifierKeys;
     gdk_keyval: GUint;
     modifier_type: TGdkModifierType;
   begin
     Key := MenuItem.Key;
-    CharKey := MenuItem.CharKey;
+    if Length(MenuItem.KeyString) = 1 then
+      CharKey := MenuItem.KeyString[1]
+    else
+      CharKey := #0;
     Modifiers := MenuItem.Modifiers;
 
     { Calculate GDK keyval gdk_keyval and modifier_type.
@@ -369,7 +372,7 @@ begin
     g_false, g_false, 0);
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
@@ -386,7 +389,7 @@ end;
   http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
   But we cannot use GTK 2.16 (e.g. Debian stable still only has
   GTK 2.12 on 2010-05;
-  on http://castle-engine.sourceforge.net/view3dscene.php#section_depends
+  on https://castle-engine.io/view3dscene.php#section_depends
   we promise GTK 2.6 should work).
 
   So we implement it ourselves, following ideas from
@@ -412,7 +415,7 @@ begin
     WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -425,7 +428,7 @@ begin
     gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(Entry.Caption));
 end;
 
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -434,7 +437,7 @@ begin
   gtk_widget_set_sensitive(PGtkWidget(EntryGtk), Entry.Enabled);
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -451,12 +454,12 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }
@@ -464,7 +467,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO: unoptimal }

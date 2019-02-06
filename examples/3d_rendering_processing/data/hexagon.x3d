@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
+	<head>
+		<meta name="filename" content="hexagon.x3d" />
+		<meta name="generator" content="Blender 2.78 (sub 0)" />
+	</head>
+	<Scene>
+		<NavigationInfo headlight="true"
+		                visibilityLimit="0.0"
+		                type='"EXAMINE", "ANY"'
+		                avatarSize="0.25, 1.75, 0.75"
+		                />
+		<Background DEF="WO_World"
+		            groundColor="0.051 0.051 0.051"
+		            skyColor="0.051 0.051 0.051"
+		            />
+		<Transform DEF="Circle_TRANSFORM"
+		           translation="0.000000 -0.500000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.577350 0.577350 0.577350 2.094395"
+		           >
+			<Transform DEF="Circle_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Circle">
+					<Shape>
+						<Appearance>
+							<Material DEF="MA_mat_hexagon"
+							          diffuseColor="0.013 0.800 0.000"
+							          specularColor="0.401 0.401 0.401"
+							          emissiveColor="0.000 0.000 0.000"
+							          ambientIntensity="0.333"
+							          shininess="0.098"
+							          transparency="0.000"
+							          />
+						</Appearance>
+						<IndexedFaceSet solid="true"
+						                coordIndex="2 1 0 -1 0 5 4 -1 4 3 2 -1 0 4 2 -1 6 7 8 -1 8 9 10 -1 10 11 6 -1 8 10 6 -1 4 5 11 10 -1 2 3 9 8 -1 0 1 7 6 -1 5 0 6 11 -1 3 4 10 9 -1 1 2 8 7 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Circle"
+							            point="0.000000 1.000000 0.000000 -0.866025 0.500000 0.000000 -0.866025 -0.500000 0.000000 0.000000 -1.000000 0.000000 0.866025 -0.500000 0.000000 0.866025 0.500000 0.000000 0.000000 1.000000 1.000000 -0.866025 0.500000 1.000000 -0.866025 -0.500000 1.000000 0.000000 -1.000000 1.000000 0.866025 -0.500000 1.000000 0.866025 0.500000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+	</Scene>
+</X3D>

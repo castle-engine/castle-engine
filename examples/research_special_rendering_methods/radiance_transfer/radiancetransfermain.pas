@@ -43,7 +43,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
   Scene: TCastleScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
@@ -111,7 +111,8 @@ begin
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Center,
       @DrawLight, 100, 100, LightIntensityScale);
 
-    { no need to reset glViewport, inheried TCastleSceneManager.Render calls
+    { no need to reset RenderContext.Viewport
+      inheried TCastleSceneManager.Render calls
       ApplyProjection that will already do it. }
   end;
 
@@ -314,7 +315,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;

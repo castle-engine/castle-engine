@@ -108,7 +108,7 @@ type
       end;
 
     { Load animation data from castle-anim-frames file (in a given URL) to a set of variables.
-      See [http://castle-engine.sourceforge.net/castle_animation_frames.php]
+      See [https://castle-engine.io/castle_animation_frames.php]
       for a specification of the file format.
 
       If you want a comfortable way to load castle-anim-frames from a file,
@@ -226,12 +226,12 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
   var
     I: Integer;
   begin
-    if Field1.Items.Count <> Field2.Items.Count then
+    if Field1.Count <> Field2.Count then
       raise EModelsStructureDifferent.CreateFmt(
         'Different number of children in MFNode field "%s": %d vs %d',
-        [Field1.NiceName, Field1.Items.Count, Field2.Items.Count]);
+        [Field1.NiceName, Field1.Count, Field2.Count]);
 
-    for I := 0 to Field1.Items.Count - 1 do
+    for I := 0 to Field1.Count - 1 do
       CheckNodesStructurallyEqual(Field1[I], Field2[I], Epsilon);
   end;
 
@@ -411,8 +411,8 @@ function NodesMerge(Model1, Model2: TX3DNode;
 
     { Note that we already know that Counts are equals,
       checked already by CheckNodesStructurallyEqual. }
-    Assert(Field1.Items.Count = Field2.Items.Count);
-    for I := 0 to Field1.Items.Count - 1 do
+    Assert(Field1.Count = Field2.Count);
+    for I := 0 to Field1.Count - 1 do
     begin
       if NodesMerge(Field1[I], Field2[I], Epsilon) then
       begin
@@ -496,7 +496,7 @@ function NodesLerp(const A: Single; Model1, Model2: TX3DNode): TX3DNode;
   var
     I: Integer;
   begin
-    for I := 0 to Field1.Items.Count - 1 do
+    for I := 0 to Field1.Count - 1 do
       Target.Add(NodesLerp(A, Field1[I], Field2[I]));
   end;
 

@@ -21,6 +21,8 @@ unit Generics.MemoryExpanders;
 
 {$mode delphi}
 {$MACRO ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
 {.$WARN 5024 OFF}
 {.$WARN 4079 OFF}
 
@@ -47,12 +49,7 @@ type
   { TQuadraticProbing }
 
   TQuadraticProbing = class(TProbeSequence)
-  private
-    class constructor Create;
   public
-    class var C1: UInt32;
-    class var C2: UInt32;
-
     class function Probe(I, Hash: UInt32): UInt32; static; inline;
 
     const MAX_LOAD_FACTOR = 0.5;
@@ -214,15 +211,9 @@ end;
 
 { TQuadraticProbing }
 
-class constructor TQuadraticProbing.Create;
-begin
-  C1 := 1;
-  C2 := 1;
-end;
-
 class function TQuadraticProbing.Probe(I, Hash: UInt32): UInt32;
 begin
-  Result := (Hash + C1 * I {%H-}+ C2 * Sqr(I));
+  Result := (Hash + Sqr(I));
 end;
 
 { TDoubleHashingNoMod }

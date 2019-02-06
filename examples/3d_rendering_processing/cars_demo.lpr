@@ -15,8 +15,8 @@
 
 { Demo of TCastleScene, scene manager and related functionality.
   Follow the relevant tutorial pages
-  http://castle-engine.sourceforge.net/tutorial_load_3d.php
-  http://castle-engine.sourceforge.net/tutorial_scene.php
+  https://castle-engine.io/tutorial_load_3d.php
+  https://castle-engine.io/tutorial_scene.php
 }
 program cars_demo;
 
@@ -133,7 +133,7 @@ begin
   CarScene.Load(ApplicationData('car.x3d'));
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
-  CarScene.PlayAnimation('wheels_turning', paLooping);
+  CarScene.PlayAnimation('wheels_turning', true);
 
   for I := Low(CarTransforms) to High(CarTransforms) do
   begin

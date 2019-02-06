@@ -20,7 +20,7 @@
   TouchSensor is a node defined by X3D that can "sense" when user clicks
   on a shape.
   See http://www.web3d.org/documents/specifications/19775-1/V3.2/Part01/components/pointingsensor.html#TouchSensor
-  and http://castle-engine.sourceforge.net/x3d_implementation_pointingdevicesensor.php
+  and https://castle-engine.io/x3d_implementation_pointingdevicesensor.php
   for the details about the TouchSensor.
 
   Then it registers simple callbacks on the TouchSensor touchTime

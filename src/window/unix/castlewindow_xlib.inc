@@ -64,7 +64,7 @@ private
   function KeySymToKey(ksym: TKeySym): TKey;
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
+  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 
   { Initialize and check X display.
     Call this once you're sure that XDisplayName is set to
@@ -101,9 +101,22 @@ const
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
 
-{ TCastleWindowCustom --------------------------------------------------------  }
+{ TCastleWindowBase --------------------------------------------------------  }
 
-procedure TCastleWindowCustom.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
+
+  procedure InitializeDpi;
+  var
+    DW, DWMM: Integer;
+  begin
+    DW := XDisplayWidth(Application.XDisplay, Application.XScreen);
+    DWMM := XDisplayWidthMM(Application.XDisplay, Application.XScreen);
+    FDpi := DW / (DWMM / 25.4);
+
+    WritelnLog('X11', 'Dots (pixels) per inch is %f (%f * default %f)',
+      [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
 var
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
@@ -126,7 +139,9 @@ begin
   FTop := PluginWindow.Y;
   FWidth := PluginWindow.Width;
   FHeight := PluginWindow.Height;
-  Fullscreen := false;
+  // plugin is never fullscreen
+  FFullScreenWanted := false;
+  FFullScreenBackend := false;
   {$endif}
 
   Application.InitializeXDisplay;
@@ -139,7 +154,7 @@ begin
 
   ContextCreateBegin(Attr, AttrValueMask);
 
-  if fullscreen then
+  if FullScreen then
   begin
     Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
@@ -171,7 +186,7 @@ begin
     {$ifndef OpenGLES} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
     AttrValueMask, @Attr);
 
-  if FFullscreen and Visible then
+  if FullScreen and Visible then
   begin
     { XMapWindow must be called before doing all the "grab" operations.
       This also means that this whole piece of code cannot be done
@@ -184,19 +199,18 @@ begin
        GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) = GrabSuccess,
        'cannot grab the pointer');
 
-    { W fullscreen nie realizujemy sizeHints (ktore zapewniaja realizacje
-      funkcji ResizeAllowed <> raAllowed). ALE w fullscreen nigdy okno nie moze
-      byc resized (wiec nie potrzeba nam sizeHints zeby to powiedziec...)
-      wiec ok.
+    { In FullScreen we don't use SizeHints.
+      We don't need them anyway, as in fullscreen the window can never by resized.
 
-      Podobnie, w fullscreen nie realizujemy WMDeleteWindow ktore zapewnia
-      realizacje uslugi OnCloseQuery. ALE w fullscreen user nie moze
-      powiedziec window-managerowi ze chce zamknac to okno skoro window
-      manager niemal nie wie o istnieniu naszego okna (grabbed klawisze,
-      mysz, nasze okno bez ramki) wiec ok. }
-    { TODO: kiedy juz zrobisz fullscreen bez Grabow i override_redirecta
-      to chyba WM_DELETE_WINDOW pojdzie do fullscreen ?}
-    { TODO: zrobic fullscreen bez Grabow (i ew. override_redirect) }
+      Also, in FullScreen we do not use WMDeleteWindow that allows to implement
+      OnCloseQuery. But in FullScreen (with override_redirect) user cannot
+      tell the window manager "I want to close this window",
+      there are no window decorations and all keys (including Alt+F4) are grabbed.
+      So we don't need WMDeleteWindow anyway.
+
+      TODO:
+      - Implement FullScreen without grabbing the keys and override_redirect.
+      - When this is done, WMDeleteWindow should be used with fullscreen too. }
   end else
   begin
     { only set window title and handle wm_delete_events if in windowed mode }
@@ -263,15 +277,16 @@ begin
   Application.OpenWindowsAdd(Self);
 
   MakeCurrent;
+  InitializeDpi;
 end;
 
-procedure TCastleWindowCustom.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
   ContextDestroy;
 
-  if FFullscreen and Visible then
+  if FFullScreenBackend and Visible then
   begin
     XUnGrabPointer(Application.XDisplay, CurrentTime);
     XUnGrabKeyboard(Application.XDisplay, CurrentTime);
@@ -303,7 +318,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -313,13 +328,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TCastleWindowCustom.UpdateCursor;
+procedure TCastleWindowBase.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
   var
@@ -346,8 +361,22 @@ procedure TCastleWindowCustom.UpdateCursor;
   end;
 
 const
-  XCursorShapeFromMy: array [mcStandard .. High(TMouseCursor)] of LongWord =
-  ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
+  XCursorShapeFromCastle: array [mcStandard .. High(TMouseCursor)] of LongWord =
+  ( XC_left_ptr,             // mcStandard
+    XC_watch,                // mcWait
+    XC_xterm,                // mcText
+    XC_hand2,                // mcHand
+    XC_sb_v_double_arrow,    // mcResizeVertical
+    XC_sb_h_double_arrow,    // mcResizeHorizontal
+    XC_top_left_corner,      // mcResizeTopLeft
+    XC_top_side,             // mcResizeTop
+    XC_top_right_corner,     // mcResizeTopRight
+    XC_left_side,            // mcResizeLeft
+    XC_right_side,           // mcResizeRight
+    XC_bottom_left_corner,   // mcResizeBottomLeft
+    XC_bottom_side,          // mcResizeBottom
+    XC_bottom_right_corner   // mcResizeBottomRight
+  );
 begin
   { TODO: for now mcCustom is treated like mcDefault }
   if InternalCursor in [mcDefault, mcCustom] then
@@ -359,16 +388,19 @@ begin
     begin
       { initialize XCursors[InternalCursor] }
       if InternalCursor in [mcNone, mcForceNone] then
-        Application.XCursors[InternalCursor] := CreateNoneCursor else
-        Application.XCursors[InternalCursor] := XCreateFontCursor(Application.XDisplay,
-          XCursorShapeFromMy[InternalCursor]);
+        Application.XCursors[InternalCursor] := CreateNoneCursor
+      else
+        Application.XCursors[InternalCursor] := XCreateFontCursor(
+          Application.XDisplay, XCursorShapeFromCastle[InternalCursor]);
     end;
 
     XDefineCursor(Application.XDisplay, WindowXID, Application.XCursors[InternalCursor]);
   end;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
+procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+var
+  P: TVector2Integer;
 begin
   if not Closed then
   begin
@@ -377,22 +409,22 @@ begin
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
-    XWarpPointer(Application.XDisplay, X.None, WindowXID,
-      0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
+    P := CastleToLeftTopInt(Value);
+    XWarpPointer(Application.XDisplay, X.None, WindowXID, 0, 0, 0, 0, P.X, P.Y);
   end;
 end;
 
-procedure TCastleWindowCustom.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
   windowXID := None;
 
   { We don't do here anything depending on X server,
     and thus this doesn't require calling Application.InitializeXDisplay.
-    This way, merely calling TCastleWindowCustom.Create
+    This way, merely calling TCastleWindowBase.Create
     doesn't require X server runnning. }
 end;
 
-procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -410,64 +442,67 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := true;
 end;
 
-procedure TCastleWindowCustom.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;
 
-function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
 
-procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
+function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
 
-  procedure X_KeyPress(const event: TXKeyEvent);
+  procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
     CharKey: char;
+    EventString: string;
     Key: TKey;
   begin
     { calculate k, CharKey }
-    if XLookupString(@event, @CharKey, 1, @k, nil) = 0 then
-      CharKey := #0;
+    if XLookupString(@xEvent, @CharKey, 1, @k, nil) = 0 then
+      EventString := ''
+    else
+      EventString := CharKey;
 
     { maybe do DoKeyDown }
     case k of
@@ -479,15 +514,15 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
       else begin
         Key := Application.KeySymToKey(k);
-        if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+        if (Key <> K_None) or (EventString <> '') then DoKeyDown(Key, EventString);
       end;
     end;
   end;
 
-  procedure X_KeyRelease(const event: TXKeyEvent);
+  procedure X_KeyRelease(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char;
+    CharKey: char; //we don't use it further anywhere
     Key: TKey;
   begin
     { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
@@ -496,7 +531,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       pressed forever until window unfocused... }
 
     { calculate k, CharKey }
-    XLookupString(@event, @CharKey, 1, @k, nil);
+    XLookupString(@xEvent, @CharKey, 1, @k, nil);
 
     { maybe do DoKeyUp }
     case k of
@@ -513,7 +548,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     end;
   end;
 
-  procedure X_ConfigureNotify(const event: TXConfigureEvent);
+  procedure X_ConfigureNotify(const xEvent: TXConfigureEvent);
   var
     dummy_win: TWindow;
   begin
@@ -532,7 +567,7 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
     { TODO: for now, Left and Top indicate corner of the window *with frame*
       (while they should indicate corner of GL area only, according to interface). }
-    DoResize(event.width, event.height, false);
+    DoResize(xEvent.width, xEvent.height, false);
   end;
 
   function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
@@ -542,17 +577,17 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
       Button1 : mbtn := mbLeft;
       Button2 : mbtn := mbMiddle;
       Button3 : mbtn := mbRight;
-      else result := false;
+      else Result := false;
     end;
   end;
 
-  procedure X_ButtonPress(const event: TXButtonPressedEvent);
+  procedure X_ButtonPress(const xEvent: TXButtonPressedEvent);
   var
     btn: TMouseButton;
   begin
-    if xbtnToMouseButton(event.button, btn) then
-      DoMouseDown(Vector2(Event.x, Height - 1 - Event.y), btn, 0) else
-    case Event.Button of
+    if xbtnToMouseButton(xEvent.button, btn) then
+      DoMouseDown(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0) else
+    case xEvent.Button of
       Button4: DoMouseWheel( 1, true);
       Button5: DoMouseWheel(-1, true);
       6: DoMouseWheel( 1, false); { not sure if this is possible }
@@ -560,15 +595,15 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     end;
   end;
 
-  procedure X_ButtonRelease(const event: TXButtonReleasedEvent);
+  procedure X_ButtonRelease(const xEvent: TXButtonReleasedEvent);
   var
     btn: TMouseButton;
   begin
-    if xbtnToMouseButton(event.button, btn) then
-      DoMouseUp(Vector2(Event.x, Height - 1 - Event.y), btn, 0)
+    if xbtnToMouseButton(xEvent.button, btn) then
+      DoMouseUp(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0)
   end;
 
-  procedure X_MotionNotify(const event: TXMotionEvent);
+  procedure X_MotionNotify(const xEvent: TXMotionEvent);
   begin
     { We could refresh MousePressed now. But no need for now?
     mousePressed:=[];
@@ -577,11 +612,11 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
     if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
     }
     DoMotion(InputMotion(MousePosition,
-      Vector2(Event.x, Height - 1 - Event.y),
+      LeftTopToCastle(xEvent.x, xEvent.y),
       MousePressed, 0));
   end;
 
-  procedure X_FocusOut(const event: TXFocusOutEvent);
+  procedure X_FocusOut(const xEvent: TXFocusOutEvent);
   begin
     { Clear KeysDown and MousePressed information.
       Otherwise, we could miss the keyup or mouseup event, if user pressed
@@ -592,45 +627,45 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
 begin
   Result := true;
-  case event._type of
+  case Event._type of
     Expose: { XExposeEvent }
-       if event.xexpose.count = 0 then Invalidate;
+       if Event.xexpose.count = 0 then Invalidate;
     (*MapNotify: needRedisplay := true; { XMapEvent } <- unused *)
-    KeyPress: X_KeyPress(event.xkey);  { XKeyEvent }
-    KeyRelease: X_KeyRelease(event.xkey);
-    ButtonPress: X_ButtonPress(event.xbutton); { XButtonPressEvent }
-    ButtonRelease: X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
-    MotionNotify: X_MotionNotify(event.xmotion); { XPointerMovedEvent }
-    ConfigureNotify: X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
+    KeyPress: X_KeyPress(Event.xkey);  { XKeyEvent }
+    KeyRelease: X_KeyRelease(Event.xkey);
+    ButtonPress: X_ButtonPress(Event.xbutton); { XButtonPressEvent }
+    ButtonRelease: X_ButtonRelease(Event.xbutton); { XButtonReleaseEvent }
+    MotionNotify: X_MotionNotify(Event.xmotion); { XPointerMovedEvent }
+    ConfigureNotify: X_ConfigureNotify(Event.xconfigure); { XConfigureEvent }
     ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
       if (event.xclient.data.l[0] = Integer(Application.WMDeleteWindow)) then
        DoCloseQuery;
-    ReparentNotify : parentwinXID := event.xreparent.parent;
-    FocusOut: X_FocusOut(event.xfocus);
+    ReparentNotify : parentwinXID := Event.xreparent.parent;
+    FocusOut: X_FocusOut(Event.xfocus);
     else Result := false;
   end;
 end;
 
-procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
+procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
-  SimpleSetFullScreen(Value);
+  SimpleUpdateFullScreenBackend;
 end;
 
 { TCastleApplication ------------------------------------------------------- }
 
-function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
+function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 var
   i: integer;
 begin
   for i := 0 to OpenWindowsCount-1 do
     if OpenWindows[i].WindowXID = seekWindowXID then
       Exit(OpenWindows[i]);
-  result := nil;
+  Result := nil;
 end;
 
 function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
-  result := K_None;
+  Result := K_None;
   if ksym <> NoSymbol then
     case ksym and $FF00 of
       { Note that KeySym*ToKey values may be K_None, and so we may return K_None. }
@@ -793,7 +828,7 @@ end;
 
 function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindowBase;
 begin
   Result := false;
   if event._type = MappingNotify then
@@ -823,6 +858,12 @@ begin
   InitializeXDisplay;
   Result := XDisplayHeight(XDisplay, XScreen);
 end;
+
+function TCastleApplication.ScreenStatusBarScaledHeight: Cardinal;
+begin
+  Result := 0;
+end;
+
 {$endif}
 
 { TCastleWindow -------------------------------------------------------------- }

@@ -15,6 +15,10 @@ clean:
 win32:
 	castle-engine --mode=$(MODE) package --os=win32 --cpu=i386
 
+.PHONY: win64
+win64:
+	castle-engine --mode=$(MODE) package --os=win64 --cpu=x86_64
+
 .PHONY: linux32
 linux32:
 	castle-engine --mode=$(MODE) package --os=linux --cpu=i386

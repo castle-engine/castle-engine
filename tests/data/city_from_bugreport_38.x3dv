@@ -2,7 +2,7 @@
 
 PROFILE Interchange
 
-META "generator" "view3dscene, http://castle-engine.sourceforge.net/view3dscene.php"
+META "generator" "view3dscene, https://castle-engine.io/view3dscene.php"
 META "source" "city.x3dv"
 
 DEF Camera Viewpoint {

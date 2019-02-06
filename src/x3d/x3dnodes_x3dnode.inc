@@ -65,6 +65,7 @@
     FDestructionNotifications: TNodeDestructionNotificationList;
     FScene: TX3DEventsEngine;
     FShapeTrees: TObject;
+    FInternalSceneShape: TObject;
 
     { Internally used by PROTO instantiating mechanism,
       in TX3DPrototypeNode.InstantiateIsClauses
@@ -99,6 +100,7 @@
     function GetExports(const Index: Integer): TX3DExport;
     function GetFields(const Index: Integer): TX3DField;
     function GetEvents(const Index: Integer): TX3DEvent;
+    procedure UnregisterSceneCallback(Node: TX3DNode);
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -988,8 +990,14 @@
       This means it can be placed only within one TCastleScene. }
     property Scene: TX3DEventsEngine read FScene write FScene;
 
-    { Managed and used by TCastleSceneCore to keep TShapeTreesList
-      for every ITransformNode. }
+    { Internally used by @link(Scene) to store some information at node.
+      @exclude }
+    property InternalSceneShape: TObject
+      read FInternalSceneShape write FInternalSceneShape;
+
+    { Internally used by @link(Scene) to store TShapeTreesList
+      for every ITransformNode.
+      @exclude }
     property ShapeTrees: TObject read FShapeTrees write FShapeTrees;
 
     { This will be always called by VRML parsers after adding new item
@@ -1024,6 +1032,40 @@
     { Nice and concise node description for user.
       Shows node type and name. }
     function NiceName: string;
+
+    { Detach this node from parent scene, recursively.
+      Useful if you take a node and want to put it in another TCastleSceneCore.
+
+      @italic(You almost never need to call this method from your application).
+      This is done automatically for you when TCastleSceneCore is destroyed.
+      And a node can only be part of one TCastleSceneCore instance
+      at one time.
+
+      Notable exceptions when you need to call this:
+
+      @orderedList(
+        @item(
+          If you process RootNode graph and extract some node from it
+          (that is, delete node from one RootNode graph,
+          but instead of freeing it you insert it into some other VRML/X3D graph)
+          you must call it to manually
+          detach this node (and all it's children) from a previous TCastleSceneCore
+          instance.
+        )
+
+        @item(
+          Right now the TCastleSceneCore doesn't call RootNode.UnregisterScene
+          when TCastleSceneCore.OwnsRootNode.
+          This is done for speed, because it's not needed in 99% cases.
+
+          However, if your scene contains some node that isn't freed
+          because of @link(KeepExistingBegin),
+          then such node will remain attached to non-existing scene.
+          You should call UnregisterScene on such node manually, for now.
+        )
+      )
+    }
+    procedure UnregisterScene;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -1409,13 +1451,15 @@ begin
       end;
     end;
 
+  { Use InternalItems for an extra epsilon of speed. }
+
   if FFieldsMFNode <> nil then
     for I := 0 to FFieldsMFNode.Count - 1 do
     begin
       MF := TMFNode(FFieldsMFNode[I]);
-      for J := 0 to MF.Items.Count - 1 do
+      for J := 0 to MF.InternalItems.Count - 1 do
       begin
-        Result := Func(Self, MF.Items[J]);
+        Result := Func(Self, MF.InternalItems[J]);
         if Result <> nil then Exit;
       end;
     end;
@@ -2847,11 +2891,11 @@ begin
     begin
       MF := TMFNode(FFieldsMFNode[I]);
       J := 0;
-      while J < MF.Items.Count do
+      while J < MF.InternalItems.Count do
       begin
-        NewNode := MF.Items[J];
+        NewNode := MF.InternalItems[J];
         Func(Self, NewNode);
-        if NewNode <> MF.Items[J] then
+        if NewNode <> MF.InternalItems[J] then
         begin
           MF.Delete(J);
           Inc(Result);
@@ -2862,7 +2906,7 @@ begin
           end;
         end else
         begin
-          Result := Result + MF.Items[J].EnumerateReplaceChildren(Func);
+          Result := Result + MF.InternalItems[J].EnumerateReplaceChildren(Func);
           Inc(J);
         end;
       end;
@@ -2994,7 +3038,7 @@ begin
   begin
     MF := TMFNode(Destination);
     for J := 0 to MF.Count - 1 do
-      MF.Replace(J, CopyState.DeepCopy(MF.Items[J]));
+      MF.Replace(J, CopyState.DeepCopy(MF.InternalItems[J]));
   end;
 end;
 
@@ -3290,6 +3334,16 @@ begin
   if FExports = nil then
     FExports := TX3DFileItemList.Create(true);
   FExports.Add(Value);
+end;
+
+procedure TX3DNode.UnregisterSceneCallback(Node: TX3DNode);
+begin
+  Node.Scene := nil;
+end;
+
+procedure TX3DNode.UnregisterScene;
+begin
+  EnumerateNodes(TX3DNode, {$ifdef CASTLE_OBJFPC}@{$endif} UnregisterSceneCallback, false);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

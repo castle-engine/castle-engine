@@ -145,8 +145,8 @@ type
 
 implementation
 
-uses SysUtils, CastleInternalFtFont,
-  CastleLog, CastleUtils, CastleURIUtils;
+uses Classes, SysUtils, CastleInternalFtFont,
+  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils, CastleDownload;
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
 
@@ -299,6 +299,9 @@ var
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
   C: TUnicodeChar;
   TemporaryCharacters: boolean;
+  Cache: TStream;
+  CacheURL: String;
+  IsCachedFile: Boolean;
 begin
   inherited Create;
   FSize := ASize;
@@ -313,8 +316,23 @@ begin
   FontMgr.Resolution := 0;
   FileName := URIToFilenameSafe(URL);
   if FileName = '' then
-    raise Exception.CreateFmt('Cannot read font from URL "%s". Note that right now only local file URLs are supported', [URL]);
+  begin
+    Cache := Download(URL);
+    try
+      CacheURL := ApplicationConfig('cache_' + ExtractURIName(URL));
+      StreamSaveToFile(Cache, CacheURL);
+      FileName := URIToFilenameSafe(CacheURL);
+      IsCachedFile := true;
+    finally
+      Cache.Free;
+    end;
+  end
+  else IsCachedFile := false;
+
   FontId := FontMgr.RequestFont(FileName);
+
+  if IsCachedFile then
+    CheckDeleteFile(FileName, true);
 
   TemporaryCharacters := ACharacters = nil;
   if TemporaryCharacters then

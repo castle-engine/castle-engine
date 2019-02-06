@@ -11,7 +11,7 @@
 'The files here are often overwritten and removed, and storing them' + LineEnding +
 'in a version control repository is generally not useful.' + LineEnding +
 '' + LineEnding +
-'So you SHOULD NOT add and commit this file to a version control' + LineEnding +
+'So you SHOULD NOT add and commit this directory to a version control' + LineEnding +
 '(like SVN or GIT).' + LineEnding +
 '' + LineEnding +
 'Insted you SHOULD make this whole directory ("castle-engine-output")' + LineEnding +

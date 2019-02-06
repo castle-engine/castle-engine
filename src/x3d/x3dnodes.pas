@@ -23,7 +23,7 @@
 
   The chapter "Reading, writing, processing VRML scene graph"
   in the documentation on
-  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
+  [https://castle-engine.io/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
   is almost completely devoted to documenting the design of this single unit.
 
   @bold(Various uses of this unit:)
@@ -38,7 +38,7 @@
       When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
       So we're able to save exactly the same VRML/X3D graph
       back to another file. See also
-      [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
+      [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
       This allows writing various VRML/X3D
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
@@ -89,7 +89,7 @@
     @item(Normal VRML/X3D nodes are defined by classses
       named like @code(TXxxNode). These nodes can be specified inside the VRML/X3D
       files. See VRML/X3D specifications, and also our extensions specification,
-      on [http://castle-engine.sourceforge.net/vrml_x3d.php].
+      on [https://castle-engine.io/vrml_x3d.php].
 
       There are also abstract node classes. Their definitions are helpful
       for handling some functionality common to many descendants,
@@ -134,14 +134,14 @@
 
       Every correct VRML / X3D file in classic and XML encoding should be parsed
       by this unit.
-      See [http://castle-engine.sourceforge.net/x3d_implementation_status.php]
+      See [https://castle-engine.io/x3d_implementation_status.php]
       for much more detailed information about supported features.)
 
     @item(
       Also many Inventor 1.0 files are correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#ext_iv_in_vrml].)
+      [https://castle-engine.io/x3d_extensions.php#ext_iv_in_vrml].)
 
     @item(
       Note that structures in this unit are @italic(not) focused
@@ -152,7 +152,7 @@
 
       Internally, we do not convert VRML 1.0-specific constructs
       to VRML 2.0/X3D constructs (or the other way around).
-      See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
+      See [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
       for more in-depth explanation of how, and why, we handle both
       old-style (Inventor, VRML 1.0) and new-style (VRML 2.0, X3D)
       syntax.)
@@ -184,6 +184,7 @@ type
   {$I x3dnodes_x3dgraphtraversestate.inc}
   {$I x3dnodes_destructionnotification.inc}
   {$I x3dnodes_x3dnodescache.inc}
+  {$I x3dnodes_x3dfonttexturescache.inc}
   {$I x3dnodes_x3dnode.inc}
   {$I x3dnodes_generatedtextures.inc}
   {$I x3dnodes_x3dnodeclasseslist.inc}
@@ -255,6 +256,9 @@ type
 
 implementation
 
+// Silence warnings about using CastleNURBS (that will soon be renamed CastleInternalNurbs)
+{$warnings off}
+
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
   CastleTextureFont_DjvSans_20,
@@ -279,6 +283,8 @@ uses
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
+{$warnings on}
+
 {$define read_implementation}
 
 {$I x3dnodes_miscellaneous_internals.inc}
@@ -290,6 +296,7 @@ uses
 {$I x3dnodes_x3dgraphtraversestate.inc}
 {$I x3dnodes_destructionnotification.inc}
 {$I x3dnodes_x3dnodescache.inc}
+{$I x3dnodes_x3dfonttexturescache.inc}
 {$I x3dnodes_x3dnodeclasseslist.inc}
 
 {$I x3dnodes_utils_extrusion.inc}
@@ -390,12 +397,12 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
 {$I auto_generated_node_helpers/x3dnodes_collidableoffset.inc}
 {$I auto_generated_node_helpers/x3dnodes_collidableshape.inc}
-{$I auto_generated_node_helpers/x3dnodes_collisioncollection.inc}
 {$I auto_generated_node_helpers/x3dnodes_collision.inc}
+{$I auto_generated_node_helpers/x3dnodes_collisioncollection.inc}
 {$I auto_generated_node_helpers/x3dnodes_collisionsensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_collisionspace.inc}
-{$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
 {$I auto_generated_node_helpers/x3dnodes_color.inc}
+{$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
@@ -403,16 +410,16 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
-{$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_cone.inc}
+{$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_contact.inc}
 {$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinatedamper.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
-{$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
-{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
@@ -429,8 +436,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
 {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
 {$I auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc}
-{$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_fog.inc}
+{$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
 {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
 {$I auto_generated_node_helpers/x3dnodes_generatedcubemaptexture.inc}
@@ -453,8 +460,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc}
-{$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
 {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
 {$I auto_generated_node_helpers/x3dnodes_indexedquadset.inc}
@@ -472,8 +479,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_layer.inc}
 {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
-{$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_layout.inc}
+{$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_layoutlayer.inc}
 {$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
@@ -495,14 +502,14 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_motorjoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
-{$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
 {$I auto_generated_node_helpers/x3dnodes_normal.inc}
 {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc}
 {$I auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc}
@@ -519,8 +526,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
 {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
-{$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
@@ -529,12 +536,12 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
-{$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
-{$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
-{$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_programshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
@@ -543,8 +550,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
 {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
-{$I auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc}
 {$I auto_generated_node_helpers/x3dnodes_rigidbody.inc}
+{$I auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc}
 {$I auto_generated_node_helpers/x3dnodes_scalarchaser.inc}
 {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
@@ -561,8 +568,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_sound.inc}
 {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
 {$I auto_generated_node_helpers/x3dnodes_spheresensor.inc}
-{$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc}
@@ -572,16 +579,16 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_switch.inc}
 {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
 {$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
-{$I auto_generated_node_helpers/x3dnodes_text3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_text.inc}
+{$I auto_generated_node_helpers/x3dnodes_text3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturebackground.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
-{$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
 {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
-{$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
 {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
@@ -591,14 +598,15 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_transmitterpdu.inc}
 {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
-{$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
+{$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
-{$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
 {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
@@ -669,6 +677,7 @@ procedure X3DNodesFinalization;
 begin
   FreeAndNil(VRML1DefaultState);
   FreeAndNil(TraverseSingleStack);
+  TextureCache := nil;
   FreeAndNil(X3DCache);
 
   FreeAndNil(NodesManager);
@@ -730,7 +739,8 @@ initialization
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
 
-  X3DCache := TX3DNodesCache.Create;
+  X3DCache := TX3DFontTexturesCache.Create;
+  TextureCache := X3DCache;
   VRML1DefaultState := TVRML1State.Create;
   VRML1DefaultState.CreateNodes;
   TraverseSingleStack := TX3DGraphTraverseStateStack.Create;

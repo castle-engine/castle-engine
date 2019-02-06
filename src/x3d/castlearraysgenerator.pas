@@ -587,8 +587,7 @@ type
       or you set this...)
       you have to make appropriate glNormal calls yourself.
 
-      Normals should always point from CCW (you *do not* check here FrontFaceCcw
-      field, as we *do not* call glFrontFace anywhere).
+      Normals will always point from side set as NormalsCcw.
 
       If NorImplementation <> niNone then we handle everything
       related to normals in this class.
@@ -621,9 +620,7 @@ type
       (since normals may be available per-face, we need to know face number
       as well as vertex number).
 
-      Returns normal always from
-      CCW (just like we pass to OpenGL always CCW normals, since we always
-      assume front face = CCW).
+      Returns normal from the side specified as NormalsCcw.
 
       Override this in descendants only to handle
       NorImplementation = niNone case. }
@@ -1057,13 +1054,16 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         if S = 'BOUNDS' then
         begin
           if IsTexture3D then
-            Result := tgBounds3d else
+            Result := tgBounds3d
+          else
             Result := tgBounds2d;
         end else
         if S = 'BOUNDS2D' then
           Result := tgBounds2d else
         if S = 'BOUNDS3D' then
           Result := tgBounds3d else
+        if S = 'MIRROR-PLANE' then
+          Result := tgMirrorPlane else
         begin
           Result := tgCoord;
           WritelnWarning('VRML/X3D', Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1163,7 +1163,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    MultiTexCoord: TX3DNodeList;
+    MultiTexCoord: TMFNode;
     I, LastCoord: Integer;
   begin
     if TexCoord = nil then
@@ -1173,7 +1173,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end else
     if TexCoord is TMultiTextureCoordinateNode then
     begin
-      MultiTexCoord := TMultiTextureCoordinateNode(TexCoord).FdTexCoord.Items;
+      MultiTexCoord := TMultiTextureCoordinateNode(TexCoord).FdTexCoord;
       SetTexLengths(MultiTexCoord.Count);
       for I := 0 to MultiTexCoord.Count - 1 do
         AddSingleTexCoord(I, MultiTexCoord[I]);

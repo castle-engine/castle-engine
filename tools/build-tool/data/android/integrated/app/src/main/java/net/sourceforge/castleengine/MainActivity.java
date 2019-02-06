@@ -3,6 +3,7 @@ package net.sourceforge.castleengine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.NativeActivity;
@@ -13,7 +14,7 @@ import android.util.Log;
 
 public class MainActivity extends NativeActivity
 {
-    private static final String TAG = "${NAME}.castleengine.MainActivity";
+    private static final String CATEGORY = "MainActivity";
 
     private ServiceMessaging messaging;
     private List<ServiceAbstract> services = new ArrayList<ServiceAbstract>();
@@ -21,7 +22,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "Custom castleengine.MainActivity created");
+        ServiceAbstract.logInfo(CATEGORY, "Custom castleengine.MainActivity created");
 
         services.add(messaging = new ServiceMessaging(this));
         services.add(new ServiceMiscellaneous(this));
@@ -31,6 +32,8 @@ public class MainActivity extends NativeActivity
         for (ServiceAbstract service : services) {
             service.onCreate();
         }
+
+       jniLanguage(Locale.getDefault().toString());
     }
 
     @Override
@@ -52,7 +55,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Log.i(TAG, "onStart");
+        ServiceAbstract.logInfo(CATEGORY, "onStart");
         for (ServiceAbstract service : services) {
             service.onStart();
         }
@@ -61,7 +64,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onStop() {
         super.onStop();
-        Log.i(TAG, "onStop");
+        ServiceAbstract.logInfo(CATEGORY, "onStop");
         for (ServiceAbstract service : services) {
             service.onStop();
         }
@@ -79,7 +82,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i(TAG, "onResume");
+        ServiceAbstract.logInfo(CATEGORY, "onResume");
         for (ServiceAbstract service : services) {
             service.onResume();
         }
@@ -88,7 +91,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause");
+        ServiceAbstract.logInfo(CATEGORY, "onPause");
         for (ServiceAbstract service : services) {
             service.onPause();
         }
@@ -97,7 +100,7 @@ public class MainActivity extends NativeActivity
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Log.i(TAG, "onNewIntent");
+        ServiceAbstract.logInfo(CATEGORY, "onNewIntent");
         for (ServiceAbstract service : services) {
             service.onNewIntent(intent);
         }
@@ -106,7 +109,7 @@ public class MainActivity extends NativeActivity
     @Override
     public void onBackPressed()
     {
-        Log.i(TAG, "onBackPressed");
+        ServiceAbstract.logInfo(CATEGORY, "onBackPressed");
         for (ServiceAbstract service : services) {
             if (service.onBackPressed()) {
                 return;
@@ -154,7 +157,7 @@ public class MainActivity extends NativeActivity
 
     public void onPurchase(AvailableProduct product, String purchaseData, String signature)
     {
-        Log.i(TAG, "purchase " + product.id);
+        ServiceAbstract.logInfo(CATEGORY, "purchase " + product.id);
         for (ServiceAbstract service : services) {
             service.onPurchase(product, purchaseData, signature);
         }
@@ -163,14 +166,15 @@ public class MainActivity extends NativeActivity
     /* JNI ------------------------------------------------------------------- */
 
     public native String jniMessage(String javaToNative);
+    public native String jniLanguage(String javaToNative);
 
     public static final void safeLoadLibrary(String libName)
     {
         try {
             System.loadLibrary(libName);
-            Log.i(TAG, "JNI: Successfully loaded lib" + libName + ".so");
+            ServiceAbstract.logInfo(CATEGORY, "JNI: Successfully loaded lib" + libName + ".so");
         } catch(UnsatisfiedLinkError e) {
-            Log.e(TAG, "JNI: Could not load lib" + libName + ".so, exception UnsatisfiedLinkError: " + e.getMessage());
+            ServiceAbstract.logError(CATEGORY, "JNI: Could not load lib" + libName + ".so, exception UnsatisfiedLinkError: " + e.getMessage());
         }
     }
 
