@@ -14,7 +14,7 @@ buildscript {
         // This allows to replace our Gradle wrapper
         // with the Gradle from Debian package, if needed.
         // See https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.1.0'
     }
 }
 
