@@ -8,9 +8,9 @@ buildscript {
         // This declares the "Android Gradle plugin" version
         // (not Gradle version, which is visible in gradle/wrapper/gradle-wrapper.properties).
         //
-        // We use the latest "Android Gradle plugin" version that works with Gradle
+        // We use the latest "Android Gradle plugin" version that still works with Gradle
         // in current Debian testing / unstable
-        // (https://packages.debian.org/search?keywords=gradle).
+        // (https://packages.debian.org/search?keywords=gradle), 4.4.1 currently.
         // This allows to replace our Gradle wrapper
         // with the Gradle from Debian package, if needed.
         // See https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle
