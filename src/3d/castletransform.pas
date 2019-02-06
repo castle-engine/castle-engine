@@ -1470,8 +1470,9 @@ type
         )
 
         @item(All scale components should > 0 if you want 3D lighting
-          to work corrrectly. That is, avoid negative scale, that flips
-          the orientation of faces (CCW becomes CW), or standard
+          to work corrrectly. That is, avoid negative scale, that changes
+          the normals and orientation of faces (counter-clockwise becomes clockwise,
+          if all scale components are -1), or standard
           lighting may not work Ok.
 
           For unlit stuff, or custom lighting, negative scale may be Ok.
