@@ -1,8 +1,8 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
-        jcenter()
         google()
+        jcenter()
     }
     dependencies {
         // This declares the "Android Gradle plugin" version
@@ -31,6 +31,7 @@ allprojects {
     }
 
     repositories {
+        google()
         jcenter()
 
         // To be able to compile aar in libs/ , following

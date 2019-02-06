@@ -34,6 +34,13 @@ android {
     }
 }
 
+// See https://developer.android.com/studio/projects/gradle-external-native-builds
+externalNativeBuild {
+    ndkBuild {
+        path "src/main/jni/Android.mk"
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
