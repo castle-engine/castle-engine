@@ -64,7 +64,6 @@
     FCDataField: TMFString;
     FDestructionNotifications: TNodeDestructionNotificationList;
     FScene: TX3DEventsEngine;
-    FShapeTrees: TObject;
     FInternalSceneShape: TObject;
 
     { Internally used by PROTO instantiating mechanism,
@@ -994,11 +993,6 @@
       @exclude }
     property InternalSceneShape: TObject
       read FInternalSceneShape write FInternalSceneShape;
-
-    { Internally used by @link(Scene) to store TShapeTreesList
-      for every ITransformNode.
-      @exclude }
-    property ShapeTrees: TObject read FShapeTrees write FShapeTrees;
 
     { This will be always called by VRML parsers after adding new item
       to our InterfaceDeclarations.

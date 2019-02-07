@@ -249,18 +249,6 @@ type
     procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
   end;
 
-  { List of transform nodes (ITransformNode),
-    used to extract TShapeTreeList for this node. }
-  TTransformInstancesList = class(TX3DNodeList)
-  public
-    { Returns existing TShapeTreeList corresponding to given Node.
-      If not found, and AutoCreate, then creates new.
-      If not found, and not AutoCreate, then return @nil. }
-    function Instances(Node: TX3DNode;
-      const AutoCreate: boolean): TShapeTreeList;
-    procedure FreeShapeTrees;
-  end;
-
   { @exclude }
   TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
   { @exclude }
@@ -605,10 +593,12 @@ type
 
     { Handle change of transformation of ITransformNode node.
       TransformNode must not be @nil here.
+      It must be associated only with TShapeTreeTransform,
+      which must be true for all ITransformNode nodes.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
-    procedure TransformationChanged(TransformNode: TX3DNode;
-      Instances: TShapeTreeList; const Changes: TX3DChanges);
+    procedure TransformationChanged(const TransformNode: TX3DNode;
+      const Changes: TX3DChanges);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
     procedure RootTransformationChanged(const Changes: TX3DChanges);
 
@@ -625,11 +615,6 @@ type
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
   private
-    { For all ITransformNode, except Billboard nodes }
-    TransformInstancesList: TTransformInstancesList;
-    { For all Billboard nodes }
-    BillboardInstancesList: TTransformInstancesList;
-
     FGlobalLights: TLightInstancesList;
 
     FLocalBoundingBox: TBox3D;
@@ -671,6 +656,7 @@ type
     TimeDependentHandlers: TTimeDependentHandlerList;
     ProximitySensors: TProximitySensorInstanceList;
     FVisibilitySensors: TVisibilitySensors;
+    BillboardNodes: TX3DNodeList;
 
     procedure ChangedAllEnumerateCallback(Node: TX3DNode);
     procedure ScriptsInitializeCallback(Node: TX3DNode);
@@ -2685,33 +2671,6 @@ begin
       List^[I].Handler.UpdateNeeded := true;
 end;
 
-{ TTransformInstancesList ------------------------------------------------- }
-
-function TTransformInstancesList.Instances(Node: TX3DNode;
-  const AutoCreate: boolean): TShapeTreeList;
-begin
-  Result := Node.ShapeTrees as TShapeTreeList;
-
-  if (Result = nil) and AutoCreate then
-  begin
-    Node.ShapeTrees := TShapeTreeList.Create(false);
-    Result := TShapeTreeList(Node.ShapeTrees);
-    Add(Node);
-  end;
-end;
-
-procedure TTransformInstancesList.FreeShapeTrees;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-  begin
-    Items[I].ShapeTrees.Free;
-    Items[I].ShapeTrees := nil;
-  end;
-  Count := 0;
-end;
-
 { TTimeDependentHandlerList ------------------------------------------------- }
 
 procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
@@ -2771,14 +2730,13 @@ begin
   FPointingDeviceActiveSensors := TX3DNodeList.Create(false);
 
   FCompiledScriptHandlers := TCompiledScriptHandlerInfoList.Create;
-  TransformInstancesList := TTransformInstancesList.Create(false);
-  BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TGeneratedTextureList.Create;
   ProximitySensors := TProximitySensorInstanceList.Create(false);
   FVisibilitySensors := TVisibilitySensors.Create;
   ScreenEffectNodes := TX3DNodeList.Create(false);
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
+  BillboardNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
@@ -2808,18 +2766,9 @@ begin
   FreeAndNil(ProximitySensors);
   FreeAndNil(FVisibilitySensors);
   FreeAndNil(GeneratedTextures);
-  if TransformInstancesList <> nil then
-  begin
-    TransformInstancesList.FreeShapeTrees;
-    FreeAndNil(TransformInstancesList);
-  end;
-  if BillboardInstancesList <> nil then
-  begin
-    BillboardInstancesList.FreeShapeTrees;
-    FreeAndNil(BillboardInstancesList);
-  end;
   FreeAndNil(FCompiledScriptHandlers);
   FreeAndNil(KeyDeviceSensorNodes);
+  FreeAndNil(BillboardNodes);
   FreeAndNil(TimeDependentHandlers);
 
   FreeAndNil(FBackgroundStack);
@@ -3113,10 +3062,9 @@ function TChangedAllTraverser.Traverse(
 
     ShapesGroup.Children.Add(TransformTree);
 
-    { update ParentScene.TransformInstancesList }
+    { update ParentScene.BillboardNodes }
     if TransformNode is TBillboardNode then
-      ParentScene.BillboardInstancesList.Instances(TransformNode, true).Add(TransformTree) else
-      ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
+      ParentScene.BillboardNodes.Add(TransformNode);
 
     Traverser := TChangedAllTraverser.Create;
     try
@@ -3389,8 +3337,7 @@ end;
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
-  TransformInstancesList.FreeShapeTrees;
-  BillboardInstancesList.FreeShapeTrees;
+  BillboardNodes.Count := 0;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
   VisibilitySensors.Clear;
@@ -3412,7 +3359,8 @@ begin
 
   if not InternalChangedAll then
   begin
-    { Clean Shapes, ShapeLODs }
+    { Clean Shapes, ShapeLODs.
+      TShapeTree and descendants keep references to Nodes. }
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
@@ -3992,13 +3940,13 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.TransformationChanged(TransformNode: TX3DNode;
-  Instances: TShapeTreeList; const Changes: TX3DChanges);
+procedure TCastleSceneCore.TransformationChanged(const TransformNode: TX3DNode;
+  const Changes: TX3DChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
   TraverseStack: TX3DGraphTraverseStateStack;
-  I: Integer;
+  C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
   DoVisibleChanged: boolean;
 begin
@@ -4019,9 +3967,11 @@ begin
     Fog and Background nodes are affected by their parents transform.
   }
 
+  C := TShapeTree.AssociatedShapesCount(TransformNode);
+
   if Log and LogChanges then
-    WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
-      [TransformNode.X3DType, Instances.Count]));
+    WritelnLog('X3D changes', Format('Transform node %s change: present %d times in the scene graph',
+      [TransformNode.X3DType, C]));
 
   DoVisibleChanged := false;
 
@@ -4037,9 +3987,9 @@ begin
     TransformChangeHelper.ChangingNode := TransformNode;
     TransformChangeHelper.Changes := Changes;
 
-    for I := 0 to Instances.Count - 1 do
+    for I := 0 to C - 1 do
     begin
-      TransformShapeTree := Instances[I] as TShapeTreeTransform;
+      TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
       TraverseStack.Clear;
       TraverseStack.Push(TransformShapeTree.TransformState);
 
@@ -4163,8 +4113,6 @@ var
 
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
-  var
-    Instances: TShapeTreeList;
   begin
     { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
       otherwise TransformationDirty would never be processed }
@@ -4175,17 +4123,7 @@ var
     begin
       Check(Supports(ANode, ITransformNode),
         'chTransform flag may be set only for ITransformNode');
-
-      Instances := TransformInstancesList.Instances(ANode, false);
-      if Instances = nil then
-      begin
-        if Log and LogChanges then
-          WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-            [ANode.X3DType]));
-        Exit;
-      end;
-
-      TransformationChanged(ANode, Instances, Changes);
+      TransformationChanged(ANode, Changes);
     end;
   end;
 
@@ -6562,7 +6500,7 @@ procedure TCastleSceneCore.UpdateCameraEvents;
     Result :=
       (ShapeLODs.Count <> 0) or
       (ProximitySensors.Count <> 0) or
-      (BillboardInstancesList.Count <> 0);
+      (BillboardNodes.Count <> 0);
   end;
 
   { Update things depending on camera information and X3D events.
@@ -6588,13 +6526,11 @@ procedure TCastleSceneCore.UpdateCameraEvents;
       this will be a little wasteful. We should update first all camera
       information, and then update only Billboard nodes that do not have
       any parent Billboard nodes. }
-    for I := 0 to BillboardInstancesList.Count - 1 do
+    for I := 0 to BillboardNodes.Count - 1 do
     begin
-      (BillboardInstancesList[I] as TBillboardNode).CameraChanged(CameraVectors);
+      (BillboardNodes[I] as TBillboardNode).CameraChanged(CameraVectors);
       { TODO: use OptimizeExtensiveTransformations? }
-      TransformationChanged(BillboardInstancesList[I],
-        BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
-        [chTransform]);
+      TransformationChanged(BillboardNodes[I], [chTransform]);
     end;
   end;
 
