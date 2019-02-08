@@ -1050,16 +1050,13 @@ type
 
     destructor Destroy; override;
 
-    { Simple (usually very flat) tree of shapes within this VRML/X3D scene.
-
-      Contents of this tree are read-only from outside.
-
-      Note that the only place where @link(Shapes) structure is rebuild
-      in this class is ChangedAll procedure.
-      So e.g. if you want to do something after each change of
-      @link(Shapes) tree, you can simply override ChangedAll
-      and do your work after calling "inherited". }
+    { Tree of shapes in the scene, acting as a simplfied mirror
+      of the X3D node graph.
+      Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
+
+    // { Bounding box of all occurences of the given X3D Shape node. }
+    // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -2892,6 +2889,27 @@ begin
   if AValue <> FURL then
     Load(AValue);
 end;
+
+(* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
+   but in practice it's unused now.
+
+function TCastleSceneCore.ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+var
+  I: Integer;
+begin
+  C := TShapeTree.AssociatedShapesCount(Node);
+  case C of
+    0: Result := TBox3D.Empty;
+    1: Result := TShape(TShapeTree.AssociatedShape(Node, 0)).BoundingBox;
+    else
+      begin
+        Result := TBox3D.Empty;
+        for I := 0 to C - 1 do
+          Result.Include(TShape(TShapeTree.AssociatedShape(Node, I)).BoundingBox);
+      end;
+  end;
+end;
+*)
 
 function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin
