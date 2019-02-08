@@ -3799,6 +3799,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     SI: TShapeTreeIterator;
     Current: TShape;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
+
     SI := TShapeTreeIterator.Create(ParentScene.Shapes, false);
     try
       while SI.GetNext do
@@ -4190,6 +4192,8 @@ var
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
+
     LightNode := ANode as TAbstractLightNode;
 
     { Update all TLightInstance records with LightNode = this ANode.
