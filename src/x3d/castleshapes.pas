@@ -330,6 +330,12 @@ type
     procedure UnAssociateGeometryState(
       const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState);
+    procedure AssociateGeometryStateNeverProxied(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure UnAssociateGeometryStateNeverProxied(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
     procedure AssociateProxyGeometryState(const OverTriangulate: Boolean);
     procedure UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
   strict private
@@ -1250,6 +1256,7 @@ begin
   FOriginalState := AOriginalState;
 
   AssociateGeometryState(FOriginalGeometry, FOriginalState);
+  AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
 
   if ParentInfo <> nil then
   begin
@@ -1277,6 +1284,7 @@ begin
   if FOriginalState <> nil then // when exception occurs in constructor, may be nil
   begin
     UnAssociateGeometryState(FOriginalGeometry, FOriginalState);
+    UnAssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
     FreeAndNil(FOriginalState);
   end;
   FreeOctreeTriangles;
@@ -1302,6 +1310,14 @@ begin
        (AGeometry.TexCoordField.Value <> nil) then
       AssociateNode(AGeometry.TexCoordField.Value);
   end;
+end;
+
+procedure TShape.AssociateGeometryStateNeverProxied(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
   if AState <> nil then
   begin
     if AState.ShapeNode <> nil then
@@ -1319,8 +1335,6 @@ end;
 procedure TShape.UnAssociateGeometryState(
   const AGeometry: TAbstractGeometryNode;
   const AState: TX3DGraphTraverseState);
-var
-  I: Integer;
 begin
   if AGeometry <> nil then
   begin
@@ -1335,6 +1349,14 @@ begin
        (AGeometry.TexCoordField.Value <> nil) then
       UnAssociateNode(AGeometry.TexCoordField.Value);
   end;
+end;
+
+procedure TShape.UnAssociateGeometryStateNeverProxied(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
   if AState <> nil then
   begin
     if AState.ShapeNode <> nil then
