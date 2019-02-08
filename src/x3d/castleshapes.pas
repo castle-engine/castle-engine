@@ -1294,8 +1294,6 @@ end;
 procedure TShape.AssociateGeometryState(
   const AGeometry: TAbstractGeometryNode;
   const AState: TX3DGraphTraverseState);
-var
-  I: Integer;
 begin
   if AGeometry <> nil then
   begin
