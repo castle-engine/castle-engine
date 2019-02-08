@@ -945,12 +945,6 @@ type
       @exclude }
     InternalDirty: Cardinal;
 
-    { Optimize scenes, for scenes that do not change structure (new/removed nodes)
-      but often change field contents (e.g. coordinates contents, color contents).
-      This is unstable now, you may even get access violations as the cached
-      data is not always cleared from nodes. }
-    OptimizeDynamicShapes: Boolean experimental;
-
     const
       DefaultShadowMapsDefaultSize = 256;
 
@@ -4129,9 +4123,7 @@ var
 
   procedure HandleChangeCoordinate;
   var
-    Coord: TMFVec3f;
-    SI: TShapeTreeIterator;
-    ConnectedShapes: Cardinal;
+    C, I: Integer;
   begin
     { TCoordinateNode is special, although it's part of VRML 1.0 state,
       it can also occur within coordinate-based nodes of VRML >= 2.0.
@@ -4141,35 +4133,19 @@ var
       That's why chCoordinate should not be used with chVisibleVRML1State
       --- chVisibleVRML1State handling is not needed after this. }
 
-    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
-    begin
-      TShape(ANode.InternalSceneShape).Changed(false, Changes);
-    end else
-    begin
-      ConnectedShapes := 0;
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.Geometry.InternalCoord(SI.Current.State, Coord) and
-              (Coord = Field)) or
-             { Change to OriginalGeometry.Coord should also be reported,
-               since it may cause FreeProxy for shape. This is necessary
-               for animation of NURBS controlPoint to work. }
-             (SI.Current.OriginalGeometry.InternalCoord(SI.Current.State, Coord) and
-              (Coord = Field)) then
-          begin
-            SI.Current.Changed(false, Changes);
-            if ConnectedShapes = 0 then
-            begin
-              ANode.InternalSceneShape := SI.Current;
-              Inc(ConnectedShapes);
-            end else
-              ANode.InternalSceneShape := nil;
-          end;
-      finally FreeAndNil(SI) end;
-    end;
+    { Note that both shape's OriginalGeometry, and actualy Geometry,
+      have associated shapes.
+      This is good, as a change to OriginalGeometry.Coord should also be handled,
+      since it may cause FreeProxy for shape. This is necessary
+      for animation of NURBS controlPoint to work. }
 
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    end;
   end;
 
   { Good for both chVisibleVRML1State and chGeometryVRML1State
@@ -4195,19 +4171,16 @@ var
   end;
 
   procedure HandleChangeMaterial;
-
-    procedure HandleShape(Shape: TShape);
-    begin
-      if (Shape.State.ShapeNode <> nil) and
-         (Shape.State.ShapeNode.Material = ANode) then
-        Shape.Changed(false, Changes);
-    end;
-
+  var
+    C, I: Integer;
   begin
-    { VRML 2.0 Material affects only shapes where it's
-      placed inside Appearance.material field. }
-    Shapes.Traverse(@HandleShape, false);
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    end;
   end;
 
   procedure HandleChangeLightInstanceProperty;
@@ -4321,8 +4294,7 @@ var
 
   procedure HandleChangeColorNode;
   var
-    SI: TShapeTreeIterator;
-    ConnectedShapes: Cardinal;
+    C, I: Integer;
   begin
     { Affects all geometry nodes with "color" field referencing this node.
 
@@ -4330,44 +4302,21 @@ var
       This is not detected for now, and doesn't matter (we do not handle
       particle systems at all now). }
 
-    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
     begin
-      TShape(ANode.InternalSceneShape).Changed(false, Changes);
-    end else
-    begin
-      ConnectedShapes := 0;
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.Geometry.ColorField <> nil) and
-             (SI.Current.Geometry.ColorField.Value = ANode) then
-          begin
-            SI.Current.Changed(false, Changes);
-            if ConnectedShapes = 0 then
-            begin
-              ANode.InternalSceneShape := SI.Current;
-              Inc(ConnectedShapes);
-            end else
-              ANode.InternalSceneShape := nil;
-          end;
-      finally FreeAndNil(SI) end;
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
     end;
   end;
 
   procedure HandleChangeTextureCoordinate;
   var
-    SI: TShapeTreeIterator;
-    TexCoord: TX3DNode;
+    C, I: Integer;
   begin
-    { VRML 2.0 TextureCoordinate affects only shapes where it's
-      placed inside texCoord field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.Geometry.InternalTexCoord(SI.Current.State, TexCoord) and
-           (TexCoord = ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    for I := 0 to C - 1 do
+      TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
   end;
 
   procedure HandleChangeTextureTransform;
@@ -4397,6 +4346,8 @@ var
   var
     SI: TShapeTreeIterator;
   begin
+    // TODO: Optimize and simplify to use TShapeTree.AssociatedShape
+
     { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
       placed inside textureTransform field. }
     SI := TShapeTreeIterator.Create(Shapes, false);
@@ -4413,16 +4364,11 @@ var
 
   procedure HandleChangeGeometry;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
-    { Geometry nodes, affect only shapes that use them. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.Geometry = ANode) or
-           (SI.Current.OriginalGeometry = ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    for I := 0 to C - 1 do
+      TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
   end;
 
   procedure HandleChangeEnvironmentalSensorBounds;
@@ -4509,6 +4455,7 @@ var
   var
     SI: TShapeTreeIterator;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
     if chTextureImage in Changes then
     begin
       { On change of TAbstractTexture2DNode field that changes the result of
@@ -4564,21 +4511,17 @@ var
 
   procedure HandleChangeClipPlane;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
     Assert(ANode is TClipPlaneNode);
 
-    { Call TShape.Changed for all shapes using this ClipPlane node. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if (SI.Current.State.ClipPlanes <> nil) and
-           (SI.Current.State.ClipPlanes.IndexOfNode(TClipPlaneNode(ANode)) <> -1) then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
-    VisibleChangeHere([vcVisibleGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry]);
+    end;
   end;
 
   procedure HandleChangeEverything;
@@ -4655,19 +4598,14 @@ var
 
   procedure HandleChangeWireframe;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
-    Assert(ANode is TShapeNode);
-
-    { Call TShape.Changed for all shapes using this Shape node. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if SI.Current.State.ShapeNode = ANode then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+    end;
   end;
 
   procedure HandleChangeChildren;

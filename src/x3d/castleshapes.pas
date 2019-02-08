@@ -223,15 +223,25 @@ type
       which is great to do some operations very quickly.
 
       Right now:
-      - ITransformNode (like TTransformNode, TBillboardNode)
-        is associated with TShapeTreeTransform.
-      - TCoordinateNode and TColorNode
-        is associated with TShape.
+      - TShapeTreeTransform is associated with ITransformNode
+        (like TTransformNode, TBillboardNode).
+
+      - TShape is associated with
+        TShapeNode,
+        TAbstractGeometryNode,
+        TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
+        TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
+        TMaterialNode (anything that can be in TShapeNode.Material),
+        TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
+        TClipPlaneNode .
 
       Note that UnAssociateNode should only be called on nodes
       with which we are associated. Trying to call UnAssociateNode
       on a node on which we didn't call AssociateNode will have
       undefined results (for speed).
+
+      It is valid to associate X3D node with TShapeTree multiple times,
+      but it must be unassociated the same number of times.
 
       @param Node The node with possibly associated shapes. Never @nil.
     }
@@ -313,6 +323,15 @@ type
       freeing eventual instances created by Proxy methods.
       Next Geometry() or State() call will cause Proxy to be recalculated. }
     procedure FreeProxy;
+
+    procedure AssociateGeometryState(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure UnAssociateGeometryState(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure AssociateProxyGeometryState(const OverTriangulate: Boolean);
+    procedure UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
   strict private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
@@ -1230,6 +1249,8 @@ begin
   FOriginalGeometry := AOriginalGeometry;
   FOriginalState := AOriginalState;
 
+  AssociateGeometryState(FOriginalGeometry, FOriginalState);
+
   if ParentInfo <> nil then
   begin
     FGeometryParentNodeName := ParentInfo^.Node.X3DName;
@@ -1253,9 +1274,108 @@ begin
   FreeAndNil(FShadowVolumes);
   FreeProxy;
   FreeAndNil(FNormals);
-  FreeAndNil(FOriginalState);
+  if FOriginalState <> nil then // when exception occurs in constructor, may be nil
+  begin
+    UnAssociateGeometryState(FOriginalGeometry, FOriginalState);
+    FreeAndNil(FOriginalState);
+  end;
   FreeOctreeTriangles;
   inherited;
+end;
+
+procedure TShape.AssociateGeometryState(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
+  if AGeometry <> nil then
+  begin
+    AssociateNode(AGeometry);
+    if (AGeometry.ColorField <> nil) and
+       (AGeometry.ColorField.Value <> nil) then
+      AssociateNode(AGeometry.ColorField.Value);
+    if (AGeometry.CoordField <> nil) and
+       (AGeometry.CoordField.Value <> nil) then
+      AssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.TexCoordField <> nil) and
+       (AGeometry.TexCoordField.Value <> nil) then
+      AssociateNode(AGeometry.TexCoordField.Value);
+  end;
+  if AState <> nil then
+  begin
+    if AState.ShapeNode <> nil then
+    begin
+      AssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Material <> nil then
+        AssociateNode(AState.ShapeNode.Material);
+    end;
+    if AState.ClipPlanes <> nil then
+      for I := 0 to AState.ClipPlanes.Count - 1 do
+        AssociateNode(AState.ClipPlanes[I].Node);
+  end;
+end;
+
+procedure TShape.UnAssociateGeometryState(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
+  if AGeometry <> nil then
+  begin
+    UnAssociateNode(AGeometry);
+    if (AGeometry.ColorField <> nil) and
+       (AGeometry.ColorField.Value <> nil) then
+      UnAssociateNode(AGeometry.ColorField.Value);
+    if (AGeometry.CoordField <> nil) and
+       (AGeometry.CoordField.Value <> nil) then
+      UnAssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.TexCoordField <> nil) and
+       (AGeometry.TexCoordField.Value <> nil) then
+      UnAssociateNode(AGeometry.TexCoordField.Value);
+  end;
+  if AState <> nil then
+  begin
+    if AState.ShapeNode <> nil then
+    begin
+      UnAssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Material <> nil then
+        UnAssociateNode(AState.ShapeNode.Material);
+    end;
+    if AState.ClipPlanes <> nil then
+      for I := 0 to AState.ClipPlanes.Count - 1 do
+        UnAssociateNode(AState.ClipPlanes[I].Node);
+  end;
+end;
+
+procedure TShape.AssociateProxyGeometryState(const OverTriangulate: Boolean);
+begin
+  Assert(FGeometry[OverTriangulate] <> nil);
+  Assert(FState   [OverTriangulate] <> nil);
+
+  { For speed, do not even call AssociateGeometryState
+    when the proxy is equal to actual nodes.
+    This way in an usual case, a geometry node will have only 1 associated shape,
+    which is best for memory usage. }
+
+  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
+     (FState   [OverTriangulate] <> FOriginalState) then
+  begin
+    AssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+  end;
+end;
+
+procedure TShape.UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
+begin
+  Assert(FGeometry[OverTriangulate] <> nil);
+  Assert(FState   [OverTriangulate] <> nil);
+
+  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
+     (FState   [OverTriangulate] <> FOriginalState) then
+  begin
+    UnAssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+  end;
 end;
 
 procedure TShape.FreeOctreeTriangles;
@@ -1494,6 +1614,11 @@ begin
     ( (FState[true ] <> OriginalState) and (FState[true ] <> nil) )
     ) then
     WritelnLog('X3D changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
+
+  if FGeometry[false] <> nil then
+    UnAssociateProxyGeometryState(false);
+  if FGeometry[true] <> nil then
+    UnAssociateProxyGeometryState(true);
 
   if FGeometry[false] <> OriginalGeometry then
   begin
@@ -2343,6 +2468,8 @@ begin
     try
       FGeometry[OverTriangulate] := OriginalGeometry.Proxy(
         FState[OverTriangulate], OverTriangulate);
+      if FGeometry[OverTriangulate] <> nil then
+        AssociateProxyGeometryState(OverTriangulate);
     except
       { in case of trouble, remember to keep both
         FGeometry[OverTriangulate] and FState[OverTriangulate] nil.
@@ -2364,6 +2491,7 @@ begin
         Assert(FState[not OverTriangulate] = nil);
         FGeometry[not OverTriangulate] := FGeometry[OverTriangulate];
         FState   [not OverTriangulate] := FState   [OverTriangulate];
+        AssociateProxyGeometryState(not OverTriangulate);
       end;
     end else
     begin
