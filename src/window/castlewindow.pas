@@ -94,7 +94,9 @@
       Window: TCastleWindowBase;
 
     procedure Render(Sender: TUIContainer);
-    begin  ...  end;
+    begin
+      // ... e.g. DrawRectangle or TGLImage.Draw calls inside
+    end;
 
     begin
       Window := TCastleWindowBase.Create(Application);
