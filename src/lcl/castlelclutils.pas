@@ -532,7 +532,16 @@ begin
        (Although right now we prevent this anyway by early exit above.) }
 
   if Assigned(OnPress) and ((Key <> keyNone) or (KeyString <> '')) then
+  begin
+    // fix empty KeyString in some cases (needed at least with GTK2 backend)
+    if KeyString = '' then
+      case Key of
+        keyTab   : KeyString := CharTab;
+        keyDelete: KeyString := CharDelete;
+      end;
+
     OnPress(Self, InputKey(TVector2.Zero, Key, KeyString, Modifiers));
+  end;
 
   FUnfinishedKeyDown := false;
   FUnfinishedKeyPress := false;
