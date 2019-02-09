@@ -102,6 +102,8 @@ type
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
+    procedure Print(const Pos: TVector2; const Color: TCastleColor;
+      const S: string); overload;
 
     procedure Print(const X, Y: Single; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
     procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
@@ -403,8 +405,8 @@ type
     GLImage: TGLImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
-    { Scale applied to the rendered FFont to honor changing the Size property. }
-    function Scale: Single;
+    function GetScale: Single;
+    procedure SetScale(const AValue: Single);
   strict protected
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
@@ -458,6 +460,10 @@ type
 
     { Underlying font data. }
     property FontData: TTextureFontData read FFont;
+
+    { Scale applied to the rendered font, compared to @link(FontData).Size.
+      Changing this is equivalent to changing the Size property. }
+    property Scale: Single read GetScale write SetScale;
   end;
 
   { @deprecated Deprecated name, use TTextureFont now. }
@@ -637,6 +643,12 @@ begin
 end;
 
 procedure TCastleFont.Print(const Pos: TVector2Integer;
+  const Color: TCastleColor; const S: string);
+begin
+  Print(Pos[0], Pos[1], Color, S);
+end;
+
+procedure TCastleFont.Print(const Pos: TVector2;
   const Color: TCastleColor; const S: string);
 begin
   Print(Pos[0], Pos[1], Color, S);
@@ -1156,9 +1168,14 @@ begin
     Leave Size as it was then, it should not matter. }
 end;
 
-function TTextureFont.Scale: Single;
+function TTextureFont.GetScale: Single;
 begin
   Result := Size / FFont.Size;
+end;
+
+procedure TTextureFont.SetScale(const AValue: Single);
+begin
+  Size := FFont.Size * AValue;
 end;
 
 procedure TTextureFont.SetSize(const Value: Single);

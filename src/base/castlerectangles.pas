@@ -414,6 +414,11 @@ type
     { Scale rectangle position and size around the (0,0) point. }
     function ScaleAround0(const Factor: Single): TFloatRectangle;
 
+    { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
+    function FitInside(const R: TFloatRectangle;
+      const AlignHorizontal: THorizontalPosition = hpMiddle;
+      const AlignVertical: TVerticalPosition = vpMiddle): TFloatRectangle;
+
     { Return larger rectangle, so that it includes given point. }
     function Include(const P: TVector2): TFloatRectangle;
 
@@ -1411,6 +1416,23 @@ begin
     Result.Height := Height;
     Result.Bottom := Bottom;
   end;
+end;
+
+function TFloatRectangle.FitInside(const R: TFloatRectangle;
+  const AlignHorizontal: THorizontalPosition = hpMiddle;
+  const AlignVertical: TVerticalPosition = vpMiddle): TFloatRectangle;
+begin
+  if R.Width / R.Height > Width / Height then
+  begin
+    Result.Height := R.Height;
+    Result.Width := Width * Result.Height / Height;
+  end else
+  begin
+    Result.Width := R.Width;
+    Result.Height := Height * Result.Width / Width;
+  end;
+  Result.Left   := Result.AlignCore(AlignHorizontal, R, AlignHorizontal, 0);
+  Result.Bottom := Result.AlignCore(AlignVertical, R, AlignVertical, 0);
 end;
 
 function TFloatRectangle.Include(const P: TVector2): TFloatRectangle;
