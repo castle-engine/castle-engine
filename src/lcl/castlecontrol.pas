@@ -23,10 +23,10 @@ interface
 
 uses
   Classes, SysUtils,
-  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion,
+  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, CastleSceneManager,
+  CastleImages, CastleGLVersion, CastleSceneManager, CastleLCLUtils,
   CastleGLImages, CastleGLContainer, Castle2DSceneManager,
   CastleApplicationProperties;
 
@@ -41,9 +41,6 @@ const
     deprecated 'use TCastleApplicationProperties.DefaultLimitFPS';
 
 type
-  TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
-  TControlInputMotionEvent = procedure (Sender: TObject; const Event: TInputMotion) of object;
-
   { Control to render everything (3D or 2D) with Castle Game Engine.
     Add the user-interface controls to the
     @link(Controls) property, in particular
@@ -90,21 +87,22 @@ type
         procedure EventResize; override;
       end;
     var
-    FContainer: TContainer;
-    FMousePosition: TVector2;
-    FGLInitialized: boolean;
-    FAutoRedisplay: boolean;
-    { manually track when we need to be repainted, useful for AggressiveUpdate }
-    Invalidated: boolean;
-    FOnOpen: TNotifyEvent;
-    FOnBeforeRender: TNotifyEvent;
-    FOnRender: TNotifyEvent;
-    FOnResize: TNotifyEvent;
-    FOnClose: TNotifyEvent;
-    FOnPress: TControlInputPressReleaseEvent;
-    FOnRelease: TControlInputPressReleaseEvent;
-    FOnMotion: TControlInputMotionEvent;
-    FOnUpdate: TNotifyEvent;
+      FContainer: TContainer;
+      FMousePosition: TVector2;
+      FGLInitialized: boolean;
+      FAutoRedisplay: boolean;
+      { manually track when we need to be repainted, useful for AggressiveUpdate }
+      Invalidated: boolean;
+      FOnOpen: TNotifyEvent;
+      FOnBeforeRender: TNotifyEvent;
+      FOnRender: TNotifyEvent;
+      FOnResize: TNotifyEvent;
+      FOnClose: TNotifyEvent;
+      FOnPress: TControlInputPressReleaseEvent;
+      FOnRelease: TControlInputPressReleaseEvent;
+      FOnMotion: TControlInputMotionEvent;
+      FOnUpdate: TNotifyEvent;
+      FKeyPressHandler: TLCLKeyPressHandler;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -114,6 +112,8 @@ type
 
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
+    procedure KeyPressHandlerPress(Sender: TObject;
+      const Event: TInputPressRelease);
     procedure UpdateShiftState(const Shift: TShiftState);
 
     procedure SetMousePosition(const Value: TVector2);
@@ -195,6 +195,7 @@ type
     procedure DoExit; override;
     procedure Resize; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
@@ -593,9 +594,9 @@ property LimitFPS: Single read GetLimitFPS write SetLimitFPS;
 
 implementation
 
-uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
+uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
-  CastleLCLUtils, CastleControls;
+  CastleControls;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -870,6 +871,8 @@ begin
   inherited;
   TabStop := true;
   FAutoRedisplay := true;
+  FKeyPressHandler := TLCLKeyPressHandler.Create;
+  FKeyPressHandler.OnPress := @KeyPressHandlerPress;
 
   FContainer := TContainer.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
@@ -909,6 +912,7 @@ begin
   end;
 
   FreeAndNil(FContainer);
+  FreeAndNil(FKeyPressHandler);
   inherited;
 end;
 
@@ -1004,49 +1008,59 @@ begin
   Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
 end;
 
-procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TCastleControlBase.KeyPressHandlerPress(Sender: TObject;
+  const Event: TInputPressRelease);
 var
-  MyKey: TKey;
-  MyKeyString: String;
-  KeyRepeated: boolean;
-  Event: TInputPressRelease;
+  NewEvent: TInputPressRelease;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
+  // Key or KeyString non-empty, our TLCLKeyPressHandler already checks it
+  Assert((Event.Key <> keyNone) or (Event.KeyString <> ''));
 
-  KeyRepeated :=
-    // MyKey or Ch non-empty
-    ((MyKey <> keyNone) or (MyKeyString <> '')) and
-    // MyKey already pressed
-    ((MyKey = keyNone) or Pressed.Keys[MyKey]) and
-    // Ch already pressed
-    ((MyKeyString = '') or Pressed.Strings[MyKeyString]);
+  NewEvent := Event;
+  NewEvent.Position := MousePosition;
+  NewEvent.KeyRepeated :=
+    // Key already pressed
+    ((NewEvent.Key = keyNone) or Pressed.Keys[NewEvent.Key]) and
+    // KeyString already pressed
+    ((NewEvent.KeyString = '') or Pressed.Strings[NewEvent.KeyString]);
 
-  if (MyKey <> K_None) or (MyKeyString <> '') then
-    Pressed.KeyDown(MyKey, MyKeyString);
+  Pressed.KeyDown(NewEvent.Key, NewEvent.KeyString);
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before EventPress }
+  Container.EventPress(Event);
+
+  { The result of "Container.EventPress" (whether the key was handled)
+    is for now not used anywhere.
+    Passing it back to LCL is not possible, since we do not process keys
+    directly in TCastleControlBase.KeyDown, we wait for a matching
+    UTFKeyPress. }
+end;
+
+procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  { Do this before EventPress
+    (would be nice to also do it after Pressed.KeyDown inside
+    TCastleControlBase.KeyPressHandlerPress, but ignore for now) }
+  UpdateShiftState(Shift);
+
+  inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
+
+  FKeyPressHandler.KeyDown(Key, Shift);
 
   { Do not change focus by arrow keys, this would break our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these
     keys as focus-changing (actually, Lazarus tells widget manager that these
-    are already handled) by setting them to zero.
-    Note: our MyKey/MyKeyString (passed to KeyDownEvent) are calculated earlier,
-    so they will correctly capture arrow keys. }
+    are already handled) by setting them to zero. }
   if (Key = VK_Down) or
      (Key = VK_Up) or
      (Key = VK_Right) or
      (Key = VK_Left) then
     Key := 0;
+end;
 
-  inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
-
-  if (MyKey <> K_None) or (MyKeyString <> '') then
-  begin
-    Event := InputKey(MousePosition, MyKey, MyKeyString);
-    Event.KeyRepeated := KeyRepeated;
-    if Container.EventPress(Event) then
-      Key := 0; // handled
-  end;
+procedure TCastleControlBase.UTF8KeyPress(var UTF8Key: TUTF8Char);
+begin
+  inherited UTF8KeyPress(UTF8Key); { LCL OnUTF8KeyPress before our callbacks }
+  FKeyPressHandler.UTF8KeyPress(UTF8Key);
 end;
 
 procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
@@ -1054,8 +1068,8 @@ var
   MyKey: TKey;
   MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
-  if MyKey <> K_None then
+  MyKey := KeyLCLToCastle(Key, Shift);
+  if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before EventRelease }
@@ -1164,6 +1178,7 @@ end;
 procedure TCastleControlBase.DoUpdate;
 begin
   if AutoRedisplay then Invalidate;
+  FKeyPressHandler.Flush; // finish any pending key presses
   Container.EventUpdate;
 end;
 
@@ -1230,7 +1245,7 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: TMouseButtons;
+function TCastleControlBase.MousePressed: CastleKeysMouse.TMouseButtons;
 begin
   Result := Container.MousePressed;
 end;

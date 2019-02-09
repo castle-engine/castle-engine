@@ -20,8 +20,8 @@ unit CastleLCLUtils;
 
 interface
 
-uses Dialogs, Classes, Controls, CastleFileFilters, CastleKeysMouse,
-  Graphics, CastleVectors;
+uses Dialogs, Classes, Controls, LCLType, Graphics,
+  CastleFileFilters, CastleKeysMouse, CastleVectors;
 
 { Convert file filters into LCL Dialog.Filter, Dialog.FilterIndex.
   Suitable for both open and save dialogs (TOpenDialog, TSaveDialog
@@ -64,27 +64,13 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
 { @groupEnd }
 
 { Convert Key (Lazarus key code) to Castle Game Engine TKey.
-
-  In addition, this tries to convert Key to a character (MyKeyString).
-  Character is represented using String (not Char) as it may be UTF-8 character.
-
-  It's not nice that this function has to do conversion to String,
-  but that's the way of VCL and LCL: KeyPress and KeyDown
-  are separate events. While in CGE they are one event,
-  and passed as one event to TCastleUserInterface.KeyDown,
-  because this is more comfortable to process (as it corresponds
-  to one user action, and allows configurable TInputShortcut to work). }
-procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
-  out MyKey: TKey; out MyKeyString: String);
+  Returns keyNone if not possible. }
+function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
 
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
   Sets LazKey to VK_UNKNOWN (zero) when conversion not possible
   (or when Key = K_None and KeyString = '').
-
-  Note that this is not a perfect reverse of KeyLCLToCastle function.
-  It can't, as there are ambiguities (e.g. character 'A' may
-  be a key K_A with mkShift in modifiers).
 
   @groupBegin }
 procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
@@ -134,9 +120,41 @@ function URIToFilenameSafeUTF8(const URL: string): string;
 function ColorToVector3(const Color: TColor): TVector3;
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 
+type
+  TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
+  TControlInputMotionEvent = procedure (Sender: TObject; const Event: TInputMotion) of object;
+
+  { Convert LCL OnKeyDown and OnUTF8KeyPress into a single CGE event OnPress.
+
+    In VCL and LCL KeyPress (or UTF8KeyPress in LCL) and KeyDown
+    are separate events. While in CGE they are one event,
+    and passed as one event to TCastleUserInterface.KeyDown,
+    because this is more comfortable to process (as it corresponds
+    to one user action, and allows configurable TInputShortcut to work).
+  }
+  TLCLKeyPressHandler = class
+  private
+    FOnPress: TControlInputPressReleaseEvent;
+    FUnfinishedKeyDown: Boolean;
+    FUnfinishedKeyDownKey: Word;
+    FUnfinishedKeyDownShift: TShiftState;
+    FUnfinishedKeyPress: Boolean;
+    FUnfinishedKeyPressKey: TUTF8Char;
+  public
+    procedure KeyDown(const Key: Word; const Shift: TShiftState);
+    procedure UTF8KeyPress(const UTF8Key: TUTF8Char);
+    { If some keypress is half-finished, report it now.
+      This should be called before e.g. Update event, to report
+      events that result in OnKeyDown but not OnUTF8KeyPress,
+      or OnUTF8KeyPress but not OnKeyDown. }
+    procedure Flush;
+    { Called when we collect enough information to make a CGE press event. }
+    property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
+  end;
+
 implementation
 
-uses SysUtils, FileUtil, LazUTF8, LCLType, LCLProc,
+uses SysUtils, FileUtil, LazUTF8, LCLProc,
   CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
@@ -244,87 +262,63 @@ const
   { Ctrl key on most systems, Command key on macOS. }
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
-procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
-  out MyKey: TKey; out MyKeyString: String);
+function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
 begin
-  MyKey := K_None;
-  MyKeyString := '';
-
+  Result := keyNone;
   case Key of
-    VK_BACK:       begin MyKey := K_BackSpace;       MyKeyString := CharBackSpace; end;
-    VK_TAB:        begin MyKey := K_Tab;             MyKeyString := CharTab;       end;
-    VK_RETURN:     begin MyKey := K_Enter;           MyKeyString := CharEnter;     end;
-    VK_SHIFT:            MyKey := K_Shift;
-    VK_CONTROL:          MyKey := K_Ctrl;
-    VK_MENU:             MyKey := K_Alt;
-    VK_ESCAPE:     begin MyKey := K_Escape;          MyKeyString := CharEscape;    end;
-    VK_SPACE:      begin MyKey := K_Space;           MyKeyString := ' ';           end;
-    VK_PRIOR:            MyKey := K_PageUp;
-    VK_NEXT:             MyKey := K_PageDown;
-    VK_END:              MyKey := K_End;
-    VK_HOME:             MyKey := K_Home;
-    VK_LEFT:             MyKey := K_Left;
-    VK_UP:               MyKey := K_Up;
-    VK_RIGHT:            MyKey := K_Right;
-    VK_DOWN:             MyKey := K_Down;
-    VK_INSERT:           MyKey := K_Insert;
-    VK_DELETE:     begin MyKey := K_Delete;          MyKeyString := CharDelete; end;
-    VK_ADD:        begin MyKey := K_Numpad_Plus;     MyKeyString := '+';        end;
-    VK_SUBTRACT:   begin MyKey := K_Numpad_Minus;    MyKeyString := '-';        end;
-    VK_SNAPSHOT:         MyKey := K_PrintScreen;
-    VK_NUMLOCK:          MyKey := K_NumLock;
-    VK_SCROLL:           MyKey := K_ScrollLock;
-    VK_CAPITAL:          MyKey := K_CapsLock;
-    VK_PAUSE:            MyKey := K_Pause;
-    VK_OEM_COMMA:  begin MyKey := K_Comma;           MyKeyString := ','; end;
-    VK_OEM_PERIOD: begin MyKey := K_Period;          MyKeyString := '.'; end;
-    VK_NUMPAD0:    begin MyKey := K_Numpad_0;        MyKeyString := '0'; end;
-    VK_NUMPAD1:    begin MyKey := K_Numpad_1;        MyKeyString := '1'; end;
-    VK_NUMPAD2:    begin MyKey := K_Numpad_2;        MyKeyString := '2'; end;
-    VK_NUMPAD3:    begin MyKey := K_Numpad_3;        MyKeyString := '3'; end;
-    VK_NUMPAD4:    begin MyKey := K_Numpad_4;        MyKeyString := '4'; end;
-    VK_NUMPAD5:    begin MyKey := K_Numpad_5;        MyKeyString := '5'; end;
-    VK_NUMPAD6:    begin MyKey := K_Numpad_6;        MyKeyString := '6'; end;
-    VK_NUMPAD7:    begin MyKey := K_Numpad_7;        MyKeyString := '7'; end;
-    VK_NUMPAD8:    begin MyKey := K_Numpad_8;        MyKeyString := '8'; end;
-    VK_NUMPAD9:    begin MyKey := K_Numpad_9;        MyKeyString := '9'; end;
-    VK_CLEAR:            MyKey := K_Numpad_Begin;
-    VK_MULTIPLY:   begin MyKey := K_Numpad_Multiply; MyKeyString := '*'; end;
-    VK_DIVIDE:     begin MyKey := K_Numpad_Divide;   MyKeyString := '/'; end;
-    VK_OEM_MINUS:  begin MyKey := K_Minus;           MyKeyString := '-'; end;
+    VK_BACK:       Result := keyBackSpace;
+    VK_TAB:        Result := keyTab;
+    VK_RETURN:     Result := keyEnter;
+    VK_SHIFT:      Result := keyShift;
+    VK_CONTROL:    Result := keyCtrl;
+    VK_MENU:       Result := keyAlt;
+    VK_ESCAPE:     Result := keyEscape;
+    VK_SPACE:      Result := keySpace;
+    VK_PRIOR:      Result := keyPageUp;
+    VK_NEXT:       Result := keyPageDown;
+    VK_END:        Result := keyEnd;
+    VK_HOME:       Result := keyHome;
+    VK_LEFT:       Result := keyLeft;
+    VK_UP:         Result := keyUp;
+    VK_RIGHT:      Result := keyRight;
+    VK_DOWN:       Result := keyDown;
+    VK_INSERT:     Result := keyInsert;
+    VK_DELETE:     Result := keyDelete;
+    VK_ADD:        Result := keyNumpadPlus;
+    VK_SUBTRACT:   Result := keyNumpadMinus;
+    VK_SNAPSHOT:   Result := keyPrintScreen;
+    VK_NUMLOCK:    Result := keyNumLock;
+    VK_SCROLL:     Result := keyScrollLock;
+    VK_CAPITAL:    Result := keyCapsLock;
+    VK_PAUSE:      Result := keyPause;
+    VK_OEM_COMMA:  Result := keyComma;
+    VK_OEM_PERIOD: Result := keyPeriod;
+    VK_NUMPAD0:    Result := keyNumpad0;
+    VK_NUMPAD1:    Result := keyNumpad1;
+    VK_NUMPAD2:    Result := keyNumpad2;
+    VK_NUMPAD3:    Result := keyNumpad3;
+    VK_NUMPAD4:    Result := keyNumpad4;
+    VK_NUMPAD5:    Result := keyNumpad5;
+    VK_NUMPAD6:    Result := keyNumpad6;
+    VK_NUMPAD7:    Result := keyNumpad7;
+    VK_NUMPAD8:    Result := keyNumpad8;
+    VK_NUMPAD9:    Result := keyNumpad9;
+    VK_CLEAR:      Result := keyNumpadBegin;
+    VK_MULTIPLY:   Result := keyNumpadMultiply;
+    VK_DIVIDE:     Result := keyNumpadDivide;
+    VK_OEM_MINUS:  Result := keyMinus;
     VK_OEM_PLUS:
       if ssShift in Shift then
-      begin
-        MyKey := K_Plus ; MyKeyString := '+';
-      end else
-      begin
-        MyKey := K_Equal; MyKeyString := '=';
-      end;
-
+        Result := keyPlus
+      else
+        Result := keyEqual;
     Ord('0') .. Ord('9'):
-      begin
-        MyKey := TKey(Ord(K_0)  + Ord(Key) - Ord('0'));
-        MyKeyString := Chr(Key);
-      end;
-
+      Result := TKey(Ord(key0)  + Ord(Key) - Ord('0'));
     Ord('A') .. Ord('Z'):
-      begin
-        MyKey := TKey(Ord(K_A)  + Ord(Key) - Ord('A'));
-        if ssCtrlOrCommand in Shift then
-          MyKeyString := Chr(Ord(CtrlA) + Ord(Key) - Ord('A')) else
-        begin
-          MyKeyString := Chr(Key);
-          if not (ssShift in Shift) then
-            MyKeyString := LowerCase(MyKeyString);
-        end;
-      end;
-
-    VK_F1 .. VK_F12  : MyKey := TKey(Ord(K_F1) + Ord(Key) - VK_F1);
+      Result := TKey(Ord(keyA)  + Ord(Key) - Ord('A'));
+    VK_F1 .. VK_F12:
+      Result := TKey(Ord(keyF1) + Ord(Key) - VK_F1);
   end;
-
-  if (MyKey = K_None) and (MyKeyString = '') then
-    WritelnLog('LCL', 'Cannot translate LCL VK_xxx key %s with shift %s to Castle Game Engine key',
-      [DbgsVKCode(Key), DbgS(Shift)]);
 end;
 
 procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
@@ -473,6 +467,75 @@ var
 begin
   Col := ColorToRGB(Color);
   RedGreenBlue(Col, Result.Data[0], Result.Data[1], Result.Data[2]);
+end;
+
+{ TLCLKeyPressHandler -------------------------------------------------------- }
+
+procedure TLCLKeyPressHandler.KeyDown(const Key: Word; const Shift: TShiftState);
+begin
+  if FUnfinishedKeyDown then
+    Flush; // the previous press will only have KeyDown information
+  Assert(not FUnfinishedKeyDown);
+
+  FUnfinishedKeyDown := true;
+  FUnfinishedKeyDownKey := Key;
+  FUnfinishedKeyDownShift := Shift;
+
+  // collected both KeyDown and KeyPress
+  if FUnfinishedKeyDown and FUnfinishedKeyPress then
+    Flush;
+end;
+
+procedure TLCLKeyPressHandler.UTF8KeyPress(const UTF8Key: TUTF8Char);
+begin
+  if FUnfinishedKeyPress then
+    Flush; // the previous press will only have KeyPress information
+  Assert(not FUnfinishedKeyPress);
+
+  FUnfinishedKeyPress := true;
+  FUnfinishedKeyPressKey := UTF8Key;
+
+  // collected both KeyDown and KeyPress
+  if FUnfinishedKeyDown and FUnfinishedKeyPress then
+    Flush;
+end;
+
+procedure TLCLKeyPressHandler.Flush;
+var
+  Modifiers: TModifierKeys;
+  Key: TKey;
+  KeyString: String;
+begin
+  // early exit in most usual case
+  if not (FUnfinishedKeyDown or FUnfinishedKeyPress) then Exit;
+
+  Modifiers := [];
+  Key := keyNone;
+  KeyString := '';
+
+  if FUnfinishedKeyDown then
+  begin
+    if ssShift in FUnfinishedKeyDownShift then Include(Modifiers, mkShift);
+    if ssAlt   in FUnfinishedKeyDownShift then Include(Modifiers, mkAlt);
+    if ssCtrl  in FUnfinishedKeyDownShift then Include(Modifiers, mkCtrl);
+    Key := KeyLCLToCastle(FUnfinishedKeyDownKey, FUnfinishedKeyDownShift);
+  end;
+
+  if FUnfinishedKeyPress then
+    KeyString := FUnfinishedKeyPressKey;
+
+  { Thanks to checking this,
+    1. LCL presses that cannot be represented as either TKey or KeyString
+       will not be reported to CGE,
+    2. If Flush was called when FUnfinishedKeyDown = false and
+       FUnfinishedKeyPress = false, then nothing will happen.
+       (Although right now we prevent this anyway by early exit above.) }
+
+  if Assigned(OnPress) and ((Key <> keyNone) or (KeyString <> '')) then
+    OnPress(Self, InputKey(TVector2.Zero, Key, KeyString, Modifiers));
+
+  FUnfinishedKeyDown := false;
+  FUnfinishedKeyPress := false;
 end;
 
 end.
