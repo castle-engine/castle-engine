@@ -71,19 +71,32 @@ type
   private
     type
       TGlyphCharDictionary = array [Byte] of TGlyph;
+    const
+      MaxFallbackGlyphWarnings = 10;
     var
-    FAntiAliased: boolean;
-    FSize: Integer;
-    { For optimization of rendering normal 8-bit fonts (like standard ASCII
-      text), we keep glyphs with index < 256 listed in TGlyphCharDictionary.
-      Only the glyphs with index >= 256 are kept on extra TGlyphDictionary. }
-    { Non-nil only for filled glyphs. }
-    FGlyphsByte: TGlyphCharDictionary;
-    FGlyphsExtra: TGlyphDictionary;
-    FImage: TGrayscaleImage;
-    MeasureDone: boolean;
-    FRowHeight, FRowHeightBase, FDescend: Integer;
+      FAntiAliased: boolean;
+      FSize: Integer;
+      { For optimization of rendering normal 8-bit fonts (like standard ASCII
+        text), we keep glyphs with index < 256 listed in TGlyphCharDictionary.
+        Only the glyphs with index >= 256 are kept on extra TGlyphDictionary. }
+      { Non-nil only for filled glyphs. }
+      FGlyphsByte: TGlyphCharDictionary;
+      FGlyphsExtra: TGlyphDictionary;
+      FImage: TGrayscaleImage;
+      MeasureDone: boolean;
+      FRowHeight, FRowHeightBase, FDescend: Integer;
+      FFirstExistingGlyph: TGlyph;
+      FFirstExistingGlyphChar: TUnicodeChar;
+      { If the requested glyph doesn't exit, @link(Glyph) will use this one
+        as a fallback. }
+      FFallbackGlyph: TGlyph;
+      FFallbackGlyphChar: TUnicodeChar;
+      FUseFallbackGlyph: Boolean;
+      FallbackGlyphWarnings: Integer;
+
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+    procedure CalculateFallbackGlyph;
+    procedure MakeFallbackWarning(const C:TUnicodeChar);
   public
     { Create by reading a FreeType font file, like ttf.
 
@@ -109,9 +122,28 @@ type
     property Size: Integer read FSize;
 
     { Read-only information about a glyph for given character.
-      @nil if given glyph not loaded (because was not requested at constructor,
-      or because it doesn't exist in the font). }
-    function Glyph(const C: TUnicodeChar): TGlyph;
+
+      When AllowUsingFallbackGlyph and UseFallbackGlyph (both are @true
+      by default) then we always return non-nil glyph.
+      If the desired glyph was not really present, we make a warning
+      (using WritelnWarning) and return a fallback glyph.
+
+      When not (AllowUsingFallbackGlyph and UseFallbackGlyph)
+      then we return @nil for a missing glyph.
+      Glyph may be missing because it was not requested at constructor,
+      or because it doesn't exist in the font data. }
+    function Glyph(const C: TUnicodeChar;
+      const AllowUsingFallbackGlyph: Boolean = true): TGlyph;
+
+    { When a glyph (picture of a particular character) in a font doesn't exist,
+      by default we make a warning (using WritelnWarning) and use a fallback
+      glyph, like "?". This lets user know that some character is there.
+
+      Set this to @false to just silently omit a missing glyph.
+      The @link(Glyph) method will just return (silently) @nil in this case. }
+    property UseFallbackGlyph: Boolean
+      read FUseFallbackGlyph write FUseFallbackGlyph default true;
+
     property Image: TGrayscaleImage read FImage;
 
     { List all characters for which glyphs are actually loaded.
@@ -306,6 +338,7 @@ begin
   inherited Create;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
+  FUseFallbackGlyph := true;
 
   CastleInternalFtFont.InitEngine;
   { By default TFontManager uses DefaultResolution that is OS-dependent
@@ -351,60 +384,68 @@ begin
     begin
       GlyphInfo := GetGlyphInfo(C);
       if C <= High(FGlyphsByte) then
-        FGlyphsByte[C] := GlyphInfo else
+        FGlyphsByte[C] := GlyphInfo
+      else
         FGlyphsExtra[C] := GlyphInfo;
       if GlyphInfo <> nil then
       begin
+        if FFirstExistingGlyph = nil then
+        begin
+          FFirstExistingGlyph := GlyphInfo;
+          FFirstExistingGlyphChar := C;
+        end;
         Inc(GlyphsCount);
         MaxVar(MaxWidth , GlyphInfo.Width);
         MaxVar(MaxHeight, GlyphInfo.Height);
       end;
     end;
 
-    if GlyphsCount <> 0 then
+    if GlyphsCount = 0 then
+      raise Exception.Create('Cannot create a font with no glyphs');
+
+    MaxWidth := MaxWidth + GlyphPadding;
+    MaxHeight := MaxHeight + GlyphPadding;
+
+    ImageSize := 8;
+    while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
+      ImageSize := ImageSize * 2;
+
+    WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
+      [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
+
+    FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
+    Image.Clear(0);
+    Image.TreatAsAlpha := true;
+    Image.URL := URL;
+
+    ImageX := 0;
+    ImageY := 0;
+    for C in ACharacters do
     begin
-      MaxWidth := MaxWidth + GlyphPadding;
-      MaxHeight := MaxHeight + GlyphPadding;
-
-      ImageSize := 8;
-      while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
-        ImageSize := ImageSize * 2;
-
-      WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
-        [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
-
-      FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
-      Image.Clear(0);
-      Image.TreatAsAlpha := true;
-      Image.URL := URL;
-
-      ImageX := 0;
-      ImageY := 0;
-      for C in ACharacters do
+      GlyphInfo := Glyph(C, false);
+      if GlyphInfo <> nil then
       begin
-        GlyphInfo := Glyph(C);
-        if GlyphInfo <> nil then
+        GlyphInfo.ImageX := ImageX;
+        GlyphInfo.ImageY := ImageY;
+
+        GetGlyphData(C, ImageX, ImageY);
+
+        ImageX := ImageX + MaxWidth;
+        if ImageX + MaxWidth >= ImageSize then
         begin
-          GlyphInfo.ImageX := ImageX;
-          GlyphInfo.ImageY := ImageY;
-
-          GetGlyphData(C, ImageX, ImageY);
-
-          ImageX := ImageX + MaxWidth;
-          if ImageX + MaxWidth >= ImageSize then
-          begin
-            ImageX := 0;
-            ImageY := ImageY + MaxHeight;
-          end;
+          ImageX := 0;
+          ImageY := ImageY + MaxHeight;
         end;
       end;
-
-      // Debug: SaveImage(Image, '/tmp/a.png');
     end;
+
+    // Debug: SaveImage(Image, '/tmp/a.png');
   finally
     if TemporaryCharacters then
       FreeAndNil(ACharacters);
   end;
+
+  CalculateFallbackGlyph;
 end;
 
 constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
@@ -417,6 +458,7 @@ begin
   inherited Create;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
+  FUseFallbackGlyph := true;
 
   { split AGlyphs into FGlyphsByte and FGlyphsExtra }
   FGlyphsExtra := TGlyphDictionary.Create;
@@ -427,11 +469,19 @@ begin
       FGlyphsByte[C] := GlyphPair.Value
     else
       FGlyphsExtra[C] := GlyphPair.Value;
+
+    if FFirstExistingGlyph = nil then
+    begin
+      FFirstExistingGlyph := GlyphPair.Value;
+      FFirstExistingGlyphChar := C;
+    end;
   end;
   AGlyphs.OwnsGlyphs := false;
   AGlyphs.Free; // we own AGlyphs, for now we just free them
 
   FImage := AImage;
+
+  CalculateFallbackGlyph;
 end;
 
 destructor TTextureFontData.Destroy;
@@ -445,13 +495,51 @@ begin
   inherited;
 end;
 
-function TTextureFontData.Glyph(const C: TUnicodeChar): TGlyph;
+procedure TTextureFontData.CalculateFallbackGlyph;
+
+  function TryFallback(const C: TUnicodeChar): Boolean;
+  begin
+    FFallbackGlyph := Glyph(C, false);
+    FFallbackGlyphChar := C;
+    Result := FFallbackGlyph <> nil;
+  end;
+
+begin
+  if not TryFallback(Ord('?')) then
+    if not TryFallback(Ord('_')) then
+      if not TryFallback(Ord('.')) then
+      begin
+        FFallbackGlyph := FFirstExistingGlyph;
+        FFallbackGlyphChar := FFirstExistingGlyphChar;
+      end;
+end;
+
+function TTextureFontData.Glyph(const C: TUnicodeChar;
+  const AllowUsingFallbackGlyph: Boolean): TGlyph;
 begin
   if C <= High(FGlyphsByte) then
     Result := FGlyphsByte[C]
   else
   if not FGlyphsExtra.TryGetValue(C, Result) then
     Result := nil;
+
+  if (Result = nil) and AllowUsingFallbackGlyph and UseFallbackGlyph then
+  begin
+    Result := FFallbackGlyph;
+    MakeFallbackWarning(C);
+  end;
+end;
+
+procedure TTextureFontData.MakeFallbackWarning(const C:TUnicodeChar);
+begin
+  if FallbackGlyphWarnings < MaxFallbackGlyphWarnings then
+  begin
+    Inc(FallbackGlyphWarnings);
+    WritelnWarning('Font is missing glyph for character %s (UTF-8 number %d)',
+      [UnicodeToUTF8(C), C]);
+    if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
+      WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');
+  end;
 end;
 
 function TTextureFontData.LoadedGlyphs: TUnicodeCharList;

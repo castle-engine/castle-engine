@@ -113,7 +113,7 @@ begin
   try
     for C in LoadedGlyphs do
     begin
-      G := Font.Glyph(C);
+      G := Font.Glyph(C, false);
       if G <> nil then
       begin
         WriteStr(Stream,
