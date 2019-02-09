@@ -96,13 +96,9 @@
     procedure Render(Sender: TUIContainer);
     begin  ...  end;
 
-    procedure Resize(Sender: TUIContainer);
-    begin  ...  end;
-
     begin
       Window := TCastleWindowBase.Create(Application);
       Window.OnResize := @Resize;
-      Window.OnRender := @Render;
       Window.Caption := 'Simplest CastleWindow example';
       Window.OpenAndRun;
     end.
