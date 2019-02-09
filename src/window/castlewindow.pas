@@ -3566,7 +3566,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.DoKeyUp(const Key: TKey);
+procedure TCastleWindowBase.DoKeyUp(const key: TKey);
 var
   KeyString: String;
 begin
@@ -3641,6 +3641,10 @@ end;
 
 procedure TCastleWindowBase.DoUpdate;
 begin
+  {$ifdef CASTLE_WINDOW_LCL}
+  FKeyPressHandler.Flush; // finish any pending key presses
+  {$endif}
+
   MakeCurrent;
   Container.EventUpdate;
 
