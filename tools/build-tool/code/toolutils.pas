@@ -131,6 +131,29 @@ function FindCgeExe(const ExeName: String): String;
   and always exists. }
 function CastleEnginePath: String;
 
+const
+  { Interpolation to scale images with highest quality.
+
+    Latest FPC breaks alpha channel at resizing using riLanczos.
+    TODO: Submit a patch to FPC to restore previous behaviour.
+
+    Index: packages/fcl-image/src/fpinterpolation.inc
+    ===================================================================
+    --- packages/fcl-image/src/fpinterpolation.inc	(wersja 40746)
+    +++ packages/fcl-image/src/fpinterpolation.inc	(kopia robocza)
+    @@ -223,7 +223,8 @@
+               NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
+               NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
+             end;
+    -        Canvas.Colors[x+dx,y+dy]:=AlphaBlend(Canvas.Colors[x+dx,y+dy], NewCol);
+    +        //Canvas.Colors[x+dx,y+dy]:=AlphaBlend(Canvas.Colors[x+dx,y+dy], NewCol);
+    +        Canvas.Colors[x+dx,y+dy]:=NewCol;
+           end;
+         end;
+       finally
+  }
+  BestInterpolation = {$ifdef VER3_0} riLanczos {$else} riBilinear {$endif};
+
 implementation
 
 uses Classes, Process, SysUtils,

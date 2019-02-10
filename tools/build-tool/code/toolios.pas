@@ -161,7 +161,7 @@ var
       OutputFile: string;
       R: TCastleImage;
     begin
-      R := Icon.MakeResized(Size, Size, riLanczos);
+      R := Icon.MakeResized(Size, Size, BestInterpolation);
       try
         OutputFile := Project.Name + PathDelim +
           'Images.xcassets' + PathDelim +
@@ -245,7 +245,7 @@ var
       ImageSource, R: TCastleImage;
     begin
       ImageSource := FindBestMatching(Width, Height, DefaultImage);
-      R := ImageSource.MakeResized(Width, Height, riLanczos);
+      R := ImageSource.MakeResized(Width, Height, BestInterpolation);
       try
         OutputFile := Project.Name + PathDelim +
           'Images.xcassets' + PathDelim +

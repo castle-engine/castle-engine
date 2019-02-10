@@ -224,7 +224,7 @@ var
       R: TCastleImage;
       Dir: string;
     begin
-      R := Icon.MakeResized(Size, Size, riLanczos);
+      R := Icon.MakeResized(Size, Size, BestInterpolation);
       try
         Dir := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
                'res' + PathDelim + 'mipmap-' + S + 'dpi';

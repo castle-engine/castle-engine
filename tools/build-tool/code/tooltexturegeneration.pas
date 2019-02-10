@@ -337,7 +337,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         if Verbose then
           Writeln(Format('Resizing "%s" from %dx%d to %dx%d',
             [InputURL, Image.Width, Image.Height, NewWidth, NewHeight]));
-        Image.Resize(NewWidth, NewHeight, riLanczos);
+        Image.Resize(NewWidth, NewHeight, BestInterpolation);
         SaveImage(Image, OutputURL);
       finally FreeAndNil(Image) end;
 
