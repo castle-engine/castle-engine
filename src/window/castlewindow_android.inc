@@ -679,13 +679,18 @@ begin
 
   if (MainWindow <> nil) and not MainWindow.Closed then
   begin
-    { check for Resize. As there is no reliable event to capture it
+    { Check for Resize. As there is no reliable event to capture it
       (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
       updated, but for some time EGL sizes stay old) so we just watch
-      for changes, and only fire our "Resize" when really EGL size changed. }
+      for changes, and only fire our "Resize" when really EGL size changed.
+
+      Note that we compare with window FRealWidth/Heigth, not Width/Height.
+      Otherwise the window with ResizeAllowed = raOnlyAtOpen would behave
+      like it never received previous DoResize.
+    }
     MainWindow.QuerySize(NewWidth, NewHeight);
-    if (NewWidth <> MainWindow.Width) or
-       (NewHeight <> MainWindow.Height) then
+    if (NewWidth <> MainWindow.FRealWidth) or
+       (NewHeight <> MainWindow.FRealHeight) then
       Resize(NewWidth, NewHeight);
 
     { we do not check Invalidated here, just redraw every frame when window is open }
