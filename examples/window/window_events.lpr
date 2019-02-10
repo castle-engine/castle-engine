@@ -146,7 +146,6 @@ begin
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
   Window.OnMotion := @Motion;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   Window.OnUpdate := @Update;
   Application.TimerMilisec := 5000;

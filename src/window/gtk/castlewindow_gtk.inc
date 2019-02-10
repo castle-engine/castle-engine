@@ -530,7 +530,26 @@ SIGNAL_WINDOW_BEGIN
       Key := GdkKeysymToKey(Event^.KeyVal);
       KeyString := Event^._string;
 
-      if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
+      if (Key <> K_None) or (KeyString <> '') then
+      begin
+        { Fix some cases when KeyString should better correspond to Key. }
+        if KeyString = '' then
+          case Key of
+            {$ifdef MSWINDOWS}
+            { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
+              GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
+            keyEscape   : KeyString := CharEscape;
+            keyEnter    : KeyString := CharEnter;
+            {$endif}
+            { It seems that GTK 2 doesn't translate backspace and tab to
+              appropriate chars. So I'm fixing it here. }
+            keyTab      : KeyString := CharTab;
+            keyBackSpace: KeyString := CharBackSpace;
+            keyDelete   : KeyString := CharDelete;
+          end;
+
+        DoKeyDown(Key, KeyString);
+      end;
     end;
   end;
 
