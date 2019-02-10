@@ -500,7 +500,7 @@ begin
   begin
     if Text <> '' then
     begin
-      Text := Copy(Text, 1, Length(Text) - 1);
+      Text := UTF8Copy(Text, 1, UTF8Length(Text) - 1);
       DoChange;
     end;
     Result := ExclusiveEvents;

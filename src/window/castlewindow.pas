@@ -94,15 +94,13 @@
       Window: TCastleWindowBase;
 
     procedure Render(Sender: TUIContainer);
-    begin  ...  end;
-
-    procedure Resize(Sender: TUIContainer);
-    begin  ...  end;
+    begin
+      // ... e.g. DrawRectangle or TGLImage.Draw calls inside
+    end;
 
     begin
       Window := TCastleWindowBase.Create(Application);
       Window.OnResize := @Resize;
-      Window.OnRender := @Render;
       Window.Caption := 'Simplest CastleWindow example';
       Window.OpenAndRun;
     end.
@@ -3568,7 +3566,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.DoKeyUp(const Key: TKey);
+procedure TCastleWindowBase.DoKeyUp(const key: TKey);
 var
   KeyString: String;
 begin
@@ -3643,6 +3641,10 @@ end;
 
 procedure TCastleWindowBase.DoUpdate;
 begin
+  {$ifdef CASTLE_WINDOW_LCL}
+  FKeyPressHandler.Flush; // finish any pending key presses
+  {$endif}
+
   MakeCurrent;
   Container.EventUpdate;
 

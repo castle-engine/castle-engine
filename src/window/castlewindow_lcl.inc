@@ -76,6 +76,7 @@ private
     Form: TForm;
     OpenGLControl: TGoodOpenGLControl;
     Menu: TMainMenu;
+    FKeyPressHandler: TLCLKeyPressHandler;
 
   procedure MenuCastleToLCL(const MyMenu: TMenu; const AMenu: Menus.TMenuItem);
   function MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
@@ -84,6 +85,8 @@ private
   procedure MenuUpdateShortcut(Entry: TMenuItem);
   procedure AggressiveUpdate;
   procedure UpdateFullScreenForm;
+  procedure KeyPressHandlerPress(Sender: TObject;
+    const Event: TInputPressRelease);
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
@@ -93,6 +96,7 @@ private
   procedure OpenGLControlResize(Sender: TObject);
   procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
     Shift: TShiftState);
+  procedure OpenGLControlUTF8KeyPress(Sender: TObject; var UTF8Key: TUTF8Char);
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
     Shift: TShiftState);
   procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
@@ -117,7 +121,7 @@ private
 {$ifdef read_implementation}
 
 const
-  MaxDesiredFPS = DefaultLimitFPS;
+  MaxDesiredFPS = TCastleApplicationProperties.DefaultLimitFPS;
 
 { TGoodMenuItem ---------------------------------------------------------------- }
 
@@ -409,6 +413,9 @@ procedure TCastleWindowBase.OpenBackend;
   end;
 
 begin
+  FKeyPressHandler := TLCLKeyPressHandler.Create;
+  FKeyPressHandler.OnPress := @KeyPressHandlerPress;
+
   { We use Forms.Application.CreateForm, not just "Form := TForm.CreateNew(nil)",
     because we want our Form to be set as Forms.Application.MainForm.
 
@@ -513,6 +520,7 @@ begin
   OpenGLControl.OnPaint := @OpenGLControlPaint;
   OpenGLControl.OnResize := @OpenGLControlResize;
   OpenGLControl.OnKeyDown := @OpenGLControlKeyDown;
+  OpenGLControl.OnUTF8KeyPress := @OpenGLControlUTF8KeyPress;
   OpenGLControl.OnKeyUp := @OpenGLControlKeyUp;
   OpenGLControl.OnMouseDown := @OpenGLControlMouseDown;
   OpenGLControl.OnMouseUp := @OpenGLControlMouseUp;
@@ -550,6 +558,12 @@ begin
   end;
 end;
 
+procedure TCastleWindowBase.KeyPressHandlerPress(Sender: TObject;
+  const Event: TInputPressRelease);
+begin
+  DoKeyDown(Event.Key, Event.KeyString);
+end;
+
 procedure TCastleWindowBase.UpdateFullScreenBackend;
 begin
   if FFullScreenBackend <> FFullScreenWanted then
@@ -576,6 +590,8 @@ begin
   { although Menu was already freed, but make sure we also change state,
     like TCastleWindowBase.MenuInitialized and clear TMenuItem.Handle. }
   MenuFinalize;
+
+  FreeAndNil(FKeyPressHandler);
 end;
 
 procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
@@ -668,22 +684,22 @@ end;
 
 procedure TCastleWindowBase.OpenGLControlKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
-var
-  MyKey: TKey;
-  MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
-  if (MyKey <> K_None) or (MyKeyString <> '') then
-    DoKeyDown(MyKey, MyKeyString);
+  FKeyPressHandler.KeyDown(Key, Shift);
+end;
+
+procedure TCastleWindowBase.OpenGLControlUTF8KeyPress(Sender: TObject;
+  var UTF8Key: TUTF8Char);
+begin
+  FKeyPressHandler.UTF8KeyPress(UTF8Key);
 end;
 
 procedure TCastleWindowBase.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   MyKey: TKey;
-  MyKeyString: String;
 begin
-  KeyLCLToCastle(Key, Shift, MyKey, MyKeyString);
+  MyKey := KeyLCLToCastle(Key, Shift);
   if MyKey <> K_None then
     DoKeyUp(MyKey);
 end;
@@ -987,8 +1003,8 @@ begin
     promises that it's not necessary to call Run, it should be always
     equivalent to call just ProcessMessage in a loop.
 
-    TODO: this makes Update/timer broken, they need our
-    TCastleApplication.ProcessMessage to work. }
+    TODO: this makes Application.OnUpdate/Application.OnTimer broken,
+    they need our TCastleApplication.ProcessMessage to work. }
 
   Forms.Application.Run;
 end;

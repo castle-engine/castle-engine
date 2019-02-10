@@ -1220,6 +1220,7 @@ begin
 
   case c of
     CharEscape: Result := Result + 'Esc';
+    CharDelete: Result := Result + 'Delete';
     ' ' : Result := Result + 'Space';
     { Show lowercase letters as uppercase, this is standard for showing menu item shortcuts.
       Uppercase letters will be prefixed with Shift+. }

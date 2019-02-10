@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <build_gradle_merge>
   <dependencies>
+    <!-- TODO: This is known to fail with latest Android SDK, NDK and Heyzap.
+
+      Should be upgraded to follow
+      https://developers.heyzap.com/docs/android_sdk_setup_and_requirements
+    -->
     <!-- See https://developers.google.com/android/guides/setup#split
       and https://developers.heyzap.com/docs/android_sdk_setup_and_requirements# -->
     <dependency>compile 'com.google.android.gms:play-services-ads:9.4.0'</dependency>

@@ -249,18 +249,6 @@ type
     procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
   end;
 
-  { List of transform nodes (ITransformNode),
-    used to extract TShapeTreeList for this node. }
-  TTransformInstancesList = class(TX3DNodeList)
-  public
-    { Returns existing TShapeTreeList corresponding to given Node.
-      If not found, and AutoCreate, then creates new.
-      If not found, and not AutoCreate, then return @nil. }
-    function Instances(Node: TX3DNode;
-      const AutoCreate: boolean): TShapeTreeList;
-    procedure FreeShapeTrees;
-  end;
-
   { @exclude }
   TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
   { @exclude }
@@ -605,10 +593,12 @@ type
 
     { Handle change of transformation of ITransformNode node.
       TransformNode must not be @nil here.
+      It must be associated only with TShapeTreeTransform,
+      which must be true for all ITransformNode nodes.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
-    procedure TransformationChanged(TransformNode: TX3DNode;
-      Instances: TShapeTreeList; const Changes: TX3DChanges);
+    procedure TransformationChanged(const TransformNode: TX3DNode;
+      const Changes: TX3DChanges);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
     procedure RootTransformationChanged(const Changes: TX3DChanges);
 
@@ -625,11 +615,6 @@ type
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
   private
-    { For all ITransformNode, except Billboard nodes }
-    TransformInstancesList: TTransformInstancesList;
-    { For all Billboard nodes }
-    BillboardInstancesList: TTransformInstancesList;
-
     FGlobalLights: TLightInstancesList;
 
     FLocalBoundingBox: TBox3D;
@@ -671,6 +656,7 @@ type
     TimeDependentHandlers: TTimeDependentHandlerList;
     ProximitySensors: TProximitySensorInstanceList;
     FVisibilitySensors: TVisibilitySensors;
+    BillboardNodes: TX3DNodeList;
 
     procedure ChangedAllEnumerateCallback(Node: TX3DNode);
     procedure ScriptsInitializeCallback(Node: TX3DNode);
@@ -959,12 +945,6 @@ type
       @exclude }
     InternalDirty: Cardinal;
 
-    { Optimize scenes, for scenes that do not change structure (new/removed nodes)
-      but often change field contents (e.g. coordinates contents, color contents).
-      This is unstable now, you may even get access violations as the cached
-      data is not always cleared from nodes. }
-    OptimizeDynamicShapes: Boolean experimental;
-
     const
       DefaultShadowMapsDefaultSize = 256;
 
@@ -1070,16 +1050,13 @@ type
 
     destructor Destroy; override;
 
-    { Simple (usually very flat) tree of shapes within this VRML/X3D scene.
-
-      Contents of this tree are read-only from outside.
-
-      Note that the only place where @link(Shapes) structure is rebuild
-      in this class is ChangedAll procedure.
-      So e.g. if you want to do something after each change of
-      @link(Shapes) tree, you can simply override ChangedAll
-      and do your work after calling "inherited". }
+    { Tree of shapes in the scene, acting as a simplfied mirror
+      of the X3D node graph.
+      Contents of this tree are read-only from outside. }
     property Shapes: TShapeTree read FShapes;
+
+    // { Bounding box of all occurences of the given X3D Shape node. }
+    // function ShapeBoundingBox(const Node: TShapeNode): TBox3D;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -2685,33 +2662,6 @@ begin
       List^[I].Handler.UpdateNeeded := true;
 end;
 
-{ TTransformInstancesList ------------------------------------------------- }
-
-function TTransformInstancesList.Instances(Node: TX3DNode;
-  const AutoCreate: boolean): TShapeTreeList;
-begin
-  Result := Node.ShapeTrees as TShapeTreeList;
-
-  if (Result = nil) and AutoCreate then
-  begin
-    Node.ShapeTrees := TShapeTreeList.Create(false);
-    Result := TShapeTreeList(Node.ShapeTrees);
-    Add(Node);
-  end;
-end;
-
-procedure TTransformInstancesList.FreeShapeTrees;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-  begin
-    Items[I].ShapeTrees.Free;
-    Items[I].ShapeTrees := nil;
-  end;
-  Count := 0;
-end;
-
 { TTimeDependentHandlerList ------------------------------------------------- }
 
 procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
@@ -2771,14 +2721,13 @@ begin
   FPointingDeviceActiveSensors := TX3DNodeList.Create(false);
 
   FCompiledScriptHandlers := TCompiledScriptHandlerInfoList.Create;
-  TransformInstancesList := TTransformInstancesList.Create(false);
-  BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TGeneratedTextureList.Create;
   ProximitySensors := TProximitySensorInstanceList.Create(false);
   FVisibilitySensors := TVisibilitySensors.Create;
   ScreenEffectNodes := TX3DNodeList.Create(false);
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
+  BillboardNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
@@ -2808,18 +2757,9 @@ begin
   FreeAndNil(ProximitySensors);
   FreeAndNil(FVisibilitySensors);
   FreeAndNil(GeneratedTextures);
-  if TransformInstancesList <> nil then
-  begin
-    TransformInstancesList.FreeShapeTrees;
-    FreeAndNil(TransformInstancesList);
-  end;
-  if BillboardInstancesList <> nil then
-  begin
-    BillboardInstancesList.FreeShapeTrees;
-    FreeAndNil(BillboardInstancesList);
-  end;
   FreeAndNil(FCompiledScriptHandlers);
   FreeAndNil(KeyDeviceSensorNodes);
+  FreeAndNil(BillboardNodes);
   FreeAndNil(TimeDependentHandlers);
 
   FreeAndNil(FBackgroundStack);
@@ -2949,6 +2889,27 @@ begin
   if AValue <> FURL then
     Load(AValue);
 end;
+
+(* This is working, and ultra-fast thanks to TShapeTree.AssociatedShape,
+   but in practice it's unused now.
+
+function TCastleSceneCore.ShapeBoundingBox(const Node: TShapeNode): TBox3D;
+var
+  I: Integer;
+begin
+  C := TShapeTree.AssociatedShapesCount(Node);
+  case C of
+    0: Result := TBox3D.Empty;
+    1: Result := TShape(TShapeTree.AssociatedShape(Node, 0)).BoundingBox;
+    else
+      begin
+        Result := TBox3D.Empty;
+        for I := 0 to C - 1 do
+          Result.Include(TShape(TShapeTree.AssociatedShape(Node, I)).BoundingBox);
+      end;
+  end;
+end;
+*)
 
 function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin
@@ -3113,10 +3074,9 @@ function TChangedAllTraverser.Traverse(
 
     ShapesGroup.Children.Add(TransformTree);
 
-    { update ParentScene.TransformInstancesList }
+    { update ParentScene.BillboardNodes }
     if TransformNode is TBillboardNode then
-      ParentScene.BillboardInstancesList.Instances(TransformNode, true).Add(TransformTree) else
-      ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
+      ParentScene.BillboardNodes.Add(TransformNode);
 
     Traverser := TChangedAllTraverser.Create;
     try
@@ -3389,8 +3349,7 @@ end;
 procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
-  TransformInstancesList.FreeShapeTrees;
-  BillboardInstancesList.FreeShapeTrees;
+  BillboardNodes.Count := 0;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
   VisibilitySensors.Clear;
@@ -3412,7 +3371,8 @@ begin
 
   if not InternalChangedAll then
   begin
-    { Clean Shapes, ShapeLODs }
+    { Clean Shapes, ShapeLODs.
+      TShapeTree and descendants keep references to Nodes. }
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
@@ -3857,6 +3817,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     SI: TShapeTreeIterator;
     Current: TShape;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
+
     SI := TShapeTreeIterator.Create(ParentScene.Shapes, false);
     try
       while SI.GetNext do
@@ -3992,13 +3954,13 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.TransformationChanged(TransformNode: TX3DNode;
-  Instances: TShapeTreeList; const Changes: TX3DChanges);
+procedure TCastleSceneCore.TransformationChanged(const TransformNode: TX3DNode;
+  const Changes: TX3DChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
   TraverseStack: TX3DGraphTraverseStateStack;
-  I: Integer;
+  C, I: Integer;
   TransformShapeTree: TShapeTreeTransform;
   DoVisibleChanged: boolean;
 begin
@@ -4019,9 +3981,11 @@ begin
     Fog and Background nodes are affected by their parents transform.
   }
 
+  C := TShapeTree.AssociatedShapesCount(TransformNode);
+
   if Log and LogChanges then
-    WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
-      [TransformNode.X3DType, Instances.Count]));
+    WritelnLog('X3D changes', Format('Transform node %s change: present %d times in the scene graph',
+      [TransformNode.X3DType, C]));
 
   DoVisibleChanged := false;
 
@@ -4037,9 +4001,9 @@ begin
     TransformChangeHelper.ChangingNode := TransformNode;
     TransformChangeHelper.Changes := Changes;
 
-    for I := 0 to Instances.Count - 1 do
+    for I := 0 to C - 1 do
     begin
-      TransformShapeTree := Instances[I] as TShapeTreeTransform;
+      TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
       TraverseStack.Clear;
       TraverseStack.Push(TransformShapeTree.TransformState);
 
@@ -4163,8 +4127,6 @@ var
 
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
-  var
-    Instances: TShapeTreeList;
   begin
     { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
       otherwise TransformationDirty would never be processed }
@@ -4175,25 +4137,13 @@ var
     begin
       Check(Supports(ANode, ITransformNode),
         'chTransform flag may be set only for ITransformNode');
-
-      Instances := TransformInstancesList.Instances(ANode, false);
-      if Instances = nil then
-      begin
-        if Log and LogChanges then
-          WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-            [ANode.X3DType]));
-        Exit;
-      end;
-
-      TransformationChanged(ANode, Instances, Changes);
+      TransformationChanged(ANode, Changes);
     end;
   end;
 
   procedure HandleChangeCoordinate;
   var
-    Coord: TMFVec3f;
-    SI: TShapeTreeIterator;
-    ConnectedShapes: Cardinal;
+    C, I: Integer;
   begin
     { TCoordinateNode is special, although it's part of VRML 1.0 state,
       it can also occur within coordinate-based nodes of VRML >= 2.0.
@@ -4203,35 +4153,19 @@ var
       That's why chCoordinate should not be used with chVisibleVRML1State
       --- chVisibleVRML1State handling is not needed after this. }
 
-    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
-    begin
-      TShape(ANode.InternalSceneShape).Changed(false, Changes);
-    end else
-    begin
-      ConnectedShapes := 0;
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.Geometry.InternalCoord(SI.Current.State, Coord) and
-              (Coord = Field)) or
-             { Change to OriginalGeometry.Coord should also be reported,
-               since it may cause FreeProxy for shape. This is necessary
-               for animation of NURBS controlPoint to work. }
-             (SI.Current.OriginalGeometry.InternalCoord(SI.Current.State, Coord) and
-              (Coord = Field)) then
-          begin
-            SI.Current.Changed(false, Changes);
-            if ConnectedShapes = 0 then
-            begin
-              ANode.InternalSceneShape := SI.Current;
-              Inc(ConnectedShapes);
-            end else
-              ANode.InternalSceneShape := nil;
-          end;
-      finally FreeAndNil(SI) end;
-    end;
+    { Note that both shape's OriginalGeometry, and actualy Geometry,
+      have associated shapes.
+      This is good, as a change to OriginalGeometry.Coord should also be handled,
+      since it may cause FreeProxy for shape. This is necessary
+      for animation of NURBS controlPoint to work. }
 
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    end;
   end;
 
   { Good for both chVisibleVRML1State and chGeometryVRML1State
@@ -4257,19 +4191,16 @@ var
   end;
 
   procedure HandleChangeMaterial;
-
-    procedure HandleShape(Shape: TShape);
-    begin
-      if (Shape.State.ShapeNode <> nil) and
-         (Shape.State.ShapeNode.Material = ANode) then
-        Shape.Changed(false, Changes);
-    end;
-
+  var
+    C, I: Integer;
   begin
-    { VRML 2.0 Material affects only shapes where it's
-      placed inside Appearance.material field. }
-    Shapes.Traverse(@HandleShape, false);
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    end;
   end;
 
   procedure HandleChangeLightInstanceProperty;
@@ -4279,6 +4210,8 @@ var
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
+
     LightNode := ANode as TAbstractLightNode;
 
     { Update all TLightInstance records with LightNode = this ANode.
@@ -4383,8 +4316,7 @@ var
 
   procedure HandleChangeColorNode;
   var
-    SI: TShapeTreeIterator;
-    ConnectedShapes: Cardinal;
+    C, I: Integer;
   begin
     { Affects all geometry nodes with "color" field referencing this node.
 
@@ -4392,44 +4324,21 @@ var
       This is not detected for now, and doesn't matter (we do not handle
       particle systems at all now). }
 
-    if OptimizeDynamicShapes and (ANode.InternalSceneShape <> nil) then
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
     begin
-      TShape(ANode.InternalSceneShape).Changed(false, Changes);
-    end else
-    begin
-      ConnectedShapes := 0;
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.Geometry.ColorField <> nil) and
-             (SI.Current.Geometry.ColorField.Value = ANode) then
-          begin
-            SI.Current.Changed(false, Changes);
-            if ConnectedShapes = 0 then
-            begin
-              ANode.InternalSceneShape := SI.Current;
-              Inc(ConnectedShapes);
-            end else
-              ANode.InternalSceneShape := nil;
-          end;
-      finally FreeAndNil(SI) end;
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
     end;
   end;
 
   procedure HandleChangeTextureCoordinate;
   var
-    SI: TShapeTreeIterator;
-    TexCoord: TX3DNode;
+    C, I: Integer;
   begin
-    { VRML 2.0 TextureCoordinate affects only shapes where it's
-      placed inside texCoord field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.Geometry.InternalTexCoord(SI.Current.State, TexCoord) and
-           (TexCoord = ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    for I := 0 to C - 1 do
+      TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
   end;
 
   procedure HandleChangeTextureTransform;
@@ -4459,6 +4368,8 @@ var
   var
     SI: TShapeTreeIterator;
   begin
+    // TODO: Optimize and simplify to use TShapeTree.AssociatedShape
+
     { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
       placed inside textureTransform field. }
     SI := TShapeTreeIterator.Create(Shapes, false);
@@ -4475,16 +4386,11 @@ var
 
   procedure HandleChangeGeometry;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
-    { Geometry nodes, affect only shapes that use them. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.Geometry = ANode) or
-           (SI.Current.OriginalGeometry = ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    for I := 0 to C - 1 do
+      TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
   end;
 
   procedure HandleChangeEnvironmentalSensorBounds;
@@ -4571,6 +4477,7 @@ var
   var
     SI: TShapeTreeIterator;
   begin
+    // TODO: Optimize using TShapeTree.AssociatedShape
     if chTextureImage in Changes then
     begin
       { On change of TAbstractTexture2DNode field that changes the result of
@@ -4626,21 +4533,17 @@ var
 
   procedure HandleChangeClipPlane;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
     Assert(ANode is TClipPlaneNode);
 
-    { Call TShape.Changed for all shapes using this ClipPlane node. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if (SI.Current.State.ClipPlanes <> nil) and
-           (SI.Current.State.ClipPlanes.IndexOfNode(TClipPlaneNode(ANode)) <> -1) then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
-    VisibleChangeHere([vcVisibleGeometry]);
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+      VisibleChangeHere([vcVisibleGeometry]);
+    end;
   end;
 
   procedure HandleChangeEverything;
@@ -4717,19 +4620,14 @@ var
 
   procedure HandleChangeWireframe;
   var
-    SI: TShapeTreeIterator;
+    C, I: Integer;
   begin
-    Assert(ANode is TShapeNode);
-
-    { Call TShape.Changed for all shapes using this Shape node. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if SI.Current.State.ShapeNode = ANode then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+    end;
   end;
 
   procedure HandleChangeChildren;
@@ -6562,7 +6460,7 @@ procedure TCastleSceneCore.UpdateCameraEvents;
     Result :=
       (ShapeLODs.Count <> 0) or
       (ProximitySensors.Count <> 0) or
-      (BillboardInstancesList.Count <> 0);
+      (BillboardNodes.Count <> 0);
   end;
 
   { Update things depending on camera information and X3D events.
@@ -6588,13 +6486,11 @@ procedure TCastleSceneCore.UpdateCameraEvents;
       this will be a little wasteful. We should update first all camera
       information, and then update only Billboard nodes that do not have
       any parent Billboard nodes. }
-    for I := 0 to BillboardInstancesList.Count - 1 do
+    for I := 0 to BillboardNodes.Count - 1 do
     begin
-      (BillboardInstancesList[I] as TBillboardNode).CameraChanged(CameraVectors);
+      (BillboardNodes[I] as TBillboardNode).CameraChanged(CameraVectors);
       { TODO: use OptimizeExtensiveTransformations? }
-      TransformationChanged(BillboardInstancesList[I],
-        BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
-        [chTransform]);
+      TransformationChanged(BillboardNodes[I], [chTransform]);
     end;
   end;
 

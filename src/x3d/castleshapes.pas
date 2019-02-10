@@ -215,6 +215,40 @@ type
     function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
 
     function DebugInfo(const Indent: string = ''): string; virtual; abstract;
+
+    { Using the TX3DNode.InternalSceneShape field,
+      you can associate X3D node with a number of TShapeTree instances.
+      This allows to map X3D node -> TShapeTree instances instantly
+      (without e.g. searching the shapes tree for it),
+      which is great to do some operations very quickly.
+
+      Right now:
+      - TShapeTreeTransform is associated with ITransformNode
+        (like TTransformNode, TBillboardNode).
+
+      - TShape is associated with
+        TShapeNode,
+        TAbstractGeometryNode,
+        TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
+        TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
+        TMaterialNode (anything that can be in TShapeNode.Material),
+        TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
+        TClipPlaneNode .
+
+      Note that UnAssociateNode should only be called on nodes
+      with which we are associated. Trying to call UnAssociateNode
+      on a node on which we didn't call AssociateNode will have
+      undefined results (for speed).
+
+      It is valid to associate X3D node with TShapeTree multiple times,
+      but it must be unassociated the same number of times.
+
+      @param Node The node with possibly associated shapes. Never @nil.
+    }
+    procedure AssociateNode(const Node: TX3DNode);
+    procedure UnAssociateNode(const Node: TX3DNode);
+    class function AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
+    class function AssociatedShapesCount(const Node: TX3DNode): Integer; static;
   end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
@@ -289,6 +323,21 @@ type
       freeing eventual instances created by Proxy methods.
       Next Geometry() or State() call will cause Proxy to be recalculated. }
     procedure FreeProxy;
+
+    procedure AssociateGeometryState(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure UnAssociateGeometryState(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure AssociateGeometryStateNeverProxied(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure UnAssociateGeometryStateNeverProxied(
+      const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState);
+    procedure AssociateProxyGeometryState(const OverTriangulate: Boolean);
+    procedure UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
   strict private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
@@ -741,6 +790,7 @@ type
   strict private
     FTransformNode: TX3DNode;
     FTransformState: TX3DGraphTraverseState;
+    procedure SetTransformNode(const Value: TX3DNode);
   public
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
@@ -749,8 +799,10 @@ type
       because we don't want to keep reference to it too long,
       as it's manually freed. That's safer. }
     { Transforming VRML/X3D node. Always assigned, always may be casted
-      to ITransformNode interface. }
-    property TransformNode: TX3DNode read FTransformNode write FTransformNode;
+      to ITransformNode interface.
+      Note that it doesn't have to be TTransformNode,
+      e.g. TBillboardNode also supports ITransformNode. }
+    property TransformNode: TX3DNode read FTransformNode write SetTransformNode;
 
     { State right before traversing the TransformNode.
       Owned by this TShapeTreeTransform instance. You should assign
@@ -1122,6 +1174,73 @@ begin
   Result := nil;
 end;
 
+procedure TShapeTree.AssociateNode(const Node: TX3DNode);
+var
+  OldShapeTree: TShapeTree;
+begin
+  { InternalSceneShape is either nil, TShapeTree or TShapeTreeList.
+    Memory usage is important here -- we have a lot of nodes in larger scenes,
+    and in many cases a Node is associated with at most one TShapeTree.
+    So we optimize this common case. }
+
+  if Node.InternalSceneShape = nil then
+    Node.InternalSceneShape := Self
+  else
+  if Node.InternalSceneShape <> nil then
+  begin
+    { comparing ClassType is faster than "InternalSceneShape is TShapeTreeList",
+      and enough in this case. }
+    if Node.InternalSceneShape.ClassType <> TShapeTreeList then
+    begin
+      // convert Node.InternalSceneShape into list with 1 item
+      Assert(Node.InternalSceneShape is TShapeTree);
+      OldShapeTree := TShapeTree(Node.InternalSceneShape);
+      Node.InternalSceneShape := TShapeTreeList.Create(false);
+      TShapeTreeList(Node.InternalSceneShape).Add(OldShapeTree);
+    end;
+    TShapeTreeList(Node.InternalSceneShape).Add(Self);
+  end;
+end;
+
+procedure TShapeTree.UnAssociateNode(const Node: TX3DNode);
+begin
+  if Node.InternalSceneShape = Self then
+    Node.InternalSceneShape := nil
+  else
+  begin
+    Assert(Node.InternalSceneShape <> nil);
+    Assert(Node.InternalSceneShape is TShapeTreeList);
+    if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
+    begin
+      Assert(TShapeTreeList(Node.InternalSceneShape)[0] = Self);
+      Node.InternalSceneShape.Free;
+      Node.InternalSceneShape := nil;
+    end else
+      TShapeTreeList(Node.InternalSceneShape).Remove(Self);
+  end;
+end;
+
+class function TShapeTree.AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
+begin
+  if Node.InternalSceneShape.ClassType = TShapeTreeList then
+    Result := TShapeTreeList(Node.InternalSceneShape)[Index]
+  else
+    Result := TShapeTree(Node.InternalSceneShape);
+end;
+
+class function TShapeTree.AssociatedShapesCount(const Node: TX3DNode): Integer; static;
+begin
+  if Node.InternalSceneShape = nil then
+    Result := 0
+  else
+  if Node.InternalSceneShape.ClassType <> TShapeTreeList then
+  begin
+    Assert(Node.InternalSceneShape is TShapeTree);
+    Result := 1;
+  end else
+    Result := TShapeTreeList(Node.InternalSceneShape).Count;
+end;
+
 { TShape -------------------------------------------------------------- }
 
 constructor TShape.Create(AParentScene: TObject;
@@ -1135,6 +1254,9 @@ begin
 
   FOriginalGeometry := AOriginalGeometry;
   FOriginalState := AOriginalState;
+
+  AssociateGeometryState(FOriginalGeometry, FOriginalState);
+  AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
 
   if ParentInfo <> nil then
   begin
@@ -1159,9 +1281,121 @@ begin
   FreeAndNil(FShadowVolumes);
   FreeProxy;
   FreeAndNil(FNormals);
-  FreeAndNil(FOriginalState);
+  if FOriginalState <> nil then // when exception occurs in constructor, may be nil
+  begin
+    UnAssociateGeometryState(FOriginalGeometry, FOriginalState);
+    UnAssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
+    FreeAndNil(FOriginalState);
+  end;
   FreeOctreeTriangles;
   inherited;
+end;
+
+procedure TShape.AssociateGeometryState(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+begin
+  if AGeometry <> nil then
+  begin
+    AssociateNode(AGeometry);
+    if (AGeometry.ColorField <> nil) and
+       (AGeometry.ColorField.Value <> nil) then
+      AssociateNode(AGeometry.ColorField.Value);
+    if (AGeometry.CoordField <> nil) and
+       (AGeometry.CoordField.Value <> nil) then
+      AssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.TexCoordField <> nil) and
+       (AGeometry.TexCoordField.Value <> nil) then
+      AssociateNode(AGeometry.TexCoordField.Value);
+  end;
+end;
+
+procedure TShape.AssociateGeometryStateNeverProxied(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
+  if AState <> nil then
+  begin
+    if AState.ShapeNode <> nil then
+    begin
+      AssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Material <> nil then
+        AssociateNode(AState.ShapeNode.Material);
+    end;
+    if AState.ClipPlanes <> nil then
+      for I := 0 to AState.ClipPlanes.Count - 1 do
+        AssociateNode(AState.ClipPlanes[I].Node);
+  end;
+end;
+
+procedure TShape.UnAssociateGeometryState(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+begin
+  if AGeometry <> nil then
+  begin
+    UnAssociateNode(AGeometry);
+    if (AGeometry.ColorField <> nil) and
+       (AGeometry.ColorField.Value <> nil) then
+      UnAssociateNode(AGeometry.ColorField.Value);
+    if (AGeometry.CoordField <> nil) and
+       (AGeometry.CoordField.Value <> nil) then
+      UnAssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.TexCoordField <> nil) and
+       (AGeometry.TexCoordField.Value <> nil) then
+      UnAssociateNode(AGeometry.TexCoordField.Value);
+  end;
+end;
+
+procedure TShape.UnAssociateGeometryStateNeverProxied(
+  const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState);
+var
+  I: Integer;
+begin
+  if AState <> nil then
+  begin
+    if AState.ShapeNode <> nil then
+    begin
+      UnAssociateNode(AState.ShapeNode);
+      if AState.ShapeNode.Material <> nil then
+        UnAssociateNode(AState.ShapeNode.Material);
+    end;
+    if AState.ClipPlanes <> nil then
+      for I := 0 to AState.ClipPlanes.Count - 1 do
+        UnAssociateNode(AState.ClipPlanes[I].Node);
+  end;
+end;
+
+procedure TShape.AssociateProxyGeometryState(const OverTriangulate: Boolean);
+begin
+  Assert(FGeometry[OverTriangulate] <> nil);
+  Assert(FState   [OverTriangulate] <> nil);
+
+  { For speed, do not even call AssociateGeometryState
+    when the proxy is equal to actual nodes.
+    This way in an usual case, a geometry node will have only 1 associated shape,
+    which is best for memory usage. }
+
+  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
+     (FState   [OverTriangulate] <> FOriginalState) then
+  begin
+    AssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+  end;
+end;
+
+procedure TShape.UnAssociateProxyGeometryState(const OverTriangulate: Boolean);
+begin
+  Assert(FGeometry[OverTriangulate] <> nil);
+  Assert(FState   [OverTriangulate] <> nil);
+
+  if (FGeometry[OverTriangulate] <> FOriginalGeometry) or
+     (FState   [OverTriangulate] <> FOriginalState) then
+  begin
+    UnAssociateGeometryState(FGeometry[OverTriangulate], FState[OverTriangulate]);
+  end;
 end;
 
 procedure TShape.FreeOctreeTriangles;
@@ -1400,6 +1634,11 @@ begin
     ( (FState[true ] <> OriginalState) and (FState[true ] <> nil) )
     ) then
     WritelnLog('X3D changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
+
+  if FGeometry[false] <> nil then
+    UnAssociateProxyGeometryState(false);
+  if FGeometry[true] <> nil then
+    UnAssociateProxyGeometryState(true);
 
   if FGeometry[false] <> OriginalGeometry then
   begin
@@ -2249,6 +2488,8 @@ begin
     try
       FGeometry[OverTriangulate] := OriginalGeometry.Proxy(
         FState[OverTriangulate], OverTriangulate);
+      if FGeometry[OverTriangulate] <> nil then
+        AssociateProxyGeometryState(OverTriangulate);
     except
       { in case of trouble, remember to keep both
         FGeometry[OverTriangulate] and FState[OverTriangulate] nil.
@@ -2270,6 +2511,7 @@ begin
         Assert(FState[not OverTriangulate] = nil);
         FGeometry[not OverTriangulate] := FGeometry[OverTriangulate];
         FState   [not OverTriangulate] := FState   [OverTriangulate];
+        AssociateProxyGeometryState(not OverTriangulate);
       end;
     end else
     begin
@@ -2670,8 +2912,22 @@ end;
 
 destructor TShapeTreeTransform.Destroy;
 begin
+  if FTransformNode <> nil then
+    UnAssociateNode(FTransformNode);
   FreeAndNil(FTransformState);
   inherited;
+end;
+
+procedure TShapeTreeTransform.SetTransformNode(const Value: TX3DNode);
+begin
+  if FTransformNode <> Value then
+  begin
+    if FTransformNode <> nil then
+      UnAssociateNode(FTransformNode);
+    FTransformNode := Value;
+    if FTransformNode <> nil then
+      AssociateNode(FTransformNode);
+  end;
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
