@@ -754,7 +754,7 @@ begin
   FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
   FLibraryPaths := TStringList.Create;
-  FAndroidProjectType := apBase;
+  FAndroidProjectType := apIntegrated;
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
