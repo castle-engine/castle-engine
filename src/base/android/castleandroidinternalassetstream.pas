@@ -145,12 +145,23 @@ end;
 function URIToAssetPath(const URI: string): string;
 var
   U: TURI;
+  FixedURI: String;
 begin
   U := ParseURI(URI);
   if SameText(U.Protocol, 'assets') or
      SameText(U.Protocol, 'castle-android-assets') then
+  begin
+    // Try to work (but with warning) even in case of some invalid URI
+    if IsPrefix('castle-android-assets://', URI, true) then
+    begin
+      WritelnWarning('Too many / at the beginning of URL "%s". This usually means you used ApplicationData(''/xxx'') or ''castle-data://xxx'', while you should use ApplicationData(''xxx'') or ''castle-data:/xxx''.',
+        [URI]);
+      FixedURI := 'castle-android-assets:/' + PrefixRemove('castle-android-assets://', URI, true);
+      U := ParseURI(FixedURI);
+    end;
+
     Result := PrefixRemove('/', U.Path + U.Document, false)
-  else
+  end else
     raise Exception.CreateFmt('URI does not have protocol "castle-android-assets:" or "assets:", cannot convert to Android asset path: %s, protocol %s',
       [URI, U.Protocol]);
 end;
