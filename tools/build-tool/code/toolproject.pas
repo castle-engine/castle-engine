@@ -323,7 +323,7 @@ constructor TCastleProject.Create(const APath: string);
       We want also NativeActivity and EGL, which require API level 9 or higher. }
     ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
-    DefaultAndroidTargetSdkVersion = 23;
+    DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     DefaultUsesNonExemptEncryption = true;
 
     { character sets }
