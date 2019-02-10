@@ -524,8 +524,11 @@ begin
   RunGradle(PackageMode);
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
-  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
-    PathDelim + 'outputs' + PathDelim + 'apk' + PathDelim +
+  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim +
+    'build' +  PathDelim +
+    'outputs' + PathDelim +
+    'apk' + PathDelim +
+    PackageModeToName[PackageMode] + PathDelim +
     'app-' + PackageModeToName[PackageMode] + '.apk',
     Project.OutputPath + ApkName);
 

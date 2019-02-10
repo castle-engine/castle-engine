@@ -1,53 +1,20 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
+        google()
         jcenter()
-
-        /*
-          Workaround missing
-
-            https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.pom
-            https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.jar
-
-          Make building fail with
-          * What went wrong:
-           A problem occurred configuring root project 'project'.
-           > Could not resolve all dependencies for configuration ':classpath'.
-              > Could not find com.android.tools:common:25.2.3.
-                Searched in the following locations:
-                    https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.pom
-                    https://jcenter.bintray.com/com/android/tools/common/25.2.3/common-25.2.3.jar
-                Required by:
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.build:manifest-merger:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.ddms:ddmlib:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.analytics-library:shared:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools.analytics-library:tracker:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools.layoutlib:layoutlib-api:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools:dvlib:25.2.3
-                    project : > com.android.tools.build:gradle:2.2.3 > com.android.tools.build:gradle-core:2.2.3 > com.android.tools.build:builder:2.2.3 > com.android.tools:sdklib:25.2.3 > com.android.tools:repository:25.2.3
-
-          See also
-          https://stackoverflow.com/questions/53691457/react-native-android-could-not-find-com-android-toolscommon25-2-3
-          https://developer.android.com/studio/build/
-          https://developer.android.com/studio/releases/gradle-plugin
-
-          TODO: Probably upgrading our Gradle version to 3 would also fix this issue,
-          removing the need for this workaround.
-        */
-        maven { url "https://dl.bintray.com/android/android-tools/"  }
     }
     dependencies {
         // This declares the "Android Gradle plugin" version
         // (not Gradle version, which is visible in gradle/wrapper/gradle-wrapper.properties).
         //
-        // We use the latest "Android Gradle plugin" version that works with Gradle
+        // We use the latest "Android Gradle plugin" version that still works with Gradle
         // in current Debian testing / unstable
-        // (https://packages.debian.org/search?keywords=gradle).
+        // (https://packages.debian.org/search?keywords=gradle), 4.4.1 currently.
         // This allows to replace our Gradle wrapper
         // with the Gradle from Debian package, if needed.
         // See https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:3.1.0'
 
         // Do not change the line below, it is necessary for build.gradle merging to work.
         // MERGE-DEPENDENCIES
@@ -64,6 +31,7 @@ allprojects {
     }
 
     repositories {
+        google()
         jcenter()
 
         // To be able to compile aar in libs/ , following

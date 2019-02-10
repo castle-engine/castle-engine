@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion ${ANDROID_COMPILE_SDK_VERSION}
-    buildToolsVersion "${ANDROID_BUILD_TOOLS_VERSION}"
 
     defaultConfig {
         applicationId "${QUALIFIED_NAME}"
@@ -31,6 +30,13 @@ android {
         //     debuggable true
         //     jniDebuggable true
         // }
+    }
+
+    // See https://developer.android.com/studio/projects/gradle-external-native-builds
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
     }
 }
 

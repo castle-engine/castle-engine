@@ -64,7 +64,6 @@ type
     FVersionCode: Cardinal;
     FFullscreenImmersive: boolean;
     FScreenOrientation: TScreenOrientation;
-    FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidServices, FIOSServices: TServiceList;
@@ -172,7 +171,6 @@ type
     property FullscreenImmersive: boolean read FFullscreenImmersive;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
-    property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
@@ -320,8 +318,7 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
-    DefaultAndroidCompileSdkVersion = 23;
-    DefaultAndroidBuildToolsVersion = '23.0.2';
+    DefaultAndroidCompileSdkVersion = 27;
     { We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
       We want also NativeActivity and EGL, which require API level 9 or higher. }
     ReallyMinSdkVersion = 9;
@@ -419,7 +416,6 @@ constructor TCastleProject.Create(const APath: string);
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
-      FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
       FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
@@ -582,14 +578,12 @@ constructor TCastleProject.Create(const APath: string);
         end;
 
         FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
-        FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
         FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
         FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
         Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
           FAndroidCompileSdkVersion := Element.AttributeCardinalDef('compile_sdk_version', DefaultAndroidCompileSdkVersion);
-          FAndroidBuildToolsVersion := Element.AttributeStringDef('build_tools_version', DefaultAndroidBuildToolsVersion);
           FAndroidMinSdkVersion := Element.AttributeCardinalDef('min_sdk_version', DefaultAndroidMinSdkVersion);
           FAndroidTargetSdkVersion := Element.AttributeCardinalDef('target_sdk_version', DefaultAndroidTargetSdkVersion);
 
@@ -1665,7 +1659,6 @@ begin
   Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
   Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
   Macros.Add('ANDROID_COMPILE_SDK_VERSION'         , IntToStr(AndroidCompileSdkVersion));
-  Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
   Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
   Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
   Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES'    , AssociateDocumentTypes.ToIntentFilter);
