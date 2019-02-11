@@ -7,6 +7,10 @@
 //#define PCF4_BILINEAR
 //#define PCF16
 
+#ifdef GL_ES
+  #define sampler2DShadow sampler2D
+#endif
+
 float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   const in float size)
 {

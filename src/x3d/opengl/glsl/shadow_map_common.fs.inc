@@ -9,6 +9,10 @@
 '//#define PCF4_BILINEAR' + LineEnding +
 '//#define PCF16' + LineEnding +
 '' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
+'  #define sampler2DShadow sampler2D' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,' + LineEnding +
 '  const in float size)' + LineEnding +
 '{' + LineEnding +

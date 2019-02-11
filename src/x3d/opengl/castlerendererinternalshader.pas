@@ -632,6 +632,9 @@ var
     unreachable code, in practice we use this as a constant. }
   ForceOpenGLESClipPlanes: Boolean = false;
 
+const
+  Sampler2DShadow = {$ifndef OpenGLES} 'sampler2DShadow' {$else} 'sampler2D' {$endif};
+
 { String helpers ------------------------------------------------------------- }
 
 { MoveTo do not warn about incorrect PLUG_ declarations, only return @false
@@ -1649,7 +1652,7 @@ procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 const
   SamplerFromTextureType: array [TTextureType] of string =
-  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
+  ('sampler2D', Sampler2DShadow, 'samplerCube', 'sampler3D', '');
 var
   TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
@@ -1679,6 +1682,9 @@ begin
   begin
     Shader.Plug(stFragment, Format(
       'uniform %s %s;' +NL+
+      {$ifdef OpenGLES}
+      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
+      {$endif}
       'varying vec4 %s;' +NL+
       '%s' +NL+
       'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
@@ -3429,7 +3435,7 @@ end;
 function TShader.DeclareShadowFunctions: string;
 const
   ShadowDeclare: array [boolean { vsm? }] of string =
-  ('float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);',
+  ('float shadow(' + Sampler2DShadow + ' shadowMap, const vec4 shadowMapCoord, const in float size);',
    'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
   ShadowDepthDeclare =
    'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
