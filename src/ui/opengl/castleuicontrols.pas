@@ -1304,6 +1304,9 @@ type
     procedure CheckUIScaleChanged;
     { Recalculate FLastSeenContainerWidth/Height, call Resize if needed. }
     procedure CheckResize;
+
+    { Show Name and ClassName for debug/log purposes. }
+    function DebugName: String;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -4190,6 +4193,14 @@ begin
   end;
 end;
 
+function TCastleUserInterface.DebugName: String;
+begin
+  if Name <> '' then
+    Result := '<unnamed> (' + ClassName + ')'
+  else
+    Result := '"' + Name + '" (' + ClassName + ')';
+end;
+
 procedure TCastleUserInterface.BeforeRender;
 begin
 end;
@@ -4651,7 +4662,7 @@ var
 begin
   if FInsideRectWithoutAnchors then
   begin
-    WriteLnWarning('Recursive call from TCastleUserInterface.RectWithoutAnchors to itself. This means that UI child size depends on the parent (e.g. using FullSize), while at the same time UI parent size depends on the child.');
+    WriteLnWarning('UI control ' + DebugName + ' encountered an endless loop when trying to calculate it''s size. This means that UI child size depends on the parent (e.g. using FullSize or WidthFraction or HeightFraction), while at the same time UI parent size depends on the child (e.g. using AutoSizeToChildren).');
     Exit(TFloatRectangle.Empty);
   end;
   FInsideRectWithoutAnchors := true;
@@ -5254,7 +5265,7 @@ begin
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TCastleUserInterface instance multiple times.');
+          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.DebugName + '. The result is undefined, you cannot insert the same TCastleUserInterface instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
