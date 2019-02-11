@@ -1693,7 +1693,11 @@ begin
       '}',
       [SamplerType, UniformName,
        TexCoordName,
-       Shader.DeclareShadowFunctions,
+       {$ifdef OpenGLES}
+       '// Do not redeclare shadow() and friends on OpenGLES'
+       {$else}
+       Shader.DeclareShadowFunctions
+       {$endif},
        UniformName, TextureUnit, ShadowMapSize]),
       ShadowLightShader.Code);
   end else
