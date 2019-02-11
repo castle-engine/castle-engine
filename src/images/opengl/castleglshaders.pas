@@ -35,6 +35,26 @@
 }
 unit CastleGLShaders;
 
+{ Define CASTLE_SHOW_SHADER_SOURCE_ON_ERROR to show the shader source code
+  when the compilation or linking of a shader program (or it's part) failed.
+
+  This is not done always, automatically, because:
+
+  - The resulting error message can be quite long,
+    as it will contain a full GLSL code.
+    That's useful if you're a developer familiar with GLSL, and able to modify it.
+    But it makes the log very long and hard to read,
+    which is a problem if you're not interested in this particular GLSL bug now.
+
+  - Showing it (at linking) requires collecting shader source code,
+    which uses a bit of memory and time.
+    (But in practice, this is negligible, so this isn't an important argument.)
+
+}
+{$ifdef DEBUG}
+  {$define CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+{$endif}
+
 {$I castleconf.inc}
 
 interface
@@ -243,6 +263,10 @@ type
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
 
     FUniformLocations, FAttributeLocations: TLocationCache;
+
+    {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+    FSource: array [TShaderType] of TStringList;
+    {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 
     class var
       FCurrent: TGLSLProgram;
@@ -1165,6 +1189,10 @@ end;
 { TGLSLProgram --------------------------------------------------------------- }
 
 constructor TGLSLProgram.Create;
+{$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+var
+  ShaderType: TShaderType;
+{$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 begin
   inherited;
 
@@ -1202,9 +1230,18 @@ begin
 
   FUniformLocations := TLocationCache.Create;
   FAttributeLocations := TLocationCache.Create;
+
+  {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  for ShaderType in TShaderType do
+    FSource[ShaderType] := TStringList.Create;
+  {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 end;
 
 destructor TGLSLProgram.Destroy;
+{$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+var
+  ShaderType: TShaderType;
+{$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 begin
   { make sure all shaders are detached and deleted, to free all resources }
 
@@ -1212,6 +1249,11 @@ begin
     so better check that ShaderIds was created. }
   if ShaderIds <> nil then
     DetachAllShaders;
+
+  {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  for ShaderType in TShaderType do
+    FreeAndNil(FSource[ShaderType]);
+  {$endif}
 
   case Support of
     {$ifndef ForceStandardGLSLApi}
@@ -1496,10 +1538,30 @@ var
     So we surround glCompileShader[ARB] in a safeguard, to raise nice
     EGLSLShaderCompileError (that will result in simple warning and fallback
     on fixed-function pipeline) instead of crash. }
-  procedure ReportBuggyCompileShader;
+  procedure ReportCompileAccessViolation;
   begin
     raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
       [ShaderTypeName[ShaderType]]);
+  end;
+
+  procedure ReportCompileError(const CompileErrorMessage: String);
+  var
+    Message: String;
+  begin
+    Message := Format('%s shader not compiled:' + NL +
+      '%s',
+      [ShaderTypeName[ShaderType], CompileErrorMessage]);
+
+    {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+    Message := Message + NL +
+      NL +
+      'The shader source code is below:' + NL +
+      '-------------------------------------------------------' + NL +
+      S + NL +
+      '-------------------------------------------------------';
+    {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+
+    raise EGLSLShaderCompileError.Create(Message);
   end;
 
   {$ifndef ForceStandardGLSLApi}
@@ -1516,12 +1578,11 @@ var
     try
       glCompileShaderARB(GLhandleARB(Result));
     except
-      on E: EAccessViolation do ReportBuggyCompileShader;
+      on E: EAccessViolation do ReportCompileAccessViolation;
     end;
     glGetObjectParameterivARB(GLhandleARB(Result), GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
     if Compiled <> 1 then
-      raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
-        [ShaderTypeName[ShaderType], GetInfoLogARB(Result)]);
+      ReportCompileError(GetInfoLogARB(Result));
   end;
   {$endif}
 
@@ -1539,7 +1600,7 @@ var
     try
       glCompileShader(Result);
     except
-      on E: EAccessViolation do ReportBuggyCompileShader;
+      on E: EAccessViolation do ReportCompileAccessViolation;
     end;
     glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
     { Although I generally avoid creating multiline exception messages,
@@ -1547,8 +1608,7 @@ var
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
     if Compiled <> GL_TRUE then
-      raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
-        [ShaderTypeName[ShaderType], GetShaderInfoLog(Result)]);
+      ReportCompileError(GetShaderInfoLog(Result));
   end;
 
 const
@@ -1602,6 +1662,10 @@ begin
         ShaderIds.Add(ShaderId);
       end;
   end;
+
+  {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  FSource[ShaderType].Add(S);
+  {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType;
@@ -1642,6 +1706,9 @@ end;
 procedure TGLSLProgram.DetachAllShaders;
 var
   I: Integer;
+  {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  ShaderType: TShaderType;
+  {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 begin
   case Support of
     {$ifndef ForceStandardGLSLApi}
@@ -1660,9 +1727,42 @@ begin
       end;
   end;
   ShaderIds.Count := 0;
+
+  {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  for ShaderType in TShaderType do
+    FSource[ShaderType].Clear;
+  {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 end;
 
 procedure TGLSLProgram.Link;
+
+  procedure ReportLinkError(const LinkErrorMessage: String);
+  var
+    Message: String;
+    {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+    ShaderType: TShaderType;
+    I: Integer;
+    {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+  begin
+    Message := 'GLSL shader program not linked:' + NL +
+      LinkErrorMessage;
+
+    {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
+    Message := Message + NL +
+      'The shader source code is:' + NL;
+    for ShaderType in TShaderType do
+      for I := 0 to FSource[ShaderType].Count - 1 do
+        Message := Message + Format(
+         '%s [%d] -------------------------------------------------------' + NL +
+         '%s' + NL,
+         [ ShaderTypeName[ShaderType], I, FSource[ShaderType][I] ] );
+    Message := Message +
+       '-------------------------------------------------------' + NL;
+    {$endif}
+
+    raise EGLSLProgramLinkError.Create(Message);
+  end;
+
 var
   Linked: TGLuint;
 begin
@@ -1673,8 +1773,7 @@ begin
         glLinkProgramARB(GLhandleARB(ProgramId));
         glGetObjectParameterivARB(GLhandleARB(ProgramId), GL_OBJECT_LINK_STATUS_ARB, @Linked);
         if Linked <> 1 then
-          raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
-            GetInfoLogARB(ProgramId));
+          ReportLinkError(GetInfoLogARB(ProgramId));
       end;
     {$endif}
     gsStandard:
@@ -1682,8 +1781,7 @@ begin
         glLinkProgram(ProgramId);
         glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
         if Linked <> GL_TRUE then
-          raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
-            GetProgramInfoLog(ProgramId));
+          ReportLinkError(GetProgramInfoLog(ProgramId));
       end;
   end;
 
