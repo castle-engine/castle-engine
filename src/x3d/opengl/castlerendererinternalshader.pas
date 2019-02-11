@@ -2391,7 +2391,6 @@ var
   { Applies effects from various strings here.
     This also finalizes applying textures. }
   procedure EnableInternalEffects;
-  {$ifndef OpenGLES}
   const
     ShadowMapsFunctions: array [TShadowSampling] of string =
     (                               {$I shadow_map_common.fs.inc},
@@ -2399,7 +2398,6 @@ var
      '#define PCF4_BILINEAR' + NL + {$I shadow_map_common.fs.inc},
      '#define PCF16'         + NL + {$I shadow_map_common.fs.inc},
      {$I variance_shadow_map_common.fs.inc});
-  {$endif}
   var
     UniformsDeclare, TextureApplyPoint: string;
     I: Integer;
@@ -2427,8 +2425,9 @@ var
 
     if not (
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
-        TextureVaryingDeclareFragment + NL + TextureUniformsDeclare
-        {$ifndef OpenGLES} + NL + DeclareShadowFunctions {$endif}, false) and
+        TextureVaryingDeclareFragment + NL +
+        TextureUniformsDeclare + NL +
+        DeclareShadowFunctions, false) and
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
         UniformsDeclare +
         TextureAttributeDeclare + NL + TextureVaryingDeclareVertex, false) ) then
@@ -2450,11 +2449,9 @@ var
       doesn't want any fragment shader.
       Only add if we're not using shaders from custom ComposedShader
       (SelectedNode not set). }
-    {$ifndef OpenGLES}
     if (Source[stFragment].Count <> 0) and
        (SelectedNode = nil) then
       Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
-    {$endif}
   end;
 
 var

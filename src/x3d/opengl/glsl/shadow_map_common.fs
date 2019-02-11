@@ -9,6 +9,42 @@
 
 #ifdef GL_ES
   #define sampler2DShadow sampler2D
+
+  // TODO: Do not hardcode this.
+  const float castleShadowBias = 0.005;
+
+  /* Same as shadow2D: compare shadowMap
+     sampled at shadowMapCoord.xy
+     with shadowMapCoord.z. */
+  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
+  {
+    float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;
+    // Return 0 if in shadow, 1 if not in shadow.
+    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);
+  }
+
+  /* Same as shadow2DProj: compare shadowMap
+     sampled at shadowMapCoord.xy/shadowMapCoord.w
+     with shadowMapCoord.z. */
+  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
+  {
+    /* Note that texture2DProj effectively uses
+       "shadowMapCoord.xy / shadowMapCoord.w" as 2D coordinate.
+       It ignores shadowMapCoord.z. */
+    float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;
+    // Return 0 if in shadow, 1 if not in shadow.
+    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);
+  }
+#else
+  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
+  {
+    return shadow2D(shadowMap, shadowMapCoord).r;
+  }
+
+  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)
+  {
+    return shadow2DProj(shadowMap, shadowMapCoord).r;
+  }
 #endif
 
 float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
@@ -38,20 +74,20 @@ float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   vec2 f1 = vec2(1.0, 1.0) - f;
 
   return
-    shadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)).r * f1.x * f1.y +
-    shadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)).r * f1.x *  f.y +
-    shadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)).r *  f.x * f1.y +
-    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y;
+    castleShadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)) * f1.x * f1.y +
+    castleShadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)) * f1.x *  f.y +
+    castleShadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)) *  f.x * f1.y +
+    castleShadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)) *  f.x *  f.y;
 
 #elif defined(PCF4)
 
   /* PCF with 2x2 kernel */
   float offset = shadowMapCoord.w / size;
   return (
-    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +
-    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +
-    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset,  offset, 0.0, 0.0)).r +
-    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset, -offset, 0.0, 0.0)).r
+    castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +
+    castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +
+    castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset,  offset, 0.0, 0.0)).r +
+    castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset, -offset, 0.0, 0.0)).r
     ) / 4.0;
 
 #elif defined(PCF16)
@@ -59,30 +95,30 @@ float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   float offset = shadowMapCoord.w / size;
   return
     (
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 1.5, 0.0, 0.0)).r +
 
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +
 
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +
 
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +
-      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 1.5, 0.0, 0.0)).r
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +
+      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 1.5, 0.0, 0.0)).r
     )
     / 16.0;
 #else
   /* No PCF */
-  return shadow2DProj(shadowMap, shadowMapCoord).r;
+  return castleShadow2DProj(shadowMap, shadowMapCoord).r;
 #endif
 
 }

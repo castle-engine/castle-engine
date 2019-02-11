@@ -11,6 +11,42 @@
 '' + LineEnding +
 '#ifdef GL_ES' + LineEnding +
 '  #define sampler2DShadow sampler2D' + LineEnding +
+'' + LineEnding +
+'  // TODO: Do not hardcode this.' + LineEnding +
+'  const float castleShadowBias = 0.005;' + LineEnding +
+'' + LineEnding +
+'  /* Same as shadow2D: compare shadowMap' + LineEnding +
+'     sampled at shadowMapCoord.xy' + LineEnding +
+'     with shadowMapCoord.z. */' + LineEnding +
+'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
+'  {' + LineEnding +
+'    float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;' + LineEnding +
+'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
+'    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);' + LineEnding +
+'  }' + LineEnding +
+'' + LineEnding +
+'  /* Same as shadow2DProj: compare shadowMap' + LineEnding +
+'     sampled at shadowMapCoord.xy/shadowMapCoord.w' + LineEnding +
+'     with shadowMapCoord.z. */' + LineEnding +
+'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
+'  {' + LineEnding +
+'    /* Note that texture2DProj effectively uses' + LineEnding +
+'       "shadowMapCoord.xy / shadowMapCoord.w" as 2D coordinate.' + LineEnding +
+'       It ignores shadowMapCoord.z. */' + LineEnding +
+'    float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
+'    // Return 0 if in shadow, 1 if not in shadow.' + LineEnding +
+'    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);' + LineEnding +
+'  }' + LineEnding +
+'#else' + LineEnding +
+'  float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)' + LineEnding +
+'  {' + LineEnding +
+'    return shadow2D(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  }' + LineEnding +
+'' + LineEnding +
+'  float castleShadow2DProj(sampler2DShadow shadowMap, const vec4 shadowMapCoord)' + LineEnding +
+'  {' + LineEnding +
+'    return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,' + LineEnding +
@@ -40,20 +76,20 @@
 '  vec2 f1 = vec2(1.0, 1.0) - f;' + LineEnding +
 '' + LineEnding +
 '  return' + LineEnding +
-'    shadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)).r * f1.x * f1.y +' + LineEnding +
-'    shadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)).r * f1.x *  f.y +' + LineEnding +
-'    shadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)).r *  f.x * f1.y +' + LineEnding +
-'    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y;' + LineEnding +
+'    castleShadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)) * f1.x * f1.y +' + LineEnding +
+'    castleShadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)) * f1.x *  f.y +' + LineEnding +
+'    castleShadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)) *  f.x * f1.y +' + LineEnding +
+'    castleShadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)) *  f.x *  f.y;' + LineEnding +
 '' + LineEnding +
 '#elif defined(PCF4)' + LineEnding +
 '' + LineEnding +
 '  /* PCF with 2x2 kernel */' + LineEnding +
 '  float offset = shadowMapCoord.w / size;' + LineEnding +
 '  return (' + LineEnding +
-'    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +' + LineEnding +
-'    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +' + LineEnding +
-'    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset,  offset, 0.0, 0.0)).r +' + LineEnding +
-'    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset, -offset, 0.0, 0.0)).r' + LineEnding +
+'    castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +' + LineEnding +
+'    castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +' + LineEnding +
+'    castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset,  offset, 0.0, 0.0)).r +' + LineEnding +
+'    castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset, -offset, 0.0, 0.0)).r' + LineEnding +
 '    ) / 4.0;' + LineEnding +
 '' + LineEnding +
 '#elif defined(PCF16)' + LineEnding +
@@ -61,30 +97,30 @@
 '  float offset = shadowMapCoord.w / size;' + LineEnding +
 '  return' + LineEnding +
 '    (' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
 '' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
 '' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
 '' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
-'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 1.5, 0.0, 0.0)).r' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding +
+'      castleShadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 1.5, 0.0, 0.0)).r' + LineEnding +
 '    )' + LineEnding +
 '    / 16.0;' + LineEnding +
 '#else' + LineEnding +
 '  /* No PCF */' + LineEnding +
-'  return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
+'  return castleShadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '}' + LineEnding +
