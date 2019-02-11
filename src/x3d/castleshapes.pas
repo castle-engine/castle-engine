@@ -702,6 +702,16 @@ type
 
     { @exclude }
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
+
+    { @exclude
+      Called internally by the engine when changing some stuff in shapes.
+      User code should not use it (as we do not guarantee what is OK
+      to change this way, and what should rebuild shapes graph),
+      instead user code should change X3D scene graph,
+      calling @link(TCastleSceneCore.BeforeNodesFree) earlier,
+      and call @link(TX3DField.Changed) after each change. }
+    procedure InternalBeforeChange;
+    procedure InternalAfterChange;
   end;
 
   TShapeTreeList = specialize TObjectList<TShapeTree>;
@@ -1922,12 +1932,12 @@ begin
   end;
 end;
 
-function TShape.Transparent: Boolean;
+function TShape.Transparent: boolean;
 begin
   Result := AlphaChannel = acBlending;
 end;
 
-function TShape.Blending: Boolean;
+function TShape.Blending: boolean;
 begin
   Result := AlphaChannel = acBlending;
 end;
@@ -2049,16 +2059,16 @@ begin
     Exit(acNone);
 end;
 
-procedure TShape.Traverse(Func: TShapeTraverseFunc;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+procedure TShape.Traverse(Func: TShapeTraverseFunc; const OnlyActive: boolean;
+  const OnlyVisible: boolean; const OnlyCollidable: boolean);
 begin
   if ((not OnlyVisible) or Visible) and
      ((not OnlyCollidable) or Collidable) then
     Func(Self);
 end;
 
-function TShape.ShapesCount(
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
+function TShape.ShapesCount(const OnlyActive: boolean;
+  const OnlyVisible: boolean; const OnlyCollidable: boolean): Cardinal;
 begin
   if ((not OnlyVisible) or Visible) and
      ((not OnlyCollidable) or Collidable) then
@@ -2735,6 +2745,19 @@ end;
 function TShape.MaterialProperty: TMaterialProperty;
 begin
   Result := InternalMaterialProperty;
+end;
+
+procedure TShape.InternalBeforeChange;
+begin
+  FreeProxy;
+  UnAssociateGeometryState(FOriginalGeometry, FOriginalState);
+  UnAssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
+end;
+
+procedure TShape.InternalAfterChange;
+begin
+  AssociateGeometryState(FOriginalGeometry, FOriginalState);
+  AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
 end;
 
 function TShape.InternalMaterialProperty: TMaterialProperty;

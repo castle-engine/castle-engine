@@ -170,12 +170,15 @@ procedure TLightList.ShapeRemove(Shape: TShape);
 begin
   if Shape.Node <> nil then
   begin
-    if Shape.Node.Texture is TMultiTextureNode then
-      RemoveOldShadowMap(TMultiTextureNode(Shape.Node.Texture).FdTexture);
-    if (Shape.Geometry.TexCoordField <> nil) and
-       (Shape.Geometry.TexCoordField.Value <> nil) and
-       (Shape.Geometry.TexCoordField.Value is TMultiTextureCoordinateNode) then
-      RemoveOldTexGen(TMultiTextureCoordinateNode(Shape.Geometry.TexCoordField.Value).FdTexCoord);
+    Shape.InternalBeforeChange;
+    try
+      if Shape.Node.Texture is TMultiTextureNode then
+        RemoveOldShadowMap(TMultiTextureNode(Shape.Node.Texture).FdTexture);
+      if (Shape.Geometry.TexCoordField <> nil) and
+         (Shape.Geometry.TexCoordField.Value <> nil) and
+         (Shape.Geometry.TexCoordField.Value is TMultiTextureCoordinateNode) then
+        RemoveOldTexGen(TMultiTextureCoordinateNode(Shape.Geometry.TexCoordField.Value).FdTexCoord);
+    finally Shape.InternalAfterChange end;
   end;
 end;
 
@@ -422,58 +425,61 @@ begin
       but they can be shadow casters }
   end;
 
-  App := Shape.Node.Appearance;
+  Shape.InternalBeforeChange;
+  try
+    App := Shape.Node.Appearance;
 
-  { If Appearance is NULL, but we should create it --- do it.
-    Testcase: shadow_maps/primitives.x3dv with appearance commented out. }
-  if (App = nil) and
-     (LightsCastingOnEverything.Count <> 0) then
-  begin
-    App := TAppearanceNode.Create('', Shape.Node.BaseUrl); { recalculate App }
-    { assign it using "FdAppearance.Value := ", not "Appearance := ",
-      to avoid doing "Send(xxx)" inside that could recursively cause ProcessShadowMapsReceivers }
-    Shape.Node.FdAppearance.Value := App;
-  end;
+    { If Appearance is NULL, but we should create it --- do it.
+      Testcase: shadow_maps/primitives.x3dv with appearance commented out. }
+    if (App = nil) and
+       (LightsCastingOnEverything.Count <> 0) then
+    begin
+      App := TAppearanceNode.Create('', Shape.Node.BaseUrl); { recalculate App }
+      { assign it using "FdAppearance.Value := ", not "Appearance := ",
+        to avoid doing "Send(xxx)" inside that could recursively cause ProcessShadowMapsReceivers }
+      Shape.Node.FdAppearance.Value := App;
+    end;
 
-  { If the previous check left App = nil, then we know this shape
-    doesn't receiveShadows (LightsCastingOnEverything empty,
-    and no Appearance -> no receiveShadows field). }
-  if App = nil then
-  begin
-    HandleShadowCaster;
-    Exit;
-  end;
+    { If the previous check left App = nil, then we know this shape
+      doesn't receiveShadows (LightsCastingOnEverything empty,
+      and no Appearance -> no receiveShadows field). }
+    if App = nil then
+    begin
+      HandleShadowCaster;
+      Exit;
+    end;
 
-  if App.FdShadowCaster.Value then
-    HandleShadowCaster;
+    if App.FdShadowCaster.Value then
+      HandleShadowCaster;
 
-  { Check are receiveShadows empty, so we don't check TexCoord existence
-    when there's no need. }
-  if (App.FdReceiveShadows.Count = 0) and
-     (LightsCastingOnEverything.Count = 0) then Exit;
+    { Check are receiveShadows empty, so we don't check TexCoord existence
+      when there's no need. }
+    if (App.FdReceiveShadows.Count = 0) and
+       (LightsCastingOnEverything.Count = 0) then Exit;
 
-  { HandleLight needs here a shape with geometry with texCoord.
-    Better check it here, before we start changing anything. }
-  if Shape.Geometry.TexCoordField = nil then
-  begin
-    WritelnWarning('VRML/X3D', 'Geometry node ' + Shape.Geometry.X3DType + ' does not have a texCoord, cannot be shadow maps receiver.');
-    Exit;
-  end;
+    { HandleLight needs here a shape with geometry with texCoord.
+      Better check it here, before we start changing anything. }
+    if Shape.Geometry.TexCoordField = nil then
+    begin
+      WritelnWarning('VRML/X3D', 'Geometry node ' + Shape.Geometry.X3DType + ' does not have a texCoord, cannot be shadow maps receiver.');
+      Exit;
+    end;
 
-  { Treat lights on "receiveShadows" field and
-    lights on LightsCastingOnEverything list the same:
-    call HandleLight on them.
+    { Treat lights on "receiveShadows" field and
+      lights on LightsCastingOnEverything list the same:
+      call HandleLight on them.
 
-    TODO: secure against light both on LightsCastingOnEverything
-    and "receiveShadows". In fact, remove duplicates from the sum
-    of both lists. }
+      TODO: secure against light both on LightsCastingOnEverything
+      and "receiveShadows". In fact, remove duplicates from the sum
+      of both lists. }
 
-  for I := 0 to App.FdReceiveShadows.Count - 1 do
-    if App.FdReceiveShadows[I] is TAbstractLightNode then
-      HandleLight(TAbstractLightNode(App.FdReceiveShadows[I]));
+    for I := 0 to App.FdReceiveShadows.Count - 1 do
+      if App.FdReceiveShadows[I] is TAbstractLightNode then
+        HandleLight(TAbstractLightNode(App.FdReceiveShadows[I]));
 
-  for I := 0 to LightsCastingOnEverything.Count - 1 do
-    HandleLight(TAbstractLightNode(LightsCastingOnEverything[I]));
+    for I := 0 to LightsCastingOnEverything.Count - 1 do
+      HandleLight(TAbstractLightNode(LightsCastingOnEverything[I]));
+  finally Shape.InternalAfterChange end;
 end;
 
 procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
