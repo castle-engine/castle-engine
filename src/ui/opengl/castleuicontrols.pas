@@ -4196,9 +4196,9 @@ end;
 function TCastleUserInterface.DebugName: String;
 begin
   if Name <> '' then
-    Result := '<unnamed> (' + ClassName + ')'
+    Result := '"' + Name + '" (' + ClassName + ')'
   else
-    Result := '"' + Name + '" (' + ClassName + ')';
+    Result := '<unnamed> (' + ClassName + ')';
 end;
 
 procedure TCastleUserInterface.BeforeRender;
