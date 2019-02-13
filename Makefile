@@ -35,11 +35,10 @@
 #
 #   cleanmore --
 #     Same as clean, but also delete:
-#     - Emacs backup files (*~) and
-#     - Delphi backup files (*.~???)
+#     - Backup files from Emacs (*~), Lazarus (backup), Delphi (*.~???), Blender,
+#       QtCreator (*.pro.user)...
 #     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
-#     - QtCreator *.pro.user
 #     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
