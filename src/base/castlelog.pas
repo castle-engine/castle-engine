@@ -163,6 +163,15 @@ uses SysUtils,
   CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
+{ On mobile platforms, do not place the log in GetAppConfigDir.
+  GetAppConfigDir may be '' and creating a subdirectory there may fail.
+  ApplicationConfig has better logic for this,
+  using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
+  once the activity starts. }
+{$define CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
+{$ifdef ANDROID} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
+{$ifdef iOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
+
 var
   FLog: boolean = false;
   LogStream: TStream;
@@ -206,6 +215,7 @@ var
     Result := true;
   end;
 
+  {$ifdef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
   { Similar to CastleFilesUtils.ApplicationConfig directory,
     but returns a filename, and doesn't depend on CastleFilesUtils and friends. }
   function ApplicationConfigPath: string;
@@ -215,6 +225,7 @@ var
       raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
         [Result]);
   end;
+  {$endif CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
 
 var
   InsideEditor: Boolean;
@@ -250,11 +261,13 @@ begin
   end else
   { In a library (like Windows DLL), which may also be NPAPI plugin,
     be more cautious: create .log file in user's directory. }
+  {$ifdef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
   if IsLibrary then
   begin
     if not InitializeLogFile(ApplicationConfigPath + ApplicationName + '.log') then
       Exit;
   end else
+  {$endif CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
   if not IsConsole then
   begin
     { Under Windows GUI program, by default write to file .log
