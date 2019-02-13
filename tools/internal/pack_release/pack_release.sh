@@ -53,6 +53,9 @@ do_pack_platform ()
 CGE_VERSION=`castle-engine --version | awk '{print $2}'`
 echo "Detected CGE version ${CGE_VERSION}"
 
+# Michalis script to switch my FPC/Lazarus installation to given version.
+set_fpclazarus_current 3.0.4
+
 # do_pack_platform win64 x86_64 .exe
 # do_pack_platform win32 i386 .exe
 do_pack_platform linux x86_64 ''
