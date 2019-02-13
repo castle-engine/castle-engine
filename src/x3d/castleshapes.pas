@@ -1218,7 +1218,14 @@ begin
     Node.InternalSceneShape := nil
   else
   begin
-    Assert(Node.InternalSceneShape <> nil);
+    {$ifdef DEBUG}
+    //Assert(Node.InternalSceneShape <> nil);
+    if Node.InternalSceneShape = nil then
+    begin
+      raise EInternalError.CreateFmt('Calling %s.UnAssociateNode on X3D node that is already not associated with anything: %s',
+        [ClassName, Node.NiceName]);
+    end;
+    {$endif}
     Assert(Node.InternalSceneShape is TShapeTreeList);
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
