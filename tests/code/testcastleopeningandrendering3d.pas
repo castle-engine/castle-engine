@@ -113,7 +113,7 @@ begin
       (FileInfo.Name = 'ssao_stairs_with_test_plane.x3dv')
     ) then
   begin
-    Writeln('Not testing "' + FileInfo.AbsoluteName + '": known to fail on fglrx (fucking ATI)');
+    WritelnLog('Not testing "' + FileInfo.AbsoluteName + '": known to fail on fglrx (fucking ATI)');
     Exit;
   end;
 
