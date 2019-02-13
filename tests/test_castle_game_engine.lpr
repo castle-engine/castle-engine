@@ -50,6 +50,7 @@ uses
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
+  TestCastleFonts,
   TestCastleTransform,
   TestCastleParameters,
   TestCastleUIControls,
@@ -83,7 +84,6 @@ uses
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
   TestCastleOpeningAndRendering3D,
-  TestCastleFonts,
   TestCastleWindowOpen
   {$endif} {$endif}
 

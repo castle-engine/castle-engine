@@ -23,53 +23,63 @@ type
   TTestCastleFonts = class(TCastleTestCase)
   published
     procedure TestMaxTextWidthHtml;
+    procedure TestMaxTextWidthHtmlInWindow;
     procedure TestSizeFontFamily;
     procedure TestOverrideFont;
   end;
 
 implementation
 
-uses SysUtils, Classes, CastleWindow,
+{$ifdef TEXT_RUNNER}
+  {$ifndef NO_WINDOW_SYSTEM}
+    {$define TEST_CASTLE_WINDOW}
+  {$endif}
+{$endif}
+
+uses SysUtils, Classes,
+  {$ifdef TEST_CASTLE_WINDOW} CastleWindow, {$endif}
   CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15, CastleFontFamily,
   Font_LatoRegular_300;
 
 procedure TTestCastleFonts.TestMaxTextWidthHtml;
 var
-  Window: TCastleWindow;
-
-  procedure TestMeasuring;
-  var
-    F: TCastleFont;
-    SList: TStringList;
-    W1, W2: Single;
-  begin
-    F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
-
-    SList := TStringList.Create;
-
-    SList.Append('blah');
-    W1 := F.MaxTextWidth(SList);
-
-    SList.Clear;
-    SList.Append('<font color="#aabbcc">blah</font>');
-    W2 := F.MaxTextWidth(SList, true);
-
-    AssertTrue(W1 > 0);
-    AssertTrue(W1 = W2);
-    FreeAndNil(SList);
-    FreeAndNil(F);
-  end;
-
+  F: TCastleFont;
+  SList: TStringList;
+  W1, W2: Single;
 begin
-  TestMeasuring; // should work without OpenGL context too
+  F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
 
+  SList := TStringList.Create;
+
+  SList.Append('blah');
+  W1 := F.MaxTextWidth(SList);
+
+  SList.Clear;
+  SList.Append('<font color="#aabbcc">blah</font>');
+  W2 := F.MaxTextWidth(SList, true);
+
+  AssertTrue(W1 > 0);
+  AssertTrue(W1 = W2);
+  FreeAndNil(SList);
+  FreeAndNil(F);
+end;
+
+procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
+{$ifdef TEST_CASTLE_WINDOW}
+var
+  Window: TCastleWindow;
+begin
+  // should work with OpenGL context too, actually it doesn't matter now
   Window := TCastleWindow.Create(nil);
   try
     Window.Visible := false;
     Window.Open;
-    TestMeasuring;
+    TestMaxTextWidthHtml;
     Window.Close;
   finally FreeAndNil(Window) end;
+{$else}
+begin
+{$endif}
 end;
 
 procedure TTestCastleFonts.TestSizeFontFamily;
