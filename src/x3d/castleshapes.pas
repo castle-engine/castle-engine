@@ -1322,7 +1322,17 @@ begin
        (AGeometry.CoordField.Value <> nil) then
       AssociateNode(AGeometry.CoordField.Value);
     if (AGeometry.TexCoordField <> nil) and
-       (AGeometry.TexCoordField.Value <> nil) then
+       (AGeometry.TexCoordField.Value <> nil) and
+       { TODO: This workarounds assertion failure in UnAssociateNode
+         when using shadow maps on a primitive, like Sphere.
+         Reproducible by view3dscene (open and close
+         demo-models/shadow_maps/primitives.x3dv )
+         and automatic tests (when TTestOpeningAndRendering3D.TestScene
+         opens and closes tests/data/warning_when_new_node_as_shadow_map_light.x3dv ).
+         The cause is unknown.
+         But in any case, associating with TMultiTextureCoordinateNode
+         is not really useful (we should associate with children of it). }
+       (not (AGeometry.TexCoordField.Value is TMultiTextureCoordinateNode)) then
       AssociateNode(AGeometry.TexCoordField.Value);
   end;
 end;
@@ -1361,7 +1371,8 @@ begin
        (AGeometry.CoordField.Value <> nil) then
       UnAssociateNode(AGeometry.CoordField.Value);
     if (AGeometry.TexCoordField <> nil) and
-       (AGeometry.TexCoordField.Value <> nil) then
+       (AGeometry.TexCoordField.Value <> nil) and
+       (not (AGeometry.TexCoordField.Value is TMultiTextureCoordinateNode)) then
       UnAssociateNode(AGeometry.TexCoordField.Value);
   end;
 end;
