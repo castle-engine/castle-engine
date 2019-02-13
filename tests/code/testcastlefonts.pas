@@ -17,10 +17,10 @@ unit TestCastleFonts;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleBaseTestCase;
+uses fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleFonts = class(TCastleBaseTestCase)
+  TTestCastleFonts = class(TCastleTestCase)
   published
     procedure TestMaxTextWidthHtml;
     procedure TestSizeFontFamily;

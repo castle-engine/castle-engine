@@ -18,10 +18,10 @@ unit TestCastleCurves;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleBaseTestCase;
+uses fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleCurves = class(TCastleBaseTestCase)
+  TTestCastleCurves = class(TCastleTestCase)
   published
     procedure TestBoundingBox;
   end;

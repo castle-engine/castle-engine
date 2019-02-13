@@ -18,10 +18,10 @@ unit TestCastleWindow;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleBaseTestCase;
+uses fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestWindow = class(TCastleBaseTestCase)
+  TTestWindow = class(TCastleTestCase)
   published
     procedure Test1;
     procedure TestNotifications;

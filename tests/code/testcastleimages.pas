@@ -20,10 +20,10 @@ unit TestCastleImages;
 interface
 
 uses fpcunit, testutils, testregistry,
-  CastleBaseTestCase;
+  CastleTestCase;
 
 type
-  TTestImages = class(TCastleBaseTestCase)
+  TTestImages = class(TCastleTestCase)
   published
     procedure TestLoadImage;
     procedure TestImageClassBestForSavingToFormat;

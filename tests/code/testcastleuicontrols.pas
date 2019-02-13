@@ -20,10 +20,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleBaseTestCase, CastleUIControls;
+  CastleTestCase, CastleUIControls;
 
 type
-  TTestCastleUIControls = class(TCastleBaseTestCase)
+  TTestCastleUIControls = class(TCastleTestCase)
   published
     procedure TestRectOverrides;
     procedure TestRecursiveRect;

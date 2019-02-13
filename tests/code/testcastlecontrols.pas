@@ -19,10 +19,10 @@ unit TestCastleControls;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleControls = class(TCastleBaseTestCase)
+  TTestCastleControls = class(TCastleTestCase)
   published
     procedure TestFloatSliderRoundAndClamp;
   end;

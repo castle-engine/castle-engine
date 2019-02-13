@@ -22,10 +22,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
-  CastleTriangulate, CastleTriangles, CastleBaseTestCase;
+  CastleTriangulate, CastleTriangles, CastleTestCase;
 
 type
-  TTestCastleTriangulate = class(TCastleBaseTestCase)
+  TTestCastleTriangulate = class(TCastleTestCase)
   private
     { private vars for Face callback }
     Vertexes: PVector3;

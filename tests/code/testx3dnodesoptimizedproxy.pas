@@ -19,10 +19,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes,
-  CastleBaseTestCase;
+  CastleTestCase;
 
 type
-  TTestX3DNodesOptimizedProxy = class(TCastleBaseTestCase)
+  TTestX3DNodesOptimizedProxy = class(TCastleTestCase)
   published
     { Some of the geometry nodes, even though they have Proxy,
       have also optimized versions for some operations (like calculating

@@ -3,10 +3,10 @@ unit TestCastleSceneManager;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleSceneManager = class(TCastleBaseTestCase)
+  TTestCastleSceneManager = class(TCastleTestCase)
   published
     procedure TestCameraCreating;
     procedure TestLoadLevel;

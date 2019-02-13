@@ -21,11 +21,11 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase,
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase,
   CastleVectors, X3DNodes;
 
 type
-  TTestX3DNodes = class(TCastleBaseTestCase)
+  TTestX3DNodes = class(TCastleTestCase)
   private
     procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
   published

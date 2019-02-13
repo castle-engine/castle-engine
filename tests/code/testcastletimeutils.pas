@@ -18,10 +18,10 @@ unit TestCastleTimeUtils;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleBaseTestCase;
+uses fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleTimeUtils = class(TCastleBaseTestCase)
+  TTestCastleTimeUtils = class(TCastleTestCase)
   published
     procedure TestGetTickCount64;
   end;

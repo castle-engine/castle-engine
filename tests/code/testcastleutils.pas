@@ -20,10 +20,10 @@ unit TestCastleUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleUtils = class(TCastleBaseTestCase)
+  TTestCastleUtils = class(TCastleTestCase)
   published
     procedure TestMilisecTime;
     procedure TestIndexMinMax_RestOf3dCoords;

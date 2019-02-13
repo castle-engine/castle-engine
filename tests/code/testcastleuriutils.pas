@@ -18,10 +18,10 @@ unit TestCastleURIUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestURIUtils = class(TCastleBaseTestCase)
+  TTestURIUtils = class(TCastleTestCase)
     procedure TestURIProtocol;
     procedure TestAbsoluteURI;
     procedure TestURIToFilenameSafe;

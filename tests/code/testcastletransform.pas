@@ -18,10 +18,10 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleTransform = class(TCastleBaseTestCase)
+  TTestCastleTransform = class(TCastleTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
   published

@@ -20,10 +20,10 @@ unit TestCastleCubeMaps;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCubeMap = class(TCastleBaseTestCase)
+  TTestCubeMap = class(TCastleTestCase)
   published
     procedure TestReverse;
     procedure TestCubeMapSolidAngle;
@@ -51,13 +51,13 @@ end;
 
 type
   generic TTester<T> = class
-    procedure DoTest(const TestCase: TCastleBaseTestCase);
+    procedure DoTest(const TestCase: TCastleTestCase);
   end;
   TTesterSingle = specialize TTester<Single>;
   TTesterDouble = specialize TTester<Double>;
   TTesterExtended = specialize TTester<Extended>;
 
-procedure TTester.DoTest(const TestCase: TCastleBaseTestCase);
+procedure TTester.DoTest(const TestCase: TCastleTestCase);
 var
   Side: TCubeMapSide;
   Pixel: Cardinal;

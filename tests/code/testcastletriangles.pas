@@ -19,10 +19,10 @@ unit TestCastleTriangles;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleTriangles = class(TCastleBaseTestCase)
+  TTestCastleTriangles = class(TCastleTestCase)
   published
     procedure TestIsValid;
   end;

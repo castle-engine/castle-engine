@@ -20,10 +20,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleBaseTestCase, CastleVectors, CastleQuaternions;
+  CastleTestCase, CastleVectors, CastleQuaternions;
 
 type
-  TTestCastleQuaternions = class(TCastleBaseTestCase)
+  TTestCastleQuaternions = class(TCastleTestCase)
   published
     procedure TestRotationMatrix;
     procedure TestDecompose;

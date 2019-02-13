@@ -18,10 +18,10 @@ unit TestCastleGame;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestGame = class(TCastleBaseTestCase)
+  TTestGame = class(TCastleTestCase)
     procedure TestGameData;
   end;
 

@@ -19,10 +19,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleRectangles, CastleBaseTestCase;
+  CastleRectangles, CastleTestCase;
 
 type
-  TTestRectangles = class(TCastleBaseTestCase)
+  TTestRectangles = class(TCastleTestCase)
   published
     procedure TestRectangles;
     procedure TestScaleEmpty;

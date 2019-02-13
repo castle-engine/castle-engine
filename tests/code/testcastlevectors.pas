@@ -21,10 +21,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
-  CastleBaseTestCase;
+  CastleTestCase;
 
 type
-  TTestCastleVectors = class(TCastleBaseTestCase)
+  TTestCastleVectors = class(TCastleTestCase)
   published
     procedure TestPlaneOdcCollision;
     procedure TestCollisions;

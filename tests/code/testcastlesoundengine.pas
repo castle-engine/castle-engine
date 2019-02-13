@@ -19,10 +19,10 @@ unit TestCastleSoundEngine;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleSoundEngine = class(TCastleBaseTestCase)
+  TTestCastleSoundEngine = class(TCastleTestCase)
   private
     procedure WavNonPcmWarning(Sender: TObject; const Category, S: string);
   published

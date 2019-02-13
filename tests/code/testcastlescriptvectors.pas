@@ -20,10 +20,10 @@ unit TestCastleScriptVectors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleScriptVectors = class(TCastleBaseTestCase)
+  TTestCastleScriptVectors = class(TCastleTestCase)
   published
     procedure TestVecSingle;
     procedure TestVecDouble;

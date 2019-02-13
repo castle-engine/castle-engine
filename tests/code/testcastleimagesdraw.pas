@@ -20,10 +20,10 @@ unit TestCastleImagesDraw;
 interface
 
 uses
-  fpcunit, testutils, testregistry, CastleImages, CastleBaseTestCase;
+  fpcunit, testutils, testregistry, CastleImages, CastleTestCase;
 
 type
-  TTestImagesDraw = class(TCastleBaseTestCase)
+  TTestImagesDraw = class(TCastleTestCase)
   private
     Rgb, Rgb2: TRGBImage;
     RgbAlpha, RgbAlpha2: TRGBAlphaImage;

@@ -19,10 +19,10 @@ unit TestCastleRandom;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleRandom = class(TCastleBaseTestCase)
+  TTestCastleRandom = class(TCastleTestCase)
   published
     procedure TestHash;
     procedure TestRandom;

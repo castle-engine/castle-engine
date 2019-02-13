@@ -23,10 +23,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleBaseTestCase, CastleVectors, CastleColors;
+  CastleTestCase, CastleVectors, CastleColors;
 
 type
-  TTestCastleColors = class(TCastleBaseTestCase)
+  TTestCastleColors = class(TCastleTestCase)
   published
     procedure TestHSV;
     procedure TestLerpInHsv;

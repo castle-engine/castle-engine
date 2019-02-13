@@ -20,10 +20,10 @@ unit TestCastleScript;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleScript = class(TCastleBaseTestCase)
+  TTestCastleScript = class(TCastleTestCase)
   published
     procedure Test1;
     procedure TestCodeCreatedExprs;

@@ -19,10 +19,10 @@ unit TestCastleComponentSerialize;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleComponentSerialize = class(TCastleBaseTestCase)
+  TTestCastleComponentSerialize = class(TCastleTestCase)
     procedure TestDefaultValues;
     procedure TestEmptyCaption;
   end;

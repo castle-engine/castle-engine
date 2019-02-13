@@ -18,10 +18,10 @@ unit TestCastleBoxes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
 
 type
-  TTestCastleBoxes = class(TCastleBaseTestCase)
+  TTestCastleBoxes = class(TCastleTestCase)
   published
     procedure TestIsCenteredBox3DPlaneCollision;
     procedure TestBox3DPlaneCollision;
