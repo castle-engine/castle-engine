@@ -178,6 +178,7 @@ begin
   LargeDigitsFont := TLargeDigitsFont.Create(TComponent(nil));
   try
     LargeDigitsFont.Load(TextureFont_LatoRegular_300);
+    LargeDigitsFont.FontData.UseFallbackGlyph := false;
     AssertEquals(300, TextureFont_LatoRegular_300.Size);
 
     AssertSameValue(300, LargeDigitsFont.Size);
