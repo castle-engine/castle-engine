@@ -99,6 +99,7 @@ type
     procedure TestKeepExisting;
     procedure TestAttenuation;
     procedure TestAddChildren;
+    procedure TestAddChildrenAllowDuplicates;
     procedure TestNurbsCurvePoint;
   end;
 
@@ -2103,18 +2104,18 @@ begin
     // adding using AddChildren method works
 
     S := TShapeNode.Create;
-    G.AddChildren([S, S]);
+    G.AddChildren([S, S], false);
     AssertEquals(1, G.FdChildren.Count);
-    G.AddChildren([S, S, S]);
+    G.AddChildren([S, S, S], false);
     AssertEquals(1, G.FdChildren.Count);
-    // only one instance of TShapeNode is added
+    // only one instance of S is added
 
     S := TShapeNode.Create;
-    G.AddChildren([S, S]);
+    G.AddChildren([S, S], false);
     AssertEquals(2, G.FdChildren.Count);
 
     S := TShapeNode.Create;
-    G.AddChildren(S);
+    G.AddChildren(S, false);
     AssertEquals(3, G.FdChildren.Count);
     G.RemoveChildren(S);
     AssertEquals(2, G.FdChildren.Count);
@@ -2125,6 +2126,8 @@ begin
       FieldToSend.Add(S);
       S := TShapeNode.Create;
       FieldToSend.Add(S);
+      FieldToSend.Add(S); // will be ignored by AddChildren with AllowDuplicates=false
+      FieldToSend.Add(S); // will be ignored by AddChildren with AllowDuplicates=false
       G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
 
       // adding through EventAddChildren works
@@ -2139,6 +2142,62 @@ begin
 
       // adding Material is ignored, not a child node
       AssertEquals(4, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+  finally FreeAndNil(G) end;
+end;
+
+procedure TTestX3DNodes.TestAddChildrenAllowDuplicates;
+var
+  M: TMaterialNode;
+  S: TShapeNode;
+  G: TGroupNode;
+  FieldToSend: TMFNode;
+begin
+  G := TGroupNode.Create;
+  try
+    AssertEquals(0, G.FdChildren.Count);
+
+    // adding using AddChildren method works
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(2, G.FdChildren.Count);
+    G.AddChildren([S, S, S]);
+    AssertEquals(5, G.FdChildren.Count);
+    // multiple instances of S are added
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(7, G.FdChildren.Count);
+
+    S := TShapeNode.Create;
+    G.AddChildren(S);
+    AssertEquals(8, G.FdChildren.Count);
+    G.RemoveChildren(S);
+    AssertEquals(7, G.FdChildren.Count);
+
+    FieldToSend := TMFNode.CreateUndefined(nil, false, 'temporary');
+    try
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      FieldToSend.Add(S); // will be ignored by AddChildren with AllowDuplicates=false
+      FieldToSend.Add(S); // will be ignored by AddChildren with AllowDuplicates=false
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding through EventAddChildren works
+      AssertEquals(9, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+
+    FieldToSend := TMFNode.CreateUndefined(nil, false, 'temporary');
+    try
+      M := TMaterialNode.Create;
+      FieldToSend.Add(M);
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding Material is ignored, not a child node
+      AssertEquals(9, G.FdChildren.Count);
     finally FreeAndNil(FieldToSend) end;
   finally FreeAndNil(G) end;
 end;

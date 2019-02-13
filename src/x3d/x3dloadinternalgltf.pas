@@ -603,13 +603,13 @@ var
     if Camera.Type_ = TPasGLTF.TCamera.TCameraType.Orthographic then
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
-      ParentGroup.FdChildren.Add(OrthoViewpoint);
+      ParentGroup.AddChildren(OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov;
-      ParentGroup.FdChildren.Add(Viewpoint);
+      ParentGroup.AddChildren(Viewpoint);
     end;
   end;
 
@@ -652,7 +652,7 @@ var
       Transform.Translation := Translation;
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
-      ParentGroup.FdChildren.Add(Transform);
+      ParentGroup.AddChildren(Transform);
 
       if Node.Mesh <> -1 then
         ReadMesh(Node.Mesh, Transform);

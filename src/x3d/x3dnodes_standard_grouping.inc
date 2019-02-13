@@ -87,18 +87,30 @@
     public property FdRender: TSFBool read FFdRender;
 
     { Add the nodes as children.
-      Adding a node that already exists on the children list is ignored.
 
-      Note: This method prevents adding duplicates to the children list.
-      And the X3D specification doesn't allow duplicates on the children list.
-      But our engine allows duplicates on the children list ---
+      By default, adding the same node multiple times makes
+      the node present on the list multiple times.
+      This AddChildren behavior is consistent with how
+      @code(FdChildren.Add(Child)) behaves,
+      and consistent with how @link(RemoveChildren) works
+      (it removes only a single copy in case of duplicates).
+      Our engine allows duplicates on the children list ---
       you can specify them in the X3D file,
       or you can add them using @link(FdChildren).Add.
 
+      If you specify AllowDuplicates = @false,
+      then adding a node that already exists on the children list is ignored.
+      This has a tiny performance hit (we need to check for existence first),
+      but it is consistent with how X3D event "addChildren" should behave
+      according to the spec.
+      The X3D specification doesn't allow duplicates on the children list.
+
       This propagates the changes appropriately to the parent TCastleSceneCore,
       calling TCastleSceneCore.ChangedAll or something similar. }
-    procedure AddChildren(const Children: array of TAbstractChildNode); overload;
-    procedure AddChildren(const Child: TAbstractChildNode); overload;
+    procedure AddChildren(const Children: array of TAbstractChildNode;
+      const AllowDuplicates: Boolean = true); overload;
+    procedure AddChildren(const Child: TAbstractChildNode;
+      const AllowDuplicates: Boolean = true); overload;
 
     { Remove the nodes from the children list.
       Removing a node that does not exist on the children list is ignored.
@@ -604,7 +616,7 @@ end;
 procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  AddChildren(ToChildrenArray(Value as TMFNode));
+  AddChildren(ToChildrenArray(Value as TMFNode), false);
 end;
 
 procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
@@ -614,7 +626,8 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.AddChildren(
-  const Children: array of TAbstractChildNode);
+  const Children: array of TAbstractChildNode;
+  const AllowDuplicates: Boolean);
 var
   N: TAbstractChildNode;
 begin
@@ -628,10 +641,10 @@ begin
 
     But it is not necessary in practice,
     and it would be a little wasteful (creating a temporary TMFNode to send
-    for each AddChildren call). Do we don't do it now. }
+    for each AddChildren call). So we don't do it now. }
 
   for N in Children do
-    if FdChildren.IndexOf(N) = -1 then
+    if AllowDuplicates or (FdChildren.IndexOf(N) = -1) then
       FdChildren.Add(N);
 
   if Scene <> nil then
@@ -649,11 +662,12 @@ begin
   { Note that X3D specification directly says
     "A children field is not allowed to directly contain
     multiple instances of the same node."
-    Thus the question how we should deal with multiple items to remove
-    (use Remove or RemoveAll in implementation below?) doesn't exist.
-
     Note that I didn't find such notice in VRML 97 specification.
-    This seems to be undefined case in VRML 97? }
+    This seems to be undefined case in VRML 97?
+
+    But our engine allows it, it makes AddChildren / RemoveChildren
+    faster by default, and it's consistent with normal list operations in Pascal.
+  }
 
   if Scene <> nil then
     Scene.BeforeNodesFree;
@@ -666,9 +680,10 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.AddChildren(
-  const Child: TAbstractChildNode);
+  const Child: TAbstractChildNode;
+  const AllowDuplicates: Boolean);
 begin
-  AddChildren([Child]);
+  AddChildren([Child], AllowDuplicates);
 end;
 
 procedure TAbstractX3DGroupingNode.RemoveChildren(
