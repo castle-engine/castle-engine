@@ -53,7 +53,66 @@ uses
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
   Math, CastleUtils, CastleTimeUtils, CastleVectors;
 
-{$I macspeedtest.inc}
+{ TODO: This macro should be remade to a generic class.
+
+  This macro depends on parameters (define other macros with these names):
+
+    SpeedTest_Name,
+    SpeedTest_FasterName,
+    SpeedTest_SlowerName (string)
+    SpeedTest_Cycles (Cardinal)
+    SpeedTest_DoFasterCycle (Pascal instruction, without ; at the end)
+    SpeedTest_DoSlowerCycle (Pascal instruction, without ; at the end)
+
+  SpeedTest_DoFasterCycle doesn't have to be faster than SpeedTest_DoSlowerCycle,
+  use your guess here.
+  We just write a message like
+
+    'Faster is faster than Slower by XXX'
+
+  If in reality SpeedTest_DoFasterCycle is slower than SpeedTest_DoSlowerCycle,
+  this message may look like
+
+    'Faster is faster than Slower by 0.5'
+
+  which means that SpeedTest_DoFasterCycle is actually 2x slower than
+  SpeedTest_DoSlowerCycle.
+}
+
+{$define SpeedTest_Declare:=
+  {$ifndef NO_SPEED_TESTS}
+  var
+    SpeedTest_i: Cardinal;
+    SpeedTest_Time0, SpeedTest_Time1, SpeedTest_Time2: Double;
+    StartTime: TProcessTimerResult;
+  {$endif not NO_SPEED_TESTS}
+}
+
+{$define SpeedTest:=
+  {$ifndef NO_SPEED_TESTS}
+  Writeln('SPEED TEST ',SpeedTest_Name, '-------------------');
+
+  StartTime := ProcessTimer;
+  for SpeedTest_i := 1 to SpeedTest_Cycles do ;
+  SpeedTest_Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  Writeln(Format('Empty loop = %f',[SpeedTest_Time0]));
+
+  StartTime := ProcessTimer;
+  for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoFasterCycle;
+  SpeedTest_Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  Writeln(SpeedTest_FasterName, Format(' = %f',[SpeedTest_Time1]));
+
+  StartTime := ProcessTimer;
+  for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoSlowerCycle;
+  SpeedTest_Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
+  Writeln(SpeedTest_SlowerName, Format(' = %f',[SpeedTest_Time2]));
+
+  Writeln(SpeedTest_FasterName, ' is faster than ',
+          SpeedTest_SlowerName, ' by ',
+	   Format('%f', [(SpeedTest_Time2-SpeedTest_Time0)/
+	                 (SpeedTest_Time1-SpeedTest_Time0)]));
+  {$endif not NO_SPEED_TESTS}
+}
 
 {$warnings off} // knowingly using deprecated, to check they are working
 
@@ -240,16 +299,12 @@ end;
 
 procedure TTestCastleUtils.TestStrings;
 begin
- {$ifdef UNIX}
- { only on systems with locale properly de/encoding ISO-8859-2 ! }
+  // Uppercase Polish chars. We use UTF-8 now and it should work? Doesn't work yet.
+  // AssertTrue(AnsiSameText('bêcwa³', 'BÊCWA£'));
+  // AssertTrue(not AnsiSameStr('bêcwa³', 'BÊCWA£'));
 
- { does not pass !! But should !! FPC rtl not ready yet !! }
- { AssertTrue(AnsiSameText('bêcwa³', 'BÊCWA£')); }
-
- { AssertTrue(not AnsiSameStr('bêcwa³', 'BÊCWA£')); }
- {$endif}
- AssertTrue(SameText('becwal', 'BECWAL'));
- AssertTrue(not SameText('becwal', 'becwal '));
+  AssertTrue(SameText('becwal', 'BECWAL'));
+  AssertTrue(not SameText('becwal', 'becwal '));
 end;
 
 procedure TTestCastleUtils.TestOthers;
