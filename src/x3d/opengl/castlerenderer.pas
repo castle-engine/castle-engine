@@ -1540,7 +1540,13 @@ begin
   TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
     Width, Height, 1);
 
-  {$ifndef OpenGLES} // TODO-es
+  { On OpenGLES, we just assume CompareMode = COMPARE_R_LEQUAL for now,
+    which is hardcoded in glsl/shadow_map_common.fs
+    in GLSL functions castleShadow2D and castleShadow2DProj.
+    Customizing CompareMode isn't really useful in practice, for non-debug
+    you always want COMPARE_R_LEQUAL. }
+
+  {$ifndef OpenGLES}
 
   if GLFeatures.ARB_shadow then
   begin
