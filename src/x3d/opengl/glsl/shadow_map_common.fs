@@ -10,8 +10,8 @@
 #ifdef GL_ES
   #define sampler2DShadow sampler2D
 
-  // TODO: Do not hardcode this.
-  const float castleShadowBias = 0.005;
+  // This should no longer be necessary, we use glPolygonOffset on OpenGLES
+  // const float castleShadowBias = 0.005;
 
   /* Same as shadow2D: compare shadowMap
      sampled at shadowMapCoord.xy
@@ -20,7 +20,7 @@
   {
     float distanceToLightObstacle = texture2D(shadowMap, shadowMapCoord.xy).r;
     // Return 0 if in shadow, 1 if not in shadow.
-    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);
+    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);
   }
 
   /* Same as shadow2DProj: compare shadowMap
@@ -33,7 +33,7 @@
        It ignores shadowMapCoord.z. */
     float distanceToLightObstacle = texture2DProj(shadowMap, shadowMapCoord).r;
     // Return 0 if in shadow, 1 if not in shadow.
-    return float(distanceToLightObstacle + castleShadowBias >= shadowMapCoord.z);
+    return float(distanceToLightObstacle/* + castleShadowBias*/ >= shadowMapCoord.z);
   }
 #else
   float castleShadow2D(sampler2DShadow shadowMap, const vec3 shadowMapCoord)
