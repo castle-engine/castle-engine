@@ -711,6 +711,7 @@ type
       calling @link(TCastleSceneCore.BeforeNodesFree) earlier,
       and call @link(TX3DField.Changed) after each change. }
     procedure InternalBeforeChange;
+    { @exclude }
     procedure InternalAfterChange;
   end;
 
