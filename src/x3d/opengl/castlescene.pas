@@ -1454,6 +1454,16 @@ procedure TCastleScene.PrepareResources(
           to render with lights. }
         DummyCamera := TRenderingCamera.Create;
         try
+          { Set matrix to be anything sensible.
+            Otherwise opening a scene with shadow maps makes a warning
+            that camera matrix is all 0,
+            and cannot be inverted, since
+            TTextureCoordinateRenderer.RenderCoordinateBegin does
+            RenderingCamera.InverseMatrixNeeded.
+            Testcase: silhouette. }
+          DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
+            TMatrix4.Identity);
+
           Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
           while SI.GetNext do
           begin
