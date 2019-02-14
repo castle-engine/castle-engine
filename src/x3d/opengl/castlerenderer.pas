@@ -165,14 +165,9 @@ type
     rmDepth
   );
 
-  { Various properties that control rendering done
-    with @link(TGLRenderer).
-
-    They are collected here, in a class separate from @link(TGLRenderer),
-    to allow TCastleScene to hide internal @link(TGLRenderer) but still
-    expose @link(TRenderingAttributes) instance. }
+  { Various properties that control rendering. }
   TRenderingAttributes = class(TPersistent)
-  private
+  strict private
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
     FLighting: boolean;
@@ -186,7 +181,6 @@ type
     FBumpMapping: TBumpMapping;
     FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
     FMode: TRenderingMode;
-    FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
@@ -195,22 +189,21 @@ type
     FSeparateDiffuseTexture: boolean;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
-  protected
     { These methods just set the value on given property,
       eventually (some of them) calling ReleaseCachedResources.
       @groupBegin }
-    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
-    procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
-    procedure SetEnableTextures(const Value: boolean); virtual;
-    procedure SetMinificationFilter(const Value: TMinificationFilter); virtual;
-    procedure SetMagnificationFilter(const Value: TMagnificationFilter); virtual;
-    procedure SetBumpMapping(const Value: TBumpMapping); virtual;
-    procedure SetMode(const Value: TRenderingMode); virtual;
-    procedure SetShadowSampling(const Value: TShadowSampling); virtual;
-    procedure SetVertexBufferObject(const Value: boolean); virtual;
-    procedure SetVisualizeDepthMap(const Value: boolean); virtual;
-    procedure SetPhongShading(const Value: boolean); virtual;
+    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
+    procedure SetOnVertexColor(const Value: TVertexColorFunction);
+    procedure SetEnableTextures(const Value: boolean);
+    procedure SetMinificationFilter(const Value: TMinificationFilter);
+    procedure SetMagnificationFilter(const Value: TMagnificationFilter);
+    procedure SetBumpMapping(const Value: TBumpMapping);
+    procedure SetMode(const Value: TRenderingMode);
+    procedure SetShadowSampling(const Value: TShadowSampling);
+    procedure SetVisualizeDepthMap(const Value: boolean);
     { @groupEnd }
+  protected
+    procedure SetPhongShading(const Value: boolean); virtual;
 
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -384,12 +377,6 @@ type
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
-
-    { Use OpenGL vertex buffer object.
-      This is always a good idea. You can set this to @false
-      for debug purposes, e.g. to check how much speedup you get from VBO. }
-    property VertexBufferObject: boolean
-      read FVertexBufferObject write SetVertexBufferObject default true;
 
     { Shadow maps sampling. Various approaches result in various quality and speed. }
     property ShadowSampling: TShadowSampling
@@ -1936,7 +1923,6 @@ begin
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
-  FVertexBufferObject := true;
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
   FPhongShading := DefaultPhongShading;
@@ -2025,15 +2011,6 @@ begin
       ReleaseCachedResources;
 
     FShadowSampling := Value;
-  end;
-end;
-
-procedure TRenderingAttributes.SetVertexBufferObject(const Value: boolean);
-begin
-  if VertexBufferObject <> Value then
-  begin
-    ReleaseCachedResources;
-    FVertexBufferObject := Value;
   end;
 end;
 
@@ -3486,7 +3463,7 @@ begin
     if Shape.Cache = nil then
       Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
 
-    VBO := Attributes.VertexBufferObject and GLFeatures.VertexBufferObject;
+    VBO := GLFeatures.VertexBufferObject;
 
     { calculate Shape.Cache.Arrays }
     if Shape.Cache.Arrays = nil then
