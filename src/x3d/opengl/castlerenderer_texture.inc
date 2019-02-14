@@ -2095,7 +2095,7 @@ begin
           offset is still needed for VSM. Without offset, VSM has some noise,
           and sunny_street demos have noise on walls. With offset, VSM is perfect. }
         glEnable(GL_POLYGON_OFFSET_FILL);
-        {$ifndef OpenGLES} // TODO-es
+        {$ifndef OpenGLES} // These do not exist on OpenGLES
         glEnable(GL_POLYGON_OFFSET_LINE);
         glEnable(GL_POLYGON_OFFSET_POINT);
         {$endif}
