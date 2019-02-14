@@ -206,6 +206,8 @@
     FGeneratedTextureHandler: TGeneratedTextureHandler;
     function GetCompareMode: TShadowMapCompareMode;
     procedure SetCompareMode(const Value: TShadowMapCompareMode);
+    function GetUpdate: TTextureUpdate;
+    procedure SetUpdate(const Value: TTextureUpdate);
   public
     const
       DefaultSize = 128;
@@ -223,6 +225,14 @@
 
     strict private FFdUpdate: TSFTextureUpdate;
     public property FdUpdate: TSFTextureUpdate read FFdUpdate;
+
+    { When to update the texture.
+      See the specification of the "update" field of the GeneratedShadowMap
+      on https://castle-engine.io/x3d_extensions_shadow_maps.php .
+
+      You should usually use this property instead of accessing @link(FdUpdate),
+      it will change FdUpdate.Value and call FdUpdate.Changed. }
+    public property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
     public property FdSize: TSFInt32 read FFdSize;
@@ -763,6 +773,16 @@ end;
 procedure TGeneratedShadowMapNode.SetCompareMode(const Value: TShadowMapCompareMode);
 begin
   FdCompareMode.SendEnumValue(Ord(Value));
+end;
+
+function TGeneratedShadowMapNode.GetUpdate: TTextureUpdate;
+begin
+  Result := FdUpdate.Value;
+end;
+
+procedure TGeneratedShadowMapNode.SetUpdate(const Value: TTextureUpdate);
+begin
+  FdUpdate.Send(Value);
 end;
 
 procedure TProjectedTextureCoordinateNode.CreateNode;

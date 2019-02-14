@@ -88,7 +88,10 @@
     public property FdUpdate: TSFTextureUpdate read FFdUpdate;
 
     { When to update the texture.
-      Changing this automatically marks the field as changed. }
+      See the X3D specification of the "update" field of the GeneratedCubeMapTexture.
+
+      You should usually use this property instead of accessing @link(FdUpdate),
+      it will change FdUpdate.Value and call FdUpdate.Changed. }
     public property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     strict private FFdSize: TSFInt32;
