@@ -475,17 +475,6 @@ type
       const TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
 
-    { Destroy any associations of Renderer with OpenGL context.
-
-      This also destroys associations with OpenGL context in this class
-      @italic(that were made using Renderer). This doesn't destroy other
-      associations, like Background.
-
-      This is useful to call when we change something in Attributes,
-      since changing most Attributes (besides color modulators ?)
-      requires that we disconnect Renderer from OpenGL context.
-      Other things, like Background, don't have to be destroyed in this case. }
-    procedure CloseGLRenderer;
     procedure GLContextCloseEvent(Sender: TObject);
   private
     { Fog for this shape. @nil if none. }
@@ -751,17 +740,13 @@ type
 
   TCastleSceneList = class(specialize TObjectList<TCastleScene>)
   private
-    { Just call InvalidateBackground or CloseGLRenderer on all items.
-      These methods are private, because corresponding methods in
-      TCastleScene are also private and we don't want to expose
-      them here. }
+    { Call InvalidateBackground on all items. }
     procedure InvalidateBackground;
-    procedure CloseGLRenderer;
   public
-    { Just call GLContextClose on all items. }
+    { Call GLContextClose on all items. }
     procedure GLContextClose;
 
-    { Just call ViewChangedSuddenly on all items. }
+    { Call ViewChangedSuddenly on all items. }
     procedure ViewChangedSuddenly;
   end;
 
@@ -1005,23 +990,76 @@ begin
   Result := TGLSceneShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
-procedure TCastleScene.CloseGLRenderer;
-{ This must be coded carefully, because
-  - it's called by ChangedAll, and so may be called when our constructor
-    didn't do it's work yet.
-  - moreover it's called from destructor, so may be called if our
-    constructor terminated with exception.
-  This explains that we have to check Renderer <> nil, Shapes <> nil. }
+procedure TCastleScene.GLContextClose;
 
-  procedure CloseGLScreenEffect(Node: TScreenEffectNode);
+  { This must be coded carefully, because
+    - it's called by ChangedAll, and so may be called when our constructor
+      didn't do it's work yet.
+    - moreover it's called from destructor, so may be called if our
+      constructor terminated with exception.
+    So e.g. we have to check Renderer <> nil, Shapes <> nil here. }
+
+  { Free Arrays and Vbo of all shapes. }
+  procedure RendererDetachFromShapes;
+  var
+    SI: TShapeTreeIterator;
+    S: TGLShape;
+    Pass: TTotalRenderingPass;
   begin
-    { The TGLSLProgram instance here will be released by Rendered.UnprepareAll,
-      that eventually calls GLSLRenderers.UnprepareAll,
-      that eventually calls Cache.GLSLProgram_DecReference on this shader,
-      that eventuallly destroys TGLSLProgram instance.
-      So below only set it to nil. }
-    Node.Shader := nil;
-    Node.ShaderLoaded := false;
+    if (Renderer <> nil) and (Shapes <> nil) then
+    begin
+      { Iterate even over non-visible shapes, for safety:
+        since this GLContextClose may happen after some
+        "visibility" changed, that is you changed proxy
+        or such by event. }
+      SI := TShapeTreeIterator.Create(Shapes, false, false);
+      try
+        while SI.GetNext do
+        begin
+          S := TGLShape(SI.Current);
+          if S.Cache <> nil then
+            Renderer.Cache.Shape_DecReference(S.Cache);
+          for Pass := Low(Pass) to High(Pass) do
+            if S.ProgramCache[Pass] <> nil then
+              Renderer.Cache.Program_DecReference(S.ProgramCache[Pass]);
+        end;
+      finally FreeAndNil(SI) end;
+    end;
+  end;
+
+  { Call TGLShape.GLContextClose. }
+  procedure ShapesGLContextClose;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    if Shapes <> nil then
+    begin
+      SI := TShapeTreeIterator.Create(Shapes, false, true);
+      try
+        while SI.GetNext do
+          TGLShape(SI.Current).GLContextClose;
+      finally FreeAndNil(SI) end;
+    end;
+  end;
+
+  { Release screen effects OpenGL stuff. }
+  procedure ScreenEffectsGLContextClose;
+  var
+    I: Integer;
+    Node: TScreenEffectNode;
+  begin
+    if ScreenEffectNodes <> nil then
+      for I := 0 to ScreenEffectNodes.Count - 1 do
+      begin
+        Node := TScreenEffectNode(ScreenEffectNodes[I]);
+        { The TGLSLProgram instance here will be released by Rendered.UnprepareAll,
+          that eventually calls GLSLRenderers.UnprepareAll,
+          that eventually calls Cache.GLSLProgram_DecReference on this shader,
+          that eventuallly destroys TGLSLProgram instance.
+          So below only set it to nil. }
+        Node.Shader := nil;
+        Node.ShaderLoaded := false;
+      end;
   end;
 
   { When the OpenGL(ES) context is lost, generated textures contents are lost.
@@ -1036,63 +1074,28 @@ procedure TCastleScene.CloseGLRenderer;
         GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
   end;
 
-var
-  SI: TShapeTreeIterator;
-  S: TGLShape;
-  I: Integer;
-  Pass: TTotalRenderingPass;
 begin
+  inherited;
+
   PreparedRender := false;
   PreparedShapesResources := false;
 
-  { Free Arrays and Vbo of all shapes. }
-  if (Renderer <> nil) and (Shapes <> nil) then
-  begin
-    { Iterate even over non-visible shapes, for safety:
-      since this CloseGLRenderer may happen after some
-      "visibility" changed, that is you changed proxy
-      or such by event. }
-    SI := TShapeTreeIterator.Create(Shapes, false, false);
-    try
-      while SI.GetNext do
-      begin
-        S := TGLShape(SI.Current);
-        if S.Cache <> nil then
-          Renderer.Cache.Shape_DecReference(S.Cache);
-        for Pass := Low(Pass) to High(Pass) do
-          if S.ProgramCache[Pass] <> nil then
-            Renderer.Cache.Program_DecReference(S.ProgramCache[Pass]);
-      end;
-    finally FreeAndNil(SI) end;
-  end;
+  RendererDetachFromShapes;
 
-  if ScreenEffectNodes <> nil then
-    for I := 0 to ScreenEffectNodes.Count - 1 do
-      CloseGLScreenEffect(TScreenEffectNode(ScreenEffectNodes[I]));
+  ScreenEffectsGLContextClose;
 
   if Renderer <> nil then
     Renderer.UnprepareAll;
 
-  if Shapes <> nil then
-  begin
-    SI := TShapeTreeIterator.Create(Shapes, false, true);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).GLContextClose;
-    finally FreeAndNil(SI) end;
-  end;
+  ShapesGLContextClose;
 
   VarianceShadowMapsProgram.Free;
   ShadowMapsProgram.Free;
 
   ScheduleUpdateGeneratedTextures;
-end;
 
-procedure TCastleScene.GLContextClose;
-begin
-  inherited;
-  CloseGLRenderer;
   InvalidateBackground;
+
   if OcclusionQueryUtilsRenderer <> nil then
     OcclusionQueryUtilsRenderer.GLContextClose;
 end;
@@ -2300,10 +2303,10 @@ begin
   { We have to do at least Renderer.UnprepareAll.
     Actually, we have to do more: TCastleScene must also be disconnected
     from OpenGL, to release screen effects (referencing renderer shaders)
-    and such. So full CloseGLRenderer is needed. }
+    and such. So full GLContextClose is needed. }
 
   if TemporaryAttributeChange = 0 then
-    FScenes.CloseGLRenderer;
+    FScenes.GLContextClose;
 end;
 
 procedure TSceneRenderingAttributes.SetBlending(const Value: boolean);
@@ -2418,17 +2421,6 @@ begin
   for I := 0 to Count - 1 do
     if Items[I] <> nil then
       Items[I].InvalidateBackground;
-end;
-
-procedure TCastleSceneList.CloseGLRenderer;
-{ This may be called from various destructors,
-  so we are extra careful here and check Items[I] <> nil. }
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if Items[I] <> nil then
-      Items[I].CloseGLRenderer;
 end;
 
 procedure TCastleSceneList.ViewChangedSuddenly;
