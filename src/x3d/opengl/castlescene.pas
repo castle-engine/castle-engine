@@ -1024,6 +1024,18 @@ procedure TCastleScene.CloseGLRenderer;
     Node.ShaderLoaded := false;
   end;
 
+  { When the OpenGL(ES) context is lost, generated textures contents are lost.
+    Make sure to regenerate them when entering context again.
+    Testcase: Silhouette on Android, switch from application and back. }
+  procedure ScheduleUpdateGeneratedTextures;
+  var
+    I: Integer;
+  begin
+    if GeneratedTextures <> nil then
+      for I := 0 to GeneratedTextures.Count - 1 do
+        GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+  end;
+
 var
   SI: TShapeTreeIterator;
   S: TGLShape;
@@ -1072,6 +1084,8 @@ begin
 
   VarianceShadowMapsProgram.Free;
   ShadowMapsProgram.Free;
+
+  ScheduleUpdateGeneratedTextures;
 end;
 
 procedure TCastleScene.GLContextClose;
