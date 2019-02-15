@@ -35,7 +35,7 @@
 '  if (gl_FragColor.a < 0.5) discard;' + LineEnding +
 '#endif' + LineEnding +
 '#ifdef CLIP_LINE' + LineEnding +
-'  if (dot(clip_line.xy, frag_coord) + clip_line.z < 0.0) discard;' + LineEnding +
+'  if (dot(clip_line.xy, tex_coord_frag) + clip_line.z < 0.0) discard;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 ''

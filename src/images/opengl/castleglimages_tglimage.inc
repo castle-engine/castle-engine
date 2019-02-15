@@ -563,8 +563,15 @@ type
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
-      This provides a functionality similar to desktop OpenGL glClipPlane
-      (working on all platforms -- desktop, mobile). }
+
+      The line equation works in texture coordinates.
+      If the image is drawn complete on the screen,
+      texture coordinates span from (0,0) at bottom-left to (1,1) top-right.
+
+      For example ClipLine = (1, 0, -0.5) means that we reject pixels
+      where @code(1 * x + 0 * y - 0.5 < 0). In other words,
+      we reject pixels where @code(x < 0.5), so we reject
+      the left half of the image. }
     property ClipLine: TVector3 read FClipLine write FClipLine;
 
     { Get the image contents from GPU to CPU.
@@ -1390,9 +1397,12 @@ begin
     end;
     if Clip then
     begin
+      { TODO: Clip not implemented in this case yet.
+        Need to transform ClipLine into screen coordinates, then do
       glEnable(GL_CLIP_PLANE0);
       glClipPlane(GL_CLIP_PLANE0, Vector4Double(
-        FClipLine[0], FClipLine[1], 0, FClipLine[2]));
+        FScreenClipLine[0], FScreenClipLine[1], 0, FScreenClipLine[2]));
+      }
     end;
     {$endif not OpenGLES}
   end;
@@ -1422,8 +1432,10 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
+    { TODO: Clip not implemented in this case yet.
     if Clip then
       glDisable(GL_CLIP_PLANE0);
+    }
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     {$endif not OpenGLES}

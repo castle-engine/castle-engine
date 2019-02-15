@@ -33,6 +33,6 @@ void main(void)
   if (gl_FragColor.a < 0.5) discard;
 #endif
 #ifdef CLIP_LINE
-  if (dot(clip_line.xy, frag_coord) + clip_line.z < 0.0) discard;
+  if (dot(clip_line.xy, tex_coord_frag) + clip_line.z < 0.0) discard;
 #endif
 }

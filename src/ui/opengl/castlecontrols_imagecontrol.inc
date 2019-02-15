@@ -201,9 +201,11 @@
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
 
-      The equation is calculated in the final scaled screen coordinates
-      (not in the local, unscaled pixels). Adjust it to match the RenderRect
-      if necessary, to make it work with UI scaling. }
+      The equation is calculated in the coordinates in which image
+      X, Y spans from (0, 0) (bottom-left) to (1, 1) (top-right).
+      For example ClipLine = (1, 0, -0.5) means that we reject pixels
+      where @code(1 * x + 0 * y - 0.5 < 0). In other words,
+      we reject pixels where @code(x < 0.5), so we reject the left half of the image. }
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
 
     { Custom GLSL shading code.

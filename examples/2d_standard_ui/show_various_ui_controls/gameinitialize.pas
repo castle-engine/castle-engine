@@ -113,7 +113,7 @@ end;
 procedure ApplicationInitialize;
 const
   TestClip = false;
-  TestClipLine: TVector3 = (Data: (0.5, -1, 0));
+  TestClipLine: TVector3 = (Data: (1, 0, -0.5));
 begin
   { customize tooltips to use rounded corners.
     Just because we can :) }
@@ -122,7 +122,7 @@ begin
 
   ImageWithBorders := TCastleImageControl.Create(Window);
   ImageWithBorders.URL := ApplicationData('box_with_borders.png');
-  ImageWithBorders.Corners := Vector4Integer(40, 40, 40, 40);
+  ImageWithBorders.ProtectedSides.AllSides := 40;
   ImageWithBorders.Stretch := true;
   ImageWithBorders.FullSize := true;
   ImageWithBorders.Clip := TestClip;
