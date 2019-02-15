@@ -1,6 +1,6 @@
 # This will be added to the main integrated/jni/Android.mk file by the build tool.
 
-# libtremolo.so from https://github.com/michaliskambi/tremolo-android
+# libtremolo.so from https://github.com/castle-engine/android-tremolo
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libtremolo

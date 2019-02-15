@@ -6,10 +6,10 @@ set -eu
 # (and note that all the workarounds and tweaks mentioned there seem
 # to be already fixed in the latest version of this repo:)
 
-git clone http://repo.or.cz/openal-soft/android.git android-openal
+git clone https://github.com/castle-engine/android-openal
 
 cd android-openal/android/jni/
 ndk-build
 cd ../../../
 
-cp -f android/android/libs/armeabi-v7a/libopenal.so .
+cp -f android-openal/android/libs/armeabi-v7a/libopenal.so .
