@@ -319,11 +319,11 @@ constructor TCastleProject.Create(const APath: string);
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
     DefaultAndroidCompileSdkVersion = 27;
-    { We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
-      We want also NativeActivity and EGL, which require API level 9 or higher. }
-    ReallyMinSdkVersion = 9;
-    DefaultAndroidMinSdkVersion = 9;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
+    { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
+      for reasons behind this minimal version. }
+    ReallyMinSdkVersion = 16;
+    DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
     DefaultUsesNonExemptEncryption = true;
 
     { character sets }
