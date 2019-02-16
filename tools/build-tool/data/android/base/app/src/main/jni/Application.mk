@@ -19,3 +19,11 @@
 # https://android.googlesource.com/platform/ndk/+show/353e653824b79c43b948429870d0abeedebde386/docs/HardFloatAbi.md
 
 APP_ABI := armeabi-v7a
+
+# NDK platform version should in practice always equal
+# minSdkVersion, or be lower than it.
+# But it doesn't really make any sense to set it lower,
+# so in practice it should be equal.
+# NDK platform version must *never* be higher than minSdkVersion
+# ( https://stackoverflow.com/questions/21888052/what-is-the-relation-between-app-platform-androidminsdkversion-and-androidtar ).
+APP_PLATFORM := android-16
