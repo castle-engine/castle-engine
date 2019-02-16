@@ -27,6 +27,11 @@ ${ANDROID_ASSOCIATE_DOCUMENT_TYPES}
         </activity>
     </application>
 
+    <!-- Avoid warning from ndk-build
+      Android NDK: WARNING: APP_PLATFORM android-16 is higher than android:minSdkVersion 1 in ./AndroidManifest.xml. NDK binaries will *not* be compatible with devices older than android-16. See https://android.googlesource.com/platform/ndk/+/master/docs/user/common_problems.md for more information.
+    -->
+    <uses-sdk android:minSdkVersion="${ANDROID_MIN_SDK_VERSION}" />
+
     <uses-feature android:glEsVersion="0x00020000"/>
 
     ${ANDROID_SCREEN_ORIENTATION_FEATURE}
