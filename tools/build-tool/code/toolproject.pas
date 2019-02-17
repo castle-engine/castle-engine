@@ -1645,6 +1645,8 @@ const
       Result += 'safeLoadLibrary("openal");' + NL;
     if depOggVorbis in Dependencies then
       Result += 'safeLoadLibrary("tremolo");' + NL;
+    if depFreetype in Dependencies then
+      Result += 'safeLoadLibrary("freetype");' + NL;
   end;
 
 var
