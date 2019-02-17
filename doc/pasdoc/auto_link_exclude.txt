@@ -144,6 +144,8 @@ gain
 generation
 geometry
 glw
+glyph
+glyphs
 gravity
 gray
 grayscale
