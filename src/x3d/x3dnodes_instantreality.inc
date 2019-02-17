@@ -538,7 +538,7 @@
     strict private FFdTextureTransformEnabled: TMFBool;
     public property FdTextureTransformEnabled: TMFBool read FFdTextureTransformEnabled;
 
-    { Shininess expressed an an exponent for shading equations.
+    { Shininess expressed as an exponent for shading equations.
       This is just @link(ShininessFactor) * 128. }
     function ShininessFactorExp: Single;
 
