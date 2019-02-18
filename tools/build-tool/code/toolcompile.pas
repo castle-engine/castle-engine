@@ -519,17 +519,22 @@ begin
     case Mode of
       cmRelease:
         begin
-          { With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+          { Aarch64 optimizations exhibit bugs, on both iOS and Android:
+
+            iOS:
+            With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
             programs compiled with -O1 or -O2 crash at start.
             Earlier engine version, Draw3x3 was doing something weird.
-            So disable optimizations.
 
-            This is confirmed to really be needed only on darwin/aarch64,
-            although Michalis simply never tested on darwin/arm.
-            For safety and consistency of testing, disable optimizations
-            on all iOS versions. }
-          //if (OS = darwin) and (CPU = aarch64) then
-          if IsIOS then
+            (This is confirmed to really be needed only on darwin/aarch64,
+            Michalis simply never tested on darwin/arm.)
+
+            Android:
+            Reading some PNG fails (testcase: Silhouette), at least with -O2.
+
+            Disable optimizations on Aarch64 now. }
+
+          if CPU = aarch64 then
             FpcOptions.Add('-O-')
           else
             FpcOptions.Add('-O2');
