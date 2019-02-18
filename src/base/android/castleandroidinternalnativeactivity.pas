@@ -24,13 +24,15 @@ interface
 uses CastleAndroidInternalAssetManager, CastleAndroidInternalInput, CastleAndroidInternalNativeWindow,
   CastleAndroidInternalRect, jni, ctypes;
 
-{
- * This structure defines the native side of an android.app.NativeActivity.
- * It is created by the framework, and handed to the application's native
- * code as it is being launched.
- }
 type
   PANativeActivityCallbacks = ^ANativeActivityCallbacks;
+
+  { Native side of an android.app.NativeActivity.
+    It is created by the framework, and handed to the application's native
+    code as it is being launched.
+
+    See https://developer.android.com/ndk/reference/struct/a-native-activity
+  }
   ANativeActivity = packed record
     (**
      * Pointer to the callback function table of the native application.
@@ -65,6 +67,10 @@ type
      * The platform's SDK version code.
       *)
     sdkVersion : longword;
+    {$ifdef CPU64}
+    { Padding, to match structure layout on 64-bit CPU (Aarch64). }
+    padding : longword;
+    {$endif}
     (**
      * This is the native instance of the application.  It is not used by
      * the framework, but can be set by the application to its own instance
