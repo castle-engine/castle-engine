@@ -215,8 +215,11 @@ type
 
     { Output Android library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
-      otherwise a complete absolute path. }
-    function AndroidLibraryFile(const AbsolutePath: boolean = true): string;
+      otherwise a complete absolute path.
+
+      CPU should be one of CPUs supported on Android platform (arm, aarch64)
+      or cpuNone to get the library name without the CPU suffix. }
+    function AndroidLibraryFile(const CPU: TCPU; const AbsolutePath: boolean = true): string;
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
@@ -846,7 +849,10 @@ begin
         begin
           Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
-          Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
+          { Our default compilation output doesn't contain CPU suffix,
+            but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
+          CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
+          Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
         end;
       else
         begin
@@ -1453,9 +1459,15 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.AndroidLibraryFile(const AbsolutePath: boolean = true): string;
+function TCastleProject.AndroidLibraryFile(const CPU: TCPU;
+  const AbsolutePath: boolean): string;
+var
+  Ext: String;
 begin
-  Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), '.so'));
+  Ext := '.so';
+  if CPU <> cpuNone then
+    Ext := '_' + CPUToString(CPU) + Ext;
+  Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), Ext));
 end;
 
 function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
@@ -1509,7 +1521,10 @@ begin
   TryDeleteFile(ChangeFileExt(ExecutableName, '.log'));
 
   if AndroidSource <> '' then
-    TryDeleteAbsoluteFile(AndroidLibraryFile);
+  begin
+    TryDeleteAbsoluteFile(AndroidLibraryFile(arm));
+    TryDeleteAbsoluteFile(AndroidLibraryFile(aarch64));
+  end;
   if IOSSource <> '' then
     TryDeleteAbsoluteFile(IOSLibraryFile);
 

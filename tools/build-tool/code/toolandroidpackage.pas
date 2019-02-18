@@ -329,11 +329,25 @@ var
   end;
 
   procedure GenerateLibrary;
+  var
+    JniPath, LibraryWithoutCPU, LibraryArm, LibraryAarch64: String;
   begin
-    PackageSmartCopyFile(Project.AndroidLibraryFile,
-      'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
+    JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
       { Place precompiled libs in jni/ , ndk-build will find them there. }
-      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + ExtractFileName(Project.AndroidLibraryFile));
+      'jni' + PathDelim;
+    LibraryWithoutCPU := ExtractFileName(Project.AndroidLibraryFile(cpuNone));
+
+    LibraryArm := Project.AndroidLibraryFile(arm);
+    if FileExists(LibraryArm) then
+      PackageSmartCopyFile(LibraryArm, JniPath + 'armeabi-v7a' + PathDelim + LibraryWithoutCPU)
+    else
+      WritelnWarning('Android', 'Library for 32-bit Android (Arm) not found (' + LibraryArm + '), the application will not work on 32-bit-only Android devices');
+
+    LibraryAarch64 := Project.AndroidLibraryFile(aarch64);
+    if FileExists(LibraryAarch64) then
+      PackageSmartCopyFile(LibraryAarch64, JniPath + 'arm64-v8a' + PathDelim + LibraryWithoutCPU)
+    else
+      WritelnWarning('Android', 'Library for 64-bit Android (Aarch64) not found (' + LibraryAarch64 + '), the application will not work on 64-bit-only Android devices');
   end;
 
   { Run "ndk-build", this moves our .so to the final location in jniLibs,
