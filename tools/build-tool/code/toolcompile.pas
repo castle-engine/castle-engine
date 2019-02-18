@@ -565,8 +565,8 @@ begin
 
     if (OS = Android) and (CPU = arm) then
     begin
-      { Our platform is armeabi-v7a, see
-        ../data/android/base/app/src/main/jni/Application.mk .
+      { Our platform is armeabi-v7a, see ToolAndroidPackage
+        comments about armeabi-v7a.
         Note: the option below seems not necessary when using -CfVFPV3?
         At least, nothing crashes.
         Possibly -CfVFPV3 implies this anyway. }

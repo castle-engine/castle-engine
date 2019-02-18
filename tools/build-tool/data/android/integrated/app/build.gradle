@@ -10,11 +10,11 @@ android {
         versionCode ${VERSION_CODE}
         versionName "${VERSION}"
 
-        ndk{
+        ndk {
             // For detailed abiFilter descriptions, refer to "Supported ABIs"
             // at https://developer.android.com/ndk/guides/abis.html#s
             // See also https://code.google.com/p/android/issues/detail?id=220615
-            abiFilters "armeabi-v7a"
+            abiFilters ${ANDROID_ABI_LIST}
         }
     }
     buildTypes {
@@ -36,6 +36,20 @@ android {
     externalNativeBuild {
         ndkBuild {
             path "src/main/jni/Android.mk"
+        }
+    }
+
+    // Although we run ndk-build (Gradle runs it automatically),
+    // it's only to enable debugging with ndk-gdb.
+    // For unknown reason, ndk-build is unable to transfer our precompiled libraries
+    // (library from CGE, extra libs with OpenAL, Tremolo, FreeType...)
+    // into the final APK automatically.
+    // So we follow official docs:
+    // https://developer.android.com/studio/projects/gradle-external-native-builds
+    // to insert the libraries by jniLibs.srcDirs.
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'src/main/jni/'
         }
     }
 }

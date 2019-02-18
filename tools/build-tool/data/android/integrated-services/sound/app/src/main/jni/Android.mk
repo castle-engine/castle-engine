@@ -2,5 +2,5 @@
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libopenal
-LOCAL_SRC_FILES := armeabi-v7a/libopenal.so
+LOCAL_SRC_FILES := $(TARGET_ARCH_ABI)/libopenal.so
 include $(PREBUILT_SHARED_LIBRARY)

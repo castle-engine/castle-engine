@@ -1,24 +1,19 @@
-# This file is only used by ndk-build.
-# Which in turn is only useful for us to make ndk-gdb working.
-# See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#debugging-running-application-on-an-android-device-using-ndk-gdb
+# This file is used by ndk-build.
+# See https://developer.android.com/ndk/guides/application_mk .
 #
-# Note that we could work without ndk-build actually,
+# Note: It is possible for CGE to work completely without ndk-build
+# (since we use FPC to do the actual building)
 # and just copy our libraries to jniLibs.
 # The only downside would be non-working ndk-gdb.
+# Integrating with ndk-build and copying libraries using
+# PREBUILT_SHARED_LIBRARY in Android.mk,
+# makes ndk-gdb working.
+# See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#debugging-running-application-on-an-android-device-using-ndk-gdb
 #
-# The APP_ABI is necessary to indicate ABI of our SO files to NDK.
-# With older Android NDK versions, this was not necessary.
-# But at least from r12b (maybe earlier) not declaring this is an error,
-# results in errors like
-#   .../ndk/toolchains/x86_64-4.9/prebuilt/linux-x86_64/bin/x86_64-linux-android-strip: Unable to recognise the format of the input file `./libs/x86_64/libandroiddemo.so'
-#
-# The armeabi-v7a is our proper platform, with hard floats.
-# See https://developer.android.com/ndk/guides/application_mk.html
-# and http://stackoverflow.com/questions/24948008/linking-so-file-within-android-ndk
-# and *do not* confuse this with (removed now) armeabi-v7a-hard ABI:
-# https://android.googlesource.com/platform/ndk/+show/353e653824b79c43b948429870d0abeedebde386/docs/HardFloatAbi.md
-
-APP_ABI := armeabi-v7a
+# Note: We do not specify architectures here using APP_ABI.
+# Instead they are listed in build.gradle as ndk.abiFilters.
+# The docs https://developer.android.com/ndk/guides/application_mk
+# say explicitly that APP_ABI in Application.mk is ignored then.
 
 # NDK platform version should in practice always equal
 # minSdkVersion, or be lower than it.

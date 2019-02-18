@@ -19,3 +19,5 @@ Recompile like this:
 
   cp -f android-openal/android/libs/armeabi-v7a/libopenal.so \
     app/src/main/jni/armeabi-v7a/libopenal.so
+  cp -f android-openal/android/libs/arm64-v8a/libopenal.so \
+    app/src/main/jni/arm64-v8a/libopenal.so

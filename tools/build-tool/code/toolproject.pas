@@ -75,6 +75,9 @@ type
     ExtractTemplateOverrideExisting: Boolean;
     // @groupEnd
     IOSTeam: string;
+    { Use to define macros containing the Android architecture names.
+      Must be set by all commands that may use our macro system. }
+    AndroidCPUS: TCPUS;
     procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
@@ -1101,7 +1104,8 @@ begin
   begin
     Files := PackageFiles(true);
     try
-      CreateAndroidPackage(Self, OS, CPU, Mode, Files);
+      AndroidCPUS := [CPU];
+      CreateAndroidPackage(Self, OS, AndroidCPUS, Mode, Files);
     finally FreeAndNil(Files) end;
     Exit;
   end;
@@ -1664,6 +1668,16 @@ const
       Result += 'safeLoadLibrary("freetype");' + NL;
   end;
 
+  { Android ABI list like '"armeabi-v7a","arm64-v8a"' }
+  function AndroidAbiList: String;
+  var
+    CPU: TCPU;
+  begin
+    Result := '';
+    for CPU in AndroidCPUS do
+      Result := SAppendPart(Result, ',', '"' + CPUToAndroidArchitecture(CPU) + '"');
+  end;
+
 var
   I: Integer;
   AndroidLibraryName: string;
@@ -1680,6 +1694,7 @@ begin
   Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
   Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES'    , AssociateDocumentTypes.ToIntentFilter);
   Macros.Add('ANDROID_LOG_TAG'                     , Copy(Name, 1, MaxAndroidTagLength));
+  Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
 
   for I := 0 to AndroidServices.Count - 1 do
     for ServiceParameterPair in AndroidServices[I].Parameters do

@@ -21,8 +21,12 @@ interface
 uses CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
 
+{ Convert CPU to an architecture name understood by Android,
+  see TARGET_ARCH_ABI at https://developer.android.com/ndk/guides/android_mk . }
+function CPUToAndroidArchitecture(const CPU: TCPU): String;
+
 procedure CreateAndroidPackage(const Project: TCastleProject;
-  const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 
 procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
@@ -41,6 +45,23 @@ const
     'release' { no valgrind support for Android },
     'debug');
 
+function CPUToAndroidArchitecture(const CPU: TCPU): String;
+begin
+  case CPU of
+    { The armeabi-v7a is our proper platform, with hard floats.
+      See https://developer.android.com/ndk/guides/application_mk.html
+      and http://stackoverflow.com/questions/24948008/linking-so-file-within-android-ndk
+      and *do not* confuse this with (removed now) armeabi-v7a-hard ABI:
+      https://android.googlesource.com/platform/ndk/+show/353e653824b79c43b948429870d0abeedebde386/docs/HardFloatAbi.md
+    }
+    arm    : Result := 'armeabi-v7a';
+    aarch64: Result := 'arm64-v8a';
+    i386   : Result := 'x86';
+    x86_64 : Result := 'x86_64';
+    else raise Exception.CreateFmt('Android does not support CPU "%s"', [CPUToString(CPU)]);
+  end;
+end;
+
 function Capitalize(const S: string): string;
 begin
   Result := S;
@@ -58,41 +79,6 @@ begin
   { fail if still not found }
   if Required and (Result = '') then
     raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
-end;
-
-{ Try to find "ndk-build" tool executable.
-  If not found -> exception (if Required) or return '' (if not Required). }
-function NdkBuildExe(const Required: boolean = true): string;
-const
-  ExeName = 'ndk-build';
-  BundleName = 'NDK';
-  EnvVarName = 'ANDROID_NDK_HOME';
-var
-  Env: string;
-begin
-  Result := '';
-  { try to find in $ANDROID_NDK_HOME }
-  Env := GetEnvironmentVariable(EnvVarName);
-  if Env <> '' then
-  begin
-    Result := AddExeExtension(InclPathDelim(Env) + ExeName);
-    if not FileExists(Result) then
-      Result := '';
-  end;
-  { try to find in $ANDROID_HOME }
-  if Result = '' then
-  begin
-    Env := GetEnvironmentVariable('ANDROID_HOME');
-    if Env <> '' then
-    begin
-      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
-      if not FileExists(Result) then
-        Result := '';
-    end;
-  end;
-  { try to find on $PATH }
-  if Result = '' then
-    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
 end;
 
 { Try to find "adb" tool executable.
@@ -120,7 +106,7 @@ begin
 end;
 
 procedure CreateAndroidPackage(const Project: TCastleProject;
-  const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 var
   AndroidProjectPath: string;
@@ -330,43 +316,20 @@ var
 
   procedure GenerateLibrary;
   var
-    JniPath, LibraryWithoutCPU, LibraryArm, LibraryAarch64: String;
+    CPU: TCPU;
+    JniPath, LibraryWithoutCPU, LibraryFileName: String;
   begin
     JniPath := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
       { Place precompiled libs in jni/ , ndk-build will find them there. }
       'jni' + PathDelim;
     LibraryWithoutCPU := ExtractFileName(Project.AndroidLibraryFile(cpuNone));
 
-    LibraryArm := Project.AndroidLibraryFile(arm);
-    if FileExists(LibraryArm) then
-      PackageSmartCopyFile(LibraryArm, JniPath + 'armeabi-v7a' + PathDelim + LibraryWithoutCPU)
-    else
-      WritelnWarning('Android', 'Library for 32-bit Android (Arm) not found (' + LibraryArm + '), the application will not work on 32-bit-only Android devices');
-
-    LibraryAarch64 := Project.AndroidLibraryFile(aarch64);
-    if FileExists(LibraryAarch64) then
-      PackageSmartCopyFile(LibraryAarch64, JniPath + 'arm64-v8a' + PathDelim + LibraryWithoutCPU)
-    else
-      WritelnWarning('Android', 'Library for 64-bit Android (Aarch64) not found (' + LibraryAarch64 + '), the application will not work on 64-bit-only Android devices');
-  end;
-
-  { Run "ndk-build", this moves our .so to the final location in jniLibs,
-    also setting up debug stuff for ndk-gdb to work. }
-  procedure RunNdkBuild;
-  begin
-    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
-      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
-      http://stackoverflow.com/a/28430178
-
-      Possibly we could also let the ndk-build to place them in libs/,
-      as it does by default.
-
-      We know we should not let them be only in jni/ subdir,
-      as they would not be picked by Gradle from there. But that's
-      what ndk-build does: it copies them from jni/ to another directory. }
-
-    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-      NdkBuildExe, ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
+    for CPU in CPUS do
+    begin
+      LibraryFileName := Project.AndroidLibraryFile(CPU);
+      PackageSmartCopyFile(LibraryFileName,
+        JniPath + CPUToAndroidArchitecture(CPU) + PathDelim + LibraryWithoutCPU);
+    end;
   end;
 
 var
@@ -534,7 +497,6 @@ begin
   GenerateAssets;
   GenerateLocalization;
   GenerateLibrary;
-  RunNdkBuild;
   RunGradle(PackageMode);
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
