@@ -166,7 +166,7 @@ public class MainActivity extends NativeActivity
     /* JNI ------------------------------------------------------------------- */
 
     public native String jniMessage(String javaToNative);
-    public native String jniLanguage(String javaToNative);
+    public native void jniLanguage(String javaToNative);
 
     public static final void safeLoadLibrary(String libName)
     {

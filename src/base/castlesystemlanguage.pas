@@ -33,8 +33,9 @@ function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage):
 function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
 
 {$ifdef ANDROID}
-  { Export this function from your Android library. }
-  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
+{ The CGE build tool will make sure to export this function from Android library.
+  @exclude }
+procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
 {$endif}
 
 implementation
@@ -45,23 +46,20 @@ var
 {$endif}
 
 {$ifdef ANDROID}
-  function Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
-  var
-    JavaToNativeStr: PChar;
-    Dummy: JBoolean;
+procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
+var
+  JavaLanguageCodeStr: PChar;
+  Dummy: JBoolean;
+begin
+  if (JavaLanguageCode <> nil) and (Env^^.GetStringUTFLength(Env, JavaLanguageCode) <> 0) then
   begin
-    Result := Env^^.NewStringUTF(Env, nil);
-
-    if (JavaToNative <> nil) and (Env^^.GetStringUTFLength(Env, JavaToNative) <> 0) then
-    begin
-      Dummy := 0;
-      JavaToNativeStr := Env^^.GetStringUTFChars(Env, JavaToNative,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
-      try
-        MobileSystemLanguage := AnsiString(JavaToNativeStr); // will copy characters
-      finally
-        Env^^.ReleaseStringUTFChars(Env, JavaToNative, JavaToNativeStr) end;
-    end;
+    Dummy := 0;
+    JavaLanguageCodeStr := Env^^.GetStringUTFChars(Env, JavaLanguageCode,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
+    try
+      MobileSystemLanguage := AnsiString(JavaLanguageCodeStr); // will copy characters
+    finally Env^^.ReleaseStringUTFChars(Env, JavaLanguageCode, JavaLanguageCodeStr) end;
   end;
+end;
 {$endif ANDROID}
 
 function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
