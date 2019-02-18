@@ -563,44 +563,42 @@ begin
       else raise EInternalError.Create('DoCompile: Mode?');
     end;
 
-    case OS of
-      Android:
-        begin
-          { Our platform is armeabi-v7a, see
-            data/android/base/app/src/main/jni/Application.mk .
-            Note: the option below seems not necessary when using -CfVFPV3?
-            At least, nothing crashes.
-            Possibly -CfVFPV3 implies this anyway. }
-          FpcOptions.Add('-CpARMV7A');
+    if (OS = Android) and (CPU = arm) then
+    begin
+      { Our platform is armeabi-v7a, see
+        data/android/base/app/src/main/jni/Application.mk .
+        Note: the option below seems not necessary when using -CfVFPV3?
+        At least, nothing crashes.
+        Possibly -CfVFPV3 implies this anyway. }
+      FpcOptions.Add('-CpARMV7A');
 
-          { Necessary to work fast.
-            See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
-          FpcOptions.Add('-CfVFPV3');
+      { Necessary to work fast.
+        See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#notes-about-compiling-with-hard-floats--cfvfpv3 }
+      FpcOptions.Add('-CfVFPV3');
 
-          { This allows to "sacrifice precision for performance"
-            according to http://wiki.freepascal.org/ARM_compiler_options .
+      { This allows to "sacrifice precision for performance"
+        according to http://wiki.freepascal.org/ARM_compiler_options .
 
-            But it causes too much precision loss?
-            escape_universe fails with
-            I/escape_universe( 7761): Exception: Exception "EInvalidGameConfig" :
-            I/escape_universe( 7761): Gun auto_fire_interval cannot be <= 0
+        But it causes too much precision loss?
+        escape_universe fails with
+        I/escape_universe( 7761): Exception: Exception "EInvalidGameConfig" :
+        I/escape_universe( 7761): Gun auto_fire_interval cannot be <= 0
 
-            Speed gain untested.
+        Speed gain untested.
 
-            For now unused. }
-          //FpcOptions.Add('-OoFASTMATH');
+        For now unused. }
+      //FpcOptions.Add('-OoFASTMATH');
 
-          { This should *not* be defined (when compiling our code or RTL).
-            It makes our code use -CaEABIHF/armeabi-v7a-hard
-            https://android.googlesource.com/platform/ndk/+/353e653824b79c43b948429870d0abeedebde386/docs/HardFloatAbi.md
-            which has incompatible call mechanism.
+      { This should *not* be defined (when compiling our code or RTL).
+        It makes our code use -CaEABIHF/armeabi-v7a-hard
+        https://android.googlesource.com/platform/ndk/+/353e653824b79c43b948429870d0abeedebde386/docs/HardFloatAbi.md
+        which has incompatible call mechanism.
 
-            And indeed, doing PlaySound crashes at alSourcef call (to OpenAL)
-            from TSound.SetMinGain. Reproducible with escape_universe.
+        And indeed, doing PlaySound crashes at alSourcef call (to OpenAL)
+        from TSound.SetMinGain. Reproducible with escape_universe.
 
-            fpcupdeluxe default cross-compiler to Android also uses this. }
-          //FpcOptions.Add('-CaEABIHF');
-        end;
+        fpcupdeluxe default cross-compiler to Android also uses this. }
+      //FpcOptions.Add('-CaEABIHF');
     end;
 
     if Plugin then

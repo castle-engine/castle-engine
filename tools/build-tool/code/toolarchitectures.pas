@@ -59,13 +59,14 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android,dragonfly];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
-  AllLimit83fsOses= [go32v2,os2,emx,watcom,msdos];
+  AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos]; // OSes that use .a library files for smart-linking
-  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
+  AllSmartLinkLibraryOSes = [Linux,msdos,win16,palmos]; // OSes that use .a library files for smart-linking
+  AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -96,17 +97,17 @@ Const
     { wince    }( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { gba    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, true , false, false,  true ,  true ),
+    { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, true,  false, true , false, false,  true ,  true ),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
-    { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
+    { haiku }   ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
     { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,  false,  false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false, false, false,  false,  false),
-    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false, false, false,  false,  false),
+    { android } ( false, true,  false, false, false, true,  true,  false, false, false, false, true,  true , false, true,  false,  false,  false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false,  false,  false),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
-    { aros }    ( true,  false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
+    { aros }    ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false, false,  false,  false),
     { dragonfly}( false, false, false, false, false, true,  false, false, false, false, false, false, false, false, false, false,  false,  false),
     { win16 }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true , false, false,  false,  false)
   );
