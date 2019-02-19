@@ -9,15 +9,8 @@ Note that all the workarounds and tweaks mentioned on
 http://pielot.org/2010/12/openal-on-android/
 seem to be already fixed in the latest version of this repo :)
 
-Recompile like this:
+Update the library files (SO) like this:
 
   git clone https://github.com/castle-engine/android-openal
-
-  cd android-openal/android/jni/
-  ndk-build
-  cd ../../../
-
-  cp -f android-openal/android/libs/armeabi-v7a/libopenal.so \
-    app/src/main/jni/armeabi-v7a/libopenal.so
-  cp -f android-openal/android/libs/arm64-v8a/libopenal.so \
-    app/src/main/jni/arm64-v8a/libopenal.so
+  cd android-openal/
+  make build
