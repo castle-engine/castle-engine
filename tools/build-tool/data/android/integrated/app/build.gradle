@@ -23,13 +23,15 @@ android {
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
         }
-        // Is this needed to be debuggable?
+
+        // This makes NDK_BUILD=1 being passed to ndk-build, which is a good idea.
         // https://developer.android.com/studio/build/build-variants.html
-        // Looks like not. ndk-gdb works (and completes symbols) OK.
-        // debug {
-        //     debuggable true
-        //     jniDebuggable true
-        // }
+        // Unfortunately, this doesn't matter to us --- debug symbols are not
+        // correctly preserved for ndk-gdb anyway.
+        debug {
+            debuggable true
+            jniDebuggable true
+        }
     }
 
     // See https://developer.android.com/studio/projects/gradle-external-native-builds
@@ -39,8 +41,6 @@ android {
         }
     }
 
-    // Although we run ndk-build (Gradle runs it automatically),
-    // it's only to enable debugging with ndk-gdb.
     // For unknown reason, ndk-build is unable to transfer our precompiled libraries
     // (library from CGE, extra libs with OpenAL, Tremolo, FreeType...)
     // into the final APK automatically.

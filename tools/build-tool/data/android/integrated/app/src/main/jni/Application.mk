@@ -1,14 +1,12 @@
 # This file is used by ndk-build.
 # See https://developer.android.com/ndk/guides/application_mk .
 #
-# Note: It is possible for CGE to work completely without ndk-build
-# (since we use FPC to do the actual building)
-# and just copy our libraries to jniLibs.
-# The only downside would be non-working ndk-gdb.
-# Integrating with ndk-build and copying libraries using
-# PREBUILT_SHARED_LIBRARY in Android.mk,
-# makes ndk-gdb working.
-# See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#debugging-running-application-on-an-android-device-using-ndk-gdb
+# Note: CGE libraries are "prebuilt" (since we use FPC to do the actual building).
+# However, we cannot avoid using ndk-build to define them (otherwise creating
+# package complains that we have native code but don't use native build system).
+# In the past, using ndk-build also allowed smooth integration with ndk-gdb
+# (we could see Pascal symbols and set breakpoints on them),
+# but this doesn't work anymore.
 #
 # Note: We do not specify architectures here using APP_ABI.
 # Instead they are listed in build.gradle as ndk.abiFilters.
