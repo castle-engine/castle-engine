@@ -1678,6 +1678,16 @@ const
       Result := SAppendPart(Result, ',', '"' + CPUToAndroidArchitecture(CPU) + '"');
   end;
 
+  { Android ABI list like 'armeabi-v7a arm64-v8a' }
+  function AndroidAbiListMakefile: String;
+  var
+    CPU: TCPU;
+  begin
+    Result := '';
+    for CPU in AndroidCPUS do
+      Result := SAppendPart(Result, ' ', CPUToAndroidArchitecture(CPU));
+  end;
+
 var
   I: Integer;
   AndroidLibraryName: string;
@@ -1695,6 +1705,7 @@ begin
   Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES'    , AssociateDocumentTypes.ToIntentFilter);
   Macros.Add('ANDROID_LOG_TAG'                     , Copy(Name, 1, MaxAndroidTagLength));
   Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
+  Macros.Add('ANDROID_ABI_LIST_MAKEFILE'           , AndroidAbiListMakefile);
 
   for I := 0 to AndroidServices.Count - 1 do
     for ServiceParameterPair in AndroidServices[I].Parameters do

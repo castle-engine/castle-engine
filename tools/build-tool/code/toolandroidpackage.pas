@@ -81,6 +81,41 @@ begin
     raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
 end;
 
+{ Try to find "ndk-build" tool executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function NdkBuildExe(const Required: boolean = true): string;
+const
+  ExeName = 'ndk-build';
+  BundleName = 'NDK';
+  EnvVarName = 'ANDROID_NDK_HOME';
+var
+  Env: string;
+begin
+  Result := '';
+  { try to find in $ANDROID_NDK_HOME }
+  Env := GetEnvironmentVariable(EnvVarName);
+  if Env <> '' then
+  begin
+    Result := AddExeExtension(InclPathDelim(Env) + ExeName);
+    if not FileExists(Result) then
+      Result := '';
+  end;
+  { try to find in $ANDROID_HOME }
+  if Result = '' then
+  begin
+    Env := GetEnvironmentVariable('ANDROID_HOME');
+    if Env <> '' then
+    begin
+      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
+      if not FileExists(Result) then
+        Result := '';
+    end;
+  end;
+  { try to find on $PATH }
+  if Result = '' then
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+end;
+
 { Try to find "adb" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
 function AdbExe(const Required: boolean = true): string;
@@ -421,6 +456,32 @@ var
     end;
   end;
 
+  { Run "ndk-build", this moves our .so to the final location in jniLibs,
+    also preserving our debug symbols, so that ndk-gdb remains useful.
+
+    TODO: Calling ndk-build directly is a hack,
+    since Gradle will later call ndk-build anyway.
+    But without calling ndk-build directly
+    it seems impossible to have debug symbols to our prebuilt
+    library correctly preserced, such that ndk-gdb works and sees our symbols.
+  }
+  procedure RunNdkBuild;
+  begin
+    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
+      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
+      http://stackoverflow.com/a/28430178
+
+      Possibly we could also let the ndk-build to place them in libs/,
+      as it does by default.
+
+      We know we should not let them be only in jni/ subdir,
+      as they would not be picked by Gradle from there. But that's
+      what ndk-build does: it copies them from jni/ to another directory. }
+
+    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
+      NdkBuildExe, ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
+  end;
+
   { Run Gradle to actually build the final apk. }
   procedure RunGradle(const PackageMode: TCompilationMode);
   var
@@ -497,6 +558,7 @@ begin
   GenerateAssets;
   GenerateLocalization;
   GenerateLibrary;
+  RunNdkBuild;
   RunGradle(PackageMode);
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
