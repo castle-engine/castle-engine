@@ -10,10 +10,16 @@
 # makes ndk-gdb working.
 # See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#debugging-running-application-on-an-android-device-using-ndk-gdb
 #
-# Note: We do not specify architectures here using APP_ABI.
-# Instead they are listed in build.gradle as ndk.abiFilters.
+# Note: Specifying APP_ABI is not necessary when ndk-build is called by Gradle.
+# Instead ABI are listed in build.gradle as ndk.abiFilters.
 # The docs https://developer.android.com/ndk/guides/application_mk
 # say explicitly that APP_ABI in Application.mk is ignored then.
+#
+# However, for now, CGE build tool calls ndk-build directly,
+# see RunNdkBuild in ToolAndroidPackage comments,
+# this way ndk-gdb remains useful.
+# In this case, it *is* necessary to have proper APP_ABI.
+APP_ABI := ${ANDROID_ABI_LIST_MAKEFILE}
 
 # NDK platform version should in practice always equal
 # minSdkVersion, or be lower than it.
