@@ -20,8 +20,7 @@ unit CastleSystemLanguage;
 
 interface
 
-uses
-  GetText {$ifdef ANDROID}, JNI{$endif};
+uses GetText;
 
 const
   SystemDefaultLanguage = 'en';
@@ -32,35 +31,9 @@ function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage):
 { Returns the locale code of the system locale. See SystemDefaultLocale. }
 function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
 
-{$ifdef ANDROID}
-{ The CGE build tool will make sure to export this function from Android library.
-  @exclude }
-procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
-{$endif}
-
 implementation
 
-{$ifdef ANDROID}
-var
-  MobileSystemLanguage: String;
-{$endif}
-
-{$ifdef ANDROID}
-procedure Java_net_sourceforge_castleengine_MainActivity_jniLanguage(Env: PJNIEnv; This: jobject; JavaLanguageCode: jstring); cdecl;
-var
-  JavaLanguageCodeStr: PChar;
-  Dummy: JBoolean;
-begin
-  if (JavaLanguageCode <> nil) and (Env^^.GetStringUTFLength(Env, JavaLanguageCode) <> 0) then
-  begin
-    Dummy := 0;
-    JavaLanguageCodeStr := Env^^.GetStringUTFChars(Env, JavaLanguageCode,{$ifdef VER2}Dummy{$else}@Dummy{$endif});
-    try
-      MobileSystemLanguage := AnsiString(JavaLanguageCodeStr); // will copy characters
-    finally Env^^.ReleaseStringUTFChars(Env, JavaLanguageCode, JavaLanguageCodeStr) end;
-  end;
-end;
-{$endif ANDROID}
+uses CastleAndroidNativeAppGlue;
 
 function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
 begin
@@ -75,7 +48,7 @@ var
 {$endif}
 begin
   {$ifdef ANDROID}
-    Result := MobileSystemLanguage;
+    Result := AndroidLanguage + '_' + AndroidCountry;
   {$else}
     TempDefaultLocale := ADefaultLocale; //Because GetLanguageIDs, whyever, the default language as var parameter...
     GetLanguageIDs(Result, TempDefaultLocale);

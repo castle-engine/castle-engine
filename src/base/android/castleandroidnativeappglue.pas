@@ -309,6 +309,10 @@ procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Point
 { Allocate memory for saved state. }
 function AllocateSavedState(const Size: csize_t): Pointer;
 
+var
+  { Initialized when activity starts. }
+  AndroidLanguage, AndroidCountry: String;
+
 implementation
 
 uses SysUtils, Classes, CastleUtils;
@@ -541,6 +545,9 @@ begin
   try
     AndroidLog(alInfo, 'NativeAppGlue: TAndroidAppThread.Execute');
 
+    // TODO: Is AConfiguration_new call necessary?
+    // Docs suggest that AConfiguration_fromAssetManager creates the structure,
+    // https://developer.android.com/ndk/reference/group/configuration.html#aconfiguration_fromassetmanager
     android_app^.config := AConfiguration_new();
     AConfiguration_fromAssetManager(android_app^.config, android_app^.activity^.assetManager);
 
@@ -560,6 +567,19 @@ begin
     android_app^.running := 1;
     pthread_cond_broadcast(@android_app^.cond);
     pthread_mutex_unlock(@android_app^.mutex);
+
+    { TODO: For some reason code below crashes:
+        signal 11 (SIGSEGV), code 2 (SEGV_ACCERR), fault addr 0x73250d1b40
+        Stack frame #00 pc 00000000000132ac  /system/lib64/libandroid.so (AConfiguration_getLanguage+4)
+        Stack frame #01 pc 00000000003275a4  [...]/lib/arm64/[...].so: Routine EXECUTE at [...]/src/base/android/castleandroidnativeappglue.pas:572
+    }
+
+    AndroidLanguage := '  '; // allocate 2 chars
+    AConfiguration_getLanguage(android_app^.config, PChar(AndroidLanguage));
+    AndroidCountry := '  '; // allocate 2 chars
+    AConfiguration_getCountry(android_app^.config, PChar(AndroidCountry));
+
+    AndroidLog(alInfo, Format('Language "%s" country "%s"', [AndroidLanguage, AndroidCountry]));
 
     { Looks like this has to be in it's own try..except handler,
       other a crash can occur when catching exceptions from inside AndroidMain.

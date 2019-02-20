@@ -25,6 +25,5 @@ uses CastleAndroidNativeAppGlue, CastleMessaging, CastleSystemLanguage, ${GAME_U
 
 exports
   CastleMessaging.Java_net_sourceforge_castleengine_MainActivity_jniMessage,
-  CastleSystemLanguage.Java_net_sourceforge_castleengine_MainActivity_jniLanguage,
   CastleAndroidNativeAppGlue.ANativeActivity_onCreate;
 end.

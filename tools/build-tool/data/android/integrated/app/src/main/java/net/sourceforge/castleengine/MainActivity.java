@@ -32,8 +32,6 @@ public class MainActivity extends NativeActivity
         for (ServiceAbstract service : services) {
             service.onCreate();
         }
-
-       jniLanguage(Locale.getDefault().toString());
     }
 
     @Override
@@ -166,7 +164,6 @@ public class MainActivity extends NativeActivity
     /* JNI ------------------------------------------------------------------- */
 
     public native String jniMessage(String javaToNative);
-    public native void jniLanguage(String javaToNative);
 
     public static final void safeLoadLibrary(String libName)
     {
