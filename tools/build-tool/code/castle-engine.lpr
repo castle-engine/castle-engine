@@ -26,7 +26,7 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS;
+  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid;
 
 var
   Target: TTarget;
@@ -91,8 +91,8 @@ begin
             '    Compile project.' +NL+
             '    By default compiles for the current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
             '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
-            '    You can use --target to compile for a special collection of OS/CPU' +NL+
-            '    platforms (like "iOS").' +NL+
+            '    You can use --target to compile for a collection of OS / CPU' +NL+
+            '    combination (like "iOS" or "Android").' +NL+
             NL+
             'package:' +NL+
             '    Package the application into the best archive format for given' +NL+
@@ -146,7 +146,8 @@ begin
             '    Depends on game_units being defined in the CastleEngineManifest.xml.' +NL+
             NL+
             'editor:' +NL+
-            '    Run Castle Game Engine Editor within this project, with possible project-specific components.' +NL+
+            '    Run Castle Game Engine Editor within this project, with possible' +NL+
+            '    project-specific components.' +NL+
             NL+
             'Available options are:' +NL+
             HelpOptionHelp +NL+
@@ -271,8 +272,9 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom:  Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetAndroid: CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetIOS:     CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       else raise EInternalError.Create('Operation not implemented for this target');
     end;
   end else

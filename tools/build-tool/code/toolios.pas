@@ -22,7 +22,7 @@ uses Classes,
   CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
 
-procedure CompileIOS(const Plugin: boolean;
+procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
@@ -48,7 +48,7 @@ uses SysUtils, DOM,
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
-procedure CompileIOS(const Plugin: boolean;
+procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
@@ -58,7 +58,7 @@ procedure CompileIOS(const Plugin: boolean;
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile,
+    Compile(OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
       SearchPaths, LibraryPaths, ExtraOptions);
 
     { now use libtool to create a static library .a }

@@ -252,7 +252,7 @@ implementation
 
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
+  ToolPackage, ToolWindowsResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
 
 const
@@ -833,69 +833,77 @@ begin
     if FpcExtraOptions <> nil then
       ExtraOptions.AddRange(FpcExtraOptions);
 
-    if Target = targetIOS then
-    begin
-      if depOggVorbis in Dependencies then
-        { To compile CastleInternalVorbisFile properly.
-          Later PackageIOS will actually add the static tremolo files to the project. }
-        ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
-      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true),
-        SearchPaths, LibraryPaths, ExtraOptions);
-
-      LinkIOSLibrary(Path, IOSLibraryFile);
-      Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
-      Exit;
-    end;
-
-    case OS of
-      Android:
+    case Target of
+      targetAndroid:
         begin
-          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
+          CompileAndroid(Self, Mode, Path, AndroidSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
-          { Our default compilation output doesn't contain CPU suffix,
-            but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
-          CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
-          Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
         end;
-      else
+      targetIOS:
         begin
-          if Plugin then
-          begin
-            MainSource := PluginSourceFile(false, true);
-            if MainSource = '' then
-              raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
-          end else
-          begin
-            MainSource := StandaloneSourceFile(false, true);
-            if MainSource = '' then
-              raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
-          end;
-
-          if OS in AllWindowsOSes then
-            GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
-
-          Compile(OS, CPU, Plugin, Mode, Path, MainSource,
+          if depOggVorbis in Dependencies then
+            { To compile CastleInternalVorbisFile properly.
+              Later PackageIOS will actually add the static tremolo files to the project. }
+            ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+          CompileIOS(Mode, Path, IOSSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
+          LinkIOSLibrary(Path, IOSLibraryFile);
+          Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+        end;
+      targetCustom:
+        begin
+          case OS of
+            Android:
+              begin
+                Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true),
+                  SearchPaths, LibraryPaths, ExtraOptions);
+                { Our default compilation output doesn't contain CPU suffix,
+                  but we need the CPU suffix to differentiate between Android/ARM and Android/Aarch64. }
+                CheckRenameFile(AndroidLibraryFile(cpuNone), AndroidLibraryFile(CPU));
+                Writeln('Compiled library for Android in ', AndroidLibraryFile(CPU, false));
+              end;
+            else
+              begin
+                if Plugin then
+                begin
+                  MainSource := PluginSourceFile(false, true);
+                  if MainSource = '' then
+                    raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
+                end else
+                begin
+                  MainSource := StandaloneSourceFile(false, true);
+                  if MainSource = '' then
+                    raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+                end;
 
-          if Plugin then
-          begin
-            SourceExe := CompiledLibraryFile(MainSource, OS);
-            DestExe := PluginLibraryFile(OS, CPU);
-          end else
-          begin
-            SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
-            DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-          end;
-          if not SameFileName(SourceExe, DestExe) then
-          begin
-            { move exe to top-level (in case MainSource is in subdirectory
-              like code/) and eventually rename to follow ExecutableName }
-            Writeln('Moving ', SourceExe, ' to ', DestExe);
-            CheckRenameFile(
-              CombinePaths(Path, SourceExe),
-              CombinePaths(OutputPath, DestExe));
+                if OS in AllWindowsOSes then
+                  GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
+
+                Compile(OS, CPU, Plugin, Mode, Path, MainSource,
+                  SearchPaths, LibraryPaths, ExtraOptions);
+
+                if Plugin then
+                begin
+                  SourceExe := CompiledLibraryFile(MainSource, OS);
+                  DestExe := PluginLibraryFile(OS, CPU);
+                end else
+                begin
+                  SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
+                  DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+                end;
+                if not SameFileName(SourceExe, DestExe) then
+                begin
+                  { move exe to top-level (in case MainSource is in subdirectory
+                    like code/) and eventually rename to follow ExecutableName }
+                  Writeln('Moving ', SourceExe, ' to ', DestExe);
+                  CheckRenameFile(
+                    CombinePaths(Path, SourceExe),
+                    CombinePaths(OutputPath, DestExe));
+                end;
+              end;
           end;
         end;
+      else raise EInternalError.Create('Unhandled --target for DoCompile');
     end;
   finally FreeAndNil(ExtraOptions) end;
 end;
@@ -1100,12 +1108,15 @@ begin
   end;
 
   { for Android, the packaging process is special }
-  if OS = Android then
+  if (Target = targetAndroid) or (OS = Android) then
   begin
     Files := PackageFiles(true);
     try
-      AndroidCPUS := [CPU];
-      CreateAndroidPackage(Self, OS, AndroidCPUS, Mode, Files);
+      if Target = targetAndroid then
+        AndroidCPUS := DetectAndroidCPUS
+      else
+        AndroidCPUS := [CPU];
+      PackageAndroid(Self, OS, AndroidCPUS, Mode, Files);
     finally FreeAndNil(Files) end;
     Exit;
   end;
@@ -1167,8 +1178,8 @@ begin
   if Target = targetIOS then
     InstallIOS(Self)
   else
-  if OS = Android then
-    InstallAndroidPackage(Name, QualifiedName, OutputPath)
+  if (Target = targetAndroid) or (OS = Android) then
+    InstallAndroid(Name, QualifiedName, OutputPath)
   else
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
@@ -1198,8 +1209,8 @@ begin
   if Target = targetIOS then
     RunIOS(Self)
   else
-  if OS = Android then
-    RunAndroidPackage(Self)
+  if (Target = targetAndroid) or (OS = Android) then
+    RunAndroid(Self)
   else
   begin
     ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));

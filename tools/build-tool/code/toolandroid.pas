@@ -13,31 +13,76 @@
   ----------------------------------------------------------------------------
 }
 
-{ Creating Android package. }
-unit ToolAndroidPackage;
+{ Compiling, packaging, installing, running on Android. }
+unit ToolAndroid;
 
 interface
 
-uses CastleUtils, CastleStringUtils,
+uses Classes,
+  CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
+
+{ Compile (for all possible Android CPUs) Android unit or library.
+  When Project <> nil, we assume we compile libraries (one of more .so files),
+  and their final names must match Project.AndroidLibraryFile(CPU). }
+procedure CompileAndroid(const Project: TCastleProject;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+
+{ Android CPU values supported by the current compiler. }
+function DetectAndroidCPUS: TCPUS;
 
 { Convert CPU to an architecture name understood by Android,
   see TARGET_ARCH_ABI at https://developer.android.com/ndk/guides/android_mk . }
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
-procedure CreateAndroidPackage(const Project: TCastleProject;
+procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 
-procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
-procedure RunAndroidPackage(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils, Classes, DOM, XMLWrite,
+uses SysUtils, DOM, XMLWrite,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ExtInterpolation;
+  ToolEmbeddedImages, ToolFPCVersion;
+
+var
+  DetectAndroidCPUSCached: TCPUS;
+
+function DetectAndroidCPUS: TCPUS;
+begin
+  if DetectAndroidCPUSCached = [] then
+  begin
+    DetectAndroidCPUSCached := [Arm];
+    if FPCVersion.AtLeast(3, 3, 1) then
+      Include(DetectAndroidCPUSCached, Aarch64)
+    else
+      WritelnWarning('FPC version ' + FPCVersion.ToString + ' does not support compiling for 64-bit Android (Aarch64). Resulting APK will only support 32-bit Android devices.');
+  end;
+  Result := DetectAndroidCPUSCached;
+end;
+
+procedure CompileAndroid(const Project: TCastleProject;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+var
+  CPU: TCPU;
+begin
+  for CPU in DetectAndroidCPUS do
+  begin
+    Compile(Android, CPU, { Plugin } false,
+      Mode, WorkingDirectory, CompileFile, SearchPaths, LibraryPaths, ExtraOptions);
+    if Project <> nil then
+    begin
+      CheckRenameFile(Project.AndroidLibraryFile(cpuNone), Project.AndroidLibraryFile(CPU));
+      Writeln('Compiled library for Android in ', Project.AndroidLibraryFile(CPU, false));
+    end;
+  end;
+end;
 
 const
   PackageModeToName: array [TCompilationMode] of string = (
@@ -140,7 +185,7 @@ begin
     Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
 end;
 
-procedure CreateAndroidPackage(const Project: TCastleProject;
+procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 var
@@ -573,7 +618,7 @@ begin
   Writeln('Build ' + ApkName);
 end;
 
-procedure InstallAndroidPackage(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 var
   ApkDebugName, ApkReleaseName, ApkName: string;
 begin
@@ -598,7 +643,7 @@ begin
   Writeln('Install successful.');
 end;
 
-procedure RunAndroidPackage(const Project: TCastleProject);
+procedure RunAndroid(const Project: TCastleProject);
 var
   ActivityName, LogTag: string;
 begin

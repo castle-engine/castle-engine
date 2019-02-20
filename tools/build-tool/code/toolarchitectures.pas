@@ -28,7 +28,9 @@ type
     { Target a specific chosen OS/CPU. }
     targetCustom,
     { Target all relevant iOS combinations of OS/CPU. }
-    targetIOS
+    targetIOS,
+    { Target all relevant Android combinations of OS/CPU. }
+    targetAndroid
   );
 
   { Processor architectures supported by FPC. Copied from FPMkUnit. }
@@ -226,7 +228,7 @@ begin
 end;
 
 const
-  TargetNames: array [TTarget] of string = ('custom', 'ios');
+  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android');
 
 function TargetToString(const Target : TTarget): string;
 begin
@@ -258,15 +260,18 @@ end;
 function TargetOptionHelp: string;
 begin
   Result :=
-    '  --target=custom|iOS' + NL+
+    '  --target=custom|ios|android' + NL+
     '           The target system for which we build/package.' + NL +
     '           - "custom" (default):' +NL+
     '             Build for a single OS and CPU combination, determined by' +NL+
     '             the --os and --cpu options. These options, in turn, by default' +NL+
     '             indicate the current (host) OS/CPU.' +NL+
-    '           - "iOS":' +NL+
+    '           - "ios":' +NL+
     '             Build for all the platforms necessary for iOS applications.' +NL+
-    '             This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL;
+    '             This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL+
+    '           - "android":' +NL+
+    '             Build for all the platforms necessary for Android applications.' +NL+
+    '             This includes both 32-bit and 64-bit Android devices.' +NL;
 end;
 
 function CPUOptionHelp: string;
