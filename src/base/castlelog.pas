@@ -75,7 +75,7 @@ type
       )
 
       @item(On Windows GUI applications, we create a file xxx.log
-        in the current directory. Where xxx is from @code(ApplicatioName).
+        in the current directory. Where xxx is from @code(ApplicationName).
 
         GUI programs (with apptype GUI) do not have StdOut available
         under Windows (at least not always).
@@ -103,9 +103,7 @@ procedure InitializeLog(const ProgramVersion: string;
 
   Although we check @link(Log) here, you can also check it yourself
   before even calling this procedure. This way you can avoid spending time
-  on constructing Message.
-
-  When no Category, we use ApplicationName as a category. }
+  on constructing Message. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
 procedure WritelnLog(const Message: string); overload;
 
@@ -378,8 +376,14 @@ begin
 end;
 
 procedure WriteLog(const Category: string; const Message: string);
+var
+  S: String;
 begin
-  WriteLogCore(LogTimePrefixStr + Category + ': ' + Message);
+  S := LogTimePrefixStr;
+  if Category <> '' then
+    S := S + Category + ': ';
+  S := S + Message;
+  WriteLogCore(S);
 end;
 
 procedure WritelnLog(const Category: string; const Message: string);
@@ -394,7 +398,7 @@ end;
 
 procedure WritelnLog(const Message: string);
 begin
-  WritelnLog(ApplicationName, Message);
+  WritelnLog('', Message);
 end;
 
 procedure WritelnLog(const Category: string; const MessageBase: string;
@@ -406,7 +410,7 @@ end;
 procedure WritelnLog(const MessageBase: string;
   const Args: array of const);
 begin
-  WritelnLog(ApplicationName, Format(MessageBase, Args));
+  WritelnLog('', Format(MessageBase, Args));
 end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);
@@ -426,14 +430,20 @@ begin
 end;
 
 procedure WritelnWarning(const Category: string; const Message: string);
+var
+  WarningCategory: String;
 begin
-  WritelnLog('Warning: ' + Category, Message);
+  if Category <> '' then
+    WarningCategory := 'Warning: ' + Category
+  else
+    WarningCategory := 'Warning';
+  WritelnLog(WarningCategory, Message);
   ApplicationProperties._Warning(Category, Message);
 end;
 
 procedure WritelnWarning(const Message: string);
 begin
-  WritelnWarning(ApplicationName, Message);
+  WritelnWarning('', Message);
 end;
 
 procedure WritelnWarning(const Category: string; const MessageBase: string;
@@ -445,7 +455,7 @@ end;
 procedure WritelnWarning(const MessageBase: string;
   const Args: array of const);
 begin
-  WritelnWarning(ApplicationName, MessageBase, Args);
+  WritelnWarning('', MessageBase, Args);
 end;
 
 initialization
