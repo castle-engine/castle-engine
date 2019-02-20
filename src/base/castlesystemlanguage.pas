@@ -33,7 +33,9 @@ function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): Strin
 
 implementation
 
+{$ifdef ANDROID}
 uses CastleAndroidNativeAppGlue;
+{$endif}
 
 function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String;
 begin
