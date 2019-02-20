@@ -2311,7 +2311,7 @@ begin
     Mouse3d := T3DConnexionDevice.Create('Castle Control');
   except
     on E: Exception do
-      if Log then WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
+      WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
         [E.ClassName, E.Message]);
   end;
 end;

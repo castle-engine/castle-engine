@@ -224,9 +224,8 @@ begin
   NewWidth  := ResizeToTextureSize(R.Width , Sizing);
   NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
-  if Log then
-    WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
-      [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
+  WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
+    [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;

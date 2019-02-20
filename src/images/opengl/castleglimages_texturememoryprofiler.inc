@@ -158,7 +158,7 @@ begin
       AllocatedTextures.Add(AllocatedTex);
   end;
 
-  if LogTextureLoading and Log then
+  if LogTextureLoading then
   begin
     WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
       [URIDisplay(URL), Width, Height]);

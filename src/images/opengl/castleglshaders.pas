@@ -1785,7 +1785,7 @@ begin
       end;
   end;
 
-  if Log and LogShaders then
+  if LogShaders then
     WritelnLogMultiline('GLSL', 'GLSL program successfully linked. Information:' + NL + DebugInfo);
 end;
 

@@ -1450,7 +1450,7 @@ begin
     FOctreeTriangles := CreateTriangleOctree(
       OverrideOctreeLimits(FTriangleOctreeLimits),
       InternalTriangleOctreeProgressTitle);
-    if Log and LogChanges then
+    if LogChanges then
       WritelnLog('X3D changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
   end;
@@ -1652,7 +1652,7 @@ end;
 
 procedure TShape.FreeProxy;
 begin
-  if Log and LogChanges and
+  if LogChanges and
     { OriginalGeometry should always be <> nil, but just in case
       (e.g. running from destructor, or with bad state) check. }
     (OriginalGeometry <> nil) and
@@ -1914,7 +1914,7 @@ begin
   begin
     if DisableAutoDynamicGeometry = 0 then
     begin
-      if (not DynamicGeometry) and Log then
+      if not DynamicGeometry then
         WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use more crude collision detection and more suitable rendering',
           [OriginalGeometry.X3DType]));
       DynamicGeometry := true;
@@ -2199,7 +2199,7 @@ begin
        (FNormalsOverTriangulate = OverTriangulate)
      ) then
   begin
-    if Log and LogShapes then
+    if LogShapes then
       WritelnLog('Normals', 'Calculating shape smooth normals');
 
     { Free previous normals }
@@ -2231,7 +2231,7 @@ begin
        (FNormalsOverTriangulate = OverTriangulate)
      ) then
   begin
-    if Log and LogShapes then
+    if LogShapes then
       WritelnLog('Normals', 'Calculating shape flat normals');
 
     { Free previous normals }
@@ -2266,7 +2266,7 @@ begin
        (FNormalsCreaseAngle = CreaseAngle)
      ) then
   begin
-    if Log and LogShapes then
+    if LogShapes then
       WritelnLog('Normals', 'Calculating shape CreaseAngle normals');
 
     { Free previous normals }

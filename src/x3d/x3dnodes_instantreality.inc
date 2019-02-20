@@ -612,9 +612,8 @@ begin
     State.InvertedTransform := InvertedMatrix * State.InvertedTransform;
   end else
   begin
-    if Log then
-      WritelnLogMultiline('Matrix',
-        'Cannot invert matrix:' + NL + M.ToRawString('  '));
+    WritelnLogMultiline('Matrix',
+      'Cannot invert matrix:' + NL + M.ToRawString('  '));
 
     { When determinant is zero, we treat inverted matrix
       like identity (like in TMatrixTransformNode_1.Transformation).

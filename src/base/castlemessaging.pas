@@ -202,7 +202,7 @@ procedure TMessaging.Send(const Strings: array of string);
     { secure in case this is called from state Finish when things are finalized }
     if Self = nil then Exit;
 
-    if CastleLog.Log and Log then
+    if Log then
       WritelnLog('Messaging', 'Pascal code sends a message to service: ' + SReadableForm(Message));
 
     {$ifdef ANDROID}
@@ -231,7 +231,7 @@ procedure TMessaging.Update(Sender: TObject);
   var
     MessageAsList: TCastleStringList;
   begin
-    if CastleLog.Log and Log then
+    if Log then
       WritelnLog('Messaging', 'Pascal code received a message from service: ' + SReadableForm(Message));
     if Message = '' then
       WritelnWarning('Messaging', 'Pascal code received an empty message');

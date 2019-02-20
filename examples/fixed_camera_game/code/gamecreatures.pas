@@ -210,8 +210,7 @@ begin
       [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
 
-    if Log then
-      WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
+    WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
   end;
 end;
 

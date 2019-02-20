@@ -437,7 +437,7 @@ begin
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
 
-  if CastleLog.Log and Log then
+  if Log then
     WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
@@ -452,7 +452,7 @@ procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
   Stop;
-  if CastleLog.Log and Log then
+  if Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
 end;
 
@@ -500,13 +500,13 @@ end;
 
 procedure TUIState.Resume;
 begin
-  if CastleLog.Log and Log then
+  if Log then
     WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
-  if CastleLog.Log and Log then
+  if Log then
     WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
 end;
 

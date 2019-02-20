@@ -75,15 +75,13 @@ uses CastleUtils, SysUtils, CastleLog;
 
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 begin
-  if Log then
-    WritelnLog('Warning: ' + Category, S);
+  WritelnLog('Warning: ' + Category, S);
   WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + S);
 end;
 
 procedure OnWarningLog(const AType: TWarningType; const Category, S: string);
 begin
-  if Log then
-    WritelnLog('Warning: ' + Category, S);
+  WritelnLog('Warning: ' + Category, S);
 end;
 
 end.

@@ -628,7 +628,7 @@ SIGNAL_GLAREA_BEGIN
     GDK_SCROLL_DOWN: DoMouseWheel(-1, true);
     GDK_SCROLL_LEFT: DoMouseWheel( 1, false);
     GDK_SCROLL_RIGHT:DoMouseWheel(-1, false);
-    else if Log then WritelnLog('GTK', 'Invalid GdkEventScroll.direction');
+    else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction');
   end;
   Result := g_true;
 SIGNAL_GLAREA_END;

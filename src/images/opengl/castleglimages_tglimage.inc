@@ -1031,7 +1031,7 @@ begin
                   Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
                   Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
                   {$I image.fs.inc};
-            if Log and LogShaders then
+            if LogShaders then
             begin
               WritelnLogMultiline('TGLImageCore GLSL vertex shader', VS);
               WritelnLogMultiline('TGLImageCore GLSL fragment shader', FS);
@@ -1523,7 +1523,7 @@ begin
            (    CornerBottom +     CornerTop <     Height) and
            (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
-    if Log and not IgnoreTooLargeCorners then
+    if not IgnoreTooLargeCorners then
       WritelnLog('TGLImageCore.Draw3x3', 'Image corners are too large to draw it: corners are %f %f %f %f, image size is %d %d, draw area size is %f %f',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Width, Height,

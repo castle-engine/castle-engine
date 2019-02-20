@@ -101,8 +101,7 @@ begin
       if ((I in ConstColor) or (I in ConstAlpha)) and
          (not GLFeatures.BlendConstant) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
         Exit(false);
       end;
 
@@ -110,8 +109,7 @@ begin
       if (not GLFeatures.Version_1_4) and
          (Factor in [bsSrcColor, bsOneMinusSrcColor]) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
         Exit(false);
       end;
       {$endif}
@@ -172,8 +170,7 @@ begin
       if ((I in ConstColor) or (I in ConstAlpha)) and
          (not GLFeatures.BlendConstant) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
         Exit(false);
       end;
 
@@ -181,8 +178,7 @@ begin
       if (not GLFeatures.Version_1_4) and
          (Factor in [bdDstColor, bdOneMinusDstColor]) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
         Exit(false);
       end;
       {$endif}

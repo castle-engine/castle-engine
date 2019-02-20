@@ -539,9 +539,8 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       end;
     end;
 
-    if Log then
-      WritelnLog('Shadow Maps', Format('Auto-calculated light source "%s" projectionNear is %f, projectionFar is %f',
-        [Light.Light.NiceName, ProjectionNear, ProjectionFar]));
+    WritelnLog('Shadow Maps', Format('Auto-calculated light source "%s" projectionNear is %f, projectionFar is %f',
+      [Light.Light.NiceName, ProjectionNear, ProjectionFar]));
 
     { Set light node's projectionXxx values, if they are needed. }
     if Light.Light.FdProjectionNear.Value = 0 then
@@ -574,11 +573,10 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       LightNode.FdProjectionLocation.Value :=
         LightNode.InvertedTransform.MultPoint(ProjectionLocation);
 
-      if Log then
-        WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
-          [Light.Light.NiceName,
-           ProjectionLocation.ToString,
-           ProjectionRectangle.ToString]));
+      WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
+        [Light.Light.NiceName,
+         ProjectionLocation.ToString,
+         ProjectionRectangle.ToString]));
     end;
   end;
 

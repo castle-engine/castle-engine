@@ -796,8 +796,7 @@ begin
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
       Xml.URL := URL;
-      // if Log then
-      //   WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+      // WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
       if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
@@ -966,9 +965,8 @@ begin
     Resource.UsageCount := Resource.UsageCount - 1;
     if Resource.UsageCount = 0 then
     begin
-      if Log then
-        WritelnLog('Resources', Format(
-          'Resource "%s" is no longer used, releasing', [Resource.Name]));
+      WritelnLog('Resources', Format(
+        'Resource "%s" is no longer used, releasing', [Resource.Name]));
       Resource.FPrepared := false;
       Resource.ReleaseCore;
     end;

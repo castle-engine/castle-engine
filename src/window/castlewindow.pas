@@ -3162,16 +3162,14 @@ procedure TCastleWindowBase.OpenCore;
 
     GLInformationInitialize;
 
-    if Log then
-      WritelnLogMultiline('OpenGL context initialization', GLInformationString);
+    WritelnLogMultiline('OpenGL context initialization', GLInformationString);
 
     if GLVersion.BuggyDepth32 and
       (glGetInteger(GL_DEPTH_BITS) >= 32) and
       (StencilBits = 0) then
     begin
-      if Log then
-        WritelnLog('OpenGL context initialization',
-          'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
+      WritelnLog('OpenGL context initialization',
+        'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
       { Close the window, increase StencilBits to try to force 24-bit
         depth buffer, and call ourselves again.
         Checking "StencilBits = 0" above prevents from getting into
@@ -3269,13 +3267,13 @@ begin
   if Window.AntiAliasing <> aaNone then
   begin
     Window.AntiAliasing := aaNone;
-    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Multi-sampling (anti-aliasing) turned off, trying to initialize once again.');
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Multi-sampling (anti-aliasing) turned off, trying to initialize once again.');
     Result := true;
   end else
   if Window.StencilBits > 0 then
   begin
     Window.StencilBits := 0;
-    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
     Result := true;
   end else
     Result := false;

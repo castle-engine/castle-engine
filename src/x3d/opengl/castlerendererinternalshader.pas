@@ -650,14 +650,14 @@ begin
 
     if P > Length(S) then
     begin
-      if Log then WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
+      WritelnWarning('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
       Exit(false);
     end;
 
     if (S[P] <> '(') and
        not (S[P] in WhiteSpaces) then
     begin
-      if Log then WritelnLog('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
+      WritelnWarning('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
         [S[P]]));
       Exit(false);
     end;
@@ -675,7 +675,7 @@ begin
     Inc(P);
     if P > Length(S) then
     begin
-      if Log then WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      WritelnWarning('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
       Exit(false);
     end;
 

@@ -639,8 +639,7 @@ begin
         FilenameToURISafe(GetApplicationDataPath)
       {$endif}
     ;
-    if Log then
-      WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
+    WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
     ApplicationDataIsCache := true;
   end;
 

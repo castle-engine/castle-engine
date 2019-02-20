@@ -1126,7 +1126,7 @@ procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
   Flush; // use ancestor method to save
-  if Log and (URL <> '') then
+  if URL <> '' then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
 

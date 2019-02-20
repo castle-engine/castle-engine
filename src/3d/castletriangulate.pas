@@ -221,7 +221,7 @@ var
     until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle));
     if Previous = Middle then
     begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
+      WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
       Exit(false);
     end;
 
@@ -235,7 +235,7 @@ var
     until (Next = Previous) or not EarDir.IsZero;
     if Next = Previous then
     begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
+      WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
       Exit(false);
     end;
 

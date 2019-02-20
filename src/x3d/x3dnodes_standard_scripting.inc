@@ -145,8 +145,7 @@ begin
   begin
     { Disable this by default, as it really trashes the log with a lot
       of messages in case script is used continously (with TimeSensor or such).
-    if Log then
-      WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
+    WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
     }
 
     case FInitializedScriptType of

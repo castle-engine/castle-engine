@@ -217,14 +217,14 @@ begin
       begin
         S.Waypoints.Add(W);
         W.Sectors.Add(S);
-        if Log and LogSectors then
+        if LogSectors then
           WritelnLog('Sectors', Format('Waypoint %d links to sector %d',
             [WaypointIndex, SectorIndex]));
       end;
     end;
   end;
 
-  if Log and LogSectors then
+  if LogSectors then
   begin
     for WaypointIndex := 0 to Waypoints.Count - 1 do
       if Waypoints[WaypointIndex].Sectors.Count <= 1 then

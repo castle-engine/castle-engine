@@ -719,7 +719,7 @@ const
 begin
   P := URIProtocol(URL);
 
-  if LogAllLoading and Log then
+  if LogAllLoading then
     WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
 
   {$ifdef ANDROID}

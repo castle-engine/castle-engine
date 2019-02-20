@@ -1954,12 +1954,11 @@ begin
 
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
 
-  if Log then
-    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
-      [ BoolToStr(VarianceShadowMaps, true),
-        ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
-        GLSupportNames[GLFeatures.Shaders],
-        BoolToStr(GLFeatures.TextureFloat, true) ]));
+  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
+    [ BoolToStr(VarianceShadowMaps, true),
+      ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
+      GLSupportNames[GLFeatures.Shaders],
+      BoolToStr(GLFeatures.TextureFloat, true) ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;

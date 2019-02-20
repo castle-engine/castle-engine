@@ -2775,11 +2775,10 @@ begin
            (CornerBottom + CornerTop < Source.Height) and
            (CornerBottom + CornerTop < DestHeight)) then
   begin
-    if Log then
-      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
-        [CornerTop, CornerRight, CornerBottom, CornerLeft,
-         Source.Width, Source.Height,
-         DestWidth, DestHeight]);
+    WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
+      [CornerTop, CornerRight, CornerBottom, CornerLeft,
+       Source.Width, Source.Height,
+       DestWidth, DestHeight]);
     Exit;
   end;
 

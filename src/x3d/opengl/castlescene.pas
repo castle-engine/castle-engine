@@ -2031,9 +2031,8 @@ begin
 
   if BackgroundStack.Top <> nil then
   begin
-    // if Log then
-    //   WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
-    //     [BackgroundSkySphereRadius]));
+    // WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
+    //   [BackgroundSkySphereRadius]));
 
     { In the future we could use FBackground.Update without recreating
       the instance. }
@@ -2112,8 +2111,7 @@ begin
 
   if Attributes.ReallyUseOcclusionQuery then
   begin
-    if Log then
-      WritelnLog('Occlusion query', 'View changed suddenly');
+    WritelnLog('Occlusion query', 'View changed suddenly');
 
     { Set OcclusionQueryAsked := false for all shapes. }
     SI := TShapeTreeIterator.Create(Shapes, false, false, false);

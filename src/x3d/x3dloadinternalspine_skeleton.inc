@@ -161,8 +161,7 @@ begin
       (see e.g. hero default/girl skins in "The Unholy Society"). }
     CurrentSkin := DefaultSkin;
   end;
-  if Log then
-    SkinLog;
+  SkinLog;
 
   Slots.BuildNodes(BaseUrl, SlotsAnimated, CurrentSkin.Attachments, DefaultSkin.Attachments, Container);
   Animations.BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);

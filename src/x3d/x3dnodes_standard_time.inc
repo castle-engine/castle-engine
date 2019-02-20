@@ -573,8 +573,7 @@ var
           CycleTime := NewTime - ElapsedTimeInCycle;
 
           {$ifdef LOG_TIME_DEPENDENT_NODES}
-          if Log then
-            WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Next cycle (of a looping sensor)');
+          WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Next cycle (of a looping sensor)');
           {$endif}
         end;
       end else
@@ -586,8 +585,7 @@ var
       if (not FdLoop.Value) and StopOnNonLoopedEnd then
       begin
         {$ifdef LOG_TIME_DEPENDENT_NODES}
-        if Log then
-          WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopping (because end of cycle of non-looping sensor)');
+        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopping (because end of cycle of non-looping sensor)');
         {$endif}
 
         NewIsActive := false;
@@ -603,15 +601,14 @@ begin
   Assert((not ResetTime) or (TimeIncrease = 0));
 
   {$ifdef LOG_TIME_DEPENDENT_NODES_OFTEN}
-  if Log then
-    WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('Time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
-      [ TimeIncrease, NewTime,
-        CycleInterval,
-        BoolToStr(FdLoop.Value, true),
-        BoolToStr(IsActive, true),
-        BoolToStr(IsPaused, true),
-        FElapsedTimeInCycle
-      ]));
+  WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('Time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
+    [ TimeIncrease, NewTime,
+      CycleInterval,
+      BoolToStr(FdLoop.Value, true),
+      BoolToStr(IsActive, true),
+      BoolToStr(IsPaused, true),
+      FElapsedTimeInCycle
+    ]));
   {$endif}
 
   Result := false;
@@ -692,9 +689,8 @@ begin
            ) then
     begin
       {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Starting. Time now %f, start time %f, cycle interval %f',
-          [NewTime, FdStartTime.Value, CycleInterval]);
+      WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Starting. Time now %f, start time %f, cycle interval %f',
+        [NewTime, FdStartTime.Value, CycleInterval]);
       {$endif}
 
       StartTimeUsed := FdStartTime.Value; // save, to later used for NonLoopedStopped
@@ -737,8 +733,7 @@ begin
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
       {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Resuming');
+      WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Resuming');
       {$endif}
 
       NewIsPaused := false;
@@ -760,8 +755,7 @@ begin
         IncreaseElapsedTime(TimeIncrease - (NewTime - FdStopTime.Value), false);
 
       {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopped (because stopTime reached)');
+      WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopped (because stopTime reached)');
       {$endif}
     end else
     if (NewTime >= FdPauseTime.Value) and
@@ -773,8 +767,7 @@ begin
         IncreaseElapsedTime(TimeIncrease - (NewTime - FdPauseTime.Value), false);
 
       {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Paused');
+      WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Paused');
       {$endif}
     end else
     begin
@@ -839,12 +832,11 @@ begin
   }
 
   {$ifdef LOG_TIME_DEPENDENT_NODES_OFTEN}
-  if Log then
-    WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('SetTime finished. Active %s, paused %s, elapsedTimeInCycle %f',
-      [ BoolToStr(IsActive, true),
-        BoolToStr(IsPaused, true),
-        FElapsedTimeInCycle
-      ]));
+  WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('SetTime finished. Active %s, paused %s, elapsedTimeInCycle %f',
+    [ BoolToStr(IsActive, true),
+      BoolToStr(IsPaused, true),
+      FElapsedTimeInCycle
+    ]));
   {$endif}
 end;
 

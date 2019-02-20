@@ -882,7 +882,7 @@ begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
 
-      if LogVideosCache and Log then
+      if LogVideosCache then
         WritelnLog('++', 'Video %s : %d', [URIDisplay(URL), C.References]);
 
       Exit(C.Video);
@@ -894,7 +894,7 @@ begin
     we don't want to add video to cache (because caller would have
     no way to call Video_DecReference later). }
 
-  if LogVideosCache and Log then
+  if LogVideosCache then
     Start := ProcessTimer;
 
   Result := TVideo.Create;
@@ -914,7 +914,7 @@ begin
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
-  if LogVideosCache and Log then
+  if LogVideosCache then
   begin
     S := Format('Video %s : 1. Loading time: %f',
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
@@ -935,7 +935,7 @@ begin
     C := CachedVideos[I];
     if C.Video = Video then
     begin
-      if LogVideosCache and Log then
+      if LogVideosCache then
         WritelnLog('--', 'Video %s : %d', [C.URL, C.References - 1]);
 
       Video := nil;

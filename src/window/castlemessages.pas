@@ -376,8 +376,7 @@ procedure MessageCore(const Window: TCastleWindowBase; const State: TStateDialog
 var
   SavedMode: TGLMode;
 begin
-  // if Log then
-  //   WritelnLogMultiline('Message', TextList.Text);
+  // WritelnLogMultiline('Message', TextList.Text);
 
   State.BackgroundScreenshot := true;
   State.PopOnAnswered := false;

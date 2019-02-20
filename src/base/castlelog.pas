@@ -24,8 +24,20 @@ interface
 
 uses Classes;
 
-{ Is logging active. Initially no. Activate by InitializeLog. }
+{ Is logging active. Initially no. Activate by InitializeLog.
+
+  @deprecated
+  Instead of checking "if Log then WritelnLog(...)",
+  *always* call WriteLnLog / WriteLnWarning,
+  this allows to collect logs even before InitializeLog may be called.
+  Even release applications usually have logging = on,
+  so it makes no sense to optimize for the "logging = off" case,
+  you need to make "logging = on" case always fast.
+
+  @exclude
+}
 function Log: boolean;
+  deprecated 'do not check is Log initialized';
 
 type
   { Log date&time prefix style. }
@@ -165,6 +177,10 @@ uses SysUtils,
 
 { On mobile platforms, do not place the log in GetAppConfigDir.
   GetAppConfigDir may be '' and creating a subdirectory there may fail.
+  Although GetAppConfigDir is fixed in FPC trunk
+  (see too http://wiki.freepascal.org/Android )
+  but we still need to work with FPC 3.0.x.
+
   ApplicationConfig has better logic for this,
   using ApplicationConfigOverride, but it's set only from castlewindow_android.inc
   once the activity starts. }
@@ -176,6 +192,14 @@ var
   FLog: boolean = false;
   LogStream: TStream;
   LogStreamOwned: boolean;
+  CollectedLog: String; //< log contents not saved to file yet
+
+const
+  { To avoid wasting time in applications that just never call InitializeLog,
+    stop adding things to CollectedLog when it reaches certain length. }
+  MaxCollectedLogLength = 80 * 10;
+
+procedure WriteLogCoreCore(const S: string); forward;
 
 function Log: boolean;
 begin
@@ -193,8 +217,6 @@ end;
 procedure InitializeLog(
   const ALogStream: TStream;
   const ALogTimePrefix: TLogTimePrefix);
-var
-  FirstLine: string;
 
   function InitializeLogFile(const LogFileName: string): boolean;
   begin
@@ -232,7 +254,7 @@ var
 begin
   LogTimePrefix := ALogTimePrefix;
 
-  if Log then Exit; { ignore 2nd call to InitializeLog }
+  if FLog then Exit; { ignore 2nd call to InitializeLog }
 
   LogStreamOwned := false;
 
@@ -284,45 +306,65 @@ begin
     LogStream := StdOutStream;
   end;
 
-  FirstLine := 'Log for "' + ApplicationName + '".';
+  WriteLogCoreCore('Log for "' + ApplicationName + '".');
   if ApplicationProperties.Version <> '' then
-    FirstLine := FirstLine + ' Version: ' + ApplicationProperties.Version + '.';
-  FirstLine := FirstLine + ' Started on ' + DateTimeToAtStr(Now) + '.';
-  WritelnStr(LogStream, FirstLine);
-  WritelnStr(LogStream, 'Castle Game Engine version: ' + CastleEngineVersion + '.');
-  WritelnStr(LogStream, 'Compiled with: ' + SCompilerDescription + '.');
+    WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.');
+  WriteLogCoreCore('  Started on ' + DateTimeToAtStr(Now) + '.');
+  WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.');
+  WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.');
+  if CollectedLog <> '' then
+  begin
+    WriteLogCoreCore(CollectedLog);
+    CollectedLog := '';
+  end;
 
-  { Set Log to true only once we succeded.
-
-    Otherwise (when FLog := true would be done at the beginning of
-    InitializeLog), if something is done in finally..end clauses surrounding
-    InitializeLog, and it does "WritelnLog..." then it would
-    try to write something to uninitialized log. }
-
+  { In case of exception in WriteStr in WriteLogCoreCore,
+    leave FLog as false.
+    This way following WritelnLog will not again cause the same exception. }
   FLog := true;
 
   if InsideEditor and (not IsLibrary) and (StdOutStream = nil) then
     WritelnWarning('Cannot send logs to the Castle Game Engine Editor through pipes.');
 end;
 
-procedure WriteLogRaw(const S: string); {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{ Add the String to log contents.
+  Assumes that log is initialized.
+  Sends it to AndroidLog and LogStream. }
+procedure WriteLogCoreCore(const S: string);
 begin
-  if Log then
+  // Assert(FLog); // do not check it, as InitializeLog uses it before FLog := true
+
+  {$ifdef ANDROID}
+  AndroidLogRobust(alInfo, S);
+  {$endif}
+  // we know that LogStream <> nil when FLog = true
+  WriteStr(LogStream, S);
+end;
+
+{ Add the String to log contents.
+  - Optionally adds backtrace to the String.
+  - If log not initialized yet, adds the String to CollectedLog.
+  - If log initialized, sends it to AndroidLog and LogStream.
+}
+procedure WriteLogCore(const S: string);
+var
+  LogContents: String;
+begin
+  LogContents := S;
+  {$ifdef FPC}
+  if BacktraceOnLog then
+    LogContents := LogContents + DumpStackToString(Get_Frame) + NL;
+  {$endif}
+
+  if FLog then
   begin
-    {$ifdef ANDROID}
-    if BacktraceOnLog then
-      AndroidLogRobust(alInfo, S + DumpStackToString(Get_Frame) + NL)
-    else
-      AndroidLogRobust(alInfo, S);
-    {$else}
-    // we know that LogStream <> nil when FLog = true
-    {$ifdef FPC}
-    if BacktraceOnLog then
-      WriteStr(LogStream, S + DumpStackToString(Get_Frame) + NL)
-    else
-    {$endif}
-      WriteStr(LogStream, S);
-    {$endif}
+    WriteLogCoreCore(LogContents);
+  end else
+  if Length(CollectedLog) < MaxCollectedLogLength then
+  begin
+    CollectedLog := CollectedLog + LogContents;
+    if Length(CollectedLog) >= MaxCollectedLogLength then
+      CollectedLog := CollectedLog + '(... Further log messages will not be collected, until you call InitializeLog ...)' + NL;
   end;
 end;
 
@@ -337,8 +379,7 @@ end;
 
 procedure WriteLog(const Category: string; const Message: string);
 begin
-  if Log then
-    WriteLogRaw(LogTimePrefixStr + Category + ': ' + Message);
+  WriteLogCore(LogTimePrefixStr + Category + ': ' + Message);
 end;
 
 procedure WritelnLog(const Category: string; const Message: string);
@@ -375,15 +416,13 @@ end;
 
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 begin
-  if Log then
-  begin
-    if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
-    WriteLogRaw(
-      '-------------------- ' + Category + ' begin' + NL +
-      // trim newlines at the end of Message
-      TrimEndingNewline(Message) + NL +
-      '-------------------- ' + Category + ' end' + NL)
-  end;
+  if LogTimePrefix <> ltNone then
+    WriteLogCore(LogTimePrefixStr + NL);
+  WriteLogCore(
+    '-------------------- ' + Category + ' begin' + NL +
+    // trim newlines at the end of Message
+    TrimEndingNewline(Message) + NL +
+    '-------------------- ' + Category + ' end' + NL)
 end;
 
 procedure WritelnWarning(const Category: string; const Message: string);

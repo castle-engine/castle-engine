@@ -439,7 +439,7 @@ begin
   if (MaxTexture3DSize = 0) and (Texture3D <> gsNone) then
   begin
     Texture3D := gsNone;
-    if Log then WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
+    WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
   end;
 
   // TODO: there is also such extension for OpenGL ES
@@ -474,7 +474,7 @@ begin
     if MaxRenderbufferSize = 0 then
     begin
       Framebuffer := gsNone;
-      if Log then WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
+      WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
     end;
   end else
     MaxRenderbufferSize := 0;

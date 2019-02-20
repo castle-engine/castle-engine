@@ -3506,7 +3506,7 @@ begin
   Inc(InternalDirty);
   try
 
-  if Log and LogChanges then
+  if LogChanges then
     WritelnLog('X3D changes', 'ChangedAll');
 
   BeforeNodesFree(true);
@@ -3613,7 +3613,7 @@ begin
 
   ForceTeleportTransitions := false;
 
-  if Log and LogShapes then
+  if LogShapes then
     WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(InternalDirty) end;
@@ -3677,7 +3677,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
   begin
     if TransformNode = ChangingNode then
     begin
-      if Inside and Log then
+      if Inside then
         WritelnLog('VRML transform', 'Cycle in VRML/X3D graph detected: transform node is a child of itself');
       Inside := true;
       { Nothing to do, in particular: do not enter inside.
@@ -3983,7 +3983,7 @@ begin
 
   C := TShapeTree.AssociatedShapesCount(TransformNode);
 
-  if Log and LogChanges then
+  if LogChanges then
     WritelnLog('X3D changes', Format('Transform node %s change: present %d times in the scene graph',
       [TransformNode.X3DType, C]));
 
@@ -4048,7 +4048,7 @@ var
   TraverseStack: TX3DGraphTraverseStateStack;
   DoVisibleChanged: boolean;
 begin
-  if Log and LogChanges then
+  if LogChanges then
     WritelnLog('X3D changes', 'Transform root node change');
 
   if RootNode = nil then Exit;
@@ -4632,7 +4632,7 @@ var
 
   procedure HandleChangeChildren;
   begin
-    if Log and LogChanges then
+    if LogChanges then
       WritelnLog('TODO: Children change (add/remove) is not optimized yet, but could be. Report if you need it.');
     HandleChangeEverything;
   end;
@@ -4658,7 +4658,7 @@ begin
 
   Changes := Field.ExecuteChanges;
 
-  if Log and LogChanges then
+  if LogChanges then
     DoLogChanges;
 
   { Optimize Changes = [] case: no need even for Begin/EndChangesSchedule }
@@ -4992,7 +4992,7 @@ begin
       OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
       ShapeOctreeProgressTitle,
       false);
-    if Log and LogChanges then
+    if LogChanges then
       WritelnLog('X3D changes (octree)', 'OctreeRendering updated');
   end;
 
@@ -5007,7 +5007,7 @@ begin
       OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
       ShapeOctreeProgressTitle,
       true);
-    if Log and LogChanges then
+    if LogChanges then
       WritelnLog('X3D changes (octree)', 'OctreeDynamicCollisions updated');
   end;
 

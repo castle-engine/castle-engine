@@ -255,9 +255,8 @@ begin
     if not Matrix.TryInverse(InverseMatrix) then
     begin
       InverseMatrix := TMatrix4.Identity;
-      if Log then
-        WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          Matrix.ToRawString('  '));
+      WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
+        Matrix.ToRawString('  '));
     end;
     InverseMatrixDone := true;
   end;
@@ -270,9 +269,8 @@ begin
     if not RotationMatrix.TryInverse(RotationInverseMatrix) then
     begin
       RotationInverseMatrix := TMatrix4.Identity;
-      if Log then
-        WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          RotationMatrix.ToRawString('  '));
+      WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
+        RotationMatrix.ToRawString('  '));
     end;
     RotationInverseMatrixDone := true;
   end;

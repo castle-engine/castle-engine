@@ -460,20 +460,17 @@ var
   I: Integer;
   LogStr: string;
 begin
-  if Log then
-  begin
-    LogStr := Message + NL;
-    for I := 0 to List.Count - 1 do
-      LogStr += 'Product ' + List[I].Name +
-        ', price: ' + List[I].PriceRaw +
-        ', owned: ' + BoolToStr(List[I].Owns, true) +
-        ', title: ' + List[I].Title +
-        ', description: ' + List[I].Description +
-        ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
-        ', price currency code: ' + List[I].PriceCurrencyCode +
-        NL;
-    WritelnLogMultiline('InAppPurchases', LogStr);
-  end;
+  LogStr := Message + NL;
+  for I := 0 to List.Count - 1 do
+    LogStr += 'Product ' + List[I].Name +
+      ', price: ' + List[I].PriceRaw +
+      ', owned: ' + BoolToStr(List[I].Owns, true) +
+      ', title: ' + List[I].Title +
+      ', description: ' + List[I].Description +
+      ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
+      ', price currency code: ' + List[I].PriceCurrencyCode +
+      NL;
+  WritelnLogMultiline('InAppPurchases', LogStr);
 end;
 
 procedure TInAppPurchases.KnownCompletely;

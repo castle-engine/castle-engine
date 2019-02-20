@@ -2710,11 +2710,10 @@ begin
       ScreenEffectRTT.Stencil := GLFeatures.ShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
-      if Log then
-        WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
-          [ ScreenEffectTextureWidth,
-            ScreenEffectTextureHeight,
-            BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
+      WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
+        [ ScreenEffectTextureWidth,
+          ScreenEffectTextureHeight,
+          BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     { We have to adjust RenderContext.Viewport.
@@ -2858,8 +2857,7 @@ begin
     except
       on E: EGLSLError do
       begin
-        if Log then
-          WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
+        WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
         FreeAndNil(SSAOShader);
         ScreenSpaceAmbientOcclusion := false;
       end;

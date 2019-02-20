@@ -1163,8 +1163,7 @@ class procedure TOrthoViewpointNode.AspectFieldOfView(
 
     if L < 0 then
     begin
-      if Log then
-        WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView max extent smaller than min extent');
+      WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView max extent smaller than min extent');
       Exit;
     end;
 
@@ -1179,8 +1178,7 @@ begin
   if (AFieldOfView.Width <= 0) or
      (AFieldOfView.Height <= 0) then
   begin
-    if Log then
-      WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
+    WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
     Exit;
   end;
 

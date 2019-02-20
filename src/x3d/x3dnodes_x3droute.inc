@@ -300,7 +300,6 @@ begin
     if DestinationEvent <> nil then
       DestinationEvent.Send(Value, Time);
   end else
-  if Log then
     WritelnLog('VRML/X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
       [ SourceNode.X3DName, SourceEvent.X3DName,

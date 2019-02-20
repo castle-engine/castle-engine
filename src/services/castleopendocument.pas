@@ -241,9 +241,8 @@ begin
     BrowserProcess.Executable := ProgramFilename;
     BrowserProcess.Parameters.Add(Parameter);
 
-    if Log then
-      WritelnLog('Executing', 'Executable: "' + ProgramFilename +
-        '", Parameter: "' + Parameter + '"');
+    WritelnLog('Executing', 'Executable: "' + ProgramFilename +
+      '", Parameter: "' + Parameter + '"');
 
     BrowserProcess.Execute;
   finally

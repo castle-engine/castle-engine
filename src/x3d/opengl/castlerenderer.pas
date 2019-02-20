@@ -1186,7 +1186,7 @@ begin
        (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1212,7 +1212,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
@@ -1225,7 +1225,7 @@ begin
     if TextureImageCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureImageCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', '%s: %d', [TextureImageCaches[I].FullUrl,
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
@@ -1267,7 +1267,7 @@ begin
        (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLVideo);
     end;
@@ -1291,7 +1291,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLVideo := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
@@ -1304,7 +1304,7 @@ begin
     if TextureVideoCaches[I].GLVideo = TextureVideo then
     begin
       Dec(TextureVideoCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', '%s: %d', [TextureVideoCaches[I].FullUrl,
                                     TextureVideoCaches[I].References]);
       if TextureVideoCaches[I].References = 0 then
@@ -1341,7 +1341,7 @@ begin
        (TextureCached.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1371,7 +1371,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
 end;
 
@@ -1384,7 +1384,7 @@ begin
     if TextureCubeMapCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureCubeMapCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches[I].InitialNode), TextureCubeMapCaches[I].References]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
@@ -1419,7 +1419,7 @@ begin
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1447,7 +1447,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
@@ -1460,7 +1460,7 @@ begin
     if Texture3DCaches[I].GLName = TextureGLName then
     begin
       Dec(Texture3DCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches[I].InitialNode), Texture3DCaches[I].References]);
       if Texture3DCaches[I].References = 0 then
       begin
@@ -1497,7 +1497,7 @@ begin
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1578,7 +1578,7 @@ begin
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
@@ -1591,7 +1591,7 @@ begin
     if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
@@ -1626,7 +1626,7 @@ begin
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1658,7 +1658,7 @@ begin
     inside TextureCached as well... Ignore this, useless for now ---
     one Node will require only one float texture anyway. }
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
 {$else}
 begin
@@ -1676,7 +1676,7 @@ begin
     if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
@@ -1755,7 +1755,7 @@ begin
          FogVolumetricVisibilityStart) then
     begin
       Inc(Result.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
       Exit(Result);
     end;
@@ -1773,7 +1773,7 @@ begin
   Result.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
   Result.References := 1;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
 end;
 
@@ -1786,7 +1786,7 @@ begin
     if ShapeCaches[I] = ShapeCache then
     begin
       Dec(ShapeCache.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.X3DType, ShapeCache.References]);
       if ShapeCache.References = 0 then
         ShapeCaches.Delete(I);
@@ -1810,7 +1810,7 @@ begin
     if Result.Hash = Shader.CodeHash then
     begin
       Inc(Result.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
       Exit(Result);
     end;
@@ -1851,7 +1851,7 @@ begin
     end;
   end;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
 end;
 
@@ -1864,7 +1864,7 @@ begin
     if ProgramCaches[I] = ProgramCache then
     begin
       Dec(ProgramCache.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'Shader program (hash %s): %d', [ProgramCache.Hash.ToString, ProgramCache.References]);
       if ProgramCache.References = 0 then
         ProgramCaches.Delete(I);
@@ -2173,12 +2173,12 @@ begin
   if NewVbos then
   begin
     glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
-    if Log and LogRenderer then
+    if LogRenderer then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
   end else
   begin
-    if Log and LogRenderer then
+    if LogRenderer then
       WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
          VboTypesToStr(VboToReload)]));
@@ -2504,8 +2504,7 @@ begin
 
     if not GLVersion.BuggyLightModelTwoSide then
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
-    if Log then
-      WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
+    WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
     {$endif}
 
@@ -3276,7 +3275,7 @@ begin
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
       TCD := TextureCoordsDefined;
-      if Log and (TCD > UsedGLSLTexCoordsNeeded) then
+      if TCD > UsedGLSLTexCoordsNeeded then
         WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
           [TCD, UsedGLSLTexCoordsNeeded]));
       MaxVar(UsedGLSLTexCoordsNeeded, TCD);
@@ -3612,7 +3611,7 @@ var
 
         PostUpdate;
 
-        if Log and LogRenderer then
+        if LogRenderer then
           WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
       end;
     end;
@@ -3635,7 +3634,7 @@ var
 
           PostUpdate;
 
-          if Log and LogRenderer then
+          if LogRenderer then
             WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
         end;
       end else
@@ -3671,7 +3670,7 @@ var
 
         PostUpdate;
 
-        if Log and LogRenderer then
+        if LogRenderer then
           WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');
       end;
     end;

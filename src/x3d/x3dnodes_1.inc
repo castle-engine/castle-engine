@@ -1930,9 +1930,8 @@ begin
 
   if not TryInverseHarder(Matrix, InvertedMatrix) then
   begin
-    if Log then
-      WritelnLogMultiline('Matrix',
-        'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
+    WritelnLogMultiline('Matrix',
+      'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
     InvertedMatrix := TMatrix4.Identity;
   end;
 end;

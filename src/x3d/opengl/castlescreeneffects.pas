@@ -528,11 +528,10 @@ var
       ScreenEffectRTT.Stencil := GLFeatures.ShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
-      if Log then
-        WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
-          [ ScreenEffectTextureWidth,
-            ScreenEffectTextureHeight,
-            BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
+      WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
+        [ ScreenEffectTextureWidth,
+          ScreenEffectTextureHeight,
+          BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     RenderContext.Viewport := SR;

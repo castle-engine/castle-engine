@@ -2073,8 +2073,7 @@ begin
     end;
   end;
 
-  if Log then
-    WritelnLogMultiline('Sound', Information);
+  WritelnLogMultiline('Sound', Information);
 
   OnOpenClose.ExecuteAll(Self);
 end;
@@ -2155,8 +2154,7 @@ begin
     EndAL;
   end;
 
-  if Log then
-    WritelnLog('Sound', 'OpenAL closed');
+  WritelnLog('Sound', 'OpenAL closed');
 
   OnOpenClose.ExecuteAll(Self);
 end;
@@ -2353,7 +2351,7 @@ begin
     begin
       Result := LoadedBuffers[I];
       Inc(Result.References);
-      if Log and LogSoundLoading then
+      if LogSoundLoading then
         WritelnLog('Sound', Format('Loaded sound buffer "%s" from cache, now it has %d references',
           [URIDisplay(FullURL), Result.References]));
       Exit;

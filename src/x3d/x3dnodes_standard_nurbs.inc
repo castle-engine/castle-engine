@@ -1113,12 +1113,10 @@ const
 
   procedure LogClosed(Value: boolean);
   begin
-    if Log then
-    begin
-      if Value then
-        WritelnLog('NURBS', 'Checking if NURBS surface is really closed (because it''s VRML 97 NurbsSurface or NurbsPatchSurface with .xClosed is TRUE): no, ignoring (otherwise would cause invalid geometry/normals)') else
-        WritelnLog('NURBS', 'Checking if NURBS surface is really closed: yes');
-    end;
+    if Value then
+      WritelnLog('NURBS', 'Checking if NURBS surface is really closed (because it''s VRML 97 NurbsSurface or NurbsPatchSurface with .xClosed is TRUE): no, ignoring (otherwise would cause invalid geometry/normals)')
+    else
+      WritelnLog('NURBS', 'Checking if NURBS surface is really closed: yes');
   end;
 
   function CalculateUClosed: boolean;

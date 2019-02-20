@@ -702,10 +702,9 @@ begin
       except
         on E: EModelsStructureDifferent do
         begin
-          if Log then
-            WritelnLog('TNodeInterpolator', Format(
-              'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
-              [I - 1, I]) + E.Message);
+          WritelnLog('TNodeInterpolator', Format(
+            'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
+            [I - 1, I]) + E.Message);
         end;
       end;
 

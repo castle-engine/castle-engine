@@ -283,7 +283,7 @@ begin
     begin
       Inc(C.References);
 
-      if LogTextureCache and Log then
+      if LogTextureCache then
         WritelnLog('++', 'Texture image %s: %d', [URIDisplay(URL), C.References]);
 
       Composite := C.Composite;
@@ -309,7 +309,7 @@ begin
   C.Composite := Composite;
   C.AlphaChannel := AlphaChannel;
 
-  if LogTextureCache and Log then
+  if LogTextureCache then
     WritelnLog('++', 'Texture image %s: %d%s',
       [URIDisplay(URL), 1, AlphaChannelLog(AlphaChannel)]);
 end;
@@ -325,7 +325,7 @@ begin
     C := CachedTextures[I];
     if C.Image = Image then
     begin
-      if LogTextureCache and Log then
+      if LogTextureCache then
         WritelnLog('--', 'Texture image %s: %d', [URIDisplay(C.URL), C.References - 1]);
 
       { We cannot simply assert

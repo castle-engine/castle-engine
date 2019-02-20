@@ -486,8 +486,7 @@ begin
     except
       on ETransformedResultInvalid do
       begin
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
         Exit;
       end;
     end;
@@ -592,8 +591,7 @@ begin
       PlaneY := TVector3.One[1];
       Transform := TMatrix4.Identity;
       InvertedTransform := TMatrix4.Identity;
-      if Log then
-        WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
+      WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
     end;
   end;
 
@@ -646,8 +644,7 @@ begin
       on ETransformedResultInvalid do
       begin
         EventTrackPoint_changed.Send(Intersection, Time);
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
       end;
     end;
 
@@ -746,8 +743,7 @@ begin
     except
       on ETransformedResultInvalid do
       begin
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
         Exit;
       end;
     end;

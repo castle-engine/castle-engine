@@ -101,8 +101,7 @@ begin
         Attribs.AddRange([
           GLX_SAMPLE_BUFFERS_ARB, 1,
           GLX_SAMPLES_ARB, MultiSampling ]);
-        if Log then
-          WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
+        WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
       end else
         raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
           'requested, but GLX_ARB_multisample not supported on this screen',
@@ -195,7 +194,6 @@ var
 begin
   if not GLX_version_1_0(XDisplay) then
     raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
-  if CastleLog.Log then
   begin
     GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
     WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
