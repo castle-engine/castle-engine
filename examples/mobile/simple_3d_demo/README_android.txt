@@ -1,24 +1,23 @@
 First example of using our engine on Android (2D controls and 3D rendering
 using full-featured SceneManager (TCastleScene underneath)).
-This compiles to a library libandroiddemo.so.
 
 Compile and run the application for Android by
 https://github.com/castle-engine/castle-engine/wiki/Build-Tool :
 
-  castle-engine package --os=android --cpu=arm --mode=debug
-  castle-engine install --os=android --cpu=arm
+  castle-engine package --target=android --mode=debug
+  castle-engine install --target=android
+  castle-engine run --target=android
 
 This does everything necessary to compile the source code
 into the final apk, and even installs and runs it
 (if you connected your Android device with debugging enabled):
 
-- Compiles the library libandroiddemo.so with FPC.
-- Copies libandroiddemo.so to the temporary Android project directory.
-- Uses ndk-build to add debug symbols.
+- Compiles the library (with native code for Android) with FPC.
+- Copies the library to a temporary Android project directory.
 - Copies the data/ contents to Android project assets.
   This way the data will be available inside .apk, which is the best
   way to distribute game data with your program.
-- Packages the project  "ant" from Android SDK tools.
+- Packages the project using Android Gradle build system.
 - Installs and runs the resulting apk using Android SDK tools.
 
 Note that you will need to install Android SDK, Android NDK

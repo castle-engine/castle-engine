@@ -29,9 +29,9 @@ src:
 
 .PHONY: android
 android:
-	castle-engine --mode=$(MODE) package --os=android --cpu=arm --fast
-	castle-engine install --os=android --cpu=arm
-	castle-engine run --os=android --cpu=arm
+	castle-engine --mode=$(MODE) package --target=android --fast
+	castle-engine install --target=android
+	castle-engine run --target=android
 
 .PHONY: android-release
 android-release:

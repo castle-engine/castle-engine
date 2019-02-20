@@ -11,6 +11,6 @@ clean:
 
 .PHONY: android
 android:
-	castle-engine package --os=android --cpu=arm --fast --mode=debug
-	castle-engine install --os=android --cpu=arm
-	castle-engine run --os=android --cpu=arm
+	castle-engine package --target=android --fast --mode=debug
+	castle-engine install --target=android
+	castle-engine run --target=android

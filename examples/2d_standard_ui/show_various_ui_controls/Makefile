@@ -13,9 +13,9 @@ clean:
 
 .PHONY: android
 android:
-	castle-engine --mode=$(MODE) package --os=android --cpu=arm
-	castle-engine install --os=android --cpu=arm
-	castle-engine run --os=android --cpu=arm
+	castle-engine --mode=$(MODE) package --target=android
+	castle-engine install --target=android
+	castle-engine run --target=android
 
 .PHONY: ios
 ios:
