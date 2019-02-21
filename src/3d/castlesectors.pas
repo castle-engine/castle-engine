@@ -228,11 +228,11 @@ begin
   begin
     for WaypointIndex := 0 to Waypoints.Count - 1 do
       if Waypoints[WaypointIndex].Sectors.Count <= 1 then
-        WritelnLog('Sectors', Format('Warning: Waypoint %d only links to %d sectors. Waypoints that link to 1 or 0 sectors are useless.',
+        WritelnWarning('Sectors', Format('Waypoint %d only links to %d sectors. Waypoints that link to 1 or 0 sectors are useless.',
           [WaypointIndex, Waypoints[WaypointIndex].Sectors.Count]));
     for SectorIndex := 0 to Count - 1 do
       if Items[SectorIndex].Waypoints.Count = 0 then
-        WritelnLog('Sectors', Format('Warning: Sector %d is not connected to any waypoint. Such sectors are useless.',
+        WritelnWarning('Sectors', Format('Sector %d is not connected to any waypoint. Such sectors are useless.',
           [SectorIndex]));
   end;
 end;

@@ -412,7 +412,7 @@ begin
   Result := EntryGtk <> nil;
   if (not Result) and Log and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
-    WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
+    WritelnWarning('Menu', 'Menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);

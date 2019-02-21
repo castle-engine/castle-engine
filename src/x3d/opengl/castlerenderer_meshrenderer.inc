@@ -548,7 +548,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           correct sizes). Output this on log, since it's done by renderer,
           potentially many times for a frame.
           Nothing more intelligent now than warning about this is done. }
-        WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
+        WritelnWarning('TexCoord', Format('Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
           [SuccessName, FailName]));
       *)
     end;

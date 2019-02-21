@@ -206,7 +206,7 @@ begin
   Result := EntryLCL <> nil;
   if (not Result) and Log and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
-    WritelnLog('Menu', 'Warning: menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
+    WritelnWarning('Menu', 'Menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateShortcut(Entry: TMenuItem);

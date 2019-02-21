@@ -421,8 +421,14 @@ end;
 
 procedure TCastleApplicationProperties.WriteWarningOnConsole(
   Sender: TObject; const Category, Message: string);
+var
+  WarningCategory: String;
 begin
-  WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + Message);
+  if Category <> '' then
+    WarningCategory := 'Warning: ' + Category
+  else
+    WarningCategory := 'Warning';
+  WarningWrite(ApplicationName + ': ' + WarningCategory + ': ' + Message);
 end;
 
 initialization
