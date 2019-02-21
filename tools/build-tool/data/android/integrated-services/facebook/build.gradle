@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- https://developers.facebook.com/docs/android/componentsdks -->
+  <repositories>
+    <!-- Seems not necessary, also Facebook docs only say "it may be needed..." -->
+    <!--repository>mavenCentral()</repository-->
+  </repositories>
+</build_gradle_merge>

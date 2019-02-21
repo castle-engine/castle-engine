@@ -2001,6 +2001,9 @@ begin
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/res/values/strings.xml') then
+      MergeStringsXml(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
