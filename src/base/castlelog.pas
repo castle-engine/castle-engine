@@ -304,12 +304,12 @@ begin
     LogStream := StdOutStream;
   end;
 
-  WriteLogCoreCore('Log for "' + ApplicationName + '".');
+  WriteLogCoreCore('Log for "' + ApplicationName + '".' + NL);
   if ApplicationProperties.Version <> '' then
-    WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.');
-  WriteLogCoreCore('  Started on ' + DateTimeToAtStr(Now) + '.');
-  WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.');
-  WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.');
+    WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.' + NL);
+  WriteLogCoreCore('  Started on ' + DateTimeToAtStr(Now) + '.' + NL);
+  WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
+  WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.' + NL);
   if CollectedLog <> '' then
   begin
     WriteLogCoreCore(CollectedLog);
