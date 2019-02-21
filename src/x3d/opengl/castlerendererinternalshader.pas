@@ -2825,7 +2825,7 @@ begin
   if UseSeparateDiffuseTexture then
     Define('CASTLE_SEPARATE_DIFFUSE_TEXTURE', stFragment);
 
-  if Log and LogShaders then
+  if LogShaders then
     DoLogShaders;
 
   try
@@ -2875,7 +2875,7 @@ const
   VS = {$I fallback.vs.inc};
   FS = {$I fallback.fs.inc};
 begin
-  if Log and LogShaders then
+  if LogShaders then
     WritelnLogMultiline('Using Fallback GLSL shaders',
       'Fallback vertex shader:' + NL +  VS + NL +
       'Fallback fragment shader:' + NL + FS);

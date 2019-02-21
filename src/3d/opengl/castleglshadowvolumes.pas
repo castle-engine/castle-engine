@@ -273,7 +273,7 @@ begin
     is just an extension promoted to standard in GL 2.0... }
   if (glStencilOpSeparate = nil) and Load_GL_ATI_separate_stencil then
   begin
-    if Log and LogShadowVolumes then
+    if LogShadowVolumes then
       WritelnLog('Shadow volumes',
         'Real glStencilOpSeparate not available, ' +
         'but faking it by glStencilOpSeparateATI (since ' +
@@ -284,7 +284,7 @@ begin
 
   FStencilTwoSided := glStencilOpSeparate <> nil;
 
-  if Log and LogShadowVolumes then
+  if LogShadowVolumes then
     WritelnLogMultiline('Shadow volumes',
       Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
              'Two-sided stencil test available: %s',

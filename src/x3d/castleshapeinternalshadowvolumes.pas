@@ -237,7 +237,7 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
         TriangleAdder.TriangleList := Result;
         if ShadowCaster(Shape) then
           Shape.LocalTriangulate(false, @TriangleAdder.AddTriangle);
-        if Log and LogShadowVolumes then
+        if LogShadowVolumes then
           WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
             [Result.Count]));
       finally FreeAndNil(TriangleAdder) end;
@@ -389,7 +389,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       end;
     finally FreeAndNil(EdgesSingle); end;
 
-    if Log and LogShadowVolumes then
+    if LogShadowVolumes then
       WritelnLog('Shadow volumes', Format(
         'Edges: %d manifold, %d border',
         [FManifoldEdges.Count, FBorderEdges.Count] ));

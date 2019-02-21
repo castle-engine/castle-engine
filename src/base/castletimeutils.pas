@@ -437,7 +437,7 @@ function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTim
 var
   SecondTimeMinusDelay: Int64;
 begin
-  if Log and (FirstTime > SecondTime) then
+  if FirstTime > SecondTime then
     WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater. Maybe 32-bit GetTickCount just wrapped (Windows XP? Otherwise, 64-bit GetTickCount64 should always be used), or maybe you swapped arguments for TimeTickSecondLater.');
   { Need 64 bit signed int to hold the result of QWord - QWord }
   {$I norqcheckbegin.inc}

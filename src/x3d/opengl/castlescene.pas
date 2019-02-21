@@ -1441,7 +1441,7 @@ procedure TCastleScene.PrepareResources(
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
   begin
-    if Log and LogRenderer then
+    if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
 
     { Note: we prepare also not visible shapes, in case they become visible. }
