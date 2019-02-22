@@ -24,9 +24,9 @@ public class ServiceFacebook extends ServiceAbstract
         super(activity);
         logger = AppEventsLogger.newLogger(getActivity());
 
-        // TODO: useful only for development
-        FacebookSdk.setIsDebugEnabled(true);
-        FacebookSdk.addLoggingBehavior(LoggingBehavior.APP_EVENTS);
+        // useful for development
+        // FacebookSdk.setIsDebugEnabled(true);
+        // FacebookSdk.addLoggingBehavior(LoggingBehavior.APP_EVENTS);
     }
 
     public String getName()
