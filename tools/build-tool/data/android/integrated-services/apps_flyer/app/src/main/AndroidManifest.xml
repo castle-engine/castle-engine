@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required by Apps Flyer.
+      https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Optional: -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <application>
+	<receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
+            <intent-filter>
+                 <action android:name="com.android.vending.INSTALL_REFERRER" />
+             </intent-filter>
+	</receiver>
+    </application>
+</manifest>

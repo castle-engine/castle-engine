@@ -1,0 +1,8 @@
+# -*- mode: shell-script -*-
+# This will be added to the main integrated/custom-proguard-project.txt
+# file by the build tool.
+
+# Following
+# https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android
+-dontwarn com.android.installreferrer
+-keep class com.appsflyer.** { *; }
