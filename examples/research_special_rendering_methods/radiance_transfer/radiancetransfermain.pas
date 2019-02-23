@@ -258,7 +258,8 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  URL: string = 'data/chinchilla_with_prt.wrl.gz';
+  URL: string = 'castle-data:/chinchilla_with_prt.wrl.gz';
+  Background: TCastleRectangleControl;
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
@@ -280,11 +281,14 @@ begin
       Scene.BoundingBox.Data[0].Data[0] + LightRadius;
   end;
 
-  Window.Controls.InsertFront(TCastleSimpleBackground.Create(Application));
+  Background := TCastleRectangleControl.Create(Application);
+  Background.FullSize := true;
+  Background.Color := Black;
+  Window.Controls.InsertFront(Background);
 
   SceneManager := TMySceneManager.Create(Application);
   SceneManager.Items.Add(Scene);
-  { we will clear context by our own TCastleSimpleBackground,
+  { we will clear context by our own Background,
     to keep SHVectorGLCapture visible for debugging }
   SceneManager.Transparent := true;
   SceneManager.MainScene := Scene;

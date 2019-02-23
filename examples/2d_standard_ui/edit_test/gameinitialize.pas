@@ -43,16 +43,17 @@ procedure ApplicationInitialize;
 var
   Group: TCastleVerticalGroup;
   Label1, Label2, Label3: TCastleLabel;
-  SimpleBackground: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   Spacer: TCastleUserInterface;
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  SimpleBackground := TCastleSimpleBackground.Create(Application);
-  SimpleBackground.Color := White;
-  Window.Controls.InsertFront(SimpleBackground);
+  Background := TCastleRectangleControl.Create(Application);
+  Background.Color := White;
+  Background.FullSize := true;
+  Window.Controls.InsertFront(Background);
 
   Group := TCastleVerticalGroup.Create(Application);
   Group.Anchor(vpTop);

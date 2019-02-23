@@ -222,7 +222,7 @@ end;
 procedure ApplicationInitialize;
 var
   I: Integer;
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   {$ifdef ADD_ANIMATION}
   Animation: TCastleScene;
   Transform: TCastleTransform;
@@ -316,7 +316,8 @@ begin
 
   { add a background, since our viewports (deliberately, for demo)
     do not cover whole window. }
-  Background := TCastleSimpleBackground.Create(Application);
+  Background := TCastleRectangleControl.Create(Application);
+  Background.FullSize := true;
   Background.Color := Vector4(0.5, 0.5, 1.0, 1.0);
   Window.Controls.InsertBack(Background);
 end;

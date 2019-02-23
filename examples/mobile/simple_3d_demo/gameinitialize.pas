@@ -32,9 +32,6 @@ uses SysUtils,
 var
   Window: TCastleWindowTouch;
 
-  {$ifdef SOLID_BACKGROUND}
-  Background: TCastleSimpleBackground;
-  {$endif}
   Image: TCastleImageControl;
 
   ToggleShaderButton: TCastleButton;
@@ -214,16 +211,6 @@ begin
   Window.Container.UIScaling := usEncloseReferenceSize;
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
-
-{$ifdef SOLID_BACKGROUND}
-  { Show other controls under SceneManager, this way our Background
-    is visible. Otherwise, Background defined in main 3D scene is used. }
-  Window.SceneManager.Transparent := true;
-
-  Background := TCastleSimpleBackground.Create(Window);
-  Background.Color := Yellow;
-  Window.Controls.InsertBack(Background);
-{$endif}
 
   Image := TCastleImageControl.Create(Window);
   Image.URL := ApplicationData('sample_image_with_alpha.png' {'sample_texture.ppm'});

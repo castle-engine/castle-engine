@@ -90,7 +90,7 @@ begin
 end;
 
 var
-  Background: TCastleSimpleBackground;
+  Background: TCastleRectangleControl;
   Font: TFontFamily;
 begin
   Window := TCastleWindowBase.Create(Application);
@@ -106,8 +106,9 @@ begin
   Font.BoldItalicFont := TTextureFont.Create(Font);
   (Font.BoldItalicFont as TTextureFont).Load(TextureFont_DejaVuSansBoldOblique_20);
 
-  Background := TCastleSimpleBackground.Create(Window);
+  Background := TCastleRectangleControl.Create(Window);
   Background.Color := White; // Vector4(0.9, 0.9, 0.7, 1.0);
+  Background.FullSize := true;
   Window.Controls.InsertFront(Background);
 
   ButtonHtml := TCastleButton.Create(Window);
