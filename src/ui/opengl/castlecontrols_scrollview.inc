@@ -33,7 +33,6 @@
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
-    function ScrollBarWidthScaled: Single;
     procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
@@ -76,6 +75,10 @@
       and thus noticeable, when you start dragging.
       By default it's opaque white, which means that no tint is shown. }
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
+
+    { Scroll bar width, either from @link(ScrollBarWidth) or
+      @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
+    function EffectiveScrollBarWidth: Single;
   published
     { Speed of scrolling by arrow keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
@@ -268,7 +271,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     SR := RenderRect;
 
-    ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
+    ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
     ScrollbarSlider := ScrollbarFrame;
     if GetCompleteSize = 0 then
@@ -553,12 +556,12 @@ begin
   Result := Max(0, GetCompleteSize - GetPageSize);
 end;
 
-function TCastleScrollViewCustom.ScrollBarWidthScaled: Single;
+function TCastleScrollViewCustom.EffectiveScrollBarWidth: Single;
 begin
   if ScrollBarWidth = 0 then
-    Result := Theme.ScrollBarWidth * UIScale
+    Result := Theme.ScrollBarWidth
   else
-    Result := ScrollBarWidth * UIScale;
+    Result := ScrollBarWidth;
 end;
 
 {$define read_implementation_methods}

@@ -22,12 +22,29 @@ uses SysUtils, Classes,
   CastleVectors, CastleColors;
 
 const
-  Margin = 10;
+  Margin = 4;
 var
   Window: TCastleWindowBase;
   Label1: TCastleLabel;
   ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
   ScrollView: TCastleScrollView;
+
+procedure UpdateSizes;
+var
+  WidthInsideScrollArea: Single;
+begin
+  WidthInsideScrollArea := ScrollView.EffectiveWidthForChildren
+    - ScrollView.EffectiveScrollBarWidth;
+
+  // do this first, as it updates Label1.EffectiveHeight
+  if ButtonWrap.Pressed then
+    Label1.MaxWidth := WidthInsideScrollArea
+  else
+    Label1.MaxWidth := 0;
+
+  ScrollView.ScrollArea.Width := WidthInsideScrollArea;
+  ScrollView.ScrollArea.Height := Label1.EffectiveHeight;
+end;
 
 type
   TButtonHandler = class
@@ -42,16 +59,13 @@ class procedure TButtonHandler.ClickHtml(Sender: TObject);
 begin
   ButtonHtml.Pressed := not ButtonHtml.Pressed;
   Label1.Html := ButtonHtml.Pressed;
-  Window.Container.EventResize; // cause WindowResize now, since Label1 sizes changed
+  UpdateSizes;
 end;
 
 class procedure TButtonHandler.ClickWrap(Sender: TObject);
 begin
   ButtonWrap.Pressed := not ButtonWrap.Pressed;
-  if ButtonWrap.Pressed then
-    Label1.MaxWidth := Label1.Container.Width - Margin * 2 else
-    Label1.MaxWidth := 0;
-  Window.Container.EventResize; // cause WindowResize now, since Label1 sizes changed
+  UpdateSizes;
 end;
 
 class procedure TButtonHandler.ClickAlignLeft(Sender: TObject);
@@ -60,6 +74,7 @@ begin
   ButtonAlignMiddle.Pressed := false;
   ButtonAlignRight.Pressed := false;
   Label1.Alignment := hpLeft;
+  Label1.Anchor(hpLeft);
 end;
 
 class procedure TButtonHandler.ClickAlignMiddle(Sender: TObject);
@@ -68,6 +83,7 @@ begin
   ButtonAlignMiddle.Pressed := true;
   ButtonAlignRight.Pressed := false;
   Label1.Alignment := hpMiddle;
+  Label1.Anchor(hpMiddle);
 end;
 
 class procedure TButtonHandler.ClickAlignRight(Sender: TObject);
@@ -76,17 +92,12 @@ begin
   ButtonAlignMiddle.Pressed := false;
   ButtonAlignRight.Pressed := true;
   Label1.Alignment := hpRight;
+  Label1.Anchor(hpRight);
 end;
 
 procedure WindowResize(Container: TUIContainer);
 begin
-  if ButtonWrap.Pressed then
-    Label1.MaxWidth := Container.UnscaledWidth - Margin * 2 - ScrollView.ScrollBarWidth;
-
-  ScrollView.Width := Container.UnscaledWidth;
-  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.EffectiveHeight;
-  ScrollView.ScrollArea.Width := Label1.EffectiveWidth;
-  ScrollView.ScrollArea.Height := Label1.EffectiveHeight;
+  UpdateSizes;
 end;
 
 var
@@ -157,12 +168,16 @@ begin
   ScrollView := TCastleScrollView.Create(Window);
   ScrollView.Anchor(vpTop);
   ScrollView.EnableDragging := true;
+  ScrollView.FullSize := true;
+  ScrollView.Border.Bottom := 2 * Margin + ButtonHtml.EffectiveHeight;
+  ScrollView.Border.Left := Margin;
+  ScrollView.Border.Right := Margin;
+  ScrollView.Border.Top := Margin;
   Window.Controls.InsertFront(ScrollView);
 
   Label1 := TCastleLabel.Create(Window);
   Label1.Caption := {$I html_text_demo.html.inc};
   Label1.CustomFont := Font;
-  Label1.Left := Margin;
   Label1.Html := ButtonHtml.Pressed;
   Label1.Color := Black;
   ScrollView.ScrollArea.InsertFront(Label1);

@@ -306,10 +306,10 @@ begin
 
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
-    ScrollBarWidthScaled to be on the safe side, because we don't know
+    EffectiveScrollBarWidth to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
   BreakWidth := Max(0, PR.Width - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - ScrollView.ScrollBarWidth * UIScale);
+    - WindowMarginScaled * 2 - ScrollView.EffectiveScrollBarWidth * UIScale);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
