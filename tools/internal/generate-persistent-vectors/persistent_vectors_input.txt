@@ -21,6 +21,8 @@
 ../../../src/ui/opengl/ TCastleButton CustomColorNormal TCastleColor
 
 ../../../src/ui/opengl/ TCastleImageControl Color TCastleColor
+../../../src/ui/opengl/ TCastleImageControl ClipLine TVector3
+../../../src/ui/opengl/ TCastleImageControl RotationCenter TVector2
 
 ../../../src/ui/opengl/ TCastleUserInterfaceFont OutlineColor TCastleColor
 

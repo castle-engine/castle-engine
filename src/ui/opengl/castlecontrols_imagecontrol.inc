@@ -58,6 +58,7 @@
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetRotation: Single;
+    function GetRotationCenter: TVector2;
     function GetAlphaChannel: TAutoAlphaChannel;
     function GetColor: TCastleColor;
     function GetSmoothScaling: boolean;
@@ -67,6 +68,7 @@
     procedure SetCenterX(const Value: Single);
     procedure SetCenterY(const Value: Single);
     procedure SetRotation(const Value: Single);
+    procedure SetRotationCenter(const Value: TVector2);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: boolean);
@@ -187,15 +189,17 @@
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+      deprecated 'use RotationCenter';
 
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+      deprecated 'use RotationCenter';
 
-    { Rotation in radians. Default value 0. }
-    property Rotation: Single read GetRotation write SetRotation default 0;
-
-    { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read GetClip write SetClip;
+    { Center of rotation.
+      Expressed as a fraction within the drawn ScreenRectangle,
+      (0,0) means bottom-left corner, (1,1) means top-right corner.
+      Default (0.5,0.5). }
+    property RotationCenter: TVector2 read GetRotationCenter write SetRotationCenter;
 
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
@@ -356,6 +360,12 @@
     property DetectScaleFromUrl: Boolean
       read FDetectScaleFromUrl write SetDetectScaleFromUrl default false;
 
+    { Rotation in radians. Default value 0. }
+    property Rotation: Single read GetRotation write SetRotation default 0;
+
+    { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
+    property Clip: boolean read GetClip write SetClip default false;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -511,34 +521,6 @@ begin
   end;
 end;
 
-function TCastleImageControl.GetCenterX: Single;
-begin
-  Result := FDrawableImage.CenterX;
-end;
-
-procedure TCastleImageControl.SetCenterX(const Value: Single);
-begin
-  if CenterX <> Value then
-  begin
-    FDrawableImage.CenterX := Value;
-    VisibleChange([chRender]);
-  end;
-end;
-
-function TCastleImageControl.GetCenterY: Single;
-begin
-  Result := FDrawableImage.CenterY;
-end;
-
-procedure TCastleImageControl.SetCenterY(const Value: Single);
-begin
-  if CenterY <> Value then
-  begin
-    FDrawableImage.CenterY := Value;
-    VisibleChange([chRender]);
-  end;
-end;
-
 function TCastleImageControl.GetRotation: Single;
 begin
   Result := FDrawableImage.Rotation;
@@ -549,6 +531,20 @@ begin
   if Rotation <> Value then
   begin
     FDrawableImage.Rotation := Value;
+    VisibleChange([chRender]);
+  end;
+end;
+
+function TCastleImageControl.GetRotationCenter: TVector2;
+begin
+  Result := FDrawableImage.RotationCenter;
+end;
+
+procedure TCastleImageControl.SetRotationCenter(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FDrawableImage.RotationCenter, Value) then
+  begin
+    FDrawableImage.RotationCenter := Value;
     VisibleChange([chRender]);
   end;
 end;
@@ -847,6 +843,34 @@ begin
     Result := psBasic
   else
     Result := inherited PropertySection(PropertyName);
+end;
+
+function TCastleImageControl.GetCenterX: Single;
+begin
+  Result := RotationCenter.X;
+end;
+
+function TCastleImageControl.GetCenterY: Single;
+begin
+  Result := RotationCenter.Y;
+end;
+
+procedure TCastleImageControl.SetCenterX(const Value: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.X := Value;
+  RotationCenter := V;
+end;
+
+procedure TCastleImageControl.SetCenterY(const Value: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.Y := Value;
+  RotationCenter := V;
 end;
 
 {$define read_implementation_methods}

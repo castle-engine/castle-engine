@@ -113,9 +113,10 @@ type
       FColor: TCastleColor;
       FSmoothScaling: boolean;
       FScaleCorners: Single;
-      FCenterX, FCenterY, FRotation: Single;
-      ScreenCenterX, ScreenCenterY: Single;
-      UseScreenCenter: boolean;
+      FRotation: Single;
+      FRotationCenter: TVector2;
+      ScreenRotationCenter: TVector2;
+      UseScreenRotationCenter: boolean;
       FClip: boolean;
       FClipLine: TVector3;
       { The detected alpha channel of the loaded image.
@@ -145,14 +146,15 @@ type
     procedure GLContextCloseEvent(Sender: TObject);
     procedure GLContextOpen(const AImage: TEncodedImage);
     procedure GLContextClose;
+    function GetCenterX: Single;
+    function GetCenterY: Single;
+    procedure SetCenterX(const Value: Single);
+    procedure SetCenterY(const Value: Single);
   private
     StaticResourcesReady: boolean; static;
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
-  strict protected
-    function GetWidth: Cardinal; virtual;
-    function GetHeight: Cardinal; virtual;
   public
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -269,8 +271,8 @@ type
 
     destructor Destroy; override;
 
-    property Width: Cardinal read GetWidth;
-    property Height: Cardinal read GetHeight;
+    property Width: Cardinal read FWidth;
+    property Height: Cardinal read FHeight;
 
     { Rectangle representing the inside of this image.
       Always (Left,Bottom) are zero, and (Width,Height) correspond to image
@@ -520,10 +522,18 @@ type
       deprecated 'use SmoothScaling';
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterX: Single read FCenterX write FCenterX default 0.5;
+    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+      deprecated 'use RotationCenter';
 
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterY: Single read FCenterY write FCenterY default 0.5;
+    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+      deprecated 'use RotationCenter';
+
+    { Center of rotation.
+      Expressed as a fraction within the drawn ScreenRectangle,
+      (0,0) means bottom-left corner, (1,1) means top-right corner.
+      Default (0.5,0.5). }
+    property RotationCenter: TVector2 read FRotationCenter write FRotationCenter;
 
     { Rotation in radians. Increase to rotate in a counter-clockwise direction.
       Hint: use function like ArcTan2 from Math unit to convert 2D direction
@@ -664,8 +674,7 @@ begin
 
   FColor := White;
   FScaleCorners := 1;
-  FCenterX := 0.5;
-  FCenterY := 0.5;
+  FRotationCenter := Vector2(0.5, 0.5);
   FRotation := 0;
   { this sets CurrentFilter, that will be immediately used by Load }
   FSmoothScaling := ASmoothScaling;
@@ -992,16 +1001,12 @@ procedure TDrawableImage.Draw(
   end;
 
 var
-  ShiftX, ShiftY: Single;
+  Shift: TVector2;
 
-  { Rotate Point by Rotation radians around (ShiftX, ShiftY). }
+  { Rotate Point by Rotation radians around Shift. }
   function RotatePoint2DAroundShift(const Point: TVector2): TVector2;
-  var
-    PointShift, ResultShift: TVector2;
   begin
-    PointShift := Vector2(Point[0] - ShiftX, Point[1] - ShiftY);
-    ResultShift := RotatePoint2D(PointShift, Rotation);
-    Result := Vector2(ResultShift[0] + ShiftX, ResultShift[1] + ShiftY);
+    Result := RotatePoint2D(Point - Shift, Rotation) + Shift;
   end;
 
   procedure SetupQuadPoints(const ScreenRect, ImageRect: TFloatRectangle;
@@ -1031,14 +1036,14 @@ var
 
     if FRotation <> 0 then
     begin
-      if UseScreenCenter then
+      if UseScreenRotationCenter then
       begin
-        ShiftX := ScreenCenterX;
-        ShiftY := ScreenCenterY;
+        Shift := ScreenRotationCenter;
       end else
       begin
-        ShiftX := ScreenRect.Left   + FCenterX * ScreenRect.Width;
-        ShiftY := ScreenRect.Bottom + FCenterY * ScreenRect.Height;
+        Shift := Vector2(
+          ScreenRect.Left   + FRotationCenter.X * ScreenRect.Width,
+          ScreenRect.Bottom + FRotationCenter.Y * ScreenRect.Height);
       end;
       QuadPoints^[0].Position := RotatePoint2DAroundShift(QuadPoints^[0].Position);
       QuadPoints^[1].Position := RotatePoint2DAroundShift(QuadPoints^[1].Position);
@@ -1330,9 +1335,10 @@ begin
   { setup rotations }
   if Rotation <> 0 then
   begin
-    UseScreenCenter := true; // only temporary for this Draw3x3 call
-    ScreenCenterX := X + FCenterX * DrawWidth;
-    ScreenCenterY := Y + FCenterY * DrawHeight;
+    UseScreenRotationCenter := true; // only temporary for this Draw3x3 call
+    ScreenRotationCenter := Vector2(
+      X + FRotationCenter.X * DrawWidth,
+      Y + FRotationCenter.Y * DrawHeight);
   end;
 
   DrawAddCount := 0;
@@ -1375,7 +1381,7 @@ begin
   Assert(DrawAddCount = 9);
   Draw(@ScreenRects, @ImageRects, 9);
 
-  UseScreenCenter := false;
+  UseScreenRotationCenter := false;
 end;
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
@@ -1452,16 +1458,6 @@ begin
   end;
 end;
 
-function TDrawableImage.GetWidth: Cardinal;
-begin
-  Result := FWidth;
-end;
-
-function TDrawableImage.GetHeight: Cardinal;
-begin
-  Result := FHeight;
-end;
-
 function TDrawableImage.GetContents(const ImageClass: TCastleImageClass): TCastleImage;
 begin
   PrepareResources;
@@ -1531,6 +1527,26 @@ begin
   RenderToImageBegin;
   SourceImage.Draw(DestinationRect, SourceRect);
   RenderToImageEnd;
+end;
+
+function TDrawableImage.GetCenterX: Single;
+begin
+  Result := FRotationCenter.Data[0];
+end;
+
+function TDrawableImage.GetCenterY: Single;
+begin
+  Result := FRotationCenter.Data[1];
+end;
+
+procedure TDrawableImage.SetCenterX(const Value: Single);
+begin
+  FRotationCenter.Data[0] := Value;
+end;
+
+procedure TDrawableImage.SetCenterY(const Value: Single);
+begin
+  FRotationCenter.Data[1] := Value;
 end;
 
 {$endif read_implementation}
