@@ -50,14 +50,16 @@ type
     PanelMiddle: TPanel;
     PanelLeft: TPanel;
     PanelRight: TPanel;
-    ScrollBox1: TScrollBox;
+    Splitter1: TSplitter;
+    TabLayoutScrollBox: TScrollBox;
     SpinEditSnap: TSpinEdit;
     SplitterLeft: TSplitter;
     SplitterRight: TSplitter;
-    TabAdvanced: TTabSheet;
+    TabAll: TTabSheet;
     TabEvents: TTabSheet;
-    TabAnchors: TTabSheet;
-    TabSimple: TTabSheet;
+    TabLayout: TTabSheet;
+    TabBasic: TTabSheet;
+    TabOther: TTabSheet;
     ToggleInteractMode: TToggleBox;
     ToggleSelectTranslateResizeMode: TToggleBox;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
@@ -111,8 +113,10 @@ type
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
+      TInspectorType = (itBasic, itLayout, itOther, itEvents, itAll);
+
     var
-      InspectorSimple, InspectorAdvanced, InspectorEvents: TOIPropertyGrid;
+      Inspector: array [TInspectorType] of TOIPropertyGrid;
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
@@ -152,7 +156,11 @@ type
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
 
-    procedure InspectorSimpleFilter(Sender: TObject; aEditor: TPropertyEditor;
+    procedure InspectorBasicFilter(Sender: TObject; aEditor: TPropertyEditor;
+      var aShow: boolean);
+    procedure InspectorLayoutFilter(Sender: TObject; aEditor: TPropertyEditor;
+      var aShow: boolean);
+    procedure InspectorOtherFilter(Sender: TObject; aEditor: TPropertyEditor;
       var aShow: boolean);
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
@@ -764,18 +772,28 @@ begin
 
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
 
-  InspectorSimple := CommonInspectorCreate;
-  InspectorSimple.Parent := TabSimple;
-  InspectorSimple.OnEditorFilter := @InspectorSimpleFilter;
-  InspectorSimple.Filter := tkProperties;
+  Inspector[itBasic] := CommonInspectorCreate;
+  Inspector[itBasic].Parent := TabBasic;
+  Inspector[itBasic].OnEditorFilter := @InspectorBasicFilter;
+  Inspector[itBasic].Filter := tkProperties;
 
-  InspectorAdvanced := CommonInspectorCreate;
-  InspectorAdvanced.Parent := TabAdvanced;
-  InspectorAdvanced.Filter := tkProperties;
+  Inspector[itLayout] := CommonInspectorCreate;
+  Inspector[itLayout].Parent := TabLayout;
+  Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
+  Inspector[itLayout].Filter := tkProperties;
 
-  InspectorEvents := CommonInspectorCreate;
-  InspectorEvents.Parent := TabEvents;
-  InspectorEvents.Filter := tkMethods;
+  Inspector[itOther] := CommonInspectorCreate;
+  Inspector[itOther].Parent := TabOther;
+  Inspector[itOther].OnEditorFilter := @InspectorOtherFilter;
+  Inspector[itOther].Filter := tkProperties;
+
+  Inspector[itAll] := CommonInspectorCreate;
+  Inspector[itAll].Parent := TabAll;
+  Inspector[itAll].Filter := tkProperties;
+
+  Inspector[itEvents] := CommonInspectorCreate;
+  Inspector[itEvents].Parent := TabEvents;
+  Inspector[itEvents].Filter := tkMethods;
 
   CastleControl := TCastleControlBase.Create(Self);
   CastleControl.Parent := PanelMiddle;
@@ -789,7 +807,7 @@ begin
   CastleControl.Controls.InsertFront(DesignerLayer);
 
   // It's too easy to change it visually and forget, so we set it from code
-  ControlProperties.ActivePage := TabSimple;
+  ControlProperties.ActivePage := TabBasic;
 
   TreeNodeMap := TTreeNodeMap.Create;
 
@@ -915,15 +933,16 @@ begin
 end;
 
 procedure TDesignFrame.BeforeProposeSaveDesign;
+var
+  InspectorType: TInspectorType;
 begin
   { call SaveChanges to be sure to have good DesignModified value.
     Otherwise when editing e.g. TCastleButton.Caption,
     you can press F9 and have DesignModified = false,
     because PropertyGridModified doesn't occur because we actually
     press "tab" to focus another control. }
-  InspectorSimple.SaveChanges;
-  InspectorAdvanced.SaveChanges;
-  InspectorEvents.SaveChanges;
+  for InspectorType in TInspectorType do
+    Inspector[InspectorType].SaveChanges;
 end;
 
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
@@ -1327,7 +1346,7 @@ begin
   LabelUIScaling.Hint := H;
 end;
 
-procedure TDesignFrame.InspectorSimpleFilter(Sender: TObject;
+procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
   aEditor: TPropertyEditor; var aShow: boolean);
 var
   PropertyName: String;
@@ -1346,6 +1365,66 @@ begin
     Instance := aEditor.GetInstProp^.Instance;
     if ( (Instance is TCastleComponent) and
          (TCastleComponent(Instance).PropertySection(PropertyName) = psBasic) ) or
+       (Instance is TCastleColorPersistent) or
+       (Instance is TCastleColorRGBPersistent) or
+       (Instance is TCastleVector3Persistent) or
+       (Instance is TCastleVector4Persistent) then
+    begin
+      AShow := true;
+      Exit;
+    end;
+  end;
+end;
+
+procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
+  aEditor: TPropertyEditor; var aShow: boolean);
+var
+  PropertyName: String;
+  Instance: TPersistent;
+begin
+  AShow := false;
+
+  if aEditor.GetPropInfo = nil then
+    Exit;
+
+  PropertyName := aEditor.GetPropInfo^.Name;
+
+  if (aEditor.GetInstProp <> nil) and
+     (aEditor.GetInstProp^.Instance <> nil) then
+  begin
+    Instance := aEditor.GetInstProp^.Instance;
+    if ( (Instance is TCastleComponent) and
+         (TCastleComponent(Instance).PropertySection(PropertyName) = psLayout) ) or
+       (Instance is TCastleColorPersistent) or
+       (Instance is TCastleColorRGBPersistent) or
+       (Instance is TCastleVector3Persistent) or
+       (Instance is TCastleVector4Persistent) then
+    begin
+      AShow := true;
+      Exit;
+    end;
+  end;
+end;
+
+procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
+  aEditor: TPropertyEditor; var aShow: boolean);
+var
+  PropertyName: String;
+  Instance: TPersistent;
+begin
+  AShow := false;
+
+  if aEditor.GetPropInfo = nil then
+    Exit;
+
+  PropertyName := aEditor.GetPropInfo^.Name;
+
+  if (aEditor.GetInstProp <> nil) and
+     (aEditor.GetInstProp^.Instance <> nil) then
+  begin
+    Instance := aEditor.GetInstProp^.Instance;
+    if ( (Instance is TCastleComponent) and
+         (TCastleComponent(Instance).PropertySection(PropertyName) = psOther) ) or
        (Instance is TCastleColorPersistent) or
        (Instance is TCastleColorRGBPersistent) or
        (Instance is TCastleVector3Persistent) or
@@ -1553,6 +1632,7 @@ var
   SelectionForOI: TPersistentSelectionList;
   I, SelectedCount: Integer;
   UI: TCastleUserInterface;
+  InspectorType: TInspectorType;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1569,14 +1649,13 @@ begin
     try
       for I := 0 to SelectedCount - 1 do
         SelectionForOI.Add(Selected[I]);
-      InspectorSimple.Selection := SelectionForOI;
-      InspectorAdvanced.Selection := SelectionForOI;
-      InspectorEvents.Selection := SelectionForOI;
+      for InspectorType in TInspectorType do
+        Inspector[InspectorType].Selection := SelectionForOI;
     finally FreeAndNil(SelectionForOI) end;
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  TabAnchors.TabVisible := UI <> nil;
+  TabLayout.TabVisible := UI <> nil;
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);
@@ -1979,6 +2058,7 @@ procedure TDesignFrame.SetParent(AParent: TWinControl);
 {$ifdef LCLwin32}
 var
   H: Integer;
+  InspectorType: TInspectorType;
 {$endif}
 begin
   inherited SetParent(AParent);
@@ -1987,9 +2067,8 @@ begin
   if AParent <> nil then
   begin
     H := Canvas.TextHeight('Wg') + 4;
-    InspectorSimple.DefaultItemHeight := H;
-    InspectorAdvanced.DefaultItemHeight := H;
-    InspectorEvents.DefaultItemHeight := H;
+    for InspectorType in TInspectorType do
+      Inspector[InspectorType].DefaultItemHeight := H;
   end;
   {$endif}
 end;
@@ -2093,14 +2172,15 @@ begin
 end;
 
 procedure TDesignFrame.ModifiedOutsideObjectInspector;
+var
+  InspectorType: TInspectorType;
 begin
   // TODO: this moves UI scrollbar up,
   // TODO: this is not optimized
   // (PropertyGridModified does some unnecessary things if we only changed size)
 
-  InspectorSimple.RefreshPropertyValues;
-  InspectorAdvanced.RefreshPropertyValues;
-  InspectorEvents.RefreshPropertyValues;
+  for InspectorType in TInspectorType do
+    Inspector[InspectorType].RefreshPropertyValues;
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
   if ControlsTree.Selected <> nil then
     PropertyGridModified(nil);

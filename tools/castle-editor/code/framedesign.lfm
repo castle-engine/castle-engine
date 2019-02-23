@@ -5,10 +5,10 @@ object DesignFrame: TDesignFrame
   Width = 1261
   ClientHeight = 510
   ClientWidth = 1261
-  DesignTimePPI = 140
+  DesignTimePPI = 120
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 339
+  DesignLeft = 331
   DesignTop = 171
   object SplitterLeft: TSplitter
     Left = 266
@@ -36,7 +36,7 @@ object DesignFrame: TDesignFrame
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 54
+      Height = 44
       Top = 5
       Width = 346
       Align = alTop
@@ -47,40 +47,43 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 446
-      Top = 64
+      Height = 456
+      Top = 54
       Width = 356
-      ActivePage = TabAnchors
+      ActivePage = TabLayout
       Align = alClient
       TabIndex = 1
       TabOrder = 0
-      object TabSimple: TTabSheet
-        Caption = 'Simple'
+      object TabBasic: TTabSheet
+        Caption = 'Basic'
       end
-      object TabAnchors: TTabSheet
-        Caption = 'Anchors'
-        ClientHeight = 401
+      object TabLayout: TTabSheet
+        Hint = 'Configure Position and Size'
+        Caption = 'Layout'
+        ClientHeight = 416
         ClientWidth = 350
-        object ScrollBox1: TScrollBox
+        ParentShowHint = False
+        ShowHint = True
+        object TabLayoutScrollBox: TScrollBox
           Left = 0
-          Height = 401
+          Height = 200
           Top = 0
           Width = 350
           HorzScrollBar.Page = 1
           HorzScrollBar.Visible = False
-          VertScrollBar.Page = 311
-          Align = alClient
+          VertScrollBar.Page = 200
+          Align = alTop
           BorderStyle = bsNone
-          ClientHeight = 401
-          ClientWidth = 350
+          ClientHeight = 200
+          ClientWidth = 332
           TabOrder = 0
           object LabelSizeInfo: TLabel
-            AnchorSideTop.Control = ButtonClearAnchorDeltas
+            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 27
-            Top = 284
-            Width = 338
+            Height = 22
+            Top = 274
+            Width = 320
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 10
             Caption = 'LabelSizeInfo'
@@ -88,21 +91,24 @@ object DesignFrame: TDesignFrame
             WordWrap = True
           end
           object CheckParentSelfAnchorsEqual: TCheckBox
+            AnchorSideTop.Control = SelfAnchorsFrame
+            AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 31
-            Top = 8
-            Width = 334
+            Height = 26
+            Top = 238
+            Width = 305
+            BorderSpacing.Top = 10
             Caption = 'Anchor to the same side of Parent'
             OnChange = CheckParentSelfAnchorsEqualChange
             TabOrder = 0
           end
           inline SelfAnchorsFrame: TAnchorsFrame
             AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
-            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 176
-            Top = 49
+            Top = 52
             Width = 152
             BorderSpacing.Top = 10
             ClientHeight = 176
@@ -112,11 +118,11 @@ object DesignFrame: TDesignFrame
           inline ParentAnchorsFrame: TAnchorsFrame
             AnchorSideLeft.Control = SelfAnchorsFrame
             AnchorSideLeft.Side = asrBottom
-            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
             AnchorSideTop.Side = asrBottom
             Left = 170
             Height = 176
-            Top = 49
+            Top = 52
             Width = 152
             BorderSpacing.Left = 10
             BorderSpacing.Top = 10
@@ -129,12 +135,10 @@ object DesignFrame: TDesignFrame
           end
           object ButtonClearAnchorDeltas: TButton
             AnchorSideLeft.Control = SelfAnchorsFrame
-            AnchorSideTop.Control = SelfAnchorsFrame
-            AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 39
-            Top = 235
-            Width = 191
+            Height = 34
+            Top = 8
+            Width = 173
             AutoSize = True
             BorderSpacing.Top = 10
             Caption = 'Move to the anchor'
@@ -142,12 +146,24 @@ object DesignFrame: TDesignFrame
             TabOrder = 3
           end
         end
+        object Splitter1: TSplitter
+          Cursor = crVSplit
+          Left = 0
+          Height = 6
+          Top = 200
+          Width = 350
+          Align = alTop
+          ResizeAnchor = akTop
+        end
       end
-      object TabAdvanced: TTabSheet
-        Caption = 'Advanced'
+      object TabOther: TTabSheet
+        Caption = 'Other'
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
+      end
+      object TabAll: TTabSheet
+        Caption = 'All'
       end
     end
   end
@@ -163,9 +179,9 @@ object DesignFrame: TDesignFrame
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 473
+      Height = 478
       Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
-      Top = 37
+      Top = 32
       Width = 266
       Align = alClient
       DragMode = dmAutomatic
@@ -185,7 +201,7 @@ object DesignFrame: TDesignFrame
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 27
+      Height = 22
       Top = 5
       Width = 256
       Align = alTop
@@ -206,19 +222,19 @@ object DesignFrame: TDesignFrame
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 39
+      Height = 34
       Top = 5
       Width = 615
       Align = alTop
       AutoSize = True
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 39
+      ClientHeight = 34
       ClientWidth = 615
       TabOrder = 0
       object LabelUIScaling: TLabel
         Left = 0
-        Height = 27
+        Height = 22
         Hint = 'UI Scaling to 1600x900'
         Top = 0
         Width = 615
@@ -231,10 +247,10 @@ object DesignFrame: TDesignFrame
       end
       object ToggleInteractMode: TToggleBox
         Left = 0
-        Height = 39
+        Height = 34
         Hint = 'Press buttons, change camera and more.'
         Top = 0
-        Width = 84
+        Width = 78
         AutoSize = True
         Caption = 'Interact'
         OnClick = ToggleInteractModeClick
@@ -245,11 +261,11 @@ object DesignFrame: TDesignFrame
       object ToggleSelectTranslateResizeMode: TToggleBox
         AnchorSideLeft.Control = ToggleInteractMode
         AnchorSideLeft.Side = asrBottom
-        Left = 89
-        Height = 39
+        Left = 83
+        Height = 34
         Hint = 'Select, move and resize user interface controls (with left mouse button).'#10'Use right mouse button to move and resize, without changing the selected object.'
         Top = 0
-        Width = 241
+        Width = 224
         AutoSize = True
         BorderSpacing.Left = 5
         Caption = 'Select / Translate / Resize'
@@ -263,8 +279,8 @@ object DesignFrame: TDesignFrame
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelSnap
         AnchorSideTop.Side = asrCenter
-        Left = 406
-        Height = 37
+        Left = 379
+        Height = 32
         Top = 1
         Width = 55
         BorderSpacing.Left = 5
@@ -276,10 +292,10 @@ object DesignFrame: TDesignFrame
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = ToggleSelectTranslateResizeMode
         AnchorSideTop.Side = asrCenter
-        Left = 350
-        Height = 27
+        Left = 327
+        Height = 22
         Top = 6
-        Width = 51
+        Width = 47
         BorderSpacing.Left = 20
         Caption = 'Snap:'
         ParentColor = False
