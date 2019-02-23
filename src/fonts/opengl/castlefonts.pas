@@ -402,7 +402,7 @@ type
   strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    GLImage: TGLImage;
+    DrawableImage: TDrawableImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
     function GetScale: Single;
@@ -485,7 +485,7 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   strict private
-    GLImage: TGLImage;
+    DrawableImage: TDrawableImage;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
@@ -494,7 +494,7 @@ type
     function ScaledCharHeight: Single;
     function ScaledCharDisplayMargin: Single;
     function GetSmoothScaling: boolean;
-    { Scale applied to the rendered GLImage to honor changing the Size property. }
+    { Scale applied to the rendered DrawableImage to honor changing the Size property. }
     function Scale: Single;
   strict protected
     procedure SetSize(const Value: Single); override;
@@ -1185,8 +1185,8 @@ begin
   Assert(FFont.Size <> 0);
   Assert(not IsInfinite(Value));
 
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
+  if DrawableImage <> nil then
+    DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TTextureFont.GetSmoothScaling: boolean;
@@ -1197,13 +1197,13 @@ end;
 procedure TTextureFont.PrepareResources;
 begin
   inherited;
-  if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling, false);
+  if DrawableImage = nil then
+    DrawableImage := TDrawableImage.Create(FFont.Image, GetSmoothScaling, false);
 end;
 
 procedure TTextureFont.GLContextClose;
 begin
-  FreeAndNil(GLImage);
+  FreeAndNil(DrawableImage);
   inherited;
 end;
 
@@ -1327,8 +1327,8 @@ begin
 
     if TargetImage = nil then
     begin
-      GLImage.Color := OutlineColor;
-      GLImage.Draw(
+      DrawableImage.Color := OutlineColor;
+      DrawableImage.Draw(
         PFloatRectangleArray(GlyphsScreenRects.List),
         PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
     end;
@@ -1364,8 +1364,8 @@ begin
 
   if TargetImage = nil then
   begin
-    GLImage.Color := Color;
-    GLImage.Draw(
+    DrawableImage.Color := Color;
+    DrawableImage.Draw(
       PFloatRectangleArray(GlyphsScreenRects.List),
       PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;
@@ -1458,8 +1458,8 @@ end;
 procedure TSimpleTextureFont.SetSize(const Value: Single);
 begin
   inherited SetSize(Value);
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
+  if DrawableImage <> nil then
+    DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TSimpleTextureFont.GetSmoothScaling: boolean;
@@ -1470,13 +1470,13 @@ end;
 procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
-  if GLImage = nil then
-    GLImage := TGLImage.Create(Image, GetSmoothScaling, false);
+  if DrawableImage = nil then
+    DrawableImage := TDrawableImage.Create(Image, GetSmoothScaling, false);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
 begin
-  FreeAndNil(GLImage);
+  FreeAndNil(DrawableImage);
   inherited;
 end;
 
@@ -1517,7 +1517,7 @@ begin
     PrepareResources;
     GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, Length(S));
     GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, Length(S));
-    GLImage.Color := Color;
+    DrawableImage.Color := Color;
   end;
 
   GlyphsToRender := 0;
@@ -1565,8 +1565,8 @@ begin
 
   if TargetImage = nil then
   begin
-    GLImage.Color := Color;
-    GLImage.Draw(
+    DrawableImage.Color := Color;
+    DrawableImage.Draw(
       PFloatRectangleArray(GlyphsScreenRects.List),
       PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;

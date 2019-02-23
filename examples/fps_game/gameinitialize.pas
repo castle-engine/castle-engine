@@ -295,7 +295,7 @@ begin
       You could change the image by assigning Theme.Images[tiActiveFrame]
       (and choosing one of your own images or one of the predefined images
       in CastleControlsImages, see main program code for example),
-      or by creating and using TGLImageCore.Draw3x3 or TGLImage.Draw directly. }
+      or by creating and using TDrawableImage.Draw3x3 or TDrawableImage.Draw directly. }
     Theme.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
 
@@ -303,7 +303,7 @@ begin
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
     as image="xxx" attribute of the root <resource> element.
-    Based on this, the engine initializes TItemResource.Image and TItemResource.GLImage,
+    Based on this, the engine initializes TItemResource.Image and TItemResource.DrawableImage,
     that you can easily use for any purpose.
     We assume below that all item images have square size
     InventoryImageSize x InventoryImageSize,
@@ -311,7 +311,7 @@ begin
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
-    Player.Inventory[I].Resource.GLImage.Draw(X, Y);
+    Player.Inventory[I].Resource.DrawableImage.Draw(X, Y);
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
@@ -468,14 +468,14 @@ begin
   SceneManager := Window.SceneManager;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
+  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
 
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
-  MaterialProperties.URL := ApplicationData('material_properties.xml');
+  MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
-  Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'));
+  Theme.Images[tiActiveFrame] := LoadImage('castle-data:/box.png');
   Theme.OwnsImages[tiActiveFrame] := true;
   Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
 
@@ -538,13 +538,13 @@ begin
 
   { Load resources (creatures and items) from resource.xml files. }
   //Resources.LoadFromFiles; // on non-Android, this finds all resource.xml files in data
-  Resources.AddFromFile(ApplicationData('knight_creature/resource.xml'));
-  Resources.AddFromFile(ApplicationData('item_medkit/resource.xml'));
-  Resources.AddFromFile(ApplicationData('item_shooting_eye/resource.xml'));
+  Resources.AddFromFile('castle-data:/knight_creature/resource.xml');
+  Resources.AddFromFile('castle-data:/item_medkit/resource.xml');
+  Resources.AddFromFile('castle-data:/item_shooting_eye/resource.xml');
 
   { Load available levels information from level.xml files. }
   //Levels.LoadFromFiles; // on non-Android, this finds all level.xml files in data
-  Levels.AddFromFile(ApplicationData('example_level/level.xml'));
+  Levels.AddFromFile('castle-data:/example_level/level.xml');
 
   { Create player. This is necessary to represent the player as anything
     more than a camera. Player adds inventory, with automatic picking of items
@@ -614,7 +614,7 @@ begin
   Window.Controls.InsertFront(PlayerHUD);
 
   { Insert default crosshair.
-    You can always draw your custom crosshair instead (using TGLImage.Draw
+    You can always draw your custom crosshair instead (using TDrawableImage.Draw
     inside TPlayerHUD, or using TCastleImageControl). }
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;

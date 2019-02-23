@@ -410,7 +410,7 @@ function CheckEntryGtk(Entry: TMenuEntryWithCaption; out EntryGtk: PGtkWidget): 
 begin
   EntryGtk := PGtkWidget(Entry.Handle);
   Result := EntryGtk <> nil;
-  if (not Result) and Log and
+  if (not Result) and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
     WritelnWarning('Menu', 'Menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;

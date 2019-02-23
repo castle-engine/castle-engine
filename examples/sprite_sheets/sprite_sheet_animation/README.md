@@ -26,7 +26,7 @@ and then I combined these into one big image using the tool
   Load a series of images using the `TVideo.Load` with URL
   `data/hero_animation/single_frames_60fps/hawaii_exo-walking_@counter(1).png` .
   Then create `TGLVideo2D` instance and render like
-  `MyVideo.GLImageFromTime(...).Draw(...)`.
+  `MyVideo.DrawableImageFromTime(...).Draw(...)`.
 
   But this method is *not* advised.
   Using the sprite sheet results in faster rendering, since it's a single image

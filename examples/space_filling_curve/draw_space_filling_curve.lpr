@@ -51,16 +51,16 @@ const
 
 procedure Render(Container: TUIContainer);
 var
-  GLImage: TGLImage;
+  DrawableImage: TDrawableImage;
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
   if Window.DoubleBuffer then RenderContext.Clear([cbColor], Gray);
 
-  GLImage := TGLImage.Create(CurveImage, false);
+  DrawableImage := TDrawableImage.Create(CurveImage, false);
   try
-    GLImage.Draw(0, 0);
-  finally FreeAndNil(GLImage) end;
+    DrawableImage.Draw(0, 0);
+  finally FreeAndNil(DrawableImage) end;
 end;
 
 procedure CloseQueryNotAllowed(Container: TUIContainer); begin end;

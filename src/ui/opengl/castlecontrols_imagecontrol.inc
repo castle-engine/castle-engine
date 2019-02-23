@@ -35,7 +35,7 @@
     or straight TCastleImageControl.Image.
 
     We automatically use alpha test or alpha blending based
-    on loaded image alpha channel (see @link(TGLImageCore.Alpha)).
+    on loaded image alpha channel (see @link(TDrawableImage.Alpha)).
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TCastleUserInterface)
   strict private
@@ -43,7 +43,7 @@
     FScaleFromUrl: Single;
     FImage: TEncodedImage;
     FImageLoadedFromCache: boolean;
-    FDrawableImage: TGLImage;
+    FDrawableImage: TDrawableImage;
     FOwnsImage: boolean;
     FOwnsDrawableImage: boolean;
     FStretch: boolean;
@@ -90,7 +90,7 @@
     procedure FreeImage;
     { Free FDrawableImage if needed, and make it @nil. }
     procedure FreeDrawableImage;
-    procedure SetDrawableImage(const Value: TGLImage);
+    procedure SetDrawableImage(const Value: TDrawableImage);
     procedure ProtectedSidesChange(Sender: TObject);
 
     function GetCorners: TVector4Integer;
@@ -140,24 +140,24 @@
 
       But in special cases it may make sense to change the DrawableImage explicitly.
       E.g. you can change it's contents using fast image-to-image
-      drawing using @link(TGLImage.DrawFrom).
-      Or you can set a new instance of TGLImage here.
+      drawing using @link(TDrawableImage.DrawFrom).
+      Or you can set a new instance of TDrawableImage here.
       Be sure to adjust @link(OwnsDrawableImage) as needed.
 
-      If you set this property manually, to your own @link(TGLImage) instance:
+      If you set this property manually, to your own @link(TDrawableImage) instance:
 
       @unorderedList(
-        @item(Make sure that @link(TGLImage.OwnsImage) is always @false.
+        @item(Make sure that @link(TDrawableImage.OwnsImage) is always @false.
           We depend on it, otherwise it would conflict with
           our own memory management controlled by @link(OwnsImage) and @link(Cache).)
 
-        @item(The TGLImage.Image should be equal to our current @link(Image)
+        @item(The TDrawableImage.Image should be equal to our current @link(Image)
           (which can be @nil). Although this is not strictly necessary now.)
 
         @item(Note that various properties of this class are actually references
-          to analogous properties of @link(TGLImage) or @link(TGLImageCore).
+          to analogous properties of @link(TDrawableImage) or @link(TDrawableImage).
           E.g. getting/setting our
-          @link(Rotation) just gets/sets @link(TGLImageCore.Rotation).
+          @link(Rotation) just gets/sets @link(TDrawableImage.Rotation).
           So if you directly change the DrawableImage, you're also changing
           these properties.)
       )
@@ -165,23 +165,23 @@
       Note that when OpenGL(ES) context is lost and recreated (which can
       happen at any moment on mobile devices), the contents of this are
       reinitialized from @link(Image). This functionality is actually
-      provided by the @link(TGLImage) itself. }
-    property DrawableImage: TGLImage read FDrawableImage write SetDrawableImage;
+      provided by the @link(TDrawableImage) itself. }
+    property DrawableImage: TDrawableImage read FDrawableImage write SetDrawableImage;
 
     { Whether we should automatically free the @link(DrawableImage) instance.
       Note that this is restored to @true when we need to recreate the
-      TGLImage internally, e.g. when @link(Image) instance changed
-      (when even size changed, we have to recreate TGLImage). }
+      TDrawableImage internally, e.g. when @link(Image) instance changed
+      (when even size changed, we have to recreate TDrawableImage). }
     property OwnsDrawableImage: boolean read FOwnsDrawableImage write FOwnsDrawableImage default true;
 
     { Color tint of the image. This simply multiplies the image RGBA components,
-      just like @link(TGLImageCore.Color). By default this is opaque white,
+      just like @link(TDrawableImage.Color). By default this is opaque white,
       which means that image colors are unchanged. }
     property Color: TCastleColor read GetColor write SetColor;
 
     { Corners and edges of the image that are not stretched even
       when @link(Stretch) is used.
-      See @link(TGLImageCore.Draw3x3) for the details how such drawing works. }
+      See @link(TDrawableImage.Draw3x3) for the details how such drawing works. }
     property Corners: TVector4Integer read GetCorners write SetCorners;
       deprecated 'use ProtectedSides';
 
@@ -209,7 +209,7 @@
     property ClipLine: TVector3 read GetClipLine write SetClipLine;
 
     { Custom GLSL shading code.
-      See TGLImage.CustomShader for explanation. }
+      See TDrawableImage.CustomShader for explanation. }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
 
     property Blending: boolean read GetBlending write SetBlending stored false;
@@ -234,7 +234,7 @@
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
-      See @link(TGLImageCore.SmoothScaling). }
+      See @link(TDrawableImage.SmoothScaling). }
     property SmoothScaling: boolean
       read GetSmoothScaling write SetSmoothScaling default true;
 
@@ -326,7 +326,7 @@
       and leave @link(OwnsImage) as @true.
       Be sure in such case that your image was loaded from cache too.
 
-      Right now we don't cache and share the @link(TGLImage) contents,
+      Right now we don't cache and share the @link(TDrawableImage) contents,
       so the memory on GPU is not shared, but this may change at some point
       to also be shared.
 
@@ -343,7 +343,7 @@
     { Corners and edges of the image that are protected from scaling distortion
       when @link(Stretch) is used.
       We use the 9-slicing algorithm,
-      described at @link(TGLImageCore.Draw3x3)
+      described at @link(TDrawableImage.Draw3x3)
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }
     property ProtectedSides: TBorder read FProtectedSides;
 
@@ -372,7 +372,7 @@ begin
   inherited;
   FOwnsImage := true;
   FOwnsDrawableImage := true;
-  FDrawableImage := TGLImage.Create(FImage, true { default SmoothScaling }, false);
+  FDrawableImage := TDrawableImage.Create(FImage, true { default SmoothScaling }, false);
   FProtectedSides := TBorder.Create(@ProtectedSidesChange);
 
   {$define read_implementation_constructor}
@@ -776,7 +776,7 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetDrawableImage(const Value: TGLImage);
+procedure TCastleImageControl.SetDrawableImage(const Value: TDrawableImage);
 begin
   if FDrawableImage <> Value then
   begin

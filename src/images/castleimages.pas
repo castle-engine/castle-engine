@@ -530,10 +530,10 @@ type
 
       This scales the image in almost the same way as standard @link(Resize).
       However, this is aware of the image corners and edges, which is good
-      if you plan to use this image with @link(TGLImageCore.Draw3x3) drawing.
+      if you plan to use this image with @link(TDrawableImage.Draw3x3) drawing.
 
       The Corners parameter specifies the corners size, in the same
-      clockwise order as for @link(TGLImageCore.Draw3x3): top, right, bottom, left.
+      clockwise order as for @link(TDrawableImage.Draw3x3): top, right, bottom, left.
       The corners will be scaled (proportially to image scaling),
       and new Corners size returned.
       Additionally it makes sure that filtering (especially bilinear)
@@ -548,7 +548,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
-      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TDrawableImage.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -731,11 +731,11 @@ type
 
       @italic(Warning: It is not efficient to use this drawing method.)
       This drawing is performed on CPU and cannot be fast.
-      If possible, use instead @link(TGLImage.DrawFrom),
+      If possible, use instead @link(TDrawableImage.DrawFrom),
       that performs image-on-image drawing using GPU,
-      or just draw @link(TGLImage) straight to the screen by @link(TGLImage.Draw).
+      or just draw @link(TDrawableImage) straight to the screen by @link(TDrawableImage.Draw).
       See examples/images_videos/draw_images_on_gpu.lpr for an example of
-      @link(TGLImage.DrawFrom).
+      @link(TDrawableImage.DrawFrom).
       Using this method makes most sense in image manipulation tools,
       or during the loading / preparation stage of your game,
       not during actual game.
@@ -790,10 +790,10 @@ type
 
       @italic(Warning: It is not efficient to use this drawing method.)
       This drawing is performed on CPU and cannot be fast.
-      If possible, use instead @link(TGLImage),
-      and either draw it to the screen by @link(TGLImageCore.Draw3x3),
-      or draw it to another @link(TGLImage) by combining @link(TGLImageCore.Draw3x3)
-      with @link(TGLImage.RenderToImageBegin).
+      If possible, use instead @link(TDrawableImage),
+      and either draw it to the screen by @link(TDrawableImage.Draw3x3),
+      or draw it to another @link(TDrawableImage) by combining @link(TDrawableImage.Draw3x3)
+      with @link(TDrawableImage.RenderToImageBegin).
       Using this method makes most sense in image manipulation tools,
       or during the loading / preparation stage of your game,
       not during actual game.
@@ -1857,7 +1857,7 @@ var
   various GPU algorithms) in your data.
   Use this procedure to redirect all image loading to use your
   compressed versions, when they are supported by the GPU.
-  By doing it like this we capture all kinds of image loading --- from TGLImageCore,
+  By doing it like this we capture all kinds of image loading --- from TDrawableImage,
   from TCastleScene and so on.
 
   @longCode(#
@@ -1866,7 +1866,7 @@ var
 
     procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
     begin
-      if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
+      if IsPrefix('castle-data:/animation/dragon/', ImageUrl) then
       begin
         if GLFeatures = nil then
           WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else

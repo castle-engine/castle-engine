@@ -44,11 +44,11 @@
       FCustomBackgroundDisabled,
       FCustomBackgroundFocused,
       FCustomBackgroundNormal: TCastleImage;
-    FGLImage,
-      FGLCustomBackgroundPressed,
-      FGLCustomBackgroundDisabled,
-      FGLCustomBackgroundFocused,
-      FGLCustomBackgroundNormal: TGLImage;
+    FDrawableImage,
+      FDrawableCustomBackgroundPressed,
+      FDrawableCustomBackgroundDisabled,
+      FDrawableCustomBackgroundFocused,
+      FDrawableCustomBackgroundNormal: TDrawableImage;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
       FOwnsCustomBackgroundDisabled,
@@ -121,8 +121,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -236,7 +234,7 @@
           see @link(CustomColorPressed),
           see @link(CustomColorNormal) and so on).)
       )
-      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
+      They are rendered as 3x3 images (see TDrawableImage.Draw3x3) with corners
       specified by @link(CustomBackgroundCorners).
 
       They are affected by tint (see @link(TintPressed), @link(TintDisabled),
@@ -378,11 +376,11 @@ begin
   if OwnsCustomBackgroundFocused  then FreeAndNil(FCustomBackgroundFocused);
   if OwnsCustomBackgroundNormal   then FreeAndNil(FCustomBackgroundNormal);
 
-  FreeAndNil(FGLImage);
-  FreeAndNil(FGLCustomBackgroundPressed);
-  FreeAndNil(FGLCustomBackgroundDisabled);
-  FreeAndNil(FGLCustomBackgroundFocused);
-  FreeAndNil(FGLCustomBackgroundNormal);
+  FreeAndNil(FDrawableImage);
+  FreeAndNil(FDrawableCustomBackgroundPressed);
+  FreeAndNil(FDrawableCustomBackgroundDisabled);
+  FreeAndNil(FDrawableCustomBackgroundFocused);
+  FreeAndNil(FDrawableCustomBackgroundNormal);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -432,7 +430,7 @@ var
 var
   ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Single;
   Background: TThemeImage;
-  CustomBackgroundImage: TGLImage;
+  CustomBackgroundImage: TDrawableImage;
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
@@ -458,18 +456,18 @@ begin
   if CustomBackground then
   begin
     if Pressed then
-      CustomBackgroundImage := FGLCustomBackgroundPressed
+      CustomBackgroundImage := FDrawableCustomBackgroundPressed
     else
     if not Enabled then
-      CustomBackgroundImage := FGLCustomBackgroundDisabled
+      CustomBackgroundImage := FDrawableCustomBackgroundDisabled
     else
     if Focused then
-      CustomBackgroundImage := FGLCustomBackgroundFocused
+      CustomBackgroundImage := FDrawableCustomBackgroundFocused
     else
-      CustomBackgroundImage := FGLCustomBackgroundNormal;
+      CustomBackgroundImage := FDrawableCustomBackgroundNormal;
     { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
-      CustomBackgroundImage := FGLCustomBackgroundNormal;
+      CustomBackgroundImage := FDrawableCustomBackgroundNormal;
     { render using CustomBackgroundImage, if any }
     if CustomBackgroundImage <> nil then
     begin
@@ -506,7 +504,7 @@ begin
     Theme.Draw(SR, Background, UIScale, Tint);
   end;
 
-  UseImage := (FImage <> nil) and (FGLImage <> nil);
+  UseImage := (FImage <> nil) and (FDrawableImage <> nil);
   if UseImage then
   begin
     ImgScreenWidth  := UIScale * FImage.Width;
@@ -547,12 +545,12 @@ begin
 
   if UseImage then
   begin
-    { update FGLImage.Alpha based on ImageAlphaTest }
+    { update FDrawableImage.Alpha based on ImageAlphaTest }
     if FImage.HasAlpha then
     begin
       if ImageAlphaTest then
-        FGLImage.Alpha := acTest else
-        FGLImage.Alpha := acBlending;
+        FDrawableImage.Alpha := acTest else
+        FDrawableImage.Alpha := acBlending;
     end;
 
     ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) / 2;
@@ -568,40 +566,8 @@ begin
         ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
       end;
     end;
-    FGLImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
+    FDrawableImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;
-end;
-
-procedure TCastleButton.GLContextOpen;
-begin
-  { TODO: After migrating TGLImageCore -> TGLImage,
-    there is no longer a need to create/destroy TGLImage instances
-    in GLContextOpen/GLContextClose.
-    We can instead create/destroy them in constructor/destructor,
-    and simplify this implementation. }
-
-  inherited;
-  if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImage.Create(FImage, true, false);
-  if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
-    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
-  if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
-    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
-  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
-  if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
-    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
-  UpdateTextSize;
-end;
-
-procedure TCastleButton.GLContextClose;
-begin
-  FreeAndNil(FGLImage);
-  FreeAndNil(FGLCustomBackgroundPressed);
-  FreeAndNil(FGLCustomBackgroundDisabled);
-  FreeAndNil(FGLCustomBackgroundFocused);
-  FreeAndNil(FGLCustomBackgroundNormal);
-  inherited;
 end;
 
 function TCastleButton.Press(const Event: TInputPressRelease): boolean;
@@ -813,14 +779,14 @@ begin
   if FImage <> Value then
   begin
     if OwnsImage then FreeAndNil(FImage);
-    FreeAndNil(FGLImage);
+    FreeAndNil(FDrawableImage);
 
     FImage := Value;
 
-    { TODO: After migrating TGLImageCore -> TGLImage,
-      this can be simplified. We can create TGLImage regardless if GLInitialized. }
-    if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImage.Create(FImage, true, false);
+    if FDrawableImage = nil then
+      FDrawableImage := TDrawableImage.Create(FImage, true, false)
+    else
+      FDrawableImage.Load(FImage);
 
     VisibleChange([chRectangle]);
   end;
@@ -831,14 +797,14 @@ begin
   if FCustomBackgroundPressed <> Value then
   begin
     if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
-    FreeAndNil(FGLCustomBackgroundPressed);
+    FreeAndNil(FDrawableCustomBackgroundPressed);
 
     FCustomBackgroundPressed := Value;
 
-    { TODO: After migrating TGLImageCore -> TGLImage,
-      this can be simplified. We can create TGLImage regardless if GLInitialized. }
-    if GLInitialized and (FCustomBackgroundPressed <> nil) then
-      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true, false);
+    if FDrawableCustomBackgroundPressed = nil then
+      FDrawableCustomBackgroundPressed := TDrawableImage.Create(FCustomBackgroundPressed, true, false)
+    else
+      FDrawableCustomBackgroundPressed.Load(FCustomBackgroundPressed);
 
     VisibleChange([chRectangle]);
   end;
@@ -849,14 +815,14 @@ begin
   if FCustomBackgroundDisabled <> Value then
   begin
     if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
-    FreeAndNil(FGLCustomBackgroundDisabled);
+    FreeAndNil(FDrawableCustomBackgroundDisabled);
 
     FCustomBackgroundDisabled := Value;
 
-    { TODO: After migrating TGLImageCore -> TGLImage,
-      this can be simplified. We can create TGLImage regardless if GLInitialized. }
-    if GLInitialized and (FCustomBackgroundDisabled <> nil) then
-      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true, false);
+    if FDrawableCustomBackgroundDisabled = nil then
+      FDrawableCustomBackgroundDisabled := TDrawableImage.Create(FCustomBackgroundDisabled, true, false)
+    else
+      FDrawableCustomBackgroundDisabled.Load(FCustomBackgroundDisabled);
 
     VisibleChange([chRectangle]);
   end;
@@ -867,14 +833,14 @@ begin
   if FCustomBackgroundFocused <> Value then
   begin
     if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
-    FreeAndNil(FGLCustomBackgroundFocused);
+    FreeAndNil(FDrawableCustomBackgroundFocused);
 
     FCustomBackgroundFocused := Value;
 
-    { TODO: After migrating TGLImageCore -> TGLImage,
-      this can be simplified. We can create TGLImage regardless if GLInitialized. }
-    if GLInitialized and (FCustomBackgroundFocused <> nil) then
-      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true, false);
+    if FDrawableCustomBackgroundFocused = nil then
+      FDrawableCustomBackgroundFocused := TDrawableImage.Create(FCustomBackgroundFocused, true, false)
+    else
+      FDrawableCustomBackgroundFocused.Load(FCustomBackgroundFocused);
 
     VisibleChange([chRectangle]);
   end;
@@ -885,14 +851,14 @@ begin
   if FCustomBackgroundNormal <> Value then
   begin
     if OwnsCustomBackgroundNormal then FreeAndNil(FCustomBackgroundNormal);
-    FreeAndNil(FGLCustomBackgroundNormal);
+    FreeAndNil(FDrawableCustomBackgroundNormal);
 
     FCustomBackgroundNormal := Value;
 
-    { TODO: After migrating TGLImageCore -> TGLImage,
-      this can be simplified. We can create TGLImage regardless if GLInitialized. }
-    if GLInitialized and (FCustomBackgroundNormal <> nil) then
-      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true, false);
+    if FDrawableCustomBackgroundNormal = nil then
+      FDrawableCustomBackgroundNormal := TDrawableImage.Create(FCustomBackgroundNormal, true, false)
+    else
+      FDrawableCustomBackgroundNormal.Load(FCustomBackgroundNormal);
 
     VisibleChange([chRectangle]);
   end;

@@ -59,13 +59,13 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
 
 // Do not mark glColorv as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { }
-procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { }
 procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TCastleUserInterface position / anchors, or TCastleTransform for TCastleScene, or TTransformNode in X3D';
@@ -128,9 +128,9 @@ var
 
     @deprecated Instead of this, use drawing routines that take
     Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
-    or TGLImage.Color. }
+    or TDrawableImage.Color. }
   CurrentColor: TCastleColor
-    deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+    deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 
 { ---------------------------------------------------------------------------- }
 
@@ -142,13 +142,13 @@ procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 { Draw vertical line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
+  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TDrawableImage.Draw. }
 procedure GLVerticalLine(x, y1, y2: TGLfloat); deprecated 'use DrawPrimitive2D';
 
 { Draw horizontal line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
+  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TDrawableImage.Draw. }
 procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D';
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
@@ -190,8 +190,8 @@ procedure glDrawAxisWire(const Position: TVector3; Size: Single); deprecated 'us
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TCastleFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TDrawableImage.Color';
 { @groupEnd }
 {$endif}
 
@@ -236,10 +236,10 @@ procedure glSetDepthAndColorWriteable(const Writeable: boolean);
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
   Instead of this, use drawing routines that take position as parameters,
-  like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
+  like TDrawableImage.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
 var
   WindowPos: TVector2Integer
-    deprecated 'use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+    deprecated 'use drawing routines that take position as parameters, like TDrawableImage.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 
 type
   TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D);

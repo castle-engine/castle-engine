@@ -29,8 +29,8 @@ type
     type
       TIntroPart = class
         CorrodeDuration: TFloatTime;
-        Image: TGLImage;
-        ImageCorroded: TGLImage;
+        Image: TDrawableImage;
+        ImageCorroded: TDrawableImage;
         destructor Destroy; override;
       end;
       TIntroPartList = specialize TObjectList<TIntroPart>;
@@ -97,9 +97,9 @@ constructor TStateIntro.Create(AOwner: TComponent);
 
         { calculate Part.Image and ImageCorroded }
         ImageName := Element.AttributeString('image');
-        Part.Image := TGLImage.Create(
+        Part.Image := TDrawableImage.Create(
           ApplicationData('images/' + ImageName + '.png'), [TRGBImage]);
-        Part.ImageCorroded := TGLImage.Create(
+        Part.ImageCorroded := TDrawableImage.Create(
           ApplicationData('images/' + ImageName + '_corroded.png'), [TRGBImage]);
       end;
     finally FreeAndNil(I) end;

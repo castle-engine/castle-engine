@@ -63,7 +63,7 @@ var
   ColorCurveNotSelected: TCastleColor;
   ColorPointSelected: TCastleColor;
 
-  BackgroundImage: TGLImage;
+  BackgroundImage: TDrawableImage;
   BackgroundImageURL: string;
 
   Zoom: Single = 1;
@@ -605,7 +605,7 @@ begin
            begin
              BackgroundImageURL := S;
              FreeAndNil(BackgroundImage);
-             BackgroundImage := TGLImage.Create(BackgroundImageURL);
+             BackgroundImage := TDrawableImage.Create(BackgroundImageURL);
            end;
          end;
     202: FreeAndNil(BackgroundImage);
@@ -777,10 +777,10 @@ begin
   ColorPointSelected := White;
   Theme.DialogsLight;
 
-  if URIFileExists(ApplicationData('grid.png')) then
+  if URIFileExists('castle-data:/grid.png') then
   begin
-    BackgroundImageURL := ApplicationData('grid.png');
-    BackgroundImage := TGLImage.Create(BackgroundImageURL);
+    BackgroundImageURL := 'castle-data:/grid.png';
+    BackgroundImage := TDrawableImage.Create(BackgroundImageURL);
   end;
 
   Curves := TControlPointsCurveList.Create(true);

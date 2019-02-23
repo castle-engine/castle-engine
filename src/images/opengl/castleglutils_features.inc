@@ -235,7 +235,7 @@ type
       @unorderedList(
         @item(This makes Gouraud-shaded shapes rendered using OpenGL
           fixed-function pipeline on desktops.)
-        @item(It also makes TGLImage.Draw, DrawPrimitive2D (and consequently
+        @item(It also makes TDrawableImage.Draw, DrawPrimitive2D (and consequently
           most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
           on desktops.)
         @item(It also allows you to use fixed-function pipeline calls in the

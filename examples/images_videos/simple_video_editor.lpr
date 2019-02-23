@@ -87,7 +87,7 @@ begin
 
   if Video.Loaded then
   begin
-    GLVideo.GLImageFromTime(Time).Draw(0, 0);
+    GLVideo.DrawableImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
     DrawRectangle(Rectangle(0, Window.Height - TimeBarHeight,

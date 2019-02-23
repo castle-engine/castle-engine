@@ -23,7 +23,7 @@
 
   This method is limited to rendering 2D images.
   It uses TCastleImageControl.CustomShader,
-  that under the hood uses TGLImage.CustomShader.
+  that under the hood uses TDrawableImage.CustomShader.
   It requires manually creating TGLSLProgram instance and linking it. }
 
 uses SysUtils,
@@ -47,7 +47,7 @@ begin
   Window.Controls.InsertFront(Background);
 
   Image := TCastleImageControl.Create(Application);
-  Image.URL := ApplicationData('test_texture.png');
+  Image.URL := 'castle-data:/test_texture.png';
   Image.Stretch := true;
   Image.FullSize := true;
   Window.Controls.InsertFront(Image);

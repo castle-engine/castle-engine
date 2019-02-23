@@ -20,9 +20,7 @@
   such that the underlying renderer can be switched at runtime,
   and the public engine API stays the same.
   So all the engine classes (like TCastleScene, TCastleSceneManager, TCastleWindow,
-  TCastleButton, TGLImage...) will work, regardless of the renderer.
-  (And the name TGLImage will change to something more neutral,
-  like TDrawImage, of course.)
+  TCastleButton, TDrawableImage...) will work, regardless of the renderer.
 
   Also, you will then no longer need to initialize some semi-internal things
   shown in this program: initializing Params, ProjectionMatrix, RenderingCamera

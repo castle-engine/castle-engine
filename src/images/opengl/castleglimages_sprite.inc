@@ -59,7 +59,7 @@ type
     type
       TSpriteAnimations = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSpriteAnimation>;
     var
-    FImage: TGLImage;
+    FImage: TDrawableImage;
     FX, FY: Single;
     FDrawingWidth, FDrawingHeight: Single;
     FFrames, FFrameWidth, FFrameHeight, FColumns: Cardinal;
@@ -82,7 +82,7 @@ type
     function GetFrameRect: TFloatRectangle;
     function GetDrawRect: TFloatRectangle;
     function GetCenter: TVector2;
-    function GetPosition: TVector2Single;
+    function GetPosition: TVector2;
     function GetRotation: Single;
     function GetColor: TCastleColor;
     procedure SetTime(const AValue: TFloatTime);
@@ -92,7 +92,7 @@ type
     procedure SetDrawRect(const AValue: TFloatRectangle);
     procedure SetFramesPerSecond(const AValue: Single);
     procedure SetFrame(const AValue: Cardinal);
-    procedure SetPosition(const APosition: TVector2Single);
+    procedure SetPosition(const APosition: TVector2);
     procedure SetRotation(const AValue: Single);
     procedure SetColor(const AValue: TCastleColor);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -102,7 +102,7 @@ type
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Mumber of columns.)
       @param(ARows Number of rows.)
-      @param(ASmoothscaling Enables interpolation, see @link(TGLImageCore.SmoothScaling) for details, default @True.)
+      @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor Create(const URL: string;
@@ -110,7 +110,7 @@ type
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 
-    { Constructor that takes explicit frame size, and loaded TGLImage instance.
+    { Constructor that takes explicit frame size, and loaded TDrawableImage instance.
 
       @param(AImage Source image (will be owned by this sprite).)
       @param(AFrames Total numer of animation frames.)
@@ -119,7 +119,7 @@ type
       @param(AFrameHeight Height of each frame.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor CreateFrameSize(const AImage: TGLImage;
+    constructor CreateFrameSize(const AImage: TDrawableImage;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
 
@@ -130,7 +130,7 @@ type
       @param(AColumns Number of columns.)
       @param(AFrameWidth Width of each frame.)
       @param(AFrameHeight Height of each frame.)
-      @param(ASmoothscaling Enables interpolation, see @link(TGLImageCore.SmoothScaling) for details, default @True.)
+      @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default True.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor CreateFrameSize(const URL: string;
@@ -169,7 +169,7 @@ type
       This is the rotation of the frame on screen.
 
       The overloaded versions deliberately look and work
-      similar to @link(TGLImageCore.Draw) versions.
+      similar to @link(TDrawableImage.Draw) versions.
       @groupBegin }
     procedure Draw; overload;
     procedure Draw(const AX, AY: Single); overload;
@@ -218,7 +218,7 @@ type
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
 
-    { Color multiplier of the sprite, see @link(TGLImageCore.Color) }
+    { Color multiplier of the sprite, see @link(TDrawableImage.Color) }
     property Color: TCastleColor read GetColor write SetColor;
 
     { Total number of frames. Readonly. Defined at creation. }
@@ -546,7 +546,7 @@ begin
   FImage.Color := AValue;
 end;
 
-constructor TSprite.CreateFrameSize(const AImage: TGLImage;
+constructor TSprite.CreateFrameSize(const AImage: TDrawableImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 begin
@@ -578,10 +578,10 @@ constructor TSprite.CreateFrameSize(const URL: string;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 var
-  Img: TGLImage;
+  Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TGLImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
@@ -591,10 +591,10 @@ constructor TSprite.Create(const URL: string;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 var
-  Img: TGLImage;
+  Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TGLImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can

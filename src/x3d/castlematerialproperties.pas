@@ -243,7 +243,7 @@ var
 
         For GLTextureScale, the usage of a texture determines if it's a GUI texture
         (which cannot be scaled) or not.
-        So textures loaded through TGLImage, or declared as guiTexture in X3D,
+        So textures loaded through TDrawableImage, or declared as guiTexture in X3D,
         are not affected by GLTextureScale. All other textures are affected.
         It doesn't matter from where they are loaded -- so it affects also
         texture contents created by code, or downloaded from the Internet.

@@ -24,7 +24,7 @@
   strict private
     { Background image. }
     FBackground: TCastleImage;
-    FGLBackground: TGLImage;
+    FDrawableBackground: TDrawableImage;
     FYPosition: Single;
     FProgress: TProgress;
     procedure SetBackground(const Value: TCastleImage);
@@ -34,8 +34,6 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
 
     property HorizontalAnchorSelf default hpMiddle;
     property HorizontalAnchorParent default hpMiddle;
@@ -193,15 +191,15 @@ begin
   if Progress = nil then Exit;
 
   // TODO: control should not draw over parent this way
-  if FGLBackground <> nil then
-    FGLBackground.Draw(ParentRect);
+  if FDrawableBackground <> nil then
+    FDrawableBackground.Draw(ParentRect);
 
   BarRect := RenderRect;
   Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(BarRect.Width * Progress.Position / Progress.Max);
   { it's normal that at the beginning FillRect is too small to be drawn }
-  Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
+  Theme.DrawableImages[tiProgressFill].IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
   MaxTextWidth := Round(BarRect.Width - PaddingHorizontal);
@@ -229,6 +227,7 @@ end;
 destructor TCastleProgressBar.Destroy;
 begin
   FreeAndNil(FBackground);
+  FreeAndNil(FDrawableBackground);
   inherited;
 end;
 
@@ -239,32 +238,11 @@ begin
     FreeAndNil(FBackground);
     FBackground := Value;
 
-    { Free and optionally recreate FGLBackground.
-      We keep assertion that when FBackground is assigned and OpenGL
-      context is active => FGLBackground is assigned too. }
-    FreeAndNil(FGLBackground);
-    if GLInitialized and (FBackground <> nil) then
-      FGLBackground := TGLImage.Create(FBackground, true, false);
+    if FDrawableBackground = nil then
+      FDrawableBackground := TDrawableImage.Create(Value, true, false)
+    else
+      FDrawableBackground.Load(Value);
   end;
-end;
-
-procedure TCastleProgressBar.GLContextOpen;
-begin
-  { TODO: After migrating TGLImageCore -> TGLImage,
-    there is no longer a need to create/destroy TGLImage instances
-    in GLContextOpen/GLContextClose.
-    We can instead create/destroy them in constructor/destructor,
-    and simplify this implementation. }
-
-  inherited;
-  if (FGLBackground = nil) and (FBackground <> nil) then
-    FGLBackground := TGLImage.Create(FBackground, true, false);
-end;
-
-procedure TCastleProgressBar.GLContextClose;
-begin
-  FreeAndNil(FGLBackground);
-  inherited;
 end;
 
 {$endif read_implementation}

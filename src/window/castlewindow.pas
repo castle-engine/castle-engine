@@ -95,7 +95,7 @@
 
     procedure Render(Sender: TUIContainer);
     begin
-      // ... e.g. DrawRectangle or TGLImage.Draw calls inside
+      // ... e.g. DrawRectangle or TDrawableImage.Draw calls inside
     end;
 
     begin
@@ -1214,7 +1214,7 @@ type
           fullscreen. So be prepared that changing FullScreen
           may result in OnClose + OnOpen events, and all OpenGL resources
           are reloaded. In most cases, engine takes care of everything
-          automatically (all TCastleScene, TCastleUserInterface, TGLImage and other
+          automatically (all TCastleScene, TCastleUserInterface, TDrawableImage and other
           resources are automatically reloaded), just be aware that
           this operation may take a bit of time.
         )
@@ -2088,9 +2088,9 @@ type
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TDrawableImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TDrawableImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -3194,7 +3194,7 @@ procedure TCastleWindowBase.OpenCore;
 
     try
       { Make ApplicationProperties.IsGLContextOpen true now, to allow creating
-        TGLImage from Application.OnInitialize work Ok. }
+        TDrawableImage from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
       RenderLoadingBackground;
@@ -3759,14 +3759,14 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
+function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: boolean): TDrawableImage;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowBase.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TGLImage;
+  const SmoothScaling: boolean): TDrawableImage;
 begin
   if Closed then
     raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');

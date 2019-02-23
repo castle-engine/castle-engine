@@ -15,9 +15,9 @@
 
 { Test TCastleImage.Draw3x3.
 
-  Note that you should prefer to use TGLImageCore.Draw3x3 in most games
+  Note that you should prefer to use TDrawableImage.Draw3x3 in most games
   (it's done on GPU and is much faster), see e.g. draw_images_on_gpu.lpr
-  for an example how to draw on TGLImage. }
+  for an example how to draw on TDrawableImage. }
 
 uses SysUtils,
   CastleVectors, CastleColors, CastleImages, CastleRectangles;

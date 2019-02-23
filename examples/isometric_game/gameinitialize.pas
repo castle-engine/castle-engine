@@ -39,7 +39,7 @@ procedure WindowRender(Container: TUIContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
-  procedure DrawImageOnTile(X, Y: Cardinal; GLImage: TGLImage;
+  procedure DrawImageOnTile(X, Y: Cardinal; DrawableImage: TDrawableImage;
     const SpecialMoveX: Integer = 0;
     const SpecialMoveY: Integer = 0);
   var
@@ -51,8 +51,8 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-    GLImage.Alpha := acTest;
-    GLImage.Draw(PosX, PosY);
+    DrawableImage.Alpha := acTest;
+    DrawableImage.Draw(PosX, PosY);
   end;
 
 var
@@ -103,7 +103,7 @@ begin
     for Y := Y1 to Y2 do
     begin
       MapTile := Map.Items[X, Y];
-      DrawImageOnTile(X, Y, MapTile.BaseTile.GLImage);
+      DrawImageOnTile(X, Y, MapTile.BaseTile.DrawableImage);
     end;
 
   { TODO: unoptimal code, should draw only the part that fits within the window.
@@ -117,17 +117,17 @@ begin
     if Y = Player.Y then
     begin
       if Player.Moving then
-        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction],
+        DrawImageOnTile(Player.X, Player.Y, Player.DrawableImage[Player.Direction],
           Round(Player.MovingSmallMoveX),
           Round(Player.MovingSmallMoveY)) else
-        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction]);
+        DrawImageOnTile(Player.X, Player.Y, Player.DrawableImage[Player.Direction]);
     end;
 
     for X := 0 to Map.Width - 1 do
     begin
       MapTile := Map.Items[X, Y];
       if MapTile.BonusTile <> nil then
-        DrawImageOnTile(X, Y, MapTile.BonusTile.GLImage);
+        DrawImageOnTile(X, Y, MapTile.BonusTile.DrawableImage);
     end;
   end;
 end;
@@ -295,7 +295,7 @@ begin
   // Window.Container.UIReferenceHeight := 768;
   // Window.Container.UIScaling := usEncloseReferenceSize;
 
-  Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
+  Map := TMap.CreateFromFile('castle-data:/maps/1.map');
   Player := TPlayer.Create;
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
   Player.CalculatePixelPosition;

@@ -535,9 +535,9 @@ type
     { Render a TCastleUserInterface (along with all it's children).
 
       This method can be used to render UI control into an image,
-      @link(TGLImage), when it is surrounded by
-      @link(TGLImage.RenderToImageBegin)
-      and @link(TGLImage.RenderToImageEnd).
+      @link(TDrawableImage), when it is surrounded by
+      @link(TDrawableImage.RenderToImageBegin)
+      and @link(TDrawableImage.RenderToImageEnd).
       See example ../../../examples/3d_rendering_processing/render_3d_to_image.lpr.
 
       It can also be used with more low-level @link(TGLRenderToTexture).
@@ -2223,8 +2223,8 @@ var
   new TGLRenderToTexture instance each time,
   and it grabs the image contents to CPU.
   If you want a faster approach, use @link(TUIContainer.RenderControl)
-  and render into @link(TGLImage) using @link(TGLImage.RenderToImageBegin)
-  and @link(TGLImage.RenderToImageEnd).
+  and render into @link(TDrawableImage) using @link(TDrawableImage.RenderToImageBegin)
+  and @link(TDrawableImage.RenderToImageEnd).
 }
 function RenderControlToImage(const Container: TUIContainer;
   const Control: TCastleUserInterface;

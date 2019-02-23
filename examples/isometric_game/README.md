@@ -2,7 +2,7 @@
 
 Demo of an isometric game, using static images, using Castle Game Engine.
 
-Everything is just drawn as 2D, using our TGLImage.
+Everything is just drawn as 2D, using our TDrawableImage.
 
 This could be made much more impressive by:
 

@@ -29,7 +29,7 @@ type
     type
       TLocationScene = class(TCastleScene)
       private
-        Image, ShadowedImage: TGLImage;
+        Image, ShadowedImage: TDrawableImage;
       public
         SceneManagerRect: TRectangle;
         RenderInternalModel: boolean;
@@ -41,7 +41,7 @@ type
     FShadowedImageURL: string;
     FSceneURL: string;
     FScene: TLocationScene;
-    FImage, FShadowedImage: TGLImage;
+    FImage, FShadowedImage: TDrawableImage;
     FSceneCameraDescription: string;
     FPlayerPosition: TVector3;
     FPlayerDirection: TVector3;
@@ -68,8 +68,8 @@ type
     property PlayerUp: TVector3 read FPlayerUp;
 
     property Scene: TLocationScene read FScene;
-    property Image: TGLImage read FImage;
-    property ShadowedImage: TGLImage read FShadowedImage;
+    property Image: TDrawableImage read FImage;
+    property ShadowedImage: TDrawableImage read FShadowedImage;
   end;
 
   TLocationList = class(specialize TObjectList<TLocation>)
@@ -97,7 +97,7 @@ procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
 
   { Draw Image centered on screen, to fit inside the scene manager rect,
     matching the 3D scene projection. }
-  procedure DrawImage(const Image: TGLImage);
+  procedure DrawImage(const Image: TDrawableImage);
   var
     DrawRect: TRectangle;
   begin
@@ -176,8 +176,8 @@ begin
   if Loaded then Exit;
   Loaded := true;
 
-  FImage := TGLImage.Create(ImageURL, [TRGBImage]);
-  FShadowedImage := TGLImage.Create(ShadowedImageURL, [TRGBImage]);
+  FImage := TDrawableImage.Create(ImageURL, [TRGBImage]);
+  FShadowedImage := TDrawableImage.Create(ShadowedImageURL, [TRGBImage]);
 
   FScene := TLocationScene.Create(nil);
   FScene.Spatial := [ssRendering, ssDynamicCollisions];

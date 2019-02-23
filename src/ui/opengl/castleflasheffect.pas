@@ -34,7 +34,7 @@ type
     FDark: boolean;
     FDuration: Single;
     FImage, FImageAsGrayscale: TCastleImage;
-    FGLImage, FGLImageAsGrayscale: TGLImage;
+    FDrawableImage, FDrawableImageAsGrayscale: TDrawableImage;
     FOwnsImage: boolean;
     procedure SetImage(const Value: TCastleImage);
     procedure ImageChanged;
@@ -45,8 +45,6 @@ type
     destructor Destroy; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
 
     procedure Flash(const AColor: TCastleColor; const ADark: boolean);
     procedure Reset;
@@ -85,11 +83,12 @@ end;
 destructor TCastleFlashEffect.Destroy;
 begin
   if OwnsImage then
-    FreeAndNil(FImage) else
+    FreeAndNil(FImage)
+  else
     FImage := nil;
   FreeAndNil(FImageAsGrayscale);
-  FreeAndNil(FGLImage);
-  FreeAndNil(FGLImageAsGrayscale);
+  FreeAndNil(FDrawableImage);
+  FreeAndNil(FDrawableImageAsGrayscale);
   inherited;
 end;
 
@@ -134,49 +133,27 @@ begin
   end;
 end;
 
-procedure TCastleFlashEffect.GLContextOpen;
-begin
-  { TODO: After migrating TGLImageCore -> TGLImage,
-    there is no longer a need to create/destroy TGLImage instances
-    in GLContextOpen/GLContextClose.
-    We can instead create/destroy them in constructor/destructor,
-    and simplify this implementation. }
-
-  inherited;
-  ImageChanged;
-end;
-
-procedure TCastleFlashEffect.GLContextClose;
-begin
-  FreeAndNil(FGLImage);
-  FreeAndNil(FGLImageAsGrayscale);
-  inherited;
-end;
-
 procedure TCastleFlashEffect.ImageChanged;
 begin
-  if GLInitialized then
+  if FImage <> nil then
   begin
-    if FImage <> nil then
-    begin
-      if FGLImage <> nil then
-        FGLImage.Load(FImage)
-      else
-        FGLImage := TGLImage.Create(FImage, true, false);
-    end else
-      FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
+    if FDrawableImage <> nil then
+      FDrawableImage.Load(FImage)
+    else
+      FDrawableImage := TDrawableImage.Create(FImage, true, false);
+  end else
+    FreeAndNil(FDrawableImage); // make sure to free FDrawableImage when FImage is nil
 
-    if FImageAsGrayscale <> nil then
-    begin
-      if FGLImageAsGrayscale <> nil then
-        FGLImageAsGrayscale.Load(FImageAsGrayscale)
-      else
-        FGLImageAsGrayscale := TGLImage.Create(FImageAsGrayscale, true, false);
-    end else
-      FreeAndNil(FGLImageAsGrayscale); // make sure to free FGLImageAsGrayscale when FImageAsGrayscale is nil
+  if FImageAsGrayscale <> nil then
+  begin
+    if FDrawableImageAsGrayscale <> nil then
+      FDrawableImageAsGrayscale.Load(FImageAsGrayscale)
+    else
+      FDrawableImageAsGrayscale := TDrawableImage.Create(FImageAsGrayscale, true, false);
+  end else
+    FreeAndNil(FDrawableImageAsGrayscale); // make sure to free FDrawableImageAsGrayscale when FImageAsGrayscale is nil
 
-    VisibleChange([chRender]);
-  end;
+  VisibleChange([chRender]);
 end;
 
 procedure TCastleFlashEffect.Flash(const AColor: TCastleColor; const ADark: boolean);
@@ -196,7 +173,7 @@ end;
 
 procedure TCastleFlashEffect.Render;
 var
-  FinalImage: TGLImage;
+  FinalImage: TDrawableImage;
   FinalColor: TCastleColor;
   SourceFactor: TBlendingSourceFactor;
   DestinationFactor: TBlendingDestinationFactor;
@@ -206,7 +183,7 @@ begin
   begin
     if FDark then
     begin
-      FinalImage := FGLImageAsGrayscale;
+      FinalImage := FDrawableImageAsGrayscale;
       FinalColor := FadeDarkColor(FColor, FIntensity);
       { Constants below make resulting screen color = FinalColor * previous screen color.
         Note that as long as all components of Color are <= 1,
@@ -217,7 +194,7 @@ begin
       DestinationFactor := bdSrcColor;
     end else
     begin
-      FinalImage := FGLImage;
+      FinalImage := FDrawableImage;
       FinalColor := FadeColor(FColor, FIntensity);
       SourceFactor := bsSrcAlpha;
       DestinationFactor := bdOneMinusSrcAlpha;

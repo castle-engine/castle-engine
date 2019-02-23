@@ -26,7 +26,7 @@ uses SysUtils, CastleWindow, CastleGLImages, CastleFilesUtils, CastleKeysMouse;
 
 var
   Window: TCastleWindowBase;
-  Image: TGLImage;
+  Image: TDrawableImage;
   X: Single = 0.0;
   Y: Single = 0.0;
 
@@ -54,7 +54,7 @@ begin
 end;
 
 begin
-  Image := TGLImage.Create(ApplicationData('my_image.png'));
+  Image := TDrawableImage.Create('castle-data:/my_image.png');
   try
     Window := TCastleWindowBase.Create(Application);
     Window.OnRender := @WindowRender;

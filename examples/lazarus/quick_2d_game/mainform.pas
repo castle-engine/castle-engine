@@ -21,7 +21,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    Image: TGLImage;
+    Image: TDrawableImage;
     X, Y: Single;
   public
 
@@ -38,7 +38,7 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Image := TGLImage.Create(ApplicationData('my_image.png'));
+  Image := TDrawableImage.Create('castle-data:/my_image.png');
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);

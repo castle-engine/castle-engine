@@ -22,7 +22,7 @@
   strict private
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
-    FGLImages: array [TThemeImage] of TGLImageCore;
+    FDrawableImages: array [TThemeImage] of TDrawableImage;
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
@@ -32,16 +32,16 @@
     procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
-    function GetGLImages(const ImageType: TThemeImage): TGLImageCore;
+    function GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
     procedure GLContextClose(Sender: TObject);
     procedure SetMessageFont(const Value: TCastleFont);
   private
-    { TGLImageCore instances for fast and easy drawing of images on 2D screen.
-      Reading them for the 1st time means that the TGLImageCore instance is created,
+    { TDrawableImage instances for fast and easy drawing of images on 2D screen.
+      Reading them for the 1st time means that the TDrawableImage instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
-      at next access) the corresponding TGLImageCore instance. }
-    property GLImages[const ImageType: TThemeImage]: TGLImageCore read GetGLImages;
+      at next access) the corresponding TDrawableImage instance. }
+    property DrawableImages[const ImageType: TThemeImage]: TDrawableImage read GetDrawableImages;
   public
     TooltipTextColor: TCastleColor;
     TextColor, DisabledTextColor: TCastleColor;
@@ -100,7 +100,7 @@
       used.
 
       The alpha channel of the image, if any, is automatically correctly used
-      (for alpha test or alpha blending, see TGLImageCore). }
+      (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
 
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
@@ -108,7 +108,7 @@
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
       Together with assigning @link(Images), adjust also this property.
-      It is used for images rendered using TGLImageCore.Draw3x3,
+      It is used for images rendered using TDrawableImage.Draw3x3,
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
@@ -119,9 +119,9 @@
       @param(Color Color tint of the image.
         If you do not specify a color, white will be used, so image will be displayed
         as-is. Specifying a color means that image will be multiplied by it,
-        just like for @link(TGLImageCore.Color).)
+        just like for @link(TDrawableImage.Color).)
 
-      @param(UIScale Used to properly scale corners, passed to @link(TGLImageCore.ScaleCorners).
+      @param(UIScale Used to properly scale corners, passed to @link(TDrawableImage.ScaleCorners).
         This parameter does @italic(not) scale the place where image is displayed,
         to do this just scale the given Rect parameter yourself.)
     }
@@ -271,7 +271,7 @@ begin
     if FOwnsImages[ImageType] then
       FreeAndNil(FImages[ImageType]);
     FImages[ImageType] := Value;
-    FreeAndNil(FGLImages[ImageType]);
+    FreeAndNil(FDrawableImages[ImageType]);
   end;
 end;
 
@@ -296,11 +296,11 @@ begin
   FCorners[ImageType] := Value;
 end;
 
-function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImageCore;
+function TCastleTheme.GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
 begin
-  if FGLImages[ImageType] = nil then
-    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true, false);
-  Result := FGLImages[ImageType];
+  if FDrawableImages[ImageType] = nil then
+    FDrawableImages[ImageType] := TDrawableImage.Create(FImages[ImageType], true, false);
+  Result := FDrawableImages[ImageType];
 end;
 
 procedure TCastleTheme.GLContextClose(Sender: TObject);
@@ -308,7 +308,7 @@ var
   ImageType: TThemeImage;
 begin
   for ImageType in TThemeImage do
-    FreeAndNil(FGLImages[ImageType]);
+    FreeAndNil(FDrawableImages[ImageType]);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
@@ -320,9 +320,9 @@ end;
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single; const Color: TCastleColor);
 begin
-  GLImages[ImageType].Color := Color;
-  GLImages[ImageType].ScaleCorners := UIScale;
-  GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
+  DrawableImages[ImageType].Color := Color;
+  DrawableImages[ImageType].ScaleCorners := UIScale;
+  DrawableImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;

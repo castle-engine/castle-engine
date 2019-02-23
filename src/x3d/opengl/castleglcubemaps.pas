@@ -95,7 +95,7 @@ function GLCaptureCubeMapComposite(
   Tex must already be created cube map texture (with OpenGL
   size and internal formats set), with square images of Size.
   This also means that Size must be a valid OpenGL cube map texture size,
-  you can check it by GLImages.IsCubeMapTextureSized.
+  you can check it by IsCubeMapTextureSized.
 
   This captures the cube map images to "zero" texture level.
   If you use mipmaps, it's your problem how to generate other texture levels

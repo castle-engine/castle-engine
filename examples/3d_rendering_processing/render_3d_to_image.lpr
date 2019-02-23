@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Use Window.Container.RenderControl to render various scenes to TGLImage. }
+{ Use Window.Container.RenderControl to render various scenes to TDrawableImage. }
 
 uses SysUtils,
   CastleWindow, CastleScene, CastleVectors,
@@ -23,7 +23,7 @@ uses SysUtils,
 var
   Window: TCastleWindowBase;
   SceneManager: TCastleSceneManager;
-  Image: TGLImage;
+  Image: TDrawableImage;
 
 const
   ImageWidth = 1024;
@@ -55,12 +55,12 @@ begin
 
   Image.RenderToImageEnd;
 
-  { For demo, grab the contents of Image:TGLImage to normal memory.
+  { For demo, grab the contents of Image:TDrawableImage to normal memory.
     Note that *this will always be slow* (grabbing contents from GPU->CPU
-    is always slow). In real applications, it is best to hold on to TGLImage
+    is always slow). In real applications, it is best to hold on to TDrawableImage
     instance, and use it for rendering directly,
     e.g. by TCastleImageControl.DrawableImage,
-    or simply by drawing it later with TGLImage.Draw. }
+    or simply by drawing it later with TDrawableImage.Draw. }
   if not Application.OpenGLES then
   begin
     DestImage := Image.GetContents(TRGBAlphaImage);
@@ -120,16 +120,16 @@ begin
     By reusing the same Image instance for all RenderScene calls, we make it faster.
     The image data, as well as FBO, is created once,
     instead of for each RenderScene call.
-    But it would also be correct (just slower) to create new TGLImage in each
+    But it would also be correct (just slower) to create new TDrawableImage in each
     RenderScene call. }
-  Image := TGLImage.Create(
+  Image := TDrawableImage.Create(
     TRGBAlphaImage.Create(ImageWidth, ImageHeight), true, true);
   try
 
-    RenderScene(ApplicationData('boxes.x3dv'));
-    RenderScene(ApplicationData('bridge_final.x3dv'));
-    RenderScene(ApplicationData('car.x3d'));
-    RenderScene(ApplicationData('teapot.x3dv'));
+    RenderScene('castle-data:/boxes.x3dv');
+    RenderScene('castle-data:/bridge_final.x3dv');
+    RenderScene('castle-data:/car.x3d');
+    RenderScene('castle-data:/teapot.x3dv');
 
   finally FreeAndNil(Image) end;
 end.

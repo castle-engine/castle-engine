@@ -112,7 +112,7 @@ type
 
           These are the same coordinates as expressed by @link(RenderRect)
           method. You can pass the resulting rectangle straight
-          to @link(DrawRectangle), or @link(TGLImage.Draw), or @link(TSprite.Draw),
+          to @link(DrawRectangle), or @link(TDrawableImage.Draw), or @link(TSprite.Draw),
           to draw something over this tile.
         )
 

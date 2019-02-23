@@ -177,7 +177,7 @@ type
       deprecated 'use ColorChannels';
 
     { Which color buffer channels are touched by rendering.
-      This affects all rendering, including @link(TGLImage.Draw).
+      This affects all rendering, including @link(TDrawableImage.Draw).
 
       Note that this state may be internally modified by various engine rendering
       functions too, e.g. by @link(TCastleScene.LocalRender), depending on rendering
@@ -185,7 +185,7 @@ type
       So it is only reliable for you to modify this temporarily,
       and during your own rendering.
       E.g. change ColorChannels right before and right after calling a couple of
-      @link(TGLImage.Draw). Always restore it afterwards to default [0..3].
+      @link(TDrawableImage.Draw). Always restore it afterwards to default [0..3].
 
       Example uses:
 

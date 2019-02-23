@@ -51,7 +51,7 @@ type
     FCaption: string;
     FImageURL: string;
     FImage: TEncodedImage;
-    FGLImage: TGLImage;
+    FDrawableImage: TDrawableImage;
   private
     { The largest possible bounding box of the 3D item,
       taking into account that actual item 3D model will be rotated when
@@ -92,7 +92,7 @@ type
     property ImageURL: string read FImageURL;
 
     { Resource to draw @link(Image). }
-    function GLImage: TGLImage;
+    function DrawableImage: TDrawableImage;
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items.
@@ -610,7 +610,7 @@ end;
 destructor TItemResource.Destroy;
 begin
   FreeAndNil(FImage);
-  FreeAndNil(FGLImage);
+  FreeAndNil(FDrawableImage);
   inherited;
 end;
 
@@ -632,20 +632,20 @@ begin
   Result := FImage;
 end;
 
-function TItemResource.GLImage: TGLImage;
+function TItemResource.DrawableImage: TDrawableImage;
 begin
-  if FGLImage = nil then
+  if FDrawableImage = nil then
     { TODO: this will load the ImageURL 2nd time. }
-    FGLImage := TGLImage.Create(ImageURL);
-  Result := FGLImage;
+    FDrawableImage := TDrawableImage.Create(ImageURL);
+  Result := FDrawableImage;
 end;
 
 procedure TItemResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
   inherited;
-  { prepare GLImage now }
-  GLImage;
+  { prepare DrawableImage now }
+  DrawableImage;
 end;
 
 function TItemResource.CreateItem(const AQuantity: Cardinal): TInventoryItem;
