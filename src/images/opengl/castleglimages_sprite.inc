@@ -81,12 +81,12 @@ type
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
     function GetDrawRect: TFloatRectangle;
-    function GetCenter: TVector2;
+    function GetRotationCenter: TVector2;
     function GetPosition: TVector2;
     function GetRotation: Single;
     function GetColor: TCastleColor;
     procedure SetTime(const AValue: TFloatTime);
-    procedure SetCenter(const AValue: TVector2);
+    procedure SetRotationCenter(const AValue: TVector2);
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetDrawRect(const AValue: TFloatRectangle);
@@ -198,9 +198,11 @@ type
 
     { Center X of rotation. Values between 0 and 1. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+      deprecated 'use RotationCenter';
 
     { Center Y of rotation. Values between 0 and 1. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+      deprecated 'use RotationCenter';
 
     { Destination frame width to draw. }
     property DrawingWidth: Single read FDrawingWidth write FDrawingWidth;
@@ -212,8 +214,14 @@ type
       properties @link(X), @link(Y), DrawingWidth, DrawingHeight. }
     property DrawRect: TFloatRectangle read GetDrawRect write SetDrawRect;
 
-    { Center of rotation. Values between 0 and 1. }
-    property Center: TVector2 read GetCenter write SetCenter;
+    { Center of rotation.
+      Expressed as a fraction within the drawn ScreenRectangle,
+      (0,0) means bottom-left corner, (1,1) means top-right corner.
+      Default (0.5,0.5). }
+    property RotationCenter: TVector2 read GetRotationCenter write SetRotationCenter;
+
+    property Center: TVector2 read GetRotationCenter write SetRotationCenter;
+      deprecated 'use RotationCenter';
 
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
@@ -470,44 +478,12 @@ begin
   Result.Height := FFrameHeight;
 end;
 
-function TSprite.GetCenterX: Single;
-begin
-  Result := FImage.CenterX;
-end;
-
-function TSprite.GetCenterY: Single;
-begin
-  Result := FImage.CenterY;
-end;
-
 function TSprite.GetDrawRect: TFloatRectangle;
 begin
   Result.Left := FX;
   Result.Bottom := FY;
   Result.Width := FDrawingWidth;
   Result.Height := FDrawingHeight;
-end;
-
-function TSprite.GetCenter: TVector2;
-begin
-  Result[0] := CenterX;
-  Result[1] := CenterY;
-end;
-
-procedure TSprite.SetCenter(const AValue: TVector2);
-begin
-  CenterX := AValue[0];
-  CenterY := AValue[1];
-end;
-
-procedure TSprite.SetCenterX(const AValue: Single);
-begin
-  FImage.CenterX := AValue;
-end;
-
-procedure TSprite.SetCenterY(const AValue: Single);
-begin
-  FImage.CenterY := AValue;
 end;
 
 procedure TSprite.SetDrawRect(const AValue: TFloatRectangle);
@@ -733,6 +709,44 @@ begin
     FSmoothScaling := Value;
     FImage.SmoothScaling := Value;
   end;
+end;
+
+function TSprite.GetRotationCenter: TVector2;
+begin
+  Result := FImage.RotationCenter;
+end;
+
+procedure TSprite.SetRotationCenter(const AValue: TVector2);
+begin
+  FImage.RotationCenter := AValue;
+end;
+
+function TSprite.GetCenterX: Single;
+begin
+  Result := RotationCenter.X;
+end;
+
+function TSprite.GetCenterY: Single;
+begin
+  Result := RotationCenter.Y;
+end;
+
+procedure TSprite.SetCenterX(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.X := AValue;
+  RotationCenter := V;
+end;
+
+procedure TSprite.SetCenterY(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.Y := AValue;
+  RotationCenter := V;
 end;
 
 {$endif read_implementation}
