@@ -99,6 +99,10 @@ Before 6.6 release:
 Lower priority:
 OK if after nearest release:
 
+* on Layout tab, new button for TCastleImageControl
+  "Set Size Explicitly From Current Image"
+  ? Unsure how much use-case.
+
 * castle-data:/ support in castlefindfiles.pas too
 
 * make https://github.com/castle-engine/blaise-pascal-article-examples/
