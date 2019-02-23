@@ -1824,6 +1824,36 @@ type
     { Is the control possibly visible.
       This is always @true when @link(Culling) is @false (the default). }
     property Visible: Boolean read FVisible;
+
+    { Enable or disable UI scaling for this particular control.
+      See more about UI scaling on @link(TUIContainer.UIScaling) and
+      @link(TCastleUserInterface.UIScale). Setting this to @false forces
+      @link(TCastleUserInterface.UIScale) to always return 1.0.
+
+      Note that this does not work recursively, i.e. it does not affect
+      the children of this control. Setting this to @false does not prevent
+      UI scaling on children (you have to turn it off explicitly for children too,
+      if you need to disable UI scaling recursively).
+
+      @italic(The use-cases for changing this property to "false" are very rare.
+      Usually you should use UI scaling for 100% of your UI.) }
+    property EnableUIScaling: boolean
+      read FEnableUIScaling write SetEnableUIScaling default true;
+
+    { Capture input events (keyboard, mouse, joystick).
+      If @false, then the methods like @link(Press) and @link(Release) will never be called,
+      and @link(Update) will always be called with HandleInput = @false.
+      The control will never behave like focused.
+
+      The only exception is when this control is set as @link(TUIContainer.ForceCaptureInput).
+      In this case, the control will receive inputs.
+      In other words, @link(TUIContainer.ForceCaptureInput) overrides
+      the intent of this property.
+
+      @italic(This property may be replaced by something like
+      "CaptureInput" or just universal "Enabled" in the future.) }
+    property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
+      default true;
   published
     { Control is being displayed.
       See @link(Render) for details.
@@ -1959,30 +1989,6 @@ type
     { Delta between our border and parent. }
     property VerticalAnchorDelta: Single
       read FVerticalAnchorDelta write SetVerticalAnchorDelta default 0;
-
-    { Enable or disable UI scaling for this particular control.
-      See more about UI scaling on @link(TUIContainer.UIScaling) and
-      @link(TCastleUserInterface.UIScale). Setting this to @false forces
-      @link(TCastleUserInterface.UIScale) to always return 1.0.
-
-      Note that this does not work recursively, i.e. it does not affect
-      the children of this control. Setting this to @false does not prevent
-      UI scaling on children (you have to turn it off explicitly for children too,
-      if you need to disable UI scaling recursively). }
-    property EnableUIScaling: boolean
-      read FEnableUIScaling write SetEnableUIScaling default true;
-
-    { Capture input events (keyboard, mouse, joystick).
-      If @false, then the methods like @link(Press) and @link(Release) will never be called,
-      and @link(Update) will always be called with HandleInput = @false.
-      The control will never behave like focused.
-
-      The only exception is when this control is set as @link(TUIContainer.ForceCaptureInput).
-      In this case, the control will receive inputs.
-      In other words, @link(TUIContainer.ForceCaptureInput) overrides
-      the intent of this property. }
-    property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
-      default true;
 
     { Optimize rendering and event processing
       by checking whether the control can be visible.
