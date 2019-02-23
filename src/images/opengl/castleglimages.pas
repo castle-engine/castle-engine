@@ -34,7 +34,7 @@
 
     @item(Load and draw images in 2D.
       This is useful to implement various 2D controls.
-      See TGLImage class and friends.)
+      See TDrawableImage class and friends.)
 
     @item(Save the current OpenGL screen contents to our TCastleImage.
       You usually use this through TCastleWindowBase.SaveScreen
@@ -73,7 +73,7 @@ uses SysUtils, Generics.Collections,
 {$I castleglimages_miscellaneous.inc}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_tglimage.inc}
+{$I castleglimages_drawableimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -97,7 +97,7 @@ uses Math, Generics.Defaults,
 {$I castleglimages_miscellaneous.inc}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_tglimage.inc}
+{$I castleglimages_drawableimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -115,7 +115,7 @@ uses Math, Generics.Defaults,
 procedure ContextClose;
 begin
   TextureMemoryProfiler.CheckLeaks;
-  TGLImageCore.StaticGLContextClose;
+  TDrawableImage.StaticGLContextClose;
 end;
 
 initialization

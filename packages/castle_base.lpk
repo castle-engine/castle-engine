@@ -824,7 +824,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item178>
       <Item179>
-        <Filename Value="../src/images/opengl/castleglimages_tglimage.inc"/>
+        <Filename Value="../src/images/opengl/castleglimages_drawableimage.inc"/>
         <Type Value="Include"/>
       </Item179>
       <Item180>
