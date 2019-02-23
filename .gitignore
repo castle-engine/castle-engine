@@ -120,6 +120,7 @@ examples/headlight_test/headlight_test
 examples/images_videos/dds_decompose
 examples/images_videos/draw_images_on_gpu
 examples/images_videos/drawing_modes_test
+examples/images_videos/fft/fft_tests
 examples/images_videos/gaussian_write
 examples/images_videos/image_compare
 examples/images_videos/image_convert
@@ -177,10 +178,15 @@ examples/simple_command_line_utilities/dircleaner
 examples/simple_command_line_utilities/dircleaner.res
 examples/simple_command_line_utilities/stringoper
 examples/space_filling_curve/draw_space_filling_curve
+examples/sprite_sheets/combine_images_into_sprite_sheet/combine_images_into_sprite_sheet
+examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
+examples/tcp_connection/client/client
+examples/tcp_connection/server/server
 examples/terrain/terrain
 examples/tiled/map_viewer/tiled_demo
 examples/tiled/map_viewer/tiled_demo_standalone
 examples/tiled/map_viewer/tiled_demo_standalone.lps
+examples/tiled/strategy_game_demo/strategy_game_demo
 examples/window/multi_window
 examples/window/window_events
 examples/window/window_gtk_mix
@@ -207,6 +213,7 @@ tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 tools/castle-curves/castle-curves
+tools/castle-editor/code/castle_editor.res
 tools/castle-engine
 tools/image-to-pascal/image-to-pascal
 tools/internal/generate-persistent-vectors/generate-persistent-vectors
@@ -216,9 +223,3 @@ tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 tools/texture-font-to-pascal/texture-font-to-pascal
 tools/to-data-uri/to-data-uri
-/examples/sprite_sheets/combine_images_into_sprite_sheet/combine_images_into_sprite_sheet
-/examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
-/tools/castle-editor/code/castle_editor.res
-/examples/tiled/strategy_game_demo/strategy_game_demo
-/examples/tcp_connection/client/client
-/examples/tcp_connection/server/server
