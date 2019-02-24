@@ -483,6 +483,8 @@ type
       the image contents (once they were loaded to GPU) when you change
       the underlying @link(TEncodedImage) instance.
 
+      It is valid to pass @nil as parameter.
+
       @italic(Do not call this method too often.) This methos copies
       the image contents from @link(TEncodedImage) to GPU, which is not something
       you want to do every frame. Doing this occasionally,
