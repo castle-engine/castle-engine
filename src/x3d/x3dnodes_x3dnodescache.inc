@@ -85,7 +85,7 @@ begin
   if CachedNodes <> nil then
   begin
     CachedNodes.Pack; { remove nil items, see InsideFree3DNodeDelete mechanism }
-    Assert(CachedNodes.Count = 0, ' Some references to 3D models still exist when freeing TX3DNodesCache');
+    Assert(CachedNodes.Count = 0, 'Some references to 3D models still exist when freeing TX3DNodesCache');
     FreeAndNil(CachedNodes);
   end;
   inherited;
