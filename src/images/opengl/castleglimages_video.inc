@@ -216,4 +216,9 @@ begin
   Result := FItems[IndexFromTime(Time)];
 end;
 
+function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TDrawableImage;
+begin
+  Result := DrawableImageFromTime(Time);
+end;
+
 {$endif read_implementation}
