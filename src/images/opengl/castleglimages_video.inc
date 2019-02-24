@@ -97,6 +97,8 @@ type
     destructor Destroy; override;
 
     function DrawableImageFromTime(const Time: TFloatTime): TDrawableImage;
+    function GLImageFromTime(const Time: TFloatTime): TDrawableImage;
+      deprecated 'use DrawableImageFromTime';
   end;
 
 {$endif read_interface}

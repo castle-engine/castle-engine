@@ -94,6 +94,9 @@ type
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
 
+    property GLImage: TDrawableImage read DrawableImage;
+      deprecated 'use DrawableImage';
+
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items.
 
