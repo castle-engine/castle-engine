@@ -60,7 +60,6 @@ type
     procedure Resize; override;
   published
     property CustomBackground stored false;
-    property OwnsCustomBackgroundNormal stored false;
     property CustomBackgroundNormal stored false;
     property AutoSize stored false;
     property Width stored false;
@@ -89,7 +88,7 @@ begin
   Messaging.OnReceive.Add(@MessageReceived);
 
   CustomBackground := true;
-  OwnsCustomBackgroundNormal := false;
+  CustomBackgroundNormal.OwnsImage := false;
   TintPressed := Silver;
   AutoSize := false;
   Width  := BaseButtonWidth;
@@ -103,14 +102,14 @@ begin
 
   // this is only for testing:
   // GiftizStatusVisible := true;
-  // CustomBackgroundNormal := ImageWarning;
+  // CustomBackgroundNormal.Image := ImageWarning;
 end;
 
 destructor TGiftizButton.Destroy;
 begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
-  CustomBackgroundNormal := nil;
+  CustomBackgroundNormal.Image := nil;
   FreeAndNil(ImageNaked);
   FreeAndNil(ImageBadge);
   FreeAndNil(ImageWarning);
@@ -132,17 +131,17 @@ begin
     if Received[1] = 'naked' then
     begin
       GiftizStatusVisible := true;
-      CustomBackgroundNormal := ImageNaked;
+      CustomBackgroundNormal.Image := ImageNaked;
     end else
     if Received[1] = 'badge' then
     begin
       GiftizStatusVisible := true;
-      CustomBackgroundNormal := ImageBadge;
+      CustomBackgroundNormal.Image := ImageBadge;
     end else
     if Received[1] = 'warning' then
     begin
       GiftizStatusVisible := true;
-      CustomBackgroundNormal := ImageWarning;
+      CustomBackgroundNormal.Image := ImageWarning;
     end else
       WritelnWarning('Giftiz', 'Invalid button state ' + Received[1]);
     VisibleChange([chRender]);

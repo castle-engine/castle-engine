@@ -190,6 +190,10 @@ type
       (colors, or maybe even image size) you need to call this. }
     procedure ImageChanged;
 
+    function Width: Cardinal;
+    function Height: Cardinal;
+    function Empty: Boolean;
+
     { Draw the image in given screen area. }
     procedure Draw(const ScreenRectangle: TFloatRectangle);
   published
@@ -477,6 +481,21 @@ procedure TCastleImagePersistent.DoChange;
 begin
   if Assigned(FOnChange) then
     FOnChange(Self);
+end;
+
+function TCastleImagePersistent.Width: Cardinal;
+begin
+  Result := FDrawableImage.Width;
+end;
+
+function TCastleImagePersistent.Height: Cardinal;
+begin
+  Result := FDrawableImage.Height;
+end;
+
+function TCastleImagePersistent.Empty: Boolean;
+begin
+  Result := (FDrawableImage.Width = 0) or (FDrawableImage.Height = 0);
 end;
 
 procedure TCastleImagePersistent.Draw(

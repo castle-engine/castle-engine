@@ -400,6 +400,8 @@ begin
     'URL', TSceneURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'URL', TImageURLPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImagePersistent,
+    'URL', TImageURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleDesign,
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,

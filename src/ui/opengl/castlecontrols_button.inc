@@ -43,23 +43,12 @@
       FCustomBackgroundPressed,
       FCustomBackgroundDisabled,
       FCustomBackgroundFocused,
-      FCustomBackgroundNormal: TCastleImage;
-    FDrawableImage,
-      FDrawableCustomBackgroundPressed,
-      FDrawableCustomBackgroundDisabled,
-      FDrawableCustomBackgroundFocused,
-      FDrawableCustomBackgroundNormal: TDrawableImage;
-    FOwnsImage,
-      FOwnsCustomBackgroundPressed,
-      FOwnsCustomBackgroundDisabled,
-      FOwnsCustomBackgroundFocused,
-      FOwnsCustomBackgroundNormal: boolean;
+      FCustomBackgroundNormal: TCastleImagePersistent;
     FCustomColorPressed,
       FCustomColorDisabled,
       FCustomColorFocused,
       FCustomColorNormal: TCastleColor;
     FCustomBackground: boolean;
-    FCustomBackgroundCorners: TVector4Integer;
     FCustomTextColor: TCastleColor;
     FCustomTextColorUse: boolean;
     FToggle: boolean;
@@ -68,7 +57,6 @@
     FMinImageWidth: Single;
     FMinImageHeight: Single;
     FImageLayout: TCastleButtonImageLayout;
-    FImageAlphaTest: boolean;
     FMinWidth, FMinHeight: Single;
     FImageMargin: Single;
     FPaddingHorizontal, FPaddingVertical: Single;
@@ -88,11 +76,6 @@
     procedure SetCustomColorPressed(const AValue: TCastleColor);
     { Recalculate TextWidth, TextHeight, and set FCalculatedPreferred to false. }
     procedure UpdateTextSize;
-    procedure SetImage(const Value: TCastleImage);
-    procedure SetCustomBackgroundPressed(const Value: TCastleImage);
-    procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
-    procedure SetCustomBackgroundFocused(const Value: TCastleImage);
-    procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetMinWidth(const Value: Single);
     procedure SetMinHeight(const Value: Single);
@@ -104,6 +87,7 @@
     function GetTextToRender: TRichText;
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
+    procedure SomeImageChanged(Sender: TObject);
   protected
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
@@ -135,10 +119,6 @@
       OnClick callback. }
     procedure DoClick; virtual;
     procedure SetFocused(const Value: boolean); override;
-    { Set this to non-nil to display an image on the button. }
-    property Image: TCastleImage read FImage write SetImage;
-    { Should we free the @link(Image) when you set another one or at destructor. }
-    property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
     { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
     property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
@@ -149,37 +129,13 @@
     { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
     property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
 
-    { Background image on the pressed button. See @link(CustomBackground) for details. }
-    property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
-    { Should we free @link(CustomBackgroundPressed) image when you set another one or at destructor. }
-    property OwnsCustomBackgroundPressed: boolean read FOwnsCustomBackgroundPressed write FOwnsCustomBackgroundPressed default false;
-
-    { Background image on the disabled button. See @link(CustomBackground) for details. }
-    property CustomBackgroundDisabled: TCastleImage read FCustomBackgroundDisabled write SetCustomBackgroundDisabled;
-    { Should we free @link(CustomBackgroundDisabled) image when you set another one or at destructor. }
-    property OwnsCustomBackgroundDisabled: boolean read FOwnsCustomBackgroundDisabled write FOwnsCustomBackgroundDisabled default false;
-
-    { Background image on the focused button. See @link(CustomBackground) for details. }
-    property CustomBackgroundFocused: TCastleImage read FCustomBackgroundFocused write SetCustomBackgroundFocused;
-    { Should we free @link(CustomBackgroundFocused) image when you set another one or at destructor. }
-    property OwnsCustomBackgroundFocused: boolean read FOwnsCustomBackgroundFocused write FOwnsCustomBackgroundFocused default false;
-
-    { Background image on the normal button. See @link(CustomBackground) for details. }
-    property CustomBackgroundNormal: TCastleImage read FCustomBackgroundNormal write SetCustomBackgroundNormal;
-    { Should we free @link(CustomBackgroundNormal) image when you set another one or at destructor. }
-    property OwnsCustomBackgroundNormal: boolean read FOwnsCustomBackgroundNormal write FOwnsCustomBackgroundNormal default false;
-
-    { Corners used when rendering custom background images.
-      See @link(CustomBackground) for details. Zero by default. }
-    property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
-
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
 
     { Button colors used when @link(CustomBackground) is @true,
       but CustomBackgroundXxx images (like @link(CustomBackgroundNormal))
-      are left unassigned.
+      are left empty.
 
       By default they are all transparent black, so actually the button
       is completely transparent in this case.
@@ -227,20 +183,30 @@
 
     { Use custom background images. If @true, we use properties
       @unorderedList(
-        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item(@link(CustomBackgroundNormal) (or fallback on solid color if @nil,
+        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if empty),
+        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if empty),
+        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if empty),
+        @item(@link(CustomBackgroundNormal) (or fallback on solid color if empty,
           see @link(CustomColorPressed),
           see @link(CustomColorNormal) and so on).)
       )
-      They are rendered as 3x3 images (see TDrawableImage.Draw3x3) with corners
-      specified by @link(CustomBackgroundCorners).
 
       They are affected by tint (see @link(TintPressed), @link(TintDisabled),
       @link(TintFocused), @link(TintNormal)).
     }
     property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+
+    { Optional image displayed on the button. }
+    property Image: TCastleImagePersistent read FImage;
+
+    { Background image on the pressed button. See @link(CustomBackground) for details. }
+    property CustomBackgroundPressed: TCastleImagePersistent read FCustomBackgroundPressed;
+    { Background image on the disabled button. See @link(CustomBackground) for details. }
+    property CustomBackgroundDisabled: TCastleImagePersistent read FCustomBackgroundDisabled;
+    { Background image on the focused button. See @link(CustomBackground) for details. }
+    property CustomBackgroundFocused: TCastleImagePersistent read FCustomBackgroundFocused;
+    { Background image on the normal button. See @link(CustomBackground) for details. }
+    property CustomBackgroundNormal: TCastleImagePersistent read FCustomBackgroundNormal;
 
     { Should we use custom text color in @link(CustomTextColor)
       instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
@@ -310,12 +276,6 @@
     property ImageLayout: TCastleButtonImageLayout
       read FImageLayout write SetImageLayout default ilLeft;
 
-    { If the image has alpha channel, should we render with alpha test
-      (simple yes/no transparency) or alpha blending (smootly mix
-      with background using full transparency). }
-    property ImageAlphaTest: boolean
-      read FImageAlphaTest write FImageAlphaTest default false;
-
     { Distance between text and @link(Image). Unused if @link(Image) not set. }
     property ImageMargin: Single read FImageMargin write SetImageMargin
       default DefaultImageMargin;
@@ -363,6 +323,17 @@ begin
   FCustomTextColor := Black;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 
+  FImage := TCastleImagePersistent.Create;
+  FImage.OnChange := @SomeImageChanged;
+  FCustomBackgroundPressed := TCastleImagePersistent.Create;
+  FCustomBackgroundPressed.OnChange := @SomeImageChanged;
+  FCustomBackgroundDisabled := TCastleImagePersistent.Create;
+  FCustomBackgroundDisabled.OnChange := @SomeImageChanged;
+  FCustomBackgroundFocused := TCastleImagePersistent.Create;
+  FCustomBackgroundFocused.OnChange := @SomeImageChanged;
+  FCustomBackgroundNormal := TCastleImagePersistent.Create;
+  FCustomBackgroundNormal.OnChange := @SomeImageChanged;
+
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -370,17 +341,11 @@ end;
 
 destructor TCastleButton.Destroy;
 begin
-  if OwnsImage then FreeAndNil(FImage);
-  if OwnsCustomBackgroundPressed  then FreeAndNil(FCustomBackgroundPressed);
-  if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
-  if OwnsCustomBackgroundFocused  then FreeAndNil(FCustomBackgroundFocused);
-  if OwnsCustomBackgroundNormal   then FreeAndNil(FCustomBackgroundNormal);
-
-  FreeAndNil(FDrawableImage);
-  FreeAndNil(FDrawableCustomBackgroundPressed);
-  FreeAndNil(FDrawableCustomBackgroundDisabled);
-  FreeAndNil(FDrawableCustomBackgroundFocused);
-  FreeAndNil(FDrawableCustomBackgroundNormal);
+  FreeAndNil(FImage);
+  FreeAndNil(FCustomBackgroundPressed);
+  FreeAndNil(FCustomBackgroundDisabled);
+  FreeAndNil(FCustomBackgroundFocused);
+  FreeAndNil(FCustomBackgroundNormal);
 
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -430,11 +395,11 @@ var
 var
   ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Single;
   Background: TThemeImage;
-  CustomBackgroundImage: TDrawableImage;
+  CustomBackgroundImage: TCastleImagePersistent;
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
   UseImage, UseText: boolean;
-  Tint, SolidColor: TCastleColor;
+  Tint, SolidColor, OriginalColor: TCastleColor;
 begin
   inherited;
 
@@ -456,24 +421,29 @@ begin
   if CustomBackground then
   begin
     if Pressed then
-      CustomBackgroundImage := FDrawableCustomBackgroundPressed
+      CustomBackgroundImage := FCustomBackgroundPressed
     else
     if not Enabled then
-      CustomBackgroundImage := FDrawableCustomBackgroundDisabled
+      CustomBackgroundImage := FCustomBackgroundDisabled
     else
     if Focused then
-      CustomBackgroundImage := FDrawableCustomBackgroundFocused
+      CustomBackgroundImage := FCustomBackgroundFocused
     else
-      CustomBackgroundImage := FDrawableCustomBackgroundNormal;
+      CustomBackgroundImage := FCustomBackgroundNormal;
     { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
-    if CustomBackgroundImage = nil then
-      CustomBackgroundImage := FDrawableCustomBackgroundNormal;
+    if CustomBackgroundImage.Empty then
+      CustomBackgroundImage := FCustomBackgroundNormal;
     { render using CustomBackgroundImage, if any }
-    if CustomBackgroundImage <> nil then
+    if not CustomBackgroundImage.Empty then
     begin
-      CustomBackgroundImage.Color := Tint;
+      // Temporarily disable OnChange, since below we change image
+      CustomBackgroundImage.OnChange := nil;
+      OriginalColor := CustomBackgroundImage.Color;
+      CustomBackgroundImage.Color := OriginalColor * Tint;
       CustomBackgroundImage.ScaleCorners := UIScale;
-      CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+      CustomBackgroundImage.Draw(SR);
+      CustomBackgroundImage.Color := OriginalColor;
+      CustomBackgroundImage.OnChange := @SomeImageChanged;
     end else
     begin
       if Pressed then
@@ -504,7 +474,7 @@ begin
     Theme.Draw(SR, Background, UIScale, Tint);
   end;
 
-  UseImage := (FImage <> nil) and (FDrawableImage <> nil);
+  UseImage := not FImage.Empty;
   if UseImage then
   begin
     ImgScreenWidth  := UIScale * FImage.Width;
@@ -545,14 +515,6 @@ begin
 
   if UseImage then
   begin
-    { update FDrawableImage.Alpha based on ImageAlphaTest }
-    if FImage.HasAlpha then
-    begin
-      if ImageAlphaTest then
-        FDrawableImage.Alpha := acTest else
-        FDrawableImage.Alpha := acBlending;
-    end;
-
     ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) / 2;
     ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) / 2;
     if UseText then
@@ -566,7 +528,7 @@ begin
         ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
       end;
     end;
-    FDrawableImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
+    FImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;
 end;
 
@@ -737,6 +699,11 @@ begin
   UpdateTextSize;
 end;
 
+procedure TCastleButton.SomeImageChanged(Sender: TObject);
+begin
+  VisibleChange([chRender]);
+end;
+
 function TCastleButton.GetTextToRender: TRichText;
 begin
   Result := TRichText.Create(Font, Caption, Html);
@@ -772,96 +739,6 @@ procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
   VisibleChange([chRectangle]);
-end;
-
-procedure TCastleButton.SetImage(const Value: TCastleImage);
-begin
-  if FImage <> Value then
-  begin
-    if OwnsImage then FreeAndNil(FImage);
-    FreeAndNil(FDrawableImage);
-
-    FImage := Value;
-
-    if FDrawableImage = nil then
-      FDrawableImage := TDrawableImage.Create(FImage, true, false)
-    else
-      FDrawableImage.Load(FImage);
-
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetCustomBackgroundPressed(const Value: TCastleImage);
-begin
-  if FCustomBackgroundPressed <> Value then
-  begin
-    if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
-    FreeAndNil(FDrawableCustomBackgroundPressed);
-
-    FCustomBackgroundPressed := Value;
-
-    if FDrawableCustomBackgroundPressed = nil then
-      FDrawableCustomBackgroundPressed := TDrawableImage.Create(FCustomBackgroundPressed, true, false)
-    else
-      FDrawableCustomBackgroundPressed.Load(FCustomBackgroundPressed);
-
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetCustomBackgroundDisabled(const Value: TCastleImage);
-begin
-  if FCustomBackgroundDisabled <> Value then
-  begin
-    if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
-    FreeAndNil(FDrawableCustomBackgroundDisabled);
-
-    FCustomBackgroundDisabled := Value;
-
-    if FDrawableCustomBackgroundDisabled = nil then
-      FDrawableCustomBackgroundDisabled := TDrawableImage.Create(FCustomBackgroundDisabled, true, false)
-    else
-      FDrawableCustomBackgroundDisabled.Load(FCustomBackgroundDisabled);
-
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetCustomBackgroundFocused(const Value: TCastleImage);
-begin
-  if FCustomBackgroundFocused <> Value then
-  begin
-    if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
-    FreeAndNil(FDrawableCustomBackgroundFocused);
-
-    FCustomBackgroundFocused := Value;
-
-    if FDrawableCustomBackgroundFocused = nil then
-      FDrawableCustomBackgroundFocused := TDrawableImage.Create(FCustomBackgroundFocused, true, false)
-    else
-      FDrawableCustomBackgroundFocused.Load(FCustomBackgroundFocused);
-
-    VisibleChange([chRectangle]);
-  end;
-end;
-
-procedure TCastleButton.SetCustomBackgroundNormal(const Value: TCastleImage);
-begin
-  if FCustomBackgroundNormal <> Value then
-  begin
-    if OwnsCustomBackgroundNormal then FreeAndNil(FCustomBackgroundNormal);
-    FreeAndNil(FDrawableCustomBackgroundNormal);
-
-    FCustomBackgroundNormal := Value;
-
-    if FDrawableCustomBackgroundNormal = nil then
-      FDrawableCustomBackgroundNormal := TDrawableImage.Create(FCustomBackgroundNormal, true, false)
-    else
-      FDrawableCustomBackgroundNormal.Load(FCustomBackgroundNormal);
-
-    VisibleChange([chRectangle]);
-  end;
 end;
 
 procedure TCastleButton.SetFocused(const Value: boolean);
@@ -1004,11 +881,11 @@ procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Singl
     FCalculatedPreferredWidth  := TextWidth  + PaddingHorizontalScaled * 2;
     FCalculatedPreferredHeight := TextHeight + PaddingVerticalScaled * 2;
 
-    if (FImage <> nil) or
+    if (not FImage.Empty) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
     begin
-      if FImage <> nil then
+      if not FImage.Empty then
         ImgSize := Max(FImage.Width, MinImageWidth) else
         ImgSize := MinImageWidth;
       ImgSize := ImgSize * UIScale;
@@ -1017,7 +894,7 @@ procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Singl
         ilTop, ilBottom: FCalculatedPreferredWidth := Max(FCalculatedPreferredWidth, ImgSize + PaddingHorizontalScaled * 2);
       end;
 
-      if FImage <> nil then
+      if not FImage.Empty then
         ImgSize := Max(FImage.Height, MinImageHeight) else
         ImgSize := MinImageHeight;
       ImgSize := ImgSize * UIScale;
