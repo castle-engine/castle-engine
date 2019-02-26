@@ -94,12 +94,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImageFixSize1.AutoSize := false;
     ButtonImageFixSize1.Caption := 'Image top';
     ButtonImageFixSize1.ImageLayout := ilTop;
-    { Load button image. Here we set OwnsImage = true, so the image
-      will be freed when ButtonImageFixSize1 is freed.
-      On other buttons we will use the same image reference,
-      and other buttons will have OwnsImage = false. }
-    ButtonImageFixSize1.Image := LoadImage('sample_button_icon.png');
-    ButtonImageFixSize1.OwnsImage := true;
+    ButtonImageFixSize1.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImageFixSize1);
 
     ButtonImageFixSize2 := TCastleButton.Create(Self);
@@ -111,7 +106,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImageFixSize2.Caption := 'Image bottom';
     ButtonImageFixSize2.ImageLayout := ilBottom;
     ButtonImageFixSize2.Left := 250;
-    ButtonImageFixSize2.Image := ButtonImageFixSize1.Image;
+    ButtonImageFixSize2.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImageFixSize2);
 
     ButtonImageFixSize3 := TCastleButton.Create(Self);
@@ -122,7 +117,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImageFixSize3.AutoSize := false;
     ButtonImageFixSize3.Caption := 'Image left';
     ButtonImageFixSize3.Left := 500;
-    ButtonImageFixSize3.Image := ButtonImageFixSize1.Image;
+    ButtonImageFixSize3.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImageFixSize3);
 
     ButtonImageFixSize4 := TCastleButton.Create(Self);
@@ -134,7 +129,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImageFixSize4.Caption := 'Image right';
     ButtonImageFixSize4.ImageLayout := ilRight;
     ButtonImageFixSize4.Left := 750;
-    ButtonImageFixSize4.Image := ButtonImageFixSize1.Image;
+    ButtonImageFixSize4.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImageFixSize4);
 
     ButtonImage1 := TCastleButton.Create(Self);
@@ -144,7 +139,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImage1.Height := 36;
     ButtonImage1.Caption := 'Image top';
     ButtonImage1.ImageLayout := ilTop;
-    ButtonImage1.Image := ButtonImageFixSize1.Image;
+    ButtonImage1.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImage1);
 
     ButtonImage2 := TCastleButton.Create(Self);
@@ -155,7 +150,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImage2.Caption := 'Image bottom';
     ButtonImage2.ImageLayout := ilBottom;
     ButtonImage2.Left := 250;
-    ButtonImage2.Image := ButtonImageFixSize1.Image;
+    ButtonImage2.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImage2);
 
     ButtonImage3 := TCastleButton.Create(Self);
@@ -165,7 +160,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImage3.Height := 36;
     ButtonImage3.Caption := 'Image left';
     ButtonImage3.Left := 500;
-    ButtonImage3.Image := ButtonImageFixSize1.Image;
+    ButtonImage3.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImage3);
 
     ButtonImage4 := TCastleButton.Create(Self);
@@ -176,7 +171,7 @@ procedure TForm1.FormCreate(Sender: TObject);
     ButtonImage4.Caption := 'Image right';
     ButtonImage4.ImageLayout := ilRight;
     ButtonImage4.Left := 750;
-    ButtonImage4.Image := ButtonImageFixSize1.Image;
+    ButtonImage4.Image.URL := 'sample_button_icon.png';
     Browser.Controls.InsertFront(ButtonImage4);
 
     OnScreenMenu1 := TCastleOnScreenMenu.Create(Self);

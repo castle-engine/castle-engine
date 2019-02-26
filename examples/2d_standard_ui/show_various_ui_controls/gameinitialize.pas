@@ -121,7 +121,7 @@ begin
   Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
 
   ImageWithBorders := TCastleImageControl.Create(Window);
-  ImageWithBorders.URL := ApplicationData('box_with_borders.png');
+  ImageWithBorders.URL := 'castle-data:/box_with_borders.png';
   ImageWithBorders.ProtectedSides.AllSides := 40;
   ImageWithBorders.Stretch := true;
   ImageWithBorders.FullSize := true;
@@ -147,13 +147,12 @@ begin
   Button.Tooltip := 'Sample tooltip over my button';
   Button.Left := 10;
   Button.Bottom := 10;
-  Button.Image := LoadImage(ApplicationData('sample_button_icon.png'));
-  Button.OwnsImage := true;
+  Button.Image.URL := 'castle-data:/sample_button_icon.png';
   Button.OnClick := @TClicksHandler(nil).ButtonClick;
   Window.Controls.InsertFront(Button);
 
   Image := TCastleImageControl.Create(Window);
-  Image.URL := ApplicationData('sample_image_with_alpha.png');
+  Image.URL := 'castle-data:/sample_image_with_alpha.png';
   Image.Left := 200;
   Image.Bottom := 150;
   Image.Clip := TestClip;
@@ -161,7 +160,7 @@ begin
   Window.Controls.InsertFront(Image);
 
   Image2 := TCastleImageControl.Create(Window);
-  Image2.URL := ApplicationData('sample_image_with_alpha.png');
+  Image2.URL := 'castle-data:/sample_image_with_alpha.png';
   Image2.Bottom := 150;
   Image2.Stretch := true;
   Image2.Width := 400;
@@ -173,7 +172,7 @@ begin
   Window.Controls.InsertFront(Image2);
 
   ImageInsideMenu := TCastleImageControl.Create(Window);
-  ImageInsideMenu.URL := ApplicationData('sample_image_with_alpha.png');
+  ImageInsideMenu.URL := 'castle-data:/sample_image_with_alpha.png';
   ImageInsideMenu.Stretch := true;
   ImageInsideMenu.Width := 100;
   ImageInsideMenu.Height := 100;
