@@ -34,7 +34,7 @@ published
     instead read or write @link(Center) directly.
 
     @seealso Center }
-  property CenterPersistent: TCastleVector3Persistent read FCenterPersistent;
+  property CenterPersistent: TCastleVector3Persistent read FCenterPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(Rotation) directly.
 
     @seealso Rotation }
-  property RotationPersistent: TCastleVector4Persistent read FRotationPersistent;
+  property RotationPersistent: TCastleVector4Persistent read FRotationPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -158,7 +158,7 @@ published
     instead read or write @link(Scale) directly.
 
     @seealso Scale }
-  property ScalePersistent: TCastleVector3Persistent read FScalePersistent;
+  property ScalePersistent: TCastleVector3Persistent read FScalePersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -220,7 +220,7 @@ published
     instead read or write @link(ScaleOrientation) directly.
 
     @seealso ScaleOrientation }
-  property ScaleOrientationPersistent: TCastleVector4Persistent read FScaleOrientationPersistent;
+  property ScaleOrientationPersistent: TCastleVector4Persistent read FScaleOrientationPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -282,7 +282,7 @@ published
     instead read or write @link(Translation) directly.
 
     @seealso Translation }
-  property TranslationPersistent: TCastleVector3Persistent read FTranslationPersistent;
+  property TranslationPersistent: TCastleVector3Persistent read FTranslationPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

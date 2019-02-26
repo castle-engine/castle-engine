@@ -39,7 +39,7 @@ uses SysUtils, Classes,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
-  CastleTiledMap;
+  CastleTiledMap, CastleGLImages;
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
@@ -428,6 +428,8 @@ begin
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
+    TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TSubPropertiesEditor);
 end;
 

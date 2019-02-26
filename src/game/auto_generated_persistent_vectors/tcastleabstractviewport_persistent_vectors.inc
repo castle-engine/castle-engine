@@ -34,7 +34,7 @@ published
     instead read or write @link(BackgroundColor) directly.
 
     @seealso BackgroundColor }
-  property BackgroundColorPersistent: TCastleColorPersistent read FBackgroundColorPersistent;
+  property BackgroundColorPersistent: TCastleColorPersistent read FBackgroundColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

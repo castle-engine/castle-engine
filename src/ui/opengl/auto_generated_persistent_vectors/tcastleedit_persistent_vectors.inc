@@ -34,7 +34,7 @@ published
     instead read or write @link(FocusedColor) directly.
 
     @seealso FocusedColor }
-  property FocusedColorPersistent: TCastleColorPersistent read FFocusedColorPersistent;
+  property FocusedColorPersistent: TCastleColorPersistent read FFocusedColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(UnfocusedColor) directly.
 
     @seealso UnfocusedColor }
-  property UnfocusedColorPersistent: TCastleColorPersistent read FUnfocusedColorPersistent;
+  property UnfocusedColorPersistent: TCastleColorPersistent read FUnfocusedColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -158,7 +158,7 @@ published
     instead read or write @link(PlaceholderColor) directly.
 
     @seealso PlaceholderColor }
-  property PlaceholderColorPersistent: TCastleColorPersistent read FPlaceholderColorPersistent;
+  property PlaceholderColorPersistent: TCastleColorPersistent read FPlaceholderColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -220,7 +220,7 @@ published
     instead read or write @link(BackgroundColor) directly.
 
     @seealso BackgroundColor }
-  property BackgroundColorPersistent: TCastleColorPersistent read FBackgroundColorPersistent;
+  property BackgroundColorPersistent: TCastleColorPersistent read FBackgroundColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

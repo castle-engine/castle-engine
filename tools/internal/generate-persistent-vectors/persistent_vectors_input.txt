@@ -20,9 +20,13 @@
 ../../../src/ui/opengl/ TCastleButton CustomColorFocused TCastleColor
 ../../../src/ui/opengl/ TCastleButton CustomColorNormal TCastleColor
 
-../../../src/ui/opengl/ TCastleImageControl Color TCastleColor
-../../../src/ui/opengl/ TCastleImageControl ClipLine TVector3
-../../../src/ui/opengl/ TCastleImageControl RotationCenter TVector2
+../../../src/ui/opengl/ TCastleImageControl Color TCastleColor no-store
+../../../src/ui/opengl/ TCastleImageControl ClipLine TVector3 no-store
+../../../src/ui/opengl/ TCastleImageControl RotationCenter TVector2 no-store
+
+../../../src/images/opengl/ TCastleImagePersistent Color TCastleColor
+../../../src/images/opengl/ TCastleImagePersistent ClipLine TVector3
+../../../src/images/opengl/ TCastleImagePersistent RotationCenter TVector2
 
 ../../../src/ui/opengl/ TCastleUserInterfaceFont OutlineColor TCastleColor
 

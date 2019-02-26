@@ -62,7 +62,7 @@ unit CastleGLImages;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
@@ -74,6 +74,9 @@ uses SysUtils, Generics.Collections,
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
 {$I castleglimages_drawableimage.inc}
+{$I castleglimages_drawableimagecache.inc}
+{$I castleglimages_border.inc}
+{$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -98,6 +101,9 @@ uses Math, Generics.Defaults,
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
 {$I castleglimages_drawableimage.inc}
+{$I castleglimages_drawableimagecache.inc}
+{$I castleglimages_border.inc}
+{$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -123,4 +129,5 @@ initialization
 finalization
   FreeAndNil(BoundFboStack);
   FreeAndNil(FTextureMemoryProfiler);
+  FreeAndNil(FDrawableImageCache);
 end.

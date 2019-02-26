@@ -161,6 +161,10 @@ function StrToFloatDot(const S: String): Extended;
   for the floating point numbers, regardless of the user's locale settings. }
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
 
+var
+  { Are we inside Castle Game Engine designer mode. }
+  CastleDesignMode: Boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

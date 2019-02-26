@@ -34,7 +34,7 @@ published
     instead read or write @link(TextColor) directly.
 
     @seealso TextColor }
-  property TextColorPersistent: TCastleColorPersistent read FTextColorPersistent;
+  property TextColorPersistent: TCastleColorPersistent read FTextColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(CheckboxColor) directly.
 
     @seealso CheckboxColor }
-  property CheckboxColorPersistent: TCastleColorPersistent read FCheckboxColorPersistent;
+  property CheckboxColorPersistent: TCastleColorPersistent read FCheckboxColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

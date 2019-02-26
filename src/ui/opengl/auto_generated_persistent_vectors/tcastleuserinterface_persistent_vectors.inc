@@ -34,7 +34,7 @@ published
     instead read or write @link(BorderColor) directly.
 
     @seealso BorderColor }
-  property BorderColorPersistent: TCastleColorPersistent read FBorderColorPersistent;
+  property BorderColorPersistent: TCastleColorPersistent read FBorderColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

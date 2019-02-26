@@ -34,16 +34,16 @@ published
     instead read or write @link(Color) directly.
 
     @seealso Color }
-  property ColorPersistent: TCastleColorPersistent read FColorPersistent stored false;
+  property ColorPersistent: TCastleColorPersistent read FColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleImageControl.GetColorForPersistent: TCastleColor;
+function TCastleImagePersistent.GetColorForPersistent: TCastleColor;
 begin
   Result := Color;
 end;
 
-procedure TCastleImageControl.SetColorForPersistent(const AValue: TCastleColor);
+procedure TCastleImagePersistent.SetColorForPersistent(const AValue: TCastleColor);
 begin
   Color := AValue;
 end;
@@ -96,16 +96,16 @@ published
     instead read or write @link(ClipLine) directly.
 
     @seealso ClipLine }
-  property ClipLinePersistent: TCastleVector3Persistent read FClipLinePersistent stored false;
+  property ClipLinePersistent: TCastleVector3Persistent read FClipLinePersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleImageControl.GetClipLineForPersistent: TVector3;
+function TCastleImagePersistent.GetClipLineForPersistent: TVector3;
 begin
   Result := ClipLine;
 end;
 
-procedure TCastleImageControl.SetClipLineForPersistent(const AValue: TVector3);
+procedure TCastleImagePersistent.SetClipLineForPersistent(const AValue: TVector3);
 begin
   ClipLine := AValue;
 end;
@@ -158,16 +158,16 @@ published
     instead read or write @link(RotationCenter) directly.
 
     @seealso RotationCenter }
-  property RotationCenterPersistent: TCastleVector2Persistent read FRotationCenterPersistent stored false;
+  property RotationCenterPersistent: TCastleVector2Persistent read FRotationCenterPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleImageControl.GetRotationCenterForPersistent: TVector2;
+function TCastleImagePersistent.GetRotationCenterForPersistent: TVector2;
 begin
   Result := RotationCenter;
 end;
 
-procedure TCastleImageControl.SetRotationCenterForPersistent(const AValue: TVector2);
+procedure TCastleImagePersistent.SetRotationCenterForPersistent(const AValue: TVector2);
 begin
   RotationCenter := AValue;
 end;

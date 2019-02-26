@@ -30,7 +30,8 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager, FrameAnchors, CastleControls, CastleTiledMap;
+  CastleSceneManager, CastleClassUtils, CastleControls, CastleTiledMap,
+  FrameAnchors;
 
 type
   { Frame to visually design component hierarchy. }
@@ -180,6 +181,8 @@ type
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector;
     function ForEachSelectedSceneManager(const Callback: TCastleSceneManagerCallback): Cardinal;
+    procedure InspectorFilter(Sender: TObject;
+      AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -219,7 +222,6 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
-  CastleClassUtils,
   EditorUtils;
 
 {$R *.lfm}
@@ -1346,8 +1348,8 @@ begin
   LabelUIScaling.Hint := H;
 end;
 
-procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
-  aEditor: TPropertyEditor; var aShow: boolean);
+procedure TDesignFrame.InspectorFilter(Sender: TObject;
+  AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
 var
   PropertyName: String;
   Instance: TPersistent;
@@ -1363,77 +1365,33 @@ begin
      (aEditor.GetInstProp^.Instance <> nil) then
   begin
     Instance := aEditor.GetInstProp^.Instance;
-    if ( (Instance is TCastleComponent) and
-         (TCastleComponent(Instance).PropertySection(PropertyName) = psBasic) ) or
-       (Instance is TCastleColorPersistent) or
-       (Instance is TCastleColorRGBPersistent) or
-       (Instance is TCastleVector3Persistent) or
-       (Instance is TCastleVector4Persistent) then
+    { Show=true when Instance is some class used for subcomponents,
+      like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
+    if (not (Instance is TCastleComponent)) or
+       (TCastleComponent(Instance).PropertySection(PropertyName) = Section) then
     begin
       AShow := true;
       Exit;
     end;
   end;
+end;
+
+procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
+  AEditor: TPropertyEditor; var AShow: boolean);
+begin
+  InspectorFilter(Sender, AEditor, AShow, psBasic);
 end;
 
 procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
   aEditor: TPropertyEditor; var aShow: boolean);
-var
-  PropertyName: String;
-  Instance: TPersistent;
 begin
-  AShow := false;
-
-  if aEditor.GetPropInfo = nil then
-    Exit;
-
-  PropertyName := aEditor.GetPropInfo^.Name;
-
-  if (aEditor.GetInstProp <> nil) and
-     (aEditor.GetInstProp^.Instance <> nil) then
-  begin
-    Instance := aEditor.GetInstProp^.Instance;
-    if ( (Instance is TCastleComponent) and
-         (TCastleComponent(Instance).PropertySection(PropertyName) = psLayout) ) or
-       (Instance is TCastleColorPersistent) or
-       (Instance is TCastleColorRGBPersistent) or
-       (Instance is TCastleVector3Persistent) or
-       (Instance is TCastleVector4Persistent) then
-    begin
-      AShow := true;
-      Exit;
-    end;
-  end;
+  InspectorFilter(Sender, AEditor, AShow, psLayout);
 end;
 
 procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
   aEditor: TPropertyEditor; var aShow: boolean);
-var
-  PropertyName: String;
-  Instance: TPersistent;
 begin
-  AShow := false;
-
-  if aEditor.GetPropInfo = nil then
-    Exit;
-
-  PropertyName := aEditor.GetPropInfo^.Name;
-
-  if (aEditor.GetInstProp <> nil) and
-     (aEditor.GetInstProp^.Instance <> nil) then
-  begin
-    Instance := aEditor.GetInstProp^.Instance;
-    if ( (Instance is TCastleComponent) and
-         (TCastleComponent(Instance).PropertySection(PropertyName) = psOther) ) or
-       (Instance is TCastleColorPersistent) or
-       (Instance is TCastleColorRGBPersistent) or
-       (Instance is TCastleVector3Persistent) or
-       (Instance is TCastleVector4Persistent) then
-    begin
-      AShow := true;
-      Exit;
-    end;
-  end;
+  InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);

@@ -34,7 +34,7 @@ published
     instead read or write @link(TintPressed) directly.
 
     @seealso TintPressed }
-  property TintPressedPersistent: TCastleColorPersistent read FTintPressedPersistent;
+  property TintPressedPersistent: TCastleColorPersistent read FTintPressedPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(TintDisabled) directly.
 
     @seealso TintDisabled }
-  property TintDisabledPersistent: TCastleColorPersistent read FTintDisabledPersistent;
+  property TintDisabledPersistent: TCastleColorPersistent read FTintDisabledPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -158,7 +158,7 @@ published
     instead read or write @link(TintFocused) directly.
 
     @seealso TintFocused }
-  property TintFocusedPersistent: TCastleColorPersistent read FTintFocusedPersistent;
+  property TintFocusedPersistent: TCastleColorPersistent read FTintFocusedPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -220,7 +220,7 @@ published
     instead read or write @link(TintNormal) directly.
 
     @seealso TintNormal }
-  property TintNormalPersistent: TCastleColorPersistent read FTintNormalPersistent;
+  property TintNormalPersistent: TCastleColorPersistent read FTintNormalPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -282,7 +282,7 @@ published
     instead read or write @link(CustomTextColor) directly.
 
     @seealso CustomTextColor }
-  property CustomTextColorPersistent: TCastleColorPersistent read FCustomTextColorPersistent;
+  property CustomTextColorPersistent: TCastleColorPersistent read FCustomTextColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -344,7 +344,7 @@ published
     instead read or write @link(CustomColorPressed) directly.
 
     @seealso CustomColorPressed }
-  property CustomColorPressedPersistent: TCastleColorPersistent read FCustomColorPressedPersistent;
+  property CustomColorPressedPersistent: TCastleColorPersistent read FCustomColorPressedPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -406,7 +406,7 @@ published
     instead read or write @link(CustomColorDisabled) directly.
 
     @seealso CustomColorDisabled }
-  property CustomColorDisabledPersistent: TCastleColorPersistent read FCustomColorDisabledPersistent;
+  property CustomColorDisabledPersistent: TCastleColorPersistent read FCustomColorDisabledPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -468,7 +468,7 @@ published
     instead read or write @link(CustomColorFocused) directly.
 
     @seealso CustomColorFocused }
-  property CustomColorFocusedPersistent: TCastleColorPersistent read FCustomColorFocusedPersistent;
+  property CustomColorFocusedPersistent: TCastleColorPersistent read FCustomColorFocusedPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -530,7 +530,7 @@ published
     instead read or write @link(CustomColorNormal) directly.
 
     @seealso CustomColorNormal }
-  property CustomColorNormalPersistent: TCastleColorPersistent read FCustomColorNormalPersistent;
+  property CustomColorNormalPersistent: TCastleColorPersistent read FCustomColorNormalPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
