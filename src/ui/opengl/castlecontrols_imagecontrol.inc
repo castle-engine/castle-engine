@@ -243,7 +243,7 @@
       the alpha of image is treated (opaque, alpha test, alpha blending).
       Set this to force specific treatment.
 
-      @seealso TCastleImagePersistent.Alpha }
+      @seealso TCastleImagePersistent.AlphaChannel }
     property AlphaChannel: TAutoAlphaChannel
       read GetAlphaChannel write SetAlphaChannel stored false default acAuto;
 
@@ -369,7 +369,7 @@ constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
   FContent := TCastleImagePersistent.Create;
-  FContent.AddChangeListener(@ContentChanged);
+  FContent.OnChange := @ContentChanged;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -452,9 +452,11 @@ end;
 procedure TCastleImageControl.Render;
 begin
   inherited;
+  FContent.OnChange := nil;
   FContent.ScaleCorners := UIScale;
   FContent.InternalVisualizeProtectedSides := Stretch;
   FContent.Draw(RenderRect);
+  FContent.OnChange := @ContentChanged;
 end;
 
 procedure TCastleImageControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
@@ -516,12 +518,12 @@ end;
 
 function TCastleImageControl.GetAlphaChannel: TAutoAlphaChannel;
 begin
-  Result := FContent.Alpha;
+  Result := FContent.AlphaChannel;
 end;
 
 procedure TCastleImageControl.SetAlphaChannel(const Value: TAutoAlphaChannel);
 begin
-  FContent.Alpha := Value;
+  FContent.AlphaChannel := Value;
 end;
 
 function TCastleImageControl.GetBlending: boolean;

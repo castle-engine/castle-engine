@@ -54,7 +54,7 @@ type
     FClipLine: TVector3;
     FRotation: Single;
     FRotationCenter: TVector2;
-    FAlpha: TAutoAlphaChannel;
+    FAlphaChannel: TAutoAlphaChannel;
     FColor: TCastleColor;
     FCustomShader: TGLSLProgram;
     FScaleCorners: Single;
@@ -76,11 +76,10 @@ type
     procedure SetFlipHorizontal(const Value: Boolean);
     procedure SetRotation(const Value: Single);
     procedure SetRotationCenter(const Value: TVector2);
-    procedure SetAlpha(const Value: TAutoAlphaChannel);
+    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetColor(const Value: TCastleColor);
     procedure SetCustomShader(const Value: TGLSLProgram);
-    // No need to call DoChange in this case, this is set right before Draw
-    //procedure SetScaleCorners(const Value: Single);
+    procedure SetScaleCorners(const Value: Single);
     procedure SetClip(const Value: Boolean);
     procedure SetClipLine(const Value: TVector3);
 
@@ -94,9 +93,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Used by parent UI control to listen for changes.
-      Right now you cannot call this yourself, as it may be called only once. }
-    procedure AddChangeListener(const AOnChange: TNotifyEvent);
+    { Reserved for parent UI control to listen for changes. }
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
     { Image contents, or @nil if none. You can set it by setting @link(URL),
       or by setting this property directly,
@@ -176,7 +174,7 @@ type
       for UI scaling, see @link(TUIContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
     property ScaleCorners: Single
-      read FScaleCorners write FScaleCorners default 1;
+      read FScaleCorners write SetScaleCorners default 1;
 
     { Color tint of the image. This simply multiplies the image RGBA components,
       just like @link(TDrawableImage.Color). By default this is opaque white,
@@ -207,8 +205,8 @@ type
       together with current @link(Color) determine how
       the alpha of image is treated (opaque, alpha test, alpha blending).
       Set this to force specific treatment. }
-    property Alpha: TAutoAlphaChannel
-      read FAlpha write SetAlpha default acAuto;
+    property AlphaChannel: TAutoAlphaChannel
+      read FAlphaChannel write SetAlphaChannel default acAuto;
 
     { If @true, the @link(DrawableImage) is loaded and freed using a cache.
       This can save memory and loading time a lot, if you reuse the same
@@ -475,13 +473,6 @@ begin
   DoChange;
 end;
 
-procedure TCastleImagePersistent.AddChangeListener(const AOnChange: TNotifyEvent);
-begin
-  if FOnChange <> nil then
-    raise Exception.Create('Cannot use AddChangeListener more than once on TCastleImagePersistent');
-  FOnChange := AOnChange;
-end;
-
 procedure TCastleImagePersistent.DoChange;
 begin
   if Assigned(FOnChange) then
@@ -505,7 +496,7 @@ begin
   DrawableImage.ClipLine := FClipLine;
   DrawableImage.Rotation := FRotation;
   DrawableImage.RotationCenter := FRotationCenter;
-  DrawableImage.Alpha := FAlpha;
+  DrawableImage.Alpha := FAlphaChannel;
   DrawableImage.Color := FColor;
   DrawableImage.CustomShader := FCustomShader;
   DrawableImage.ScaleCorners := FScaleCorners;
@@ -594,11 +585,11 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetAlpha(const Value: TAutoAlphaChannel);
+procedure TCastleImagePersistent.SetAlphaChannel(const Value: TAutoAlphaChannel);
 begin
-  if FAlpha <> Value then
+  if FAlphaChannel <> Value then
   begin
-    FAlpha := Value;
+    FAlphaChannel := Value;
     DoChange;
   end;
 end;
@@ -621,14 +612,14 @@ begin
   end;
 end;
 
-// procedure TCastleImagePersistent.SetScaleCorners(const Value: Single);
-// begin
-//   if FScaleCorners <> Value then
-//   begin
-//     FScaleCorners := Value;
-//     DoChange;
-//   end;
-// end;
+procedure TCastleImagePersistent.SetScaleCorners(const Value: Single);
+begin
+  if FScaleCorners <> Value then
+  begin
+    FScaleCorners := Value;
+    DoChange;
+  end;
+end;
 
 procedure TCastleImagePersistent.SetFlipVertical(const Value: Boolean);
 begin
