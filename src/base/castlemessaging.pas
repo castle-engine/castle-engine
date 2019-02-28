@@ -236,7 +236,7 @@ procedure TMessaging.Update(Sender: TObject);
     if Message = '' then
       WritelnWarning('Messaging', 'Pascal code received an empty message');
 
-    MessageAsList := SplitString(Message, MessageDelimiter);
+    MessageAsList := CastleStringUtils.SplitString(Message, MessageDelimiter);
     try
       OnReceive.ExecuteAll(MessageAsList);
     finally FreeAndNil(MessageAsList) end;

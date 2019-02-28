@@ -373,7 +373,7 @@ constructor TCastleProject.Create(const APath: string);
           (QualifiedName[Length(QualifiedName)] = '.')) then
         raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) cannot start or end with a dot: "%s"', [OptionName, QualifiedName]);
 
-      Components := SplitString(QualifiedName, '.');
+      Components := CastleStringUtils.SplitString(QualifiedName, '.');
       try
         for I := 0 to Components.Count - 1 do
         begin
@@ -1876,7 +1876,7 @@ var
   PreviousMacros: array of TStringStringMap.TDictionaryPair;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := SplitString(Version, '.');
+  VersionComponentsString := CastleStringUtils.SplitString(Version, '.');
   try
     for I := 0 to High(VersionComponents) do
       if I < VersionComponentsString.Count then
