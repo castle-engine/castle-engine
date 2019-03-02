@@ -477,6 +477,10 @@ end;
 
 procedure TGameService.Achievement(const AchievementId: string);
 begin
+  { Report invalid AchievementId right now, otherwise Google Play will report
+    this error too. It's better to have it error on all platforms. }
+  if AchievementId = '' then
+    raise Exception.Create('Achievement name cannot be empty');
   Messaging.Send(['achievement', AchievementId]);
 end;
 
