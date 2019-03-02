@@ -491,8 +491,8 @@ begin
           { Like cmRelease, but
             - without -Xs
             - with -gv, -gl
-            See ../../doc/profiling_howto.txt }
-          if IsIOS then
+            See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind }
+          if CPU = aarch64 then
             FpcOptions.Add('-O-')
           else
             FpcOptions.Add('-O2');
