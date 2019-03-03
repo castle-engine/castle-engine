@@ -359,4 +359,14 @@
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
+{ Nintendo Switch ------------------------------------------------------------ }
+
+{ Since we use (as a hack) Aarch64/Android for Nintendo Switch,
+  undefine ANDROID now,
+  to not automatically use Android-specific units in
+  android/castleandroidinternal*.pas . }
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  {$undef ANDROID}
+{$endif CASTLE_NINTENDO_SWITCH}
+
 {$endif not CASTLE_CONF_INCLUDED}

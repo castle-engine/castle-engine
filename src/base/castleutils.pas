@@ -184,7 +184,10 @@ implementation
 initialization
   InitializationOSSpecific;
 
+  {$ifndef CASTLE_NINTENDO_SWITCH}
+  // TODO: crashes with "invalid system call", probably because it accesses clock?
   Randomize; { required by e.g. GetTempFname }
+  {$endif}
 
   LocaleDecimalSeparator :=
     {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;

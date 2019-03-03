@@ -166,6 +166,17 @@ var
     (you can e.g. use GetAppConfigDir function from FPC RTL). }
   LogFileName: String = '';
 
+{$ifdef CASTLE_NINTENDO_SWITCH}
+{ Send a log message using NX NN_LOG call.
+
+  Calls C code from Pascal.
+  You should always call WritelnLog instead of this,
+  unless you're possibly before InitializeNxMemoryManager,
+  or before unit's initialization took place.
+}
+procedure cgeNxLog(Message: PChar); cdecl; external 'cgeNxLog';
+{$endif CASTLE_NINTENDO_SWITCH}
+
 implementation
 
 uses SysUtils,
@@ -261,7 +272,9 @@ begin
   if ALogStream <> nil then
   begin
     LogStream := ALogStream;
-  end else
+  end
+  {$ifndef CASTLE_NINTENDO_SWITCH}
+  else
   if InsideEditor and (not IsLibrary) and (StdOutStream <> nil) then
   begin
     { In this case, we know we have StdOutStream initialized OK,
@@ -302,12 +315,19 @@ begin
   end else
   begin
     LogStream := StdOutStream;
-  end;
+  end
+  {$endif CASTLE_NINTENDO_SWITCH}
+  ;
+
+  { Note: on CASTLE_NINTENDO_SWITCH, it is possible to leave LogStream = nil.
+    It doesn't matter, we will log to cgeNxLog anyway. }
 
   WriteLogCoreCore('Log for "' + ApplicationName + '".' + NL);
   if ApplicationProperties.Version <> '' then
     WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.' + NL);
+  {$ifndef CASTLE_NINTENDO_SWITCH} // Reading system time on NX fails
   WriteLogCoreCore('  Started on ' + DateTimeToAtStr(Now) + '.' + NL);
+  {$endif CASTLE_NINTENDO_SWITCH}
   WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
   WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.' + NL);
   if CollectedLog <> '' then
@@ -335,8 +355,13 @@ begin
   {$ifdef ANDROID}
   AndroidLogRobust(alInfo, S);
   {$endif}
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  cgeNxLog(PChar(S));
+  {$else}
   // we know that LogStream <> nil when FLog = true
   WriteStr(LogStream, S);
+  {$endif CASTLE_NINTENDO_SWITCH}
 end;
 
 { Add the String to log contents.
@@ -368,11 +393,15 @@ end;
 
 function LogTimePrefixStr: string;
 begin
+  {$ifdef CASTLE_NINTENDO_SWITCH} // Reading system time on NX fails
+  Result := '';
+  {$else}
   case LogTimePrefix of
     ltNone: Result := '';
     ltTime: Result := FormatDateTime('tt', Now) + '> ';
     ltDateTime: Result := FormatDateTime('yyyy"-"mm"-"dd" "tt', Now) + '> ';
   end;
+  {$endif}
 end;
 
 procedure WriteLog(const Category: string; const Message: string);
