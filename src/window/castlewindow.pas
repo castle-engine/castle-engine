@@ -356,9 +356,8 @@ unit CastleWindow;
          {$elseif defined(UNIX)}
            {$if defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(IOS)}
+           {$elseif defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
-             {$info Compiling CastleWindow with CASTLE_WINDOW_LIBRARY backend on iOS}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_XLIB} // easiest to compile

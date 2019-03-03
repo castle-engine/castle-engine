@@ -150,14 +150,6 @@
   {$endif}
 {$endif}
 
-{ On some Android versions, you cannot call dlopen (load dynamic libraries)
-  from the initialization section of units. You have to wait for
-  AndroidMain to be called by NDK, otherwise we get a crash at initialization. }
-{$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
-{$ifdef ANDROID}
-  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
-{$endif}
-
 // *Not* define ENABLE_SELF_RECORD_CONSTANTS because:
 //
 // - Declaring something like TVector3.Zero (constant filled with zeros,
@@ -181,6 +173,29 @@
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$endif}
+
+{ Nintendo Switch ------------------------------------------------------------ }
+
+{ Since we use (as a hack) Aarch64/Android for Nintendo Switch,
+  undefine ANDROID now,
+  to not automatically use Android-specific units in
+  android/castleandroidinternal*.pas . }
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  {$undef ANDROID}
+{$endif CASTLE_NINTENDO_SWITCH}
+
+{ Platform specific adjustments ---------------------------------------------- }
+
+{ On some Android versions, you cannot call dlopen (load dynamic libraries)
+  from the initialization section of units. You have to wait for
+  AndroidMain to be called by NDK, otherwise we get a crash at initialization. }
+{$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$ifdef ANDROID}
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$endif}
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
@@ -313,7 +328,7 @@
   // iOS or Android support only CASTLE_PNG_USING_FCL_IMAGE
   // (they could work with other methods too, but it needs some work to set up,
   // so we don't support it officially)
-  {$if defined(iOS) or defined(ANDROID)}
+  {$if defined(iOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH)}
     {$undef CASTLE_PNG_DYNAMIC}
     {$undef CASTLE_PNG_STATIC}
     {$define CASTLE_PNG_USING_FCL_IMAGE}
@@ -343,6 +358,7 @@
 { Keep HAS_FP_HTTP_CLIENT defined for all platforms that have
   FpHttpClient implemented, if you use FPC. }
 {$define HAS_FP_HTTP_CLIENT}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 {$ifndef FPC} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
@@ -358,15 +374,5 @@
   Undefine this to conserve around 0.7 MB in exe size.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-
-{ Nintendo Switch ------------------------------------------------------------ }
-
-{ Since we use (as a hack) Aarch64/Android for Nintendo Switch,
-  undefine ANDROID now,
-  to not automatically use Android-specific units in
-  android/castleandroidinternal*.pas . }
-{$ifdef CASTLE_NINTENDO_SWITCH}
-  {$undef ANDROID}
-{$endif CASTLE_NINTENDO_SWITCH}
 
 {$endif not CASTLE_CONF_INCLUDED}
