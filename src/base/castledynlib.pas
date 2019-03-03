@@ -20,15 +20,17 @@ unit CastleDynLib;
 
 interface
 
-uses
-  {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} Unix, Dl, {$endif}
-  SysUtils
-  {$ifdef FPC} , DynLibs {$endif};
+uses SysUtils
+  {$ifdef FPC}
+    { With FPC, use cross-platform DynLibs unit. }
+    , DynLibs
+  {$else}
+    { With Delphi, use Windows functions directly. }
+    {$ifdef MSWINDOWS} , Windows {$endif}
+  {$endif};
 
 type
   TDynLibHandle = {$ifdef FPC} TLibHandle {$else} HModule {$endif};
-
 
 const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
@@ -152,7 +154,7 @@ type
 
 implementation
 
-uses CastleUtils;
+uses CastleUtils, CastleLog;
 
 constructor TDynLib.Create(const AName: string; AHandle: TDynLibHandle);
 begin
@@ -166,59 +168,59 @@ end;
 
 destructor TDynLib.Destroy;
 begin
-  { Should we check here for errors after FreeLibrary ?
-    Well, this is finalization code so this is one place where strict error
-    checking (and raising exceptions on them) may be not so good idea.
-    For now I will not do it. }
-  {$ifdef FPC} UnloadLibrary {$else} FreeLibrary {$endif} (FHandle);
-
+  if not FreeLibrary(FHandle) then
+    WriteLnWarning('Unloading library ' + Name + ' failed');
   inherited;
 end;
 
 class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean): TDynLib;
 
-  function LoadLibraryGlobally(AName: PChar): TDynLibHandle;
-  { TODO: under UNIX (Linux, more specifically, since I don't use this code
-    with any other UNIX yet) I must load with RTLD_GLOBAL, else GLU crashes
-    (it seems GLU requires that someone else loads GL symbols for it ?
-    I really don't know. TO BE FIXED.) }
-  begin
-    Result :=
-      {$ifdef UNIX} TDynLibHandle( dlopen(AName,
-        { RTLD_GLOBAL cannot be used if you want to successfully open
-          libopenal.so on Android (tested necessity on Nexus 5).
-          It seems that RTLD_NOW or RTLD_LAZY don't matter.
-          Found thanks to mentions in
-          http://grokbase.com/t/gg/android-ndk/133mh6mk8b/unable-to-dlopen-libtest-so-cannot-load-library-link-image-1995-failed-to-link-libtest-so }
-        {$ifdef ANDROID} RTLD_NOW {$else} RTLD_LAZY or RTLD_GLOBAL {$endif}) );
-      {$else} LoadLibrary(AName);
-      {$endif}
-  end;
+  { On Unix, right now this simply uses LoadLibrary that calls dlopen(..., RTLD_LAZY)
+    (see in FPC rtl/unix/dynlibs.inc).
+
+    Historic notes:
+
+    - Long time ago we used here explicit
+        dlopen(.., RTLD_LAZY or RTLD_GLOBAL)
+      Reasons: loading GLU under Linux required RTLD_GLOBAL
+      (Maybe GLU requires that someone else loads GL symbols for it?)
+
+      Later, this workaround doesn't seem needed anymore,
+      and we actually don't load GLU using CastleDynLib.
+
+    - Note that on Android, RTLD_GLOBAL *cannot* be used
+      if you want to successfully open
+      libopenal.so on Android (tested necessity on Nexus 5).
+      And it seems that RTLD_NOW or RTLD_LAZY don't matter.
+      Found thanks to mentions in
+      http://grokbase.com/t/gg/android-ndk/133mh6mk8b/unable-to-dlopen-libtest-so-cannot-load-library-link-image-1995-failed-to-link-libtest-so
+
+    In summary, simply using LoadLibrary is perfect now.
+  }
 
 var
   Handle: TDynLibHandle;
 begin
-  Handle := LoadLibraryGlobally(PChar(AName));
+  Handle := LoadLibrary(PChar(AName));
   if Handle = InvalidDynLibHandle then
   begin
     if RaiseExceptionOnError then
-      raise EDynLibError.Create('Can''t load library "' +AName+ '"'
-        {$ifdef UNIX} + ': ' + dlerror {$endif}) else
+      raise EDynLibError.Create('Cannott load dynamic library "' +AName+ '"')
+    else
       Result := nil;
   end else
-   Result := Self.Create(AName, Handle);
+    Result := Self.Create(AName, Handle);
 end;
 
 function TDynLib.Symbol(SymbolName: PChar): Pointer;
 
   function ErrStr: string;
   begin
-    Result := 'Symbol "'+SymbolName+'" not found in library "'+Name+'"'
+    Result := 'Symbol "' + SymbolName + '" not found in library "' + Name + '"';
   end;
 
 begin
-  Result := {$ifdef FPC} GetProcedureAddress {$else} GetProcAddress {$endif}
-    (FHandle, SymbolName);
+  Result := GetProcAddress(FHandle, SymbolName);
   if Result = nil then
     case SymbolErrorBehaviour of
       seRaise: raise EDynLibError.Create(ErrStr);
