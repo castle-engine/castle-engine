@@ -2932,6 +2932,9 @@ uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging
 
 {$define read_implementation}
 
+var
+  UnitFinalization: Boolean;
+
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
 
@@ -5330,6 +5333,11 @@ end;
 
 function Application: TCastleApplication;
 begin
+  { In case of UnitFinalization,
+    return nil (and acccessing it should cause an error),
+    since we wouldn't free it if we create a new one. }
+  if (FApplication = nil) and not UnitFinalization then
+    FApplication := TCastleApplication.Create(nil);
   Result := FApplication;
 end;
 
@@ -5337,9 +5345,9 @@ end;
 
 initialization
   ApplicationProperties._FileAccessSafe := false;
-  CastleWindowMenu_Init;
-  FApplication := TCastleApplication.Create(nil);
 finalization
+  UnitFinalization := true;
+
   { Instead of using FreeAndNil, just call Free.
     In our destructor we take care of setting Application variable to @nil,
     when it becomes really useless.
@@ -5351,8 +5359,8 @@ finalization
   Application.Free;
   Assert(Application = nil);
 
-  { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
+  { Order is important: we free MenuItems, which are needed
     by TMenu destructor. And some TCastleWindowBase instances may be freed
     only by Application destructor (when they are owned by Application). }
-  CastleWindowMenu_Fini;
+  FreeAndNil(FMenuItems);
 end.

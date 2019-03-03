@@ -496,6 +496,26 @@ function SQuoteMenuEntryCaption(const S: string): string;
   it's not cluttered with GTK/WinAPI specific details.
 }
 
+{ MenuItems global list ------------------------------------------------------------ }
+
+var
+  { This list contains only TMenuItem objects (and some nils).
+    Position on this list is object's SmallId.
+    The current implementation of SmallId in this unit is a resource-eater
+    (MenuItems only grows !), it can be optimized in many ways.
+    But I don't do it because I don't need
+    it for now -- all my programs use a limited set of menu items, and usually
+    free those menu items right before exiting. So there's no need to optimize
+    this for them. }
+  FMenuItems: TMenuEntryList;
+
+function MenuItems: TMenuEntryList;
+begin
+  if (FMenuItems = nil) and not UnitFinalization then
+    FMenuItems := TMenuEntryList.Create(false);
+  Result := FMenuItems;
+end;
+
 { TMenuEntry ------------------------------------------------------------ }
 
 function TMenuEntry.CorrectParentWindow: TCastleWindowBase;
@@ -703,17 +723,6 @@ begin
 end;
 
 { TMenuItem ------------------------------------------------------------ }
-
-var
-  { This list contains only TMenuItem objects (and some nils).
-    Position on this list is object's SmallId.
-    The current implementation of SmallId in this unit is a resource-eater
-    (MenuItems only grows !), it can be optimized in many ways.
-    But I don't do it because I don't need
-    it for now -- all my programs use a limited set of menu items, and usually
-    free those menu items right before exiting. So there's no need to optimize
-    this for them. }
-  MenuItems: TMenuEntryList;
 
 function TMenuItem.GetCharKey: Char;
 begin
@@ -1117,18 +1126,6 @@ begin
     with CorrectParentWindow do FullScreen := not FullScreen;
     Result := true;
   end;
-end;
-
-{ init/fini ------------------------------------------------------------ }
-
-procedure CastleWindowMenu_Init;
-begin
- MenuItems := TMenuEntryList.Create(false);
-end;
-
-procedure CastleWindowMenu_Fini;
-begin
- FreeAndNil(MenuItems);
 end;
 
 { Some useful things ---------------------------------------- }
