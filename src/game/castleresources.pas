@@ -403,6 +403,9 @@ uses SysUtils,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
   CastleFilesUtils, CastleInternalNodeInterpolator;
 
+var
+  UnitFinalization: Boolean;
+
 { TResourceClasses  ---------------------------------------------------------- }
 
 type
@@ -418,9 +421,6 @@ type
     property Items [const AKey: string]: T3DResourceClass read GetItems write SetItems; default;
   end;
 
-var
-  ResourceClasses: TResourceClasses;
-
 function TResourceClasses.GetItems(const AKey: string): T3DResourceClass;
 begin
   Result := inherited Items[AKey];
@@ -429,6 +429,16 @@ end;
 procedure TResourceClasses.SetItems(const AKey: string; const AValue: T3DResourceClass);
 begin
   AddOrSetValue(AKey, AValue);
+end;
+
+var
+  FResourceClasses: TResourceClasses;
+
+function ResourceClasses: TResourceClasses;
+begin
+  if (FResourceClasses = nil) and not UnitFinalization then
+    FResourceClasses := TResourceClasses.Create;
+  Result := FResourceClasses;
 end;
 
 { T3DResourceAnimation ------------------------------------------------------- }
@@ -987,13 +997,13 @@ var
 
 function Resources: T3DResourceList;
 begin
+  if (FResourceClasses = nil) and not UnitFinalization then
+    FResources := T3DResourceList.Create(true);
   Result := FResources;
 end;
 
-initialization
-  FResources := T3DResourceList.Create(true);
-  ResourceClasses := TResourceClasses.Create;
 finalization
+  UnitFinalization := true;
   FreeAndNil(FResources);
-  FreeAndNil(ResourceClasses);
+  FreeAndNil(FResourceClasses);
 end.
