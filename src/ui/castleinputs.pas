@@ -25,7 +25,7 @@
 
       TInputShortcut instance with TInputShortcut.Group <> igLocal
       is called "global". Such instance is automatically (at construction)
-      added to InputsAll and InputsGroup[Group] lists.
+      added to InputsAll and InputsGroup(Group) lists.
 
       The purpose of such global input map is to be able to detect key conflicts,
       be able to restore whole input map to default,
@@ -37,7 +37,7 @@
       (more specifically, they will be freed by InputsAll).
       When creating them, pass @nil to the Owner parameter
       of constructor TInputShortcut.Create.
-      This implies that InputsAll and InputsGroup[Group] lists will never shrink,
+      This implies that InputsAll and InputsGroup(Group) lists will never shrink,
       which is useful --- once added, shortcuts will not disappear.
       Global TInputShortcut instances are always in practice also global variables.
 
@@ -94,6 +94,7 @@ uses Classes, Generics.Collections,
 
 type
   TInputGroup = (igLocal, igBasic, igItems, igOther);
+  TInputGroupNotLocal = igBasic..High(TInputGroup);
 
   { A keyboard and/or mouse shortcut for activating some action.
 
@@ -419,12 +420,12 @@ type
     procedure SaveToConfig(const Config: TCastleConfig; ConfigPath: String = '');
   end;
 
-var
-  { List of all global inputs.
-    Will be created in initialization and freed in finalization of this unit.
-    All TInputShortcut instances will automatically add to this. }
-  InputsAll: TInputShortcutList;
-  InputsGroup: array [igBasic..High(TInputGroup)] of TInputShortcutList;
+{ List of all global inputs.
+  All TInputShortcut instances with group other than igLocal
+  will be automatically added here. }
+function InputsAll: TInputShortcutList;
+
+function InputsGroup(const Group: TInputGroupNotLocal): TInputShortcutList;
 
 implementation
 
@@ -447,7 +448,7 @@ begin
   begin
     Index := InputsAll.Count;
     InputsAll.Add(Self);
-    InputsGroup[Group].Add(Self);
+    InputsGroup(Group).Add(Self);
   end;
 end;
 
@@ -854,7 +855,7 @@ type
 var
   I: TInputShortcut;
   ConflictDescription: string;
-  G: TInputGroup;
+  G: TInputGroupNotLocal;
 begin
   { we assume that all inputs are added now, so we do some finalizing operations
     now, like checking defaults for conflicts and sorting by GroupOrder. }
@@ -862,8 +863,8 @@ begin
     raise EInternalError.Create(
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
-  for G := Low(InputsGroup) to High(InputsGroup) do
-    InputsGroup[G].Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
+  for G in TInputGroupNotLocal do
+    InputsGroup(G).Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
 
   // add slash at the end of ConfigPath, if necessary
   if (ConfigPath <> '') and (ConfigPath[Length(ConfigPath)] <> '/') then
@@ -921,35 +922,44 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
+var
+  UnitInitialized, UnitFinalization: Boolean;
+  FInputsAll: TInputShortcutList;
+  FInputsGroup: array [TInputGroupNotLocal] of TInputShortcutList;
+
 procedure DoInitialization;
 var
-  G: TInputGroup;
+  G: TInputGroupNotLocal;
 begin
-  InputsAll := TInputShortcutList.Create(true);
+  if (not UnitInitialized) and (not UnitFinalization) then
+  begin
+    FInputsAll := TInputShortcutList.Create(true);
+    for G in TInputGroupNotLocal do
+      FInputsGroup[G] := TInputShortcutList.Create(false);
+    UnitInitialized := true;
+  end;
+end;
 
-  for G := Low(InputsGroup) to High(InputsGroup) do
-    InputsGroup[G] := TInputShortcutList.Create(false);
+function InputsAll: TInputShortcutList;
+begin
+  DoInitialization;
+  Result := FInputsAll;
+end;
 
-  // automatic loading/saving is more troublesome than it's worth
-  // UserConfig.AddLoadListener(@InputsAll.LoadFromConfig);
-  // UserConfig.AddSaveListener(@InputsAll.SaveToConfig);
+function InputsGroup(const Group: TInputGroupNotLocal): TInputShortcutList;
+begin
+  DoInitialization;
+  Result := FInputsGroup[Group];
 end;
 
 procedure DoFinalization;
 var
-  G: TInputGroup;
+  G: TInputGroupNotLocal;
 begin
-  // automatic loading/saving is more troublesome than it's worth
-  // if (InputsAll <> nil) and (UserConfig <> nil) then
-  // begin
-  //   Config.RemoveLoadListener(@InputsAll.LoadFromConfig);
-  //   Config.RemoveSaveListener(@InputsAll.SaveToConfig);
-  // end;
-
-  for G := Low(InputsGroup) to High(InputsGroup) do
-    FreeAndNil(InputsGroup[G]);
-
-  FreeAndNil(InputsAll);
+  UnitFinalization := true;
+  for G in TInputGroupNotLocal do
+    FreeAndNil(FInputsGroup[G]);
+  FreeAndNil(FInputsAll);
 end;
 
 initialization
