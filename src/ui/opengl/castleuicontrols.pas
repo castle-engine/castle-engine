@@ -2489,8 +2489,12 @@ begin
       also still focused) }
     if UseForceCaptureInput then
       AddInFrontOfNewFocus(ForceCaptureInput) else
-    if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
-      AddInFrontOfNewFocus(ControlUnderFinger0);
+
+    {$ifndef CASTLE_NINTENDO_SWITCH}
+    // TODO: broken dictionaries on NX?
+    //if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
+    //  AddInFrontOfNewFocus(ControlUnderFinger0);
+    {$endif}
 
     { update TCastleUserInterface.Focused values, based on differences between FFocus and FNewFocus }
     for I := 0 to FNewFocus.Count - 1 do

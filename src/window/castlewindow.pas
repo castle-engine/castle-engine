@@ -3199,7 +3199,9 @@ procedure TCastleWindowBase.OpenCore;
         TDrawableImage from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
+      {$ifndef CASTLE_NINTENDO_SWITCH} // TODO fix this for nx
       RenderLoadingBackground;
+      {$endif}
 
       Application.CastleEngineInitialize;
       if Closed then Exit;

@@ -562,7 +562,11 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
+  {$ifdef CASTLE_NINTENDO_SWITCH} // TODO fix this for nx
+  Result.Value := 0;
+  {$else}
   Result.Value := FpTimes(Dummy);
+  {$endif}
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
@@ -687,6 +691,9 @@ function Timer: TTimerResult;
 var
   tv: TTimeval;
 begin
+  {$ifdef CASTLE_NINTENDO_SWITCH} // TODO fix this for nx
+  Result.Value := 0;
+  {$else}
   FpGettimeofday(@tv, nil);
 
   { We can fit whole TTimeval inside Int64, no problem. }
@@ -705,6 +712,7 @@ begin
     LastTimer.Value := Result.Value;
   {$endif ANDROID}
 
+  {$endif}
 end;
 {$endif UNIX}
 
