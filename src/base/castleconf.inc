@@ -194,9 +194,6 @@
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
-{$ifdef CASTLE_NINTENDO_SWITCH}
-  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
-{$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
