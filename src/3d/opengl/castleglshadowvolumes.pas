@@ -282,7 +282,8 @@ begin
   end;
   {$endif}
 
-  FStencilTwoSided := glStencilOpSeparate <> nil;
+  // In case of Nintendo Switch, glStencilOpSeparate isn't a function pointer
+  FStencilTwoSided := {$ifdef CASTLE_NINTENDO_SWITCH} true {$else} glStencilOpSeparate <> nil {$endif};
 
   if LogShadowVolumes then
     WritelnLogMultiline('Shadow volumes',

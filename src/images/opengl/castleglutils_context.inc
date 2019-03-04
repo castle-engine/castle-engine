@@ -324,7 +324,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}.GLClear(Mask);
+    {$ifndef OpenGLES} GL {$else} CastleGL {$endif}.GLClear(Mask);
 end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
@@ -497,7 +497,7 @@ end;
 
 procedure TRenderContext.UpdateViewport;
 begin
-  {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
+  {$ifndef OpenGLES} GL {$else} CastleGL {$endif}
     .glViewport(
       FViewport.Left   + FViewportDelta.X,
       FViewport.Bottom + FViewportDelta.Y,

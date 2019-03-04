@@ -194,6 +194,10 @@
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
+// TODO: for now dlopen doesn't work at all on NX, so avoid it
+{$ifdef CASTLE_NINTENDO_SWITCH} 
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
 
@@ -205,11 +209,22 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef iOS} {$define OpenGLES} {$endif}
+
+{ Although NX supports in theory OpenGL 4.5, in practice it matches better OpenGLES.
+  E.g. it doesn't have glPointSize (which is not even deprecated in OpenGL,
+  https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glPointSize.xhtml ,
+  but doesn't exist on OpenGLES). }
+{$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
+
 {$ifdef OpenGLES}
   {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}
     {$error We do not support Android/iOS for Delphi yet, use FPC/Lazarus to develop for Android/iOS and other OpenGLES platforms}
   {$else}
-    {$define CastleGL := CastleGLES20}
+    {$ifdef CASTLE_NINTENDO_SWITCH}
+      {$define CastleGL := CastleInternalNxGLES20}
+    {$else}
+      {$define CastleGL := CastleGLES20}
+    {$endif}
   {$endif}
 
   { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
