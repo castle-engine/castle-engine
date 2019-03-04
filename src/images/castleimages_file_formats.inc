@@ -512,14 +512,11 @@ var
   I: TImageFormat;
   E: TImageFormatInfoExtsCount;
 begin
-  // TODO: Why this fails on NX?
-  {$ifndef CASTLE_NINTENDO_SWITCH}
   for I := Low(I) to High(I) do
     for E := Low(E) to ImageFormatInfos[I].ExtsCount do
       URIMimeExtensions.AddOrSetValue(
         '.' + ImageFormatInfos[I].Exts[E],
         ImageFormatInfos[I].MimeTypes[1]);
-  {$endif}
 end;
 
 function MimeTypeToImageFormat(const MimeType: string;
