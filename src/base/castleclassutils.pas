@@ -1631,6 +1631,10 @@ begin
 end;
 
 function DumpExceptionBackTraceToString: string;
+{$ifdef CASTLE_NINTENDO_SWITCH}
+begin
+  Result := ''; // DumpExceptionBackTrace fails with Access Violation
+{$else}
 var
   TextFile: Text;
   StringStream: TStringStream;
@@ -1644,6 +1648,7 @@ begin
     finally CloseFile(TextFile) end;
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
+{$endif}
 end;
 {$endif}
 

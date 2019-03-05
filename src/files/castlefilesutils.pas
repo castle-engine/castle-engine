@@ -199,12 +199,13 @@ var
   (simplifying: looks inside ~/.config/<application-name>/). }
 function ApplicationConfig(const Path: string): string;
 
-{ URL from which we should read data file.
+{ URL from which we should read data files.
   This returns an URL, which is comfortable since our engine operates
   on URLs everywhere. On normal desktop systems this will return
-  a @code(file://...) URL. On Android, it will return an URL indicating
-  Android assets (files packaged inside Android apk) starting with
-  @code(castle-android-assets:/...).
+  a @code(file://...) URL, usually pointing to the "data" subdirectory
+  of your project.
+  See the list below for a detailed description how it behaves on all
+  platforms.
 
   See the manual about the purpose of "data" directory:
   https://castle-engine.io/manual_data_directory.php .
@@ -266,6 +267,13 @@ function ApplicationConfig(const Path: string): string;
       @item(We always return @code(castle-android-assets:/) directory,
         which is a special location on Android where application
         should store it's assets.)
+    ))
+
+    @itemLabel(Nintendo Switch)
+    @item(@orderedList(
+      @item(We always return @code(castle-nx-contents:/) directory,
+        which is a special location where application
+        should store it's data files.)
     ))
 
     @itemLabel(Desktop Unix (Linux, macOS, FreeBSD...))
@@ -633,7 +641,9 @@ begin
   if not ApplicationDataIsCache then
   begin
     ApplicationDataCache :=
-      {$ifdef ANDROID}
+      {$if defined(CASTLE_NINTENDO_SWITCH)}
+        'castle-nx-contents:/'
+      {$elseif defined(ANDROID)}
         'castle-android-assets:/'
       {$else}
         FilenameToURISafe(GetApplicationDataPath)

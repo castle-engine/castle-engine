@@ -93,7 +93,7 @@ function RawURIDecode(const S: string): string;
     @item(We always return lowercase protocol. This is comfortable,
       since you almost always calculate protocol to compare it,
       and protocol names are not case-sensitive,
-      and you should always produce URLs with lowercase
+      and you should always produce URLs with lowercase protocol names
       (see http://tools.ietf.org/html/rfc3986#section-3.1).)
   )
 }
@@ -784,6 +784,7 @@ begin
      (P = 'ftp') or
      (P = 'https') or
      (P = 'assets') or
+     (P = 'castle-nx-contents') or
      (P = 'castle-android-assets') or
      (P = 'castle-data') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,

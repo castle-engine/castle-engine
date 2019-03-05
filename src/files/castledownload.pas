@@ -400,7 +400,8 @@ uses URIParser, Math,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif}
+  {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 
@@ -721,6 +722,15 @@ begin
 
   if LogAllLoading then
     WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  if (P = 'castle-nx-contents') then
+  begin
+    CheckFileAccessSafe(URL);
+    Result := NXReadFile(URL);
+    MimeType := URIMimeType(URL);
+  end else
+  {$endif}
 
   {$ifdef ANDROID}
   if (P = 'http') or (P = 'https') then
