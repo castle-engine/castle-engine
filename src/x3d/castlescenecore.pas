@@ -6117,12 +6117,7 @@ begin
      TKambiNavigationInfoNode(NavigationInfoStack.Top).TimeOriginAtLoad then
     FTimeAtLoad := 0.0
   else
-    FTimeAtLoad :=
-      {$ifdef CASTLE_NINTENDO_SWITCH} // Reading system time on NX fails
-      1000 * 1000
-      {$else}
-      DateTimeToUnix(Now)
-      {$endif};
+    FTimeAtLoad := DateTimeToUnix(CastleNow);
   ResetTime(TimeAtLoad);
 end;
 

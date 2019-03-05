@@ -325,9 +325,7 @@ begin
   WriteLogCoreCore('Log for "' + ApplicationName + '".' + NL);
   if ApplicationProperties.Version <> '' then
     WriteLogCoreCore('  Version: ' + ApplicationProperties.Version + '.' + NL);
-  {$ifndef CASTLE_NINTENDO_SWITCH} // Reading system time on NX fails
-  WriteLogCoreCore('  Started on ' + DateTimeToAtStr(Now) + '.' + NL);
-  {$endif CASTLE_NINTENDO_SWITCH}
+  WriteLogCoreCore('  Started on ' + DateTimeToAtStr(CastleNow) + '.' + NL);
   WriteLogCoreCore('  Castle Game Engine version: ' + CastleEngineVersion + '.' + NL);
   WriteLogCoreCore('  Compiled with: ' + SCompilerDescription + '.' + NL);
   if CollectedLog <> '' then
@@ -393,15 +391,11 @@ end;
 
 function LogTimePrefixStr: string;
 begin
-  {$ifdef CASTLE_NINTENDO_SWITCH} // Reading system time on NX fails
-  Result := '';
-  {$else}
   case LogTimePrefix of
     ltNone: Result := '';
-    ltTime: Result := FormatDateTime('tt', Now) + '> ';
-    ltDateTime: Result := FormatDateTime('yyyy"-"mm"-"dd" "tt', Now) + '> ';
+    ltTime: Result := FormatDateTime('tt', CastleNow) + '> ';
+    ltDateTime: Result := FormatDateTime('yyyy"-"mm"-"dd" "tt', CastleNow) + '> ';
   end;
-  {$endif}
 end;
 
 procedure WriteLog(const Category: string; const Message: string);
