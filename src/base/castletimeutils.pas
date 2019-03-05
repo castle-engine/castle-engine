@@ -538,7 +538,7 @@ var
   Also set FTimerFrequency. }
 procedure InitTimer;
 begin
-  if QueryPerformanceFrequency(FTimerFrequency) then
+  if QueryPerformanceFrequency(Int64(FTimerFrequency)) then
     FTimerState := tsQueryPerformance else
   begin
     FTimerState := tsCastleGetTickCount64;
@@ -558,7 +558,7 @@ begin
   if FTimerState = tsNotInitialized then InitTimer;
 
   if FTimerState = tsQueryPerformance then
-    QueryPerformanceCounter(Result.Value)
+    QueryPerformanceCounter(Int64(Result.Value))
   else
   begin
     { Unfortunately, below will cast CastleGetTickCount64 back to 32-bit.
