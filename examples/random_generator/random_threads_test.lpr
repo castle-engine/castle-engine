@@ -1,9 +1,6 @@
 program random_threads_test;
 
-uses {$IFDEF LINUX} cthreads, {$ENDIF} SysUtils, Classes, CastleLog, CastleRandom
-  { Needed only for GetTickCount64 on FPC 2.6.4.
-    In newer FPC, GetTickCount64 is already in SysUtils. }
-  {$ifdef VER2} , CastleTimeUtils {$endif};
+uses {$IFDEF LINUX} cthreads, {$ENDIF} SysUtils, Classes, CastleLog, CastleRandom;
 
 {$R+}{$Q+}
 

@@ -87,11 +87,7 @@ implementation
 
 uses
   { Required only for randomization based on "Now" function. }
-  SysUtils,
-  { Required for the GetTickCount64 function (not available in FPC 2.6.x).
-    Note that the CastleTimeUtils.GetTickCount64 hides the SysUtils.GetTickCount64
-    in FPC 3.x. }
-  CastleTimeUtils;
+  SysUtils;
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
 begin
@@ -196,17 +192,7 @@ begin
      which we obviously don't want to.}
 
     {so let's start by getting tick count as SysUtils does}
-    { TODO: Use CastleTimeUtils.Timer }
-    {$PUSH}{$WARN 5066 OFF}
-    {Yes, we are using a deprecated function, it's ok here,
-     because its goal is not convenient time measurement
-     but getting a semi-random number as fine as possible.
-     We're using CastleTimeUtils.GetTickCount64,
-     as SysUtils.GetTickCount64 is not available in FPC 2.6.4.
-     We will switch to SysUtils.GetTickCount64 implementation when the engine will
-     no longer need to support FPC 2.6.4. }
     c64 := GetTickCount64;
-    {$POP}
     {just to make sure it's not zero. It's not really important here.}
     if c64 = 0 then
       c64 := 2903758934725;
