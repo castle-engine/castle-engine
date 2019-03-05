@@ -61,7 +61,7 @@ type
 
   FirstTime and SecondTime are milisecond times from some initial point.
   For example, they may be taken from a function like 32-bit GetTickCount
-  (on older Windows; on newer we use GetTickCount64).
+  (but you actually should use GetTickCount64 with new compilers, never 32-bit GetTickCount).
   Such time may "wrap".
   This function checks these times intelligently, using the assumption that
   the SecondTime is always "later" than the FirstTime, and only having to check
@@ -98,13 +98,6 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
   deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 { @groupEnd }
 
-{ Get current time, in miliseconds. On newer OSes (non-Windows,
-  or Windows >= Windows Vista) this uses 64-bit int under the hood.
-  Or older Windows versions it's based on 32-bit Windows.GetTickCount
-  that measures time since system start, that will wrap in ~ 49 days. }
-function GetTickCount64: TMilisecTime;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
-
 const
   MinDateTime: TDateTime = MinDouble;
 
@@ -120,34 +113,19 @@ type
   TProcessTimerResult = record
   private
     Value:
-      {$ifdef UNIX} clock_t {$endif}
+      {$ifdef UNIX}
+        {$ifdef CASTLE_NINTENDO_SWITCH}
+          QWord
+        {$else}
+          clock_t // other Unix
+        {$endif}
+      {$endif}
       {$ifdef MSWINDOWS} DWord {$endif};
   public
     { Seconds passed since this time sample up to now.
       Equivalent to @code(ProcessTimerSeconds(ProcessTimer, Self)) }
     function ElapsedTime: TFloatTime;
   end;
-
-const
-  { Resolution of the timer used by @link(ProcessTimer). }
-  ProcessTimersPerSec
-    {$ifdef UNIX}
-      = { What is the frequency of FpTimes ?
-          sysconf (_SC_CLK_TCK) ?
-          Or does sysconf exist only in Libc ? }
-        { Values below were choosen experimentally for Linux and FreeBSD
-          (and I know that on most UNIXes it should be 128, that's
-          a traditional value) }
-        {$ifdef LINUX} 100 {$else}
-          {$ifdef DARWIN}
-            { In /usr/include/ppc/_limits.h and
-                 /usr/include/i386/_limits.h
-              __DARWIN_CLK_TCK is defined to 100. }
-            100 {$else}
-              128 {$endif} {$endif}
-    {$endif}
-    {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif}
-    deprecated 'do not use this, it should be only used internally; use ProcessTimerSeconds to compare two times';
 
 { Current time, local to this process.
   Use this to measure and compare the time it takes your program to do
@@ -182,16 +160,6 @@ function ProcessTimer: TProcessTimerResult;
 function ProcessTimerNow: TProcessTimerResult; deprecated 'use ProcessTimer';
 
 { Subtract two times obtained from @link(ProcessTimer),
-  A-B, return a difference in ProcessTimersPerSec.
-
-  Although it may just subtract two values, it may also do something more.
-  For example, if timer resolution is only miliseconds, and it may wrap
-  (just like TMilisecTime), then we may subtract values intelligently,
-  taking into account that time could wrap (see TimeTickDiff). }
-function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
-  deprecated 'use ProcessTimerSeconds instead';
-
-{ Subtract two times obtained from @link(ProcessTimer),
   A-B, return a difference in seconds. }
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 
@@ -218,8 +186,8 @@ type
   TTimerResult = record
   private
     { The type of this could be platform-dependent. But for now, all platforms
-      are happy with Int64. }
-    Value: Int64;
+      are happy with QWord. }
+    Value: QWord;
   public
     { Seconds passed since this time sample up to now.
       Equivalent to @code(TimerSeconds(Timer, Self)) }
@@ -274,7 +242,7 @@ type
     LastRecalculateTime: TTimerResult;
     RenderStartTime: TTimerResult;
     { 0 means "no frame was rendered yet" }
-    FramesRendered: Int64;
+    FramesRendered: QWord;
     { how much time passed inside frame rendering }
     OnlyRenderTimePassed: TTimerResult;
     FMaxSensibleSecondsPassed: TFloatTime;
@@ -418,7 +386,7 @@ type
       no need to have a TFramesPerSecond instance (which is usually
       accessed from TUIContainer, like @link(TUIContainer.Fps),
       @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
-    class function FrameId: Int64;
+    class function FrameId: QWord;
   end;
 
 {$define read_interface}
@@ -432,6 +400,7 @@ uses Generics.Defaults,
 
 {$define read_implementation}
 {$I castletimeutils_profiler.inc}
+{$I castletimeutils_gettickcount64.inc}
 
 function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
 var
@@ -473,77 +442,6 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1-t2 end;
 {$I norqcheckend.inc}
 
-{$ifdef MSWINDOWS}
-{ GetTickCount64 for Windows, from fpc/3.0.0/src/rtl/win/sysutils.pp }
-
-{$IFNDEF WINCE}
-type
-  TGetTickCount64 = function : QWord; stdcall;
-
-var
-  WinGetTickCount64: TGetTickCount64 = Nil;
-{$ENDIF}
-
-function GetTickCount64: QWord;
-{$IFNDEF WINCE}
-var
-  lib: THandle;
-{$ENDIF}
-begin
-{$IFNDEF WINCE}
-  { on Vista and newer there is a GetTickCount64 implementation }
-  if Win32MajorVersion >= 6 then begin
-    if not Assigned(WinGetTickCount64) then begin
-      lib := LoadLibrary('kernel32.dll');
-      WinGetTickCount64 := TGetTickCount64(
-                             GetProcAddress(lib, 'GetTickCount64'));
-    end;
-    Result := WinGetTickCount64();
-  end else
-{$ENDIF}
-    Result := Windows.GetTickCount;
-end;
-{$endif MSWINDOWS}
-
-{$ifdef UNIX}
-{ GetTickCount64 for Unix.
-  Not based on, but in fact very similar idea as the one in
-  FPC fpc/3.0.0/src/rtl/unix/sysutils.pp }
-
-var
-  {$warnings off} // knowingly using deprecated stuff
-  LastGetTickCount64: TMilisecTime;
-  {$warnings on}
-
-{$I norqcheckbegin.inc}
-function GetTickCount64: TMilisecTime;
-var
-  timeval: TTimeVal;
-begin
-  FpGettimeofday(@timeval, nil);
-
-  { By doing tv_sec * 1000, we reject 3 most significant digits from tv_sec.
-    That's Ok, since these digits change least often.
-    And this way we get the 3 least significant digits to fill
-    with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million). }
-
-  Result := Int64(timeval.tv_sec) * 1000 + (timeval.tv_usec div 1000);
-
-  { We cannot trust some Android systems to return increasing values here
-    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
-    Maybe they synchronize the time from the Internet, and do not take care
-    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
-
-  if Result < LastGetTickCount64 then
-  begin
-    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
-    Result := LastGetTickCount64;
-  end else
-    LastGetTickCount64 := Result;
-end;
-{$I norqcheckend.inc}
-{$endif UNIX}
-
 function DateTimeToAtStr(DateTime: TDateTime): string;
 begin
   Result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
@@ -551,8 +449,12 @@ end;
 
 { cross-platform process timers ---------------------------------------------- }
 
-{$ifdef UNIX}
 function ProcessTimer: TProcessTimerResult;
+{$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+begin
+  Result.Value := CastleGetTickCount64;
+{$else}
+// other Unixes
 var
   Dummy: tms;
 begin
@@ -562,38 +464,9 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
-  {$ifdef CASTLE_NINTENDO_SWITCH} // TODO fix this for nx
-  Result.Value := 0;
-  {$else}
   Result.Value := FpTimes(Dummy);
-  {$endif}
+{$endif}
 end;
-
-function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
-begin
-  Result.Value := A.Value - B.Value;
-end;
-{$endif UNIX}
-
-{$ifdef MSWINDOWS}
-function ProcessTimer: TProcessTimerResult;
-begin
-  { Deliberately using deprecated GetTickCount64 and friends.
-    It should be internal in this unit. }
-  {$warnings off}
-  Result.Value := GetTickCount64;
-  {$warnings on}
-end;
-
-function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
-begin
-  { Deliberately using deprecated GetTickCount64 and friends.
-    It should be internal in this unit. }
-  {$warnings off}
-  Result.Value := TimeTickDiff(b.Value, a.Value);
-  {$warnings on}
-end;
-{$endif MSWINDOWS}
 
 function ProcessTimerNow: TProcessTimerResult;
 begin
@@ -601,10 +474,33 @@ begin
 end;
 
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
+const
+  { Resolution of the timer used by @link(ProcessTimer). }
+  ProcessTimersPerSec =
+    {$if defined(MSWINDOWS) or defined(CASTLE_NINTENDO_SWITCH)}
+      1000 // miliseconds from CastleGetTickCount64
+    {$else}
+      { What is the frequency of FpTimes ?
+        sysconf (_SC_CLK_TCK) ?
+        Or does sysconf exist only in Libc ? }
+      { Values below were choosen experimentally for Linux and FreeBSD
+        (and I know that on most UNIXes it should be 128, that's
+        a traditional value) }
+      {$ifdef LINUX} 100 {$else}
+        {$ifdef DARWIN}
+          { In /usr/include/ppc/_limits.h and
+               /usr/include/i386/_limits.h
+            __DARWIN_CLK_TCK is defined to 100. }
+          100
+        {$else}
+          128
+        {$endif}
+      {$endif}
+    {$endif};
 begin
-  {$warnings off} // knowingly using deprecated stuff
-  Result := ProcessTimerDiff(A, B).Value / ProcessTimersPerSec;
-  {$warnings on}
+  {$I norqcheckbegin.inc}
+  Result := (A.Value - B.Value) / ProcessTimersPerSec;
+  {$I norqcheckend.inc}
 end;
 
 var
@@ -629,8 +525,8 @@ end;
 
 {$ifdef MSWINDOWS}
 type
-  TTimerFrequency = Int64;
-  TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount64);
+  TTimerFrequency = QWord;
+  TTimerState = (tsNotInitialized, tsQueryPerformance, tsCastleGetTickCount64);
 
 var
   FTimerState: TTimerState = tsNotInitialized;
@@ -643,7 +539,7 @@ begin
   if QueryPerformanceFrequency(FTimerFrequency) then
     FTimerState := tsQueryPerformance else
   begin
-    FTimerState := tsGetTickCount64;
+    FTimerState := tsCastleGetTickCount64;
     FTimerFrequency := 1000;
   end;
 end;
@@ -663,18 +559,24 @@ begin
     QueryPerformanceCounter(Result.Value)
   else
   begin
-    { Deliberately using deprecated GetTickCount64 and friends.
-      It should be internal in this unit. }
-    {$warnings off}
-    { Unfortunately, below will cast GetTickCount64 back to 32-bit.
+    { Unfortunately, below will cast CastleGetTickCount64 back to 32-bit.
       Hopefully QueryPerformanceCounter is usually available. }
-    Result.Value := GetTickCount64;
-    {$warnings on}
+    Result.Value := CastleGetTickCount64;
   end;
 end;
 {$endif MSWINDOWS}
 
-{$ifdef UNIX}
+{$ifdef CASTLE_NINTENDO_SWITCH}
+const
+  TimerFrequency = 1000;
+
+function Timer: TTimerResult;
+begin
+  Result.Value := CastleGetTickCount64;
+end;
+{$endif}
+
+{$if defined(UNIX) and not defined(CASTLE_NINTENDO_SWITCH)}
 type
   TTimerFrequency = LongWord;
 const
@@ -691,13 +593,10 @@ function Timer: TTimerResult;
 var
   tv: TTimeval;
 begin
-  {$ifdef CASTLE_NINTENDO_SWITCH} // TODO fix this for nx
-  Result.Value := 0;
-  {$else}
   FpGettimeofday(@tv, nil);
 
-  { We can fit whole TTimeval inside Int64, no problem. }
-  Result.Value := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
+  { We can fit whole TTimeval inside QWord, no problem. }
+  Result.Value := QWord(tv.tv_sec) * 1000000 + QWord(tv.tv_usec);
 
   {$ifdef ANDROID}
   { We cannot trust some Android systems to return increasing values here
@@ -711,8 +610,6 @@ begin
   end else
     LastTimer.Value := Result.Value;
   {$endif ANDROID}
-
-  {$endif}
 end;
 {$endif UNIX}
 
@@ -729,7 +626,7 @@ end;
 { TFramesPerSecond ----------------------------------------------------------- }
 
 var
-  FFrameId: Int64 = 1;
+  FFrameId: QWord = 1;
 
 constructor TFramesPerSecond.Create;
 const
@@ -845,7 +742,7 @@ begin
   DoZeroNextSecondsPassed := true;
 end;
 
-class function TFramesPerSecond.FrameId: Int64;
+class function TFramesPerSecond.FrameId: QWord;
 begin
   Result := FFrameId;
 end;
