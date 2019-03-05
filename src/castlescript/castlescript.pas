@@ -949,7 +949,10 @@ begin
     Result := CoreExecute;
 
     { Force raising pending exceptions by FP calculations }
+    // on Nintendo Switch, this raises errors from previous innocent calculations
+    {$ifndef CASTLE_NINTENDO_SWITCH}
     ClearExceptions(true);
+    {$endif}
   except
     { Convert EIntError and EMathError to ECasScriptAnyMathError }
     on E: EIntError do

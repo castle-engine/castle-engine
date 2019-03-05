@@ -257,7 +257,8 @@ function ResolveCastleDataURL(const URL: String): String;
 implementation
 
 uses SysUtils, URIParser,
-  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils;
+  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils
+  {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
@@ -895,11 +896,22 @@ begin
 end;
 
 function URIFileExists(const URL: string): boolean;
+{$ifdef CASTLE_NINTENDO_SWITCH}
+var
+  P: String;
+begin
+  P := URIProtocol(URL);
+  if P = 'castle-nx-contents' then
+    Result := NXFileExists(URL)
+  else
+    Result := false;
+{$else}
 var
   F: string;
 begin
   F := URIToFilenameSafe(URL);
   Result := (F = '') or FileExists(F);
+{$endif}
 end;
 
 function URICurrentPath: string;
