@@ -898,17 +898,22 @@ end;
 function URIFileExists(const URL: string): boolean;
 {$ifdef CASTLE_NINTENDO_SWITCH}
 var
-  P: String;
+  URLNew, P: String;
 begin
-  P := URIProtocol(URL);
+  { Using ResolveCastleDataURL, so this also works when URL uses castle-data:/
+    that resolves to castle-nx-contents:/ on Nintendo Switch. }
+  URLNew := ResolveCastleDataURL(URL);
+  P := URIProtocol(URLNew);
   if P = 'castle-nx-contents' then
-    Result := NXFileExists(URL)
+    Result := NXFileExists(URLNew)
   else
     Result := false;
 {$else}
 var
   F: string;
 begin
+  { Note that URIToFilenameSafe does ResolveCastleDataURL under the hood,
+    if necessary. }
   F := URIToFilenameSafe(URL);
   Result := (F = '') or FileExists(F);
 {$endif}

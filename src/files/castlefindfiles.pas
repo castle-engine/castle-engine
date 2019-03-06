@@ -285,7 +285,8 @@ begin
     AndroidAssetFileSystem else
   {$endif}
     WritelnLog('FindFiles',
-      'Searching inside filesystem with protocol %s not possible', [P]);
+      'Searching inside filesystem with protocol %s not possible, ignoring path "%s"',
+        [P, URICaption(Path)]);
 end;
 
 { This is equivalent to FindFiles with Recursive = true,
@@ -314,7 +315,8 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       LocalPath := Path else
     begin
       WritelnLog('FindFiles',
-        'Searching inside subdirectories with protocol %s not possible', [P]);
+        'Searching inside subdirectories with protocol %s not possible, ignoring path "%s"',
+          [P, URICaption(Path)]);
       Exit;
     end;
 
@@ -475,9 +477,14 @@ begin
   P := URIProtocol(Path);
   if P = 'file' then
     { convert Path to filename and continue }
-    Path := URIToFilenameSafe(Path) else
+    Path := URIToFilenameSafe(Path)
+  else
+  if P = 'castle-nx-contents' then
+    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents
+  else
   if P <> '' then
-    { we can't do anything when protocol is not file or empty. }
+    { we can't do anything with different protocols
+      (note that empty protocol means it's a filename, so this is OK). }
     Exit(true);
 
   if FileExists(Path + Base) then Exit(true);
