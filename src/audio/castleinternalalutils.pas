@@ -210,7 +210,7 @@ begin
   try
     alBufferData(Buffer, F.DataFormat, F.Data, F.DataSize, F.Frequency);
 
-    if Log and LogSoundLoading then
+    if LogSoundLoading then
       WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
         [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
           F.DataSize, F.Frequency, F.Duration ]));
