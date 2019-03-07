@@ -275,11 +275,6 @@ begin
     Result := InsertLibPrefix(Result);
 end;
 
-function AnsiSameFileName(const S1, S2: string): boolean;
-begin
-  Result := AnsiCompareFileName(S1, S2) = 0;
-end;
-
 { TLocalizedAppName ---------------------------------------------------------- }
 
 constructor TLocalizedAppName.Create(ALanguage, AAppName: String);
@@ -1136,6 +1131,8 @@ begin
 
     PackageFileName := PackageName(OS, CPU);
 
+    Pack.AddDataInformation(DataName);
+
     if OS in AllWindowsOSes then
       Pack.Make(OutputPath, PackageFileName, ptZip)
     else
@@ -1236,12 +1233,11 @@ procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var Stop
 begin
   if FileInfo.Directory then
   begin
-    if SpecialDirName(FileInfo.Name) or
-       { exclude version control dirs }
-       AnsiSameFileName(FileInfo.Name, '.git') or
-       AnsiSameFileName(FileInfo.Name, '.svn') or
+    if { exclude version control dirs }
+       SameFileName(FileInfo.Name, '.git') or
+       SameFileName(FileInfo.Name, '.svn') or
        { exclude various build tool output }
-       AnsiSameFileName(FileInfo.Name, 'castle-engine-output') then
+       SameFileName(FileInfo.Name, 'castle-engine-output') then
       Exit;
     { recursively scan children }
     FindFiles(FileInfo.AbsoluteName, '*', true, @PackageSourceGather, []);
@@ -1284,15 +1280,15 @@ begin
         for OS in TOS do
           for CPU in TCPU do
             if OSCPUSupported[OS, CPU] then
-              if AnsiSameFileName(Files[I], PackageName(OS, CPU)) then
+              if SameFileName(Files[I], PackageName(OS, CPU)) then
                 Exclude := true;
 
-        if AnsiSameFileName(Files[I], SourcePackageName) or
+        if SameFileName(Files[I], SourcePackageName) or
            { avoid Android packages }
-           AnsiSameFileName(Files[I], Name + '-debug.apk') or
-           AnsiSameFileName(Files[I], Name + '-release.apk') or
+           SameFileName(Files[I], Name + '-debug.apk') or
+           SameFileName(Files[I], Name + '-release.apk') or
            { do not pack AndroidAntProperties.txt with private stuff }
-           AnsiSameFileName(Files[I], 'AndroidAntProperties.txt') then
+           SameFileName(Files[I], 'AndroidAntProperties.txt') then
           Exclude := true;
 
         if not Exclude then

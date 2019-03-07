@@ -896,6 +896,11 @@ begin
 end;
 
 function URIFileExists(const URL: string): boolean;
+{ TODO: Use
+  if (P = 'castle-data') and
+     (DisableDataDirectoryInformation = 0) and
+     (DataDirectoryInformation <> nil) then
+}
 {$ifdef CASTLE_NINTENDO_SWITCH}
 var
   URLNew, P: String;

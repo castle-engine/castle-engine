@@ -48,13 +48,25 @@ type
     { Set the Unix executable bit on given file. Name is relative to package path,
       just like DestinationFileName for @link(Add). }
     procedure MakeExecutable(const Name: string);
+
+    { Generate auto_generated/CastleDataInformation.xml file inside
+      DataName subdirectory of the archive. }
+    procedure AddDataInformation(const DataName: String);
   end;
+
+{ Generate auto_generated/CastleDataInformation.xml file inside
+  CurrentDataPath, if it exists.
+  CurrentDataPath may but doesn't have to end with PathDelim. }
+procedure GenerateDataInformation(const CurrentDataPath: String);
 
 implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleLog,
+  CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
+  CastleStringUtils,
   ToolUtils;
+
+{ TPackageDirectory ---------------------------------------------------------- }
 
 constructor TPackageDirectory.Create(const ATopDirectoryName: string);
 begin
@@ -114,8 +126,7 @@ begin
   FullPackageFileName := CombinePaths(OutputProjectPath, PackageFileName);
   DeleteFile(FullPackageFileName);
   CheckRenameFile(InclPathDelim(TemporaryDir) + PackageFileName, FullPackageFileName);
-  Writeln('Created package ' + PackageFileName + ', size: ',
-    (FileSize(FullPackageFileName) / (1024 * 1024)):0:2, ' MB');
+  Writeln('Created package ' + PackageFileName + ', size: ', SizeToStr(FileSize(FullPackageFileName)));
 end;
 
 procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string);
@@ -135,6 +146,41 @@ begin
   {$else}
   WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
   {$endif}
+end;
+
+procedure TPackageDirectory.AddDataInformation(const DataName: String);
+begin
+  GenerateDataInformation(Path + DataName);
+end;
+
+{ global --------------------------------------------------------------------- }
+
+procedure GenerateDataInformation(const CurrentDataPath: String);
+var
+  DataInformationDir, DataInformationFileName: String;
+  DataInformation: TInternalDirectoryInformation;
+  DirsCount, FilesCount, FilesSize: QWord;
+begin
+  if DirectoryExists(CurrentDataPath) then
+  begin
+    DataInformationDir := InclPathDelim(CurrentDataPath) + 'auto_generated';
+    CheckForceDirectories(DataInformationDir);
+    DataInformationFileName := DataInformationDir + PathDelim + 'CastleDataInformation.xml';
+    { Do not include CastleDataInformation.xml itself on a list of existing files,
+      since we don't know it's size yet. }
+    DeleteFile(DataInformationFileName);
+
+    DataInformation := TInternalDirectoryInformation.Create;
+    try
+      DataInformation.Generate(FilenameToURISafe(CurrentDataPath));
+      DataInformation.SaveToFile(FilenameToURISafe(DataInformationFileName));
+
+      DataInformation.Sum(DirsCount, FilesCount, FilesSize);
+      Writeln('Generated CastleDataInformation.xml.');
+      Writeln(Format('Project data contains %d directories, %d files, total (uncompressed) size %s.',
+        [DirsCount, FilesCount, SizeToStr(FilesSize)]));
+    finally FreeAndNil(DataInformation) end;
+  end;
 end;
 
 end.

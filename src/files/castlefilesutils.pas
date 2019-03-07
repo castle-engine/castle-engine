@@ -777,12 +777,11 @@ procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; v
 var
   Warn: boolean;
 begin
-  if SpecialDirName(FileInfo.Name) then Exit;
-
   Warn := PBoolean(Data)^;
 
   if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName, Warn) else
+    CheckRemoveDir(FileInfo.AbsoluteName, Warn)
+  else
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 

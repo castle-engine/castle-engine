@@ -89,6 +89,11 @@ type
       and does not modify Value. }
     function AttributeInt64(const AttrName: string; var Value: Int64): boolean; overload;
 
+    { Read from Element attribute value as QWord and returns @true,
+      or (if there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeQWord(const AttrName: string; var Value: QWord): boolean; overload;
+
     { Read from Element attribute value as Single and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
@@ -186,6 +191,11 @@ type
       @raises EDOMAttributeMissing }
     function AttributeInt64(const AttrName: string): Int64; overload;
 
+    { Retrieves from Element given attribute as an QWord,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeQWord(const AttrName: string): QWord; overload;
+
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
@@ -257,6 +267,9 @@ type
     { Retrieves from Element given attribute as an Int64, or a default value. }
     function AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
 
+    { Retrieves from Element given attribute as an QWord, or a default value. }
+    function AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+
     { Retrieves from Element given attribute as a Single, or a default value. }
     function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
 
@@ -309,11 +322,15 @@ type
       such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
     procedure AttributeSet(const AttrName: string; const Value: Int64); overload;
 
+    { Set the attribute as QWord,
+      such that it's readable back by @link(AttributeQWord) and @link(AttributeQWordDef). }
+    procedure AttributeSet(const AttrName: string; const Value: QWord); overload;
+
     { Set the attribute as Cardinal,
       such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
     procedure AttributeSet(const AttrName: string; const Value: Cardinal); overload;
 
-    { Set the attribute as Int64,
+    { Set the attribute as Single,
       such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
     procedure AttributeSet(const AttrName: string; const Value: Single); overload;
 
@@ -697,6 +714,16 @@ begin
     Value := StrToInt64(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeQWord(
+  const AttrName: string; var Value: QWord): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := StrToQWord(ValueStr);
+end;
+
 function TDOMElementHelper.AttributeSingle(
   const AttrName: string; var Value: Single): boolean;
 var
@@ -814,7 +841,13 @@ end;
 function TDOMElementHelper.AttributeInt64(const AttrName: string): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
-    raise EDOMAttributeMissing.CreateFmt('Missing required (integer 64-bit) attribute "%s" on element "%s"', [AttrName, TagName]);
+    raise EDOMAttributeMissing.CreateFmt('Missing required (64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeQWord(const AttrName: string): QWord;
+begin
+  if not AttributeQWord(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (unsigned 64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
 function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
@@ -884,6 +917,12 @@ end;
 function TDOMElementHelper.AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+begin
+  if not AttributeQWord(AttrName, Result) then
     Result := DefaultValue;
 end;
 
@@ -959,6 +998,11 @@ begin
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Int64);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: QWord);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;

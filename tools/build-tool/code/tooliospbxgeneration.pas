@@ -196,8 +196,6 @@ begin
     Exit;
   end;
 
-  if SpecialDirName(FileInfo.Name) then Exit;
-
   F := TXcodeProjectFile.Create(FileInfo);
   Children.Add(F);
   Project.Files.Add(F);

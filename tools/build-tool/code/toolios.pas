@@ -43,7 +43,7 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -307,6 +307,7 @@ var
           Writeln('Packaging data file: ' + Files[I]);
       end;
     finally FreeAndNil(Files) end;
+    GenerateDataInformation(OutputDataFolder);
   end;
 
   (* Add a large auto-generated chunk into the pbx file, replacing a special macro

@@ -58,9 +58,6 @@ procedure TTemplateCopyProcess.FoundFile(const FileInfo: TFileInfo; var StopSear
 var
   Contents, RelativeUrl, TargetUrl, TargetFileName, Mime: String;
 begin
-  if FileInfo.Directory and SpecialDirName(FileInfo.Name) then
-    Exit;
-
   { Ignore case at IsPrefix / PrefixRemove calls,
     in case it's not case-sensitive file-system, then the case in theory
     can differ. }

@@ -48,7 +48,7 @@ implementation
 
 uses SysUtils, DOM, XMLWrite,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion;
+  ToolEmbeddedImages, ToolFPCVersion, ToolPackage;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -320,17 +320,22 @@ var
   procedure GenerateAssets;
   var
     I: Integer;
-    FileFrom, FileTo: string;
+    RelativeAssetsPath, FileFrom, FileTo: string;
   begin
+    RelativeAssetsPath :=
+      'app' + PathDelim +
+      'src' + PathDelim +
+      'main' + PathDelim +
+      'assets' + PathDelim;
     for I := 0 to Files.Count - 1 do
     begin
       FileFrom := Project.DataPath + Files[I];
-      FileTo := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-                'assets' + PathDelim + Files[I];
+      FileTo := RelativeAssetsPath + Files[I];
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
         Writeln('Packaging data file: ' + Files[I]);
     end;
+    GenerateDataInformation(AndroidProjectPath + RelativeAssetsPath);
   end;
 
   procedure GenerateLocalization;

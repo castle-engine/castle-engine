@@ -64,8 +64,8 @@ var
 { funcs ------------------------------------------------------------ }
 
 var
-  FilesCount: Cardinal = 0;
-  FilesSize: Cardinal = 0;
+  FilesCount: QWord = 0;
+  FilesSize: QWord = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
   Data: Pointer; var StopSearch: boolean);
@@ -128,8 +128,6 @@ var DirsCount: Cardinal = 0;
 procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   if not FileInfo.Directory then Exit;
-
-  if SpecialDirName(ExtractFileName(FileInfo.AbsoluteName)) then Exit;
 
   Inc(DirsCount);
 

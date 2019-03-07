@@ -951,6 +951,8 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 { Remove one newline from the end of the string, if any. }
 function TrimEndingNewline(const S: String): String;
 
+function SizeToStr(const Value: QWord): String;
+
 const
   { }
   CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
@@ -2542,6 +2544,23 @@ begin
     Result := Copy(S, 1, Length(S) - 1)
   else
     Result := S;
+end;
+
+function SizeToStr(const Value: QWord): String;
+begin
+  if Value >= 1024 * 1024 * 1024 then
+    Result := FormatDot('%.2f', [Value / (1024 * 1024 * 1024)]) + ' GB'
+  else
+  if Value >= 1024 * 1024 then
+    Result := FormatDot('%.2f', [Value / (1024 * 1024)]) + ' MB'
+  else
+  if Value >= 1024 then
+    Result := FormatDot('%.2f', [Value / 1024]) + ' KB'
+  else
+    Result := FormatDot('%d', [Value]) + ' bytes';
+
+  // too verbose
+  //Result += Format(' (%d bytes)', [Value]);
 end;
 
 end.
