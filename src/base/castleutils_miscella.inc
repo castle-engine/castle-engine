@@ -236,7 +236,9 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if 
 function SFPCVersion: string;
 begin
   Result := {$I %FPCVERSION%} +
-    ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
+    ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} +
+      {$ifdef CASTLE_NINTENDO_SWITCH} ' for Nintendo Switch' + {$endif}
+    ')';
 end;
 {$endif FPC}
 
@@ -352,4 +354,3 @@ begin
 end;
 
 {$endif read_implementation}
-
