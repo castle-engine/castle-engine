@@ -243,6 +243,23 @@ function ExtractURIName(const URL: string): string;
 { Extract path (everything before last part), including final slash, from URL. }
 function ExtractURIPath(const URL: string): string;
 
+{ Ensure URL ends with slash.
+
+  For an empty URL, returns empty string (so it does not turn "" into "/").
+  For an URL ending with bashslash (which usually means you passed Windows
+  path name), it removes the backslash before adding slash.
+
+  This should be used instead of InclPathDelim or IncludeTrailingPathDelimiter,
+  when you use URLs instead of filenames. }
+function URIIncludeSlash(const URL: String): String;
+
+{ Ensure URL does not end with slash.
+  In case you passed Windows path name, it also removes the backslash.
+
+  This should be used instead of ExclPathDelim or ExcludeTrailingPathDelimiter,
+  when you use URLs instead of filenames. }
+function URIExcludeSlash(const URL: String): String;
+
 { Does a local file exist. Always answers @true for URLs that do not indicate
   local files (assume remote file exist). }
 function URIFileExists(const URL: string): boolean;
@@ -893,6 +910,32 @@ end;
 function ExtractURIPath(const URL: string): string;
 begin
   Result := ExtractFilePath(URL);
+end;
+
+function URIIncludeSlash(const URL: String): String;
+var
+  L: Integer;
+begin
+  if URL = '' then
+    Exit('');
+
+  L := Length(URL);
+  case URL[L] of
+    '/': Result := URL; // nothing needs to be done
+    '\': Result := Copy(URL, 1, L - 1) + '/';
+    else Result := URL + '/';
+  end;
+end;
+
+function URIExcludeSlash(const URL: String): String;
+var
+  L: Integer;
+begin
+  L := Length(URL);
+  if (L <> 0) and (URL[L] in ['/', '\']) then
+    Result := Copy(URL, 1, L - 1)
+  else
+    Result := URL;
 end;
 
 function URIFileExists(const URL: string): boolean;

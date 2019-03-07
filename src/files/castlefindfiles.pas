@@ -178,22 +178,6 @@ uses URIParser,
   )
 }
 
-{ Ensure URL ends with slash. }
-function EnsureSlash(const URL: String): String;
-var
-  L: Integer;
-begin
-  if URL = '' then
-    Exit('');
-
-  L := Length(URL);
-  case URL[L] of
-    '/': Result := URL; // nothing needs to be done
-    '\': Result := Copy(URL, 1, L - 1) + '/';
-    else Result := URL + '/';
-  end;
-end;
-
 { FindFiles ------------------------------------------------------------------ }
 
 { This is equivalent to FindFiles with Recursive = false
@@ -275,7 +259,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             Inc(Result);
             FileInfo.Name := D.Name;
             FileInfo.Directory := true;
-            FileInfo.URL := EnsureSlash(Path) + D.Name;
+            FileInfo.URL := URIIncludeSlash(Path) + D.Name;
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);
@@ -291,7 +275,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
             FileInfo.Name := F.Name;
             FileInfo.Directory := false;
             FileInfo.Size := F.Size;
-            FileInfo.URL := EnsureSlash(Path) + F.Name;
+            FileInfo.URL := URIIncludeSlash(Path) + F.Name;
             if Assigned(FileProc) then
             begin
               FileProc(FileInfo, FileProcData, StopSearch);
@@ -376,7 +360,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       PathDir := TDirectoryInformation.TDirectory(PathEntry);
       for D in PathDir.Directories do
       begin
-        FindFiles_Recursive(EnsureSlash(Path) + D.Name, Mask,
+        FindFiles_Recursive(URIIncludeSlash(Path) + D.Name, Mask,
           FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
         if StopSearch then Break;
       end;
