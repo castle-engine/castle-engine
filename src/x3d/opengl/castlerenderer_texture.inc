@@ -444,7 +444,13 @@ procedure TGLTextureNode.HandleTextureProperties(
   function FinalMinificationFilter(const FilterAuto: TAutoMinificationFilter): TMinificationFilter;
   begin
     case FilterAuto of
-      minDefault: Result := Renderer.Attributes.MinificationFilter;
+      minDefault:
+        case Renderer.Attributes.MinificationFilter of
+          minDefault: Result := TRenderingAttributes.DefaultMinificationFilter;
+          minFastest: Result := minNearest;
+          minNicest : Result := minLinearMipmapLinear;
+          else        Result := Renderer.Attributes.MinificationFilter;
+        end;
       minFastest: Result := minNearest;
       minNicest : Result := minLinearMipmapLinear;
       else        Result := FilterAuto;
@@ -456,7 +462,13 @@ procedure TGLTextureNode.HandleTextureProperties(
   function FinalMagnificationFilter(const FilterAuto: TAutoMagnificationFilter): TMagnificationFilter;
   begin
     case FilterAuto of
-      magDefault: Result := Renderer.Attributes.MagnificationFilter;
+      magDefault:
+        case Renderer.Attributes.MagnificationFilter of
+          magDefault: Result := TRenderingAttributes.DefaultMagnificationFilter;
+          magFastest: Result := magNearest;
+          magNicest : Result := magLinear;
+          else        Result := Renderer.Attributes.MagnificationFilter;
+        end;
       magFastest: Result := magNearest;
       magNicest : Result := magLinear;
       else        Result := FilterAuto;

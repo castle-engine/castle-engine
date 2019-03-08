@@ -174,8 +174,8 @@ type
     FUseSceneLights: boolean;
     FOpacity: Single;
     FEnableTextures: boolean;
-    FMinificationFilter: TMinificationFilter;
-    FMagnificationFilter: TMagnificationFilter;
+    FMinificationFilter: TAutoMinificationFilter;
+    FMagnificationFilter: TAutoMagnificationFilter;
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
@@ -195,8 +195,8 @@ type
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
     procedure SetOnVertexColor(const Value: TVertexColorFunction);
     procedure SetEnableTextures(const Value: boolean);
-    procedure SetMinificationFilter(const Value: TMinificationFilter);
-    procedure SetMagnificationFilter(const Value: TMagnificationFilter);
+    procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
+    procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
@@ -225,6 +225,14 @@ type
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
       DefaultPhongShading = false;
+
+    class var
+      { Value used when @link(MinificationFilter) is minDefault.
+        By default, this is minLinearMipmapLinear. }
+      DefaultMinificationFilter: TMinificationFilter;
+      { Value used when @link(MagnificationFilter) is magDefault.
+        By default, this is magLinear. }
+      DefaultMagnificationFilter: TMagnificationFilter;
 
     constructor Create; virtual;
 
@@ -307,11 +315,16 @@ type
       These can be overridden on a per-texture basis in VRML / X3D files
       by X3D TextureProperties node (see X3D specification).
 
+      They can be equal to minDefault, magDefault in which case they
+      actually use the values from
+      DefaultMinificationFilter, DefaultMagnificationFilter
+      (by default minLinearMipmapLinear, magLinear).
+
       @groupBegin }
-    property MinificationFilter: TMinificationFilter
-      read FMinificationFilter write SetMinificationFilter default minLinearMipmapLinear;
-    property MagnificationFilter: TMagnificationFilter
-      read FMagnificationFilter write SetMagnificationFilter default magLinear;
+    property MinificationFilter: TAutoMinificationFilter
+      read FMinificationFilter write SetMinificationFilter default minDefault;
+    property MagnificationFilter: TAutoMagnificationFilter
+      read FMagnificationFilter write SetMagnificationFilter default magDefault;
     function TextureFilter: TTextureFilter;
     { @groupEnd }
 
@@ -1918,8 +1931,8 @@ begin
   FUseSceneLights := true;
   FOpacity := 1;
   FEnableTextures := true;
-  FMinificationFilter := minLinearMipmapLinear;
-  FMagnificationFilter := magLinear;
+  FMinificationFilter := minDefault;
+  FMagnificationFilter := magDefault;
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
@@ -1962,7 +1975,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetMinificationFilter(const Value: TMinificationFilter);
+procedure TRenderingAttributes.SetMinificationFilter(const Value: TAutoMinificationFilter);
 begin
   if MinificationFilter <> Value then
   begin
@@ -1971,7 +1984,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetMagnificationFilter(const Value: TMagnificationFilter);
+procedure TRenderingAttributes.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
 begin
   if MagnificationFilter <> Value then
   begin
@@ -1982,8 +1995,19 @@ end;
 
 function TRenderingAttributes.TextureFilter: TTextureFilter;
 begin
-  Result.Minification := MinificationFilter;
-  Result.Magnification := MagnificationFilter;
+  case MinificationFilter of
+    minDefault: Result.Minification := DefaultMinificationFilter;
+    minFastest: Result.Minification := minNearest;
+    minNicest : Result.Minification := minLinearMipmapLinear;
+    else        Result.Minification := MinificationFilter;
+  end;
+
+  case MagnificationFilter of
+    magDefault: Result.Magnification := DefaultMagnificationFilter;
+    magFastest: Result.Magnification := magNearest;
+    magNicest : Result.Magnification := magLinear;
+    else        Result.Magnification := MagnificationFilter;
+  end;
 end;
 
 procedure TRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
@@ -3738,4 +3762,7 @@ begin
   end;
 end;
 
+initialization
+  TRenderingAttributes.DefaultMinificationFilter := minLinearMipmapLinear;
+  TRenderingAttributes.DefaultMagnificationFilter := magLinear;
 end.
