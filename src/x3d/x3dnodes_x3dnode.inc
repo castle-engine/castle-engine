@@ -1633,7 +1633,8 @@ begin
     (that's a general convention used internally by Blender, AFAIK).
     Here we simply remove this "//". }
   if BlenderRelativePath(RelativePath) then
-    Result := CombineURI(BaseUrl, SEnding(RelativePath, 3)) else
+    Result := CombineURI(BaseUrl, SEnding(RelativePath, 3))
+  else
     Result := CombineURI(BaseUrl, RelativePath);
 end;
 
