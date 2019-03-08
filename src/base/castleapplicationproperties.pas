@@ -336,9 +336,11 @@ begin
   FOnWarning := TWarningEventList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
-    {$ifdef ANDROID} true {$else}
-    {$ifdef IOS}     true {$else}
-                     false {$endif} {$endif};
+    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+      true
+    {$else}
+      false
+    {$endif};
   FLimitFPS := DefaultLimitFPS;
 end;
 
