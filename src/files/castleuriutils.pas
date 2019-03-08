@@ -476,11 +476,13 @@ begin
 end;
 
 function CombineURI(const Base, Relative: string): string;
-var
-  RelativeProtocol: string;
+// var
+//   RelativeProtocol: string;
 begin
   { Test for some special protocols first, that may have whitespace before
     the protocol name. }
+  { This is not necessary anymore -- check below for URIProtocol(Relative) <> ''
+    will handle this case anyway.
   RelativeProtocol := URIProtocol(Relative);
   if (RelativeProtocol = 'ecmascript') or
      (RelativeProtocol = 'javascript') or
@@ -488,12 +490,20 @@ begin
      (RelativeProtocol = 'kambiscript') or
      (RelativeProtocol = 'compiled') then
     Exit(Relative);
+  }
 
   { When Base is like 'castle-data:/CastleSettings.xml'
     and Relative is like '../gfx/font.ttf',
     you need to resolve the Base to use the file:/ protocol. }
   if (URIProtocol(Base) = 'castle-data') and IsPrefix('../', Relative) then
     Exit(CombineURI(ResolveCastleDataURL(Base), Relative));
+
+  { Relative is already an absolute URL, no point in doing anything,
+    in particular no point for doing AbsoluteURI(Base) below,
+    which could fail on NX in case Base='', calling ExpandFileName
+    is not allowed on NX. }
+  if URIProtocol(Relative) <> '' then
+    Exit(Relative);
 
   try
     if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
