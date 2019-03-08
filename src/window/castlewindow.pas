@@ -2839,6 +2839,8 @@ type
 
     procedure Quit; deprecated 'Use Terminate';
 
+    procedure Terminate; override;
+
     { Run the program using TCastleWindowBase, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
 
@@ -4866,6 +4868,17 @@ end;
 procedure TCastleApplication.Quit;
 begin
   Terminate;
+end;
+
+{$ifdef CASTLE_NINTENDO_SWITCH}
+procedure CgeNxApplicationTerminate; cdecl; external;
+{$endif}
+
+procedure TCastleApplication.Terminate;
+begin
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  CgeNxApplicationTerminate;
+  {$endif}
 end;
 
 procedure TCastleApplication.CloseAllOpenWindows;

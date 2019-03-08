@@ -282,6 +282,7 @@ end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
+  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
