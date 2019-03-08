@@ -720,7 +720,8 @@ const
 begin
   P := URIProtocol(URL);
 
-  if LogAllLoading then
+  // do not log castle-data:/ protocol, as this just causes recursive call to Download
+  if LogAllLoading and (P <> 'castle-data') then
     WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
 
   {$ifdef CASTLE_NINTENDO_SWITCH}
