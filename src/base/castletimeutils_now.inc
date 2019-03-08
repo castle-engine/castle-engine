@@ -17,8 +17,21 @@
 
 {$ifdef read_interface}
 
-{ Just like standard Now functions, but works also on Nintendo Switch. }
+{ Just like standard Now function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now. }
 function CastleNow: TDateTime;
+
+{ Just like standard Today function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now. }
+function CastleToday: TDateTime;
+
+{ Just like standard Yesterday function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now. }
+function CastleYesterday: TDateTime;
+
+{ Just like standard Tomorrow function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now. }
+function CastleTomorrow: TDateTime;
 
 {$endif read_interface}
 
@@ -36,6 +49,21 @@ begin
 begin
   Result := Now;
 {$endif}
+end;
+
+function CastleToday: TDateTime;
+begin
+  Result := DateOf(CastleNow);
+end;
+
+function CastleYesterday: TDateTime;
+begin
+  Result := DateOf(CastleNow) - 1;
+end;
+
+function CastleTomorrow: TDateTime;
+begin
+  Result := DateOf(CastleNow) + 1;
 end;
 
 {$endif read_implementation}
