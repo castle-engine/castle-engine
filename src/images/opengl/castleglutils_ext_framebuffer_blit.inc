@@ -41,8 +41,10 @@ function Load_GL_EXT_framebuffer_blit: Boolean;
 { Written with the same formatting as FPC glext.pp unit. }
 
 function Load_GL_EXT_framebuffer_blit: Boolean;
+{$ifndef OpenGLES}
 var
   extstring: String;
+{$endif}
 begin
 
   Result := FALSE;
