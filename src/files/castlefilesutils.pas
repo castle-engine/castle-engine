@@ -411,6 +411,7 @@ function FnameAutoInc(const FileNamePattern: string): string;
   DirName does not need to exist. }
 function ParentPath(DirName: string;
   DoExpandDirName: boolean = true): string;
+  deprecated 'use URLs and operate on them using CastleURIUtils unit';
 
 { Combines BasePath with RelPath into complete path.
   BasePath MUST be an absolute path,
