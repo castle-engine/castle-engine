@@ -345,7 +345,7 @@ type
 
     { Load all resources (creatures and items) information from
       resource.xml files found in given Path.
-      Overloaded version without Path just scans the whole ApplicationData
+      Overloaded version without Path just scans the whole castle-data:/
       directory.
 
       Note that on Android, searching the Android asset filesystem
@@ -863,7 +863,7 @@ end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
 begin
-  LoadFromFiles(ApplicationData(''), Reload);
+  LoadFromFiles('castle-data:/', Reload);
 end;
 
 function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;

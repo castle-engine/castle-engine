@@ -274,11 +274,6 @@ type
       You must call LoadFromConfig @italic(after) calling this
       to read TLevelInfo.Played values from user preferences file.
 
-      Note that on Android, searching the Android asset filesystem
-      recursively is not possible (this is a fault of Android NDK API...).
-      So instead of this method, you should use AddFromFile repeatedly
-      to explicitly list all level.xml locations.
-
       @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
     procedure LoadFromFiles;
@@ -1273,7 +1268,7 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles;
 begin
-  LoadFromFiles(ApplicationData(''));
+  LoadFromFiles('castle-data:/');
   SortByNumber;
 end;
 

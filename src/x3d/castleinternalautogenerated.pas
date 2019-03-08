@@ -136,7 +136,7 @@ begin
     'in version control), then ignore this file too.' + NL +
     NL +
     'Game code may assume that if some aute-generated files are present,' + NL +
-    'then the ApplicationData(''' + FileName + ''') file exists,' + NL +
+    'then the ''castle-data:/' + FileName + ''' file exists,' + NL +
     'describing them.' + NL);
   Doc.AppendChild(Comment);
 

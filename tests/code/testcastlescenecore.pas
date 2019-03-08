@@ -238,7 +238,7 @@ begin
   try
     Scene := TCastleScene.Create(nil);
     try
-      Scene.URL := ApplicationData('city_from_bugreport_38.x3dv');
+      Scene.URL := 'castle-data:/city_from_bugreport_38.x3dv';
       Scene.ProcessEvents := true;
       Scene.Spatial := [ssRendering, ssDynamicCollisions];
       SceneManager.Items.Add(Scene);
@@ -265,7 +265,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.URL := ApplicationData('shadow_volumes_tests/should_be_manifold.x3d');
+    Scene.URL := 'castle-data:/shadow_volumes_tests/should_be_manifold.x3d';
     Scene.EdgesCount(ManifoldEdges, BorderEdges);
     AssertEquals(0, BorderEdges);
     AssertEquals(210, ManifoldEdges);

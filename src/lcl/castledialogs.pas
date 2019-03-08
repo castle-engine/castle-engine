@@ -140,6 +140,8 @@ function MaybeUseDataProtocol(const URL: String): String;
 var
   DataPath: String;
 begin
+  { Use ApplicationData, not 'castle-data:/', to get real location of data,
+    e.g. resolved to file:// on normal desktop. }
   DataPath := ApplicationData('');
   if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
     Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
