@@ -216,28 +216,28 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML node name');
-  SourceNodeName := Lexer.TokenName;
+  SourceNodeName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtPeriod);
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML field/event name');
-  SourceEventName := Lexer.TokenName;
+  SourceEventName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIsKeyword(vkTO);
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML node name');
-  DestinationNodeName := Lexer.TokenName;
+  DestinationNodeName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtPeriod);
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML field/event name');
-  DestinationEventName := Lexer.TokenName;
+  DestinationEventName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
 
@@ -247,9 +247,9 @@ end;
 
 procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
-  function RequiredAttrib(const AttrName: string): string;
+  function RequiredX3DName(const AttrName: string): string;
   begin
-    if not Element.AttributeString(AttrName, Result) then
+    if not XMLAttributeX3DName(Element, AttrName, Result) then
     begin
       WritelnWarning('VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
       Result := '';
@@ -260,10 +260,10 @@ var
   SourceNodeName, SourceEventName: string;
   DestinationNodeName, DestinationEventName: string;
 begin
-  SourceNodeName := RequiredAttrib('fromNode');
-  SourceEventName := RequiredAttrib('fromField');
-  DestinationNodeName := RequiredAttrib('toNode');
-  DestinationEventName := RequiredAttrib('toField');
+  SourceNodeName := RequiredX3DName('fromNode');
+  SourceEventName := RequiredX3DName('fromField');
+  DestinationNodeName := RequiredX3DName('toNode');
+  DestinationEventName := RequiredX3DName('toField');
 
   SetSource     (SourceNodeName     , SourceEventName     , Reader);
   SetDestination(DestinationNodeName, DestinationEventName, Reader);
@@ -528,13 +528,19 @@ begin
 
     case Writer.Encoding of
       xeClassic:
-        Writer.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
-          [SourceNodeName     , SourceEventName,
-           DestinationNodeName, DestinationEventName]));
+        Writer.WritelnIndent(Format('ROUTE %s.%s TO %s.%s', [
+          EncodeX3DName(SourceNodeName),
+          EncodeX3DName(SourceEventName),
+          EncodeX3DName(DestinationNodeName),
+          EncodeX3DName(DestinationEventName)
+        ]));
       xeXML:
-        Writer.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
-          [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
-           StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
+        Writer.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />', [
+          StringToX3DXml(EncodeX3DName(SourceNodeName)),
+          StringToX3DXml(EncodeX3DName(SourceEventName)),
+          StringToX3DXml(EncodeX3DName(DestinationNodeName)),
+          StringToX3DXml(EncodeX3DName(DestinationEventName))
+        ]));
       else raise EInternalError.Create('TX3DRoute.SaveToStream Encoding?');
     end;
   except

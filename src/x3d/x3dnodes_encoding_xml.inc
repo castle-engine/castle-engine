@@ -40,6 +40,16 @@ function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; o
 
 {$ifdef read_implementation}
 
+{ Like "Element.AttributeString(AttributeName, Value)",
+  but also decoded the read string using DecodeX3DName. }
+function XMLAttributeX3DName(const Element: TDOMElement;
+  const AttributeName: String; var Value: string): Boolean;
+begin
+  Result := Element.AttributeString(AttributeName, Value);
+  if Result then
+    Value := DecodeX3DName(Value);
+end;
+
 type
   EX3DXmlError = class(EX3DError);
   EX3DXmlNotAllowedError = class(EX3DXmlError);
@@ -250,9 +260,8 @@ var
 begin
   Result := nil;
   try
-    if Element.AttributeString('USE', NodeName) then
+    if XMLAttributeX3DName(Element, 'USE', NodeName) then
     begin
-      NodeName := DecodeX3DName(NodeName);
       { get appropriate node }
       Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
       if (Result = nil) or (not UsedNodeFinished) then
@@ -269,9 +278,8 @@ begin
       end;
     end else
     begin
-      if Element.AttributeString(SAttrDEF, NodeName) then
+      if XMLAttributeX3DName(Element, SAttrDEF, NodeName) then
       begin
-        NodeName := DecodeX3DName(NodeName);
         ParseNamedNode(NodeName)
       end else
         ParseNamedNode('');

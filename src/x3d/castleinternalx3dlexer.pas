@@ -235,6 +235,9 @@ type
       Note that this is supposed to contain UTF-8 encoded string for VRML >= 2.0. }
     property TokenName: string read fTokenName;
 
+    { TokenName, decoded using DecodeX3DName. }
+    function TokenX3DName: String;
+
     { When Token = vtFloat or vtInteger, TokenFloat contains a value of
       this token.
 
@@ -383,7 +386,8 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog;
+uses CastleLog,
+  X3DLoadInternalUtils;
 
 const
   { utf8 specific constants below }
@@ -1091,6 +1095,11 @@ begin
     raise EX3DParserError.Create(Self,
       Format('Expected keyword "%s", got %s', [X3DKeywordsName[Keyword],
         DescribeToken]));
+end;
+
+function TX3DLexer.TokenX3DName: String;
+begin
+  Result := DecodeX3DName(TokenName);
 end;
 
 { Exceptions ----------------------------------------------------------------- }
