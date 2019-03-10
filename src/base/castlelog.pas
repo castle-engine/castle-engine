@@ -167,11 +167,10 @@ var
   LogFileName: String = '';
 
 {$ifdef CASTLE_NINTENDO_SWITCH}
-{ Send a log message using NX NN_LOG call.
+{ Send a log message using platform-specific logging on NX.
 
-  Calls C code from Pascal.
   You should always call WritelnLog instead of this,
-  unless you're possibly before InitializeNxMemoryManager,
+  unless you're possibly before memory manager was initialized,
   or before unit's initialization took place.
 }
 procedure cgeNxLog(Message: PChar); cdecl; external 'cgeNxLog';
