@@ -997,7 +997,7 @@ var
 
 function Resources: T3DResourceList;
 begin
-  if (FResourceClasses = nil) and not UnitFinalization then
+  if (FResources = nil) and not UnitFinalization then
     FResources := T3DResourceList.Create(true);
   Result := FResources;
 end;
