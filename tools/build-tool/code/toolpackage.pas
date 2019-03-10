@@ -63,7 +63,7 @@ implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
-  CastleStringUtils,
+  CastleStringUtils, CastleInternalDirectoryInformation,
   ToolUtils;
 
 { TPackageDirectory ---------------------------------------------------------- }
@@ -158,7 +158,7 @@ end;
 procedure GenerateDataInformation(const CurrentDataPath: String);
 var
   DataInformationDir, DataInformationFileName: String;
-  DataInformation: TInternalDirectoryInformation;
+  DataInformation: TDirectoryInformation;
   DirsCount, FilesCount, FilesSize: QWord;
 begin
   if DirectoryExists(CurrentDataPath) then
@@ -170,7 +170,7 @@ begin
       since we don't know it's size yet. }
     DeleteFile(DataInformationFileName);
 
-    DataInformation := TInternalDirectoryInformation.Create;
+    DataInformation := TDirectoryInformation.Create;
     try
       DataInformation.Generate(FilenameToURISafe(CurrentDataPath));
       DataInformation.SaveToFile(FilenameToURISafe(DataInformationFileName));
