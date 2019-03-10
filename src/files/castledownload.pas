@@ -38,14 +38,14 @@ type
 
   { Options for the @link(Download) function. }
   TStreamOption = (
-    { Force result to be a TMemoryStream,
+    { Force result to be a TCustomMemoryStream,
       with contents fully loaded to the memory,
       and freely seekable (you can move back and forth within).
       Without this option, @link(Download) may return other streams,
       for example TFileStream (that may not have good buffering, depending on OS)
       or TBase64DecodingStream (that may not allow seeking).
 
-      Using TMemoryStream means that reading is fast and comfortable,
+      Using TCustomMemoryStream means that reading is fast and comfortable,
       but eats memory and doesn't allow to simultaneously read and process
       the contents (the file must be fully loaded, e.g. downloaded from
       the Internet, and ungzipped, before this function returns).
