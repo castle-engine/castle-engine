@@ -4874,6 +4874,7 @@ procedure CgeNxApplicationTerminate; cdecl; external;
 
 procedure TCastleApplication.Terminate;
 begin
+  inherited;
   {$ifdef CASTLE_NINTENDO_SWITCH}
   CgeNxApplicationTerminate;
   {$endif}
