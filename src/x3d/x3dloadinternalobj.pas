@@ -512,7 +512,7 @@ var
 
   function MatOBJNameToX3DName(const MatOBJName: string): string;
   begin
-    Result := 'Material_' + ToX3DName(MatOBJName);
+    Result := 'Material_' + MatOBJName;
   end;
 
   function MaterialToX3D(const Material: TWavefrontMaterial): TAppearanceNode;

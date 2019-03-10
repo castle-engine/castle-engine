@@ -281,7 +281,8 @@ uses
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
-  CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
+  CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument,
+  X3DLoadInternalUtils;
 
 {$warnings on}
 

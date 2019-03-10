@@ -25,8 +25,17 @@ uses CastleVectors, X3DNodes;
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
 
-{ Sanitize name to be valid X3D node name (@link(TX3DNode.X3DName)). }
-function ToX3DName(const S: String): String;
+{ Store X3D name in file, in format that allows to store @italic(any) possible value
+  (regardless of X3D node name limitations).
+  Names that are already valid in X3D are stored as-is,
+  special names have a prefix CastleEncoded_ added and are encoded (will be decoded later
+  with DecodeX3DName).
+
+  This allows to set as TX3DNode.X3DName anything, and it will work OK (and survive
+  model save+load to file). This is useful to us, e.g. to preserve animation names
+  from Spine or glTF in X3D TouchSensor node names. }
+function EncodeX3DName(const S: String): String;
+function DecodeX3DName(const S: String): String;
 
 { Calculate best possible ambientIntensity. This is a float that tries to
   satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
@@ -55,22 +64,103 @@ function FixRelativeUrl(const URL: string): string;
 
 implementation
 
-uses SysUtils, Math, URIParser,
-  CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils;
+uses SysUtils, Math, URIParser, StrUtils,
+  CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils, CastleUnicode;
 
-function ToX3DName(const S: String): String;
 const
-  { We could use here TX3DLexer.VRMLNameChars that contains
-    *all* allowed characters in X3D name.
-    But, for best readability, better to avoid even more weird characters,
-    and limit ourselves to the below character set. }
-  AllowedNameChars = ['a'..'z', 'A'..'Z', '0'..'9'];
-  NonAllowedNameChars = AllChars - AllowedNameChars;
+  EncodedPrefix = 'CastleEncoded_';
+
+function EncodeX3DName(const S: String): String;
+const
+  { Similar to most conservative version of VRMLNameChars,
+    which follow VRML and X3D specifications. }
+  NonAllowedChars = [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}', '(', ')', '|', ':'];
+  // first character cannot be digit etc.
+  NonAllowedFirstChars = NonAllowedChars + ['0'..'9', '-', '+'];
+
+  function SafeX3DName(const S: String): Boolean;
+  begin
+    Result := not (
+      SCharIs(S, 1, NonAllowedFirstChars) or
+      (CharsPos(NonAllowedChars, S) <> 0));
+  end;
+
+  function DoEncodeUTF8(const S: String): String;
+  var
+    C: TUnicodeChar;
+    TextPtr: PChar;
+    CharLen: Integer;
+  begin
+    Result := '';
+    TextPtr := PChar(S);
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    while (C > 0) and (CharLen > 0) do
+    begin
+      Inc(TextPtr, CharLen);
+      { We use $ to mark encoded chars, so we need to encode it too.
+        Note that we don't worry NonAllowedFirstChars,
+        since we add prefix EncodedPrefix anyway, so S[1]
+        is not the first character in the final encoded X3D name. }
+      if (C < 128) and (Chr(C) <> '$') and (not (Chr(C) in NonAllowedChars)) then
+        Result += Chr(C)
+      else
+        Result += '$' + IntToStr(C) + '$';
+      C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    end;
+  end;
+
 begin
-  Result := SReplaceChars(S, NonAllowedNameChars, '_');
-  // first character cannot be digit
-  if SCharIs(S, 1, ['0'..'9']) then
-    Result := '_' + Result;
+  if IsPrefix(EncodedPrefix, S, false) then
+    WritelnWarning('Encoding X3D name "%s", it seems like you encode it twice (EncodeX3DName)', [S]);
+
+  if SafeX3DName(S) then
+    Result := S
+  else
+    Result := EncodedPrefix + DoEncodeUTF8(S);
+end;
+
+function DecodeX3DName(const S: String): String;
+
+  function DoDecodeUTF8(const S: String): String;
+  var
+    I, EndingDollar: Integer;
+    CharCode: Integer;
+  begin
+    Result := '';
+    I := 1;
+    while I <= Length(S) do
+    begin
+      if S[I] = '$' then
+      begin
+        EndingDollar := PosEx('$', S, I + 1);
+        if EndingDollar = 0 then
+        begin
+          WritelnWarning('No matching $ found in encoded X3D name %s. Invalid encoding of X3D name, assuming not encoded at all.', [S]);
+          // resulting name will be just like S, only with EncodedPrefix removed
+          Exit(S);
+        end;
+
+        if not TryStrToInt(Copy(S, I + 1, EndingDollar - I - 1), CharCode) then
+        begin
+          WritelnWarning('Invalid UTF-8 code in encoded X3D name %s. Invalid encoding of X3D name, assuming not encoded at all.', [S]);
+          Exit(S);
+        end;
+
+        Result += UnicodeToUTF8(CharCode);
+        I := EndingDollar + 1;
+      end else
+      begin
+        Result += S[I];
+        Inc(I);
+      end;
+    end;
+  end;
+
+begin
+  if IsPrefix(EncodedPrefix, S, false) then
+    Result := DoDecodeUTF8(PrefixRemove(EncodedPrefix, S, false))
+  else
+    Result := S;
 end;
 
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;

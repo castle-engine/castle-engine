@@ -212,7 +212,7 @@ var
   BonesToReset: TBonesAnimated;
   SlotsToReset: TSlotsAnimated;
 begin
-  Node := TTimeSensorNode.Create(DefaultAnimationPrefix + ToX3DName(Name), BaseUrl);
+  Node := TTimeSensorNode.Create(DefaultAnimationPrefix + Name, BaseUrl);
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do

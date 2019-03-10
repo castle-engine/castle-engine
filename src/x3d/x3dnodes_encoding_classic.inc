@@ -256,14 +256,14 @@ begin
         vkDEF:
           begin
            Lexer.NextTokenForceVTName;
-           NodeName := Lexer.TokenName;
+           NodeName := DecodeX3DName(Lexer.TokenName);
            Lexer.NextToken;
            ParseNamedNode(NodeName);
           end;
         vkUSE:
           begin
            Lexer.NextTokenForceVTName;
-           NodeName := Lexer.TokenName;
+           NodeName := DecodeX3DName(Lexer.TokenName);
 
            {get appropriate node}
            Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);

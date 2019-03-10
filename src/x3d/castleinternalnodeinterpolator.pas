@@ -973,7 +973,7 @@ var
     Route: TX3DRoute;
     Group: TGroupNode;
   begin
-    AnimationX3DName := ToX3DName(BakedAnimation.Name);
+    AnimationX3DName := BakedAnimation.Name;
 
     Group := TGroupNode.Create(
       AnimationX3DName + '_Group', BaseUrl);

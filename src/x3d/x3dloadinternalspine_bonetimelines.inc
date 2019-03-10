@@ -205,7 +205,7 @@ var
 begin
   if Curve then
   begin
-    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(Vector3(
@@ -220,7 +220,7 @@ begin
     //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
   end else
   begin
-    N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
       N.FdKeyValue.Items.Add(Vector3(
         { add setup pose transform, as bone timeline is relative to setup pose }
@@ -293,7 +293,7 @@ var
 begin
   if Curve then
   begin
-    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
@@ -305,7 +305,7 @@ begin
     //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
   end else
   begin
-    N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
       N.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
     EventValueChanged := N.EventValue_changed;
@@ -371,7 +371,7 @@ var
 begin
   if Curve then
   begin
-    NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
     NC.FdAxis.Value := Vector3(0, 0, 1);
     for I := 0 to Angles.Count - 1 do
     begin
@@ -386,7 +386,7 @@ begin
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);
   end else
   begin
-    N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
     for I := 0 to Angles.Count - 1 do
       N.FdKeyValue.Items.Add(Vector4(0, 0, 1,
         { add setup pose transform, as bone timeline is relative to setup pose }

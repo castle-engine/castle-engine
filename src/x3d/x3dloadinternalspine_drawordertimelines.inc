@@ -72,7 +72,7 @@ var
   I: Integer;
   Route: TX3DRoute;
 begin
-  Node := TPositionInterpolatorNode.Create('DrawOrderTimeline_' + ToX3DName(Slot.Name));
+  Node := TPositionInterpolatorNode.Create('DrawOrderTimeline_' + Slot.Name);
 
   for I := 0 to Time.Count - 1 do
   begin

@@ -160,7 +160,7 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  N := TIntegerSequencerNode.Create('SlotTimeline_attachment_' + ToX3DName(Slot.Name));
+  N := TIntegerSequencerNode.Create('SlotTimeline_attachment_' + Slot.Name);
   N.FdForceContinousValue_Changed.Value := true;
   for I := 0 to Attachments.Count - 1 do
     N.FdKeyValue.Items.Add(Slot.AttachmentNames.IndexOf(Attachments[I]));
@@ -253,7 +253,7 @@ begin
 (* TODO: colors on curve:
   if Curve then
   begin
-    NC := TCubicBezierColorInterpolatorNode.Create('SlotTimeline_color_' + ToX3DName(Slot.Name));
+    NC := TCubicBezierColorInterpolatorNode.Create('SlotTimeline_color_' + Slot.Name);
     for I := 0 to Colors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(Colors[I]);
@@ -265,7 +265,7 @@ begin
   end else
   *)
   begin
-    N := TColorInterpolatorNode.Create('SlotTimeline_color_' + ToX3DName(Slot.Name));
+    N := TColorInterpolatorNode.Create('SlotTimeline_color_' + Slot.Name);
     for I := 0 to Colors.Count - 1 do
       N.FdKeyValue.Items.Add(Colors[I].XYZ);
     EventValueChanged1 := N.EventValue_changed;
@@ -273,7 +273,7 @@ begin
     Node1.Node := N;
     Node1.Key := N.FdKey;
 
-    NA := TScalarInterpolatorNode.Create('SlotTimeline_alpha_' + ToX3DName(Slot.Name));
+    NA := TScalarInterpolatorNode.Create('SlotTimeline_alpha_' + Slot.Name);
     for I := 0 to Colors.Count - 1 do
       NA.FdKeyValue.Items.Add(1 - Colors[I][3]);
     EventValueChanged2 := NA.EventValue_changed;

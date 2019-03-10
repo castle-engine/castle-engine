@@ -252,6 +252,7 @@ begin
   try
     if Element.AttributeString('USE', NodeName) then
     begin
+      NodeName := DecodeX3DName(NodeName);
       { get appropriate node }
       Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
       if (Result = nil) or (not UsedNodeFinished) then
@@ -269,8 +270,10 @@ begin
     end else
     begin
       if Element.AttributeString(SAttrDEF, NodeName) then
+      begin
+        NodeName := DecodeX3DName(NodeName);
         ParseNamedNode(NodeName)
-      else
+      end else
         ParseNamedNode('');
     end;
 

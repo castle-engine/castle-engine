@@ -236,7 +236,7 @@ begin
     WritelnWarning('Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Node.Translation := Vector3(XY[0], XY[1], 0);
   Node.Scale := Vector3(Scale[0], Scale[1], 1);
@@ -255,7 +255,7 @@ begin
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
   Shape.Material := TMaterialNode.Create(
-    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Shape.Material.ForcePureEmissive;
   Shape.Material.EmissiveColor := Vector3(1, 1, 1);
@@ -584,14 +584,14 @@ begin
     WritelnWarning('Spine', 'TPathAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
 
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
   Shape.Material := TMaterialNode.Create(
-    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Shape.Material.ForcePureEmissive;
   Shape.Material.EmissiveColor := WhiteRGB;
@@ -689,7 +689,7 @@ begin
     WritelnWarning('Spine', 'TClippingAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
 
   // debug

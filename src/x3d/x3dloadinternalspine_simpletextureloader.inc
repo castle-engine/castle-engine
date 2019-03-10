@@ -51,7 +51,7 @@ function TSimpleTextureLoader.UseNode(const AttachmentName: string;
 begin
   if not Nodes.TryGetValue(AttachmentName, Result) then
   begin
-    Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
+    Result := TImageTextureNode.Create('SimpleTexture_' + AttachmentName, BaseUrl);
     if not SpineIgnoreTextures then
       Result.SetUrl(['images/' + AttachmentName + '.png']);
     Result.RepeatS := false;

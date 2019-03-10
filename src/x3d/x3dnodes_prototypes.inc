@@ -945,6 +945,7 @@ var
   OldNodeNames: TX3DNodeNames;
   WriterNames: TX3DWriterNames;
 begin
+  // TODO: We should save/load prototype names using EncodeX3DName/DecodeX3DName too
   case Writer.Encoding of
     xeClassic: Writer.WriteIndent('PROTO ' + X3DName + ' ');
     xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(X3DName) + '>');

@@ -142,7 +142,7 @@ procedure TAtlasPage.BuildNodes(const BaseUrl: string);
 var
   I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
-  Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
+  Node := TImageTextureNode.Create('Page_' + TextureURL, BaseUrl);
   Node.SetUrl([TextureURL]);
   Node.RepeatS := IsRepeat;
   Node.RepeatT := IsRepeat;

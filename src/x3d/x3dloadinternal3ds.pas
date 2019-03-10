@@ -998,16 +998,16 @@ var
     if they were unique in 3DS. }
 
   function MaterialVRMLName(const Mat3dsName: string): string;
-  begin Result := 'Material_' + ToX3DName(Mat3dsName) end;
+  begin Result := 'Material_' + Mat3dsName end;
 
   function TrimeshVRMLName(const Tri3dsName: string): string;
-  begin Result := 'Trimesh_' + ToX3DName(Tri3dsName) end;
+  begin Result := 'Trimesh_' + Tri3dsName end;
 
   function ViewpointVRMLName(const Camera3dsName: string): string;
-  begin Result := 'Camera_' + ToX3DName(Camera3dsName) end;
+  begin Result := 'Camera_' + Camera3dsName end;
 
   function LightVRMLName(const Light3dsName: string): string;
-  begin Result := 'Light_' + ToX3DName(Light3dsName) end;
+  begin Result := 'Light_' + Light3dsName end;
 
   procedure AddViewpoints;
   var

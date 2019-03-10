@@ -178,7 +178,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
   begin
     if BonesAnimated.Translation.IndexOf(Self) = -1 then Exit;
 
-    ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + ToX3DName(Name));
+    ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + Name);
     ResetTranslation.FdKey.Items.Add(0);
     ResetTranslation.FdKeyValue.Items.Add(Node.FdTranslation.Value);
     Node.AddChildren(ResetTranslation);
@@ -195,7 +195,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
   begin
     if BonesAnimated.Scale.IndexOf(Self) = -1 then Exit;
 
-    ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + ToX3DName(Name));
+    ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + Name);
     ResetScale.FdKey.Items.Add(0);
     ResetScale.FdKeyValue.Items.Add(Node.FdScale.Value);
     Node.AddChildren(ResetScale);
@@ -212,7 +212,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
   begin
     if BonesAnimated.Rotation.IndexOf(Self) = -1 then Exit;
 
-    ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
+    ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + Name);
     ResetRotation.FdKey.Items.Add(0);
     ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value[3]);
     Node.AddChildren(ResetRotation);
@@ -224,7 +224,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
   end;
 
 begin
-  Node := TTransformNode.Create('Bone_' + ToX3DName(Name), BaseUrl);
+  Node := TTransformNode.Create('Bone_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
   Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
   Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));

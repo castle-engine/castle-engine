@@ -161,7 +161,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   begin
     if SlotsAnimated.Attachment.IndexOf(Self) = -1 then Exit;
 
-    ResetAttachment := TIntegerSequencerNode.Create('SlotReset_attachment_' + ToX3DName(Name));
+    ResetAttachment := TIntegerSequencerNode.Create('SlotReset_attachment_' + Name);
     ResetAttachment.FdForceContinousValue_Changed.Value := true;
     ResetAttachment.FdKey.Items.Add(0);
     ResetAttachment.FdKeyValue.Items.Add(SwitchNode.FdWhichChoice.Value);
@@ -184,7 +184,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
 
     for I := 0 to Materials.Count - 1 do
     begin
-      ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
+      ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + Name);
       ColInterp.FdKey.Items.Add(0);
       ColInterp.FdKeyValue.Items.Add(Color.XYZ);
       ContainerForResetNode.AddChildren(ColInterp);
@@ -195,7 +195,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       Route.SetDestinationDirectly(Materials[I].FdEmissiveColor);
       ContainerForResetNode.AddRoute(Route);
 
-      ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
+      ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + Name);
       ScalarInterp.FdKey.Items.Add(0);
       ScalarInterp.FdKeyValue.Items.Add(1 - Color[3]);
       ContainerForResetNode.AddChildren(ScalarInterp);
@@ -214,7 +214,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   begin
     if SlotsAnimated.DrawOrder.IndexOf(Self) = -1 then Exit;
 
-    ResetDrawOrder := TPositionInterpolatorNode.Create('SlotReset_draworder_' + ToX3DName(Name));
+    ResetDrawOrder := TPositionInterpolatorNode.Create('SlotReset_draworder_' + Name);
     ResetDrawOrder.FdKey.Items.Add(0);
     ResetDrawOrder.FdKeyValue.Items.Add(Node.FdTranslation.Value);
     ContainerForResetNode.AddChildren(ResetDrawOrder);
@@ -252,18 +252,18 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       so that Switch.whichChoice can work reliably.
       So create an empty node if needed. }
     if Result = nil then
-      Result := TStaticGroupNode.Create('SlotEmptyAttachment_' + ToX3DName(Name), BaseUrl);
+      Result := TStaticGroupNode.Create('SlotEmptyAttachment_' + Name, BaseUrl);
   end;
 
 var
   I: Integer;
 begin
-  Node := TTransformNode.Create('SlotTransform_' + ToX3DName(Name), BaseUrl);
+  Node := TTransformNode.Create('SlotTransform_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
   Bone.Node.AddChildren(Node);
   NodeUsedAsChild := true;
 
-  SwitchNode := TSwitchNode.Create('SlotSwitch_' + ToX3DName(Name), BaseUrl);
+  SwitchNode := TSwitchNode.Create('SlotSwitch_' + Name, BaseUrl);
   SwitchNode.FdWhichChoice.Value := 0;
   Node.AddChildren(SwitchNode);
 
