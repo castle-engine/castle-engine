@@ -26,7 +26,8 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid;
+  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid,
+  ToolNintendoSwitch;
 
 var
   Target: TTarget;
@@ -170,9 +171,9 @@ begin
               'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
             OptionDescription('--project=DIR',
               'Where to search for the project (CastleEngineManifest.xml file). By default we search in the current directory. The argument can either be a directory, or a filename of CastleEngineManifest.xml file.') +NL+
-            TargetOptionHelp +
-            OSOptionHelp +
-            CPUOptionHelp +
+            TargetOptionHelp + NL +
+            OSOptionHelp + NL +
+            CPUOptionHelp + NL +
             NL+
             'Full documentation on' + NL +
             'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
@@ -272,9 +273,10 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom:  Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid: CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS:     CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom        : Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       else raise EInternalError.Create('Operation not implemented for this target');
     end;
   end else

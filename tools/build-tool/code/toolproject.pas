@@ -121,6 +121,8 @@ type
     property IOSSource: string read FIOSSource;
     function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
+    function NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
     { Standalone source specified in CastleEngineManifest.xml.
       Most code should use StandaloneSourceFile instead, that can optionally
       auto-create the source file. }
@@ -237,6 +239,11 @@ type
       otherwise a complete absolute path. }
     function IOSLibraryFile(const AbsolutePath: boolean = true): string;
 
+    { Output Nintendo Switch library resulting from compilation.
+      Relative to @link(Path) if AbsolutePath = @false,
+      otherwise a complete absolute path. }
+    function NXLibraryFile(const AbsolutePath: boolean = true): string;
+
     { Where should we place our output files, calculated looking at OutputPathBase
       and project path. Always an absolute filename ending with path delimiter. }
     function OutputPath: string;
@@ -253,7 +260,7 @@ implementation
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroid, ToolWindowsRegistry,
-  ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
+  ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -845,6 +852,11 @@ begin
           LinkIOSLibrary(Path, IOSLibraryFile);
           Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
         end;
+      targetNintendoSwitch:
+        begin
+          CompileNintendoSwitchLibrary(Self, Mode, Path, NXSourceFile(true, true),
+            SearchPaths, LibraryPaths, ExtraOptions);
+        end;
       targetCustom:
         begin
           case OS of
@@ -1116,6 +1128,13 @@ begin
     Exit;
   end;
 
+  { for Nintendo Switch, the packaging process is special }
+  if Target = targetNintendoSwitch then
+  begin
+    PackageNintendoSwitch(Self);
+    Exit;
+  end;
+
   Pack := TPackageDirectory.Create(Name);
   try
     { executable is added 1st, since it's the most likely file
@@ -1209,6 +1228,7 @@ begin
   if (Target = targetAndroid) or (OS = Android) then
     RunAndroid(Self)
   else
+  if Target = targetCustom then
   begin
     ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     Writeln('Running ' + ExeName);
@@ -1224,9 +1244,8 @@ begin
     // this will cause our own status be non-zero
     if ProcessStatus <> 0 then
       raise Exception.CreateFmt('Process returned non-zero (failure) status %d', [ProcessStatus]);
-  end;
-  //else
-  // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
+  end else
+    raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
 procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -1426,6 +1445,21 @@ begin
     Result := RelativeResult;
 end;
 
+function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+var
+  RelativeResult, AbsoluteResult: string;
+begin
+  GeneratedSourceFile('nintendo_switch/library_template.lpr',
+    'nintendo_switch' + PathDelim + 'castle_nx.lpr',
+    'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a Nintendo Switch project.',
+    CreateIfNecessary, RelativeResult, AbsoluteResult);
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
+end;
+
 function TCastleProject.StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
@@ -1484,6 +1518,11 @@ end;
 function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
 begin
   Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
+end;
+
+function TCastleProject.NXLibraryFile(const AbsolutePath: boolean): string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(NXSourceFile(AbsolutePath, false), '.a'));
 end;
 
 procedure TCastleProject.DoClean;

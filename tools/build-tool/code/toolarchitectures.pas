@@ -30,7 +30,9 @@ type
     { Target all relevant iOS combinations of OS/CPU. }
     targetIOS,
     { Target all relevant Android combinations of OS/CPU. }
-    targetAndroid
+    targetAndroid,
+    { Build an application for Nintendo Switch. }
+    targetNintendoSwitch
   );
 
   { Processor architectures supported by FPC. Copied from FPMkUnit. }
@@ -190,7 +192,7 @@ function LibraryExtensionOS(const OS: TOS; const Static: boolean = false): strin
 implementation
 
 uses TypInfo, SysUtils,
-  CastleUtils;
+  CastleUtils, CastleParameters;
 
 ResourceString
   SErrInvalidTarget     = 'Invalid target name "%s"';
@@ -228,7 +230,7 @@ begin
 end;
 
 const
-  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android');
+  TargetNames: array [TTarget] of string = ('custom', 'ios', 'android', 'nintendo-switch');
 
 function TargetToString(const Target : TTarget): string;
 begin
@@ -259,41 +261,46 @@ end;
 
 function TargetOptionHelp: string;
 begin
-  Result :=
-    '  --target=custom|ios|android' + NL+
-    '           The target system for which we build/package.' + NL +
-    '           - "custom" (default):' +NL+
-    '             Build for a single OS and CPU combination, determined by' +NL+
-    '             the --os and --cpu options. These options, in turn, by default' +NL+
-    '             indicate the current (host) OS/CPU.' +NL+
-    '           - "ios":' +NL+
-    '             Build for all the platforms necessary for iOS applications.' +NL+
-    '             This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL+
-    '           - "android":' +NL+
-    '             Build for all the platforms necessary for Android applications.' +NL+
-    '             This includes both 32-bit and 64-bit Android devices.' +NL;
+  Result := OptionDescription('--target=<target>',
+    'The target system for which we build/package.' +NL+
+    'Available <target> values: ' +NL+
+    NL +
+    '- "custom" (default): Build for a single OS and CPU combination, determined by the --os and --cpu options. These options, in turn, by default indicate the current (host) OS/CPU.' +NL+
+    NL +
+    '- "ios": Build for all the platforms necessary for iOS applications. This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL+
+    NL +
+    '- "android": Build for all the platforms necessary for Android applications. This includes both 32-bit and 64-bit Android devices.' +NL+
+    NL +
+    '- "nintendo-switch": Build an application for Nintendo Switch.' +NL+
+    '');
 end;
 
 function CPUOptionHelp: string;
 var
   CPU: TCPU;
+  Description: String;
 begin
-  Result := '  --cpu    Set the target processor for which we build/package.' +NL+
-            '           Available values: ' +NL;
+  Description := 'Set the target processor for which we build/package.' +NL+
+    'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
+    'Available <cpu> values: ' +NL;
   for CPU in TCPU do
     if CPU <> cpuNone then
-      Result += '             ' + CPUToString(CPU) + NL;
+      Description += '  ' + CPUToString(CPU) + NL;
+  Result := OptionDescription('--cpu=<cpu>', Description);
 end;
 
 function OSOptionHelp: string;
 var
   OS: TOS;
+  Description: String;
 begin
-  Result := '  --os     Set the target operating system for which we build/package.' +NL+
-            '           Available values: ' +NL;
+  Description := 'Set the target operating system for which we build/package.' +NL+
+    'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
+    'Available <os> values: ' +NL;
   for OS in TOS do
     if OS <> osNone then
-      Result += '             ' + OSToString(OS) + NL;
+      Description += '  ' + OSToString(OS) + NL;
+  Result := OptionDescription('--os=<os>', Description);
 end;
 
 function ExeExtensionOS(const OS: TOS): string;
