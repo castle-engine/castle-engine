@@ -2670,19 +2670,20 @@ begin
   NamePixels := ImageName + 'Pixels';
 
   CodeInterface := CodeInterface +
-    'var' +nl+
-    '  ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
+    'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
   CodeImplementation := CodeImplementation +
-    'const' +nl+
-    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' +nl+
-    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' +nl+
-    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' +nl+
+    'var' + NL +
+    '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'const' + NL +
+    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' + NL +
+    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' + NL +
+    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' + NL +
     '  ' +NamePixels+ ': array[0 .. '
       +NameWidth+ ' * '
       +NameHeight+ ' * '
       +NameDepth+ ' * '
-      +IntToStr(PixelSize) + ' - 1] of Byte = (' +nl+
+      +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
     '    ';
 
   if ShowProgress then
@@ -2702,17 +2703,26 @@ begin
       CodeImplementation := CodeImplementation + ' ';
     Inc(pb);
   end;
-  CodeImplementation := CodeImplementation + Format('%4d);', [pb^]) + nl + nl;
+  CodeImplementation := CodeImplementation +
+    Format('%4d);', [pb^]) + NL +
+    NL +
+    'function ' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'begin' + NL +
+    '  if F' +ImageName + ' = nil then' + NL +
+    '  begin' + NL +
+    '    F' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' + NL +
+    '    Move(' +NamePixels+ ', F' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' + NL +
+    '    F' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + NL +
+    '  end;' + NL +
+    '  Result := F' +ImageName+ ';' + NL +
+    'end;' + NL +
+    NL +
+    '';
 
   if ShowProgress then Progress.Fini;
 
-  CodeInitialization := CodeInitialization +
-    '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
-    '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl+
-    '  ' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + nl;
-
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(' +ImageName+ ');' +nl;
+    '  FreeAndNil(F' +ImageName+ ');' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
