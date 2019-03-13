@@ -288,26 +288,8 @@ var
 
   { Copy project data into Xcode project. }
   procedure GenerateData;
-  var
-    I: Integer;
-    OutputDataFolder: string;
-    FileFrom, FileTo: string;
-    Files: TCastleStringList;
   begin
-    OutputDataFolder := XcodeProject + Project.Name + PathDelim + 'data';
-    ForceDirectories(OutputDataFolder);    // create folder even if project does not contain any files (is referenced in Xcode project)
-    Files := Project.PackageFiles(true);
-    try
-      for I := 0 to Files.Count - 1 do
-      begin
-        FileFrom := Project.DataPath + Files[I];
-        FileTo := OutputDataFolder + PathDelim + Files[I];
-        SmartCopyFile(FileFrom, FileTo);
-        if Verbose then
-          Writeln('Packaging data file: ' + Files[I]);
-      end;
-    finally FreeAndNil(Files) end;
-    GenerateDataInformation(OutputDataFolder);
+    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data');
   end;
 
   (* Add a large auto-generated chunk into the pbx file, replacing a special macro

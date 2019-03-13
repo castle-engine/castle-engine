@@ -247,6 +247,17 @@ type
     { Where should we place our output files, calculated looking at OutputPathBase
       and project path. Always an absolute filename ending with path delimiter. }
     function OutputPath: string;
+
+    { Copy project data subdirectory to given path.
+      OutputDataPath may but doesn't have to end with PathDelim.
+
+      The path will be created if necessary (even if there are no files,
+      this is useful at least for XCode as it references the resulting directory,
+      so it must exist).
+
+      We also generate the auto_generated/CastleDataInformation.xml inside.
+      (Actually, this means the resulting directory is never empty now.) }
+    procedure CopyData(OutputDataPath: string);
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -1097,9 +1108,9 @@ var
   end;
 
 var
-  Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
+  Files: TCastleStringList;
 begin
   Writeln(Format('Packaging project "%s" for %s.',
     [Name, PlatformToString(Target, OS, CPU, Plugin)]));
@@ -1117,14 +1128,11 @@ begin
   { for Android, the packaging process is special }
   if (Target = targetAndroid) or (OS = Android) then
   begin
-    Files := PackageFiles(true);
-    try
-      if Target = targetAndroid then
-        AndroidCPUS := DetectAndroidCPUS
-      else
-        AndroidCPUS := [CPU];
-      PackageAndroid(Self, OS, AndroidCPUS, Mode, Files);
-    finally FreeAndNil(Files) end;
+    if Target = targetAndroid then
+      AndroidCPUS := DetectAndroidCPUS
+    else
+      AndroidCPUS := [CPU];
+    PackageAndroid(Self, OS, AndroidCPUS, Mode);
     Exit;
   end;
 
@@ -2090,6 +2098,30 @@ begin
     Result := InclPathDelim(ExpandFileName(OutputPathBase));
     CheckForceDirectories(Result);
   end;
+end;
+
+procedure TCastleProject.CopyData(OutputDataPath: string);
+var
+  I: Integer;
+  FileFrom, FileTo: string;
+  Files: TCastleStringList;
+begin
+  OutputDataPath := InclPathDelim(OutputDataPath);
+  ForceDirectories(OutputDataPath);
+
+  Files := PackageFiles(true);
+  try
+    for I := 0 to Files.Count - 1 do
+    begin
+      FileFrom := DataPath + Files[I];
+      FileTo := OutputDataPath + Files[I];
+      SmartCopyFile(FileFrom, FileTo);
+      if Verbose then
+        Writeln('Packaging data file: ' + Files[I]);
+    end;
+  finally FreeAndNil(Files) end;
+
+  GenerateDataInformation(OutputDataPath);
 end;
 
 { globals -------------------------------------------------------------------- }

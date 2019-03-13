@@ -37,8 +37,7 @@ function DetectAndroidCPUS: TCPUS;
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const Files: TCastleStringList);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
@@ -186,8 +185,7 @@ begin
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const Files: TCastleStringList);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 var
   AndroidProjectPath: string;
 
@@ -318,24 +316,12 @@ var
   end;
 
   procedure GenerateAssets;
-  var
-    I: Integer;
-    RelativeAssetsPath, FileFrom, FileTo: string;
   begin
-    RelativeAssetsPath :=
+    Project.CopyData(AndroidProjectPath +
       'app' + PathDelim +
       'src' + PathDelim +
       'main' + PathDelim +
-      'assets' + PathDelim;
-    for I := 0 to Files.Count - 1 do
-    begin
-      FileFrom := Project.DataPath + Files[I];
-      FileTo := RelativeAssetsPath + Files[I];
-      PackageSmartCopyFile(FileFrom, FileTo);
-      if Verbose then
-        Writeln('Packaging data file: ' + Files[I]);
-    end;
-    GenerateDataInformation(AndroidProjectPath + RelativeAssetsPath);
+      'assets');
   end;
 
   procedure GenerateLocalization;
