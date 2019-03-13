@@ -616,7 +616,7 @@ function DOMGetTextChild(const Element: TDOMElement;
       and their Release method doesn't exist (since rev 13113).)
   ) }
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
-  deprecated 'this is useless since a long time (FPC >= 2.4.x), you can remove this a the engine does not support older FPC versions anyway';
+  deprecated 'this is useless since a long time (FPC >= 2.4.x), you can remove this as the engine does not support older FPC versions anyway';
 
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
@@ -1333,7 +1333,16 @@ begin
       SetLength(DecryptedContent, L);
       DecryptedCorrectStream := TStringStream.Create(DecryptedContent);
       try
-        ReadXMLFile(Doc, DecryptedCorrectStream);
+        try
+          ReadXMLFile(Doc, DecryptedCorrectStream);
+        except
+          // on EXMLReadError, improve exception message and reraise
+          on E: EXMLReadError do
+          begin
+            E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '", encrypted)';
+            raise;
+          end;
+        end;
       finally FreeAndNil(DecryptedCorrectStream) end;
     finally FreeAndNil(DecryptStream) end;
   finally FreeAndNil(Stream) end;
@@ -1355,7 +1364,16 @@ begin
 
   Stream := Download(URL, StreamOptions);
   try
-    ReadXMLFile(Doc, Stream);
+    try
+      ReadXMLFile(Doc, Stream);
+    except
+      // on EXMLReadError, improve exception message and reraise
+      on E: EXMLReadError do
+      begin
+        E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '")';
+        raise;
+      end;
+    end;
   finally FreeAndNil(Stream) end;
 end;
 
