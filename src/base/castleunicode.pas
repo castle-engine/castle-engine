@@ -30,13 +30,18 @@ type
 
   TUnicodeCharList = class(TCardinalList)
   public
-    { Add a single Unicode character. }
+    { Add a single Unicode character.
+      Doesn't add duplicates (contrary to ancestor Add). }
     procedure Add(const C: TUnicodeChar); reintroduce; overload;
+
     { Add all characters from SampleText.
       Useful to fill TUnicodeCharList
-      when you have a sample text of international letters. }
+      when you have a sample text of international letters.
+      Doesn't add duplicates. }
     procedure Add(const SampleText: string); overload;
-    { Add all characters from given set. Try e.g. SimpleAsciiCharacters. }
+
+    { Add all characters from given set. Try e.g. SimpleAsciiCharacters.
+      Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
   end;
 
@@ -79,7 +84,8 @@ implementation
 
 procedure TUnicodeCharList.Add(const C: TUnicodeChar);
 begin
-  inherited Add(C);
+  if IndexOf(C) = -1 then
+    inherited Add(C);
 end;
 
 procedure TUnicodeCharList.Add(const SampleText: string);
@@ -93,11 +99,7 @@ begin
   while (C > 0) and (CharLen > 0) do
   begin
     Inc(TextPtr, CharLen);
-    if IndexOf(C) = -1 then
-    begin
-      Add(C);
-      //Writeln('Adding extra character ', C);
-    end;
+    Add(C);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
