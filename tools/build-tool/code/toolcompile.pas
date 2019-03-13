@@ -605,9 +605,9 @@ begin
         Writeln;
         Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
         Writeln('-------------------------------------------------------------');
-        { when we're called to compile a project, WorkingDirectory is the project
-          path, so this is always Ok. }
+        { when we're called to compile a project, WorkingDirectory is the project path }
         CleanDirectory(WorkingDirectory);
+        CleanDirectory(TempOutputPath(WorkingDirectory, false));
         if CastleEngineSrc <> '' then
           CleanDirectory(CastleEngineSrc);
         RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
