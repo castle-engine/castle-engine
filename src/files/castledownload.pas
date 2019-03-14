@@ -385,8 +385,13 @@ type
   TStringsHelper = class helper for TStrings
     { Load the contents from URL.
       Uses Castle Game Engine @link(Download) to get the contents,
-      then uses standard LoadFromStream to load them. }
-    procedure LoadFromURL(const URL: string);
+      then uses standard LoadFromStream to load them.
+
+      The meaning (and default behaviour) of optional IgnoreEncoding
+      and AEncoding is the same as for TStrings.LoadFromFile
+      and TStrings.LoadFromStream. }
+    procedure LoadFromURL(const URL: string; const IgnoreEncoding: Boolean = false);
+    procedure LoadFromURL(const URL: string; const AEncoding: TEncoding);
 
     { Save the contents to URL.
       Uses standard SaveToStream combined with
@@ -814,7 +819,7 @@ begin
     {$endif}
   end else
 
-  { castle-data: to access ApplicationData }
+  { castle-data: to access application data, https://castle-engine.io/manual_data_directory.php }
   if P = 'castle-data' then
   begin
     Result := Download(ResolveCastleDataURL(URL), Options, MimeType);
@@ -1096,13 +1101,23 @@ end;
 
 { TStringsHelper ---------------------------------------------------------- }
 
-procedure TStringsHelper.LoadFromURL(const URL: string);
+procedure TStringsHelper.LoadFromURL(const URL: string; const IgnoreEncoding: Boolean = false);
 var
   Stream: TStream;
 begin
   Stream := Download(URL);
   try
-    LoadFromStream(Stream);
+    LoadFromStream(Stream, IgnoreEncoding);
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure TStringsHelper.LoadFromURL(const URL: string; const AEncoding: TEncoding);
+var
+  Stream: TStream;
+begin
+  Stream := Download(URL);
+  try
+    LoadFromStream(Stream, AEncoding);
   finally FreeAndNil(Stream) end;
 end;
 

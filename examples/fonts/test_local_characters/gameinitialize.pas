@@ -129,12 +129,12 @@ end;
 
 procedure TFontContainer.ButtonExternalFontClick(Sender: TObject);
 begin
-  FontContainer.Load(ApplicationData('DejaVuSans.ttf'));
+  FontContainer.Load('castle-data:/DejaVuSans.ttf');
 end;
 
 procedure TFontContainer.ButtonExternalFontChineseClick(Sender: TObject);
 begin
-  FontContainer.Load(ApplicationData('DroidSansFallback.ttf'));
+  FontContainer.Load('castle-data:/DroidSansFallback.ttf');
 end;
 
 procedure TFontContainer.ButtonEmbeddedFontClick(Sender: TObject);
@@ -162,7 +162,6 @@ var
   Doc: TXMLDocument;
   TextReader: TTextReader;
   StringList: TStringList;
-  StringListStream: TStream;
 begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
@@ -173,7 +172,7 @@ begin
   Window.Controls.InsertBack(Background);
 
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('scene.x3dv'));
+  Scene.Load('castle-data:/scene.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Window.SceneManager.Items.Add(Scene);
@@ -239,7 +238,7 @@ begin
 
   Config := TCastleConfig.Create(application);
   try
-    Config.Load(ApplicationData('example_config.xml'));
+    Config.Load('castle-data:/example_config.xml');
 
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'String from TCastleConfig:' + NL + Config.GetStringNonEmpty('value');
@@ -250,7 +249,7 @@ begin
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Config) end;
 
-  Doc := URLReadXML(ApplicationData('example_strings.xml'));
+  Doc := URLReadXML('castle-data:/example_strings.xml');
   try
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from XML:' + NL +
@@ -265,7 +264,7 @@ begin
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Doc) end;
 
-  TextReader := TTextReader.Create(ApplicationData('example_text.txt'));
+  TextReader := TTextReader.Create('castle-data:/example_text.txt');
   try
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from txt (TTextReader):' + NL +
@@ -283,13 +282,17 @@ begin
   StringList := TStringList.Create;
   try
     { On desktops, you could also load like this:
-    StringList.LoadFromFile(URIToFilenameSafe(ApplicationData('example_text.txt')));
-      But it will fail on Android, where the ApplicationData('example_text.txt')
-      is an URL inside "assets:/", it doesn't map to the filename. }
-    StringListStream := Download(ApplicationData('example_text.txt'));
-    try
-      StringList.LoadFromStream(StringListStream);
-    finally FreeAndNil(StringListStream) end;
+        StringList.LoadFromFile(URIToFilenameSafe('castle-data:/example_text.txt'), ...);
+      But it will fail on Android, where the 'castle-data:/example_text.txt'
+      is an URL inside "assets:/", it doesn't map to the filename.
+      So instead we use StringList.LoadFromURL.
+
+      As 2nd parameter we could pass true (as IgnoreEncoding), since it's UTF-8 file
+      loaded into a String that assumes UTF-8.
+      Or we can use TEncoding.UTF8.
+      TODO: Why with the default (IgnoreEncoding=false), it's not auto-detected as UTF-8?
+    }
+    StringList.LoadFromURL('castle-data:/example_text.txt', TEncoding.UTF8);
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from txt (TStringList):' + NL + StringList.Text;
     TestLabel.Bottom := Y;
