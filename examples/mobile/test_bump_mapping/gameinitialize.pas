@@ -64,7 +64,7 @@ var
   Scene1, Scene2: TCastleScene;
 begin
   Scene1 := TCastleScene.Create(Application);
-  Scene1.Load(ApplicationData('steep_parallax.x3dv'));
+  Scene1.Load('castle-data:/steep_parallax.x3dv');
   Scene1.Spatial := [ssRendering, ssDynamicCollisions];
   Scene1.ProcessEvents := true;
   Window.SceneManager.Items.Add(Scene1);
@@ -74,7 +74,7 @@ begin
   Window.SceneManager.Items.Add(SceneVisualizeLight);
 
   Scene2 := TCastleScene.Create(Application);
-  Scene2.Load(ApplicationData('leaf.x3dv'));
+  Scene2.Load('castle-data:/leaf.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
   Scene2.Translation := Vector3(0, 2, 0);

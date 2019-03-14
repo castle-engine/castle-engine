@@ -59,7 +59,7 @@ begin
 
   { Show 2D image }
   ExampleImage := TCastleImageControl.Create(Application);
-  ExampleImage.URL := ApplicationData('example_image.png');
+  ExampleImage.URL := 'castle-data:/example_image.png';
   ExampleImage.Bottom := 100;
   ExampleImage.Left := 100;
   Window.Controls.InsertFront(ExampleImage);
@@ -67,7 +67,7 @@ begin
   { Show a 3D object (TCastleScene) inside a Window.SceneManager
     (which acts as a full-screen viewport by default). }
   ExampleScene := TCastleScene.Create(Application);
-  ExampleScene.Load(ApplicationData('example_scene.x3dv'));
+  ExampleScene.Load('castle-data:/example_scene.x3dv');
   ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
   ExampleScene.ProcessEvents := true;
   Window.SceneManager.Items.Add(ExampleScene);

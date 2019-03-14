@@ -289,7 +289,7 @@ begin
     which already causes MuteImage update. Before opening window,
     as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
-  MuteImage.URL := ApplicationData('textures/mute_sign.png');
+  MuteImage.URL := 'castle-data:/textures/mute_sign.png';
   MuteImage.Anchor(hpRight, -20);
   MuteImage.Anchor(vpTop, -20);
   MuteImage.Exists := false; // don't show it on initial progress
@@ -353,17 +353,17 @@ begin
 
   { init Rat }
   Rat := TCastleScene.Create(SceneManager);
-  Rat.Load(ApplicationData('3d/rat.x3d'));
+  Rat.Load('castle-data:/3d/rat.x3d');
   SceneManager.Items.Add(Rat);
   UpdateRatPosition;
 
   { init Tnt }
   TntScene := TCastleScene.Create(SceneManager);
-  TntScene.Load(ApplicationData('3d/tnt.wrl'));
+  TntScene.Load('castle-data:/3d/tnt.wrl');
   while TntsCount < MaxTntsCount do NewTnt(0.0);
 
   { init 3D sounds }
-  SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
+  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
   SoundEngine.DistanceModel := dmInverseDistanceClamped; //< OpenAL default
   stRatSound  := SoundEngine.SoundFromName('rat_sound');
   stRatSqueak := SoundEngine.SoundFromName('rat_squeak');

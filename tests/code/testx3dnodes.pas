@@ -2037,7 +2037,7 @@ begin
   ApplicationProperties.OnWarning.Add(@WeakLinkUnusedWarning);
   try
     try
-      Load3D(ApplicationData('warning_when_new_node_as_shadow_map_light.x3dv'));
+      Load3D('castle-data:/warning_when_new_node_as_shadow_map_light.x3dv');
       raise Exception.Create('We should not get here, expected EWeakLinkUnused on the way');
     except
       on EWeakLinkUnused do ; { good, silence this for the sake of test }

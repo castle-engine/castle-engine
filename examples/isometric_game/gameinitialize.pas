@@ -230,7 +230,7 @@ begin
              URL := 'new';
              if MessageInputQuery(Window, 'Save map as name' +
                ' (don''t specify here initial path and .map extension)', URL) then
-               Map.SaveToFile(ApplicationData('maps/' + URL + '.map'));
+               Map.SaveToFile('castle-data:/maps/' + URL + '.map');
            end;
       'i': ShowFieldInfo;
       CharEscape: Window.Close;

@@ -43,7 +43,7 @@ var
   Material: TMaterialNode;
 begin
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('hexagon.x3d'));
+  Scene.Load('castle-data:/hexagon.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Scene.Translation := Translation;

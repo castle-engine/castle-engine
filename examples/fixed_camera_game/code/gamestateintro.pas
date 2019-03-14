@@ -98,9 +98,9 @@ constructor TStateIntro.Create(AOwner: TComponent);
         { calculate Part.Image and ImageCorroded }
         ImageName := Element.AttributeString('image');
         Part.Image := TDrawableImage.Create(
-          ApplicationData('images/' + ImageName + '.png'), [TRGBImage]);
+          'castle-data:/images/' + ImageName + '.png', [TRGBImage]);
         Part.ImageCorroded := TDrawableImage.Create(
-          ApplicationData('images/' + ImageName + '_corroded.png'), [TRGBImage]);
+          'castle-data:/images/' + ImageName + '_corroded.png', [TRGBImage]);
       end;
     finally FreeAndNil(I) end;
 

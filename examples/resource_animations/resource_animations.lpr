@@ -17,7 +17,8 @@
 uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog;
+  CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog,
+  CastleURIUtils;
 
 var
   BaseScene: TCastleScene;
@@ -176,7 +177,8 @@ begin
       Window.Controls.InsertFront(ResButton);
     end;
     if Resources.Count = 0 then
-      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ApplicationData('')]);
+      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', 
+        [ResolveCastleDataURL('castle-data:/')]);
     case UpdateCurrentResource of
       ucpActivateFirst:
         begin
@@ -266,8 +268,8 @@ var
   Res: TStillCreatureResource;
 begin
   Res := TStillCreatureResource.Create('KnightCreatedFromCodeTest');
-  Res.Animations.FindName('idle').URL := ApplicationData('knight_multiple_castle_anim_frames/idle.castle-anim-frames');
-  Res.Animations.FindName('die').URL := ApplicationData('knight_multiple_castle_anim_frames/die.castle-anim-frames');
+  Res.Animations.FindName('idle').URL := 'castle-data:/knight_multiple_castle_anim_frames/idle.castle-anim-frames';
+  Res.Animations.FindName('die').URL := 'castle-data:/knight_multiple_castle_anim_frames/die.castle-anim-frames';
   Resources.Add(Res);
 end;
 
@@ -289,7 +291,7 @@ begin
     but it's an easy way to add a camera with headlight,
     and some grid to help with orientation. }
   BaseScene := TCastleScene.Create(Application);
-  BaseScene.Load(ApplicationData('base.x3d'));
+  BaseScene.Load('castle-data:/base.x3d');
   { turn on headlight, as base.x3d exported from Blender has always headlight=false }
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
   Window.SceneManager.MainScene := BaseScene;

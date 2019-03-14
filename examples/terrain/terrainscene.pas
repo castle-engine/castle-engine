@@ -100,11 +100,11 @@ constructor TTerrainScene.Create(AOwner: TComponent);
 
     { pass textures to shader effect }
     Tex1 := TImageTextureNode.Create;
-    Tex1.SetUrl([ApplicationData('textures/island_sand2_d.jpg')]);
+    Tex1.SetUrl(['castle-data:/textures/island_sand2_d.jpg']);
     Tex2 := TImageTextureNode.Create;
-    Tex2.SetUrl([ApplicationData('textures/ground_mud2_d.jpg')]);
+    Tex2.SetUrl(['castle-data:/textures/ground_mud2_d.jpg']);
     Tex3 := TImageTextureNode.Create;
-    Tex3.SetUrl([ApplicationData('textures/mntn_white_d.jpg')]);
+    Tex3.SetUrl(['castle-data:/textures/mntn_white_d.jpg']);
 
     Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_1', [], Tex1));
     Effect.AddCustomField(TSFNode.Create(Effect, false, 'tex_2', [], Tex2));
@@ -130,11 +130,11 @@ constructor TTerrainScene.Create(AOwner: TComponent);
     { initialize 2 EffectPart nodes (one for vertex shader, one for fragment shader) }
     FragmentPart := TEffectPartNode.Create;
     FragmentPart.ShaderType := stFragment;
-    FragmentPart.SetUrl([ApplicationData('shaders/terrain.fs')]);
+    FragmentPart.SetUrl(['castle-data:/shaders/terrain.fs']);
 
     VertexPart := TEffectPartNode.Create;
     VertexPart.ShaderType := stVertex;
-    VertexPart.SetUrl([ApplicationData('shaders/terrain.vs')]);
+    VertexPart.SetUrl(['castle-data:/shaders/terrain.vs']);
 
     Effect.SetParts([FragmentPart, VertexPart]);
 

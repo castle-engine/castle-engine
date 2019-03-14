@@ -140,9 +140,9 @@ function MaybeUseDataProtocol(const URL: String): String;
 var
   DataPath: String;
 begin
-  { Use ApplicationData, not 'castle-data:/', to get real location of data,
+  { Use below ResolveCastleDataURL, to get real location of data,
     e.g. resolved to file:// on normal desktop. }
-  DataPath := ApplicationData('');
+  DataPath := ResolveCastleDataURL('castle-data:/');
   if IsPrefix(DataPath, URL, not FileNameCaseSensitive) then
     Result := 'castle-data:/' + PrefixRemove(DataPath, URL, not FileNameCaseSensitive)
   else
@@ -156,7 +156,7 @@ begin
       NL +
       'The file is: ' + URL + NL +
       NL +
-      'The "data" directory is: ' + ApplicationData('') + NL +
+      'The "data" directory is: ' + ResolveCastleDataURL('castle-data:/') + NL +
       NL +
       'While it is allowed, it is not encouraged for cross-platform applications:' + NL +
       '- You will not be able to open this file using castle-data:/ URL (or ApplicationData function).' + NL +

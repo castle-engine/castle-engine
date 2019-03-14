@@ -61,7 +61,7 @@ begin
 
   { add ModelBoxes and TransformBoxes }
 
-  ModelBoxes := Load3D(ApplicationData('boxes.x3dv'));
+  ModelBoxes := Load3D('castle-data:/boxes.x3dv');
 
   TransformBoxes := TTransformNode.Create;
   TransformBoxes.Translation := Vector3(-5, 0, 0);
@@ -71,7 +71,7 @@ begin
 
   { add ModelRaptor and TransformRaptor[0..2] }
 
-  ModelRaptor := Load3D(ApplicationData('raptor_1.x3d'));
+  ModelRaptor := Load3D('castle-data:/raptor_1.x3d');
 
   for I := 0 to 2 do
   begin

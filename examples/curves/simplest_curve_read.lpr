@@ -3,7 +3,7 @@ var
   FirstCurve: TCurve;
   Curves: TCurveList;
 begin
-  FirstCurve := TCurve.LoadFromFile(ApplicationData('my_curves.xml'));
+  FirstCurve := TCurve.LoadFromFile('castle-data:/my_curves.xml');
   try
     // That's it, you loaded the 1st curve from XML file.
     // Write some initial curve points.
@@ -16,7 +16,7 @@ begin
 
   Curves := TCurveList.Create(true { free objects });
   try
-    Curves.LoadFromFile(ApplicationData('my_curves.xml'));
+    Curves.LoadFromFile('castle-data:/my_curves.xml');
     if Curves.Count = 0 then
       raise Exception.Create('No curves defined in file');
     FirstCurve := Curves[0];

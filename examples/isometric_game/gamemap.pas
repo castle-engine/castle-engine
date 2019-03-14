@@ -96,7 +96,7 @@ end;
 
 function TTile.FullURL: string;
 begin
-  Result := ApplicationData('tiles/' + RelativeURL);
+  Result := 'castle-data:/tiles/' + RelativeURL;
 end;
 
 { TBaseTile ------------------------------------------------------------------ }

@@ -204,7 +204,7 @@ begin
 
   Language := SystemLanguage;
   { if we don't have a translation file for this language, fallback to English }
-  if not URIFileExists(ApplicationData('locale/game.' + Language + '.mo')) then
+  if not URIFileExists('castle-data:/locale/game.' + Language + '.mo') then
     Language := SystemDefaultLanguage;
 
   SwitchLanguage(Language);
@@ -235,7 +235,7 @@ begin
   EditTextModified := Edit.Text <> EditTextInitial;
 
   TranslateResourceStrings(
-    URIToFilenameSafe(ApplicationData('locale/game.' + Language + '.mo')));
+    URIToFilenameSafe('castle-data:/locale/game.' + Language + '.mo'));
 
   TextNode.SetString([Text3D]);
   ButtonSwitchEnglish.Caption := CaptionButtonSwitchEnglish;

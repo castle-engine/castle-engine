@@ -58,6 +58,7 @@ begin
   ImageTop := TImageLocalized.Create(Application);
   ImageTop.Anchor(hpMiddle);
   ImageTop.Anchor(vpTop, -10);
+  ImageTop.URLPrefix := 'castle-data:/';
   ImageTop.URLPostfix := '.png';
   Localization.OnUpdateLocalization.Add(@ImageTop.LoadImage);
   Window.Controls.InsertFront(ImageTop);
@@ -71,46 +72,46 @@ begin
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -210);
-  MyButton.LanguageFile := 'en.xml';
+  MyButton.LanguageFile := 'castle-data:/en.xml';
   Localization.AddOrSet(MyButton, 'ButtonEnglishXML');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -260);
-  MyButton.LanguageFile := 'en.json';
+  MyButton.LanguageFile := 'castle-data:/en.json';
   Localization.AddOrSet(MyButton, 'ButtonEnglishJSON');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -310);
-  MyButton.LanguageFile := 'en.jsonobj';
+  MyButton.LanguageFile := 'castle-data:/en.jsonobj';
   Localization.AddOrSet(MyButton, 'ButtonEnglishJSONObj');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -360);
-  MyButton.LanguageFile := 'en.csv';
+  MyButton.LanguageFile := 'castle-data:/en.csv';
   Localization.AddOrSet(MyButton, 'ButtonEnglishCSV');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -410);
-  MyButton.LanguageFile := 'en.mo';
+  MyButton.LanguageFile := 'castle-data:/en.mo';
   Localization.AddOrSet(MyButton, 'ButtonEnglishMO');
   Window.Controls.InsertFront(MyButton);
 
   MyButton := TLanguageButton.Create(Application);
   MyButton.Anchor(hpMiddle);
   MyButton.Anchor(vpTop, -460);
-  MyButton.LanguageFile := 'de.xml';
+  MyButton.LanguageFile := 'castle-data:/de.xml';
   Localization.AddOrSet(MyButton, 'ButtonGermanXML');
   Window.Controls.InsertFront(MyButton);
 
-  Localization.LanguageURL := ApplicationData('en.xml');
+  Localization.LanguageURL := 'castle-data:/en.xml';
 end;
 
 constructor TLanguageButton.Create(AOwner: TComponent);
@@ -122,12 +123,12 @@ end;
 
 procedure TLanguageButton.SetLanguage(Sender: TObject);
 begin
-  Localization.LanguageURL := ApplicationData(FLanguageFile);
+  Localization.LanguageURL := FLanguageFile;
 end;
 
 procedure TImageLocalized.LoadImage;
 begin
-  URL := ApplicationData(URLPrefix + Localization['LangCode'] + URLPostfix);
+  URL := URLPrefix + Localization['LangCode'] + URLPostfix;
 end;
 
 initialization

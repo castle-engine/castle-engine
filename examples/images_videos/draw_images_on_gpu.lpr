@@ -46,9 +46,10 @@ begin
       In a cross-platform application (https://castle-engine.io/manual_cross_platform.php),
       you would do this in Application.OnInitialize. }
 
-    SourceImage := TDrawableImage.Create(ApplicationData(
-      //'2RGBA.png')); // better alpha test
-      'boss-preview.png'));
+    SourceImage := TDrawableImage.Create(
+      //'castle-data:/2RGBA.png' // better alpha test
+      'castle-data:/boss-preview.png'
+    );
 
     DestImageInitial := TRGBAlphaImage.Create(800, 800);
     DestImageInitial.Clear(Yellow);

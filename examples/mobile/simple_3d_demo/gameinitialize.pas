@@ -213,12 +213,12 @@ begin
   Window.Container.UIReferenceHeight := 768;
 
   Image := TCastleImageControl.Create(Window);
-  Image.URL := ApplicationData('sample_image_with_alpha.png' {'sample_texture.ppm'});
+  Image.URL := 'castle-data:/sample_image_with_alpha.png';
   Image.Anchor(hpLeft, Margin);
   Image.Anchor(vpTop, -Margin);
   Window.Controls.InsertFront(Image);
 
-  Window.Load(ApplicationData('castle_with_lights_and_camera.wrl'));
+  Window.Load('castle-data:/castle_with_lights_and_camera.wrl');
   Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Window.MainScene.ProcessEvents := true;
 
@@ -314,15 +314,15 @@ begin
   Window.TouchInterface := tiCtlWalkDragRotate;
 
   { Test that FindFiles works also on Android asset filesystem. }
-  FindFiles(ApplicationData(''), '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles(ApplicationData('') + 'skies', '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles(ApplicationData('') + 'textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
-  FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/skies', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles('castle-data:/textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 
-  SoundBufferWav := SoundEngine.LoadBuffer(ApplicationData('sounds/player_potion_drink.wav'));
+  SoundBufferWav := SoundEngine.LoadBuffer('castle-data:/sounds/player_potion_drink.wav');
 
   try
-    SoundBufferOgg := SoundEngine.LoadBuffer(ApplicationData('sounds/werewolf_howling.ogg'));
+    SoundBufferOgg := SoundEngine.LoadBuffer('castle-data:/sounds/werewolf_howling.ogg');
   except
     on E: ESoundFileError do
       WritelnWarning('OggVorbis loading failed: ' + E.Message);
@@ -348,7 +348,7 @@ initialization
 
   { test: this is forbidden on Android.
     You cannot open files before Application.OnInitialize happened.
-  LoadImage(ApplicationData('sample_texture.ppm')).Free;
+  LoadImage('castle-data:/sample_texture.ppm').Free;
   }
 
   { create Window and initialize Window callbacks }

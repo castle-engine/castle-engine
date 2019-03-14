@@ -95,9 +95,9 @@ begin
   Height := BaseButtonHeight;
   KeepInFront := true;
 
-  ImageNaked := LoadImage(ApplicationData('giftiz/giftiz_logo.png'));
-  ImageBadge := LoadImage(ApplicationData('giftiz/giftiz_logo_badge.png'));
-  ImageWarning := LoadImage(ApplicationData('giftiz/giftiz_logo_warning.png'));
+  ImageNaked := LoadImage('castle-data:/giftiz/giftiz_logo.png');
+  ImageBadge := LoadImage('castle-data:/giftiz/giftiz_logo_badge.png');
+  ImageWarning := LoadImage('castle-data:/giftiz/giftiz_logo_warning.png');
   GiftizStatusVisible := false;
 
   // this is only for testing:

@@ -653,7 +653,7 @@ begin
   SceneManager.Camera := ExamineCamera;
 
   EnvironmentScene := TCastleScene.Create(Window);
-  EnvironmentScene.Load(ApplicationData('environment/environment.x3dv'));
+  EnvironmentScene.Load('castle-data:/environment/environment.x3dv');
   SceneManager.Items.Add(EnvironmentScene);
   SceneManager.MainScene := EnvironmentScene;
 

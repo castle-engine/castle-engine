@@ -43,7 +43,7 @@ begin
 
   { initialize first Scene }
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('bridge_final.x3dv'));
+  Scene.Load('castle-data:/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
     optimization when rendering (ssRendering). }
@@ -84,7 +84,7 @@ begin
 
   { initialize ParticlesScene }
   ParticlesScene := TCastleScene.Create(Application);
-  ParticlesScene.Load(ApplicationData('castle_script_particles.x3dv'));
+  ParticlesScene.Load('castle-data:/castle_script_particles.x3dv');
   ParticlesScene.Spatial := [ssRendering, ssDynamicCollisions];
   { Modify the loaded nodes graph, just to show that we can.
     We find a node called ParticleScript, and change it's "count" field.
@@ -98,7 +98,7 @@ begin
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
-  DinoScene.Load(ApplicationData('raptor.castle-anim-frames'));
+  DinoScene.Load('castle-data:/raptor.castle-anim-frames');
   DinoScene.ProcessEvents := true;
   DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs

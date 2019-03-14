@@ -76,11 +76,11 @@ begin
 
   try
     SourceScene := TCastleScene.Create(nil);
-    SourceScene.Load(ApplicationData(
-      //'bridge_final.x3dv'
-      //'car.x3d'
-      'raptor_1.x3d'
-    ));
+    SourceScene.Load(
+      //'castle-data:/bridge_final.x3dv'
+      //'castle-data:/car.x3d'
+      'castle-data:/raptor_1.x3d'
+    );
 
     SourceSceneManager := TCastleSceneManager.Create(nil);
     SourceSceneManager.Items.Add(SourceScene);

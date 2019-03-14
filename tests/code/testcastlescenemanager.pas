@@ -89,7 +89,7 @@ begin
   SceneManager := TCastleSceneManager.Create(nil);
   try
     Scene := TCastleScene.Create(SceneManager);
-    Scene.Load(ApplicationData('level1.x3d'));
+    Scene.Load('castle-data:/level1.x3d');
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
@@ -105,7 +105,7 @@ begin
   SceneManager := TCastleSceneManager.Create(nil);
   try
     Scene := TCastleScene.Create(SceneManager);
-    Scene.Load(ApplicationData('level1.x3d'));
+    Scene.Load('castle-data:/level1.x3d');
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 

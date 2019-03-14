@@ -87,7 +87,7 @@ begin
     { You also could create a TCastleSceneCore, or even TCastleScene
       to render this 3D object directly in OpenGL (without saving to any
       file). For example in scene_manager_basic.lpr you could replace
-        Scene.Load(ApplicationData('boxes.x3dv'));
+        Scene.Load('castle-data:/boxes.x3dv');
       with
         Scene.Load(Root, false);
       to render your constructed 3D object.

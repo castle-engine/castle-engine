@@ -139,7 +139,7 @@ begin
 
   { Load level }
   LevelScene := TCastleScene.Create(Application);
-  LevelScene.Load(ApplicationData('level.x3d'));
+  LevelScene.Load('castle-data:/level.x3d');
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
   LevelScene.ProcessEvents := true;
   LevelScene.Attributes.PhongShading := true; // prettier lights

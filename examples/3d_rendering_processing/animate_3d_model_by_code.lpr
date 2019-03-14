@@ -71,11 +71,11 @@ begin
   Window := TCastleWindow.Create(Application);
 
   Parameters.CheckHigh(0);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add({$ifdef CASTLE_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
   Scene := TCastleScene.Create(nil);
   try
-    Scene.Load(ApplicationData('boxes.x3dv'));
+    Scene.Load('castle-data:/boxes.x3dv');
     TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
       'Box2Transform', true) as TTransformNode;
     TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
@@ -90,7 +90,7 @@ begin
     { init SceneManager.Camera }
     Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
 
-    Window.OnUpdate := @Update;
+    Window.OnUpdate := {$ifdef CASTLE_OBJFPC}@{$endif} Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally Scene.Free end;

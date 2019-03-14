@@ -162,7 +162,7 @@ procedure ApplicationInitialize;
       For example, this is how to load film grain effect in SceneManager3D:
 
       SceneManager3D.AddScreenEffect(
-        Load3D(ApplicationData('screen_effects/film_grain.x3dv')));
+        Load3D('castle-data:/screen_effects/film_grain.x3dv'));
 
       Alternatively, you may want to save the Load3D result,
       and find there an instance of TScreenEffectNode, to be able to
@@ -172,7 +172,7 @@ procedure ApplicationInitialize;
         RootNode: TX3DRootNode;
         ScreenEffectNode: TScreenEffectNode;
       begin
-        RootNode := Load3D(ApplicationData('screen_effects/film_grain.x3dv'));
+        RootNode := Load3D('castle-data:/screen_effects/film_grain.x3dv');
         ScreenEffectNode := RootNode.FindNodeByName(TScreenEffectNode,
           'FilmGrainScreenEffect', true) as TScreenEffectNode;
         SceneManager3D.AddScreenEffect(RootNode);
@@ -189,11 +189,11 @@ procedure ApplicationInitialize;
 
     for I := 0 to 2 do
     begin
-      FilmGrain.RootNodes[I] := Load3D(ApplicationData('screen_effects/film_grain.x3dv'));
+      FilmGrain.RootNodes[I] := Load3D('castle-data:/screen_effects/film_grain.x3dv');
       FilmGrain.EffectNodes[I] := FilmGrain.RootNodes[I].FindNodeByName(TScreenEffectNode,
         'FilmGrainScreenEffect', true) as TScreenEffectNode;
 
-      Pixelate.RootNodes[I] := Load3D(ApplicationData('screen_effects/pixelate.x3dv'));
+      Pixelate.RootNodes[I] := Load3D('castle-data:/screen_effects/pixelate.x3dv');
       Pixelate.EffectNodes[I] := Pixelate.RootNodes[I].FindNodeByName(TScreenEffectNode,
         'PixelateScreenEffect', true) as TScreenEffectNode;
 
@@ -259,7 +259,7 @@ begin
   Window.Controls.InsertFront(ScreenEffectsOnButtonImage);
 
   ExampleImage := TCastleImageControl.Create(Application);
-  ExampleImage.URL := ApplicationData('example_image.png');
+  ExampleImage.URL := 'castle-data:/example_image.png';
   ExampleImage.Anchor(hpMiddle);
   ExampleImage.Anchor(vpTop);
   ExampleImage.Width := 300;
@@ -289,7 +289,7 @@ begin
   Window.Controls.InsertFront(SceneManager2D);
 
   Example2DScene := TCastle2DScene.Create(Application);
-  Example2DScene.Load(ApplicationData('example_2d_scene/dragon/dragon.json'));
+  Example2DScene.Load('castle-data:/example_2d_scene/dragon/dragon.json');
   Example2DScene.Spatial := [ssRendering, ssDynamicCollisions];
   Example2DScene.ProcessEvents := true;
   Example2DScene.PlayAnimation('flying', true);
@@ -306,7 +306,7 @@ begin
   Window.Controls.InsertFront(SceneManager3D);
 
   Example3DScene := TCastleScene.Create(Application);
-  Example3DScene.Load(ApplicationData('example_3d_scene.x3dv'));
+  Example3DScene.Load('castle-data:/example_3d_scene.x3dv');
   Example3DScene.Spatial := [ssRendering, ssDynamicCollisions];
   Example3DScene.ProcessEvents := true;
   Example3DScene.PlayAnimation('AnimateRotation', true);

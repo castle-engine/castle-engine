@@ -37,7 +37,7 @@ uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties;
 procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.wav'));
+    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.wav');
     if not SoundEngine.ALActive then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
@@ -45,7 +45,7 @@ begin
   except on ESoundFileError do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.ogg'));
+    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
     if not SoundEngine.ALActive then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
@@ -53,7 +53,7 @@ begin
   except on ESoundFileError do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/invalid.wav'));
+    SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');
     if not SoundEngine.ALActive then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
@@ -61,7 +61,7 @@ begin
   except on ESoundFileError do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/invalid.ogg'));
+    SoundEngine.LoadBuffer('castle-data:/sound/invalid.ogg');
     if not SoundEngine.ALActive then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else

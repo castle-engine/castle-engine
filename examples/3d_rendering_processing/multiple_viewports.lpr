@@ -253,7 +253,7 @@ begin
 
   { initialize Animation }
   Animation := TCastleScene.Create(Window.SceneManager);
-  Animation.Load(ApplicationData('raptor.castle-anim-frames'));
+  Animation.Load('castle-data:/raptor.castle-anim-frames');
   Animation.ProcessEvents := true;
   Animation.Spatial := [ssRendering, ssDynamicCollisions];
   Transform.Add(Animation);

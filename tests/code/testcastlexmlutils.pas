@@ -47,7 +47,7 @@ begin
   try
     Doc := TXMLDocument(Pointer(123));
     try
-      URLReadXML(Doc, ApplicationData('not-existing-test.xml'));
+      URLReadXML(Doc, 'castle-data:/not-existing-test.xml');
       Fail('Should not reach here, non-existing-test.xml should not exist');
     finally AssertTrue(Doc = nil); end;
   except on EFOpenError do begin { this is Ok } end; end;
@@ -60,7 +60,7 @@ var
   I: Integer;
 begin
   try
-    URLReadXML(Doc, ApplicationData('test.xml'));
+    URLReadXML(Doc, 'castle-data:/test.xml');
 
     AssertTrue(Doc.DocumentElement.AttributeStringDef('some_string', 'blah') = 'some_string_value');
     //AssertTrue(Doc.DocumentElement.AttributeCardinalDef('some_int', 666) = 123);

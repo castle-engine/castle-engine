@@ -35,7 +35,7 @@ This translates all strings in `resourcestring` declarations.
 
 In code:
 
-* Call in Pascal `TranslateResourceStrings(URIToFilenameSafe(ApplicationData('locale/game.pl.mo')));` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
+* Call in Pascal `TranslateResourceStrings(URIToFilenameSafe('castle-data:/locale/game.pl.mo'));` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
 
 * Assign the resourcestrings to the approproate properties of appropriate objects, like `TCastleLabel.Caption`.
 

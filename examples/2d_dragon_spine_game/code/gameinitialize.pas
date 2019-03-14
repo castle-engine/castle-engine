@@ -104,15 +104,14 @@ end;
 procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
-    and run it's animation. Path is processed by ApplicationData,
-    so it used slahes and is relative to application data directory. }
-  procedure AddItem(const X, Y, Z, Scale: Single; const Path: string;
+    and run it's animation. }
+  procedure AddItem(const X, Y, Z, Scale: Single; const URL: string;
     const RunAnimation: boolean = true);
   var
     Scene: TCastle2DScene;
   begin
     Scene := TCastle2DScene.Create(Application);
-    Scene.Load(ApplicationData(Path));
+    Scene.Load(URL);
     Scene.ProcessEvents := true;
     if RunAnimation then
       Scene.PlayAnimation('animation', true);
@@ -130,23 +129,23 @@ const
   TreeZ = 200;
 begin
   { z = TreeZ to place in front, only behind dragon }
-  AddItem(3400, 50, TreeZ, 0.55, 'trees/tree1.json');
-  AddItem(3400, 0, TreeZ, 0.6, 'trees/tree2.json');
-  AddItem(1900, 10, TreeZ, 0.55, 'trees/tree2.json');
-  AddItem(3100, 30, TreeZ, 0.66, 'trees/tree1.json');
+  AddItem(3400, 50, TreeZ, 0.55, 'castle-data:/trees/tree1.json');
+  AddItem(3400, 0, TreeZ, 0.6, 'castle-data:/trees/tree2.json');
+  AddItem(1900, 10, TreeZ, 0.55, 'castle-data:/trees/tree2.json');
+  AddItem(3100, 30, TreeZ, 0.66, 'castle-data:/trees/tree1.json');
   {
   for I := 0 to 1 do
-    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree1.json');
+    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'castle-data:/trees/tree1.json');
   for I := 0 to 1 do
-    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree2.json');
+    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'castle-data:/trees/tree2.json');
   }
-  // AddItem(1000, 10, TreeZ, 0.65, 'trees/tree2.json');
-  // AddItem(1000, 30, TreeZ, 0.61, 'trees/tree1.json');
-  // AddItem(4300, 30, TreeZ, 0.7, 'trees/tree1.json');
-  // AddItem(4600, 10, TreeZ, 0.7, 'trees/tree2.json');
+  // AddItem(1000, 10, TreeZ, 0.65, 'castle-data:/trees/tree2.json');
+  // AddItem(1000, 30, TreeZ, 0.61, 'castle-data:/trees/tree1.json');
+  // AddItem(4300, 30, TreeZ, 0.7, 'castle-data:/trees/tree1.json');
+  // AddItem(4600, 10, TreeZ, 0.7, 'castle-data:/trees/tree2.json');
   { z = 50 to place between background tower and background trees }
-  AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
-  AddItem(0,    0, 100, 1, 'background_front.x3dv', false);
+  AddItem(0,    0,  50, 1, 'castle-data:/background/smoktlo2.json');
+  AddItem(0,    0, 100, 1, 'castle-data:/background_front.x3dv', false);
 
   SceneManager.Items.SortBackToFront2D;
 end;
@@ -176,7 +175,7 @@ begin
   Background := TCastle2DScene.Create(Application);
   SceneManager.Items.Add(Background);
   SceneManager.MainScene := Background;
-  Background.Load(ApplicationData('background.x3dv'));
+  Background.Load('castle-data:/background.x3dv');
   { not really necessary now, but in case some animations will appear
     on Background }
   Background.ProcessEvents := true;
@@ -196,7 +195,7 @@ begin
   SceneManager.ProjectionSpan := 10000.0;
 
   Dragon := TCastle2DScene.Create(Application);
-  Dragon.Load(ApplicationData('dragon/dragon.json'));
+  Dragon.Load('castle-data:/dragon/dragon.json');
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
   DragonChangeAnimation('idle', false);

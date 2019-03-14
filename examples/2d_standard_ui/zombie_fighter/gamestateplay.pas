@@ -61,7 +61,7 @@ begin
   InsertFront(Background);
 
   Scene := TCastleScene.Create(FreeAtStop);
-  Scene.Load(ApplicationData('level1.x3d'));
+  Scene.Load('castle-data:/level1.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Scene.Attributes.PhongShading := true; // looks better

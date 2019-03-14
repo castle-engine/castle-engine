@@ -58,7 +58,7 @@ begin
 
   { load game configuration }
   GameConfig := TCastleConfig.Create(nil);
-  GameConfig.URL := ApplicationData('game.xml');
+  GameConfig.URL := 'castle-data:/game.xml';
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 

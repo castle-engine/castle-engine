@@ -74,7 +74,7 @@ procedure ApplicationInitialize;
     Collider: TMeshCollider;
   begin
     Level := TCastleScene.Create(Application);
-    Level.Load(ApplicationData('level.x3d'));
+    Level.Load('castle-data:/level.x3d');
 
     RigidBody := TRigidBody.Create(Level);
     RigidBody.Dynamic := false;
@@ -97,7 +97,7 @@ procedure ApplicationInitialize;
     Collider: TBoxCollider;
   begin
     Plane := TCastleScene.Create(Application);
-    Plane.Load(ApplicationData('plane.x3d'));
+    Plane.Load('castle-data:/plane.x3d');
     Plane.Translation := Vector3(50, 50, 0); // initial position
 
     RigidBody := TRigidBody.Create(Plane);

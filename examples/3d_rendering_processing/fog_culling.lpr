@@ -79,7 +79,7 @@ begin
   Window := TCastleWindow.Create(Application);
 
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('fog_culling_final.x3dv'));
+  Scene.Load('castle-data:/fog_culling_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Window.SceneManager.MainScene := Scene;
   Window.SceneManager.Items.Add(Scene);

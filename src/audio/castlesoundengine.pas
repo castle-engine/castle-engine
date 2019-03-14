@@ -926,7 +926,7 @@ type
       property. For example like this:
 
       @longCode(#
-        SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
+        SoundEngine.RepositoryURL := 'castle-data:/sounds.xml';
         stMySound1 := SoundEngine.SoundFromName('my_sound_1');
         stMySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
@@ -934,7 +934,9 @@ type
         SoundEngine.Sound3D(stMySound1, Vector3(0, 0, 10));
       #)
 
-      See CastleFilesUtils unit for docs of ApplicationData function.
+      See https://castle-engine.io/manual_data_directory.php
+      for information about the castle-data:/ protocol. In short, on desktop,
+      this just indicates the "data" subdirectory of your project.
     }
     property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
 

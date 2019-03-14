@@ -174,7 +174,7 @@ type
 
       @longCode(#
       SceneManager.AddScreenEffect(
-        Load3D(ApplicationData('screen_effects_scene.x3dv')));
+        Load3D('castle-data:/screen_effects_scene.x3dv'));
       #)
 
       If you're looking for inspirations what to put in screen_effects_scene.x3dv,

@@ -108,7 +108,7 @@ begin
 
   { Add car model to SceneManager }
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load(ApplicationData('car.x3d'));
+  Scene.Load('castle-data:/car.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   SceneManager.Items.Add(Scene);

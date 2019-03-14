@@ -260,7 +260,7 @@ type
 
     { Add all available levels found by scanning for level.xml inside data
       directory.
-      Overloaded version without parameter just looks inside ApplicationData.
+      Overloaded version without parameter just looks inside 'castle-data:/'.
       For the specification of level.xml format see
       [https://castle-engine.io/creating_data_levels.php] .
 

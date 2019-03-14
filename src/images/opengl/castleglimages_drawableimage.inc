@@ -178,10 +178,12 @@ type
     { Load image from disk, and prepare for drawing.
 
       @param(URL URL (or filename) from which to load the image.
-        Often you want to pass here the result ot ApplicationData
-        function, like:
+        Often you want to use here castle-data:/ protocol to load application data,
+        like:
 
         @longCode(# Image := TDrawableImage.Create('castle-data:/textures/my_image.png', ...); #)
+
+        See https://castle-engine.io/manual_data_directory.php
       )
 
       @param(ASmoothScaling The initial value of @link(SmoothScaling),

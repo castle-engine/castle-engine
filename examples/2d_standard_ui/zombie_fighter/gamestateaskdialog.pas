@@ -72,9 +72,9 @@ begin
 
   Image := TCastleImageControl.Create(Self);
   if Male then
-    Image.URL := ApplicationData('Male-Zombie-300px.png')
+    Image.URL := 'castle-data:/Male-Zombie-300px.png'
   else
-    Image.URL := ApplicationData('Female-Zombie-300px.png');
+    Image.URL := 'castle-data:/Female-Zombie-300px.png';
   Image.Anchor(hpMiddle);
   Image.Anchor(vpTop, -10);
   InsideRect.InsertFront(Image);

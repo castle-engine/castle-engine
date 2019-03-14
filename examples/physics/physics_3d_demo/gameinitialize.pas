@@ -94,12 +94,12 @@ type
 
 class procedure TEventHandler.LoadLevelSimple(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_simple.x3dv'), false);
+  LoadLevel('castle-data:/level_simple.x3dv', false);
 end;
 
 class procedure TEventHandler.LoadLevelComplex(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_complex.x3dv'), true);
+  LoadLevel('castle-data:/level_complex.x3dv', true);
 end;
 
 { One-time initialization of resources. }
@@ -109,7 +109,7 @@ var
 begin
   SceneManager := Window.SceneManager;
 
-  LoadLevel(ApplicationData('level_simple.x3dv'), false);
+  LoadLevel('castle-data:/level_simple.x3dv', false);
 
   SceneManager.NavigationType := ntWalk;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
@@ -119,10 +119,10 @@ begin
   SceneManager.TimeScale := 2;
 
   BoxTemplate := TCastleScene.Create(Application);
-  BoxTemplate.Load(ApplicationData('box.x3d'));
+  BoxTemplate.Load('castle-data:/box.x3d');
 
   SphereTemplate := TCastleScene.Create(Application);
-  SphereTemplate.Load(ApplicationData('sphere.x3d'));
+  SphereTemplate.Load('castle-data:/sphere.x3d');
 
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
