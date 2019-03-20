@@ -454,7 +454,10 @@ end;
 procedure TProjectForm.WarningNotification(Sender: TObject; const Category,
   Message: string);
 begin
-  ListWarnings.Items.Add(Category + ': ' + Message);
+  if Category <> '' then
+    ListWarnings.Items.Add(Category + ': ' + Message)
+  else
+    ListWarnings.Items.Add(Message);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
 end;
