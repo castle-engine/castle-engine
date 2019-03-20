@@ -832,6 +832,8 @@ type
     procedure CalculateMainLightForShadowsPosition;
     procedure ValidateMainLightForShadows;
   private
+    FAutoAnimation: String;
+    FAutoAnimationLoop: Boolean;
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
     FAnimateOnlyWhenVisible: boolean;
@@ -840,8 +842,10 @@ type
     AnimateSkipNextTicks: Cardinal;
 
     procedure SetAnimateSkipTicks(const Value: Cardinal);
-
     procedure SetHeadlightOn(const Value: boolean);
+    procedure SetAutoAnimation(const Value: String);
+    procedure SetAutoAnimationLoop(const Value: Boolean);
+    procedure UpdateAutoAnimation(const StopIfPlaying: Boolean);
 
     { Get camera position in current scene local coordinates.
       This is calculated every time now (in the future it may be optimized
@@ -923,6 +927,7 @@ type
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
+    procedure Loaded; override;
 
   public
     { Nonzero value prevents rendering of this scene,
@@ -1914,6 +1919,8 @@ type
       Returns boolean whether such animation name was found.
       To get the list of available animations, see @link(AnimationsList).
 
+      This automatically turns on @link(ProcessEvents), if it wasn't turned on already.
+
       This is the simplest way to play animations using Castle Game Engine.
       For a nice overview about using PlayAnimation, see the manual
       https://castle-engine.io/manual_scene.php , section "Play animation".
@@ -2302,6 +2309,14 @@ type
       reloads the scene (calls @link(Load) with a new X3D graph). }
     property PrimitiveGeometry: TPrimitiveGeometry
       read FPrimitiveGeometry write SetPrimitiveGeometry default pgNone;
+
+    { If set, this animation will be automatically played once the model
+      is loaded (each time URL changes). @link(AutoAnimationLoop) controls
+      whether it loops. }
+    property AutoAnimation: String
+      read FAutoAnimation write SetAutoAnimation;
+    property AutoAnimationLoop: Boolean
+      read FAutoAnimationLoop write SetAutoAnimationLoop default true;
   end;
 
   {$define read_interface}
@@ -2739,6 +2754,8 @@ begin
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
   FAnimationPrefix := DefaultAnimationPrefix;
 
+  FAutoAnimationLoop := true;
+
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
     and our current state should be equal to what ScheduleChangedAll
@@ -2833,6 +2850,8 @@ begin
 
   { restore events processing, initialize new scripts and such }
   ProcessEvents := RestoreProcessEvents;
+
+  UpdateAutoAnimation(false);
 end;
 
 procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
@@ -2860,6 +2879,50 @@ begin
   FPrimitiveGeometry := pgNone;
 
   Profiler.Stop(TimeStart);
+end;
+
+procedure TCastleSceneCore.UpdateAutoAnimation(const StopIfPlaying: Boolean);
+begin
+  // when csLoading, delay this to Loaded
+  if not (csLoading in ComponentState) then
+  begin
+    if AutoAnimation <> '' then
+    begin
+      if not PlayAnimation(AutoAnimation, AutoAnimationLoop) then
+        WritelnWarning('Animation "%s" not found on "%s"', [
+          AutoAnimation,
+          URIDisplay(URL)
+        ]);
+    end else
+    if StopIfPlaying then
+    begin
+      // TODO: StopAnimation
+    end;
+  end;
+end;
+
+procedure TCastleSceneCore.Loaded;
+begin
+  inherited;
+  UpdateAutoAnimation(false);
+end;
+
+procedure TCastleSceneCore.SetAutoAnimationLoop(const Value: Boolean);
+begin
+  if FAutoAnimationLoop <> Value then
+  begin
+    FAutoAnimationLoop := Value;
+    UpdateAutoAnimation(true);
+  end;
+end;
+
+procedure TCastleSceneCore.SetAutoAnimation(const Value: String);
+begin
+  if FAutoAnimation <> Value then
+  begin
+    FAutoAnimation := Value;
+    UpdateAutoAnimation(true);
+  end;
 end;
 
 procedure TCastleSceneCore.SetRootNode(const Value: TX3DRootNode);
@@ -7320,6 +7383,8 @@ function TCastleSceneCore.PlayAnimation(
 var
   Index: Integer;
 begin
+  ProcessEvents := true;
+
   Index := FAnimationsList.IndexOf(Parameters.Name);
   Result := Index <> -1;
   if Result then
@@ -7417,11 +7482,12 @@ end;
 function TCastleSceneCore.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'ProcessEvents') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 procedure TCastleSceneCore.LocalRender(const Params: TRenderParams);

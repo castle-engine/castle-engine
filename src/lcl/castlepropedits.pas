@@ -60,6 +60,42 @@ begin
   Result := [paMultiSelect, paSubProperties, paReadOnly];
 end;
 
+{ TSceneAutoAnimationPropertyEditor ------------------------------------------ }
+
+type
+  { Property editor to select an animation on TCastleSceneCore. }
+  TSceneAutoAnimationPropertyEditor = class(TStringPropertyEditor)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure GetValues(Proc: TGetStrProc); override;
+    procedure SetValue(const NewValue: String); override;
+  end;
+
+function TSceneAutoAnimationPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paMultiSelect, paValueList, paSortList, paRevertable];
+end;
+
+procedure TSceneAutoAnimationPropertyEditor.GetValues(Proc: TGetStrProc);
+var
+  Scene: TCastleSceneCore;
+  S: String;
+begin
+  Proc('');
+  Scene := GetComponent(0) as TCastleSceneCore;
+  for S in Scene.AnimationsList do
+    Proc(S);
+end;
+
+procedure TSceneAutoAnimationPropertyEditor.SetValue(const NewValue: String);
+var
+  Scene: TCastleSceneCore;
+begin
+  inherited SetValue(NewValue);
+  Scene := GetComponent(0) as TCastleSceneCore;
+  Scene.AutoAnimation := NewValue;
+end;
+
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 
 type
@@ -182,6 +218,8 @@ type
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
+    function GetValue: String; override;
+    procedure SetValue(const NewValue: String); override;
   end;
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -216,12 +254,30 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
+function TCastleColorPropertyEditor.GetValue: String;
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  Result := ColorToHex(ColorPersistent.Value);
+end;
+
+procedure TCastleColorPropertyEditor.SetValue(const NewValue: String);
+var
+  ColorPersistent: TCastleColorPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
+  ColorPersistent.Value := HexToColor(NewValue);
+end;
+
 { TCastleColorRGBPropertyEditor ------------------------------------------------- }
 
 type
   TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
+    function GetValue: String; override;
+    procedure SetValue(const NewValue: String); override;
   end;
 
 function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
@@ -249,6 +305,22 @@ begin
       ColorPersistent.Value := Color;
     end;
   finally FreeAndNil(Dialog) end;
+end;
+
+function TCastleColorRGBPropertyEditor.GetValue: String;
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  Result := ColorRGBToHex(ColorPersistent.Value);
+end;
+
+procedure TCastleColorRGBPropertyEditor.SetValue(const NewValue: String);
+var
+  ColorPersistent: TCastleColorRGBPersistent;
+begin
+  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
+  ColorPersistent.Value := HexToColorRGB(NewValue);
 end;
 
 { TChildrenControlsPropertyEditor -------------------------------------------- }
@@ -433,6 +505,8 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TSubPropertiesEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
+    TSceneAutoAnimationPropertyEditor);
 end;
 
 initialization
