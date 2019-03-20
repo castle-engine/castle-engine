@@ -224,7 +224,9 @@ type
 
 function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable];
+  Result := inherited GetAttributes + [paDialog, paRevertable]
+    // our SetValue allows to set color from string
+    - [paReadOnly];
 end;
 
 procedure TCastleColorPropertyEditor.Edit;
@@ -282,7 +284,9 @@ type
 
 function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
-  Result := inherited GetAttributes + [paDialog, paRevertable];
+  Result := inherited GetAttributes + [paDialog, paRevertable]
+    // our SetValue allows to set color from string
+    - [paReadOnly];
 end;
 
 procedure TCastleColorRGBPropertyEditor.Edit;
