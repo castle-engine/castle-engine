@@ -180,11 +180,12 @@ end;
 function TCastleDesign.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'URL') or
-     (PropertyName = 'Stretch') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    'URL', 'Stretch':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$endif read_implementation}

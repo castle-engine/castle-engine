@@ -962,10 +962,14 @@ end;
 function TCastleButton.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'Caption') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    'Caption':
+      Result := psBasic;
+    'AutoSize', 'AutoSizeWidth', 'AutoSizeHeight', 'PaddingHorizontal', 'PaddingVertical':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}

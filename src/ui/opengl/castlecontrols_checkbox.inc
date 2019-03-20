@@ -323,11 +323,14 @@ end;
 function TCastleCheckbox.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'Caption') or
-     (PropertyName = 'Checked') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    'Caption', 'Checked':
+      Result := psBasic;
+    'AutoSize':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}

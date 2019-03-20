@@ -427,12 +427,15 @@ end;
 
 function TCastleLabel.PropertySection(const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'Text') or
-     (PropertyName = 'Caption') or // expresses the same thing as Text, but easier to access
-     (PropertyName = 'ColorPersistent') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    // Note that Caption expresses the same thing as Text, but easier to access
+    'Text', 'Caption', 'ColorPersistent':
+      Result := psBasic;
+    'AutoSize':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
 end;
 
 {$define read_implementation_methods}
