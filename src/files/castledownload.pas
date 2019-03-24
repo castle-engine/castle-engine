@@ -1107,7 +1107,7 @@ var
 begin
   Stream := Download(URL);
   try
-    LoadFromStream(Stream, IgnoreEncoding);
+    LoadFromStream(Stream {$ifndef VER3_0}, IgnoreEncoding {$endif});
   finally FreeAndNil(Stream) end;
 end;
 
@@ -1117,7 +1117,7 @@ var
 begin
   Stream := Download(URL);
   try
-    LoadFromStream(Stream, AEncoding);
+    LoadFromStream(Stream {$ifndef VER3_0}, AEncoding {$endif});
   finally FreeAndNil(Stream) end;
 end;
 
