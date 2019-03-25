@@ -359,9 +359,10 @@ clean: cleanexamples
 # that has CastleEngineManifest.xml with macros, and would cause errors:
 # """ Project name contains invalid characters: "${PROJECT_NAME}" """
 	$(FIND) . \
-	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' \
-	  -iname CastleEngineManifest.xml \
-	  -execdir castle-engine clean ';'
+	  '(' -path ./tools/castle-editor/data/project_templates \
+	      -prune ')' -or \
+	  '(' -iname CastleEngineManifest.xml \
+	      -execdir castle-engine clean ';' ')'
 
 cleanmore: clean
 	$(FIND) . -type f '(' -iname '*~' -or \
@@ -376,6 +377,7 @@ cleanmore: clean
 	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar \
 	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
 	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
