@@ -24,8 +24,7 @@ var
   Buffer: TSoundBuffer;
   URL: string;
 begin
-  ApplicationProperties.OnWarning.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   InitializeLog; // to see various info about OpenAL and sound loading
 

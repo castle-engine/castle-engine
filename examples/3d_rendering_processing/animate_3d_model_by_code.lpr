@@ -72,7 +72,7 @@ begin
   Window.Open;
 
   Parameters.CheckHigh(0);
-  ApplicationProperties.OnWarning.Add({$ifdef FPC_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Scene := TCastleScene.Create(nil);
   try
@@ -91,7 +91,7 @@ begin
     { init SceneManager.Camera }
     Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
 
-    Window.OnUpdate := {$ifdef FPC_OBJFPC}@{$endif} Update;
+    Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Application.Run;
   finally Scene.Free end;
