@@ -277,6 +277,8 @@ type
     }
     function GetLeftBottom: TVector2;
     procedure SetLeftBottom(const Value: TVector2);
+    function GetSize: TVector2;
+    procedure SetSize(const Value: TVector2);
   public
     Left, Bottom: Single;
     Width, Height: Single;
@@ -447,6 +449,10 @@ type
 
     { Common part of the two rectangles. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
+
+    { Alternative way to access @link(Width) and @link(Height).
+      Name consistent with TBoxNode.Size, TBox3D.Size. }
+    property Size: TVector2 read GetSize write SetSize;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -1038,6 +1044,18 @@ procedure TFloatRectangle.SetLeftBottom(const Value: TVector2);
 begin
   Left := Value.Data[0];
   Bottom := Value.Data[1];
+end;
+
+function TFloatRectangle.GetSize: TVector2;
+begin
+  Result.Data[0] := Width;
+  Result.Data[1] := Height;
+end;
+
+procedure TFloatRectangle.SetSize(const Value: TVector2);
+begin
+  Width := Value.Data[0];
+  Height := Value.Data[1];
 end;
 
 function TFloatRectangle.Center: TVector2;
