@@ -114,6 +114,12 @@ pipeline {
         sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
       }
     }
+    stage('Pack Release') {
+      steps {
+        sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+        sh 'cd tools/internal/pack_release/ && ./pack_release.sh'
+      }
+    }
     /* update Docker image only when the "master" branch changes */
     stage('Update Docker Image with CGE') {
       when { branch 'master' }
@@ -123,6 +129,9 @@ pipeline {
     }
   }
   post {
+    success {
+      archiveArtifacts artifacts: 'castle-engine*.zip'
+    }
     regression {
       mail to: 'michalis.kambi@gmail.com',
         subject: "[jenkins] Build started failing: ${currentBuild.fullDisplayName}",
