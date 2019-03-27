@@ -22,7 +22,8 @@ unit CastleKeysMouse;
 
 interface
 
-uses Classes, CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;
+uses Classes, Generics.Collections,
+  CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;
 
 type
   { Keys on the keyboard.
@@ -214,20 +215,21 @@ type
     keyNumpadEnter,
     keyNumpadMultiply,
     keyNumpadDivide,
-    keyReserved_164,
-    keyReserved_165,
-    keyReserved_166,
-    keyReserved_167,
-    keyReserved_168,
-    keyReserved_169,
-    keyReserved_170,
-    keyReserved_171,
-    keyReserved_172,
-    keyReserved_173,
-    keyReserved_174,
-    keyReserved_175,
-    keyReserved_176,
-    keyReserved_177,
+    { Keys on Nintendo Switch pad. }
+    keyPadA,
+    keyPadB,
+    keyPadX,
+    keyPadY,
+    keyPadL,
+    keyPadR,
+    keyPadZL,
+    keyPadZR,
+    keyPadPlus,
+    keyPadMinus,
+    keyPadLeft,
+    keyPadUp,
+    keyPadRight,
+    keyPadDown,
     keyReserved_178,
     keyReserved_179,
     keyReserved_180,
@@ -267,18 +269,7 @@ const
   K_Ctrl                       = keyCtrl;
   K_Alt                        = keyAlt;
   K_Plus                       = keyPlus;
-  K_Reserved_20                = keyReserved_20;
-  K_Reserved_21                = keyReserved_21;
-  K_Reserved_22                = keyReserved_22;
-  K_Reserved_23                = keyReserved_23;
-  K_Reserved_24                = keyReserved_24;
-  K_Reserved_25                = keyReserved_25;
-  K_Reserved_26                = keyReserved_26;
   K_Escape                     = keyEscape;
-  K_Reserved_28                = keyReserved_28;
-  K_Reserved_29                = keyReserved_29;
-  K_Reserved_30                = keyReserved_30;
-  K_Reserved_31                = keyReserved_31;
   K_Space                      = keySpace;
   K_PageUp                     = keyPageUp;
   K_PageDown                   = keyPageDown;
@@ -288,13 +279,8 @@ const
   K_Up                         = keyUp;
   K_Right                      = keyRight;
   K_Down                       = keyDown;
-  K_Reserved_41                = keyReserved_41;
-  K_Reserved_42                = keyReserved_42;
-  K_Reserved_43                = keyReserved_43;
-  K_Reserved_44                = keyReserved_44;
   K_Insert                     = keyInsert;
   K_Delete                     = keyDelete;
-  K_Reserved_47                = keyReserved_47;
   K_0                          = key0;
   K_1                          = key1;
   K_2                          = key2;
@@ -305,13 +291,6 @@ const
   K_7                          = key7;
   K_8                          = key8;
   K_9                          = key9;
-  K_Reserved_58                = keyReserved_58;
-  K_Reserved_59                = keyReserved_59;
-  K_Reserved_60                = keyReserved_60;
-  K_Reserved_61                = keyReserved_61;
-  K_Reserved_62                = keyReserved_62;
-  K_Reserved_63                = keyReserved_63;
-  K_Reserved_64                = keyReserved_64;
   K_A                          = keyA;
   K_B                          = keyB;
   K_C                          = keyC;
@@ -339,26 +318,9 @@ const
   K_Y                          = keyY;
   K_Z                          = keyZ;
   K_LeftBracket                = keyLeftBracket;
-  K_Reserved_92                = keyReserved_92;
   K_RightBracket               = keyRightBracket;
-  K_Reserved_94                = keyReserved_94;
-  K_Reserved_95                = keyReserved_95;
-  K_Reserved_96                = keyReserved_96;
-  K_Reserved_97                = keyReserved_97;
-  K_Reserved_98                = keyReserved_98;
-  K_Reserved_99                = keyReserved_99;
-  K_Reserved_100               = keyReserved_100;
-  K_Reserved_101               = keyReserved_101;
-  K_Reserved_102               = keyReserved_102;
-  K_Reserved_103               = keyReserved_103;
-  K_Reserved_104               = keyReserved_104;
-  K_Reserved_105               = keyReserved_105;
-  K_Reserved_106               = keyReserved_106;
   K_Numpad_Plus                = keyNumpadPlus;
-  K_Reserved_108               = keyReserved_108;
   K_Numpad_Minus               = keyNumpadMinus;
-  K_Reserved_110               = keyReserved_110;
-  K_Reserved_111               = keyReserved_111;
   K_F1                         = keyF1;
   K_F2                         = keyF2;
   K_F3                         = keyF3;
@@ -371,22 +333,6 @@ const
   K_F10                        = keyF10;
   K_F11                        = keyF11;
   K_F12                        = keyF12;
-  K_Reserved_124               = keyReserved_124;
-  K_Reserved_125               = keyReserved_125;
-  K_Reserved_126               = keyReserved_126;
-  K_Reserved_127               = keyReserved_127;
-  K_Reserved_128               = keyReserved_128;
-  K_Reserved_129               = keyReserved_129;
-  K_Reserved_130               = keyReserved_130;
-  K_Reserved_131               = keyReserved_131;
-  K_Reserved_132               = keyReserved_132;
-  K_Reserved_133               = keyReserved_133;
-  K_Reserved_134               = keyReserved_134;
-  K_Reserved_135               = keyReserved_135;
-  K_Reserved_136               = keyReserved_136;
-  K_Reserved_137               = keyReserved_137;
-  K_Reserved_138               = keyReserved_138;
-  K_Reserved_139               = keyReserved_139;
   K_Numpad_0                   = keyNumpad0;
   K_Numpad_1                   = keyNumpad1;
   K_Numpad_2                   = keyNumpad2;
@@ -411,34 +357,8 @@ const
   K_Numpad_Enter               = keyNumpadEnter;
   K_Numpad_Multiply            = keyNumpadMultiply;
   K_Numpad_Divide              = keyNumpadDivide;
-  K_Reserved_164               = keyReserved_164;
-  K_Reserved_165               = keyReserved_165;
-  K_Reserved_166               = keyReserved_166;
-  K_Reserved_167               = keyReserved_167;
-  K_Reserved_168               = keyReserved_168;
-  K_Reserved_169               = keyReserved_169;
-  K_Reserved_170               = keyReserved_170;
-  K_Reserved_171               = keyReserved_171;
-  K_Reserved_172               = keyReserved_172;
-  K_Reserved_173               = keyReserved_173;
-  K_Reserved_174               = keyReserved_174;
-  K_Reserved_175               = keyReserved_175;
-  K_Reserved_176               = keyReserved_176;
-  K_Reserved_177               = keyReserved_177;
-  K_Reserved_178               = keyReserved_178;
-  K_Reserved_179               = keyReserved_179;
-  K_Reserved_180               = keyReserved_180;
-  K_Reserved_181               = keyReserved_181;
-  K_Reserved_182               = keyReserved_182;
-  K_Reserved_183               = keyReserved_183;
-  K_Reserved_184               = keyReserved_184;
-  K_Reserved_185               = keyReserved_185;
-  K_Reserved_186               = keyReserved_186;
-  K_Reserved_187               = keyReserved_187;
   K_Comma                      = keyComma;
-  K_Reserved_189               = keyReserved_189;
   K_Period                     = keyPeriod;
-  K_Reserved_191               = keyReserved_191;
 
 type
   TKeysBooleans = array [TKey] of Boolean;
@@ -903,13 +823,36 @@ type
     { Coordinates of the pinch gesture center. }
     property PinchCenter: TVector2 read FPinchCenter;
 
-    { Listen to this evnt to receive updates on recognized gestures. }
+    { Listen to this event to receive updates on recognized gestures. }
     property OnGestureChanged: TNotifyEvent read FOnGestureChanged write FOnGestureChanged;
+  end;
+
+  { Properties of a given joystick, use through @link(TUIContainer.Joystick).
+    Do not construct instances of this yourself, TUIContainer creates
+    this automatically when necessary. }
+  TJoystick = class
+  strict private
+    FIndex: Integer;
+  public
+    constructor Create(const AIndex: Integer);
+    function Axis: TVector3;
+  end;
+
+  { List of TJoystick.
+    Do not construct instances of this yourself, TUIContainer uses
+    this automatically when necessary. }
+  TJoystickList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TJoystick>)
+    constructor Create;
+    { Call this to initialize joystick information.
+      This searches for connected joysticks.
+      Calling this 2nd time searches for connected joysticks again. }
+    procedure Initialize;
   end;
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math,
+  CastleJoysticks;
 
 const
   KeyToStrTable: array [TKey] of string = (
@@ -1077,20 +1020,20 @@ const
   'Numpad Enter',
   'Numpad Multiply',
   'Numpad Divide',
-  'Reserved_164',
-  'Reserved_165',
-  'Reserved_166',
-  'Reserved_167',
-  'Reserved_168',
-  'Reserved_169',
-  'Reserved_170',
-  'Reserved_171',
-  'Reserved_172',
-  'Reserved_173',
-  'Reserved_174',
-  'Reserved_175',
-  'Reserved_176',
-  'Reserved_177',
+  'Pad A',
+  'Pad B',
+  'Pad X',
+  'Pad Y',
+  'Pad L',
+  'Pad R',
+  'Pad ZL',
+  'Pad ZR',
+  'Pad Plus',
+  'Pad Minus',
+  'Pad Left',
+  'Pad Up',
+  'Pad Right',
+  'Pad Down',
   'Reserved_178',
   'Reserved_179',
   'Reserved_180',
@@ -1621,6 +1564,41 @@ begin
     Positive effect: camera does not change before the gesture is recognized.
     Negative effect: in theory, we might block some other two-finger gestures. }
   Result := true;
+end;
+
+{ TJoystick ------------------------------------------------------------------ }
+
+constructor TJoystick.Create(const AIndex: Integer);
+begin
+  inherited Create;
+  FIndex := AIndex;
+end;
+
+function TJoystick.Axis: TVector3;
+begin
+  Result := Vector3(
+    Joysticks.AxisPos(FIndex, JOY_AXIS_X),
+    Joysticks.AxisPos(FIndex, JOY_AXIS_Y),
+    Joysticks.AxisPos(FIndex, JOY_AXIS_Z)
+  );
+end;
+
+{ TJoystickList -------------------------------------------------------------- }
+
+constructor TJoystickList.Create;
+begin
+  inherited Create(true);
+end;
+
+procedure TJoystickList.Initialize;
+var
+  I: Integer;
+begin
+  // force searching for joysticks again when creating new Joysticks instance
+  FreeAndNil(Joysticks);
+  EnableJoysticks;
+  for I := 0 to Joysticks.JoyCount - 1 do
+    Add(TJoystick.Create(I));
 end;
 
 end.

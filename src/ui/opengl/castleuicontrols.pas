@@ -293,6 +293,7 @@ type
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
+    FJoysticks: TJoystickList;
 
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
@@ -792,6 +793,15 @@ type
       By default it is @link(DefaultBackgroundColor), which is very dark gray. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
+
+    { Read axes of joysticks.
+      This is a simpler API for joysticks than the one in CastleJoysticks,
+      and it works on Nintendo Switch too,
+      although for now it is more limited.
+
+      TODO: In the future, CastleJoysticks should be deprecated (made an internal unit)
+      and this should expose all useful public information about joysticks. }
+    property Joysticks: TJoystickList read FJoysticks;
   end;
 
   { Base class for things that listen to user input. }
@@ -2771,24 +2781,26 @@ procedure TUIContainer.EventUpdate;
 
   procedure UpdateJoysticks;
   var
+    Joys: CastleJoysticks.TJoysticks;
     I, J: Integer;
   begin
-    if Assigned(Joysticks) then
+    Joys := CastleJoysticks.Joysticks;
+    if Assigned(Joys) then
     begin
-      Joysticks.Poll;
+      Joys.Poll;
 
-      for I := 0 to Joysticks.JoyCount - 1 do
+      for I := 0 to Joys.JoyCount - 1 do
       begin
-        for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
+        for J := 0 to Joys.GetJoy(I)^.Info.Count.Buttons -1 do
         begin
-          //Joysticks.Down(I, J);
-          //Joysticks.Up(I, J);
-          if Joysticks.Press(I, J) then
+          //Joys.Down(I, J);
+          //Joys.Up(I, J);
+          if Joys.Press(I, J) then
             EventJoyButtonPress(I, J);
         end;
-        for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
+        for J := 0 to Joys.GetJoy(I)^.Info.Count.Axes -1 do
         begin
-          if Joysticks.AxisPos(I, J) <> 0 then
+          if Joys.AxisPos(I, J) <> 0 then
             EventJoyAxisMove(I, J);
         end;
       end;

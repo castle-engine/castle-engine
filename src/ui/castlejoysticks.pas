@@ -215,7 +215,7 @@ type
   public
     { Constructor search for connected devices. If new device will be connected
       after Create it won't be automatically discovered. In such case
-      TJoysticks have to be destroied and created again. }
+      TJoysticks have to be destroyed and created again. }
     constructor Create;
     destructor Destroy; override;
     { Check state of every connected joystick and run event procedures.  }
