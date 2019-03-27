@@ -827,16 +827,18 @@ type
     property OnGestureChanged: TNotifyEvent read FOnGestureChanged write FOnGestureChanged;
   end;
 
+  TJoystickList = class;
+
   { Properties of a given joystick, use through @link(TUIContainer.Joystick).
     Do not construct instances of this yourself, TUIContainer creates
     this automatically when necessary. }
   TJoystick = class
   private
+    FParent: TJoystickList;
     FIndex: Integer;
-    FExplicitControl: Boolean;
     FExplicitAxis: TVector3;
   public
-    constructor Create(const AIndex: Integer);
+    constructor Create(const AParent: TJoystickList; const AIndex: Integer);
     function Axis: TVector3;
   end;
 
@@ -844,7 +846,7 @@ type
     Do not construct instances of this yourself, TUIContainer uses
     this automatically when necessary. }
   TJoystickList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TJoystick>)
-  strict private
+  private
     { Information about joystick is provided by the outside code,
       using CGEApp_JoystickXxx calls.
       We do not use CastleJoysticks unit in this case. }
@@ -1579,15 +1581,16 @@ end;
 
 { TJoystick ------------------------------------------------------------------ }
 
-constructor TJoystick.Create(const AIndex: Integer);
+constructor TJoystick.Create(const AParent: TJoystickList; const AIndex: Integer);
 begin
   inherited Create;
   FIndex := AIndex;
+  FParent := AParent;
 end;
 
 function TJoystick.Axis: TVector3;
 begin
-  if FExplicitControl then
+  if FParent.FExplicitControl then
     Result := FExplicitAxis
   else
     Result := Vector3(
@@ -1616,7 +1619,7 @@ begin
   FreeAndNil(Joysticks);
   EnableJoysticks;
   for I := 0 to Joysticks.JoyCount - 1 do
-    Add(TJoystick.Create(I));
+    Add(TJoystick.Create(Self, I));
 end;
 
 procedure TJoystickList.InternalSetJoystickCount(const JoystickCount: Integer);
@@ -1624,8 +1627,9 @@ var
   I: Integer;
 begin
   Clear;
+  FExplicitControl := true;
   for I := 0 to JoystickCount - 1 do
-    Add(TJoystick.Create(I));
+    Add(TJoystick.Create(Self, I));
 end;
 
 procedure TJoystickList.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector3);
