@@ -831,8 +831,10 @@ type
     Do not construct instances of this yourself, TUIContainer creates
     this automatically when necessary. }
   TJoystick = class
-  strict private
+  private
     FIndex: Integer;
+    FExplicitControl: Boolean;
+    FExplicitAxis: TVector3;
   public
     constructor Create(const AIndex: Integer);
     function Axis: TVector3;
@@ -842,17 +844,26 @@ type
     Do not construct instances of this yourself, TUIContainer uses
     this automatically when necessary. }
   TJoystickList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TJoystick>)
+  strict private
+    { Information about joystick is provided by the outside code,
+      using CGEApp_JoystickXxx calls.
+      We do not use CastleJoysticks unit in this case. }
+    FExplicitControl: Boolean;
+  public
     constructor Create;
     { Call this to initialize joystick information.
       This searches for connected joysticks.
       Calling this 2nd time searches for connected joysticks again. }
     procedure Initialize;
+
+    procedure InternalSetJoystickCount(const JoystickCount: Integer);
+    procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector3);
   end;
 
 implementation
 
 uses SysUtils, Math,
-  CastleJoysticks;
+  CastleJoysticks, CastleLog;
 
 const
   KeyToStrTable: array [TKey] of string = (
@@ -1576,11 +1587,14 @@ end;
 
 function TJoystick.Axis: TVector3;
 begin
-  Result := Vector3(
-    Joysticks.AxisPos(FIndex, JOY_AXIS_X),
-    Joysticks.AxisPos(FIndex, JOY_AXIS_Y),
-    Joysticks.AxisPos(FIndex, JOY_AXIS_Z)
-  );
+  if FExplicitControl then
+    Result := FExplicitAxis
+  else
+    Result := Vector3(
+      Joysticks.AxisPos(FIndex, JOY_AXIS_X),
+      Joysticks.AxisPos(FIndex, JOY_AXIS_Y),
+      Joysticks.AxisPos(FIndex, JOY_AXIS_Z)
+    );
 end;
 
 { TJoystickList -------------------------------------------------------------- }
@@ -1594,11 +1608,35 @@ procedure TJoystickList.Initialize;
 var
   I: Integer;
 begin
+  { when FExplicitControl, joystick information will be provided
+    by InternalSetJoystick* calls }
+  if FExplicitControl then Exit;
+
   // force searching for joysticks again when creating new Joysticks instance
   FreeAndNil(Joysticks);
   EnableJoysticks;
   for I := 0 to Joysticks.JoyCount - 1 do
     Add(TJoystick.Create(I));
+end;
+
+procedure TJoystickList.InternalSetJoystickCount(const JoystickCount: Integer);
+var
+  I: Integer;
+begin
+  Clear;
+  for I := 0 to JoystickCount - 1 do
+    Add(TJoystick.Create(I));
+end;
+
+procedure TJoystickList.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector3);
+begin
+  if Between(JoystickIndex, 0, Count - 1) then
+    Self[JoystickIndex].FExplicitAxis := Axis
+  else
+    WriteLnWarning('Joystick index %d given to CGEApp_JoystickAxis is incorrect. Current joystick count (given to CGEApp_JoystickCount) is %d.', [
+      JoystickIndex,
+      Count
+    ]);
 end;
 
 end.

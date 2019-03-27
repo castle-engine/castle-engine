@@ -2282,6 +2282,7 @@ begin
   FContext := TRenderContext.Create;
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
+  FJoysticks := TJoystickList.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -2299,7 +2300,7 @@ begin
   if RenderContext = FContext then
     RenderContext := nil;
   FreeAndNil(FContext);
-
+  FreeAndNil(FJoysticks);
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   FreeAndNil(FControls);

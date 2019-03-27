@@ -159,6 +159,20 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Numpad_Enter    = 161,
   kcge_Numpad_Multiply = 162,
   kcge_Numpad_Divide   = 163,
+  kcge_Pad_A      = 164,
+  kcge_Pad_B      = 165,
+  kcge_Pad_X      = 166,
+  kcge_Pad_Y      = 167,
+  kcge_Pad_L      = 168,
+  kcge_Pad_R      = 169,
+  kcge_Pad_ZL     = 170,
+  kcge_Pad_ZR     = 171,
+  kcge_Pad_Plus   = 172,
+  kcge_Pad_Minus  = 173,
+  kcge_Pad_Left   = 174,
+  kcge_Pad_Up     = 175,
+  kcge_Pad_Right  = 176,
+  kcge_Pad_Down   = 177,
   kcge_Comma       = 188,
   kcge_Period      = 190,
 };
@@ -184,6 +198,9 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool tra
 
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
+
+extern void CGEApp_JoystickAxis(int joystickIndex, float x, float y, float z);
+extern void CGEApp_JoystickCount(int joystickCount);
 
 extern int CGEApp_HandleOpenUrl(const char *szUrl); // open URL, return 1 if processed
 
