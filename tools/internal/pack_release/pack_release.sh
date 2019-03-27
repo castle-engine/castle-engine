@@ -3,9 +3,22 @@ set -euo pipefail
 
 # Pack Castle Game Engine release (source + binaries).
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
+# (but without IFS modification, deliberately, we want to split on space).
 
 OUTPUT_DIRECTORY=$HOME
 VERBOSE=false
+
+# Require building release with latest stable FPC, as supported by CGE,
+# see https://castle-engine.io/supported_compilers.php .
+check_fpc_version ()
+{
+  local FPC_VERSION=`fpc -iV`
+  local REQUIRED_FPC_VERSION='3.0.4'
+  if [ "${FPC_VERSION}" '!=' "${REQUIRED_FPC_VERSION}" ]; then
+    echo "pack_release: Expected FPC version ${REQUIRED_FPC_VERSION}, but got ${FPC_VERSION}"
+    exit 1
+  fi
+}
 
 # Compile build tool, put it on $PATH
 prepare_build_tool ()
@@ -17,7 +30,7 @@ prepare_build_tool ()
   fi
   echo "Host exe extension: '${HOST_EXE_EXTENSION}' (should be empty on Unix, '.exe' on Windows)"
 
-  if '[' "${VERBOSE}" '!=' 'true' ']'; then
+  if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="-vi-"
   fi
 
@@ -35,7 +48,7 @@ prepare_build_tool ()
   fi
   FOUND_CGE_BUILD_TOOL="`which castle-engine`"
   EXPECTED_CGE_BUILD_TOOL="${BIN_TEMP_PATH}/castle-engine${HOST_EXE_EXTENSION}"
-  if '[' "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ']'; then
+  if [ "${FOUND_CGE_BUILD_TOOL}" '!=' "${EXPECTED_CGE_BUILD_TOOL}" ]; then
     echo "pack_release: Unexpected CGE build tool on \$PATH: found ${FOUND_CGE_BUILD_TOOL}, expected ${EXPECTED_CGE_BUILD_TOOL}"
     exit 1
   fi
@@ -50,7 +63,9 @@ calculate_cge_version ()
 
 # Call lazbuild $@.
 # If it fails, try again.
-# Workarounds lazbuild crashes with Lazarus 1.8:
+#
+# Workarounds lazbuild crashes with Lazarus 1.8,
+# at least for Win32/i386 (when using cross-compiler from Linux/x86_64):
 #   $0000000000563D4A line 1220 of ideexterntoolintf.pas
 #   $00000000005AB34E line 590 of exttools.pas
 #   $00000000005B0061 line 1525 of exttools.pas
@@ -80,7 +95,7 @@ do_pack_platform ()
   local  CASTLE_LAZBUILD_OPTIONS="--os=${OS} --cpu=${CPU}"
   local  MAKE_OPTIONS=""
 
-  if '[' "${VERBOSE}" '!=' 'true' ']'; then
+  if [ "${VERBOSE}" '!=' 'true' ]; then
     CASTLE_FPC_OPTIONS="${CASTLE_FPC_OPTIONS} -vi-"
     CASTLE_BUILD_TOOL_OPTIONS="${CASTLE_BUILD_TOOL_OPTIONS} --compiler-option=-vi-"
     CASTLE_LAZBUILD_OPTIONS="${CASTLE_LAZBUILD_OPTIONS} -q"
@@ -139,11 +154,7 @@ do_pack_platform ()
   rm -Rf "${TEMP_PATH}"
 }
 
-# Michalis script to switch my FPC/Lazarus installation to given version.
-# Use the latest stable FPC, as supported by CGE,
-# see https://castle-engine.io/supported_compilers.php .
-set_fpclazarus_current 3.0.4
-
+check_fpc_version
 prepare_build_tool
 calculate_cge_version
 do_pack_platform win64 x86_64
