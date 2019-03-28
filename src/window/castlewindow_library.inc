@@ -24,6 +24,7 @@ CTypes,
 {$endif}
 
 {$ifdef read_implementation_uses}
+CastleJoysticks,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -57,7 +58,7 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
-procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y, Z: Single); cdecl;
+procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
@@ -518,21 +519,19 @@ procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
 begin
   try
     CheckMainWindow;
-    Application.MainWindow.Container.Joysticks.InternalSetJoystickCount(
-      JoystickCount);
+    Joysticks.InternalSetJoystickCount(JoystickCount);
   except
     on E: TObject do WritelnWarning('CGEApp_JoystickCount', ExceptMessage(E));
   end;
 end;
 
-procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y, Z: Single); cdecl;
+procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
 begin
   try
     CheckMainWindow;
-    Application.MainWindow.Container.Joysticks.InternalSetJoystickAxis(
-      JoystickIndex, Vector3(X, Y, Z));
-    // if (X <> 0) or (Y <> 0) or (Z <> 0) then
-    //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y, Z]);
+    Joysticks.InternalSetJoystickAxis(JoystickIndex, Vector2(X, Y));
+    // if (X <> 0) or (Y <> 0) then
+    //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
   except
     on E: TObject do WritelnWarning('CGEApp_JoystickAxis', ExceptMessage(E));
   end;
