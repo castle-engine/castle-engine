@@ -293,7 +293,6 @@ type
     FContext: TRenderContext;
     FBackgroundEnable: Boolean;
     FBackgroundColor: TCastleColor;
-    FJoysticks: TJoystickList;
 
     procedure ControlsVisibleChange(const Sender: TInputListener;
       const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
@@ -793,15 +792,6 @@ type
       By default it is @link(DefaultBackgroundColor), which is very dark gray. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
-
-    { Read axes of joysticks.
-      This is a simpler API for joysticks than the one in CastleJoysticks,
-      and it works on Nintendo Switch too,
-      although for now it is more limited.
-
-      TODO: In the future, CastleJoysticks should be deprecated (made an internal unit)
-      and this should expose all useful public information about joysticks. }
-    property Joysticks: TJoystickList read FJoysticks;
   end;
 
   { Base class for things that listen to user input. }
@@ -2282,7 +2272,6 @@ begin
   FContext := TRenderContext.Create;
   FBackgroundEnable := true;
   FBackgroundColor := DefaultBackgroundColor;
-  FJoysticks := TJoystickList.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -2300,7 +2289,6 @@ begin
   if RenderContext = FContext then
     RenderContext := nil;
   FreeAndNil(FContext);
-  FreeAndNil(FJoysticks);
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   FreeAndNil(FControls);
@@ -2782,24 +2770,24 @@ procedure TUIContainer.EventUpdate;
 
   procedure UpdateJoysticks;
   var
-    Joys: CastleJoysticks.TJoysticks;
+    Joys: TJoysticks;
     I, J: Integer;
   begin
-    Joys := CastleJoysticks.Joysticks;
-    if Assigned(Joys) then
+    Joys := Joysticks;
+    if Joys.Initialized then
     begin
       Joys.Poll;
 
-      for I := 0 to Joys.JoyCount - 1 do
+      for I := 0 to Joys.Count - 1 do
       begin
-        for J := 0 to Joys.GetJoy(I)^.Info.Count.Buttons -1 do
+        for J := 0 to Joys[I].Info.Count.Buttons -1 do
         begin
           //Joys.Down(I, J);
           //Joys.Up(I, J);
           if Joys.Press(I, J) then
             EventJoyButtonPress(I, J);
         end;
-        for J := 0 to Joys.GetJoy(I)^.Info.Count.Axes -1 do
+        for J := 0 to Joys[I].Info.Count.Axes -1 do
         begin
           if Joys.AxisPos(I, J) <> 0 then
             EventJoyAxisMove(I, J);

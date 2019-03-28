@@ -199,7 +199,7 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool tra
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
 
-extern void CGEApp_JoystickAxis(int joystickIndex, float x, float y, float z);
+extern void CGEApp_JoystickAxis(int joystickIndex, float x, float y);
 extern void CGEApp_JoystickCount(int joystickCount);
 
 extern int CGEApp_HandleOpenUrl(const char *szUrl); // open URL, return 1 if processed

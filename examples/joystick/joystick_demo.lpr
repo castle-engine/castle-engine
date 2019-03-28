@@ -55,10 +55,10 @@ type
   end;
 
   TEventsHandler = class
-    procedure JoyAxisMove(const Joy: PJoy; const Axis: Byte; const Value: Single);
-    procedure JoyButtonPress(const Joy: PJoy; const Button: Byte);
-    procedure JoyButtonUp(const Joy: PJoy; const Button: Byte);
-    procedure JoyButtonDown(const Joy: PJoy; const Button: Byte);
+    procedure JoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
+    procedure JoyButtonPress(const Joy: TJoystick; const Button: Byte);
+    procedure JoyButtonUp(const Joy: TJoystick; const Button: Byte);
+    procedure JoyButtonDown(const Joy: TJoystick; const Button: Byte);
   end;
 
 function CreateJoyButton(ACaption: string): TCastleButton;
@@ -74,13 +74,12 @@ procedure InitializeJoysticks;
 var
   i: Integer;
 begin
-  // Initialize joysticks singelton instance
-  EnableJoysticks;
+  Joysticks.Initialize;
 
-  Title.Caption := Format('Number of joysticks found: %d', [Joysticks.JoyCount]);
+  Title.Caption := Format('Number of joysticks found: %d', [Joysticks.Count]);
 
   // List all joysticks
-  for i := 0 to Joysticks.JoyCount - 1 do
+  for i := 0 to Joysticks.Count - 1 do
   begin
     OnScreenMenu.Add(Joysticks.GetInfo(i)^.Name,
       CreateJoyButton(IntToStr(i)));
@@ -93,11 +92,11 @@ begin
   Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
 end;
 
-procedure TEventsHandler.JoyAxisMove(const Joy: PJoy; const Axis: Byte;
+procedure TEventsHandler.JoyAxisMove(const Joy: TJoystick; const Axis: Byte;
   const Value: Single);
 begin
   // We show axes position only for the selected joystick.
-  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+  if not (Joy = Joysticks[SelectedJoystick]) then Exit;
 
   // If axes labels not initialized yet then exit.
   if Length(JoyAxes) = 0 then Exit;
@@ -109,25 +108,25 @@ begin
     JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStr(Value);
 end;
 
-procedure TEventsHandler.JoyButtonPress(const Joy: PJoy; const Button: Byte);
+procedure TEventsHandler.JoyButtonPress(const Joy: TJoystick; const Button: Byte);
 begin
   Notifications.Show(Format('Button press event (b: %d)',
     [Button]));
 end;
 
-procedure TEventsHandler.JoyButtonUp(const Joy: PJoy; const Button: Byte);
+procedure TEventsHandler.JoyButtonUp(const Joy: TJoystick; const Button: Byte);
 begin
   Notifications.Show('Joy button up');
-  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+  if not (Joy = Joysticks[SelectedJoystick]) then Exit;
   if Length(JoyButtons) = 0 then Exit;
 
   JoyButtons[Button].Pressed := False;
 end;
 
-procedure TEventsHandler.JoyButtonDown(const Joy: PJoy; const Button: Byte);
+procedure TEventsHandler.JoyButtonDown(const Joy: TJoystick; const Button: Byte);
 begin
   Notifications.Show('Joy button down');
-  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+  if not (Joy = Joysticks[SelectedJoystick]) then Exit;
   if Length(JoyButtons) = 0 then Exit;
 
   JoyButtons[Button].Pressed := True;
@@ -138,7 +137,6 @@ begin
   // If any joystick is plugged or unplugged then reinitialize is needed
   Notifications.Show('Reinitialization...');
   OnScreenMenu.MenuItems.ClearControls;
-  Joysticks.Free;
   InitializeJoysticks;
 end;
 
@@ -215,8 +213,7 @@ begin
   Window.Controls.InsertBack(Notifications);
 
   btnReinitialize := TCastleButton.Create(Window);
-  btnReinitialize.Caption := 'Reinitialize joysticks';
-  btnReinitialize.Tooltip := 'Free "Joysticks" instance and enable it again';
+  btnReinitialize.Caption := 'Detect connected joysticks again (Joysticks.Initialize)';
   btnReinitialize.Left := 10;
   btnReinitialize.Bottom := 10;
   btnReinitialize.OnClick := @TClicksHandler(nil).btnReinitializeClick;
