@@ -212,6 +212,7 @@ end;
 destructor TJoysticks.Destroy;
 begin
   FreeAndNil(FList);
+  FreeAndNil(Backend);
   inherited;
 end;
 

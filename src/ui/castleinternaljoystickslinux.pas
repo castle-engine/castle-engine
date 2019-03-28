@@ -51,12 +51,13 @@ const
 
 type
   TLinuxJoystickBackendInfo = class
+    DeviceInitialized: Boolean;
     Device  : LongInt;
     AxesMap : array[ 0..ABS_MAX - 1 ] of Byte;
+    destructor Destroy; override;
   end;
 
   TLinuxJoysticksBackend = class(TJoysticksBackend)
-    destructor Destroy; override;
     procedure Initialize(const List: TJoystickList); override;
     procedure Poll(const List: TJoystickList;
       const EventContainer: TJoysticks); override;
@@ -67,14 +68,17 @@ implementation
 uses
   SysUtils, CastleLog, Math;
 
-destructor TLinuxJoysticksBackend.Destroy;
-var
-  i : Integer;
+{ TLinuxJoystickBackendInfo -------------------------------------------------- }
+
+destructor TLinuxJoystickBackendInfo.Destroy;
 begin
-  for i := 0 to FjoyCount - 1 do
-    FpClose( FjoyArray[ i ].device );
+  { Check for DeviceInitialized, since any Device >= 0 is valid in theory. }
+  if DeviceInitialized then
+    FpClose(Device);
   inherited;
 end;
+
+{ TLinuxJoysticksBackend ----------------------------------------------------- }
 
 procedure TLinuxJoysticksBackend.Initialize(const List: TJoystickList);
 var
@@ -88,17 +92,18 @@ begin
     NewBackendInfo := TLinuxJoystickBackendInfo.Create;
     NewJoystick.InternalBackendInfo := NewBackendInfo;
 
-    NewJoystick.Device := FpOpen( '/dev/input/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
-    if NewJoystick.Device < 0 then
-      NewJoystick.Device := FpOpen( '/dev/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
+    NewBackendInfo.Device := FpOpen( '/dev/input/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
+    if NewBackendInfo.Device < 0 then
+      NewBackendInfo.Device := FpOpen( '/dev/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
 
-    if NewJoystick.Device > -1 then
+    if NewBackendInfo.Device > -1 then
     begin
+      NewBackendInfo.DeviceInitialized := true;
       SetLength( NewJoystick.Info.Name, 256 );
-      FpIOCtl( NewJoystick.Device, JSIOCGNAME,    @NewJoystick.Info.Name[ 1 ] );
-      FpIOCtl( NewJoystick.Device, JSIOCGAXMAP,   @NewBackendInfo.AxesMap[ 0 ] );
-      FpIOCtl( NewJoystick.Device, JSIOCGAXES,    @NewJoystick.Info.Count.Axes );
-      FpIOCtl( NewJoystick.Device, JSIOCGBUTTONS, @NewJoystick.Info.Count.Buttons );
+      FpIOCtl( NewBackendInfo.Device, JSIOCGNAME,    @NewJoystick.Info.Name[ 1 ] );
+      FpIOCtl( NewBackendInfo.Device, JSIOCGAXMAP,   @NewBackendInfo.AxesMap[ 0 ] );
+      FpIOCtl( NewBackendInfo.Device, JSIOCGAXES,    @NewJoystick.Info.Count.Axes );
+      FpIOCtl( NewBackendInfo.Device, JSIOCGBUTTONS, @NewJoystick.Info.Count.Buttons );
 
       for j := 0 to NewJoystick.Info.Count.Axes - 1 do
         with NewJoystick.Info do
@@ -120,7 +125,7 @@ begin
       // Checking if joystick is a real one, because laptops with accelerometer can be detected as a joystick :)
       if ( NewJoystick.Info.Count.Axes >= 2 ) and ( NewJoystick.Info.Count.Buttons > 0 ) then
       begin
-        WritelnLog('CastleJoysticks Init', 'Find joy: %s (ID: %d); Axes: %d; Buttons: %d', [FjoyArray[ joyCount ].Info.Name, FjoyCount, NewJoystick.Info.Count.Axes, NewJoystick.Info.Count.Buttons]);
+        WritelnLog('CastleJoysticks Init', 'Find joy: %s (ID: %d); Axes: %d; Buttons: %d', [NewJoystick.Info.Name, I, NewJoystick.Info.Count.Axes, NewJoystick.Info.Count.Buttons]);
         List.Add(NewJoystick);
       end else
         FreeAndNil(NewJoystick);
