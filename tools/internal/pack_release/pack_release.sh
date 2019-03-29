@@ -5,7 +5,7 @@ set -euo pipefail
 # Uses bash strict mode, see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # (but without IFS modification, deliberately, we want to split on space).
 
-OUTPUT_DIRECTORY=$HOME
+OUTPUT_DIRECTORY=`pwd`
 VERBOSE=false
 
 # Require building release with latest stable FPC, as supported by CGE,
