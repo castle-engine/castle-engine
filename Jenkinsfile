@@ -117,7 +117,7 @@ pipeline {
     stage('Pack Release') {
       steps {
         sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
-        sh 'cd tools/internal/pack_release/ && ./pack_release.sh'
+        sh './tools/internal/pack_release/pack_release.sh'
       }
     }
     /* update Docker image only when the "master" branch changes */
