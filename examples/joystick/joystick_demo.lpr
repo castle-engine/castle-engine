@@ -200,10 +200,6 @@ begin
 
   InitializeLog;
 
-  { customize tooltips to use rounded corners. }
-  Theme.Images[tiTooltip] := TooltipRounded;
-  Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
-
   Notifications := TCastleNotifications.Create(Window);
   Notifications.Anchor(vpBottom, 10);
   Notifications.Anchor(hpMiddle);
