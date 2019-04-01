@@ -233,7 +233,7 @@ begin
         { Y axis should be 1 when pointing up, -1 when pointing down.
           This is consistent with CGE 2D coordinate system
           (and standard math 2D coordinate system). }
-        if Axis = JOY_AXIS_Y then
+        if J = JOY_AXIS_Y then
           _value := -_value;
 
         if Joystick.State.Axis[ a ] <> _value then
