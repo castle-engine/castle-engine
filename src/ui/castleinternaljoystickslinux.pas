@@ -154,6 +154,11 @@ begin
           begin
             axis := JS_AXIS[ BackendInfo.AxesMap[ event.number ] ];
             Value := event.value / 32767;
+            { Y axis should be 1 when pointing up, -1 when pointing down.
+              This is consistent with CGE 2D coordinate system
+              (and standard math 2D coordinate system). }
+            if Axis = JOY_AXIS_Y then
+              Value := -Value;
             Joystick.State.Axis[ axis ] := Value;
             if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
           end;

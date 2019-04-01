@@ -230,6 +230,12 @@ begin
         Inc( value, 2 + a );
 
         _value := value^ / ( vMax - vMin ) * 2 - 1;
+        { Y axis should be 1 when pointing up, -1 when pointing down.
+          This is consistent with CGE 2D coordinate system
+          (and standard math 2D coordinate system). }
+        if Axis = JOY_AXIS_Y then
+          _value := -_value;
+
         if Joystick.State.Axis[ a ] <> _value then
           if Assigned(EventContainer.OnAxisMove) then
             EventContainer.OnAxisMove(Joystick, j, _value);
