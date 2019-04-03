@@ -383,7 +383,7 @@ begin
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine', 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);
