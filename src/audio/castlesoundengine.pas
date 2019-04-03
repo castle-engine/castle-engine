@@ -25,7 +25,8 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile;
 
 type
-  ENoMoreOpenALSources = class(Exception);
+  ENoMoreSources = class(Exception);
+  ENoMoreOpenALSources = ENoMoreSources deprecated 'use ENoMoreSources';
   ESoundBufferNotLoaded = class(Exception);
   EInvalidSoundBufferFree = class(Exception);
   ESoundFileError = CastleInternalSoundFile.ESoundFileError;
@@ -35,7 +36,7 @@ type
   TSoundAllocator = class;
 
   { Sound buffer represents contents of a sound file, like Wav or OggVorbis,
-    that (may be) loaded to OpenAL.
+    that (may be) played.
     It can be only allocated by @link(TSoundEngine.LoadBuffer)
     and freed by @link(TSoundEngine.FreeBuffer).
     @bold(Do not free TSoundBuffer instances yourself.) }
@@ -59,8 +60,7 @@ type
 
   TSoundEvent = procedure (Sender: TSound) of object;
 
-  { Sound.
-    Internally, this corresponds to an allocated OpenAL sound source. }
+  { Sound source that can be immediately played. }
   TSound = class
   private
     FUsed: boolean;
@@ -69,7 +69,7 @@ type
     FALSource: TALuint;
     { This must be @true for the whole lifetime of this object
       except the situation at the beginning of the constructor,
-      and in destructor (if constructor exited with ENoMoreOpenALSources). }
+      and in destructor (if constructor exited with ENoMoreSources). }
     FALSourceAllocated: boolean;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
@@ -93,19 +93,19 @@ type
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
   public
-    { Create sound. This allocates actual OpenAL source.
-      @raises(ENoMoreOpenALSources If no more sources available.
+    { Create sound.
+      This allocates sound source using the sound backend (like OpenAL source).
+      @raises(ENoMoreSources If no more sources available.
         It should be caught and silenced by TSoundAllocator.AllocateSound.) }
     constructor Create(const AnAllocator: TSoundAllocator);
     destructor Destroy; override;
 
-    { Internal: OpenAL sound identifier. }
+    { Internal OpenAL sound identifier. }
     property ALSource: TALuint read FALSource;
 
     { Do we play something.
-      Sources that are not Used are simply OpenAL allocated sources
-      that are not used right now, and will be used when we will
-      need them. }
+      Sources that are not Used are still allocated on the sound backend (like
+      OpenAL), and will be used when we will need them. }
     property Used: boolean read FUsed default false;
 
     { The priority of keeping this source, relevant only when @link(Used).
@@ -121,11 +121,11 @@ type
       be finalized in OnRelease. }
     property UserData: TObject read FUserData write FUserData;
 
-    { Called when this OpenAL allocated sound will no longer
-      be used. It may stop be used because there are more demanding
-      sources (see @link(Importance) and to keep MaxAllocatedSources)
-      and we must assign this OpenAL sound slot to something else,
-      or it may stop be used because it simply stopped playing.
+    { Called when this sound will no longer be used.
+      This may happen because it simply finished playing,
+      or when there are more demanding
+      sounds (see @link(Importance) and to keep MaxAllocatedSources)
+      and we must use this sound source for something else.
 
       When this event occurs, you should forget (e.g. set to @nil) all
       your references to this sound instance. That's because this TSound instance
@@ -239,9 +239,11 @@ type
   { Manager of allocated sounds.
 
     For efficiency, the pool of available sound sources (things that are actually
-    audible at a given time) is limited. This limit is not only in OpenAL,
-    it may also stem from sound hardware limitations,
-    or limitations of APIs underneath OpenAL.
+    audible at a given time) is limited.
+    This limit comes from the backend limits (like OpenAL or APIs underneath OpenAL),
+    it may also come from sound hardware limitations,
+    and in general you should not have too many playing sources,
+    as mixing many sources is time-consuming.
     So you cannot simply allocate new sound source for each of 100 creatures
     you display in the game.
 
@@ -311,7 +313,7 @@ type
       to never let them be eliminated by other sounds. }
     function AllocateSound(const Importance: Integer): TSound;
 
-    { All allocated (not necessarily used) OpenAL sources.
+    { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
       This is @nil when ALContextOpen was not yet called. }
@@ -338,18 +340,18 @@ type
     procedure SaveToConfig(const Config: TCastleConfig); virtual;
     { @groupEnd }
   published
-    { Minimum / maximum number of allocated OpenAL sources.
+    { Minimum / maximum number of allocated sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
 
       For the sake of speed, we always keep allocated at least
-      MinAllocatedSources OpenAL sources. This must be >= 1.
+      MinAllocatedSources sources. This must be >= 1.
       Setting MinAllocatedSources too large value will raise
-      ENoMoreOpenALSources.
+      ENoMoreSources.
 
       At most MaxAllocatedSources sources may be simultaneously used (played).
       This prevents us from allocating too many sounds,
-      which would be bad for OpenAL speed (not to mention that it may
-      be impossible under some OpenAL implementations, like Windows one).
+      which would be bad for speed (not to mention that it may
+      be impossible under some backends, like OpenAL on Windows).
       When all MaxAllocatedSources sources are playing, the only way
       to play another sound is to use appropriately high @code(Importance)
       to AllocateSound.
@@ -417,7 +419,7 @@ type
     accessed through the global @link(SoundEngine) variable.
     See docs at @link(SoundEngine) for more details.
 
-    The sound engine is actually a wrapper over OpenAL.
+    The sound engine is actually a wrapper over a backend, like OpenAL.
     You can explicitly initialize OpenAL context by ALContextOpen,
     and explicitly close it by ALContextClose. If you did not call ALContextOpen
     explicitly (that is, ALInitialized is @false), then the first LoadBuffer
@@ -493,14 +495,14 @@ type
     destructor Destroy; override;
 
     { Initialize sound engine.
-      Initializes OpenAL library.
+      Initializes sound backend (like OpenAL library).
       Sets @link(ALInitialized), @link(ALActive),
       @link(Information), @link(EFXSupported).
 
       You can set @link(Device) before calling this.
 
       Note that we continue (without any exception) if the initialization
-      failed for any reason (maybe OpenAL library is not available,
+      failed for any reason (e.g. OpenAL library is not available,
       or no sound output device is available).
       You can check @link(ALActive) and @link(Information) to know if
       the initialization was actually successfull. But you can also ignore it,
@@ -508,7 +510,7 @@ type
       could not be initialized. }
     procedure ALContextOpen;
 
-    { Release OpenAL resources.
+    { Release sound backend resources.
       This sets @link(ALInitialized) and @link(ALActive) to @false.
       It's allowed and harmless to call this when one of them is already @false. }
     procedure ALContextClose;
@@ -543,8 +545,8 @@ type
 
     { Load a sound file contents such that they can be immediately played.
 
-      This method tries to initialize OpenAL context, and internally load
-      the buffer contents to OpenAL. But even when it fails, it still returns
+      This method tries to initialize backend (like OpenAL) context,
+      and loads the buffer contents. But even when it fails, it still returns
       a valid (non-nil) TSoundBuffer instance. The @link(PlaySound) must be
       ready anyway to always load the buffer on-demand (because OpenAL context
       may be lost while the game is ongoing, in case of Android).
@@ -580,7 +582,7 @@ type
 
     { Play a sound from given buffer.
 
-      We use a smart OpenAL sound allocator, so the sound will be actually
+      We use a smart sound allocator, so the sound will be actually
       played only if resources allow. Use higher Importance to indicate
       sounds that are more important to play.
 
@@ -636,18 +638,19 @@ type
 
     { Help string for options parsed by ParseParameters.
 
-      Note that it also lists the available OpenAL @link(Devices),
+      Note that it also lists the available sound output @link(Devices),
       as they are valid arguments for the @--audio-device option. }
     function ParseParametersHelp: string;
 
-    { Set OpenAL listener position and orientation. }
+    { Set the sound listener position and orientation. }
     procedure UpdateListener(const Position, Direction, Up: TVector3);
 
-    { List of available OpenAL sound devices. Read-only.
+    { List of available sound devices. Read-only.
 
       Use @code(Devices[].Name) as @link(Device) values.
-      On some OpenAL implementations, some other @link(Device) values may
-      be possible, e.g. old Loki implementation allowed some hints
+
+      On some backend implementations, also some other @link(Device) values may
+      be possible. E.g. old Loki implementation of OpenAL allowed some hints
       to be encoded in Lisp-like language inside the @link(Device) string. }
     function Devices: TSoundDeviceList;
 
@@ -667,15 +670,15 @@ type
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
   published
-    { Sound volume, affects all OpenAL sounds (effects and music).
+    { Sound volume, affects all sounds (effects and music).
       This must always be within 0..1 range.
       0.0 means that there are no effects (this case should be optimized). }
     property Volume: Single read FVolume write SetVolume
       default DefaultVolume;
 
-    { Sound output device, used when initializing OpenAL context.
+    { Sound output device, used when initializing sound context.
 
-      You can change it even when OpenAL is already initialized.
+      You can change it even when context is already initialized.
       Then we'll close the old device (ALContextClose),
       change @link(Device) value, and initialize context again (ALContextOpen).
       Note that you will need to reload your buffers and sources again. }
@@ -683,16 +686,16 @@ type
 
     { Enable sound.
 
-      If @false, then ALContextOpen will not initialize any OpenAL device.
+      If @false, then ALContextOpen will not initialize any device.
       This is useful if you simply want to disable any sound output
-      (or OpenAL usage), even when OpenAL library is available.
+      (or backend, like OpenAL, usage), even when OpenAL library is available.
 
-      If the OpenAL context is already initialized when setting this,
+      If the sound context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
       do ALContextClose and then ALContextOpen again. This behaves correctly.) }
     property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
 
-    property Enable : boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
+    property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -820,7 +823,7 @@ type
       )
 
       Note that Gain value > 1 is allowed.
-      Although OpenAL may clip the resulting sound (after all
+      Although sound backend (like OpenAL) may clip the resulting sound (after all
       calculations taking into account 3D position will be done).
       The resulting sound is also clamped by MaxGain
       (that generally must be in [0, 1], although some OpenAL implementations
@@ -908,14 +911,16 @@ type
       contains an example file with lots of comments).
 
       When you set RepositoryURL property, we read sound information from
-      given XML file. You usually set RepositoryURL at the very beginning,
-      before OpenAL context is initialized (although it's also Ok to do this after).
+      given XML file. You usually set RepositoryURL at the very beginning
+      of the application.
       Right after setting RepositoryURL you usually call SoundFromName
       a couple of times to convert some names into TSoundType values,
       to later use these TSoundType values with @link(Sound) and @link(Sound3D)
       methods.
 
-      When OpenAL is initialized, sound buffers will actually be loaded.
+      When the sound context is initialized (or when you set this property,
+      if the sound context is initialized already)
+      then sound buffers will actually be loaded.
 
       If this is empty (the default), then no sounds are loaded,
       and TRepoSoundEngine doesn't really give you much above standard
@@ -1245,7 +1250,7 @@ begin
   FAllocator := AnAllocator;
 
   { We have to check alGetError now, because I may need to catch
-    (and convert to ENoMoreOpenALSources exception) alGetError after
+    (and convert to ENoMoreSources exception) alGetError after
     alCreateSources. So I want to have "clean error state" first. }
   CheckAL('Checking before TSound.Create work');
 
@@ -1253,7 +1258,7 @@ begin
 
   ErrorCode := alGetError();
   if ErrorCode = AL_INVALID_VALUE then
-    raise ENoMoreOpenALSources.Create('No more sound sources available') else
+    raise ENoMoreSources.Create('No more sound sources available') else
   if ErrorCode <> AL_NO_ERROR then
     raise EALError.Create(ErrorCode,
       'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
@@ -1557,9 +1562,9 @@ begin
       Result := TSound.Create(Self);
       FAllocatedSources.Add(Result);
     except
-      { If TSound.Create raises ENoMoreOpenALSources ---
+      { If TSound.Create raises ENoMoreSources ---
         then silence the exception and leave Result = nil. }
-      on ENoMoreOpenALSources do ;
+      on ENoMoreSources do ;
     end;
   end;
 

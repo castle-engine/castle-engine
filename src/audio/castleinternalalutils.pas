@@ -203,12 +203,19 @@ uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 procedure alBufferDataFromFile(Buffer: TALuint;
   const URL: string; out Duration: TFloatTime);
+const
+  ALDataFormat: array [TSoundDataFormat] of TALuint = (
+    AL_FORMAT_MONO8,
+    AL_FORMAT_MONO16,
+    AL_FORMAT_STEREO8,
+    AL_FORMAT_STEREO16
+  );
 var
   F: TSoundFile;
 begin
   F := TSoundFile.CreateFromFile(URL);
   try
-    alBufferData(Buffer, F.DataFormat, F.Data, F.DataSize, F.Frequency);
+    alBufferData(Buffer, ALDataFormat[F.DataFormat], F.Data, F.DataSize, F.Frequency);
 
     if LogSoundLoading then
       WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',

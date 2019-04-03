@@ -20,7 +20,8 @@ unit CastleInternalVorbisDecoder;
 
 interface
 
-uses SysUtils, Classes, CastleInternalOpenAL;
+uses SysUtils, Classes,
+  CastleInternalSoundFile;
 
 type
   EVorbisLoadError = class(Exception);
@@ -33,18 +34,15 @@ type
   This checks VorbisFileInitialized at the beginning, so you don't have to
   worry about it.
 
-  Note: this only uses some constants from OpenAL unit. It doesn't
-  actually require OpenAL library to be available and initialized.
-
   @raises(EStreamError If Stream cannot be read (e.g. ended prematurely).)
   @raises(EVorbisLoadError If decoding OggVorbis stream failed,
     this may also happen if the vorbisfile / tremolo library is not available.) }
-function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
+function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
   out Frequency: LongWord): TMemoryStream;
 
 implementation
 
-uses CastleUtils, CastleInternalVorbisFile, CastleinternalvorbisCodec, CTypes;
+uses CastleUtils, CastleInternalVorbisFile, CastleInternalVorbisCodec, CTypes;
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
@@ -112,7 +110,7 @@ end;
   I check for errors). See [http://xiph.org/vorbis/doc/vorbisfile/index.html]
   for vorbisfile overview. }
 
-function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
+function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
   out Frequency: LongWord): TMemoryStream;
 
   procedure CheckVorbisFile(Err: CInt; const Event: string);
@@ -170,9 +168,9 @@ begin
     OggInfo := ov_info(@OggFile, -1);
 
     if OggInfo^.channels = 1 then
-      DataFormat := AL_FORMAT_MONO16
+      DataFormat := sfMono16
     else
-      DataFormat := AL_FORMAT_STEREO16;
+      DataFormat := sfStereo16;
 
     Frequency := OggInfo^.rate;
 

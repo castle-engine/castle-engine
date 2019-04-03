@@ -28,6 +28,13 @@ interface
 uses SysUtils, CastleUtils, Classes, CastleInternalOpenAL, CastleTimeUtils;
 
 type
+  TSoundDataFormat = (
+    sfMono8,
+    sfMono16,
+    sfStereo8,
+    sfStereo16
+  );
+
   ESoundFileError = class(Exception);
 
   ESoundFormatNotSupportedByOpenAL = class(ESoundFileError);
@@ -35,8 +42,6 @@ type
   EWavLoadError = class(ESoundFileError);
 
   TSoundFile = class
-  protected
-    procedure CheckALExtension(const S: string);
   public
     { Load a sound from a stream.
 
@@ -66,12 +71,10 @@ type
     function Data: Pointer; virtual; abstract;
     { Bytes allocated for @link(Data). }
     function DataSize: LongWord; virtual; abstract;
-    { Data format, as understood by OpenAL. }
-    function DataFormat: TALuint; virtual; abstract;
+    function DataFormat: TSoundDataFormat; virtual; abstract;
     function Frequency: LongWord; virtual; abstract;
 
-    { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero,
-      or DataFormat is unknown). }
+    { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero). }
     function Duration: TFloatTime;
   end;
 
@@ -84,7 +87,7 @@ type
   TSoundOggVorbis = class(TSoundFile)
   private
     DataStream: TMemoryStream;
-    FDataFormat: TALuint;
+    FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
     constructor CreateFromStream(Stream: TStream); override;
@@ -92,7 +95,7 @@ type
 
     function Data: Pointer; override;
     function DataSize: LongWord; override;
-    function DataFormat: TALuint; override;
+    function DataFormat: TSoundDataFormat; override;
     function Frequency: LongWord; override;
   end;
 
@@ -100,7 +103,7 @@ type
   private
     FData: Pointer;
     FDataSize: LongWord;
-    FDataFormat: TALuint;
+    FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
     constructor CreateFromStream(Stream: TStream); override;
@@ -109,11 +112,11 @@ type
 
     function Data: Pointer; override;
     function DataSize: LongWord; override;
-    function DataFormat: TALuint; override;
+    function DataFormat: TSoundDataFormat; override;
     function Frequency: LongWord; override;
   end;
 
-function ALDataFormatToStr(DataFormat: TALuint): string;
+function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
 
 implementation
 
@@ -168,27 +171,13 @@ begin
   Profiler.Stop(TimeStart);
 end;
 
-procedure TSoundFile.CheckALExtension(const S: string);
-begin
-  if not alIsExtensionPresent(PChar(S)) then
-    raise ESoundFormatNotSupportedByOpenAL.CreateFmt('OpenAL extension "%s" ' +
-      'required to play this file is not available', [S]);
-end;
-
 function TSoundFile.Duration: TFloatTime;
-var
-  SampleSize: Cardinal;
+const
+  SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 3, 4);
 begin
-  case DataFormat of
-    AL_FORMAT_MONO8   : SampleSize := 1;
-    AL_FORMAT_MONO16  : SampleSize := 2;
-    AL_FORMAT_STEREO8 : SampleSize := 2;
-    AL_FORMAT_STEREO16: SampleSize := 4;
-    else Exit(-1);
-  end;
   if (Frequency = 0) or (DataSize = 0) then
     Exit(-1);
-  Result := DataSize / (Frequency * SampleSize);
+  Result := DataSize / (Frequency * SampleSize[DataFormat]);
 end;
 
 { TSoundOggVorbis ------------------------------------------------------------ }
@@ -211,7 +200,7 @@ begin
   inherited;
 end;
 
-function TSoundOggVorbis.DataFormat: TALuint;
+function TSoundOggVorbis.DataFormat: TSoundDataFormat;
 begin
   Result := FDataFormat;
 end;
@@ -325,11 +314,13 @@ begin
       { calculate FDataFormat }
       case Format.Channels of
         1: if Format.BitsPerSample = 8 then
-             FDataFormat := AL_FORMAT_MONO8 else
-             FDataFormat := AL_FORMAT_MONO16;
+             FDataFormat := sfMono8
+           else
+             FDataFormat := sfMono16;
         2: if Format.BitsPerSample = 8 then
-             FDataFormat := AL_FORMAT_STEREO8 else
-             FDataFormat := AL_FORMAT_STEREO16;
+             FDataFormat := sfStereo8
+           else
+             FDataFormat := sfStereo16;
         else raise EWavLoadError.Create('Only WAV files with 1 or 2 channels are allowed');
       end;
       { calculate FFrequency }
@@ -385,7 +376,7 @@ begin
   Result := FDataSize;
 end;
 
-function TSoundWAV.DataFormat: TALuint;
+function TSoundWAV.DataFormat: TSoundDataFormat;
 begin
   Result := FDataFormat;
 end;
@@ -397,18 +388,16 @@ end;
 
 { global functions ----------------------------------------------------------- }
 
-function ALDataFormatToStr(DataFormat: TALuint): string;
+function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
+const
+  DataFormatStr: array [TSoundDataFormat] of String = (
+    'mono 8',
+    'mono 16',
+    'stereo 8',
+    'stereo 16'
+  );
 begin
-  case DataFormat of
-    AL_FORMAT_MONO8: Result := 'mono 8';
-    AL_FORMAT_MONO16: Result := 'mono 16';
-    AL_FORMAT_STEREO8: Result := 'stereo 8';
-    AL_FORMAT_STEREO16: Result := 'stereo 16';
-    AL_FORMAT_MP3_EXT: Result := 'mp3';
-    AL_FORMAT_VORBIS_EXT: Result := 'ogg vorbis';
-    else raise EInternalError.CreateFmt('ALDataFormatToStr unknown parameter: %d',
-      [DataFormat]);
-  end;
+  Result := DataFormatStr[DataFormat];
 end;
 
 end.
