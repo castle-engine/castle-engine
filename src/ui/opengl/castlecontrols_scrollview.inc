@@ -92,13 +92,14 @@
     property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default 0;
     { Position of the scroll bar.
       @definitionList(
-        @itemLabel(@false (default))
-        @item(Scroll bar is located on the right side of the ScrollView)
+        @itemLabel(@false)
+        @item(Scroll bar is located on the right side of the ScrollView.)
         @itemLabel(@true)
-        @item(Scroll bar is located on the left side of the ScrollView
-          Pay attention, that additional space is not made for the scroll bar
-          specify @link(ScrollArea.HorizontalAnchorDelta) manually,
-          e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;) }
+        @item(Scroll bar is located on the left side of the ScrollView.
+          Pay attention, that additional space is not made for the scroll bar,
+          you have to specify ScrollArea.HorizontalAnchorDelta manually,
+          e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;)
+      ) }
     property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
