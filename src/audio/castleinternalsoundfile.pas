@@ -13,19 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Handle sound files in various formats.)
-
-  While this unit does use some OpenAL constants, most parts of
-  this unit can be used even when OpenAL is not initilized and not
-  even available. The methods that require OpenAL to be available and
-  initialized are clearly marked as such in the documentation. }
+{ Load sound files in various formats. }
 unit CastleInternalSoundFile;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, CastleUtils, Classes, CastleInternalOpenAL, CastleTimeUtils;
+uses SysUtils, CastleUtils, Classes, CastleTimeUtils;
 
 type
   TSoundDataFormat = (
@@ -37,7 +32,9 @@ type
 
   ESoundFileError = class(Exception);
 
-  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError);
+  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError)
+  end deprecated 'do not use, this is not raised by anything anymore';
+
   EOggVorbisLoadError = class(ESoundFileError);
   EWavLoadError = class(ESoundFileError);
 
