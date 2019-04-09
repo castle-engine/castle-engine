@@ -130,16 +130,20 @@ begin
     P.Targets.AddUnit('castleglshadowvolumes.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
+    P.Targets.AddUnit('castleinternalsoundfile.pas');
+    P.Targets.AddUnit('castlesoundallocator.pas');
+    P.Targets.AddUnit('castlesoundengine.pas');
+
+    P.SourcePath.Add('src' + PathDelim + 'audio' + PathDelim + 'openal');
     P.Targets.AddUnit('castleinternalefx.pas');
     P.Targets.AddUnit('castleinternalalutils.pas');
+    P.Targets.AddUnit('castleinternalopenal.pas');
+
+    P.SourcePath.Add('src' + PathDelim + 'audio' + PathDelim + 'ogg_vorbis');
     P.Targets.AddUnit('castleinternalogg.pas');
     P.Targets.AddUnit('castleinternalvorbiscodec.pas');
     P.Targets.AddUnit('castleinternalvorbisdecoder.pas');
     P.Targets.AddUnit('castleinternalvorbisfile.pas');
-    P.Targets.AddUnit('castleinternalopenal.pas');
-    P.Targets.AddUnit('castleinternalsoundfile.pas');
-    P.Targets.AddUnit('castlesoundallocator.pas');
-    P.Targets.AddUnit('castlesoundengine.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');

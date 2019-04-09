@@ -361,6 +361,8 @@ begin
         AddEnginePath('x3d/opengl');
         AddEnginePath('x3d/opengl/glsl');
         AddEnginePath('audio');
+        AddEnginePath('audio/openal');
+        AddEnginePath('audio/ogg_vorbis');
         AddEnginePath('files');
         AddEnginePath('castlescript');
         AddEnginePath('ui');

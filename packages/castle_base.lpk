@@ -188,19 +188,19 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleGLShadowVolumes"/>
       </Item21>
       <Item22>
-        <Filename Value="../src/audio/castleinternalalutils.pas"/>
+        <Filename Value="../src/audio/openal/castleinternalalutils.pas"/>
         <UnitName Value="CastleInternalALUtils"/>
       </Item22>
       <Item23>
-        <Filename Value="../src/audio/castleinternalefx.pas"/>
+        <Filename Value="../src/audio/openal/castleinternalefx.pas"/>
         <UnitName Value="CastleInternalEFX"/>
       </Item23>
       <Item24>
-        <Filename Value="../src/audio/castleinternalogg.pas"/>
+        <Filename Value="../src/audio/ogg_vorbis/castleinternalogg.pas"/>
         <UnitName Value="CastleInternalOgg"/>
       </Item24>
       <Item25>
-        <Filename Value="../src/audio/castleinternalopenal.pas"/>
+        <Filename Value="../src/audio/openal/castleinternalopenal.pas"/>
         <UnitName Value="CastleInternalOpenAL"/>
       </Item25>
       <Item26>
@@ -208,15 +208,15 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalSoundFile"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/audio/castleinternalvorbiscodec.pas"/>
+        <Filename Value="../src/audio/ogg_vorbis/castleinternalvorbiscodec.pas"/>
         <UnitName Value="CastleInternalVorbisCodec"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/audio/castleinternalvorbisdecoder.pas"/>
+        <Filename Value="../src/audio/ogg_vorbis/castleinternalvorbisdecoder.pas"/>
         <UnitName Value="CastleInternalVorbisDecoder"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/audio/castleinternalvorbisfile.pas"/>
+        <Filename Value="../src/audio/ogg_vorbis/castleinternalvorbisfile.pas"/>
         <UnitName Value="CastleInternalVorbisFile"/>
       </Item29>
       <Item30>
