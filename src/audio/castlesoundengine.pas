@@ -18,12 +18,24 @@ unit CastleSoundEngine;
 
 {$I castleconf.inc}
 
+{ Full-featured backend using OpenAL. }
+{ $define CASTLE_SOUND_BACKEND_OPENAL}
+
+{ Trivial test backend using "play" command-line program from SOX.
+  Not suitable for serious use (does not support any feature beyond trivial
+  "play this sound file with default volume/pitch etc."),
+  this is just a demo that we can have many sound backends. }
+{$define CASTLE_SOUND_BACKEND_SOX}
+
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleSoundBase, CastleInternalSoundFile,
-  CastleInternalAbstractSoundBackend, CastleInternalOpenALBackend;
+  CastleInternalAbstractSoundBackend,
+  {$ifdef CASTLE_SOUND_BACKEND_OPENAL} CastleInternalOpenALBackend {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_SOX} CastleInternalSoxBackend {$endif}
+  ;
 
 type
   ENoMoreSources = CastleSoundBase.ENoMoreSources;
@@ -279,12 +291,14 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Is the OpenAL version at least @code(AMajor.AMinor).
       Available only when OpenAL is initialized, that is:
       between @link(TSoundEngine.ContextOpen) and @link(TSoundEngine.ContextClose),
       only when @link(TSoundEngine.IsContextOpenSuccess). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
-      deprecated 'do not use, this is internal information';
+      deprecated 'do not use, this is internal information, and specific to OpenAL backend';
+    {$endif}
 
     { Internal: Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
@@ -439,7 +453,7 @@ type
     procedure ApplicationPause(Sender: TObject);
     procedure ApplicationResume(Sender: TObject);
     { Pause the sound engine, useful when Android activity gets inactive.
-      When paused, OpenAL is for sure inactive, and it cannot be activated
+      When paused, sound backend is for sure inactive, and it cannot be activated
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
     property Paused: boolean read FPaused write SetPaused;
 
@@ -487,8 +501,10 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
 
+    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Is the OpenAL version at least @code(AMajor.AMinor). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
+    {$endif}
 
     { Do we have active sound rendering context.
       This is @true when you successfully
@@ -514,9 +530,11 @@ type
     property IsContextOpen: boolean read FIsContextOpen;
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
+    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Are OpenAL effects (EFX) extensions supported.
       Meaningful only when IsContextOpenSuccess, that is it's initialized by ContextOpen. }
     function EFXSupported: Boolean; deprecated 'this is OpenAL-specific, and we do not expose CGE API to actually access EFX effects yet';
+    {$endif}
 
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
@@ -637,7 +655,7 @@ type
     function DeviceNiceName: string; deprecated 'use DeviceCaption';
     function DeviceCaption: string;
 
-    { Events fired after OpenAL context and device are being open or closed.
+    { Events fired after sound context is being open or closed.
       More precisely, when IsContextOpen changes (and so, possibly, IsContextOpenSuccess
       changed). }
     property OnOpenClose: TNotifyEventList read FOnOpenClose;
@@ -668,7 +686,8 @@ type
 
       If @false, then ContextOpen will not initialize any device.
       This is useful if you simply want to disable any sound output
-      (or backend, like OpenAL, usage), even when OpenAL library is available.
+      (or backend, like OpenAL, usage), even when sound library (like OpenAL)
+      is available.
 
       If the sound context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
@@ -1036,15 +1055,15 @@ type
     property LoopingChannel [const Index: Cardinal]: TLoopingChannel
       read GetLoopingChannel;
 
-    { Opens sound context (OpenAL) and loads sound files,
+    { Opens sound context and loads sound files,
       but only if RepositoryURL was set and contains some sounds.
 
       The idea is that you can call this during "loading" stage for any game that
       *possibly but not necessarily* uses sound. If a game doesn't use sound,
-      this does nothing (doesn't waste time to even initialize OpenAL,
+      this does nothing (doesn't waste time to even initialize sound context,
       which on some systems may cause some warnings).
       If a game uses sound (through RepositoryURL), this will initialize
-      OpenAL and load these sound files, to play them without any delay
+      sound backend and load these sound files, to play them without any delay
       in game.
 
       Note that, if this does nothing, but you later set @link(RepositoryURL)
@@ -1065,7 +1084,7 @@ type
     FEngine: TRepoSoundEngine;
 
     { This is nil if we don't play sound right now
-      (because OpenAL is not initialized, or Sound = stNone,
+      (because sound context is not open, or Sound = stNone,
       or PlayerSound.URL = '' (sound not existing)). }
     FAllocatedSource: TSound;
 
@@ -1406,7 +1425,10 @@ begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
-  Backend := TOpenALSoundEngineBackend.Create;
+  Backend :=
+    {$ifdef CASTLE_SOUND_BACKEND_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
+    {$ifdef CASTLE_SOUND_BACKEND_SOX} TSoxSoundEngineBackend.Create {$endif}
+  ;
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
   // Config.AddSaveListener(@SaveToConfig);
@@ -1446,7 +1468,7 @@ begin
     for I := 0 to FAllocatedSources.Count - 1 do
       { Although usually we are sure that every FAllocatedSources[I] <> nil,
         in this case we must take into account that maybe our constructor
-        raise ENonMoreOpenALSources and so some FAllocatedSources[I] were
+        raise ENonMoreSources and so some FAllocatedSources[I] were
         not initialized. }
       if FAllocatedSources[I] <> nil then
       begin
@@ -1471,7 +1493,7 @@ var
 begin
   Result := nil;
 
-  { OpenAL context not initialized yet }
+  { Sound context not initialized yet }
   if FAllocatedSources = nil then Exit;
 
   { Try: maybe we have already allocated unused sound ?
@@ -1811,7 +1833,7 @@ begin
         'Sound backend initialized successfully:' + NL +
         BackendOpenInformation + NL +
         NL+
-        Format('Allocated OpenAL sources: min %d, max %d' + NL +
+        Format('Allocated sound sources: min %d, max %d' + NL +
           NL+
           'Library to decode OggVorbis available: %s', [
             MinAllocatedSources, MaxAllocatedSources,
@@ -2071,6 +2093,7 @@ begin
   end;
 end;
 
+{$ifdef CASTLE_SOUND_BACKEND_OPENAL}
 function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
 begin
   Result := (Backend is TOpenALSoundEngineBackend) and
@@ -2082,6 +2105,7 @@ begin
   Result := (Backend is TOpenALSoundEngineBackend) and
     TOpenALSoundEngineBackend(Backend).EFXSupported;
 end;
+{$endif}
 
 procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
@@ -2138,18 +2162,18 @@ begin
          Engine.Enabled := false;
          Engine.EnableSaveToConfig := false;
        end;
-    else raise EInternalError.Create('OpenALOptionProc');
+    else raise EInternalError.Create('CastleSoundEngine.OptionProc');
   end;
 end;
 
 procedure TSoundEngine.ParseParameters;
 const
-  OpenALOptions: array [0..1] of TOption =
+  SoundOptions: array [0..1] of TOption =
   ( (Short: #0; Long: 'audio-device'; Argument: oaRequired),
     (Short: #0; Long: 'no-sound'; Argument: oaNone)
   );
 begin
-  Parameters.Parse(OpenALOptions, @OptionProc, Self, true);
+  Parameters.Parse(SoundOptions, @OptionProc, Self, true);
 end;
 
 function TSoundEngine.ParseParametersHelp: string;
@@ -2361,7 +2385,7 @@ end;
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL.
+  { If there is no actual sound, exit early without initializing sound backend.
     - SoundType is stNone if not defined in sounds.xml.
     - SoundType is <> stNone but URL = '' if sound name is defined in
       sounds.xml with explicit url="", like this:
@@ -2386,7 +2410,7 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL.
+  { If there is no actual sound, exit early without initializing sound backend.
     See Sound for duplicate of this "if" and more comments. }
   if (SoundType.Index = 0) or (FSounds[SoundType.Index].URL = '') then Exit(nil);
 
@@ -2462,9 +2486,10 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     Element.AttributeSingle('min_gain', S.MinGain);
     Element.AttributeSingle('max_gain', S.MaxGain);
 
-    { MaxGain is max 1. Although some OpenAL implementations allow > 1,
-      Windows impl (from Creative) doesn't. For consistent results,
-      we don't allow it anywhere. }
+    { MaxGain is max 1. Although some sound backends (like some OpenAL backends)
+      implementations allow > 1,
+      Windows implementation of OpenAL (from Creative) doesn't.
+      For consistent results, we don't allow it anywhere. }
     if S.MaxGain > 1 then
       S.MaxGain := 1;
 
@@ -2599,7 +2624,7 @@ begin
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);
 
-  { in case you set RepositoryURL when OpenAL context is already
+  { in case you set RepositoryURL when sound context is already
     initialized, start playing music immediately if necessary }
   RestartLoopingChannels;
 
