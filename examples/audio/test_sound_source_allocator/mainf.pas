@@ -153,11 +153,11 @@ var
   S: string;
 begin
   ListAllocatedSources.Clear;
-  // SoundEngine.AllocatedSources will be nil is OpenAL initialization failed
+  // SoundEngine.AllocatedSources will be nil if sound backend initialization failed
   if SoundEngine.AllocatedSources <> nil then
     for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
     begin
-      S := Format('%d: AL source: %4d, used: %5s',
+      S := Format('%d: Sound source: %4d, used: %5s',
         [ I,
           SoundEngine.AllocatedSources[I].ALSource,
           BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);

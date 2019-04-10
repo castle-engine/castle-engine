@@ -34,7 +34,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="test_al_source_allocator.lpr"/>
+        <Filename Value="test_sound_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
