@@ -137,6 +137,9 @@ begin
     Process.Execute;
     // do not wait for exit, this is the default
   finally FreeAndNil(Process) end;
+
+  FPlayStarted := true;
+  FPlayStart := Timer;
 end;
 
 procedure TSoxSoundSourceBackend.Stop;
