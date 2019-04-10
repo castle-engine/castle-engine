@@ -22,14 +22,14 @@
   TCastleScrollViewCustom = class(TCastleUserInterface)
   strict private
     FScroll: Single;
-    FScrollbarVisible: boolean;
+    FScrollbarVisible: Boolean;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
-    ScrollBarDragging: boolean;
+    ScrollBarDragging: Boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Single;
-    FEnableDragging: boolean;
+    FEnableDragging: Boolean;
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
@@ -37,9 +37,11 @@
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
   protected
+    FScrollbarLeft: Boolean;
+
     procedure DoScrollChange; virtual;
 
-    property ScrollbarVisible: boolean read FScrollbarVisible;
+    property ScrollbarVisible: Boolean read FScrollbarVisible;
 
     { Minimum sensible value for @link(Scroll), corresponds to scrollbar slider at the top. }
     function ScrollMin: Single;
@@ -88,11 +90,22 @@
       Value of 0 means to use global default
       in @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
     property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default 0;
+    { Position of the scroll bar.
+      @definitionList(
+        @itemLabel(@false)
+        @item(Scroll bar is located on the right side of the ScrollView.)
+        @itemLabel(@true)
+        @item(Scroll bar is located on the left side of the ScrollView.
+          Pay attention, that additional space is not made for the scroll bar,
+          you have to specify ScrollArea.HorizontalAnchorDelta manually,
+          e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;)
+      ) }
+    property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
       Note that this doesn't affect the dragging directly by the scrollbar,
       which is always enabled. }
-    property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
+    property EnableDragging: Boolean read FEnableDragging write FEnableDragging default false;
 
     { How much do we scroll.
       Setting it always clamps the value to a sensible range,
@@ -271,7 +284,10 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     SR := RenderRect;
 
-    ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
+    if FScrollbarLeft then
+      ScrollbarFrame := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
+    else
+      ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
     ScrollbarSlider := ScrollbarFrame;
     if GetCompleteSize = 0 then
