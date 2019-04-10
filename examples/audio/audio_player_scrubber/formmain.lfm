@@ -6,14 +6,16 @@ object MainForm: TMainForm
   Caption = 'Audio Player and Scrubber'
   ClientHeight = 422
   ClientWidth = 683
-  LCLVersion = '1.9.0.0'
+  DesignTimePPI = 140
+  OnCreate = FormCreate
+  LCLVersion = '1.8.0.6'
   object ButtonOpen: TButton
     AnchorSideTop.Control = LabelCaption
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 32
-    Top = 42
-    Width = 147
+    Height = 39
+    Top = 49
+    Width = 162
     AutoSize = True
     BorderSpacing.Top = 10
     Caption = 'Open Sound File'
@@ -24,9 +26,9 @@ object MainForm: TMainForm
     AnchorSideTop.Control = ButtonOpen
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 60
-    Top = 84
-    Width = 190
+    Height = 81
+    Top = 98
+    Width = 212
     BorderSpacing.Top = 10
     Caption = 'Sound File:'#10'None'#10'Duration: Not Available'
     ParentColor = False
@@ -35,9 +37,9 @@ object MainForm: TMainForm
     AnchorSideTop.Control = LabelSoundInfo
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 32
-    Top = 154
-    Width = 46
+    Height = 39
+    Top = 189
+    Width = 50
     AutoSize = True
     BorderSpacing.Top = 10
     Caption = 'Play'
@@ -49,10 +51,10 @@ object MainForm: TMainForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = LabelSoundInfo
     AnchorSideTop.Side = asrBottom
-    Left = 68
-    Height = 32
-    Top = 154
-    Width = 51
+    Left = 72
+    Height = 39
+    Top = 189
+    Width = 54
     AutoSize = True
     BorderSpacing.Left = 10
     BorderSpacing.Top = 10
@@ -66,8 +68,8 @@ object MainForm: TMainForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Side = asrBottom
     Left = 12
-    Height = 41
-    Top = 226
+    Height = 48
+    Top = 275
     Width = 668
     OnChange = TrackOffsetChange
     Position = 0
@@ -81,10 +83,10 @@ object MainForm: TMainForm
     AnchorSideLeft.Control = ButtonOpen
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = ButtonOpen
-    Left = 169
-    Height = 32
-    Top = 42
-    Width = 306
+    Left = 184
+    Height = 39
+    Top = 49
+    Width = 344
     AutoSize = True
     BorderSpacing.Left = 10
     Caption = 'Sound Engine (OpenAL) Information'
@@ -93,9 +95,9 @@ object MainForm: TMainForm
   end
   object LabelCaption: TLabel
     Left = 12
-    Height = 20
+    Height = 27
     Top = 12
-    Width = 409
+    Width = 452
     Caption = 'Castle Game Engine Audio Player and Scrubber'
     Font.Style = [fsBold]
     ParentColor = False
@@ -105,9 +107,9 @@ object MainForm: TMainForm
     AnchorSideTop.Control = ButtonPlay
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 20
-    Top = 196
-    Width = 323
+    Height = 27
+    Top = 238
+    Width = 360
     BorderSpacing.Top = 10
     Caption = 'Offset within played sound: Not Playing'
     ParentColor = False
@@ -116,9 +118,9 @@ object MainForm: TMainForm
     AnchorSideTop.Control = TrackOffset
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 20
-    Top = 277
-    Width = 67
+    Height = 27
+    Top = 333
+    Width = 75
     BorderSpacing.Top = 10
     Caption = 'Volume:'
     ParentColor = False
@@ -129,8 +131,8 @@ object MainForm: TMainForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Side = asrBottom
     Left = 12
-    Height = 41
-    Top = 307
+    Height = 48
+    Top = 370
     Width = 663
     Max = 1000
     OnChange = TrackVolumeChange
@@ -145,9 +147,9 @@ object MainForm: TMainForm
     AnchorSideTop.Control = TrackVolume
     AnchorSideTop.Side = asrBottom
     Left = 12
-    Height = 24
-    Top = 349
-    Width = 66
+    Height = 31
+    Top = 419
+    Width = 70
     BorderSpacing.Top = 1
     Caption = 'Loop'
     OnChange = CheckBoxLoopChange
@@ -155,15 +157,14 @@ object MainForm: TMainForm
   end
   object OpenDialogSound: TCastleOpenDialog
     Title = 'Open Existing Sound File'
-    Filter = 'All files|*|Sound files (*.wav, *.ogg)|*.wav;*.ogg'
-    FilterIndex = 2
-    Left = 378
-    Top = 80
+    FilterIndex = 0
+    left = 378
+    top = 80
   end
   object Timer1: TTimer
     Interval = 1
     OnTimer = Timer1Timer
-    Left = 486
-    Top = 96
+    left = 486
+    top = 96
   end
 end

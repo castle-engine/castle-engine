@@ -52,7 +52,8 @@ var
 
 implementation
 
-uses CastleVectors, CastleUtils, CastleStringUtils, CastleApplicationProperties;
+uses CastleVectors, CastleUtils, CastleStringUtils, CastleApplicationProperties,
+  CastleLCLUtils;
 
 type
   { Data associated with sounds.
@@ -75,6 +76,7 @@ begin
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
   SoundEngine.ContextOpen;
   TimerToDisplaySounds.Enabled := true;
+  FileFiltersToDialog(LoadSound_FileFilters, FileNameEditSound);
 end;
 
 procedure TMain.ButtonApplyAllocatorLimitsClick(Sender: TObject);

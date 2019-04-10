@@ -182,8 +182,7 @@ object Main: TMain
       Width = 247
       FileName = 'tone.wav'
       DialogOptions = []
-      Filter = 'WAV (*.wav)|*.wav|OggVorbis (*.ogg)|*.ogg|All Sound Files|*.wav;*.ogg|All Files (*)|*'
-      FilterIndex = 3
+      FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 20
       NumGlyphs = 1

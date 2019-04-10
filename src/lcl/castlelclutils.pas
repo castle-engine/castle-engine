@@ -20,7 +20,7 @@ unit CastleLCLUtils;
 
 interface
 
-uses Dialogs, Classes, Controls, LCLType, Graphics,
+uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
   CastleFileFilters, CastleKeysMouse, CastleVectors;
 
 { Convert file filters into LCL Dialog.Filter, Dialog.FilterIndex.
@@ -40,6 +40,8 @@ uses Dialogs, Classes, Controls, LCLType, Graphics,
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean = true);
+procedure FileFiltersToDialog(const FileFilters: string;
+  const Edit: TFileNameEdit; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
@@ -166,6 +168,17 @@ begin
   FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
+end;
+
+procedure FileFiltersToDialog(const FileFilters: string;
+  const Edit: TFileNameEdit; const AllFields: boolean);
+var
+  LCLFilter: string;
+  LCLFilterIndex: Integer;
+begin
+  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  Edit.Filter := LCLFilter;
+  Edit.FilterIndex := LCLFilterIndex;
 end;
 
 procedure FileFiltersToDialog(const FileFilters: string;
