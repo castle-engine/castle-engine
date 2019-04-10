@@ -19,23 +19,24 @@ unit CastleSoundEngine;
 {$I castleconf.inc}
 
 { Full-featured backend using OpenAL. }
-{ $define CASTLE_SOUND_BACKEND_OPENAL}
+{$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
+{$define CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
 
 { Trivial test backend using "play" command-line program from SOX.
   Not suitable for serious use (does not support any feature beyond trivial
   "play this sound file with default volume/pitch etc."),
   this is just a demo that we can have many sound backends. }
-{$define CASTLE_SOUND_BACKEND_SOX}
+{ $define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
+{$define CASTLE_SOUND_BACKEND_ENABLE_SOX}
 
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
-  CastleVectors, CastleTimeUtils, CastleXMLConfig,
-  CastleClassUtils, CastleStringUtils, CastleSoundBase, CastleInternalSoundFile,
-  CastleInternalAbstractSoundBackend,
-  {$ifdef CASTLE_SOUND_BACKEND_OPENAL} CastleInternalOpenALBackend {$endif}
-  {$ifdef CASTLE_SOUND_BACKEND_SOX} CastleInternalSoxBackend {$endif}
-  ;
+  CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
+  CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_SOX} CastleInternalSoxBackend, {$endif}
+  CastleXMLConfig;
 
 type
   ENoMoreSources = CastleSoundBase.ENoMoreSources;
@@ -291,14 +292,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Is the OpenAL version at least @code(AMajor.AMinor).
       Available only when OpenAL is initialized, that is:
       between @link(TSoundEngine.ContextOpen) and @link(TSoundEngine.ContextClose),
       only when @link(TSoundEngine.IsContextOpenSuccess). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
       deprecated 'do not use, this is internal information, and specific to OpenAL backend';
-    {$endif}
 
     { Internal: Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
@@ -501,10 +500,8 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
 
-    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Is the OpenAL version at least @code(AMajor.AMinor). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
-    {$endif}
 
     { Do we have active sound rendering context.
       This is @true when you successfully
@@ -530,11 +527,9 @@ type
     property IsContextOpen: boolean read FIsContextOpen;
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
-    {$ifdef CASTLE_SOUND_BACKEND_OPENAL}
     { Are OpenAL effects (EFX) extensions supported.
       Meaningful only when IsContextOpenSuccess, that is it's initialized by ContextOpen. }
     function EFXSupported: Boolean; deprecated 'this is OpenAL-specific, and we do not expose CGE API to actually access EFX effects yet';
-    {$endif}
 
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
@@ -1435,8 +1430,8 @@ begin
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
   Backend :=
-    {$ifdef CASTLE_SOUND_BACKEND_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
-    {$ifdef CASTLE_SOUND_BACKEND_SOX} TSoxSoundEngineBackend.Create {$endif}
+    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
+    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} TSoxSoundEngineBackend.Create {$endif}
   ;
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -2102,19 +2097,27 @@ begin
   end;
 end;
 
-{$ifdef CASTLE_SOUND_BACKEND_OPENAL}
 function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
 begin
-  Result := (Backend is TOpenALSoundEngineBackend) and
-    TOpenALSoundEngineBackend(Backend).ALVersionAtLeast(AMajor, AMinor);
+  Result :=
+    {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
+    (Backend is TOpenALSoundEngineBackend) and
+    TOpenALSoundEngineBackend(Backend).ALVersionAtLeast(AMajor, AMinor)
+    {$else}
+    false
+    {$endif};
 end;
 
 function TSoundEngine.EFXSupported: Boolean;
 begin
-  Result := (Backend is TOpenALSoundEngineBackend) and
-    TOpenALSoundEngineBackend(Backend).EFXSupported;
+  Result :=
+    {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
+    (Backend is TOpenALSoundEngineBackend) and
+    TOpenALSoundEngineBackend(Backend).EFXSupported
+    {$else}
+    false
+    {$endif};
 end;
-{$endif}
 
 procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
