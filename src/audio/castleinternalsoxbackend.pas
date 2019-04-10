@@ -222,6 +222,8 @@ begin
     Information := 'Failed to execute SOX executable with --version';
     Exit(false);
   end;
+  
+  SoxVersion := Trim(SoxVersion); // remove final newline
 
   Result := true;
   Information := 'SOX command found:' + NL +
