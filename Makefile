@@ -239,7 +239,7 @@ EXAMPLES_BASE_NAMES := \
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/audio_player_scrubber/audio_player_scrubber \
-  examples/audio/test_sound_source_allocator \
+  examples/audio/test_sound_source_allocator/test_sound_source_allocator \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
