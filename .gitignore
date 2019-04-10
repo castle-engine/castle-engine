@@ -223,3 +223,4 @@ tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 tools/texture-font-to-pascal/texture-font-to-pascal
 tools/to-data-uri/to-data-uri
+/examples/audio/test_sound_source_allocator/*.obj

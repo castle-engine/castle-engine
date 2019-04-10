@@ -63,7 +63,7 @@
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
-    procedure ALOpenClose(Sender: TObject);
+    procedure SoundOpenClose(Sender: TObject);
 
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
@@ -188,7 +188,7 @@ begin
 
   FDuration := -1;
 
-  SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} ALOpenClose);
+  SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
 end;
 
 destructor TAudioClipNode.Destroy;
@@ -199,7 +199,7 @@ begin
     Assert(Sound = nil);
   end;
   BufferLoaded := false;
-  SoundEngine.OnOpenClose.Remove({$ifdef CASTLE_OBJFPC}@{$endif} ALOpenClose);
+  SoundEngine.OnOpenClose.Remove({$ifdef CASTLE_OBJFPC}@{$endif} SoundOpenClose);
   inherited;
 end;
 
@@ -330,18 +330,18 @@ begin
         FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
         try
           { LoadBuffer inside may cause OpenAL open, and we don't want to
-            do ALOpenClose then.
+            do SoundOpenClose then.
 
             Doing OnOpenClose.Remove/Add now would be bad, as this code
             may be called when inside iterating over OnOpenClose:
             (- SetEnable calls ALContextOpen
              - that calls OnOpenClose.ExecuteAll
-             - that calls Self.ALOpenClose
+             - that calls Self.SoundOpenClose
              - that calls UpdatePlaying
              - that loads the buffer
             ). Shuffling now OnOpenClose items (Add always adds at the end)
             would mean that the same callback is again processed,
-            so Self.ALOpenClose is called with ALActive = true and Buffer <> 0,
+            so Self.SoundOpenClose is called with IsContextOpenSuccess = true and Buffer <> 0,
             so ALContextOpen releases a buffer for a playing sound source
             so OpenAL raises error.
 
@@ -374,11 +374,11 @@ begin
   end;
 end;
 
-procedure TAudioClipNode.ALOpenClose(Sender: TObject);
+procedure TAudioClipNode.SoundOpenClose(Sender: TObject);
 begin
   if InsideLoadBuffer <> 0 then Exit;
 
-  if (Sender as TSoundEngine).ALActive then
+  if (Sender as TSoundEngine).IsContextOpenSuccess then
   begin
     { Maybe we should start playing? }
     BufferLoaded := false; //< force reloading buffer next time

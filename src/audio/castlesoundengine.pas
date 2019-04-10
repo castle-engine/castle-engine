@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3D sound engine (TSoundEngine and TRepoSoundEngine). }
+{ Cross-platform, spatial sound playback engine (@link(SoundEngine) singleton). }
 unit CastleSoundEngine;
 
 {$I castleconf.inc}
@@ -21,11 +21,12 @@ unit CastleSoundEngine;
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
-  CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
-  CastleClassUtils, CastleStringUtils, CastleInternalSoundFile;
+  CastleVectors, CastleTimeUtils, CastleXMLConfig,
+  CastleClassUtils, CastleStringUtils, CastleSoundBase, CastleInternalSoundFile,
+  CastleInternalAbstractSoundBackend, CastleInternalOpenALBackend;
 
 type
-  ENoMoreSources = class(Exception);
+  ENoMoreSources = CastleSoundBase.ENoMoreSources;
   ENoMoreOpenALSources = ENoMoreSources deprecated 'use ENoMoreSources';
   ESoundBufferNotLoaded = class(Exception);
   EInvalidSoundBufferFree = class(Exception);
@@ -37,21 +38,24 @@ type
 
   { Sound buffer represents contents of a sound file, like Wav or OggVorbis,
     that (may be) played.
+
     It can be only allocated by @link(TSoundEngine.LoadBuffer)
     and freed by @link(TSoundEngine.FreeBuffer).
-    @bold(Do not free TSoundBuffer instances yourself.) }
+    @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
   private
-    ALBuffer: TALuint;
     { Absolute URL.
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
     URL: string;
     FDuration: TFloatTime;
     References: Cardinal;
-    procedure ALContextOpen(const ExceptionOnError: boolean);
-    procedure ALContextClose;
+    Backend: TSoundBufferBackend;
+    BackendIsOpen: Boolean;
+    procedure ContextOpen(const ExceptionOnError: boolean);
+    procedure ContextClose;
   public
+    constructor Create(const SoundEngineBackend: TSoundEngineBackend);
     destructor Destroy; override;
 
     { Duration of the sound, in seconds. Zero if not loaded yet. }
@@ -66,18 +70,14 @@ type
     FUsed: boolean;
     FOnRelease: TSoundEvent;
     FImportance: Integer;
-    FALSource: TALuint;
-    { This must be @true for the whole lifetime of this object
-      except the situation at the beginning of the constructor,
-      and in destructor (if constructor exited with ENoMoreSources). }
-    FALSourceAllocated: boolean;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
     FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
-    FAllocator: TSoundAllocator;
+    Backend: TSoundSourceBackend;
+    BackendIsOpen: Boolean;
     procedure SetPosition(const Value: TVector3);
     procedure SetVelocity(const Value: TVector3);
     procedure SetLooping(const Value: boolean);
@@ -97,11 +97,8 @@ type
       This allocates sound source using the sound backend (like OpenAL source).
       @raises(ENoMoreSources If no more sources available.
         It should be caught and silenced by TSoundAllocator.AllocateSound.) }
-    constructor Create(const AnAllocator: TSoundAllocator);
+    constructor Create(const SoundEngineBackend: TSoundEngineBackend);
     destructor Destroy; override;
-
-    { Internal OpenAL sound identifier. }
-    property ALSource: TALuint read FALSource;
 
     { Do we play something.
       Sources that are not Used are still allocated on the sound backend (like
@@ -146,12 +143,9 @@ type
     { Stops playing the source,
       sets Used to @false, and calls OnRelease (if assigned).
 
-      You can call this yourself if you want to stop playing the sound.
-      It's preferable to call this (instead of manually calling
-      alSourceStop), because this will immediately mark Used property
-      as @false and will call OnRelease. Otherwise we would have to
-      get source state at some time (they are checked in AllocateSound)
-      and check it, then see that it's no longer playing.
+      You can call this if you want to stop playing the sound.
+      This will also immediately set Used property
+      to @false and will call OnRelease.
 
       You can call this only when Used = @true. }
     procedure Release; virtual;
@@ -274,8 +268,9 @@ type
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   private
-    procedure ALContextOpenCore; virtual;
-    procedure ALContextCloseCore; virtual;
+    Backend: TSoundEngineBackend;
+    procedure ContextOpenCore; virtual;
+    procedure ContextCloseCore; virtual;
   public
     const
       DefaultMinAllocatedSources = 4;
@@ -286,22 +281,22 @@ type
 
     { Is the OpenAL version at least @code(AMajor.AMinor).
       Available only when OpenAL is initialized, that is:
-      between @link(TSoundEngine.ALContextOpen) and @link(TSoundEngine.ALContextClose),
-      only when @link(TSoundEngine.ALActive). }
+      between @link(TSoundEngine.ContextOpen) and @link(TSoundEngine.ContextClose),
+      only when @link(TSoundEngine.IsContextOpenSuccess). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
+      deprecated 'do not use, this is internal information';
 
-    { Internal: Allocate sound for playing. You should initialize the OpenAL sound
-      properties and start playing the sound (you have
-      OpenAL sound identifier in TSound.ALSource).
+    { Internal: Allocate sound for playing. You should initialize the sound source
+      properties and start playing the sound.
 
-      Note that if you don't call alSourcePlay, the source may be detected
+      Note that if you don't call TSound.Backend.Play immediately, the source may be detected
       as unused (and recycled for another sound) at the next AllocateSound,
       PlaySound, DetectUnusedSounds and such calls.
 
-      If we can't allocate new OpenAL sound, we return nil.
-      This may happen your OpenAL context is not initialized.
+      If we can't allocate new sound source, we return nil.
+      This may happen if your sound context is not initialized.
       It may also happen if we cannot create more sources (because
-      we hit MaxAllocatedSources limit, or OpenAL just refuses to create
+      we hit MaxAllocatedSources limit, or backend (like OpenAL) just refuses to create
       more sources) and all existing sounds are used and their
       Importance is > given here Importance.
 
@@ -316,7 +311,7 @@ type
     { All allocated (not necessarily used) sources.
       Accessing this is useful only for debugging tasks,
       in normal circumstances this is internal.
-      This is @nil when ALContextOpen was not yet called. }
+      This is @nil when ContextOpen was not yet called. }
     property AllocatedSources: TSoundList read FAllocatedSources;
 
     procedure Refresh; deprecated 'do not call this method yourself, it will be called directly if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
@@ -367,22 +362,9 @@ type
     { @groupEnd }
   end;
 
-  TSoundDistanceModel = (dmNone,
-    dmInverseDistance , dmInverseDistanceClamped,
-    dmLinearDistance  , dmLinearDistanceClamped,
-    dmExponentDistance, dmExponentDistanceClamped);
+  TSoundDistanceModel = CastleSoundBase.TSoundDistanceModel;
 
-  TSoundDevice = class
-  private
-    FName, FCaption: string;
-  public
-    { Short device name, used for @link(TSoundEngine.Device). }
-    property Name: string read FName;
-    { Nice device name to show user. }
-    property Caption: string read FCaption;
-    property NiceName: string read FCaption; deprecated 'use Caption';
-  end;
-  TSoundDeviceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundDevice>;
+  TSoundDevice = CastleSoundBase.TSoundDevice;
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TSoundParameters = class
@@ -420,11 +402,11 @@ type
     See docs at @link(SoundEngine) for more details.
 
     The sound engine is actually a wrapper over a backend, like OpenAL.
-    You can explicitly initialize OpenAL context by ALContextOpen,
-    and explicitly close it by ALContextClose. If you did not call ALContextOpen
-    explicitly (that is, ALInitialized is @false), then the first LoadBuffer
+    You can explicitly initialize OpenAL context by ContextOpen,
+    and explicitly close it by ContextClose. If you did not call ContextOpen
+    explicitly (that is, IsContextOpen is @false), then the first LoadBuffer
     or TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D
-    will automatically do it for you. If you do not call ALContextClose
+    will automatically do it for you. If you do not call ContextClose
     explicitly, then at destructor we'll do it automatically. }
   TSoundEngine = class(TSoundAllocator)
   private
@@ -433,14 +415,10 @@ type
     var
       FInformation: string;
       FDevice: string;
-      FALActive: boolean;
-      FALMajorVersion, FALMinorVersion: Integer;
-      FEFXSupported: boolean;
+      FIsContextOpenSuccess: boolean;
       FVolume: Single;
-      ALDevice: PALCdevice;
-      ALContext: PALCcontext;
       FEnabled: boolean;
-      FALInitialized: boolean;
+      FIsContextOpen: boolean;
       FDefaultRolloffFactor: Single;
       FDefaultReferenceDistance: Single;
       FDefaultMaxDistance: Single;
@@ -449,22 +427,11 @@ type
       FDevices: TSoundDeviceList;
       FOnOpenClose: TNotifyEventList;
       FResumeToInitialized, FPaused: boolean;
-
-      { We record listener state regardless of ALActive. This way at the ALContextOpen
-        call we can immediately set the good listener parameters. }
-      ListenerPosition: TVector3;
-      ListenerOrientation: TALTwoVectors3f;
-
+      FListenerPosition, FListenerDirection, FListenerUp: TVector3;
       FEnableSaveToConfig, DeviceSaveToConfig: boolean;
-
-    { Check ALC errors. Requires valid ALDevice. }
-    procedure CheckALC(const Situation: string);
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
-    { Call alDistanceModel with parameter derived from current DistanceModel.
-      Use only when ALActive. }
-    procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
     procedure SetEnabled(const Value: boolean);
     procedure SetPaused(const Value: boolean);
@@ -473,11 +440,11 @@ type
     procedure ApplicationResume(Sender: TObject);
     { Pause the sound engine, useful when Android activity gets inactive.
       When paused, OpenAL is for sure inactive, and it cannot be activated
-      (calling ALContextOpen, or playing a sound, will @bold(not) activate it). }
+      (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
     property Paused: boolean read FPaused write SetPaused;
 
-    procedure ALContextOpenCore; override;
-    procedure ALContextCloseCore; override;
+    procedure ContextOpenCore; override;
+    procedure ContextCloseCore; override;
 
     class function GetLogSoundLoading: Boolean; static;
     class procedure SetLogSoundLoading(const Value: Boolean); static;
@@ -496,24 +463,26 @@ type
 
     { Initialize sound engine.
       Initializes sound backend (like OpenAL library).
-      Sets @link(ALInitialized), @link(ALActive),
-      @link(Information), @link(EFXSupported).
+      Sets @link(IsContextOpen), @link(IsContextOpenSuccess), @link(Information).
 
       You can set @link(Device) before calling this.
 
       Note that we continue (without any exception) if the initialization
       failed for any reason (e.g. OpenAL library is not available,
       or no sound output device is available).
-      You can check @link(ALActive) and @link(Information) to know if
+      You can check @link(IsContextOpenSuccess) and @link(Information) to know if
       the initialization was actually successfull. But you can also ignore it,
       the sound engine will silently (literally) keep working even if OpenAL
       could not be initialized. }
-    procedure ALContextOpen;
+    procedure ContextOpen;
 
     { Release sound backend resources.
-      This sets @link(ALInitialized) and @link(ALActive) to @false.
+      This sets @link(IsContextOpen) and @link(IsContextOpenSuccess) to @false.
       It's allowed and harmless to call this when one of them is already @false. }
-    procedure ALContextClose;
+    procedure ContextClose;
+
+    procedure ALContextOpen; deprecated 'use ContextOpen';
+    procedure ALContextClose; deprecated 'use ContextClose';
 
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
@@ -521,27 +490,38 @@ type
     { Is the OpenAL version at least @code(AMajor.AMinor). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
 
-    { Do we have active OpenAL context. This is @true when you successfully
-      called ALContextOpen (and you didn't call ALContextClose yet).
-      This also implies that OpenAL library is loaded. }
-    property ALActive: boolean read FALActive;
+    { Do we have active sound rendering context.
+      This is @true when you successfully
+      called ContextOpen (and you didn't call ContextClose yet).
 
-    { Did we attempt to initialize OpenAL context. This indicates that ALContextOpen
-      was called, and not closed with ALContextClose yet. Contrary to ALActive,
-      this @italic(doesn't care if ALContextOpen was a success). }
-    property ALInitialized: boolean read FALInitialized;
+      You should not need this property much.
+      The whole CastleSoundEngine API works regardless if the context
+      was successfully open or not.
+      However, reading this is useful to display to user warning
+      e.g. "Sound could not be initialized for some reason" (use @link(Information)
+      to get the details).
+
+      In case of OpenAL backend, this also implies that OpenAL library is loaded. }
+    property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
+    property ALActive: boolean read FIsContextOpenSuccess;
+      deprecated 'use IsContextOpenSuccess';
+
+    { Did we attempt to initialize sound rendering context.
+      This indicates that ContextOpen  was called,
+      and not closed with ContextClose yet.
+      Contrary to IsContextOpenSuccess,
+      this @italic(doesn't care if ContextOpen was a success). }
+    property IsContextOpen: boolean read FIsContextOpen;
+    property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
     { Are OpenAL effects (EFX) extensions supported.
-      Meaningful only when ALActive, that is it's initialized by ALContextOpen. }
-    property EFXSupported: boolean read FEFXSupported;
+      Meaningful only when IsContextOpenSuccess, that is it's initialized by ContextOpen. }
+    function EFXSupported: Boolean; deprecated 'this is OpenAL-specific, and we do not expose CGE API to actually access EFX effects yet';
 
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
 
     property Information: string read FInformation;
-
-    { Wrapper for alcGetString. }
-    function GetContextString(Enum: TALCenum): string;
 
     { Load a sound file contents such that they can be immediately played.
 
@@ -658,7 +638,7 @@ type
     function DeviceCaption: string;
 
     { Events fired after OpenAL context and device are being open or closed.
-      More precisely, when ALInitialized changes (and so, possibly, ALActive
+      More precisely, when IsContextOpen changes (and so, possibly, IsContextOpenSuccess
       changed). }
     property OnOpenClose: TNotifyEventList read FOnOpenClose;
 
@@ -679,20 +659,20 @@ type
     { Sound output device, used when initializing sound context.
 
       You can change it even when context is already initialized.
-      Then we'll close the old device (ALContextClose),
-      change @link(Device) value, and initialize context again (ALContextOpen).
+      Then we'll close the old device (ContextClose),
+      change @link(Device) value, and initialize context again (ContextOpen).
       Note that you will need to reload your buffers and sources again. }
     property Device: string read FDevice write SetDevice;
 
     { Enable sound.
 
-      If @false, then ALContextOpen will not initialize any device.
+      If @false, then ContextOpen will not initialize any device.
       This is useful if you simply want to disable any sound output
       (or backend, like OpenAL, usage), even when OpenAL library is available.
 
       If the sound context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
-      do ALContextClose and then ALContextOpen again. This behaves correctly.) }
+      do ContextClose and then ContextOpen again. This behaves correctly.) }
     property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
 
     property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
@@ -780,7 +760,7 @@ type
     FBuffer: TSoundBuffer;
 
     { OpenAL buffer of this sound. @nil if buffer is not yet loaded,
-      which may happen only if TRepoSoundEngine.ALContextOpen was not yet
+      which may happen only if TRepoSoundEngine.ContextOpen was not yet
       called or when sound has URL = ''. }
     property Buffer: TSoundBuffer read FBuffer;
   public
@@ -893,7 +873,7 @@ type
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
 
-    procedure ALContextOpenCore; override;
+    procedure ContextOpenCore; override;
 
     function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
@@ -1009,7 +989,7 @@ type
       AddSoundImportanceName for comfort).
 
       These can be used within sounds.xml file.
-      Before using ALContextOpen, you can fill this list with values.
+      Before using ContextOpen, you can fill this list with values.
 
       Initially, it contains a couple of useful values (ordered here
       from most to least important):
@@ -1095,7 +1075,7 @@ type
     procedure SetSound(const Value: TSoundType);
     procedure AllocatedSourceRelease(Sender: TSound);
 
-    { Called by ALContextOpen. You should check here if
+    { Called by ContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
     function GetVolume: Single;
@@ -1176,6 +1156,14 @@ const
   DefaultCreatureSoundImportance = 1000;
   MinorNonSpatialSoundImportance = 100;
 
+  dmNone                    = CastleSoundBase.dmNone;
+  dmInverseDistance         = CastleSoundBase.dmInverseDistance;
+  dmInverseDistanceClamped  = CastleSoundBase.dmInverseDistanceClamped;
+  dmLinearDistance          = CastleSoundBase.dmLinearDistance;
+  dmLinearDistanceClamped   = CastleSoundBase.dmLinearDistanceClamped;
+  dmExponentDistance        = CastleSoundBase.dmExponentDistance;
+  dmExponentDistanceClamped = CastleSoundBase.dmExponentDistanceClamped;
+
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
@@ -1186,8 +1174,7 @@ implementation
   castle_base.lpk package }
 {$warnings off}
 uses DOM, XMLRead, StrUtils, Generics.Defaults,
-  CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
-  CastleInternalVorbisFile, CastleInternalEFX,
+  CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
   // this is deprecated
@@ -1196,17 +1183,26 @@ uses DOM, XMLRead, StrUtils, Generics.Defaults,
 
 { TSoundBuffer --------------------------------------------------------------- }
 
-procedure TSoundBuffer.ALContextOpen(const ExceptionOnError: boolean);
+constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend);
+begin
+  inherited Create;
+  Backend := SoundEngineBackend.CreateBuffer;
+end;
+
+procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
   begin
-    alCreateBuffers(1, @ALBuffer);
-    try
-      alBufferDataFromFile(ALBuffer, URL, FDuration);
-    except alDeleteBuffers(1, @ALBuffer); raise end;
+    Backend.URL := URL;
+    Backend.ContextOpen;
+    FDuration := Backend.Duration;
+    BackendIsOpen := true;
   end;
 
 begin
+  if BackendIsOpen then
+    Exit; // do not initialize already-initialized
+
   if ExceptionOnError then
   begin
     OpenCore;
@@ -1216,16 +1212,19 @@ begin
   except
     on E: Exception do
     begin
-      ALBuffer := 0;
       WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
         [URIDisplay(URL), E.Message]));
     end;
   end;
 end;
 
-procedure TSoundBuffer.ALContextClose;
+procedure TSoundBuffer.ContextClose;
 begin
-  alFreeBuffer(ALBuffer);
+  if BackendIsOpen then
+  begin
+    Backend.ContextClose;
+    BackendIsOpen := false;
+  end;
 end;
 
 var
@@ -1235,43 +1234,32 @@ destructor TSoundBuffer.Destroy;
 begin
   if ValidSoundBufferFree = 0 then
     raise EInvalidSoundBufferFree.Create('Do not free TSoundBuffer instance directly, use SoundEngine.FreeBuffer');
-  ALContextClose;
+  ContextClose;
+  FreeAndNil(Backend);
   inherited;
 end;
 
 { TSound ---------------------------------------------------------- }
 
-constructor TSound.Create(const AnAllocator: TSoundAllocator);
-var
-  ErrorCode: TALenum;
+constructor TSound.Create(const SoundEngineBackend: TSoundEngineBackend);
 begin
   inherited Create;
 
-  FAllocator := AnAllocator;
-
-  { We have to check alGetError now, because I may need to catch
-    (and convert to ENoMoreSources exception) alGetError after
-    alCreateSources. So I want to have "clean error state" first. }
-  CheckAL('Checking before TSound.Create work');
-
-  alCreateSources(1, @FALSource);
-
-  ErrorCode := alGetError();
-  if ErrorCode = AL_INVALID_VALUE then
-    raise ENoMoreSources.Create('No more sound sources available') else
-  if ErrorCode <> AL_NO_ERROR then
-    raise EALError.Create(ErrorCode,
-      'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
-
-  { This signals to TSound.Destroy that FALSource contains
-    valid source name, that should be deleted by alDeleteSources. }
-  FALSourceAllocated := true;
+  Backend := SoundEngineBackend.CreateSource;
+  { For now, TSound always refers to an open (on backend side) sound source. }
+  Backend.ContextOpen;
+  { This way, TSound.Destroy will not call Backend.ContextClose
+    if Backend.ContextOpen failed.
+    (So e.g. OpenAL Backend.ContextClose doesn't try to call
+    alDeleteSources on invalid sound source.) }
+  BackendIsOpen := true;
 end;
 
 destructor TSound.Destroy;
 begin
-  if FALSourceAllocated then
-    alDeleteSources(1, @FALSource);
+  if (Backend <> nil) and BackendIsOpen then
+    Backend.ContextClose;
+  FreeAndNil(Backend);
   inherited;
 end;
 
@@ -1279,11 +1267,7 @@ procedure TSound.Release;
 begin
   FUsed := false;
 
-  { Note that alSourceStop is a valid NOP for source states like
-    AL_STOPPED or AL_INITIAL. So I don't check here current state
-    (like CurrentState := alGetSource1i(ALSource, AL_SOURCE_STATE))
-    and simply always call alSourceStop. }
-  alSourceStop(ALSource);
+  Backend.Stop;
 
   { Detach the buffer from source. Otherwise we couldn't free the buffer
     while it's associated with the source. Also, this would be a problem
@@ -1301,129 +1285,97 @@ end;
 procedure TSound.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
-  alSourceVector3f(ALSource, AL_POSITION, Value);
+  Backend.SetPosition(Value);
 end;
 
 procedure TSound.SetVelocity(const Value: TVector3);
 begin
   FVelocity := Value;
-  alSourceVector3f(ALSource, AL_VELOCITY, Value);
+  Backend.SetVelocity(Value);
 end;
 
 procedure TSound.SetLooping(const Value: boolean);
 begin
   FLooping := Value;
-  alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
+  Backend.SetLooping(Value);
 end;
 
 procedure TSound.SetRelative(const Value: boolean);
 begin
   FRelative := Value;
-  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
+  Backend.SetRelative(Value);
 end;
 
 procedure TSound.SetGain(const Value: Single);
 begin
   FGain := Value;
-  alSourcef(ALSource, AL_GAIN, Value);
+  Backend.SetGain(Value);
 end;
 
 procedure TSound.SetMinGain(const Value: Single);
 begin
   FMinGain := Value;
-  alSourcef(ALSource, AL_MIN_GAIN, Value);
+  Backend.SetMinGain(Value);
 end;
 
 procedure TSound.SetMaxGain(const Value: Single);
 begin
   FMaxGain := Value;
-  alSourcef(ALSource, AL_MAX_GAIN, Value);
+  Backend.SetMaxGain(Value);
 end;
 
 procedure TSound.SetBuffer(const Value: TSoundBuffer);
 begin
   FBuffer := Value;
-  if Value <> nil then
-  begin
-    { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
-      But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
-      whatever alSourcei requires. }
-    {$I norqcheckbegin.inc}
-    alSourcei(ALSource, AL_BUFFER, Value.ALBuffer);
-    {$I norqcheckend.inc}
-  end else
-    alSourcei(ALSource, AL_BUFFER, 0);
+  if (Value <> nil) and Value.BackendIsOpen then
+    Backend.SetBuffer(Value.Backend)
+  else
+    Backend.SetBuffer(nil);
 end;
 
 procedure TSound.SetPitch(const Value: Single);
 begin
   FPitch := Value;
-  alSourcef(ALSource, AL_PITCH, Value);
+  Backend.SetPitch(Value);
 end;
 
 procedure TSound.SetRolloffFactor(const Value: Single);
 begin
   FRolloffFactor := Value;
-  alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
+  Backend.SetRolloffFactor(Value);
 end;
 
 procedure TSound.SetReferenceDistance(const Value: Single);
 begin
   FReferenceDistance := Value;
-  alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
+  Backend.SetReferenceDistance(Value);
 end;
 
 procedure TSound.SetMaxDistance(const Value: Single);
 begin
   FMaxDistance := Value;
-  alSourcef(ALSource, AL_MAX_DISTANCE, Value);
+  Backend.SetMaxDistance(Value);
 end;
 
 function TSound.GetOffset: Single;
 begin
-  if FAllocator.ALVersionAtLeast(1, 1) then
-    Result := alGetSource1f(ALSource, AL_SEC_OFFSET)
-  else
-    Result := 0;
+  Result := Backend.Offset;
 end;
 
 procedure TSound.SetOffset(const Value: Single);
-var
-  ErrorCode: TALenum;
 begin
-  if FAllocator.ALVersionAtLeast(1, 1) then
-  begin
-    { We have to check alGetError now, because we need to catch
-      AL_INVALID_VALUE later. }
-    CheckAL('Checking before TSound.SetOffset work');
-
-    alSourcef(ALSource, AL_SEC_OFFSET, Value);
-
-    { capture AL_INVALID_VALUE, otherwise it would be too easy to make mistake
-      at setting offset to something like "duration-epsilon". }
-
-    ErrorCode := alGetError();
-    if ErrorCode = AL_INVALID_VALUE then
-      WritelnWarning('Ignoring TSound.SetOffset with offset %f', [Value])
-    else
-    if ErrorCode <> AL_NO_ERROR then
-      raise EALError.Create(ErrorCode,
-        'OpenAL error AL_xxx at setting sound offset : ' + alGetString(ErrorCode));
-  end;
+  Backend.Offset := Value;
 end;
 
 function TSound.PlayingOrPaused: boolean;
-var
-  SourceState: TALuint;
 begin
-  SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
-  Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
+  Result := Backend.PlayingOrPaused;
 end;
 
 procedure TSound.KeepPlaying;
 begin
   if not PlayingOrPaused then
-    alSourcePlay(ALSource);
+    Backend.Play(false);
 end;
 
 { TSoundList ----------------------------------------------------- }
@@ -1454,6 +1406,7 @@ begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
+  Backend := TOpenALSoundEngineBackend.Create;
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
   // Config.AddSaveListener(@SaveToConfig);
@@ -1467,22 +1420,23 @@ begin
   //   Config.RemoveLoadListener(@LoadFromConfig);
   //   Config.RemoveSaveListener(@SaveToConfig);
   // end;
+  FreeAndNil(Backend);
   inherited;
 end;
 
-procedure TSoundAllocator.ALContextOpenCore;
+procedure TSoundAllocator.ContextOpenCore;
 var
   I: Integer;
 begin
   FAllocatedSources := TSoundList.Create(true);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
-    FAllocatedSources[I] := TSound.Create(Self);
+    FAllocatedSources[I] := TSound.Create(Backend);
 
   ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
 
-procedure TSoundAllocator.ALContextCloseCore;
+procedure TSoundAllocator.ContextCloseCore;
 var
   I: Integer;
 begin
@@ -1559,7 +1513,7 @@ begin
      (Cardinal(FAllocatedSources.Count) < MaxAllocatedSources) then
   begin
     try
-      Result := TSound.Create(Self);
+      Result := TSound.Create(Backend);
       FAllocatedSources.Add(Result);
     except
       { If TSound.Create raises ENoMoreSources ---
@@ -1591,8 +1545,6 @@ begin
     Result.FImportance := Importance;
     Result.FUsed := true;
   end;
-
-  CheckAL('allocating sound source (TSoundAllocator.AllocateSound)');
 end;
 
 procedure TSoundAllocator.SetMinAllocatedSources(const Value: Cardinal);
@@ -1609,7 +1561,7 @@ begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
       for I := OldAllocatedSourcesCount to FAllocatedSources.Count - 1 do
-        FAllocatedSources[I] := TSound.Create(Self);
+        FAllocatedSources[I] := TSound.Create(Backend);
     end;
   end;
 end;
@@ -1649,8 +1601,6 @@ procedure TSoundAllocator.DetectUnusedSounds;
 var
   I: Integer;
 begin
-  CheckAL('before DetectUnusedSounds');
-
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used and
@@ -1737,10 +1687,10 @@ begin
   LoadedBuffers := TSoundBuffersList.Create(true);
   FOnOpenClose := TNotifyEventList.Create;
 
-  { Default OpenAL listener attributes }
-  ListenerPosition := TVector3.Zero;
-  ListenerOrientation[0] := Vector3(0, 0, -1);
-  ListenerOrientation[1] := Vector3(0, 1, 0);
+  { Default listener attributes }
+  FListenerPosition := TVector3.Zero;
+  FListenerDirection := Vector3(0, 0, -1);
+  FListenerUp := Vector3(0, 1, 0);
 
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -1773,7 +1723,7 @@ begin
   //   Config.RemoveSaveListener(@SaveToConfig);
   // end;
 
-  ALContextClose;
+  ContextClose;
 
   Inc(ValidSoundBufferFree);
   try
@@ -1786,86 +1736,9 @@ begin
 end;
 
 function TSoundEngine.Devices: TSoundDeviceList;
-
-  { Find available OpenAL devices, add them to FDevices.
-
-    It tries to use ALC_ENUMERATION_EXT extension, available on all modern
-    OpenAL implementations. If it fails, and we're dealing with
-    OpenAL "sample implementation" (older OpenAL Unix implementation)
-    then we return a hardcoded list of devices known to be supported
-    by this implementation.
-    This makes it working sensibly under all OpenAL implementations in use
-    today.
-
-    Also for every OpenAL implementation, we add an implicit
-    OpenAL default device named '' (empty string). }
-  procedure UpdateDevices;
-
-    procedure Add(const AName, ACaption: string);
-    var
-      D: TSoundDevice;
-    begin
-      D := TSoundDevice.Create;
-      D.FName := AName;
-      D.FCaption := ACaption;
-      FDevices.Add(D);
-    end;
-
-    function SampleImpALCDeviceName(const ShortDeviceName: string): string;
-    begin
-      Result := '''(( devices ''(' + ShortDeviceName + ') ))';
-    end;
-
-  var
-    pDeviceList: PChar;
-  begin
-    Add('', 'Default OpenAL device');
-
-    if ALLibraryAvailable and EnumerationExtPresent(pDeviceList) then
-    begin
-      { parse pDeviceList }
-      while pDeviceList^ <> #0 do
-      begin
-        { automatic conversion PChar -> AnsiString below }
-        Add(pDeviceList, pDeviceList);
-
-        { advance position of pDeviceList }
-        pDeviceList := StrEnd(pDeviceList);
-        Inc(pDeviceList);
-      end;
-    end else
-    if ALLibraryAvailable and OpenALSampleImplementation then
-    begin
-      Add(SampleImpALCDeviceName('native'), 'Operating system native');
-      Add(SampleImpALCDeviceName('sdl'), 'SDL (Simple DirectMedia Layer)');
-
-      { aRts device is too unstable on my Linux:
-
-        When trying to initialize <tt>arts</tt> backend
-        I can bring the OpenAL library (and, consequently, whole program
-        using it) to crash with message <i>can't create mcop
-        directory</i>. Right after running konqueror, I get also
-        crash with message <i>*** glibc detected *** double free or corruption (out):
-        0x08538d88 ***</i>.
-
-        This is so unstable, that I think that I do a service
-        for users by *not* listing aRts in available OpenAL
-        devices. It's listed on [https://castle-engine.io/openal_notes.php]
-        and that's enough.
-
-      Add(SampleImpALCDeviceName('arts'), 'aRts (analog Real time synthesizer)');
-      }
-
-      Add(SampleImpALCDeviceName('esd'), 'Esound (Enlightened Sound Daemon)');
-      Add(SampleImpALCDeviceName('alsa'), 'ALSA (Advanced Linux Sound Architecture)');
-      Add(SampleImpALCDeviceName('waveout'), 'WAVE file output');
-      Add(SampleImpALCDeviceName('null'), 'Null device (no output)');
-    end;
-  end;
-
 begin
   { Create devices on demand (not immediately in TSoundEngine.Create),
-    because merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
+    because in case of OpenAL merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
     may perform some OpenAL initialization (discovery of available devices).
     E.g. with OpenAL Soft 1.13 in Debian. This is not very harmful,
     but it causes like output (on stdout or stderr) like
@@ -1877,152 +1750,20 @@ begin
       ALSA lib pcm_dmix.c:957:(snd_pcm_dmix_open) The dmix plugin supports only playback stream
 
     and it causes a temporary slowdown. So we want to defer this (until really
-    needed, or until explicit ALContextOpen call). }
+    needed, or until explicit ContextOpen call). }
 
   if FDevices = nil then
   begin
     FDevices := TSoundDeviceList.Create;
-    UpdateDevices;
+    FDevices.Add('', 'Default Device');
+    Backend.DetectDevices(FDevices);
   end;
   Result := FDevices;
 end;
 
-procedure TSoundEngine.CheckALC(const Situation: string);
-var
-  ErrCode: TALenum;
-  ErrDescription: PChar;
-  ErrDescriptionStr: string;
-begin
-  ErrCode := alcGetError(ALDevice);
-  if ErrCode <> ALC_NO_ERROR then
-  begin
-    { Secure, in case alcGetError returns nil (so the error code is incorrect),
-      which happened long time ago on Creative Windows OpenAL implementation. }
-    ErrDescription := alcGetString(ALDevice, ErrCode);
-    if ErrDescription = nil then
-      ErrDescriptionStr := Format('Unknown OpenAL (alc) error number: %d', [ErrCode])
-    else
-      ErrDescriptionStr := ErrDescription;
+procedure TSoundEngine.ContextOpenCore;
 
-    raise EALCError.Create(ErrCode,
-      'OpenAL error ALC_xxx at ' + Situation + ' : ' + ErrDescriptionStr);
-  end;
-end;
-
-function TSoundEngine.GetContextString(Enum: TALCenum): string;
-begin
-  Result := alcGetString(ALDevice, Enum);
-  try
-    CheckALC('alcGetString');
-    { Check also normal al error (alGetError instead
-      of alcGetError). Seems that when Darwin (macOS) Apple's OpenAL
-      implementation fails to return some alcGetString
-      it reports this by setting AL error (instead of ALC one)
-      to "invalid value". Although (after fixes to detect OpenALSampleImplementation
-      at runtime and change constants values) this shouldn't happen anymore
-      if you pass correct consts to this function. }
-    CheckAL('alcGetString');
-  except
-    on E: EALCError do result := '('+E.Message+')';
-    on E: EALError do result := '('+E.Message+')';
-  end;
-end;
-
-procedure TSoundEngine.ALContextOpenCore;
-
-  procedure ParseVersion(const Version: string; out Major, Minor: Integer);
-  var
-    DotP, SpaceP: Integer;
-  begin
-    { version unknown }
-    Major := 0;
-    Minor := 0;
-
-    DotP := Pos('.', Version);
-    if DotP <> 0 then
-    try
-      Major := StrToInt(Trim(Copy(Version, 1, DotP - 1)));
-      SpaceP := PosEx(' ', Version, DotP + 1);
-      if SpaceP <> 0 then
-        Minor := StrToInt(Trim(Copy(Version, DotP + 1, SpaceP - DotP))) else
-        Minor := StrToInt(Trim(SEnding(Version, DotP + 1)));
-    except
-      on EConvertError do
-      begin
-        Major := 0;
-        Minor := 0;
-      end;
-    end;
-  end;
-
-  { Try to initialize OpenAL.
-    Sets ALActive, EFXSupported.
-    If not ALActive, then ALActivationErrorMessage contains error description. }
-  procedure BeginAL(out ALActivationErrorMessage: string);
-  begin
-    { We don't do alcProcessContext/alcSuspendContext, no need
-      (spec says that context is initially in processing state). }
-
-    try
-      //raise EOpenALError.Create('Test pretend OpenAL fails');
-
-      FALActive := false;
-      FEFXSupported := false;
-      ALActivationErrorMessage := '';
-      FALMajorVersion := 0;
-      FALMinorVersion := 0;
-
-      if not ALLibraryAvailable then
-        raise EOpenALInitError.Create('OpenAL library is not available');
-
-      Assert(Assigned(alcOpenDevice), 'Assigned(alcOpenDevice)');
-
-      ALDevice := alcOpenDevice(PCharOrNil(Device));
-      if (ALDevice = nil) then
-        raise EOpenALError.CreateFmt(
-          'OpenAL''s audio device "%s" is not available', [Device]);
-
-      ALContext := alcCreateContext(ALDevice, nil);
-      CheckALC('initializing OpenAL (alcCreateContext)');
-
-      alcMakeContextCurrent(ALContext);
-      CheckALC('initializing OpenAL (alcMakeContextCurrent)');
-
-      FALActive := true;
-      FEFXSupported := Load_EFX(ALDevice);
-      ParseVersion(alGetString(AL_VERSION), FALMajorVersion, FALMinorVersion);
-    except
-      on E: EOpenALError do
-        ALActivationErrorMessage := E.Message;
-    end;
-  end;
-
-  function ALInformation: string;
-  begin
-    Assert(ALActive);
-
-    Result := Format(
-      NL+
-      'Version : %s' +NL+
-      'Version Parsed : major: %d, minor: %d' +NL+
-      'Renderer : %s' +NL+
-      'Vendor : %s' +NL+
-      'Extensions : %s' +NL+
-      NL+
-      'Allocated OpenAL sources: min %d, max %d' +NL+
-      NL+
-      'Library to decode OggVorbis available: %s',
-      [ alGetString(AL_VERSION),
-        FALMajorVersion, FALMinorVersion,
-        alGetString(AL_RENDERER),
-        alGetString(AL_VENDOR),
-        alGetString(AL_EXTENSIONS),
-        MinAllocatedSources, MaxAllocatedSources,
-        BoolToStr(VorbisFileInitialized, true)
-      ]);
-  end;
-
-  { initialize OpenAL resources inside LoadedBuffers }
+  { initialize resources inside LoadedBuffers }
   procedure LoadedBuffersOpen;
   var
     Buffer: TSoundBuffer;
@@ -2032,9 +1773,9 @@ procedure TSoundEngine.ALContextOpenCore;
     begin
       if Progress.Active then
       begin
-        { call ALContextOpen on all buffers }
+        { call ContextOpen on all buffers }
         for Buffer in LoadedBuffers do
-          Buffer.ALContextOpen(false);
+          Buffer.ContextOpen(false);
       end else
       begin
         { same as above, but with added Progress.Init / Step / Fini }
@@ -2042,7 +1783,7 @@ procedure TSoundEngine.ALContextOpenCore;
         try
           for Buffer in LoadedBuffers do
           begin
-            Buffer.ALContextOpen(false);
+            Buffer.ContextOpen(false);
             Progress.Step;
           end;
         finally Progress.Fini end;
@@ -2051,30 +1792,43 @@ procedure TSoundEngine.ALContextOpenCore;
   end;
 
 var
-  ALActivationErrorMessage: string;
+  BackendOpenInformation: string;
 begin
-  Assert(not ALActive, 'OpenAL context is already active');
+  Assert(not IsContextOpenSuccess, 'Sound context is already active');
 
   if not Enabled then
-    FInformation :=
-      'OpenAL initialization aborted: sound is disabled (by --no-sound command-line option, or menu item or such)' else
   begin
-    BeginAL(ALActivationErrorMessage);
-    if not ALActive then
+    FInformation := 'Sound initialization aborted: Sound engine is disabled';
+  end else
+  begin
+    FIsContextOpenSuccess := Backend.ContextOpen(FDevice, BackendOpenInformation);
+    if not IsContextOpenSuccess then
       FInformation :=
-        'OpenAL initialization failed:' +NL+ ALActivationErrorMessage else
+        'Sound backend initialization failed:' + NL +
+        BackendOpenInformation else
     begin
       FInformation :=
-        'OpenAL initialized successfully' +NL+ ALInformation;
+        'Sound backend initialized successfully:' + NL +
+        BackendOpenInformation + NL +
+        NL+
+        Format('Allocated OpenAL sources: min %d, max %d' + NL +
+          NL+
+          'Library to decode OggVorbis available: %s', [
+            MinAllocatedSources, MaxAllocatedSources,
+            BoolToStr(VorbisFileInitialized, true)
+          ]);
 
       try
-        alListenerf(AL_GAIN, Volume);
-        UpdateDistanceModel;
+        Backend.SetGain(Volume);
+        Backend.SetDistanceModel(DistanceModel);
+        Backend.SetListener(
+          FListenerPosition,
+          FListenerDirection,
+          FListenerUp);
         inherited; { initialize sound allocator }
-        CheckAL('initializing sounds (ALContextOpen)');
         LoadedBuffersOpen;
       except
-        ALContextClose;
+        ContextClose;
         raise;
       end;
     end;
@@ -2085,121 +1839,66 @@ begin
   OnOpenClose.ExecuteAll(Self);
 end;
 
-procedure TSoundEngine.ALContextCloseCore;
-
-  procedure EndAL;
-  begin
-    FALActive := false;
-    FEFXSupported := false;
-
-    { CheckALC first, in case some error is "hanging" not caught yet. }
-    CheckALC('right before closing OpenAL context');
-
-    if ALContext <> nil then
-    begin
-      (* The OpenAL specification says
-
-         "The correct way to destroy a context is to first release
-         it using alcMakeCurrent with a NULL context. Applications
-         should not attempt to destroy a current context – doing so
-         will not work and will result in an ALC_INVALID_OPERATION error."
-
-         (See [http://openal.org/openal_webstf/specs/oal11spec_html/oal11spec6.html])
-
-         However, sample implementation (used on most Unixes,
-         before OpenAL soft came) can hang
-         on alcMakeContextCurrent(nil) call. Actually, it doesn't hang,
-         but it stops for a *very* long time (even a couple of minutes).
-         This is a known problem, see
-         [http://opensource.creative.com/pipermail/openal-devel/2005-March/002823.html]
-         and
-         [http://lists.berlios.de/pipermail/warzone-dev/2005-August/000441.html].
-
-         Tremulous code workarounds it like
-
-           if( Q_stricmp((const char* )qalGetString( AL_VENDOR ), "J. Valenzuela" ) ) {
-                   qalcMakeContextCurrent( NULL );
-           }
-
-         ... and this seems a good idea, we do it also here.
-         Initially I wanted to do $ifdef UNIX, but checking for Sample implementation
-         with alGetString(AL_VENDOR) is more elegant (i.e. affecting more precisely
-         the problematic OpenAL implementations, e.g. allowing us to work
-         correctly with OpenAL soft too). *)
-
-      if not OpenALSampleImplementation then
-        alcMakeContextCurrent(nil);
-
-      alcDestroyContext(ALContext);
-      ALContext := nil;
-      CheckALC('closing OpenAL context');
-    end;
-
-    if ALDevice <> nil then
-    begin
-      alcCloseDevice(ALDevice);
-      { w/g specyfikacji OpenAL generuje teraz error ALC_INVALID_DEVICE jesli
-        device bylo nieprawidlowe; ale niby jak mam sprawdzic ten blad ?
-        Przeciez zeby sprawdzic alcGetError potrzebuje miec valid device w reku,
-        a po wywolaniu alcCloseDevice(device) device jest invalid (bez wzgledu
-        na czy przed wywolaniem alcCloseDevice bylo valid) }
-      ALDevice := nil;
-    end;
-  end;
-
+procedure TSoundEngine.ContextCloseCore;
 var
   Buffer: TSoundBuffer;
 begin
-  if ALActive then
+  if IsContextOpenSuccess then
   begin
     { release sound allocator first. This also stops all the sources,
       which is required before we try to release their buffers. }
     inherited;
-    { free OpenAL resources allocated inside LoadedBuffers }
+    { free backend resources allocated inside LoadedBuffers }
     for Buffer in LoadedBuffers do
-      Buffer.ALContextClose;
-    EndAL;
+      Buffer.ContextClose;
+    Backend.ContextClose;
+    FIsContextOpenSuccess := false;
   end;
 
-  WritelnLog('Sound', 'OpenAL closed');
+  WritelnLog('Sound', 'Sound backend closed');
 
   OnOpenClose.ExecuteAll(Self);
 end;
 
+procedure TSoundEngine.ContextOpen;
+begin
+  if Paused then
+    Exit; // do not even set IsContextOpen to true
+
+  if not IsContextOpen then
+  begin
+    FIsContextOpen := true; // set it early, so that OnOpenClose knows it's true
+    ContextOpenCore;
+  end;
+end;
+
+procedure TSoundEngine.ContextClose;
+begin
+  if IsContextOpen then
+  begin
+    FIsContextOpen := false; // set it early, so that OnOpenClose knows it's false
+    ContextCloseCore;
+  end;
+end;
 
 procedure TSoundEngine.ALContextOpen;
 begin
-  if Paused then
-    Exit; // do not even set ALInitialized to true
-
-  if not ALInitialized then
-  begin
-    FALInitialized := true; // set it early, so that OnOpenClose knows it's true
-    ALContextOpenCore;
-  end;
+  ContextOpen;
 end;
 
 procedure TSoundEngine.ALContextClose;
 begin
-  if ALInitialized then
-  begin
-    FALInitialized := false; // set it early, so that OnOpenClose knows it's false
-    ALContextCloseCore;
-  end;
+  ContextClose;
 end;
 
 function TSoundEngine.PlaySound(const Parameters: TSoundParameters): TSound;
-const
-  { For now, just always use CheckBufferLoaded. It doesn't seem to cause
-    any slowdown for normal sound playing. }
-  CheckBufferLoaded = true;
 begin
   Result := nil;
 
-  if ALActive and
+  if IsContextOpenSuccess and
      (Parameters.Buffer <> nil) and
-     { ALBuffer may be = 0 if file failed to load, e.g. file not found }
-     (Parameters.Buffer.ALBuffer <> 0) then
+     { Buffer.BackendIsOpen may be false if file failed to load, e.g. file not found }
+     Parameters.Buffer.BackendIsOpen then
   begin
     Result := AllocateSound(Parameters.Importance);
     if Result <> nil then
@@ -2237,43 +1936,7 @@ begin
         Result.Position := TVector3.Zero;
       end;
 
-      if CheckBufferLoaded then
-      begin
-        { This is a workaround needed on Apple OpenAL implementation
-          (although I think that at some time I experienced similar
-          problems (that would be cured by this workaround) on Linux
-          (Loki OpenAL implementation)).
-
-          The problem: music on some
-          levels doesn't play. This happens seemingly random: sometimes
-          when you load a level music starts playing, sometimes it's
-          silent. Then when you go to another level, then go back to the
-          same level, music plays.
-
-          Investigation: I found that sometimes changing the buffer
-          of the sound doesn't work immediately. Simple
-            Writeln(SoundInfos.List^[Sound].Buffer, ' ',
-              alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
-          right after alCommonSourceSetup shows this (may output
-          two different values). Then if you wait a little, OpenAL
-          reports correct buffer. This probably means that OpenAL
-          internally finishes some tasks related to loading buffer
-          into source. Whatever it is, it seems that it doesn't
-          occur (or rather, is not noticeable) on normal game sounds
-          that are short --- but it's noticeable delay with larger
-          sounds, like typical music.
-
-          So the natural workaround below follows. For OpenAL implementations
-          that immediately load the buffer, this will not cause any delay. }
-
-        { We have to do CheckAL first, to catch eventual errors.
-          Otherwise the loop could hang. }
-        CheckAL('PlaySound');
-        while Parameters.Buffer.ALBuffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
-          Sleep(10);
-      end;
-
-      alSourcePlay(Result.ALSource);
+      Result.Backend.Play(true);
     end;
   end;
 end;
@@ -2348,7 +2011,7 @@ var
   I: Integer;
   FullURL: string;
 begin
-  ALContextOpen;
+  ContextOpen;
 
   FullURL := AbsoluteURI(URL);
 
@@ -2364,14 +2027,14 @@ begin
       Exit;
     end;
 
-  Result := TSoundBuffer.Create;
+  Result := TSoundBuffer.Create(Backend);
   Result.URL := FullURL;
   Result.References := 1;
   LoadedBuffers.Add(Result);
 
-  if ALActive then
+  if IsContextOpenSuccess then
     { let LoadBuffer raise exception on missing sound file }
-    Result.ALContextOpen(ExceptionOnError);
+    Result.ContextOpen(ExceptionOnError);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
@@ -2386,7 +2049,7 @@ begin
     Dec(Buffer.References);
     if Buffer.References = 0 then
     begin
-      // this will free Buffer, also calling Buffer.ALContextClose;
+      // this will free Buffer, also calling Buffer.ContextClose;
       Inc(ValidSoundBufferFree);
       try
         LoadedBuffers.Delete(I);
@@ -2403,34 +2066,21 @@ begin
   if Value <> FVolume then
   begin
     FVolume := Value;
-    if ALActive then
-      alListenerf(AL_GAIN, Volume);
+    if IsContextOpenSuccess then
+      Backend.SetGain(Value);
   end;
 end;
 
 function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
 begin
-  Result :=
-      (AMajor < FALMajorVersion) or
-    ( (AMajor = FALMajorVersion) and (AMinor <= FALMinorVersion) );
+  Result := (Backend is TOpenALSoundEngineBackend) and
+    TOpenALSoundEngineBackend(Backend).ALVersionAtLeast(AMajor, AMinor);
 end;
 
-procedure TSoundEngine.UpdateDistanceModel;
-const
-  ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum =
-  ( AL_NONE,
-    AL_INVERSE_DISTANCE, AL_INVERSE_DISTANCE_CLAMPED,
-    AL_LINEAR_DISTANCE, AL_LINEAR_DISTANCE_CLAMPED,
-    AL_EXPONENT_DISTANCE, AL_EXPONENT_DISTANCE_CLAMPED );
-var
-  Is11: boolean;
+function TSoundEngine.EFXSupported: Boolean;
 begin
-  Is11 := ALVersionAtLeast(1, 1);
-  if (not Is11) and (DistanceModel in [dmLinearDistance, dmExponentDistance]) then
-    alDistanceModel(AL_INVERSE_DISTANCE) else
-  if (not Is11) and (DistanceModel in [dmLinearDistanceClamped, dmExponentDistanceClamped]) then
-    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED) else
-    alDistanceModel(ALDistanceModelConsts[DistanceModel]);
+  Result := (Backend is TOpenALSoundEngineBackend) and
+    TOpenALSoundEngineBackend(Backend).EFXSupported;
 end;
 
 procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
@@ -2438,7 +2088,8 @@ begin
   if Value <> FDistanceModel then
   begin
     FDistanceModel := Value;
-    if ALActive then UpdateDistanceModel;
+    if IsContextOpenSuccess then
+      Backend.SetDistanceModel(Value);
   end;
 end;
 
@@ -2446,12 +2097,11 @@ procedure TSoundEngine.SetDevice(const Value: string);
 begin
   if Value <> FDevice then
   begin
-    if ALInitialized then
+    if IsContextOpen then
     begin
-      ALContextClose;
-      OpenALRestart;
+      ContextClose;
       FDevice := Value;
-      ALContextOpen;
+      ContextOpen;
     end else
       FDevice := Value;
     DeviceSaveToConfig := true; // caller will eventually change it to false
@@ -2462,11 +2112,11 @@ procedure TSoundEngine.SetEnabled(const Value: boolean);
 begin
   if Value <> FEnabled then
   begin
-    if ALInitialized then
+    if IsContextOpen then
     begin
-      ALContextClose;
+      ContextClose;
       FEnabled := Value;
-      ALContextOpen;
+      ContextOpen;
     end else
       FEnabled := Value;
     FEnableSaveToConfig := true; // caller will eventually change it to false
@@ -2506,50 +2156,33 @@ function TSoundEngine.ParseParametersHelp: string;
 
   function DevicesHelp: string;
   var
-    DefaultDeviceName: string;
     I: Integer;
   begin
-    if not ALLibraryAvailable then
-      Result := '                        Warning: OpenAL is not available, cannot print' +NL+
-                '                        available audio devices.' +NL else
-    if not EnumerationExtPresent then
-      Result := '                        Warning: OpenAL does not support getting the list'+NL+
-                '                        of available audio devices' +NL+
-                '                        (missing ALC_ENUMERATION_EXT), probably old OpenAL.' else
+    Result := Format('                        Available devices (%d):', [Devices.Count]) + NL;
+    for i := 0 to Devices.Count - 1 do
     begin
-      DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
-
-      Result := Format('                        Available devices (%d):', [Devices.Count]) + nl;
-      for i := 0 to Devices.Count - 1 do
-      begin
-        Result := Result + '                          ' + Devices[i].Caption;
-        if Devices[i].Name <> Devices[i].Caption then
-          Result := Result + ' (Real OpenAL name: "' + Devices[i].Name + '")';
-        if Devices[i].Name = DefaultDeviceName then
-          Result := Result + ' (Equivalent to default device)';
-        Result := Result + nl;
-      end;
+      Result := Result + '                          ' + Devices[i].Caption;
+      if Devices[i].Name <> Devices[i].Caption then
+        Result := Result + ' (internal name: "' + Devices[i].Name + '")';
+      Result := Result + NL;
     end;
   end;
 
 begin
   Result :=
     '  --audio-device DEVICE-NAME' +nl+
-    '                        Choose specific OpenAL audio device.' +nl+
+    '                        Choose sound output device.' +nl+
     DevicesHelp +
     '  --no-sound            Turn off sound.';
 end;
 
 procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3);
 begin
-  ListenerPosition := Position;
-  ListenerOrientation[0] := Direction;
-  ListenerOrientation[1] := Up;
-  if ALActive then
-  begin
-    alListenerVector3f(AL_POSITION, Position);
-    alListenerOrientation(Direction, Up);
-  end;
+  FListenerPosition := Position;
+  FListenerDirection := Direction;
+  FListenerUp := Up;
+  if IsContextOpenSuccess then
+    Backend.SetListener(Position, Direction, Up);
 end;
 
 function TSoundEngine.DeviceNiceName: string;
@@ -2565,7 +2198,7 @@ begin
     if Devices[I].Name = Device then
       Exit(Devices[I].Caption);
 
-  Result := 'Some OpenAL device'; // some default
+  Result := 'Unnamed Sound Device'; // some default
 end;
 
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
@@ -2607,24 +2240,24 @@ begin
     FPaused := Value;
     if FPaused then
     begin
-      FResumeToInitialized := ALInitialized;
-      ALContextClose;
+      FResumeToInitialized := IsContextOpen;
+      ContextClose;
     end else
     begin
       if FResumeToInitialized then
-        ALContextOpen;
+        ContextOpen;
     end;
   end;
 end;
 
 class function TSoundEngine.GetLogSoundLoading: Boolean;
 begin
-  Result := CastleInternalALUtils.LogSoundLoading;
+  Result := CastleInternalSoundFile.LogSoundLoading;
 end;
 
 class procedure TSoundEngine.SetLogSoundLoading(const Value: Boolean);
 begin
-  CastleInternalALUtils.LogSoundLoading := Value;
+  CastleInternalSoundFile.LogSoundLoading := Value;
 end;
 
 { TSoundType ----------------------------------------------------------------- }
@@ -2708,7 +2341,7 @@ begin
   inherited;
 end;
 
-procedure TRepoSoundEngine.ALContextOpenCore;
+procedure TRepoSoundEngine.ContextOpenCore;
 begin
   inherited;
   RestartLoopingChannels;
@@ -2719,7 +2352,7 @@ var
   L: TLoopingChannel;
 begin
   { allocate sound for all TLoopingChannel }
-  if ALActive then
+  if IsContextOpenSuccess then
     for L in FLoopingChannels do
       if L <> nil then
         L.AllocateSource;
@@ -2736,7 +2369,7 @@ begin
   }
   if (SoundType.Index = 0) or (FSounds[SoundType.Index].URL = '') then Exit(nil);
 
-  ALContextOpen;
+  ContextOpen;
 
   if FSounds[SoundType.Index].Buffer = nil then Exit(nil);
 
@@ -2757,7 +2390,7 @@ begin
     See Sound for duplicate of this "if" and more comments. }
   if (SoundType.Index = 0) or (FSounds[SoundType.Index].URL = '') then Exit(nil);
 
-  ALContextOpen;
+  ContextOpen;
 
   if FSounds[SoundType.Index].Buffer = nil then Exit(nil);
 
@@ -2930,7 +2563,7 @@ begin
       'Root node of sounds/index.xml must be <sounds>');
 
     { TODO: This could display a progress bar using Progress.Init / Fini
-      if ALActive, since it loads sounds in this case (calls LoadBuffer),
+      if IsContextOpenSuccess, since it loads sounds in this case (calls LoadBuffer),
       so can take a while. }
 
     I := SoundConfig.DocumentElement.ChildrenIterator;
@@ -3010,8 +2643,8 @@ end;
 
 procedure TRepoSoundEngine.PrepareResources;
 begin
-  if not ALInitialized and (FSounds.Count > 1) then
-    ALContextOpen;
+  if not IsContextOpen and (FSounds.Count > 1) then
+    ContextOpen;
 end;
 
 procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);

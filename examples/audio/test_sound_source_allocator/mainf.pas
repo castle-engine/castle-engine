@@ -73,7 +73,7 @@ procedure TMain.FormCreate(Sender: TObject);
 begin
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
-  SoundEngine.ALContextOpen;
+  SoundEngine.ContextOpen;
   TimerToDisplaySounds.Enabled := true;
 end;
 
@@ -136,7 +136,7 @@ begin
       end;
     end;
 
-  SoundEngine.ALContextClose;
+  SoundEngine.ContextClose;
 end;
 
 procedure TMain.SourceRelease(Sender: TSound);
@@ -157,9 +157,8 @@ begin
   if SoundEngine.AllocatedSources <> nil then
     for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
     begin
-      S := Format('%d: Sound source: %4d, used: %5s',
+      S := Format('%d: Sound source used: %5s',
         [ I,
-          SoundEngine.AllocatedSources[I].ALSource,
           BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);
       if SoundEngine.AllocatedSources[I].Used then
         S += Format(', started on %s, importance: %d, filename: %s',

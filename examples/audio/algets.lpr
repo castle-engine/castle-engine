@@ -208,13 +208,13 @@ end;
 begin
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
-  SoundEngine.ALContextOpen;
+  SoundEngine.ContextOpen;
   try
-    if SoundEngine.ALActive then
+    if SoundEngine.IsContextOpenSuccess then
       Gets
     else
       Writeln('Sound engine not initialized: ' + SoundEngine.Information);
   finally
-    SoundEngine.ALContextClose;
+    SoundEngine.ContextClose;
   end;
 end.

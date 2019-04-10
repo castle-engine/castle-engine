@@ -38,7 +38,7 @@ procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
   try
     SoundEngine.LoadBuffer('castle-data:/sound/non-existing.wav');
-    if not SoundEngine.ALActive then
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 1');
@@ -46,7 +46,7 @@ begin
 
   try
     SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
-    if not SoundEngine.ALActive then
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 2');
@@ -54,7 +54,7 @@ begin
 
   try
     SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');
-    if not SoundEngine.ALActive then
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 3');
@@ -62,7 +62,7 @@ begin
 
   try
     SoundEngine.LoadBuffer('castle-data:/sound/invalid.ogg');
-    if not SoundEngine.ALActive then
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 4');
@@ -80,7 +80,7 @@ end;
 
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;
 begin
-  if SoundEngine.ALActive then
+  if SoundEngine.IsContextOpenSuccess then
   begin
     ApplicationProperties.OnWarning.Add(@WavNonPcmWarning);
     try

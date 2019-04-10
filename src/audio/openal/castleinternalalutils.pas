@@ -189,10 +189,6 @@ function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
 function EnumerationExtPresent: boolean; overload;
 { @groupEnd }
 
-var
-  { Show in the log loading of sounds. }
-  LogSoundLoading: Boolean;
-
 {$undef read_interface}
 
 implementation
@@ -216,12 +212,6 @@ begin
   F := TSoundFile.CreateFromFile(URL);
   try
     alBufferData(Buffer, ALDataFormat[F.DataFormat], F.Data, F.DataSize, F.Frequency);
-
-    if LogSoundLoading then
-      WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
-        [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
-          F.DataSize, F.Frequency, F.Duration ]));
-
     Duration := F.Duration;
   finally F.Free end;
 end;

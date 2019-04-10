@@ -113,7 +113,11 @@ type
     function Frequency: LongWord; override;
   end;
 
-function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
+var
+  { Show in the log loading of sounds. }
+  LogSoundLoading: Boolean;
+
+function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
 
 implementation
 
@@ -151,9 +155,18 @@ begin
       end;
 
       Result := C.CreateFromStream(S);
+
+      if LogSoundLoading then
+        WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
+          URIDisplay(URL),
+          Result.ClassName,
+          DataFormatToStr(Result.DataFormat),
+          Result.DataSize,
+          Result.Frequency,
+          Result.Duration
+        ]));
     finally S.Free end;
   except
-
     { May be raised by Download in case opening the underlying stream failed. }
     on E: EFOpenError do
       { Reraise as ESoundFileError, and add URL to exception message }
@@ -385,7 +398,7 @@ end;
 
 { global functions ----------------------------------------------------------- }
 
-function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
+function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
 const
   DataFormatStr: array [TSoundDataFormat] of String = (
     'mono 8',

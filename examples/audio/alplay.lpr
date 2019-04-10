@@ -40,8 +40,8 @@ begin
 
   { Load and play sound, without any spatialization.
     OpenAL will be automatically initialized when needed below.
-    Although you could also initialize it explicitly by SoundEngine.ALContextOpen,
-    check SoundEngine.SoundInitializationReport, SoundEngine.ALActive etc. }
+    Although you could also initialize it explicitly by SoundEngine.ContextOpen,
+    check SoundEngine.Information, SoundEngine.IsContextOpenSuccess etc. }
   Buffer := SoundEngine.LoadBuffer(URL);
   Writeln('Sound loaded, duration in seconds: ', Buffer.Duration:1:2);
   SoundEngine.PlaySound(Buffer);
