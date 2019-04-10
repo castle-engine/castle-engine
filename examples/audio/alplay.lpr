@@ -30,8 +30,11 @@ begin
 
   { parse params }
   SoundEngine.ParseParameters;
-  Parameters.CheckHigh(1);
-  URL := Parameters[1];
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    URL := Parameters[1]
+  else
+    URL := 'castle-data:/tone.wav';
 
   { Change the default MinAllocatedSources (it may be larger for the default
     engine usage, as we expect that some sound mixing will be needed;
