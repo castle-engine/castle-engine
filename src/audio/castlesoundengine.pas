@@ -1183,6 +1183,15 @@ const
   dmExponentDistance        = CastleSoundBase.dmExponentDistance;
   dmExponentDistanceClamped = CastleSoundBase.dmExponentDistanceClamped;
 
+  { Supported sound file formats.
+    Use these filters with LCL file dialog (easily set by FileFiltersToDialog)
+    or TCastleWindowBase.FileDialog. }
+  LoadSound_FileFilters =
+  'All Files|*|' +
+  '*All Sound Files|*.wav;*.ogg|' +
+  'WAV (*.wav)|*.wav|' +
+  'OggVorbis (*.ogg)|*.ogg';
+
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
