@@ -22,7 +22,7 @@ unit CastleInternalSoxBackend;
 
 interface
 
-uses SysUtils, Classes, Math,
+uses SysUtils, Classes, Math, Process,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils,
   CastleInternalAbstractSoundBackend, CastleSoundBase;
@@ -41,6 +41,7 @@ type
     FBuffer: TSoxSoundBufferBackend;
     FPlayStart: TTimerResult;
     FPlayStarted: Boolean;
+    FPlayProcess: TProcess;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -78,7 +79,7 @@ type
 
 implementation
 
-uses StrUtils, Process,
+uses StrUtils,
   CastleLog, CastleUtils, CastleURIUtils, CastleInternalSoundFile,
   CastleFilesUtils;
 
@@ -115,6 +116,7 @@ end;
 
 procedure TSoxSoundSourceBackend.ContextClose;
 begin
+  Stop;
 end;
 
 function TSoxSoundSourceBackend.PlayingOrPaused: boolean;
@@ -123,20 +125,17 @@ begin
 end;
 
 procedure TSoxSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
-var
-  Process: TProcess;
 begin
-  Process := TProcess.Create(nil);
-  try
-    { We invoke "sox xxx.wav --default-device" instead of "play xxx.wav",
-      because on Windows (Cygwin) the "play" is only a symbolic link,
-      so we would have to execute it through bash, making the code more complicated. }
-    Process.Executable := (SoundEngine as TSoxSoundEngineBackend).SoxCommand;
-    Process.Parameters.Add(FBuffer.FileName);
-    Process.Parameters.Add('--default-device');
-    Process.Execute;
-    // do not wait for exit, this is the default
-  finally FreeAndNil(Process) end;
+  Stop;
+
+  FPlayProcess := TProcess.Create(nil);
+  { We invoke "sox xxx.wav --default-device" instead of "play xxx.wav",
+    because on Windows (Cygwin) the "play" is only a symbolic link,
+    so we would have to execute it through bash, making the code more complicated. }
+  FPlayProcess.Executable := (SoundEngine as TSoxSoundEngineBackend).SoxCommand;
+  FPlayProcess.Parameters.Add(FBuffer.FileName);
+  FPlayProcess.Parameters.Add('--default-device');
+  FPlayProcess.Execute;
 
   FPlayStarted := true;
   FPlayStart := Timer;
@@ -144,6 +143,14 @@ end;
 
 procedure TSoxSoundSourceBackend.Stop;
 begin
+  { Terminate and free FPlayProcess.
+    Otherwise on Unix the sox process may be left hanging forever,
+    even after the main CGE application terminated. }
+  if FPlayProcess <> nil then
+  begin
+    FPlayProcess.Terminate(0);
+    FreeAndNil(FPlayProcess);
+  end;
 end;
 
 procedure TSoxSoundSourceBackend.SetPosition(const Value: TVector3);
@@ -222,7 +229,7 @@ begin
     Information := 'Failed to execute SOX executable with --version';
     Exit(false);
   end;
-  
+
   SoxVersion := Trim(SoxVersion); // remove final newline
 
   Result := true;
