@@ -657,8 +657,8 @@ begin
     if (S[P] <> '(') and
        not (S[P] in WhiteSpaces) then
     begin
-      WritelnWarning('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
-        [S[P]]));
+      WritelnWarning('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
+        [S[P], S]));
       Exit(false);
     end;
   until S[P] = '(';
