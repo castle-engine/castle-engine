@@ -13,7 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ Time utilities. }
+{ Time utilities.
+
+  Note that the initialization of this unit calls @link(CastleRandomize)
+  (which on most platforms just calls standard @code(Randomize))
+  to initialize random sequence of the standard @code(Random). }
 unit CastleTimeUtils;
 
 {$I castleconf.inc}
@@ -750,6 +754,8 @@ begin
 end;
 
 initialization
+  { Required by Random and all stuff on top of it }
+  CastleRandomize;
 finalization
   FreeAndNil(FProfiler);
 end.

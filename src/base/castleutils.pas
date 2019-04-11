@@ -41,14 +41,6 @@
   Initialization of this unit does some generally-useful things:
 
   @unorderedList(
-    @item(Calls @code(Randomize), to initialize random sequence of the standard
-      @code(Random).
-
-      Because the initial value of the random seed if undefined anyway.
-      And forgetting to call @code(Randomize) can easily lead to accidentally
-      getting the same random sequence from multiple runs of the program.
-    )
-
     @item(Sets @code(DecimalSeparator) to '.' (dot).
 
       Bacause Delphi and FPC define DecimalSeparator
@@ -183,11 +175,6 @@ implementation
 
 initialization
   InitializationOSSpecific;
-
-  {$ifndef CASTLE_NINTENDO_SWITCH}
-  // TODO: crashes with "invalid system call", probably because it accesses clock?
-  Randomize; { required by e.g. GetTempFname }
-  {$endif}
 
   LocaleDecimalSeparator :=
     {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;

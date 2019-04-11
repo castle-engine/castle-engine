@@ -33,6 +33,12 @@ function CastleYesterday: TDateTime;
   On Nintendo Switch the standard function will crash now. }
 function CastleTomorrow: TDateTime;
 
+{ Just like standard Randomize function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now.
+  Note that you seldom need to call this explicitly: CastleUtils calls it already
+  in the initialization. }
+procedure CastleRandomize;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -64,6 +70,34 @@ end;
 function CastleTomorrow: TDateTime;
 begin
   Result := DateOf(CastleNow) + 1;
+end;
+
+procedure CastleRandomize;
+{$ifdef CASTLE_NINTENDO_SWITCH}
+
+  procedure XorShift64(var c64: QWord);
+  begin
+    c64 := c64 xor (c64 shl 12);
+    c64 := c64 xor (c64 shr 25);
+    c64 := c64 xor (c64 shl 27);
+  end;
+
+var
+  NewRandSeed: QWord;
+begin
+  NewRandSeed := CgeNxGetUnixTime();
+  XorShift64(NewRandSeed);
+  XorShift64(NewRandSeed);
+  XorShift64(NewRandSeed);
+  XorShift64(NewRandSeed);
+  {$I norqcheckbegin.inc}
+  RandSeed := LongWord(NewRandSeed);
+  {$I norqcheckend.inc}
+{$else}
+begin
+  // On NX this crashes with "invalid system call", because it accesses clock.
+  Randomize;
+{$endif}
 end;
 
 {$endif read_implementation}
