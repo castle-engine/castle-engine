@@ -26,7 +26,9 @@ var
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  InitializeLog; // to see various info about OpenAL and sound loading
+  // put in log various info about sound loading
+  InitializeLog;
+  SoundEngine.LogSoundLoading := true;
 
   { parse params }
   SoundEngine.ParseParameters;
@@ -37,7 +39,7 @@ begin
     URL := 'castle-data:/tone.wav';
 
   { Load and play sound, without any spatialization.
-    OpenAL will be automatically initialized when needed below.
+    Sound backend (like OpenAL) will be automatically initialized when needed below.
     Although you could also initialize it explicitly by SoundEngine.ContextOpen,
     check SoundEngine.Information, SoundEngine.IsContextOpenSuccess etc. }
   Buffer := SoundEngine.LoadBuffer(URL);
