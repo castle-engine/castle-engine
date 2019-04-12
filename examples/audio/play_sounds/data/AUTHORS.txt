@@ -1,0 +1,40 @@
+Authors of original sound files:
+
+misc_sound
+negative
+positive
+save
+
+    from https://opengameart.org/content/gui-sound-effects
+    by Lokif https://opengameart.org/users/lokif
+    License(s): CC0
+
+temple_adam_goh
+
+    By Adam Goh http://www.sades.com/
+    Downloaded from http://www.flashkit.com/soundfx/Ambience/TEMPLE-Adam_Goh-7394/index.php (Temple)
+    License: public domain.
+
+beating_that_thing
+
+    from https://opengameart.org/content/business-goes-beyond-dark-soundtrack
+    by oldkyx https://opengameart.org/users/oldkyx
+    License(s): CC0
+
+The sound files here have been converted by SOX into various formats/sampling rates,
+to test that CastleSoundEngine can play various combinations OK.
+Some of these conversions degrade sound file quality,
+e.g. I made some sounds mono or decrease their frequency.
+Again, this is just to test that these sounds work.
+
+If you want to use these sounds in your own games,
+follow the links above to download the files in original quality.
+Or see inside original_versions/ subdirectory.
+
+Helpful commands:
+
+  file *.wav *.ogg
+  soxi *.wav *.ogg
+  ../simplest_play_sound xxx # our own simplest_play_sound will display various sound info in the log
+  sox xxx yyy channels 1 # make mono
+  sox xxx -b 8 yyy # convert to 8-bit
