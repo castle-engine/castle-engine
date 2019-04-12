@@ -39,7 +39,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="alplay.lpr"/>
+        <Filename Value="simplest_play_sound.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <UsageCount Value="20"/>

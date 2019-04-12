@@ -94,7 +94,7 @@ examples/3d_rendering_processing/view_3d_model_basic
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/audio/alplay
+examples/audio/simplest_play_sound
 examples/audio/audio_player_scrubber/audio_player_scrubber
 examples/audio/audio_player_scrubber/audio_player_scrubber.res
 examples/audio/audio_player_scrubber/lib/

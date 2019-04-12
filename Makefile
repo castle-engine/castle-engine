@@ -183,7 +183,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_sound_game/lets_take_a_walk \
-  examples/audio/alplay \
+  examples/audio/simplest_play_sound \
   examples/audio/doppler_demo \
   examples/castlescript/castle_calculator \
   examples/castlescript/image_make_by_script \

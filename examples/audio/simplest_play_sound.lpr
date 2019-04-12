@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simply load and play sound file using OpenAL. }
-program alplay;
+{ Simply load and play sound using CastleSoundEngine. }
+program simplest_play_sound;
 
 uses SysUtils, CastleUtils,
   CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors,
@@ -35,11 +35,6 @@ begin
     URL := Parameters[1]
   else
     URL := 'castle-data:/tone.wav';
-
-  { Change the default MinAllocatedSources (it may be larger for the default
-    engine usage, as we expect that some sound mixing will be needed;
-    for this demo, 1 is enough). }
-  SoundEngine.MinAllocatedSources := 1;
 
   { Load and play sound, without any spatialization.
     OpenAL will be automatically initialized when needed below.
