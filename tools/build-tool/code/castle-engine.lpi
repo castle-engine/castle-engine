@@ -57,7 +57,7 @@
         <UnitName Value="ToolProject"/>
       </Unit5>
       <Unit6>
-        <Filename Value="toolutils.pas"/>
+        <Filename Value="../../common-code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolUtils"/>
       </Unit6>
@@ -70,7 +70,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);../../../src/base"/>
-      <OtherUnitFiles Value="../embedded_images"/>
+      <OtherUnitFiles Value="../embedded_images;../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

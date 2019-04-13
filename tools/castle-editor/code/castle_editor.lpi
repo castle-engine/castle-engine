@@ -24,7 +24,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../build-tool/code"/>
+            <OtherUnitFiles Value="../../common-code"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -69,7 +69,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../build-tool/code"/>
+            <OtherUnitFiles Value="../../common-code"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -145,7 +145,7 @@
         <UnitName Value="EditorUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../build-tool/code/toolutils.pas"/>
+        <Filename Value="../../common-code/toolutils.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ToolUtils"/>
       </Unit5>
@@ -182,7 +182,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../build-tool/code"/>
+      <OtherUnitFiles Value="../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Conditionals Value="// See http://wiki.freepascal.org/Macros_and_Conditionals
