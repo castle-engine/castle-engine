@@ -551,7 +551,7 @@ begin
   if RunningProcess <> nil then
     raise EInternalError.Create('It should not be possible to call this when RunningProcess <> nil');
 
-  BuildToolExe := FindExe('castle-engine');
+  BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
     EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');

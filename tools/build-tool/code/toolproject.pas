@@ -1657,7 +1657,7 @@ var
 begin
   if Trim(FEditorUnits) = '' then
   begin
-    EditorExe := FindCgeExe('castle-editor');
+    EditorExe := FindExeCastleTool('castle-editor');
     if EditorExe = '' then
       raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
   end else

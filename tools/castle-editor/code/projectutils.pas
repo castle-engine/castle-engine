@@ -126,7 +126,7 @@ var
   BuildToolExe, BuildToolOutput: String;
   BuildToolStatus: integer;
 begin
-  BuildToolExe := FindExe('castle-engine');
+  BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
     WarningBox('Cannot find build tool (castle-engine) on $PATH environment variable. You will need to manually run "castle-engine generate-program" within project''s directory.');

@@ -128,7 +128,7 @@ object ProjectForm: TProjectForm
       Top = 109
       Width = 677
       Alignment = taCenter
-      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Designer" menu.'
+      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -39
       ParentColor = False
       ParentFont = False
