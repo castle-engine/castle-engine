@@ -33,11 +33,9 @@ type
     FColor: TCastleColor;
     FDark: boolean;
     FDuration: Single;
-    FImage, FImageAsGrayscale: TCastleImage;
-    FDrawableImage, FDrawableImageAsGrayscale: TDrawableImage;
-    FOwnsImage: boolean;
-    procedure SetImage(const Value: TCastleImage);
-    procedure ImageChanged;
+    FImage: TCastleImagePersistent;
+    FDrawableImageAsGrayscale: TDrawableImage;
+    procedure ImageChanged(Sender: TObject);
   public
     const
       DefaultDuration = 0.5;
@@ -58,12 +56,9 @@ type
     property Duration: Single read FDuration write FDuration
       default DefaultDuration;
 
-    { Set this to non-nil to modulate the color with an image.
+    { Set this image to modulate the color with an image.
       The image is always stretched to cover our whole size. }
-    property Image: TCastleImage read FImage write SetImage;
-
-    { Free the @link(Image) instance automatically. }
-    property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
+    property Image: TCastleImagePersistent read FImage;
 
     property FullSize default true;
   end;
@@ -71,28 +66,25 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleGLUtils;
+  CastleUtils, CastleGLUtils, CastleLog;
 
 constructor TCastleFlashEffect.Create(AOwner: TComponent);
 begin
   inherited;
   FDuration := DefaultDuration;
   FullSize := true;
+  FImage := TCastleImagePersistent.Create;
+  FImage.OnChange := @ImageChanged;
 end;
 
 destructor TCastleFlashEffect.Destroy;
 begin
-  if OwnsImage then
-    FreeAndNil(FImage)
-  else
-    FImage := nil;
-  FreeAndNil(FImageAsGrayscale);
-  FreeAndNil(FDrawableImage);
+  FreeAndNil(FImage);
   FreeAndNil(FDrawableImageAsGrayscale);
   inherited;
 end;
 
-procedure TCastleFlashEffect.SetImage(const Value: TCastleImage);
+procedure TCastleFlashEffect.ImageChanged(Sender: TObject);
 
   { For FadeColor, the image should be
     - white opaque where the effect IS applied
@@ -119,41 +111,26 @@ procedure TCastleFlashEffect.SetImage(const Value: TCastleImage);
             Clamped(Round(Img.Colors[X, Y, Z][3] * 255), Low(Byte), High(Byte));
   end;
 
+var
+  ImageAsGrayscale: TCastleImage;
 begin
-  if FImage <> Value then
-  begin
-    if OwnsImage then FreeAndNil(FImage);
-    FreeAndNil(FImageAsGrayscale);
-
-    FImage := Value;
-    if FImage <> nil then
-      FImageAsGrayscale := CreateGrayscaleFromAlpha(FImage);
-
-    ImageChanged;
-  end;
-end;
-
-procedure TCastleFlashEffect.ImageChanged;
-begin
-  if FImage <> nil then
-  begin
-    if FDrawableImage <> nil then
-      FDrawableImage.Load(FImage)
-    else
-      FDrawableImage := TDrawableImage.Create(FImage, true, false);
-  end else
-    FreeAndNil(FDrawableImage); // make sure to free FDrawableImage when FImage is nil
-
-  if FImageAsGrayscale <> nil then
-  begin
-    if FDrawableImageAsGrayscale <> nil then
-      FDrawableImageAsGrayscale.Load(FImageAsGrayscale)
-    else
-      FDrawableImageAsGrayscale := TDrawableImage.Create(FImageAsGrayscale, true, false);
-  end else
-    FreeAndNil(FDrawableImageAsGrayscale); // make sure to free FDrawableImageAsGrayscale when FImageAsGrayscale is nil
-
   VisibleChange([chRender]);
+
+  FreeAndNil(FDrawableImageAsGrayscale);
+
+  { TODO: It would be better to get rid of generating FDrawableImageAsGrayscale,
+    and also of limitation that FImage.Image must be TCastleImage
+    (cannot TEncodedImage). }
+
+  if FImage.Image <> nil then
+  begin
+    if FImage.Image is TCastleImage then
+    begin
+      ImageAsGrayscale := CreateGrayscaleFromAlpha(FImage.Image as TCastleImage);
+      FDrawableImageAsGrayscale := TDrawableImage.Create(ImageAsGrayscale, true, true);
+    end else
+      WritelnWarning('TODO: TCastleFlashEffect.Image must not be GPU compressed for now');
+  end;
 end;
 
 procedure TCastleFlashEffect.Flash(const AColor: TCastleColor; const ADark: boolean);
@@ -183,7 +160,11 @@ begin
   begin
     if FDark then
     begin
-      FinalImage := FDrawableImageAsGrayscale;
+      if FImage.Empty then
+        FinalImage := nil
+      else
+        FinalImage := FDrawableImageAsGrayscale;
+
       FinalColor := FadeDarkColor(FColor, FIntensity);
       { Constants below make resulting screen color = FinalColor * previous screen color.
         Note that as long as all components of Color are <= 1,
@@ -194,7 +175,11 @@ begin
       DestinationFactor := bdSrcColor;
     end else
     begin
-      FinalImage := FDrawableImage;
+      if FImage.Empty then
+        FinalImage := nil
+      else
+        FinalImage := FImage.DrawableImage;
+
       FinalColor := FadeColor(FColor, FIntensity);
       SourceFactor := bsSrcAlpha;
       DestinationFactor := bdOneMinusSrcAlpha;
