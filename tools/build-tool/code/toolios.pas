@@ -43,7 +43,8 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage,
+  ToolCommonUtils;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';

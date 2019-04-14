@@ -42,7 +42,7 @@ implementation
 uses Forms,
   CastleURIUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
   CastleFilesUtils,
-  EditorUtils, ToolUtils, FormProject;
+  EditorUtils, ToolCommonUtils, FormProject;
 
 { TTemplateCopyProcess ------------------------------------------------------------ }
 

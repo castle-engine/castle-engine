@@ -27,7 +27,7 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid,
-  ToolNintendoSwitch;
+  ToolNintendoSwitch, ToolCommonUtils;
 
 var
   Target: TTarget;

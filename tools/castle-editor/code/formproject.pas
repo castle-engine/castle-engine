@@ -181,7 +181,7 @@ uses TypInfo,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts,
-  FormChooseProject, ToolUtils, FormAbout;
+  FormChooseProject, ToolCommonUtils, FormAbout;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin

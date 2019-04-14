@@ -52,7 +52,7 @@ implementation
 
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  ToolUtils, ToolFPCVersion;
+  ToolCommonUtils, ToolUtils, ToolFPCVersion;
 
 type
   TFPCVersionForIPhoneSimulatorChecked = class

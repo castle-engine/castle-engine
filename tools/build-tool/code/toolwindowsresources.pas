@@ -21,7 +21,7 @@ unit ToolWindowsResources;
 interface
 
 uses CastleUtils, CastleStringUtils,
-  ToolProject, ToolUtils, ToolArchitectures;
+  ToolProject, ToolArchitectures;
 
 procedure GenerateWindowsResources(const Project: TCastleProject;
   const FinalOutputResourcePath: string;
@@ -30,7 +30,8 @@ procedure GenerateWindowsResources(const Project: TCastleProject;
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleLog, CastleFilesUtils;
+  CastleURIUtils, CastleLog, CastleFilesUtils,
+  ToolCommonUtils, ToolUtils;
 
 procedure GenerateWindowsResources(const Project: TCastleProject;
   const FinalOutputResourcePath: string;

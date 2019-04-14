@@ -145,9 +145,9 @@
         <UnitName Value="EditorUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../common-code/toolutils.pas"/>
+        <Filename Value="../../common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ToolUtils"/>
+        <UnitName Value="ToolCommonUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="formproject.pas"/>
