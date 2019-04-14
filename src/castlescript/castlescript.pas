@@ -929,6 +929,10 @@ var
     function. If not assigned, we will use CastleLog.WritelnLog. }
   OnScriptMessage: TCasScriptMessage;
 
+  { In case of warnings/errors, this will output verbose information
+    about the script in which it occurred. }
+  LogScriptVerbose: Boolean;
+
 implementation
 
 uses CastleScriptCoreFunctions, CastleLog;

@@ -507,8 +507,9 @@ begin
       except
         on E: ECasScriptError do
         begin
-          E.Message := E.Message + NL +
-            'The error above is inside expression:' + NL + S;
+          if LogScriptVerbose then
+            E.Message := E.Message + NL +
+              'The error above is inside expression:' + NL + S;
           raise;
         end;
       end;
