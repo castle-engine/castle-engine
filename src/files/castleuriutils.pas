@@ -260,9 +260,73 @@ function URIIncludeSlash(const URL: String): String;
   when you use URLs instead of filenames. }
 function URIExcludeSlash(const URL: String): String;
 
-{ Does a local file exist. Always answers @true for URLs that do not indicate
-  local files (assume remote file exist). }
-function URIFileExists(const URL: string): boolean;
+{ Does a file exist, that is: whether it makes sense to load it with
+  the @link(Download) function.
+
+  Returns @true for URLs where we cannot determine whether the file exists
+  (like http / https).
+
+  This is simply a shortcut for @code(URIExists(URL) in [ueFile, ueUnknown]). }
+function URIFileExists(const URL: string): Boolean;
+
+type
+  { Result of the @link(URIExists) query. }
+  TURIExists = (
+    { Given path does not indicate either a file or directory. }
+    ueNotExists,
+
+    { Given path is a regular file.
+      In particular, this means it can be read with the @link(Download) function.
+
+      Note that there is no @italic(guarantee) that opening it will work.
+      On a multi-process system the file can be always deleted between the call
+      to URIExists and Download.
+      And the file permissions may not allow reading.
+      We merely say that "right now this file exists".
+    }
+    ueFile,
+
+    { Given path is a directory. E.g. it can be used as path for the @link(FindFiles) function. }
+    ueDirectory,
+
+    { Detecting existence of given path is tricky, it could be time-consuming.
+
+      This applies e.g. to URLs using http / https protocols.
+      The only way to detect their existence would be to actually open them.
+      But this involves a network request, so it may take some time,
+      and you may consider doing it asynchronously using (coming in the future)
+      TDownload class (see CastleDownload comments for an API plan of TDownload).
+
+      If you really want to check the file existence, you can always
+      try to open it by @link(Download):
+
+      @longCode(#
+      try
+        Stream := Download(URL);
+        FreeAndNil(Stream);
+        ItExists := true;
+      except
+        on E: Exception do
+        begin
+          WritelnLog('Opening URL %s failed with exception %s', [
+            URICaption(URL),
+            ExceptMessage(E)
+          ]);
+          ItExists := false;
+        end;
+      end;
+      #)
+
+      Depending on the circumstances, the "ueUnknown" can be sometimes interpreted
+      as "it exists" and sometimes as "it doesn't exist".
+      Opening it with @link(Download) may either fail or succeed, we cannot detect.
+    }
+    ueUnknown
+  );
+
+{ Does a file or directory exist under this URL.
+  See TURIExists for possible return values. }
+function URIExists(URL: string): TURIExists;
 
 { Current working directory of the application, expressed as URL,
   including always final slash at the end. }
@@ -274,7 +338,8 @@ function ResolveCastleDataURL(const URL: String): String;
 implementation
 
 uses SysUtils, URIParser,
-  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils
+  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
+  CastleInternalDirectoryInformation
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
@@ -948,33 +1013,97 @@ begin
     Result := URL;
 end;
 
-function URIFileExists(const URL: string): boolean;
-{ TODO: Use
+function URIFileExists(const URL: string): Boolean;
+begin
+  Result := URIExists(URL) in [ueFile, ueUnknown];
+end;
+
+function URIExists(URL: string): TURIExists;
+
+  // Detect existence of castle-data:/xxx URL using DataDirectoryInformation.
+  function UseDataDirectoryInformation(const URL: string): TURIExists;
+  var
+    U: TURI;
+    URLPath: String;
+    PathEntry: TDirectoryInformation.TEntry;
+  begin
+    U := ParseURI(URL);
+    URLPath := PrefixRemove('/', U.Path + U.Document, false);
+    PathEntry := DataDirectoryInformation.FindEntry(URLPath);
+    if PathEntry = nil then
+      Exit(ueNotExists)
+    else
+    if PathEntry is TDirectoryInformation.TDirectory then
+      Exit(ueDirectory)
+    else
+      Exit(ueFile);
+  end;
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  // Detect existence of castle-nx-contents:/xxx URL using NX-specific function.
+  function UseNXExists(const URL: string): TURIExists;
+  begin
+    // TODO: We should extend NXFileExists to return file/directory/none
+    if NXFileExists(URL) then
+      Result := ueFile
+    else
+      Result := ueNotExists;
+  end;
+  {$endif CASTLE_NINTENDO_SWITCH}
+
+  // Detect existence of a filename using FileExists, DirectoryExists.
+  function UseFileDirectoryExists(const FileName: String): TURIExists;
+  var
+    F, D: Boolean;
+  begin
+    F := FileExists(FileName);
+    D := DirectoryExists(FileName);
+
+    { FileExists behaves inconsistently for directories.
+      On non-Windows, returns true.
+      On Windows, returns false.
+      See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
+      http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
+      So check both. }
+    if D then
+      Exit(ueDirectory)
+    else
+    if F then
+      Exit(ueFile)
+    else
+      Exit(ueNotExists);
+  end;
+
+var
+  P: String;
+begin
+  { data: URI is like a file, since you can call Download() on it }
+  if TDataURI.IsDataURI(URL) then
+    Exit(ueFile);
+
+  P := URIProtocol(URL);
+
   if (P = 'castle-data') and
      (DisableDataDirectoryInformation = 0) and
      (DataDirectoryInformation <> nil) then
-}
-{$ifdef CASTLE_NINTENDO_SWITCH}
-var
-  URLNew, P: String;
-begin
-  { Using ResolveCastleDataURL, so this also works when URL uses castle-data:/
-    that resolves to castle-nx-contents:/ on Nintendo Switch. }
-  URLNew := ResolveCastleDataURL(URL);
-  P := URIProtocol(URLNew);
+    Exit(UseDataDirectoryInformation(URL));
+
+  { Resolve castle-data:/xxx now.
+    This way we can work in case we have castle-data:/xxx URL that resolves
+    to something handled below (like file:/xxx) but wasn't handled above
+    (e.g. because DataDirectoryInformation = nil). }
+  URL := ResolveCastleDataURL(URL);
+  P := URIProtocol(URL);
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
   if P = 'castle-nx-contents' then
-    Result := NXFileExists(URLNew)
-  else
-    Result := false;
-{$else}
-var
-  F: string;
-begin
-  { Note that URIToFilenameSafe does ResolveCastleDataURL under the hood,
-    if necessary. }
-  F := URIToFilenameSafe(URL);
-  Result := (F = '') or FileExists(F);
-{$endif}
+    Exit(UseNXExists(URL));
+  {$endif CASTLE_NINTENDO_SWITCH}
+
+  if (P = '') or (P = 'file') then
+    Exit(UseFileDirectoryExists(URIToFilenameSafe(URL)));
+
+  Result := ueUnknown;
 end;
 
 function URICurrentPath: string;

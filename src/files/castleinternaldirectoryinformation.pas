@@ -89,8 +89,8 @@ type
   end;
 
 var
-  { When <> 0, FindFiles and URIFileExists don't look at cached castle-data:/ contents in
-    DataDirectoryInformation. }
+  { When <> 0, FindFiles and URIFileExists and URIExists don't look at cached
+    castle-data:/ contents in DataDirectoryInformation. }
   DisableDataDirectoryInformation: Integer;
 
 function DataDirectoryInformation: TDirectoryInformation;

@@ -134,7 +134,7 @@ function ProgramName: string; deprecated;
   as FileExists.
 
   @deprecated Deprecated, since we use URLs everywhere,
-  use URIFileExists to check does file exist. }
+  use URIFileExists or URIExists to check does file exist. }
 function NormalFileExists(const fileName: string): boolean; deprecated;
 
 { Path to store user configuration files.
@@ -788,14 +788,16 @@ end;
 { dir handling -------------------------------------------------------- }
 
 function FileNameAutoInc(const FileNamePattern: string): string;
-var i: integer;
+var
+  I: Integer;
 begin
- i := 0;
- repeat
-  result := Format(FileNamePattern,[i]);
-  if not URIFileExists(result) then exit;
-  Inc(i);
- until false;
+  I := 0;
+  repeat
+    result := Format(FileNamePattern, [I]);
+    if URIExists(Result) in [ueNotExists, ueUnknown] then
+      Exit;
+    Inc(I);
+  until false;
 end;
 
 function FnameAutoInc(const FileNamePattern: string): string;
