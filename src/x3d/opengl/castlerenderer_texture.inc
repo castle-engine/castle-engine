@@ -2115,6 +2115,10 @@ begin
         Render(Camera);
 
         glDisable(GL_POLYGON_OFFSET_FILL);
+        {$ifndef OpenGLES} // These do not exist on OpenGLES
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glDisable(GL_POLYGON_OFFSET_POINT);
+        {$endif}
 
         RenderContext.DepthRange := SavedDepthRange;
 
