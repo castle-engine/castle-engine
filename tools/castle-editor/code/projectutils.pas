@@ -112,6 +112,10 @@ begin
     TemplateUrl does not any longer start with castle-data:/ }
   TemplateUrl := ResolveCastleDataURL(TemplateUrl);
 
+  if URIExists(TemplateUrl) <> ueDirectory then
+    raise Exception.CreateFmt('Cannot find template directory %s, make sure that $CASTLE_ENGINE_PATH is configured correctly',
+      [TemplateUrl]);
+
   ProjectQualifiedName := 'com.mycompany.' + SDeleteChars(ProjectName, ['-']);
   ProjectPascalName := SReplaceChars(ProjectName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
 
