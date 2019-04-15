@@ -46,9 +46,12 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
 
-# Hack for Cygwin, to avoid using Windows built-in "find" program.
-#FIND:=/bin/find
-FIND:=find
+ifeq ($(OS),Windows_NT)
+  # Hack for Cygwin, to avoid using Windows built-in "find" program.
+  FIND:=`cygpath --mixed /bin/find`
+else
+  FIND:=find
+endif
 
 # compile ------------------------------------------------------------
 
