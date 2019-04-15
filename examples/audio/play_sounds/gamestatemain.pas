@@ -17,9 +17,11 @@
   This implements the majority of this application functionality. }
 unit GameStateMain;
 
+{$apptype CONSOLE}
+
 interface
 
-uses Classes,
+uses Classes, Generics.Collections,
   CastleUIState, CastleComponentSerialize, CastleControls, CastleSoundEngine;
 
 type
@@ -32,16 +34,34 @@ type
       public
         Buffer: TSoundBuffer;
         constructor Create(const AOwner: TComponent; const SoundFileURL: String); reintroduce;
-        procedure DoClick; override;
       end;
+
+      TSoundSourceUiOwner = class(TComponent)
+      strict private
+        SliderSoundVolume: TCastleFloatSlider;
+        procedure ClickStop(Sender: TObject);
+        procedure ChangeSliderSoundVolume(Sender: TObject);
+      public
+        SoundSource: TSound;
+        constructor Create(const AOwner: TComponent; const ASoundSource: TSound;
+          const UiTemplate: TSerializedComponent;
+          const GroupSoundSources: TCastleVerticalGroup); reintroduce;
+      end;
+
+      TSoundSourceUiOwnerList = specialize TObjectList<TSoundSourceUiOwner>;
+
     var
       SoundSourceUiTemplate: TSerializedComponent;
       LabelSoundSources: TCastleLabel;
       GroupSoundBuffers, GroupSoundSources: TCastleVerticalGroup;
       ButtonExit: TCastleButton;
+      SoundSourceUiOwners: TSoundSourceUiOwnerList;
     procedure ClickExit(Sender: TObject);
+    procedure ClickPlayBuffer(Sender: TObject);
+    procedure SoundSourceRelease(Sender: TSound);
   public
     procedure Start; override;
+    procedure Stop; override;
   end;
 
 var
@@ -54,7 +74,8 @@ uses SysUtils,
 
 { TButtonSoundBuffer --------------------------------------------------------- }
 
-constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent; const SoundFileURL: String);
+constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent;
+  const SoundFileURL: String);
 begin
   inherited Create(AOwner);
   Buffer := SoundEngine.LoadBuffer(SoundFileURL);
@@ -65,19 +86,63 @@ begin
     all the buffers anyway at application exit. }
 end;
 
-procedure TStateMain.TButtonSoundBuffer.DoClick;
+{ TSoundSourceUiOwner ---------------------------------------------------------- }
+
+constructor TStateMain.TSoundSourceUiOwner.Create(const AOwner: TComponent;
+  const ASoundSource: TSound;
+  const UiTemplate: TSerializedComponent;
+  const GroupSoundSources: TCastleVerticalGroup);
+var
+  Ui: TCastleUserInterface;
+  LabelSoundName: TCastleLabel;
+  ButtonStop: TCastleButton;
 begin
-  inherited;
-  SoundEngine.PlaySound(Buffer);
+  inherited Create(AOwner);
+  SoundSource := ASoundSource;
+
+  // use Self as Owner of Ui, so below we just call Self.FindRequiredComponent
+  Ui := UiTemplate.UserInterfaceLoad(Self);
+  GroupSoundSources.InsertFront(Ui);
+
+  LabelSoundName := FindRequiredComponent('LabelSoundName') as TCastleLabel;
+  LabelSoundName.Caption := URIDisplay(SoundSource.Buffer.URL, true);
+
+  ButtonStop := FindRequiredComponent('ButtonStop') as TCastleButton;
+  ButtonStop.OnClick := @ClickStop;
+
+  SliderSoundVolume := FindRequiredComponent('SliderSoundVolume') as TCastleFloatSlider;
+  SliderSoundVolume.OnChange := @ChangeSliderSoundVolume;
+end;
+
+procedure TStateMain.TSoundSourceUiOwner.ClickStop(Sender: TObject);
+begin
+  SoundSource.Release; // this will also call SoundSourceRelease
+end;
+
+procedure TStateMain.TSoundSourceUiOwner.ChangeSliderSoundVolume(Sender: TObject);
+begin
+  SoundSource.Gain := SliderSoundVolume.Value;
 end;
 
 { TStateMain ----------------------------------------------------------------- }
 
 procedure TStateMain.Start;
+
+  procedure AddSoundBufferButton(const SoundFileURL: String);
+  var
+    Button: TButtonSoundBuffer;
+  begin
+    Button := TButtonSoundBuffer.Create(FreeAtStop, SoundFileURL);
+    Button.OnClick := @ClickPlayBuffer;
+    GroupSoundBuffers.InsertFront(Button);
+  end;
+
 var
   UiOwner: TComponent;
 begin
   inherited;
+
+  SoundSourceUiOwners := TSoundSourceUiOwnerList.Create(false);
 
   { Load designed user interface }
   InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
@@ -95,22 +160,74 @@ begin
   { List the sound files to load.
     Hint: We could also use FindFiles from CastleFindFiles unit to automatically
     scan the directory for files. }
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/beating_that_thing-22000Hz-16bit-stereo.ogg'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/beating_that_thing-44100Hz-16bit-stereo.ogg'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/misc_sound-22000Hz-8bit-mono.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/misc_sound-44100Hz-8bit-mono.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/negative-44100Hz-8bit-stereo.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/positive-44100Hz-16bit-mono.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/save-44100Hz-16bit-stereo.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/stereo_test.wav'));
-  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg'));
+  AddSoundBufferButton('castle-data:/sounds/beating_that_thing-22000Hz-16bit-stereo.ogg');
+  AddSoundBufferButton('castle-data:/sounds/beating_that_thing-44100Hz-16bit-stereo.ogg');
+  AddSoundBufferButton('castle-data:/sounds/misc_sound-22000Hz-8bit-mono.wav');
+  AddSoundBufferButton('castle-data:/sounds/misc_sound-44100Hz-8bit-mono.wav');
+  AddSoundBufferButton('castle-data:/sounds/negative-44100Hz-8bit-stereo.wav');
+  AddSoundBufferButton('castle-data:/sounds/positive-44100Hz-16bit-mono.wav');
+  AddSoundBufferButton('castle-data:/sounds/save-44100Hz-16bit-stereo.wav');
+  AddSoundBufferButton('castle-data:/sounds/stereo_test.wav');
+  AddSoundBufferButton('castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg');
 
   SoundSourceUiTemplate := TSerializedComponent.Create('castle-data:/part_sound_source.castle-user-interface');
+end;
+
+procedure TStateMain.Stop;
+
+  procedure StopAllSounds;
+  begin
+    while SoundSourceUiOwners.Count <> 0 do
+      // this calls SoundSourceRelease that will remove this item from list
+      SoundSourceUiOwners[0].SoundSource.Release;
+  end;
+
+begin
+  StopAllSounds;
+  FreeAndNil(SoundSourceUiOwners);
+  FreeAndNil(SoundSourceUiTemplate);
+  inherited;
 end;
 
 procedure TStateMain.ClickExit(Sender: TObject);
 begin
   Application.Terminate;
+end;
+
+procedure TStateMain.ClickPlayBuffer(Sender: TObject);
+var
+  SenderButton: TButtonSoundBuffer;
+  SoundSource: TSound;
+  SoundSourceUiOwner: TSoundSourceUiOwner;
+begin
+  inherited;
+  SenderButton := Sender as TButtonSoundBuffer;
+  SoundSource := SoundEngine.PlaySound(SenderButton.Buffer);
+
+  if SoundSource <> nil then // SoundSource may be nil if we cannot play yet another sound
+  begin
+    SoundSourceUiOwner := TSoundSourceUiOwner.Create(FreeAtStop, SoundSource,
+      SoundSourceUiTemplate, GroupSoundSources);
+    SoundSourceUiOwners.Add(SoundSourceUiOwner);
+    { It's better to make SoundSourceRelease a method of TStateMain,
+      not TSoundSourceUiOwner, because when it occurs the whole instance
+      of TSoundSourceUiOwner (along with the UI) should be destroyed. }
+    SoundSourceUiOwner.SoundSource.OnRelease := @SoundSourceRelease;
+  end;
+end;
+
+procedure TStateMain.SoundSourceRelease(Sender: TSound);
+var
+  SoundSourceUiOwner: TSoundSourceUiOwner;
+begin
+  for SoundSourceUiOwner in SoundSourceUiOwners do
+    if SoundSourceUiOwner.SoundSource = Sender then
+    begin
+      SoundSourceUiOwners.Remove(SoundSourceUiOwner);
+      // This frees TSoundSourceUiOwner, along with UI
+      SoundSourceUiOwner.Free;
+      Break;
+    end;
 end;
 
 end.

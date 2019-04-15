@@ -57,10 +57,7 @@ type
     @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
   private
-    { Absolute URL.
-      Never empty (do not create TSoundBuffer instances for invalid / empty URL,
-      like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
-    URL: string;
+    FURL: string;
     FDuration: TFloatTime;
     References: Cardinal;
     Backend: TSoundBufferBackend;
@@ -73,6 +70,11 @@ type
 
     { Duration of the sound, in seconds. Zero if not loaded yet. }
     property Duration: TFloatTime read FDuration;
+
+    { Absolute sound file URL.
+      Never empty (do not create TSoundBuffer instances for invalid / empty URL,
+      like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
+    property URL: string read FURL;
   end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
@@ -2054,7 +2056,7 @@ begin
     end;
 
   Result := TSoundBuffer.Create(Backend);
-  Result.URL := FullURL;
+  Result.FURL := FullURL;
   Result.References := 1;
   LoadedBuffers.Add(Result);
 

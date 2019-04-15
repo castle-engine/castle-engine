@@ -1,13 +1,13 @@
 {
-  "AutoSizeToChildren" : true,
   "Border" : {
     "$ClassName" : "TBorder"
   },
   "BorderColorPersistent" : {
     "$ClassName" : "TCastleColorPersistent"
   },
-  "FullSize" : true,
+  "Height" : 4.0000000000000000E+001,
   "Name" : "Group1",
+  "Width" : 1.0400000000000000E+003,
   "$Children" : [
     {
       "Border" : {
@@ -37,7 +37,7 @@
           "FrameColorPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "Name" : "Label3",
+          "Name" : "LabelSoundName",
           "OutlineColorPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
