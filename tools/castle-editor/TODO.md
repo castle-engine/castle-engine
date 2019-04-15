@@ -19,25 +19,14 @@ Before 6.6 release:
   castlecontrols_groups.inc
   castlecontrols_crosshair.inc
 
-* Add TCastleImageComponent, manually make all UI controls use it
-  See /home/michalis/common/TODO/castle-engine/editor-castleimages_components.inc
-
-  *All* images from theme should also be customizable at the control level,
-  and naming should be consistent
-
 * Anchors tab keeps getting deselected for some reason when moving UI control
 
 * TCastleButton:
-- we need a way to adjust various images of tcastlebutton
-  See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
-  Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
-- Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
-- Test a way to upgrade names in design files.
+  - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
+  - Test a way to upgrade names in design files while doing above?
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
-    * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
-    * Smartly detect castle-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
 
 * Show on recent list %20 as spaces, use URICaption or such ready function?
@@ -57,8 +46,6 @@ Before 6.6 release:
 
   unless it's already forced, is it possible to set name='' without
   exception from SetName?
-
-* show Background.Color := Vector4(0.1, 0.1, 0.1, 1); under default control
 
 * publish and save SceneManager.NavigationType
   and last camera
@@ -98,6 +85,10 @@ Before 6.6 release:
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:
+
+* *All* images from theme should also be customizable at the control level,
+  and naming should be consistent.
+  Just place TTheme instance at each component?
 
 * on Layout tab, new button for TCastleImageControl
   "Set Size Explicitly From Current Image"
