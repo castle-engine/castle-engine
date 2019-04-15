@@ -48,7 +48,7 @@ LazarusResources.Add('tcastlecontrol','PNG',[
   +'d'#163#147#150')c'#230'V'#163#249#6#178#143#207#180'H'#188#205':'#0#0#0#0'I'
   +'END'#174'B`'#130
 ]);
-LazarusResources.Add('tcastlecontrolcustom','PNG',[
+LazarusResources.Add('tcastlecontrolbase','PNG',[
   #137'PNG'#13#10#26#10#0#0#0#13'IHDR'#0#0#0#24#0#0#0#24#8#6#0#0#0#224'w='#248#0
   +#0#0#6'bKGD'#0'}'#0'+'#0'''i'#19#131'k'#0#0#0#9'pHYs'#0#0#11#19#0#0#11#19#1#0
   +#154#156#24#0#0#0#7'tIME'#7#226#10#26#10#10#29'v2'#190#246#0#0#0#25'tEXtComm'
