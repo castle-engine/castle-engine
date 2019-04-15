@@ -79,8 +79,11 @@ constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent;
 begin
   inherited Create(AOwner);
   Buffer := SoundEngine.LoadBuffer(SoundFileURL);
-  // extract last component, i.e. just the filename
-  Caption := URIDisplay(SoundFileURL, true);
+  Caption := Format('%s (%f)', [
+    // extract last URL component, i.e. just the filename
+    URIDisplay(SoundFileURL, true),
+    Buffer.Duration
+  ]);
   { Note: We could also free the buffer in destructor, by SoundEngine.FreeBuffer.
     In this simple example, there's no need for it, as SoundEngine will free
     all the buffers anyway at application exit. }

@@ -35,6 +35,9 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
+  // default is 16, but 8 is easier to display and test
+  SoundEngine.MaxAllocatedSources := 8;
+
   StateMain := TStateMain.Create(Application);
   TUIState.Current := StateMain;
 end;
