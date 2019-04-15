@@ -87,6 +87,8 @@ begin
 
   if NewProjectForm.ShowModal = mrOK then
   begin
+    DetectEditorApplicationData; // we use our castle-data:/xxx to copy template
+
     try
       // Create project dir
       ProjectDir := InclPathDelim(NewProjectForm.EditLocation.Text) +
@@ -204,4 +206,3 @@ begin
 end;
 
 end.
-

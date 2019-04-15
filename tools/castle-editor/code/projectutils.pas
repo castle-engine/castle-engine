@@ -37,6 +37,13 @@ procedure ProjectOpen(ManifestUrl: string);
 type
   TBuildMode = (bmDebug, bmRelease);
 
+{ For some operations (like creating a project from template), the editor uses
+  ApplicationData files (castle-data:/xxx URLs).
+  So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
+  We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
+  for this. }
+procedure DetectEditorApplicationData;
+
 implementation
 
 uses Forms,
@@ -100,7 +107,10 @@ var
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
 begin
-  TemplateUrl := ApplicationData('project_templates/' + TemplateName + '/files/');
+  TemplateUrl := 'castle-data:/project_templates/' + TemplateName + '/files/';
+  { Logic in TTemplateCopyProcess.FoundFile assumes that
+    TemplateUrl does not any longer start with castle-data:/ }
+  TemplateUrl := ResolveCastleDataURL(TemplateUrl);
 
   ProjectQualifiedName := 'com.mycompany.' + SDeleteChars(ProjectName, ['-']);
   ProjectPascalName := SReplaceChars(ProjectName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
@@ -155,6 +165,23 @@ begin
   ProjectForm := TProjectForm.Create(Application);
   ProjectForm.OpenProject(ManifestUrl);
   ProjectForm.Show;
+end;
+
+procedure DetectEditorApplicationData;
+var
+  DataPath: string;
+begin
+  { start by resetting ApplicationDataOverride to empty, to reset
+    previous customizations of ApplicationDataOverride done by some editor code. }
+  ApplicationDataOverride := '';
+
+  if CastleEnginePath <> '' then
+  begin
+    DataPath := CastleEnginePath +
+      'tools' + PathDelim + 'castle-editor' + PathDelim + 'data' + PathDelim;
+    if DirectoryExists(DataPath) then
+      ApplicationDataOverride := FilenameToURISafe(DataPath);
+  end;
 end;
 
 end.
