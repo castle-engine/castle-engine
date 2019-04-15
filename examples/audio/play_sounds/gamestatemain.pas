@@ -19,17 +19,26 @@ unit GameStateMain;
 
 interface
 
-uses CastleUIState, CastleComponentSerialize, CastleControls;
+uses Classes,
+  CastleUIState, CastleComponentSerialize, CastleControls, CastleSoundEngine;
 
 type
   { Main user interface class.
     This implements the majority of this application functionality. }
   TStateMain = class(TUIState)
   private
-    SoundSourceUiTemplate: TSerializedComponent;
-    LabelSoundSources: TCastleLabel;
-    GroupSoundBuffers, GroupSoundSources: TCastleVerticalGroup;
-    ButtonExit: TCastleButton;
+    type
+      TButtonSoundBuffer = class(TCastleButton)
+      public
+        Buffer: TSoundBuffer;
+        constructor Create(const AOwner: TComponent; const SoundFileURL: String); reintroduce;
+        procedure DoClick; override;
+      end;
+    var
+      SoundSourceUiTemplate: TSerializedComponent;
+      LabelSoundSources: TCastleLabel;
+      GroupSoundBuffers, GroupSoundSources: TCastleVerticalGroup;
+      ButtonExit: TCastleButton;
     procedure ClickExit(Sender: TObject);
   public
     procedure Start; override;
@@ -40,8 +49,29 @@ var
 
 implementation
 
-uses SysUtils, Classes,
-  CastleLog, CastleSoundEngine, CastleUIControls, CastleWindow;
+uses SysUtils,
+  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils;
+
+{ TButtonSoundBuffer --------------------------------------------------------- }
+
+constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent; const SoundFileURL: String);
+begin
+  inherited Create(AOwner);
+  Buffer := SoundEngine.LoadBuffer(SoundFileURL);
+  // extract last component, i.e. just the filename
+  Caption := URIDisplay(SoundFileURL, true);
+  { Note: We could also free the buffer in destructor, by SoundEngine.FreeBuffer.
+    In this simple example, there's no need for it, as SoundEngine will free
+    all the buffers anyway at application exit. }
+end;
+
+procedure TStateMain.TButtonSoundBuffer.DoClick;
+begin
+  inherited;
+  SoundEngine.PlaySound(Buffer);
+end;
+
+{ TStateMain ----------------------------------------------------------------- }
 
 procedure TStateMain.Start;
 var
@@ -61,6 +91,19 @@ begin
   LabelSoundSources.Caption := Format('Currently playing sound sources (max %d):',
     [SoundEngine.MaxAllocatedSources]);
   ButtonExit.OnClick := @ClickExit;
+
+  { List the sound files to load.
+    Hint: We could also use FindFiles from CastleFindFiles unit to automatically
+    scan the directory for files. }
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/beating_that_thing-22000Hz-16bit-stereo.ogg'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/beating_that_thing-44100Hz-16bit-stereo.ogg'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/misc_sound-22000Hz-8bit-mono.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/misc_sound-44100Hz-8bit-mono.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/negative-44100Hz-8bit-stereo.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/positive-44100Hz-16bit-mono.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/save-44100Hz-16bit-stereo.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/stereo_test.wav'));
+  GroupSoundBuffers.InsertFront(TButtonSoundBuffer.Create(FreeAtStop, 'castle-data:/sounds/temple_adam_goh-44000Hz-16bit-mono.ogg'));
 
   SoundSourceUiTemplate := TSerializedComponent.Create('castle-data:/part_sound_source.castle-user-interface');
 end;
