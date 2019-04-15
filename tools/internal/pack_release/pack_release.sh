@@ -110,6 +110,10 @@ do_pack_platform ()
 
   cd "${TEMP_PATH_CGE}"
 
+  # Initial cleanups after "cp -R ...".
+  # .cache and .cge-jenkins-lazarus are created in Jenkins + Docker job, where $HOME is equal to CGE dir.
+  rm -Rf .git .svn .cache .cge-jenkins-lazarus
+
   # Extend castleversion.inc with GIT hash
   # (useful to have exact version in case of snapshots).
   # $GIT_COMMIT is defined by Jenkins, see https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
@@ -156,7 +160,7 @@ do_pack_platform ()
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
   cd ../
   rm -f "${ARCHIVE_NAME}"
-  zip --exclude='*/.git*' --exclude='*/.svn*' -r "${ARCHIVE_NAME}" castle_game_engine/
+  zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
   rm -Rf "${TEMP_PATH}"
 }
