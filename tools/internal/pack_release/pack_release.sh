@@ -114,7 +114,7 @@ do_pack_platform ()
   # (useful to have exact version in case of snapshots).
   # $GIT_COMMIT is defined by Jenkins, see https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
   if [ -n "${GIT_COMMIT:-}" ]; then
-    echo "+ ' (commit ${GIT_COMMIT})" >> src/base/castleversion.inc
+    echo "+ ' (commit ${GIT_COMMIT})'" >> src/base/castleversion.inc
   fi
 
   # Make sure no leftovers from previous compilations remain, to affect tools
