@@ -68,7 +68,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils;
+  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils;
 
 { TButtonSoundBuffer --------------------------------------------------------- }
 
@@ -132,9 +132,12 @@ procedure TStateMain.Start;
   procedure AddSoundBufferButton(const SoundFileURL: String);
   var
     Button: TButtonSoundBuffer;
+    TimeStart: TProcessTimerResult;
   begin
     try
+      TimeStart := ProcessTimer;
       Button := TButtonSoundBuffer.Create(FreeAtStop, SoundFileURL);
+      WritelnLog('Sound %s loaded in %f secs.', [SoundFileURL, TimeStart.ElapsedTime]);
     except
       on E: Exception do
       begin
