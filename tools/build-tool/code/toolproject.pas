@@ -855,10 +855,6 @@ begin
         end;
       targetIOS:
         begin
-          if depOggVorbis in Dependencies then
-            { To compile CastleInternalVorbisFile properly.
-              Later PackageIOS will actually add the static tremolo files to the project. }
-            ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
           CompileIOS(Mode, Path, IOSSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
           LinkIOSLibrary(Path, IOSLibraryFile);
