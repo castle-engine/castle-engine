@@ -17,8 +17,6 @@
   This implements the majority of this application functionality. }
 unit GameStateMain;
 
-{$apptype CONSOLE}
-
 interface
 
 uses Classes, Generics.Collections,
@@ -135,7 +133,16 @@ procedure TStateMain.Start;
   var
     Button: TButtonSoundBuffer;
   begin
-    Button := TButtonSoundBuffer.Create(FreeAtStop, SoundFileURL);
+    try
+      Button := TButtonSoundBuffer.Create(FreeAtStop, SoundFileURL);
+    except
+      on E: Exception do
+      begin
+        WritelnWarning('Loading of sound file "%s" failed: %s',
+          [SoundFileURL, E.Message]);
+        Exit;
+      end;
+    end;
     Button.OnClick := @ClickPlayBuffer;
     GroupSoundBuffers.InsertFront(Button);
   end;
