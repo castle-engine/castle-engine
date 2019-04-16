@@ -475,6 +475,7 @@ object AboutForm: TAboutForm
     Height = 27
     Top = 338
     Width = 106
+    Alignment = taCenter
     BorderSpacing.Top = 10
     Caption = 'Version: 6.6'
     ParentColor = False
