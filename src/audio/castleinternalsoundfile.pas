@@ -146,51 +146,56 @@ var
   TimeStart: TCastleProfilerTime;
 begin
   TimeStart := Profiler.Start('Loading ' + URL + ' (TSoundFile)');
-
   try
-    { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
-    S := Download(URL, [soForceMemoryStream], MimeType);
     try
-      { calculate class to read based on MimeType }
-      if MimeType = 'audio/x-wav' then
-        C := TSoundWAV
-      else
-      if MimeType = 'audio/ogg' then
-        C := TSoundOggVorbis
-      else
-      if MimeType = 'audio/mpeg' then
-        raise ESoundFileError.Create('TODO: Reading MP3 sound files not supported. Convert them to OggVorbis.')
-      else
-      begin
-        WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
-        C := TSoundWAV;
-      end;
+      { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
+      S := Download(URL, [soForceMemoryStream], MimeType);
+      try
+        { calculate class to read based on MimeType }
+        if MimeType = 'audio/x-wav' then
+          C := TSoundWAV
+        else
+        if MimeType = 'audio/ogg' then
+          C := TSoundOggVorbis
+        else
+        if MimeType = 'audio/mpeg' then
+          raise ESoundFileError.Create('TODO: Reading MP3 sound files not supported. Convert them to OggVorbis.')
+        else
+        begin
+          WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
+          C := TSoundWAV;
+        end;
 
-      Result := C.CreateFromStream(S);
+        Result := C.CreateFromStream(S);
 
-      if LogSoundLoading then
-        WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
-          URIDisplay(URL),
-          Result.ClassName,
-          DataFormatToStr(Result.DataFormat),
-          Result.DataSize,
-          Result.Frequency,
-          Result.Duration
-        ]));
-    finally S.Free end;
-  except
-    { May be raised by Download in case opening the underlying stream failed. }
-    on E: EFOpenError do
-      { Reraise as ESoundFileError, and add URL to exception message }
-      raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(URL) + '": ' + E.Message);
+        {$ifdef CASTLE_NINTENDO_SWITCH}
+        // NX backend only supports 16-bit sound data.
+        Result.ConvertTo16bit;
+        {$endif}
 
-    { May be raised by C.CreateFromStream. }
-    on E: EStreamError do
-      { Reraise as ESoundFileError, and add URL to exception message }
-      raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message);
-  end;
+        if LogSoundLoading then
+          WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
+            URIDisplay(URL),
+            Result.ClassName,
+            DataFormatToStr(Result.DataFormat),
+            Result.DataSize,
+            Result.Frequency,
+            Result.Duration
+          ]));
+      finally S.Free end;
+    except
+      { May be raised by Download in case opening the underlying stream failed. }
+      on E: EFOpenError do
+        { Reraise as ESoundFileError, and add URL to exception message }
+        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(URL) + '": ' + E.Message);
 
-  Profiler.Stop(TimeStart);
+      { May be raised by C.CreateFromStream. }
+      on E: EStreamError do
+        { Reraise as ESoundFileError, and add URL to exception message }
+        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message);
+    end;
+
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 function TSoundFile.Duration: TFloatTime;
