@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
+  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
   Types, Contnrs,
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
   EditorUtils, FrameDesign;
@@ -93,8 +93,6 @@ type
     MenuItemQuit: TMenuItem;
     PageControlBottom: TPageControl;
     PanelAboveTabs: TPanel;
-    ShellListView1: TShellListView;
-    ShellTreeView1: TShellTreeView;
     SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
     TabFiles: TTabSheet;
@@ -147,6 +145,8 @@ type
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
     Design: TDesignFrame;
+    ShellListView1: TCastleShellListView;
+    ShellTreeView1: TCastleShellTreeView;
     procedure BuildToolCall(const Commands: array of String;
         const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
@@ -174,7 +174,7 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo,
+uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
@@ -324,9 +324,36 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     end;
   end;
 
+  procedure CreateShellViews;
+  begin
+    ShellTreeView1 := TCastleShellTreeView.Create(Self);
+    ShellTreeView1.Parent := TabFiles;
+    ShellTreeView1.Width := MulDiv(250, PixelsPerInch, 96);
+    ShellTreeView1.Align := alLeft;
+    ShellTreeView1.FileSortType := fstAlphabet;
+    ShellTreeView1.HotTrack := True;
+    ShellTreeView1.ReadOnly := True;
+    ShellTreeView1.ShowRoot := False;
+    ShellTreeView1.TabOrder := 0;
+    ShellTreeView1.Options := [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw];
+    ShellTreeView1.ObjectTypes := [otFolders];
+
+    ShellListView1 := TCastleShellListView.Create(Self);
+    ShellListView1.Parent := TabFiles;
+    ShellListView1.Align := alClient;
+    ShellListView1.ReadOnly := True;
+    ShellListView1.SortColumn := 0;
+    ShellListView1.TabOrder := 1;
+    ShellListView1.ObjectTypes := [otNonFolders];
+
+    ShellTreeView1.ShellListView := ShellListView1;
+    ShellListView1.ShellTreeView := ShellTreeView1;
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu;
+  CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
