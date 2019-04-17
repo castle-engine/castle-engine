@@ -325,6 +325,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   end;
 
   procedure CreateShellViews;
+  const
+    { Similar to paths removed by build-tool "clean", or excluded by default by
+      build-tool "package". This should be configurable some day. }
+    ExcludeMask = 'castle-engine-output;*~;*.bak';
   begin
     ShellTreeView1 := TCastleShellTreeView.Create(Self);
     ShellTreeView1.Parent := TabFiles;
@@ -337,6 +341,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellTreeView1.TabOrder := 0;
     ShellTreeView1.Options := [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw];
     ShellTreeView1.ObjectTypes := [otFolders];
+    ShellTreeView1.ExcludeMask := ExcludeMask;
 
     ShellListView1 := TCastleShellListView.Create(Self);
     ShellListView1.Parent := TabFiles;
@@ -345,6 +350,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.SortColumn := 0;
     ShellListView1.TabOrder := 1;
     ShellListView1.ObjectTypes := [otNonFolders];
+    ShellListView1.ExcludeMask := ExcludeMask;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;

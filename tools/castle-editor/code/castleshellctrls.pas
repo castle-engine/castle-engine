@@ -56,6 +56,7 @@ type
     FShellListView: TCustomCastleShellListView;
     FFileSortType: TFileSortType;
     FInitialRoot: String;
+    FExcludeMask: string;
     { Setters and getters }
     function GetPath: string;
     procedure SetFileSortType(const AValue: TFileSortType);
@@ -63,6 +64,7 @@ type
     procedure SetPath(AValue: string);
     procedure SetRoot(const AValue: string);
     procedure SetShellListView(const Value: TCustomCastleShellListView);
+    procedure SetExcludeMask(const AValue: string);
   protected
     procedure DoCreateNodeClass(var NewNodeClass: TTreeNodeClass); override;
     procedure Loaded; override;
@@ -81,7 +83,7 @@ type
     class function  GetBasePath: string;
     function  GetRootPath: string;
     class procedure GetFilesInDir(const ABaseDir: string;
-      AMask: string; AObjectTypes: TObjectTypes; AResult: TStrings; AFileSortType: TFileSortType = fstNone);
+      AMask, AExcludeMask: string; AObjectTypes: TObjectTypes; AResult: TStrings; AFileSortType: TFileSortType = fstNone);
     { Other methods specific to Lazarus }
     function  GetPathFromNode(ANode: TTreeNode): string;
     procedure PopulateWithBaseFiles;
@@ -93,6 +95,7 @@ type
     property FileSortType: TFileSortType read FFileSortType write SetFileSortType;
     property Root: string read FRoot write SetRoot;
     property Path: string read GetPath write SetPath;
+    property ExcludeMask: string read FExcludeMask write SetExcludeMask;
 
     { Protected properties which users may want to access, see bug 15374 }
     property Items;
@@ -114,6 +117,7 @@ type
     property Color;
     property Constraints;
     property Enabled;
+    property ExcludeMask;
     property ExpandSignType;
     property Font;
     property FileSortType;
@@ -192,13 +196,14 @@ type
 
   TCustomCastleShellListView = class(TCustomListView)
   private
-    FMask: string;
+    FMask, FExcludeMask: string;
     FObjectTypes: TObjectTypes;
     FRoot: string;
     FShellTreeView: TCustomCastleShellTreeView;
     FOnFileAdded: TCSLVFileAddedEvent;
     { Setters and getters }
     procedure SetMask(const AValue: string);
+    procedure SetExcludeMask(const AValue: string);
     procedure SetShellTreeView(const Value: TCustomCastleShellTreeView);
     procedure SetRoot(const Value: string);
   protected
@@ -213,7 +218,8 @@ type
     { Methods specific to Lazarus }
     function GetPathFromItem(ANode: TListItem): string;
     { Properties }
-    property Mask: string read FMask write SetMask; // Can be used to conect to other controls
+    property Mask: string read FMask write SetMask;
+    property ExcludeMask: string read FExcludeMask write SetExcludeMask;
     property ObjectTypes: TObjectTypes read FObjectTypes write FObjectTypes;
     property Root: string read FRoot write SetRoot;
     property ShellTreeView: TCustomCastleShellTreeView read FShellTreeView write SetShellTreeView;
@@ -253,6 +259,7 @@ type
 //    property HoverTime;
     property LargeImages;
     property Mask;
+    property ExcludeMask;
     property MultiSelect;
 //    property OwnerData;
 //    property OwnerDraw;
@@ -341,9 +348,7 @@ procedure Register;
 
 implementation
 
-{$ifdef windows}
-uses Windows;
-{$endif}
+uses {$ifdef windows} Windows, {$endif} StrUtils;
 
 const
   //no need to localize, it's a message for the programmer
@@ -441,6 +446,29 @@ begin
     Value.ShellTreeView := Self;
 end;
 
+procedure TCustomCastleShellTreeView.SetExcludeMask(const AValue: string);
+var
+  CurrPath: String;
+begin
+  if FExcludeMask = AValue then Exit;
+  FExcludeMask := AValue;
+  { Refresh visible files. Implementation copied from SetObjectTypes.
+    (we want to have minimal changes from original LCL ShellCtrls sources now). }
+  if (csLoading in ComponentState) then Exit;
+  CurrPath := GetPath;
+  try
+    BeginUpdate;
+    Refresh(nil);
+    try
+       SetPath(CurrPath);
+    except
+      // CurrPath may have been removed in the mean time by another process, just ignore
+      on E: EInvalidPath do ;//
+    end;
+  finally
+    EndUpdate;
+  end;
+end;
 
 procedure TCustomCastleShellTreeView.DoCreateNodeClass(
   var NewNodeClass: TTreeNodeClass);
@@ -622,6 +650,17 @@ begin
   Result:=CompareFilenames(AnsiString(f1),AnsiString(f2));
 end;
 
+{ Does given Name match one of the masks in Masks. }
+function ExcludedFileName(const Name: String; const Masks: TStringList): Boolean;
+var
+  Mask: String;
+begin
+  for Mask in Masks do
+    if IsWild(Name, Mask, not FilenamesCaseSensitive) then
+      Exit(true);
+  Result := false;
+end;
+
 { Helper routine.
   Finds all files/directories directly inside a directory.
   Does not recurse inside subdirectories.
@@ -631,8 +670,9 @@ end;
   AMask may contain multiple file masks separated by ;
   Don't add a final ; after the last mask.
 }
-class procedure TCustomCastleShellTreeView.GetFilesInDir(const ABaseDir: string;
-  AMask: string; AObjectTypes: TObjectTypes; AResult: TStrings; AFileSortType: TFileSortType);
+class procedure TCustomCastleShellTreeView.GetFilesInDir(
+  const ABaseDir: string; AMask, AExcludeMask: string; AObjectTypes: TObjectTypes;
+  AResult: TStrings; AFileSortType: TFileSortType);
 var
   DirInfo: TSearchRec;
   FindResult: Integer;
@@ -642,10 +682,9 @@ var
   Files: TList;
   FileItem: TFileItem;
   i: Integer;
-  MaskStrings: TStringList;
+  MaskStrings, ExcludeMaskStrings: TStringList;
   FileTree: TAvlTree;
   ShortFilename: AnsiString;
-  j: Integer;
   {$if defined(windows) and not defined(wince)}
   ErrMode : LongWord;
   {$endif}
@@ -653,7 +692,6 @@ begin
   {$if defined(windows) and not defined(wince)}
   // disables the error dialog, while enumerating not-available drives
   // for example listing A: path, without diskette present.
-  // WARNING: Since Application.ProcessMessages is called, it might effect some operations!
   ErrMode:=SetErrorMode(SEM_FAILCRITICALERRORS or SEM_NOALIGNMENTFAULTEXCEPT or SEM_NOGPFAULTERRORBOX or SEM_NOOPENFILEERRORBOX);
   try
   {$endif}
@@ -664,21 +702,24 @@ begin
   // The string list implements support for multiple masks separated
   // by semi-colon ";"
   MaskStrings := TStringList.Create;
+  ExcludeMaskStrings := TStringList.Create;
   FileTree:=TAvlTree.Create(@STVCompareFiles);
   try
     {$ifdef NotLiteralFilenames}
     MaskStrings.CaseSensitive := False;
+    ExcludeMaskStrings.CaseSensitive := False;
     {$else}
     MaskStrings.CaseSensitive := True;
+    ExcludeMaskStrings.CaseSensitive := True;
     {$endif}
-
     MaskStrings.Delimiter := ';';
     MaskStrings.DelimitedText := MaskStr;
+    ExcludeMaskStrings.Delimiter := ';';
+    ExcludeMaskStrings.DelimitedText := AExcludeMask;
 
     if AFileSortType=fstNone then Files:=nil
     else Files:=TList.Create;
 
-    j:=0;
     for i := 0 to MaskStrings.Count - 1 do
     begin
       if MaskStrings.IndexOf(MaskStrings[i]) < i then Continue; // From patch from bug 17761: TCastleShellListView Mask: duplicated items if mask is " *.ext;*.ext "
@@ -688,13 +729,6 @@ begin
 
       while FindResult = 0 do
       begin
-        inc(j);
-        if j=100 then
-        begin
-          Application.ProcessMessages;
-          j:=0;
-        end;
-
         ShortFilename := DirInfo.Name;
 
         IsDirectory := (DirInfo.Attr and FaDirectory = FaDirectory);
@@ -712,6 +746,9 @@ begin
           AddFile := AddFile and ((otFolders in AObjectTypes) and IsValidDirectory)
         else
           AddFile := AddFile and (otNonFolders in AObjectTypes);
+
+        // Take into account ExcludeMaskStrings value
+        AddFile := AddFile and not ExcludedFileName(ShortFilename, ExcludeMaskStrings);
 
         // AddFile identifies if the file is valid or not
         if AddFile then
@@ -735,6 +772,7 @@ begin
   finally
     FileTree.Free;
     MaskStrings.Free;
+    ExcludeMaskStrings.Free;
   end;
 
   if Assigned(Files) then begin
@@ -838,7 +876,7 @@ begin
   Files := TStringList.Create;
   try
     Files.OwnsObjects := True;
-    GetFilesInDir(ANodePath, AllFilesMask, FObjectTypes, Files, FFileSortType);
+    GetFilesInDir(ANodePath, AllFilesMask, ExcludeMask, FObjectTypes, Files, FFileSortType);
     Result := Files.Count > 0;
 
     for i := 0 to Files.Count - 1 do
@@ -1030,8 +1068,6 @@ var
   //Fn should be fully qualified
   var
     Attr: LongInt;
-    Dirs: TStringList;
-    i: Integer;
   begin
     Result := False;
     Attr := FileGetAttrUtf8(Fn);
@@ -1333,6 +1369,17 @@ begin
   end;
 end;
 
+procedure TCustomCastleShellListView.SetExcludeMask(const AValue: string);
+begin
+  if AValue <> FExcludeMask then
+  begin
+    FExcludeMask := AValue;
+    Clear;
+    Items.Clear;
+    PopulateWithRoot();
+  end;
+end;
+
 procedure TCustomCastleShellListView.SetRoot(const Value: string);
 begin
   if FRoot <> Value then
@@ -1390,7 +1437,7 @@ begin
   Files := TStringList.Create;
   try
     Files.OwnsObjects := True;
-    TCustomCastleShellTreeView.GetFilesInDir(FRoot, FMask, FObjectTypes, Files);
+    TCustomCastleShellTreeView.GetFilesInDir(FRoot, FMask, FExcludeMask, FObjectTypes, Files);
 
     for i := 0 to Files.Count - 1 do
     begin
