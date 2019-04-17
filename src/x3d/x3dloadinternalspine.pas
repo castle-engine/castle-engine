@@ -182,6 +182,7 @@ begin
                 try
                   Skeleton.Parse(Json);
                   Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                  if Skeleton.DefaultSkin = nil then Exit;
                   Skeleton.Animations.Exported(Result);
                 finally FreeAndNil(Skeleton) end;
               end;

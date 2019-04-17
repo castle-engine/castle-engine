@@ -116,7 +116,10 @@ procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const
   begin
     ChildObj := Json.Find('skins', jtObject) as TJSONObject;
     if ChildObj = nil then
-      raise ESpineReadError.Create('Spine JSON skeleton: Missing "skins" object');
+    begin
+      WritelnWarning('Spine JSON skeleton', 'Missing "skins" object, Spine JSON is empty');
+      Exit;
+    end;
 
     for I := 0 to ChildObj.Count - 1 do
       if ChildObj.Items[I] is TJSONObject then
@@ -162,8 +165,8 @@ begin
   else
     ParseSpine;
 
-  if DefaultSkin = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "default" skin definition');
+  if DefaultSkin = nil then // DefaultSkin may be nil in case of empty model
+    WritelnWarning('Spine JSON skeleton', 'Missing "default" skin definition, Spine JSON is empty');
 end;
 
 procedure TSkinList.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
