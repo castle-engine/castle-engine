@@ -78,6 +78,25 @@ lazbuild_twice ()
   fi
 }
 
+# Download another repository from GitHub, compile with current build tool,
+# move result to $3 .
+# Assumes $CASTLE_BUILD_TOOL_OPTIONS defined.
+add_external_tool ()
+{
+  local GITHUB_NAME="$1"
+  local EXE_NAME="$2"
+  local OUTPUT_BIN="$3"
+  shift 2
+
+  local TEMP_PATH_TOOL=/tmp/castle-engine-release-$$/"${GITHUB_NAME}"/
+  cd "${TEMP_PATH_TOOL}"
+  wget https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master --output-document "${GITHUB_NAME}".zip
+  unzip "${GITHUB_NAME}".zip
+  cd "${GITHUB_NAME}"-master
+  castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+  mv "${EXE_NAME}" "${OUTPUT_BIN}"
+}
+
 do_pack_platform ()
 {
   local OS="$1"
@@ -156,6 +175,10 @@ do_pack_platform ()
   # Add PasDoc docs
   make -C doc/pasdoc/ clean html $MAKE_OPTIONS
   rm -Rf doc/pasdoc/cache/
+
+  # Add tools
+  add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool glviewimage glViewImage"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
   cd ../
