@@ -69,11 +69,16 @@ type
       an empty Name, and is unfinished because there is no |, so no matching
       Pattern) so empty string causes no filters to be added. }
     procedure AddFiltersFromString(const FiltersStr: string);
+
+    { One of the filtes (excluding "catch all" filters) matches given URL.
+      This excludes masks like "*" and "*.*" (the latter should not really
+      be used, because it will not match all files on Unix). }
+    function Matches(const URL: String): Boolean;
   end;
 
 implementation
 
-uses StrUtils, CastleStringUtils;
+uses StrUtils, CastleStringUtils, CastleURIUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 
@@ -175,4 +180,20 @@ begin
   until LastSeparator = 0;
 end;
 
+function TFileFilterList.Matches(const URL: String): Boolean;
+var
+  URLName, Pattern: String;
+  Filter: TFileFilter;
+begin
+  URLName := ExtractURIName(URL);
+  for Filter in Self do
+    for Pattern in Filter.Patterns do
+      if (Pattern <> '*') and
+         (Pattern <> '*.*') and
+         IsWild(URLName, Pattern, FileNameCaseSensitive) then
+        Exit(true);
+  Result := false;
+end;
+
 end.
+

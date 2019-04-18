@@ -42,13 +42,6 @@ function TempOutputPath(const WorkingDirectory: string;
 type
   TReplaceMacros = function (const Source: string): string of object;
 
-function CreateTemporaryDir: string;
-
-{ Run the command, and return immediately, without waiting for finish. }
-procedure RunCommandNoWait(
-  const ProjectPath: string;
-  const ExeName: string; const Options: array of string);
-
 type
   TImageFileNames = class(TCastleStringList)
   private
@@ -139,59 +132,6 @@ begin
   end;
 
   Result := FOutputPath;
-end;
-
-function CreateTemporaryDir: string;
-begin
-  Result := InclPathDelim(GetTempDir(false)) +
-    ApplicationName + IntToStr(Random(1000000));
-  CheckForceDirectories(Result);
-  WritelnVerbose('Created temporary dir for package: ' + Result);
-end;
-
-procedure RunCommandNoWait(
-  const ProjectPath: string;
-  const ExeName: string; const Options: array of string);
-var
-  P: TProcess;
-  I: Integer;
-  {$ifdef UNIX} NoHupExe: String; {$endif}
-begin
-  P := TProcess.Create(nil);
-  try
-    P.Executable := ExeName;
-    // this is useful on Unix, to place nohup.out inside temp directory
-    P.CurrentDirectory := TempOutputPath(ProjectPath);
-
-    { Under Unix, execute using nohup.
-      This way the parent process can die (and destroy child's IO handles)
-      and the new process will keep running OK.
-      This is important when you execute in "castle-editor" the option
-      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
-      and both "castle-editor" and "castle-engine" processes die
-      (while the new CGE editor should continue running). }
-    {$ifdef UNIX}
-    NoHupExe := FindExe('nohup');
-    if NoHupExe <> '' then
-    begin
-      P.Executable := NoHupExe;
-      P.Parameters.Add(ExeName);
-    end;
-    {$endif}
-
-    for I := Low(Options) to High(Options) do
-      P.Parameters.Add(Options[I]);
-
-    { Under Windows, these options should make a process execute OK.
-      Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
-    P.InheritHandles := false;
-    P.ShowWindow := swoShow;
-
-    WritelnVerbose('Calling ' + ExeName);
-    WritelnVerbose(P.Parameters.Text);
-
-    P.Execute;
-  finally FreeAndNil(P) end;
 end;
 
 { TImageFileNames ------------------------------------------------------------- }

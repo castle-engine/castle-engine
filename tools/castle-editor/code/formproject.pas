@@ -153,6 +153,8 @@ type
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
+    procedure ShellListViewClick(Sender: TObject);
+    procedure ShellListViewDoubleClick(Sender: TObject);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -180,7 +182,7 @@ uses TypInfo, LCLType,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
-  CastleFonts,
+  CastleFonts, X3DLoad, CastleFileFilters, CastleImages,
   FormChooseProject, ToolCommonUtils, FormAbout;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -351,6 +353,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.TabOrder := 1;
     ShellListView1.ObjectTypes := [otNonFolders];
     ShellListView1.ExcludeMask := ExcludeMask;
+    ShellListView1.OnClick := @ShellListViewClick;
+    ShellListView1.OnDblClick := @ShellListViewDoubleClick;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -573,6 +577,75 @@ begin
   FreeAndNil(RunningProcess);
   SetEnabledCommandRun(true);
   ProcessUpdateTimer.Enabled := false;
+end;
+
+procedure TProjectForm.ShellListViewClick(Sender: TObject);
+var
+  SelectedFileName: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    // TODO: show preview
+  end;
+end;
+
+procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
+
+  procedure OpenWith(Const ToolName: String; const SelectedURL: String);
+  var
+    Exe: String;
+  begin
+    Exe := FindExeCastleTool(ToolName);
+    if Exe = '' then
+    begin
+      EditorUtils.ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
+        [ToolName, SelectedURL]));
+      Exit;
+    end;
+
+    RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
+  end;
+
+var
+  OpenSceneFileFiltes: TFileFilterList;
+  SelectedFileName, Ext, SelectedURL: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+    Ext := ExtractFileExt(SelectedFileName);
+
+    OpenSceneFileFiltes := TFileFilterList.Create(true);
+    try
+      OpenSceneFileFiltes.AddFiltersFromString(Load3D_FileFilters);
+      if OpenSceneFileFiltes.Matches(SelectedURL) then
+      begin
+        OpenWith('view3dscene', SelectedURL);
+        Exit;
+      end;
+    finally FreeAndNil(OpenSceneFileFiltes) end;
+
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      OpenWith('glViewImage', SelectedURL);
+      Exit;
+    end;
+
+    if (Ext = '.castle-user-interface') or (Ext = '.castle-transform') then
+    begin
+      if ProposeSaveDesign then
+      begin
+        NeedsDesignFrame;
+        Design.OpenDesign(SelectedURL);
+      end;
+      Exit;
+    end;
+
+    if not OpenDocument(SelectedFileName) then
+      EditorUtils.ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
+  end;
 end;
 
 procedure TProjectForm.BuildToolCall(const Commands: array of String;

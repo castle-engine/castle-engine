@@ -26,6 +26,8 @@ var
   { Trivial verbosity global setting. }
   Verbose: boolean = false;
 
+{ In case of console application with Verbose, writes to stduot.
+  Otherwise, only to WritelnLog. }
 procedure WritelnVerbose(const S: String);
 
 { Like @link(FindExe), but additionally look for the exe in
@@ -89,6 +91,15 @@ procedure RunCommandSimple(
   const CurDir: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = ''); overload;
+
+{ Run the command, and return immediately, without waiting for finish.
+  On Unix, TempPath is used as a location of temporary "nohup" file, it should exist. }
+procedure RunCommandNoWait(
+  const TempPath: string;
+  const ExeName: string; const Options: array of string);
+
+{ Determine and create a new (unique, with random number in the name) temp directory. }
+function CreateTemporaryDir: string;
 
 implementation
 
@@ -372,6 +383,59 @@ begin
   if ProcessStatus <> 0 then
     raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',
       [ExeName, AbsoluteExeName, ProcessStatus]);
+end;
+
+procedure RunCommandNoWait(
+  const TempPath: string;
+  const ExeName: string; const Options: array of string);
+var
+  P: TProcess;
+  I: Integer;
+  {$ifdef UNIX} NoHupExe: String; {$endif}
+begin
+  P := TProcess.Create(nil);
+  try
+    P.Executable := ExeName;
+    // this is useful on Unix, to place nohup.out inside temp directory
+    P.CurrentDirectory := TempPath;
+
+    { Under Unix, execute using nohup.
+      This way the parent process can die (and destroy child's IO handles)
+      and the new process will keep running OK.
+      This is important when you execute in "castle-editor" the option
+      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
+      and both "castle-editor" and "castle-engine" processes die
+      (while the new CGE editor should continue running). }
+    {$ifdef UNIX}
+    NoHupExe := FindExe('nohup');
+    if NoHupExe <> '' then
+    begin
+      P.Executable := NoHupExe;
+      P.Parameters.Add(ExeName);
+    end;
+    {$endif}
+
+    for I := Low(Options) to High(Options) do
+      P.Parameters.Add(Options[I]);
+
+    { Under Windows, these options should make a process execute OK.
+      Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
+    P.InheritHandles := false;
+    P.ShowWindow := swoShow;
+
+    WritelnVerbose('Calling ' + ExeName);
+    WritelnVerbose(P.Parameters.Text);
+
+    P.Execute;
+  finally FreeAndNil(P) end;
+end;
+
+function CreateTemporaryDir: string;
+begin
+  Result := InclPathDelim(GetTempDir(false)) +
+    ApplicationName + IntToStr(Random(1000000));
+  CheckForceDirectories(Result);
+  WritelnVerbose('Created temporary dir for package: ' + Result);
 end;
 
 end.
