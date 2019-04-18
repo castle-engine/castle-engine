@@ -3,6 +3,8 @@
 Allows to manage projects,
 where a "project" is a directory containing `CastleEngineManifest.xml` file.
 
+Note: [more concise description of the editor is also in the manual](https://castle-engine.io/manual_editor.php).
+
 ## Features
 
 ### Create, build, run projects
@@ -90,10 +92,10 @@ You can browse the application files. Our "Files Browser" just displays the file
 * Clicking on various files runs a CGE tool suitable to preview/edit them:
 
     * On 3D and 2D models you can run view3dscene.
-    * On 2D images you can run glViewImage.
+    * On images you can run glViewImage.
     * On text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
     * On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
-    * On other files, we can run the default OS application for them (`OpenDocument`
+    * On other files, we can run the default OS application for them (`OpenDocument`)
 
 * We also want to auto-generate and show a quick previews of models/images inside the CGE editor.
 * Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
@@ -121,7 +123,6 @@ The idea is that you only install FPC/Lazarus, then you run precompiled CGE edit
 You use modern Pascal language to code your games.
 The Castle Game Engine is documented on https://castle-engine.io/ ,
 in particular see our manual: https://castle-engine.io/manual_intro.php .
-Note that it's not yet updated to describe this visual editor.
 
 ## License
 

@@ -60,23 +60,10 @@ Before 6.6 release:
   StoreInitialCamera: Boolean
   InitialCamera
 
-* Make files browser at least basic: ignore castle-engine-output
-    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
-      (need to use custom draw for this? grep, search code)
-    * "Files" showroot=false doesn't work?
-    * need to fork Lazarus shell control for this, no other solution?
-
-* TEditDirectory use at "new project"
-
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
-
-* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
-  Show better message for XxxLoad:
-
-    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
 
 * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
 
@@ -85,6 +72,13 @@ Before 6.6 release:
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:
+
+* TEditDirectory use at "new project"
+
+* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
+  Show better message for XxxLoad:
+
+    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
 
 * *All* images from theme should also be customizable at the control level,
   and naming should be consistent.
@@ -156,7 +150,11 @@ OK if after nearest release:
 * ugly button in example? new ui for internal controls?
 
 * Make files browser with features as documented.
-    Also to allow dropping scenes/images on UI design.
+    * allow dropping scenes/images on UI design.
+    * "Files" showroot=false doesn't work?
+    * own viewer for
+        * text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
+	* on audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
 
 * build tool integration:
     * For "run", colorized CastleLog warnings
