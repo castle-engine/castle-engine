@@ -23,91 +23,87 @@ pipeline {
       }
     }
 
-    stage('Perform Tests') {
-      parallel {
-        stage('Build Examples (Default FPC)') {
-          steps {
-            /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-            sh 'make clean examples'
-          }
-        }
-        stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
-          steps {
-            sh 'make clean examples-laz'
-          }
-        }
-        stage('Build And Run Auto-Tests (Default FPC)') {
-          steps {
-            sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
-          }
-        }
-        stage('Build Using FpMake (Default FPC)') {
-          steps {
-            sh 'make clean build-using-fpmake'
-          }
-        }
+    stage('Build Examples (Default FPC)') {
+      steps {
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'make clean examples'
+      }
+    }
+    stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
+      steps {
+	sh 'make clean examples-laz'
+      }
+    }
+    stage('Build And Run Auto-Tests (Default FPC)') {
+      steps {
+	sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake (Default FPC)') {
+      steps {
+	sh 'make clean build-using-fpmake'
+      }
+    }
 
-        /* Same with FPC 3.0.2.
-           We could use a script to reuse the code,
-           but then the detailed time breakdown/statistics would not be available in Jenkins. */
+    /* Same with FPC 3.0.2.
+       We could use a script to reuse the code,
+       but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
-        stage('Build Tools (FPC 3.0.2)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean tools'
-          }
-        }
-        stage('Build Examples (FPC 3.0.2)') {
-          steps {
-            /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-            sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples'
-          }
-        }
-        stage('Build Examples Using Lazarus (FPC 3.0.2/Lazarus)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples-laz'
-          }
-        }
-        stage('Build And Run Auto-Tests (FPC 3.0.2)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
-          }
-        }
-        stage('Build Using FpMake (FPC 3.0.2)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean build-using-fpmake'
-          }
-        }
+    stage('Build Tools (FPC 3.0.2)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean tools'
+      }
+    }
+    stage('Build Examples (FPC 3.0.2)') {
+      steps {
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples'
+      }
+    }
+    stage('Build Examples Using Lazarus (FPC 3.0.2/Lazarus)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples-laz'
+      }
+    }
+    stage('Build And Run Auto-Tests (FPC 3.0.2)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake (FPC 3.0.2)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean build-using-fpmake'
+      }
+    }
 
-        /* Same with FPC trunk.
-           We could use a script to reuse the code,
-           but then the detailed time breakdown/statistics would not be available in Jenkins. */
+    /* Same with FPC trunk.
+       We could use a script to reuse the code,
+       but then the detailed time breakdown/statistics would not be available in Jenkins. */
 
-        stage('Build Tools (FPC trunk)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
-          }
-        }
-        stage('Build Examples (FPC trunk)') {
-          steps {
-            /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-            sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
-          }
-        }
-        stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
-          }
-        }
-        stage('Build And Run Auto-Tests (FPC trunk)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
-          }
-        }
-        stage('Build Using FpMake (FPC trunk)') {
-          steps {
-            sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
-          }
-        }
+    stage('Build Tools (FPC trunk)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
+      }
+    }
+    stage('Build Examples (FPC trunk)') {
+      steps {
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
+      }
+    }
+    stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
+      }
+    }
+    stage('Build And Run Auto-Tests (FPC trunk)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake (FPC trunk)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
       }
     }
 
