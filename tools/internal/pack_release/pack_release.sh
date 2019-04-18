@@ -81,6 +81,7 @@ lazbuild_twice ()
 # Download another repository from GitHub, compile with current build tool,
 # move result to $3 .
 # Assumes $CASTLE_BUILD_TOOL_OPTIONS defined.
+# Changes current dir.
 add_external_tool ()
 {
   local GITHUB_NAME="$1"
@@ -181,7 +182,7 @@ do_pack_platform ()
   add_external_tool glviewimage glViewImage"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
-  cd ../
+  cd "${TEMP_PATH}"
   rm -f "${ARCHIVE_NAME}"
   zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
