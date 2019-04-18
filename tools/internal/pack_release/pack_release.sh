@@ -142,6 +142,12 @@ do_pack_platform ()
     echo "+ ' (commit ${GIT_COMMIT})'" >> src/base/castleversion.inc
   fi
 
+  # update environment to use CGE in temporary location
+  export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
+
   # Make sure no leftovers from previous compilations remain, to affect tools
   make cleanmore $MAKE_OPTIONS
 
