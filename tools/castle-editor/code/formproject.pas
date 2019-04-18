@@ -355,6 +355,13 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ExcludeMask := ExcludeMask;
     ShellListView1.OnClick := @ShellListViewClick;
     ShellListView1.OnDblClick := @ShellListViewDoubleClick;
+    ShellListView1.ShowHint := true;
+    ShellListView1.Hint := 'Double-click to open.' + NL +
+      NL +
+      '- Scenes open in engine viewer (view3dscene).' + NL +
+      '- Images open in engine viewer (glViewImage).' + NL +
+      '- Design opens in this editor window.' + NL +
+      '- Other files open in external applications.';
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
