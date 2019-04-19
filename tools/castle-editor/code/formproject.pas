@@ -330,7 +330,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   const
     { Similar to paths removed by build-tool "clean", or excluded by default by
       build-tool "package". This should be configurable some day. }
-    ExcludeMask = 'castle-engine-output;*~;*.bak';
+    ExcludeMask = 'castle-engine-output;*~;*.bak;*.exe;*.dll';
   begin
     ShellTreeView1 := TCastleShellTreeView.Create(Self);
     ShellTreeView1.Parent := TabFiles;
@@ -352,10 +352,16 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.SortColumn := 0;
     ShellListView1.TabOrder := 1;
     ShellListView1.ObjectTypes := [otNonFolders];
+    // TODO: To make folders work nicely, it needs some more improvements:
+    // - show icons of folders, to make them distinct
+    // - double-click on folder should move to it, in both shell tree/list views
+    //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
+    //ShellListView1.FileSortType := fstFoldersFirst;
     ShellListView1.ExcludeMask := ExcludeMask;
     ShellListView1.OnClick := @ShellListViewClick;
     ShellListView1.OnDblClick := @ShellListViewDoubleClick;
     ShellListView1.ShowHint := true;
+    ShellListView1.RowSelect := true;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
       '- Scenes open in engine viewer (view3dscene).' + NL +
