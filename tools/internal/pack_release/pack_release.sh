@@ -104,6 +104,10 @@ do_pack_platform ()
   local OS="$1"
   local CPU="$2"
   shift 2
+  
+  # restore CGE path, otherwise it points to a temporary (and no longer existing)
+  # dir after one execution of do_pack_platform
+  export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
 
   case "$OS" in
     win32|win64) local EXE_EXTENSION='.exe' ;;
@@ -195,6 +199,8 @@ do_pack_platform ()
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
   rm -Rf "${TEMP_PATH}"
 }
+
+ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
 check_fpc_version
 prepare_build_tool
