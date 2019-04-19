@@ -19,7 +19,7 @@ unit CastleShellCtrls;
 interface
 
 uses
-  Classes, SysUtils, Laz_AVL_Tree,
+  Classes, SysUtils,
   // LCL
   Forms, Graphics, ComCtrls, LCLProc, LCLStrConsts,
   // LazUtils
@@ -687,7 +687,7 @@ var
   FileItem: TFileItem;
   i: Integer;
   MaskStrings, ExcludeMaskStrings: TStringList;
-  FileTree: TAvlTree;
+  FileTree: TStringList;
   ShortFilename: AnsiString;
   {$if defined(windows) and not defined(wince)}
   ErrMode : LongWord;
@@ -707,8 +707,8 @@ begin
   // by semi-colon ";"
   MaskStrings := TStringList.Create;
   ExcludeMaskStrings := TStringList.Create;
-  FileTree:=TAvlTree.Create(@STVCompareFiles);
   try
+
     {$ifdef NotLiteralFilenames}
     MaskStrings.CaseSensitive := False;
     ExcludeMaskStrings.CaseSensitive := False;
@@ -757,13 +757,20 @@ begin
         // AddFile identifies if the file is valid or not
         if AddFile then
         begin
-          if not Assigned(Files) then begin
+          if not Assigned(Files) then
+          begin
+            (*
+              CGE: Since we only use this with hardcoded masks,
+              that do not duplicate extensions, we remove FileTree stuff.
+              This way it compiles with older LCL too. }
             if FileTree.Find(Pointer(ShortFilename))=nil then
             begin
               // From patch from bug 17761: TCastleShellListView Mask: duplicated items if mask is " *.ext;*.ext "
               FileTree.Add(Pointer(ShortFilename));
               AResult.AddObject(ShortFilename, TFileItem.Create(DirInfo, ABaseDir));
             end;
+            *)
+            AResult.AddObject(ShortFilename, TFileItem.Create(DirInfo, ABaseDir));
           end else
             Files.Add ( TFileItem.Create(DirInfo, ABaseDir));
         end;
@@ -774,7 +781,6 @@ begin
       FindCloseUTF8(DirInfo);
     end;
   finally
-    FileTree.Free;
     MaskStrings.Free;
     ExcludeMaskStrings.Free;
   end;
