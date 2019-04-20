@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,7 +25,7 @@ uses
   ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
   Types, Contnrs,
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
-  EditorUtils, FrameDesign;
+  EditorUtils, FrameDesign, FrameViewFile;
 
 type
   { Main project management. }
@@ -147,6 +147,8 @@ type
     Design: TDesignFrame;
     ShellListView1: TCastleShellListView;
     ShellTreeView1: TCastleShellTreeView;
+    ViewFileFrame: TViewFileFrame;
+    SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
         const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
@@ -182,7 +184,7 @@ uses TypInfo, LCLType,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
-  CastleFonts, X3DLoad, CastleFileFilters, CastleImages,
+  CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
   FormChooseProject, ToolCommonUtils, FormAbout;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
@@ -326,6 +328,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     end;
   end;
 
+  { We create some components by code, this way we don't have to put
+    in package TCastleShellTreeView and TCastleShellListView,
+    making compiling CGE editor a bit easier. }
   procedure CreateShellViews;
   const
     { Similar to paths removed by build-tool "clean", or excluded by default by
@@ -593,13 +598,65 @@ begin
 end;
 
 procedure TProjectForm.ShellListViewClick(Sender: TObject);
+
+  { Make sure ViewFileFrame is created and visible.
+    For now we create ViewFileFrame on-demand, just in case there's a problem
+    with initializing 2nd OpenGL context on some computer. }
+  procedure NeedsViewFile;
+  begin
+    if ViewFileFrame = nil then
+    begin
+      ViewFileFrame := TViewFileFrame.Create(Self);
+      ViewFileFrame.Parent := TabFiles;
+      ViewFileFrame.Align := alRight;
+
+      SplitterBetweenViewFile := TSplitter.Create(Self);
+      SplitterBetweenViewFile.Parent := TabFiles;
+      SplitterBetweenViewFile.Align := alRight;
+    end;
+    ViewFileFrame.Enabled := true;
+    ViewFileFrame.Visible := true;
+    SplitterBetweenViewFile.Enabled := true;
+    SplitterBetweenViewFile.Visible := true;
+  end;
+
 var
-  SelectedFileName: String;
+  SelectedFileName, SelectedURL: String;
 begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    // TODO: show preview
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+
+    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadScene(SelectedURL);
+      Exit;
+    end;
+
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadImage(SelectedURL);
+      Exit;
+    end;
+
+    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadSound(SelectedURL);
+      Exit;
+    end;
+  end;
+
+  { if control reached here, hide ViewFileFrame if needed }
+  if ViewFileFrame <> nil then
+  begin
+    ViewFileFrame.Enabled := false;
+    ViewFileFrame.Visible := false;
+    SplitterBetweenViewFile.Enabled := false;
+    SplitterBetweenViewFile.Visible := false;
   end;
 end;
 
@@ -621,7 +678,6 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
   end;
 
 var
-  OpenSceneFileFiltes: TFileFilterList;
   SelectedFileName, Ext, SelectedURL: String;
 begin
   if ShellListView1.Selected <> nil then
@@ -630,15 +686,11 @@ begin
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
-    OpenSceneFileFiltes := TFileFilterList.Create(true);
-    try
-      OpenSceneFileFiltes.AddFiltersFromString(Load3D_FileFilters);
-      if OpenSceneFileFiltes.Matches(SelectedURL) then
-      begin
-        OpenWith('view3dscene', SelectedURL);
-        Exit;
-      end;
-    finally FreeAndNil(OpenSceneFileFiltes) end;
+    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    begin
+      OpenWith('view3dscene', SelectedURL);
+      Exit;
+    end;
 
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin

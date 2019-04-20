@@ -74,6 +74,10 @@ type
       This excludes masks like "*" and "*.*" (the latter should not really
       be used, because it will not match all files on Unix). }
     function Matches(const URL: String): Boolean;
+
+    { Whether the filters described in FiltersStr (like for
+      @link(AddFiltersFromString)) match the given URL. }
+    class function Matches(const FiltersStr, URL: String): Boolean;
   end;
 
 implementation
@@ -193,6 +197,17 @@ begin
          IsWild(URLName, Pattern, FileNameCaseSensitive) then
         Exit(true);
   Result := false;
+end;
+
+class function TFileFilterList.Matches(const FiltersStr, URL: String): Boolean;
+var
+  Filters: TFileFilterList;
+begin
+  Filters := TFileFilterList.Create(true);
+  try
+    Filters.AddFiltersFromString(FiltersStr);
+    Result := Filters.Matches(URL);
+  finally FreeAndNil(Filters) end;
 end;
 
 end.
