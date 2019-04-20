@@ -741,10 +741,8 @@ begin
   VorbisFileInitialization;
   InitializeAndroidCWString;
   LoadFreeTypeLibrary;
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  {$ifndef CASTLE_PNG_STATIC}
+  {$ifdef CASTLE_PNG_DYNAMIC}
   PngInitialization;
-  {$endif}
   {$endif}
   {$ifndef CASTLE_ZLIB_USING_PASZLIB}
   ZLibInitialization;

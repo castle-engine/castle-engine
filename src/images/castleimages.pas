@@ -71,12 +71,13 @@ unit CastleImages;
 
 interface
 
-uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
-  CastleFileFilters, CastleClassUtils, CastleColors,
-  Generics.Collections, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM
-  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleInternalFPWritePNG
-  {$else} , CastleInternalPng {$endif};
+uses SysUtils, Classes, Math, Generics.Collections,
+  { FPImage and related units }
+  FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
+  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, CastleInternalFPWritePNG,
+  { CGE units }
+  CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
+  CastleFileFilters, CastleClassUtils, CastleColors;
 
 type
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
@@ -1908,16 +1909,15 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 {$I castleimages_file_formats.inc}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
-{$I images_bmp.inc}
-{$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  {$I images_png.inc}
-{$endif}
-{$I images_fpimage.inc}
-{$I images_ppm.inc}
-{$I images_ipl.inc}
-{$I images_rgbe_fileformat.inc}
-{$I images_external_tool.inc}
-{$I images_composite.inc}
+{$I castleimages_bmp.inc}
+{$I castleimages_libpng.inc}
+{$I castleimages_fpimage.inc}
+{$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
+{$I castleimages_ppm.inc}
+{$I castleimages_ipl.inc}
+{$I castleimages_rgbe_fileformat.inc}
+{$I castleimages_external_tool.inc}
+{$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
 
@@ -2921,7 +2921,7 @@ begin
   Result := TextureCompressionInfo[Compression].AlphaChannel;
 end;
 
-{$I images_s3tc_flip_vertical.inc}
+{$I castleimages_s3tc_flip_vertical.inc}
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
@@ -3116,11 +3116,11 @@ end;
 
 procedure TRGBImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector3Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var
@@ -3390,11 +3390,11 @@ end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector4Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBAlphaImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector4Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 procedure TRGBAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
   Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
@@ -4822,8 +4822,8 @@ end;
 initialization
   RegisterMimeTypes;
   InitializeImagesFileFilters;
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  InitializePNG;
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+  InitializePNGUsingLibpng;
   {$endif}
   LoadImageEvents := TLoadImageEventList.Create;
 finalization

@@ -429,13 +429,11 @@ begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
 end;
 
-{$ifdef CASTLE_PNG_USING_FCL_IMAGE}
-function LoadPNG(Stream: TStream;
+function LoadPNG_FPImage(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create);
 end;
-{$endif}
 
 function LoadPNM(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
@@ -448,8 +446,7 @@ begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
 
-{$ifdef CASTLE_PNG_USING_FCL_IMAGE}
-procedure SavePNG(Img: TEncodedImage; Stream: TStream);
+procedure SavePNG_FPImage(Img: TEncodedImage; Stream: TStream);
 var
   Writer: TFPWriterPNG;
 begin
@@ -463,7 +460,6 @@ begin
   Writer.WordSized := false;
   SaveFpImage(Img, Stream, Writer);
 end;
-{$endif}
 
 { resizing ------------------------------------------------------------------- }
 

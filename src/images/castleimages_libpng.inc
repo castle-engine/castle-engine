@@ -13,34 +13,22 @@
   ----------------------------------------------------------------------------
 }
 
-{ Declare utilities to deal with PNGs and libpng. }
+{ Handle PNG format using libpng. }
+
+{$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
 
 type
   ELibPngNotAvailable = class(Exception);
   EPngTransformError = class(Exception);
 
-{ Return the version of used libpng library
+{ Return the version of used dynamic libpng library
   (taken by querying png_access_version_number).
-  They raise ELibPngNotAvailable exception if libpng library
-  was not available (not CastlePngInitialized) or if version of libpng
-  library is incompatible with interface defined in KamiPng unit.
 
-  So these functions actually not only return version of libpng,
-  they also check is libpng available (and has the proper version).
+  Raises ELibPngNotAvailable exception if libpng library
+  was not available or had incorrect version (not CastlePngInitialized). }
+function CurrentLibpngVersion: PChar; forward;
 
-  The three Integer functions should always match the first
-  3 components of SO_PNG_LIBPNG_VER_STRING.
-
-  @groupBegin }
-function SO_PNG_LIBPNG_VER_STRING: PChar; forward;
-function SO_PNG_LIBPNG_VER_MAJOR: Integer; forward;
-function SO_PNG_LIBPNG_VER_MINOR: Integer; forward;
-function SO_PNG_LIBPNG_VER_RELEASE: Integer; forward;
-{ @groupEnd }
-
-{ Use all functions below ONLY when CastlePngInitialized = true
-  (often comfortable way to check CastlePngInitialized is to call
-  one of SO_xxx functions above). }
+{ Use all functions below ONLY when CastlePngInitialized = true. }
 
 { }
 procedure png_transform_to_g1byte(png_ptr: png_structp; info_ptr: png_infop); forward;
@@ -66,44 +54,24 @@ function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean; forwa
 
 function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
 
-function PngColorTypeToStr(PngColorType: longint): string; forward;
-function PngInterlaceTypeToStr(PngInterlaceType: longint): string; forward;
-function PngTextCompressionToStr(PngTextCompression: longint): string; forward;
+function PngColorTypeToStr(const PngColorType: longint): string; forward;
+function PngInterlaceTypeToStr(const PngInterlaceType: longint): string; forward;
+function PngTextCompressionToStr(const PngTextCompression: longint): string; forward;
 
 var
   { Call InitializePNG to set these variables }
-  fSO_VER_STRING: string;
-  fSO_VER_MAJOR, fSO_VER_MINOR, fSO_VER_RELEASE: integer;
+  FCurrentLibpngVersion: string;
+  FCurrentLibpngVersionMajor,
+  FCurrentLibpngVersionMinor,
+  FCurrentLibpngVersionRelease: Integer;
 
-procedure Check_SO_VER;
-{ Wywolujemy ta funkcje tylko gdy zwracamy SO_PNG_LIBPNG_VER_LIBPNG_xxx,
-  bo jezeli nie uzyles tej funkcji to znaczy ze uzywasz PNG_LIBPNG_VER_xxx
-  a wiec polegasz na libpng ktore samo przetestuje czy wersje biblioteki
-  i tego unitu sa kompatybilne.
-
-  Oczywiscie - zrobilem wlasne funkcje SO_PNG_LIBPNG_VER_xx bo
-  libpng wedlug mnie testowalo za ostro wersje biblioteki. Wiec tutaj
-  chcemy robic sprawdzanie wersji mniej restrykcyjne.}
+function CurrentLibpngVersion: PChar;
 begin
- if not CastlePngInitialized then
-  raise ELibPngNotAvailable.Create('LibPng (or it''s dependency, ZLib) is not available. Make sure that the dynamic libraries for LibPng and ZLib are installed (or placed alongside the exe file on Windows).');
+  if not CastlePngInitialized then
+    raise ELibPngNotAvailable.Create('LibPng (or it''s dependency, ZLib) is not available, or has incorrect version. Make sure that the dynamic libraries for LibPng and ZLib are installed (or placed alongside the exe file on Windows).');
 
- if fSO_VER_MAJOR <> 1 then
-  raise ELibPngNotAvailable.CreateFmt('LibPng major version is %d, ' +
-    'but 1 is required -- cannot use available LibPng library', [fSO_VER_MAJOR]);
+  Result := PChar(FCurrentLibpngVersion);
 end;
-
-function SO_PNG_LIBPNG_VER_STRING: PChar;
-begin Check_SO_VER; result := PChar(fSO_VER_STRING) end;
-
-function SO_PNG_LIBPNG_VER_MAJOR: integer;
-begin Check_SO_VER; result := fSO_VER_MAJOR end;
-
-function SO_PNG_LIBPNG_VER_MINOR: integer;
-begin Check_SO_VER; result := fSO_VER_MINOR end;
-
-function SO_PNG_LIBPNG_VER_RELEASE: integer;
-begin Check_SO_VER; result := fSO_VER_RELEASE end;
 
 { ------------------------------------------------------------------------------------ }
 
@@ -496,63 +464,68 @@ var
   ColorType: LongWord;
 begin
   ColorType := png_get_color_type(png_ptr, info_ptr);
-  result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
+  Result := ( (ColorType and PNG_COLOR_MASK_ALPHA) <> 0) or
               (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) <> 0);
 end;
 
 { *ToStr -------------------------------------------------------------- }
 
-function PngColorTypeToStr(PngColorType: longint): string;
+function PngColorTypeToStr(const PngColorType: longint): string;
 begin
- case PngColorType of
-  PNG_COLOR_TYPE_GRAY        :result := 'Gray';
-  PNG_COLOR_TYPE_GRAY_ALPHA  :result := 'Gray with alpha';
-  PNG_COLOR_TYPE_PALETTE     :result := 'Paletted';
-  PNG_COLOR_TYPE_RGB         :result := 'RGB';
-  PNG_COLOR_TYPE_RGB_ALPHA   :result := 'RGB with alpha';
-  else result := 'unknown';
- end;
+  case PngColorType of
+    PNG_COLOR_TYPE_GRAY      : Result := 'Gray';
+    PNG_COLOR_TYPE_GRAY_ALPHA: Result := 'Gray with alpha';
+    PNG_COLOR_TYPE_PALETTE   : Result := 'Paletted';
+    PNG_COLOR_TYPE_RGB       : Result := 'RGB';
+    PNG_COLOR_TYPE_RGB_ALPHA : Result := 'RGB with alpha';
+    else Result := 'unknown';
+  end;
 end;
 
-function PngInterlaceTypeToStr(PngInterlaceType: longint): string;
+function PngInterlaceTypeToStr(const PngInterlaceType: longint): string;
 begin
- case PngInterlaceType of
-  PNG_INTERLACE_NONE  :result := 'None';
-  PNG_INTERLACE_ADAM7 :result := 'Adam7';
-  else result := 'unknown';
- end;
+  case PngInterlaceType of
+    PNG_INTERLACE_NONE : Result := 'None';
+    PNG_INTERLACE_ADAM7: Result := 'Adam7';
+    else Result := 'unknown';
+  end;
 end;
 
-function PngTextCompressionToStr(PngTextCompression: longint): string;
+function PngTextCompressionToStr(const PngTextCompression: longint): string;
 begin
- case PngTextCompression of
-  PNG_TEXT_COMPRESSION_NONE: result := 'None';
-  PNG_TEXT_COMPRESSION_zTXT: result := 'zTXT';
-  else result := 'unknown';
- end;
+  case PngTextCompression of
+    PNG_TEXT_COMPRESSION_NONE: Result := 'None';
+    PNG_TEXT_COMPRESSION_zTXT: Result := 'zTXT';
+    else Result := 'unknown';
+  end;
 end;
 
 { initialize ----------------------------------------------------------------- }
 
-procedure InitializePNG;
+procedure InitializePNGUsingLibpng;
 var
-  ver: png_uint_32;
+  VerNumber: png_uint_32;
 begin
   if CastlePngInitialized then
   begin
-    ver := png_access_version_number();
-    fSO_VER_RELEASE := ver mod 100;
-    fSO_VER_MINOR := (ver mod 10000) div 100;
-    fSO_VER_MAJOR := ver div 10000;
-    fSO_VER_STRING := Format('%d.%d.%d',
-      [fSO_VER_MAJOR, fSO_VER_MINOR, fSO_VER_RELEASE]);
-  end;
+    VerNumber := png_access_version_number();
+    FCurrentLibpngVersionRelease := VerNumber mod 100;
+    FCurrentLibpngVersionMinor := (VerNumber mod 10000) div 100;
+    FCurrentLibpngVersionMajor := VerNumber div 10000;
+    FCurrentLibpngVersion := Format('%d.%d.%d', [
+      FCurrentLibpngVersionMajor,
+      FCurrentLibpngVersionMinor,
+      FCurrentLibpngVersionRelease
+    ]);
+    WritelnLog('LibPng detected (version %s).', [FCurrentLibpngVersion]);
+  end else
+    WritelnLog('LibPng not found. We will use slower FPImage to load PNG format.');
 end;
 
 { error / warning handlers --------------------------------------------------- }
 
 { function our_png_error_fn and our_png_warning_fn are used as libpng
-  error and warning handlers in both SavePNG and LoadPNG.
+  error and warning handlers in both SavePNG_LibPng and LoadPNG_LibPng.
 
   They could use png_get_error_ptr(png_ptr) for some pointer data,
   but for now it is not used. }
@@ -615,9 +588,9 @@ end;
 {$checkpointer on}
 {$endif}
 
-{ LoadPNG ------------------------------------------------------------------- }
+{ LoadPNG_LibPng ------------------------------------------------------------------- }
 
-function LoadPNG(Stream: TStream;
+function LoadPNG_LibPng(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
   function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
@@ -659,7 +632,22 @@ var
 begin
  png_ptr := nil;
  try
-  png_ptr := png_create_read_struct(SO_PNG_LIBPNG_VER_STRING,
+  { Passing here CurrentLibpngVersion (which is obtained by querying libpng
+    library) is a little trick.
+
+    Libpng docs instead advise to pass here PNG_LIBPNG_VER_STRING constant,
+    which should be a constant reflecing the libpng API version we have defined
+    in CastleInternalPng.
+    Then libpng would check whether version is compatible, and eventually
+    report error "png.h and png.c versions not compatible".
+
+    However, this check is too strict in our experience.
+    As we use only a tiny subset of libpng API (and dynamically check
+    for some functions existence, e.g. "Assigned(png_set_expand_gray_1_2_4_to_8)"),
+    we work with any libpng 1.x in practice now.
+    Our own version check (done in each CurrentLibpngVersion call)
+    is sufficient for us. }
+  png_ptr := png_create_read_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
     {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
@@ -761,9 +749,9 @@ begin
  end;
 end;
 
-{ SavePNG --------------------------------------------------------------------- }
+{ SavePNG_LibPng --------------------------------------------------------------------- }
 
-procedure SavePNG(Img: TEncodedImage; Stream: TStream; Interlaced: boolean);
+procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const Interlaced: boolean = false);
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;
@@ -776,7 +764,7 @@ begin
 
  png_ptr := nil;
  try
-  png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,
+  png_ptr := png_create_write_struct(CurrentLibpngVersion,
     nil { we could pass here data to warning/error handlers },
     {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_warning_fn);
@@ -809,12 +797,11 @@ begin
     interlaceType, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
   png_write_info(png_ptr, info_ptr);
 
-  { zapisalismy header i jestesmy bardzo happy bo nie musimy teraz robic tego
-    co bylo nasza bieda w LoadPNG : nakladanie odpowiednich transformacji.
-    Zawsze zapisujemy obrazek w takim formacie w jakim go przechowujemy w
-    TCastleImage - a wiec bitdepth = 8. }
+  { After writing the header, we can write the image contents,
+    in the same format we use for TCastleImage.
+    This is much simpler than LoadPNG_LibPng, since we don't need to transform
+    the format, e.g. we just use always 8 bits per channel. }
 
-  { wiec ready row_pointers and go }
   row_pointers := TFPList.Create;
   try
    row_pointers.Count := Img.Height;
@@ -836,7 +823,4 @@ begin
  end;
 end;
 
-procedure SavePNG(Img: TEncodedImage; Stream: TStream); { interlaced = false }
-begin
-  SavePNG(Img, Stream, false)
-end;
+{$endif} // defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)

@@ -333,7 +333,7 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/png', '', '', '', '', '');
       ExtsCount: 1; Exts: ('png', '', '');
-      { Regardless of CASTLE_PNG_USING_FCL_IMAGE, png load/save can handle
+      { Regardless of using libpng or not, our PNG load/save can handle
         all possibilities. }
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
