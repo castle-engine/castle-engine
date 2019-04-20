@@ -26,11 +26,12 @@
   - It's error prone, it's too easy to forget to include this file in some unit.
     Using a consistent compiler options in scripts is easier.
 
-  The proper compiler options to compile the engine are
+  The proper compiler options to compile the engine are:
   - in the ../../castle-fpc.cfg configuration file (used also by fpmake
     compilation method),
   - and they are replicated in Lazarus packages compilation settings,
-  - and are replicated once more in the castle-engine build tool code.
+  - and are replicated once more in the castle-engine build tool code
+    (toolcompile.pas).
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
