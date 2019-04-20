@@ -18,16 +18,20 @@
 function LoadPNG(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
   if CastlePngInitialized then
     Result := LoadPNG_LibPng(Stream, AllowedImageClasses)
   else
+  {$endif}
     Result := LoadPNG_FPImage(Stream, AllowedImageClasses);
 end;
 
 procedure SavePNG(Img: TEncodedImage; Stream: TStream);
 begin
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
   if CastlePngInitialized then
     SavePNG_LibPng(Img, Stream)
   else
+  {$endif}
     SavePNG_FPImage(Img, Stream);
 end;

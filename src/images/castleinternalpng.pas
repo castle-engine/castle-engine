@@ -5,8 +5,8 @@
   and also has comments not formatted for PasDoc.
 }
 
-{$ifdef CASTLE_PNG_DYNAMIC} {$info PNG loading with dynamic Libpng (fallback on FPImage)} {$endif}
-{$ifdef CASTLE_PNG_STATIC} {$info PNG loading with static Libpng} {$endif}
+{$ifdef CASTLE_PNG_DYNAMIC}  {$endif}
+{$ifdef CASTLE_PNG_STATIC}  {$endif}
 
 unit CastleInternalPng;
 
@@ -16,12 +16,19 @@ unit CastleInternalPng;
 {$endif}
 
 {$if defined(CASTLE_PNG_STATIC)}
+  {$info PNG loading with static Libpng}
   {$I castleinternalpng_static.inc}
+
 {$elseif defined(CASTLE_PNG_DYNAMIC)}
+  {$info PNG loading with dynamic Libpng (fallback on FPImage)}
   {$I castleinternalpng_dynamic.inc}
+
 {$else}
+  {$info PNG loading with FPImage (Libpng disabled)}
   interface
   { Empty. We will not use Libpng API in this case. }
+  const
+    CastlePngInitialized = false;
   implementation
   end.
 {$endif}

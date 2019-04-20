@@ -298,7 +298,8 @@
 
   1.FpImage (fcl-image units):
 
-    Used if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined.
+    Used if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined
+    (you can force it by CASTLE_DISABLE_LIBPNG).
     Or when CASTLE_PNG_DYNAMIC is defined but libpng cannot be loaded.
 
     Then we use PNG implementation inside fcl-image units family,
@@ -344,6 +345,11 @@
 
   {$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
     {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
+  {$endif}
+
+  {$if defined(CASTLE_DISABLE_LIBPNG)}
+    {$undef CASTLE_PNG_DYNAMIC}
+    {$undef CASTLE_PNG_STATIC}
   {$endif}
 {$endif}
 

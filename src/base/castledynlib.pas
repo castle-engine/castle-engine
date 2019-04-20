@@ -201,11 +201,14 @@ class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean)
 var
   Handle: TDynLibHandle;
 begin
-  Handle := LoadLibrary(PChar(AName));
+  Handle :=
+    {$ifdef CASTLE_DISABLE_DYNAMIC_LIBRARIES} InvalidDynLibHandle
+    {$else} LoadLibrary(PChar(AName))
+    {$endif};
   if Handle = InvalidDynLibHandle then
   begin
     if RaiseExceptionOnError then
-      raise EDynLibError.Create('Cannott load dynamic library "' +AName+ '"')
+      raise EDynLibError.Create('Cannot load dynamic library "' +AName+ '"')
     else
       Result := nil;
   end else
