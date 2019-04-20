@@ -21,7 +21,7 @@ unit CastleInternalVorbisDecoder;
 interface
 
 uses SysUtils, Classes,
-  CastleInternalSoundFile;
+  CastleSoundBase, CastleInternalSoundFile;
 
 type
   EVorbisLoadError = class(Exception);

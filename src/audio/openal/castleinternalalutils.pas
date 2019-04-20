@@ -39,15 +39,6 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ Load the sound from given URL using TSoundFile,
-  load it's contents to the OpenAL buffer Buffer.
-
-  @raises(ESoundFileError If loading of this sound file failed.
-    See @link(TSoundFile.CreateFromFile) for various possibible
-    reasons when this may be raised.) }
-procedure alBufferDataFromFile(Buffer: TALuint; const URL: string;
-  out Duration: TFloatTime);
-
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
 
@@ -196,25 +187,6 @@ implementation
 uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 {$define read_implementation}
-
-procedure alBufferDataFromFile(Buffer: TALuint;
-  const URL: string; out Duration: TFloatTime);
-const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
-  );
-var
-  F: TSoundFile;
-begin
-  F := TSoundFile.CreateFromFile(URL);
-  try
-    alBufferData(Buffer, ALDataFormat[F.DataFormat], F.Data, F.DataSize, F.Frequency);
-    Duration := F.Duration;
-  finally F.Free end;
-end;
 
 { error checking ------------------------------------------------------- }
 

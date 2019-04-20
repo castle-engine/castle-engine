@@ -24,7 +24,7 @@ interface
 
 uses SysUtils, Classes, Math,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
-  CastleClassUtils, CastleStringUtils,
+  CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase;
 
 type
@@ -33,7 +33,7 @@ type
     ALBuffer: TALuint;
     function ALVersion11: Boolean;
   public
-    procedure ContextOpen; override;
+    procedure ContextOpen(const SoundFile: TSoundFile; const AURL: String); override;
     procedure ContextClose; override;
   end;
 
@@ -116,11 +116,21 @@ begin
   Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
 end;
 
-procedure TOpenALSoundBufferBackend.ContextOpen;
+procedure TOpenALSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile; const AURL: String);
+const
+  ALDataFormat: array [TSoundDataFormat] of TALuint = (
+    AL_FORMAT_MONO8,
+    AL_FORMAT_MONO16,
+    AL_FORMAT_STEREO8,
+    AL_FORMAT_STEREO16
+  );
 begin
+  inherited;
+
   alCreateBuffers(1, @ALBuffer);
   try
-    alBufferDataFromFile(ALBuffer, URL, Duration);
+    alBufferData(ALBuffer, ALDataFormat[SoundFile.DataFormat],
+      SoundFile.Data, SoundFile.DataSize, SoundFile.Frequency);
   except alDeleteBuffers(1, @ALBuffer); raise end;
 end;
 

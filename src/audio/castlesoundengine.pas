@@ -59,6 +59,8 @@ type
   private
     FURL: string;
     FDuration: TFloatTime;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
@@ -75,6 +77,18 @@ type
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
     property URL: string read FURL;
+
+    { Data format (bits per sample, stereo or mono) of the loaded sound file.
+      Typical applications don't need this value, this is just an information
+      about the loaded sound file.
+      Undefined if not loaded yet. }
+    property DataFormat: TSoundDataFormat read FDataFormat;
+
+    { Frequency (sample rate) of the loaded sound file.
+      Typical applications don't need this value, this is just an information
+      about the loaded sound file.
+      Undefined if not loaded yet. }
+    property Frequency: LongWord read FFrequency;
   end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
@@ -1217,10 +1231,17 @@ end;
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
+  var
+    F: TSoundFile;
   begin
-    Backend.URL := URL;
-    Backend.ContextOpen;
-    FDuration := Backend.Duration;
+    F := TSoundFile.CreateFromFile(URL);
+    try
+      FURL := URL;
+      FDuration := F.Duration;
+      FDataFormat := F.DataFormat;
+      FFrequency := F.Frequency;
+      Backend.ContextOpen(F, URL);
+    finally FreeAndNil(F) end;
     BackendIsOpen := true;
   end;
 

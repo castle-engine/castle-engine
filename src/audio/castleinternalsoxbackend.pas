@@ -24,7 +24,7 @@ interface
 
 uses SysUtils, Classes, Math, Process,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
-  CastleClassUtils, CastleStringUtils,
+  CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase;
 
 type
@@ -32,7 +32,7 @@ type
   private
     FileName: String;
   public
-    procedure ContextOpen; override;
+    procedure ContextOpen(const SoundFile: TSoundFile; const AURL: String); override;
     procedure ContextClose; override;
   end;
 
@@ -80,19 +80,13 @@ type
 implementation
 
 uses StrUtils,
-  CastleLog, CastleUtils, CastleURIUtils, CastleInternalSoundFile,
-  CastleFilesUtils;
+  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils;
 
 { TSoxSoundBufferBackend -------------------------------------------------- }
 
-procedure TSoxSoundBufferBackend.ContextOpen;
-var
-  F: TSoundFile;
+procedure TSoxSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile; const AURL: String);
 begin
-  F := TSoundFile.CreateFromFile(URL);
-  try
-    Duration := F.Duration;
-  finally F.Free end;
+  inherited;
 
   FileName := URIToFilenameSafe(URL);
   { Workaround sox on Windows being unable to process filenames with backslashes. }

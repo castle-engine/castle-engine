@@ -20,7 +20,7 @@ unit CastleInternalAbstractSoundBackend;
 
 interface
 
-uses CastleTimeUtils, CastleVectors, CastleSoundBase;
+uses CastleTimeUtils, CastleVectors, CastleSoundBase, CastleInternalSoundFile;
 
 type
   TSoundEngineBackend = class;
@@ -29,20 +29,32 @@ type
   TSoundBufferBackend = class
   strict private
     FSoundEngine: TSoundEngineBackend;
+
+    { These fields are set by ContextOpen. }
+    FURL: string;
+    FDuration: TFloatTime;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
   protected
     property SoundEngine: TSoundEngineBackend read FSoundEngine;
   public
     { Absolute URL.
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
-    URL: string;
-    Duration: TFloatTime;
+    property URL: String read FURL;
+
+    { Sound buffer information. }
+    property Duration: TFloatTime read FDuration;
+    property DataFormat: TSoundDataFormat read FDataFormat;
+    property Frequency: LongWord read FFrequency;
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
-    { Load from @link(URL), set @link(Duration).
+    { Load from @link(SoundFile) (knowing it corresponds to @link(URL)).
+      When overriding, call inherited first.
       @raises Exception In case sound loading failed for any reason. }
-    procedure ContextOpen; virtual; abstract;
+    procedure ContextOpen(const SoundFile: TSoundFile; const AURL: String); virtual;
+
     { Guaranteed to be called always after ContextOpen that didn't raise exception,
       and before destructor. }
     procedure ContextClose; virtual; abstract;
@@ -129,6 +141,14 @@ constructor TSoundBufferBackend.Create(const ASoundEngine: TSoundEngineBackend);
 begin
   inherited Create;
   FSoundEngine := ASoundEngine;
+end;
+
+procedure TSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile; const AURL: String);
+begin
+  FDuration := SoundFile.Duration;
+  FDataFormat := SoundFile.DataFormat;
+  FFrequency := SoundFile.Frequency;
+  FURL := AURL;
 end;
 
 { TSoundSourceBackend -------------------------------------------------------- }
