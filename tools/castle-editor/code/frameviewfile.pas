@@ -36,7 +36,6 @@ type
     SoundSource: TSound;
     SoundBuffer: TSoundBuffer;
     SoundButton: TCastleButton;
-    procedure ClearLoaded;
     procedure ClickSoundButton(Sender: TObject);
     procedure SoundSourceRelease(Sound: TSound);
     procedure FinishLoading(const AURL: String);
@@ -50,6 +49,7 @@ type
     procedure LoadScene(const AURL: String);
     procedure LoadImage(const AURL: String);
     procedure LoadSound(const AURL: String);
+    procedure ClearLoaded;
   end;
 
 implementation

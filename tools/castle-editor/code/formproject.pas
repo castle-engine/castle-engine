@@ -155,8 +155,9 @@ type
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
-    procedure ShellListViewClick(Sender: TObject);
     procedure ShellListViewDoubleClick(Sender: TObject);
+    procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -363,10 +364,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
     //ShellListView1.FileSortType := fstFoldersFirst;
     ShellListView1.ExcludeMask := ExcludeMask;
-    ShellListView1.OnClick := @ShellListViewClick;
     ShellListView1.OnDblClick := @ShellListViewDoubleClick;
     ShellListView1.ShowHint := true;
     ShellListView1.RowSelect := true;
+    ShellListView1.OnSelectItem := @ShellListViewSelectItem;
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
       '- Scenes open in engine viewer (view3dscene).' + NL +
@@ -597,7 +598,8 @@ begin
   ProcessUpdateTimer.Enabled := false;
 end;
 
-procedure TProjectForm.ShellListViewClick(Sender: TObject);
+procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
 
   { Make sure ViewFileFrame is created and visible.
     For now we create ViewFileFrame on-demand, just in case there's a problem
@@ -653,6 +655,7 @@ begin
   { if control reached here, hide ViewFileFrame if needed }
   if ViewFileFrame <> nil then
   begin
+    ViewFileFrame.ClearLoaded; // stops playing preview sound
     ViewFileFrame.Enabled := false;
     ViewFileFrame.Visible := false;
     SplitterBetweenViewFile.Enabled := false;
