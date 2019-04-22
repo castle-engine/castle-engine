@@ -40,9 +40,9 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="game.pas"/>
+        <Filename Value="gameinitialize.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="Game"/>
+        <UnitName Value="GameInitialize"/>
       </Unit1>
       <Unit2>
         <Filename Value="font_dejavusans.pas"/>
