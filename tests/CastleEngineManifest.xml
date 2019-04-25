@@ -3,7 +3,6 @@
   standalone_source="test_castle_game_engine.lpr">
   <compiler_options>
     <custom_options>
-      <!-- Same options as compile_console.sh script -->
       <option>-gh</option>
       <option>-dTEXT_RUNNER</option>
     </custom_options>
