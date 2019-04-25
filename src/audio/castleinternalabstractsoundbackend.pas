@@ -93,6 +93,9 @@ type
     procedure SetGain(const Value: Single); virtual; abstract;
     procedure SetMinGain(const Value: Single); virtual; abstract;
     procedure SetMaxGain(const Value: Single); virtual; abstract;
+    { We guarantee that SetBuffer is only called on a stopped sound source
+      (when PlayingOrPaused is false, because it finished playing or because Stop
+      was explicitly called). }
     procedure SetBuffer(const Value: TSoundBufferBackend); virtual; abstract;
     procedure SetPitch(const Value: Single); virtual; abstract;
     procedure SetRolloffFactor(const Value: Single); virtual; abstract;
