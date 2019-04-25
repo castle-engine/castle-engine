@@ -31,7 +31,7 @@ unit CastleSoundEngine;
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections,
+uses SysUtils, Classes, Math, Generics.Collections, DOM,
   CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
   CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
   {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
@@ -758,103 +758,14 @@ type
   end;
 
   TLoopingChannel = class;
-  TSoundInfo = class;
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
   TSoundType = record
   private
-    { Just an index to TRepoSoundEngine.SoundNames array. }
+    { Index to TRepoSoundEngine.FSounds array. }
     Index: Cardinal;
   public
-    function InternalInfo: TSoundInfo;
     class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): boolean;
-  end;
-
-  { List of TSoundInfo.
-
-    @exclude
-    @bold(This is an internal class, and in the future will not be publicly available). }
-  TSoundInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>)
-    { Index of sound with given TSoundInfo.Name, or -1 if not found. }
-    function IndexOfName(const SoundName: String): Integer;
-  end;
-
-  { Sound information.
-    Most fields of this classs correspond to appropriate attributes in
-    the XML file loaded by setting @link(TRepoSoundEngine.RepositoryURL).
-
-    @exclude
-    @bold(This is an internal class, and in the future will not be publicly available). }
-  TSoundInfo = class
-  private
-    FBuffer: TSoundBuffer;
-
-    { OpenAL buffer of this sound. @nil if buffer is not yet loaded,
-      which may happen only if TRepoSoundEngine.ContextOpen was not yet
-      called or when sound has URL = ''. }
-    property Buffer: TSoundBuffer read FBuffer;
-  public
-    { Unique sound name (including parent group names). Empty for the special sound stNone. }
-    Name: string;
-
-    { URL from which to load sound data.
-      Absolute (including parent group URL parts).
-
-      Empty means that the sound data is not defined,
-      so the OpenAL buffer will not be initialized and trying to play
-      this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
-      will do nothing. This is useful if you want to use a sound name
-      in code, but you do not have the actual sound file for this yet. }
-    URL: string;
-
-    { Gain (how loud the sound is).
-      They are mapped directly to respective OpenAL source properties,
-      so see OpenAL specification for exact details what they mean.
-      In short:
-
-      @unorderedList(
-        @item(Gain scales the sound loudness. Use this to indicate that
-          e.g. a plane engine is louder than a mouse squeak (when heard
-          from the same distance).
-
-          Do @italic(not) make the actual sound data (in wav, ogg and such files)
-          louder/more silent for this purpose.
-          This is usually bad for sound quality. Instead, keep your sound data
-          at max loudness (normalized), and use this @link(Gain) property
-          to scale sound.
-
-          It can be antything from 0 to +infinity. The default is 1.)
-
-        @item(MinGain and MaxGain force a minimum/maximum sound loudness.
-          These can be used to "cheat" around default distance attenuation
-          calculation.
-
-          These must be in [0, 1] range. By default MinGain is 0 and MaxGain is 1.)
-      )
-
-      Note that Gain value > 1 is allowed.
-      Although sound backend (like OpenAL) may clip the resulting sound (after all
-      calculations taking into account 3D position will be done).
-      The resulting sound is also clamped by MaxGain
-      (that generally must be in [0, 1], although some OpenAL implementations
-      allow values > 1).
-
-      When this sound is used for @link(TLoopingChannel.Sound):
-      @orderedList(
-        @item(MinGain, MaxGain are ignored.)
-        @item(Effective Gain (passed to OpenAL sound source) is the
-          @link(TLoopingChannel.Volume) multiplied by our @link(Gain).)
-      ) }
-    Gain, MinGain, MaxGain: Single;
-
-    { How important the sound is. Influences what happens when we have a lot
-      of sounds playing at once. See TSound.Importance.
-
-      Ignored when this sound is used for @link(TLoopingChannel.Sound). }
-    DefaultImportance: Cardinal;
-
-    { A group (one among FSoundGroups, or @nil if not in any group). }
-    ParentGroup: TSoundInfoList;
   end;
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
@@ -872,7 +783,132 @@ type
   TRepoSoundEngine = class(TSoundEngine)
   private
     type
+      TSoundInfoBuffer = class;
+      TSoundInfoList = class;
+      TSoundGroup = class;
+
+      { Sound that can be played -- actual sound with buffer, or an alias to it. }
+      TSoundInfo = class
+      public
+        { Unique sound name (including parent group names). Empty for the special sound stNone. }
+        Name: String;
+
+        { Like Name, but without parent group names.
+          Unique within the ParentGroup (not necessarily unique among all sounds). }
+        ShortName: String;
+
+        { A group (one among FSoundGroups, or @nil if not in any group). }
+        ParentGroup: TSoundGroup;
+
+        { Read a sound from XML element <sound> or <alias>. }
+        procedure ReadElement(const Element: TDOMElement;
+          const AParentGroup: TSoundGroup;
+          const BaseUrl: String; const ASoundEngine: TRepoSoundEngine); virtual;
+
+        { Do some finalization once all sounds are known, and their names are known. }
+        procedure ResolveNames(const AllSounds: TSoundInfoList); virtual;
+
+        { Get the final TSoundInfoBuffer, resolving aliases. }
+        function FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer; virtual; abstract;
+      end;
+
+      { List of TSoundInfo. }
+      TSoundInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>)
+      public
+        { Index of sound with given TSoundInfo.Name, or -1 if not found. }
+        function IndexOfName(const SoundName: String): Integer;
+      end;
+
+      { Sound that can be played, as an alias to a number of other TSoundInfo instances
+        (an alias may lead to another alias, that's OK, as long as eventually it
+        resolves into actual sound name). }
+      TSoundInfoAlias = class(TSoundInfo)
+      strict private
+        Target: TCastleStringList;
+      public
+        constructor Create;
+        destructor Destroy; override;
+        procedure ReadElement(const Element: TDOMElement;
+          const AParentGroup: TSoundGroup;
+          const BaseUrl: String; const ASoundEngine: TRepoSoundEngine); override;
+        procedure ResolveNames(const AllSounds: TSoundInfoList); override;
+        function FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer; override;
+      end;
+
+      { Sound that can be played, with a buffer.
+        Most fields of this classs correspond to appropriate attributes in
+        the XML file loaded by setting @link(TRepoSoundEngine.RepositoryURL). }
+      TSoundInfoBuffer = class(TSoundInfo)
+      public
+        { Buffer of this sound. @nil if buffer is not yet loaded,
+          which may happen only if TRepoSoundEngine.ContextOpen was not yet
+          called or when sound has URL = ''. }
+        Buffer: TSoundBuffer;
+
+        { URL from which to load sound data.
+          Absolute (including parent group URL parts).
+
+          Empty means that the sound data is not defined,
+          so the OpenAL buffer will not be initialized and trying to play
+          this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
+          will do nothing. This is useful if you want to use a sound name
+          in code, but you do not have the actual sound file for this yet. }
+        URL: string;
+
+        { Gain (how loud the sound is).
+          They are mapped directly to respective OpenAL source properties,
+          so see OpenAL specification for exact details what they mean.
+          In short:
+
+          @unorderedList(
+            @item(Gain scales the sound loudness. Use this to indicate that
+              e.g. a plane engine is louder than a mouse squeak (when heard
+              from the same distance).
+
+              Do @italic(not) make the actual sound data (in wav, ogg and such files)
+              louder/more silent for this purpose.
+              This is usually bad for sound quality. Instead, keep your sound data
+              at max loudness (normalized), and use this @link(Gain) property
+              to scale sound.
+
+              It can be antything from 0 to +infinity. The default is 1.)
+
+            @item(MinGain and MaxGain force a minimum/maximum sound loudness.
+              These can be used to "cheat" around default distance attenuation
+              calculation.
+
+              These must be in [0, 1] range. By default MinGain is 0 and MaxGain is 1.)
+          )
+
+          Note that Gain value > 1 is allowed.
+          Although sound backend (like OpenAL) may clip the resulting sound (after all
+          calculations taking into account 3D position will be done).
+          The resulting sound is also clamped by MaxGain
+          (that generally must be in [0, 1], although some OpenAL implementations
+          allow values > 1).
+
+          When this sound is used for @link(TLoopingChannel.Sound):
+          @orderedList(
+            @item(MinGain, MaxGain are ignored.)
+            @item(Effective Gain (passed to OpenAL sound source) is the
+              @link(TLoopingChannel.Volume) multiplied by our @link(Gain).)
+          ) }
+        Gain, MinGain, MaxGain: Single;
+
+        { How important the sound is. Influences what happens when we have a lot
+          of sounds playing at once. See TSound.Importance.
+
+          Ignored when this sound is used for @link(TLoopingChannel.Sound). }
+        DefaultImportance: Cardinal;
+
+        procedure ReadElement(const Element: TDOMElement;
+          const AParentGroup: TSoundGroup;
+          const BaseUrl: String; const ASoundEngine: TRepoSoundEngine); override;
+        function FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer; override;
+      end;
+
       TSoundGroup = class(TSoundInfoList)
+      public
         { Group name (including parent group names). }
         Name: string;
         { Group URL.
@@ -884,6 +920,7 @@ type
       end;
 
       TSoundGroupList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundGroup>)
+      public
         { Index of group with given TSoundGroup.Name, or -1 if not found. }
         function IndexOfName(const GroupName: String): Integer;
       end;
@@ -892,21 +929,27 @@ type
 
     var
       FSoundImportanceNames: TStringList;
+      { A list of sounds used by your program.
+        Each sound has a unique name, used to identify sound in
+        the XML file and for SoundFromName function.
+
+        At the beginning, this list always contains exactly one sound: empty stNone.
+        This is a special "sound type" that has index 0 (should be always
+        expressed as TSoundType value stNone) and name ''.
+        stNone is a special sound as it actually means "no sound" in many cases. }
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
       FRepositoryURL: string;
       FLoopingChannels: TLoopingChannelList;
 
     procedure SetRepositoryURL(const Value: string);
-
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
-
-    procedure ContextOpenCore; override;
-
     function GetMusicPlayer: TLoopingChannel;
     function GetLoopingChannel(const Index: Cardinal): TLoopingChannel;
+    function FinalSound(const SoundType: TSoundType): TSoundInfoBuffer;
+    procedure ContextOpenCore; override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -963,16 +1006,6 @@ type
       without restarting the game and sound engine. }
     procedure ReloadSounds;
 
-    { A list of sounds used by your program.
-      Each sound has a unique name, used to identify sound in
-      the XML file and for SoundFromName function.
-
-      At the beginning, this list always contains exactly one sound: empty stNone.
-      This is a special "sound type" that has index 0 (should be always
-      expressed as TSoundType value stNone) and name ''.
-      stNone is a special sound as it actually means "no sound" in many cases. }
-    property Sounds: TSoundInfoList read FSounds; deprecated 'do not use this, it is internal information';
-
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
       by RepositoryURL.
@@ -1000,7 +1033,7 @@ type
 
       Returns used TSound (or nil if none was available).
       You don't have to do anything with this returned TSound. }
-    function Sound(SoundType: TSoundType;
+    function Sound(const SoundType: TSoundType;
       const Looping: boolean = false): TSound;
 
     { Play given sound at appropriate position in 3D space.
@@ -1009,7 +1042,7 @@ type
       You don't have to do anything with this returned TSound.
 
       @noAutoLinkHere }
-    function Sound3D(SoundType: TSoundType;
+    function Sound3D(const SoundType: TSoundType;
       const Position: TVector3;
       const Looping: boolean = false): TSound; overload;
 
@@ -1100,6 +1133,9 @@ type
     FAllocatedSource: TSound;
 
     FVolume: Single;
+    { Constant Gain of TSoundInfo associated with Sound,
+      will be multiplied by Volume. }
+    SoundInfoGain: Single;
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
@@ -1212,7 +1248,7 @@ implementation
 { use a deprecated unit below, only to have it compiled together with Lazarus
   castle_base.lpk package }
 {$warnings off}
-uses DOM, XMLRead, StrUtils, Generics.Defaults,
+uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
@@ -2321,11 +2357,6 @@ end;
 
 { TSoundType ----------------------------------------------------------------- }
 
-function TSoundType.InternalInfo: TSoundInfo;
-begin
-  Result := SoundEngine.FSounds[Index];
-end;
-
 class operator TSoundType.{$ifdef FPC}={$else}Equals{$endif}
   (const SoundType1, SoundType2: TSoundType): boolean;
 begin
@@ -2334,7 +2365,7 @@ end;
 
 { TSoundInfoList ------------------------------------------------------------- }
 
-function TSoundInfoList.IndexOfName(const SoundName: String): Integer;
+function TRepoSoundEngine.TSoundInfoList.IndexOfName(const SoundName: String): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Name = SoundName then
@@ -2351,6 +2382,166 @@ begin
     if Items[Result].Name = GroupName then
       Exit;
   Result := -1;
+end;
+
+{ TRepoSoundEngine.TSoundInfo ------------------------------------------------ }
+
+procedure TRepoSoundEngine.TSoundInfo.ReadElement(const Element: TDOMElement;
+  const AParentGroup: TSoundGroup;
+  const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
+begin
+  ShortName := Element.AttributeString('name');
+  Name := ShortName;
+
+  ParentGroup := AParentGroup;
+  if ParentGroup <> nil then
+    Name := ParentGroup.Name + '/' + Name;
+end;
+
+procedure TRepoSoundEngine.TSoundInfo.ResolveNames(const AllSounds: TSoundInfoList);
+begin
+end;
+
+{ TRepoSoundEngine.TSoundInfoAlias ------------------------------------------- }
+
+constructor TRepoSoundEngine.TSoundInfoAlias.Create;
+begin
+  inherited;
+  Target := TCastleStringList.Create;
+end;
+
+destructor TRepoSoundEngine.TSoundInfoAlias.Destroy;
+begin
+  FreeAndNil(Target);
+  inherited;
+end;
+
+procedure TRepoSoundEngine.TSoundInfoAlias.ReadElement(const Element: TDOMElement;
+  const AParentGroup: TSoundGroup;
+  const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
+var
+  I: TXMLElementIterator;
+  TargetName: String;
+begin
+  inherited;
+
+  I := Element.ChildrenIterator('target');
+  try
+    while I.GetNext do
+    begin
+      TargetName := I.Current.AttributeString('name');
+      if ParentGroup <> nil then
+        TargetName := ParentGroup.Name + '/' + TargetName;
+      Target.Add(TargetName);
+    end;
+  finally FreeAndNil(I) end;
+
+  if Target.Count = 0 then
+    raise EInvalidSoundRepositoryXml.CreateFmt('Alias "%s" does not define any targets',
+      [Name]);
+end;
+
+procedure TRepoSoundEngine.TSoundInfoAlias.ResolveNames(const AllSounds: TSoundInfoList);
+var
+  I, TargetIndex: Integer;
+begin
+  inherited;
+
+  for I := 0 to Target.Count - 1 do
+  begin
+    TargetIndex := AllSounds.IndexOfName(Target[I]);
+    if TargetIndex = -1 then
+      raise EInvalidSoundRepositoryXml.CreateFmt('Alias "%s" target "%s" not found',
+        [Name, Target[I]]);
+    Target.Objects[I] := AllSounds[TargetIndex];
+  end;
+end;
+
+function TRepoSoundEngine.TSoundInfoAlias.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
+const
+  MaxRecursionDepth = 100;
+var
+  RandomTarget: TSoundInfo;
+begin
+  RandomTarget := Target.Objects[Random(Target.Count)] as TSoundInfo;
+  { Instead of returning RandomTarget, we return RandomTarget.FinalSound.
+    This way an <alias> may point to another <alias>.
+    To avoid infinite loop, we use MaxRecursionDepth. }
+  if RecursionDepth > MaxRecursionDepth then
+    raise EInvalidSoundRepositoryXml.CreateFmt('Possible infinite loop when trying to resolve sound alias, detected at alias "%s". Recursion depth %s reached.',
+      [Name, RecursionDepth]);
+  Result := RandomTarget.FinalSound(RecursionDepth + 1);
+end;
+
+{ TRepoSoundEngine.TSoundInfoBuffer ------------------------------------------ }
+
+procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMElement;
+  const AParentGroup: TSoundGroup;
+  const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
+var
+  ImportanceStr, URLPrefix: String;
+  SoundImportanceIndex: Integer;
+begin
+  inherited;
+
+  { init to default values }
+  Gain := 1;
+  MinGain := 0;
+  MaxGain := 1;
+  DefaultImportance := MaxSoundImportance;
+
+  { retrieve URL using AttributeString
+    (that internally uses Element.Attributes.GetNamedItem),
+    because we have to distinguish between the case when url/file_name
+    attribute is not present (in this case URL is left as it was)
+    and when it's present and set to empty string
+    (in this case URL must also be set to empty string).
+    Standard Element.GetAttribute wouldn't allow me this. }
+  if (Element.AttributeString('url', URL) or
+      Element.AttributeString('file_name', URL)) and
+     (URL <> '') then
+  begin
+    URL := CombineURI(BaseUrl, URL)
+  end else
+  begin
+    URLPrefix := CombineURI(BaseUrl, ShortName);
+    if URIFileExists(URLPrefix + '.ogg') then
+      URL := URLPrefix + '.ogg'
+    else
+    if URIFileExists(URLPrefix + '.wav') then
+      URL := URLPrefix + '.wav'
+    else
+      WritelnWarning('No matching sound file found for sound "%s"', [Name]);
+  end;
+
+  Element.AttributeSingle('gain', Gain);
+  Element.AttributeSingle('min_gain', MinGain);
+  Element.AttributeSingle('max_gain', MaxGain);
+
+  { MaxGain is max 1. Although some sound backends (like some OpenAL backends)
+    implementations allow > 1,
+    Windows implementation of OpenAL (from Creative) doesn't.
+    For consistent results, we don't allow it anywhere. }
+  if MaxGain > 1 then
+    MaxGain := 1;
+
+  if Element.AttributeString('default_importance', ImportanceStr) then
+  begin
+    SoundImportanceIndex := ASoundEngine.SoundImportanceNames.IndexOf(ImportanceStr);
+    if SoundImportanceIndex = -1 then
+      DefaultImportance := StrToInt(ImportanceStr)
+    else
+      DefaultImportance := PtrUInt(ASoundEngine.SoundImportanceNames.Objects[SoundImportanceIndex]);
+  end;
+
+  { set Buffer at the end, when URL is set }
+  if URL <> '' then
+    Buffer := ASoundEngine.LoadBuffer(URL, false);
+end;
+
+function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
+begin
+  Result := Self;
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
@@ -2375,7 +2566,7 @@ begin
 
   FSounds := TSoundInfoList.Create;
   { add stNone sound }
-  FSounds.Add(TSoundInfo.Create);
+  FSounds.Add(TSoundInfoBuffer.Create);
 
   FLoopingChannels := TLoopingChannelList.Create(true);
 
@@ -2417,141 +2608,153 @@ begin
         L.AllocateSource;
 end;
 
-function TRepoSoundEngine.Sound(SoundType: TSoundType;
+function TRepoSoundEngine.FinalSound(const SoundType: TSoundType): TSoundInfoBuffer;
+begin
+  if SoundType.Index = 0 then
+    Exit(nil);
+
+  Result := FSounds[SoundType.Index].FinalSound(0);
+  if Result.URL = '' then
+    Exit(nil);
+end;
+
+function TRepoSoundEngine.Sound(const SoundType: TSoundType;
   const Looping: boolean): TSound;
+var
+  SoundInfo: TSoundInfoBuffer;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
-    - SoundType is stNone if not defined in sounds.xml.
-    - SoundType is <> stNone but URL = '' if sound name is defined in
+    - SoundType is stNone (which includes sound names not defined in sounds.xml,
+      since SoundFromName returns stNone for them).
+    - SoundType is <> stNone but URL = '' (if sound name is defined in
       sounds.xml with explicit url="", like this:
-      <sound name="player_sudden_pain" url="" />
+      <sound name="player_sudden_pain" url="" />)
   }
-  if (SoundType.Index = 0) or (FSounds[SoundType.Index].URL = '') then Exit(nil);
+  SoundInfo := FinalSound(SoundType);
+  if SoundInfo = nil then Exit(nil);
 
   ContextOpen;
 
-  if FSounds[SoundType.Index].Buffer = nil then Exit(nil);
+  { Check this only after ContextOpen,
+    since before ContextOpen the Buffer always = nil. }
+  if SoundInfo.Buffer = nil then Exit(nil);
 
   Result := PlaySound(
-    FSounds[SoundType.Index].Buffer, false, Looping,
-    FSounds[SoundType.Index].DefaultImportance,
-    FSounds[SoundType.Index].Gain,
-    FSounds[SoundType.Index].MinGain,
-    FSounds[SoundType.Index].MaxGain,
+    SoundInfo.Buffer, false, Looping,
+    SoundInfo.DefaultImportance,
+    SoundInfo.Gain,
+    SoundInfo.MinGain,
+    SoundInfo.MaxGain,
     TVector3.Zero);
 end;
 
-function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
+function TRepoSoundEngine.Sound3D(const SoundType: TSoundType;
   const Position: TVector3;
   const Looping: boolean): TSound;
+var
+  SoundInfo: TSoundInfoBuffer;
 begin
   { If there is no actual sound, exit early without initializing sound backend.
-    See Sound for duplicate of this "if" and more comments. }
-  if (SoundType.Index = 0) or (FSounds[SoundType.Index].URL = '') then Exit(nil);
+    See Sound for more comments why we do this. }
+  SoundInfo := FinalSound(SoundType);
+  if SoundInfo = nil then Exit(nil);
 
   ContextOpen;
 
-  if FSounds[SoundType.Index].Buffer = nil then Exit(nil);
+  if SoundInfo.Buffer = nil then Exit(nil);
 
   Result := PlaySound(
-    FSounds[SoundType.Index].Buffer, true, Looping,
-    FSounds[SoundType.Index].DefaultImportance,
-    FSounds[SoundType.Index].Gain,
-    FSounds[SoundType.Index].MinGain,
-    FSounds[SoundType.Index].MaxGain,
+    SoundInfo.Buffer, true, Looping,
+    SoundInfo.DefaultImportance,
+    SoundInfo.Gain,
+    SoundInfo.MinGain,
+    SoundInfo.MaxGain,
     Position);
 end;
 
 procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
 
-  { Add a sound from XML element <sound>.
-    BaseUrl must end with slash. }
-  procedure ReadSound(const Element: TDOMElement;
+  { Check that SoundInfo.Name is unique. }
+  procedure CheckUniqueSoundInfo(var SoundInfo: TSoundInfo);
+  begin
+    if FSounds.IndexOfName(SoundInfo.Name) <> -1 then
+      raise EInvalidSoundRepositoryXml.CreateFmt('Sound name "%s" is not unique',
+        [SoundInfo.Name]);
+  end;
+
+  { Check that Group.Name is unique. }
+  procedure CheckUniqueGroup(var Group: TSoundGroup);
+  begin
+    if FSoundGroups.IndexOfName(Group.Name) <> -1 then
+      raise EInvalidSoundRepositoryXml.CreateFmt('Group name "%s" is not unique',
+        [Group.Name]);
+  end;
+
+  procedure ReadGroup(const Group: TSoundGroup;
+    const Element: TDOMElement;
+    const ParentGroup: TSoundGroup;
+    const BaseUrl: String); forward;
+
+  { Read <group> child XML element, like <sound> or <alias> or another <group>. }
+  procedure ReadGroupChild(const Element: TDOMElement;
     const ParentGroup: TSoundGroup;
     const BaseUrl: String);
   var
-    S: TSoundInfo;
-    ImportanceStr, ShortName, URLPrefix: String;
-    SoundImportanceIndex: Integer;
+    SoundInfo: TSoundInfo;
+    Group: TSoundGroup;
   begin
-    S := TSoundInfo.Create;
-    ShortName := Element.AttributeString('name');
-    S.Name := ShortName;
-
-    S.ParentGroup := ParentGroup;
-    if ParentGroup <> nil then
-      S.Name := ParentGroup.Name + '/' + S.Name;
-
-    { init to default values }
-    S.Gain := 1;
-    S.MinGain := 0;
-    S.MaxGain := 1;
-    S.DefaultImportance := MaxSoundImportance;
-
-    if FSounds.IndexOfName(S.Name) <> -1 then
-      raise EInvalidSoundRepositoryXml.CreateFmt('Sound name "%s" is not unique',
-        [S.Name]);
-    FSounds.Add(S);
-
-    { retrieve URL using AttributeString
-      (that internally uses Element.Attributes.GetNamedItem),
-      because we have to distinguish between the case when url/file_name
-      attribute is not present (in this case S.URL is left as it was)
-      and when it's present and set to empty string
-      (in this case S.URL must also be set to empty string).
-      Standard Element.GetAttribute wouldn't allow me this. }
-    if (Element.AttributeString('url', S.URL) or
-        Element.AttributeString('file_name', S.URL)) and
-       (S.URL <> '') then
+    if Element.TagName = 'sound' then
     begin
-      S.URL := CombineURI(BaseUrl, S.URL)
+      SoundInfo := TSoundInfoBuffer.Create;
+      try
+        SoundInfo.ReadElement(Element, ParentGroup, BaseUrl, Self);
+        CheckUniqueSoundInfo(SoundInfo);
+      except
+        { In case SoundInfo.ReadElement fails (e.g. because LoadBuffer failed),
+          or in case CheckUniqueSoundInfo fails (name not unique), avoid memory leaks. }
+        FreeAndNil(SoundInfo);
+        raise;
+      end;
+      FSounds.Add(SoundInfo);
     end else
+    if Element.TagName = 'alias' then
     begin
-      URLPrefix := CombineURI(BaseUrl, ShortName);
-      if URIFileExists(URLPrefix + '.ogg') then
-        S.URL := URLPrefix + '.ogg'
-      else
-      if URIFileExists(URLPrefix + '.wav') then
-        S.URL := URLPrefix + '.wav'
-      else
-        WritelnWarning('No matching sound file found for sound "%s"', [S.Name]);
-    end;
-
-    Element.AttributeSingle('gain', S.Gain);
-    Element.AttributeSingle('min_gain', S.MinGain);
-    Element.AttributeSingle('max_gain', S.MaxGain);
-
-    { MaxGain is max 1. Although some sound backends (like some OpenAL backends)
-      implementations allow > 1,
-      Windows implementation of OpenAL (from Creative) doesn't.
-      For consistent results, we don't allow it anywhere. }
-    if S.MaxGain > 1 then
-      S.MaxGain := 1;
-
-    if Element.AttributeString('default_importance', ImportanceStr) then
+      SoundInfo := TSoundInfoAlias.Create;
+      try
+        SoundInfo.ReadElement(Element, ParentGroup, BaseUrl, Self);
+        CheckUniqueSoundInfo(SoundInfo);
+      except
+        FreeAndNil(SoundInfo);
+        raise;
+      end;
+      FSounds.Add(SoundInfo);
+    end else
+    if Element.TagName = 'group' then
     begin
-      SoundImportanceIndex := SoundImportanceNames.IndexOf(ImportanceStr);
-      if SoundImportanceIndex = -1 then
-        S.DefaultImportance := StrToInt(ImportanceStr) else
-        S.DefaultImportance :=
-          PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
-    end;
-
-    { set S.FBuffer at the end, when S.URL is set }
-    if S.URL <> '' then
-      S.FBuffer := LoadBuffer(S.URL, false);
+      Group := TSoundGroup.Create;
+      try
+        ReadGroup(Group, Element, ParentGroup, BaseUrl);
+        CheckUniqueGroup(Group);
+      except
+        FreeAndNil(Group);
+        raise;
+      end;
+      { Adding Group to FSoundGroups makes TSoundGroup freed later. }
+      FSoundGroups.Add(Group);
+    end else
+      raise EInvalidSoundRepositoryXml.CreateFmt('Invalid XML element "%s" in sounds XML file',
+        [Element.TagName]);
   end;
 
   { Read a group of sounds from XML element <group>. }
-  procedure ReadGroup(const Element: TDOMElement;
+  procedure ReadGroup(const Group: TSoundGroup;
+    const Element: TDOMElement;
     const ParentGroup: TSoundGroup;
     const BaseUrl: String);
   var
     I: TXMLElementIterator;
-    Group: TSoundGroup;
     Subdirectory: String;
   begin
-    Group := TSoundGroup.Create;
     Group.ParentGroup := ParentGroup;
 
     { calculate Group.Name }
@@ -2564,27 +2767,19 @@ procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
     if Subdirectory <> '' then
       Group.URL := Group.URL + Subdirectory + '/';
 
-    if FSoundGroups.IndexOfName(Group.Name) <> -1 then
-      raise EInvalidSoundRepositoryXml.CreateFmt('Group name "%s" is not unique',
-        [Group.Name]);
-
-    { Add to a flat list of groups, to free TSoundGroup at end. }
-    FSoundGroups.Add(Group);
-
     I := Element.ChildrenIterator;
     try
       while I.GetNext do
-      begin
-        if I.Current.TagName = 'sound' then
-          ReadSound(I.Current, Group, Group.URL)
-        else
-        if I.Current.TagName = 'group' then
-          ReadGroup(I.Current, Group, Group.URL)
-        else
-          raise EInvalidSoundRepositoryXml.CreateFmt('Invalid XML element "%s" in sounds XML file',
-            [I.Current.TagName]);
-      end;
+        ReadGroupChild(I.Current, Group, Group.URL);
     finally FreeAndNil(I) end;
+  end;
+
+  procedure ResolveNames;
+  var
+    S: TSoundInfo;
+  begin
+    for S in FSounds do
+      S.ResolveNames(FSounds);
   end;
 
 var
@@ -2597,6 +2792,7 @@ begin
   if FRepositoryURL = Value then Exit;
   FRepositoryURL := Value;
 
+  FSoundGroups.Clear;
   FSounds.Clear;
   { add stNone sound }
   FSounds.Add(TSoundInfo.Create);
@@ -2629,20 +2825,13 @@ begin
     I := SoundConfig.DocumentElement.ChildrenIterator;
     try
       while I.GetNext do
-      begin
-        if I.Current.TagName = 'sound' then
-          ReadSound(I.Current, nil, BaseUrl)
-        else
-        if I.Current.TagName = 'group' then
-          ReadGroup(I.Current, nil, BaseUrl)
-        else
-          raise EInvalidSoundRepositoryXml.CreateFmt('Invalid XML element "%s" in sounds XML file',
-            [I.Current.TagName]);
-      end;
+        ReadGroupChild(I.Current, nil, BaseUrl);
     finally FreeAndNil(I) end;
   finally
     FreeAndNil(SoundConfig);
   end;
+
+  ResolveNames;
 
   { read common sound names }
   stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
@@ -2762,11 +2951,18 @@ begin
 end;
 
 procedure TLoopingChannel.AllocateSource;
+var
+  SoundInfo: TRepoSoundEngine.TSoundInfoBuffer;
 begin
+  SoundInfo := FEngine.FinalSound(Sound);
+  if SoundInfo = nil then Exit;
+
+  SoundInfoGain := SoundInfo.Gain;
+
   FAllocatedSource := FEngine.PlaySound(
-    FEngine.FSounds[Sound.Index].Buffer, false, true,
+    SoundInfo.Buffer, false, true,
     MaxSoundImportance,
-    Volume * FEngine.FSounds[Sound.Index].Gain, 0, 1,
+    Volume * SoundInfoGain, 0, 1,
     TVector3.Zero);
 
   if FAllocatedSource <> nil then
@@ -2808,7 +3004,7 @@ begin
   begin
     FVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := Volume * FEngine.FSounds[Sound.Index].Gain;
+      FAllocatedSource.Gain := Volume * SoundInfoGain;
   end;
 end;
 

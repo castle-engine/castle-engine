@@ -58,11 +58,13 @@ procedure TTestGame.TestGameData;
 var
   Player: TPlayer;
   RemovePlayer: TRemoveType;
-  SoundType: TSoundType;
+  //SoundType: TSoundType;
   C: TWalkAttackCreatureResource;
   MatProp: TMaterialProperty;
 begin
   SoundEngine.RepositoryURL := 'data/game/sounds.xml';
+
+{ InternalInfo is private now.
 
   AssertTrue(stNone.InternalInfo.Name = '');
   AssertTrue(stNone.InternalInfo.URL = '');
@@ -73,6 +75,7 @@ begin
   AssertFloat(SoundType.InternalInfo.Gain, 1);
   AssertFloat(SoundType.InternalInfo.MinGain, 0.8);
   AssertFloat(SoundType.InternalInfo.MaxGain, 1);
+}
 
   Resources.LoadFromFiles('data/game/');
 
