@@ -782,6 +782,7 @@ type
     property. }
   TRepoSoundEngine = class(TSoundEngine)
   private
+    {$ifndef PASDOC} // PasDoc cannot parse the private section of this correctly yet
     type
       TSoundInfoBuffer = class;
       TSoundInfoList = class;
@@ -941,6 +942,7 @@ type
       FSoundGroups: TSoundGroupList;
       FRepositoryURL: string;
       FLoopingChannels: TLoopingChannelList;
+    {$endif PASDOC}
 
     procedure SetRepositoryURL(const Value: string);
     { Reinitialize looping channels sounds.
