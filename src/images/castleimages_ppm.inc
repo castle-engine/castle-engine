@@ -26,7 +26,7 @@
   Occurs with both debug and release build.
   To reproduce, just try to open
   castle_game_engine/tests/data/images/rgb.ppm
-  with glViewImage. Or just castle_game_engine/tests/
+  with castle-view-image. Or just castle_game_engine/tests/
   (the CastleImage tests there also open rgb.ppm).
 }
 

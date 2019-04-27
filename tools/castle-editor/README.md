@@ -92,7 +92,7 @@ You can browse the application files. Our "Files Browser" just displays the file
 * Clicking on various files runs a CGE tool suitable to preview/edit them:
 
     * On 3D and 2D models you can run view3dscene.
-    * On images you can run glViewImage.
+    * On images you can run castle-view-image.
     * On text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
     * On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
     * On other files, we can run the default OS application for them (`OpenDocument`)
@@ -112,7 +112,7 @@ The editor is distributed as part of Castle Game Engine, also in binary form (fo
 - castle-editor
 - castle-engine (our build tool)
 - view3dscene
-- glViewImage
+- castle-view-image
 - other tools from castle-engine/tools/ directory
 - maybe external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
 

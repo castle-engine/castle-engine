@@ -190,7 +190,7 @@ do_pack_platform ()
 
   # Add tools
   add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
-  add_external_tool glviewimage glViewImage"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
 
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
   cd "${TEMP_PATH}"

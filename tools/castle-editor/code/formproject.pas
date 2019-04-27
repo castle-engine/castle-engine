@@ -371,7 +371,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.Hint := 'Double-click to open.' + NL +
       NL +
       '- Scenes open in engine viewer (view3dscene).' + NL +
-      '- Images open in engine viewer (glViewImage).' + NL +
+      '- Images open in engine viewer (castle-view-image).' + NL +
       '- Design opens in this editor window.' + NL +
       '- Other files open in external applications.';
 
@@ -697,7 +697,7 @@ begin
 
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWith('glViewImage', SelectedURL);
+      OpenWith('castle-view-image', SelectedURL);
       Exit;
     end;
 
