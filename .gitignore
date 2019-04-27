@@ -32,6 +32,7 @@ backup
 *.apk
 *.log
 *.exe
+*.dll
 *.pro.user
 .DS_Store
 xcuserdata
