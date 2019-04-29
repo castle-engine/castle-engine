@@ -1278,7 +1278,7 @@ procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
       FDuration := F.Duration;
       FDataFormat := F.DataFormat;
       FFrequency := F.Frequency;
-      Backend.ContextOpen(F, URL);
+      Backend.ContextOpen(F);
     finally FreeAndNil(F) end;
     BackendIsOpen := true;
   end;

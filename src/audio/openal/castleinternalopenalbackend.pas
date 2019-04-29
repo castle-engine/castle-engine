@@ -33,7 +33,7 @@ type
     ALBuffer: TALuint;
     function ALVersion11: Boolean;
   public
-    procedure ContextOpen(const SoundFile: TSoundFile; const AURL: String); override;
+    procedure ContextOpen(const SoundFile: TSoundFile); override;
     procedure ContextClose; override;
   end;
 
@@ -116,7 +116,7 @@ begin
   Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
 end;
 
-procedure TOpenALSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile; const AURL: String);
+procedure TOpenALSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
 const
   ALDataFormat: array [TSoundDataFormat] of TALuint = (
     AL_FORMAT_MONO8,

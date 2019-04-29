@@ -50,10 +50,10 @@ type
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
-    { Load from @link(SoundFile) (knowing it corresponds to @link(URL)).
+    { Load from @link(SoundFile).
       When overriding, call inherited first.
       @raises Exception In case sound loading failed for any reason. }
-    procedure ContextOpen(const SoundFile: TSoundFile; const AURL: String); virtual;
+    procedure ContextOpen(const SoundFile: TSoundFile); virtual;
 
     { Guaranteed to be called always after ContextOpen that didn't raise exception,
       and before destructor. }
@@ -146,12 +146,12 @@ begin
   FSoundEngine := ASoundEngine;
 end;
 
-procedure TSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile; const AURL: String);
+procedure TSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
 begin
   FDuration := SoundFile.Duration;
   FDataFormat := SoundFile.DataFormat;
   FFrequency := SoundFile.Frequency;
-  FURL := AURL;
+  FURL := SoundFile.URL;
 end;
 
 { TSoundSourceBackend -------------------------------------------------------- }

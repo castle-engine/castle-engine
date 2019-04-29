@@ -33,8 +33,13 @@ type
   EWavLoadError = class(ESoundFileError);
 
   TSoundFile = class
+  strict private
+    FURL: String;
   public
     { Load a sound from a stream.
+
+      @param(URL Is used to initialize URL property.
+        It is not used to load, the URL contents are assumed to be in Stream.)
 
       @raises(ESoundFileError If loading of this sound file failed.
         E.g. in case of decoding problems
@@ -49,13 +54,16 @@ type
         as ESoundFileError.
       )
     }
-    constructor CreateFromStream(Stream: TStream); virtual; abstract;
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); virtual;
 
     { Load a sound data from a given URL.
 
       @raises(ESoundFileError If loading of this sound file failed.
         See @link(CreateFromStream) for various possible reasons.) }
-    class function CreateFromFile(const URL: string): TSoundFile;
+    class function CreateFromFile(const AURL: string): TSoundFile;
+
+    { URL from which we loaded this sound file. }
+    property URL: String read FURL;
 
     { Sound data, according to DataFormat.
       Contents of Data are readonly. }
@@ -81,7 +89,7 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
-    constructor CreateFromStream(Stream: TStream); override;
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
 
     function Data: Pointer; override;
@@ -97,8 +105,7 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
-    constructor CreateFromStream(Stream: TStream); override;
-
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
 
     function Data: Pointer; override;
@@ -118,18 +125,18 @@ uses CastleStringUtils, CastleInternalVorbisDecoder, CastleInternalVorbisFile,
 
 { TSoundFile ----------------------------------------------------------------- }
 
-class function TSoundFile.CreateFromFile(const URL: string): TSoundFile;
+class function TSoundFile.CreateFromFile(const AURL: string): TSoundFile;
 var
   C: TSoundFileClass;
   S: TStream;
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + URL + ' (TSoundFile)');
+  TimeStart := Profiler.Start('Loading ' + AURL + ' (TSoundFile)');
   try
     try
       { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
-      S := Download(URL, [soForceMemoryStream], MimeType);
+      S := Download(AURL, [soForceMemoryStream], MimeType);
       try
         { calculate class to read based on MimeType }
         if MimeType = 'audio/x-wav' then
@@ -142,11 +149,11 @@ begin
           raise ESoundFileError.Create('TODO: Reading MP3 sound files not supported. Convert them to OggVorbis.')
         else
         begin
-          WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
+          WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, AURL]));
           C := TSoundWAV;
         end;
 
-        Result := C.CreateFromStream(S);
+        Result := C.CreateFromStream(S, AURL);
 
         {$ifdef CASTLE_NINTENDO_SWITCH}
         // NX backend only supports 16-bit sound data.
@@ -155,7 +162,7 @@ begin
 
         if LogSoundLoading then
           WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
-            URIDisplay(URL),
+            URIDisplay(AURL),
             Result.ClassName,
             DataFormatToStr(Result.DataFormat),
             Result.DataSize,
@@ -167,15 +174,21 @@ begin
       { May be raised by Download in case opening the underlying stream failed. }
       on E: EFOpenError do
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(URL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(AURL) + '": ' + E.Message);
 
       { May be raised by C.CreateFromStream. }
       on E: EStreamError do
         { Reraise as ESoundFileError, and add URL to exception message }
-        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message);
+        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(AURL) + '": ' + E.Message);
     end;
 
   finally Profiler.Stop(TimeStart) end;
+end;
+
+constructor TSoundFile.CreateFromStream(const Stream: TStream; const AURL: String);
+begin
+  inherited Create;
+  FURL := AURL;
 end;
 
 function TSoundFile.Duration: TFloatTime;
@@ -189,9 +202,9 @@ end;
 
 { TSoundOggVorbis ------------------------------------------------------------ }
 
-constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
+constructor TSoundOggVorbis.CreateFromStream(const Stream: TStream; const AURL: String);
 begin
-  inherited Create;
+  inherited;
   try
     DataStream := VorbisDecode(Stream, FDataFormat, FFrequency);
   except
@@ -229,7 +242,7 @@ end;
 
 { TSoundWAV ------------------------------------------------------------ }
 
-constructor TSoundWAV.CreateFromStream(Stream: TStream);
+constructor TSoundWAV.CreateFromStream(const Stream: TStream; const AURL: String);
 
 { WAV file reader. Written mostly based on
     http://www.technology.niagarac.on.ca/courses/comp630/WavFileFormat.html
@@ -281,7 +294,7 @@ var
   Format: TWavFormatChunk;
   Header: TWavChunkHeader;
 begin
-  inherited Create;
+  inherited;
 
   Stream.ReadBuffer(Riff, SizeOf(Riff));
   if not (IdCompare(Riff.Header.ID, 'RIFF') and IdCompare(Riff.wID, 'WAVE')) then
@@ -394,4 +407,3 @@ begin
 end;
 
 end.
-
