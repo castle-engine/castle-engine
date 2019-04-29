@@ -22,7 +22,7 @@ implementation
 
 uses SysUtils,
   CastleWindow, CastleControls, CastleLog, CastleSoundEngine,
-  CastleFilesUtils, CastleKeysMouse, CastleColors,
+  CastleFilesUtils, CastleKeysMouse, CastleColors, CastleTimeUtils,
   CastleUIControls, CastleApplicationProperties, CastleUIState,
   GameStateMain;
 
@@ -35,8 +35,16 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  // default is 16, but 8 is easier to display and test
+  { Configure sound stuff }
+  // Default is 16, but 8 is easier to display and test.
   SoundEngine.MaxAllocatedSources := 8;
+  // Get infotmation in log when each sound is loaded.
+  SoundEngine.LogSoundLoading := true;
+  // Measure sound loading time.
+  // The profile is automatically output to log at the end of ApplicationInitialize
+  // (you could also output it explicitly by "WritelnLog(Profiler.Summary);",
+  // and you can measure time explicitly by "Profiler" or "Timer" or "ProcessTimer".
+  Profiler.Enabled := true;
 
   StateMain := TStateMain.Create(Application);
   TUIState.Current := StateMain;
