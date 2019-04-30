@@ -86,6 +86,9 @@ type
       May be called on an already stopped sound, should do nothing then. }
     procedure Stop; virtual; abstract;
 
+    { Called continuously on a playing sound source. }
+    procedure Update(const SecondsPassed: TFloatTime); virtual;
+
     procedure SetPosition(const Value: TVector3); virtual; abstract;
     procedure SetVelocity(const Value: TVector3); virtual; abstract;
     procedure SetLooping(const Value: boolean); virtual; abstract;
@@ -160,6 +163,10 @@ constructor TSoundSourceBackend.Create(const ASoundEngine: TSoundEngineBackend);
 begin
   inherited Create;
   FSoundEngine := ASoundEngine;
+end;
+
+procedure TSoundSourceBackend.Update(const SecondsPassed: TFloatTime);
+begin
 end;
 
 { TSoundEngineBackend -------------------------------------------------------- }

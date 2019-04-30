@@ -121,6 +121,12 @@ type
     procedure SetMaxDistance(const Value: Single);
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
+
+    { Call backend Update on sound source,
+      and checks whether the source is still playing (or is paused).
+      If not, it calls @link(TSound.Release) (thus setting
+      TSound.Used to @false and triggering TSound.OnRelease) for this source. }
+    procedure Update(const SecondsPassed: TFloatTime);
   public
     { Create sound.
       This allocates sound source using the sound backend (like OpenAL source).
@@ -287,12 +293,6 @@ type
     FMaxAllocatedSources: Cardinal;
     LastSoundRefresh: TTimerResult;
 
-    { Detect unused sound sources.
-      For every source that is marked as Used, this checks
-      whether this source is actually in playing/paused state
-      right now. If not, it calls @link(TSound.Release) (thus setting
-      TSound.Used to @false and triggering TSound.OnRelease) for this source. }
-    procedure DetectUnusedSounds;
     procedure Update(Sender: TObject);
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
@@ -319,8 +319,8 @@ type
       properties and start playing the sound.
 
       Note that if you don't call TSound.Backend.Play immediately, the source may be detected
-      as unused (and recycled for another sound) at the next AllocateSound,
-      PlaySound, DetectUnusedSounds and such calls.
+      as unused (and recycled for another sound) at the next
+      sound allocation, play, update etc.
 
       If we can't allocate new sound source, we return nil.
       This may happen if your sound context is not initialized.
@@ -343,7 +343,7 @@ type
       This is @nil when ContextOpen was not yet called. }
     property AllocatedSources: TSoundList read FAllocatedSources;
 
-    procedure Refresh; deprecated 'do not call this method yourself, it will be called directly if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
+    procedure Refresh; deprecated 'this does not do anything now; refreshing is done automatically if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
 
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
@@ -1462,6 +1462,21 @@ begin
     Backend.Play(false);
 end;
 
+procedure TSound.Update(const SecondsPassed: TFloatTime);
+begin
+  if Used then
+  begin
+    if not BackendIsOpen then
+      Release
+    else
+    begin
+      Backend.Update(SecondsPassed);
+      if not PlayingOrPaused then
+        Release;
+    end;
+  end;
+end;
+
 { TSoundList ----------------------------------------------------- }
 
 function IsSmallerByImportance(constref AA, BB: TSound): Integer;
@@ -1663,8 +1678,6 @@ begin
     if (FAllocatedSources <> nil) and
        (Cardinal(FAllocatedSources.Count) > MaxAllocatedSources) then
     begin
-      { DetectUnusedSounds is needed here to release the *currently* unused sources. }
-      DetectUnusedSounds;
       FAllocatedSources.SortByImportance;
 
       for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
@@ -1681,39 +1694,37 @@ end;
 
 procedure TSoundAllocator.Refresh;
 begin
-  DetectUnusedSounds;
-end;
-
-procedure TSoundAllocator.DetectUnusedSounds;
-var
-  I: Integer;
-begin
-  if FAllocatedSources <> nil then
-    for I := 0 to FAllocatedSources.Count - 1 do
-      if FAllocatedSources[I].Used and
-         (not FAllocatedSources[I].PlayingOrPaused) then
-      begin
-        FAllocatedSources[I].Release;
-        // WritelnLog('Sound stopped playing');
-      end;
 end;
 
 procedure TSoundAllocator.Update(Sender: TObject);
+
+  { Call Update on all sources, and detect unused sound sources. }
+  procedure UpdateSounds(const SecondsPassed: TFloatTime);
+  var
+    I: Integer;
+  begin
+    if FAllocatedSources <> nil then
+      for I := 0 to FAllocatedSources.Count - 1 do
+        FAllocatedSources[I].Update(SecondsPassed);
+  end;
+
 const
   { Delay between calling DetectUnusedSounds, in seconds. }
   SoundRefreshDelay = 0.1;
 var
   TimeNow: TTimerResult;
+  SecondsPassed: TFloatTime;
 begin
-  { Calling DetectUnusedSounds relatively often is important,
+  { Calling UpdateSounds relatively often is important,
     to call OnRelease for sound sources that finished playing. }
   if FAllocatedSources <> nil then
   begin
     TimeNow := Timer;
-    if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
+    SecondsPassed := TimerSeconds(TimeNow, LastSoundRefresh);
+    if SecondsPassed > SoundRefreshDelay then
     begin
       LastSoundRefresh := TimeNow;
-      DetectUnusedSounds;
+      UpdateSounds(SecondsPassed);
     end;
   end;
 end;
@@ -2963,8 +2974,10 @@ begin
 
   FAllocatedSource := FEngine.PlaySound(
     SoundInfo.Buffer, false, true,
-    MaxSoundImportance,
-    Volume * SoundInfoGain, 0, 1,
+    SoundInfo.DefaultImportance,
+    Volume * SoundInfoGain,
+    SoundInfo.MinGain,
+    SoundInfo.MaxGain,
     TVector3.Zero);
 
   if FAllocatedSource <> nil then
