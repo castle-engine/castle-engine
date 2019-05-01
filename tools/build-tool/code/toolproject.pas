@@ -1491,6 +1491,10 @@ function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: bool
 var
   RelativeResult, AbsoluteResult: string;
 begin
+  { Without this, we would also have an error, but NxNotSupported makes
+    nicer error message. }
+  NxNotSupported;
+
   GeneratedSourceFile('nintendo_switch/library_template.lpr',
     'nintendo_switch' + PathDelim + 'castle_nx.lpr',
     'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a Nintendo Switch project.',

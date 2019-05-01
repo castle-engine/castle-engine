@@ -22,6 +22,9 @@ uses Classes,
   CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
 
+{ Raise exception that Nintendo Switch is not supported in open-source version. }
+procedure NxNotSupported;
+
 { Compile any Pascal unit for Nintendo Switch. }
 procedure CompileNintendoSwitch(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
@@ -40,7 +43,7 @@ uses SysUtils,
   CastleFilesUtils, CastleURIUtils,
   ToolPackage;
 
-procedure NotSupported;
+procedure NxNotSupported;
 begin
   raise Exception.Create('The open-source version of the Castle Game Engine build tool does not support Nintendo Switch.' + NL +
     'Contact us if you are a registered Nintendo Developer and you want to use CGE on Nintendo Switch:' + NL +
@@ -51,19 +54,19 @@ procedure CompileNintendoSwitch(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 begin
-  NotSupported;
+  NxNotSupported;
 end;
 
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 begin
-  NotSupported;
+  NxNotSupported;
 end;
 
 procedure PackageNintendoSwitch(const Project: TCastleProject);
 begin
-  NotSupported;
+  NxNotSupported;
 end;
 
 end.
