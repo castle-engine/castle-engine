@@ -145,6 +145,9 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/library/lazarus_library_tester/cge_dynlib_tester
+examples/library/lazarus_library_tester/cge_dynlib_tester.res
+examples/library/lazarus_library_tester/lib/
 examples/localization/custom/castle_localization
 examples/localization/gettext/localization_test
 examples/mobile/drawing_toy/drawing_toy
