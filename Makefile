@@ -309,13 +309,13 @@ examples-laz:
 #     $000000000057A027 line 1525 of exttools.pas
 #     $000000000057B231 line 1814 of exttools.pas
 	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  if ! lazbuild $(LPI_FILENAME).lpi; then \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
 	    echo '1st execution of lazbuild failed, trying again'; \
 	    make clean; \
 	    lazbuild packages/castle_base.lpk; \
 	    lazbuild packages/castle_window.lpk; \
 	    lazbuild packages/castle_components.lpk; \
-	    lazbuild $(LPI_FILENAME).lpi; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
 	  fi; \
 	done
 
@@ -332,13 +332,13 @@ examples-only-laz:
 #     $000000000057A027 line 1525 of exttools.pas
 #     $000000000057B231 line 1814 of exttools.pas
 	for LPI_FILENAME in $(EXAMPLES_LAZARUS_BASE_NAMES); do \
-	  if ! lazbuild \${LPI_FILENAME}.lpi; then \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
 	    echo '1st execution of lazbuild failed, trying again'; \
 	    make clean; \
 	    lazbuild packages/castle_base.lpk; \
 	    lazbuild packages/castle_window.lpk; \
 	    lazbuild packages/castle_components.lpk; \
-	    lazbuild \${LPI_FILENAME}.lpi; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
 	  fi; \
 	done
 
