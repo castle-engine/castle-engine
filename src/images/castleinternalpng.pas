@@ -5,9 +5,6 @@
   and also has comments not formatted for PasDoc.
 }
 
-{$ifdef CASTLE_PNG_DYNAMIC}  {$endif}
-{$ifdef CASTLE_PNG_STATIC}  {$endif}
-
 unit CastleInternalPng;
 
 { This is also checked by castleconf.inc, but check it here again to be sure. }

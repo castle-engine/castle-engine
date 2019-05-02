@@ -333,15 +333,17 @@ begin
         raise EWavLoadError.Create('Loading WAV files not in PCM format not implemented');
       { calculate FDataFormat }
       case Format.Channels of
-        1: if Format.BitsPerSample = 8 then
-             FDataFormat := sfMono8
-           else
-             FDataFormat := sfMono16;
-        2: if Format.BitsPerSample = 8 then
-             FDataFormat := sfStereo8
-           else
-             FDataFormat := sfStereo16;
-        else raise EWavLoadError.Create('Only WAV files with 1 or 2 channels are allowed');
+        1:case Format.BitsPerSample of
+            8 : FDataFormat := sfMono8;
+            16: FDataFormat := sfMono16;
+            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [AURL]);
+          end;
+        2:case Format.BitsPerSample of
+            8 : FDataFormat := sfStereo8;
+            16: FDataFormat := sfStereo16;
+            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [AURL]);
+          end;
+        else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 1 or 2 channels are supported', [AURL]);
       end;
       { calculate FFrequency }
       FFrequency := Format.SamplesPerSec;

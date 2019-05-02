@@ -302,7 +302,22 @@ examples-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+# lazbuild fails with access violation sometimes, so just try it 2 times:
+#  An unhandled exception occurred at $0000000000575F5F:
+#   EAccessViolation: Access violation
+#     $0000000000575F5F line 590 of exttools.pas
+#     $000000000057A027 line 1525 of exttools.pas
+#     $000000000057B231 line 1814 of exttools.pas
+	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
+	    echo '1st execution of lazbuild failed, trying again'; \
+	    make clean; \
+	    lazbuild packages/castle_base.lpk; \
+	    lazbuild packages/castle_window.lpk; \
+	    lazbuild packages/castle_components.lpk; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
+	  fi; \
+	done
 
 # Compile only Lazarus-specific examples (that depend on LCL)
 .PHONY: examples-only-laz
@@ -310,7 +325,22 @@ examples-only-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-	$(foreach NAME,$(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+# lazbuild fails with access violation sometimes, so just try it 2 times:
+#  An unhandled exception occurred at $0000000000575F5F:
+#   EAccessViolation: Access violation
+#     $0000000000575F5F line 590 of exttools.pas
+#     $000000000057A027 line 1525 of exttools.pas
+#     $000000000057B231 line 1814 of exttools.pas
+	for LPI_FILENAME in $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
+	    echo '1st execution of lazbuild failed, trying again'; \
+	    make clean; \
+	    lazbuild packages/castle_base.lpk; \
+	    lazbuild packages/castle_window.lpk; \
+	    lazbuild packages/castle_components.lpk; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
+	  fi; \
+	done
 
 # cleaning ------------------------------------------------------------
 

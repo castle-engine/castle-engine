@@ -458,6 +458,7 @@ type
       FResumeToInitialized, FPaused: boolean;
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
       FEnableSaveToConfig, DeviceSaveToConfig: boolean;
+      FInitialPitchMultiplier: Single;
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
@@ -678,6 +679,9 @@ type
 
     class property LogSoundLoading: Boolean
       read GetLogSoundLoading write SetLogSoundLoading;
+
+    { Newly played sounds will have @link(TSound.Pitch) multiplied by this. }
+    property InitialPitchMultiplier: Single read FInitialPitchMultiplier write FInitialPitchMultiplier default 1.0;
   published
     { Sound volume, affects all sounds (effects and music).
       This must always be within 0..1 range.
@@ -1784,6 +1788,7 @@ begin
   DeviceSaveToConfig := true;
   LoadedBuffers := TSoundBuffersList.Create(true);
   FOnOpenClose := TNotifyEventList.Create;
+  FInitialPitchMultiplier := 1.0;
 
   { Default listener attributes }
   FListenerPosition := TVector3.Zero;
@@ -2006,7 +2011,7 @@ begin
       Result.Gain    := Parameters.Gain;
       Result.MinGain := Parameters.MinGain;
       Result.MaxGain := Parameters.MaxGain;
-      Result.Pitch   := Parameters.Pitch;
+      Result.Pitch   := Parameters.Pitch * InitialPitchMultiplier;
       Result.Offset  := Parameters.Offset;
 
       if Parameters.Spatial then
