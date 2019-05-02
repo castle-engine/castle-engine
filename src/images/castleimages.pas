@@ -901,7 +901,9 @@ type
 
   TEncodedImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
 
-  { Possible compression of textures for GPU. }
+  { Possible compression of textures for GPU.
+    The compressed texture formats may be automatically created for you by CGE,
+    see https://castle-engine.io/creating_data_auto_generated_textures.php . }
   TTextureCompression = (
     { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
       This compression format is often supported by desktop OpenGL implementations.
@@ -943,19 +945,7 @@ type
     tcPvrtc2_2bpp,
 
     { ATI texture compression format, @bold(for RGB images without alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm).
-
-      There is no perfect program to generate such texture, unfortunately.
-      The only sensible choice is to use ATI compressonator from
-      http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/the-compressonator/ .
-      Unfortunately, it's installation may fail on some Windows versions
-      and wine (Linux). We've had most success installing it on 32-bit Windows,
-      and them copying to wine.
-      ATI deprecated this program.
-
-      Adreno SDK contains library to compress to ATITC formats,
-      but no useful program to actually convert files to this format
-      (wrapped in ktx or dds). }
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
     tcATITC_RGB,
 
     { ATI texture compression format, @bold(with sharp alpha).
@@ -969,10 +959,7 @@ type
     { ETC texture compression, @bold(without alpha).
       See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
       Available on almost all Android OpenGLES 2.0 devices,
-      unfortunately it doesn't support alpha channel.
-
-      It can be generated using various tools --- dedicated etcpack,
-      also PVRTexTool and ATI compressonator. }
+      unfortunately it doesn't support alpha channel. }
     tcETC1
   );
   TTextureCompressions = set of TTextureCompression;
