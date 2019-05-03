@@ -2860,7 +2860,7 @@ var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
 begin
-  TimeStart := Profiler.Start('Loading "' + AURL + '" (TCastleSceneCore)');
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
 
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }

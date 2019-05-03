@@ -435,7 +435,7 @@ procedure TUIState.InternalStart;
 var
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Starting state ' + Name + ':' + ClassName);
+  TimeStart := Profiler.Start('Starting state ' + Name + ': ' + ClassName);
 
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
@@ -451,10 +451,7 @@ begin
 
   Profiler.Stop(TimeStart);
   if Log then
-  begin
-    WritelnLog(Profiler.Summary);
-    Profiler.Clear;
-  end;
+    WritelnLog(TimeStart.Summary);
 end;
 
 procedure TUIState.InternalStop;
@@ -462,7 +459,7 @@ begin
   StateContainer.Controls.Remove(Self);
   Stop;
   if Log then
-    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -510,13 +507,13 @@ end;
 procedure TUIState.Resume;
 begin
   if Log then
-    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Resuming state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
   if Log then
-    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Paused state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Start;

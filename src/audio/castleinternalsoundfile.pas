@@ -132,7 +132,7 @@ var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + AURL + ' (TSoundFile)');
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TSoundFile)');
   try
     try
       { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }

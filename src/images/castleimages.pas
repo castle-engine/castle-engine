@@ -4546,7 +4546,7 @@ var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + URL + ' (CastleImages)');
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(URL) + '" (CastleImages)');
 
   try
     try
