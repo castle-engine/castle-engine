@@ -3554,7 +3554,7 @@ end;
 
 procedure TUIContainer.LoadSettings(const SettingsUrl: String);
 begin
-  SetttingsLoad(Self, SettingsUrl);
+  SettingsLoad(Self, SettingsUrl);
 end;
 
 { TInputListener ------------------------------------------------------------- }
