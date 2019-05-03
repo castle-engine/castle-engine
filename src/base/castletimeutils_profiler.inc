@@ -30,6 +30,12 @@ type
       but in addition to @link(TProfiler.Summary) you also want to show
       the operation time in some other way. }
     function ElapsedTime: TFloatTime;
+
+    { Summary of the speed measurements gathered for this TCastleProfilerTime.
+      Useful to investigate time under this TCastleProfilerTime,
+      as opposed to @link(TCastleProfiler.Summary Profiler.Summary) that
+      displays complete profile of everything that happened. }
+    function Summary: string;
   end;
 
   { Profiler, to measure the speed of execution of your code.
@@ -185,11 +191,26 @@ function Profiler: TCastleProfiler;
 
 {$ifdef read_implementation}
 
+const
+  SProfileSummary =
+    'Profile (speed of execution).' + NL +
+    'Each line shows time, followed by [time spent in this process], followed by description.' + NL +
+    'Lines are sorted within each group, to show the most expensive operation at the top.' + NL +
+    NL;
+
 { TCastleProfilerTime -------------------------------------------------------- }
 
 function TCastleProfilerTime.ElapsedTime: TFloatTime;
 begin
   Result := FTimeStart.ElapsedTime;
+end;
+
+function TCastleProfilerTime.Summary: string;
+var
+  T: TCastleProfiler.TTime;
+begin
+  T := TCastleProfiler.TTime(FTime);
+  Result := SProfileSummary + T.Summary('');
 end;
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
@@ -263,12 +284,7 @@ end;
 
 function TCastleProfiler.Summary: string;
 begin
-  Result :=
-    'Profile (speed of execution).' + NL +
-    'Each line shows time, followed by [time spent in this process], followed by description.' + NL +
-    'Lines are sorted within each group, to show the most expensive operation at the top.' + NL +
-    NL +
-    Times.Summary('');
+  Result := SProfileSummary + Times.Summary('');
 end;
 
 function TCastleProfiler.Start(const Description: String): TCastleProfilerTime;
