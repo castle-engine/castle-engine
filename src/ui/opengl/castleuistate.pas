@@ -451,7 +451,8 @@ begin
 
   Profiler.Stop(TimeStart);
   if Log then
-    WritelnLog(TimeStart.Summary);
+    WritelnLog('UIState', 'Started state ' + Name + ': ' + ClassName + NL +
+      TimeStart.Summary('  '));
 end;
 
 procedure TUIState.InternalStop;

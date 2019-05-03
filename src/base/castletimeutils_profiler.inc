@@ -35,7 +35,7 @@ type
       Useful to investigate time under this TCastleProfilerTime,
       as opposed to @link(TCastleProfiler.Summary Profiler.Summary) that
       displays complete profile of everything that happened. }
-    function Summary: string;
+    function Summary(const Indent: String = ''): string;
   end;
 
   { Profiler, to measure the speed of execution of your code.
@@ -205,12 +205,12 @@ begin
   Result := FTimeStart.ElapsedTime;
 end;
 
-function TCastleProfilerTime.Summary: string;
+function TCastleProfilerTime.Summary(const Indent: String): string;
 var
   T: TCastleProfiler.TTime;
 begin
   T := TCastleProfiler.TTime(FTime);
-  Result := SProfileSummary + T.Summary('');
+  Result := SProfileSummary + T.Summary(Indent);
 end;
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
