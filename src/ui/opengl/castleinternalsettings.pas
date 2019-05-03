@@ -20,7 +20,7 @@ unit CastleInternalSettings;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, DOM, Contnrs,
   CastleUtils, CastleClassUtils, CastleFonts, CastleRectangles, CastleTimeUtils,
   CastleUIControls;
 
@@ -28,22 +28,23 @@ type
   TWarmupCache = class;
   TWarmupCacheFormat = class;
 
-  EInvalidSettings = class(Exception);
+  EInvalidSettingsXml = class(Exception);
 
   TWarmupCacheFormatEvent = procedure (const Cache: TWarmupCache;
-    const Format: TWarmupCacheFormat; const Element: TDOMElement);
+    const Element: TDOMElement; const ElementBaseUrl: String) of object;
 
   { Anything that can be preloaded into the TWarmupCache.
     E.g. a texture, sound, model. }
   TWarmupCacheFormat = class
-    ElementName: String;
+    { XML element (in CastleSettings.xml) name indicating this format. }
+    Name: String;
     Event: TWarmupCacheFormatEvent;
   end;
 
-  TWarmupCacheFormatList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TWarmupCacheFormat>)
+  TWarmupCacheFormatList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWarmupCacheFormat>)
   private
     function CallRegisteredFormat(const Cache: TWarmupCache;
-      const Element: TDOMElement): Boolean;
+      const Element: TDOMElement; const ElementBaseUrl: String): Boolean;
   public
     procedure RegisterFormat(const Name: String; const Event: TWarmupCacheFormatEvent);
   end;
@@ -53,11 +54,18 @@ type
     "warmpup cache" available for any period of time (right now, it is only for the
     lifetime of the container). }
   TWarmupCache = class(TComponent)
+  strict private
+    FOwnedObjects: TObjectList;
   private
-    procedure ReadElement(const Element: TDOMElement);
+    procedure ReadElement(const Element: TDOMElement; const ElementBaseUrl: String);
   public
-    { Cache image contents in TCastleImagePersistent. }
-    procedure AddImageUi(const URL: String);
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { General-purpose container for objects that should be owned by this
+      cache. May be used by TWarmupCacheFormatEvent implementation,
+      if you create something that should be owned by cache. }
+    property OwnedObjects: TObjectList read FOwnedObjects;
   end;
 
 { Register new TWarmupCacheFormat using @code(WarmupCacheFormats.RegisterFormat). }
@@ -70,20 +78,20 @@ procedure SetttingsLoad(const Container: TUIContainer; const SettingsUrl: String
 
 implementation
 
-uses DOM, Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils;
+uses Math, TypInfo,
+  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
 function TWarmupCacheFormatList.CallRegisteredFormat(const Cache: TWarmupCache;
-  const Element: TDOMElement): Boolean;
+  const Element: TDOMElement; const ElementBaseUrl: String): Boolean;
 var
   Format: TWarmupCacheFormat;
 begin
   for Format in Self do
-    if Format.ElementName = Element.TagName8 then
+    if Format.Name = Element.TagName8 then
     begin
-      Format.Event(Cache, Format, Element);
+      Format.Event(Cache, Element, ElementBaseUrl);
       Exit(true);
     end;
   Result := false;
@@ -98,8 +106,28 @@ begin
 
   Format := TWarmupCacheFormat.Create;
   Add(Format);
-  Format.ElementName := Name;
+  Format.Name := Name;
   Format.Event := Event;
+end;
+
+{ TImageUiCache -------------------------------------------------------------- }
+
+type
+  TImageUiCache = class
+    class procedure Event(const Cache: TWarmupCache;
+      const Element: TDOMElement; const ElementBaseUrl: String);
+  end;
+
+class procedure TImageUiCache.Event(const Cache: TWarmupCache;
+  const Element: TDOMElement; const ElementBaseUrl: String);
+var
+  URL: String;
+  Image: TCastleImagePersistent;
+begin
+  URL := Element.AttributeURL('url', ElementBaseUrl);
+  Image := TCastleImagePersistent.Create;
+  Cache.OwnedObjects.Add(Image);
+  Image.URL := URL; // loads the image
 end;
 
 { TWarmupCache --------------------------------------------------------------- }
@@ -107,29 +135,20 @@ end;
 constructor TWarmupCache.Create(AOwner: TComponent);
 begin
   inherited;
-  OwnedObjects := TObjectList.Create(true);
+  FOwnedObjects := TObjectList.Create(true);
 end;
 
 destructor TWarmupCache.Destroy;
 begin
-  FreeAndNil(OwnedObjects);
+  FreeAndNil(FOwnedObjects);
   inherited;
 end;
 
-procedure TWarmupCache.AddImageUi(const URL: String);
+procedure TWarmupCache.ReadElement(const Element: TDOMElement; const ElementBaseUrl: String);
 begin
-  Image := TCastleImagePersistent.Create;
-  OwnedObjects.Add(Image);
-  Image.URL := URL; // loads the image
-end;
-
-procedure TWarmupCache.ReadElement(const Element: TDOMElement);
-begin
-  if Element.TagName8 = 'image_ui' then
-    AddImageUi(Element.AttributeURL('url'))
-  else
-  if not CallRegisteredFormat(Self, Element) then
-    raise Exception.
+  if not WarmupCacheFormats.CallRegisteredFormat(Self, Element, ElementBaseUrl) then
+    raise EInvalidSettingsXml.CreateFmt('Not recognized warmup cache element "%s"',
+      [Element.TagName8]);
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -140,7 +159,11 @@ var
 function WarmupCacheFormats: TWarmupCacheFormatList;
 begin
   if FWarmupCacheFormats = nil then
-    FWarmupCacheFormats := TWarmupCacheFormatList.Create;
+  begin
+    FWarmupCacheFormats := TWarmupCacheFormatList.Create(true);
+    // register formats implemented in this unit
+    FWarmupCacheFormats.RegisterFormat('image_ui', @TImageUiCache(nil).Event);
+  end;
   Result := FWarmupCacheFormats;
 end;
 
@@ -156,7 +179,7 @@ procedure SetttingsLoad(const Container: TUIContainer; const SettingsUrl: String
     for Result := Low(TUIScaling) to High(TUIScaling) do
       if S = UIScalingToString(Result) then
         Exit;
-    raise Exception.CreateFmt('Not a valid value for UIScaling: %s', [S]);
+    raise EInvalidSettingsXml.CreateFmt('Not a valid value for UIScaling: %s', [S]);
   end;
 
 type
@@ -178,10 +201,23 @@ type
       until false;
 
       if IntegerList.Count = 0 then
-        raise Exception.Create('sizes_at_load parameter is an empty list in CastleSettings.xml');
+        raise EInvalidSettingsXml.Create('sizes_at_load parameter is an empty list in CastleSettings.xml');
 
       Result := IntegerList.ToArray;
     finally FreeAndNil(IntegerList) end;
+  end;
+
+  procedure ReadWarmupCache(E: TDOMElement);
+  var
+    Cache: TWarmupCache;
+    I: TXMLElementIterator;
+  begin
+    Cache := TWarmupCache.Create(Container);
+    I := E.ChildrenIterator;
+    try
+      while I.GetNext do
+        Cache.ReadElement(I.Current, SettingsUrl);
+    finally FreeAndNil(I) end;
   end;
 
 const
@@ -212,7 +248,7 @@ begin
   SettingsDoc := URLReadXML(SettingsUrl);
   try
     if SettingsDoc.DocumentElement.TagName8 <> 'castle_settings' then
-      raise Exception.Create('The root element must be <castle_settings>');
+      raise EInvalidSettingsXml.Create('The root element must be <castle_settings>');
 
     E := SettingsDoc.DocumentElement.Child('ui_scaling', false);
     if E <> nil then
@@ -245,6 +281,10 @@ begin
       end;
       NewDefaultFont.Size := DefaultFontSize;
     end;
+
+    E := SettingsDoc.DocumentElement.Child('warmup_cache', false);
+    if E <> nil then
+      ReadWarmupCache(E);
   finally FreeAndNil(SettingsDoc) end;
 
   Container.UIScaling := NewUIScaling;
