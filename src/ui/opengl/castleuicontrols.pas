@@ -2204,6 +2204,7 @@ implementation
 
 uses DOM, TypInfo, Math,
   CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
+  CastleInternalSettings,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 { TTouchList ----------------------------------------------------------------- }
@@ -3552,112 +3553,8 @@ begin
 end;
 
 procedure TUIContainer.LoadSettings(const SettingsUrl: String);
-
-  function UIScalingToString(const UIScaling: TUIScaling): String;
-  begin
-    Result := SEnding(GetEnumName(TypeInfo(TUIScaling), Ord(UIScaling)), 3);
-  end;
-
-  function UIScalingFromString(const S: String): TUIScaling;
-  begin
-    for Result := Low(TUIScaling) to High(TUIScaling) do
-      if S = UIScalingToString(Result) then
-        Exit;
-    raise Exception.CreateFmt('Not a valid value for UIScaling: %s', [S]);
-  end;
-
-type
-  TDynIntegerArray = array of Integer;
-
-  function ParseIntegerList(const S: String): TDynIntegerArray;
-  var
-    IntegerList: TIntegerList;
-    SeekPos: Integer;
-    Token: String;
-  begin
-    IntegerList := TIntegerList.Create;
-    try
-      SeekPos := 1;
-      repeat
-        Token := NextToken(S, SeekPos);
-        if Token = '' then Break;
-        IntegerList.Add(StrToInt(Token));
-      until false;
-
-      if IntegerList.Count = 0 then
-        raise Exception.Create('sizes_at_load parameter is an empty list in CastleSettings.xml');
-
-      Result := IntegerList.ToArray;
-    finally FreeAndNil(IntegerList) end;
-  end;
-
-const
-  DefaultUIScaling = usNone;
-  DefaultUIReferenceWidth = 0;
-  DefaultUIReferenceHeight = 0;
-var
-  SettingsDoc: TXMLDocument;
-  E: TDOMElement;
-
-  // font stuff
-  DefaultFontUrl: String;
-  DefaultFontSize, DefaultFontLoadSize: Cardinal;
-  DefaultFontAntiAliased: Boolean;
-  NewDefaultFont: TCastleFont;
-  AllSizesAtLoadStr: String;
-  AllSizesAtLoad: TDynIntegerArray;
-
-  NewUIScaling: TUIScaling;
-  NewUIReferenceWidth, NewUIReferenceHeight: Single;
 begin
-  // initialize defaults
-  NewUIScaling := DefaultUIScaling;
-  NewUIReferenceWidth := DefaultUIReferenceWidth;
-  NewUIReferenceHeight := DefaultUIReferenceHeight;
-  NewDefaultFont := nil;
-
-  SettingsDoc := URLReadXML(SettingsUrl);
-  try
-    if SettingsDoc.DocumentElement.TagName8 <> 'castle_settings' then
-      raise Exception.Create('The root element must be <castle_settings>');
-
-    E := SettingsDoc.DocumentElement.Child('ui_scaling', false);
-    if E <> nil then
-    begin
-      NewUIScaling := UIScalingFromString(
-        E.AttributeStringDef('mode', UIScalingToString(DefaultUIScaling)));
-      NewUIReferenceWidth :=
-        E.AttributeSingleDef('reference_width', DefaultUIReferenceWidth);
-      NewUIReferenceHeight :=
-        E.AttributeSingleDef('reference_height', DefaultUIReferenceHeight);
-    end;
-
-    E := SettingsDoc.DocumentElement.Child('default_font', false);
-    if E <> nil then
-    begin
-      DefaultFontUrl := E.AttributeURL('url', SettingsUrl);
-      DefaultFontSize := E.AttributeCardinalDef('size', 20);
-      DefaultFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
-
-      if E.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
-      begin
-        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
-        NewDefaultFont := TCustomizedFont.Create(Self);
-        TCustomizedFont(NewDefaultFont).Load(DefaultFontUrl, AllSizesAtLoad, DefaultFontAntiAliased);
-      end else
-      begin
-        DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
-        NewDefaultFont := TTextureFont.Create(Self);
-        TTextureFont(NewDefaultFont).Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
-      end;
-      NewDefaultFont.Size := DefaultFontSize;
-    end;
-  finally FreeAndNil(SettingsDoc) end;
-
-  UIScaling := NewUIScaling;
-  UIReferenceWidth := NewUIReferenceWidth;
-  UIReferenceHeight := NewUIReferenceHeight;
-  DefaultFont := NewDefaultFont;
+  SetttingsLoad(Self, SettingsUrl);
 end;
 
 { TInputListener ------------------------------------------------------------- }
