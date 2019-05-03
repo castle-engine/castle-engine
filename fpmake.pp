@@ -306,6 +306,7 @@ begin
     P.Targets.AddUnit('castledialogstates.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinspectorcontrol.pas');
+    P.Targets.AddUnit('castleinternalsettings.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
     P.Targets.AddUnit('castletiledmap.pas');
