@@ -362,7 +362,9 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     // - show icons of folders, to make them distinct
     // - double-click on folder should move to it, in both shell tree/list views
     //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
-    //ShellListView1.FileSortType := fstFoldersFirst;
+    { Without this, files are in undefined order
+      (it seems SortColumn=0 above doesn't work). }
+    ShellListView1.FileSortType := fstFoldersFirst;
     ShellListView1.ExcludeMask := ExcludeMask;
     ShellListView1.OnDblClick := @ShellListViewDoubleClick;
     ShellListView1.ShowHint := true;
