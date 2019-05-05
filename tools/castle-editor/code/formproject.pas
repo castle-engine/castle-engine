@@ -140,7 +140,7 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
     ProjectName: String;
-    ProjectPath, ProjectPathUrl: String;
+    ProjectPath, ProjectPathUrl, ProjectStandaloneSource: String;
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
@@ -373,6 +373,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Scenes open in engine viewer (view3dscene).' + NL +
       '- Images open in engine viewer (castle-view-image).' + NL +
       '- Design opens in this editor window.' + NL +
+      '- Pascal files open in Lazarus.' + NL +
       '- Other files open in external applications.';
 
     ShellTreeView1.ShellListView := ShellListView1;
@@ -680,6 +681,30 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
   end;
 
+  procedure OpenWithLazarus(const FileName: String);
+  var
+    Exe: String;
+  begin
+    if ProjectStandaloneSource = '' then
+    begin
+      EditorUtils.ErrorBox('Cannot open project in Lazarus, as "standalone_source" was not specified in CastleEngineManifest.xml.');
+      Exit;
+    end;
+
+    Exe := FindExe('lazarus');
+    if Exe = '' then
+    begin
+      EditorUtils.ErrorBox('Cannot find "lazarus" executable on environment variable PATH.');
+      Exit;
+    end;
+
+    if SameFileName(ProjectStandaloneSource, FileName) then
+      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+    else
+      { pass both project name, and particular filename, to open file within this project. }
+      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+  end;
+
 var
   SelectedFileName, Ext, SelectedURL: String;
 begin
@@ -701,13 +726,24 @@ begin
       Exit;
     end;
 
-    if (Ext = '.castle-user-interface') or (Ext = '.castle-transform') then
+    if AnsiSameText(Ext, '.castle-user-interface') or
+       AnsiSameText(Ext, '.castle-transform') then
     begin
       if ProposeSaveDesign then
       begin
         NeedsDesignFrame;
         Design.OpenDesign(SelectedURL);
       end;
+      Exit;
+    end;
+
+    if AnsiSameText(Ext, '.pas') or
+       AnsiSameText(Ext, '.inc') or
+       AnsiSameText(Ext, '.pp') or
+       AnsiSameText(Ext, '.lpr') or
+       AnsiSameText(Ext, '.dpr') then
+    begin
+      OpenWithLazarus(SelectedFileName);
       Exit;
     end;
 
@@ -840,6 +876,8 @@ begin
   ManifestDoc := URLReadXML(ManifestUrl);
   try
     ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
+    if not ManifestDoc.DocumentElement.AttributeString('standalone_source', ProjectStandaloneSource) then
+      ProjectStandaloneSource := '';
   finally FreeAndNil(ManifestDoc) end;
 
   { Below we assume ManifestUrl contains an absolute path,
@@ -847,6 +885,10 @@ begin
     and OpenDesignDialog.InitialDir would be left '' and so on. }
   ProjectPathUrl := ExtractURIPath(ManifestUrl);
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
+
+  { Make ProjectStandaloneSource absolute path, or empty }
+  if ProjectStandaloneSource <> '' then
+    ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }
