@@ -1,3 +1,4 @@
+{%MainUnit castletimeutils.pas}
 {
   Copyright 2018-2018 Michalis Kamburelis.
 
