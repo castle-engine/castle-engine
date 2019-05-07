@@ -240,9 +240,9 @@ function TSoundFile.DataStatistics: String;
     EndSample: PtrUInt;
   begin
     Sample := Data;
-    EndSample := PtrUInt(Data) + DataSize;
-    MinSample := PSample(Data)^;
-    MaxSample := PSample(Data)^;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
     Inc(Sample);
     while PtrUInt(Sample) < EndSample do
     begin
@@ -264,9 +264,9 @@ function TSoundFile.DataStatistics: String;
     EndSample: PtrUInt;
   begin
     Sample := Data;
-    EndSample := PtrUInt(Data) + DataSize;
-    MinSample := PSample(Data)^;
-    MaxSample := PSample(Data)^;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
     Inc(Sample);
     while PtrUInt(Sample) < EndSample do
     begin
@@ -288,9 +288,9 @@ function TSoundFile.DataStatistics: String;
     EndSample: PtrUInt;
   begin
     Sample := Data;
-    EndSample := PtrUInt(Data) + DataSize;
-    MinSample := PSample(Data)^;
-    MaxSample := PSample(Data)^;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
     Inc(Sample);
     while PtrUInt(Sample) < EndSample do
     begin
@@ -316,9 +316,9 @@ function TSoundFile.DataStatistics: String;
     EndSample: PtrUInt;
   begin
     Sample := Data;
-    EndSample := PtrUInt(Data) + DataSize;
-    MinSample := PSample(Data)^;
-    MaxSample := PSample(Data)^;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
     Inc(Sample);
     while PtrUInt(Sample) < EndSample do
     begin
