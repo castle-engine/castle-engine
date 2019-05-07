@@ -34,7 +34,13 @@ type
 
   TSoundFile = class
   strict private
-    FURL: String;
+    const
+      SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+    var
+      FURL: String;
+    procedure CheckCorrectness;
+    { Analyze sound data. }
+    function DataStatistics: String;
   public
     { Load a sound from a stream.
 
@@ -155,20 +161,23 @@ begin
 
         Result := C.CreateFromStream(S, AURL);
 
-        {$ifdef CASTLE_NINTENDO_SWITCH}
-        // NX backend only supports 16-bit sound data.
-        Result.ConvertTo16bit;
-        {$endif}
+        Result.CheckCorrectness;
 
         if LogSoundLoading then
-          WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
+        begin
+          WritelnLog('Sound', 'Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
             URIDisplay(AURL),
             Result.ClassName,
             DataFormatToStr(Result.DataFormat),
             Result.DataSize,
             Result.Frequency,
             Result.Duration
-          ]));
+          ]);
+          WritelnLog('Sound', '"%s" data analysis: %s', [
+            URIDisplay(AURL),
+            Result.DataStatistics
+          ]);
+        end;
       finally S.Free end;
     except
       { May be raised by Download in case opening the underlying stream failed. }
@@ -192,12 +201,161 @@ begin
 end;
 
 function TSoundFile.Duration: TFloatTime;
-const
-  SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 3, 4);
 begin
   if (Frequency = 0) or (DataSize = 0) then
     Exit(-1);
   Result := DataSize / (Frequency * SampleSize[DataFormat]);
+end;
+
+procedure TSoundFile.ConvertTo16bit;
+begin
+  // TODO: This could be implemented as independent from sound format
+  if not (DataFormat in [sfMono16, sfStereo16]) then
+    raise ESoundFileError.CreateFmt('Cannot convert this sound class to 16-bit: %s', [ClassName]);
+end;
+
+procedure TSoundFile.CheckCorrectness;
+begin
+  if DataSize mod SampleSize[DataFormat] <> 0 then
+    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
+      URIDisplay(URL),
+      DataSize,
+      SampleSize[DataFormat]
+    ]);
+  if DataSize = 0 then
+    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
+      URIDisplay(URL)
+    ]);
+end;
+
+function TSoundFile.DataStatistics: String;
+
+  procedure Mono8(out MinValue, MaxValue: SmallInt);
+  type
+    TSample = packed record Main: Byte; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Data) + DataSize;
+    MinSample := PSample(Data)^;
+    MaxSample := PSample(Data)^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
+      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
+      Inc(Sample);
+    end;
+    MinValue := MinSample.Main;
+    MaxValue := MaxSample.Main;
+  end;
+
+  procedure Mono16(out MinValue, MaxValue: SmallInt);
+  type
+    TSample = packed record Main: SmallInt; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Data) + DataSize;
+    MinSample := PSample(Data)^;
+    MaxSample := PSample(Data)^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
+      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
+      Inc(Sample);
+    end;
+    MinValue := MinSample.Main;
+    MaxValue := MaxSample.Main;
+  end;
+
+  procedure Stereo8(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
+  type
+    TSample = packed record Left, Right: Byte; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Data) + DataSize;
+    MinSample := PSample(Data)^;
+    MaxSample := PSample(Data)^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
+      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
+      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
+      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
+      Inc(Sample);
+    end;
+    LeftMinValue := MinSample.Left;
+    LeftMaxValue := MaxSample.Left;
+    RightMinValue := MinSample.Right;
+    RightMaxValue := MaxSample.Right;
+  end;
+
+  procedure Stereo16(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
+  type
+    TSample = packed record Left, Right: SmallInt; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Data) + DataSize;
+    MinSample := PSample(Data)^;
+    MaxSample := PSample(Data)^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
+      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
+      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
+      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
+      Inc(Sample);
+    end;
+    LeftMinValue := MinSample.Left;
+    LeftMaxValue := MaxSample.Left;
+    RightMinValue := MinSample.Right;
+    RightMaxValue := MaxSample.Right;
+  end;
+
+var
+  LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt;
+begin
+  case DataFormat of
+    sfMono8: Mono8(LeftMinValue, LeftMaxValue);
+    sfMono16: Mono16(LeftMinValue, LeftMaxValue);
+    sfStereo8: Stereo8(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
+    sfStereo16: Stereo16(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
+    else raise EInternalError.Create('TSoundFile.DataStatistics:DataFormat?');
+  end;
+  if DataFormat in [sfMono8, sfMono16] then
+    Result := Format('Mono data. Min Sample: %d. Max Sample: %d.', [
+      LeftMinValue,
+      LeftMaxValue
+    ]);
+  if DataFormat in [sfStereo8, sfStereo16] then
+    Result := Format('Stereo data. Min Sample Left / Right: %d / %d. Max Sample Left / Right: %d / %d.', [
+      LeftMinValue,
+      RightMinValue,
+      LeftMaxValue,
+      RightMaxValue
+    ]);
 end;
 
 { TSoundOggVorbis ------------------------------------------------------------ }
@@ -406,6 +564,45 @@ end;
 function TSoundWAV.Frequency: LongWord;
 begin
   Result := FFrequency;
+end;
+
+rocedure TSoundWAV.ConvertTo16bit;
+var
+  PSource: PByte;
+  // To unsigned 16-bit:
+  //PDest: PWord;
+  // To signed 16-bit:
+  PDest: PSmallInt;
+  NewData: Pointer;
+begin
+  if DataFormat in [sfMono8, sfStereo8] then
+  begin
+    WritelnWarning('Sound', 'Converting to 16-bit "%s".', [URIDisplay(URL)]);
+
+    { create NewData with 16-bit samples }
+    NewData := GetMem(DataSize * 2);
+    PSource := Data;
+    PDest := NewData;
+    while PtrUInt(PSource) < PtrUInt(Data) + DataSize do
+    begin
+      // To unsigned 16-bit:
+      // PDest^ := Word(PSource^) shl 8;
+      // To signed 16-bit:
+      PDest^ := (SmallInt(PSource^) - 128) shl 8;
+      Inc(PSource);
+      Inc(PDest);
+    end;
+
+    { update fields }
+    FreeMemNiling(FData);
+    FData := NewData;
+    FDataSize := DataSize * 2;
+    case DataFormat of
+      sfMono8  : FDataFormat := sfMono16;
+      sfStereo8: FDataFormat := sfStereo16;
+    end;
+  end;
+  inherited;
 end;
 
 end.
