@@ -23,6 +23,7 @@ uses Math, CastleWindow, CastleMessaging, ${GAME_UNITS};
   to prevent GAME_UNITS from changing the meaning of code below. }
 
 exports
+  CastleWindow.CGEApp_Initialize,
   CastleWindow.CGEApp_Open,
   CastleWindow.CGEApp_Close,
   CastleWindow.CGEApp_Render,

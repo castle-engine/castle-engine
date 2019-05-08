@@ -2054,7 +2054,7 @@ type
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(QuitWhenLastWindowClosed: boolean = true);
+    procedure Close(const QuitWhenLastWindowClosed: boolean = true);
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -3125,7 +3125,7 @@ procedure TCastleWindowBase.OpenCore;
   procedure OpenUnprotected;
   begin
     { Once context is initialized, then Android activity is initialized,
-      or iOS called CGEApp_Open -> so it's safe to access files. }
+      or iOS called CGEApp_Initialize -> so it's safe to access files. }
     ApplicationProperties._FileAccessSafe := true;
 
     { Adjust Left/Top/Width/Height as needed.
@@ -3288,7 +3288,7 @@ begin
   Open(@DefaultRetryOpen);
 end;
 
-procedure TCastleWindowBase.Close(QuitWhenLastWindowClosed: boolean);
+procedure TCastleWindowBase.Close(const QuitWhenLastWindowClosed: boolean);
 begin
   if FClosed then Exit;
 
