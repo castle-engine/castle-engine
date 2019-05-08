@@ -137,6 +137,7 @@ end;
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   CGE_Close();
+  CGE_Finalize();
 end;
 
 procedure TForm1.FormResize(Sender: TObject);

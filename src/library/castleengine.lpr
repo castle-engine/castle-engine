@@ -75,6 +75,11 @@ begin
   CGEApp_Initialize(ApplicationConfigDirectory);
 end;
 
+procedure CGE_Finalize(); cdecl;
+begin
+  CGEApp_Finalize();
+end;
+
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl;
 begin
   try
@@ -709,6 +714,7 @@ end;
 
 exports
   CGE_Initialize,
+  CGE_Finalize,
   CGE_Open,
   CGE_Close,
   CGE_GetOpenGLInformation,

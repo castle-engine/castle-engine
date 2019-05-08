@@ -146,6 +146,7 @@
     [EAGLContext setCurrentContext:self.context];
 
     CGEApp_Close(true);
+    CGEApp_Finalize();
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods

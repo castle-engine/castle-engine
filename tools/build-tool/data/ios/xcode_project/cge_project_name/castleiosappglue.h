@@ -188,6 +188,7 @@ typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 // Initialize the library, this function must be called first (required).
 // Then CGEApp_Open and CGEApp_Close may be called multiple times.
 extern void CGEApp_Initialize(const char *applicationConfigDirectory);
+extern void CGEApp_Finalize(void);
 
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi);
 extern void CGEApp_Close(bool quitWhenLastWindowClosed);

@@ -240,6 +240,7 @@ extern void CGE_LoadLibrary(void);	// function defined in the loader CPP file
 // Initialize the library, this function must be called first (required).
 // Then CGEApp_Open and CGEApp_Close may be called multiple times.
 extern void CGE_Initialize(const char *applicationConfigDirectory);
+extern void CGE_Finalize(void);
 
 extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
 extern void CGE_Close(bool quitWhenLastWindowClosed);

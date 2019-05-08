@@ -24,6 +24,7 @@ uses Math, CastleWindow, CastleMessaging, ${GAME_UNITS};
 
 exports
   CastleWindow.CGEApp_Initialize,
+  CastleWindow.CGEApp_Finalize,
   CastleWindow.CGEApp_Open,
   CastleWindow.CGEApp_Close,
   CastleWindow.CGEApp_Render,
