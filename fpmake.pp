@@ -17,7 +17,7 @@ program fpmake;
 
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
-  {$ifndef VER3_0} CThreads, {$endif}
+  {$ifdef UNIX} {$ifndef VER3_0} CThreads, {$endif} {$endif}
   SysUtils, fpmkunit;
 
 var
