@@ -566,7 +566,7 @@ begin
   Result := FFrequency;
 end;
 
-rocedure TSoundWAV.ConvertTo16bit;
+procedure TSoundWAV.ConvertTo16bit;
 var
   PSource: PByte;
   // To unsigned 16-bit:
