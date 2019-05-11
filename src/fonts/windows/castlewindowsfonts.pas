@@ -15,7 +15,8 @@
 
 { Windows-specific font utilities. }
 
-unit CastleWindowsFonts;
+unit CastleWindowsFonts
+  deprecated 'use cross-platform fonts from CastleFonts instead of this Windows-specific (and unused) code';
 
 {$I castleconf.inc}
 
