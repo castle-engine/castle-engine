@@ -20,7 +20,8 @@ interface
 
 implementation
 
-uses SysUtils, CastleWindow, CastleScene, CastleControls,
+uses SysUtils, OpenSSLSockets,
+  CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
@@ -124,13 +125,18 @@ begin
 end;
 
 procedure TPluginWindowContainer.EventUpdate;
+var
+  S: String;
 begin
   inherited;
-  Status.Caption := 'Model: ' + URICaption(URL) + NL +
+  S :=
+    'Model: ' + URICaption(URL) + NL +
     'Browser: ' + Application.UserAgent + NL +
-    'FPS: ' +  Fps.ToString;
+    'FPS: ' +  Fps.ToString + NL;
+  // Note that ErrorMessage may contain newlines too, e.g. SSL error message
   if ErrorMessage <> '' then
-    Status.Text.Append('Erorr when loading: ' + ErrorMessage);
+    S := S + 'Error when loading: ' + ErrorMessage;
+  Status.Caption := S;
 end;
 
 procedure TPluginWindowContainer.EventResize;

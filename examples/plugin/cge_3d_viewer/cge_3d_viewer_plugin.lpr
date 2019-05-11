@@ -19,7 +19,7 @@ uses CastleWindow, GameInitialize;
 
 { This adds icons and version info for Windows, for a plugin version,
   automatically created by "castle-engine compile". }
-{$ifdef MSWINDOWS} {$R plugin-automatic-windows-resources.res} {$endif MSWINDOWS}
+{$ifdef MSWINDOWS} {$R castle-plugin-auto-generated-resources.res} {$endif MSWINDOWS}
 
 exports
   NP_GetPluginVersion,

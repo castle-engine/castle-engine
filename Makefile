@@ -357,6 +357,8 @@ clean: cleanexamples
 			   -iname '*.apk' -or \
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+			   -iname 'automatic-windows-resources.res' -or \
+			   -iname 'castle-auto-generated-resources.res' -or \
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f

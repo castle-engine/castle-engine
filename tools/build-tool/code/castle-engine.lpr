@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,9 +18,8 @@
 }
 
 { This adds icons and version info for Windows,
-  automatically created by "castle-engine compile".
-  Comment this out if you don't compile using our "castle-engine" build tool. }
-{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+  automatically created by "castle-engine compile". }
+{$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,

@@ -2,8 +2,8 @@ Smaller templates for project stuff.
 
 Regenerate them using "make" in this dir. This generates xxx.inc files from xxx,
 using file_to_pascal_string --- a trivial program
-that is part of pasdoc [http://pasdoc.sf.net/] project, see
-https://svn.code.sf.net/p/pasdoc/code/trunk/source/tools/file_to_pascal_string.dpr .
+that is part of pasdoc ( https://github.com/pasdoc/pasdoc/wiki ) project, see
+https://github.com/pasdoc/pasdoc/blob/master/source/tools/file_to_pascal_string.dpr .
 The resulting xxx.inc files are then compiled-in in the build tool binary.
 
 Note that "larger templates" are in ../data/ directory, not here,
