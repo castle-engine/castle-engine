@@ -81,6 +81,13 @@ type
 
     { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero). }
     function Duration: TFloatTime;
+
+    { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
+      not sfMono8 or sfStereo8).
+
+      The default implementation just raises an exception if data is not 16-bit.
+      When overriding this you call "inherited" at the end. }
+    procedure ConvertTo16bit; virtual;
   end;
 
   TSoundFileClass = class of TSoundFile;
@@ -114,6 +121,7 @@ type
     constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
 
+    procedure ConvertTo16bit; override;
     function Data: Pointer; override;
     function DataSize: LongWord; override;
     function DataFormat: TSoundDataFormat; override;
