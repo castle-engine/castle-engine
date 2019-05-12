@@ -20,7 +20,7 @@ interface
 
 implementation
 
-uses SysUtils, OpenSSLSockets,
+uses SysUtils, {$ifndef VER3_0} OpenSSLSockets, {$endif}
   CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
