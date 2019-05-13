@@ -489,8 +489,8 @@ var
 function ExeName: string;
 begin
   if FExeName = '' then
-   raise EExeNameNotAvailable.Create(
-     'ExeName: Cannot obtain filename of executable of this program');
+    raise EExeNameNotAvailable.Create(
+      'ExeName: Cannot obtain filename of executable of this program');
   Result := FExeName;
 end;
 
@@ -1046,6 +1046,10 @@ begin
 end;
 
 procedure InitializeExeName;
+{$ifdef LINUX}
+var
+  ExeLinkName: String;
+{$endif}
 begin
   { Initialize FExeName.
     Under Windows, ParamStr(0) is a reliable exe name.
@@ -1058,10 +1062,12 @@ begin
     as ParamStr(0) is set by the calling process,
     and it may be absolute or relative, it may be symlink,
     and in general it may contain anything. }
+  ExeLinkName := '/proc/' + IntToStr(FpGetpid) + '/exe';
   try
-    FExeName := CastleReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
+    FExeName := CastleReadLink(ExeLinkName);
   except
-    on EOSError do FExeName := '';
+    on EOSError do
+      WritelnWarning('Cannot read "%s" (to get ExeName on Linux)', [ExeLinkName]);
   end;
   {$endif}
 end;
