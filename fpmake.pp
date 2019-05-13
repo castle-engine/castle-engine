@@ -1,19 +1,11 @@
 { Compile Castle Game Engine by fpmake.
-  This can be used to compile (and install if you want)
-  all engine units. Simple instructions:
+  This can be used to compile and install the engine units.
 
-  export FPCDIR=..../lib/fpc/2.6.2/  # not needed if FPC installed in standard location
-  fpc fpmake.pp
-  ./fpmake compile  # use -v to get more info
-  ./fpmake install  # use -v to get more info
-  # to cross-compile e.g. to Android use like this:
-  # ./fpmake --os=android --cpu=arm ...
+  See https://github.com/castle-engine/castle-engine/wiki/FpMake
+  for the detailed instructions.
 }
 
 program fpmake;
-
-{ Only FPC >= 2.7.1 has the "Android" as a possible OS. }
-{$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
 
 uses
   { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
@@ -31,33 +23,31 @@ begin
 
     { Should work on AllUnixOSes, actually.
       But let's limit the list only to the OSes actually tested. }
-    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim
-      {$ifdef ANDROID_POSSIBLE} , Android {$endif}];
+    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim, Android];
 
     P.Options.Text := '@castle-fpc.cfg';
 
     { Some variables derived from Defaults.OS/CPU. }
     IOS := (Defaults.OS = IPhoneSim) or
       ((Defaults.OS = Darwin) and (Defaults.CPU = Arm));
-    Xlib := Defaults.OS in (AllUnixOSes
-      {$ifdef ANDROID_POSSIBLE} - [Android] {$endif});
+    Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
     { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    if {$ifdef ANDROID_POSSIBLE} (Defaults.OS <> Android) and {$endif} not IOS then
+    if (Defaults.OS <> Android) and (not IOS) then
       P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
-    {$ifdef ANDROID_POSSIBLE} if Defaults.OS <> Android then {$endif}
+    if Defaults.OS <> Android then
       P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
-    P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in our engine }
+    P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in CGE }
     P.Dependencies.Add('regexpr');
     if Xlib then
     begin
@@ -80,11 +70,7 @@ begin
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
     P.License := 'LGPL >= 2 (with static linking exception)';
-    {$ifdef VER2_2_2}
-    P.ExternalURL
-    {$else}
-    P.HomepageURL
-    {$endif} := 'https://castle-engine.io/';
+    P.HomepageURL := 'https://castle-engine.io/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
 
@@ -92,7 +78,7 @@ begin
       For simplicity, keep things in alphabetical order in each group. }
 
     { Add local version of Generics.Collections for FPC < 3.1.1 }
-    {$if defined(VER2) or defined(VER3_0)}
+    {$if defined(VER3_0)}
     P.SourcePath.Add('src' + PathDelim + 'compatibility' + PathDelim + 'generics.collections' + PathDelim + 'src' + PathDelim);
     P.Targets.AddUnit('generics.collections.pas');
     P.Targets.AddUnit('generics.defaults.pas');
@@ -200,7 +186,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'services' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegiftiz.pas');
 
-    {$ifdef ANDROID_POSSIBLE}
     if Defaults.OS = Android then
     begin
       P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'android');
@@ -216,7 +201,6 @@ begin
       P.Targets.AddUnit('castleandroidinternalrect.pas');
       P.Targets.AddUnit('castleandroidnativeappglue.pas');
     end;
-    {$endif}
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlecurves.pas');
