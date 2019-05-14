@@ -26,16 +26,15 @@ interface
 
 {$PACKRECORDS C}
 
-{$ifdef MSWINDOWS}
-  { Distribute with fmod.dll from
-    c:/Program Files (x86)/FMOD SoundSystem/FMOD Studio API Windows/api/core/lib/x64/
-  }
+{$if defined(MSWINDOWS)}
   {$define extdecl_callback := stdcall}
-  {$define extdecl := extdecl_callback; external 'fmod'}
 {$else}
   {$define extdecl_callback := cdecl}
-  {$define extdecl := extdecl_callback; external}
 {$endif}
+
+{ Download the FMOD libraries from https://www.fmod.com/ .
+  See the CastleInternalFMODBackend documentation for details how to get FMOD libs. }
+{$define extdecl := extdecl_callback; external 'fmod'}
 
 uses CTypes;
 
