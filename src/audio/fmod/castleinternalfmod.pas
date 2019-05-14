@@ -27,14 +27,14 @@ interface
 {$PACKRECORDS C}
 
 {$ifdef MSWINDOWS}
-  { Distrubute with fmod.dll from
+  { Distribute with fmod.dll from
     c:/Program Files (x86)/FMOD SoundSystem/FMOD Studio API Windows/api/core/lib/x64/
   }
   {$define extdecl_callback := stdcall}
   {$define extdecl := extdecl_callback; external 'fmod'}
 {$else}
   {$define extdecl_callback := cdecl}
-  {$define extdecl := extdecl_callback}
+  {$define extdecl := extdecl_callback; external}
 {$endif}
 
 uses CTypes;
