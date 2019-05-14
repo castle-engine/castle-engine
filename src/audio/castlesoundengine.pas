@@ -19,21 +19,42 @@ unit CastleSoundEngine;
 {$I castleconf.inc}
 
 { Full-featured backend using OpenAL. }
-{$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
 {$define CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
+{ $define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
 
 { Trivial test backend using "play" command-line program from SOX.
   Not suitable for serious use (does not support any feature beyond trivial
   "play this sound file with default volume/pitch etc."),
   this is just a demo that we can have many sound backends. }
-{ $define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
 {$define CASTLE_SOUND_BACKEND_ENABLE_SOX}
+{ $define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
+
+{ Sound backend using FMOD.
+  Not everything is implemented yet (although it could be, FMOD is powerful).
+
+  Note that compiling the FMOD backend means that the application will link
+  to FMOD at startup, so you have to distribute FMOD libraries
+  if you define CASTLE_SOUND_BACKEND_ENABLE_FMOD (whether you set
+  CASTLE_SOUND_BACKEND_DEFAULT_FMOD or not).
+
+  Note that using FMOD is not free.
+  See https://www.fmod.com/ for library downloads and pricing. }
+{ $define CASTLE_SOUND_BACKEND_ENABLE_FMOD}
+{ $define CASTLE_SOUND_BACKEND_DEFAULT_FMOD}
+
+{ Define best default for current platform. }
+{$if not (defined(CASTLE_SOUND_BACKEND_DEFAULT_OPENAL) or
+          defined(CASTLE_SOUND_BACKEND_DEFAULT_FMOD) or
+          defined(CASTLE_SOUND_BACKEND_DEFAULT_SOX))}
+  {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
+{$endif}
 
 interface
 
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
   CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
   CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_FMOD} CastleInternalFMODBackend, {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
   {$ifdef CASTLE_SOUND_BACKEND_ENABLE_SOX} CastleInternalSoxBackend, {$endif}
   CastleXMLConfig;
@@ -298,6 +319,7 @@ type
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   private
     Backend: TSoundEngineBackend;
+    FIsContextOpenSuccess: boolean;
     procedure ContextOpenCore; virtual;
     procedure ContextCloseCore; virtual;
   public
@@ -444,7 +466,6 @@ type
     var
       FInformation: string;
       FDevice: string;
-      FIsContextOpenSuccess: boolean;
       FVolume: Single;
       FEnabled: boolean;
       FIsContextOpen: boolean;
@@ -1510,6 +1531,7 @@ begin
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
   Backend :=
+    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_FMOD} TFMODSoundEngineBackend.Create {$endif}
     {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
     {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} TSoxSoundEngineBackend.Create {$endif}
   ;
@@ -1719,6 +1741,9 @@ var
   TimeNow: TTimerResult;
   SecondsPassed: TFloatTime;
 begin
+  if FIsContextOpenSuccess then
+    Backend.Update;
+
   { Calling UpdateSounds relatively often is important,
     to call OnRelease for sound sources that finished playing. }
   if FAllocatedSources <> nil then

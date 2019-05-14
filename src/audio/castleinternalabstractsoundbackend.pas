@@ -129,8 +129,11 @@ type
     function CreateSource: TSoundSourceBackend; virtual; abstract;
 
     { Add available sound devices.
-      There is always at least one default device, name ''. }
+      There is always at least one default device, name '',
+      it is already added to Devices list when calling this method. }
     procedure DetectDevices(const Devices: TSoundDeviceList); virtual;
+
+    procedure Update; virtual;
 
     { All the methods below are guaranteed to be called only after ContextOpen. }
     { }
@@ -172,6 +175,11 @@ end;
 { TSoundEngineBackend -------------------------------------------------------- }
 
 procedure TSoundEngineBackend.DetectDevices(const Devices: TSoundDeviceList);
+begin
+  // do nothing
+end;
+
+procedure TSoundEngineBackend.Update;
 begin
   // do nothing
 end;
