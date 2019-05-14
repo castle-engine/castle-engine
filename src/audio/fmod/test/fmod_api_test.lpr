@@ -1,9 +1,16 @@
 { -*- compile-command: "castle-engine simple-compile fmod_api_test.lpr && ./fmod_api_test" -*- }
 
 uses
-  {$ifdef MSWINDOWS} Windows, {$endif}
+  { FMOD on Windows platform docs,
+    https://www.fmod.com/resources/documentation-api?version=2.0&page=platforms-windows.html
+    say to call
+      CoInitializeEx(nil, COINIT_APARTMENTTHREADED);
+    and
+      CoUninitialize()
+    It seems that ComObj unit calls this automatically. }
+  {$ifdef MSWINDOWS} ComObj, {$endif}
   SysUtils, TypInfo, CTypes,
-  CastleInternalFMOD, CastleUtils, CastleStringUtils;
+  CastleInternalFMOD, CastleUtils, CastleStringUtils, CastleTimeUtils;
 
 type
   EFMODError = class(Exception);
@@ -38,11 +45,10 @@ end;
 var
   FMODSystem: PFMOD_SYSTEM;
 
-procedure PlaySound(const URL: String);
+function PlaySound(const URL: String; const Looping: Boolean): PFMOD_CHANNEL;
 var
   // SoundInfo: TFMOD_CREATESOUNDEXINFO; // not needed now
   Sound: PFMOD_SOUND;
-  Channel: PFMOD_CHANNEL;
   SoundType: TFMOD_SOUND_TYPE;
   SoundFormat: TFMOD_SOUND_FORMAT;
   SoundChannels, SoundBits: CInt;
@@ -62,26 +68,58 @@ begin
     '  Channels: ' + IntToStr(SoundChannels) + NL +
     '  Bits: ' + IntToStr(SoundBits));
 
-  CheckFMOD(FMOD_System_PlaySound(FMODSystem, Sound, nil, { paused } 0, @Channel));
+  // Start in paused state, allows to adjust parameters like loop before starting
+  CheckFMOD(FMOD_System_PlaySound(FMODSystem, Sound, nil, { paused } 1, @Result));
+  if Looping then
+    CheckFMOD(FMOD_Channel_SetMode(Result, FMOD_LOOP_NORMAL))
+  else
+    CheckFMOD(FMOD_Channel_SetMode(Result, FMOD_LOOP_OFF));
+  CheckFMOD(FMOD_Channel_SetPaused(Result, 0));
 end;
 
+function IsPlaying(const Channel: PFMOD_CHANNEL): Boolean;
+var
+  B: TFMOD_BOOL;
 begin
-  { Following FMOD on Windows platform docs,
-    https://www.fmod.com/resources/documentation-api?version=2.0&page=platforms-windows.html }
-  // TODO: {$ifdef MSWINDOWS} CoInitializeEx(nil, COINIT_APARTMENTTHREADED); {$endif}
+  { Note that Looping sound will have IsPlaying forever until it's explicitly stopped,
+    and that's what we want. }
+  CheckFMOD(FMOD_Channel_IsPlaying(Channel, @B));
+  Result := B <> 0;
+end;
 
+var
+  TimeStart: TTimerResult;
+  Time: TFloatTime;
+  NewVolume, NewPitch: Single;
+  ChannelWaiting: PFMOD_CHANNEL;
+begin
   CheckFMOD(FMOD_System_Create(@FMODSystem));
 
-  CheckFMOD(FMOD_System_Init(FMODSystem, 16, FMOD_INIT_NORMAL, nil));
+  CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
 
-  PlaySound('data/boss_destroy.wav');
-  PlaySound('data/gamemusic_1.ogg');
+  PlaySound('data/boss_destroy.wav', true);
+  ChannelWaiting := PlaySound('data/gamemusic_1.ogg', false);
 
-  // TODO test controlling Channel
+  TimeStart := Timer;
 
-  Writeln('Played sound, waiting 5 secs...');
+  while IsPlaying(ChannelWaiting) do
+  begin
+    Time := TimeStart.ElapsedTime;
 
-  Sleep(5000);
+    { test: modulate sound volume while playing }
+    NewVolume := Abs(Cos(Time));
+    CheckFMOD(FMOD_Channel_SetVolume(ChannelWaiting, NewVolume));
+
+    NewPitch := Abs(Cos(Time)) + 1.0;
+    CheckFMOD(FMOD_Channel_SetPitch(ChannelWaiting, NewPitch));
+
+    { test: forcibly stop sound after 10 seconds }
+    if Time > 10 then
+    begin
+      CheckFMOD(FMOD_Channel_Stop(ChannelWaiting));
+      Break; // do not call FMOD_Channel_IsPlaying anymore, ChannelWaiting should not be used anymore
+    end;
+  end;
 
   CheckFMOD(FMOD_System_Close(FMODSystem));
 
@@ -89,6 +127,4 @@ begin
   FMODSystem := nil;
 
   Writeln('Finished OK.');
-
-  // TODO: {$ifdef MSWINDOWS} CoUninitialize(); {$endif}
 end.
