@@ -30,15 +30,8 @@ unit CastleSoundEngine;
 { $define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
 
 { Sound backend using FMOD.
-  Not everything is implemented yet (although it could be, FMOD is powerful).
-
-  Note that compiling the FMOD backend means that the application will link
-  to FMOD at startup, so you have to distribute FMOD libraries
-  if you define CASTLE_SOUND_BACKEND_ENABLE_FMOD (whether you set
-  CASTLE_SOUND_BACKEND_DEFAULT_FMOD or not).
-
-  Note that using FMOD is not free.
-  See https://www.fmod.com/ for library downloads and pricing. }
+  See https://github.com/castle-engine/castle-engine/wiki/FMOD
+  about using FMOD with CGE. }
 { $define CASTLE_SOUND_BACKEND_ENABLE_FMOD}
 { $define CASTLE_SOUND_BACKEND_DEFAULT_FMOD}
 

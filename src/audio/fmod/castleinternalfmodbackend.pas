@@ -17,38 +17,8 @@
   Applications should never access this directly, use cross-platform API
   that is independent from backend in CastleSoundEngine.
 
-  Note that using FMOD is not free.
-  See https://www.fmod.com/ for library downloads and pricing.
-
-  To get FMOD libraries create an account on https://www.fmod.com/ ,
-  and download "FMOD Studio API". This should include
-  "FMOD Studio API and FMOD Core API" (we actually use only "FMOD Core API" now).
-  Some detailed instructions for popular platforms:
-
-  @unorderedList(
-    @item(
-      On Windows "FMOD Studio API" is an install package, and when you run it you get
-      @code(C:\Program Files (x86)\FMOD SoundSystem\FMOD Studio API Windows)
-      (if installed to the default directory).
-      For Windows 64-bit just copy the DLL from
-      @code(C:\Program Files (x86)\FMOD SoundSystem\FMOD Studio API Windows\api\core\lib\x64\fmod.dll)
-      alongside the game exe.
-
-      See https://www.fmod.com/resources/documentation-api?version=2.0&page=platforms-windows.html
-      for FMOD + Windows details.
-    )
-
-    @item(
-      On Linux "FMOD Studio API" is a tar.gz archive. Unpack it anywhere, and from
-      @code(api\core\lib\x86_64) subdirectory (assuming you use Linux on x86_64 CPU)
-      copy the 3 libfmod.so* files (one is actual library, 2 are just symlinks).
-      It is probably easiest to copy these files to @code(/usr/local/lib)
-      or anywhere else listed on $LD_LIBRARY_PATH.
-
-      See https://www.fmod.com/resources/documentation-api?version=2.0&page=platforms-linux.html
-      for FMOD + Linux details.
-    )
-  )
+  See https://github.com/castle-engine/castle-engine/wiki/FMOD
+  about using FMOD with CGE.
 }
 unit CastleInternalFMODBackend;
 
