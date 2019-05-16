@@ -4774,7 +4774,7 @@ end;
 
 procedure TCastleApplication.CastleEngineInitialize;
 var
-  TimeStart: TCastleProfilerTime;
+  TimeStart, TimeStart2: TCastleProfilerTime;
 begin
   if Initialized and not InitializedJavaActivity then
     WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
@@ -4793,23 +4793,30 @@ begin
 
     // Call OnInitialize and OnInitializeEvent, watched by Profiler
 
-    if Assigned(OnInitialize) then
+    if Assigned(OnInitialize) or Assigned(OnInitializeEvent) then
     begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitialize');
-      OnInitialize();
-      Profiler.Stop(TimeStart);
-    end;
+      TimeStart := Profiler.Start('TCastleApplication Initialization');
+      try
+        if Assigned(OnInitialize) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitialize');
+          OnInitialize();
+          Profiler.Stop(TimeStart2);
+        end;
 
-    if Assigned(OnInitializeEvent) then
-    begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitializeEvent');
-      OnInitializeEvent(Self);
-      Profiler.Stop(TimeStart);
+        if Assigned(OnInitializeEvent) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitializeEvent');
+          OnInitializeEvent(Self);
+          Profiler.Stop(TimeStart2);
+        end;
+      finally
+        Profiler.Stop(TimeStart);
+        if Profiler.Enabled then
+          WritelnLogMultiline('TCastleApplication Initialization',
+            TimeStart.Summary);
+      end;
     end;
-
-    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) and
-       Profiler.Enabled then
-      WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
 end;
 
