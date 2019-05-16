@@ -37,7 +37,7 @@ type
     FMODSound: PFMOD_SOUND;
     function FMODSystem: PFMOD_SYSTEM;
   public
-    procedure ContextOpen(const SoundFile: TSoundFile); override;
+    procedure ContextOpen(const AURL: String); override;
     procedure ContextClose; override;
   end;
 
@@ -127,30 +127,49 @@ begin
   Result := (SoundEngine as TFMODSoundEngineBackend).FMODSystem;
 end;
 
-procedure TFMODSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
+procedure TFMODSoundBufferBackend.ContextOpen(const AURL: String);
 var
   SoundType: TFMOD_SOUND_TYPE;
   SoundFormat: TFMOD_SOUND_FORMAT;
   SoundChannels, SoundBits: CInt;
   S: String;
+  TimeStart: TCastleProfilerTime;
 begin
   inherited;
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
+  try
 
-  // TODO: loading to TSoundFile was useless
+    S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
+    if URIProtocol(S) = 'file' then
+      S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
+    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
+      nil { @SoundInfo }, @FMODSound));
 
-  S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
-  if URIProtocol(S) = 'file' then
-    S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
-  CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
-    nil { @SoundInfo }, @FMODSound));
+    CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
 
-  CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
+    WritelnLog('FMOD loaded sound: "' + URIDisplay(AURL) + '": ' +
+      'Type: ' + SoundTypeToStr(SoundType) +
+      ', Format: ' + SoundFormatToStr(SoundFormat) +
+      ', Channels: ' + IntToStr(SoundChannels) +
+      ', Bits: ' + IntToStr(SoundBits));
 
-  WritelnLog('FMOD loaded sound information:' + NL +
-    '  Type: ' + SoundTypeToStr(SoundType) + NL +
-    '  Format: ' + SoundFormatToStr(SoundFormat) + NL +
-    '  Channels: ' + IntToStr(SoundChannels) + NL +
-    '  Bits: ' + IntToStr(SoundBits));
+    // calculate FDataFormat
+    if SoundChannels >= 2 then
+    begin
+      if SoundBits >= 16 then
+        FDataFormat := sfStereo16
+      else
+        FDataFormat := sfStereo8;
+    end else
+    begin
+      if SoundBits >= 16 then
+        FDataFormat := sfMono16
+      else
+        FDataFormat := sfMono8;
+    end;
+
+    // TODO: initialize FDuration, FFrequency
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 procedure TFMODSoundBufferBackend.ContextClose;

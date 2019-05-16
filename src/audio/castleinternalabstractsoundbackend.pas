@@ -29,13 +29,13 @@ type
   TSoundBufferBackend = class
   strict private
     FSoundEngine: TSoundEngineBackend;
-
-    { These fields are set by ContextOpen. }
+  protected
+    { These fields should be set by ContextOpen. }
     FURL: string;
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
-  protected
+
     property SoundEngine: TSoundEngineBackend read FSoundEngine;
   public
     { Absolute URL.
@@ -50,14 +50,28 @@ type
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
-    { Load from @link(SoundFile).
-      When overriding, call inherited first.
+    { Load from @link(URL), set a couple of properties.
+      When overriding, call inherited first, and be sure to initialize
+      protected fields FDuration, FDataFormat, FFrequency.
       @raises Exception In case sound loading failed for any reason. }
-    procedure ContextOpen(const SoundFile: TSoundFile); virtual;
+    procedure ContextOpen(const AURL: String); virtual;
 
     { Guaranteed to be called always after ContextOpen that didn't raise exception,
       and before destructor. }
     procedure ContextClose; virtual; abstract;
+  end;
+
+  { TSoundBufferBackend descendant that can load TSoundFile instance.
+    Should be used by sound backends that cannot load sound files themselves,
+    and rely on TSoundFile to do it (right now, this applies to all backends except FMOD). }
+  TSoundBufferBackendFromSoundFile = class(TSoundBufferBackend)
+  protected
+    { Load from @link(SoundFile).
+      When overriding, call inherited first.
+      @raises Exception In case sound loading failed for any reason. }
+    procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); virtual;
+  public
+    procedure ContextOpen(const AURL: String); override;
   end;
 
   { Abstract sound engine sound source: something in 3D that plays sound. }
@@ -144,6 +158,8 @@ type
 
 implementation
 
+uses SysUtils;
+
 { TSoundBufferBackend -------------------------------------------------------- }
 
 constructor TSoundBufferBackend.Create(const ASoundEngine: TSoundEngineBackend);
@@ -152,12 +168,30 @@ begin
   FSoundEngine := ASoundEngine;
 end;
 
-procedure TSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
+procedure TSoundBufferBackend.ContextOpen(const AURL: String);
 begin
-  FDuration := SoundFile.Duration;
-  FDataFormat := SoundFile.DataFormat;
-  FFrequency := SoundFile.Frequency;
-  FURL := SoundFile.URL;
+  FURL := AURL;
+end;
+
+{ TSoundBufferBackendFromSoundFile -------------------------------------------}
+
+procedure TSoundBufferBackendFromSoundFile.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
+begin
+end;
+
+procedure TSoundBufferBackendFromSoundFile.ContextOpen(const AURL: String);
+var
+  F: TSoundFile;
+begin
+  inherited;
+
+  F := TSoundFile.CreateFromFile(URL);
+  try
+    FDuration := F.Duration;
+    FDataFormat := F.DataFormat;
+    FFrequency := F.Frequency;
+    ContextOpenFromSoundFile(F);
+  finally FreeAndNil(F) end;
 end;
 
 { TSoundSourceBackend -------------------------------------------------------- }

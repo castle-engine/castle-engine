@@ -28,12 +28,12 @@ uses SysUtils, Classes, Math,
   CastleInternalAbstractSoundBackend, CastleSoundBase;
 
 type
-  TOpenALSoundBufferBackend = class(TSoundBufferBackend)
+  TOpenALSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
   private
     ALBuffer: TALuint;
     function ALVersion11: Boolean;
   public
-    procedure ContextOpen(const SoundFile: TSoundFile); override;
+    procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); override;
     procedure ContextClose; override;
   end;
 
@@ -116,7 +116,7 @@ begin
   Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
 end;
 
-procedure TOpenALSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
+procedure TOpenALSoundBufferBackend.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
 const
   ALDataFormat: array [TSoundDataFormat] of TALuint = (
     AL_FORMAT_MONO8,
@@ -483,12 +483,10 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
   function ALSuccessInformation: string;
   begin
     Result := Format(
-      NL+
-      'Version : %s' +NL+
-      'Version Parsed : major: %d, minor: %d' +NL+
-      'Renderer : %s' +NL+
-      'Vendor : %s' +NL+
-      'Extensions : %s', [
+      'OpenAL version: %s (major: %d, minor: %d)' +NL+
+      'Renderer: %s' +NL+
+      'Vendor: %s' +NL+
+      'Extensions: %s', [
         alGetString(AL_VERSION),
         FALMajorVersion, FALMinorVersion,
         alGetString(AL_RENDERER),

@@ -32,7 +32,7 @@ type
   private
     FileName: String;
   public
-    procedure ContextOpen(const SoundFile: TSoundFile); override;
+    procedure ContextOpen(const AURL: String); override;
     procedure ContextClose; override;
   end;
 
@@ -84,18 +84,18 @@ uses StrUtils,
 
 { TSoxSoundBufferBackend -------------------------------------------------- }
 
-procedure TSoxSoundBufferBackend.ContextOpen(const SoundFile: TSoundFile);
+procedure TSoxSoundBufferBackend.ContextOpen(const AURL: String);
 begin
   inherited;
 
-  FileName := URIToFilenameSafe(SoundFile.URL);
+  FileName := URIToFilenameSafe(AURL);
   { Workaround sox on Windows being unable to process filenames with backslashes. }
   {$ifdef MSWINDOWS}
   FileName := SReplaceChars(FileName, '\', '/');
   {$endif}
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
-      [SoundFile.URL]);
+      [URL]);
 end;
 
 procedure TSoxSoundBufferBackend.ContextClose;

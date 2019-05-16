@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1287,17 +1287,12 @@ end;
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
-  var
-    F: TSoundFile;
   begin
-    F := TSoundFile.CreateFromFile(URL);
-    try
-      FURL := URL;
-      FDuration := F.Duration;
-      FDataFormat := F.DataFormat;
-      FFrequency := F.Frequency;
-      Backend.ContextOpen(F);
-    finally FreeAndNil(F) end;
+    FURL := URL;
+    Backend.ContextOpen(URL);
+    FDuration := Backend.Duration;
+    FDataFormat := Backend.DataFormat;
+    FFrequency := Backend.Frequency;
     BackendIsOpen := true;
   end;
 
