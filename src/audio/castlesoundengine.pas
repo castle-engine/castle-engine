@@ -303,13 +303,6 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Is the OpenAL version at least @code(AMajor.AMinor).
-      Available only when OpenAL is initialized, that is:
-      between @link(TSoundEngine.ContextOpen) and @link(TSoundEngine.ContextClose),
-      only when @link(TSoundEngine.IsContextOpenSuccess). }
-    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
-      deprecated 'do not use, this is internal information, and specific to OpenAL backend';
-
     { Internal: Allocate sound for playing. You should initialize the sound source
       properties and start playing the sound.
 
@@ -518,9 +511,6 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
 
-    { Is the OpenAL version at least @code(AMajor.AMinor). }
-    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
-
     { Do we have active sound rendering context.
       This is @true when you successfully
       called ContextOpen (and you didn't call ContextClose yet).
@@ -544,10 +534,6 @@ type
       this @italic(doesn't care if ContextOpen was a success). }
     property IsContextOpen: boolean read FIsContextOpen;
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
-
-    { Are OpenAL effects (EFX) extensions supported.
-      Meaningful only when IsContextOpenSuccess, that is it's initialized by ContextOpen. }
-    function EFXSupported: Boolean; deprecated 'this is OpenAL-specific, and we do not expose CGE API to actually access EFX effects yet';
 
     property SoundInitializationReport: string read FInformation;
       deprecated 'use Information';
@@ -1264,10 +1250,13 @@ uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
-  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} CastleInternalOpenALBackend, {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} CastleOpenALSoundBackend, {$endif}
   // unit below is deprecated
   CastleSoundAllocator;
 {$warnings on}
+
+var
+  FSoundEngine: TRepoSoundEngine;
 
 { TSoundBuffer --------------------------------------------------------------- }
 
@@ -1511,9 +1500,9 @@ begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
-  Backend :=
-    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
-  ;
+
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} UseOpenALSoundBackend; {$endif}
+
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
   // Config.AddSaveListener(@SaveToConfig);
@@ -2178,28 +2167,6 @@ begin
   end;
 end;
 
-function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
-begin
-  Result :=
-    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
-    (Backend is TOpenALSoundEngineBackend) and
-    TOpenALSoundEngineBackend(Backend).ALVersionAtLeast(AMajor, AMinor)
-    {$else}
-    false
-    {$endif};
-end;
-
-function TSoundEngine.EFXSupported: Boolean;
-begin
-  Result :=
-    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
-    (Backend is TOpenALSoundEngineBackend) and
-    TOpenALSoundEngineBackend(Backend).EFXSupported
-    {$else}
-    false
-    {$endif};
-end;
-
 procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
   if Value <> FDistanceModel then
@@ -2370,6 +2337,7 @@ end;
 procedure TSoundEngine.SetInternalBackend(const Value: TSoundEngineBackend);
 begin
   ContextClose;
+  FreeAndNil(Backend);
   Backend := Value;
 end;
 
@@ -2576,6 +2544,9 @@ end;
 
 constructor TRepoSoundEngine.Create;
 begin
+  // We need to set global FSoundEngine early, to make UseOpenALSoundBackend work
+  FSoundEngine := Self;
+
   inherited;
 
   { Sound importance names and sound names are case-sensitive because
@@ -3063,13 +3034,15 @@ end;
 
 { globals -------------------------------------------------------------------- }
 
-var
-  FSoundEngine: TRepoSoundEngine;
-
 function SoundEngine: TRepoSoundEngine;
 begin
   if FSoundEngine = nil then
-    FSoundEngine := TRepoSoundEngine.Create;
+  begin
+    TRepoSoundEngine.Create;
+    // TRepoSoundEngine.Create already assigns FSoundEngine
+    Assert(FSoundEngine <> nil);
+  end;
+
   Result := FSoundEngine;
 end;
 

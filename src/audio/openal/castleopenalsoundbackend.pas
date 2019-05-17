@@ -13,25 +13,32 @@
   ----------------------------------------------------------------------------
 }
 
-{ Sound engine backend using OpenAL.
-  Applications should never access this directly, use cross-platform API
-  that is independent from backend in CastleSoundEngine.
-
-  You could set it explicitly by using this unit and
-  calling @code(SoundEngine.Backend := TOpenALSoundEngineBackend.Create).
-  That said, there's no need for it now: this is the default sound backend
-  on all platforms that support OpenAL.
-}
-unit CastleInternalOpenALBackend;
+{ Full-featured sound engine backend using OpenAL.
+  Supports spatial (3D) sound, is cross-platform,
+  and underlying OpenAL is free and open-source. }
+unit CastleOpenALSoundBackend;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, Math,
+{ Use this to set sound engine backend to OpenAL.
+
+  Note that OpenAL is the default sound backend on most platforms,
+  so you don't need to call this procedure in simple applications.
+  You only need to call it if you want to switch at runtime between FMOD,
+  OpenAL and other backends. }
+procedure UseOpenALSoundBackend;
+
+implementation
+
+uses SysUtils, Classes, Math, StrUtils,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
-  CastleInternalAbstractSoundBackend, CastleSoundBase;
+  CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
+  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils;
+
+{ sound backend classes interface -------------------------------------------- }
 
 type
   TOpenALSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
@@ -109,11 +116,6 @@ type
       when IsContextOpenSuccess, that is it's initialized by . }
     property EFXSupported: boolean read FEFXSupported;
   end;
-
-implementation
-
-uses StrUtils,
-  CastleInternalALUtils, CastleInternalEFX, CastleLog, CastleUtils;
 
 { TOpenALSoundBufferBackend -------------------------------------------------- }
 
@@ -652,6 +654,13 @@ end;
 function TOpenALSoundEngineBackend.CreateSource: TSoundSourceBackend;
 begin
   Result := TOpenALSoundSourceBackend.Create(Self);
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+procedure UseOpenALSoundBackend;
+begin
+  SoundEngine.InternalBackend := TOpenALSoundEngineBackend.Create;
 end;
 
 end.

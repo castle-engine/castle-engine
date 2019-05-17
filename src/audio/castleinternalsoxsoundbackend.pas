@@ -13,23 +13,29 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test sound engine backend using "sox" command-line.
+{ Dummy sound engine backend using "sox" command-line.
   This is not for production use, a lot of sound engine features are not supported.
   Really, it can only just read and play a sound file.
 
-  To test it, use this unit and
-  call @code(SoundEngine.Backend := TSoxSoundEngineBackend.Create).
-}
+  To test it, use this unit and call UseSOXSoundBackend. }
 unit CastleInternalSoxBackend;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, Math, Process,
+{ Use this to set sound engine backend to SOX. }
+procedure UseSOXSoundBackend;
+
+implementation
+
+uses SysUtils, Classes, Math, Process, StrUtils,
   CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
-  CastleInternalAbstractSoundBackend, CastleSoundBase;
+  CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
+  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils;
+
+{ sound backend classes interface -------------------------------------------- }
 
 type
   TSoxSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
@@ -80,11 +86,6 @@ type
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
     procedure SetListener(const Position, Direction, Up: TVector3); override;
   end;
-
-implementation
-
-uses StrUtils,
-  CastleLog, CastleUtils, CastleURIUtils, CastleFilesUtils;
 
 { TSoxSoundBufferBackend -------------------------------------------------- }
 
@@ -265,6 +266,13 @@ end;
 function TSoxSoundEngineBackend.CreateSource: TSoundSourceBackend;
 begin
   Result := TSoxSoundSourceBackend.Create(Self);
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+procedure UseSOXSoundBackend;
+begin
+  SoundEngine.InternalBackend := TSoxSoundEngineBackend.Create;
 end;
 
 end.
