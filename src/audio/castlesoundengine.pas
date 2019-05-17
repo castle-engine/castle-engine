@@ -1144,6 +1144,10 @@ type
     { Engine that owns this. }
     FEngine: TRepoSoundEngine;
 
+    { @nil if we don't play sound right now.
+      This may happen for many reasons -- e.g. because sound context is not open,
+      or Sound = stNone, or had URL = '' in RepositoryURL (sounds XML file),
+      or TSound instance was necessary for higher-priority sounds. }
     FAllocatedSource: TSound;
 
     FVolume, FPitch: Single;
