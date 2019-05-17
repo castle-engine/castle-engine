@@ -18,27 +18,10 @@ unit CastleSoundEngine;
 
 {$I castleconf.inc}
 
-{ Full-featured backend using OpenAL. }
-{$define CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
-{ $define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
-
-{ Trivial test backend using "play" command-line program from SOX.
-  Not suitable for serious use (does not support any feature beyond trivial
-  "play this sound file with default volume/pitch etc."),
-  this is just a demo that we can have many sound backends. }
-{$define CASTLE_SOUND_BACKEND_ENABLE_SOX}
-{ $define CASTLE_SOUND_BACKEND_DEFAULT_SOX}
-
-{ Sound backend using FMOD.
-  See https://github.com/castle-engine/castle-engine/wiki/FMOD
-  about using FMOD with CGE. }
-{ $define CASTLE_SOUND_BACKEND_ENABLE_FMOD}
-{ $define CASTLE_SOUND_BACKEND_DEFAULT_FMOD}
-
-{ Define best default for current platform. }
-{$if not (defined(CASTLE_SOUND_BACKEND_DEFAULT_OPENAL) or
-          defined(CASTLE_SOUND_BACKEND_DEFAULT_FMOD) or
-          defined(CASTLE_SOUND_BACKEND_DEFAULT_SOX))}
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  // Nintendo Switch has different default backend
+{$else}
+  { Full-featured backend using OpenAL. }
   {$define CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
 {$endif}
 
@@ -483,6 +466,7 @@ type
       When paused, sound backend is for sure inactive, and it cannot be activated
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
     property Paused: boolean read FPaused write SetPaused;
+    procedure SetInternalBackend(const Value: TSoundEngineBackend);
 
     procedure ContextOpenCore; override;
     procedure ContextCloseCore; override;
@@ -521,6 +505,12 @@ type
       This sets @link(IsContextOpen) and @link(IsContextOpenSuccess) to @false.
       It's allowed and harmless to call this when one of them is already @false. }
     procedure ContextClose;
+
+    { Sound backend, like OpenAL or FMOD or SOX.
+      Do not change or access this yourself.
+      You can change this only by calling procedure like UseFMODSoundBackend
+      from CastleFMODSoundBackend unit. }
+    property InternalBackend: TSoundEngineBackend read Backend write SetInternalBackend;
 
     procedure ALContextOpen; deprecated 'use ContextOpen';
     procedure ALContextClose; deprecated 'use ContextClose';
@@ -1274,9 +1264,7 @@ uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_FMOD} CastleInternalFMODBackend, {$endif}
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_SOX} CastleInternalSoxBackend, {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} CastleInternalOpenALBackend, {$endif}
   // unit below is deprecated
   CastleSoundAllocator;
 {$warnings on}
@@ -1524,9 +1512,7 @@ begin
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
   Backend :=
-    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_FMOD} TFMODSoundEngineBackend.Create {$endif}
     {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL} TOpenALSoundEngineBackend.Create {$endif}
-    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_SOX} TSoxSoundEngineBackend.Create {$endif}
   ;
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -2195,7 +2181,7 @@ end;
 function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
 begin
   Result :=
-    {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
+    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
     (Backend is TOpenALSoundEngineBackend) and
     TOpenALSoundEngineBackend(Backend).ALVersionAtLeast(AMajor, AMinor)
     {$else}
@@ -2206,7 +2192,7 @@ end;
 function TSoundEngine.EFXSupported: Boolean;
 begin
   Result :=
-    {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL}
+    {$ifdef CASTLE_SOUND_BACKEND_DEFAULT_OPENAL}
     (Backend is TOpenALSoundEngineBackend) and
     TOpenALSoundEngineBackend(Backend).EFXSupported
     {$else}
@@ -2379,6 +2365,12 @@ begin
         ContextOpen;
     end;
   end;
+end;
+
+procedure TSoundEngine.SetInternalBackend(const Value: TSoundEngineBackend);
+begin
+  ContextClose;
+  Backend := Value;
 end;
 
 class function TSoundEngine.GetLogSoundLoading: Boolean;

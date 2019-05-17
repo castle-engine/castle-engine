@@ -126,6 +126,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'audio' + PathDelim + 'fmod');
     P.Targets.AddUnit('castleinternalfmod.pas');
     P.Targets.AddUnit('castleinternalfmodbackend.pas');
+    P.Targets.AddUnit('castlefmodsoundbackend.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio' + PathDelim + 'openal');
     P.Targets.AddUnit('castleinternalefx.pas');

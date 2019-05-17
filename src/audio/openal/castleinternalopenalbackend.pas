@@ -15,7 +15,13 @@
 
 { Sound engine backend using OpenAL.
   Applications should never access this directly, use cross-platform API
-  that is independent from backend in CastleSoundEngine. }
+  that is independent from backend in CastleSoundEngine.
+
+  You could set it explicitly by using this unit and
+  calling @code(SoundEngine.Backend := TOpenALSoundEngineBackend.Create).
+  That said, there's no need for it now: this is the default sound backend
+  on all platforms that support OpenAL.
+}
 unit CastleInternalOpenALBackend;
 
 {$I castleconf.inc}

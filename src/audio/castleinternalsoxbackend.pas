@@ -15,7 +15,11 @@
 
 { Test sound engine backend using "sox" command-line.
   This is not for production use, a lot of sound engine features are not supported.
-  Really, it can only just read and play a sound file. }
+  Really, it can only just read and play a sound file.
+
+  To test it, use this unit and
+  call @code(SoundEngine.Backend := TSoxSoundEngineBackend.Create).
+}
 unit CastleInternalSoxBackend;
 
 {$I castleconf.inc}
