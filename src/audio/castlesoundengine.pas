@@ -47,9 +47,6 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections, DOM,
   CastleVectors, CastleTimeUtils, CastleClassUtils, CastleStringUtils,
   CastleSoundBase, CastleInternalSoundFile, CastleInternalAbstractSoundBackend,
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_FMOD} CastleInternalFMODBackend, {$endif}
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
-  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_SOX} CastleInternalSoxBackend, {$endif}
   CastleXMLConfig;
 
 type
@@ -1272,7 +1269,10 @@ uses XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleLog, CastleProgress, CastleInternalVorbisFile,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties,
-  // this is deprecated
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_FMOD} CastleInternalFMODBackend, {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_OPENAL} CastleInternalOpenALBackend, {$endif}
+  {$ifdef CASTLE_SOUND_BACKEND_ENABLE_SOX} CastleInternalSoxBackend, {$endif}
+  // unit below is deprecated
   CastleSoundAllocator;
 {$warnings on}
 
