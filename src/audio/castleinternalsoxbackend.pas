@@ -28,11 +28,11 @@ uses SysUtils, Classes, Math, Process,
   CastleInternalAbstractSoundBackend, CastleSoundBase;
 
 type
-  TSoxSoundBufferBackend = class(TSoundBufferBackend)
+  TSoxSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
   private
     FileName: String;
   public
-    procedure ContextOpen(const AURL: String); override;
+    procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); override;
     procedure ContextClose; override;
   end;
 
@@ -84,18 +84,23 @@ uses StrUtils,
 
 { TSoxSoundBufferBackend -------------------------------------------------- }
 
-procedure TSoxSoundBufferBackend.ContextOpen(const AURL: String);
+procedure TSoxSoundBufferBackend.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
 begin
   inherited;
 
-  FileName := URIToFilenameSafe(AURL);
+  { Note that we don't load contents from SoundFile in case of SOX backend.
+    Loading sound contents in case of SOX was useless.
+    However we need TSoundFile to know the Duration of the sound correctly,
+    which we will later use for PlayingOrPaused implementation. }
+
+  FileName := URIToFilenameSafe(SoundFile.URL);
   { Workaround sox on Windows being unable to process filenames with backslashes. }
   {$ifdef MSWINDOWS}
   FileName := SReplaceChars(FileName, '\', '/');
   {$endif}
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
-      [URL]);
+      [SoundFile.URL]);
 end;
 
 procedure TSoxSoundBufferBackend.ContextClose;
