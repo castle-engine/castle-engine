@@ -4800,22 +4800,19 @@ begin
         if Assigned(OnInitialize) then
         begin
           TimeStart2 := Profiler.Start('TCastleApplication.OnInitialize');
-          OnInitialize();
-          Profiler.Stop(TimeStart2);
+          try
+            OnInitialize();
+          finally Profiler.Stop(TimeStart2) end;
         end;
 
         if Assigned(OnInitializeEvent) then
         begin
           TimeStart2 := Profiler.Start('TCastleApplication.OnInitializeEvent');
-          OnInitializeEvent(Self);
-          Profiler.Stop(TimeStart2);
+          try
+            OnInitializeEvent(Self);
+          finally Profiler.Stop(TimeStart2) end;
         end;
-      finally
-        Profiler.Stop(TimeStart);
-        if Profiler.Enabled then
-          WritelnLogMultiline('TCastleApplication Initialization',
-            TimeStart.Summary);
-      end;
+      finally Profiler.Stop(TimeStart, true) end;
     end;
   end;
 end;

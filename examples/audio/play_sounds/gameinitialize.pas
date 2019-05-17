@@ -40,11 +40,6 @@ begin
   SoundEngine.MaxAllocatedSources := 8;
   // Get infotmation in log when each sound is loaded.
   SoundEngine.LogSoundLoading := true;
-  // Measure sound loading time.
-  // The profile is automatically output to log at the end of ApplicationInitialize
-  // (you could also output it explicitly by "WritelnLog(Profiler.Summary);",
-  // and you can measure time explicitly by "Profiler" or "Timer" or "ProcessTimer".
-  Profiler.Enabled := true;
 
   StateMain := TStateMain.Create(Application);
   TUIState.Current := StateMain;
@@ -60,4 +55,10 @@ initialization
   { Create and assign Application.MainWindow. }
   Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
+
+  // Measure sound loading time.
+  // The profile is automatically output to log at the end of ApplicationInitialize
+  // (you could also output it explicitly by "WritelnLog(Profiler.Summary);",
+  // and you can measure time explicitly by "Profiler" or "Timer" or "ProcessTimer".
+  Profiler.Enabled := true;
 end.

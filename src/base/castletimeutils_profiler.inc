@@ -25,18 +25,23 @@ type
     FTimeStart: TTimerResult;
     FProcessTimeStart: TProcessTimerResult;
     FTime: TObject; //< Always TCastleProfiler.TTime
+
+    { Summary of the speed measurements gathered for this TCastleProfilerTime.
+      Useful to investigate time under this TCastleProfilerTime,
+      as opposed to @link(TCastleProfiler.Summary Profiler.Summary) that
+      displays complete profile of everything that happened.
+
+      Note: using Summary on a stopped TCastleProfilerTime is not allowed,
+      may fail with Access Violation.
+      For this reason, this method was removed, as it was a trap.
+      Using LogSummary for Stop instead of both easier, and safe. }
+    //function Summary(const Indent: String = ''): string;
   public
     { Elapsed time in seconds since calling @link(TProfiler.Start)
       that returned this. Useful if you use @link(TProfiler),
       but in addition to @link(TProfiler.Summary) you also want to show
       the operation time in some other way. }
     function ElapsedTime: TFloatTime;
-
-    { Summary of the speed measurements gathered for this TCastleProfilerTime.
-      Useful to investigate time under this TCastleProfilerTime,
-      as opposed to @link(TCastleProfiler.Summary Profiler.Summary) that
-      displays complete profile of everything that happened. }
-    function Summary(const Indent: String = ''): string;
   end;
 
   { Profiler, to measure the speed of execution of your code.
@@ -179,8 +184,16 @@ type
     function Start(const Description: String): TCastleProfilerTime;
 
     { Stop a task. This call must match earlier @link(Start) call.
+
+      If LogSummary, and profiling is @link(Enabled), we will output (to CastleLog)
+      a summary of things that happened within this particular TCastleProfilerTime
+      instance (between it's start and stop).
+      This is useful when you are interested not only in adding this
+      TCastleProfilerTime to the profiler tree, but also in immediately viewing the
+      times in this TCastleProfilerTime subtree.
+
       @seealso Start }
-    procedure Stop(const TimeStart: TCastleProfilerTime);
+    procedure Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean = false);
   end;
 
 { Single instance of TCastleProfiler that you can use for all profiling.
@@ -206,6 +219,7 @@ begin
   Result := FTimeStart.ElapsedTime;
 end;
 
+{
 function TCastleProfilerTime.Summary(const Indent: String): string;
 var
   T: TCastleProfiler.TTime;
@@ -213,6 +227,7 @@ begin
   T := TCastleProfiler.TTime(FTime);
   Result := SProfileSummary + T.Summary(Indent);
 end;
+}
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
 
@@ -319,7 +334,7 @@ begin
   Result.FProcessTimeStart := ProcessTimer;
 end;
 
-procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime);
+procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean);
 var
   T: TTime;
 begin
@@ -335,6 +350,10 @@ begin
   T.Finished := true;
   T.Time := TimeStart.FTimeStart.ElapsedTime;
   T.ProcessTime := TimeStart.FProcessTimeStart.ElapsedTime;
+
+  // Call this before CurrentStack.Delete, which may free the T instance
+  if LogSummary then
+    WritelnLogMultiline(T.Description, T.Summary(''));
 
   if (CurrentStack.Count <> 0) and
      (CurrentStack.Last = T) then

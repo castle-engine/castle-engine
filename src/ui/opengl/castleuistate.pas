@@ -435,7 +435,7 @@ procedure TUIState.InternalStart;
 var
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Starting state ' + Name + ': ' + ClassName);
+  TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
 
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
@@ -449,10 +449,7 @@ begin
   if FStateStack.IndexOf(Self) <> -1 then
     StateContainer.Controls.Insert(InsertAtPosition, Self);
 
-  Profiler.Stop(TimeStart);
-  if Log then
-    WritelnLogMultiline('UIState', 'Started state ' + Name + ': ' + ClassName + NL +
-      TimeStart.Summary);
+  Profiler.Stop(TimeStart, Log);
 end;
 
 procedure TUIState.InternalStop;
