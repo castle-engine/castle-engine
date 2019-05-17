@@ -1144,15 +1144,12 @@ type
     { Engine that owns this. }
     FEngine: TRepoSoundEngine;
 
-    { This is nil if we don't play sound right now
-      (because sound context is not open, or Sound = stNone,
-      or PlayerSound.URL = '' (sound not existing)). }
     FAllocatedSource: TSound;
 
-    FVolume: Single;
+    FVolume, FPitch: Single;
     { Constant Gain of TSoundInfo associated with Sound,
       will be multiplied by Volume. }
-    SoundInfoGain: Single;
+    SoundInfoGain, SoundInfoPitch: Single;
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
@@ -1163,6 +1160,8 @@ type
     procedure AllocateSource;
     function GetVolume: Single;
     procedure SetVolume(const Value: Single);
+    function GetPitch: Single;
+    procedure SetPitch(const Value: Single);
   public
     const
       DefaultVolume = 1.0;
@@ -1187,6 +1186,8 @@ type
 
     property MusicVolume: Single read GetVolume write SetVolume default DefaultVolume;
       deprecated 'use Volume';
+
+    property Pitch: Single read GetPitch write SetPitch;
   end;
 
   TMusicPlayer = TLoopingChannel;
@@ -2971,6 +2972,7 @@ constructor TLoopingChannel.Create(AnEngine: TRepoSoundEngine);
 begin
   inherited Create;
   FVolume := DefaultVolume;
+  FPitch := 1.0;
   FEngine := AnEngine;
 end;
 
@@ -2984,19 +2986,26 @@ end;
 procedure TLoopingChannel.AllocateSource;
 var
   SoundInfo: TRepoSoundEngine.TSoundInfoBuffer;
+  Parameters: TSoundParameters;
 begin
   SoundInfo := FEngine.FinalSound(Sound);
   if SoundInfo = nil then Exit;
 
   SoundInfoGain := SoundInfo.Gain;
+  SoundInfoPitch := 1.0; // SoundInfo.Pitch; // for now there is no setting for it
 
-  FAllocatedSource := FEngine.PlaySound(
-    SoundInfo.Buffer, false, true,
-    SoundInfo.DefaultImportance,
-    Volume * SoundInfoGain,
-    SoundInfo.MinGain,
-    SoundInfo.MaxGain,
-    TVector3.Zero);
+  Parameters := TSoundParameters.Create;
+  try
+    Parameters.Buffer     := SoundInfo.Buffer;
+    Parameters.Spatial    := false;
+    Parameters.Looping    := true;
+    Parameters.Importance := SoundInfo.DefaultImportance;
+    Parameters.Gain       := Volume * SoundInfoGain;
+    Parameters.MinGain    := SoundInfo.MinGain;
+    Parameters.MaxGain    := SoundInfo.MaxGain;
+    Parameters.Pitch      := Pitch * SoundInfoPitch;
+    FAllocatedSource := FEngine.PlaySound(Parameters);
+  finally FreeAndNil(Parameters) end;
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
@@ -3038,6 +3047,21 @@ begin
     FVolume := Value;
     if FAllocatedSource <> nil then
       FAllocatedSource.Gain := Volume * SoundInfoGain;
+  end;
+end;
+
+function TLoopingChannel.GetPitch: Single;
+begin
+  Result := FPitch;
+end;
+
+procedure TLoopingChannel.SetPitch(const Value: Single);
+begin
+  if Value <> FPitch then
+  begin
+    FPitch := Value;
+    if FAllocatedSource <> nil then
+      FAllocatedSource.Pitch := Pitch * SoundInfoGain;
   end;
 end;
 
