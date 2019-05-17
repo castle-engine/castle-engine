@@ -181,10 +181,12 @@ begin
             Result.Frequency,
             Result.Duration
           ]);
+          { This is informative, but takes some time, so is commented out.
           WritelnLog('Sound', '"%s" data analysis: %s', [
             URIDisplay(AURL),
             Result.DataStatistics
           ]);
+          }
         end;
       finally S.Free end;
     except
