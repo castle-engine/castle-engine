@@ -129,31 +129,32 @@ end;
 
 procedure TFMODSoundBufferBackend.ContextOpen(const AURL: String);
 var
-  SoundType: TFMOD_SOUND_TYPE;
-  SoundFormat: TFMOD_SOUND_FORMAT;
-  SoundChannels, SoundBits: CInt;
   S: String;
   TimeStart: TCastleProfilerTime;
-begin
-  inherited;
-  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
-  try
 
-    S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
-    if URIProtocol(S) = 'file' then
-      S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
-    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
-      nil { @SoundInfo }, @FMODSound));
+  procedure CalculateProperties;
+  var
+    SoundType: TFMOD_SOUND_TYPE;
+    SoundFormat: TFMOD_SOUND_FORMAT;
+    SoundChannels, SoundBits: CInt;
+    Miliseconds, PcmSamples: CUInt;
+  begin
+    // calculate FDuration
+    CheckFMOD(FMOD_Sound_GetLength(FMODSound, @Miliseconds, FMOD_TIMEUNIT_MS));
+    if Miliseconds = $FFFFFFFF then
+      FDuration := 0
+    else
+      FDuration := Miliseconds / 1000;
+    if FDuration = 0 then
+      WritelnWarning('Cannot determine correct duration of sound file "%s"', [URIDisplay(AURL)]);
 
-    CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
-
-    WritelnLog('FMOD loaded sound: "' + URIDisplay(AURL) + '": ' +
-      'Type: ' + SoundTypeToStr(SoundType) +
-      ', Format: ' + SoundFormatToStr(SoundFormat) +
-      ', Channels: ' + IntToStr(SoundChannels) +
-      ', Bits: ' + IntToStr(SoundBits));
+    // calculate FFrequency.
+    CheckFMOD(FMOD_Sound_GetLength(FMODSound, @PcmSamples, FMOD_TIMEUNIT_PCM));
+    // We know that PcmSamples = Miliseconds * Frequency / 1000.
+    FFrequency := Int64(PcmSamples) * 1000 div Miliseconds;
 
     // calculate FDataFormat
+    CheckFMOD(FMOD_Sound_GetFormat(FMODSound, @SoundType, @SoundFormat, @SoundChannels, @SoundBits));
     if SoundChannels >= 2 then
     begin
       if SoundBits >= 16 then
@@ -168,7 +169,30 @@ begin
         FDataFormat := sfMono8;
     end;
 
-    // TODO: initialize FDuration, FFrequency
+    WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d (%s), frequency: %d, duration: %f', [
+      URIDisplay(AURL),
+      SoundTypeToStr(SoundType),
+      SoundFormatToStr(SoundFormat),
+      SoundChannels,
+      SoundBits,
+      DataFormatToStr(FDataFormat),
+      FFrequency,
+      FDuration
+    ]);
+  end;
+
+begin
+  inherited;
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
+  try
+
+    S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
+    if URIProtocol(S) = 'file' then
+      S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
+    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
+      nil { @SoundInfo }, @FMODSound));
+
+    CalculateProperties;
   finally Profiler.Stop(TimeStart) end;
 end;
 
