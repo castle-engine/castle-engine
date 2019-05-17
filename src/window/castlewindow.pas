@@ -3110,7 +3110,7 @@ procedure TCastleWindowBase.OpenCore;
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
-    UIScale := Container.DefaultUIScale;
+    UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
     TextRect := Theme.Images[tiLoading].Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).

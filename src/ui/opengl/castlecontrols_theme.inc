@@ -68,6 +68,18 @@
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
+    { For what window height was the Images[tiLoading] prepared.
+      If you set Images[tiLoading], then most likely you will want to set it too.
+      The rendered size of Images[tiLoading] is adjusted, looking at actual
+      window height and this property.
+
+      Note that when rendering Images[tiLoading], TCastleApplication.OnInitialize
+      is not run, so Container.UIScaling is usually not initialized yet.
+      That's why we instead do this special scaling approach for Images[tiLoading].
+
+      By default this is 1000. }
+    LoadingImageForWindowHeight: Single;
+
     { Width of scrollbar for TCastleScrollView. }
     ScrollBarWidth: Single;
     { Minumum scrollbar height, to be comfortably visible and draggable. }
@@ -165,6 +177,7 @@ begin
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
+  LoadingImageForWindowHeight := 1000;
   ScrollBarWidth := 20;
   MinimumScrollbarSliderHeight := 20;
 
