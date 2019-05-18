@@ -6,7 +6,7 @@ The created curves can be saved into a simple XML format and loaded into your
 own Castle Game Engine programs and used for any purpose (for example as 
 a track along which something moves).
 
-This example show how to read this XML files.
+This example show how to read these XML files.
 
 ------------------------------------------------------------------------------
 
