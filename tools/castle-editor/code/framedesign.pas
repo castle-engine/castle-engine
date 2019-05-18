@@ -133,6 +133,7 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
 
+    procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
@@ -748,25 +749,6 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ShowGutter := false;
   end;
 
-  procedure ReadSettings;
-  var
-    SettingsUrl: String;
-  begin
-    SettingsUrl := 'castle-data:/CastleSettings.xml';
-    if URIFileExists(SettingsUrl) then
-    try
-      CastleControl.Container.LoadSettings(SettingsUrl);
-    except
-      on E: Exception do
-      begin
-        ErrorBox('An error occurred when reading the CastleSettings.xml file in your project:' +
-          NL + NL + ExceptMessage(E));
-        { and continue, this way you can still open a project with broken
-          CastleSettings.xml }
-      end;
-    end;
-  end;
-
 var
   DesignerLayer: TDesignerLayer;
 begin
@@ -801,8 +783,7 @@ begin
   CastleControl.Parent := PanelMiddle;
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
-
-  ReadSettings;
+  CastleControl.OnOpen := @CastleControlOpen;
 
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;
@@ -1346,6 +1327,31 @@ begin
        CastleControl.Container.UnscaledHeight]);
   end;
   LabelUIScaling.Hint := H;
+end;
+
+procedure TDesignFrame.CastleControlOpen(Sender: TObject);
+
+  procedure ReadSettings;
+  var
+    SettingsUrl: String;
+  begin
+    SettingsUrl := 'castle-data:/CastleSettings.xml';
+    if URIFileExists(SettingsUrl) then
+    try
+      CastleControl.Container.LoadSettings(SettingsUrl);
+    except
+      on E: Exception do
+      begin
+        ErrorBox('An error occurred when reading the CastleSettings.xml file in your project:' +
+          NL + NL + ExceptMessage(E));
+        { and continue, this way you can still open a project with broken
+          CastleSettings.xml }
+      end;
+    end;
+  end;
+
+begin
+  ReadSettings;
 end;
 
 procedure TDesignFrame.InspectorFilter(Sender: TObject;

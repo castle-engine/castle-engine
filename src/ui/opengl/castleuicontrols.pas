@@ -3554,6 +3554,8 @@ end;
 
 procedure TUIContainer.LoadSettings(const SettingsUrl: String);
 begin
+  if not ApplicationProperties.IsGLContextOpen then
+    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
   SettingsLoad(Self, SettingsUrl);
 end;
 
