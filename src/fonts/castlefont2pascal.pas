@@ -37,10 +37,13 @@ implementation
 uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleDownload,
   CastleUnicode;
 
-{ WriteUnit* ---------------------------------------------------------- }
-
-procedure WriteUnitBegin(Stream: TStream; const UnitName, PrecedingComment,
-  UsesUnitName, FontFunctionName, FontTypeName: string);
+procedure Font2Pascal(const Font: TTextureFontData;
+  const UnitName, PrecedingComment, FontFunctionName: string; Stream: TStream);
+var
+  C: TUnicodeChar;
+  G: TTextureFontData.TGlyph;
+  ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization: string;
+  LoadedGlyphs: TUnicodeCharList;
 begin
   WriteStr(Stream,
     '{ -*- buffer-read-only: t -*- }' +NL+
@@ -55,37 +58,15 @@ begin
     NL+
     'interface'+NL+
     NL+
-    'uses ' + UsesUnitName + ';' +NL+
+    'uses CastleTextureFontData;' +NL+
     NL+
-    'function ' + FontFunctionName + ': ' + FontTypeName + ';' +NL+
+    'function ' + FontFunctionName + ': TTextureFontData;' +NL+
     NL+
     'implementation' +NL+
     NL+
     'uses SysUtils, CastleImages;' + NL+
-    NL+
-    'var' +NL+
-    '  FFont: ' + FontTypeName + ';' +NL+
-    '' +NL+
-    'function ' + FontFunctionName + ': ' + FontTypeName + ';' +NL+
-    'begin' +NL+
-    '  Result := FFont;' +NL+
-    'end;' +NL+
-    nl
-    );
-end;
-
-{ Font2Pascal ----------------------------------------------------- }
-
-procedure Font2Pascal(const Font: TTextureFontData;
-  const UnitName, PrecedingComment, FontFunctionName: string; Stream: TStream);
-var
-  C: TUnicodeChar;
-  G: TTextureFontData.TGlyph;
-  ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization: string;
-  LoadedGlyphs: TUnicodeCharList;
-begin
-  WriteUnitBegin(Stream, UnitName, PrecedingComment,
-    'CastleTextureFontData', FontFunctionName, 'TTextureFontData');
+    NL
+  );
 
   ImageInterface := '';
   ImageImplementation := '';
@@ -96,8 +77,15 @@ begin
 
   WriteStr(Stream,
     // ImageInterface + // no need for this (and it would require additional "forward")
+    '{ -----------------------------------------------------------------------' + NL +
+    '  Embedded font image (TCastleImage instance). }' + NL +
+    NL +
     ImageImplementation +
-    'procedure DoInitialization;' +NL+
+    NL +
+    '{ -----------------------------------------------------------------------' + NL +
+    '  Embedded font (TTextureFontData instance). }' + NL +
+    NL +
+    'function Create' + FontFunctionName + ': TTextureFontData;' +NL+
     'var' +NL+
     '  Glyphs: TTextureFontData.TGlyphDictionary;' +NL+
     '  G: TTextureFontData.TGlyph;' +NL+
@@ -132,14 +120,23 @@ begin
   finally FreeAndNil(LoadedGlyphs) end;
 
   WriteStr(Stream,
-    '  FFont := TTextureFontData.CreateFromData(Glyphs, FontImage, ' +
+    '  Result := TTextureFontData.CreateFromData(Glyphs, FontImage, ' +
       IntToStr(Font.Size) + ', ' +
       LowerCase(BoolToStr(Font.AntiAliased, true)) + ');' +NL+
     'end;' +NL+
     NL+
+    'var' +NL+
+    '  FFont: TTextureFontData;' +NL+
+    '' +NL+
+    'function ' + FontFunctionName + ': TTextureFontData;' +NL+
+    'begin' +NL+
+    '  // create FFont on-demand' +NL+
+    '  if FFont = nil then FFont := Create' + FontFunctionName + ';' +NL+
+    '  Result := FFont;' +NL+
+    'end;' +NL+
+    NL+
     'initialization' +NL+
     ImageInitialization +
-    '  DoInitialization;' +NL+
     'finalization' +NL+
     '  FreeAndNil(FFont);' +NL+
     { This frees the image, but we don't want it --
@@ -147,8 +144,6 @@ begin
     // ImageFinalization +
     'end.' + NL);
 end;
-
-{ OutURL versions ---------------------------------------------------- }
 
 procedure Font2Pascal(const Font: TTextureFontData;
   const UnitName, PrecedingComment, FontFunctionName: string;
