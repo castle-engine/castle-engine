@@ -219,7 +219,6 @@ begin
     P.Targets.AddUnit('castlescriptxml.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
-    P.Targets.AddUnit('castlefont2pascal.pas');
     P.Targets.AddUnit('castleinternalfreetype.pas');
     P.Targets.AddUnit('castleinternalfreetypeh.pas');
     P.Targets.AddUnit('castleinternalftfont.pas');

@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="702">
+    <Files Count="701">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -617,10 +617,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/files/castlexmlutils.pas"/>
         <UnitName Value="CastleXMLUtils"/>
       </Item127>
-      <Item128>
-        <Filename Value="../src/fonts/castlefont2pascal.pas"/>
-        <UnitName Value="CastleFont2Pascal"/>
-      </Item128>
       <Item129>
         <Filename Value="../src/fonts/castleinternalfreetype.pas"/>
         <UnitName Value="CastleInternalFreeType"/>
@@ -2920,11 +2916,11 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalFMOD"/>
       </Item701>
-      <Item702>
+      <Item128>
         <Filename Value="../src/audio/fmod/castlefmodsoundbackend.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleFMODSoundBackend"/>
-      </Item702>
+      </Item128>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
