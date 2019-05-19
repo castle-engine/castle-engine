@@ -95,14 +95,13 @@ begin
     ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization);
 
   WriteStr(Stream,
+    // ImageInterface + // no need for this (and it would require additional "forward")
+    ImageImplementation +
     'procedure DoInitialization;' +NL+
     'var' +NL+
     '  Glyphs: TTextureFontData.TGlyphDictionary;' +NL+
     '  G: TTextureFontData.TGlyph;' +NL+
-    ImageInterface +
-    ImageImplementation +
     'begin' +NL+
-    ImageInitialization +
     '  FontImage.TreatAsAlpha := true;' +NL+
     '  FontImage.URL := ''embedded-font:/' + UnitName + ''';' +NL+
     NL+
@@ -139,9 +138,13 @@ begin
     'end;' +NL+
     NL+
     'initialization' +NL+
+    ImageInitialization +
     '  DoInitialization;' +NL+
     'finalization' +NL+
     '  FreeAndNil(FFont);' +NL+
+    { This frees the image, but we don't want it --
+      if the image is created, it is owned by TTextureFontData instance. }
+    // ImageFinalization +
     'end.' + NL);
 end;
 
