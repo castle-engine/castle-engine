@@ -41,6 +41,8 @@ bin/
 
 # cge build tool stuff
 castle-engine-output
+automatic-windows-resources.res
+castle-auto-generated-resources.res
 
 # fpmake stuff
 castle-game-engine-*.fpm
