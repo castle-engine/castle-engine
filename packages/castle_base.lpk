@@ -196,8 +196,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalSoundFile"/>
       </Item23>
       <Item24>
-        <Filename Value="../src/audio/castleinternalsoxbackend.pas"/>
-        <UnitName Value="CastleInternalSoxBackend"/>
+        <Filename Value="../src/audio/castleinternalsoxsoundbackend.pas"/>
+        <UnitName Value="CastleInternalSoxSoundBackend"/>
       </Item24>
       <Item25>
         <Filename Value="../src/audio/castlesoundallocator.pas"/>

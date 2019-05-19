@@ -18,7 +18,7 @@
   Really, it can only just read and play a sound file.
 
   To test it, use this unit and call UseSOXSoundBackend. }
-unit CastleInternalSoxBackend;
+unit CastleInternalSoxSoundBackend;
 
 {$I castleconf.inc}
 
