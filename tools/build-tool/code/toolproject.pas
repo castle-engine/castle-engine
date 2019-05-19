@@ -51,6 +51,7 @@ type
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
+    FDataExists: Boolean;
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -168,7 +169,9 @@ type
     property Name: string read FName;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
-    { Project data path. Always ends with path delimiter, like a slash or backslash. }
+    property DataExists: Boolean read FDataExists;
+    { Project data path. Always ends with path delimiter, like a slash or backslash.
+      Should be ignored if not @link(DataExists). }
     property DataPath: string read FDataPath;
     property Caption: string read FCaption;
     property Author: string read FAuthor;
@@ -343,6 +346,7 @@ constructor TCastleProject.Create(const APath: string);
     ReallyMinSdkVersion = 16;
     DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
     DefaultUsesNonExemptEncryption = true;
+    DefaultDataExists = true;
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -437,6 +441,7 @@ constructor TCastleProject.Create(const APath: string);
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
       FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
+      FDataExists := DefaultDataExists;
     end;
 
     procedure CheckManifestCorrect;
@@ -483,8 +488,7 @@ constructor TCastleProject.Create(const APath: string);
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
     begin
-      if Verbose then
-        Writeln('Manifest file found: ' + ManifestFile);
+      WritelnVerbose('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
       Icons.BaseUrl := ManifestURL;
       LaunchImages.BaseUrl := ManifestURL;
@@ -693,23 +697,42 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
+        Element := Doc.DocumentElement.ChildElement('data', false);
+        if Element <> nil then
+          FDataExists := Element.AttributeBooleanDef('exists', DefaultDataExists)
+        else
+          FDataExists := DefaultDataExists;
+
         if FAndroidServices.HasService('open_associated_urls') then
           FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
-
       finally FreeAndNil(Doc) end;
     end;
 
     CheckManifestCorrect;
   end;
 
+  { If DataExists, check whether DataPath really exists.
+    If it doesn't exist, make a warning and set FDataExists to false. }
+  procedure CheckDataExists;
+  begin
+    if FDataExists then
+    begin
+      if DirectoryExists(DataPath) then
+        WritelnVerbose('Found data in "' + DataPath + '"')
+      else
+      begin
+        WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
+        FDataExists := false;
+      end;
+    end;
+  end;
+
   procedure GuessDependencies;
   var
     FileInfo: TFileInfo;
   begin
-    if DirectoryExists(DataPath) then
+    if DataExists then
     begin
-      if Verbose then
-        Writeln('Found data in "' + DataPath + '"');
       if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) or
          FindFirstFile(DataPath, '*.otf', false, [ffRecursive], FileInfo) then
         AddDependency(depFreetype, FileInfo);
@@ -721,8 +744,7 @@ constructor TCastleProject.Create(const APath: string);
         AddDependency(depSound, FileInfo);
       if FindFirstFile(DataPath, '*.ogg', false, [ffRecursive], FileInfo) then
         AddDependency(depOggVorbis, FileInfo);
-    end else
-      Writeln('Data directory not found (tried "' + DataPath + '")');
+    end;
   end;
 
   procedure CloseDependencies;
@@ -781,6 +803,7 @@ begin
   FDataPath := InclPathDelim(Path + DataName);
 
   ReadManifest;
+  CheckDataExists;
   GuessDependencies;
   CloseDependencies;
   if Verbose then
@@ -985,7 +1008,8 @@ begin
   Result := TCastleStringList.Create;
 
   GatheringFiles := Result;
-  FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
+  if DataExists then
+    FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
     for I := 0 to IncludePaths.Count - 1 do
