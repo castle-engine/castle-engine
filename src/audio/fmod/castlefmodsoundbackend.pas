@@ -393,8 +393,11 @@ begin
 end;
 
 procedure TFMODSoundEngineBackend.SetGain(const Value: Single);
+var
+  MasterChannel: PFMOD_CHANNELGROUP;
 begin
-  // TODO
+  CheckFMOD(FMOD_System_GetMasterChannelGroup(FMODSystem, @MasterChannel));
+  CheckFMOD(FMOD_ChannelGroup_SetVolume(MasterChannel, Value));
 end;
 
 procedure TFMODSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);
