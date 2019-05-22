@@ -100,6 +100,8 @@
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
+  TOnCollisionEnter = procedure (const CollisionDetails:TPhysicsCollisionDetails) of object;
+
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
 
@@ -120,6 +122,7 @@
     FRecreateKraftInstance: boolean;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
+    FOnCollisionEnter:TOnCollisionEnter;
     procedure UpdateCollides(const Transform: TCastleTransform);
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
@@ -143,6 +146,7 @@
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    property OnCollisionEnter:TOnCollisionEnter read FOnCollisionEnter write FOnCollisionEnter;
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -354,6 +358,7 @@ begin
 
   FRecreateKraftInstance := true;
   FCollisionList := TCastleTransformList.Create(false, nil);
+  FOnCollisionEnter := nil;
   FTransform := nil;
 end;
 
@@ -656,8 +661,53 @@ begin
   if FKraftEngine = nil then
   begin
     FKraftEngine := TKraft.Create(-1);
+    FKraftEngine.ContactManager.OnContactBegin:=@OnCollision;
     //KraftEngine.SetFrequency(120.0); // default is 60
   end;
+end;
+
+procedure TSceneManagerWorld.OnCollision(const ContactPair: PKraftContactPair);
+var
+  CollisionDetails: TPhysicsCollisionDetails;
+  RigidBody1 :TRigidBody;
+  RigidBody2 :TRigidBody;
+begin
+  {
+  // I'm not sure if these checks are needed.
+  if Assigned(ContactPair^.RigidBodies[0]) and  Assigned(ContactPair^.RigidBodies[0].UserData) then
+    RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData)
+  else
+    RigidBody1 := nil;
+
+  if Assigned(ContactPair^.RigidBodies[1]) and  Assigned(ContactPair^.RigidBodies[1].UserData) then
+    RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData)
+  else
+    RigidBody2 := nil;
+
+  if (RigidBody1 = nil) and (RigidBody2 = nil) then
+    exit;}
+
+  RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData);
+  RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData);
+
+  if Assigned(RigidBody1.OnCollisionEnter) or Assigned(RigidBody2.OnCollisionEnter) then
+  begin
+    CollisionDetails.CastleTransforms[0] := RigidBody1.FTransform;
+    CollisionDetails.CastleTransforms[1] := RigidBody2.FTransform;
+
+    if Assigned(RigidBody1.OnCollisionEnter) then
+    begin
+      CollisionDetails.OtherTransform := RigidBody2.FTransform;
+      RigidBody1.OnCollisionEnter(CollisionDetails);
+    end;
+
+    if Assigned(RigidBody2.OnCollisionEnter) then
+    begin
+      CollisionDetails.OtherTransform := RigidBody1.FTransform;
+      RigidBody2.OnCollisionEnter(CollisionDetails);
+    end;
+  end;
+
 end;
 
 destructor TSceneManagerWorld.Destroy;
