@@ -118,6 +118,8 @@
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
+    FTransform: TCastleTransform;
+    FCollisionList: TCastleTransformList;
     procedure UpdateCollides(const Transform: TCastleTransform);
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
@@ -137,6 +139,7 @@
     procedure DeinitializeTransform(const Transform: TCastleTransform);
     procedure Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
+    function GetCollidingTransforms:TCastleTransformList;
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
@@ -350,6 +353,8 @@ begin
   FDynamic := true;
 
   FRecreateKraftInstance := true;
+  FCollisionList := TCastleTransformList.Create(false, nil);
+  FTransform := nil;
 end;
 
 destructor TRigidBody.Destroy;
@@ -360,6 +365,7 @@ begin
 
   FreeAndNil(FKraftBody);
   FreeAndNil(FCollider);
+  FreeAndNil(FCollisionList);
   inherited;
 end;
 
@@ -390,6 +396,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
     FreeAndNil(FKraftBody);
     FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
+    FKraftBody.UserData := Self;
 
     if Dynamic then
       FKraftBody.SetRigidBodyType(krbtDynamic)
@@ -440,6 +447,7 @@ begin
   if Transform.FWorldReferences > 1 then
     raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the SceneManager.Items');
 
+  FTransform := Transform;
   if FRecreateKraftInstance then
   begin
     FRecreateKraftInstance := false;
@@ -467,6 +475,7 @@ begin
 
   { we in unintialized state, so initialize at nearest occasion }
   FRecreateKraftInstance := true;
+  FTransform := nil;
 end;
 
 procedure TRigidBody.UpdateCollides(const Transform: TCastleTransform);
@@ -538,6 +547,23 @@ begin
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
+  end;
+end;
+
+function TRigidBody.GetCollidingTransforms: TCastleTransformList;
+var
+  ContactPairEdge: PKraftContactPairEdge;
+  CastleTransform:TCastleTransform;
+begin
+  Result := FCollisionList;
+  FCollisionList.Clear;
+  ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+  while Assigned(ContactPairEdge) do
+  begin
+    CastleTransform := (TRigidBody(ContactPairEdge^.OtherRigidBody.UserData)).FTransform;
+    if FCollisionList.IndexOf(CastleTransform) = -1 then
+      FCollisionList.Add(CastleTransform);
+    ContactPairEdge := ContactPairEdge^.Next;
   end;
 end;
 
