@@ -119,6 +119,9 @@
     FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
     procedure UpdateCollides(const Transform: TCastleTransform);
+
+    procedure SetLinearVelocity(const LVelocity: TVector3);
+    function GetLinearVelocity: TVector3;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -136,6 +139,7 @@
 
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
+    property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -537,6 +541,16 @@ begin
   end;
 end;
 
+procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
+begin
+  FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
+  FKraftBody.SetToAwake;
+end;
+
+function TRigidBody.GetLinearVelocity: TVector3;
+begin
+  Result := VectorFromKraft(FKraftBody.LinearVelocity);
+end;
 { TCastleTransform ---------------------------------------------------------- }
 
 procedure TCastleTransform.SetRigidBody(const Value: TRigidBody);
