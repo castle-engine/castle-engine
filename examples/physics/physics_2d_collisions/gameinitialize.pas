@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2019-2019 Michalis Kamburelis, Andrzej Kilijański.
 
   This file is part of "Castle Game Engine".
 
@@ -44,23 +44,16 @@ var
 
 type
 
-  { TWall }
   TWall = class(TCastleScene)
-  private
-    FWallName: string;
   public
-    constructor Create(AOwner: TComponent);override;
-    constructor Create(AOwner: TComponent; NewWallName: string; Pos, Size, Color: TVector3);
-    property WallName:string read FWallName write FWallName;
+    constructor Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
   end;
-
-  { TPlane }
 
   TPlane = class(TCastleScene)
   public
-    LastCollisionEnter : string;
-    procedure OnCollisionEnter(const CollisionDetails:TPhysicsCollisionDetails);
-    constructor Create(AOwner: TComponent);override;
+    LastCollisionEnter: string;
+    procedure OnCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+    constructor Create(AOwner: TComponent); override;
   end;
 
 { TPlane }
@@ -68,7 +61,7 @@ type
 procedure TPlane.OnCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 begin
   if CollisionDetails.OtherTransform is TWall then
-    LastCollisionEnter := TWall(CollisionDetails.OtherTransform).WallName
+    LastCollisionEnter := TWall(CollisionDetails.OtherTransform).Name
   else
     LastCollisionEnter := 'other thing';
 end;
@@ -85,23 +78,17 @@ begin
   RBody := TRigidBody.Create(Plane);
   RBody.Dynamic := true;
   RBody.Animated := true;
-  RBody.Setup2D; // not really needed for objects with Dynamic = false
-  RBody.OnCollisionEnter:=@OnCollisionEnter;
+  RBody.Setup2D;
+  RBody.OnCollisionEnter := @OnCollisionEnter;
   Collider := TBoxCollider.Create(RBody);
-  Collider.Size := LocalBoundingBox.Size*5;
+  Collider.Size := LocalBoundingBox.Size * 5;
 
   RigidBody := RBody;
 end;
 
 { TWall }
 
-constructor TWall.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FWallName := 'Wall';
-end;
-
-constructor TWall.Create(AOwner: TComponent; NewWallName: string; Pos, Size, Color: TVector3);
+constructor TWall.Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3);
 var
   Box: TBoxNode;
   Shape: TShapeNode;
@@ -112,7 +99,7 @@ begin
   inherited Create(AOwner);
 
   Translation := Pos; // initial position
-  FWallName:= NewWallName;
+  Name := WallName;
 
   Box := TBoxNode.CreateWithShape(Shape);
   Box.Size := Size;
@@ -133,6 +120,7 @@ begin
 
   Collider := TBoxCollider.Create(RBody);
   Collider.Size := Size;
+
   RigidBody := RBody;
 end;
 
@@ -143,16 +131,16 @@ procedure ApplicationInitialize;
 
   procedure LoadWalls;
   begin
-    LeftWall := TWall.Create(Application, 'Left wall', Vector3(10, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
+    LeftWall := TWall.Create(Application, 'LeftWall', Vector3(10, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(LeftWall);
 
-    RightWall := TWall.Create(Application, 'Right wall', Vector3(1014, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
+    RightWall := TWall.Create(Application, 'RightWall', Vector3(1014, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(RightWall);
 
-    TopWall := TWall.Create(Application, 'Top wall', Vector3(1024/2, 758, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
+    TopWall := TWall.Create(Application, 'TopWall', Vector3(1024/2, 758, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(TopWall);
 
-    BottomWall := TWall.Create(Application, 'Bottom wall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
+    BottomWall := TWall.Create(Application, 'BottomWall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(BottomWall);
   end;
 
@@ -191,16 +179,16 @@ end;
 procedure WindowUpdate(Container: TUIContainer);
 var
   CollisionsList : TCastleTransformList;
-  CollisionsListTXT: string;
-  i:integer;
+  CollisionsListTXT: String;
+  I: Integer;
 begin
   CollisionsList := Plane.RigidBody.GetCollidingTransforms;
   CollisionsListTXT := 'Colissions: ';
 
-  for i := 0 to CollisionsList.Count-1 do
+  for I := 0 to CollisionsList.Count - 1 do
   begin
-    if CollisionsList[i] is TWall then
-       CollisionsListTXT := CollisionsListTXT + ' ' + TWall(CollisionsList[i]).WallName
+    if CollisionsList[I] is TWall then
+       CollisionsListTXT := CollisionsListTXT + ' ' + TWall(CollisionsList[I]).Name
     else
        CollisionsListTXT := CollisionsListTXT + ' other thing';
   end;
@@ -215,8 +203,8 @@ begin
     'Scene Manager Objects: %d' + LineEnding +
     'Right click to add plane velocity.' + LineEnding +
     '%s' + LineEnding +
-    'Last plane collision enter: %s.',
-    [Container.Fps.ToString,
+    'Last plane collision enter: %s.', [
+     Container.Fps.ToString,
      SceneManager.Items.Count,
      CollisionsListTXT,
      Plane.LastCollisionEnter
@@ -226,7 +214,7 @@ end;
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsMouseButton(mbRight) then
-     Plane.RigidBody.LinearVelocity:=Plane.RigidBody.LinearVelocity + Vector3(0,20,0);
+     Plane.RigidBody.LinearVelocity := Plane.RigidBody.LinearVelocity + Vector3(0, 20, 0);
 end;
 
 initialization

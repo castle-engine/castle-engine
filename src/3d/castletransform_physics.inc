@@ -100,7 +100,7 @@
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
-  TOnCollisionEnter = procedure (const CollisionDetails:TPhysicsCollisionDetails) of object;
+  TOnCollisionEnter = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
 
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
@@ -146,7 +146,7 @@
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
-    property OnCollisionEnter:TOnCollisionEnter read FOnCollisionEnter write FOnCollisionEnter;
+    property OnCollisionEnter: TOnCollisionEnter read FOnCollisionEnter write FOnCollisionEnter;
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -575,7 +575,8 @@ end;
 procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
   FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
-  FKraftBody.SetToAwake;
+  if not LVelocity.IsPerfectlyZero then
+    FKraftBody.SetToAwake;
 end;
 
 function TRigidBody.GetLinearVelocity: TVector3;
@@ -661,19 +662,19 @@ begin
   if FKraftEngine = nil then
   begin
     FKraftEngine := TKraft.Create(-1);
-    FKraftEngine.ContactManager.OnContactBegin:=@OnCollision;
+    FKraftEngine.ContactManager.OnContactBegin := @CollisionNotification;
     //KraftEngine.SetFrequency(120.0); // default is 60
   end;
 end;
 
-procedure TSceneManagerWorld.OnCollision(const ContactPair: PKraftContactPair);
+procedure TSceneManagerWorld.CollisionNotification(const ContactPair: PKraftContactPair);
 var
   CollisionDetails: TPhysicsCollisionDetails;
-  RigidBody1 :TRigidBody;
-  RigidBody2 :TRigidBody;
+  RigidBody1: TRigidBody;
+  RigidBody2: TRigidBody;
 begin
   {
-  // I'm not sure if these checks are needed.
+  // I'm not sure these checks are needed.
   if Assigned(ContactPair^.RigidBodies[0]) and  Assigned(ContactPair^.RigidBodies[0].UserData) then
     RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData)
   else
@@ -687,13 +688,18 @@ begin
   if (RigidBody1 = nil) and (RigidBody2 = nil) then
     exit;}
 
+  Assert(ContactPair^.RigidBodies[0] <> nil);
+  Assert(ContactPair^.RigidBodies[0].UserData <> nil);
+  Assert(ContactPair^.RigidBodies[1] <> nil);
+  Assert(ContactPair^.RigidBodies[1].UserData <> nil);
+
   RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData);
   RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData);
 
   if Assigned(RigidBody1.OnCollisionEnter) or Assigned(RigidBody2.OnCollisionEnter) then
   begin
-    CollisionDetails.CastleTransforms[0] := RigidBody1.FTransform;
-    CollisionDetails.CastleTransforms[1] := RigidBody2.FTransform;
+    CollisionDetails.Transforms[0] := RigidBody1.FTransform;
+    CollisionDetails.Transforms[1] := RigidBody2.FTransform;
 
     if Assigned(RigidBody1.OnCollisionEnter) then
     begin
@@ -707,7 +713,6 @@ begin
       RigidBody2.OnCollisionEnter(CollisionDetails);
     end;
   end;
-
 end;
 
 destructor TSceneManagerWorld.Destroy;
