@@ -299,16 +299,22 @@
     { @groupEnd }
 
     { Search by name for given field.
-      @nil if not found. }
-    function Field(const AName: string): TX3DField;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function Field(const AName: string; const RaiseOnError: Boolean = false): TX3DField;
 
     { Search by name for given field or event (exposed by some field or not).
-      @nil if not found. }
-    function FieldOrEvent(const AName: string): TX3DFieldOrEvent;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function FieldOrEvent(const AName: string; const RaiseOnError: Boolean = false): TX3DFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
-      @nil if not found. }
-    function AnyEvent(const AName: string): TX3DEvent;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function AnyEvent(const AName: string; const RaiseOnError: Boolean = false): TX3DEvent;
 
     { VRML 1.0 children nodes. These are nodes directly specified inside
       a VRML 1.0 node, they don't belong to any node field. (In VRML 1.0,
@@ -691,8 +697,15 @@
     function TryFindNode(FindClass: TX3DNodeClass;
       OnlyActive: boolean): TX3DNode;
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode;
+      OnlyActive: boolean): TX3DNode; overload;
     { @groupEnd }
+
+    { Find a node by name, in this node and children (recursively).
+      Searches both active and inactive graph parts.
+      This is a simpler way to call FindNodeByName,
+      and it is consistent with @link(TCastleSceneCore.Node) method.
+      @raises EX3DNotFound When node is not found. }
+    function FindNode(const FindName: string): TX3DNode; overload;
 
     { Find the first node with given class (NodeClass),
       return it's state or just transformation.
@@ -2296,9 +2309,14 @@ function TX3DNode.FindNodeByName(
   FindClass: TX3DNodeClass; const FindName: string;
   OnlyActive: boolean): TX3DNode;
 begin
-  result := TryFindNodeByName(FindClass, FindName, OnlyActive);
+  Result := TryFindNodeByName(FindClass, FindName, OnlyActive);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Node name "%s" not found', [FindName]);
+end;
+
+function TX3DNode.FindNode(const FindName: string): TX3DNode;
+begin
+  Result := FindNodeByName(TX3DNode, FindName, false);
 end;
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
@@ -2940,17 +2958,22 @@ begin
   Result := false;
 end;
 
-function TX3DNode.Field(const AName: string): TX3DField;
+function TX3DNode.Field(const AName: string; const RaiseOnError: Boolean): TX3DField;
 var
   I: Integer;
 begin
   I := FFields.IndexOfName(AName);
   if I <> -1 then
-    Result := FFields[I] else
-    Result := nil; { not found }
+    Result := FFields[I]
+  else
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find field "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
-function TX3DNode.FieldOrEvent(const AName: string): TX3DFieldOrEvent;
+function TX3DNode.FieldOrEvent(const AName: string; const RaiseOnError: Boolean): TX3DFieldOrEvent;
 var
   I: Integer;
   ResultEvent: TX3DEvent;
@@ -2974,10 +2997,14 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
-  Result := nil; { not found }
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find field or event "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
-function TX3DNode.AnyEvent(const AName: string): TX3DEvent;
+function TX3DNode.AnyEvent(const AName: string; const RaiseOnError: Boolean): TX3DEvent;
 var
   I: Integer;
 begin
@@ -2989,7 +3016,11 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
-  Result := nil; { not found }
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find event "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
 procedure TX3DNode.SetHasInterfaceDeclarations(const Value: TX3DAccessTypes);

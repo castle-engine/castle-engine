@@ -78,11 +78,36 @@ lazbuild_twice ()
   fi
 }
 
+# Download another repository from GitHub, compile with current build tool,
+# move result to $3 .
+# Assumes $CASTLE_BUILD_TOOL_OPTIONS defined.
+# Changes current dir.
+add_external_tool ()
+{
+  local GITHUB_NAME="$1"
+  local EXE_NAME="$2"
+  local OUTPUT_BIN="$3"
+  shift 2
+
+  local TEMP_PATH_TOOL=/tmp/castle-engine-release-$$/"${GITHUB_NAME}"/
+  mkdir -p "${TEMP_PATH_TOOL}"
+  cd "${TEMP_PATH_TOOL}"
+  wget https://codeload.github.com/castle-engine/"${GITHUB_NAME}"/zip/master --output-document "${GITHUB_NAME}".zip
+  unzip "${GITHUB_NAME}".zip
+  cd "${GITHUB_NAME}"-master
+  castle-engine $CASTLE_BUILD_TOOL_OPTIONS compile
+  mv "${EXE_NAME}" "${OUTPUT_BIN}"
+}
+
 do_pack_platform ()
 {
   local OS="$1"
   local CPU="$2"
   shift 2
+  
+  # restore CGE path, otherwise it points to a temporary (and no longer existing)
+  # dir after one execution of do_pack_platform
+  export CASTLE_ENGINE_PATH="${ORIGINAL_CASTLE_ENGINE_PATH}"
 
   case "$OS" in
     win32|win64) local EXE_EXTENSION='.exe' ;;
@@ -109,6 +134,23 @@ do_pack_platform ()
   cp -R "${CASTLE_ENGINE_PATH}" "${TEMP_PATH_CGE}"
 
   cd "${TEMP_PATH_CGE}"
+
+  # Initial cleanups after "cp -R ...".
+  # .cache and .cge-jenkins-lazarus are created in Jenkins + Docker job, where $HOME is equal to CGE dir.
+  rm -Rf .git .svn .cache .cge-jenkins-lazarus
+
+  # Extend castleversion.inc with GIT hash
+  # (useful to have exact version in case of snapshots).
+  # $GIT_COMMIT is defined by Jenkins, see https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
+  if [ -n "${GIT_COMMIT:-}" ]; then
+    echo "+ ' (commit ${GIT_COMMIT})'" >> src/base/castleversion.inc
+  fi
+
+  # update environment to use CGE in temporary location
+  export CASTLE_ENGINE_PATH="${TEMP_PATH_CGE}"
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_base.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_window.lpk
+  lazbuild_twice $CASTLE_LAZBUILD_OPTIONS packages/castle_components.lpk
 
   # Make sure no leftovers from previous compilations remain, to affect tools
   make cleanmore $MAKE_OPTIONS
@@ -146,13 +188,19 @@ do_pack_platform ()
   make -C doc/pasdoc/ clean html $MAKE_OPTIONS
   rm -Rf doc/pasdoc/cache/
 
+  # Add tools
+  add_external_tool view3dscene view3dscene"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+  add_external_tool castle-view-image castle-view-image"${EXE_EXTENSION}" "${TEMP_PATH_CGE}"bin
+
   local ARCHIVE_NAME="castle-engine-${CGE_VERSION}-${OS}-${CPU}.zip"
-  cd ../
+  cd "${TEMP_PATH}"
   rm -f "${ARCHIVE_NAME}"
-  zip --exclude='*/.git*' --exclude='*/.svn*' -r "${ARCHIVE_NAME}" castle_game_engine/
+  zip -r "${ARCHIVE_NAME}" castle_game_engine/
   mv -f "${ARCHIVE_NAME}" "${OUTPUT_DIRECTORY}"
   rm -Rf "${TEMP_PATH}"
 }
+
+ORIGINAL_CASTLE_ENGINE_PATH="${CASTLE_ENGINE_PATH}"
 
 check_fpc_version
 prepare_build_tool

@@ -8,7 +8,21 @@
   <compiler_options>
     <search_paths>
       <path value="code/" />
+      <path value="../common-code/" />
       <path value="embedded_images/" />
     </search_paths>
+    <custom_options>
+      <!--
+        Important on Windows, but defined everywhere for consistency.
+        This avoids the build tool locking DLL files of a project,
+        when it is run inside the project's directory.
+        This would prevent compile/clean options from removing/overwriting
+        the DLL files.
+
+        Since build tool right now doesn't actually need Zlib, Libpng, OpenAL
+        libraries (but it would load them otherwise) this is a simple solution.
+      -->
+      <option>-dCASTLE_DISABLE_DYNAMIC_LIBRARIES</option>
+    </custom_options>
   </compiler_options>
 </project>

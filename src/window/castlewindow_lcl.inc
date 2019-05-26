@@ -528,7 +528,7 @@ begin
   OpenGLControl.OnMouseWheel := @OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
-    (it may not happen automatically, testcase: glViewImage on Carbon).
+    (it may not happen automatically, testcase: castle-view-image on Carbon).
     TCastleWindowBase.OpenCore will call MakeCurrent next. }
   OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;

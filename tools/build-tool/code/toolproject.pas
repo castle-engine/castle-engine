@@ -51,6 +51,7 @@ type
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
+    FDataExists: Boolean;
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -168,7 +169,9 @@ type
     property Name: string read FName;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
-    { Project data path. Always ends with path delimiter, like a slash or backslash. }
+    property DataExists: Boolean read FDataExists;
+    { Project data path. Always ends with path delimiter, like a slash or backslash.
+      Should be ignored if not @link(DataExists). }
     property DataPath: string read FDataPath;
     property Caption: string read FCaption;
     property Author: string read FAuthor;
@@ -188,11 +191,9 @@ type
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
     property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
 
-    { Path to the external library in data/external_libraries/ .
-      Right now, these host various Windows-specific DLL files.
-      This checks existence of appropriate files along the way,
-      and raises exception in case of trouble. }
-    function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+    { List filenames of external libraries used by the current project,
+      on given OS/CPU. }
+    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
 
     function ReplaceMacros(const Source: string): string;
 
@@ -270,8 +271,9 @@ implementation
 
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroid, ToolWindowsRegistry,
-  ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch;
+  ToolPackage, ToolResources, ToolAndroid, ToolWindowsRegistry,
+  ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
+  ToolCommonUtils;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -344,6 +346,7 @@ constructor TCastleProject.Create(const APath: string);
     ReallyMinSdkVersion = 16;
     DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
     DefaultUsesNonExemptEncryption = true;
+    DefaultDataExists = true;
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -438,6 +441,7 @@ constructor TCastleProject.Create(const APath: string);
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
       FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
+      FDataExists := DefaultDataExists;
     end;
 
     procedure CheckManifestCorrect;
@@ -484,8 +488,7 @@ constructor TCastleProject.Create(const APath: string);
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
     begin
-      if Verbose then
-        Writeln('Manifest file found: ' + ManifestFile);
+      WritelnVerbose('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
       Icons.BaseUrl := ManifestURL;
       LaunchImages.BaseUrl := ManifestURL;
@@ -694,23 +697,42 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
+        Element := Doc.DocumentElement.ChildElement('data', false);
+        if Element <> nil then
+          FDataExists := Element.AttributeBooleanDef('exists', DefaultDataExists)
+        else
+          FDataExists := DefaultDataExists;
+
         if FAndroidServices.HasService('open_associated_urls') then
           FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
-
       finally FreeAndNil(Doc) end;
     end;
 
     CheckManifestCorrect;
   end;
 
+  { If DataExists, check whether DataPath really exists.
+    If it doesn't exist, make a warning and set FDataExists to false. }
+  procedure CheckDataExists;
+  begin
+    if FDataExists then
+    begin
+      if DirectoryExists(DataPath) then
+        WritelnVerbose('Found data in "' + DataPath + '"')
+      else
+      begin
+        WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
+        FDataExists := false;
+      end;
+    end;
+  end;
+
   procedure GuessDependencies;
   var
     FileInfo: TFileInfo;
   begin
-    if DirectoryExists(DataPath) then
+    if DataExists then
     begin
-      if Verbose then
-        Writeln('Found data in "' + DataPath + '"');
       if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) or
          FindFirstFile(DataPath, '*.otf', false, [ffRecursive], FileInfo) then
         AddDependency(depFreetype, FileInfo);
@@ -722,8 +744,7 @@ constructor TCastleProject.Create(const APath: string);
         AddDependency(depSound, FileInfo);
       if FindFirstFile(DataPath, '*.ogg', false, [ffRecursive], FileInfo) then
         AddDependency(depOggVorbis, FileInfo);
-    end else
-      Writeln('Data directory not found (tried "' + DataPath + '")');
+    end;
   end;
 
   procedure CloseDependencies;
@@ -782,6 +803,7 @@ begin
   FDataPath := InclPathDelim(Path + DataName);
 
   ReadManifest;
+  CheckDataExists;
   GuessDependencies;
   CloseDependencies;
   if Verbose then
@@ -833,6 +855,26 @@ end;
 procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
   const FpcExtraOptions: TStrings);
+
+  { Copy external libraries to LibrariesOutputPath.
+    LibrariesOutputPath must be empty (current dir) or ending with path delimiter. }
+  procedure AddExternalLibraries(const LibrariesOutputPath: String);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, List);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        WritelnVerbose('Copying library to ' + OutputFile);
+        CheckCopyFile(FileName, OutputFile);
+      end;
+    finally FreeAndNil(List) end;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
   ExtraOptions: TCastleStringList;
@@ -854,10 +896,6 @@ begin
         end;
       targetIOS:
         begin
-          if depOggVorbis in Dependencies then
-            { To compile CastleInternalVorbisFile properly.
-              Later PackageIOS will actually add the static tremolo files to the project. }
-            ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
           CompileIOS(Mode, Path, IOSSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
           LinkIOSLibrary(Path, IOSLibraryFile);
@@ -894,8 +932,8 @@ begin
                     raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
                 end;
 
-                if OS in AllWindowsOSes then
-                  GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
+                if MakeAutoGeneratedResources(Self, Path + ExtractFilePath(MainSource), OS, CPU, Plugin) then
+                  ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
 
                 Compile(OS, CPU, Plugin, Mode, Path, MainSource,
                   SearchPaths, LibraryPaths, ExtraOptions);
@@ -908,6 +946,7 @@ begin
                 begin
                   SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                   DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+                  AddExternalLibraries(ExtractFilePath(DestExe));
                 end;
                 if not SameFileName(SourceExe, DestExe) then
                 begin
@@ -969,7 +1008,8 @@ begin
   Result := TCastleStringList.Create;
 
   GatheringFiles := Result;
-  FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
+  if DataExists then
+    FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
     for I := 0 to IncludePaths.Count - 1 do
@@ -1005,14 +1045,83 @@ begin
       Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
 end;
 
-function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
-var
-  LibraryURL: string;
+procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
+
+  { Path to the external library in data/external_libraries/ .
+    Right now, these host various Windows-specific DLL files.
+    This checks existence of appropriate files along the way,
+    and raises exception in case of trouble. }
+  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+  var
+    LibraryURL: string;
+  begin
+    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := URIToFilenameSafe(LibraryURL);
+    if not FileExists(Result) then
+      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  end;
+
+  procedure AddExternalLibrary(const LibraryName: string);
+  begin
+    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
+  end;
+
 begin
-  LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-  Result := URIToFilenameSafe(LibraryURL);
-  if not FileExists(Result) then
-    raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  case OS of
+    win32:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype-6.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng12.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('ogg.dll');
+          AddExternalLibrary('vorbis.dll');
+          AddExternalLibrary('vorbisenc.dll');
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+
+    win64:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype-6.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng14-14.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('libogg.dll');
+          AddExternalLibrary('libvorbis.dll');
+          { AddExternalLibrary('vorbisenc.dll'); not present? }
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+  end;
 end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
@@ -1043,68 +1152,17 @@ var
     end;
   end;
 
-  procedure AddExternalLibrary(const LibraryName: string);
-  begin
-    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), ExtractFileName(LibraryName));
-  end;
-
   procedure AddExternalLibraries;
+  var
+    List: TCastleStringList;
+    FileName: String;
   begin
-    case OS of
-      win32:
-        begin
-          if depFreetype in Dependencies then
-            AddExternalLibrary('freetype-6.dll');
-          if depZlib in Dependencies then
-            AddExternalLibrary('zlib1.dll');
-          if depPng in Dependencies then
-            AddExternalLibrary('libpng12.dll');
-          if depSound in Dependencies then
-          begin
-            AddExternalLibrary('OpenAL32.dll');
-            AddExternalLibrary('wrap_oal.dll');
-          end;
-          if depOggVorbis in Dependencies then
-          begin
-            AddExternalLibrary('ogg.dll');
-            AddExternalLibrary('vorbis.dll');
-            AddExternalLibrary('vorbisenc.dll');
-            AddExternalLibrary('vorbisfile.dll');
-          end;
-          if depHttps in Dependencies then
-          begin
-            AddExternalLibrary('openssl/libeay32.dll');
-            AddExternalLibrary('openssl/ssleay32.dll');
-          end;
-        end;
-
-      win64:
-        begin
-          if depFreetype in Dependencies then
-            AddExternalLibrary('freetype-6.dll');
-          if depZlib in Dependencies then
-            AddExternalLibrary('zlib1.dll');
-          if depPng in Dependencies then
-            AddExternalLibrary('libpng14-14.dll');
-          if depSound in Dependencies then
-          begin
-            AddExternalLibrary('OpenAL32.dll');
-            AddExternalLibrary('wrap_oal.dll');
-          end;
-          if depOggVorbis in Dependencies then
-          begin
-            AddExternalLibrary('libogg.dll');
-            AddExternalLibrary('libvorbis.dll');
-            { AddExternalLibrary('vorbisenc.dll'); not present? }
-            AddExternalLibrary('vorbisfile.dll');
-          end;
-          if depHttps in Dependencies then
-          begin
-            AddExternalLibrary('openssl/libeay32.dll');
-            AddExternalLibrary('openssl/ssleay32.dll');
-          end;
-        end;
-    end;
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, List);
+      for FileName in List do
+        Pack.Add(FileName, ExtractFileName(FileName));
+    finally FreeAndNil(List) end;
   end;
 
 var
@@ -1457,6 +1515,10 @@ function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: bool
 var
   RelativeResult, AbsoluteResult: string;
 begin
+  { Without this, we would also have an error, but NxNotSupported makes
+    nicer error message. }
+  NxNotSupported;
+
   GeneratedSourceFile('nintendo_switch/library_template.lpr',
     'nintendo_switch' + PathDelim + 'castle_nx.lpr',
     'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a Nintendo Switch project.',
@@ -1558,6 +1620,22 @@ procedure TCastleProject.DoClean;
     FindFiles(Path, Mask, false, @DeleteFoundFile, [ffRecursive]);
   end;
 
+  procedure DeleteExternalLibraries(const LibrariesOutputPath: String; const OS: TOS; const CPU: TCPU);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, List);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        TryDeleteFile(OutputFile);
+      end;
+    finally FreeAndNil(List) end;
+  end;
+
 var
   OS: TOS;
   CPU: TCPU;
@@ -1586,20 +1664,19 @@ begin
   if IOSSource <> '' then
     TryDeleteAbsoluteFile(IOSLibraryFile);
 
-  { packages created by DoPackage? Or not, it's safer to not remove them. }
-  {
   for OS in TOS do
     for CPU in TCPU do
       if OSCPUSupported[OS, CPU] then
-        TryDeleteFile(PackageName(OS, CPU));
-  }
-
-  { possible plugin outputs }
-  if PluginSource <> '' then
-    for OS in TOS do
-      for CPU in TCPU do
-        if OSCPUSupported[OS, CPU] then
+      begin
+        { possible plugin outputs }
+        if PluginSource <> '' then
           TryDeleteFile(PluginLibraryFile(OS, CPU));
+
+        { packages created by DoPackage? Or not, it's safer to not remove them. }
+        // TryDeleteFile(PackageName(OS, CPU));
+
+        DeleteExternalLibraries(ExtractFilePath(ExecutableName), OS, CPU);
+      end;
 
   { compilation and editor backups }
   DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
@@ -1609,13 +1686,8 @@ begin
   DeleteFilesRecursive('*.compiled'); // Lazarus compilation
   DeleteFilesRecursive('*.rst'); // resource strings
   DeleteFilesRecursive('*.rsj'); // resource strings
-
-  { Note that we do not remove
-      automatic-windows-resources.res
-      plugin-automatic-windows-resources.res
-    They can be committed,
-    otherwise compilation without using castle-engine tool
-    will not be easily possible. }
+  TryDeleteFile('castle-auto-generated-resources.res');
+  TryDeleteFile('castle-plugin-auto-generated-resources.res');
 
   Writeln('Deleted ', DeletedFiles, ' files');
 end;
@@ -1657,7 +1729,7 @@ var
 begin
   if Trim(FEditorUnits) = '' then
   begin
-    EditorExe := FindCgeExe('castle-editor');
+    EditorExe := FindExeCastleTool('castle-editor');
     if EditorExe = '' then
       raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
   end else
@@ -1689,7 +1761,7 @@ begin
       raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
   end;
 
-  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+  RunCommandNoWait(TempOutputPath(Path), EditorExe, [ManifestFile]);
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);

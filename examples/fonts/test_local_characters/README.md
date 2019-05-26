@@ -1,4 +1,4 @@
-The main source code is in "game.pas" file ("Game" unit).
+The main source code is in `gameinitialize.pas` file (`GameInitialize` unit).
 
 Demo that displays strings with local characters
 (Chinese, Greek, Russian, Polish...

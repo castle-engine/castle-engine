@@ -64,7 +64,7 @@ implementation
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
-  ToolUtils;
+  ToolCommonUtils, ToolUtils;
 
 { TPackageDirectory ---------------------------------------------------------- }
 

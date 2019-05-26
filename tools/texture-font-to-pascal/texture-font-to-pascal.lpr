@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert ttf fonts to Pascal units, to embed fonts inside source code. }
+{ Convert font files (.ttf, .otf and other formats handled by FreeType) to Pascal units,
+  to embed fonts inside source code. }
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 {$I castleconf.inc}

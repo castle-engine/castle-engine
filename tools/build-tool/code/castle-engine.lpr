@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,16 +18,15 @@
 }
 
 { This adds icons and version info for Windows,
-  automatically created by "castle-engine compile".
-  Comment this out if you don't compile using our "castle-engine" build tool. }
-{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+  automatically created by "castle-engine compile". }
+{$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid,
-  ToolNintendoSwitch;
+  ToolNintendoSwitch, ToolCommonUtils;
 
 var
   Target: TTarget;
@@ -205,31 +204,21 @@ end;
 
 { For some operations (like creating an Android project), the tool uses
   ApplicationData files. So make sure that ApplicationData is correct.
-  We can use $CASTLE_ENGINE_PATH environment variable for this. }
+  We can use CastleEnginePath (that used $CASTLE_ENGINE_PATH environment variable)
+  for this. }
 procedure AdjustApplicationData;
 var
-  CastleEnginePath, Data1, Data2, Data3, DataSuffix: string;
+  DataPath: string;
 begin
-  CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
   if CastleEnginePath <> '' then
   begin
-    DataSuffix := PathDelim + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
-    Data1 := ExclPathDelim(CastleEnginePath) + DataSuffix;
-    Data2 := InclPathDelim(CastleEnginePath) + 'castle_game_engine' + DataSuffix;
-    Data3 := InclPathDelim(CastleEnginePath) + 'castle-engine' + DataSuffix;
-    if DirectoryExists(Data1) then
-      ApplicationDataOverride := FilenameToURISafe(Data1) else
-    if DirectoryExists(Data2) then
-      ApplicationDataOverride := FilenameToURISafe(Data2) else
-    if DirectoryExists(Data3) then
-      ApplicationDataOverride := FilenameToURISafe(Data3) else
-      { We do not complain about missing or invalid $CASTLE_ENGINE_PATH
-        otherwise, because for some operations ApplicationData is not used,
-        and also sometimes the default ApplicationData (in case of system-wide
-        installation in /usr/share/castle-engine/ ) will be Ok. }
-      Exit;
-    if Verbose then
-      Writeln('Build tool found its data in ' + ApplicationDataOverride);
+    DataPath := CastleEnginePath +
+      'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
+    if DirectoryExists(DataPath) then
+      ApplicationDataOverride := FilenameToURISafe(DataPath);
+
+    { We do not complain when CastleEnginePath is empty or doesn't contain
+      valid data, because CastleEnginePath already did that. }
   end;
 end;
 

@@ -24,7 +24,7 @@
   HOW TO RUN THIS: prior to running this project, compile and copy the shared
   library (in src/library/) to a place where it can be loaded, it means
   copy castleengine.dll to this project folder, or anywhere on $PATH.
-  
+
   You will also need other dynamic libraries (zlib1.dll, libpng.dll, ogg.dll,
   OpenAL32.dll, ...) that are shipped with view3dscene.
 */
@@ -112,7 +112,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (!Init())	// Init OpenGL context and our library
 		return 0;
-	
+
     ShowWindow(g_hWnd, nShowCmd);
     UpdateWindow(g_hWnd);
 
@@ -366,7 +366,7 @@ bool Init()
     try
     {
         InitGL();
-	
+
 	char applicationConfigDirectory[1000];
 	int bytes = GetModuleFileName(NULL, applicationConfigDirectory, 1000);
 
@@ -374,7 +374,8 @@ bool Init()
         // Note: the log output is in
         // c:/Users/<username>/AppData/Local/cpp_winapi_library_tester/cpp_winapi_library_tester.log
         // See https://castle-engine.io/manual_log.php
-        CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, 96, applicationConfigDirectory);
+        CGE_Initialize(applicationConfigDirectory);
+        CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, 96);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         CGE_SetUserInterface(true);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");

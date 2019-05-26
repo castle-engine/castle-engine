@@ -658,9 +658,8 @@ type
 
       We use the current value of BackgroundSkySphereRadius.
 
-      Returns @nil if there is no currently bound background node
-      in this scene, or if the bound background is not supported for now
-      (the latter case right now happens with TextureBakckground).
+      Returns @nil if there is no currently bound (and supported) background node
+      in this scene.
 
       This instance is managed (automatically created/freed
       and so on) by this TCastleScene instance. It is cached

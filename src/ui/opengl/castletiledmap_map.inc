@@ -720,35 +720,33 @@ var
   I: TXMLElementIterator;
   TmpStr: string;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
-  const
-    PointsSeparator = Char(' ');
-    SinglePointSeparator = Char(',');
+  function ReadVector(const S: String): TVector2;
   var
-    tmpChar, p: PChar;
-    tmpChar2, p2: PChar;
-    tmpPoint, tmpPoint2: string;
-    VectorPoint: TVector2;
+    SeekPos: Integer;
+    Token: String;
+  begin
+    SeekPos := 1;
+    Token := NextToken(S, SeekPos, [',']);
+    Result[0] := StrToFloat(Token);
+    Token := NextToken(S, SeekPos, [',']);
+    Result[1] := StrToFloat(Token);
+    Token := NextToken(S, SeekPos, [',']);
+    if Token <> '' then
+      raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
+  end;
+
+  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
+  var
+    SeekPos: Integer;
+    Token: String;
   begin
     if not Assigned(PointsList) then PointsList := TVector2List.Create;
-    p := PChar(PointsString);
+    SeekPos := 1;
     repeat
-      tmpChar := StrPos(p, PointsSeparator);
-      if tmpChar = nil then tmpChar := StrScan(p, #0);
-      SetString(tmpPoint, p, tmpChar - p);
-      p2 := PChar(tmpPoint);
-
-      tmpChar2 := StrPos(p2, SinglePointSeparator);
-      SetString(tmpPoint2, p2, tmpChar2 - p2);
-      VectorPoint[0] := StrToFloat(tmpPoint2);
-      p2 := tmpChar2 + 1;
-      tmpChar2 := StrScan(p2, #0);
-      SetString(tmpPoint2, p2, tmpChar2 - p2);
-      VectorPoint[1] := StrToFloat(tmpPoint2);
-      PointsList.Add(VectorPoint);
-
-      p := tmpChar + 1;
-    until tmpChar^ = #0;
+      Token := NextToken(PointsString, SeekPos, [' ']);
+      if Token = '' then Break;
+      PointsList.Add(ReadVector(Token));
+    until false;
   end;
 
 begin

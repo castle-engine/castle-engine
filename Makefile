@@ -46,9 +46,12 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
 
-# Hack for Cygwin, to avoid using Windows built-in "find" program.
-#FIND:=/bin/find
-FIND:=find
+ifeq ($(OS),Windows_NT)
+  # Hack for Cygwin, to avoid using Windows built-in "find" program.
+  FIND:=`cygpath --mixed /bin/find`
+else
+  FIND:=find
+endif
 
 # compile ------------------------------------------------------------
 
@@ -183,10 +186,8 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_sound_game/lets_take_a_walk \
-  examples/audio/algets \
-  examples/audio/alplay \
+  examples/audio/simplest_play_sound \
   examples/audio/doppler_demo \
-  examples/audio/efx_demo \
   examples/castlescript/castle_calculator \
   examples/castlescript/image_make_by_script \
   examples/curves/simplest_curve_read \
@@ -241,7 +242,7 @@ EXAMPLES_BASE_NAMES := \
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/audio_player_scrubber/audio_player_scrubber \
-  examples/audio/test_al_source_allocator \
+  examples/audio/test_sound_source_allocator/test_sound_source_allocator \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
@@ -301,7 +302,22 @@ examples-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+# lazbuild fails with access violation sometimes, so just try it 2 times:
+#  An unhandled exception occurred at $0000000000575F5F:
+#   EAccessViolation: Access violation
+#     $0000000000575F5F line 590 of exttools.pas
+#     $000000000057A027 line 1525 of exttools.pas
+#     $000000000057B231 line 1814 of exttools.pas
+	for LPI_FILENAME in $(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
+	    echo '1st execution of lazbuild failed, trying again'; \
+	    make clean; \
+	    lazbuild packages/castle_base.lpk; \
+	    lazbuild packages/castle_window.lpk; \
+	    lazbuild packages/castle_components.lpk; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
+	  fi; \
+	done
 
 # Compile only Lazarus-specific examples (that depend on LCL)
 .PHONY: examples-only-laz
@@ -309,7 +325,22 @@ examples-only-laz:
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
-	$(foreach NAME,$(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+# lazbuild fails with access violation sometimes, so just try it 2 times:
+#  An unhandled exception occurred at $0000000000575F5F:
+#   EAccessViolation: Access violation
+#     $0000000000575F5F line 590 of exttools.pas
+#     $000000000057A027 line 1525 of exttools.pas
+#     $000000000057B231 line 1814 of exttools.pas
+	for LPI_FILENAME in $(EXAMPLES_LAZARUS_BASE_NAMES); do \
+	  if ! lazbuild $${LPI_FILENAME}.lpi; then \
+	    echo '1st execution of lazbuild failed, trying again'; \
+	    make clean; \
+	    lazbuild packages/castle_base.lpk; \
+	    lazbuild packages/castle_window.lpk; \
+	    lazbuild packages/castle_components.lpk; \
+	    lazbuild $${LPI_FILENAME}.lpi; \
+	  fi; \
+	done
 
 # cleaning ------------------------------------------------------------
 
@@ -326,6 +357,8 @@ clean: cleanexamples
 			   -iname '*.apk' -or \
 			   -iname '*.dbg' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+			   -iname 'automatic-windows-resources.res' -or \
+			   -iname 'castle-auto-generated-resources.res' -or \
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f

@@ -1,4 +1,4 @@
-Tempates for Windows resources (including version info, icon, manifest):
+Tempates for resources (including version info, icon, manifest):
 
 - Windows version info crafted looking at docs, what others are doing, and what Lazarus produces:
   http://www.osronline.com/article.cfm?article=588
@@ -16,3 +16,7 @@ Tempates for Windows resources (including version info, icon, manifest):
   some programs use MAINICON, and our CastleWindow in WinAPI backend also loads icon
   from MAINICON name. Ultimately, it doesn't seem to matter to Windows (it grabs
   the first ico available in file?).
+
+These are right now only useful on Windows.
+But the filenames are generic, to keep the possibility of using them on other platforms too,
+since FPC resources are cross-platform.

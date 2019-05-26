@@ -26,34 +26,6 @@ object ProjectForm: TProjectForm
       Caption = 'Files'
       ClientHeight = 217
       ClientWidth = 1326
-      object ShellTreeView1: TShellTreeView
-        Left = 0
-        Height = 217
-        Top = 0
-        Width = 367
-        Align = alLeft
-        FileSortType = fstAlphabet
-        HotTrack = True
-        ReadOnly = True
-        ShowRoot = False
-        TabOrder = 0
-        Options = [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw]
-        ObjectTypes = [otFolders]
-        ShellListView = ShellListView1
-      end
-      object ShellListView1: TShellListView
-        Left = 374
-        Height = 217
-        Top = 0
-        Width = 952
-        Align = alClient
-        Color = clDefault
-        ReadOnly = True
-        SortColumn = 0
-        TabOrder = 1
-        ObjectTypes = [otNonFolders]
-        ShellTreeView = ShellTreeView1
-      end
       object SplitterBetweenFiles: TSplitter
         Left = 367
         Height = 217
@@ -128,7 +100,7 @@ object ProjectForm: TProjectForm
       Top = 109
       Width = 677
       Alignment = taCenter
-      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Designer" menu.'
+      Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -39
       ParentColor = False
       ParentFont = False

@@ -19,25 +19,14 @@ Before 6.6 release:
   castlecontrols_groups.inc
   castlecontrols_crosshair.inc
 
-* Add TCastleImageComponent, manually make all UI controls use it
-  See /home/michalis/common/TODO/castle-engine/editor-castleimages_components.inc
-
-  *All* images from theme should also be customizable at the control level,
-  and naming should be consistent
-
 * Anchors tab keeps getting deselected for some reason when moving UI control
 
 * TCastleButton:
-- we need a way to adjust various images of tcastlebutton
-  See /home/michalis/common/TODO/castle-engine/editor/castleimages_components.inc
-  Also special descendant for 3x3 images, with corners property (or maybe it should always have 3x3 information?)
-- Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
-- Test a way to upgrade names in design files.
+  - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
+  - Test a way to upgrade names in design files while doing above?
 
 * build tool integration:
     * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
-    * Smartly detect CASTLE_ENGINE_PATH, and set it for subprocesses, see Michalis ~/common/TODO
-    * Smartly detect castle-engine exe (look in CASTLE_ENGINE_PATH/bin etc.), see Michalis ~/common/TODO
     * Detect lack of FPC / Delphi and make a nice error message
 
 * Show on recent list %20 as spaces, use URICaption or such ready function?
@@ -58,8 +47,6 @@ Before 6.6 release:
   unless it's already forced, is it possible to set name='' without
   exception from SetName?
 
-* show Background.Color := Vector4(0.1, 0.1, 0.1, 1); under default control
-
 * publish and save SceneManager.NavigationType
   and last camera
   { Use initial camera settings stored in
@@ -73,23 +60,10 @@ Before 6.6 release:
   StoreInitialCamera: Boolean
   InitialCamera
 
-* Make files browser at least basic: ignore castle-engine-output
-    * filter out stuff in "Files" (castle-engine-output, *~, created binaries)
-      (need to use custom draw for this? grep, search code)
-    * "Files" showroot=false doesn't work?
-    * need to fork Lazarus shell control for this, no other solution?
-
-* TEditDirectory use at "new project"
-
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
-
-* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
-  Show better message for XxxLoad:
-
-    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
 
 * unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
 
@@ -98,6 +72,17 @@ Before 6.6 release:
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:
+
+* TEditDirectory use at "new project"
+
+* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
+  Show better message for XxxLoad:
+
+    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
+
+* *All* images from theme should also be customizable at the control level,
+  and naming should be consistent.
+  Just place TTheme instance at each component?
 
 * on Layout tab, new button for TCastleImageControl
   "Set Size Explicitly From Current Image"
@@ -165,7 +150,11 @@ OK if after nearest release:
 * ugly button in example? new ui for internal controls?
 
 * Make files browser with features as documented.
-    Also to allow dropping scenes/images on UI design.
+    * allow dropping scenes/images on UI design.
+    * "Files" showroot=false doesn't work?
+    * own viewer for
+        * text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
+	* on audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
 
 * build tool integration:
     * For "run", colorized CastleLog warnings

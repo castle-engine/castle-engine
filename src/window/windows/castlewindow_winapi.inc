@@ -17,7 +17,7 @@
 
   TODO:
   - Alt key presses are not perfectly detected.
-    Is it even possible to cleanly catch K_Alt key press in WinAPI?
+    Is it even possible to cleanly catch VK_Alt key press in WinAPI?
     We would have to catch sys_keydown message but then we also
     block using standard Alt+F4 or Alt+Space? Another trouble:
     if you enter system menu by Alt+Down, we will not get Alt+Up?
@@ -69,7 +69,7 @@ private
 
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
-  { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
+  { convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
 {$endif read_window_interface}
@@ -165,99 +165,99 @@ const
   VK_OEM_8 = $DF;
   VK_OEM_102 = $E2;
 
-{ convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
+{ convert virtual key code (VK_xxx) to TKey. Returns keyNone if no conversion
   available. }
 function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
-  function VK_Stored(VK_Exists: boolean; VK_Value: Byte; K_Value: TKey): boolean;
+  function VK_Stored(VK_Exists: boolean; VK_Value: Byte; KeyValue: TKey): boolean;
   begin
     Result := VK_Exists and (VirtualKey = VK_Value);
     if Result then
-      VirtualKeyToKeyResult := K_Value;
+      VirtualKeyToKeyResult := KeyValue;
   end;
 
 begin
   { Tests: InfoWrite(Format('key %d', [VirtualKey])); }
 
   case VirtualKey of
-    VK_BACK: Result := K_BackSpace;
-    VK_TAB: Result := K_Tab;
-    VK_RETURN: Result := K_Enter;
-    VK_SHIFT: Result := K_Shift;
-    VK_CONTROL: Result := K_Ctrl;
-    VK_MENU: Result := K_Alt;
-    VK_ESCAPE: Result := K_Escape;
-    VK_SPACE: Result := K_Space;
-    VK_PRIOR: Result := K_PageUp;
-    VK_NEXT: Result := K_PageDown;
-    VK_END: Result := K_End;
-    VK_HOME: Result := K_Home;
-    VK_LEFT: Result := K_Left;
-    VK_UP: Result := K_Up;
-    VK_RIGHT: Result := K_Right;
-    VK_DOWN: Result := K_Down;
-    VK_INSERT: Result := K_Insert;
-    VK_DELETE: Result := K_Delete;
-    VK_ADD: Result := K_Numpad_Plus;
-    VK_SUBTRACT: Result := K_Numpad_Minus;
-    VK_SNAPSHOT: Result := K_PrintScreen;
-    VK_NUMLOCK: Result := K_NumLock;
-    VK_SCROLL: Result := K_ScrollLock;
-    VK_CAPITAL: Result := K_CapsLock;
-    VK_PAUSE: Result := K_Pause;
-    VK_OEM_COMMA: Result := K_Comma;
-    VK_OEM_PERIOD: Result := K_Period;
-    VK_NUMPAD0: Result := K_Numpad_0;
-    VK_NUMPAD1: Result := K_Numpad_1;
-    VK_NUMPAD2: Result := K_Numpad_2;
-    VK_NUMPAD3: Result := K_Numpad_3;
-    VK_NUMPAD4: Result := K_Numpad_4;
-    VK_NUMPAD5: Result := K_Numpad_5;
-    VK_NUMPAD6: Result := K_Numpad_6;
-    VK_NUMPAD7: Result := K_Numpad_7;
-    VK_NUMPAD8: Result := K_Numpad_8;
-    VK_NUMPAD9: Result := K_Numpad_9;
-    VK_CLEAR: Result := K_Numpad_Begin;
-    VK_MULTIPLY: Result := K_Numpad_Multiply;
-    VK_DIVIDE: Result := K_Numpad_Divide;
-    VK_OEM_MINUS: Result := K_Minus;
-    VK_OEM_PLUS: Result := K_Plus;
+    VK_BACK: Result := keyBackSpace;
+    VK_TAB: Result := keyTab;
+    VK_RETURN: Result := keyEnter;
+    VK_SHIFT: Result := keyShift;
+    VK_CONTROL: Result := keyCtrl;
+    VK_MENU: Result := keyAlt;
+    VK_ESCAPE: Result := keyEscape;
+    VK_SPACE: Result := keySpace;
+    VK_PRIOR: Result := keyPageUp;
+    VK_NEXT: Result := keyPageDown;
+    VK_END: Result := keyEnd;
+    VK_HOME: Result := keyHome;
+    VK_LEFT: Result := keyLeft;
+    VK_UP: Result := keyUp;
+    VK_RIGHT: Result := keyRight;
+    VK_DOWN: Result := keyDown;
+    VK_INSERT: Result := keyInsert;
+    VK_DELETE: Result := keyDelete;
+    VK_ADD: Result := keyNumpadPlus;
+    VK_SUBTRACT: Result := keyNumpadMinus;
+    VK_SNAPSHOT: Result := keyPrintScreen;
+    VK_NUMLOCK: Result := keyNumLock;
+    VK_SCROLL: Result := keyScrollLock;
+    VK_CAPITAL: Result := keyCapsLock;
+    VK_PAUSE: Result := keyPause;
+    VK_OEM_COMMA: Result := keyComma;
+    VK_OEM_PERIOD: Result := keyPeriod;
+    VK_NUMPAD0: Result := keyNumpad0;
+    VK_NUMPAD1: Result := keyNumpad1;
+    VK_NUMPAD2: Result := keyNumpad2;
+    VK_NUMPAD3: Result := keyNumpad3;
+    VK_NUMPAD4: Result := keyNumpad4;
+    VK_NUMPAD5: Result := keyNumpad5;
+    VK_NUMPAD6: Result := keyNumpad6;
+    VK_NUMPAD7: Result := keyNumpad7;
+    VK_NUMPAD8: Result := keyNumpad8;
+    VK_NUMPAD9: Result := keyNumpad9;
+    VK_CLEAR: Result := keyNumpadBegin;
+    VK_MULTIPLY: Result := keyNumpadMultiply;
+    VK_DIVIDE: Result := keyNumpadDivide;
+    VK_OEM_MINUS: Result := keyMinus;
+    VK_OEM_PLUS: Result := keyPlus;
 
-    Ord('0') .. Ord('9'): Result := TKey(Ord(K_0)  + Ord(VirtualKey) - Ord('0'));
-    Ord('A') .. Ord('Z'): Result := TKey(Ord(K_A)  + Ord(VirtualKey) - Ord('A'));
-    VK_F1    .. VK_F12  : Result := TKey(Ord(K_F1) + Ord(VirtualKey) - Ord(VK_F1));
+    Ord('0') .. Ord('9'): Result := TKey(Ord(key0)  + Ord(VirtualKey) - Ord('0'));
+    Ord('A') .. Ord('Z'): Result := TKey(Ord(keyA)  + Ord(VirtualKey) - Ord('A'));
+    VK_F1    .. VK_F12  : Result := TKey(Ord(keyF1) + Ord(VirtualKey) - Ord(VK_F1));
     else
-      if not VK_Stored(VK_LeftBracket_Exists , VK_LeftBracket , K_LeftBracket ) then
-      if not VK_Stored(VK_RightBracket_Exists, VK_RightBracket, K_RightBracket) then
-      if not VK_Stored(VK_Apostrophe_Exists  , VK_Apostrophe  , K_Apostrophe  ) then
-      if not VK_Stored(VK_Semicolon_Exists   , VK_Semicolon   , K_Semicolon   ) then
-      if not VK_Stored(VK_Slash_Exists       , VK_Slash       , K_Slash       ) then
-      if not VK_Stored(VK_BackQuote_Exists   , VK_BackQuote   , K_BackQuote   ) then
-      if not VK_Stored(VK_BackSlash_Exists   , VK_BackSlash   , K_BackSlash   ) then
-        Result := K_None;
+      if not VK_Stored(VK_LeftBracket_Exists , VK_LeftBracket , keyLeftBracket ) then
+      if not VK_Stored(VK_RightBracket_Exists, VK_RightBracket, keyRightBracket) then
+      if not VK_Stored(VK_Apostrophe_Exists  , VK_Apostrophe  , keyApostrophe  ) then
+      if not VK_Stored(VK_Semicolon_Exists   , VK_Semicolon   , keySemicolon   ) then
+      if not VK_Stored(VK_Slash_Exists       , VK_Slash       , keySlash       ) then
+      if not VK_Stored(VK_BackQuote_Exists   , VK_BackQuote   , keyBackQuote   ) then
+      if not VK_Stored(VK_BackSlash_Exists   , VK_BackSlash   , keyBackSlash   ) then
+        Result := keyNone;
   end;
 
   { Note that CastleWindow WinAPI will never generate Press/Release with these keys:
-      K_Numpad_End;
-      K_Numpad_Down;
-      K_Numpad_PageDown;
-      K_Numpad_Left;
-      K_Numpad_Right;
-      K_Numpad_Home;
-      K_Numpad_Up;
-      K_Numpad_PageUp;
-      K_Numpad_Insert;
-      K_Numpad_Delete;
-      K_Numpad_Enter;
+      keyNumpadEnd;
+      keyNumpadDown;
+      keyNumpadPageDown;
+      keyNumpadLeft;
+      keyNumpadRight;
+      keyNumpadHome;
+      keyNumpadUp;
+      keyNumpadPageUp;
+      keyNumpadInsert;
+      keyNumpadDelete;
+      keyNumpadEnter;
     because (as far as I can see) they are undistinguishable from normal,
     non-numpad key codes under WinAPI.
 
-    Note that it seems that VK_SNAPSHOT (K_PrintScreen) is never passed to
+    Note that it seems that VK_SNAPSHOT (keyPrintScreen) is never passed to
     WM_KEYDOWN (although it's passed to WM_KEYUP; but there we ignore it,
     because in our Keys[] table it's already up).
-    So you will never get KeyDown/Up with K_PrintScreen. }
+    So you will never get KeyDown/Up with keyPrintScreen. }
 end;
 
 function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
@@ -342,7 +342,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
 
   function InterceptedSystemKey(key: integer): boolean;
   begin
-    Result := { TODO-alt: (key = K_Alt) or }(key = VK_F10)
+    Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
 
   { Handle WinAPI WM_KEYDOWN message by calling DoKeyDown method.
@@ -399,23 +399,29 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
 
       So below we do a little trick: we check which virtual key corresponds to
       left/right brackets, and we remember it. If my VirtualKeyToKey returned
-      K_None for this virtual key, then we can safely assume that in the future
+      keyNone for this virtual key, then we can safely assume that in the future
       (e.g. for next WM_KEYUP for this key) this virtual key always corresponds
       to left/right bracket. }
-    if Key = K_None then
+    if Key = keyNone then
     begin
       case KeyString of
-        '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := K_LeftBracket ; end;
-        ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := K_RightBracket; end;
-        '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := K_Apostrophe  ; end;
-        ';' : begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := K_Semicolon   ; end;
-        '/' : begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := K_Slash       ; end;
-        '`' : begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := K_BackQuote   ; end;
-        '\' : begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := K_BackSlash   ; end;
+        '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := keyLeftBracket ; end;
+        ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := keyRightBracket; end;
+        '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := keyApostrophe  ; end;
+        ';' : begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := keySemicolon   ; end;
+        '/' : begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := keySlash       ; end;
+        '`' : begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := keyBackQuote   ; end;
+        '\' : begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := keyBackSlash   ; end;
       end;
     end;
 
-    if (Key <> K_None) or (KeyString <> '') then DoKeyDown(Key, KeyString);
+    { Fix some cases when KeyString should better correspond to Key }
+    if KeyString = '' then
+      case Key of
+        keyDelete: KeyString := CharDelete;
+      end;
+
+    if (Key <> keyNone) or (KeyString <> '') then DoKeyDown(Key, KeyString);
   end;
 
   { Handle WinAPI WM_KEYUP message by calling DoKeyUp method. }
@@ -424,7 +430,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     Key: TKey;
   begin
     Key := VirtualKeyToKey(wParm);
-    if Key <> K_None then DoKeyUp(Key);
+    if Key <> keyNone then DoKeyUp(Key);
   end;
 
   procedure HandleMouseDown(const Button: TMouseButton);
@@ -649,10 +655,10 @@ begin
     WM_MOUSEMOVE:
       begin
         { We could refresh FMousePressed now:
-            FmousePressed:=[];
-            if (MK_LBUTTON and wParm) <> 0 then Include(fmousePressed, mbLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
-            if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
+            FMousePressed := [];
+            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, mbLeft);
+            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, mbMiddle);
+            if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, mbRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
         DoMotion(InputMotion(MousePosition, LeftTopToCastle(
           TWinParam(lParm).LoSmallint,
@@ -919,12 +925,12 @@ begin
 
       This means that actual OpenGL area size may be different than
       requested (OnResize will report it corectly, eventually lying, honoring
-      ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
+      ResizeAllowed properrty). Happened e.g. when castle-view-image allowed minimal
       window size = 200, and default welcome image had 256x256 pixels.
-      When you opened glViewImage with no params in directory with no images,
+      When you opened castle-view-image with no params in directory with no images,
       then OpenGL area of size 256x256 was requested, which was so narrow that
       menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-      and glViewImage had to add a vertical scrollbar to display welcome image.
+      and castle-view-image had to add a vertical scrollbar to display welcome image.
     }
     AdjustWindowRectEx(WindowRect, dwStyle,
       (MainMenu <> nil) and MainMenuVisible, dwExStyle);

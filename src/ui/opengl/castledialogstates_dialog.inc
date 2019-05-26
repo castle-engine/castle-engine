@@ -401,7 +401,7 @@ begin
         even though they actually are not.
 
         Reproducible if you try to resize to small sizes the demo on
-        /home/michalis/sources/castle-engine/castle-engine/examples/android/android_demo/game.pas . }
+        examples/mobile/simple_3d_demo/ . }
       + 2,
       PR.Height - WindowMarginScaled * 2);
 end;

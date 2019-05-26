@@ -3,4 +3,5 @@
   name="new_renderer_skeleton"
   standalone_source="new_renderer_skeleton.lpr"
 >
+  <data exists="false" />
 </project>

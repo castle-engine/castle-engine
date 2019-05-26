@@ -98,7 +98,8 @@ type
   @param(Path Path URL to search inside.
     May be absolute or relative. Like everywhere in our engine,
     it can also be a local filesystem path, although we advice using
-    URLs for everything. May, but doesn't have to, end with slash or PathDelim.)
+    URLs for everything. May, but doesn't have to, end with slash or PathDelim.
+    Empty Path means "the current directory".)
 
   @param(Mask Mask of the files to search, may contain wildcards * and ?.)
 
@@ -290,7 +291,6 @@ var
 begin
   P := URIProtocol(Path);
 
-
   if (P = 'file') or (P = '') then
     UseLocalFileSystem
   else
@@ -326,7 +326,12 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     FileRec: TSearchRec;
     SearchError: integer;
   begin
-    LocalPath := InclPathDelim(URIToFilenameSafe(Path));
+    if Path <> '' then
+      LocalPath := URIToFilenameSafe(Path)
+    else
+      LocalPath := GetCurrentDir;
+    LocalPath := InclPathDelim(LocalPath);
+
     {$warnings off}
     SearchError := FindFirst(LocalPath + '*',
       faDirectory { potential flags on directory: } or faSysFile or faArchive or faReadOnly or faHidden,

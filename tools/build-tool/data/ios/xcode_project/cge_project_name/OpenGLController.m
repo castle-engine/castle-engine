@@ -134,7 +134,8 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
+    CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
+    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale));
 
     [self update];
 }
@@ -144,7 +145,8 @@
 {
     [EAGLContext setCurrentContext:self.context];
 
-    CGEApp_Close();
+    CGEApp_Close(true);
+    CGEApp_Finalize();
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods

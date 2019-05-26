@@ -2054,7 +2054,7 @@ type
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(QuitWhenLastWindowClosed: boolean = true);
+    procedure Close(const QuitWhenLastWindowClosed: boolean = true);
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -3110,7 +3110,7 @@ procedure TCastleWindowBase.OpenCore;
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
-    UIScale := Container.DefaultUIScale;
+    UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
     TextRect := Theme.Images[tiLoading].Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
@@ -3125,7 +3125,7 @@ procedure TCastleWindowBase.OpenCore;
   procedure OpenUnprotected;
   begin
     { Once context is initialized, then Android activity is initialized,
-      or iOS called CGEApp_Open -> so it's safe to access files. }
+      or iOS called CGEApp_Initialize -> so it's safe to access files. }
     ApplicationProperties._FileAccessSafe := true;
 
     { Adjust Left/Top/Width/Height as needed.
@@ -3288,7 +3288,7 @@ begin
   Open(@DefaultRetryOpen);
 end;
 
-procedure TCastleWindowBase.Close(QuitWhenLastWindowClosed: boolean);
+procedure TCastleWindowBase.Close(const QuitWhenLastWindowClosed: boolean);
 begin
   if FClosed then Exit;
 
@@ -4774,7 +4774,7 @@ end;
 
 procedure TCastleApplication.CastleEngineInitialize;
 var
-  TimeStart: TCastleProfilerTime;
+  TimeStart, TimeStart2: TCastleProfilerTime;
 begin
   if Initialized and not InitializedJavaActivity then
     WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
@@ -4793,23 +4793,27 @@ begin
 
     // Call OnInitialize and OnInitializeEvent, watched by Profiler
 
-    if Assigned(OnInitialize) then
+    if Assigned(OnInitialize) or Assigned(OnInitializeEvent) then
     begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitialize');
-      OnInitialize();
-      Profiler.Stop(TimeStart);
-    end;
+      TimeStart := Profiler.Start('TCastleApplication Initialization');
+      try
+        if Assigned(OnInitialize) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitialize');
+          try
+            OnInitialize();
+          finally Profiler.Stop(TimeStart2) end;
+        end;
 
-    if Assigned(OnInitializeEvent) then
-    begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitializeEvent');
-      OnInitializeEvent(Self);
-      Profiler.Stop(TimeStart);
+        if Assigned(OnInitializeEvent) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitializeEvent');
+          try
+            OnInitializeEvent(Self);
+          finally Profiler.Stop(TimeStart2) end;
+        end;
+      finally Profiler.Stop(TimeStart, true) end;
     end;
-
-    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) and
-       Profiler.Enabled then
-      WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
 end;
 

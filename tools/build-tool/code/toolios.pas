@@ -43,7 +43,8 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage,
+  ToolCommonUtils;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -51,6 +52,8 @@ const
 procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+var
+  FinalExtraOptions: TCastleStringList;
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
@@ -59,7 +62,7 @@ procedure CompileIOS(
     I: Integer;
   begin
     Compile(OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, LibraryPaths, ExtraOptions);
+      SearchPaths, LibraryPaths, FinalExtraOptions);
 
     { now use libtool to create a static library .a }
 
@@ -95,10 +98,20 @@ procedure CompileIOS(
   end;
 
 begin
-  CompileLibrary(iphonesim, i386);
-  CompileLibrary(iphonesim, x86_64);
-  CompileLibrary(darwin, arm);
-  CompileLibrary(darwin, aarch64);
+  FinalExtraOptions := TCastleStringList.Create;
+  try
+    if ExtraOptions <> nil then
+      FinalExtraOptions.AddRange(ExtraOptions);
+    { To compile CastleInternalVorbisFile properly.
+      Later PackageIOS will actually add the static tremolo files to the project. }
+    FinalExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+
+    CompileLibrary(iphonesim, i386);
+    CompileLibrary(iphonesim, x86_64);
+    CompileLibrary(darwin, arm);
+    CompileLibrary(darwin, aarch64);
+
+  finally FreeAndNil(FinalExtraOptions) end;
 end;
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);

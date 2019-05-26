@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="combine_images_into_sprite_sheet"
   standalone_source="combine_images_into_sprite_sheet.lpr">
+  <data exists="false" />
 </project>

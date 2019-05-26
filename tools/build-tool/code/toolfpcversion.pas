@@ -35,7 +35,7 @@ implementation
 
 uses SysUtils,
   CastleFilesUtils, CastleLog, CastleStringUtils,
-  ToolUtils;
+  ToolCommonUtils;
 
 { TFPCVersion ---------------------------------------------------------------- }
 

@@ -41,8 +41,8 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. See glViewImage documentation
-  ( https://castle-engine.io/glviewimage.php )
+  formats. See castle-view-image documentation
+  ( https://castle-engine.io/castle-view-image.php )
   for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
@@ -71,12 +71,13 @@ unit CastleImages;
 
 interface
 
-uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
-  CastleFileFilters, CastleClassUtils, CastleColors,
-  Generics.Collections, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM
-  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleInternalFPWritePNG
-  {$else} , CastleInternalPng {$endif};
+uses SysUtils, Classes, Math, Generics.Collections,
+  { FPImage and related units }
+  FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
+  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, CastleInternalFPWritePNG,
+  { CGE units }
+  CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
+  CastleFileFilters, CastleClassUtils, CastleColors;
 
 type
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
@@ -900,7 +901,9 @@ type
 
   TEncodedImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
 
-  { Possible compression of textures for GPU. }
+  { Possible compression of textures for GPU.
+    The compressed texture formats may be automatically created for you by CGE,
+    see https://castle-engine.io/creating_data_auto_generated_textures.php . }
   TTextureCompression = (
     { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
       This compression format is often supported by desktop OpenGL implementations.
@@ -942,19 +945,7 @@ type
     tcPvrtc2_2bpp,
 
     { ATI texture compression format, @bold(for RGB images without alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm).
-
-      There is no perfect program to generate such texture, unfortunately.
-      The only sensible choice is to use ATI compressonator from
-      http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/the-compressonator/ .
-      Unfortunately, it's installation may fail on some Windows versions
-      and wine (Linux). We've had most success installing it on 32-bit Windows,
-      and them copying to wine.
-      ATI deprecated this program.
-
-      Adreno SDK contains library to compress to ATITC formats,
-      but no useful program to actually convert files to this format
-      (wrapped in ktx or dds). }
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
     tcATITC_RGB,
 
     { ATI texture compression format, @bold(with sharp alpha).
@@ -968,10 +959,7 @@ type
     { ETC texture compression, @bold(without alpha).
       See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
       Available on almost all Android OpenGLES 2.0 devices,
-      unfortunately it doesn't support alpha channel.
-
-      It can be generated using various tools --- dedicated etcpack,
-      also PVRTexTool and ATI compressonator. }
+      unfortunately it doesn't support alpha channel. }
     tcETC1
   );
   TTextureCompressions = set of TTextureCompression;
@@ -1908,16 +1896,15 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 {$I castleimages_file_formats.inc}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
-{$I images_bmp.inc}
-{$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  {$I images_png.inc}
-{$endif}
-{$I images_fpimage.inc}
-{$I images_ppm.inc}
-{$I images_ipl.inc}
-{$I images_rgbe_fileformat.inc}
-{$I images_external_tool.inc}
-{$I images_composite.inc}
+{$I castleimages_bmp.inc}
+{$I castleimages_libpng.inc}
+{$I castleimages_fpimage.inc}
+{$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
+{$I castleimages_ppm.inc}
+{$I castleimages_ipl.inc}
+{$I castleimages_rgbe_fileformat.inc}
+{$I castleimages_external_tool.inc}
+{$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
 
@@ -2921,7 +2908,7 @@ begin
   Result := TextureCompressionInfo[Compression].AlphaChannel;
 end;
 
-{$I images_s3tc_flip_vertical.inc}
+{$I castleimages_s3tc_flip_vertical.inc}
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
@@ -3116,11 +3103,11 @@ end;
 
 procedure TRGBImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector3Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var
@@ -3390,11 +3377,11 @@ end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector4Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBAlphaImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector4Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 procedure TRGBAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
   Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
@@ -4559,7 +4546,7 @@ var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + URL + ' (CastleImages)');
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(URL) + '" (CastleImages)');
 
   try
     try
@@ -4822,8 +4809,8 @@ end;
 initialization
   RegisterMimeTypes;
   InitializeImagesFileFilters;
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  InitializePNG;
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+  InitializePNGUsingLibpng;
   {$endif}
   LoadImageEvents := TLoadImageEventList.Create;
 finalization

@@ -15,7 +15,8 @@
 
 { Windows-specific font utilities. }
 
-unit CastleWindowsFonts;
+unit CastleWindowsFonts
+  deprecated 'use cross-platform fonts from CastleFonts instead of this Windows-specific (and unused) code';
 
 {$I castleconf.inc}
 
@@ -184,8 +185,8 @@ end;
 
 function EnumFontFamProc_IsTrueType(var EnumLogfont: TEnumLogFont;
   var NewTextMetric: TNewTextMetric;
-  FontType: Integer;
-  FuncResultPtr: LongInt): integer; stdcall;
+  FontType: LongInt;
+  FuncResultPtr: PtrInt): LongInt; stdcall;
 begin
   { powinnismy sprawdzic czy znaleziony EnumLogFont.LogFont zgadza sie z szukanym
     LogFontem. Skoro moze byc wiele fontow o tej samej nazwie ... wiemy ze do tej
@@ -241,8 +242,8 @@ type
 
 function EnumFontFamExProc_ByObject(var LogFontData : TEnumLogFontEx;
   var PhysFontData: TNewTextMetricEx;
-  FontType: Integer;
-  InternalInfo: LongInt): integer; stdcall;
+  FontType: LongInt;
+  InternalInfo: PtrInt): LongInt; stdcall;
 begin
   PEnumCharsetsInternalInfo_ByObject(InternalInfo)^.
     UserEnumProc( PhysFontData.NtmENtm.tmCharset );

@@ -43,7 +43,7 @@
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
-  CastleProgressConsole, CastleParameters, CastleURIUtils,
+  CastleProgressConsole, CastleParameters, CastleURIUtils, CastleStringUtils,
   CastleClassUtils, CastleDownload;
 
 var
@@ -94,6 +94,20 @@ begin
   end;
 end;
 
+function PascalNameFromURL(const URL: String): String;
+const
+  ValidChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
+  ValidFirstChars = ['a'..'z', 'A'..'Z', '_'];
+begin
+  Result := DeleteURIExt(ExtractURIName(URL));
+  // replace chars not valid in the middle of Pascal identifier
+  Result := SReplaceChars(Result, AllChars - ValidChars, '_');
+  // replace chars not valid as 1st char of Pascal identifier
+  if not (Result[1] in ValidFirstChars) then
+    Result[1] := '_';
+  Result[1] := UpCase(Result[1]);
+end;
+
 var
   Image, TempImage: TCastleImage;
   ImageURL: string;
@@ -133,8 +147,7 @@ begin
     end;
 
     { init other Image* variables }
-    ImageName := DeleteURIExt(ExtractURIName(ImageURL));
-    ImageName[1] := UpCase(ImageName[1]);
+    ImageName := PascalNameFromURL(ImageURL);
     Image := LoadImage(ImageURL);
     try
       if AlphaStrip and Image.HasAlpha then

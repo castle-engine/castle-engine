@@ -136,6 +136,9 @@ var
 var
   NavigationInfo: TNavigationInfoNode;
 begin
+  // This is possible in case of empty Spine
+  if DefaultSkin = nil then Exit;
+
   { add NavigationInfo indicating blendingSort = 2D }
   NavigationInfo := TNavigationInfoNode.Create('', BaseUrl);
   NavigationInfo.BlendingSort := obs2D;

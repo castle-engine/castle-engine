@@ -42,35 +42,33 @@ Support us on https://www.patreon.com/castleengine .
 Compiling
 ---------
 
-Get Lazarus ( https://www.lazarus-ide.org/ )
-and install in Lazarus two packages:
+There are a couple of options. See the "Getting Started" page
+https://castle-engine.io/documentation.php for details.
+In short:
 
-- packages/castle_base.lpk and
-- packages/castle_components.lpk
+- Use our Castle Game Engine Editor to design and build your applications.
+  See https://castle-engine.io/manual_editor.php .
 
-Also, compile (but don't install) this package:
+- Use our Castle Game Engine command-line build tool to build your applications.
+  See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
-- packages/castle_window.lpk
+    The build tool and editor use the project settings
+    from the [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
+    file.
 
-Now you can compile and run all the examples by opening their .lpi files
-and running them as usual from Lazarus.
+- Use Lazarus ( https://www.lazarus-ide.org/ ).
 
-Alternative:
+    Install in Lazarus two packages:
 
-If you prefer to use bare FPC and the command-line
-you can use our build tool (called simply `castle-engine`)
-to compile various examples and your own games for many plaforms:
-https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
-Lazarus and LCL are not necessary in this case.
+    - packages/castle_base.lpk and
+    - packages/castle_components.lpk
 
-The build tool relies on the existence of [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
-file inside your project. The build tool allows to comfortably
-compile and package your game for various platforms,
-including Android and iOS.
+    Also, compile (but don't install) this package:
 
-See the "Getting Started" page on
-https://castle-engine.io/documentation.php
-for more information.
+    - packages/castle_window.lpk
+
+- Use FPC fpmake / fppkg.
+  See https://github.com/castle-engine/castle-engine/wiki/FpMake
 
 License
 -------

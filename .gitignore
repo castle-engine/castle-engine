@@ -32,6 +32,7 @@ backup
 *.apk
 *.log
 *.exe
+*.dll
 *.pro.user
 .DS_Store
 xcuserdata
@@ -40,6 +41,8 @@ bin/
 
 # cge build tool stuff
 castle-engine-output
+automatic-windows-resources.res
+castle-auto-generated-resources.res
 
 # fpmake stuff
 castle-game-engine-*.fpm
@@ -94,14 +97,15 @@ examples/3d_rendering_processing/view_3d_model_basic
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/audio/algets
-examples/audio/alplay
+examples/audio/test_sound_source_allocator/*.obj
 examples/audio/audio_player_scrubber/audio_player_scrubber
 examples/audio/audio_player_scrubber/audio_player_scrubber.res
 examples/audio/audio_player_scrubber/lib/
 examples/audio/doppler_demo
 examples/audio/efx_demo
-examples/audio/test_al_source_allocator
+examples/audio/play_sounds/play_sounds
+examples/audio/simplest_play_sound
+examples/audio/test_sound_source_allocator
 examples/castlescript/castle_calculator
 examples/castlescript/image_make_by_script
 examples/curves/simplest_curve_read
@@ -143,6 +147,9 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/library/lazarus_library_tester/cge_dynlib_tester
+examples/library/lazarus_library_tester/cge_dynlib_tester.res
+examples/library/lazarus_library_tester/lib/
 examples/localization/custom/castle_localization
 examples/localization/gettext/localization_test
 examples/mobile/drawing_toy/drawing_toy

@@ -2860,7 +2860,7 @@ var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
 begin
-  TimeStart := Profiler.Start('Loading "' + AURL + '" (TCastleSceneCore)');
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
 
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
@@ -7025,8 +7025,9 @@ end;
 function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
 begin
   if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
-    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false);
+    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName])
+  else
+    Result := RootNode.FindNode(NodeName);
 end;
 
 function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;

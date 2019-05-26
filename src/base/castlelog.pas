@@ -237,7 +237,7 @@ procedure InitializeLog(
         { Special message when LogFileName non-empty (usual case on Windows).
           Merely warn when creating log file not possible.
           Normal in many "production" cases when the directory of exe/plugin may not be writeable. }
-        WritelnWarning('Log', 'Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.');
+        WritelnWarning('Log', 'Cannot create log file "' + LogFileName + '"');
         Exit(false);
       end;
     end;
@@ -303,13 +303,13 @@ begin
   if not IsConsole then
   begin
     { Under Windows GUI program, by default write to file .log
-      in the current directory.
+      in the exe directory.
 
       Do not try to use StdOutStream anymore. In some cases, GUI program
       may have an stdout, when it is explicitly run like
       "xxx.exe --debug-log > xxx.log". But do not depend on it.
       Simply writing to xxx.log is more what people expect. }
-    if not InitializeLogFile(ExpandFileName(ApplicationName + '.log')) then
+    if not InitializeLogFile(ChangeFileExt(ParamStr(0), '.log')) then
       Exit;
   end else
   begin

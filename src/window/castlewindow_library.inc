@@ -47,8 +47,11 @@ private
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
-procedure CGEApp_Close; cdecl;
+// Call CGEApp_Initialize / CGEApp_Finalize only once during the entire application.
+procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Finalize; cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
+procedure CGEApp_Close(QuitWhenLastWindowClosed: CBool); cdecl;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
 procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
@@ -357,13 +360,32 @@ begin
     raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
 end;
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
+begin
+  try
+    // use given ApplicationConfigDirectory
+    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
+    WritelnLog('Library initialized, set application config directory to URL: %s', [ApplicationConfigOverride]);
+
+    ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
+  except
+    on E: TObject do WritelnWarning('CGEApp_Initialize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Finalize; cdecl;
+begin
+  try
+    ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
+  except
+    on E: TObject do WritelnWarning('CGEApp_Finalize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
 begin
   try
     CheckMainWindow;
-
-    // use given ApplicationConfigDirectory
-    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
 
     { We have to set window sizes, and Application.Screen* sizes,
       before calling MainWindow.Open. That's because EventOpen may already
@@ -371,7 +393,6 @@ begin
       Yes, other CastleWindow backends also make sure that these are set early. }
 
     WritelnLog('Library received CGEApp_Open (window size: %d %d)', [InitialWidth, InitialHeight]);
-    WritelnLog('Library set application config directory to URL: %s', [ApplicationConfigOverride]);
     Application.FScreenWidth := InitialWidth;
     Application.FScreenHeight := InitialHeight;
     Application.FScreenStatusBarHeight := InitialStatusBarHeight;
@@ -381,20 +402,17 @@ begin
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
     Application.MainWindow.Dpi := ADpi;
-
-    ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
   end;
 end;
 
-procedure CGEApp_Close; cdecl;
+procedure CGEApp_Close(QuitWhenLastWindowClosed: CBool); cdecl;
 begin
   try
     CheckMainWindow;
-    Application.MainWindow.Close;
-    ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
+    Application.MainWindow.Close(QuitWhenLastWindowClosed);
   except
     on E: TObject do WritelnWarning('CGEApp_Close', ExceptMessage(E));
   end;

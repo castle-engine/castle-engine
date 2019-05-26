@@ -411,7 +411,7 @@ end;
 
 procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
-  HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
+  HeadLength := 2*HeadLength; { map HeadLength to 0..2 }
 
   glBegin(GL_TRIANGLES);
     glVertex2f(0, 2);
@@ -440,44 +440,44 @@ end;
 procedure GLVerticalLine(x, y1, y2: TGLfloat);
 begin
   DrawPrimitive2D(pmLines,
-    [Vector2SmallInt(Round(x), Round(y1)),
-     Vector2SmallInt(Round(x), Round(y2))],
+    [Vector2(x, y1),
+     Vector2(x, y2)],
     CurrentColor);
 end;
 
 procedure GLHorizontalLine(x1, x2, y: TGLfloat);
 begin
   DrawPrimitive2D(pmLines,
-    [Vector2SmallInt(Round(x1), Round(y)),
-     Vector2SmallInt(Round(x2), Round(y))],
+    [Vector2(x1, y),
+     Vector2(x2, y)],
     CurrentColor);
 end;
 
 procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
-  HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
+  HeadLength := 2*HeadLength; { map HeadLength to 0..2 }
 
   DrawPrimitive2D(pmTriangles,
-    [Vector2SmallInt(0, 2),
-     Vector2SmallInt(-1, Round(HeadLength)),
-     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
+    [Vector2(0, 2),
+     Vector2(-1, HeadLength),
+     Vector2(-HeadThickness, HeadLength),
 
-     Vector2SmallInt(0, 2),
-     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
-     Vector2SmallInt(Round(HeadThickness), Round(HeadLength)),
+     Vector2(0, 2),
+     Vector2(-HeadThickness, HeadLength),
+     Vector2(HeadThickness, HeadLength),
 
-     Vector2SmallInt(0, 2),
-     Vector2SmallInt(Round(HeadThickness), Round(HeadLength)),
-     Vector2SmallInt(1, Round(HeadLength)),
+     Vector2(0, 2),
+     Vector2(HeadThickness, HeadLength),
+     Vector2(1, HeadLength),
 
      // quad
-     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
-     Vector2SmallInt(-Round(HeadThickness), 0),
-     Vector2SmallInt(Round(HeadThickness), 0),
+     Vector2(-HeadThickness, HeadLength),
+     Vector2(-HeadThickness, 0),
+     Vector2(HeadThickness, 0),
 
-     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
-     Vector2SmallInt(Round(HeadThickness), 0),
-     Vector2SmallInt(Round(HeadThickness), Round(HeadLength))
+     Vector2(-HeadThickness, HeadLength),
+     Vector2(HeadThickness, 0),
+     Vector2(HeadThickness, HeadLength)
     ],
     CurrentColor);
 end;

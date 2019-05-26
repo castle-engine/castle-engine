@@ -432,13 +432,15 @@ begin
 end;
 
 procedure TUIState.InternalStart;
+var
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
+
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
 
-  if Log then
-    WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -446,6 +448,8 @@ begin
     (like the loading state, that changes to play state immediately in start). }
   if FStateStack.IndexOf(Self) <> -1 then
     StateContainer.Controls.Insert(InsertAtPosition, Self);
+
+  Profiler.Stop(TimeStart, Log);
 end;
 
 procedure TUIState.InternalStop;
@@ -453,7 +457,7 @@ begin
   StateContainer.Controls.Remove(Self);
   Stop;
   if Log then
-    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -501,13 +505,13 @@ end;
 procedure TUIState.Resume;
 begin
   if Log then
-    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Resuming state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
   if Log then
-    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
+    WritelnLog('UIState', 'Paused state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Start;

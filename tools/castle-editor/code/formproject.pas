@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,10 +22,10 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, ShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
+  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
   Types, Contnrs,
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
-  EditorUtils, FrameDesign;
+  EditorUtils, FrameDesign, FrameViewFile;
 
 type
   { Main project management. }
@@ -93,8 +93,6 @@ type
     MenuItemQuit: TMenuItem;
     PageControlBottom: TPageControl;
     PanelAboveTabs: TPanel;
-    ShellListView1: TShellListView;
-    ShellTreeView1: TShellTreeView;
     SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
     TabFiles: TTabSheet;
@@ -142,17 +140,24 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
     ProjectName: String;
-    ProjectPath, ProjectPathUrl: String;
+    ProjectPath, ProjectPathUrl, ProjectStandaloneSource: String;
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
     Design: TDesignFrame;
+    ShellListView1: TCastleShellListView;
+    ShellTreeView1: TCastleShellTreeView;
+    ViewFileFrame: TViewFileFrame;
+    SplitterBetweenViewFile: TSplitter;
     procedure BuildToolCall(const Commands: array of String;
         const ExitOnSuccess: Boolean = false);
     procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuItemDesignNewCustomRootClick(Sender: TObject);
     procedure SetEnabledCommandRun(const AEnabled: Boolean);
     procedure FreeProcess;
+    procedure ShellListViewDoubleClick(Sender: TObject);
+    procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure UpdateFormCaption(Sender: TObject);
     { Propose saving the hierarchy.
       Returns should we continue (user did not cancel). }
@@ -174,14 +179,14 @@ implementation
 
 {$R *.lfm}
 
-uses TypInfo,
+uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
   CastleScene, CastleSceneManager, Castle2DSceneManager,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
-  CastleFonts,
-  FormChooseProject, ToolUtils, FormAbout;
+  CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
+  FormChooseProject, ToolCommonUtils, FormAbout;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -324,9 +329,63 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     end;
   end;
 
+  { We create some components by code, this way we don't have to put
+    in package TCastleShellTreeView and TCastleShellListView,
+    making compiling CGE editor a bit easier. }
+  procedure CreateShellViews;
+  const
+    { Similar to paths removed by build-tool "clean", or excluded by default by
+      build-tool "package". This should be configurable some day. }
+    ExcludeMask = 'castle-engine-output;*~;*.bak;*.exe;*.dll';
+  begin
+    ShellTreeView1 := TCastleShellTreeView.Create(Self);
+    ShellTreeView1.Parent := TabFiles;
+    ShellTreeView1.Width := MulDiv(250, PixelsPerInch, 96);
+    ShellTreeView1.Align := alLeft;
+    ShellTreeView1.FileSortType := fstAlphabet;
+    ShellTreeView1.HotTrack := True;
+    ShellTreeView1.ReadOnly := True;
+    ShellTreeView1.ShowRoot := False;
+    ShellTreeView1.TabOrder := 0;
+    ShellTreeView1.Options := [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw];
+    ShellTreeView1.ObjectTypes := [otFolders];
+    ShellTreeView1.ExcludeMask := ExcludeMask;
+
+    ShellListView1 := TCastleShellListView.Create(Self);
+    ShellListView1.Parent := TabFiles;
+    ShellListView1.Align := alClient;
+    ShellListView1.ReadOnly := True;
+    ShellListView1.SortColumn := 0;
+    ShellListView1.TabOrder := 1;
+    ShellListView1.ObjectTypes := [otNonFolders];
+    // TODO: To make folders work nicely, it needs some more improvements:
+    // - show icons of folders, to make them distinct
+    // - double-click on folder should move to it, in both shell tree/list views
+    //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
+    { Without this, files are in undefined order
+      (it seems SortColumn=0 above doesn't work). }
+    ShellListView1.FileSortType := fstFoldersFirst;
+    ShellListView1.ExcludeMask := ExcludeMask;
+    ShellListView1.OnDblClick := @ShellListViewDoubleClick;
+    ShellListView1.ShowHint := true;
+    ShellListView1.RowSelect := true;
+    ShellListView1.OnSelectItem := @ShellListViewSelectItem;
+    ShellListView1.Hint := 'Double-click to open.' + NL +
+      NL +
+      '- Scenes open in engine viewer (view3dscene).' + NL +
+      '- Images open in engine viewer (castle-view-image).' + NL +
+      '- Design opens in this editor window.' + NL +
+      '- Pascal files open in Lazarus.' + NL +
+      '- Other files open in external applications.';
+
+    ShellTreeView1.ShellListView := ShellListView1;
+    ShellListView1.ShellTreeView := ShellTreeView1;
+  end;
+
 begin
   OutputList := TOutputList.Create(ListOutput);
   BuildComponentsMenu;
+  CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
 
@@ -542,6 +601,159 @@ begin
   ProcessUpdateTimer.Enabled := false;
 end;
 
+procedure TProjectForm.ShellListViewSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
+
+  { Make sure ViewFileFrame is created and visible.
+    For now we create ViewFileFrame on-demand, just in case there's a problem
+    with initializing 2nd OpenGL context on some computer. }
+  procedure NeedsViewFile;
+  begin
+    if ViewFileFrame = nil then
+    begin
+      ViewFileFrame := TViewFileFrame.Create(Self);
+      ViewFileFrame.Parent := TabFiles;
+      ViewFileFrame.Align := alRight;
+
+      SplitterBetweenViewFile := TSplitter.Create(Self);
+      SplitterBetweenViewFile.Parent := TabFiles;
+      SplitterBetweenViewFile.Align := alRight;
+    end;
+    ViewFileFrame.Enabled := true;
+    ViewFileFrame.Visible := true;
+    SplitterBetweenViewFile.Enabled := true;
+    SplitterBetweenViewFile.Visible := true;
+  end;
+
+var
+  SelectedFileName, SelectedURL: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+
+    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadScene(SelectedURL);
+      Exit;
+    end;
+
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadImage(SelectedURL);
+      Exit;
+    end;
+
+    if TFileFilterList.Matches(LoadSound_FileFilters, SelectedURL) then
+    begin
+      NeedsViewFile;
+      ViewFileFrame.LoadSound(SelectedURL);
+      Exit;
+    end;
+  end;
+
+  { if control reached here, hide ViewFileFrame if needed }
+  if ViewFileFrame <> nil then
+  begin
+    ViewFileFrame.ClearLoaded; // stops playing preview sound
+    ViewFileFrame.Enabled := false;
+    ViewFileFrame.Visible := false;
+    SplitterBetweenViewFile.Enabled := false;
+    SplitterBetweenViewFile.Visible := false;
+  end;
+end;
+
+procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
+
+  procedure OpenWith(Const ToolName: String; const SelectedURL: String);
+  var
+    Exe: String;
+  begin
+    Exe := FindExeCastleTool(ToolName);
+    if Exe = '' then
+    begin
+      EditorUtils.ErrorBox(Format('Cannot find Castle Game Engine tool "%s", opening "%s" failed. Make sure CGE is installed correctly, the tool should be distributed along with engine binary.',
+        [ToolName, SelectedURL]));
+      Exit;
+    end;
+
+    RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
+  end;
+
+  procedure OpenWithLazarus(const FileName: String);
+  var
+    Exe: String;
+  begin
+    if ProjectStandaloneSource = '' then
+    begin
+      EditorUtils.ErrorBox('Cannot open project in Lazarus, as "standalone_source" was not specified in CastleEngineManifest.xml.');
+      Exit;
+    end;
+
+    Exe := FindExe('lazarus');
+    if Exe = '' then
+    begin
+      EditorUtils.ErrorBox('Cannot find "lazarus" executable on environment variable PATH.');
+      Exit;
+    end;
+
+    if SameFileName(ProjectStandaloneSource, FileName) then
+      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+    else
+      { pass both project name, and particular filename, to open file within this project. }
+      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
+  end;
+
+var
+  SelectedFileName, Ext, SelectedURL: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+    Ext := ExtractFileExt(SelectedFileName);
+
+    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    begin
+      OpenWith('view3dscene', SelectedURL);
+      Exit;
+    end;
+
+    if LoadImage_FileFilters.Matches(SelectedURL) then
+    begin
+      OpenWith('castle-view-image', SelectedURL);
+      Exit;
+    end;
+
+    if AnsiSameText(Ext, '.castle-user-interface') or
+       AnsiSameText(Ext, '.castle-transform') then
+    begin
+      if ProposeSaveDesign then
+      begin
+        NeedsDesignFrame;
+        Design.OpenDesign(SelectedURL);
+      end;
+      Exit;
+    end;
+
+    if AnsiSameText(Ext, '.pas') or
+       AnsiSameText(Ext, '.inc') or
+       AnsiSameText(Ext, '.pp') or
+       AnsiSameText(Ext, '.lpr') or
+       AnsiSameText(Ext, '.dpr') then
+    begin
+      OpenWithLazarus(SelectedFileName);
+      Exit;
+    end;
+
+    if not OpenDocument(SelectedFileName) then
+      EditorUtils.ErrorBox(Format('Opening "%s" failed.', [SelectedFileName]));
+  end;
+end;
+
 procedure TProjectForm.BuildToolCall(const Commands: array of String;
   const ExitOnSuccess: Boolean);
 var
@@ -551,7 +763,7 @@ begin
   if RunningProcess <> nil then
     raise EInternalError.Create('It should not be possible to call this when RunningProcess <> nil');
 
-  BuildToolExe := FindExe('castle-engine');
+  BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
     EditorUtils.ErrorBox('Cannot find build tool (castle-engine) on $PATH environment variable.');
@@ -666,6 +878,8 @@ begin
   ManifestDoc := URLReadXML(ManifestUrl);
   try
     ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
+    if not ManifestDoc.DocumentElement.AttributeString('standalone_source', ProjectStandaloneSource) then
+      ProjectStandaloneSource := '';
   finally FreeAndNil(ManifestDoc) end;
 
   { Below we assume ManifestUrl contains an absolute path,
@@ -673,6 +887,10 @@ begin
     and OpenDesignDialog.InitialDir would be left '' and so on. }
   ProjectPathUrl := ExtractURIPath(ManifestUrl);
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
+
+  { Make ProjectStandaloneSource absolute path, or empty }
+  if ProjectStandaloneSource <> '' then
+    ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }

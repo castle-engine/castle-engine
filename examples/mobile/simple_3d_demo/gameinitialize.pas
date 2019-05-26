@@ -44,6 +44,7 @@ var
   ToggleTextureUpdatesButton: TCastleButton;
   PlaySoundWavButton: TCastleButton;
   PlaySoundOggButton: TCastleButton;
+  TerminateButton: TCastleButton;
 
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
@@ -51,7 +52,7 @@ var
   SoundBufferWav, SoundBufferOgg: TSoundBuffer;
 
 type
-  TDummy = class
+  TEventsHandler = class
     class procedure ToggleShaderClick(Sender: TObject);
     class procedure ToggleScreenEffectClick(Sender: TObject);
     class procedure ToggleSSAOClick(Sender: TObject);
@@ -63,9 +64,10 @@ type
     class procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
     class procedure PlaySoundWav(Sender: TObject);
     class procedure PlaySoundOgg(Sender: TObject);
+    class procedure TerminateClick(Sender: TObject);
   end;
 
-class procedure TDummy.ToggleShaderClick(Sender: TObject);
+class procedure TEventsHandler.ToggleShaderClick(Sender: TObject);
 begin
   if MyShaderEffect <> nil then
   begin
@@ -74,7 +76,7 @@ begin
   end;
 end;
 
-class procedure TDummy.ToggleScreenEffectClick(Sender: TObject);
+class procedure TEventsHandler.ToggleScreenEffectClick(Sender: TObject);
 begin
   if MyScreenEffect <> nil then
   begin
@@ -83,21 +85,21 @@ begin
   end;
 end;
 
-class procedure TDummy.ToggleSSAOClick(Sender: TObject);
+class procedure TEventsHandler.ToggleSSAOClick(Sender: TObject);
 begin
   Window.SceneManager.ScreenSpaceAmbientOcclusion :=
     not Window.SceneManager.ScreenSpaceAmbientOcclusion;
   ToggleSSAOButton.Pressed := Window.SceneManager.ScreenSpaceAmbientOcclusion;
 end;
 
-class procedure TDummy.TouchUIClick(Sender: TObject);
+class procedure TEventsHandler.TouchUIClick(Sender: TObject);
 begin
   if Window.TouchInterface = High(TTouchInterface) then
     Window.TouchInterface := Low(TTouchInterface) else
     Window.TouchInterface := Succ(Window.TouchInterface);
 end;
 
-class procedure TDummy.MessageClick(Sender: TObject);
+class procedure TEventsHandler.MessageClick(Sender: TObject);
 begin
   { On Android, a nice test is to switch to desktop (home)
     when one of these modal MessageXxx is working. The application loop
@@ -112,7 +114,7 @@ begin
     MessageOK(Window, 'You clicked "No".');
 end;
 
-class procedure TDummy.ProgressClick(Sender: TObject);
+class procedure TEventsHandler.ProgressClick(Sender: TObject);
 const
   TestProgressSteps = 100;
 var
@@ -149,13 +151,13 @@ begin
   finally Progress.Fini end;
 end;
 
-class procedure TDummy.ReopenContextClick(Sender: TObject);
+class procedure TEventsHandler.ReopenContextClick(Sender: TObject);
 begin
   Window.Close(false);
   Window.Open;
 end;
 
-class procedure TDummy.ToggleTextureUpdatesCallback(Node: TX3DNode);
+class procedure TEventsHandler.ToggleTextureUpdatesCallback(Node: TX3DNode);
 var
   CubeMap: TGeneratedCubeMapTextureNode;
   LogStr: string;
@@ -168,20 +170,25 @@ begin
   WritelnLog('CubeMap', LogStr);
 end;
 
-class procedure TDummy.ToggleTextureUpdates(Sender: TObject);
+class procedure TEventsHandler.ToggleTextureUpdates(Sender: TObject);
 begin
   Window.SceneManager.MainScene.RootNode.EnumerateNodes(
     TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
 end;
 
-class procedure TDummy.PlaySoundWav(Sender: TObject);
+class procedure TEventsHandler.PlaySoundWav(Sender: TObject);
 begin
   SoundEngine.PlaySound(SoundBufferWav);
 end;
 
-class procedure TDummy.PlaySoundOgg(Sender: TObject);
+class procedure TEventsHandler.PlaySoundOgg(Sender: TObject);
 begin
   SoundEngine.PlaySound(SoundBufferOgg);
+end;
+
+class procedure TEventsHandler.TerminateClick(Sender: TObject);
+begin
+  Application.Terminate;
 end;
 
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
@@ -228,7 +235,7 @@ begin
 
   ToggleShaderButton := TCastleButton.Create(Window);
   ToggleShaderButton.Caption := 'Toggle Shader Effect';
-  ToggleShaderButton.OnClick := @TDummy(nil).ToggleShaderClick;
+  ToggleShaderButton.OnClick := @TEventsHandler(nil).ToggleShaderClick;
   ToggleShaderButton.Toggle := true;
   ToggleShaderButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleShaderButton);
@@ -236,7 +243,7 @@ begin
 
   ToggleScreenEffectButton := TCastleButton.Create(Window);
   ToggleScreenEffectButton.Caption := 'Toggle Screen Effect';
-  ToggleScreenEffectButton.OnClick := @TDummy(nil).ToggleScreenEffectClick;
+  ToggleScreenEffectButton.OnClick := @TEventsHandler(nil).ToggleScreenEffectClick;
   ToggleScreenEffectButton.Toggle := true;
   ToggleScreenEffectButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleScreenEffectButton);
@@ -244,7 +251,7 @@ begin
 
   ToggleSSAOButton := TCastleButton.Create(Window);
   ToggleSSAOButton.Caption := 'Toggle SSAO';
-  ToggleSSAOButton.OnClick := @TDummy(nil).ToggleSSAOClick;
+  ToggleSSAOButton.OnClick := @TEventsHandler(nil).ToggleSSAOClick;
   ToggleSSAOButton.Toggle := true;
   ToggleSSAOButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleSSAOButton);
@@ -256,52 +263,60 @@ begin
 
   TouchUIButton := TCastleButton.Create(Window);
   TouchUIButton.Caption := 'Next Touch UI';
-  TouchUIButton.OnClick := @TDummy(nil).TouchUIClick;
+  TouchUIButton.OnClick := @TEventsHandler(nil).TouchUIClick;
   TouchUIButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(TouchUIButton);
   AnchorNextButton(TouchUIButton);
 
   MessageButton := TCastleButton.Create(Window);
   MessageButton.Caption := 'Test Modal Message';
-  MessageButton.OnClick := @TDummy(nil).MessageClick;
+  MessageButton.OnClick := @TEventsHandler(nil).MessageClick;
   MessageButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(MessageButton);
   AnchorNextButton(MessageButton);
 
   ProgressButton := TCastleButton.Create(Window);
   ProgressButton.Caption := 'Test Progress Bar';
-  ProgressButton.OnClick := @TDummy(nil).ProgressClick;
+  ProgressButton.OnClick := @TEventsHandler(nil).ProgressClick;
   ProgressButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ProgressButton);
   AnchorNextButton(ProgressButton);
 
   ReopenContextButton := TCastleButton.Create(Window);
   ReopenContextButton.Caption := 'Test Reopening OpenGL Context';
-  ReopenContextButton.OnClick := @TDummy(nil).ReopenContextClick;
+  ReopenContextButton.OnClick := @TEventsHandler(nil).ReopenContextClick;
   ReopenContextButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ReopenContextButton);
   AnchorNextButton(ReopenContextButton);
 
   ToggleTextureUpdatesButton := TCastleButton.Create(Window);
   ToggleTextureUpdatesButton.Caption := 'Toggle CubeMap Texture Updates';
-  ToggleTextureUpdatesButton.OnClick := @TDummy(nil).ToggleTextureUpdates;
+  ToggleTextureUpdatesButton.OnClick := @TEventsHandler(nil).ToggleTextureUpdates;
   ToggleTextureUpdatesButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ToggleTextureUpdatesButton);
   AnchorNextButton(ToggleTextureUpdatesButton);
 
   PlaySoundWavButton := TCastleButton.Create(Window);
   PlaySoundWavButton.Caption := 'Play Sound (Wav)';
-  PlaySoundWavButton.OnClick := @TDummy(nil).PlaySoundWav;
+  PlaySoundWavButton.OnClick := @TEventsHandler(nil).PlaySoundWav;
   PlaySoundWavButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(PlaySoundWavButton);
   AnchorNextButton(PlaySoundWavButton);
 
   PlaySoundOggButton := TCastleButton.Create(Window);
   PlaySoundOggButton.Caption := 'Play Sound (Ogg Vorbis)';
-  PlaySoundOggButton.OnClick := @TDummy(nil).PlaySoundOgg;
+  PlaySoundOggButton.OnClick := @TEventsHandler(nil).PlaySoundOgg;
   PlaySoundOggButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(PlaySoundOggButton);
   AnchorNextButton(PlaySoundOggButton);
+
+  TerminateButton := TCastleButton.Create(Window);
+  TerminateButton.Caption := 'Terminate Application';
+  TerminateButton.OnClick := @TEventsHandler(nil).TerminateClick;
+  TerminateButton.Anchor(hpRight, -Margin);
+  TerminateButton.Exists := {$if (defined(ANDROID) and not defined(CASTLE_NINTENDO_SWITCH)) or defined(CASTLE_IOS)} false {$else} true {$endif};
+  Window.Controls.InsertFront(TerminateButton);
+  AnchorNextButton(TerminateButton);
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;

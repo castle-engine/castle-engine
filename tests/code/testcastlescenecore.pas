@@ -151,6 +151,9 @@ begin
 
   // This once failed to be read with FPC 3.1.1
   CheckIterator('data/escape_from_the_universe_boss/boss.json');
+
+  // This once failed to be read, as the Spine has DefaultSkin = nil
+  CheckIterator('data/empty_spine.json');
 end;
 
 procedure TTestSceneCore.TestFind;

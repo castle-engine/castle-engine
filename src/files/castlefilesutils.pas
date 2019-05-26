@@ -134,7 +134,7 @@ function ProgramName: string; deprecated;
   as FileExists.
 
   @deprecated Deprecated, since we use URLs everywhere,
-  use URIFileExists to check does file exist. }
+  use URIFileExists or URIExists to check does file exist. }
 function NormalFileExists(const fileName: string): boolean; deprecated;
 
 { Path to store user configuration files.
@@ -483,23 +483,15 @@ uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   CastleApplicationProperties;
 
 var
-  { Initialized once in initialization, afterwards constant.
-    On non-Windows, this may not be reliable, ExeName can even raise an exception.
-    Nothing except the initialization, and the ExeName function,
-    should access FExeName variable. }
+  { Initialized once in initialization, afterwards constant. }
   FExeName: string;
 
 function ExeName: string;
 begin
- { Under Windows ParamStr(0) is always OK, so there is no need to check
-   is FExeName = ''. }
- {$ifndef MSWINDOWS}
- if FExeName = '' then
-  raise EExeNameNotAvailable.Create(
-    'ExeName: Cannot obtain filename of executable of this program');
- {$endif}
-
- Result := FExeName;
+  if FExeName = '' then
+    raise EExeNameNotAvailable.Create(
+      'ExeName: Cannot obtain filename of executable of this program');
+  Result := FExeName;
 end;
 
 function ProgramName: string;
@@ -545,7 +537,8 @@ begin
 
   { ApplicationConfig relies that ForceDirectories is reliable
     (on Android, it's not reliable before activity started)
-    and ApplicationConfigOverride is set (on iOS, it's not set before CGEApp_Open called). }
+    and ApplicationConfigOverride is set
+    (on iOS, it's not set before CGEApp_Initialize called). }
   if not ApplicationProperties._FileAccessSafe then
     WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
       [Path]);
@@ -576,10 +569,10 @@ function ApplicationData(const Path: string): string;
   var
     ExePath: string;
   begin
-    {$push} // knowingly using deprecated; ExeName should be undeprecated but internal one day
     {$warnings off}
+    // knowingly using deprecated; ExeName should be undeprecated but internal one day
     ExePath := ExtractFilePath(ExeName);
-    {$pop}
+    {$warnings on}
 
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;
@@ -796,14 +789,16 @@ end;
 { dir handling -------------------------------------------------------- }
 
 function FileNameAutoInc(const FileNamePattern: string): string;
-var i: integer;
+var
+  I: Integer;
 begin
- i := 0;
- repeat
-  result := Format(FileNamePattern,[i]);
-  if not URIFileExists(result) then exit;
-  Inc(i);
- until false;
+  I := 0;
+  repeat
+    result := Format(FileNamePattern, [I]);
+    if URIExists(Result) in [ueNotExists, ueUnknown] then
+      Exit;
+    Inc(I);
+  until false;
 end;
 
 function FnameAutoInc(const FileNamePattern: string): string;
@@ -1050,43 +1045,33 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-procedure DoInitialization;
+procedure InitializeExeName;
+{$ifdef LINUX}
+var
+  ExeLinkName: String;
+{$endif}
 begin
-  { inicjalizacja FExeName }
-
-  { First, assume that there is no way to obtain FExeName
-    on this platform }
-  FExeName := '';
+  { Initialize FExeName.
+    Under Windows, ParamStr(0) is a reliable exe name.
+    Under other OSes, it's at least some default. }
+  FExeName := ParamStr(0);
 
   {$ifdef LINUX}
-
-  { Pod UNIXem wlasciwie ExeName nie powinno nam byc do niczego
-    potrzebne - pod Windowsem uzywam ExeName np. aby uzyskac sciezke
-    do aplikacji i tam zalozyc plik ini, ale pod UNIXem
-    powinienem uzywac do tego celu katalogu $HOME albo czytac ustawienia
-    gdzies z /etc.
-
-    Ale zrobilem to. Nie jest to 100% pewna metoda ale nie jest tez taka
-    zupelnie nieelegancka : korzystamy z proc/getpid()/exe.
-
-    Notka : NIE mozemy w zaden sposob uzywac ParamStr(0) do obliczania fExeName.
-    Nasze ParamStr(0) jest ustalane przez proces ktory nas wywolal - moze to
-    byc nazwa naszego pliku wykonywalnmego lub symboic linka do niego, ze sciezka
-    wzgledna lub bezwzgledna lub bez sciezki gdy nasz executable byl wsrod $PATH
-    ale to wszystko to tylko GDYBANIE - taka jest konwencja ale tak naprawde
-    nasze ParamStr(0) moze byc absolutnie czymkolwiek. Nie mozemy wiec w zaden
-    sposob polegac na tym ze jego wartosc okresla cokolwiek w jakikolwiek sposob. }
-
+  { Under Linux, try to use /proc/getpid()/exe.
+    This is more reliable than ParamStr(0),
+    as ParamStr(0) is set by the calling process,
+    and it may be absolute or relative, it may be symlink,
+    and in general it may contain anything. }
+  ExeLinkName := '/proc/' + IntToStr(FpGetpid) + '/exe';
   try
-    FExeName := CastleReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
+    FExeName := CastleReadLink(ExeLinkName);
   except
-    on EOSError do FExeName := '';
+    on EOSError do
+      WritelnWarning('Cannot read "%s" (to get ExeName on Linux)', [ExeLinkName]);
   end;
   {$endif}
-
-  {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
 end;
 
 initialization
-  DoInitialization;
+  InitializeExeName;
 end.

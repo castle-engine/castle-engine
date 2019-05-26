@@ -13,13 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Property and component editors for Lazarus components.
-  For docs, see
+{ Property and component editors for components.
+  These are used by object inspectors (inside Lazarus or CGE editor).
+
+  For documentation how to create property editors, component editors etc. see
   - http://wiki.freepascal.org/How_To_Write_Lazarus_Component#Component_editors
   - comments of Lazarus ideintf/propedits.pp sources.
 
-  @exclude (This unit is not supposed to be normally used, so not documented
-  by PasDoc. It's only for Lazarus registration.) }
+  @exclude This unit is not supposed to be used by normal developers.
+  It should only be used to register the editors (in Lazarus, in CGE editor). }
 unit CastlePropEdits;
 
 {$I castleconf.inc}
@@ -41,437 +43,16 @@ uses SysUtils, Classes,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
   CastleTiledMap, CastleGLImages;
 
-{ Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
-  (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
-{$if LCL_FULLVERSION >= 1090000}
-  {$define HAS_RENDER_AT_DESIGN_TIME}
-{$endif}
-
-{ TSubPropertiesEditor ----------------------------------------------------- }
-
-type
-  TSubPropertiesEditor = class(TClassPropertyEditor)
-  public
-    function  GetAttributes: TPropertyAttributes; Override;
-  end;
-
-function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paMultiSelect, paSubProperties, paReadOnly];
-end;
-
-{ TSceneAutoAnimationPropertyEditor ------------------------------------------ }
-
-type
-  { Property editor to select an animation on TCastleSceneCore. }
-  TSceneAutoAnimationPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure GetValues(Proc: TGetStrProc); override;
-    procedure SetValue(const NewValue: String); override;
-  end;
-
-function TSceneAutoAnimationPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paMultiSelect, paValueList, paSortList, paRevertable];
-end;
-
-procedure TSceneAutoAnimationPropertyEditor.GetValues(Proc: TGetStrProc);
-var
-  Scene: TCastleSceneCore;
-  S: String;
-begin
-  Proc('');
-  Scene := GetComponent(0) as TCastleSceneCore;
-  for S in Scene.AnimationsList do
-    Proc(S);
-end;
-
-procedure TSceneAutoAnimationPropertyEditor.SetValue(const NewValue: String);
-var
-  Scene: TCastleSceneCore;
-begin
-  inherited SetValue(NewValue);
-  Scene := GetComponent(0) as TCastleSceneCore;
-  Scene.AutoAnimation := NewValue;
-end;
-
-{ TSceneURLPropertyEditor ---------------------------------------------------- }
-
-type
-  { Property editor for URL that refers to 3D model.
-    Show an TCastleOpen3DDialog on Edit. }
-  TSceneURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
-function TSceneURLPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paDialog, paRevertable];
-end;
-
-procedure TSceneURLPropertyEditor.Edit;
-var
-  Dialog: TCastleOpen3DDialog;
-begin
-  Dialog := TCastleOpen3DDialog.Create(nil);
-  try
-    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
-    if Dialog.Execute then
-      SetStrValue(Dialog.URL);
-  finally FreeAndNil(Dialog) end;
-end;
-
-{ TImageURLPropertyEditor ---------------------------------------------------- }
-
-type
-  { Property editor for URL that refers to a file readable by Castle Game Engine.
-    Show an TCastleOpenImageDialog on Edit. }
-  TImageURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
-function TImageURLPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paDialog, paRevertable];
-end;
-
-procedure TImageURLPropertyEditor.Edit;
-var
-  Dialog: TCastleOpenImageDialog;
-begin
-  Dialog := TCastleOpenImageDialog.Create(nil);
-  try
-    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
-    if Dialog.Execute then
-      SetStrValue(Dialog.URL);
-  finally FreeAndNil(Dialog) end;
-end;
-
-{ TDesignURLPropertyEditor ---------------------------------------------------- }
-
-type
-  { Property editor for URL that refers to a file readable by UserInterfaceLoad. }
-  TDesignURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
-function TDesignURLPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paDialog, paRevertable];
-end;
-
-procedure TDesignURLPropertyEditor.Edit;
-var
-  Dialog: TCastleOpenDialog;
-begin
-  Dialog := TCastleOpenDialog.Create(nil);
-  try
-    Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
-    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
-    if Dialog.Execute then
-      SetStrValue(Dialog.URL);
-  finally FreeAndNil(Dialog) end;
-end;
-
-{ TTiledMapURLPropertyEditor ---------------------------------------------------- }
-
-type
-  { Property editor for URL that refers to a Tiled Map file. }
-  TTiledMapURLPropertyEditor = class(TStringPropertyEditor)
-  public
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-  end;
-
-function TTiledMapURLPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paDialog, paRevertable];
-end;
-
-procedure TTiledMapURLPropertyEditor.Edit;
-var
-  Dialog: TCastleOpenDialog;
-begin
-  Dialog := TCastleOpenDialog.Create(nil);
-  try
-    Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
-    Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
-    if Dialog.Execute then
-      SetStrValue(Dialog.URL);
-  finally FreeAndNil(Dialog) end;
-end;
-
-{ TCastleColorPropertyEditor ------------------------------------------------- }
-
-type
-  TCastleColorPropertyEditor = class(TSubPropertiesEditor)
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-    function GetValue: String; override;
-    procedure SetValue(const NewValue: String); override;
-  end;
-
-function TCastleColorPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := inherited GetAttributes + [paDialog, paRevertable]
-    // our SetValue allows to set color from string
-    - [paReadOnly];
-end;
-
-procedure TCastleColorPropertyEditor.Edit;
-var
-  Dialog: TColorDialog;
-  ColorPersistent: TCastleColorPersistent;
-  Color: TCastleColor;
-  ColorByte: TVector3Byte;
-begin
-  Dialog := TColorDialog.Create(nil);
-  try
-    ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-    Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color.XYZ); // edit only Color RGB
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
-    begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
-      // keep Color alpha unchanged ...
-      Color := Vector4(Vector3(ColorByte), Color[3]);
-      // ... unless it is zero, then change to 1.
-      // This makes changing TCastleUserInterface.BorderColor changing more natural.
-      if Color[3] = 0 then
-        Color[3] := 1;
-      ColorPersistent.Value := Color;
-    end;
-  finally FreeAndNil(Dialog) end;
-end;
-
-function TCastleColorPropertyEditor.GetValue: String;
-var
-  ColorPersistent: TCastleColorPersistent;
-begin
-  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-  Result := ColorToHex(ColorPersistent.Value);
-end;
-
-procedure TCastleColorPropertyEditor.SetValue(const NewValue: String);
-var
-  ColorPersistent: TCastleColorPersistent;
-begin
-  ColorPersistent := (GetObjectValue as TCastleColorPersistent);
-  ColorPersistent.Value := HexToColor(NewValue);
-end;
-
-{ TCastleColorRGBPropertyEditor ------------------------------------------------- }
-
-type
-  TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
-    function GetAttributes: TPropertyAttributes; override;
-    procedure Edit; override;
-    function GetValue: String; override;
-    procedure SetValue(const NewValue: String); override;
-  end;
-
-function TCastleColorRGBPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := inherited GetAttributes + [paDialog, paRevertable]
-    // our SetValue allows to set color from string
-    - [paReadOnly];
-end;
-
-procedure TCastleColorRGBPropertyEditor.Edit;
-var
-  Dialog: TColorDialog;
-  ColorPersistent: TCastleColorRGBPersistent;
-  Color: TCastleColorRGB;
-  ColorByte: TVector3Byte;
-begin
-  Dialog := TColorDialog.Create(nil);
-  try
-    ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-    Color := ColorPersistent.Value;
-    ColorByte := Vector3Byte(Color);
-    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    if Dialog.Execute then
-    begin
-      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
-      Color := Vector3(ColorByte);
-      ColorPersistent.Value := Color;
-    end;
-  finally FreeAndNil(Dialog) end;
-end;
-
-function TCastleColorRGBPropertyEditor.GetValue: String;
-var
-  ColorPersistent: TCastleColorRGBPersistent;
-begin
-  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-  Result := ColorRGBToHex(ColorPersistent.Value);
-end;
-
-procedure TCastleColorRGBPropertyEditor.SetValue(const NewValue: String);
-var
-  ColorPersistent: TCastleColorRGBPersistent;
-begin
-  ColorPersistent := (GetObjectValue as TCastleColorRGBPersistent);
-  ColorPersistent.Value := HexToColorRGB(NewValue);
-end;
-
-{ TChildrenControlsPropertyEditor -------------------------------------------- }
-
-type
-  TChildrenControlsPropertyEditor = class(TListPropertyEditor)
-  end;
-
-(*
-
-// This was just a temporary thing until we can use CGE editor.
-
-{ T3DEditorForm -------------------------------------------------------------- }
-
-type
-  T3DEditorForm = class(TComponent)
-    Control: TCastleControl;
-    SceneManager: TCastleSceneManager; //< just a shortcut for TCastleControl.SceneManager now
-    Items: TSceneManagerWorld; //< just a shortcut for SceneManager.Items now
-    procedure ShowModal;
-  end;
-
-procedure T3DEditorForm.ShowModal;
-var
-  Transform: TCastleTransform;
-  Scene: TCastleScene;
-  Root: TX3DRootNode;
-  Shape: TShapeNode;
-begin
-  if MessageDlg('Edit Game World',
-    'TODO: Here we will implement a real editor to edit SceneManager.Items.' + NL +
-    NL +
-    'For now: do you want to add a yellow 3D sphere to your world (with a little randomized location)?',
-    mtConfirmation, mbYesNo, 0) = mrYes then
-  begin
-    Shape := TShapeNode.Create;
-    Shape.Geometry := TSphereNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := YellowRGB;
-
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(Shape);
-
-    Scene := TCastleScene.Create(Items);
-    Scene.Load(Root, true);
-
-    Transform := TCastleTransform.Create(Items);
-    Transform.Translation := Vector3(
-      RandomFloatRange(-1, 1),
-      RandomFloatRange(-1, 1),
-      RandomFloatRange(-1, 1)
-    );
-    Transform.Add(Scene);
-
-    Items.Add(Transform);
-
-    if SceneManager <> nil then
-    begin
-      // set MainScene, to set headlight
-      if SceneManager.MainScene = nil then
-        SceneManager.MainScene := Scene;
-      // force recreating the camera soon, to see the whole scene
-      SceneManager.Camera.Free;
-    end;
-
-    {$ifdef HAS_RENDER_AT_DESIGN_TIME}
-    Control.Options := Control.Options + [ocoRenderAtDesignTime];
-    {$endif}
-  end;
-end;
-
-{ TSceneManagerWorldPropertyEditor ----------------------------------------------------- }
-
-type
-  TSceneManagerWorldPropertyEditor = class(TClassPropertyEditor)
-  public
-    procedure Edit; Override;
-    function  GetAttributes: TPropertyAttributes; Override;
-  end;
-
-procedure TSceneManagerWorldPropertyEditor.Edit;
-var
-  Dialog: T3DEditorForm;
-begin
-  Dialog := T3DEditorForm.Create(nil);
-  try
-    Dialog.Items := TSceneManagerWorld(GetObjectValue(TSceneManagerWorld));
-    Dialog.ShowModal;
-  finally FreeAndNil(Dialog) end;
-end;
-
-function TSceneManagerWorldPropertyEditor.GetAttributes: TPropertyAttributes;
-begin
-  Result := [paMultiSelect, paSubProperties, {paDialog,} paReadOnly];
-end;
-
-{ TCastleControlComponentEditor ---------------------------------------------- }
-
-type
-  TCastleControlComponentEditor = class(TComponentEditor)
-  protected
-    procedure DoShowEditor;
-  public
-    procedure ExecuteVerb(Index: Integer); override;
-    function GetVerb(Index: Integer): String; override;
-    function GetVerbCount: Integer; override;
-  end;
-
-procedure TCastleControlComponentEditor.DoShowEditor;
-var
-  Dialog: T3DEditorForm;
-  Control: TCastleControl;
-  SceneManager: TCastleSceneManager;
-begin
-  Dialog := T3DEditorForm.Create(nil);
-  try
-    Control := GetComponent as TCastleControl;
-    SceneManager := Control.SceneManager;
-    Dialog.Control := Control;
-    Dialog.Items := SceneManager.Items;
-    Dialog.SceneManager := SceneManager;
-    Dialog.ShowModal;
-    Control.Invalidate;
-  finally FreeAndNil(Dialog) end;
-end;
-
-procedure TCastleControlComponentEditor.ExecuteVerb(Index: Integer);
-begin
-  case Index of
-    0: DoShowEditor;
-  end;
-end;
-
-function TCastleControlComponentEditor.GetVerb(Index: Integer): String;
-begin
-  Result := 'Edit the Game World (SceneManager.Items)...';
-end;
-
-function TCastleControlComponentEditor.GetVerbCount: Integer;
-begin
-  Result := 1;
-end;
-
-*)
+{$I castlepropedits_any_subproperties.inc}
+{$I castlepropedits_autoanimation.inc}
+{$I castlepropedits_url.inc}
+{$I castlepropedits_color.inc}
+{$I castlepropedits_vector.inc}
+{$I castlepropedits_unused_controls.inc}
 
 procedure Register;
 begin
+  { URL properties }
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
     'URL', TSceneURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
@@ -483,32 +64,27 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
 
-  // TODO: the SceneManager.Items, actually complete TCastleControl,
-  // should be editable using new CGE editor now.
-
-  { TODO: crashes
-  RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlBase,
-    'Controls', TChildrenControlsPropertyEditor);
-  }
-  // RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
-
-  { These descend from TSubPropertiesEditor,
-    which is necessary to expand in castle-editor and Lazarus design-time.
+  { Properties that simply use TSubPropertiesEditor.
+    Registering properties that use TSubPropertiesEditor
+    (not any descendant of it) is still necessary to expand them
+    in castle-editor and Lazarus design-time.
     Although it seems not necessary for object inspector in castle-editor? }
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
-    TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
-    TCastleColorPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
-    TCastleColorRGBPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
-    TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
     TSubPropertiesEditor);
+
+  { Other properties }
+  RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
+    TCastleColorPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
+    TCastleColorRGBPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
+    TCastleVector3PropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
+    TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
 end;

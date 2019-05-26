@@ -37,8 +37,10 @@
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory);
-typedef void (CDECL *PFNRD_CGE_Close)();
+typedef void (CDECL *PFNRD_CGE_Initialize)(const char *applicationConfigDirectory);
+typedef void (CDECL *PFNRD_CGE_Finalize)();
+typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
+typedef void (CDECL *PFNRD_CGE_Close)(bool quitWhenLastWindowClosed);
 typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
 typedef void (CDECL *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
@@ -79,7 +81,8 @@ typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue)(const char *szNodeName, const 
 
 typedef void (CDECL *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
-
+PFNRD_CGE_Initialize pfrd_CGE_Initialize = NULL;
+PFNRD_CGE_Finalize pfrd_CGE_Finalize = NULL;
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
 PFNRD_CGE_GetOpenGLInformation pfrd_CGE_GetOpenGLInformation = NULL;
@@ -138,6 +141,8 @@ void CGE_LoadLibrary()
 		return;
 #endif
 
+    pfrd_CGE_Initialize = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Initialize");
+    pfrd_CGE_Finalize = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Finalize");
     pfrd_CGE_Open = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Open");
     pfrd_CGE_Close = (PFNRD_CGE_Close)cge_GetProc(hCgeDll, "CGE_Close");
     pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)cge_GetProc(hCgeDll, "CGE_GetOpenGLInformation");
@@ -171,10 +176,24 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory)
+void CGE_Initialize(const char *applicationConfigDirectory)
+{
+	if (pfrd_CGE_Initialize!=NULL)
+		(*pfrd_CGE_Initialize)(applicationConfigDirectory);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_Finalize()
+{
+	if (pfrd_CGE_Finalize!=NULL)
+		(*pfrd_CGE_Finalize)();
+}
+
+//-----------------------------------------------------------------------------
+void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, uiDpi, applicationConfigDirectory);
+		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, uiDpi);
 }
 
 //-----------------------------------------------------------------------------

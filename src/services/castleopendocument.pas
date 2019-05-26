@@ -91,6 +91,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
   you must declare your Android project type as "integrated".
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
 procedure OnScreenNotification(const Message: string);
+  deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
 implementation
 

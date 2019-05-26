@@ -1469,11 +1469,11 @@ implementation
 {$warnings off}
 // TODO: This unit temporarily uses RenderingCamera singleton,
 // to keep it working for backward compatibility.
-uses Math,
+uses DOM, Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleComponentSerialize;
+  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils;
 {$warnings on}
 
 procedure Register;
@@ -1484,6 +1484,8 @@ begin
     See castlecontrol.pas comments in Register. }
   { RegisterComponents('Castle', [TCastleSceneManager]); }
 end;
+
+{$I castlescenemanager_warmup_cache.inc}
 
 { TManagerRenderParams ------------------------------------------------------- }
 
@@ -4235,4 +4237,5 @@ initialization
 
   RegisterSerializableComponent(TCastleSceneManager, 'Scene Manager');
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
+  InitializeWarmupCache;
 end.

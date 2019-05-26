@@ -20,7 +20,12 @@ interface
 
 implementation
 
-uses SysUtils, CastleWindow, CastleScene, CastleControls,
+uses SysUtils,
+  { TODO: Temporarily commented out because our https://jenkins.castle-engine.io/
+    has older revision of FPC 3.3.1. Uncomment this if you use recent FPC 3.3.1
+    to be able to handle https. }
+  // {$ifndef VER3_0} OpenSSLSockets, {$endif}
+  CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
@@ -124,13 +129,18 @@ begin
 end;
 
 procedure TPluginWindowContainer.EventUpdate;
+var
+  S: String;
 begin
   inherited;
-  Status.Caption := 'Model: ' + URICaption(URL) + NL +
+  S :=
+    'Model: ' + URICaption(URL) + NL +
     'Browser: ' + Application.UserAgent + NL +
-    'FPS: ' +  Fps.ToString;
+    'FPS: ' +  Fps.ToString + NL;
+  // Note that ErrorMessage may contain newlines too, e.g. SSL error message
   if ErrorMessage <> '' then
-    Status.Text.Append('Erorr when loading: ' + ErrorMessage);
+    S := S + 'Error when loading: ' + ErrorMessage;
+  Status.Caption := S;
 end;
 
 procedure TPluginWindowContainer.EventResize;

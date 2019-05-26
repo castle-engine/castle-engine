@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <ProjectOptions>
-    <Version Value="10"/>
+  <ProjectOptions BuildModesCount="3">
+    <Version Value="12"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -14,7 +13,7 @@
       </XPManifest>
       <Icon Value="0"/>
     </General>
-    <BuildModes Count="3">
+    <BuildModes>
       <Item1 Name="Default" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
@@ -24,7 +23,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../build-tool/code"/>
+            <OtherUnitFiles Value="../../common-code"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -69,7 +68,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../build-tool/code"/>
+            <OtherUnitFiles Value="../../common-code"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -101,9 +100,10 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
@@ -113,7 +113,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="10">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -145,9 +145,9 @@
         <UnitName Value="EditorUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../build-tool/code/toolutils.pas"/>
+        <Filename Value="../../common-code/toolcommonutils.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ToolUtils"/>
+        <UnitName Value="ToolCommonUtils"/>
       </Unit5>
       <Unit6>
         <Filename Value="formproject.pas"/>
@@ -173,6 +173,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormAbout"/>
       </Unit8>
+      <Unit16>
+        <Filename Value="frameviewfile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ViewFileFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+        <UnitName Value="FrameViewFile"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -182,7 +190,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../build-tool/code"/>
+      <OtherUnitFiles Value="../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Conditionals Value="// See http://wiki.freepascal.org/Macros_and_Conditionals

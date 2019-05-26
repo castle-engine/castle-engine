@@ -20,7 +20,7 @@ uses CastleWindow, ${GAME_UNITS};
 
 { This adds icons and version info for Windows, for a plugin version,
   automatically created by "castle-engine compile". }
-{$ifdef MSWINDOWS} {$R plugin-automatic-windows-resources.res} {$endif MSWINDOWS}
+{$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-plugin-auto-generated-resources.res} {$endif}
 
 exports
   NP_GetPluginVersion,

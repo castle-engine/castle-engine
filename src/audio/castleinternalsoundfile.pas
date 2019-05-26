@@ -13,37 +13,39 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Handle sound files in various formats.)
-
-  While this unit does use some OpenAL constants, most parts of
-  this unit can be used even when OpenAL is not initilized and not
-  even available. The methods that require OpenAL to be available and
-  initialized are clearly marked as such in the documentation. }
+{ Load sound files in various formats. }
 unit CastleInternalSoundFile;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, CastleUtils, Classes, CastleInternalOpenAL, CastleTimeUtils;
+uses SysUtils, Classes,
+  CastleUtils, CastleTimeUtils, CastleSoundBase;
 
 type
-  TSoundDataFormat = (
-    sfMono8,
-    sfMono16,
-    sfStereo8,
-    sfStereo16
-  );
-
   ESoundFileError = class(Exception);
 
-  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError);
+  ESoundFormatNotSupportedByOpenAL = class(ESoundFileError)
+  end deprecated 'do not use, this is not raised by anything anymore';
+
   EOggVorbisLoadError = class(ESoundFileError);
   EWavLoadError = class(ESoundFileError);
 
   TSoundFile = class
+  strict private
+    const
+      SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
+    var
+      FURL: String;
+    procedure CheckCorrectness;
+    { Analyze sound data. }
+    function DataStatistics: String;
   public
     { Load a sound from a stream.
+
+      @param(URL Is used to initialize URL property.
+        It is not used to load, the URL contents are assumed to be in Stream.)
 
       @raises(ESoundFileError If loading of this sound file failed.
         E.g. in case of decoding problems
@@ -58,13 +60,16 @@ type
         as ESoundFileError.
       )
     }
-    constructor CreateFromStream(Stream: TStream); virtual; abstract;
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); virtual;
 
     { Load a sound data from a given URL.
 
       @raises(ESoundFileError If loading of this sound file failed.
         See @link(CreateFromStream) for various possible reasons.) }
-    class function CreateFromFile(const URL: string): TSoundFile;
+    class function CreateFromFile(const AURL: string): TSoundFile;
+
+    { URL from which we loaded this sound file. }
+    property URL: String read FURL;
 
     { Sound data, according to DataFormat.
       Contents of Data are readonly. }
@@ -76,6 +81,13 @@ type
 
     { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero). }
     function Duration: TFloatTime;
+
+    { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
+      not sfMono8 or sfStereo8).
+
+      The default implementation just raises an exception if data is not 16-bit.
+      When overriding this you call "inherited" at the end. }
+    procedure ConvertTo16bit; virtual;
   end;
 
   TSoundFileClass = class of TSoundFile;
@@ -90,7 +102,7 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
-    constructor CreateFromStream(Stream: TStream); override;
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
 
     function Data: Pointer; override;
@@ -106,17 +118,19 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   public
-    constructor CreateFromStream(Stream: TStream); override;
-
+    constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
 
+    procedure ConvertTo16bit; override;
     function Data: Pointer; override;
     function DataSize: LongWord; override;
     function DataFormat: TSoundDataFormat; override;
     function Frequency: LongWord; override;
   end;
 
-function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
+var
+  { Show in the log loading of sounds. }
+  LogSoundLoading: Boolean;
 
 implementation
 
@@ -125,66 +139,240 @@ uses CastleStringUtils, CastleInternalVorbisDecoder, CastleInternalVorbisFile,
 
 { TSoundFile ----------------------------------------------------------------- }
 
-class function TSoundFile.CreateFromFile(const URL: string): TSoundFile;
+class function TSoundFile.CreateFromFile(const AURL: string): TSoundFile;
 var
   C: TSoundFileClass;
   S: TStream;
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + URL + ' (TSoundFile)');
-
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TSoundFile)');
   try
-    { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
-    S := Download(URL, [soForceMemoryStream], MimeType);
     try
-      { calculate class to read based on MimeType }
-      if MimeType = 'audio/x-wav' then
-        C := TSoundWAV
-      else
-      if MimeType = 'audio/ogg' then
-        C := TSoundOggVorbis
-      else
-      if MimeType = 'audio/mpeg' then
-        raise ESoundFileError.Create('TODO: Reading MP3 sound files not supported. Convert them to OggVorbis.')
-      else
-      begin
-        WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
-        C := TSoundWAV;
-      end;
+      { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
+      S := Download(AURL, [soForceMemoryStream], MimeType);
+      try
+        { calculate class to read based on MimeType }
+        if MimeType = 'audio/x-wav' then
+          C := TSoundWAV
+        else
+        if MimeType = 'audio/ogg' then
+          C := TSoundOggVorbis
+        else
+        if MimeType = 'audio/mpeg' then
+          raise ESoundFileError.Create('TODO: Reading MP3 sound files not supported. Convert them to OggVorbis.')
+        else
+        begin
+          WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, AURL]));
+          C := TSoundWAV;
+        end;
 
-      Result := C.CreateFromStream(S);
-    finally S.Free end;
-  except
+        Result := C.CreateFromStream(S, AURL);
 
-    { May be raised by Download in case opening the underlying stream failed. }
-    on E: EFOpenError do
-      { Reraise as ESoundFileError, and add URL to exception message }
-      raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(URL) + '": ' + E.Message);
+        Result.CheckCorrectness;
 
-    { May be raised by C.CreateFromStream. }
-    on E: EStreamError do
-      { Reraise as ESoundFileError, and add URL to exception message }
-      raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message);
-  end;
+        if LogSoundLoading then
+        begin
+          WritelnLog('Sound', 'Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f', [
+            URIDisplay(AURL),
+            Result.ClassName,
+            DataFormatToStr(Result.DataFormat),
+            Result.DataSize,
+            Result.Frequency,
+            Result.Duration
+          ]);
+          { This is informative, but takes some time, so is commented out.
+          WritelnLog('Sound', '"%s" data analysis: %s', [
+            URIDisplay(AURL),
+            Result.DataStatistics
+          ]);
+          }
+        end;
+      finally S.Free end;
+    except
+      { May be raised by Download in case opening the underlying stream failed. }
+      on E: EFOpenError do
+        { Reraise as ESoundFileError, and add URL to exception message }
+        raise ESoundFileError.Create('Error while opening URL "' + URIDisplay(AURL) + '": ' + E.Message);
 
-  Profiler.Stop(TimeStart);
+      { May be raised by C.CreateFromStream. }
+      on E: EStreamError do
+        { Reraise as ESoundFileError, and add URL to exception message }
+        raise ESoundFileError.Create('Error while reading URL "' + URIDisplay(AURL) + '": ' + E.Message);
+    end;
+
+  finally Profiler.Stop(TimeStart) end;
+end;
+
+constructor TSoundFile.CreateFromStream(const Stream: TStream; const AURL: String);
+begin
+  inherited Create;
+  FURL := AURL;
 end;
 
 function TSoundFile.Duration: TFloatTime;
-const
-  SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 3, 4);
 begin
   if (Frequency = 0) or (DataSize = 0) then
     Exit(-1);
   Result := DataSize / (Frequency * SampleSize[DataFormat]);
 end;
 
+procedure TSoundFile.ConvertTo16bit;
+begin
+  // TODO: This could be implemented as independent from sound format
+  if not (DataFormat in [sfMono16, sfStereo16]) then
+    raise ESoundFileError.CreateFmt('Cannot convert this sound class to 16-bit: %s', [ClassName]);
+end;
+
+procedure TSoundFile.CheckCorrectness;
+begin
+  if DataSize mod SampleSize[DataFormat] <> 0 then
+    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
+      URIDisplay(URL),
+      DataSize,
+      SampleSize[DataFormat]
+    ]);
+  if DataSize = 0 then
+    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
+      URIDisplay(URL)
+    ]);
+end;
+
+function TSoundFile.DataStatistics: String;
+
+  procedure Mono8(out MinValue, MaxValue: SmallInt);
+  type
+    TSample = packed record Main: Byte; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
+      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
+      Inc(Sample);
+    end;
+    MinValue := MinSample.Main;
+    MaxValue := MaxSample.Main;
+  end;
+
+  procedure Mono16(out MinValue, MaxValue: SmallInt);
+  type
+    TSample = packed record Main: SmallInt; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
+      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
+      Inc(Sample);
+    end;
+    MinValue := MinSample.Main;
+    MaxValue := MaxSample.Main;
+  end;
+
+  procedure Stereo8(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
+  type
+    TSample = packed record Left, Right: Byte; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
+      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
+      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
+      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
+      Inc(Sample);
+    end;
+    LeftMinValue := MinSample.Left;
+    LeftMaxValue := MaxSample.Left;
+    RightMinValue := MinSample.Right;
+    RightMaxValue := MaxSample.Right;
+  end;
+
+  procedure Stereo16(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
+  type
+    TSample = packed record Left, Right: SmallInt; end;
+    PSample = ^TSample;
+  var
+    Sample: PSample;
+    MinSample, MaxSample: TSample;
+    EndSample: PtrUInt;
+  begin
+    Sample := Data;
+    EndSample := PtrUInt(Sample) + DataSize;
+    MinSample := Sample^;
+    MaxSample := Sample^;
+    Inc(Sample);
+    while PtrUInt(Sample) < EndSample do
+    begin
+      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
+      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
+      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
+      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
+      Inc(Sample);
+    end;
+    LeftMinValue := MinSample.Left;
+    LeftMaxValue := MaxSample.Left;
+    RightMinValue := MinSample.Right;
+    RightMaxValue := MaxSample.Right;
+  end;
+
+var
+  LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt;
+begin
+  case DataFormat of
+    sfMono8: Mono8(LeftMinValue, LeftMaxValue);
+    sfMono16: Mono16(LeftMinValue, LeftMaxValue);
+    sfStereo8: Stereo8(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
+    sfStereo16: Stereo16(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
+    else raise EInternalError.Create('TSoundFile.DataStatistics:DataFormat?');
+  end;
+  if DataFormat in [sfMono8, sfMono16] then
+    Result := Format('Mono data. Min Sample: %d. Max Sample: %d.', [
+      LeftMinValue,
+      LeftMaxValue
+    ]);
+  if DataFormat in [sfStereo8, sfStereo16] then
+    Result := Format('Stereo data. Min Sample Left / Right: %d / %d. Max Sample Left / Right: %d / %d.', [
+      LeftMinValue,
+      RightMinValue,
+      LeftMaxValue,
+      RightMaxValue
+    ]);
+end;
+
 { TSoundOggVorbis ------------------------------------------------------------ }
 
-constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
+constructor TSoundOggVorbis.CreateFromStream(const Stream: TStream; const AURL: String);
 begin
-  inherited Create;
+  inherited;
   try
     DataStream := VorbisDecode(Stream, FDataFormat, FFrequency);
   except
@@ -222,7 +410,7 @@ end;
 
 { TSoundWAV ------------------------------------------------------------ }
 
-constructor TSoundWAV.CreateFromStream(Stream: TStream);
+constructor TSoundWAV.CreateFromStream(const Stream: TStream; const AURL: String);
 
 { WAV file reader. Written mostly based on
     http://www.technology.niagarac.on.ca/courses/comp630/WavFileFormat.html
@@ -274,7 +462,7 @@ var
   Format: TWavFormatChunk;
   Header: TWavChunkHeader;
 begin
-  inherited Create;
+  inherited;
 
   Stream.ReadBuffer(Riff, SizeOf(Riff));
   if not (IdCompare(Riff.Header.ID, 'RIFF') and IdCompare(Riff.wID, 'WAVE')) then
@@ -313,15 +501,17 @@ begin
         raise EWavLoadError.Create('Loading WAV files not in PCM format not implemented');
       { calculate FDataFormat }
       case Format.Channels of
-        1: if Format.BitsPerSample = 8 then
-             FDataFormat := sfMono8
-           else
-             FDataFormat := sfMono16;
-        2: if Format.BitsPerSample = 8 then
-             FDataFormat := sfStereo8
-           else
-             FDataFormat := sfStereo16;
-        else raise EWavLoadError.Create('Only WAV files with 1 or 2 channels are allowed');
+        1:case Format.BitsPerSample of
+            8 : FDataFormat := sfMono8;
+            16: FDataFormat := sfMono16;
+            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [AURL]);
+          end;
+        2:case Format.BitsPerSample of
+            8 : FDataFormat := sfStereo8;
+            16: FDataFormat := sfStereo16;
+            else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 8 or 16-bit encodings are supported', [AURL]);
+          end;
+        else raise EWavLoadError.CreateFmt('Invalid WAV file %s: Only 1 or 2 channels are supported', [AURL]);
       end;
       { calculate FFrequency }
       FFrequency := Format.SamplesPerSec;
@@ -386,18 +576,43 @@ begin
   Result := FFrequency;
 end;
 
-{ global functions ----------------------------------------------------------- }
-
-function ALDataFormatToStr(const DataFormat: TSoundDataFormat): string;
-const
-  DataFormatStr: array [TSoundDataFormat] of String = (
-    'mono 8',
-    'mono 16',
-    'stereo 8',
-    'stereo 16'
-  );
+procedure TSoundWAV.ConvertTo16bit;
+var
+  PSource: PByte;
+  // To unsigned 16-bit:
+  //PDest: PWord;
+  // To signed 16-bit:
+  PDest: PSmallInt;
+  NewData: Pointer;
 begin
-  Result := DataFormatStr[DataFormat];
+  if DataFormat in [sfMono8, sfStereo8] then
+  begin
+    WritelnWarning('Sound', 'Converting to 16-bit "%s".', [URIDisplay(URL)]);
+
+    { create NewData with 16-bit samples }
+    NewData := GetMem(DataSize * 2);
+    PSource := Data;
+    PDest := NewData;
+    while PtrUInt(PSource) < PtrUInt(Data) + DataSize do
+    begin
+      // To unsigned 16-bit:
+      // PDest^ := Word(PSource^) shl 8;
+      // To signed 16-bit:
+      PDest^ := (SmallInt(PSource^) - 128) shl 8;
+      Inc(PSource);
+      Inc(PDest);
+    end;
+
+    { update fields }
+    FreeMemNiling(FData);
+    FData := NewData;
+    FDataSize := DataSize * 2;
+    case DataFormat of
+      sfMono8  : FDataFormat := sfMono16;
+      sfStereo8: FDataFormat := sfStereo16;
+    end;
+  end;
+  inherited;
 end;
 
 end.

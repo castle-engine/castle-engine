@@ -115,7 +115,8 @@ void GLWidget::initializeGL()
     double dPixRatio = devicePixelRatioF();
     // Get config dir, see https://stackoverflow.com/questions/4369661/qt-how-to-save-a-configuration-file-on-multiple-platforms
     QString configDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    CGE_Open(ecgeofLog, width()*dPixRatio, height()*dPixRatio, logicalDpiY(), configDir.toUtf8());
+    CGE_Initialize(configDir.toUtf8());
+    CGE_Open(ecgeofLog, width()*dPixRatio, height()*dPixRatio, logicalDpiY());
     CGE_SetUserInterface(false);
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;
