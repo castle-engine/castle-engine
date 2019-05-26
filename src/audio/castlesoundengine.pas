@@ -3028,7 +3028,7 @@ begin
   begin
     FPitch := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Pitch := Pitch * SoundInfoGain;
+      FAllocatedSource.Pitch := Pitch;
   end;
 end;
 
