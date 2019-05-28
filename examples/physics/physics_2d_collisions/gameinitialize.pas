@@ -52,13 +52,13 @@ type
   TPlane = class(TCastleScene)
   public
     LastCollisionEnter: string;
-    procedure OnCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+    procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     constructor Create(AOwner: TComponent); override;
   end;
 
 { TPlane }
 
-procedure TPlane.OnCollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
+procedure TPlane.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 begin
   if CollisionDetails.OtherTransform is TWall then
     LastCollisionEnter := TWall(CollisionDetails.OtherTransform).Name
@@ -79,7 +79,7 @@ begin
   RBody.Dynamic := true;
   RBody.Animated := true;
   RBody.Setup2D;
-  RBody.OnCollisionEnter := @OnCollisionEnter;
+  RBody.OnCollisionEnter := @CollisionEnter;
   Collider := TBoxCollider.Create(RBody);
   Collider.Size := LocalBoundingBox.Size * 5;
 
@@ -178,7 +178,7 @@ end;
 
 procedure WindowUpdate(Container: TUIContainer);
 var
-  CollisionsList : TCastleTransformList;
+  CollisionsList: TCastleTransformList;
   CollisionsListTXT: String;
   I: Integer;
 begin
