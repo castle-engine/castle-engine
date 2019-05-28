@@ -663,6 +663,10 @@ begin
   begin
     FKraftEngine := TKraft.Create(-1);
     FKraftEngine.ContactManager.OnContactBegin := @CollisionNotification;
+    { Kraft sets MaximalLinearVelocity in TKraft Constructor.
+      With this limit can't make initial velocity greater than about 120.
+      That makes physics very slow, so we need remove this limitation. }
+    FKraftEngine.MaximalLinearVelocity := 0;
     //KraftEngine.SetFrequency(120.0); // default is 60
   end;
 end;
