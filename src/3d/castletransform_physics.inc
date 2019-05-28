@@ -100,7 +100,7 @@
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
-  TOnCollisionEnter = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+  TOnCollision = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
 
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
@@ -122,7 +122,9 @@
     FRecreateKraftInstance: boolean;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
-    FOnCollisionEnter:TOnCollisionEnter;
+    FOnCollisionEnter:TOnCollision;
+    FOnCollisionExit:TOnCollision;
+
     procedure UpdateCollides(const Transform: TCastleTransform);
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
@@ -146,7 +148,8 @@
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
-    property OnCollisionEnter: TOnCollisionEnter read FOnCollisionEnter write FOnCollisionEnter;
+    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write FOnCollisionEnter;
+    property OnCollisionExit: TOnCollision read FOnCollisionExit write FOnCollisionExit;
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -359,6 +362,7 @@ begin
   FRecreateKraftInstance := true;
   FCollisionList := TCastleTransformList.Create(false, nil);
   FOnCollisionEnter := nil;
+  FOnCollisionExit := nil;
   FTransform := nil;
 end;
 
@@ -662,7 +666,8 @@ begin
   if FKraftEngine = nil then
   begin
     FKraftEngine := TKraft.Create(-1);
-    FKraftEngine.ContactManager.OnContactBegin := @CollisionNotification;
+    FKraftEngine.ContactManager.OnContactBegin := @CollisionBegin;
+    FKraftEngine.ContactManager.OnContactEnd := @CollisionEnd;
     { Kraft sets MaximalLinearVelocity in TKraft Constructor.
       With this limit can't make initial velocity greater than about 120.
       That makes physics very slow, so we need remove this limitation. }
@@ -671,7 +676,7 @@ begin
   end;
 end;
 
-procedure TSceneManagerWorld.CollisionNotification(const ContactPair: PKraftContactPair);
+procedure TSceneManagerWorld.CollisionBegin(const ContactPair: PKraftContactPair);
 var
   CollisionDetails: TPhysicsCollisionDetails;
   RigidBody1: TRigidBody;
@@ -715,6 +720,39 @@ begin
     begin
       CollisionDetails.OtherTransform := RigidBody1.FTransform;
       RigidBody2.OnCollisionEnter(CollisionDetails);
+    end;
+  end;
+end;
+
+procedure TSceneManagerWorld.CollisionEnd(const ContactPair: PKraftContactPair);
+var
+  CollisionDetails: TPhysicsCollisionDetails;
+  RigidBody1: TRigidBody;
+  RigidBody2: TRigidBody;
+begin
+  Assert(ContactPair^.RigidBodies[0] <> nil);
+  Assert(ContactPair^.RigidBodies[0].UserData <> nil);
+  Assert(ContactPair^.RigidBodies[1] <> nil);
+  Assert(ContactPair^.RigidBodies[1].UserData <> nil);
+
+  RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData);
+  RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData);
+
+  if Assigned(RigidBody1.OnCollisionExit) or Assigned(RigidBody2.OnCollisionExit) then
+  begin
+    CollisionDetails.Transforms[0] := RigidBody1.FTransform;
+    CollisionDetails.Transforms[1] := RigidBody2.FTransform;
+
+    if Assigned(RigidBody1.OnCollisionExit) then
+    begin
+      CollisionDetails.OtherTransform := RigidBody2.FTransform;
+      RigidBody1.OnCollisionExit(CollisionDetails);
+    end;
+
+    if Assigned(RigidBody2.OnCollisionExit) then
+    begin
+      CollisionDetails.OtherTransform := RigidBody1.FTransform;
+      RigidBody2.OnCollisionExit(CollisionDetails);
     end;
   end;
 end;

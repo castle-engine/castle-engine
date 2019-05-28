@@ -1767,7 +1767,8 @@ type
     FEnablePhysics: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
-    procedure CollisionNotification(const ContactPair: PKraftContactPair);
+    procedure CollisionBegin(const ContactPair: PKraftContactPair);
+    procedure CollisionEnd(const ContactPair: PKraftContactPair);
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
