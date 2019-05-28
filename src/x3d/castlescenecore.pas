@@ -2861,24 +2861,51 @@ var
   NewRoot: TX3DRootNode;
 begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
+  try
+    if AURL <> '' then
+    begin
+      { If Load3D fails:
 
-  { Note that if Load3D fails, we will not change the RootNode,
-    so currently loaded scene will remain valid. }
+        - When CastleDesignMode is false:
+          We make an exception (just pass the exception from Load3D),
+          and we do not change the RootNode or URL.
+          So currently loaded scene will remain 100% valid.
 
-  if AURL <> '' then
-    NewRoot := Load3D(AURL, AllowStdIn)
-  else
-    NewRoot := nil;
-  Load(NewRoot, true, AResetTime);
+        - When CastleDesignMode is true:
+          We *do* change the RootNode (to empty) and URL
+          (to allow user to comfortably correct the URL in editor),
+          and we make a warning.
+          This way the design with invalid URL will still load nicely in the editor.
+      }
 
-  FURL := AURL;
+      try
+        NewRoot := Load3D(AURL, AllowStdIn);
+      except
+        on E: Exception do
+        begin
+          if CastleDesignMode then
+          begin
+            WritelnWarning('TCastleSceneCore', 'Failed to load scene "%s": %s',
+              [URIDisplay(AURL), ExceptMessage(E)]);
+            NewRoot := nil;
+          end else
+            raise;
+        end;
+      end;
+    end else
+    begin
+      NewRoot := nil; // when AURL is ''
+    end;
 
-  { When loading from URL, reset FPrimitiveGeometry.
-    Otherwise deserialization would be undefined -- do we load contents
-    from URL or PrimitiveGeometry? }
-  FPrimitiveGeometry := pgNone;
+    Load(NewRoot, true, AResetTime);
 
-  Profiler.Stop(TimeStart);
+    FURL := AURL;
+
+    { When loading from URL, reset FPrimitiveGeometry.
+      Otherwise deserialization would be undefined -- do we load contents
+      from URL or PrimitiveGeometry? }
+    FPrimitiveGeometry := pgNone;
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 procedure TCastleSceneCore.UpdateAutoAnimation(const StopIfPlaying: Boolean);
