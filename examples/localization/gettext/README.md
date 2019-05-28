@@ -5,11 +5,13 @@ We use FPC GetText unit for this:
 https://www.freepascal.org/docs-html/fcl/gettext/index.html
 This translates all strings in `resourcestring` declarations.
 
+See also CGE manual about text and localization: https://castle-engine.io/manual_text.php .
+
 # Creating translations
 
 1. Place everything you may need to translate as a `resourcestring` in Pascal. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
 
-2. Create initial `game.pot` file.
+2. Create initial `game.pot` file (that describes the possible strings to translate).
 
     _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
 
@@ -33,15 +35,42 @@ This translates all strings in `resourcestring` declarations.
 
     * Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
 
-In code:
+# Using translations from Pascal code
+
+## Translating resourcestrings
 
 * Call in Pascal `TranslateResourceStrings(URIToFilenameSafe('castle-data:/locale/game.pl.mo'));` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
 
 * Assign the resourcestrings to the approproate properties of appropriate objects, like `TCastleLabel.Caption`.
 
-It's probably easiest to just call `TranslateResourceStrings` once, at the very beginning of your application (at the beginning of `Application.OnInitialize` handler). And then construct UI as usual (just use `resourcestring`s). If the user wants to change the language, it's easiest to just say _"Please restart the application in order for the language change to take effect."_.
+It's easiest to just call `TranslateResourceStrings` once, at the very beginning of your application (at the beginning of `Application.OnInitialize` handler). And then construct UI as usual (just use `resourcestring`s). If the user wants to change the language, it's easiest to just say _"Please restart the application in order for the language change to take effect."_.
 
 That said, if you put some more work, you can allow to dynamically switch the language during the game. Just reassign all captions from the corresponding `resourcestring`s. The demo here shows how to do it: see the `TApplicationLogic.SwitchLanguage` method. It's trivial to write, although it may be a pain to maintain in a larger project.
+
+## Translating anything else
+
+You can also translate any string explicitly, by creating an instance of [TMOFile](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.html) and using the [TMOFile.Translate](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.translate.html) method. Example:
+
+```
+var
+  Translations: TMOFile;
+
+procedure LoadLanguage(const Language: String);
+var
+  S: TStream;
+begin
+  S := Download('castle-data:/locale/game.' + Language + '.mo');
+  try
+    Translations := TMOFile.Create(S);
+  finally FreeAndNil(S) end;
+end;
+
+begin
+  SwitchLanguage('pl');
+  Writeln('Translated: ', Translations.Translate('message identifier to translate'));
+  FreeAndNil(Translations);
+end.
+```
 
 # Fonts
 

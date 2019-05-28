@@ -172,16 +172,17 @@ var
         FDataFormat := sfMono8;
     end;
 
-    WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d (%s), frequency: %d, duration: %f', [
-      URIDisplay(AURL),
-      SoundTypeToStr(SoundType),
-      SoundFormatToStr(SoundFormat),
-      SoundChannels,
-      SoundBits,
-      DataFormatToStr(FDataFormat),
-      FFrequency,
-      FDuration
-    ]);
+    if LogSoundLoading then
+      WritelnLog('FMOD loaded "%s": type %s, format: %s, channels: %d, bits: %d (%s), frequency: %d, duration: %f', [
+        URIDisplay(AURL),
+        SoundTypeToStr(SoundType),
+        SoundFormatToStr(SoundFormat),
+        SoundChannels,
+        SoundBits,
+        DataFormatToStr(FDataFormat),
+        FFrequency,
+        FDuration
+      ]);
   end;
 
 begin
@@ -392,8 +393,11 @@ begin
 end;
 
 procedure TFMODSoundEngineBackend.SetGain(const Value: Single);
+var
+  MasterChannel: PFMOD_CHANNELGROUP;
 begin
-  // TODO
+  CheckFMOD(FMOD_System_GetMasterChannelGroup(FMODSystem, @MasterChannel));
+  CheckFMOD(FMOD_ChannelGroup_SetVolume(MasterChannel, Value));
 end;
 
 procedure TFMODSoundEngineBackend.SetDistanceModel(const Value: TSoundDistanceModel);

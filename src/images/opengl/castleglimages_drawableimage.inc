@@ -134,6 +134,7 @@ type
       FTexture: TGLTextureId;
       FImage: TEncodedImage;
       FOwnsImage: boolean;
+      FURL: String;
 
       FRenderToImage: TGLRenderToTexture;
       HasViewportToRestore: boolean;
@@ -177,7 +178,7 @@ type
 
     { Load image from disk, and prepare for drawing.
 
-      @param(URL URL (or filename) from which to load the image.
+      @param(AURL URL (or filename) from which to load the image.
         Often you want to use here castle-data:/ protocol to load application data,
         like:
 
@@ -193,12 +194,12 @@ type
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const URL: string;
+    constructor Create(const AURL: string;
       const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
-      @param(URL URL (or filename) from which to load the image.
+      @param(AURL URL (or filename) from which to load the image.
         Usually you want to use here URL starting with the "castle-data:" protocol,
         to load an image from application data, like this:
 
@@ -232,7 +233,7 @@ type
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const URL: string;
+    constructor Create(const AURL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -240,7 +241,7 @@ type
 
     { Load image from disk, and prepare for drawing.
 
-      @param(URL URL (or filename) from which to load the image.
+      @param(AURL URL (or filename) from which to load the image.
         Often you want to pass here the result ot ApplicationData
         function, like:
 
@@ -267,7 +268,7 @@ type
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const URL: string;
+    constructor Create(const AURL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean); overload;
 
@@ -636,6 +637,9 @@ type
       by @link(RenderToImageFree). }
     procedure DrawFrom(const SourceImage: TDrawableImage;
       const DestinationRect, SourceRect: TFloatRectangle);
+
+    { Non-empty only if the image was loaded from URL. }
+    property URL: String read FURL;
   end;
 
   TGLImageManaged = TDrawableImage deprecated 'use TDrawableImage';
@@ -697,13 +701,13 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
 end;
 
-constructor TDrawableImage.Create(const URL: string;
+constructor TDrawableImage.Create(const AURL: string;
   const ASmoothScaling: boolean);
 begin
-  Create(URL, [], ASmoothScaling);
+  Create(AURL, [], ASmoothScaling);
 end;
 
-constructor TDrawableImage.Create(const URL: string;
+constructor TDrawableImage.Create(const AURL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -711,20 +715,24 @@ var
   NewImage: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
-    NewImage := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+    NewImage := LoadImage(AURL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation)
+  else
+    NewImage := LoadImage(AURL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+  FURL := AURL;
   Create(NewImage, { ASmoothScaling } true, { AOwnsImage } true);
 end;
 
-constructor TDrawableImage.Create(const URL: string;
+constructor TDrawableImage.Create(const AURL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: boolean);
 var
   NewImage: TEncodedImage;
 begin
   if High(LoadAsClass) = -1 then
-    NewImage := LoadEncodedImage(URL, PixelsImageClasses) else
-    NewImage := LoadEncodedImage(URL, LoadAsClass);
+    NewImage := LoadEncodedImage(AURL, PixelsImageClasses)
+  else
+    NewImage := LoadEncodedImage(AURL, LoadAsClass);
+  FURL := AURL;
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
