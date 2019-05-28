@@ -148,7 +148,20 @@
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+
+    { Event occurs when TRigidBody starts colliding with other TRigidBody.
+
+      It can occur repeatedly for the same body when collision has many
+      points of contact. Note, that you can't remove collided transforms,
+      from this event. That will cause, the rigid body will be freed and crash
+      the physics engine. Just set Exists to false. }
     property OnCollisionEnter: TOnCollision read FOnCollisionEnter write FOnCollisionEnter;
+
+    { Event occurs when TRigidBody ends colliding with other TRigidBody.
+
+      Note, that you can't remove collided transforms, from this event.
+      That will cause, the rigid body will be freed and crash the physics engine.
+      Just set Exists to false. }
     property OnCollisionExit: TOnCollision read FOnCollisionExit write FOnCollisionExit;
   published
     { Does the physics simulation move and rotate this object
