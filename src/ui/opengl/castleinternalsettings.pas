@@ -79,7 +79,7 @@ procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String)
 implementation
 
 uses Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages;
+  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages, CastleFontFamily;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -220,6 +220,39 @@ type
     finally FreeAndNil(I) end;
   end;
 
+  function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;
+  var
+    NewFontUrl: String;
+    NewFontSize, NewFontLoadSize: Cardinal;
+    NewFontAntiAliased: Boolean;
+    AllSizesAtLoadStr: String;
+    AllSizesAtLoad: TDynIntegerArray;
+  begin
+    if FontElement <> nil then
+    begin
+      NewFontUrl := FontElement.AttributeURL('url', SettingsUrl);
+      NewFontSize := FontElement.AttributeCardinalDef('size', 20);
+      NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
+
+      if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
+      begin
+        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
+        Result := TCustomizedFont.Create(Container);
+        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased);
+      end else
+      begin
+        NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
+        Result := TTextureFont.Create(Container);
+        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased);
+      end;
+      Result.Size := NewFontSize;
+    end
+    else
+      Result := nil;
+  end;
+
+type
+  TFontType = (ftRegular, ftBold, ftItalic, ftBoldItalic);
 const
   DefaultUIScaling = usNone;
   DefaultUIReferenceWidth = 0;
@@ -228,13 +261,9 @@ var
   SettingsDoc: TXMLDocument;
   E: TDOMElement;
 
-  // font stuff
-  DefaultFontUrl: String;
-  DefaultFontSize, DefaultFontLoadSize: Cardinal;
-  DefaultFontAntiAliased: Boolean;
+  NewFonts: array[TFontType] of TCastleFont;
   NewDefaultFont: TCastleFont;
-  AllSizesAtLoadStr: String;
-  AllSizesAtLoad: TDynIntegerArray;
+  NewFontFamily: TFontFamily;
 
   NewUIScaling: TUIScaling;
   NewUIReferenceWidth, NewUIReferenceHeight: Single;
@@ -261,25 +290,24 @@ begin
         E.AttributeSingleDef('reference_height', DefaultUIReferenceHeight);
     end;
 
-    E := SettingsDoc.DocumentElement.Child('default_font', false);
-    if E <> nil then
+    NewFonts[ftRegular] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font', false));
+    if NewFonts[ftRegular] = nil then
+      NewFonts[ftRegular] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_regular', false));
+    NewFonts[ftBold] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_bold', false));
+    NewFonts[ftItalic] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_italic', false));
+    NewFonts[ftBoldItalic] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_bolditalic', false));
+    if (NewFonts[ftBold] = nil) and (NewFonts[ftItalic] = nil) and
+      (NewFonts[ftBoldItalic] = nil) then
+      NewDefaultFont := NewFonts[ftRegular]
+    else
     begin
-      DefaultFontUrl := E.AttributeURL('url', SettingsUrl);
-      DefaultFontSize := E.AttributeCardinalDef('size', 20);
-      DefaultFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
-
-      if E.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
-      begin
-        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
-        NewDefaultFont := TCustomizedFont.Create(Container);
-        TCustomizedFont(NewDefaultFont).Load(DefaultFontUrl, AllSizesAtLoad, DefaultFontAntiAliased);
-      end else
-      begin
-        DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
-        NewDefaultFont := TTextureFont.Create(Container);
-        TTextureFont(NewDefaultFont).Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
-      end;
-      NewDefaultFont.Size := DefaultFontSize;
+      NewFontFamily := TFontFamily.Create(Container);
+      NewFontFamily.Name := 'FontVariants';
+      NewFontFamily.RegularFont := NewFonts[ftRegular];
+      NewFontFamily.BoldFont := NewFonts[ftBold];
+      NewFontFamily.ItalicFont := NewFonts[ftItalic];
+      NewFontFamily.BoldItalicFont := NewFonts[ftBoldItalic];
+      NewDefaultFont := NewFontFamily;
     end;
 
     E := SettingsDoc.DocumentElement.Child('warmup_cache', false);
