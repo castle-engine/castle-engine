@@ -246,8 +246,7 @@ type
         TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased);
       end;
       Result.Size := NewFontSize;
-    end
-    else
+    end else
       Result := nil;
   end;
 
