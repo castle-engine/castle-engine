@@ -112,14 +112,15 @@
   private
     FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
-    FGravity: boolean;
-    FDynamic: boolean;
-    FAnimated: boolean;
+    FGravity: Boolean;
+    FDynamic: Boolean;
+    FAnimated: Boolean;
+    FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
-    FRecreateKraftInstance: boolean;
+    FRecreateKraftInstance: Boolean;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
     FOnCollisionEnter:TOnCollision;
@@ -129,6 +130,8 @@
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
     function GetLinearVelocity: TVector3;
+
+    procedure SetExists(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -251,6 +254,7 @@
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
+    property Exists: Boolean read FExists write SetExists;
   end;
 
 {$endif read_interface}
@@ -318,6 +322,8 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
+  if not FParent.Exists then
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
 end;
 
 destructor TCollider.Destroy;
@@ -371,6 +377,7 @@ begin
   // properties defaults
   FGravity := true;
   FDynamic := true;
+  FExists := true;
 
   FRecreateKraftInstance := true;
   FCollisionList := TCastleTransformList.Create(false, nil);
@@ -428,11 +435,6 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     else
       FKraftBody.SetRigidBodyType(krbtStatic);
 
-    // initialize Kraft shape
-    if Collider = nil then
-      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
-    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
-
     FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
     FKraftBody.ForcedMass := Collider.Mass;
     if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
@@ -441,6 +443,14 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
     if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
     if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
+    if not FExists then
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+    // initialize Kraft shape
+    if Collider = nil then
+      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
+    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
+
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
@@ -600,6 +610,31 @@ function TRigidBody.GetLinearVelocity: TVector3;
 begin
   Result := VectorFromKraft(FKraftBody.LinearVelocity);
 end;
+
+procedure TRigidBody.SetExists(const Value: Boolean);
+begin
+  if FExists = Value then
+    Exit;
+
+  FExists := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FExists then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+  end;
+
+  if Assigned(Collider) and Assigned(Collider.FKraftShape) then
+  begin
+    if FExists then
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
+    else
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+  end;
+end;
+
 { TCastleTransform ---------------------------------------------------------- }
 
 procedure TCastleTransform.SetRigidBody(const Value: TRigidBody);
