@@ -301,7 +301,7 @@ begin
     else
     begin
       NewFontFamily := TFontFamily.Create(Container);
-      NewFontFamily.Name := 'FontVariants';
+      NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
       NewFontFamily.RegularFont := NewFonts[ftRegular];
       NewFontFamily.BoldFont := NewFonts[ftBold];
       NewFontFamily.ItalicFont := NewFonts[ftItalic];
