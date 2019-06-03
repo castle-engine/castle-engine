@@ -187,6 +187,12 @@ type
     procedure Add(const Item: TCastleTransform); reintroduce;
   end;
 
+  TPhysicsCollisionDetails = record
+  public
+    Transforms: array[0..1] of TCastleTransform;
+    OtherTransform: TCastleTransform;
+  end;
+
   {$define read_interface}
   {$I castletransform_renderparams.inc}
   {$undef read_interface}
@@ -1761,6 +1767,8 @@ type
     FEnablePhysics: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
+    procedure CollisionBegin(const ContactPair: PKraftContactPair);
+    procedure CollisionEnd(const ContactPair: PKraftContactPair);
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
