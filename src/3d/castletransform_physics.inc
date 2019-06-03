@@ -123,8 +123,8 @@
     FRecreateKraftInstance: Boolean;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
-    FOnCollisionEnter:TOnCollision;
-    FOnCollisionExit:TOnCollision;
+    FOnCollisionEnter: TOnCollision;
+    FOnCollisionExit: TOnCollision;
 
     procedure UpdateCollides(const Transform: TCastleTransform);
 
@@ -147,24 +147,32 @@
     procedure DeinitializeTransform(const Transform: TCastleTransform);
     procedure Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
-    function GetCollidingTransforms:TCastleTransformList;
+    { Transformations that we collide with currently. }
+    function GetCollidingTransforms: TCastleTransformList;
+
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
 
-    { Event occurs when TRigidBody starts colliding with other TRigidBody.
+    { Occurs when TRigidBody starts colliding with another TRigidBody.
 
-      It can occur repeatedly for the same body when collision has many
-      points of contact. Note, that you can't remove collided transforms,
-      from this event. That will cause, the rigid body will be freed and crash
-      the physics engine. Just set Exists to false. }
+      It can occur repeatedly for the same body (in the same time instant)
+      if the collision has many points of contact.
+
+      @tialic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
     property OnCollisionEnter: TOnCollision read FOnCollisionEnter write FOnCollisionEnter;
 
-    { Event occurs when TRigidBody ends colliding with other TRigidBody.
+    { Occurs when TRigidBody stops colliding with another TRigidBody.
 
-      Note, that you can't remove collided transforms, from this event.
-      That will cause, the rigid body will be freed and crash the physics engine.
-      Just set Exists to false. }
+      @tialic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
     property OnCollisionExit: TOnCollision read FOnCollisionExit write FOnCollisionExit;
   published
     { Does the physics simulation move and rotate this object
@@ -254,7 +262,11 @@
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
-    property Exists: Boolean read FExists write SetExists;
+
+    { Controls whether the rigid body is actually processed by the physics engine.
+      When this is @false, the rigid body is not updated by the physics engine,
+      and it does not cause collisions with other rigid bodies. }
+    property Exists: Boolean read FExists write SetExists default true;
   end;
 
 {$endif read_interface}
