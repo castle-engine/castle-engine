@@ -39,14 +39,14 @@ type
   public
     SourceZipFileName: String;
     TempDirectory: String;
-    function ReadUrl(const Url: string; const Options: TStreamOptions; out MimeType: string): TStream;
+    function ReadUrl(const Url: string; out MimeType: string): TStream;
     destructor Destroy; override;
   end;
 
 var
   PackedDataReader: TPackedDataReader;
 
-function TPackedDataReader.ReadUrl(const Url: string; const Options: TStreamOptions; out MimeType: string): TStream;
+function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
 var
   FileInZip: String;
 begin
@@ -60,7 +60,7 @@ begin
     raise EDownloadError.CreateFmt('Cannot open "%s" inside ZIP', [FileInZip]);
 
   { Use Download with file:/ protocol to load filename to TStream }
-  Result := Download(FilenameToURISafe(CombinePaths(TempDirectory, FileInZip)), Options, MimeType);
+  Result := Download(FilenameToURISafe(CombinePaths(TempDirectory, FileInZip)), [], MimeType);
 end;
 
 destructor TPackedDataReader.Destroy;

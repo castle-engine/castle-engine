@@ -260,11 +260,11 @@ type
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
-    const Url: string; const Options: TStreamOptions; out MimeType: string): TStream of object;
+    const Url: string; out MimeType: string): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
-  TUrlWriteEvent = function(const Url: string; const Options: TSaveStreamOptions = []): TStream of object;
+  TUrlWriteEvent = function(const Url: string): TStream of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 
@@ -762,7 +762,8 @@ begin
   end;
 end;
 
-{ Load (and free and nil) Stream to TMemoryStream. }
+{ Load Stream to TMemoryStream.
+  Sets given Stream to @nil (it is freed by this function). }
 function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
 begin
   Result := TMemoryStream.Create;
@@ -776,7 +777,8 @@ begin
 end;
 
 { Decompress gzipped FileName.
-  When ForceMemoryStream, always returns TMemoryStream. }
+  When ForceMemoryStream, always returns TMemoryStream.
+  Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
 function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
 var
   NewResult: TMemoryStream;
@@ -820,6 +822,7 @@ var
   DownloadService: TAndroidDownloadService;
   {$endif}
   RegisteredProtocol: TRegisteredProtocol;
+  UnderlyingStream: TStream;
 const
   MaxRedirects = 32;
 begin
@@ -962,8 +965,17 @@ begin
   if RegisteredProtocol <> nil then
   begin
     if Assigned(RegisteredProtocol.ReadEvent) then
-      Result := RegisteredProtocol.ReadEvent(URL, Options, MimeType)
-    else
+    begin
+      UnderlyingStream := RegisteredProtocol.ReadEvent(URL, MimeType);
+      // unpack gzip if requested
+      if soGzip in Options then
+        Result := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
+      else
+      if soForceMemoryStream in Options then
+        Result := CreateMemoryStream(UnderlyingStream)
+      else
+        Result := UnderlyingStream;
+    end else
       raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
   end else
 
@@ -987,43 +999,62 @@ end;
 { Global functions to save --------------------------------------------------- }
 
 function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
+
+  function FileSaveStream(const FileName: String; const Options: TSaveStreamOptions): TStream;
+  begin
+    if ssoGzip in Options then
+    begin
+      Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
+    end else
+      Result := TFileStream.Create(FileName, fmCreate);
+  end;
+
 var
   P, FileName: string;
   RegisteredProtocol: TRegisteredProtocol;
+  UnderlyingStream: TStream;
 begin
   P := URIProtocol(URL);
 
   RegisteredProtocol := RegisteredProtocols.Find(P);
 
   if P = '' then
-    FileName := URL else
+  begin
+    FileName := URL;
+    Result := FileSaveStream(FileName, Options);
+  end else
+
   if P = 'file' then
   begin
     FileName := URIToFilenameSafe(URL);
     if FileName = '' then
       raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+    Result := FileSaveStream(FileName, Options);
   end else
+
   if P = 'castle-data' then
   begin
-    Exit(URLSaveStream(ResolveCastleDataURL(URL), Options));
+    Result := URLSaveStream(ResolveCastleDataURL(URL), Options);
   end else
+
   { Check RegisteredProtocol at the end, since above we handle some protocols.
     TODO: Move all protocol writing to appropriate callbacks registered
     FRegisteredProtocols.Add. }
   if RegisteredProtocol <> nil then
   begin
     if Assigned(RegisteredProtocol.WriteEvent) then
-      Result := RegisteredProtocol.WriteEvent(URL, Options)
-    else
+    begin
+      UnderlyingStream := RegisteredProtocol.WriteEvent(URL);
+      // Compress using gzip, if requested in Options
+      if ssoGzip in Options then
+        Result := TGZFileStream.Create(UnderlyingStream, true)
+      else
+        Result := UnderlyingStream;
+    end else
       raise EDownloadError.CreateFmt('Cannot write URLs with protocol "%s"', [P]);
   end else
-    raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 
-  if ssoGzip in Options then
-  begin
-    Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
-  end else
-    Result := TFileStream.Create(FileName, fmCreate);
+    raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 end;
 
 procedure StreamSaveToFile(Stream: TStream; const URL: string);
