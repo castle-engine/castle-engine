@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="read_game_data_from_zip"
+  standalone_source="read_game_data_from_zip_standalone.lpr"
+  game_units="GameInitialize">
+</project>
