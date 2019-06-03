@@ -79,7 +79,7 @@ procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String)
 implementation
 
 uses Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages;
+  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages, CastleFontFamily;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -220,6 +220,36 @@ type
     finally FreeAndNil(I) end;
   end;
 
+  function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;
+  var
+    NewFontUrl: String;
+    NewFontSize, NewFontLoadSize: Cardinal;
+    NewFontAntiAliased: Boolean;
+    AllSizesAtLoadStr: String;
+    AllSizesAtLoad: TDynIntegerArray;
+  begin
+    if FontElement <> nil then
+    begin
+      NewFontUrl := FontElement.AttributeURL('url', SettingsUrl);
+      NewFontSize := FontElement.AttributeCardinalDef('size', 20);
+      NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
+
+      if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
+      begin
+        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
+        Result := TCustomizedFont.Create(Container);
+        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased);
+      end else
+      begin
+        NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
+        Result := TTextureFont.Create(Container);
+        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased);
+      end;
+      Result.Size := NewFontSize;
+    end else
+      Result := nil;
+  end;
+
 const
   DefaultUIScaling = usNone;
   DefaultUIReferenceWidth = 0;
@@ -228,13 +258,8 @@ var
   SettingsDoc: TXMLDocument;
   E: TDOMElement;
 
-  // font stuff
-  DefaultFontUrl: String;
-  DefaultFontSize, DefaultFontLoadSize: Cardinal;
-  DefaultFontAntiAliased: Boolean;
   NewDefaultFont: TCastleFont;
-  AllSizesAtLoadStr: String;
-  AllSizesAtLoad: TDynIntegerArray;
+  NewFontFamily: TFontFamily;
 
   NewUIScaling: TUIScaling;
   NewUIReferenceWidth, NewUIReferenceHeight: Single;
@@ -262,24 +287,19 @@ begin
     end;
 
     E := SettingsDoc.DocumentElement.Child('default_font', false);
-    if E <> nil then
+    if (E <> nil) and E.HasAttribute('url') then
+      NewDefaultFont := LoadFontSettings(E)
+    else
     begin
-      DefaultFontUrl := E.AttributeURL('url', SettingsUrl);
-      DefaultFontSize := E.AttributeCardinalDef('size', 20);
-      DefaultFontAntiAliased := E.AttributeBooleanDef('anti_aliased', true);
-
-      if E.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
-      begin
-        AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
-        NewDefaultFont := TCustomizedFont.Create(Container);
-        TCustomizedFont(NewDefaultFont).Load(DefaultFontUrl, AllSizesAtLoad, DefaultFontAntiAliased);
-      end else
-      begin
-        DefaultFontLoadSize := E.AttributeCardinalDef('size_at_load', DefaultFontSize);
-        NewDefaultFont := TTextureFont.Create(Container);
-        TTextureFont(NewDefaultFont).Load(DefaultFontUrl, DefaultFontLoadSize, DefaultFontAntiAliased);
-      end;
-      NewDefaultFont.Size := DefaultFontSize;
+      NewFontFamily := TFontFamily.Create(Container);
+      NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
+      NewFontFamily.RegularFont := LoadFontSettings(E.Child('regular', false));
+      NewFontFamily.BoldFont := LoadFontSettings(E.Child('bold', false));
+      NewFontFamily.ItalicFont := LoadFontSettings(E.Child('italic', false));
+      NewFontFamily.BoldItalicFont := LoadFontSettings(E.Child('bold_italic', false));
+      if NewFontFamily.RegularFont = nil then
+        raise EInvalidSettingsXml.Create('The <default_font> specified in CastleSettings.xml does not have a <regular> variant');
+      NewDefaultFont := NewFontFamily;
     end;
 
     E := SettingsDoc.DocumentElement.Child('warmup_cache', false);

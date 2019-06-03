@@ -1212,6 +1212,8 @@ type
     procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Single);
+    function GetAnchorDelta: TVector2;
+    procedure SetAnchorDelta(const AValue: TVector2);
     procedure SetEnableUIScaling(const Value: boolean);
 
     procedure SetFullSize(const Value: boolean);
@@ -1768,6 +1770,9 @@ type
       deprecated 'use Width';
     property FloatHeight: Single read FHeight write SetHeight stored false;
       deprecated 'use Height';
+
+    { A simple shortcut to modify HorizontalAnchorDelta/VerticalAnchorDelta as TVector2 }
+    property AnchorDelta: TVector2 read GetAnchorDelta write SetAnchorDelta;
 
     { Keep the control in front of other controls (with KeepInFront=@false)
       when inserting.
@@ -4713,6 +4718,18 @@ begin
     FVerticalAnchorDelta := Value;
     VisibleChange([chRectangle]);
   end;
+end;
+
+function TCastleUserInterface.GetAnchorDelta: TVector2;
+begin
+  Result[0] := HorizontalAnchorDelta;
+  Result[1] := VerticalAnchorDelta;
+end;
+
+procedure TCastleUserInterface.SetAnchorDelta(const AValue: TVector2);
+begin
+  HorizontalAnchorDelta := AValue[0];
+  VerticalAnchorDelta := AValue[1];
 end;
 
 procedure TCastleUserInterface.Anchor(const AHorizontalAnchor: THorizontalPosition;
