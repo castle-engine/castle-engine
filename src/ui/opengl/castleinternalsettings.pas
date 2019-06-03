@@ -250,8 +250,6 @@ type
       Result := nil;
   end;
 
-type
-  TFontType = (ftRegular, ftBold, ftItalic, ftBoldItalic);
 const
   DefaultUIScaling = usNone;
   DefaultUIReferenceWidth = 0;
@@ -260,7 +258,6 @@ var
   SettingsDoc: TXMLDocument;
   E: TDOMElement;
 
-  NewFonts: array[TFontType] of TCastleFont;
   NewDefaultFont: TCastleFont;
   NewFontFamily: TFontFamily;
 
@@ -289,24 +286,35 @@ begin
         E.AttributeSingleDef('reference_height', DefaultUIReferenceHeight);
     end;
 
-    NewFonts[ftRegular] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font', false));
-    if NewFonts[ftRegular] = nil then
-      NewFonts[ftRegular] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_regular', false));
-    NewFonts[ftBold] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_bold', false));
-    NewFonts[ftItalic] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_italic', false));
-    NewFonts[ftBoldItalic] := LoadFontSettings(SettingsDoc.DocumentElement.Child('default_font_bolditalic', false));
-    if (NewFonts[ftBold] = nil) and (NewFonts[ftItalic] = nil) and
-      (NewFonts[ftBoldItalic] = nil) then
-      NewDefaultFont := NewFonts[ftRegular]
+    E := SettingsDoc.DocumentElement.Child('default_font', false);
+    if (E <> nil) and (E.HasAttribute('url')) then
+      NewDefaultFont := LoadFontSettings(E)
     else
     begin
       NewFontFamily := TFontFamily.Create(Container);
       NewFontFamily.Name := 'CastleInternalDefaultFontFamily';
-      NewFontFamily.RegularFont := NewFonts[ftRegular];
-      NewFontFamily.BoldFont := NewFonts[ftBold];
-      NewFontFamily.ItalicFont := NewFonts[ftItalic];
-      NewFontFamily.BoldItalicFont := NewFonts[ftBoldItalic];
-      NewDefaultFont := NewFontFamily;
+      NewFontFamily.RegularFont := LoadFontSettings(E.Child('regular', false));
+      NewFontFamily.BoldFont := LoadFontSettings(E.Child('bold', false));
+      NewFontFamily.ItalicFont := LoadFontSettings(E.Child('italic', false));
+      NewFontFamily.BoldItalicFont := LoadFontSettings(E.Child('bold_italic', false));
+      //fall back so that the font family won't be empty/buggy
+      if NewFontFamily.RegularFont = nil then
+      begin
+        if NewFontFamily.BoldFont <> nil then
+          NewFontFamily.RegularFont := NewFontFamily.BoldFont
+        else
+          if NewFontFamily.ItalicFont <> nil then
+            NewFontFamily.RegularFont := NewFontFamily.ItalicFont
+          else
+            if NewFontFamily.BoldItalicFont <> nil then
+              NewFontFamily.RegularFont := NewFontFamily.BoldItalicFont
+            else
+              WriteLnWarning('Warning:', 'Default_font specified in CastleSettings.xml doesn''t seem to have any loadable Font Family children');
+      end;
+
+      if NewFontFamily.RegularFont <> nil then
+        NewDefaultFont := NewFontFamily;
+      //else leave it nil (default)
     end;
 
     E := SettingsDoc.DocumentElement.Child('warmup_cache', false);
