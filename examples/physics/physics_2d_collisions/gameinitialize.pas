@@ -60,8 +60,8 @@ type
 
 procedure TPlane.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 begin
-  if CollisionDetails.OtherTransform is TWall then
-    LastCollisionEnter := TWall(CollisionDetails.OtherTransform).Name
+  if CollisionDetails.OtherTransform <> nil then
+    LastCollisionEnter := CollisionDetails.OtherTransform.Name
   else
     LastCollisionEnter := 'other thing';
 end;
@@ -170,8 +170,8 @@ begin
   SceneManager.NavigationType := ntNone;
 
   Status := TCastleLabel.Create(Application);
-  Status.Anchor(hpLeft, 10);
-  Status.Anchor(vpTop, -10);
+  Status.Anchor(hpLeft, 40);
+  Status.Anchor(vpTop, -40);
   Status.Color := Yellow;
   Window.Controls.InsertFront(Status);
 end;
@@ -183,7 +183,7 @@ var
   I: Integer;
 begin
   CollisionsList := Plane.RigidBody.GetCollidingTransforms;
-  CollisionsListTXT := 'Colissions: ';
+  CollisionsListTXT := '';
 
   for I := 0 to CollisionsList.Count - 1 do
   begin
@@ -199,22 +199,38 @@ begin
   end;
 
   Status.Caption := Format(
-    'FPS: %s' + LineEnding +
-    'Scene Manager Objects: %d' + LineEnding +
-    'Right click to add plane velocity.' + LineEnding +
-    '%s' + LineEnding +
-    'Last plane collision enter: %s.', [
+    'FPS: %s' + NL +
+    'Scene Manager Objects: %d' + NL +
+    'Use AWSD to change plane velocity.' + NL +
+    NL+
+    'Current Plane Colisions (from TRigidBody.GetCollidingTransforms):' + NL +
+    '  %s' + NL +
+    NL +
+    'Last Plane Collision Enter (from TRigidBody.OnCollisionEnter):' + NL +
+    '  %s', [
      Container.Fps.ToString,
      SceneManager.Items.Count,
      CollisionsListTXT,
      Plane.LastCollisionEnter
-     ]);
+   ]);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+
+  procedure Move(const X, Y: Single);
+  begin
+    Plane.RigidBody.LinearVelocity := Plane.RigidBody.LinearVelocity + 20 * Vector3(X, Y, 0);
+  end;
+
 begin
-  if Event.IsMouseButton(mbRight) then
-     Plane.RigidBody.LinearVelocity := Plane.RigidBody.LinearVelocity + Vector3(0, 20, 0);
+  if Event.IsKey(keyA) then
+    Move(-1, 0);
+  if Event.IsKey(keyD) then
+    Move( 1, 0);
+  if Event.IsKey(keyS) then
+    Move(0, -1);
+  if Event.IsKey(keyW) then
+    Move(0,  1);
 end;
 
 initialization
