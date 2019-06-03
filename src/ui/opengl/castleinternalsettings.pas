@@ -287,7 +287,7 @@ begin
     end;
 
     E := SettingsDoc.DocumentElement.Child('default_font', false);
-    if (E <> nil) and (E.HasAttribute('url')) then
+    if (E <> nil) and E.HasAttribute('url') then
       NewDefaultFont := LoadFontSettings(E)
     else
     begin
@@ -297,24 +297,9 @@ begin
       NewFontFamily.BoldFont := LoadFontSettings(E.Child('bold', false));
       NewFontFamily.ItalicFont := LoadFontSettings(E.Child('italic', false));
       NewFontFamily.BoldItalicFont := LoadFontSettings(E.Child('bold_italic', false));
-      //fall back so that the font family won't be empty/buggy
       if NewFontFamily.RegularFont = nil then
-      begin
-        if NewFontFamily.BoldFont <> nil then
-          NewFontFamily.RegularFont := NewFontFamily.BoldFont
-        else
-          if NewFontFamily.ItalicFont <> nil then
-            NewFontFamily.RegularFont := NewFontFamily.ItalicFont
-          else
-            if NewFontFamily.BoldItalicFont <> nil then
-              NewFontFamily.RegularFont := NewFontFamily.BoldItalicFont
-            else
-              WriteLnWarning('Warning:', 'Default_font specified in CastleSettings.xml doesn''t seem to have any loadable Font Family children');
-      end;
-
-      if NewFontFamily.RegularFont <> nil then
-        NewDefaultFont := NewFontFamily;
-      //else leave it nil (default)
+        raise EInvalidSettingsXml.Create('The <default_font> specified in CastleSettings.xml does not have a <regular> variant');
+      NewDefaultFont := NewFontFamily;
     end;
 
     E := SettingsDoc.DocumentElement.Child('warmup_cache', false);
