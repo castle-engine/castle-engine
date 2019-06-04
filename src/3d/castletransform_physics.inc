@@ -501,17 +501,14 @@ end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 begin
+  if FRecreateKraftInstance then
+    Exit;
+
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
-  if Transform.World.FKraftEngine <> nil then
-    FreeAndNil(FKraftBody)
-  else
-    { FKraftBody is owned by FKraftEngine.
-      If FKraftEngine = nil then FKraftBody was already freed.
-      This can happen because TSceneManagerWorld.Destroy frees FKraftEngine,
-      but the TCastleTransform instances (with TRigidBody)
-      may be detached later, see TTestCastleTransform.TestPhysicsWorldOwner. }
-    FKraftBody := nil;
+  Assert((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil) , 'KraftBody should not live longer than KraftEngine!');
+
+  FreeAndNil(FKraftBody);
 
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
@@ -818,7 +815,24 @@ begin
 end;
 
 destructor TSceneManagerWorld.Destroy;
+var
+  CastleRigidBody: TRigidBody;
+  KraftRigidBody: TKraftRigidBody;
+  NextKraftRigidBody: TKraftRigidBody;
 begin
+  KraftRigidBody := FKraftEngine.RigidBodyFirst;
+
+  while Assigned(KraftRigidBody) do
+  begin
+    NextKraftRigidBody := KraftRigidBody.RigidBodyNext;
+    if Assigned(KraftRigidBody.UserData) then
+    begin
+      CastleRigidBody := TRigidBody(KraftRigidBody.UserData);
+      CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
+    end;
+    KraftRigidBody := NextKraftRigidBody;
+  end;
+
   FreeAndNil(FKraftEngine);
   inherited;
 end;
