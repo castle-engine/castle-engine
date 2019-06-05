@@ -820,17 +820,20 @@ var
   KraftRigidBody: TKraftRigidBody;
   NextKraftRigidBody: TKraftRigidBody;
 begin
-  KraftRigidBody := FKraftEngine.RigidBodyFirst;
-
-  while Assigned(KraftRigidBody) do
+  if FKraftEngine <> nil then
   begin
-    NextKraftRigidBody := KraftRigidBody.RigidBodyNext;
-    if Assigned(KraftRigidBody.UserData) then
+    KraftRigidBody := FKraftEngine.RigidBodyFirst;
+
+    while Assigned(KraftRigidBody) do
     begin
-      CastleRigidBody := TRigidBody(KraftRigidBody.UserData);
-      CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
+      NextKraftRigidBody := KraftRigidBody.RigidBodyNext;
+      if Assigned(KraftRigidBody.UserData) then
+      begin
+        CastleRigidBody := TRigidBody(KraftRigidBody.UserData);
+        CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
+      end;
+      KraftRigidBody := NextKraftRigidBody;
     end;
-    KraftRigidBody := NextKraftRigidBody;
   end;
 
   FreeAndNil(FKraftEngine);
