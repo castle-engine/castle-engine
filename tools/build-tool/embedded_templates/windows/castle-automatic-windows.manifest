@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity version="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}" processorArchitecture="*" name="${CamelCase(AUTHOR)}.${CamelCase(NAME)}.${CamelCase(NAME)}" type="win32"/>
+  <assemblyIdentity version="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}" processorArchitecture="*" name="${QUALIFIED_NAME}" type="win32"/>
   <description>${NAME}</description>
   <dependency>
     <dependentAssembly>

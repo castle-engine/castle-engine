@@ -364,7 +364,7 @@ constructor TCastleProject.Create(const APath: string);
 
     function DefaultQualifiedName: string;
     begin
-      Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -1951,100 +1951,98 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
-  function MakePathsStr(const Paths: TStringList; const Absolute: Boolean): String;
-  var
-    S, Dir: string;
-  begin
-    Result := '';
-    for S in Paths do
-    begin
-      if Result <> '' then
-        Result := Result + ';';
-      if Absolute then
-        Dir := CombinePaths(Path, S)
-      else
-        Dir := S;
-      Result := Result + Dir;
-    end;
-  end;
+  function CreateMacrosTable: TStringStringMap;
 
-  { Make CamelCase with only safe characters (digits and letters). }
-  function MakeCamelCase(S: string): string;
+    function MakePathsStr(const Paths: TStringList; const Absolute: Boolean): String;
+    var
+      S, Dir: string;
+    begin
+      Result := '';
+      for S in Paths do
+      begin
+        if Result <> '' then
+          Result := Result + ';';
+        if Absolute then
+          Dir := CombinePaths(Path, S)
+        else
+          Dir := S;
+        Result := Result + Dir;
+      end;
+    end;
+
   var
     I: Integer;
+    P, NonEmptyAuthor: string;
+    VersionComponents: array [0..3] of Cardinal;
+    VersionComponentsString: TCastleStringList;
+    PreviousMacros: array of TStringStringMap.TDictionaryPair;
   begin
-    S := SReplaceChars(S, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], ' ');
-    Result := '';
-    for I := 1 to Length(S) do
-      if S[I] <> ' ' then
-        if (I > 1) and (S[I - 1] <> ' ') then
-          Result += S[I] else
-          Result += UpCase(S[I]);
+    Result := TStringStringMap.Create;
+
+    { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
+    VersionComponentsString := CastleStringUtils.SplitString(Version, '.');
+    try
+      for I := 0 to High(VersionComponents) do
+        if I < VersionComponentsString.Count then
+          VersionComponents[I] := StrToIntDef(Trim(VersionComponentsString[I]), 0) else
+          VersionComponents[I] := 0;
+    finally FreeAndNil(VersionComponentsString) end;
+
+    if Author = '' then
+      NonEmptyAuthor := 'Unknown Author'
+    else
+      NonEmptyAuthor := Author;
+
+    Result := TStringStringMap.Create;
+    try
+      Result.Add('DOLLAR'          , '$');
+      Result.Add('VERSION_MAJOR'   , IntToStr(VersionComponents[0]));
+      Result.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
+      Result.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
+      Result.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
+      Result.Add('VERSION'         , Version);
+      Result.Add('VERSION_CODE'    , IntToStr(FVersionCode));
+      Result.Add('NAME'            , Name);
+      Result.Add('NAME_PASCAL'     , NamePascal);
+      Result.Add('QUALIFIED_NAME'  , QualifiedName);
+      Result.Add('CAPTION'         , Caption);
+      Result.Add('AUTHOR'          , NonEmptyAuthor);
+      Result.Add('EXECUTABLE_NAME' , ExecutableName);
+      Result.Add('GAME_UNITS'      , FGameUnits);
+      Result.Add('SEARCH_PATHS'          , MakePathsStr(SearchPaths, false));
+      Result.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(SearchPaths, true));
+      Result.Add('LIBRARY_PATHS'          , MakePathsStr(LibraryPaths, false));
+      { Using this is important in ../data/custom_editor_template/castle_editor.lpi ,
+        otherwise with FPC 3.3.1 (rev 40292) doing "castle-engine editor"
+        fails when the project uses some libraries (like mORMot's .o files in static/). }
+      Result.Add('ABSOLUTE_LIBRARY_PATHS' , MakePathsStr(LibraryPaths, true));
+      Result.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
+      Result.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
+      Result.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', ExtraCompilerOptionsAbsolute.Text);
+      Result.Add('EDITOR_UNITS'          , FEditorUnits);
+
+      AddMacrosAndroid(Result);
+      AddMacrosIOS(Result);
+
+      // add ${} around
+      PreviousMacros := Result.ToArray;
+      Result.Clear;
+      for I := 0 to Length(PreviousMacros) - 1 do
+      begin
+        P := PreviousMacros[I].Key;
+        Result.Add('${' + P + '}', PreviousMacros[I].Value);
+      end;
+    except FreeAndNil(Result); raise end;
   end;
 
+const
+  MacrosIgnoreCase = true;
 var
   Macros: TStringStringMap;
-  I: Integer;
-  P, NonEmptyAuthor: string;
-  VersionComponents: array [0..3] of Cardinal;
-  VersionComponentsString: TCastleStringList;
-  PreviousMacros: array of TStringStringMap.TDictionaryPair;
 begin
-  { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := CastleStringUtils.SplitString(Version, '.');
+  Macros := CreateMacrosTable;
   try
-    for I := 0 to High(VersionComponents) do
-      if I < VersionComponentsString.Count then
-        VersionComponents[I] := StrToIntDef(Trim(VersionComponentsString[I]), 0) else
-        VersionComponents[I] := 0;
-  finally FreeAndNil(VersionComponentsString) end;
-
-  if Author = '' then
-    NonEmptyAuthor := 'Unknown Author'
-  else
-    NonEmptyAuthor := Author;
-
-  Macros := TStringStringMap.Create;
-  try
-    Macros.Add('DOLLAR'          , '$');
-    Macros.Add('VERSION_MAJOR'   , IntToStr(VersionComponents[0]));
-    Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
-    Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
-    Macros.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
-    Macros.Add('VERSION'         , Version);
-    Macros.Add('VERSION_CODE'    , IntToStr(FVersionCode));
-    Macros.Add('NAME'            , Name);
-    Macros.Add('NAME_PASCAL'     , NamePascal);
-    Macros.Add('QUALIFIED_NAME'  , QualifiedName);
-    Macros.Add('CAPTION'         , Caption);
-    Macros.Add('AUTHOR'          , NonEmptyAuthor);
-    Macros.Add('EXECUTABLE_NAME' , ExecutableName);
-    Macros.Add('GAME_UNITS'      , FGameUnits);
-    Macros.Add('SEARCH_PATHS'          , MakePathsStr(SearchPaths, false));
-    Macros.Add('ABSOLUTE_SEARCH_PATHS' , MakePathsStr(SearchPaths, true));
-    Macros.Add('LIBRARY_PATHS'          , MakePathsStr(LibraryPaths, false));
-    { Using this is important in ../data/custom_editor_template/castle_editor.lpi ,
-      otherwise with FPC 3.3.1 (rev 40292) doing "castle-engine editor"
-      fails when the project uses some libraries (like mORMot's .o files in static/). }
-    Macros.Add('ABSOLUTE_LIBRARY_PATHS' , MakePathsStr(LibraryPaths, true));
-    Macros.Add('CASTLE_ENGINE_PATH'    , CastleEnginePath);
-    Macros.Add('EXTRA_COMPILER_OPTIONS', ExtraCompilerOptions.Text);
-    Macros.Add('EXTRA_COMPILER_OPTIONS_ABSOLUTE', ExtraCompilerOptionsAbsolute.Text);
-    Macros.Add('EDITOR_UNITS'          , FEditorUnits);
-
-    AddMacrosAndroid(Macros);
-    AddMacrosIOS(Macros);
-
-    // add CamelCase() replacements, add ${} around
-    PreviousMacros := Macros.ToArray;
-    Macros.Clear;
-    for I := 0 to Length(PreviousMacros) - 1 do
-    begin
-      P := PreviousMacros[I].Key;
-      Macros.Add('${' + P + '}', PreviousMacros[I].Value);
-      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(PreviousMacros[I].Value));
-    end;
-    Result := SReplacePatterns(Source, Macros, true);
+    Result := SReplacePatterns(Source, Macros, MacrosIgnoreCase);
   finally FreeAndNil(Macros) end;
 end;
 
