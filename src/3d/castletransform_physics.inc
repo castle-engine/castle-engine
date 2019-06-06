@@ -118,9 +118,8 @@
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
-    FInitialAngularVelocity: TVector3;
-    FInitialLinearVelocity: TVector3;
-    FRecreateKraftInstance: Boolean;
+    FAngularVelocity: TVector3;
+    FLinearVelocity: TVector3;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
     FOnCollisionEnter: TOnCollision;
@@ -130,6 +129,9 @@
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
     function GetLinearVelocity: TVector3;
+
+    procedure SetAngularVelocity(const AVelocity: TVector3);
+    function GetAngularVelocity: TVector3;
 
     procedure SetExists(const Value: Boolean);
   public
@@ -150,8 +152,7 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
-    property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
-    property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
+    property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
 
     { Occurs when TRigidBody starts colliding with another TRigidBody.
@@ -391,7 +392,7 @@ begin
   FDynamic := true;
   FExists := true;
 
-  FRecreateKraftInstance := true;
+  FKraftBody := nil;
   FCollisionList := TCastleTransformList.Create(false, nil);
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
@@ -435,7 +436,6 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     World := Transform.World;
     World.InitializePhysicsEngine;
 
-    FreeAndNil(FKraftBody);
     FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
     FKraftBody.UserData := Self;
 
@@ -467,17 +467,17 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
     UpdateCollides(Transform);
 
-    if (not InitialAngularVelocity.IsPerfectlyZero) or
-       (not InitialLinearVelocity.IsPerfectlyZero) then
+    if (not FAngularVelocity.IsPerfectlyZero) or
+       (not FLinearVelocity.IsPerfectlyZero) then
     begin
       { The behaviour is more natural when we zero the InitialXxxVelocity
         components that are locked. (Otherwise testing e.g. Setup2D in a 3D
         world makes a little unexpected motions). }
 
-      V := ZeroLockedComponents(InitialAngularVelocity, FLockRotation);
+      V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
       FKraftBody.AngularVelocity := VectorToKraft(V);
 
-      V := ZeroLockedComponents(InitialLinearVelocity, FLockTranslation);
+      V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
       FKraftBody.LinearVelocity := VectorToKraft(V);
 
       FKraftBody.SetToAwake;
@@ -488,22 +488,18 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
   end;
 
 begin
+  Assert(FKraftBody = nil, 'Kraft body is initialized!');
+
   if Transform.FWorldReferences > 1 then
     raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the SceneManager.Items');
 
   FTransform := Transform;
-  if FRecreateKraftInstance then
-  begin
-    FRecreateKraftInstance := false;
-    RecreateKraftInstance;
-  end;
+  RecreateKraftInstance;
 end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 begin
-  if FRecreateKraftInstance then
-    Exit;
-
+  Assert(FKraftBody <> nil, 'Second deinitialization!');
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
@@ -514,8 +510,6 @@ begin
   if Collider <> nil then
     Collider.FKraftShape := nil;
 
-  { we in unintialized state, so initialize at nearest occasion }
-  FRecreateKraftInstance := true;
   FTransform := nil;
 end;
 
@@ -609,14 +603,42 @@ end;
 
 procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
-  FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
-  if not LVelocity.IsPerfectlyZero then
-    FKraftBody.SetToAwake;
+  if FKraftBody <> nil then
+  begin
+    FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
+    if not LVelocity.IsPerfectlyZero then
+      FKraftBody.SetToAwake;
+  end
+  else
+    FLinearVelocity := LVelocity;
 end;
 
 function TRigidBody.GetLinearVelocity: TVector3;
 begin
-  Result := VectorFromKraft(FKraftBody.LinearVelocity);
+  if FKraftBody <> nil then
+    Result := VectorFromKraft(FKraftBody.LinearVelocity)
+  else
+    Result := FLinearVelocity;
+end;
+
+procedure TRigidBody.SetAngularVelocity(const AVelocity: TVector3);
+begin
+  if FKraftBody <> nil then
+  begin
+    FKraftBody.AngularVelocity := VectorToKraft(ZeroLockedComponents(AVelocity, FLockTranslation));
+    if not AVelocity.IsPerfectlyZero then
+      FKraftBody.SetToAwake;
+  end
+  else
+    FAngularVelocity := AVelocity;
+end;
+
+function TRigidBody.GetAngularVelocity: TVector3;
+begin
+  if FKraftBody <> nil then
+    Result := VectorFromKraft(FKraftBody.AngularVelocity)
+  else
+    Result := FAngularVelocity;
 end;
 
 procedure TRigidBody.SetExists(const Value: Boolean);
