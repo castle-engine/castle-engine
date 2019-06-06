@@ -506,7 +506,7 @@ begin
 
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
-  Assert((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil) , 'KraftBody should not live longer than KraftEngine!');
+  Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
 
   FreeAndNil(FKraftBody);
 
@@ -576,7 +576,6 @@ begin
   if (Transform.World <> nil) and (not Transform.World.EnablePhysics) then
     Exit;
 
-  InitializeTransform(Transform);
   UpdateCollides(Transform);
   if Dynamic then
     TransformationFromKraft
