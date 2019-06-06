@@ -42,9 +42,17 @@ begin
     AssertEquals('My Test Project', P.ReplaceMacros('${CAPTION}'));
     AssertEquals('test_project', P.ReplaceMacros('${NAME}'));
     AssertEquals('blabla My Test Project asdasdas', P.ReplaceMacros('blabla ${CAPTION} asdasdas'));
-    AssertEquals('blabla asdkoko', P.ReplaceMacros('blabla ${IF true}asd${ELSE}koko${ENDIF}'));
+
+    // test calculate
     AssertEquals('blabla 3', P.ReplaceMacros('blabla ${CALCULATE 1+2}'));
     AssertEquals('blabla ohyes:My Test Project', P.ReplaceMacros('blabla ${CALCULATE if(${CAPTION} <> '''', ''ohyes:'' + ${CAPTION}, ''undefined caption'')}'));
+
+    // test if
+    AssertEquals('blabla asd after', P.ReplaceMacros('blabla ${IF true}asd${ELSE}koko${ENDIF} after'));
+    AssertEquals('has caption', P.ReplaceMacros('${IF ${CAPTION} <> ''''}has caption${ELSE}no caption${ENDIF}'));
+    AssertEquals('has caption', P.ReplaceMacros('${IF ${CAPTION} <> ''''}has caption${ENDIF}'));
+    AssertEquals('no EDITOR_UNITS', P.ReplaceMacros('${IF ${EDITOR_UNITS} <> ''''}has EDITOR_UNITS${ELSE}no EDITOR_UNITS${ENDIF}'));
+    AssertEquals('', P.ReplaceMacros('${IF ${EDITOR_UNITS} <> ''''}has EDITOR_UNITS${ENDIF}'));
   finally FreeAndNil(P) end;
 end;
 

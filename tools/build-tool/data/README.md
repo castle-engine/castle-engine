@@ -14,16 +14,17 @@ Basic syntax of macros (which you can use in any text template file):
 
     Calculate the xxx as a CastleScript expression that should return String.
 
-- {$IF xxx}
+- ${IF xxx}
   one text to include
-  {$ELSE}
+  ${ELSE}
   alternative text to include
-  {$ENDIF}
+  ${ENDIF}
 
     Calculate the xxx as a CastleScript expression that should return Boolean.
     If true, executes 1st part, otherwise executes the 2nd.
-    The "{$ELSE} .. " block is optional.
-    TODO: Not implemented yet completely.
+    The "${ELSE} .. " block is optional.
+
+    TODO: Nesting ${IF} within ${IF} is not implemented yet.
 
 See https://castle-engine.io/castle_script.php for the documentation of CastleScript.
 

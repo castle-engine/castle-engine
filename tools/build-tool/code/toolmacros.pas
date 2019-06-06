@@ -92,10 +92,16 @@ const
     end;
   end;
 
+type
+  TIfState = (isNone, isThen, isElse);
+var
+  IfCondition: Boolean;
+  IfState: TIfState;
+
   (* Process expression that starts as ExpressionBegin in S, ends at ExpressionEnd.
      Sets ExpressionEnd (last character of the expression, always '}')
      and returns the evaluated expression. *)
-  function ProcessNextExpression(const S, LowercaseS: String;
+  function ProcessExpression(const S, LowercaseS: String;
     const Expression: TMacroExpression;
     const ExpressionBegin, ExpressionEnd: Integer;
     const CastleScriptReplacements: TStringStringMap): String;
@@ -108,20 +114,26 @@ const
     case Expression of
       meIf:
         begin
-          Exp := ParseBoolExpression(ExpStr, []);
           Result := '';
-          WritelnWarning('${if ...} not implemented yet. Condition evaluated to %s',
-            [BoolToStr(Exp.AsBool, true)]);
+          if IfState <> isNone then
+            raise Exception.Create('Nesting ${IF} within ${IF} is not possible yet');
+          IfState := isThen;
+          Exp := ParseBoolExpression(ExpStr, []);
+          IfCondition := Exp.AsBool;
         end;
       meElse:
         begin
           Result := '';
-          WritelnWarning('${else} not implemented yet');
+          if IfState <> isThen then
+            raise Exception.Create('Unexpected ${ELSE}, not preceded by ${IF}');
+          IfState := isElse;
         end;
       meEndif:
         begin
           Result := '';
-          WritelnWarning('${endif} not implemented yet');
+          if not (IfState in [isThen, isElse]) then
+            raise Exception.Create('Unexpected ${ENDIF}, not preceded by ${IF}');
+          IfState := isNone;
         end;
       meCalculate:
         begin
@@ -130,6 +142,22 @@ const
         end;
       else raise EInternalError.CreateFmt('Unknown expression %d', [Ord(Expression)]);
     end;
+  end;
+
+  function ProcessText(const S: String; const Replacements: TStringStringMap): String;
+  var
+    Active: Boolean;
+  begin
+    case IfState of
+      isNone: Active := true;
+      isThen: Active := IfCondition;
+      isElse: Active := not IfCondition;
+      else raise EInternalError.Create('Unknown IfState');
+    end;
+    if Active then
+      Result := SReplacePatterns(S, Replacements, MacrosIgnoreCase)
+    else
+      Result := '';
   end;
 
   { Return the content up to (excluding) the first newline
@@ -183,15 +211,18 @@ var
 begin
   CreateMacros(Replacements, CastleScriptReplacements);
   try
+    LowercaseSource := AnsiLowerCase(Source);
+    Done := 0;
+    Result := '';
+    IfState := isNone;
+
     (* Split Source into chunks.
       One "chunk" here is either
       - an expression using macros, like '${CALCULATE xxx}' or '${IF xxx}'
       - not an expression, which is just a normal text a template where only simple
         macro variable replacement is performed.
     *)
-    LowercaseSource := AnsiLowerCase(Source);
-    Done := 0;
-    Result := '';
+
     while Done < Length(Source) do
     begin
       ExpressionBegin := NextExpressionPosition(Source, LowercaseSource,
@@ -199,17 +230,17 @@ begin
       if ExpressionBegin = 0 then
       begin
         { chunk of normal text, up to the end of the Source }
-        Result := Result + SReplacePatterns(SEnding(Source, Done + 1),
-          Replacements, MacrosIgnoreCase);
+        Result := Result + ProcessText(SEnding(Source, Done + 1),
+          Replacements);
         Done := Length(Source);
       end else
       begin
         { chunk of normal text, up to the beginning of nearest expression }
-        Result := Result + SReplacePatterns(CopyPos(Source, Done + 1, ExpressionBegin - 1),
-          Replacements, MacrosIgnoreCase);
+        Result := Result + ProcessText(CopyPos(Source, Done + 1, ExpressionBegin - 1),
+          Replacements);
         { chunk with one expression }
         Done := FindMatchingExpressionEnd(Source, ExpressionBegin);
-        Result := Result + ProcessNextExpression(Source, LowercaseSource, Expression,
+        Result := Result + ProcessExpression(Source, LowercaseSource, Expression,
           ExpressionBegin, Done, CastleScriptReplacements);
       end;
     end;
