@@ -715,6 +715,9 @@ var
 
       Transform := TTransformNode.Create;
       Transform.X3DName := Node.Name;
+      // needs name, to save to file animations with ROUTEs to this node
+      if Transform.X3DName = '' then
+        Transform.X3DName := 'Node' + IntToStr(NodeIndex);
       Transform.Translation := Translation;
       Transform.Rotation := Rotation;
       Transform.Scale := Scale;
@@ -799,6 +802,8 @@ type
       else raise EInternalError.Create('ReadSampler - Path?');
     end;
 
+    Interpolator.X3DName := 'Animate_' + TargetField.X3DName + '_' + TimeSensor.X3DName;
+
     AccessorToFloat(Sampler.Input, Interpolator.FdKey, false);
     if Interpolator.FdKey.Count <> 0 then
       Duration := Interpolator.FdKey.Items.Last
@@ -835,7 +840,10 @@ type
   begin
     TimeSensor := TTimeSensorNode.Create;
     if Animation.Name = '' then
-      TimeSensor.X3DName := 'unnamed' // otherwise TCastleSceneCore.AnimationsList ignores this
+      { Needs a name, otherwise
+        1. TCastleSceneCore.AnimationsList ignores this,
+        2. saving ROUTEs using it to a file would be impossible }
+      TimeSensor.X3DName := 'unnamed'
     else
       TimeSensor.X3DName := Animation.Name;
     ParentGroup.AddChildren(TimeSensor);
