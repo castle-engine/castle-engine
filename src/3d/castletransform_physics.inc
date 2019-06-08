@@ -120,8 +120,10 @@
     FLockRotation: T3DCoords;
     FAngularVelocity: TVector3;
     FAngularVelocityDamp: Single;
+    FMaximalAngularVelocity: Single;
     FLinearVelocity: TVector3;
     FLinearVelocityDamp: Single;
+    FMaximalLinearVelocity: Single;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
     FOnCollisionEnter: TOnCollision;
@@ -138,11 +140,15 @@
     procedure SetAngularVelocityDamp(const AValue: Single);
     function GetAngularVelocityDamp: Single;
 
+    procedure SetMaximalAngularVelocity(const AValue: Single);
+
     procedure SetLinearVelocity(const LVelocity: TVector3);
     function GetLinearVelocity: TVector3;
 
     procedure SetLinearVelocityDamp(const AValue: Single);
     function GetLinearVelocityDamp: Single;
+
+    procedure SetMaximalLinearVelocity(const AValue: Single);
 
     procedure SetExists(const Value: Boolean);
   public
@@ -165,9 +171,11 @@
 
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read GetAngularVelocityDamp write SetAngularVelocityDamp;
+    property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
 
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
     property LinearVelocityDamp: Single read GetLinearVelocityDamp write SetLinearVelocityDamp;
+    property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
     { Occurs when TRigidBody starts colliding with another TRigidBody.
 
@@ -501,7 +509,10 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     end;
 
     FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
+    FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / Transform.World.FKraftEngine.WorldFrequency;
+
     FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
+    FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / Transform.World.FKraftEngine.WorldFrequency;
 
     // set initial transformation
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
@@ -560,12 +571,28 @@ begin
     Result := FAngularVelocityDamp;
 end;
 
+procedure TRigidBody.SetMaximalAngularVelocity(const AValue: Single);
+begin
+  FMaximalAngularVelocity := AValue;
+  { Kraft uses max velocity for delta time which is physics update frequency. }
+  if FKraftBody <> nil then
+    FKraftBody.MaximalAngularVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
+end;
+
 function TRigidBody.GetLinearVelocityDamp: Single;
 begin
   if FKraftBody <> nil then
     Result := FKraftBody.LinearVelocityDamp
   else
     Result := FLinearVelocityDamp;
+end;
+
+procedure TRigidBody.SetMaximalLinearVelocity(const AValue: Single);
+begin
+  FMaximalLinearVelocity := AValue;
+  { Kraft uses max velocity for delta time which is physics update frequency. }
+  if FKraftBody <> nil then
+    FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
 end;
 
 procedure TRigidBody.SetAngularVelocityDamp(const AValue: Single);
@@ -806,11 +833,12 @@ begin
     FKraftEngine := TKraft.Create(-1);
     FKraftEngine.ContactManager.OnContactBegin := @CollisionBegin;
     FKraftEngine.ContactManager.OnContactEnd := @CollisionEnd;
-    { Kraft sets MaximalLinearVelocity in TKraft Constructor.
-      With this limit can't make initial velocity greater than about 120.
-      That makes physics very slow, so we need remove this limitation. }
+    { Kraft sets MaximalLinearVelocity in TKraft Constructor to 2.
+      With this limit can't make velocity greater than about 120
+      (2 * engine step frequency = 2 * 60 = 120). That makes physics
+      very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
-    //KraftEngine.SetFrequency(120.0); // default is 60
+    //FKraftEngine.SetFrequency(120.0); // default is 60
   end;
 end;
 
