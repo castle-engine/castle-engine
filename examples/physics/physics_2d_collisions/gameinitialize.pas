@@ -77,11 +77,14 @@ begin
 
   RBody := TRigidBody.Create(Plane);
   RBody.Dynamic := true;
-  RBody.Animated := true;
   RBody.Setup2D;
   RBody.OnCollisionEnter := @CollisionEnter;
+  RBody.LinearVelocityDamp := 0;
+  RBody.MaximalLinearVelocity := 200;
+  RBody.AngularVelocityDamp := 0;
   Collider := TBoxCollider.Create(RBody);
   Collider.Size := LocalBoundingBox.Size * 5;
+  Collider.Restitution := 0.4;
 
   RigidBody := RBody;
 end;
@@ -201,6 +204,7 @@ begin
   Status.Caption := Format(
     'FPS: %s' + NL +
     'Scene Manager Objects: %d' + NL +
+    'Linear velocity: %f' + NL +
     'Use AWSD to change plane velocity.' + NL +
     NL+
     'Current Plane Colisions (from TRigidBody.GetCollidingTransforms):' + NL +
@@ -210,6 +214,7 @@ begin
     '  %s', [
      Container.Fps.ToString,
      SceneManager.Items.Count,
+     Plane.RigidBody.LinearVelocity.Length,
      CollisionsListTXT,
      Plane.LastCollisionEnter
    ]);
