@@ -119,7 +119,9 @@
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
     FAngularVelocity: TVector3;
+    FAngularVelocityDamp: Single;
     FLinearVelocity: TVector3;
+    FLinearVelocityDamp: Single;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
     FOnCollisionEnter: TOnCollision;
@@ -130,11 +132,17 @@
     { Sets all values from Kraft to CGE private fields. }
     procedure SynchronizeFromKraft;
 
+    procedure SetAngularVelocity(const AVelocity: TVector3);
+    function GetAngularVelocity: TVector3;
+
+    procedure SetAngularVelocityDamp(const AValue: Single);
+    function GetAngularVelocityDamp: Single;
+
     procedure SetLinearVelocity(const LVelocity: TVector3);
     function GetLinearVelocity: TVector3;
 
-    procedure SetAngularVelocity(const AVelocity: TVector3);
-    function GetAngularVelocity: TVector3;
+    procedure SetLinearVelocityDamp(const AValue: Single);
+    function GetLinearVelocityDamp: Single;
 
     procedure SetExists(const Value: Boolean);
   public
@@ -156,7 +164,10 @@
     function GetCollidingTransforms: TCastleTransformList;
 
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
+    property AngularVelocityDamp: Single read GetAngularVelocityDamp write SetAngularVelocityDamp;
+
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    property LinearVelocityDamp: Single read GetLinearVelocityDamp write SetLinearVelocityDamp;
 
     { Occurs when TRigidBody starts colliding with another TRigidBody.
 
@@ -394,6 +405,9 @@ begin
   FGravity := true;
   FDynamic := true;
   FExists := true;
+  // default damp values from Kraft
+  FLinearVelocityDamp := 0.1;
+  FAngularVelocityDamp := 0.1;
 
   FKraftBody := nil;
   FCollisionList := TCastleTransformList.Create(false, nil);
@@ -486,6 +500,9 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
       FKraftBody.SetToAwake;
     end;
 
+    FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
+    FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
+
     // set initial transformation
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
   end;
@@ -535,14 +552,45 @@ begin
   end;
 end;
 
+function TRigidBody.GetAngularVelocityDamp: Single;
+begin
+  if FKraftBody <> nil then
+    Result := FKraftBody.AngularVelocityDamp
+  else
+    Result := FAngularVelocityDamp;
+end;
+
+function TRigidBody.GetLinearVelocityDamp: Single;
+begin
+  if FKraftBody <> nil then
+    Result := FKraftBody.LinearVelocityDamp
+  else
+    Result := FLinearVelocityDamp;
+end;
+
+procedure TRigidBody.SetAngularVelocityDamp(const AValue: Single);
+begin
+  FAngularVelocityDamp := AValue;
+  if FKraftBody <> nil then
+    FKraftBody.AngularVelocityDamp := AValue;
+end;
+
+procedure TRigidBody.SetLinearVelocityDamp(const AValue: Single);
+begin
+  FLinearVelocityDamp := AValue;
+  if FKraftBody <> nil then
+    FKraftBody.LinearVelocityDamp := AValue;
+end;
+
 procedure TRigidBody.SynchronizeFromKraft;
 begin
   if FKraftBody = nil then
     Exit;
 
   FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity);
+  FLinearVelocityDamp := FKraftBody.LinearVelocityDamp;
   FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
-
+  FAngularVelocityDamp := FKraftBody.AngularVelocityDamp;
 end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
