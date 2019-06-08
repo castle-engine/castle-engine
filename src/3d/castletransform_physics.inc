@@ -603,14 +603,13 @@ end;
 
 procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
 begin
+  FLinearVelocity := LVelocity;
   if FKraftBody <> nil then
   begin
     FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
     if not LVelocity.IsPerfectlyZero then
       FKraftBody.SetToAwake;
-  end
-  else
-    FLinearVelocity := LVelocity;
+  end;
 end;
 
 function TRigidBody.GetLinearVelocity: TVector3;
@@ -623,14 +622,13 @@ end;
 
 procedure TRigidBody.SetAngularVelocity(const AVelocity: TVector3);
 begin
+  FAngularVelocity := AVelocity;
   if FKraftBody <> nil then
   begin
     FKraftBody.AngularVelocity := VectorToKraft(ZeroLockedComponents(AVelocity, FLockTranslation));
     if not AVelocity.IsPerfectlyZero then
       FKraftBody.SetToAwake;
-  end
-  else
-    FAngularVelocity := AVelocity;
+  end;
 end;
 
 function TRigidBody.GetAngularVelocity: TVector3;
