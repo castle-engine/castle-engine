@@ -470,7 +470,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if (not FAngularVelocity.IsPerfectlyZero) or
        (not FLinearVelocity.IsPerfectlyZero) then
     begin
-      { The behaviour is more natural when we zero the InitialXxxVelocity
+      { The behaviour is more natural when we zero the XxxVelocity
         components that are locked. (Otherwise testing e.g. Setup2D in a 3D
         world makes a little unexpected motions). }
 
