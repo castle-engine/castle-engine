@@ -31,7 +31,7 @@ implementation
 uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos,
+  CastleImages, CastleVideos, CastleTimeUtils,
   X3DLoadInternalUtils;
 
 { Reading glTF using PasGLTF from Bero:
@@ -53,7 +53,8 @@ uses SysUtils, Classes, TypInfo, Math, PasGLTF,
 
   - We do not support PBR materials yet.
 
-  - glTF animations are not supported.
+  - glTF skinned animations are not supported.
+    (Animating transformations (translation, rotation, scale) is supported OK.)
 
   See https://castle-engine.io/planned_features.php .
 }
@@ -72,6 +73,9 @@ var
   Document: TPasGLTF.TDocument;
   // List of TGltfAppearanceNode nodes, ordered just list glTF materials
   Appearances: TX3DNodeList;
+  { List of TTransformNode nodes, ordered just list glTF nodes.
+    Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
+  Nodes: TX3DNodeList;
   DefaultAppearance: TGltfAppearanceNode;
 
   procedure ReadHeader;
@@ -144,6 +148,15 @@ var
     // as it happens, both structures have the same memory layout, so copy by a fast Move
     Assert(SizeOf(M) = SizeOf(Result));
     Move(M, Result, SizeOf(Result));
+  end;
+
+  { Convert glTF rotation (quaternion) to X3D (axis-angle). }
+  function RotationFromGltf(const V: TPasGLTF.TVector4): TVector4;
+  var
+    RotationQuaternion: TQuaternion;
+  begin
+    RotationQuaternion.Data.Vector4 := Vector4FromGltf(V);
+    Result := RotationQuaternion.ToAxisAngle;
   end;
 
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
@@ -394,6 +407,24 @@ var
     end;
   end;
 
+  procedure AccessorToFloat(const AccessorIndex: Integer; const Field: TMFFloat; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTFFloatDynamicArray;
+    Len: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsFloatArray(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      if Len <> 0 then
+        // Both glTF and X3D call it "Float", it is "Single" in Pascal
+        Move(A[0], Field.Items.List^[0], SizeOf(Single) * Len);
+    end;
+  end;
+
   procedure AccessorToVector2(const AccessorIndex: Integer; const Field: TMFVec2f; const ForVertex: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
@@ -442,6 +473,24 @@ var
       Field.Count := Len;
       if Len <> 0 then
         Move(A[0], Field.Items.List^[0], SizeOf(TVector4) * Len);
+    end;
+  end;
+
+  procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTF.TVector4DynamicArray;
+    Len, I: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsVector4Array(ForVertex);
+      Len := Length(A);
+      Field.Count := Len;
+      // convert glTF rotation to X3D
+      for I := 0 to Len - 1 do
+        Field.Items.List^[I] := RotationFromGltf(A[I]);
     end;
   end;
 
@@ -586,7 +635,7 @@ var
     end;
     Shape.Appearance := Appearance;
 
-    // apply additional TGltfAppearanceNode parameters, not handled by X3D renderer
+    // apply additional TGltfAppearanceNode parameters, specified in X3D at geometry
     Geometry.Solid := not Appearance.DoubleSided;
 
     // add to X3D
@@ -646,7 +695,6 @@ var
     Transform: TTransformNode;
     NodeMatrix: TMatrix4;
     Translation, Scale: TVector3;
-    RotationQuaternion: TQuaternion;
     Rotation: TVector4;
     ChildNodeIndex: Integer;
   begin
@@ -661,8 +709,7 @@ var
       end else
       begin
         Translation := Vector3FromGltf(Node.Translation);
-        RotationQuaternion.Data.Vector4 := Vector4FromGltf(Node.Rotation);
-        Rotation := RotationQuaternion.ToAxisAngle;
+        Rotation := RotationFromGltf(Node.Rotation);
         Scale := Vector3FromGltf(Node.Scale);
       end;
 
@@ -681,6 +728,13 @@ var
 
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);
+
+      // add to Nodes list
+      Nodes.Count := Max(Nodes.Count, NodeIndex + 1);
+      if Nodes[NodeIndex] <> nil then
+        WritelnWarning('glTF', 'Node %d read multiple times (impossible if glTF is a strict tree)', [NodeIndex])
+      else
+        Nodes[NodeIndex] := Transform;
     end else
       WritelnWarning('glTF', 'Node index invalid: %d', [NodeIndex]);
   end;
@@ -699,9 +753,163 @@ var
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
   end;
 
+type
+  // Which TTransformNode field is animated
+  TGltfSamplerPath = (
+    gsTranslation,
+    gsRotation,
+    gsScale
+  );
+
+  function ReadSampler(const Sampler: TPasGLTF.TAnimation.TSampler;
+    const Node: TTransformNode;
+    const Path: TGltfSamplerPath;
+    const TimeSensor: TTimeSensorNode;
+    const ParentGroup: TAbstractX3DGroupingNode;
+    out Duration: TFloatTime): TAbstractInterpolatorNode;
+  var
+    InterpolateVector3: TPositionInterpolatorNode;
+    InterpolateRotation: TOrientationInterpolatorNode;
+    Interpolator: TAbstractInterpolatorNode;
+    Route: TX3DRoute;
+    InterpolatorOutputEvent: TX3DEvent;
+    TargetField: TX3DField;
+  begin
+    case Path of
+      gsTranslation, gsScale:
+        begin
+          InterpolateVector3 := TPositionInterpolatorNode.Create;
+          Interpolator := InterpolateVector3;
+          InterpolatorOutputEvent := InterpolateVector3.EventValue_changed;
+          AccessorToVector3(Sampler.Output, InterpolateVector3.FdKeyValue, false);
+          case Path of
+            gsTranslation: TargetField := Node.FdTranslation;
+            gsScale      : TargetField := Node.FdScale;
+            else raise EInternalError.Create('ReadSampler vector3 - Path?');
+          end;
+        end;
+      gsRotation:
+        begin
+          InterpolateRotation := TOrientationInterpolatorNode.Create;
+          Interpolator := InterpolateRotation;
+          InterpolatorOutputEvent := InterpolateRotation.EventValue_changed;
+          AccessorToRotation(Sampler.Output, InterpolateRotation.FdKeyValue, false);
+          TargetField := Node.FdRotation;
+        end;
+      else raise EInternalError.Create('ReadSampler - Path?');
+    end;
+
+    AccessorToFloat(Sampler.Input, Interpolator.FdKey, false);
+    if Interpolator.FdKey.Count <> 0 then
+      Duration := Interpolator.FdKey.Items.Last
+    else
+      Duration := 0;
+
+    ParentGroup.AddChildren(Interpolator);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
+    Route.SetDestinationDirectly(Interpolator.EventSet_fraction);
+    ParentGroup.AddRoute(Route);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(InterpolatorOutputEvent);
+    Route.SetDestinationDirectly(TargetField);
+    ParentGroup.AddRoute(Route);
+
+    Result := Interpolator;
+
+    // TODO: reset fields not used by this animation, but possibly changed by others?
+  end;
+
+  procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractX3DGroupingNode);
+  var
+    TimeSensor: TTimeSensorNode;
+    Channel: TPasGLTF.TAnimation.TChannel;
+    Sampler: TPasGLTF.TAnimation.TSampler;
+    Node: TTransformNode;
+    Duration, MaxDuration: TFloatTime;
+    Interpolators: TX3DNodeList;
+    Interpolator: TAbstractInterpolatorNode;
+    NodeIndex, I: Integer;
+  begin
+    TimeSensor := TTimeSensorNode.Create;
+    if Animation.Name = '' then
+      TimeSensor.X3DName := 'unnamed' // otherwise TCastleSceneCore.AnimationsList ignores this
+    else
+      TimeSensor.X3DName := Animation.Name;
+    ParentGroup.AddChildren(TimeSensor);
+
+    MaxDuration := 0;
+    Interpolators := TX3DNodeList.Create(false);
+    try
+      for Channel in Animation.Channels do
+      begin
+        NodeIndex := Channel.Target.Node;
+
+        // glTF spec says "When node isn't defined, channel should be ignored"
+        if NodeIndex = -1 then
+          Continue;
+
+        if not (Between(NodeIndex, 0, Nodes.Count - 1) and (Nodes[NodeIndex] <> nil)) then
+        begin
+          WritelnWarning('Node index %d indicated by animation %s was not imported', [
+            NodeIndex,
+            TimeSensor.X3DName
+          ]);
+          Continue;
+        end;
+
+        Node := Nodes[NodeIndex] as TTransformNode;
+
+        // read Sampler
+        if not Between(Channel.Sampler, 0, Animation.Samplers.Count - 1) then
+        begin
+          WritelnWarning('Invalid animation "%s" sampler index %d', [
+            TimeSensor.X3DName,
+            Channel.Sampler
+          ]);
+          Continue;
+        end;
+
+        Sampler := Animation.Samplers[Channel.Sampler];
+
+        // read channel Path, call ReadSampler with all information
+        case Channel.Target.Path of
+          'translation':
+            Interpolator := ReadSampler(Sampler, Node, gsTranslation, TimeSensor, ParentGroup, Duration);
+          'rotation':
+            Interpolator := ReadSampler(Sampler, Node, gsRotation, TimeSensor, ParentGroup, Duration);
+          'scale':
+            Interpolator := ReadSampler(Sampler, Node, gsScale, TimeSensor, ParentGroup, Duration);
+          else
+            begin
+              WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
+              Continue;
+            end;
+        end;
+
+        Interpolators.Add(Interpolator);
+        MaxDuration := Max(MaxDuration, Duration);
+      end;
+
+      // adjust TimeSensor duration, scale the keys in all Interpolators to be in 0..1 range
+      if MaxDuration <> 0 then
+      begin
+        TimeSensor.CycleInterval := MaxDuration;
+        for I := 0 to Interpolators.Count - 1 do
+        begin
+          Interpolator := Interpolators[I] as TAbstractInterpolatorNode;
+          Interpolator.FdKey.Items.MultiplyAll(1 / MaxDuration);
+        end;
+      end;
+    finally FreeAndNil(Interpolators) end;
+  end;
+
 var
   Stream: TStream;
   Material: TPasGLTF.TMaterial;
+  Animation: TPasGLTF.TAnimation;
 begin
   { Make absolute URL.
 
@@ -719,6 +927,7 @@ begin
       Document := nil;
       DefaultAppearance := nil;
       Appearances := nil;
+      Nodes := nil;
       try
         Document := TPasGLTF.TDocument.Create;
         Document.RootPath := InclPathDelim(ExtractFilePath(URIToFilenameSafe(BaseUrl)));
@@ -735,11 +944,22 @@ begin
           Appearances.Add(ReadAppearance(Material));
 
         // read main scene
+        Nodes := TX3DNodeList.Create(false);
         if Document.Scene <> -1 then
-          ReadScene(Document.Scene, Result);
+          ReadScene(Document.Scene, Result)
+        else
+        begin
+          WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
+          ReadScene(0, Result);
+        end;
+
+        // read animations
+        for Animation in Document.Animations do
+          ReadAnimation(Animation, Result);
       finally
         FreeIfUnusedAndNil(DefaultAppearance);
         X3DNodeList_FreeUnusedAndNil(Appearances);
+        X3DNodeList_FreeUnusedAndNil(Nodes);
         FreeAndNil(Document);
       end;
     except FreeAndNil(Result); raise end;

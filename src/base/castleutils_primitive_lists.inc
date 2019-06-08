@@ -78,6 +78,9 @@ type
     function PerfectlyEquals(SecondValue: TObject): boolean;
 
     function Sum: Single;
+
+    { Multiply all items by Factor. }
+    procedure MultiplyAll(const Factor: Single);
   end;
 
   TDoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>)
@@ -334,6 +337,14 @@ begin
   Result := 0;
   for I := 0 to Count - 1 do
     Result := Result + Items[I];
+end;
+
+procedure TSingleList.MultiplyAll(const Factor: Single);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I] := Items[I] * Factor;
 end;
 
 { TDoubleList ------------------------------------------------------------ }
