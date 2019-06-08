@@ -127,6 +127,9 @@
 
     procedure UpdateCollides(const Transform: TCastleTransform);
 
+    { Sets all values from Kraft to CGE private fields. }
+    procedure SynchronizeFromKraft;
+
     procedure SetLinearVelocity(const LVelocity: TVector3);
     function GetLinearVelocity: TVector3;
 
@@ -504,6 +507,7 @@ begin
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
 
+  SynchronizeFromKraft;
   FreeAndNil(FKraftBody);
 
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
@@ -529,6 +533,16 @@ begin
     FKraftBody.CollideWithCollisionGroups := [];
     FKraftBody.CollisionGroups := [];
   end;
+end;
+
+procedure TRigidBody.SynchronizeFromKraft;
+begin
+  if FKraftBody = nil then
+    Exit;
+
+  FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity);
+  FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
+
 end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
