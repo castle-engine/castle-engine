@@ -710,7 +710,7 @@ end;
 procedure TCastleTransform.PhysicsChangeWorldDetach;
 begin
   { When removing 3D object from world, remove it also from physics engine world. }
-  if RigidBody <> nil then
+  if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
     RigidBody.DeinitializeTransform(Self);
 end;
 
