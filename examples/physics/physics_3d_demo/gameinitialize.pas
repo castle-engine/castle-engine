@@ -170,7 +170,7 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
     SceneManager.Items.Add(Scene);
 
-    RigidBody.InitialLinearVelocity := CameraDir * 4.0;
+    RigidBody.LinearVelocity := CameraDir * 4.0;
     Scene.RigidBody := RigidBody;
   end;
 
