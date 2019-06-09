@@ -285,6 +285,7 @@ examples:
 	$(FIND) . \
 	  '(' -path ./examples/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
 	  xargs -0 -n1 tools/build-tool/castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
 
@@ -390,10 +391,13 @@ clean: cleanexamples
 #
 # Avoid a project in project_templates,
 # that has CastleEngineManifest.xml with macros, and would cause errors:
-# """ Project name contains invalid characters: "${PROJECT_NAME}" """
+# """ Project name contains invalid characters: "${PROJECT_NAME}" """ .
+#
+# Avoid project in build-tool/tests/data that is not a real project
+# (will never be compiled).
 	$(FIND) . \
-	  '(' -path ./tools/castle-editor/data/project_templates \
-	      -prune ')' -or \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
+	  '(' -path ./tools/build-tool/tests/data/ -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir castle-engine clean ';' ')'
 
