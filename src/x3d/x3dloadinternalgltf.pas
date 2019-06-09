@@ -834,7 +834,7 @@ type
         end;
       TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
         begin
-          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximatig by "Linear"');
+          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximating by "Linear"');
           case Path of
             gsTranslation, gsScale:
               begin
