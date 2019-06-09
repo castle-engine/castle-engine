@@ -135,12 +135,10 @@
     procedure SynchronizeFromKraft;
 
     procedure SetAngularVelocity(const AVelocity: TVector3);
-    function GetAngularVelocity: TVector3;
     procedure SetAngularVelocityDamp(const AValue: Single);
     procedure SetMaximalAngularVelocity(const AValue: Single);
 
     procedure SetLinearVelocity(const LVelocity: TVector3);
-    function GetLinearVelocity: TVector3;
     procedure SetLinearVelocityDamp(const AValue: Single);
     procedure SetMaximalLinearVelocity(const AValue: Single);
 
@@ -163,11 +161,11 @@
     { Transformations that we collide with currently. }
     function GetCollidingTransforms: TCastleTransformList;
 
-    property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
+    property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
     property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
     property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
 
-    property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    property LinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
@@ -529,7 +527,6 @@ begin
 
   Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
 
-  SynchronizeFromKraft;
   FreeAndNil(FKraftBody);
 
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
@@ -637,8 +634,10 @@ begin
 
   UpdateCollides(Transform);
   if Dynamic then
-    TransformationFromKraft
-  else
+  begin
+    TransformationFromKraft;
+    SynchronizeFromKraft; // I think its only required for dynamic bodies.
+  end else
   if Animated then
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
@@ -677,14 +676,6 @@ begin
   end;
 end;
 
-function TRigidBody.GetLinearVelocity: TVector3;
-begin
-  if FKraftBody <> nil then
-    Result := VectorFromKraft(FKraftBody.LinearVelocity)
-  else
-    Result := FLinearVelocity;
-end;
-
 procedure TRigidBody.SetAngularVelocity(const AVelocity: TVector3);
 begin
   FAngularVelocity := AVelocity;
@@ -694,14 +685,6 @@ begin
     if not AVelocity.IsPerfectlyZero then
       FKraftBody.SetToAwake;
   end;
-end;
-
-function TRigidBody.GetAngularVelocity: TVector3;
-begin
-  if FKraftBody <> nil then
-    Result := VectorFromKraft(FKraftBody.AngularVelocity)
-  else
-    Result := FAngularVelocity;
 end;
 
 procedure TRigidBody.SetExists(const Value: Boolean);
