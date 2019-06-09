@@ -169,6 +169,11 @@
     property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
     property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
 
+    property InitialAngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
+      deprecated 'use AngularVelocity';
+    property InitialLinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
+      deprecated 'use LinearVelocity';
+
     { Occurs when TRigidBody starts colliding with another TRigidBody.
 
       It can occur repeatedly for the same body (in the same time instant)
