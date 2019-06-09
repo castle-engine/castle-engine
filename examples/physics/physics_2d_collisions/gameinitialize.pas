@@ -75,13 +75,14 @@ begin
   Load('castle-data:/plane.x3d');
   Translation := Vector3(50, 50, 0); // initial position
 
-  RBody := TRigidBody.Create(Plane);
+  RBody := TRigidBody.Create(Self);
   RBody.Dynamic := true;
   RBody.Setup2D;
   RBody.OnCollisionEnter := @CollisionEnter;
   RBody.LinearVelocityDamp := 0;
   RBody.MaximalLinearVelocity := 200;
   RBody.AngularVelocityDamp := 0;
+
   Collider := TBoxCollider.Create(RBody);
   Collider.Size := LocalBoundingBox.Size * 5;
   Collider.Restitution := 0.4;
