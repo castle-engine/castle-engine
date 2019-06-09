@@ -777,6 +777,7 @@ type
     Route: TX3DRoute;
     InterpolatorOutputEvent: TX3DEvent;
     TargetField: TX3DField;
+    I: Integer;
   begin
     case Path of
       gsTranslation, gsScale:
@@ -823,6 +824,58 @@ type
     ParentGroup.AddRoute(Route);
 
     Result := Interpolator;
+
+    // take into account Interpolation
+    case Sampler.Interpolation of
+      TPasGLTF.TAnimation.TSampler.TSamplerType.Linear: ; // nothing to do
+      TPasGLTF.TAnimation.TSampler.TSamplerType.Step:
+        begin
+          WritelnWarning('Animation interpolation Step not supported now, will be Linear');
+        end;
+      TPasGLTF.TAnimation.TSampler.TSamplerType.CubicSpline:
+        begin
+          WritelnWarning('Animation interpolation "CubicSpline" not supported yet, approximatig by "Linear"');
+          case Path of
+            gsTranslation, gsScale:
+              begin
+                if InterpolateVector3.FdKeyValue.Count <>
+                   InterpolateVector3.FdKey.Count * 3 then
+                begin
+                  WritelnWarning('For "CubicSpline", expected 3 output values for each input time, got %d for %d', [
+                    InterpolateVector3.FdKeyValue.Count,
+                    InterpolateVector3.FdKey.Count
+                  ]);
+                  Exit;
+                end;
+                for I := 0 to InterpolateVector3.FdKeyValue.Count div 3 - 1 do
+                  InterpolateVector3.FdKeyValue.Items[I] :=
+                    InterpolateVector3.FdKeyValue.Items[3 * I + 1];
+                InterpolateVector3.FdKeyValue.Count := InterpolateVector3.FdKeyValue.Count div 3;
+              end;
+            gsRotation:
+              begin
+                if InterpolateRotation.FdKeyValue.Count <>
+                   InterpolateRotation.FdKey.Count * 3 then
+                begin
+                  WritelnWarning('For "CubicSpline", expected 3 output values for each input time, got %d for %d', [
+                    InterpolateRotation.FdKeyValue.Count,
+                    InterpolateRotation.FdKey.Count
+                  ]);
+                  Exit;
+                end;
+                for I := 0 to InterpolateRotation.FdKeyValue.Count div 3 - 1 do
+                  InterpolateRotation.FdKeyValue.Items[I] :=
+                    InterpolateRotation.FdKeyValue.Items[3 * I + 1];
+                InterpolateRotation.FdKeyValue.Count := InterpolateRotation.FdKeyValue.Count div 3;
+              end;
+            else raise EInternalError.Create('ReadSampler - Path?');
+          end;
+        end;
+      else
+        begin
+          WritelnWarning('Given animation interpolation is not supported');
+        end;
+    end;
 
     // TODO: reset fields not used by this animation, but possibly changed by others?
   end;
