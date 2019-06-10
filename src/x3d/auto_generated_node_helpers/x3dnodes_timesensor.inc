@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,11 +30,15 @@
     procedure SetEnabled(const Value: boolean);
     function GetFractionIncreasing: boolean;
     procedure SetFractionIncreasing(const Value: boolean);
+    function GetDetectAffectedFields: boolean;
+    procedure SetDetectAffectedFields(const Value: boolean);
   public
     { X3D field "enabled". } { }
     property Enabled: boolean read GetEnabled write SetEnabled;
     { X3D field "fractionIncreasing". } { }
     property FractionIncreasing: boolean read GetFractionIncreasing write SetFractionIncreasing;
+    { X3D field "detectAffectedFields". } { }
+    property DetectAffectedFields: boolean read GetDetectAffectedFields write SetDetectAffectedFields;
 
 {$endif read_interface}
 
@@ -60,6 +64,16 @@ end;
 procedure TTimeSensorNode.SetFractionIncreasing(const Value: boolean);
 begin
   FdFractionIncreasing.Send(Value);
+end;
+
+function TTimeSensorNode.GetDetectAffectedFields: boolean;
+begin
+  Result := FdDetectAffectedFields.Value;
+end;
+
+procedure TTimeSensorNode.SetDetectAffectedFields(const Value: boolean);
+begin
+  FdDetectAffectedFields.Send(Value);
 end;
 
 {$endif read_implementation}

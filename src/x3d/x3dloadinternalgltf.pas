@@ -894,6 +894,7 @@ type
     NodeIndex, I: Integer;
   begin
     TimeSensor := TTimeSensorNode.Create;
+    TimeSensor.DetectAffectedFields := true;
     if Animation.Name = '' then
       { Needs a name, otherwise
         1. TCastleSceneCore.AnimationsList ignores this,

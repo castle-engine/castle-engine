@@ -213,6 +213,7 @@ var
   SlotsToReset: TSlotsAnimated;
 begin
   Node := TTimeSensorNode.Create(DefaultAnimationPrefix + Name, BaseUrl);
+  Node.DetectAffectedFields := true;
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do

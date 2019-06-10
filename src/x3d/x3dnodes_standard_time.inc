@@ -337,6 +337,9 @@
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
+    strict private FFdDetectAffectedFields: TSFBool;
+    public property FdDetectAffectedFields: TSFBool read FFdDetectAffectedFields;
+
     strict private FFdFractionIncreasing: TSFBool;
     public property FdFractionIncreasing: TSFBool read FFdFractionIncreasing;
 
@@ -975,6 +978,9 @@ begin
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
+
+  FFdDetectAffectedFields := TSFBool.Create(Self, false, 'detectAffectedFields', false);
+  AddField(FFdDetectAffectedFields);
 
   FFdFractionIncreasing := TSFBool.Create(Self, true, 'fractionIncreasing', true);
   AddField(FFdFractionIncreasing);

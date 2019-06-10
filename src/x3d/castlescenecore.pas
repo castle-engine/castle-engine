@@ -30,18 +30,6 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
 type
-  { Internal helper type for TCastleSceneCore.
-    @exclude }
-  TSceneValidity = (fvLocalBoundingBox,
-    fvVerticesCountNotOver, fvVerticesCountOver,
-    fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvMainLightForShadows,
-    fvShapesActiveCount,
-    fvShapesActiveVisibleCount);
-
-  { @exclude }
-  TSceneValidities = set of TSceneValidity;
-
   { These are various features that may be freed by
     TCastleSceneCore.FreeResources.
 
@@ -226,56 +214,6 @@ type
     function Top: TAbstractViewpointNode;
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
   end;
-
-  { @exclude }
-  TGeneratedTexture = record
-    { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
-      or TGeneratedShadowMapNode. }
-    TextureNode: TAbstractTextureNode;
-    Handler: TGeneratedTextureHandler;
-    Shape: TShape;
-  end;
-  PGeneratedTexture = ^TGeneratedTexture;
-
-  { @exclude
-    Internal for TCastleSceneCore: list of generated textures
-    (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
-    along with their shape. }
-  TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
-  public
-    function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
-    function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
-    function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
-    procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
-  end;
-
-  { @exclude }
-  TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
-  { @exclude }
-  TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
-  { @exclude }
-  TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
-  public
-    destructor Destroy; override;
-    { Remove everything are released owned stuff.
-      We own TVisibilitySensorInstanceList instances on our Data list.
-      We do not own TVisibilitySensorNode (our Keys list). }
-    procedure Clear; reintroduce;
-  end;
-  TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
-    procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
-  end;
-
-  TCompiledScriptHandler = procedure (
-    Value: TX3DField; const Time: TX3DTime) of object;
-
-  { @exclude }
-  TCompiledScriptHandlerInfo = record
-    Handler: TCompiledScriptHandler;
-    Name: string;
-  end;
-  PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structures that may be managed by TCastleSceneCore,
     see @link(TCastleSceneCore.Spatial). }
@@ -495,6 +433,68 @@ type
     @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
   TCastleSceneCore = class(TX3DEventsEngine)
   private
+    type
+      TSceneValidity = (fvLocalBoundingBox,
+        fvVerticesCountNotOver, fvVerticesCountOver,
+        fvTrianglesCountNotOver, fvTrianglesCountOver,
+        fvMainLightForShadows,
+        fvShapesActiveCount,
+        fvShapesActiveVisibleCount);
+
+      TSceneValidities = set of TSceneValidity;
+
+      TGeneratedTexture = record
+        { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
+          or TGeneratedShadowMapNode. }
+        TextureNode: TAbstractTextureNode;
+        Handler: TGeneratedTextureHandler;
+        Shape: TShape;
+      end;
+      PGeneratedTexture = ^TGeneratedTexture;
+
+      { @exclude
+        Internal for TCastleSceneCore: list of generated textures
+        (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
+        along with their shape. }
+      TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
+      public
+        function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
+        function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
+        function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
+        procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
+      end;
+
+      TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
+      TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
+        procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
+      end;
+
+      TCompiledScriptHandler = procedure (
+        Value: TX3DField; const Time: TX3DTime) of object;
+
+      TCompiledScriptHandlerInfo = record
+        Handler: TCompiledScriptHandler;
+        Name: string;
+      end;
+      PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
+      TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
+
+      { Map from original field (in RootNode) to a copy of this field. }
+      TAnimationAffectedFields = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectDictionary<TX3DField, TX3DField>;
+
+  protected
+    type
+      TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
+      TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+      public
+        destructor Destroy; override;
+        { Remove everything are released owned stuff.
+          We own TVisibilitySensorInstanceList instances on our Data list.
+          We do not own TVisibilitySensorNode (our Keys list). }
+        procedure Clear; reintroduce;
+      end;
+
+  private
     FOwnsRootNode: boolean;
     FShapes: TShapeTree;
     FRootNode: TX3DRootNode;
@@ -554,6 +554,10 @@ type
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
     ForceImmediateProcessing: Integer;
+
+    { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
+    NeedsDetectAffectedFields: Boolean;
+    AnimationAffectedFields: TAnimationAffectedFields;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -2620,7 +2624,7 @@ end;
 
 { TGeneratedTextureList -------------------------------------------------- }
 
-function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
+function TCastleSceneCore.TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].TextureNode = TextureNode then
@@ -2628,7 +2632,7 @@ begin
   Result := -1;
 end;
 
-function TGeneratedTextureList.FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
+function TCastleSceneCore.TGeneratedTextureList.FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
 var
   Index: Integer;
 begin
@@ -2638,7 +2642,7 @@ begin
     Result := nil;
 end;
 
-function TGeneratedTextureList.AddShapeTexture(Shape: TShape;
+function TCastleSceneCore.TGeneratedTextureList.AddShapeTexture(Shape: TShape;
   Tex: TAbstractTextureNode): Pointer;
 var
   GenTex: PGeneratedTexture;
@@ -2697,7 +2701,7 @@ begin
   end;
 end;
 
-procedure TGeneratedTextureList.UpdateShadowMaps(LightNode: TAbstractLightNode);
+procedure TCastleSceneCore.TGeneratedTextureList.UpdateShadowMaps(LightNode: TAbstractLightNode);
 var
   I: Integer;
 begin
@@ -2709,7 +2713,7 @@ end;
 
 { TTimeDependentHandlerList ------------------------------------------------- }
 
-procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
+procedure TCastleSceneCore.TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2717,13 +2721,13 @@ end;
 
 { TVisibilitySensors --------------------------------------------------------- }
 
-destructor TVisibilitySensors.Destroy;
+destructor TCastleSceneCore.TVisibilitySensors.Destroy;
 begin
   Clear;
   inherited;
 end;
 
-procedure TVisibilitySensors.Clear;
+procedure TCastleSceneCore.TVisibilitySensors.Clear;
 var
   V: TVisibilitySensorInstanceList;
 begin
@@ -2739,6 +2743,104 @@ begin
   inherited;
   Loop := false;
   Forward := true;
+end;
+
+{ TDetectAffectedFields ------------------------------------------------------ }
+
+type
+  TDetectAffectedFields = class
+  strict private
+    ParentScene: TCastleSceneCore;
+    AllRoutes: TX3DRouteList;
+    AffectedInterpolators: TX3DNodeList;
+    procedure FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
+  public
+    constructor Create(const AParentScene: TCastleSceneCore);
+    destructor Destroy; override;
+    procedure FindRoutesAndInterpolators;
+    procedure FindAnimationAffectedFields;
+  end;
+
+constructor TDetectAffectedFields.Create(const AParentScene: TCastleSceneCore);
+begin
+  inherited Create;
+  ParentScene := AParentScene;
+  AllRoutes := TX3DRouteList.Create(false);
+  AffectedInterpolators := TX3DNodeList.Create(false);
+end;
+
+destructor TDetectAffectedFields.Destroy;
+begin
+  FreeAndNil(AffectedInterpolators);
+  FreeAndNil(AllRoutes);
+  inherited;
+end;
+
+procedure TDetectAffectedFields.FindRoutesAndInterpolators;
+begin
+  if ParentScene.RootNode <> nil then
+    ParentScene.RootNode.EnumerateNodes(TX3DNode, @FindRoutesAndInterpolatorsEnumerate, false);
+end;
+
+procedure TDetectAffectedFields.FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
+var
+  Route: TX3DRoute;
+  I: Integer;
+begin
+  for I := 0 to Node.RoutesCount - 1 do
+  begin
+    Route := Node.Routes[I];
+    { Note that it's OK to add the same route instance multiple times
+      to AllRoutes list below. }
+    AllRoutes.Add(Route);
+
+    { Found route from some TimeSensor.fraction_changed to some interpolator.set_fraction,
+      and TimeSensor has detectAffectedFields. }
+    if (Route.SourceNode is TTimeSensorNode) and
+       TTimeSensorNode(Route.SourceNode).DetectAffectedFields and
+       (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventFraction_Changed) and
+       (Route.DestinationNode is TAbstractInterpolatorNode) and
+       (Route.DestinationEvent.X3DName = 'set_fraction') then
+      { Note that it's OK to add the same interpolator instance multiple times below. }
+      AffectedInterpolators.Add(Route.DestinationNode);
+  end;
+end;
+
+procedure TDetectAffectedFields.FindAnimationAffectedFields;
+
+  function FieldOfInputEvent(const Node: TX3DNode; const Event: TX3DEvent): TX3DField;
+  var
+    F: TX3DField;
+    I: Integer;
+  begin
+    for I := 0 to Node.FieldsCount - 1 do
+    begin
+      F := Node.Fields[I];
+      if F.EventIn = Event then
+        Exit(F);
+    end;
+    Result := nil;
+  end;
+
+var
+  Route: TX3DRoute;
+  Field, FieldCopy: TX3DField;
+begin
+  for Route in AllRoutes do
+    if (Route.SourceNode is TAbstractInterpolatorNode) and
+       (Route.SourceEvent.X3DName = 'value_changed') and
+       (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) then
+    begin
+      Field := FieldOfInputEvent(Route.DestinationNode, Route.DestinationEvent);
+      if (Field <> nil) and
+         (not ParentScene.AnimationAffectedFields.ContainsKey(Field)) then
+      begin
+        FieldCopy := nil; // TODO
+        ParentScene.AnimationAffectedFields.Add(Field, FieldCopy);
+        // TODO for debug:
+        WritelnLog('fields affected by animation ', Field.NiceName);
+      end;
+    end;
 end;
 
 { TCastleSceneCore ----------------------------------------------------------- }
@@ -2776,6 +2878,7 @@ begin
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
+  AnimationAffectedFields := TAnimationAffectedFields.Create([doOwnsValues]);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2826,6 +2929,7 @@ begin
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeStaticCollisions);
   FreeAndNil(FAnimationsList);
+  FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
 
   if OwnsRootNode then
@@ -3307,7 +3411,7 @@ function TChangedAllTraverser.Traverse(
   procedure HandleVisibilitySensor(const Node: TVisibilitySensorNode);
   var
     VSI: TVisibilitySensorInstance;
-    Instances: TVisibilitySensorInstanceList;
+    Instances: TCastleSceneCore.TVisibilitySensorInstanceList;
   begin
     VSI := TVisibilitySensorInstance.Create(ParentScene);
     VSI.Node := Node;
@@ -3319,7 +3423,7 @@ function TChangedAllTraverser.Traverse(
     { add to ParentScene.VisibilitySensors map }
     if not ParentScene.VisibilitySensors.TryGetValue(Node, Instances) then
     begin
-      Instances := TVisibilitySensorInstanceList.Create(false);
+      Instances := TCastleSceneCore.TVisibilitySensorInstanceList.Create(false);
       ParentScene.VisibilitySensors.Add(Node, Instances);
     end;
     Instances.Add(VSI);
@@ -3522,6 +3626,8 @@ begin
 end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
+var
+  TimeDependentHandler: TInternalTimeDependentHandler;
 begin
   if not FStatic then
   begin
@@ -3542,10 +3648,17 @@ begin
   }
 
   if Node is TAbstractKeyDeviceSensorNode then
-    KeyDeviceSensorNodes.AddIfNotExists(Node) else
+    KeyDeviceSensorNodes.AddIfNotExists(Node)
+  else
   if Supports(Node, IAbstractTimeDependentNode) then
-    TimeDependentHandlers.AddIfNotExists(
-      (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler);
+  begin
+    TimeDependentHandler := (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler;
+    TimeDependentHandlers.AddIfNotExists(TimeDependentHandler);
+
+    // update NeedsDetectAffectedFields if necessary
+    if (Node is TTimeSensorNode) and TTimeSensorNode(Node).DetectAffectedFields then
+      NeedsDetectAffectedFields := true;
+  end;
 end;
 
 procedure TCastleSceneCore.ChangedAll;
@@ -3606,10 +3719,21 @@ procedure TCastleSceneCore.ChangedAll;
 
   { Assigns nodes TX3DNode.Scene, and adds nodes to KeyDeviceSensorNodes
     and TimeDependentHandlers lists. }
-  procedure ChangedAllEnumerate;
+  procedure EnumerateNodes;
   begin
     if RootNode <> nil then
       RootNode.EnumerateNodes(TX3DNode, @ChangedAllEnumerateCallback, false);
+  end;
+
+  procedure DetectAffectedFields;
+  var
+    Detector: TDetectAffectedFields;
+  begin
+    Detector := TDetectAffectedFields.Create(Self);
+    try
+      Detector.FindRoutesAndInterpolators;
+      Detector.FindAnimationAffectedFields;
+    finally FreeAndNil(Detector) end;
   end;
 
 var
@@ -3668,6 +3792,8 @@ begin
     GlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
+    AnimationAffectedFields.Clear;
+    NeedsDetectAffectedFields := false;
 
     if RootNode <> nil then
     begin
@@ -3684,7 +3810,10 @@ begin
 
       AddGlobalLights;
 
-      ChangedAllEnumerate;
+      EnumerateNodes;
+
+      if NeedsDetectAffectedFields then
+        DetectAffectedFields;
     end;
 
     { Call DoGeometryChanged here, as our new shapes are added.
