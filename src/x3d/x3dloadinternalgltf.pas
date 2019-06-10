@@ -1,5 +1,5 @@
 {
-  Copyright 2018-2018 Michalis Kamburelis.
+  Copyright 2018-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -671,10 +671,12 @@ var
     if Camera.Type_ = TPasGLTF.TCamera.TCameraType.Orthographic then
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
+      OrthoViewpoint.X3DName := Camera.Name;
       ParentGroup.AddChildren(OrthoViewpoint);
     end else
     begin
       Viewpoint := TViewpointNode.Create;
+      Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov;
       ParentGroup.AddChildren(Viewpoint);
