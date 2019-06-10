@@ -7242,7 +7242,9 @@ begin
     try
       //Enum.Parent := Self;
       Enum.List := Result;
+      {$warnings off} // knowingly using deprecated, to keep it working
       Enum.AnimationPrefix := AnimationPrefix;
+      {$warnings on}
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
 
       { recognize named animations also from IMPORTed node names.
