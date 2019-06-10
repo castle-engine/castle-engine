@@ -33,16 +33,6 @@
       @groupBegin }
     DefaultSkin: TSkin;
     { @groupEnd }
-    { List of bones/slots (all present also on TSkeleton.Bones/Slots list)
-      that have their translation/rotation/scale (in case of bones)
-      or attachment/color (in case of slots) modified by @italic(any) animation.
-      This is useful to gather, as this is the minimal set of things
-      reset to bring back model to initial (pose) state.
-      Calculated during TSkeleton.Parse, used during TSkeleton.BuildNodes.
-      @groupBegin }
-    BonesAnimated: TBonesAnimated;
-    SlotsAnimated: TSlotsAnimated;
-    { @groupEnd }
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
@@ -59,8 +49,6 @@ begin
   Slots := TSlotList.Create;
   Skins := TSkinList.Create;
   Animations := TAnimationList.Create;
-  BonesAnimated := TBonesAnimated.Create;
-  SlotsAnimated := TSlotsAnimated.Create;
 end;
 
 destructor TSkeleton.Destroy;
@@ -71,8 +59,6 @@ begin
   Root := nil;
   FreeAndNil(Bones);
   FreeAndNil(Animations);
-  FreeAndNil(BonesAnimated);
-  FreeAndNil(SlotsAnimated);
   inherited;
 end;
 
@@ -103,7 +89,7 @@ begin
   Bones.Parse(O, Root, DragonBonesFormat);
   Slots.Parse(O, Bones, DragonBonesFormat);
   Skins.Parse(O, DefaultSkin, Bones, DragonBonesFormat);
-  Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
+  Animations.Parse(O, Bones, Slots);
 
   // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
   //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
@@ -144,7 +130,7 @@ begin
   NavigationInfo.BlendingSort := obs2D;
   Container.AddChildren(NavigationInfo);
 
-  Bones.BuildNodes(BaseUrl, BonesAnimated);
+  Bones.BuildNodes(BaseUrl);
   Root.NodeUsedAsChild := true;
   Container.AddChildren(Root.Node);
   Skins.BuildNodes(BaseUrl, TextureLoader);
@@ -166,7 +152,7 @@ begin
   end;
   SkinLog;
 
-  Slots.BuildNodes(BaseUrl, SlotsAnimated, CurrentSkin.Attachments, DefaultSkin.Attachments, Container);
-  Animations.BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);
+  Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
+  Animations.BuildNodes(BaseUrl, Container);
 end;
 {$endif}

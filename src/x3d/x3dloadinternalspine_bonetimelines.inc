@@ -32,8 +32,7 @@
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); virtual;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: boolean; virtual; abstract;
   end;
 
@@ -48,16 +47,14 @@
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
   end;
 
@@ -69,8 +66,7 @@
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
   end;
 
@@ -82,7 +78,7 @@
 
 const
   SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
-  SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
+  // SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
 { TBoneTimeline -------------------------------------------------------------- }
 
@@ -156,8 +152,7 @@ begin
 end;
 
 procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
 begin
@@ -194,8 +189,7 @@ begin
 end;
 
 procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
   N: TPositionInterpolatorNode;
@@ -237,9 +231,6 @@ begin
   Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
   Container.AddRoute(Route);
 
-  if BonesToReset.Translation.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
-
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
@@ -268,8 +259,7 @@ begin
 end;
 
 procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   { Combine initial node scale and 2D key scale into a final scale. }
   function FinalScale(const InitialScale: TVector3;
@@ -318,9 +308,6 @@ begin
   Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
   Container.AddRoute(Route);
 
-  if BonesToReset.Scale.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
-
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
@@ -360,8 +347,7 @@ begin
 end;
 
 procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
   N: TOrientationInterpolatorNode;
@@ -402,9 +388,6 @@ begin
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
   Container.AddRoute(Route);
-
-  if BonesToReset.Rotation.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe

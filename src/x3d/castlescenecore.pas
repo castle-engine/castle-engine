@@ -554,6 +554,7 @@ type
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
     ForceImmediateProcessing: Integer;
+    NeedsResetAnimationState: Boolean;
 
     { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
     NeedsDetectAffectedFields: Boolean;
@@ -6123,6 +6124,11 @@ begin
        (PlayingAnimationNode <> nil) then
       PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
 
+    { if current animation node changes (to non-nil) }
+    if (PlayingAnimationNode <> NewPlayingAnimationNode) and
+       (NewPlayingAnimationNode <> nil) then
+      NeedsResetAnimationState := true;
+
     { set PreviousPlayingAnimationXxx }
     PreviousPlayingAnimation := PlayingAnimationNode;
     if PreviousPlayingAnimation <> nil then
@@ -6258,6 +6264,14 @@ begin
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation;
+      { Right before we pass time to TimeSensors (which will change the fields affected
+        by PlayingAnimationNode), call ResetAnimatedFields to reset other fields,
+        to reset the state left by previous animation. }
+      if NeedsResetAnimationState then
+      begin
+        ResetAnimationState(PlayingAnimationNode);
+        NeedsResetAnimationState := false;
+      end;
       UpdateTimeDependentHandlersIfVisible;
       UpdateHumanoidSkin;
       UpdateTransformationDirty;

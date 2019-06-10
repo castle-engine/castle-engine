@@ -39,8 +39,7 @@
     procedure Parse(const Json: TJSONArray);
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const SlotsToReset: TSlotsAnimated); virtual;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
   end;
 
   TSlotTimelineAttachment = class(TSlotTimeline)
@@ -49,8 +48,7 @@
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const SlotsToReset: TSlotsAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TSlotTimelineColor = class(TSlotTimeline)
@@ -61,8 +59,7 @@
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const SlotsToReset: TSlotsAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
@@ -107,8 +104,7 @@ begin
 end;
 
 procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const SlotsToReset: TSlotsAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   procedure FillKeys(var Node: TKeyedNode);
   var
@@ -152,8 +148,7 @@ begin
 end;
 
 procedure TSlotTimelineAttachment.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const SlotsToReset: TSlotsAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
   N: TIntegerSequencerNode;
@@ -175,9 +170,6 @@ begin
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Slot.SwitchNode.FdWhichChoice.EventIn);
   Container.AddRoute(Route);
-
-  if SlotsToReset.Attachment.Remove(Slot) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'attachment']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
@@ -241,8 +233,7 @@ begin
 end;
 
 procedure TSlotTimelineColor.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const SlotsToReset: TSlotsAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
   N: TColorInterpolatorNode;
@@ -297,9 +288,6 @@ begin
     Route.SetDestinationDirectly(Slot.Materials[I].FdTransparency);
     Container.AddRoute(Route);
   end;
-
-  if SlotsToReset.Color.Remove(Slot) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'color']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe

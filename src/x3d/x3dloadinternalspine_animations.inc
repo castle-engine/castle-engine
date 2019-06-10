@@ -26,19 +26,15 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
-      const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated;
+      const Bones: TBoneList; const Slots: TSlotList;
       var CurvesRemoved: Cardinal);
-    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
-      const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
+    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 
   TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
-      const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
-      const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
-    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
-      const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
+      const Bones: TBoneList; const Slots: TSlotList);
+    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
     { Add all TimeSensors to EXPORTed nodes. }
     procedure Exported(const RootNode: TX3DRootNode);
   end;
@@ -68,8 +64,7 @@ begin
 end;
 
 procedure TAnimation.Parse(const Json: TJSONObject;
-  const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
-  const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated;
+  const Bones: TBoneList; const Slots: TSlotList;
   var CurvesRemoved: Cardinal);
 
   procedure ReadBoneTimelines(const Bone: TBone; const Json: TJSONObject);
@@ -86,14 +81,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
-        { Note: avoid duplicates on BonesAnimated. Our ToReset mechanism
-          (used when building nodes) depends that there are no duplicates on
-          these lists.
-          And we can have multiple animations affecting the same bone,
-          so without explicitly checking below to avoid duplicates,
-          we would have trouble. }
-        if BonesAnimated.Translation.IndexOf(Bone) = -1 then
-          BonesAnimated.Translation.Add(Bone);
       end else
       begin
         Inc(CurvesRemoved);
@@ -110,8 +97,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
-        if BonesAnimated.Scale.IndexOf(Bone) = -1 then
-          BonesAnimated.Scale.Add(Bone);
       end else
       begin
         Inc(CurvesRemoved);
@@ -128,8 +113,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
-        if BonesAnimated.Rotation.IndexOf(Bone) = -1 then
-          BonesAnimated.Rotation.Add(Bone);
       end else
       begin
         Inc(CurvesRemoved);
@@ -150,8 +133,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       SlotTimeline.Slot := Slot;
       SlotTimeline.Parse(ChildArray);
       SlotTimelines.Add(SlotTimeline);
-      if SlotsAnimated.Attachment.IndexOf(Slot) = -1 then
-        SlotsAnimated.Attachment.Add(Slot);
     end;
 
     ChildArray := Json.Find('color', jtArray) as TJSONArray;
@@ -161,8 +142,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       SlotTimeline.Slot := Slot;
       SlotTimeline.Parse(ChildArray);
       SlotTimelines.Add(SlotTimeline);
-      if SlotsAnimated.Color.IndexOf(Slot) = -1 then
-        SlotsAnimated.Color.Add(Slot);
     end;
   end;
 
@@ -199,18 +178,15 @@ begin
   if ChildArray = nil then
     ChildArray := Json.Find('drawOrder', jtArray) as TJSONArray; // try different case
   if ChildArray <> nil then
-    DrawOrderTimelines.Parse(ChildArray, Slots, SlotsAnimated);
+    DrawOrderTimelines.Parse(ChildArray, Slots);
 end;
 
 procedure TAnimation.BuildNodes(const BaseUrl: string;
-  const Container: TX3DRootNode;
-  const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
+  const Container: TX3DRootNode);
 var
   MaxTime: Single;
-  I, J: Integer;
+  I: Integer;
   Route: TX3DRoute;
-  BonesToReset: TBonesAnimated;
-  SlotsToReset: TSlotsAnimated;
 begin
   Node := TTimeSensorNode.Create(DefaultAnimationPrefix + Name, BaseUrl);
   Node.DetectAffectedFields := true;
@@ -232,131 +208,61 @@ begin
   NodeUsedAsChild := true;
   Container.AddChildren(Node);
 
-  BonesToReset := TBonesAnimated.Create;
-  try
-    BonesToReset.Assign(BonesAnimated);
+  for I := 0 to BoneTimelines.Count - 1 do
+  begin
+    BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container);
+    { add animation name to bone timeline, to make it unique in case
+      we have many animations }
+    BoneTimelines[I].Node.X3DName := Node.X3DName + '_' + BoneTimelines[I].Node.X3DName;
 
-    for I := 0 to BoneTimelines.Count - 1 do
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(BoneTimelines[I].Node.EventSet_fraction);
+    Container.AddRoute(Route);
+  end;
+
+  for I := 0 to SlotTimelines.Count - 1 do
+  begin
+    SlotTimelines[I].BuildNodes(BaseUrl, MaxTime, Container);
+    { add animation name to slot timeline, to make it unique in case
+      we have many animations }
+    SlotTimelines[I].Node1.Node.X3DName := Node.X3DName + '_' +
+      SlotTimelines[I].Node1.Node.X3DName;
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(SlotTimelines[I].Node1.EventSet_fraction);
+    Container.AddRoute(Route);
+
+    if SlotTimelines[I].HasNode2 then
     begin
-      BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, BonesToReset);
-      { add animation name to bone timeline, to make it unique in case
-        we have many animations }
-      BoneTimelines[I].Node.X3DName := Node.X3DName + '_' + BoneTimelines[I].Node.X3DName;
-
+      SlotTimelines[I].Node2.Node.X3DName := Node.X3DName + '_' +
+        SlotTimelines[I].Node2.Node.X3DName;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(BoneTimelines[I].Node.EventSet_fraction);
+      Route.SetDestinationDirectly(SlotTimelines[I].Node2.EventSet_fraction);
       Container.AddRoute(Route);
     end;
+  end;
 
-    for I := 0 to BonesToReset.Translation.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(BonesToReset.Translation[I].ResetTranslation.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-
-    for I := 0 to BonesToReset.Scale.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(BonesToReset.Scale[I].ResetScale.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-
-    for I := 0 to BonesToReset.Rotation.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(BonesToReset.Rotation[I].ResetRotation.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-  finally FreeAndNil(BonesToReset) end;
-
-  SlotsToReset := TSlotsAnimated.Create;
-  try
-    SlotsToReset.Assign(SlotsAnimated);
-
-    for I := 0 to SlotTimelines.Count - 1 do
-    begin
-      SlotTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, SlotsToReset);
-      { add animation name to slot timeline, to make it unique in case
-        we have many animations }
-      SlotTimelines[I].Node1.Node.X3DName := Node.X3DName + '_' +
-        SlotTimelines[I].Node1.Node.X3DName;
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotTimelines[I].Node1.EventSet_fraction);
-      Container.AddRoute(Route);
-
-      if SlotTimelines[I].HasNode2 then
-      begin
-        SlotTimelines[I].Node2.Node.X3DName := Node.X3DName + '_' +
-          SlotTimelines[I].Node2.Node.X3DName;
-        Route := TX3DRoute.Create;
-        Route.SetSourceDirectly(Node.EventFraction_changed);
-        Route.SetDestinationDirectly(SlotTimelines[I].Node2.EventSet_fraction);
-        Container.AddRoute(Route);
-      end;
-    end;
-
-    for I := 0 to DrawOrderTimelines.Count - 1 do
-    begin
-      DrawOrderTimelines[I].BuildNodes(BaseUrl, DrawOrderTimelines.Time,
-        MaxTime, Container, SlotsToReset);
-      { add animation name to draworder timeline, to make it unique in case
-        we have many animations }
-      DrawOrderTimelines[I].Node.X3DName := Node.X3DName + '_' +
-        DrawOrderTimelines[I].Node.X3DName;
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-
-    for I := 0 to SlotsToReset.Attachment.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotsToReset.Attachment[I].ResetAttachment.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-
-    for I := 0 to SlotsToReset.Color.Count - 1 do
-    begin
-      for J := 0 to SlotsToReset.Color[I].ResetColor1.Count - 1 do
-      begin
-        Route := TX3DRoute.Create;
-        Route.SetSourceDirectly(Node.EventFraction_changed);
-        Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor1[J].EventSet_fraction);
-        Container.AddRoute(Route);
-      end;
-
-      for J := 0 to SlotsToReset.Color[I].ResetColor2.Count - 1 do
-      begin
-        Route := TX3DRoute.Create;
-        Route.SetSourceDirectly(Node.EventFraction_changed);
-        Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2[J].EventSet_fraction);
-        Container.AddRoute(Route);
-      end;
-    end;
-
-    for I := 0 to SlotsToReset.DrawOrder.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotsToReset.DrawOrder[I].ResetDrawOrder.EventSet_fraction);
-      Container.AddRoute(Route);
-    end;
-  finally FreeAndNil(SlotsToReset) end;
+  for I := 0 to DrawOrderTimelines.Count - 1 do
+  begin
+    DrawOrderTimelines[I].BuildNodes(BaseUrl, DrawOrderTimelines.Time,
+      MaxTime, Container);
+    { add animation name to draworder timeline, to make it unique in case
+      we have many animations }
+    DrawOrderTimelines[I].Node.X3DName := Node.X3DName + '_' +
+      DrawOrderTimelines[I].Node.X3DName;
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);
+    Container.AddRoute(Route);
+  end;
 end;
 
 { TAnimationList ------------------------------------------------------------- }
 
 procedure TAnimationList.Parse(const Json: TJSONObject;
-  const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
-  const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
+  const Bones: TBoneList; const Slots: TSlotList);
 var
   I: Integer;
   Animation: TAnimation;
@@ -378,8 +284,7 @@ begin
         Animation := TAnimation.Create;
         Add(Animation);
         Animation.Name := ChildObj.Names[I];
-        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, BonesAnimated,
-          Slots, SlotsAnimated, CurvesRemoved);
+        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, Slots, CurvesRemoved);
       end;
 
     // WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
@@ -388,13 +293,12 @@ begin
 end;
 
 procedure TAnimationList.BuildNodes(const BaseUrl: string;
-  const Container: TX3DRootNode;
-  const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
+  const Container: TX3DRootNode);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);
+    Items[I].BuildNodes(BaseUrl, Container);
 end;
 
 procedure TAnimationList.Exported(const RootNode: TX3DRootNode);
