@@ -678,7 +678,7 @@ var
       Viewpoint := TViewpointNode.Create;
       Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
-        Viewpoint.FieldOfView := Camera.Perspective.YFov;
+        Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
       ParentGroup.AddChildren(Viewpoint);
     end;
   end;

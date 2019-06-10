@@ -56,18 +56,12 @@ begin
   Scene1 := UiOwner.FindRequiredComponent('Scene1') as TCastleScene;
   SceneManager1 := UiOwner.FindRequiredComponent('SceneManager1') as TCastleSceneManager;
 
+  { determine default camera from the camera recorded in Scene1 }
+  SceneManager1.MainScene := Scene1;
+
   { Assign OnClick events }
   ButtonAnimationSqueeze.OnClick := @ClickAnimationSqueeze;
   ButtonAnimationGear.OnClick := @ClickAnimationGear;
-
-  // Set camera vectors.
-  // TODO: This is temporary, until camera from glTF is read OK.
-  SceneManager1.RequiredCamera.SetView(
-    Vector3(0.00, 0.00, 4.48), // position
-    Vector3(0.00, 0.00, -1.00), // direction
-    Vector3(0.00, 1.00, 0.00), // up (current)
-    Vector3(0.00, 1.00, 0.00) // gravity up
-  );
 end;
 
 procedure TMainState.Update(const SecondsPassed: Single; var HandleInput: Boolean);
