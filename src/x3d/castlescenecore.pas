@@ -614,6 +614,14 @@ type
       Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
+
+    { Apply NewPlayingAnimation* stuff.
+
+      Call outside of AnimateOnlyWhenVisible check, to do it even when object
+      is not visible.  Otherwise stop/start time would be delayed too until
+      it becomes visible, which is not perfect (although it would be Ok
+      in practice too?) }
+    procedure UpdateNewPlayingAnimation;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -2035,16 +2043,38 @@ type
       the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
+      deprecated 'this property did not prove to be of much use; report if you need it, otherwise it may be removed one day';
 
     { Currently played animation by @link(PlayAnimation), or @nil.
-      Note that in X3D world, you can have multiple active animations
-      (TimeSensor nodes) at the same time. This property only describes
-      the animation controlled by the @link(PlayAnimation) method.
+
+      Note that, in a general case, you can have multiple active animations
+      (multiple TimeSensor X3D nodes may be active) at the same time.
+      Calling @link(TTimeSensorNode.Start) directly on multiple nodes is
+      one way to make it happen.
+      This property simply describes
+      the animation controlled by the last @link(PlayAnimation) method.
 
       Note that the animation may be started by PlayAnimation with a 1-frame
       delay, but this property hides it from you, it is changed
       immediately by the PlayAnimation call. }
     property CurrentAnimation: TTimeSensorNode read FCurrentAnimation;
+
+    { Stop the @link(CurrentAnimation), started by last @link(PlayAnimation) call.
+      Note that this leaves the model in a state in the middle of the last animation.
+      You can use @link(ResetAnimationState) to reset the state afterwards. }
+    procedure StopAnimation;
+
+    { Reset all the fields affected by animations.
+      See TimeSensor.detectAffectedFields documentation (TODO link) for details
+      how these fields are detected, and when this is useful.
+
+      If IgnoreAffectedBy <> nil, the fields affected by the given TimeSensor
+      may not be reset. This is an optimization useful in case this TimeSensor
+      will modify the scene very soon, so resetting its affected fields
+      is a waste of time.
+      Do not depend on 100% that the fields affected by given TimeSensor
+      are left untouched. }
+    procedure ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode = nil);
 
     { Force recalculating the text shapes when font changed.
       For now, we don't detect font changes (when TFontStyleNode.OnFont
@@ -2923,7 +2953,8 @@ begin
     end else
     if StopIfPlaying then
     begin
-      // TODO: StopAnimation
+      StopAnimation;
+      ResetAnimationState;
     end;
   end;
 end;
@@ -5937,132 +5968,67 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.InternalSetTime(
-  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-
-  { Apply NewPlayingAnimation* stuff.
-
-    Call outside of AnimateOnlyWhenVisible check, to do it even when object
-    is not visible.  Otherwise stop/start time would be delayed too until
-    it becomes visible, which is not perfect (although it would be Ok
-    in practice too?) }
-  procedure UpdateNewPlayingAnimation;
+procedure TCastleSceneCore.UpdateNewPlayingAnimation;
+begin
+  if NewPlayingAnimationUse then
   begin
-    if NewPlayingAnimationUse then
+    NewPlayingAnimationUse := false;
+    if PlayingAnimationNode <> nil then
     begin
-      NewPlayingAnimationUse := false;
-      if PlayingAnimationNode <> nil then
+      PlayingAnimationNode.Stop;
+      if Assigned(PlayingAnimationStopNotification) then
       begin
-        { We want to stop old PlayingAnimationNode from sending any further
-          elapsedTime events (elapsedTime causes also fraction_changed).
-          Sending of further elapsedTime means that two animations try to play
-          at the same time, and modify the same transforms.
-
-          One way to stop animation is to set
-
-            PlayingAnimationNode.StopTime := Time;
-
-          While it works in practice (no reproducible bug with it found),
-          it has 2 problems:
-
-          - There will be 1 additional frame when TimeSensor "finishes of"
-            the animation, by remaining "TimeIncrease - (NewTime - FdStopTime.Value)"
-            duration. This isn't a problem in practice, since it only happens for 1 frame
-            (then the old TimeSensor becomes inactive), but it stil feels dirty/wasteful.
-
-          - In case you will move time backwards, e.g. by ResetTime or ResetTimeAtLoad,
-            you may get into trouble.
-            You may accidentally activate a time sensor that is
-            inactive now, but was active long time ago.
-
-          To overcome the 2nd problem, we tried the trick below.
-          It will work assuming you never reset time to something < 1.
-          (If you do reset time to something very small, then typical TimeSensors will
-          have problems anyway,
-          see https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php ).
-
-            PlayingAnimationNode.StartTime := 0;
-            PlayingAnimationNode.StopTime := 1;
-            PlayingAnimationNode.Loop := false;
-
-          But this:
-          - Still has the "1 additional frame when TimeSensor finishes of" dirtyness.
-          - Also, setting startTime while time-dependent node is active is ignored,
-            X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
-            (bug reproduction: escape_universe, meteorite_1 dying).
-            Although we remove this problem by NeverIgnore hack.
-          - (Obsolete argument:) Also, it's bad to unconditionally set "Loop" value.
-            If user is using paDefault for animation, (s)he expects
-            that PlayAnimation doesn't change it ever.
-
-          So it's simpest and reliable to just set enabled=false on old TimeSensor.
-          TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
-          sending elapsedTime events. }
-
-        PlayingAnimationNode.Enabled := false;
-
-        if Assigned(PlayingAnimationStopNotification) then
-        begin
-          PlayingAnimationStopNotification(Self, PlayingAnimationNode);
-          PlayingAnimationStopNotification := nil;
-        end;
-        PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+        PlayingAnimationStopNotification(Self, PlayingAnimationNode);
+        PlayingAnimationStopNotification := nil;
       end;
-      Assert(PlayingAnimationStopNotification = nil);
+      PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+    end;
+    Assert(PlayingAnimationStopNotification = nil);
 
-      { If calling PlayAnimation on already-playing node,
-        we have to make sure it actually starts playing from the start.
-        For the StartTime below to be correctly applied, we have to make
-        sure the node actually *stops* temporarily (otherwise the
-        TInternalTimeDependentHandler.SetTime never "sees" the node
-        in the Enabled = false state). }
-      if PlayingAnimationNode = NewPlayingAnimationNode then
-        PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
+    { If calling PlayAnimation on already-playing node,
+      we have to make sure it actually starts playing from the start.
+      For the StartTime below to be correctly applied, we have to make
+      sure the node actually *stops* temporarily (otherwise the
+      TInternalTimeDependentHandler.SetTime never "sees" the node
+      in the Enabled = false state). }
+    if (PlayingAnimationNode = NewPlayingAnimationNode) and
+       (PlayingAnimationNode <> nil) then
+      PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
 
-      { set PreviousPlayingAnimationXxx }
-      PreviousPlayingAnimation := PlayingAnimationNode;
-      if PreviousPlayingAnimation <> nil then
-      begin
-        PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
-        PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
-        PreviousPlayingAnimationTimeInAnimation :=
-          PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
-      end;
+    { set PreviousPlayingAnimationXxx }
+    PreviousPlayingAnimation := PlayingAnimationNode;
+    if PreviousPlayingAnimation <> nil then
+    begin
+      PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
+      PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
+      PreviousPlayingAnimationTimeInAnimation :=
+        PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
+    end;
 
-      PlayingAnimationNode := NewPlayingAnimationNode;
+    PlayingAnimationNode := NewPlayingAnimationNode;
 
-      if PlayingAnimationNode <> nil then
-      begin
-        PlayingAnimationNode.Loop := NewPlayingAnimationLoop;
-        PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
-        PlayingAnimationNode.Enabled := true;
+    if PlayingAnimationNode <> nil then
+    begin
+      { Assign these before PartialSendBegin/End }
+      PlayingAnimationTransitionDuration := NewPlayingAnimationTransitionDuration;
+      { save current Time to own variable,
+        do not trust PlayingAnimationNode.StartTime to remain reliable,
+        it can be changed by user later. }
+      PlayingAnimationStartTime := Time;
 
-        { Assign these before PartialSendBegin/End during StartTime assignment. }
-        PlayingAnimationTransitionDuration := NewPlayingAnimationTransitionDuration;
-        { save current Time to own variable,
-          do not trust PlayingAnimationNode.StartTime to remain reliable,
-          it can be changed by user later. }
-        PlayingAnimationStartTime := Time;
+      PlayingAnimationNode.Start(
+        NewPlayingAnimationLoop,
+        NewPlayingAnimationForward,
+        NewPlayingAnimationInitialTime);
 
-        { Disable the "ignore" mechanism, otherwise
-          setting startTime on a running TimeSensor would be ignored.
-          Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
-        Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
-        Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
-
-        { Assign StopTime and StartTime. }
-        PlayingAnimationNode.StopTime := 0;
-        PlayingAnimationNode.StartTime := Time - NewPlayingAnimationInitialTime;
-
-        { Enable the "ignore" mechanism again, to follow X3D spec. }
-        Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
-        Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
-
-        PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
-        PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
-      end;
+      PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
+      PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
     end;
   end;
+end;
+
+procedure TCastleSceneCore.InternalSetTime(
+  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
   { Call SetTime on all TimeDependentHandlers. }
   procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
@@ -6158,6 +6124,11 @@ begin
   begin
     BeginChangesSchedule;
     try
+      { UpdateNewPlayingAnimation must be called before UpdateTimeDependentHandlersIfVisible.
+        This way if we called StopAnimation, then UpdateNewPlayingAnimation
+        first stops it (preventing from sending any events),
+        so a stopped animation will *not* send any events after StopAnimation
+        (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation;
       UpdateTimeDependentHandlersIfVisible;
       UpdateHumanoidSkin;
@@ -7473,6 +7444,38 @@ begin
     Result := TimeNode.CycleInterval;
   end else
     Result := 0;
+end;
+
+procedure TCastleSceneCore.StopAnimation;
+begin
+  { New animation was requested, but not yet processed by UpdateNewPlayingAnimation.
+    Make it start, to early call the "stop notification" callback
+    for the previous animation (before calling the "stop notification"
+    callback for the new animation).
+    This also makes all behavior consistent with
+    "what if the new animation was actually applied already", i.e. the same calls
+    to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
+  if NewPlayingAnimationUse then
+  begin
+    UpdateNewPlayingAnimation;
+    if NewPlayingAnimationUse then
+    begin
+      WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
+      Exit;
+    end;
+  end;
+
+  { Stop animation by setting NewPlayingAnimationNode to nil,
+    this way the "stop notification" callback
+    for new animation will be correctly called. }
+  FCurrentAnimation := nil;
+  NewPlayingAnimationNode := FCurrentAnimation;
+  NewPlayingAnimationUse := true;
+end;
+
+procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
+begin
+  // TODO
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);

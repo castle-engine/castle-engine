@@ -193,7 +193,7 @@
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
-  public
+  private
     NeverIgnore: Cardinal;
   end;
 
@@ -377,6 +377,25 @@
       const ALoop, AFractionIncreasing: boolean;
       const TimeOfEvents: TX3DTime;
       const PartialSend: TPartialSend = nil); overload;
+    { @groupEnd }
+
+    { Start or stop the time sensor @italic(right now),
+      by setting the fields of this time sensor.
+
+      Usually you should prefer using the @link(TCastleSceneCore.PlayAnimation)
+      or @link(TCastleSceneCore.StopAnimation) instead of these methods.
+      The scene methods allow to play the animation with lots of features,
+      and are more comfortable to use (e.g. you do not need to find
+      the TTimeSensorNode reference).
+
+      Using these methods directly is useful to play multiple animations
+      simultaneously.
+
+      @groupBegin }
+    procedure Start(const ALoop: Boolean;
+      const AFractionIncreasing: Boolean = true;
+      const InitialTime: TFloatTime = 0);
+    procedure Stop;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
@@ -1054,6 +1073,81 @@ begin
   EventElapsedTime.Send(TimeInAnimation, TimeOfEvents, PartialSend);
   EventTime.Send(TimeInAnimation, TimeOfEvents, PartialSend);
   Dec(FakingTime);
+end;
+
+procedure TTimeSensorNode.Stop;
+begin
+  { We want to stop time sensor from sending any further
+    elapsedTime events (elapsedTime causes also fraction_changed).
+    Sending of further elapsedTime means that two animations try to play
+    at the same time, and modify the same transforms.
+
+    One way to stop animation is to set
+
+      PlayingAnimationNode.StopTime := Time;
+
+    While it works in practice (no reproducible bug with it found),
+    it has 2 problems:
+
+    - There will be 1 additional frame when TimeSensor "finishes of"
+      the animation, by remaining "TimeIncrease - (NewTime - FdStopTime.Value)"
+      duration. This isn't a problem in practice, since it only happens for 1 frame
+      (then the old TimeSensor becomes inactive), but it stil feels dirty/wasteful.
+
+    - In case you will move time backwards, e.g. by ResetTime or ResetTimeAtLoad,
+      you may get into trouble.
+      You may accidentally activate a time sensor that is
+      inactive now, but was active long time ago.
+
+    To overcome the 2nd problem, we tried the trick below.
+    It will work assuming you never reset time to something < 1.
+    (If you do reset time to something very small, then typical TimeSensors will
+    have problems anyway,
+    see https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php ).
+
+      PlayingAnimationNode.StartTime := 0;
+      PlayingAnimationNode.StopTime := 1;
+      PlayingAnimationNode.Loop := false;
+
+    But this:
+    - Still has the "1 additional frame when TimeSensor finishes of" dirtyness.
+    - Also, setting startTime while time-dependent node is active is ignored,
+      X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
+      (bug reproduction: escape_universe, meteorite_1 dying).
+      Although we remove this problem by NeverIgnore hack.
+    - (Obsolete argument:) Also, it's bad to unconditionally set "Loop" value.
+      If user is using paDefault for animation, (s)he expects
+      that PlayAnimation doesn't change it ever.
+
+    So it's simpest and reliable to just set enabled=false on old TimeSensor.
+    TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
+    sending elapsedTime events. }
+
+  Enabled := false;
+end;
+
+procedure TTimeSensorNode.Start(const ALoop, AFractionIncreasing: Boolean;
+  const InitialTime: TFloatTime);
+begin
+  Check(Scene <> nil, 'TTimeSensorNode.Start can only be called when node is part of scene');
+
+  Loop := ALoop;
+  FractionIncreasing := AFractionIncreasing;
+  Enabled := true; // since Stop changes Enabled to false
+
+  { Disable the "ignore" mechanism, otherwise
+    setting startTime on a running TimeSensor would be ignored.
+    Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
+  Inc(FdStopTime.NeverIgnore);
+  Inc(FdStartTime.NeverIgnore);
+
+  { Assign StopTime and StartTime. }
+  StopTime := 0;
+  StartTime := Scene.Time - InitialTime;
+
+  { Enable the "ignore" mechanism again, to follow X3D spec. }
+  Dec(FdStopTime.NeverIgnore);
+  Dec(FdStartTime.NeverIgnore);
 end;
 
 procedure RegisterTimeNodes;

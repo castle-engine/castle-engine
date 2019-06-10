@@ -97,7 +97,7 @@ examples/3d_rendering_processing/view_3d_model_basic
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/audio/test_sound_source_allocator/*.obj
+examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 examples/audio/audio_player_scrubber/audio_player_scrubber
 examples/audio/audio_player_scrubber/audio_player_scrubber.res
 examples/audio/audio_player_scrubber/lib/
@@ -106,6 +106,7 @@ examples/audio/efx_demo
 examples/audio/play_sounds/play_sounds
 examples/audio/simplest_play_sound
 examples/audio/test_sound_source_allocator
+examples/audio/test_sound_source_allocator/*.obj
 examples/castlescript/castle_calculator
 examples/castlescript/image_make_by_script
 examples/curves/simplest_curve_read
