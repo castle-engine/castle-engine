@@ -42,6 +42,7 @@
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
     procedure SetInternalText(const Value: String); override;
+    procedure DoChange; virtual;
   public
     const
       DefaultCaptionMargin = 10;
@@ -235,8 +236,7 @@ begin
     begin
       // change using property, so FImageSquareChecked/Empty.Exists is switched
       Checked := not Checked;
-      if Assigned(FOnChange) then
-        FOnChange(Self);
+      DoChange;
     end;
 
     Exit(ExclusiveEvents);
@@ -331,6 +331,12 @@ begin
     else
       Result := inherited PropertySection(PropertyName);
   end;
+end;
+
+procedure TCastleCheckbox.DoChange;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
 end;
 
 {$define read_implementation_methods}
