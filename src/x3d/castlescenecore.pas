@@ -2835,10 +2835,9 @@ begin
       if (Field <> nil) and
          (not ParentScene.AnimationAffectedFields.ContainsKey(Field)) then
       begin
-        FieldCopy := nil; // TODO
+        FieldCopy := TX3DFieldClass(Field.ClassType).CreateUndefined(nil, Field.Exposed, Field.X3DName);
+        FieldCopy.AssignValue(Field);
         ParentScene.AnimationAffectedFields.Add(Field, FieldCopy);
-        // TODO for debug:
-        WritelnLog('fields affected by animation ', Field.NiceName);
       end;
     end;
 end;
@@ -7605,8 +7604,15 @@ begin
 end;
 
 procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
+var
+  Pair: TAnimationAffectedFields.TDictionaryPair;
 begin
-  // TODO
+  { set fields in AnimationAffectedFields keys to the AnimationAffectedFields values }
+  for Pair in AnimationAffectedFields do
+  begin
+    Pair.Key.AssignValue(Pair.Value);
+    Pair.Key.Changed;
+  end;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);
