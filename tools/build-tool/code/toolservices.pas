@@ -63,31 +63,9 @@ begin
 end;
 
 procedure TService.ReadCastleEngineManifest(const Element: TDOMElement);
-var
-  ChildElements: TXMLElementIterator;
-  ChildElement: TDOMElement;
-  Key, Value: string;
 begin
   FName := Element.AttributeString('name');
-
-  ChildElements := Element.ChildrenIterator('parameter');
-  try
-    while ChildElements.GetNext do
-    begin
-      ChildElement := ChildElements.Current;
-      Key := ChildElement.AttributeString('key');
-      if ChildElement.HasAttribute('value') then
-        Value := ChildElement.AttributeString('value')
-      else
-      begin
-        Value := ChildElement.TextData;
-        { value cannot be empty in this case }
-        if Value = '' then
-          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
-      end;
-      FParameters.Add(Key, Value);
-    end;
-  finally FreeAndNil(ChildElements) end;
+  ReadParameters(Element, Parameters, []);
 end;
 
 { TServiceList ------------------------------------------------------ }

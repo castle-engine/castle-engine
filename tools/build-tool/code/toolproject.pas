@@ -1815,9 +1815,8 @@ const
   end;
 
 var
-  I: Integer;
   AndroidLibraryName: string;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
 begin
   AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
@@ -1833,12 +1832,8 @@ begin
   Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
   Macros.Add('ANDROID_ABI_LIST_MAKEFILE'           , AndroidAbiListMakefile);
 
-  for I := 0 to AndroidServices.Count - 1 do
-    for ServiceParameterPair in AndroidServices[I].Parameters do
-      Macros.Add('ANDROID.' +
-        UpperCase(AndroidServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in AndroidServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'ANDROID.' + Service.Name + '.');
 end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
@@ -1881,8 +1876,7 @@ const
 
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
-  I: Integer;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
 begin
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
   Macros.Add('IOS_VERSION', IOSVersion);
@@ -1941,12 +1935,8 @@ begin
   else
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
 
-  for I := 0 to IOSServices.Count - 1 do
-    for ServiceParameterPair in IOSServices[I].Parameters do
-      Macros.Add('IOS.' +
-        UpperCase(IOSServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in IOSServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'IOS.' + Service.Name + '.');
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
