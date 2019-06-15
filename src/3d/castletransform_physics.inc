@@ -179,7 +179,7 @@
       It can occur repeatedly for the same body (in the same time instant)
       if the collision has many points of contact.
 
-      @tialic(Warning:) Do not free the @link(TCastleTransform) instances
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
@@ -188,7 +188,7 @@
 
     { Occurs when TRigidBody stops colliding with another TRigidBody.
 
-      @tialic(Warning:) Do not free the @link(TCastleTransform) instances
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
