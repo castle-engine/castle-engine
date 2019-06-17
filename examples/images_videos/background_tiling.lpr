@@ -61,6 +61,13 @@ begin
   ImageW := Image.Width * UIScale;
   ImageH := Image.Height * UIScale;
 
+  { Calculate all ScreenRects (position/size on the screen where to draw image)
+    and ImageRects (position/size of the image to draw, always the same
+    in this example ("Image.Rect"), we draw whole images).
+    Later we can render them with one Image.Draw call.
+    This is much faster (for many images) than calling Image.Draw multiple times.
+  }
+
   ScreenRects := TFloatRectangleList.Create;
   try
     ImageRects := TFloatRectangleList.Create;
