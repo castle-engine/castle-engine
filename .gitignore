@@ -122,6 +122,7 @@ examples/fonts/test_local_characters/test_local_characters_standalone
 examples/fonts/texture-font-to-pascal
 examples/fps_game/fps_game
 examples/headlight_test/headlight_test
+examples/images_videos/background_tiling
 examples/images_videos/dds_decompose
 examples/images_videos/draw_images_on_gpu
 examples/images_videos/drawing_modes_test

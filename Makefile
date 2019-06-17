@@ -197,6 +197,7 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/test_font_break \
   examples/fonts/test_local_characters/test_local_characters \
   examples/fps_game/fps_game \
+  examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
   examples/images_videos/draw_images_on_gpu \
   examples/images_videos/drawing_modes_test \
