@@ -1017,16 +1017,17 @@ type
       @seeAlso TCastleWindowBase.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
-    { You can resize/reposition your component here,
-      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom), to react to parent
+    { Event called when the container (component or window with OpenGL context)
       size changes.
-      Called always when the container (component or window with OpenGL context)
-      size changes. Called only when the OpenGL context of the container
+
+      You can resize/reposition your component here,
+      for example set @link(TCastleUserInterface.Left) or @link(TCastleUserInterface.Bottom),
+      to react to parent size changes.
+      This is called only when the OpenGL context of the container
       is initialized, so you can be sure that this is called only between
       GLContextOpen and GLContextClose.
 
-      We also make sure to call this once when inserting into
-      the controls list
+      We also call this once when inserting into the controls list
       (like @link(TCastleWindowBase.Controls) or
       @link(TCastleControlBase.Controls) or inside parent TCastleUserInterface),
       if inserting into the container/parent
