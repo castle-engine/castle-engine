@@ -6148,7 +6148,8 @@ begin
         PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
     end;
 
-    { If current animation node changes (to non-nil) call ResetAnimatedFields.
+    { If current animation node changes (to non-nil) call ResetAnimatedFields,
+      to restore fields *not* affected by new animation to their "reset" state.
 
       Note: This must be called before we pass time to a new TimeSensor
       (since otherwise, ResetAnimationState would override some state set by new TimeSensor)
@@ -6156,7 +6157,67 @@ begin
       In particular, this must be called before PlayingAnimationNode.Start done lower
       (after PlayingAnimationNode:=NewPlayingAnimationNode) since TTimeSensorNode.Start
       sets StartTime and this calls HandleChangeTimeStopStart which applies
-      the new TimeSensor. }
+      the new TimeSensor.
+
+      How does this work with blending (cross-fading) animations (using TransitionDuration)?
+
+      For each field X, there are 4 cases possible:
+
+      1. Neither old nor new animation affects the field X.
+
+        Then everything trivially works.
+        Old animation doesn't change X,
+        ResetAnimationState doesn't change X
+        (maybe even it doesn't touch X, if X is not affected by *any* animation),
+        new animation doesn't change X.
+
+      2. Old animation doesn't affect field X, new animation affects field X.
+
+        Then ResetAnimationState on X doesn't do anything
+        (since X already has the same value as ResetAnimationState sets).
+
+        At the first time the new animation TimeHandler.SetTime is called
+        (in TCastleSceneCore.InternalSetTime),
+        it will have TimeHandler.PartialSend created in TCastleSceneCore.PartialSendBegin,
+        and in TX3DField.AssignValue we will create PartialReceived
+        with PartialReceived.SettledValue reflecting the current ("reset")
+        state of the bone, and in TX3DField.InternalAffectedPartial
+        we will blend (fade-in) new animation with "reset" state.
+
+      3. Old animation affects field X, new animation doesn't affect X.
+
+        Since we use ResetAnimationState
+        *before* TCastleSceneCore.PartialSendBegin,
+        so PartialReceived.SettledValue will be set to the "reset" field state,
+        and we will blend (fade-out) old animation value with this reset value.
+
+        Just like in AD 2: PartialReceived.SettledValue is set to what
+        ResetAnimationState did.
+
+      4. Both old and new animations touch field X.
+
+        Just like in AD 2, PartialReceived.SettledValue is set to what
+        ResetAnimationState did.
+
+        In this case PartialReceived.SettledValue value is not useful
+        for the resulting animation
+        (it contains the "reset" state given by ResetAnimationState,
+        which we don't want to use since neither old nor new animation
+        corresponds to the "reset" state).
+
+        Luckily, in this case PartialReceived.SettledValue will be ignored!
+        The field X will receive two values (during cross-fade):
+        old one (let's call it's strength Alpha), and new one (with strength 1-Alpha).
+        Since their strengths sum to 1.0, in TX3DField.InternalAffectedPartial
+        we will have PartialReceived.Partial = 1.0,
+        which means that PartialReceived.SettledValue will be ignored.
+
+      To test it all in a simple case,
+      open the Spine JSON file
+      from https://github.com/castle-engine/demo-models/tree/master/test_animation_blending_spine/exported
+      with view3dscene and run animations with TransitionDuration > 0.
+    }
+
     if (PlayingAnimationNode <> NewPlayingAnimationNode) and
        (NewPlayingAnimationNode <> nil) then
     begin
