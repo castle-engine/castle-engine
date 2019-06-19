@@ -1926,32 +1926,34 @@ type
       const Forward: boolean = true): boolean; overload;
       deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
-    { Play a named animation.
-      Calling this method also stops previously playing named animation, if any.
-      Returns boolean whether such animation name was found.
+    { Play an animation specified by name.
+      If the given animation name exists,
+      then we return @true and stop previously playing named animation (if any).
+      Otherwise we return @false and the current animation is unchanged.
+
       To get the list of available animations, see @link(AnimationsList).
 
-      This automatically turns on @link(ProcessEvents), if it wasn't turned on already.
+      This automatically turns on @link(ProcessEvents),
+      if it wasn't turned on already.
+      Processing events is necessary for playing animations.
 
       This is the simplest way to play animations using Castle Game Engine.
       For a nice overview about using PlayAnimation, see the manual
       https://castle-engine.io/manual_scene.php , section "Play animation".
 
-      Playing an already-playing animation is guaranteed to start it from
+      Playing an already-playing animation is guaranteed to restart it from
       the beginning.
 
       You can specify whether the animation should loop,
       whether to play it forward or backward,
-      whether to do animation blending and some other options:
-      see @link(TPlayAnimationParameters).
-
+      whether to do animation blending and some other options
+      using @link(TPlayAnimationParameters).
       If you use an overloaded version with the TPlayAnimationParameters,
       note that you can (and usually should) free the TPlayAnimationParameters
       instance right after calling this method. We do not keep reference to
       the TPlayAnimationParameters instance, and we do not free it ourselves.
 
-      Some obscure notes (you usually @italic(do not need to know the details
-      below)):
+      More details about how this works:
 
       @unorderedList(
         @item(Calling this method @italic(does not change the scene immediately).
@@ -1972,33 +1974,38 @@ type
           simply call @link(ForceInitialAnimationPose) right after @link(PlayAnimation).
         )
 
-        @item(Internally, @italic(the animation is performed using TTimeSensorNode
-          that instructs other nodes to change). For exampe, TTimeSensorNode
+        @item(@italic(The animation is performed using X3D TTimeSensorNode).
+
+          For example, TTimeSensorNode
           may instruct a TCoordinateInterpolatorNode to update the TIndexedFaceSetNode coordinates,
           and in effect the animation can deform a mesh.
           Or TTimeSensorNode may instruct a TPositionInterpolatorNode to update
           @link(TTransformNode.Translation),
           and in effect the animation can move something.
+          See https://castle-engine.io/x3d_implementation_interpolation.php
+          for a thorough description how the animation works in X3D.
 
-          So the animation means that the X3D nodes graph within @link(RootNode)
-          is being changed. The exact subset of the nodes inside @link(RootNode)
-          that change depends on your animation.
-
-          This means that internally our mechanism is very flexible.
-          E.g. you can have another animation running (another TTimeSensorNode running)
-          in parallel to the animation run by this method.
-          You can also change parts of the node graph by your own code
-          (accessing @link(RootNode))
-          in parallel to the animation by this method, as long as you don't touch
-          the same nodes.
-          @italic(Such tricks are possible, but require manually designing a proper X3D file).
+          This means that during the animation,
+          the X3D nodes graph (within @link(RootNode)) is being changed.
 
           If you load a model from a castle-anim-frames or MD3 format, note that it
-          is animated using a special "node interpolator" algorithm. In this case,
-          you cannot really change the model inside @link(RootNode) anymore
-          --- any modifications may be overwritten by the "node interpolator"
-          at some point (the exact overwrite moment depends on the "merge nodes"
-          optimization done by the "node interpolator").
+          is animated using a special "node interpolator".
+          This also works using a special (internal) X3D node that
+          switches which node is visible.)
+
+        @item(Starting an animation effectively cancels any effect from
+          any previous animation. That is, even if the new animation doesn't
+          modify some transformations, these transformations are @italic(not)
+          left "as is", instead they are reset to the default model state using
+          @link(ResetAnimationState). This is usually the desired effect, corresponding
+          to how the animations should intuitively behave, e.g. if you have "walk"
+          and "idle" animations.
+
+          If you want to simultaneously play multiple animations
+          or if you want to simultaneously modify scene by code (while playing some animation)
+          then you can control each time sensor using @link(TTimeSensorNode.Start)
+          and @link(TTimeSensorNode.Stop). See also the example
+          in examples/animations/simultaneous_animations_one_scene .
         )
       )
     }
@@ -2017,7 +2024,7 @@ type
       earlier, of if the model already looks following the
       animation requested by @link(PlayAnimation).
 
-      Without this method, there may be a 1-frame delay
+      If you don't use this method, there may be a 1-frame delay
       between calling @link(PlayAnimation) and actually updating the rendered
       scene look. If during that time a rendering will happen,
       the user will see a scene in previous pose (not in the first
@@ -7464,6 +7471,7 @@ begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
     Inc(ForceImmediateProcessing);
     try
+      ResetAnimationState(TimeNode);
       TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
@@ -7477,6 +7485,7 @@ begin
   begin
     Inc(ForceImmediateProcessing);
     try
+      ResetAnimationState(NewPlayingAnimationNode);
       NewPlayingAnimationNode.FakeTime(
         NewPlayingAnimationInitialTime,
         NewPlayingAnimationLoop,
