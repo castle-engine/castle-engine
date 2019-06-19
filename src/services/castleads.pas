@@ -93,13 +93,14 @@ type
 
       TAdMobHandler = class(TAdNetworkHandler)
       strict private
-        FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued: string;
+        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: string;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const ABannerUnitId, AInterstitialUnitId: string;
+          const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
           const TestDeviceIds: array of string);
+
         class function Name: string; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
@@ -170,6 +171,9 @@ type
       getting banned for clicking on your own ads.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
+    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+      const TestDeviceIds: array of string);
+
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
       const TestDeviceIds: array of string);
 
@@ -329,19 +333,20 @@ end;
 { TAdMobHandler -------------------------------------------------------------- }
 
 constructor TAds.TAdMobHandler.Create(const AParent: TAds;
-  const ABannerUnitId, AInterstitialUnitId: string;
+  const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
   const TestDeviceIds: array of string);
 begin
   inherited Create(AParent);
   FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
   FBannerUnitId := ABannerUnitId;
   FInterstitialUnitId := AInterstitialUnitId;
+  FRewardedUnitId := ARewardedUnitId;
   ReinitializeJavaActivity(nil);
 end;
 
 procedure TAds.TAdMobHandler.ReinitializeJavaActivity(Sender: TObject);
 begin
-  Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued]);
+  Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued]);
   inherited;
 end;
 
@@ -362,13 +367,24 @@ begin
   inherited;
 end;
 
-procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
 begin
   FFullScreenAdVisible := true;
-  if WaitUntilLoaded then
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'wait-until-loaded']) else
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'no-wait']);
+
+  case AdType of
+    atReward:
+    begin
+      if WaitUntilLoaded then
+        Messaging.Send(['ads-' + Name + '-show-reward', 'wait-until-loaded']) else
+        Messaging.Send(['ads-' + Name + '-show-reward', 'no-wait']);
+    end;
+    else
+    begin
+      if WaitUntilLoaded then
+        Messaging.Send(['ads-' + Name + '-show-interstitial', 'wait-until-loaded']) else
+        Messaging.Send(['ads-' + Name + '-show-interstitial', 'no-wait']);
+    end;
+  end;
 end;
 
 { TChartboostHandler --------------------------------------------------------- }
@@ -495,13 +511,22 @@ begin
   inherited;
 end;
 
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+  const TestDeviceIds: array of string);
+begin
+  if FNetworks[anAdMob] <> nil then
+    FreeAndNil(FNetworks[anAdMob]);
+  FNetworks[anAdMob] := TAdMobHandler.Create(Self,
+    BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds);
+end;
+
 procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
   const TestDeviceIds: array of string);
 begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
   FNetworks[anAdMob] := TAdMobHandler.Create(Self,
-    BannerUnitId, InterstitialUnitId, TestDeviceIds);
+    BannerUnitId, InterstitialUnitId, '', TestDeviceIds);
 end;
 
 procedure TAds.InitializeStartapp(const AppId: string);
