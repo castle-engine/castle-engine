@@ -554,7 +554,6 @@ type
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
     ForceImmediateProcessing: Integer;
-    NeedsResetAnimationState: Boolean;
 
     { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
     NeedsDetectAffectedFields: Boolean;
@@ -2755,6 +2754,7 @@ type
     AllRoutes: TX3DRouteList;
     AffectedInterpolators: TX3DNodeList;
     procedure FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
+    function IsInterpolator(const Node: TX3DNode): Boolean;
   public
     constructor Create(const AParentScene: TCastleSceneCore);
     destructor Destroy; override;
@@ -2800,11 +2800,18 @@ begin
     if (Route.SourceNode is TTimeSensorNode) and
        TTimeSensorNode(Route.SourceNode).DetectAffectedFields and
        (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventFraction_Changed) and
-       (Route.DestinationNode is TAbstractInterpolatorNode) and
+       IsInterpolator(Route.DestinationNode) and
        (Route.DestinationEvent.X3DName = 'set_fraction') then
       { Note that it's OK to add the same interpolator instance multiple times below. }
       AffectedInterpolators.Add(Route.DestinationNode);
   end;
+end;
+
+function TDetectAffectedFields.IsInterpolator(const Node: TX3DNode): Boolean;
+begin
+  Result :=
+    (Node is TAbstractInterpolatorNode) or
+    (Node is TAbstractSequencerNode);
 end;
 
 procedure TDetectAffectedFields.FindAnimationAffectedFields;
@@ -2828,7 +2835,7 @@ var
   Field, FieldCopy: TX3DField;
 begin
   for Route in AllRoutes do
-    if (Route.SourceNode is TAbstractInterpolatorNode) and
+    if IsInterpolator(Route.SourceNode) and
        (Route.SourceEvent.X3DName = 'value_changed') and
        (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) then
     begin
@@ -6124,11 +6131,6 @@ begin
        (PlayingAnimationNode <> nil) then
       PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
 
-    { if current animation node changes (to non-nil) }
-    if (PlayingAnimationNode <> NewPlayingAnimationNode) and
-       (NewPlayingAnimationNode <> nil) then
-      NeedsResetAnimationState := true;
-
     { set PreviousPlayingAnimationXxx }
     PreviousPlayingAnimation := PlayingAnimationNode;
     if PreviousPlayingAnimation <> nil then
@@ -6137,6 +6139,21 @@ begin
       PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
       PreviousPlayingAnimationTimeInAnimation :=
         PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
+    end;
+
+    { If current animation node changes (to non-nil) call ResetAnimatedFields.
+
+      Note: This must be called before we pass time to a new TimeSensor
+      (since otherwise, ResetAnimationState would override some state set by new TimeSensor)
+      and after the old TimeSensor is stopped.
+      In particular, this must be called before PlayingAnimationNode.Start done lower
+      (after PlayingAnimationNode:=NewPlayingAnimationNode) since TTimeSensorNode.Start
+      sets StartTime and this calls HandleChangeTimeStopStart which applies
+      the new TimeSensor. }
+    if (PlayingAnimationNode <> NewPlayingAnimationNode) and
+       (NewPlayingAnimationNode <> nil) then
+    begin
+      ResetAnimationState(NewPlayingAnimationNode);
     end;
 
     PlayingAnimationNode := NewPlayingAnimationNode;
@@ -6264,14 +6281,6 @@ begin
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation;
-      { Right before we pass time to TimeSensors (which will change the fields affected
-        by PlayingAnimationNode), call ResetAnimatedFields to reset other fields,
-        to reset the state left by previous animation. }
-      if NeedsResetAnimationState then
-      begin
-        ResetAnimationState(PlayingAnimationNode);
-        NeedsResetAnimationState := false;
-      end;
       UpdateTimeDependentHandlersIfVisible;
       UpdateHumanoidSkin;
       UpdateTransformationDirty;
