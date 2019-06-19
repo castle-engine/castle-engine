@@ -31,7 +31,7 @@ public class ServiceAdMob extends ServiceAbstract
     private Boolean failedToLoadInterstitialLastTime = false; // when loading failed last time, this is needed to try again on next call
 
     private RewardedVideoAd rewarded = null;
-	private Boolean rewardedWatched = false; // should we set rewarded video as watched
+    private Boolean rewardedWatched = false; // should we set rewarded video as watched
     private Boolean rewardedOpenWhenLoaded = false; // used when you want to wait for rewarded ad
     private Boolean failedToLoadRewardedLastTime = false; // when loading failed last time, this is needed to try again on next call
 
@@ -102,7 +102,7 @@ public class ServiceAdMob extends ServiceAbstract
             public void onAdClosed() {
                 logInfo(CATEGORY, "Ad Closed");
                 fullScreenAdClosed(true);
-				loadInterstitial(); // load next ad
+                loadInterstitial(); // load next ad
             }
         });
 
@@ -110,13 +110,13 @@ public class ServiceAdMob extends ServiceAbstract
         loadInterstitial();
     }
 
-	public void loadInterstitial() {
+    public void loadInterstitial() {
         failedToLoadInterstitialLastTime = false;
         if (!interstitial.isLoaded()) {
             logInfo(CATEGORY, "start loading interstitial");
-			interstitial.loadAd(buildAdRequest());
-		}
-	}
+            interstitial.loadAd(buildAdRequest());
+        }
+    }
 
 
     private void rewardedInitialize()
@@ -128,67 +128,67 @@ public class ServiceAdMob extends ServiceAbstract
         rewarded = MobileAds.getRewardedVideoAdInstance(getActivity());
 
         // Set an AdListener.
-		rewarded.setRewardedVideoAdListener(new RewardedVideoAdListener()
-		{
-			@Override
-			public void onRewarded(RewardItem reward) {
+        rewarded.setRewardedVideoAdListener(new RewardedVideoAdListener()
+        {
+            @Override
+            public void onRewarded(RewardItem reward) {
                 logInfo(CATEGORY, "onRewarded");
-				rewardedWatched = true;
-			}
-			
-			@Override
-			public void onRewardedVideoAdClosed() {
+                rewardedWatched = true;
+            }
+            
+            @Override
+            public void onRewardedVideoAdClosed() {
                 logInfo(CATEGORY, "onRewardedVideoAdClosed");
-				loadRewarded();
+                loadRewarded();
                 fullScreenAdClosed(rewardedWatched);
-				rewardedWatched = false;
-			}
+                rewardedWatched = false;
+            }
 
-			@Override
-			public void onRewardedVideoAdFailedToLoad(int errorCode) {
+            @Override
+            public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
                 rewardedOpenWhenLoaded = false;
                 failedToLoadRewardedLastTime = true;
                 fullScreenAdClosed(false);
-			}
+            }
 
-			@Override
-			public void onRewardedVideoAdLoaded() {
+            @Override
+            public void onRewardedVideoAdLoaded() {
                 logInfo(CATEGORY, "onRewardedVideoAdLoaded");
                 if (rewardedOpenWhenLoaded) {
                     rewardedOpenWhenLoaded = false;
                     logInfo(CATEGORY, "Show ad after waiting for add.");
                     rewarded.show();
                 }
-			}
+            }
 
-			@Override
-			public void onRewardedVideoAdLeftApplication() {
+            @Override
+            public void onRewardedVideoAdLeftApplication() {
                 logInfo(CATEGORY, "onRewardedVideoAdLeftApplication");
-			}
+            }
 
-			@Override
-			public void onRewardedVideoAdOpened() {
+            @Override
+            public void onRewardedVideoAdOpened() {
                 logInfo(CATEGORY, "onRewardedVideoAdOpened");
-			}
+            }
 
-			@Override
-			public void onRewardedVideoStarted() {
-				logInfo(CATEGORY, "onRewardedVideoStarted");
-			}
-		});
+            @Override
+            public void onRewardedVideoStarted() {
+                logInfo(CATEGORY, "onRewardedVideoStarted");
+            }
+        });
 
         // Begin loading your rewarded ad.
         loadRewarded();
     }
 
-	public void loadRewarded() {
+    public void loadRewarded() {
         failedToLoadRewardedLastTime = false;
         if (!rewarded.isLoaded()) {
             logInfo(CATEGORY, "start loading rewarded video");
-			rewarded.loadAd(mRewardedUnitId, buildAdRequest());
-		}
-	}
+            rewarded.loadAd(mRewardedUnitId, buildAdRequest());
+        }
+    }
 
     private void bannerShow(int gravity)
     {
@@ -280,7 +280,7 @@ public class ServiceAdMob extends ServiceAbstract
      */
     private void rewardedDisplay(boolean waitUntilLoaded)
     {
-		rewardedWatched = false;
+        rewardedWatched = false;
         if (initialized && mRewardedUnitId != "") {
             if (waitUntilLoaded || rewarded.isLoaded()) {
                 if (waitUntilLoaded && !rewarded.isLoaded()) {
