@@ -26,15 +26,29 @@ const
   { Test banner ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
     (but eventually you want to create your own, to show non-testing ads!).
 
-    From https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start }
+    From https://developers.google.com/admob/android/test-ads }
   TestAdMobBannerUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
-  { Test interstitial ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+
+  { Test interstitial static ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
     (but eventually you want to create your own, to show non-testing ads!).
 
-    From http://stackoverflow.com/questions/12553929/is-there-any-admob-dummy-id and
-    https://github.com/googleads/googleads-mobile-android-examples/blob/master/admob/InterstitialExample/app/src/main/res/values/strings.xml }
+    From https://developers.google.com/admob/android/test-ads }
   TestAdMobInterstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
+
+
+  { Test interstitial video ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+    (but eventually you want to create your own, to show non-testing ads!).
+
+    From https://developers.google.com/admob/android/test-ads }
+  TestAdMobInterstitialVideoUnitId = 'ca-app-pub-3940256099942544/8691691433';
+
+
+  { Test rewarded video ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+    (but eventually you want to create your own, to show non-testing ads!).
+
+    From https://developers.google.com/admob/android/test-ads }
+  TestAdMobRewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
 type
   TAdNetwork = (anAdMob, anChartboost, anStartApp, anHeyzap);
