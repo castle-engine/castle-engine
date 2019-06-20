@@ -7702,9 +7702,14 @@ procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSens
 var
   F: TX3DField;
 begin
-  { set fields in AnimationAffectedFields to their reset values }
-  for F in AnimationAffectedFields do
-    F.InternalRestoreSaveValue;
+  Inc(ForceImmediateProcessing);
+  try
+    { set fields in AnimationAffectedFields to their reset values }
+    for F in AnimationAffectedFields do
+      F.InternalRestoreSaveValue;
+  finally
+    Dec(ForceImmediateProcessing);
+  end;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);
