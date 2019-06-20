@@ -751,7 +751,7 @@ type
       Rotation is done around ModelBox middle (with @link(Translation) added). }
     property Rotations: TQuaternion read FRotations write SetRotations;
 
-    { Continous rotation animation, applied each Update to Rotations. }
+    { Continuous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
 
     { How fast user moves the scene by mouse/touch dragging. }
@@ -874,7 +874,7 @@ type
 
   { What mouse dragging does in TWalkCamera. }
   TMouseDragMode = (
-    { Moves avatar continously in the direction of mouse drag
+    { Moves avatar continuously in the direction of mouse drag
       (default for TWalkCamera.MouseDragMode). }
     mdWalk,
     { Rotates the head when mouse is moved. }
@@ -1556,7 +1556,7 @@ type
       this means using OnHeight callback.
 
       These are updated only when @link(Height)
-      is continously called, which in practice means:
+      is continuously called, which in practice means:
       only when @link(Gravity) is @true.
 
       We do not (and, currently, cannot) track here if
@@ -2308,7 +2308,7 @@ begin
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
-    so things like Invalidate will not be continously called when
+    so things like Invalidate will not be continuously called when
     model doesn't rotate.
 
     We check using exact equality <> 0, this is Ok since the main point is to
@@ -4168,7 +4168,7 @@ begin
             How to apply SecondsPassed here ?
             I can't just ignore SecondsPassed, but I can't also write
               FMoveSpeed := FMoveSpeed * (10 * SecondsPassed);
-            What I want is such continous function that e.g.
+            What I want is such continuous function that e.g.
               F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
             I.e. SecondsPassed = 10 should work just like doing the same change twice.
             So F is FMoveSpeed * Power(10, SecondsPassed)

@@ -1119,7 +1119,7 @@ type
       Allowing this is a good thing, as it means our process doesn't eat
       your CPU when it simply waits, doing nothing, for user input.
       On the other hand, you cannot allow this if you want to do some
-      things continously, regardless of user input.
+      things continuously, regardless of user input.
 
       The default implementation plays it safe, and does not allow suspending
       if we have OnUpdate, OnTimer or such callback defined. }
@@ -1781,9 +1781,9 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
-    { Continously occuring event, called for all open windows.
+    { Continuously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
-      so it is continously called even when your game
+      so it is continuously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws.
 
       Called at the same time when
@@ -2698,7 +2698,7 @@ type
     {property OnInitializeJavaActivity: TProcedure
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
-    { Continously occuring event.
+    { Continuously occuring event.
       @seealso TCastleWindowBase.OnUpdate. }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 

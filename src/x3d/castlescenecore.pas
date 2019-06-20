@@ -1468,7 +1468,7 @@ type
       const Distance: Single; const CancelAction: boolean = false): boolean; override;
 
     { Called when pointing device moves.
-      This may generate the continously-generated events like
+      This may generate the continuously-generated events like
       hitPoint_changed, also it updates PointingDeviceOverItem
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
@@ -1547,7 +1547,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
-      It is crucial that you call this continously to have some VRML/X3D
+      It is crucial that you call this continuously to have some VRML/X3D
       time-dependent features working, like TimeSensor and MovieTexture.
       See @link(Time) for details what is affected by this.
 
@@ -5762,7 +5762,7 @@ begin
             animating and moving underneath the pointing device."
 
             I understand that they mean that you don't have to call
-            PointingDeviceMove continously, you can only check this on
+            PointingDeviceMove continuously, you can only check this on
             actual mouse move. That is, isOver state changes are not
             intended to be caught immediately if they happened because
             the geometry is animating. But, still, all isOver changes *are*

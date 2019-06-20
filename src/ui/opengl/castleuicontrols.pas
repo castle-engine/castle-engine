@@ -912,14 +912,14 @@ type
       @param Button Number of pressed button }
     function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
 
-    { Control may do here anything that must be continously repeated.
+    { Control may do here anything that must be continuously repeated.
       E.g. camera handles here falling down due to gravity,
       rotating model in Examine mode, and many more.
 
       @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
         and usually it's in fact just taken from TCastleWindowBase.Fps.SecondsPassed.)
 
-      This method may be used, among many other things, to continously
+      This method may be used, among many other things, to continuously
       react to the fact that user pressed some key (or mouse button).
       For example, if holding some key should move some 3D object,
       you should do something like:
@@ -958,7 +958,7 @@ type
       Note that to handle a single press / release (like "switch
       light on when pressing a key") you should rather
       use @link(Press) and @link(Release) methods. Use this method
-      only for continous handling (like "holding this key makes
+      only for continuous handling (like "holding this key makes
       the light brighter and brighter").
 
       To understand why such HandleInput approach is needed,
@@ -1079,7 +1079,7 @@ type
       (topmost under the cursor) control determines the mouse cursor look. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
-    { Event that occurs continously on each control.
+    { Event that occurs continuously on each control.
       See @link(Update) for details. }
     property OnUpdate: TUiUpdateEvent read FOnUpdate write FOnUpdate;
     { An input (key, mouse button, mouse wheel) was pressed.

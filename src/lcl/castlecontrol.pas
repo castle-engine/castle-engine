@@ -131,7 +131,7 @@ type
       are executed only when there are no events left to process.
       This makes sense, and actually follows the docs and the name "idle".
 
-      In contrast, our DoUpdate expects to be run continously, that is:
+      In contrast, our DoUpdate expects to be run continuously, that is:
       about the same number
       of times per second as the screen Redraw (and if the screen doesn't need to
       be redrawn, our DoUpdate should still run a sensible number of times
@@ -152,7 +152,7 @@ type
       like XWindows etc. I think in practice XWindows does it, but I'm not sure).
       Our program should however still be responsive. Not only the screen should
       be redrawn, regardless if our event loop is empty or not, but also
-      our Update event should be continously called. But if we just use LCL Idle/Redraw
+      our Update event should be continuously called. But if we just use LCL Idle/Redraw
       behavior (that descends from other widgetsets) then you may find that:
       - during mouse look things "stutter" --- no Idle, not even Redraw,
         happens regularly.
@@ -180,7 +180,7 @@ type
         down some keys stutter a little (screen seems like not refreshed fast
         enough). Reason for this stutter is not known,
         it also stutters in case of mouse move, but we have no choice in this case:
-        either update with stuttering, or not update (continously) at all.
+        either update with stuttering, or not update (continuously) at all.
         TCastleWindow doesn't have this problem, mouse look is smooth there.
       - It's also not needed from events other than mouse move.
 
@@ -434,15 +434,15 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
 
-    { Continously occuring event.
+    { Continuously occuring event.
       This event is called roughly as regularly as redraw,
       and you should use this to update your game state.
 
       Note that this is different than LCL "idle" event,
-      as it's guaranteed to be run continously, even when your application
+      as it's guaranteed to be run continuously, even when your application
       is clogged with events (like when using TWalkCamera.MouseLook).
 
-      Note: As we need to continously call the "update" event (to update animations
+      Note: As we need to continuously call the "update" event (to update animations
       and more), we listen on the Lazarus Application "idle" event,
       and tell it that we're never "done" with our work.
       We do this only when at least one instance of TCastleControlBase
@@ -709,7 +709,7 @@ begin
     demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
     That's because Done := true allows for WidgetSet.AppWaitMessage
     inside lcl/include/application.inc .
-    We don't want that, we want continous DoUpdate events.
+    We don't want that, we want continuous DoUpdate events.
 
     So we have to use Done := false.
 

@@ -955,7 +955,7 @@ type
       const Distance: Single): boolean; virtual;
     { @groupEnd }
 
-    { Continously occuring event, for various tasks.
+    { Continuously occuring event, for various tasks.
       @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
         this item from 3D world (parent list) after Update finished.
         rtRemoveAndFree additionally will free this item.

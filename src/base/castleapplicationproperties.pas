@@ -192,7 +192,7 @@ type
       and last OnGLContextClose. }
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
-    { Callbacks called continously when (at least one) window is open.
+    { Callbacks called continuously when (at least one) window is open.
 
       You can use this just like @link(TCastleControlBase.OnUpdate)
       or @link(TCastleWindowBase.OnUpdate) or @link(TCastleApplication.OnUpdate),

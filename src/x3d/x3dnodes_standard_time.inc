@@ -991,7 +991,7 @@ begin
   InternalTimeDependentHandler.FdEnabled := FdEnabled;
   InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
-  { On receiving new elapsedTime, we send other continous events. }
+  { On receiving new elapsedTime, we send other continuous events. }
   EventElapsedTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
 end;
 

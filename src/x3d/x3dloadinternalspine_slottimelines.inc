@@ -156,7 +156,7 @@ var
   Route: TX3DRoute;
 begin
   N := TIntegerSequencerNode.Create('SlotTimeline_attachment_' + Slot.Name);
-  N.FdForceContinousValue_Changed.Value := true;
+  N.FdForceContinuousValue_Changed.Value := true;
   for I := 0 to Attachments.Count - 1 do
     N.FdKeyValue.Items.Add(Slot.AttachmentNames.IndexOf(Attachments[I]));
   EventValueChanged := N.EventValue_changed;

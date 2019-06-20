@@ -343,9 +343,9 @@ type
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
-      continously pressed (our method IsPressed doesn't look at it),
+      continuously pressed (our method IsPressed doesn't look at it),
       so this is only suitable for commands that work in steps
-      (not continously). }
+      (not continuously). }
     property MouseWheel: TMouseWheelDirection read FMouseWheel
       write SetMouseWheel;
 
