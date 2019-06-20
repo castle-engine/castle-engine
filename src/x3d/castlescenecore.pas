@@ -6216,6 +6216,13 @@ begin
       open the Spine JSON file
       from https://github.com/castle-engine/demo-models/tree/master/test_animation_blending_spine/exported
       with view3dscene and run animations with TransitionDuration > 0.
+
+      Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
+      Otherwise the AD 3 case is broken (new animation would not correctly "reset"
+      the field X, value of old animation would override it if TransitionDuration > 0).
+      Testcase: TransitionDuration > 0 with Roseanne, switch between
+      die and attack_monster.
+      To fix this, we use IgnoreIfCannotLerp.
     }
 
     if (PlayingAnimationNode <> NewPlayingAnimationNode) and
@@ -6454,6 +6461,7 @@ begin
     begin
       PartialSend.Partial := 1 - (T - PlayingAnimationStartTime) /
         PlayingAnimationTransitionDuration;
+      PartialSend.IgnoreIfCannotLerp := true;
 
       { First fade-out previous animation.
         Note that
@@ -6477,6 +6485,7 @@ begin
       to PlayingAnimationNode }
     PartialSend.Partial := (T - PlayingAnimationStartTime) /
       PlayingAnimationTransitionDuration;
+    PartialSend.IgnoreIfCannotLerp := false;
   end else
     TimeHandler.PartialSend := nil;
 end;

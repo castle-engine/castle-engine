@@ -35,6 +35,10 @@
       add themselves to this list. }
     AffectedFields: TX3DFieldList;
 
+    { Ignore the send on fields that do not support lerp
+      (e.g. integer and boolean fields). }
+    IgnoreIfCannotLerp: Boolean;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -82,6 +86,7 @@
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
+    function AbortAssignValue(const Source: TX3DField): Boolean;
   private
     type
       { Tracking of fading-in/out animation state on this particular field. }
@@ -671,6 +676,14 @@ begin
   Result := FExposedEvents[false];
 end;
 
+function TX3DField.AbortAssignValue(const Source: TX3DField): Boolean;
+begin
+  Result :=
+    (Source.InternalPartialSend <> nil) and
+    Source.InternalPartialSend.IgnoreIfCannotLerp and
+    (not CanAssignLerp);
+end;
+
 procedure TX3DField.ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
@@ -679,6 +692,8 @@ begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ExposedEventsFieldClass);
+
+  if AbortAssignValue(Value) then Exit;
 
   { When not ValuePossiblyChanged, we don't have to call InternalChangedField.
     (Although we still have to call FExposedEvents[false].Send,
@@ -737,6 +752,8 @@ begin
     EventIn.Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
   end else
   begin
+    if AbortAssignValue(Value) then Exit;
+
     ValuePossiblyChanged := not FastEqualsValue(Value);
     { Call AssignValue regardless of ValuePossiblyChanged.
       Reason: AssignValue also removes "IS" clause. }
@@ -1013,7 +1030,7 @@ procedure TX3DField.AssignValue(Source: TX3DField);
     if PartialReceived.PartialValue = nil then
     begin
       PartialReceived.PartialValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
-      { For the first assignment, it's faster to use AssignValue then AssignLerp.
+      { For the first assignment, it's faster to use AssignValue than AssignLerp.
         Also, AssignLerp expects MF fields to have correct counts. }
       PartialReceived.PartialValue.AssignValue(Source);
     end else
