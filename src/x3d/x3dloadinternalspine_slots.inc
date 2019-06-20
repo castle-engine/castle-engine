@@ -120,9 +120,25 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
         A := AttachmentsPreferred.Find(Name, AttachmentName, nil, true);
       if A <> nil then
       begin
+        if A.NodeUsedAsChild and
+           not (
+             TVector3.PerfectlyEquals(A.Material.FdEmissiveColor.Value, WhiteRGB) or
+             (A.Material.FdTransparency.Value <> 1.0) or
+             TVector4.PerfectlyEquals(Color, White)
+           ) then
+        begin
+          WritelnWarning('Spine', 'Attachment "%s" used by multiple slots with different (not opaque white) colors. This is not supported, instead make the slot colors to be applied during animations.',
+            [A.Node.X3DName]);
+        end;
+
         A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
         A.NodeUsedAsChild := true;
         Result := A.Node;
+
+        // We need to copy slot color to the material node inside attachment
+        A.Material.FdEmissiveColor.Value := Color.XYZ;
+        A.Material.FdTransparency.Value := 1 - Color[3];
+
         Materials.Add(A.Material);
       end;
     end;
