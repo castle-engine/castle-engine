@@ -762,7 +762,8 @@ begin
 
     ValuePossiblyChanged := not FastEqualsValue(Value);
     { Call AssignValue regardless of ValuePossiblyChanged.
-      Reason: AssignValue also removes "IS" clause. }
+      Reason: AssignValue also removes "IS" clause.
+      Also it applies partial result info (in case of animation blending). }
     AssignValue(Value);
     if ValuePossiblyChanged then Changed;
   end;

@@ -358,7 +358,7 @@ begin
       OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
     end;
   end;
-  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time);
+  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time, Value.InternalPartialSend);
 end;
 
 { TCubicBezierPositionInterpolatorNode --------------------------------------- }
@@ -428,7 +428,7 @@ begin
       OutputValue := Lerp(T, KeyValue(Range - 1), KeyValue(Range));
     end;
   end;
-  EventValue_Changed.Send(OutputValue, Time);
+  EventValue_Changed.Send(OutputValue, Time, Value.InternalPartialSend);
 end;
 
 { registration --------------------------------------------------------------- }
