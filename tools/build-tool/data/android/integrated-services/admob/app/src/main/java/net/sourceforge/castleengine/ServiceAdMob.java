@@ -93,9 +93,10 @@ public class ServiceAdMob extends ServiceAbstract
             @Override
             public void onAdFailedToLoad(int errorCode)  {
                 logInfo(CATEGORY, "onAdFailedToLoad");
-                interstitialOpenWhenLoaded = false;
                 failedToLoadInterstitialLastTime = true;
-                fullScreenAdClosed(false);
+                if (interstitialOpenWhenLoaded)
+                    fullScreenAdClosed(false);
+                interstitialOpenWhenLoaded = false;
             }
 
             @Override
@@ -147,9 +148,10 @@ public class ServiceAdMob extends ServiceAbstract
             @Override
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
-                rewardedOpenWhenLoaded = false;
                 failedToLoadRewardedLastTime = true;
-                fullScreenAdClosed(false);
+                if (rewardedOpenWhenLoaded)
+                    fullScreenAdClosed(false);
+                rewardedOpenWhenLoaded = false;
             }
 
             @Override
