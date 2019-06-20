@@ -2850,7 +2850,9 @@ begin
   for Route in AllRoutes do
     if IsInterpolator(Route.SourceNode) and
        (Route.SourceEvent.X3DName = 'value_changed') and
-       (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) then
+       (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) and
+       { Route.DestinationNode may be nil if node was freed, e.g. delete shape in view3dscene }
+       (Route.DestinationNode <> nil) then
     begin
       Field := FieldOfInputEvent(Route.DestinationNode, Route.DestinationEvent);
       if (Field <> nil) and
