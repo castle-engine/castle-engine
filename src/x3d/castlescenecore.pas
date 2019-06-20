@@ -479,9 +479,6 @@ type
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
       TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
-      { Map from original field (in RootNode) to a copy of this field. }
-      TAnimationAffectedFields = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectDictionary<TX3DField, TX3DField>;
-
   protected
     type
       TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
@@ -557,7 +554,7 @@ type
 
     { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
     NeedsDetectAffectedFields: Boolean;
-    AnimationAffectedFields: TAnimationAffectedFields;
+    AnimationAffectedFields: TX3DFieldList;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -2072,12 +2069,21 @@ type
 
     { Stop the @link(CurrentAnimation), started by last @link(PlayAnimation) call.
       Note that this leaves the model in a state in the middle of the last animation.
-      You can use @link(ResetAnimationState) to reset the state afterwards. }
+      You can use @link(ResetAnimationState) to reset the state afterwards.
+
+      Note that it is not necessary to stop the previous animation
+      before starting a new one (by @link(PlayAnimation)).
+      @link(PlayAnimation) will automatically stop the previous animation.
+      Moreover, @link(PlayAnimation) may do animation blending (cross-fade)
+      between old and new animation (if you use @link(TPlayAnimationParameters.TransitionDuration)),
+      which only works if you @italic(did not) call StopAnimation. }
     procedure StopAnimation;
 
     { Reset all the fields affected by animations.
       See TimeSensor.detectAffectedFields documentation (TODO link) for details
       how these fields are detected, and when this is useful.
+      In practice, they are right now automatically used for all Spine JSON
+      and glTF animations.
 
       If IgnoreAffectedBy <> nil, the fields affected by the given TimeSensor
       may not be reset. This is an optimization useful in case this TimeSensor
@@ -2839,7 +2845,7 @@ procedure TDetectAffectedFields.FindAnimationAffectedFields;
 
 var
   Route: TX3DRoute;
-  Field, FieldCopy: TX3DField;
+  Field: TX3DField;
 begin
   for Route in AllRoutes do
     if IsInterpolator(Route.SourceNode) and
@@ -2848,11 +2854,10 @@ begin
     begin
       Field := FieldOfInputEvent(Route.DestinationNode, Route.DestinationEvent);
       if (Field <> nil) and
-         (not ParentScene.AnimationAffectedFields.ContainsKey(Field)) then
+         (not ParentScene.AnimationAffectedFields.Contains(Field)) then
       begin
-        FieldCopy := TX3DFieldClass(Field.ClassType).CreateUndefined(nil, Field.Exposed, Field.X3DName);
-        FieldCopy.AssignValue(Field);
-        ParentScene.AnimationAffectedFields.Add(Field, FieldCopy);
+        Field.InternalSaveResetValue;
+        ParentScene.AnimationAffectedFields.Add(Field);
       end;
     end;
 end;
@@ -2892,7 +2897,7 @@ begin
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
-  AnimationAffectedFields := TAnimationAffectedFields.Create([doOwnsValues]);
+  AnimationAffectedFields := TX3DFieldList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -6176,41 +6181,27 @@ begin
         Then ResetAnimationState on X doesn't do anything
         (since X already has the same value as ResetAnimationState sets).
 
-        At the first time the new animation TimeHandler.SetTime is called
-        (in TCastleSceneCore.InternalSetTime),
-        it will have TimeHandler.PartialSend created in TCastleSceneCore.PartialSendBegin,
-        and in TX3DField.AssignValue we will create PartialReceived
-        with PartialReceived.SettledValue reflecting the current ("reset")
-        state of the bone, and in TX3DField.InternalAffectedPartial
-        we will blend (fade-in) new animation with "reset" state.
+        In TX3DField.InternalAffectedPartial
+        we will blend (fade-in) new animation with FResetValue recorded
+        in the field.
 
       3. Old animation affects field X, new animation doesn't affect X.
 
-        Since we use ResetAnimationState
-        *before* TCastleSceneCore.PartialSendBegin,
-        so PartialReceived.SettledValue will be set to the "reset" field state,
-        and we will blend (fade-out) old animation value with this reset value.
-
-        Just like in AD 2: PartialReceived.SettledValue is set to what
-        ResetAnimationState did.
+        We will blend (fade-out) old animation value with the FResetValue
+        in the field.
 
       4. Both old and new animations touch field X.
 
-        Just like in AD 2, PartialReceived.SettledValue is set to what
-        ResetAnimationState did.
-
-        In this case PartialReceived.SettledValue value is not useful
-        for the resulting animation
-        (it contains the "reset" state given by ResetAnimationState,
-        which we don't want to use since neither old nor new animation
+        In this case field's FResetValue value is not useful
+        (we don't want to it use since neither old nor new animation
         corresponds to the "reset" state).
 
-        Luckily, in this case PartialReceived.SettledValue will be ignored!
+        Luckily, in this case FResetValue will be ignored!
         The field X will receive two values (during cross-fade):
         old one (let's call it's strength Alpha), and new one (with strength 1-Alpha).
         Since their strengths sum to 1.0, in TX3DField.InternalAffectedPartial
         we will have PartialReceived.Partial = 1.0,
-        which means that PartialReceived.SettledValue will be ignored.
+        which means that FResetValue will be ignored.
 
       To test it all in a simple case,
       open the Spine JSON file
@@ -7707,14 +7698,11 @@ end;
 
 procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
 var
-  Pair: TAnimationAffectedFields.TDictionaryPair;
+  F: TX3DField;
 begin
-  { set fields in AnimationAffectedFields keys to the AnimationAffectedFields values }
-  for Pair in AnimationAffectedFields do
-  begin
-    Pair.Key.AssignValue(Pair.Value);
-    Pair.Key.Changed;
-  end;
+  { set fields in AnimationAffectedFields to their reset values }
+  for F in AnimationAffectedFields do
+    F.InternalRestoreSaveValue;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);

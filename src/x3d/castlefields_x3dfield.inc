@@ -82,6 +82,7 @@
     FExposed: boolean;
     FValueFromIsClause: boolean;
     FExposedEventsLinked: boolean;
+    FResetValue: TX3DField;
 
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
@@ -99,7 +100,7 @@
           So e.g. sending two values, one with TPartialSend.Partial = 0.3,
           one with TPartialSend.Partial = 0.7, sets TPartialReceived.Partial = 1.0.
 
-          At the end, PartialValue will be mixed (lerp) with SettledValue,
+          At the end, PartialValue will be mixed (lerp) with FResetValue,
           to produce final Value.
           This way animation blending works in various cases:
           - New animations fades-in, old animation fades-out
@@ -114,10 +115,7 @@
         { Accumulated (this frame) partial values. }
         PartialValue: TX3DField;
 
-        { Last known value when animation blending did not occur. }
-        SettledValue: TX3DField;
-
-        { Should the PartialValue, SettledValue be used to determine
+        { Should the PartialValue, FResetValue be used to determine
           field value this frame.
 
           Why do we need this?
@@ -579,6 +577,14 @@
     procedure InternalRemovePartial;
     { @exclude Internal property, needed by animation blending. }
     property InternalPartialSend: TPartialSend read FPartialSend write FPartialSend;
+    { @exclude Internal property, needed by animation code.
+      Saves the current field value,
+      to be used as "value when this field is not animated". }
+    procedure InternalSaveResetValue;
+    { @exclude Internal property, needed by animation code.
+      Restore the field value last saved by InternalSaveResetValue.
+      Call it only if you previously called InternalSaveResetValue on this instance. }
+    procedure InternalRestoreSaveValue;
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
@@ -628,7 +634,6 @@ end;
 
 destructor TX3DField.TPartialReceived.Destroy;
 begin
-  FreeAndNil(SettledValue);
   FreeAndNil(PartialValue);
   inherited;
 end;
@@ -658,6 +663,7 @@ begin
   FreeAndNil(FExposedEvents[true]);
   // FreeAndNil(FPartialSend); // do not free this, TCastleSceneCore frees it
   FreeAndNil(PartialReceived);
+  FreeAndNil(FResetValue);
   inherited;
 end;
 
@@ -1018,9 +1024,18 @@ procedure TX3DField.AssignValue(Source: TX3DField);
     if PartialReceived = nil then
     begin
       PartialReceived := TPartialReceived.Create;
-      { when PartialReceived is created, initialize SettledValue by copying Self }
-      PartialReceived.SettledValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
-      PartialReceived.SettledValue.AssignValue(Self);
+      if FResetValue = nil then
+      begin
+        WritelnWarning('Initializing field "%s" reset value when the animation starts. It is more reliable to set TimeSensor.detectAffectedFields to TRUE to have animation blending (cross-fading) working perfectly.', [NiceName]);
+        { The reason why this is not advised:
+          - The 1st frame of new animation is possibly already applied when this is called.
+            That's because TCastleSceneCore may call HandleChangeTimeStopStart
+            (cause by TTimeSensorNode.Start) before this is called (from Update, between
+            PartialSendBegin and PartialSendEnd).
+          - Also it's not optimal, since we do it in the middle of the game, instead of at loading.
+        }
+        InternalSaveResetValue;
+      end;
     end;
 
     { update PartialReceived.PartialValue, by lerp with weights
@@ -1072,7 +1087,13 @@ begin
 
   if (PartialReceived <> nil) and PartialReceived.ToBeApplied then
   begin
-    AssignLerp(PartialReceived.Partial, PartialReceived.SettledValue, PartialReceived.PartialValue);
+    if PartialReceived.Partial > 1.01 then
+      WritelnWarning('During animation blending, the partials sum in > 1: %f on field %s', [
+        PartialReceived.Partial,
+        NiceName
+      ]);
+    Assert(FResetValue <> nil);
+    AssignLerp(PartialReceived.Partial, FResetValue, PartialReceived.PartialValue);
     PartialReceived.Partial := 0;
     FreeAndNil(PartialReceived.PartialValue);
     Assert(not PartialReceived.ToBeApplied); // we have destroyed PartialReceived.PartialValue
@@ -1085,9 +1106,23 @@ procedure TX3DField.InternalRemovePartial;
 begin
   { Field is no longer affected by faded-in/out animation.
     Next time it *will* become affected,
-    PartialReceived and in particular PartialReceived.SettledValue
-    will be initialized again. }
+    PartialReceived will be initialized again. }
   FreeAndNil(PartialReceived);
+end;
+
+procedure TX3DField.InternalSaveResetValue;
+begin
+  FreeAndNil(FResetValue);
+
+  FResetValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
+  FResetValue.AssignValue(Self);
+end;
+
+procedure TX3DField.InternalRestoreSaveValue;
+begin
+  Assert(FResetValue <> nil);
+  AssignValue(FResetValue);
+  Changed;
 end;
 
 procedure TX3DField.AssignDefaultValueFromValue;
