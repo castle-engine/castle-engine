@@ -139,7 +139,11 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
         A.Material.FdEmissiveColor.Value := Color.XYZ;
         A.Material.FdTransparency.Value := 1 - Color[3];
 
-        Materials.Add(A.Material);
+        { Do not put duplicates on Materials list,
+          this would cause TSlotTimelineColor.BuildNodes
+          to create multiple ROUTEs to the same node. }
+        if not Materials.Contains(A.Material) then
+          Materials.Add(A.Material);
       end;
     end;
 
