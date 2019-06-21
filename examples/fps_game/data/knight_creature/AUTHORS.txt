@@ -9,5 +9,5 @@ The model in knight.blend and texture in knight.png:
   or above versions of these.
 
   It was somewhat retouched by Michalis Kamburelis.
-  It's the same model we use in examples/resource_animations/,
+  It's the same model we use in examples/animations/resource_animations/,
   here exported to castle-anim-frames animations.

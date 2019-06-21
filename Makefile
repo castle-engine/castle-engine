@@ -219,7 +219,6 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/resource_animations/resource_animations \
   examples/simple_command_line_utilities/castle_download \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper \

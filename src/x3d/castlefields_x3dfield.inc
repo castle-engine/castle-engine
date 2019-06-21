@@ -138,7 +138,7 @@
             Otherwise, the field value would be set immediately to the 1st pose
             of new animation, disregarding smooth animation blending.
 
-            Testcase: examples/play_animation/ , switch to sample 3D,
+            Testcase: examples/animations/play_animation/ , switch to sample 3D,
             increase transition = max, play "idle".
             When "Partial <> 0" is used instead of ToBeApplied,
             the 1st frame of "idle" quickly blinks at the beginning.
