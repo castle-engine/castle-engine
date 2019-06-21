@@ -2080,17 +2080,17 @@ type
     procedure StopAnimation;
 
     { Reset all the fields affected by animations.
-      See TimeSensor.detectAffectedFields documentation (TODO link) for details
-      how these fields are detected, and when this is useful.
-      In practice, they are right now automatically used for all Spine JSON
-      and glTF animations.
+      See TimeSensor.detectAffectedFields documentation
+      (https://castle-engine.io/x3d_implementation_time_extensions.php#section_detect_affected_fields)
+      for details how these fields are detected, and when this is useful.
+      By default this is enabled, for all TimeSensor nodes.
 
       If IgnoreAffectedBy <> nil, the fields affected by the given TimeSensor
       may not be reset. This is an optimization useful in case this TimeSensor
       will modify the scene very soon, so resetting its affected fields
       is a waste of time.
       Do not depend on 100% that the fields affected by given TimeSensor
-      are left untouched. }
+      are left untouched (in the current implementation, this field is ignored). }
     procedure ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode = nil);
 
     { Force recalculating the text shapes when font changed.

@@ -979,7 +979,7 @@ begin
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
-  FFdDetectAffectedFields := TSFBool.Create(Self, false, 'detectAffectedFields', false);
+  FFdDetectAffectedFields := TSFBool.Create(Self, false, 'detectAffectedFields', true);
   AddField(FFdDetectAffectedFields);
 
   FFdFractionIncreasing := TSFBool.Create(Self, true, 'fractionIncreasing', true);

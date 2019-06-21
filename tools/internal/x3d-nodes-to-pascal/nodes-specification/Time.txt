@@ -22,5 +22,5 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
   SFBool [in,out] fractionIncreasing TRUE
   # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
-  SFBool [] detectAffectedFields  FALSE
+  SFBool [] detectAffectedFields TRUE
 }

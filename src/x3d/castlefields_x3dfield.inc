@@ -1122,6 +1122,7 @@ end;
 procedure TX3DField.InternalRestoreSaveValue;
 begin
   Assert(FResetValue <> nil);
+  // TODO: maybe this should be Send(FResetValue);
   AssignValue(FResetValue);
   Changed;
 end;

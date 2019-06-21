@@ -189,7 +189,6 @@ var
   Route: TX3DRoute;
 begin
   Node := TTimeSensorNode.Create(DefaultAnimationPrefix + Name, BaseUrl);
-  Node.DetectAffectedFields := true;
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do
