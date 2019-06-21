@@ -6207,7 +6207,7 @@ begin
 
       To test it all in a simple case,
       open the Spine JSON file
-      from https://github.com/castle-engine/demo-models/tree/master/test_animation_blending_spine/exported
+      from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
       with view3dscene and run animations with TransitionDuration > 0.
 
       Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
