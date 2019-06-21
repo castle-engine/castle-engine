@@ -2828,21 +2828,6 @@ begin
 end;
 
 procedure TDetectAffectedFields.FindAnimationAffectedFields;
-
-  function FieldOfInputEvent(const Node: TX3DNode; const Event: TX3DEvent): TX3DField;
-  var
-    F: TX3DField;
-    I: Integer;
-  begin
-    for I := 0 to Node.FieldsCount - 1 do
-    begin
-      F := Node.Fields[I];
-      if F.EventIn = Event then
-        Exit(F);
-    end;
-    Result := nil;
-  end;
-
 var
   Route: TX3DRoute;
   Field: TX3DField;
@@ -2854,7 +2839,7 @@ begin
        { Route.DestinationNode may be nil if node was freed, e.g. delete shape in view3dscene }
        (Route.DestinationNode <> nil) then
     begin
-      Field := FieldOfInputEvent(Route.DestinationNode, Route.DestinationEvent);
+      Field := Route.DestinationNode.FieldSetByEvent(Route.DestinationEvent);
       if (Field <> nil) and
          (not ParentScene.AnimationAffectedFields.Contains(Field)) then
       begin

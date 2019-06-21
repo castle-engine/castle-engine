@@ -678,6 +678,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -707,6 +708,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -736,6 +738,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -1616,8 +1619,14 @@ end;
 procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleFanSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TIndexedTriangleSetNode.CreateNode;
@@ -1653,8 +1662,14 @@ end;
 procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TIndexedTriangleStripSetNode.CreateNode;
@@ -1690,8 +1705,14 @@ end;
 procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleStripSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TLineSetNode.CreateNode;
