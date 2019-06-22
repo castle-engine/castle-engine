@@ -132,9 +132,11 @@ type
       InsideToggleModeClick: Boolean;
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
+      PendingErrorBox: String;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
+    procedure CastleControlUpdate(Sender: TObject);
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
@@ -784,6 +786,7 @@ begin
   CastleControl.Align := alClient;
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
+  CastleControl.OnUpdate := @CastleControlUpdate;
 
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;
@@ -1342,7 +1345,20 @@ procedure TDesignFrame.CastleControlOpen(Sender: TObject);
     except
       on E: Exception do
       begin
-        ErrorBox('An error occurred when reading the CastleSettings.xml file in your project:' +
+        { Showing a message box (using ErrorBox, which calls LCL MessageDlg)
+          from CastleControl.OnOpen (after OpenGL context is initialized)
+          is not reliable.
+
+          - WinAPI widgetset: works OK.
+          - GTK widgetset: shows an empty message box (seems like the rendered text
+            is invisible), and shows GTK error in the console
+            (castle-editor:6999): Gtk-CRITICAL **: 21:23:50.518: IA__gtk_widget_realize: assertion 'GTK_WIDGET_ANCHORED (widget) || GTK_IS_INVISIBLE (widget)' failed
+
+          To workaround this, we set PendingErrorBox field here,
+          instead of showing ErrorBox immediately.
+        }
+        PendingErrorBox := SAppendPart(PendingErrorBox, NL,
+          'An error occurred when reading the CastleSettings.xml file in your project:' +
           NL + NL + ExceptMessage(E));
         { and continue, this way you can still open a project with broken
           CastleSettings.xml }
@@ -1352,6 +1368,16 @@ procedure TDesignFrame.CastleControlOpen(Sender: TObject);
 
 begin
   ReadSettings;
+end;
+
+procedure TDesignFrame.CastleControlUpdate(Sender: TObject);
+begin
+  { process PendingErrorBox }
+  if PendingErrorBox <> '' then
+  begin
+    ErrorBox(PendingErrorBox);
+    PendingErrorBox := '';
+  end;
 end;
 
 procedure TDesignFrame.InspectorFilter(Sender: TObject;
