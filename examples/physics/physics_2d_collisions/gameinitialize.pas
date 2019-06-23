@@ -205,7 +205,7 @@ begin
     'FPS: %s' + NL +
     'Scene Manager Objects: %d' + NL +
     'Linear velocity: %f' + NL +
-    'Use AWSD to change plane velocity, space to pause, R to restart plane ' + NL +
+    'Use AWSD to change plane velocity, space to pause, R to restart plane.' + NL +
     NL+
     'Current Plane Colisions (from TRigidBody.GetCollidingTransforms):' + NL +
     '  %s' + NL +

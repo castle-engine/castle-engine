@@ -425,7 +425,7 @@ destructor TRigidBody.Destroy;
 begin
   { In some cases TRigidBody can be destroyed before TCastleTransform that is assigned
     then we need set the TCastleTransform.FRigidBody to nil to avoid dangling pointer.
-    See physics physics_3d_demo. }
+    See physics_3d_demo. }
   if FTransform <> nil then
     FTransform.FRigidBody := nil;
 
