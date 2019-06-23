@@ -55,7 +55,10 @@ type
 
   TFullScreenAdType = (atInterstitialStatic, atInterstitialVideo, atReward);
 
-  TAdClosedEvent = procedure (const Sender: TObject; const Watched: boolean) of object;
+  TAdWatchStatus = (wsWatched = 0, wsUnknownError, wsNetworkNotAvailable, wsNoAdsAvailable,
+    wsUserAborted, wsAdNotReady, wsAdNetworkNotInitialized, wsInvalidRequest);
+
+  TAdClosedEvent = procedure (const Sender: TObject; const WatchedStatus: TAdWatchStatus) of object;
 
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
@@ -89,7 +92,7 @@ type
         FBannerShowing: boolean;
         FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList): boolean;
-        procedure FullScreenAdClosed(const Watched: boolean);
+        procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
       strict protected
         FFullScreenAdVisible: boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
@@ -168,7 +171,7 @@ type
     FNetworks: array [TAdNetwork] of TAdNetworkHandler;
     FOnFullScreenAdClosed: TAdClosedEvent;
   protected
-    procedure FullScreenAdClosed(const Watched: boolean); virtual;
+    procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -280,7 +283,7 @@ begin
   if (Received.Count = 2) and
      (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
-    FullScreenAdClosed(StrToBool(Received[1]));
+    FullScreenAdClosed(TAdWatchStatus(StrToInt(Received[1])));
     Result := true;
   end else
 
@@ -318,7 +321,7 @@ procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdTyp
 begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-  FullScreenAdClosed(false);
+  FullScreenAdClosed(wsUnknownError);
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
@@ -331,17 +334,17 @@ begin
     while waiting for ad to finish. Reproduce: turn on "kill app when sending to bg"
     in Android debug options, then use "watch ad" and return to game. }
   if FFullScreenAdVisible then
-    FullScreenAdClosed(false);
+    FullScreenAdClosed(wsUnknownError);
   Parent.FBannerSize := TRectangle.Empty;
   { reshow banner, if necessary }
   if FBannerShowing then
     ShowBanner(FBannerGravity);
 end;
 
-procedure TAds.TAdNetworkHandler.FullScreenAdClosed(const Watched: boolean);
+procedure TAds.TAdNetworkHandler.FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
 begin
   FFullScreenAdVisible := false;
-  Parent.FullScreenAdClosed(Watched);
+  Parent.FullScreenAdClosed(WatchedStatus);
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
@@ -564,10 +567,10 @@ begin
   FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
-procedure TAds.FullScreenAdClosed(const Watched: boolean);
+procedure TAds.FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
 begin
   if Assigned(OnFullScreenAdClosed) then
-    OnFullScreenAdClosed(Self, Watched);
+    OnFullScreenAdClosed(Self, WatchedStatus);
 end;
 
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
@@ -578,12 +581,12 @@ begin
     FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded) else
   { if the network is not initialized, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-    FullScreenAdClosed(false);
+    FullScreenAdClosed(wsAdNetworkNotInitialized);
   {$else}
   { since this is not supported on non-Android now, just make
     FullScreenAdClosed(false) immediately, to avoid the app waiting
     for OnFullScreenAdClosed forever. }
-  FullScreenAdClosed(false);
+  FullScreenAdClosed(wsAdNetworkNotInitialized);
   {$endif}
 end;
 

@@ -63,9 +63,9 @@ public class ServiceAdMob extends ServiceAbstract
         logInfo(CATEGORY, "AdMob initialized");
     }
 
-    private void fullScreenAdClosed(boolean watched)
+    private void fullScreenAdClosed(TAdWatchStatus watchedStatus)
     {
-        messageSend(new String[]{"ads-admob-full-screen-ad-closed", booleanToString(watched)});
+        messageSend(new String[]{"ads-admob-full-screen-ad-closed", Integer.toString(watchedStatus.ordinal()) });
     }
 
     private void interstitialInitialize()
@@ -94,15 +94,31 @@ public class ServiceAdMob extends ServiceAbstract
             public void onAdFailedToLoad(int errorCode)  {
                 logInfo(CATEGORY, "onAdFailedToLoad");
                 failedToLoadInterstitialLastTime = true;
-                if (interstitialOpenWhenLoaded)
-                    fullScreenAdClosed(false);
+                if (interstitialOpenWhenLoaded) {
+                    switch(errorCode) {
+                        case AdRequest.ERROR_CODE_INTERNAL_ERROR:
+                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+                            break;
+                        case AdRequest.ERROR_CODE_INVALID_REQUEST:
+                            fullScreenAdClosed(TAdWatchStatus.wsInvalidRequest);
+                            break;
+                        case AdRequest.ERROR_CODE_NETWORK_ERROR:
+                            fullScreenAdClosed(TAdWatchStatus.wsNetworkNotAvailable);
+                            break;
+                        case AdRequest.ERROR_CODE_NO_FILL:
+                            fullScreenAdClosed(TAdWatchStatus.wsNoAdsAvailable);
+                            break;
+                        default:
+                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+                    }
+                }
                 interstitialOpenWhenLoaded = false;
             }
 
             @Override
             public void onAdClosed() {
                 logInfo(CATEGORY, "Ad Closed");
-                fullScreenAdClosed(true);
+                fullScreenAdClosed(TAdWatchStatus.wsWatched);
                 loadInterstitial(); // load next ad
             }
         });
@@ -141,7 +157,10 @@ public class ServiceAdMob extends ServiceAbstract
             public void onRewardedVideoAdClosed() {
                 logInfo(CATEGORY, "onRewardedVideoAdClosed");
                 loadRewarded();
-                fullScreenAdClosed(rewardedWatched);
+                if (rewardedWatched)
+                    fullScreenAdClosed(TAdWatchStatus.wsWatched);
+                else
+                    fullScreenAdClosed(TAdWatchStatus.wsUserAborted);
                 rewardedWatched = false;
             }
 
@@ -149,8 +168,25 @@ public class ServiceAdMob extends ServiceAbstract
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
                 failedToLoadRewardedLastTime = true;
-                if (rewardedOpenWhenLoaded)
-                    fullScreenAdClosed(false);
+                if (rewardedOpenWhenLoaded) {
+                    // this is correct only when we waited for ad and now need return 
+                    switch(errorCode) {
+                        case AdRequest.ERROR_CODE_INTERNAL_ERROR:
+                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+                            break;
+                        case AdRequest.ERROR_CODE_INVALID_REQUEST:
+                            fullScreenAdClosed(TAdWatchStatus.wsInvalidRequest);
+                            break;
+                        case AdRequest.ERROR_CODE_NETWORK_ERROR:
+                            fullScreenAdClosed(TAdWatchStatus.wsNetworkNotAvailable);
+                            break;
+                        case AdRequest.ERROR_CODE_NO_FILL:
+                            fullScreenAdClosed(TAdWatchStatus.wsNoAdsAvailable);
+                            break;
+                        default:
+                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+                    }
+                }
                 rewardedOpenWhenLoaded = false;
             }
 
@@ -267,12 +303,12 @@ public class ServiceAdMob extends ServiceAbstract
                     interstitial.show();
                 }
             } else {
-                // pretend that ad was displayed, in case native app waits for it
-                fullScreenAdClosed(false);
+                // ad not loaded and we don't want to wait
+                fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
             }
         } else {
-            // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed(false);
+            // network or interstitial ads not initialized
+            fullScreenAdClosed(TAdWatchStatus.wsAdNetworkNotInitialized);
         }
     }
 
@@ -301,12 +337,12 @@ public class ServiceAdMob extends ServiceAbstract
                     rewarded.show();
                 }
             } else {
-                // pretend that ad was displayed, in case native app waits for it
-                fullScreenAdClosed(false);
+                // ad not loaded and we don't want to wait
+                fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
             }
         } else {
-            // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed(false);
+            // network or interstitial ads not initialized
+            fullScreenAdClosed(TAdWatchStatus.wsAdNetworkNotInitialized);
         }
     }
 
