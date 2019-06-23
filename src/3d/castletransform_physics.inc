@@ -423,6 +423,12 @@ end;
 
 destructor TRigidBody.Destroy;
 begin
+  { In some cases TRigidBody can be destroyed before TCastleTransform that is assigned
+    then we need set the TCastleTransform.FRigidBody to nil to avoid dangling pointer.
+    See physics physics_3d_demo. }
+  if FTransform <> nil then
+    FTransform.FRigidBody := nil;
+
   { The FKraftBody will be freed now if you free TRigidBody
     instance explicitly. In most other cases, DeinitializeTransform
     already freed FKraftBody and set it nil. }
