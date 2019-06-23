@@ -423,9 +423,17 @@ end;
 
 destructor TRigidBody.Destroy;
 begin
-  { In some cases TRigidBody can be destroyed before TCastleTransform that is assigned
-    then we need set the TCastleTransform.FRigidBody to nil to avoid dangling pointer.
-    See physics_3d_demo. }
+  { In case TRigidBody is destroyed before the connected FTransform is destroyed
+    (testcase: physics_3d_demo exit), it is necessary to clear FTransform.FRigidBody.
+    This avoids having a dangling pointer in FTransform.FRigidBody to half-destroyed
+    instance.
+
+    Otherwise:
+    - "inherited" below calls TComponent free notification,
+    - which calls TCastleTransform.PhysicsNotification,
+    - which would (if FTransform.FRigidBody is not cleared)
+      call DeinitializeTransform on our instance, with FKraftBody = nil.
+  }
   if FTransform <> nil then
     FTransform.FRigidBody := nil;
 
@@ -520,10 +528,18 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     // set initial transformation
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
 
-    { Synchronize kraft rigid body and shapes (colliders) transform to make collider
-      position correct, without this first (before physics step) TransformationFromKraft
-      breaks Castle transform position and make strange jump. This can be easily observed when TimeScale = 0.0
-      Because we use shape InterpolatedWorldTransform we need to store it for correct result. }
+    { Synchronize Kraft rigid body and shapes (colliders) transform to make
+      collider position correct. Without the SynchronizeTransformIncludingShapes,
+      first (before physics step) TransformationFromKraft
+      would set weird TCastleTransform position.
+
+      Testcase: run physics_2d_collisions, press space (pause) and R (restart).
+      The plane should jump to predictable initial position (TPlane.Create).
+      Without the SynchronizeTransformIncludingShapes call, it jumps to
+      an incorrect position.
+
+      Also, because we use shape InterpolatedWorldTransform we need to store
+      it for correct result. }
     FKraftBody.SynchronizeTransformIncludingShapes;
     Collider.FKraftShape.StoreWorldTransform;
   end;
