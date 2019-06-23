@@ -125,7 +125,7 @@ public class ServiceAdMob extends ServiceAbstract
         if (mRewardedUnitId == "")
             return;
 
-        MobileAds.initialize(getActivity());
+        MobileAds.initialize(getActivity(),"${ANDROID.ADMOB.APP_ID}");
         rewarded = MobileAds.getRewardedVideoAdInstance(getActivity());
 
         // Set an AdListener.
@@ -177,6 +177,11 @@ public class ServiceAdMob extends ServiceAbstract
             @Override
             public void onRewardedVideoStarted() {
                 logInfo(CATEGORY, "onRewardedVideoStarted");
+            }
+
+            @Override
+            public void onRewardedVideoCompleted() {
+                logInfo(CATEGORY, "onRewardedVideoCompleted");
             }
         });
 
