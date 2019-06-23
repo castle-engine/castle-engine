@@ -16,12 +16,6 @@
 *.stat
 *.dcu
 
-# Don't ignore these files.
-# Although they are automatically created/updated by the CGE build tool.
-# We commit these files, to allow compiling the examples through Lazarus
-# (using lpi) without the need to run the build tool.
-# automatic-windows-resources.res
-
 # Other backups
 *.blend1
 *.blend2
