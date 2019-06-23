@@ -20,7 +20,7 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Math,
   CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, Castle2DSceneManager,
@@ -73,7 +73,7 @@ var
 begin
   inherited Create(AOwner);
   Load('castle-data:/plane.x3d');
-  Translation := Vector3(50, 50, 0); // initial position
+  Translation := Vector3(550, 450, 0); // initial position
 
   RBody := TRigidBody.Create(Self);
   RBody.Dynamic := true;
@@ -130,6 +130,13 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
+procedure LoadPlane;
+begin
+  Plane := TPlane.Create(Application);
+  SceneManager.Items.Add(Plane);
+  Plane.Scale := Vector3(5, 5, 0);
+end;
+
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 
@@ -147,14 +154,6 @@ procedure ApplicationInitialize;
     BottomWall := TWall.Create(Application, 'BottomWall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(BottomWall);
   end;
-
-  procedure LoadPlane;
-  begin
-    Plane := TPlane.Create(Application);
-    SceneManager.Items.Add(Plane);
-    Plane.Scale := Vector3(5, 5, 0);
-  end;
-
 begin
   { make UI automatically scaled }
   Window.Container.UIReferenceWidth := 1024;
@@ -206,7 +205,7 @@ begin
     'FPS: %s' + NL +
     'Scene Manager Objects: %d' + NL +
     'Linear velocity: %f' + NL +
-    'Use AWSD to change plane velocity.' + NL +
+    'Use AWSD to change plane velocity, space to pause, R to restart plane.' + NL +
     NL+
     'Current Plane Colisions (from TRigidBody.GetCollidingTransforms):' + NL +
     '  %s' + NL +
@@ -219,6 +218,8 @@ begin
      CollisionsListTXT,
      Plane.LastCollisionEnter
    ]);
+  if IsZero(SceneManager.TimeScale) then
+    Status.Caption := Status.Caption + NL + 'Paused';
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
@@ -237,6 +238,18 @@ begin
     Move(0, -1);
   if Event.IsKey(keyW) then
     Move(0,  1);
+  if Event.IsKey(keyR) then
+  begin
+    FreeAndNil(Plane);
+    LoadPlane;
+  end;
+  if Event.IsKey(keySpace) then
+  begin
+    if IsZero(SceneManager.TimeScale) then
+      SceneManager.TimeScale := 1
+    else
+      SceneManager.TimeScale := 0;
+  end;
 end;
 
 initialization

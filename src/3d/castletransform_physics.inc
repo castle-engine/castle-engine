@@ -423,6 +423,12 @@ end;
 
 destructor TRigidBody.Destroy;
 begin
+  { In some cases TRigidBody can be destroyed before TCastleTransform that is assigned
+    then we need set the TCastleTransform.FRigidBody to nil to avoid dangling pointer.
+    See physics_3d_demo. }
+  if FTransform <> nil then
+    FTransform.FRigidBody := nil;
+
   { The FKraftBody will be freed now if you free TRigidBody
     instance explicitly. In most other cases, DeinitializeTransform
     already freed FKraftBody and set it nil. }
@@ -513,6 +519,13 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
     // set initial transformation
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
+
+    { Synchronize kraft rigid body and shapes (colliders) transform to make collider
+      position correct, without this first (before physics step) TransformationFromKraft
+      breaks Castle transform position and make strange jump. This can be easily observed when TimeScale = 0.0
+      Because we use shape InterpolatedWorldTransform we need to store it for correct result. }
+    FKraftBody.SynchronizeTransformIncludingShapes;
+    Collider.FKraftShape.StoreWorldTransform;
   end;
 
 begin
