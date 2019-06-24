@@ -505,6 +505,10 @@ begin
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
+
+  //need to specify it manually, because otherwise it's zero
+  FMaxDisplayChars := -1;
+  FTotalChars := MaxInt;
 end;
 
 destructor TTextNode.Destroy;
@@ -563,6 +567,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const Size, Spacing: Single;
   const Justify, JustifyMinor: TX3DFontJustify;
   const Strings: TCastleStringList;
+  const MaxDisplayChars: Integer;
   const Font: TTextureFontData;
   const Solid: boolean;
   const EventLineBounds: TMFVec2fEvent;
@@ -774,6 +779,7 @@ var
 
 var
   I: Integer;
+  DisplayChars: Integer;
 begin
   YScale := Size / Font.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
@@ -792,8 +798,23 @@ begin
     if Strings.Count <> 0 then
     begin
       ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
-      for I := 0 to Strings.Count - 1 do
-        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      if MaxDisplayChars < 0 then
+        for I := 0 to Strings.Count - 1 do
+          Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale) //optimize in case MaxDisplayChars = -1
+      else
+      begin
+        DisplayChars := MaxDisplayChars;
+        for I := 0 to Strings.Count - 1 do
+        begin
+          if Length(Strings[I]) < DisplayChars then
+            Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
+          else
+            Print(StringPosX(I), StringPosY(I), Copy(Strings[I], 0, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, Length(Strings[I]));
+          if DisplayChars <= 0 then
+            Break;
+        end;
+      end;
     end;
 
     { These events should be generated only when
@@ -874,7 +895,8 @@ begin
       ExtraTexCoordField := ExtraTexCoordNode.FdPoint else
       ExtraTexCoordField := nil;
 
-    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items, Font,
+    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items,
+      MaxDisplayChars, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 

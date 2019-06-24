@@ -26,8 +26,11 @@
 {$ifdef read_interface}
 
   strict private
+    FMaxDisplayChars: Integer;
+    FTotalChars: Integer;
     function GetMaxExtent: Single;
     procedure SetMaxExtent(const Value: Single);
+    procedure SetMaxDisplayChars(const Value: Integer);
   public
     { Set X3D field "length". } { }
     procedure SetLength(const Value: array of Single);
@@ -39,6 +42,11 @@
     procedure SetString(const Value: array of string);
     { Set X3D field "string". } { }
     procedure SetString(const Value: TCastleStringList);
+    { Limit the displayed text, if not -1.
+      This doesn't affect the text size, only the rendered text.
+      It's nice to show the animation of text "expanding", filling some area. }
+    property MaxDisplayChars: Integer
+      read FMaxDisplayChars write SetMaxDisplayChars default -1;
 
 {$endif read_interface}
 
@@ -66,14 +74,38 @@ begin
   FdMaxExtent.Send(Value);
 end;
 
-procedure TTextNode.SetString(const Value: array of string);
+procedure TTextNode.SetString(const Value: array of String);
+var
+  S: String;
 begin
   FdString.Send(Value);
+  FTotalChars := 0;
+  for S in Value do
+    FTotalChars += Length(S);
 end;
 
 procedure TTextNode.SetString(const Value: TCastleStringList);
+var
+  S: String;
 begin
   FdString.Send(Value);
+  FTotalChars := 0;
+  for S in Value do
+    FTotalChars += Length(S);
+end;
+
+procedure TTextNode.SetMaxDisplayChars(const Value: Integer);
+var
+  NewValue: Integer;
+begin
+  NewValue := Value;
+  if NewValue > FTotalChars then
+    NewValue := FTotalChars; //to avoid redrawing text each time if the NewValue is increasing above TotalChars
+  if FMaxDisplayChars <> NewValue then
+  begin
+    FMaxDisplayChars := NewValue;
+    FdString.Changed; //ask the node to update content
+  end;
 end;
 
 {$endif read_implementation}
