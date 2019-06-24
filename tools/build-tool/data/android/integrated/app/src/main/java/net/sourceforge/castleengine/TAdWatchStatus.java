@@ -11,5 +11,7 @@ public enum TAdWatchStatus {
     wsUserAborted,
     wsAdNotReady,
     wsAdNetworkNotInitialized,
-    wsInvalidRequest
+    wsInvalidRequest,
+    wsAdTypeUnsupported,
+    wsApplicationReinitialized
 }
