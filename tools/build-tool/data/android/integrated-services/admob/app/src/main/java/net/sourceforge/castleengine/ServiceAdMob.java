@@ -20,6 +20,7 @@ import com.google.android.gms.ads.reward.RewardItem;
 public class ServiceAdMob extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceAdMob";
+    private static final int NO_ERROR = -1;
 
     private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId, mRewardedUnitId;
@@ -29,11 +30,15 @@ public class ServiceAdMob extends ServiceAbstract
     private InterstitialAd interstitial = null;
     private Boolean interstitialOpenWhenLoaded = false; // used when you want to wait for interstitial ad
     private Boolean failedToLoadInterstitialLastTime = false; // when loading failed last time, this is needed to try again on next call
+    private Boolean interstitialIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when add is loading now)
+    private int interstitialLastErroCode = NO_ERROR; // store last ad loading error code (interstitial)
 
     private RewardedVideoAd rewarded = null;
     private Boolean rewardedWatched = false; // should we set rewarded video as watched
     private Boolean rewardedOpenWhenLoaded = false; // used when you want to wait for rewarded ad
     private Boolean failedToLoadRewardedLastTime = false; // when loading failed last time, this is needed to try again on next call
+    private Boolean rewardedIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when add is loading now)
+    private int rewardedLastErroCode = NO_ERROR; // store last ad loading error code (rewarded)
 
     private String[] testDeviceIds;
 
@@ -65,12 +70,33 @@ public class ServiceAdMob extends ServiceAbstract
 
     private void fullScreenAdClosed(TAdWatchStatus watchedStatus)
     {
+        logInfo(CATEGORY, "fullScreenAdClosed - watchedStatus: " + watchedStatus.toString());
         messageSend(new String[]{"ads-admob-full-screen-ad-closed", Integer.toString(watchedStatus.ordinal()) });
+    }
+
+    private void fullScreenAdClosedWithError(int errorCode)
+    {
+        switch(errorCode) {
+            case AdRequest.ERROR_CODE_INTERNAL_ERROR:
+                fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+                break;
+            case AdRequest.ERROR_CODE_INVALID_REQUEST:
+                fullScreenAdClosed(TAdWatchStatus.wsInvalidRequest);
+                break;
+            case AdRequest.ERROR_CODE_NETWORK_ERROR:
+                fullScreenAdClosed(TAdWatchStatus.wsNetworkNotAvailable);
+                break;
+            case AdRequest.ERROR_CODE_NO_FILL:
+                fullScreenAdClosed(TAdWatchStatus.wsNoAdsAvailable);
+                break;
+            default:
+                fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
+        }
     }
 
     private void interstitialInitialize()
     {
-        if (mInterstitialUnitId == "") 
+        if (mInterstitialUnitId.equals(""))
             return;
 
         // Create the interstitial.
@@ -82,35 +108,23 @@ public class ServiceAdMob extends ServiceAbstract
             public void onAdLoaded() {
                 logInfo(CATEGORY, "onAdLoaded");
                 failedToLoadInterstitialLastTime = false;
+                interstitialIsLoading = false;
                 if (interstitialOpenWhenLoaded) {
                     interstitialOpenWhenLoaded = false;
                     logInfo(CATEGORY, "Show ad after waiting for add.");
                     interstitial.show();
                 }
-
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode)  {
                 logInfo(CATEGORY, "onAdFailedToLoad");
                 failedToLoadInterstitialLastTime = true;
+                interstitialLastErroCode = errorCode;
+                interstitialIsLoading = false;
                 if (interstitialOpenWhenLoaded) {
-                    switch(errorCode) {
-                        case AdRequest.ERROR_CODE_INTERNAL_ERROR:
-                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
-                            break;
-                        case AdRequest.ERROR_CODE_INVALID_REQUEST:
-                            fullScreenAdClosed(TAdWatchStatus.wsInvalidRequest);
-                            break;
-                        case AdRequest.ERROR_CODE_NETWORK_ERROR:
-                            fullScreenAdClosed(TAdWatchStatus.wsNetworkNotAvailable);
-                            break;
-                        case AdRequest.ERROR_CODE_NO_FILL:
-                            fullScreenAdClosed(TAdWatchStatus.wsNoAdsAvailable);
-                            break;
-                        default:
-                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
-                    }
+                    // this is correct only when we waited for ad and now need return
+                    fullScreenAdClosedWithError(errorCode);
                 }
                 interstitialOpenWhenLoaded = false;
             }
@@ -131,6 +145,8 @@ public class ServiceAdMob extends ServiceAbstract
         failedToLoadInterstitialLastTime = false;
         if (!interstitial.isLoaded()) {
             logInfo(CATEGORY, "start loading interstitial");
+            interstitialIsLoading = true;
+            interstitialLastErroCode = NO_ERROR;
             interstitial.loadAd(buildAdRequest());
         }
     }
@@ -138,7 +154,7 @@ public class ServiceAdMob extends ServiceAbstract
 
     private void rewardedInitialize()
     {
-        if (mRewardedUnitId == "")
+        if (mRewardedUnitId.equals(""))
             return;
 
         MobileAds.initialize(getActivity(),"${ANDROID.ADMOB.APP_ID}");
@@ -168,24 +184,11 @@ public class ServiceAdMob extends ServiceAbstract
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
                 logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
                 failedToLoadRewardedLastTime = true;
+                rewardedIsLoading = false;
+                rewardedLastErroCode = errorCode;
                 if (rewardedOpenWhenLoaded) {
                     // this is correct only when we waited for ad and now need return 
-                    switch(errorCode) {
-                        case AdRequest.ERROR_CODE_INTERNAL_ERROR:
-                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
-                            break;
-                        case AdRequest.ERROR_CODE_INVALID_REQUEST:
-                            fullScreenAdClosed(TAdWatchStatus.wsInvalidRequest);
-                            break;
-                        case AdRequest.ERROR_CODE_NETWORK_ERROR:
-                            fullScreenAdClosed(TAdWatchStatus.wsNetworkNotAvailable);
-                            break;
-                        case AdRequest.ERROR_CODE_NO_FILL:
-                            fullScreenAdClosed(TAdWatchStatus.wsNoAdsAvailable);
-                            break;
-                        default:
-                            fullScreenAdClosed(TAdWatchStatus.wsUnknownError);
-                    }
+                    fullScreenAdClosedWithError(errorCode);
                 }
                 rewardedOpenWhenLoaded = false;
             }
@@ -193,6 +196,7 @@ public class ServiceAdMob extends ServiceAbstract
             @Override
             public void onRewardedVideoAdLoaded() {
                 logInfo(CATEGORY, "onRewardedVideoAdLoaded");
+                rewardedIsLoading = false;
                 if (rewardedOpenWhenLoaded) {
                     rewardedOpenWhenLoaded = false;
                     logInfo(CATEGORY, "Show ad after waiting for add.");
@@ -229,6 +233,8 @@ public class ServiceAdMob extends ServiceAbstract
         failedToLoadRewardedLastTime = false;
         if (!rewarded.isLoaded()) {
             logInfo(CATEGORY, "start loading rewarded video");
+            rewardedIsLoading = true;
+            rewardedLastErroCode = NO_ERROR;
             rewarded.loadAd(mRewardedUnitId, buildAdRequest());
         }
     }
@@ -289,7 +295,7 @@ public class ServiceAdMob extends ServiceAbstract
      */
     private void interstitialDisplay(boolean waitUntilLoaded)
     {
-        if (initialized && mInterstitialUnitId != "") {
+        if (initialized && !mInterstitialUnitId.equals("")) {
             if (waitUntilLoaded || interstitial.isLoaded()) {
                 if (waitUntilLoaded && !interstitial.isLoaded()) {
                     // calling show() when add is not loaded do nothing, so we show add when it will be aviable
@@ -303,8 +309,16 @@ public class ServiceAdMob extends ServiceAbstract
                     interstitial.show();
                 }
             } else {
-                // ad not loaded and we don't want to wait
-                fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
+                // ad not loaded and we don't want to wait or loading failed
+                if (interstitialIsLoading) {
+                    // ad not loaded and we don't want to wait
+                    fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
+                }
+                else {
+                    // add loading failed so return error and try load add again (for next request)
+                    fullScreenAdClosedWithError(interstitialLastErroCode);
+                    loadInterstitial();
+                }
             }
         } else {
             // network or interstitial ads not initialized
@@ -318,13 +332,13 @@ public class ServiceAdMob extends ServiceAbstract
      * If waitUntilLoaded == true, we will set rewardedOpenWhenLoaded to true 
      * to show ad when it will be ready
      *
-     * If waitUntilLoaded == false, we will ignore the request is the ad
+     * If waitUntilLoaded == false, we will ignore the request if the ad
      * is not ready yet (e.g. because Internet connection is slow/broken now).
      */
     private void rewardedDisplay(boolean waitUntilLoaded)
     {
         rewardedWatched = false;
-        if (initialized && mRewardedUnitId != "") {
+        if (initialized && !mRewardedUnitId.equals("")) {
             if (waitUntilLoaded || rewarded.isLoaded()) {
                 if (waitUntilLoaded && !rewarded.isLoaded()) {
                     logInfo(CATEGORY, "Requested showing reward ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");
@@ -337,8 +351,16 @@ public class ServiceAdMob extends ServiceAbstract
                     rewarded.show();
                 }
             } else {
-                // ad not loaded and we don't want to wait
-                fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
+                // ad not loaded and we don't want to wait or loading failed
+                if (rewardedIsLoading) {
+                    // ad not loaded and we don't want to wait
+                    fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
+                }
+                else {
+                    // add loading failed so return error and try load add again (for next request)
+                    fullScreenAdClosedWithError(rewardedLastErroCode);
+                    loadRewarded();
+                }
             }
         } else {
             // network or interstitial ads not initialized
