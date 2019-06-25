@@ -66,6 +66,7 @@
     FTextAlignment: THorizontalPosition;
     FLineSpacing: Single;
     FHtml: boolean;
+    FCaptionTranslate: Boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -94,6 +95,7 @@
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
     procedure SetInternalText(const Value: String); override;
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
     const
       DefaultImageMargin = 10;
@@ -257,6 +259,11 @@
       The text may be multiline (use the LineEnding or NL constants to mark newlines). }
     property Caption: string read FCaption write SetCaption;
 
+    { Should the @link(Caption) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property CaptionTranslate: Boolean read FCaptionTranslate write FCaptionTranslate default true;
+
     { Can the button be permanently pressed. Good for making a button
       behave like a checkbox, that is indicate a boolean state.
       When @link(Toggle) is @true, you can set the @link(Pressed) property,
@@ -321,7 +328,7 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FTextAlignment := DefaultTextAlignment;
   FCustomTextColor := Black;
-  { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+  FCaptionTranslate := true;
 
   FImage := TCastleImagePersistent.Create;
   FImage.OnChange := @SomeImageChanged;
@@ -333,6 +340,8 @@ begin
   FCustomBackgroundFocused.OnChange := @SomeImageChanged;
   FCustomBackgroundNormal := TCastleImagePersistent.Create;
   FCustomBackgroundNormal.OnChange := @SomeImageChanged;
+
+  { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
@@ -969,6 +978,19 @@ begin
       Result := psLayout;
     else
       Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
+procedure TCastleButton.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+var
+  S: String;
+begin
+  if CaptionTranslate and (Caption <> '') then
+  begin
+    S := Caption;
+    TranslatePropertyEvent(Self, 'Caption', S);
+    Caption := S;
   end;
 end;
 
