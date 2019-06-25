@@ -388,8 +388,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
          (DataDirectoryInformation <> nil) then
         UseDataDirectoryInformation
       else
-        Result := FindFiles_Recursive(ResolveCastleDataURL(Path), Mask,
-          FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
+        raise EInternalError.Create('This case should cause recursive exit earlier in FindFiles_Recursive');
     end else
       WritelnLog('FindFiles',
         'Searching inside subdirectories with protocol %s not possible, ignoring path "%s"',
@@ -398,6 +397,15 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
 
 begin
   Result := 0;
+
+  { early exit if we should do ResolveCastleDataURL and call ourselves }
+  if (URIProtocol(Path) = 'castle-data') and
+     not ( (DisableDataDirectoryInformation = 0) and
+           (DataDirectoryInformation <> nil) ) then
+  begin
+    Exit(FindFiles_Recursive(ResolveCastleDataURL(Path), Mask,
+      FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
+  end;
 
   if DirContentsLast then
   begin
