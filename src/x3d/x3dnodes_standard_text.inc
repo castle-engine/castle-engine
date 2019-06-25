@@ -153,6 +153,9 @@
     strict private FFdMaxExtent: TSFFloat;
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
+    strict private FFdMaxDisplayChars: TSFInt32;
+    public property FdMaxDisplayChars: TSFInt32 read FFdMaxDisplayChars;
+
     strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
@@ -485,6 +488,10 @@ begin
   AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
+  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'MaxDisplayChars', -1);
+   FdMaxDisplayChars.ChangesAlways := [chGeometry];
+  AddField(FdMaxDisplayChars);
+
   FFdString := TMFString.Create(Self, true, 'string', []);
    FdString.ChangesAlways := [chGeometry];
   AddField(FFdString);
@@ -505,10 +512,6 @@ begin
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
-
-  //need to specify it manually, because otherwise it's zero
-  FMaxDisplayChars := -1;
-  FTotalChars := MaxInt;
 end;
 
 destructor TTextNode.Destroy;
@@ -896,7 +899,7 @@ begin
       ExtraTexCoordField := nil;
 
     TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items,
-      MaxDisplayChars, Font,
+      FdMaxDisplayChars.Value, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 
