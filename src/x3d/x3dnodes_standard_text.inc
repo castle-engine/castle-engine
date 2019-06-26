@@ -488,7 +488,7 @@ begin
   AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
-  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'MaxDisplayChars', -1);
+  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'maxDisplayChars', -1);
    FdMaxDisplayChars.ChangesAlways := [chGeometry];
   AddField(FdMaxDisplayChars);
 
