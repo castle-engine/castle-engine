@@ -35,9 +35,9 @@
 
       We have to keep track of this information, per each node,
       as specification clearly says that value_changed should not be
-      generated continously on each set_fraction, but only when value
+      generated continuously on each set_fraction, but only when value
       actually changes. (Although we make an exception for this
-      with our extension FdForceContinousValue_Changed).
+      with our extension FdForceContinuousValue_Changed).
 
       Valid values here are between -1 and FdKey.Count - 1.
       Values between 0 and FdKey.Count - 1 indicate which keyValue was
@@ -73,8 +73,8 @@
     strict private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
 
-    strict private FFdForceContinousValue_Changed: TSFBool;
-    public property FdForceContinousValue_Changed: TSFBool read FFdForceContinousValue_Changed;
+    strict private FFdForceContinuousValue_Changed: TSFBool;
+    public property FdForceContinuousValue_Changed: TSFBool read FFdForceContinuousValue_Changed;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
   end;
@@ -270,8 +270,8 @@ begin
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdForceContinousValue_Changed := TSFBool.Create(Self, true, 'forceContinousValue_changed', false);
-  AddField(FFdForceContinousValue_Changed);
+  FFdForceContinuousValue_Changed := TSFBool.Create(Self, true, 'forceContinuousValue_changed', false);
+  AddField(FFdForceContinuousValue_Changed);
 
   DefaultContainerField := 'children';
 end;
@@ -291,7 +291,7 @@ end;
 procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;
   const Time: TX3DTime; const PartialSend: TPartialSend);
 begin
-  if (FCurrentKeyRange <> Value) or FdForceContinousValue_Changed.Value then
+  if (FCurrentKeyRange <> Value) or FdForceContinuousValue_Changed.Value then
   begin
     Assert(Value >= -1);
     Assert(Value < FdKey.Count);

@@ -148,7 +148,7 @@ end;
 
 class procedure TEventsHandler.ButtonOpen2DClick(Sender: TObject);
 begin
-  Open('../2d_dragon_spine_game/data/dragon/dragon.json');
+  Open('../../2d_dragon_spine_game/data/dragon/dragon.json');
 end;
 
 class procedure TEventsHandler.ButtonOpenDialogClick(Sender: TObject);

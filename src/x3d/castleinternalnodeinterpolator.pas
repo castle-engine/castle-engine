@@ -1027,6 +1027,15 @@ var
       Also, place it in the active graph part (outside SwitchChooseAnimation)
       to be always listed in Scene.AnimationsList. }
     TimeSensor := TTimeSensorNode.Create(AnimationX3DName, BaseUrl);
+    { TODO: castle-anim-frames doesn't work nicely with DetectAffectedFields,
+      probably because SwitchChooseAnimation.FdWhichChoice.EventIn
+      is not detected as "affected field".
+      Testcase:
+      - examples/animations/resource_animations/ , on knight we have blinking
+      - demo-models/bump_mapping/lizardman , on "reset" in "walk" animation
+        goes to the 1st "walk" frame instead of "reset" pose.
+      For now disable this mechanism for castle-anim-frames. }
+    TimeSensor.DetectAffectedFields := false;
     if BakedAnimation.Backwards then
       TimeSensor.CycleInterval := 2 * BakedAnimation.Duration
     else

@@ -381,12 +381,39 @@ type
   { Used by @link(TCastleComponent.PropertySection). }
   TPropertySection = (psBasic, psLayout, psOther);
 
+  TCastleComponent = class;
+
+  { Use by @link(TCastleComponent.TranslateProperties). }
+  TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
+    const PropertyName: String; var PropertyValue: String) of object;
+
   { Component with small CGE extensions. }
   TCastleComponent = class(TComponent)
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
     procedure SetName(const Value: TComponentName); override;
+
+    { Enumerate all properties that are possible to translate in this component.
+      E.g. in @link(TCastleLabel) it will return @link(TCastleLabel.Caption),
+      in @link(TCastleEdit) it will return @link(TCastleEdit.Text) and
+      @link(TCastleEdit.Placeholder).
+
+      Returns only non-empty properties, thus assuming that if current
+      (by convention, English) text is empty, then there is no point
+      in translating it. Moreover descendants may define boolean properties
+      to exclude particular text from translating, e.g.
+      @link(TCastleLabel.CaptionTranslate),
+      @link(TCastleEdit.TextTranslate),
+      @link(TCastleEdit.PlaceholderTranslate).
+
+      It is not recursive (it doesn't enumerate children properties).
+      Use global @link(TranslateProperties) procedure to call this
+      on a hierarchy of TComponent.
+
+      You usually don't want to call this method (it is called by other engine routines).
+      But you may find it useful to override this, if you define new component. }
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); virtual;
   public
     { Internal field used by CastleComponentSerialize.
       @exclude }
@@ -423,14 +450,15 @@ type
       and TCastleLabel children, but we don't want to serialize or even
       show these children to user.
 
-      Note that if you want to prevent this component from serializing
+      Note that if you want to prevent this component from serializing as part of
       @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
       but you still want it to be visible in CGE editor,
       then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
 
-      In any case (csSubComponent and/or csTransient) the component
-      is just not serialized as part of parent's @link(Controls) list.
-      But if you will make the component published (which is normal for "subcomponents")
+      Note that both csSubComponent and csTransient only disable the component
+      serialization as part of parent's @code(TComponent.GetChildren) list.
+      If you will make the component published in its own property
+      (which is normal for "subcomponents")
       then it will be serialized anyway, just as part of it's own property
       (like TCastleScrollView.ScrollArea).
       So to @italic(really) avoid serializing the component,
@@ -439,6 +467,33 @@ type
     }
     procedure SetTransient;
   end;
+
+{ Enumerate all properties that are possible to translate in this component
+  and its children. E.g. in @link(TCastleLabel) it will return @link(TCastleLabel.Caption),
+  in @link(TCastleEdit) it will return @link(TCastleEdit.Text)
+  and @link(TCastleEdit.Placeholder).
+
+  Returns only non-empty properties, thus assuming that if current
+  (by convention, English) text is empty, then there is no point
+  in translating it. Moreover descendants may define boolean properties
+  to exclude particular text from translating, e.g.
+  @link(TCastleLabel.CaptionTranslate),
+  @link(TCastleEdit.TextTranslate),
+  @link(TCastleEdit.PlaceholderTranslate).
+
+  For every TComponent it also recursively enumerates properties
+  to translate in children, i.e. in all published subcomponents and children
+  (returned by TComponent.GetChildren). The goal is to be 100% consistent with
+  CastleComponentSerialize, which is used to (de)serialize hierarchy of
+  components (like TCastleUserInterface or TCastleTransform).
+
+  You usually don't want to call this method (it is called by other engine routines).
+  Use higher-level routines in @link(CastleLocalizationGetText) or
+  @link(CastleLocalization).
+
+  @seealso TCastleComponent.TranslateProperties }
+procedure TranslateProperties(const C: TComponent;
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
 
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
@@ -649,7 +704,7 @@ function DumpExceptionBackTraceToString: string;
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, Math {$ifdef FPC}, StreamIO {$endif};
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, RTTIUtils, TypInfo;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1336,6 +1391,74 @@ begin
     Result := psBasic
   else
     Result := psOther;
+end;
+
+procedure TCastleComponent.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+begin
+  // nothing to do in this class
+end;
+
+{ TComponent routines -------------------------------------------------------- }
+
+type
+  { Helper class to implement TranslateProperties. }
+  TTranslatePropertiesGetChildren = class
+    TranslatePropertyEvent: TTranslatePropertyEvent;
+    procedure TranslatePropertiesOnChild(Child: TComponent);
+  end;
+
+procedure TTranslatePropertiesGetChildren.TranslatePropertiesOnChild(Child: TComponent);
+begin
+  TranslateProperties(Child, TranslatePropertyEvent);
+end;
+
+procedure TranslateProperties(const C: TComponent;
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+
+  { Call TranslateProperties on C and its children. }
+  procedure TranslateChildClass(const C: TObject);
+  begin
+    if (C is TComponent) and // also checks is C <> nil
+       (csSubComponent in TComponent(C).ComponentStyle) then
+      TranslateProperties(TComponent(C), TranslatePropertyEvent);
+
+    { One day we may add here special handling
+      of TCollection and TObjectList, like TJSONStreamer.StreamClassProperty. }
+  end;
+
+var
+  PropInfos: TPropInfoList;
+  PropInfo: PPropInfo;
+  TypeInfo: PTypeInfo;
+  I: Integer;
+  GetChildrenHandler: TTranslatePropertiesGetChildren;
+begin
+  if C is TCastleComponent then
+  begin
+    // translate properties of C
+    TCastleComponent(C).TranslateProperties(TranslatePropertyEvent);
+
+    // translate properties of C children in GetChildren
+    GetChildrenHandler := TTranslatePropertiesGetChildren.Create;
+    try
+      GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
+      TCastleComponent(C).GetChildren(
+        @GetChildrenHandler.TranslatePropertiesOnChild, nil);
+    finally FreeAndNil(GetChildrenHandler) end;
+  end;
+
+  // translate properties of other C serialized children
+  PropInfos := TPropInfoList.Create(C, tkProperties);
+  try
+    for I := 0 to PropInfos.Count - 1 do
+    begin
+      PropInfo := PropInfos[I];
+      TypeInfo := PropInfo^.PropType;
+      if TypeInfo^.Kind = tkClass then
+        TranslateChildClass(GetObjectProp(C, PropInfo));
+    end;
+  finally FreeAndNil(PropInfos) end;
 end;
 
 { initialization / finalization ---------------------------------------------- }

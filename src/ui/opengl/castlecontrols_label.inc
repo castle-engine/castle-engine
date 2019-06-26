@@ -32,6 +32,7 @@
     FAutoSize: boolean;
     FMaxDisplayChars: Integer;
     CachedRichText: TRichText;
+    FCaptionTranslate: Boolean;
     function GetTextToRender: TRichText;
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
@@ -55,6 +56,7 @@
     function GetInternalText: String; override;
     procedure SetInternalText(const Value: String); override;
     procedure UIScaleChanged; override;
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
     const
       DefaultLineSpacing = 2;
@@ -170,6 +172,11 @@
     property MaxDisplayChars: Integer
       read FMaxDisplayChars write SetMaxDisplayChars default -1;
 
+    { Should the @link(Caption) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property CaptionTranslate: Boolean read FCaptionTranslate write FCaptionTranslate default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -199,6 +206,7 @@ begin
   FAutoSize := true;
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
+  FCaptionTranslate := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
@@ -507,6 +515,19 @@ begin
   inherited;
   // invalidate CachedRichText, as it depends on Font
   FreeAndNil(CachedRichText);
+end;
+
+procedure TCastleLabel.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+var
+  S: String;
+begin
+  if CaptionTranslate and (Caption <> '') then
+  begin
+    S := Caption;
+    TranslatePropertyEvent(Self, 'Caption', S);
+    Caption := S;
+  end;
 end;
 
 {$define read_implementation_methods}

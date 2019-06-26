@@ -12,3 +12,8 @@ You can test various PlayAnimation features:
 For more information about using the `PlayAnimation` method, see the manual
 https://castle-engine.io/manual_scene.php ,
 section "Play animation".
+
+Note that view3dscene ( https://castle-engine.io/view3dscene.php )
+has "Animations" panel that also allows to test these features.
+But the source code of this example application is simpler to follow
+than view3dscene.

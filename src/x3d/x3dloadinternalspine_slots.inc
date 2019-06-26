@@ -20,15 +20,6 @@
 
   TMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterialNode>;
 
-  TSlotsAnimated = class
-    Attachment: TSlotList;
-    Color: TSlotList;
-    DrawOrder: TSlotList;
-    constructor Create;
-    destructor Destroy; override;
-    procedure Assign(const Source: TSlotsAnimated);
-  end;
-
   TColorInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
   TScalarInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
 
@@ -55,19 +46,13 @@
     Node: TTransformNode;
     SwitchNode: TSwitchNode;
     NodeUsedAsChild: boolean;
-    ResetAttachment: TIntegerSequencerNode;
-    ResetColor1: TColorInterpolatorNodeList;
-    ResetColor2: TScalarInterpolatorNodeList;
-    ResetDrawOrder: TPositionInterpolatorNode;
     Materials: TMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
-      const SlotsAnimated: TSlotsAnimated;
-      const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
-      const ContainerForResetNode: TAbstractX3DGroupingNode);
+      const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
   TSlotList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlot>)
@@ -77,39 +62,12 @@
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
-      const SlotsAnimated: TSlotsAnimated;
-      const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
-      const ContainerForResetNode: TAbstractX3DGroupingNode);
+      const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
     procedure Assign(const Source: TSlotList);
   end;
 {$endif}
 
 {$ifdef read_implementation}
-
-{ TSlotsAnimated ------------------------------------------------------------- }
-
-constructor TSlotsAnimated.Create;
-begin
-  inherited;
-  Attachment := TSlotList.Create(false);
-  Color := TSlotList.Create(false);
-  DrawOrder := TSlotList.Create(false);
-end;
-
-destructor TSlotsAnimated.Destroy;
-begin
-  FreeAndNil(Attachment);
-  FreeAndNil(Color);
-  FreeAndNil(DrawOrder);
-  inherited;
-end;
-
-procedure TSlotsAnimated.Assign(const Source: TSlotsAnimated);
-begin
-  Attachment.Assign(Source.Attachment);
-  Color.Assign(Source.Color);
-  DrawOrder.Assign(Source.DrawOrder);
-end;
 
 { TSlot ---------------------------------------------------------------------- }
 
@@ -118,8 +76,6 @@ begin
   inherited;
   AttachmentNames := TStringList.Create;
   Materials := TMaterialNodeList.Create(false);
-  ResetColor1 := TColorInterpolatorNodeList.Create(false);
-  ResetColor2 := TScalarInterpolatorNodeList.Create(false);
 end;
 
 destructor TSlot.Destroy;
@@ -130,8 +86,6 @@ begin
     FreeIfUnusedAndNil(Node);
   FreeAndNil(AttachmentNames);
   FreeAndNil(Materials);
-  FreeAndNil(ResetColor1);
-  FreeAndNil(ResetColor2);
   inherited;
 end;
 
@@ -148,82 +102,7 @@ begin
 end;
 
 procedure TSlot.BuildNodes(const BaseUrl: string;
-  const SlotsAnimated: TSlotsAnimated;
-  const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
-  const ContainerForResetNode: TAbstractX3DGroupingNode);
-
-  { Prepare interpolators that allow to reset bone to initial transformation
-    after some animations. }
-
-  procedure AddResetAttachment;
-  var
-    Route: TX3DRoute;
-  begin
-    if SlotsAnimated.Attachment.IndexOf(Self) = -1 then Exit;
-
-    ResetAttachment := TIntegerSequencerNode.Create('SlotReset_attachment_' + Name);
-    ResetAttachment.FdForceContinousValue_Changed.Value := true;
-    ResetAttachment.FdKey.Items.Add(0);
-    ResetAttachment.FdKeyValue.Items.Add(SwitchNode.FdWhichChoice.Value);
-    ContainerForResetNode.AddChildren(ResetAttachment);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(ResetAttachment.EventValue_changed);
-    Route.SetDestinationDirectly(SwitchNode.FdWhichChoice.EventIn);
-    ContainerForResetNode.AddRoute(Route);
-  end;
-
-  procedure AddResetColor;
-  var
-    Route: TX3DRoute;
-    I: Integer;
-    ColInterp: TColorInterpolatorNode;
-    ScalarInterp: TScalarInterpolatorNode;
-  begin
-    if SlotsAnimated.Color.IndexOf(Self) = -1 then Exit;
-
-    for I := 0 to Materials.Count - 1 do
-    begin
-      ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + Name);
-      ColInterp.FdKey.Items.Add(0);
-      ColInterp.FdKeyValue.Items.Add(Color.XYZ);
-      ContainerForResetNode.AddChildren(ColInterp);
-      ResetColor1.Add(ColInterp);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(ColInterp.EventValue_changed);
-      Route.SetDestinationDirectly(Materials[I].FdEmissiveColor);
-      ContainerForResetNode.AddRoute(Route);
-
-      ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + Name);
-      ScalarInterp.FdKey.Items.Add(0);
-      ScalarInterp.FdKeyValue.Items.Add(1 - Color[3]);
-      ContainerForResetNode.AddChildren(ScalarInterp);
-      ResetColor2.Add(ScalarInterp);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(ScalarInterp.EventValue_changed);
-      Route.SetDestinationDirectly(Materials[I].FdTransparency);
-      ContainerForResetNode.AddRoute(Route);
-    end;
-  end;
-
-  procedure AddResetDrawOrder;
-  var
-    Route: TX3DRoute;
-  begin
-    if SlotsAnimated.DrawOrder.IndexOf(Self) = -1 then Exit;
-
-    ResetDrawOrder := TPositionInterpolatorNode.Create('SlotReset_draworder_' + Name);
-    ResetDrawOrder.FdKey.Items.Add(0);
-    ResetDrawOrder.FdKeyValue.Items.Add(Node.FdTranslation.Value);
-    ContainerForResetNode.AddChildren(ResetDrawOrder);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(ResetDrawOrder.EventValue_changed);
-    Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
-    ContainerForResetNode.AddRoute(Route);
-  end;
+  const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
@@ -241,10 +120,30 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
         A := AttachmentsPreferred.Find(Name, AttachmentName, nil, true);
       if A <> nil then
       begin
+        if A.NodeUsedAsChild and
+           not (
+             TVector3.PerfectlyEquals(A.Material.FdEmissiveColor.Value, WhiteRGB) or
+             (A.Material.FdTransparency.Value <> 1.0) or
+             TVector4.PerfectlyEquals(Color, White)
+           ) then
+        begin
+          WritelnWarning('Spine', 'Attachment "%s" used by multiple slots with different (not opaque white) colors. This is not supported, instead make the slot colors to be applied during animations.',
+            [A.Node.X3DName]);
+        end;
+
         A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
         A.NodeUsedAsChild := true;
         Result := A.Node;
-        Materials.Add(A.Material);
+
+        // We need to copy slot color to the material node inside attachment
+        A.Material.FdEmissiveColor.Value := Color.XYZ;
+        A.Material.FdTransparency.Value := 1 - Color[3];
+
+        { Do not put duplicates on Materials list,
+          this would cause TSlotTimelineColor.BuildNodes
+          to create multiple ROUTEs to the same node. }
+        if not Materials.Contains(A.Material) then
+          Materials.Add(A.Material);
       end;
     end;
 
@@ -271,10 +170,6 @@ begin
 
   for I := 0 to AttachmentNames.Count - 1 do
     SwitchNode.AddChildren(AttachmentNode(AttachmentNames[I]));
-
-  AddResetAttachment;
-  AddResetColor;
-  AddResetDrawOrder;
 end;
 
 { TSlotList ------------------------------------------------------------------ }
@@ -315,15 +210,12 @@ begin
 end;
 
 procedure TSlotList.BuildNodes(const BaseUrl: string;
-  const SlotsAnimated: TSlotsAnimated;
-  const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
-  const ContainerForResetNode: TAbstractX3DGroupingNode);
+  const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl, SlotsAnimated,
-      AttachmentsPreferred, AttachmentsDefault, ContainerForResetNode);
+    Items[I].BuildNodes(BaseUrl, AttachmentsPreferred, AttachmentsDefault);
 end;
 
 procedure TSlotList.Assign(const Source: TSlotList);

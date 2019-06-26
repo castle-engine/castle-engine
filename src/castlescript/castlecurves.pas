@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections, DOM,
 type
   ECurveFileInvalid = class(Exception);
 
-  { 3D curve, a set of points defined by a continous function @link(Point)
+  { 3D curve, a set of points defined by a continuous function @link(Point)
     for arguments within [TBegin, TEnd]. }
   TCurve = class
   private

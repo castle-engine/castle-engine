@@ -16,15 +16,6 @@
 { Spine bones. }
 
 {$ifdef read_interface}
-  TBonesAnimated = class
-    Translation: TBoneList;
-    Scale: TBoneList;
-    Rotation: TBoneList;
-    constructor Create;
-    destructor Destroy; override;
-    procedure Assign(const Source: TBonesAnimated);
-  end;
-
   TBone = class
   strict private
     { World-space bone transformation, necessary for skinnedmesh calculations.
@@ -49,15 +40,11 @@
     InheritScale, InheritRotation: boolean;
     Parent: TBone;
     Node: TTransformNode;
-    ResetTranslation: TPositionInterpolatorNode;
-    ResetScale: TPositionInterpolatorNode;
-    ResetRotation: TCubicBezier2DOrientationInterpolatorNode;
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
       const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string;
-      const BonesAnimated: TBonesAnimated);
+    procedure BuildNodes(const BaseUrl: string);
     function ToWorldSpace(const V: TVector2): TVector2;
     function ToLocalSpace(V: TVector2): TVector2; overload;
     function ToLocalSpace(const V: TVector3): TVector3; overload;
@@ -69,38 +56,12 @@
     function Find(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone;
       const DragonBonesFormat: boolean);
-    procedure BuildNodes(const BaseUrl: string;
-      const BonesAnimated: TBonesAnimated);
+    procedure BuildNodes(const BaseUrl: string);
     procedure Assign(const Source: TBoneList);
   end;
 {$endif}
 
 {$ifdef read_implementation}
-
-{ TBonesAnimated ------------------------------------------------------------- }
-
-constructor TBonesAnimated.Create;
-begin
-  inherited;
-  Translation := TBoneList.Create(false);
-  Scale := TBoneList.Create(false);
-  Rotation := TBoneList.Create(false);
-end;
-
-destructor TBonesAnimated.Destroy;
-begin
-  FreeAndNil(Translation);
-  FreeAndNil(Scale);
-  FreeAndNil(Rotation);
-  inherited;
-end;
-
-procedure TBonesAnimated.Assign(const Source: TBonesAnimated);
-begin
-  Translation.Assign(Source.Translation);
-  Scale.Assign(Source.Scale);
-  Rotation.Assign(Source.Rotation);
-end;
 
 { TBone ---------------------------------------------------------------------- }
 
@@ -166,63 +127,7 @@ begin
   inherited;
 end;
 
-procedure TBone.BuildNodes(const BaseUrl: string;
-  const BonesAnimated: TBonesAnimated);
-
-  { Prepare interpolators that allow to reset bone to initial transformation
-    after some animations. }
-
-  procedure AddResetTranslation;
-  var
-    Route: TX3DRoute;
-  begin
-    if BonesAnimated.Translation.IndexOf(Self) = -1 then Exit;
-
-    ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + Name);
-    ResetTranslation.FdKey.Items.Add(0);
-    ResetTranslation.FdKeyValue.Items.Add(Node.FdTranslation.Value);
-    Node.AddChildren(ResetTranslation);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(ResetTranslation.EventValue_changed);
-    Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
-    Node.AddRoute(Route);
-  end;
-
-  procedure AddResetScale;
-  var
-    Route: TX3DRoute;
-  begin
-    if BonesAnimated.Scale.IndexOf(Self) = -1 then Exit;
-
-    ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + Name);
-    ResetScale.FdKey.Items.Add(0);
-    ResetScale.FdKeyValue.Items.Add(Node.FdScale.Value);
-    Node.AddChildren(ResetScale);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(ResetScale.EventValue_changed);
-    Route.SetDestinationDirectly(Node.FdScale.EventIn);
-    Node.AddRoute(Route);
-  end;
-
-  procedure AddResetRotation;
-  var
-    Route: TX3DRoute;
-  begin
-    if BonesAnimated.Rotation.IndexOf(Self) = -1 then Exit;
-
-    ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + Name);
-    ResetRotation.FdKey.Items.Add(0);
-    ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value[3]);
-    Node.AddChildren(ResetRotation);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(ResetRotation.EventValue_changed);
-    Route.SetDestinationDirectly(Node.FdRotation.EventIn);
-    Node.AddRoute(Route);
-  end;
-
+procedure TBone.BuildNodes(const BaseUrl: string);
 begin
   Node := TTransformNode.Create('Bone_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
@@ -233,10 +138,6 @@ begin
     NodeUsedAsChild := true;
     Parent.Node.AddChildren(Node);
   end;
-
-  AddResetTranslation;
-  AddResetScale;
-  AddResetRotation;
 end;
 
 procedure TBone.UpdateWorldTransform;
@@ -339,13 +240,12 @@ begin
     end;
 end;
 
-procedure TBoneList.BuildNodes(const BaseUrl: string;
-  const BonesAnimated: TBonesAnimated);
+procedure TBoneList.BuildNodes(const BaseUrl: string);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl, BonesAnimated);
+    Items[I].BuildNodes(BaseUrl);
 end;
 
 procedure TBoneList.Assign(const Source: TBoneList);

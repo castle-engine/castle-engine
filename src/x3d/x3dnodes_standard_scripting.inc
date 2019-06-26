@@ -144,7 +144,7 @@ begin
   if Initialized and (Scene <> nil) then
   begin
     { Disable this by default, as it really trashes the log with a lot
-      of messages in case script is used continously (with TimeSensor or such).
+      of messages in case script is used continuously (with TimeSensor or such).
     WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
     }
 

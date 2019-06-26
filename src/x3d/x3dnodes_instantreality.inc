@@ -79,9 +79,7 @@
     See https://castle-engine.io/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   strict private
-    WriteStream: TStream;
-    OwnsWriteStream: boolean;
-    WriteStreamInitialized: boolean;
+    LogFileStream: TStream;
     procedure EventWriteReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -752,41 +750,37 @@ end;
 
 destructor TLoggerNode.Destroy;
 begin
-  if WriteStreamInitialized then
-  begin
-    if OwnsWriteStream then
-      FreeAndNil(WriteStream);
-  end;
-
+  FreeAndNil(LogFileStream);
   inherited;
 end;
 
 procedure TLoggerNode.EventWriteReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 
-  procedure StdOutNotAvail;
+  function FieldValueToString(const Field: TX3DField): String;
+  var
+    Writer: TX3DWriterNames;
+    StringStream: TStringStream;
   begin
-    WritelnWarning('X3D',
-      'Logger node wants to write on standard output, but it seems that stdout (standard output) ' +
-      'is not available. Under Windows you should explicitly ' +
-      'redirect program''s stdout to make it available, e.g. ' +
-      'run "' + ApplicationName + ' > ' + ApplicationName + '.log".');
+    StringStream := TStringStream.Create('');
+    try
+      Writer := TX3DWriterNames.Create(StringStream, X3DVersion, xeClassic);
+      try
+        Field.FieldSaveToStream(Writer, true);
+        // Remove trailing newline
+        Result := TrimRight(StringStream.DataString);
+      finally FreeAndNil(Writer) end;
+    finally FreeAndNil(StringStream) end;
   end;
 
   procedure WritelnLogMessage;
   var
     S: string;
-    Writer: TX3DWriterNames;
   begin
-    S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
-      [X3DName, Value.X3DName, Value.X3DType, Time.Seconds]);
-
-    if FdLevel.Value = 1 then
+    if FdLevel.Value >= 2 then
     begin
-      WritelnStr(WriteStream, S);
-    end else
-    begin
-      Assert(FdLevel.Value >= 2);
+      S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
+        [X3DName, Value.X3DName, Value.X3DType, Time.Seconds]);
 
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
@@ -795,73 +789,26 @@ procedure TLoggerNode.EventWriteReceive(
            (Value.ParentNode as TX3DNode).X3DType]);
       end;
 
-      WriteStr(WriteStream, S + ' Value: ');
+      S := S + ' Value: ' + FieldValueToString(Value);
 
-      Writer := TX3DWriterNames.Create(WriteStream, X3DVersion, xeClassic);
-      try
-        Value.FieldSaveToStream(Writer, true);
-      finally
-        FreeAndNil(Writer);
-      end;
+      if LogFileStream <> nil then
+        WriteLnStr(LogFileStream, S)
+      else
+        WriteLnLog(S);
     end;
   end;
 
 begin
   if FdEnabled.Value and (Fdlevel.Value > 0) then
   begin
-    { First reception of "write" event causes initialization of
-      WriteStream, based on logFile field value. This is Ok, since
-      logFile is not exposed, so it cannot change after the file is loaded. }
-    if not WriteStreamInitialized then
+    if (LogFileStream = nil) and (FdLogFile.Value <> '') then
     begin
-      Assert(WriteStream = nil);
-
-      WriteStreamInitialized := true;
-
-      if FdLogFile.Value <> '' then
-      begin
-        WriteStream := TFileStream.Create(
-          FileNameAutoInc(ApplicationName + '_logger_' +
-            DeleteURIExt(ExtractURIName(FdLogFile.Value)) + '_%d.log'), fmCreate);
-        OwnsWriteStream := true;
-      end else
-      begin
-        WriteStream := StdOutStream;
-        OwnsWriteStream := false;
-        if WriteStream = nil then
-        begin
-          { report stdout not available, leave WriteStream = nil and
-            WriteStreamInitialized = true. This way we will not try to
-            reinit this again. }
-          StdOutNotAvail;
-          Exit;
-        end;
-      end;
+      LogFileStream := TFileStream.Create(
+        FileNameAutoInc(ApplicationName + '_logger_' +
+          DeleteURIExt(ExtractURIName(FdLogFile.Value)) + '_%d.log'), fmCreate);
     end;
 
-    if WriteStream <> nil then
-    begin
-      try
-        WritelnLogMessage;
-      except
-        on E: EWriteError do
-        begin
-          if not OwnsWriteStream then
-          begin
-            { This means that we have stdout, and it just failed...
-              This is possible on Windows.
-
-              Ideally, check for "StdOutStream = nil" should be all that is needed,
-              and wrapping WritelnStr inside try...except should not be needed.
-              But... see StdOutStream comments: you cannot
-              depend on the fact that "StdOutStream <> nil means that stdout
-              is actually available (because user redirected stdout etc.). }
-            StdOutNotAvail;
-          end else
-            raise;
-        end;
-      end;
-    end;
+    WritelnLogMessage;
   end;
 end;
 

@@ -197,6 +197,7 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/test_font_break \
   examples/fonts/test_local_characters/test_local_characters \
   examples/fps_game/fps_game \
+  examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
   examples/images_videos/draw_images_on_gpu \
   examples/images_videos/drawing_modes_test \
@@ -218,7 +219,6 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/resource_animations/resource_animations \
   examples/simple_command_line_utilities/castle_download \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper \
@@ -285,6 +285,7 @@ examples:
 	$(FIND) . \
 	  '(' -path ./examples/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
 	  xargs -0 -n1 tools/build-tool/castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
 
@@ -390,10 +391,13 @@ clean: cleanexamples
 #
 # Avoid a project in project_templates,
 # that has CastleEngineManifest.xml with macros, and would cause errors:
-# """ Project name contains invalid characters: "${PROJECT_NAME}" """
+# """ Project name contains invalid characters: "${PROJECT_NAME}" """ .
+#
+# Avoid project in build-tool/tests/data that is not a real project
+# (will never be compiled).
 	$(FIND) . \
-	  '(' -path ./tools/castle-editor/data/project_templates \
-	      -prune ')' -or \
+	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
+	  '(' -path ./tools/build-tool/tests/data/ -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir castle-engine clean ';' ')'
 

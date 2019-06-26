@@ -892,7 +892,7 @@ end;
 
 {$ifdef LCLCarbon}
 { Only for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
-  is the only way to receive continous messages in some cases.
+  is the only way to receive continuous messages in some cases.
 
   Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
 

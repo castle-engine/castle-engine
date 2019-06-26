@@ -256,6 +256,25 @@ function Downloads: TDownloadList;
 }
 function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
 
+type
+  { Event called when @link(Download) function wants to download URL with this protocol.
+    Use with @link(RegisterUrlProtocol). }
+  TUrlReadEvent = function (
+    const Url: string; out MimeType: string): TStream of object;
+
+  { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
+    Use with @link(RegisterUrlProtocol). }
+  TUrlWriteEvent = function(const Url: string): TStream of object;
+
+  EProtocolAlreadyRegistered = class(Exception);
+
+{ Register how we can load and/or save the URLs with given protocol.
+  One (or even both) of given events (ReadEvent, WriteEvent) can be @nil.
+  @raises(EProtocolAlreadyRegistered If the protocol handlers are already registered.) }
+procedure RegisterUrlProtocol(const Protocol: String;
+  const ReadEvent: TUrlReadEvent;
+  const WriteEvent: TUrlWriteEvent);
+
 var
   { Log (through CastleLog) all loading, that is: all calls to @link(Download).
     This allows to easily check e.g. whether the engine is not loading something
@@ -401,12 +420,92 @@ type
 
 implementation
 
-uses URIParser, Math,
+uses URIParser, Math, Generics.Collections,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
-  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif}
-  {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
+
+{ registering URL protocols -------------------------------------------------- }
+
+type
+  TRegisteredProtocol = class
+    Protocol: String;
+    ReadEvent: TUrlReadEvent;
+    WriteEvent: TUrlWriteEvent;
+  end;
+
+  TRegisteredProtocols = class(specialize TObjectList<TRegisteredProtocol>)
+    { @nil if not found. }
+    function Find(const Protocol: String): TRegisteredProtocol;
+
+    procedure Add(const Protocol: String;
+      const ReadEvent: TUrlReadEvent;
+      const WriteEvent: TUrlWriteEvent); reintroduce;
+  end;
+
+function TRegisteredProtocols.Find(const Protocol: String): TRegisteredProtocol;
+begin
+  for Result in Self do
+    if Result.Protocol = Protocol then
+      Exit;
+  Result := nil;
+end;
+
+procedure TRegisteredProtocols.Add(const Protocol: String;
+  const ReadEvent: TUrlReadEvent;
+  const WriteEvent: TUrlWriteEvent);
+var
+  P: TRegisteredProtocol;
+begin
+  if Find(Protocol) <> nil then
+    EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
+  P := TRegisteredProtocol.Create;
+  P.Protocol := Protocol;
+  P.ReadEvent := ReadEvent;
+  P.WriteEvent := WriteEvent;
+  inherited Add(P);
+end;
+
+var
+  FRegisteredProtocols: TRegisteredProtocols;
+
+function RegisteredProtocols: TRegisteredProtocols;
+begin
+  { initialize FRegisteredProtocols on-demand }
+  if FRegisteredProtocols = nil then
+  begin
+    FRegisteredProtocols := TRegisteredProtocols.Create(true);
+
+    // register default protocols, handled internally in Download or URLSaveStream
+    {$if defined(ANDROID)}
+    FRegisteredProtocols.Add('http', nil, nil);
+    FRegisteredProtocols.Add('https', nil, nil);
+    {$elseif defined(HAS_FP_HTTP_CLIENT)}
+    FRegisteredProtocols.Add('http', nil, nil);
+    FRegisteredProtocols.Add('https', nil, nil);
+    {$endif}
+    FRegisteredProtocols.Add('', nil, nil);
+    FRegisteredProtocols.Add('file', nil, nil);
+    FRegisteredProtocols.Add('assets', nil, nil);
+    FRegisteredProtocols.Add('castle-android-assets', nil, nil);
+    FRegisteredProtocols.Add('castle-data', nil, nil);
+    FRegisteredProtocols.Add('data', nil, nil);
+    FRegisteredProtocols.Add('ecmascript', nil, nil);
+    FRegisteredProtocols.Add('javascript', nil, nil);
+    FRegisteredProtocols.Add('castlescript', nil, nil);
+    FRegisteredProtocols.Add('kambiscript', nil, nil);
+    FRegisteredProtocols.Add('compiled', nil, nil);
+  end;
+  Result := FRegisteredProtocols;
+end;
+
+procedure RegisterUrlProtocol(const Protocol: String;
+  const ReadEvent: TUrlReadEvent;
+  const WriteEvent: TUrlWriteEvent);
+begin
+  RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent);
+end;
 
 { TProgressMemoryStream ------------------------------------------------------ }
 
@@ -663,7 +762,8 @@ begin
   end;
 end;
 
-{ Load (and free and nil) Stream to TMemoryStream. }
+{ Load Stream to TMemoryStream.
+  Sets given Stream to @nil (it is freed by this function). }
 function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
 begin
   Result := TMemoryStream.Create;
@@ -677,7 +777,8 @@ begin
 end;
 
 { Decompress gzipped FileName.
-  When ForceMemoryStream, always returns TMemoryStream. }
+  When ForceMemoryStream, always returns TMemoryStream.
+  Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
 function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
 var
   NewResult: TMemoryStream;
@@ -720,6 +821,8 @@ var
   AssetStream: TReadAssetStream;
   DownloadService: TAndroidDownloadService;
   {$endif}
+  RegisteredProtocol: TRegisteredProtocol;
+  UnderlyingStream: TStream;
 const
   MaxRedirects = 32;
 begin
@@ -729,14 +832,7 @@ begin
   if LogAllLoading and (P <> 'castle-data') then
     WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
 
-  {$ifdef CASTLE_NINTENDO_SWITCH}
-  if (P = 'castle-nx-contents') then
-  begin
-    CheckFileAccessSafe(URL);
-    Result := NXReadFile(URL);
-    MimeType := URIMimeType(URL);
-  end else
-  {$endif}
+  RegisteredProtocol := RegisteredProtocols.Find(P);
 
   {$ifdef ANDROID}
   if (P = 'http') or (P = 'https') then
@@ -863,6 +959,26 @@ begin
     Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
   end else
 
+  { Check RegisteredProtocol at the end, since above we handle some protocols.
+    TODO: Move all protocol reading to appropriate callbacks registered
+    FRegisteredProtocols.Add. }
+  if RegisteredProtocol <> nil then
+  begin
+    if Assigned(RegisteredProtocol.ReadEvent) then
+    begin
+      UnderlyingStream := RegisteredProtocol.ReadEvent(URL, MimeType);
+      // unpack gzip if requested
+      if soGzip in Options then
+        Result := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
+      else
+      if soForceMemoryStream in Options then
+        Result := CreateMemoryStream(UnderlyingStream)
+      else
+        Result := UnderlyingStream;
+    end else
+      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+  end else
+
   begin
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
   end;
@@ -883,29 +999,62 @@ end;
 { Global functions to save --------------------------------------------------- }
 
 function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
+
+  function FileSaveStream(const FileName: String; const Options: TSaveStreamOptions): TStream;
+  begin
+    if ssoGzip in Options then
+    begin
+      Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
+    end else
+      Result := TFileStream.Create(FileName, fmCreate);
+  end;
+
 var
   P, FileName: string;
+  RegisteredProtocol: TRegisteredProtocol;
+  UnderlyingStream: TStream;
 begin
   P := URIProtocol(URL);
+
+  RegisteredProtocol := RegisteredProtocols.Find(P);
+
   if P = '' then
-    FileName := URL else
+  begin
+    FileName := URL;
+    Result := FileSaveStream(FileName, Options);
+  end else
+
   if P = 'file' then
   begin
     FileName := URIToFilenameSafe(URL);
     if FileName = '' then
       raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+    Result := FileSaveStream(FileName, Options);
   end else
+
   if P = 'castle-data' then
   begin
-    Exit(URLSaveStream(ResolveCastleDataURL(URL), Options));
+    Result := URLSaveStream(ResolveCastleDataURL(URL), Options);
   end else
-    raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 
-  if ssoGzip in Options then
+  { Check RegisteredProtocol at the end, since above we handle some protocols.
+    TODO: Move all protocol writing to appropriate callbacks registered
+    FRegisteredProtocols.Add. }
+  if RegisteredProtocol <> nil then
   begin
-    Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
+    if Assigned(RegisteredProtocol.WriteEvent) then
+    begin
+      UnderlyingStream := RegisteredProtocol.WriteEvent(URL);
+      // Compress using gzip, if requested in Options
+      if ssoGzip in Options then
+        Result := TGZFileStream.Create(UnderlyingStream, true)
+      else
+        Result := UnderlyingStream;
+    end else
+      raise EDownloadError.CreateFmt('Cannot write URLs with protocol "%s"', [P]);
   end else
-    Result := TFileStream.Create(FileName, fmCreate);
+
+    raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 end;
 
 procedure StreamSaveToFile(Stream: TStream; const URL: string);
@@ -1131,4 +1280,6 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
+finalization
+  FreeAndNil(FRegisteredProtocols);
 end.

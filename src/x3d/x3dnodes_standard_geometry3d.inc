@@ -232,6 +232,7 @@
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
     function SolidField: TSFBool; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -850,13 +851,23 @@ end;
 procedure TElevationGridNode.EventSet_HeightReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdHeight.Assign(Value);
-  FdHeight.Changed;
+  FdHeight.Send(Value);
 end;
 
 function TElevationGridNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+function TElevationGridNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  { Thanks to this method, animations that modify ElevationGrid
+    by sending set_height event are correctly accounted
+    in TCastleSceneCore "affected fields", thus e.g. ResetAnimationState
+    correctly resets them. }
+  if Event = EventSet_height then
+    Exit(FdHeight);
+  Result := inherited;
 end;
 
 { TExtrusionNode ------------------------------------------------------------- }

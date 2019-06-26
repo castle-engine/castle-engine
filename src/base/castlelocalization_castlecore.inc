@@ -13,6 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
+{ TODO: This should be removed, use TranslateProperties routine
+  to uniformly translate UI stuff in CGE now. }
+
 {$ifdef read_interface}
 
   type

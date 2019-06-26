@@ -16,12 +16,6 @@
 *.stat
 *.dcu
 
-# Don't ignore these files.
-# Although they are automatically created/updated by the CGE build tool.
-# We commit these files, to allow compiling the examples through Lazarus
-# (using lpi) without the need to run the build tool.
-# automatic-windows-resources.res
-
 # Other backups
 *.blend1
 *.blend2
@@ -97,7 +91,7 @@ examples/3d_rendering_processing/view_3d_model_basic
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/audio/test_sound_source_allocator/*.obj
+examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 examples/audio/audio_player_scrubber/audio_player_scrubber
 examples/audio/audio_player_scrubber/audio_player_scrubber.res
 examples/audio/audio_player_scrubber/lib/
@@ -106,6 +100,7 @@ examples/audio/efx_demo
 examples/audio/play_sounds/play_sounds
 examples/audio/simplest_play_sound
 examples/audio/test_sound_source_allocator
+examples/audio/test_sound_source_allocator/*.obj
 examples/castlescript/castle_calculator
 examples/castlescript/image_make_by_script
 examples/curves/simplest_curve_read
@@ -121,6 +116,7 @@ examples/fonts/test_local_characters/test_local_characters_standalone
 examples/fonts/texture-font-to-pascal
 examples/fps_game/fps_game
 examples/headlight_test/headlight_test
+examples/images_videos/background_tiling
 examples/images_videos/dds_decompose
 examples/images_videos/draw_images_on_gpu
 examples/images_videos/drawing_modes_test
@@ -158,9 +154,10 @@ examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 examples/mobile/simple_3d_demo/simple_3d_demo
 examples/mobile/simple_3d_demo/simple_3d_demo_standalone
 examples/mobile/test_bump_mapping/test_bump_mapping
+examples/physics/physics_2d_collisions/physics_2d_collisions
 examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 examples/physics/physics_3d_demo/physics_3d_demo
-examples/play_animation/play_animation
+examples/animations/play_animation/play_animation
 examples/plugin/cge_3d_viewer/cge_3d_viewer
 examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 examples/portable_game_skeleton/my_fantastic_game
@@ -178,7 +175,7 @@ examples/research_special_rendering_methods/radiance_transfer/radiance_transfer
 examples/research_special_rendering_methods/radiance_transfer/show_sh
 examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
-examples/resource_animations/resource_animations
+examples/animations/resource_animations/resource_animations
 examples/screen_effects_demo/screen_effects_demo
 examples/simple_command_line_utilities/castle_download
 examples/simple_command_line_utilities/dircleaner

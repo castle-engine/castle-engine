@@ -30,18 +30,6 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
 type
-  { Internal helper type for TCastleSceneCore.
-    @exclude }
-  TSceneValidity = (fvLocalBoundingBox,
-    fvVerticesCountNotOver, fvVerticesCountOver,
-    fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvMainLightForShadows,
-    fvShapesActiveCount,
-    fvShapesActiveVisibleCount);
-
-  { @exclude }
-  TSceneValidities = set of TSceneValidity;
-
   { These are various features that may be freed by
     TCastleSceneCore.FreeResources.
 
@@ -226,56 +214,6 @@ type
     function Top: TAbstractViewpointNode;
     procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
   end;
-
-  { @exclude }
-  TGeneratedTexture = record
-    { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
-      or TGeneratedShadowMapNode. }
-    TextureNode: TAbstractTextureNode;
-    Handler: TGeneratedTextureHandler;
-    Shape: TShape;
-  end;
-  PGeneratedTexture = ^TGeneratedTexture;
-
-  { @exclude
-    Internal for TCastleSceneCore: list of generated textures
-    (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
-    along with their shape. }
-  TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
-  public
-    function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
-    function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
-    function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
-    procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
-  end;
-
-  { @exclude }
-  TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
-  { @exclude }
-  TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
-  { @exclude }
-  TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
-  public
-    destructor Destroy; override;
-    { Remove everything are released owned stuff.
-      We own TVisibilitySensorInstanceList instances on our Data list.
-      We do not own TVisibilitySensorNode (our Keys list). }
-    procedure Clear; reintroduce;
-  end;
-  TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
-    procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
-  end;
-
-  TCompiledScriptHandler = procedure (
-    Value: TX3DField; const Time: TX3DTime) of object;
-
-  { @exclude }
-  TCompiledScriptHandlerInfo = record
-    Handler: TCompiledScriptHandler;
-    Name: string;
-  end;
-  PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structures that may be managed by TCastleSceneCore,
     see @link(TCastleSceneCore.Spatial). }
@@ -495,6 +433,65 @@ type
     @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
   TCastleSceneCore = class(TX3DEventsEngine)
   private
+    type
+      TSceneValidity = (fvLocalBoundingBox,
+        fvVerticesCountNotOver, fvVerticesCountOver,
+        fvTrianglesCountNotOver, fvTrianglesCountOver,
+        fvMainLightForShadows,
+        fvShapesActiveCount,
+        fvShapesActiveVisibleCount);
+
+      TSceneValidities = set of TSceneValidity;
+
+      TGeneratedTexture = record
+        { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
+          or TGeneratedShadowMapNode. }
+        TextureNode: TAbstractTextureNode;
+        Handler: TGeneratedTextureHandler;
+        Shape: TShape;
+      end;
+      PGeneratedTexture = ^TGeneratedTexture;
+
+      { @exclude
+        Internal for TCastleSceneCore: list of generated textures
+        (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
+        along with their shape. }
+      TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
+      public
+        function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
+        function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
+        function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
+        procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
+      end;
+
+      TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
+      TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
+        procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
+      end;
+
+      TCompiledScriptHandler = procedure (
+        Value: TX3DField; const Time: TX3DTime) of object;
+
+      TCompiledScriptHandlerInfo = record
+        Handler: TCompiledScriptHandler;
+        Name: string;
+      end;
+      PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
+      TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
+
+  protected
+    type
+      TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
+      TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+      public
+        destructor Destroy; override;
+        { Remove everything are released owned stuff.
+          We own TVisibilitySensorInstanceList instances on our Data list.
+          We do not own TVisibilitySensorNode (our Keys list). }
+        procedure Clear; reintroduce;
+      end;
+
+  private
     FOwnsRootNode: boolean;
     FShapes: TShapeTree;
     FRootNode: TX3DRootNode;
@@ -555,6 +552,10 @@ type
     FTimeAtLoad: TFloatTime;
     ForceImmediateProcessing: Integer;
 
+    { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
+    NeedsDetectAffectedFields: Boolean;
+    AnimationAffectedFields: TX3DFieldList;
+
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
       This must include then chTransform field, may also include other changes
@@ -614,6 +615,14 @@ type
       Event: TX3DEvent; Value: TX3DField; const ATime: TX3DTime);
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
+
+    { Apply NewPlayingAnimation* stuff.
+
+      Call outside of AnimateOnlyWhenVisible check, to do it even when object
+      is not visible.  Otherwise stop/start time would be delayed too until
+      it becomes visible, which is not perfect (although it would be Ok
+      in practice too?) }
+    procedure UpdateNewPlayingAnimation;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -1456,7 +1465,7 @@ type
       const Distance: Single; const CancelAction: boolean = false): boolean; override;
 
     { Called when pointing device moves.
-      This may generate the continously-generated events like
+      This may generate the continuously-generated events like
       hitPoint_changed, also it updates PointingDeviceOverItem
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
@@ -1535,7 +1544,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
-      It is crucial that you call this continously to have some VRML/X3D
+      It is crucial that you call this continuously to have some VRML/X3D
       time-dependent features working, like TimeSensor and MovieTexture.
       See @link(Time) for details what is affected by this.
 
@@ -1914,32 +1923,34 @@ type
       const Forward: boolean = true): boolean; overload;
       deprecated 'use ForceAnimationPose overload with "Loop: boolean" parameter';
 
-    { Play a named animation.
-      Calling this method also stops previously playing named animation, if any.
-      Returns boolean whether such animation name was found.
+    { Play an animation specified by name.
+      If the given animation name exists,
+      then we return @true and stop previously playing named animation (if any).
+      Otherwise we return @false and the current animation is unchanged.
+
       To get the list of available animations, see @link(AnimationsList).
 
-      This automatically turns on @link(ProcessEvents), if it wasn't turned on already.
+      This automatically turns on @link(ProcessEvents),
+      if it wasn't turned on already.
+      Processing events is necessary for playing animations.
 
       This is the simplest way to play animations using Castle Game Engine.
       For a nice overview about using PlayAnimation, see the manual
       https://castle-engine.io/manual_scene.php , section "Play animation".
 
-      Playing an already-playing animation is guaranteed to start it from
+      Playing an already-playing animation is guaranteed to restart it from
       the beginning.
 
       You can specify whether the animation should loop,
       whether to play it forward or backward,
-      whether to do animation blending and some other options:
-      see @link(TPlayAnimationParameters).
-
+      whether to do animation blending and some other options
+      using @link(TPlayAnimationParameters).
       If you use an overloaded version with the TPlayAnimationParameters,
       note that you can (and usually should) free the TPlayAnimationParameters
       instance right after calling this method. We do not keep reference to
       the TPlayAnimationParameters instance, and we do not free it ourselves.
 
-      Some obscure notes (you usually @italic(do not need to know the details
-      below)):
+      More details about how this works:
 
       @unorderedList(
         @item(Calling this method @italic(does not change the scene immediately).
@@ -1960,33 +1971,38 @@ type
           simply call @link(ForceInitialAnimationPose) right after @link(PlayAnimation).
         )
 
-        @item(Internally, @italic(the animation is performed using TTimeSensorNode
-          that instructs other nodes to change). For exampe, TTimeSensorNode
+        @item(@italic(The animation is performed using X3D TTimeSensorNode).
+
+          For example, TTimeSensorNode
           may instruct a TCoordinateInterpolatorNode to update the TIndexedFaceSetNode coordinates,
           and in effect the animation can deform a mesh.
           Or TTimeSensorNode may instruct a TPositionInterpolatorNode to update
           @link(TTransformNode.Translation),
           and in effect the animation can move something.
+          See https://castle-engine.io/x3d_implementation_interpolation.php
+          for a thorough description how the animation works in X3D.
 
-          So the animation means that the X3D nodes graph within @link(RootNode)
-          is being changed. The exact subset of the nodes inside @link(RootNode)
-          that change depends on your animation.
-
-          This means that internally our mechanism is very flexible.
-          E.g. you can have another animation running (another TTimeSensorNode running)
-          in parallel to the animation run by this method.
-          You can also change parts of the node graph by your own code
-          (accessing @link(RootNode))
-          in parallel to the animation by this method, as long as you don't touch
-          the same nodes.
-          @italic(Such tricks are possible, but require manually designing a proper X3D file).
+          This means that during the animation,
+          the X3D nodes graph (within @link(RootNode)) is being changed.
 
           If you load a model from a castle-anim-frames or MD3 format, note that it
-          is animated using a special "node interpolator" algorithm. In this case,
-          you cannot really change the model inside @link(RootNode) anymore
-          --- any modifications may be overwritten by the "node interpolator"
-          at some point (the exact overwrite moment depends on the "merge nodes"
-          optimization done by the "node interpolator").
+          is animated using a special "node interpolator".
+          This also works using a special (internal) X3D node that
+          switches which node is visible.)
+
+        @item(Starting an animation effectively cancels any effect from
+          any previous animation. That is, even if the new animation doesn't
+          modify some transformations, these transformations are @italic(not)
+          left "as is", instead they are reset to the default model state using
+          @link(ResetAnimationState). This is usually the desired effect, corresponding
+          to how the animations should intuitively behave, e.g. if you have "walk"
+          and "idle" animations.
+
+          If you want to simultaneously play multiple animations
+          or if you want to simultaneously modify scene by code (while playing some animation)
+          then you can control each time sensor using @link(TTimeSensorNode.Start)
+          and @link(TTimeSensorNode.Stop). See also the example
+          in examples/animations/simultaneous_animations_one_scene .
         )
       )
     }
@@ -2005,7 +2021,7 @@ type
       earlier, of if the model already looks following the
       animation requested by @link(PlayAnimation).
 
-      Without this method, there may be a 1-frame delay
+      If you don't use this method, there may be a 1-frame delay
       between calling @link(PlayAnimation) and actually updating the rendered
       scene look. If during that time a rendering will happen,
       the user will see a scene in previous pose (not in the first
@@ -2035,16 +2051,47 @@ type
       the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
+      deprecated 'this property did not prove to be of much use; report if you need it, otherwise it may be removed one day';
 
     { Currently played animation by @link(PlayAnimation), or @nil.
-      Note that in X3D world, you can have multiple active animations
-      (TimeSensor nodes) at the same time. This property only describes
-      the animation controlled by the @link(PlayAnimation) method.
+
+      Note that, in a general case, you can have multiple active animations
+      (multiple TimeSensor X3D nodes may be active) at the same time.
+      Calling @link(TTimeSensorNode.Start) directly on multiple nodes is
+      one way to make it happen.
+      This property simply describes
+      the animation controlled by the last @link(PlayAnimation) method.
 
       Note that the animation may be started by PlayAnimation with a 1-frame
       delay, but this property hides it from you, it is changed
       immediately by the PlayAnimation call. }
     property CurrentAnimation: TTimeSensorNode read FCurrentAnimation;
+
+    { Stop the @link(CurrentAnimation), started by last @link(PlayAnimation) call.
+      Note that this leaves the model in a state in the middle of the last animation.
+      You can use @link(ResetAnimationState) to reset the state afterwards.
+
+      Note that it is not necessary to stop the previous animation
+      before starting a new one (by @link(PlayAnimation)).
+      @link(PlayAnimation) will automatically stop the previous animation.
+      Moreover, @link(PlayAnimation) may do animation blending (cross-fade)
+      between old and new animation (if you use @link(TPlayAnimationParameters.TransitionDuration)),
+      which only works if you @italic(did not) call StopAnimation. }
+    procedure StopAnimation;
+
+    { Reset all the fields affected by animations.
+      See TimeSensor.detectAffectedFields documentation
+      (https://castle-engine.io/x3d_implementation_time_extensions.php#section_detect_affected_fields)
+      for details how these fields are detected, and when this is useful.
+      By default this is enabled, for all TimeSensor nodes.
+
+      If IgnoreAffectedBy <> nil, the fields affected by the given TimeSensor
+      may not be reset. This is an optimization useful in case this TimeSensor
+      will modify the scene very soon, so resetting its affected fields
+      is a waste of time.
+      Do not depend on 100% that the fields affected by given TimeSensor
+      are left untouched (in the current implementation, this field is ignored). }
+    procedure ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode = nil);
 
     { Force recalculating the text shapes when font changed.
       For now, we don't detect font changes (when TFontStyleNode.OnFont
@@ -2590,7 +2637,7 @@ end;
 
 { TGeneratedTextureList -------------------------------------------------- }
 
-function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
+function TCastleSceneCore.TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].TextureNode = TextureNode then
@@ -2598,7 +2645,7 @@ begin
   Result := -1;
 end;
 
-function TGeneratedTextureList.FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
+function TCastleSceneCore.TGeneratedTextureList.FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
 var
   Index: Integer;
 begin
@@ -2608,7 +2655,7 @@ begin
     Result := nil;
 end;
 
-function TGeneratedTextureList.AddShapeTexture(Shape: TShape;
+function TCastleSceneCore.TGeneratedTextureList.AddShapeTexture(Shape: TShape;
   Tex: TAbstractTextureNode): Pointer;
 var
   GenTex: PGeneratedTexture;
@@ -2667,7 +2714,7 @@ begin
   end;
 end;
 
-procedure TGeneratedTextureList.UpdateShadowMaps(LightNode: TAbstractLightNode);
+procedure TCastleSceneCore.TGeneratedTextureList.UpdateShadowMaps(LightNode: TAbstractLightNode);
 var
   I: Integer;
 begin
@@ -2679,7 +2726,7 @@ end;
 
 { TTimeDependentHandlerList ------------------------------------------------- }
 
-procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
+procedure TCastleSceneCore.TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2687,13 +2734,13 @@ end;
 
 { TVisibilitySensors --------------------------------------------------------- }
 
-destructor TVisibilitySensors.Destroy;
+destructor TCastleSceneCore.TVisibilitySensors.Destroy;
 begin
   Clear;
   inherited;
 end;
 
-procedure TVisibilitySensors.Clear;
+procedure TCastleSceneCore.TVisibilitySensors.Clear;
 var
   V: TVisibilitySensorInstanceList;
 begin
@@ -2709,6 +2756,97 @@ begin
   inherited;
   Loop := false;
   Forward := true;
+end;
+
+{ TDetectAffectedFields ------------------------------------------------------ }
+
+type
+  TDetectAffectedFields = class
+  strict private
+    ParentScene: TCastleSceneCore;
+    AllRoutes: TX3DRouteList;
+    AffectedInterpolators: TX3DNodeList;
+    procedure FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
+    function IsInterpolator(const Node: TX3DNode): Boolean;
+  public
+    constructor Create(const AParentScene: TCastleSceneCore);
+    destructor Destroy; override;
+    procedure FindRoutesAndInterpolators;
+    procedure FindAnimationAffectedFields;
+  end;
+
+constructor TDetectAffectedFields.Create(const AParentScene: TCastleSceneCore);
+begin
+  inherited Create;
+  ParentScene := AParentScene;
+  AllRoutes := TX3DRouteList.Create(false);
+  AffectedInterpolators := TX3DNodeList.Create(false);
+end;
+
+destructor TDetectAffectedFields.Destroy;
+begin
+  FreeAndNil(AffectedInterpolators);
+  FreeAndNil(AllRoutes);
+  inherited;
+end;
+
+procedure TDetectAffectedFields.FindRoutesAndInterpolators;
+begin
+  if ParentScene.RootNode <> nil then
+    ParentScene.RootNode.EnumerateNodes(TX3DNode, @FindRoutesAndInterpolatorsEnumerate, false);
+end;
+
+procedure TDetectAffectedFields.FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
+var
+  Route: TX3DRoute;
+  I: Integer;
+begin
+  for I := 0 to Node.RoutesCount - 1 do
+  begin
+    Route := Node.Routes[I];
+    { Note that it's OK to add the same route instance multiple times
+      to AllRoutes list below. }
+    AllRoutes.Add(Route);
+
+    { Found route from some TimeSensor.fraction_changed to some interpolator.set_fraction,
+      and TimeSensor has detectAffectedFields. }
+    if (Route.SourceNode is TTimeSensorNode) and
+       TTimeSensorNode(Route.SourceNode).DetectAffectedFields and
+       (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventFraction_Changed) and
+       IsInterpolator(Route.DestinationNode) and
+       (Route.DestinationEvent.X3DName = 'set_fraction') then
+      { Note that it's OK to add the same interpolator instance multiple times below. }
+      AffectedInterpolators.Add(Route.DestinationNode);
+  end;
+end;
+
+function TDetectAffectedFields.IsInterpolator(const Node: TX3DNode): Boolean;
+begin
+  Result :=
+    (Node is TAbstractInterpolatorNode) or
+    (Node is TAbstractSequencerNode);
+end;
+
+procedure TDetectAffectedFields.FindAnimationAffectedFields;
+var
+  Route: TX3DRoute;
+  Field: TX3DField;
+begin
+  for Route in AllRoutes do
+    if IsInterpolator(Route.SourceNode) and
+       (Route.SourceEvent.X3DName = 'value_changed') and
+       (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) and
+       { Route.DestinationNode may be nil if node was freed, e.g. delete shape in view3dscene }
+       (Route.DestinationNode <> nil) then
+    begin
+      Field := Route.DestinationNode.FieldSetByEvent(Route.DestinationEvent);
+      if (Field <> nil) and
+         (not ParentScene.AnimationAffectedFields.Contains(Field)) then
+      begin
+        Field.InternalSaveResetValue;
+        ParentScene.AnimationAffectedFields.Add(Field);
+      end;
+    end;
 end;
 
 { TCastleSceneCore ----------------------------------------------------------- }
@@ -2746,6 +2884,7 @@ begin
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
   TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
+  AnimationAffectedFields := TX3DFieldList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2796,6 +2935,7 @@ begin
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeStaticCollisions);
   FreeAndNil(FAnimationsList);
+  FreeAndNil(AnimationAffectedFields);
   FreeAndNil(PreviousPartialAffectedFields);
 
   if OwnsRootNode then
@@ -2861,24 +3001,51 @@ var
   NewRoot: TX3DRootNode;
 begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TCastleSceneCore)');
+  try
+    if AURL <> '' then
+    begin
+      { If Load3D fails:
 
-  { Note that if Load3D fails, we will not change the RootNode,
-    so currently loaded scene will remain valid. }
+        - When CastleDesignMode is false:
+          We make an exception (just pass the exception from Load3D),
+          and we do not change the RootNode or URL.
+          So currently loaded scene will remain 100% valid.
 
-  if AURL <> '' then
-    NewRoot := Load3D(AURL, AllowStdIn)
-  else
-    NewRoot := nil;
-  Load(NewRoot, true, AResetTime);
+        - When CastleDesignMode is true:
+          We *do* change the RootNode (to empty) and URL
+          (to allow user to comfortably correct the URL in editor),
+          and we make a warning.
+          This way the design with invalid URL will still load nicely in the editor.
+      }
 
-  FURL := AURL;
+      try
+        NewRoot := Load3D(AURL, AllowStdIn);
+      except
+        on E: Exception do
+        begin
+          if CastleDesignMode then
+          begin
+            WritelnWarning('TCastleSceneCore', 'Failed to load scene "%s": %s',
+              [URIDisplay(AURL), ExceptMessage(E)]);
+            NewRoot := nil;
+          end else
+            raise;
+        end;
+      end;
+    end else
+    begin
+      NewRoot := nil; // when AURL is ''
+    end;
 
-  { When loading from URL, reset FPrimitiveGeometry.
-    Otherwise deserialization would be undefined -- do we load contents
-    from URL or PrimitiveGeometry? }
-  FPrimitiveGeometry := pgNone;
+    Load(NewRoot, true, AResetTime);
 
-  Profiler.Stop(TimeStart);
+    FURL := AURL;
+
+    { When loading from URL, reset FPrimitiveGeometry.
+      Otherwise deserialization would be undefined -- do we load contents
+      from URL or PrimitiveGeometry? }
+    FPrimitiveGeometry := pgNone;
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 procedure TCastleSceneCore.UpdateAutoAnimation(const StopIfPlaying: Boolean);
@@ -2896,7 +3063,8 @@ begin
     end else
     if StopIfPlaying then
     begin
-      // TODO: StopAnimation
+      StopAnimation;
+      ResetAnimationState;
     end;
   end;
 end;
@@ -3249,7 +3417,7 @@ function TChangedAllTraverser.Traverse(
   procedure HandleVisibilitySensor(const Node: TVisibilitySensorNode);
   var
     VSI: TVisibilitySensorInstance;
-    Instances: TVisibilitySensorInstanceList;
+    Instances: TCastleSceneCore.TVisibilitySensorInstanceList;
   begin
     VSI := TVisibilitySensorInstance.Create(ParentScene);
     VSI.Node := Node;
@@ -3261,7 +3429,7 @@ function TChangedAllTraverser.Traverse(
     { add to ParentScene.VisibilitySensors map }
     if not ParentScene.VisibilitySensors.TryGetValue(Node, Instances) then
     begin
-      Instances := TVisibilitySensorInstanceList.Create(false);
+      Instances := TCastleSceneCore.TVisibilitySensorInstanceList.Create(false);
       ParentScene.VisibilitySensors.Add(Node, Instances);
     end;
     Instances.Add(VSI);
@@ -3464,6 +3632,8 @@ begin
 end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
+var
+  TimeDependentHandler: TInternalTimeDependentHandler;
 begin
   if not FStatic then
   begin
@@ -3484,10 +3654,17 @@ begin
   }
 
   if Node is TAbstractKeyDeviceSensorNode then
-    KeyDeviceSensorNodes.AddIfNotExists(Node) else
+    KeyDeviceSensorNodes.AddIfNotExists(Node)
+  else
   if Supports(Node, IAbstractTimeDependentNode) then
-    TimeDependentHandlers.AddIfNotExists(
-      (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler);
+  begin
+    TimeDependentHandler := (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler;
+    TimeDependentHandlers.AddIfNotExists(TimeDependentHandler);
+
+    // update NeedsDetectAffectedFields if necessary
+    if (Node is TTimeSensorNode) and TTimeSensorNode(Node).DetectAffectedFields then
+      NeedsDetectAffectedFields := true;
+  end;
 end;
 
 procedure TCastleSceneCore.ChangedAll;
@@ -3548,10 +3725,21 @@ procedure TCastleSceneCore.ChangedAll;
 
   { Assigns nodes TX3DNode.Scene, and adds nodes to KeyDeviceSensorNodes
     and TimeDependentHandlers lists. }
-  procedure ChangedAllEnumerate;
+  procedure EnumerateNodes;
   begin
     if RootNode <> nil then
       RootNode.EnumerateNodes(TX3DNode, @ChangedAllEnumerateCallback, false);
+  end;
+
+  procedure DetectAffectedFields;
+  var
+    Detector: TDetectAffectedFields;
+  begin
+    Detector := TDetectAffectedFields.Create(Self);
+    try
+      Detector.FindRoutesAndInterpolators;
+      Detector.FindAnimationAffectedFields;
+    finally FreeAndNil(Detector) end;
   end;
 
 var
@@ -3610,6 +3798,8 @@ begin
     GlobalLights.Clear;
     FViewpointsArray.Clear;
     FAnimationsList.Clear;
+    AnimationAffectedFields.Clear;
+    NeedsDetectAffectedFields := false;
 
     if RootNode <> nil then
     begin
@@ -3626,7 +3816,10 @@ begin
 
       AddGlobalLights;
 
-      ChangedAllEnumerate;
+      EnumerateNodes;
+
+      if NeedsDetectAffectedFields then
+        DetectAffectedFields;
     end;
 
     { Call DoGeometryChanged here, as our new shapes are added.
@@ -5561,7 +5754,7 @@ begin
             animating and moving underneath the pointing device."
 
             I understand that they mean that you don't have to call
-            PointingDeviceMove continously, you can only check this on
+            PointingDeviceMove continuously, you can only check this on
             actual mouse move. That is, isOver state changes are not
             intended to be caught immediately if they happened because
             the geometry is animating. But, still, all isOver changes *are*
@@ -5910,132 +6103,136 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.InternalSetTime(
-  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-
-  { Apply NewPlayingAnimation* stuff.
-
-    Call outside of AnimateOnlyWhenVisible check, to do it even when object
-    is not visible.  Otherwise stop/start time would be delayed too until
-    it becomes visible, which is not perfect (although it would be Ok
-    in practice too?) }
-  procedure UpdateNewPlayingAnimation;
+procedure TCastleSceneCore.UpdateNewPlayingAnimation;
+begin
+  if NewPlayingAnimationUse then
   begin
-    if NewPlayingAnimationUse then
+    NewPlayingAnimationUse := false;
+    if PlayingAnimationNode <> nil then
     begin
-      NewPlayingAnimationUse := false;
-      if PlayingAnimationNode <> nil then
+      PlayingAnimationNode.Stop;
+      if Assigned(PlayingAnimationStopNotification) then
       begin
-        { We want to stop old PlayingAnimationNode from sending any further
-          elapsedTime events (elapsedTime causes also fraction_changed).
-          Sending of further elapsedTime means that two animations try to play
-          at the same time, and modify the same transforms.
-
-          One way to stop animation is to set
-
-            PlayingAnimationNode.StopTime := Time;
-
-          While it works in practice (no reproducible bug with it found),
-          it has 2 problems:
-
-          - There will be 1 additional frame when TimeSensor "finishes of"
-            the animation, by remaining "TimeIncrease - (NewTime - FdStopTime.Value)"
-            duration. This isn't a problem in practice, since it only happens for 1 frame
-            (then the old TimeSensor becomes inactive), but it stil feels dirty/wasteful.
-
-          - In case you will move time backwards, e.g. by ResetTime or ResetTimeAtLoad,
-            you may get into trouble.
-            You may accidentally activate a time sensor that is
-            inactive now, but was active long time ago.
-
-          To overcome the 2nd problem, we tried the trick below.
-          It will work assuming you never reset time to something < 1.
-          (If you do reset time to something very small, then typical TimeSensors will
-          have problems anyway,
-          see https://castle-engine.io/x3d_time_origin_considered_uncomfortable.php ).
-
-            PlayingAnimationNode.StartTime := 0;
-            PlayingAnimationNode.StopTime := 1;
-            PlayingAnimationNode.Loop := false;
-
-          But this:
-          - Still has the "1 additional frame when TimeSensor finishes of" dirtyness.
-          - Also, setting startTime while time-dependent node is active is ignored,
-            X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
-            (bug reproduction: escape_universe, meteorite_1 dying).
-            Although we remove this problem by NeverIgnore hack.
-          - (Obsolete argument:) Also, it's bad to unconditionally set "Loop" value.
-            If user is using paDefault for animation, (s)he expects
-            that PlayAnimation doesn't change it ever.
-
-          So it's simpest and reliable to just set enabled=false on old TimeSensor.
-          TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
-          sending elapsedTime events. }
-
-        PlayingAnimationNode.Enabled := false;
-
-        if Assigned(PlayingAnimationStopNotification) then
-        begin
-          PlayingAnimationStopNotification(Self, PlayingAnimationNode);
-          PlayingAnimationStopNotification := nil;
-        end;
-        PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+        PlayingAnimationStopNotification(Self, PlayingAnimationNode);
+        PlayingAnimationStopNotification := nil;
       end;
-      Assert(PlayingAnimationStopNotification = nil);
+      PlayingAnimationNode.EventIsActive.RemoveNotification(@PlayingAnimationIsActive);
+    end;
+    Assert(PlayingAnimationStopNotification = nil);
 
-      { If calling PlayAnimation on already-playing node,
-        we have to make sure it actually starts playing from the start.
-        For the StartTime below to be correctly applied, we have to make
-        sure the node actually *stops* temporarily (otherwise the
-        TInternalTimeDependentHandler.SetTime never "sees" the node
-        in the Enabled = false state). }
-      if PlayingAnimationNode = NewPlayingAnimationNode then
-        PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
+    { If calling PlayAnimation on already-playing node,
+      we have to make sure it actually starts playing from the start.
+      For the StartTime below to be correctly applied, we have to make
+      sure the node actually *stops* temporarily (otherwise the
+      TInternalTimeDependentHandler.SetTime never "sees" the node
+      in the Enabled = false state). }
+    if (PlayingAnimationNode = NewPlayingAnimationNode) and
+       (PlayingAnimationNode <> nil) then
+      PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
 
-      { set PreviousPlayingAnimationXxx }
-      PreviousPlayingAnimation := PlayingAnimationNode;
-      if PreviousPlayingAnimation <> nil then
-      begin
-        PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
-        PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
-        PreviousPlayingAnimationTimeInAnimation :=
-          PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
-      end;
+    { set PreviousPlayingAnimationXxx }
+    PreviousPlayingAnimation := PlayingAnimationNode;
+    if PreviousPlayingAnimation <> nil then
+    begin
+      PreviousPlayingAnimationLoop := PreviousPlayingAnimation.Loop;
+      PreviousPlayingAnimationForward := PreviousPlayingAnimation.FractionIncreasing;
+      PreviousPlayingAnimationTimeInAnimation :=
+        PreviousPlayingAnimation.InternalTimeDependentHandler.ElapsedTime;
+    end;
 
-      PlayingAnimationNode := NewPlayingAnimationNode;
+    { If current animation node changes (to non-nil) call ResetAnimatedFields,
+      to restore fields *not* affected by new animation to their "reset" state.
 
-      if PlayingAnimationNode <> nil then
-      begin
-        PlayingAnimationNode.Loop := NewPlayingAnimationLoop;
-        PlayingAnimationNode.FractionIncreasing := NewPlayingAnimationForward;
-        PlayingAnimationNode.Enabled := true;
+      Note: This must be called before we pass time to a new TimeSensor
+      (since otherwise, ResetAnimationState would override some state set by new TimeSensor)
+      and after the old TimeSensor is stopped.
+      In particular, this must be called before PlayingAnimationNode.Start done lower
+      (after PlayingAnimationNode:=NewPlayingAnimationNode) since TTimeSensorNode.Start
+      sets StartTime and this calls HandleChangeTimeStopStart which applies
+      the new TimeSensor.
 
-        { Assign these before PartialSendBegin/End during StartTime assignment. }
-        PlayingAnimationTransitionDuration := NewPlayingAnimationTransitionDuration;
-        { save current Time to own variable,
-          do not trust PlayingAnimationNode.StartTime to remain reliable,
-          it can be changed by user later. }
-        PlayingAnimationStartTime := Time;
+      How does this work with blending (cross-fading) animations (using TransitionDuration)?
 
-        { Disable the "ignore" mechanism, otherwise
-          setting startTime on a running TimeSensor would be ignored.
-          Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
-        Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
-        Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
+      For each field X, there are 4 cases possible:
 
-        { Assign StopTime and StartTime. }
-        PlayingAnimationNode.StopTime := 0;
-        PlayingAnimationNode.StartTime := Time - NewPlayingAnimationInitialTime;
+      1. Neither old nor new animation affects the field X.
 
-        { Enable the "ignore" mechanism again, to follow X3D spec. }
-        Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
-        Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
+        Then everything trivially works.
+        Old animation doesn't change X,
+        ResetAnimationState doesn't change X
+        (maybe even it doesn't touch X, if X is not affected by *any* animation),
+        new animation doesn't change X.
 
-        PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
-        PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
-      end;
+      2. Old animation doesn't affect field X, new animation affects field X.
+
+        Then ResetAnimationState on X doesn't do anything
+        (since X already has the same value as ResetAnimationState sets).
+
+        In TX3DField.InternalAffectedPartial
+        we will blend (fade-in) new animation with FResetValue recorded
+        in the field.
+
+      3. Old animation affects field X, new animation doesn't affect X.
+
+        We will blend (fade-out) old animation value with the FResetValue
+        in the field.
+
+      4. Both old and new animations touch field X.
+
+        In this case field's FResetValue value is not useful
+        (we don't want to it use since neither old nor new animation
+        corresponds to the "reset" state).
+
+        Luckily, in this case FResetValue will be ignored!
+        The field X will receive two values (during cross-fade):
+        old one (let's call it's strength Alpha), and new one (with strength 1-Alpha).
+        Since their strengths sum to 1.0, in TX3DField.InternalAffectedPartial
+        we will have PartialReceived.Partial = 1.0,
+        which means that FResetValue will be ignored.
+
+      To test it all in a simple case,
+      open the Spine JSON file
+      from https://github.com/castle-engine/demo-models/tree/master/animation/spine_animation_blending_test/exported
+      with view3dscene and run animations with TransitionDuration > 0.
+
+      Note that above assumes that the field X supports lerp (TX3DField.CanAssignLerp).
+      Otherwise the AD 3 case is broken (new animation would not correctly "reset"
+      the field X, value of old animation would override it if TransitionDuration > 0).
+      Testcase: TransitionDuration > 0 with Roseanne, switch between
+      die and attack_monster.
+      To fix this, we use IgnoreIfCannotLerp.
+    }
+
+    if (PlayingAnimationNode <> NewPlayingAnimationNode) and
+       (NewPlayingAnimationNode <> nil) then
+    begin
+      ResetAnimationState(NewPlayingAnimationNode);
+    end;
+
+    PlayingAnimationNode := NewPlayingAnimationNode;
+
+    if PlayingAnimationNode <> nil then
+    begin
+      { Assign these before PartialSendBegin/End }
+      PlayingAnimationTransitionDuration := NewPlayingAnimationTransitionDuration;
+      { save current Time to own variable,
+        do not trust PlayingAnimationNode.StartTime to remain reliable,
+        it can be changed by user later. }
+      PlayingAnimationStartTime := Time;
+
+      PlayingAnimationNode.Start(
+        NewPlayingAnimationLoop,
+        NewPlayingAnimationForward,
+        NewPlayingAnimationInitialTime);
+
+      PlayingAnimationNode.EventIsActive.AddNotification(@PlayingAnimationIsActive);
+      PlayingAnimationStopNotification := NewPlayingAnimationStopNotification;
     end;
   end;
+end;
+
+procedure TCastleSceneCore.InternalSetTime(
+  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
   { Call SetTime on all TimeDependentHandlers. }
   procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
@@ -6131,6 +6328,11 @@ begin
   begin
     BeginChangesSchedule;
     try
+      { UpdateNewPlayingAnimation must be called before UpdateTimeDependentHandlersIfVisible.
+        This way if we called StopAnimation, then UpdateNewPlayingAnimation
+        first stops it (preventing from sending any events),
+        so a stopped animation will *not* send any events after StopAnimation
+        (making it useful to call ResetAnimationState right after StopAnimation call). }
       UpdateNewPlayingAnimation;
       UpdateTimeDependentHandlersIfVisible;
       UpdateHumanoidSkin;
@@ -6237,6 +6439,7 @@ begin
     begin
       PartialSend.Partial := 1 - (T - PlayingAnimationStartTime) /
         PlayingAnimationTransitionDuration;
+      PartialSend.IgnoreIfCannotLerp := true;
 
       { First fade-out previous animation.
         Note that
@@ -6260,6 +6463,7 @@ begin
       to PlayingAnimationNode }
     PartialSend.Partial := (T - PlayingAnimationStartTime) /
       PlayingAnimationTransitionDuration;
+    PartialSend.IgnoreIfCannotLerp := false;
   end else
     TimeHandler.PartialSend := nil;
 end;
@@ -7244,7 +7448,9 @@ begin
     try
       //Enum.Parent := Self;
       Enum.List := Result;
+      {$warnings off} // knowingly using deprecated, to keep it working
       Enum.AnimationPrefix := AnimationPrefix;
+      {$warnings on}
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
 
       { recognize named animations also from IMPORTed node names.
@@ -7313,6 +7519,7 @@ begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
     Inc(ForceImmediateProcessing);
     try
+      ResetAnimationState(TimeNode);
       TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
     finally
       Dec(ForceImmediateProcessing);
@@ -7326,6 +7533,7 @@ begin
   begin
     Inc(ForceImmediateProcessing);
     try
+      ResetAnimationState(NewPlayingAnimationNode);
       NewPlayingAnimationNode.FakeTime(
         NewPlayingAnimationInitialTime,
         NewPlayingAnimationLoop,
@@ -7446,6 +7654,47 @@ begin
     Result := TimeNode.CycleInterval;
   end else
     Result := 0;
+end;
+
+procedure TCastleSceneCore.StopAnimation;
+begin
+  { New animation was requested, but not yet processed by UpdateNewPlayingAnimation.
+    Make it start, to early call the "stop notification" callback
+    for the previous animation (before calling the "stop notification"
+    callback for the new animation).
+    This also makes all behavior consistent with
+    "what if the new animation was actually applied already", i.e. the same calls
+    to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
+  if NewPlayingAnimationUse then
+  begin
+    UpdateNewPlayingAnimation;
+    if NewPlayingAnimationUse then
+    begin
+      WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
+      Exit;
+    end;
+  end;
+
+  { Stop animation by setting NewPlayingAnimationNode to nil,
+    this way the "stop notification" callback
+    for new animation will be correctly called. }
+  FCurrentAnimation := nil;
+  NewPlayingAnimationNode := FCurrentAnimation;
+  NewPlayingAnimationUse := true;
+end;
+
+procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
+var
+  F: TX3DField;
+begin
+  Inc(ForceImmediateProcessing);
+  try
+    { set fields in AnimationAffectedFields to their reset values }
+    for F in AnimationAffectedFields do
+      F.InternalRestoreSaveValue;
+  finally
+    Dec(ForceImmediateProcessing);
+  end;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);

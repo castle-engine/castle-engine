@@ -148,7 +148,7 @@ begin
     CreateRectangleNode function) and change TShapeNode.Render boolean.
   }
 
-  { This is optional, do this if you want to continously update the displayed
+  { This is optional, do this if you want to continuously update the displayed
     rectangle. }
   Window.OnUpdate := @WindowUpdate;
 
