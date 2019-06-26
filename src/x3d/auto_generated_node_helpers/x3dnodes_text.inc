@@ -67,15 +67,11 @@ begin
 end;
 
 procedure TTextNode.SetString(const Value: array of String);
-var
-  S: String;
 begin
   FdString.Send(Value);
 end;
 
 procedure TTextNode.SetString(const Value: TCastleStringList);
-var
-  S: String;
 begin
   FdString.Send(Value);
 end;
