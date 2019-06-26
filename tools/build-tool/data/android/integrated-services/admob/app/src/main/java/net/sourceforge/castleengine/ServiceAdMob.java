@@ -63,6 +63,10 @@ public class ServiceAdMob extends ServiceAbstract
         mInterstitialUnitId = interstitialUnitId;
         mRewardedUnitId = rewardedUnitId;
         testDeviceIds = aTestDeviceIds;
+
+        // MobileAds initialize - should be done before loading of any ad:
+        MobileAds.initialize(getActivity(), "${ANDROID.ADMOB.APP_ID}");
+
         interstitialInitialize();
         rewardedInitialize();
         logInfo(CATEGORY, "AdMob initialized");
@@ -157,10 +161,9 @@ public class ServiceAdMob extends ServiceAbstract
         if (mRewardedUnitId.equals(""))
             return;
 
-        MobileAds.initialize(getActivity(),"${ANDROID.ADMOB.APP_ID}");
         rewarded = MobileAds.getRewardedVideoAdInstance(getActivity());
 
-        // Set an AdListener.
+        // Set a RewardedVideoAdListener.
         rewarded.setRewardedVideoAdListener(new RewardedVideoAdListener()
         {
             @Override
