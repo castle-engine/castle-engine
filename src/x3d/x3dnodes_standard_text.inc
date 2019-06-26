@@ -183,6 +183,8 @@
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
 
     { The font rendering style. Returns @nil if not assigned,
       or if the underlying X3D field has invalid node type assigned. }
