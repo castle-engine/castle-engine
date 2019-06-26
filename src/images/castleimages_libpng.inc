@@ -659,12 +659,21 @@ begin
   png_set_read_fn(png_ptr, Stream,
     {$ifdef CASTLE_OBJFPC} @ {$endif} our_png_read_fn);
 
-  { TODO -- uzyj tu png_set_read_status_fn aby miec progressa }
+  { Note: We could use png_set_read_status_fn to show progress bar of loading.
+    Doesn't seem actually necessary, PNG would have to be truly huge to matter. }
 
   png_read_info(png_ptr, info_ptr);
   AllocateWidth := png_get_image_width(png_ptr, info_ptr);
   AllocateHeight := png_get_image_height(png_ptr, info_ptr);
-  result := nil; { zeby mozna bylo ponizej zapisac wygodnie try..except }
+  Result := nil; // initialize Result to allow easier try..except syntax below
+
+  { Avoid the warning "Interlace handling should be turned on when using png_read_image"
+    on interlaced images.
+    See also:
+    https://sourceforge.net/p/libpng/bugs/165/
+      (the bug there can cause this warning in other cases too)
+    https://stackoverflow.com/questions/22125146/how-to-fix-libpng-warning-when-reading-interlaced-png }
+  png_set_interlace_handling(png_ptr);
 
   try
    IsAlpha := png_is_alpha(png_ptr, info_ptr);

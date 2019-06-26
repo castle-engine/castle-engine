@@ -20,7 +20,8 @@ unit ToolUtils;
 
 interface
 
-uses CastleImages, CastleStringUtils;
+uses DOM,
+  CastleImages, CastleStringUtils;
 
 { Copy file, making sure the destination directory exists
   (eventually creating it), and checking result. }
@@ -82,10 +83,30 @@ const
   }
   BestInterpolation = {$ifdef VER3_0} riLanczos {$else} riBilinear {$endif};
 
+{ Find in Element all children called <parameter>,
+  read them and add to Parameters list,
+  expecting this format:
+
+  <parameter key="my_key" value="my_value" />
+  or
+  <parameter key="my_key">my_value</parameter>
+
+  Note that keys are converted to lowercase.
+  Parameter keys, just like macro names, are not case-sensitive.
+}
+procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
+  const RequiredKeys: array of String);
+
+{ Add all parameters in Parameters to Macros.
+  Each parameter key is prefixed by ParameterMacroPrefix
+  when it is added to the Macros list. }
+procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
+  const ParameterMacroPrefix: String);
+
 implementation
 
 uses Classes, Process, SysUtils,
-  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog,
+  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -159,6 +180,54 @@ begin
       Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
   end;
   Result := nil;
+end;
+
+procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
+  const RequiredKeys: array of String);
+var
+  ChildElements: TXMLElementIterator;
+  ChildElement: TDOMElement;
+  Key, Value, KeyLower: string;
+begin
+  ChildElements := Element.ChildrenIterator('parameter');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+
+      Key := LowerCase(ChildElement.AttributeString('key'));
+      if Key = '' then
+        raise Exception.Create('Key for <parameter> is empty in CastleEngineManifest.xml');
+
+      if ChildElement.HasAttribute('value') then
+        Value := ChildElement.AttributeString('value')
+      else
+      begin
+        Value := ChildElement.TextData;
+        { value cannot be empty in this case }
+        if Value = '' then
+          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
+      end;
+
+      Parameters.Add(Key, Value);
+    end;
+  finally FreeAndNil(ChildElements) end;
+
+  for Key in RequiredKeys do
+  begin
+    KeyLower := LowerCase(Key);
+    if not Parameters.ContainsKey(KeyLower) then
+      Parameters.Add(KeyLower, '');
+  end;
+end;
+
+procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
+  const ParameterMacroPrefix: String);
+var
+  Pair: TStringStringMap.TDictionaryPair;
+begin
+  for Pair in Parameters do
+    Macros.Add(UpperCase(ParameterMacroPrefix + Pair.Key), Pair.Value);
 end;
 
 end.

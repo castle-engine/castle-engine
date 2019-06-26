@@ -22,7 +22,7 @@ interface
 
 uses Classes, CastleVectors, CastleFonts, CastleControls,
   CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
-  CastleRectangles;
+  CastleRectangles, CastleClassUtils;
 
 type
   TCastleOnScreenMenu = class;
@@ -75,6 +75,7 @@ type
       MenuAnimation: Single;
       ClickStarted: boolean;
       ClickStartedPosition: TVector2;
+      FCaptionTranslate: Boolean;
     procedure SetCaption(const Value: String);
     procedure SetRightCaption(const Value: String);
     { Update Menu.CurrentItem to point to Self. }
@@ -87,6 +88,7 @@ type
   protected
     procedure DoClick; virtual;
     procedure BeforeSizing; override;
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -99,6 +101,11 @@ type
 
     { Text displayed by this on-screen menu item. }
     property Caption: String read FCaption write SetCaption;
+
+    { Should the @link(Caption) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property CaptionTranslate: Boolean read FCaptionTranslate write FCaptionTranslate default true;
 
     { Event fired when user chooses this menu item in any way. }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
@@ -343,7 +350,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
+uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils,
   CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleComponentSerialize;
 
 procedure Register;
@@ -393,6 +400,7 @@ end;
 constructor TCastleOnScreenMenuItem.Create(AOwner: TComponent);
 begin
   inherited;
+  FCaptionTranslate := true;
 
   FCaptionLabel := TCastleLabel.Create(Self);
   FCaptionLabel.SetTransient;
@@ -588,6 +596,19 @@ begin
   MenuAnimation := MenuAnimation + (0.5 * SecondsPassed);
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange([chRender]);
+end;
+
+procedure TCastleOnScreenMenuItem.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+var
+  S: String;
+begin
+  if CaptionTranslate and (Caption <> '') then
+  begin
+    S := Caption;
+    TranslatePropertyEvent(Self, 'Caption', S);
+    Caption := S;
+  end;
 end;
 
 { TCastleOnScreenMenuItemToggle ---------------------------------------------------------- }

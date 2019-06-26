@@ -724,7 +724,7 @@ type
       write FCloseDirectionToTargetSpeed
       default DefaultCloseDirectionToTargetSpeed;
 
-    { Sound played continously when the missile is going.
+    { Sound played continuously when the missile is going.
       None (stNone) by default.
       @seealso PauseBetweenSoundIdle }
     property SoundIdle: TSoundType
@@ -1670,7 +1670,7 @@ begin
       for a fraction of a second.
 
       This is crucial for TWalkAttackCreature.Update logic
-      that could otherwise sometimes get stuck and continously switching
+      that could otherwise sometimes get stuck and continuously switching
       between walk/idle states, because in idle state Middle indicates
       that we should walk (e.g. distance or angle to enemy is not good enough),
       but right after switching to walk the LocalBoundingBox changes

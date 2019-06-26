@@ -252,7 +252,7 @@ type
 
     { Current time within the animation, it determines the current frame.
       Yoy can set this explicity. Alternatively, you can call the @link(Update)
-      method continously while the animation is @link(Playing), and then
+      method continuously while the animation is @link(Playing), and then
       the time will increase automatically. }
     property Time: TFloatTime read FTime write SetTime;
 

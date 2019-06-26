@@ -211,7 +211,7 @@ type
       Normal loading of 3D composite textures creates single TCastleImage (using Depth
       possibly > 1) for each mipmap level. Such TCastleImage with depth
       is comfortable if you want to load this 3d texture into OpenGL
-      (as then the image data is just a continous memory area,
+      (as then the image data is just a continuous memory area,
       loadable by glTexImage3d). But it's not comfortable if you want
       to display it using some 2D GUI. For example, it's not comfortable
       for image viewer like castle-view-image.

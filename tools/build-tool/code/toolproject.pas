@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -273,7 +273,7 @@ uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
-  ToolCommonUtils;
+  ToolCommonUtils, ToolMacros;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -364,7 +364,7 @@ constructor TCastleProject.Create(const APath: string);
 
     function DefaultQualifiedName: string;
     begin
-      Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -1815,9 +1815,8 @@ const
   end;
 
 var
-  I: Integer;
   AndroidLibraryName: string;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
 begin
   AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
@@ -1833,12 +1832,8 @@ begin
   Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
   Macros.Add('ANDROID_ABI_LIST_MAKEFILE'           , AndroidAbiListMakefile);
 
-  for I := 0 to AndroidServices.Count - 1 do
-    for ServiceParameterPair in AndroidServices[I].Parameters do
-      Macros.Add('ANDROID.' +
-        UpperCase(AndroidServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in AndroidServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'ANDROID.' + Service.Name + '.');
 end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
@@ -1881,8 +1876,7 @@ const
 
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
-  I: Integer;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
 begin
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
   Macros.Add('IOS_VERSION', IOSVersion);
@@ -1941,12 +1935,8 @@ begin
   else
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
 
-  for I := 0 to IOSServices.Count - 1 do
-    for ServiceParameterPair in IOSServices[I].Parameters do
-      Macros.Add('IOS.' +
-        UpperCase(IOSServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in IOSServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'IOS.' + Service.Name + '.');
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1968,27 +1958,12 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     end;
   end;
 
-  { Make CamelCase with only safe characters (digits and letters). }
-  function MakeCamelCase(S: string): string;
-  var
-    I: Integer;
-  begin
-    S := SReplaceChars(S, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], ' ');
-    Result := '';
-    for I := 1 to Length(S) do
-      if S[I] <> ' ' then
-        if (I > 1) and (S[I - 1] <> ' ') then
-          Result += S[I] else
-          Result += UpCase(S[I]);
-  end;
-
 var
-  Macros: TStringStringMap;
   I: Integer;
-  P, NonEmptyAuthor: string;
+  NonEmptyAuthor: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
-  PreviousMacros: array of TStringStringMap.TDictionaryPair;
+  Macros: TStringStringMap;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
   VersionComponentsString := CastleStringUtils.SplitString(Version, '.');
@@ -2035,16 +2010,7 @@ begin
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
 
-    // add CamelCase() replacements, add ${} around
-    PreviousMacros := Macros.ToArray;
-    Macros.Clear;
-    for I := 0 to Length(PreviousMacros) - 1 do
-    begin
-      P := PreviousMacros[I].Key;
-      Macros.Add('${' + P + '}', PreviousMacros[I].Value);
-      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(PreviousMacros[I].Value));
-    end;
-    Result := SReplacePatterns(Source, Macros, true);
+    Result := ToolMacros.ReplaceMacros(Macros, Source);
   finally FreeAndNil(Macros) end;
 end;
 

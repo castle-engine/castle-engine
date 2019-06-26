@@ -371,7 +371,7 @@ begin
           Assert(OwnsImage, 'New TDrawableImage should always have OwnsImage = true');
         end;
       except
-        { If loading design file failed, and we're inside CGE editor,
+        { If loading file failed, and we're inside CGE editor,
           merely report a warning. This allows deserializing in CGE editor
           designs with broken URLs. }
         on E: Exception do

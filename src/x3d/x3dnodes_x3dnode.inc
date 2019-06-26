@@ -1073,6 +1073,10 @@
       )
     }
     procedure UnregisterScene;
+
+    { Find field set by given event of this node.
+      @nil if not found (including when this Event doesn't actually belong to this node). }
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; virtual;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -3370,6 +3374,20 @@ end;
 procedure TX3DNode.UnregisterScene;
 begin
   EnumerateNodes(TX3DNode, {$ifdef CASTLE_OBJFPC}@{$endif} UnregisterSceneCallback, false);
+end;
+
+function TX3DNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+var
+  F: TX3DField;
+  I: Integer;
+begin
+  for I := 0 to FieldsCount - 1 do
+  begin
+    F := Fields[I];
+    if F.EventIn = Event then
+      Exit(F);
+  end;
+  Result := nil;
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

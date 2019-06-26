@@ -534,7 +534,8 @@ const
   StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay,
     poMacOsXProcessSerialNumber, poLimitFps];
 
-  DefaultDepthBits = 16;
+  DefaultDepthBits = 24;
+  DepthBitsFallback = 16;
 
   DefaultFpsCaptionUpdateDelay = 1.0;
 
@@ -1118,7 +1119,7 @@ type
       Allowing this is a good thing, as it means our process doesn't eat
       your CPU when it simply waits, doing nothing, for user input.
       On the other hand, you cannot allow this if you want to do some
-      things continously, regardless of user input.
+      things continuously, regardless of user input.
 
       The default implementation plays it safe, and does not allow suspending
       if we have OnUpdate, OnTimer or such callback defined. }
@@ -1447,16 +1448,19 @@ type
       than requested (we may even get depth buffer when we set
       DepthBits = 0), this all depends on graphic card.
 
-      Default value is 16 (DefaultDepthBits),
-      which is a reasonable default for 3D programs
+      Default value is @link(DefaultDepthBits),
+      which is non-zero and a reasonable default for 3D programs
       that want to work with depth test enabled.
+
+      Note that we have a fallback mechanism in case @link(DepthBits)
+      is too large: we fallback on @link(DepthBitsFallback) then.
 
       @italic(Design notes:) One may ask why default value is not 0?
 
       @orderedList(
         @item(
           Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Window.DepthBits := 16).)
+          would have to call something like @code(Window.DepthBits := DefaultDepthBits).)
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
@@ -1466,16 +1470,16 @@ type
           If you're writing 3d program and sitting on some
           system that always gives you depth buffer (even if DepthBits = 0)
           then it may happen that you forget to write in your program
-          @longCode(#  Window.DepthBits := 16;#)
+          @longCode(#  Window.DepthBits := DefaultDepthBits;#)
 
           And while on your system everything will work, you will
           receive errors on other systems because you forgot to request a
           depth buffer.)
       )
 
-      Of course, if you are writing a program that does not need depth buffer
+      If you are writing a program that does not need depth buffer
       you should set Window.DepthBits := 0. The only advantage of having
-      default DepthBits = 16 is that if you forget to set
+      default DepthBits = DefaultDepthBits is that if you forget to set
       Window.DepthBits := 0 your programs will still work (most graphic cards
       will give you some depth buffer anyway).
       They will just use more resources than they should.
@@ -1494,7 +1498,7 @@ type
       Note that after initializing OpenGL context (when opening the window),
       StencilBits is @italic(not) updated to the current (provided)
       stencil buffer bit size. For example, if you requested StencilBits := 8,
-      and you got 16-bits buffer: StencilBits value will still remain 8.
+      and you got 16-bits stencil buffer: StencilBits value will still remain 8.
       This is sensible in case you close the window, tweak some settings
       and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
       when window is open to query current (actual) buffer size. }
@@ -1777,9 +1781,9 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
-    { Continously occuring event, called for all open windows.
+    { Continuously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
-      so it is continously called even when your game
+      so it is continuously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws.
 
       Called at the same time when
@@ -2694,7 +2698,7 @@ type
     {property OnInitializeJavaActivity: TProcedure
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
-    { Continously occuring event.
+    { Continuously occuring event.
       @seealso TCastleWindowBase.OnUpdate. }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 
@@ -3264,7 +3268,10 @@ begin
   end;
 end;
 
-{ Try to lower anti-aliasing (multi-sampling) and shadows (stencil buffer)
+{ Try to lower
+  - anti-aliasing (multi-sampling)
+  - shadows (stencil buffer)
+  - depth size
   requirements and initialize worse GL context. }
 function DefaultRetryOpen(Window: TCastleWindowBase): boolean;
 begin
@@ -3278,6 +3285,14 @@ begin
   begin
     Window.StencilBits := 0;
     WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
+    Result := true;
+  end else
+  if Window.DepthBits > DepthBitsFallback then
+  begin
+    Window.DepthBits := DepthBitsFallback;
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Depth bits decreased to %d, trying to initialize once again.', [
+      DepthBitsFallback
+    ]);
     Result := true;
   end else
     Result := false;

@@ -713,6 +713,14 @@ type
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
+  TCasScriptCoalesce = class(TCasScriptFunction)
+  private
+    class procedure HandleCoalesce(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  public
+    class function ShortName: string; override;
+    class function GreedyArgumentsCalculation: Integer; override;
+  end;
+
   TCasScriptRegisteredHandler = class
   private
     FHandler: TCasScriptFunctionHandler;
@@ -2435,6 +2443,42 @@ begin
   Result := Index = 0;
 end;
 
+{ TCasScriptCoalesce --------------------------------------------------------- }
+
+class function TCasScriptCoalesce.ShortName: string;
+begin
+  Result := 'coalesce';
+end;
+
+class procedure TCasScriptCoalesce.HandleCoalesce(
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  for I := 0 to High(Arguments) - 1 do
+  begin
+    AResult := AFunction.Args[I].CoreExecute;
+    if (AResult as TCasScriptString).Value <> '' then
+      Exit;
+    { Do not free it, it would cause SEGFAULT:
+    AResult.FreeByParentExpression;
+    AResult := nil;
+    }
+  end;
+
+  AResult := AFunction.Args[High(Arguments)].CoreExecute;
+end;
+
+class function TCasScriptCoalesce.GreedyArgumentsCalculation: Integer;
+begin
+  Result := 0;
+end;
+
 { TCasScriptFunctionHandlers ------------------------------------------------- }
 
 constructor TCasScriptFunctionHandlers.Create;
@@ -2759,6 +2803,7 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhen(nil).HandleWhen, TCasScriptWhen, [TCasScriptBoolean, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhile(nil).HandleWhile, TCasScriptWhile, [TCasScriptBoolean, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFor(nil).HandleFor, TCasScriptFor, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCoalesce(nil).HandleCoalesce, TCasScriptCoalesce, [TCasScriptString], true);
 
   { Register handlers for TCasScriptInteger for functions in
     CastleScriptCoreFunctions. }

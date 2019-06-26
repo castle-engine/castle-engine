@@ -54,7 +54,7 @@ About idle priority:
 
     G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
     us with the first problem: Application.OnIdle will not be called
-    continously if we redraw continously (like when AutoRedisplay = true).
+    continuously if we redraw continuously (like when AutoRedisplay = true).
      - Old solution: call WindowsIdleAndTimer manually
        after calling DoDraw in signal_expose_event.
      - Later solution: we just do not depend on GTK's expose events

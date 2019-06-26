@@ -584,7 +584,7 @@ begin
           Invalidate else
           { If not IsWindowEnabled then we have a modal window blocking our window.
             Like a Windows.MessageBox. In this case, our Application.ProcessMessage
-            may not be continously called, so we cannot use normal Invalidate
+            may not be continuously called, so we cannot use normal Invalidate
             and depend that window will be repainted soon.
 
             IOW, right now we're in WindowProc but not because of calling

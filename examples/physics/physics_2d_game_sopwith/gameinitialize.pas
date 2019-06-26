@@ -239,7 +239,7 @@ procedure WindowUpdate(Container: TUIContainer);
 
     RigidBody := TRigidBody.Create(Transform);
     RigidBody.Setup2D;
-    RigidBody.InitialLinearVelocity := Vector3(100, 0, 0);
+    RigidBody.LinearVelocity := Vector3(100, 0, 0);
 
     Collider := TSphereCollider.Create(RigidBody);
     Collider.Radius := MissileScene.BoundingBox.Size.X / 2;

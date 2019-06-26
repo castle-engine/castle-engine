@@ -70,7 +70,7 @@ uses X3DLoad, CastleLCLUtils, CastleSceneCore;
   1. Is easy to display. You will know it's an easy 3D model when
      the 1st (not "real") fps number will be very large.
   2. And has some animation. The goal is to force the engine to redraw
-     it continously. (Alternatively, you could make any 3D model spin
+     it continuously. (Alternatively, you could make any 3D model spin
      in Examine mode by pressing "right arrow" key.)
      For example: load demo_models/movie_texture/fireplace_final.wrl
      from demo models [https://castle-engine.io/demo_models.php] .

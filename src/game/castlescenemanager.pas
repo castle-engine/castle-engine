@@ -1990,7 +1990,7 @@ begin
   RequiredCamera; // create Camera if necessary
 
   { We need to know container size now. }
-  Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
+  Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
 
   Viewport := RenderRect.Round;
   RenderContext.Viewport := Viewport;
