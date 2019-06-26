@@ -922,7 +922,7 @@ begin
 
     TextProxy(Self,
       State.VRML1State.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,
-      FdString.Items, State.VRML1State.FontStyle.Font,
+      FdString.Items, -1, State.VRML1State.FontStyle.Font,
       false, nil, nil, nil,
       CoordNode.FdPoint, TexCoordNode.FdPoint, nil);
 

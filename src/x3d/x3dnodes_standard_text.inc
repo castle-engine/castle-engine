@@ -153,6 +153,9 @@
     strict private FFdMaxExtent: TSFFloat;
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
+    strict private FFdMaxDisplayChars: TSFInt32;
+    public property FdMaxDisplayChars: TSFInt32 read FFdMaxDisplayChars;
+
     strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
@@ -179,6 +182,8 @@
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
 
     { The font rendering style. Returns @nil if not assigned,
@@ -485,6 +490,10 @@ begin
   AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
+  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'maxDisplayChars', -1);
+   FdMaxDisplayChars.ChangesAlways := [chGeometry];
+  AddField(FdMaxDisplayChars);
+
   FFdString := TMFString.Create(Self, true, 'string', []);
    FdString.ChangesAlways := [chGeometry];
   AddField(FFdString);
@@ -563,6 +572,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const Size, Spacing: Single;
   const Justify, JustifyMinor: TX3DFontJustify;
   const Strings: TCastleStringList;
+  const MaxDisplayChars: Integer;
   const Font: TTextureFontData;
   const Solid: boolean;
   const EventLineBounds: TMFVec2fEvent;
@@ -774,6 +784,7 @@ var
 
 var
   I: Integer;
+  DisplayChars: Integer;
 begin
   YScale := Size / Font.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
@@ -792,8 +803,23 @@ begin
     if Strings.Count <> 0 then
     begin
       ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
-      for I := 0 to Strings.Count - 1 do
-        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      if MaxDisplayChars < 0 then
+        for I := 0 to Strings.Count - 1 do
+          Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale) //optimize in case MaxDisplayChars = -1
+      else
+      begin
+        DisplayChars := MaxDisplayChars;
+        for I := 0 to Strings.Count - 1 do
+        begin
+          if Length(Strings[I]) < DisplayChars then
+            Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
+          else
+            Print(StringPosX(I), StringPosY(I), Copy(Strings[I], 0, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, Length(Strings[I]));
+          if DisplayChars <= 0 then
+            Break;
+        end;
+      end;
     end;
 
     { These events should be generated only when
@@ -874,7 +900,8 @@ begin
       ExtraTexCoordField := ExtraTexCoordNode.FdPoint else
       ExtraTexCoordField := nil;
 
-    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items, Font,
+    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items,
+      FdMaxDisplayChars.Value, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 

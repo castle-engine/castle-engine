@@ -17,6 +17,7 @@ Text : X3DGeometryNode {
   SFNode   [in,out] fontStyle  NULL  [X3DFontStyleNode]
   MFFloat  [in,out] length     []    [0,Inf)
   SFFloat  [in,out] maxExtent  0.0   [0,Inf)
+  SFInt32  [in,out] maxDisplayChars -1  [-1,Inf)
   MFString [in,out] string     []
   MFVec2f  [out]    lineBounds
   SFVec3f  [out]    origin
