@@ -182,6 +182,18 @@ begin
   Result := nil;
 end;
 
+function GetCData(const Element: TDOMElement): String;
+var
+  I: TXMLCDataIterator;
+begin
+  Result := '';
+  I := TXMLCDataIterator.Create(Element);
+  try
+    while I.GetNext do
+      Result := Result + I.Current;
+  finally FreeAndNil(I) end;
+end;
+
 procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
   const RequiredKeys: array of String);
 var
@@ -204,6 +216,8 @@ begin
       else
       begin
         Value := ChildElement.TextData;
+        if Value = '' then
+          Value := GetCData(ChildElement);
         { value cannot be empty in this case }
         if Value = '' then
           raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
