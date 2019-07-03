@@ -189,12 +189,6 @@ begin
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
-begin
-  // Check joysticks states every frame
-  Joysticks.Poll;
-end;
-
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
@@ -230,8 +224,6 @@ begin
   Window.Controls.InsertFront(OnScreenMenu);
 
   InitializeJoysticks;
-
-  Window.OnUpdate := @WindowUpdate;
 end;
 
 initialization
