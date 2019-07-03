@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="joystick_demo.lpr"/>
+        <Filename Value="joystick_demo_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>

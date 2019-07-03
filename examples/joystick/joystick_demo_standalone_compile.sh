@@ -6,7 +6,7 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f joystick_demo.lpr ]; then cd ../../; fi
+if [ -f joystick_demo_standalone.lpr ]; then cd ../../; fi
 
 # Find the build tool, use it to compile
 if which tools/build-tool/castle-engine > /dev/null; then
@@ -15,4 +15,4 @@ else
   CASTLE_ENGINE=castle-engine
 fi
 
-"${CASTLE_ENGINE}" simple-compile examples/joystick/joystick_demo.lpr
+"${CASTLE_ENGINE}" simple-compile examples/joystick/joystick_demo_standalone.lpr

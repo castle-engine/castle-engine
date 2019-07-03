@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Tomasz Wojtyś.
+  Copyright 2016-2019 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,18 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo lists all avalaible joysticks/gamepads in the system. Shows also how
-  joystick events works. }
+{ List all avalaible joysticks/gamepads in the system,
+  and allows to test their inputs. }
+unit GameInitialize;
 
-program joystick_demo;
+interface
 
-{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+implementation
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
-  Classes;
+  CastleApplicationProperties;
 
 const
   AxisNames: array [JOY_AXIS_X..JOY_POVY] of string =
@@ -194,11 +195,13 @@ begin
   Joysticks.Poll;
 end;
 
+{ One-time initialization of resources. }
+procedure ApplicationInitialize;
 begin
-  Window := TCastleWindowBase.Create(Application);
-  Window.Container.BackgroundColor := Green;
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  InitializeLog;
+  Window.Container.BackgroundColor := Green;
 
   Notifications := TCastleNotifications.Create(Window);
   Notifications.Anchor(vpBottom, 10);
@@ -229,5 +232,21 @@ begin
   InitializeJoysticks;
 
   Window.OnUpdate := @WindowUpdate;
-  Window.OpenAndRun;
+end;
+
+initialization
+  { Set ApplicationName early, as our log uses it.
+    Optionally you could also set ApplicationProperties.Version here. }
+  ApplicationProperties.ApplicationName := 'joystick_demo';
+
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization. }
+  InitializeLog;
+
+  { Initialize Application.OnInitialize. }
+  Application.OnInitialize := @ApplicationInitialize;
+
+  { Create and assign Application.MainWindow. }
+  Window := TCastleWindowBase.Create(Application);
+  Application.MainWindow := Window;
 end.

@@ -208,7 +208,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_render_custom_shader \
   examples/images_videos/simple_video_editor \
   examples/images_videos/test_castleimage_draw3x3 \
-  examples/joystick/joystick_demo \
+  examples/joystick/joystick_demo_standalone \
   examples/localization/custom/localization \
   examples/localization/gettext/localization_test \
   examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
