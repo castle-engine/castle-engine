@@ -386,7 +386,7 @@ clean: cleanexamples
 # (will never be compiled).
 	$(FIND) . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
-	  '(' -path ./tools/build-tool/tests/data/ -prune ')' -or \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir castle-engine clean ';' ')'
 
