@@ -93,27 +93,31 @@ var
   Notifications: TCastleNotifications;
   ButtonReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
-  Title: TCastleLabel;
+  LabelJoysticksCount: TCastleLabel;
+  LabelSelectedJoystick: TCastleLabel;
   SelectedJoystick: Integer = -1;
   JoyButtons: array of TCastleButton;
   JoyAxes: array of TCastleLabel;
   JoyAxisVisualize: TJoyAxisVisualize;
 
-procedure InitializeJoysticks; forward;
-
 { TEventsHandler ------------------------------------------------------------- }
 
 type
   TEventsHandler = class
-    procedure ClickReinitialize(Sender: TObject);
-    procedure ClickJoystickSelect(Sender: TObject);
-    procedure JoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
-    procedure JoyButtonPress(const Joy: TJoystick; const Button: Byte);
-    procedure JoyButtonUp(const Joy: TJoystick; const Button: Byte);
-    procedure JoyButtonDown(const Joy: TJoystick; const Button: Byte);
+  strict private
+    class procedure ClearJoystickUI;
+    class procedure ClearSelectedJoystickUI;
+  public
+    class procedure InitializeJoystickUI(Sender: TObject);
+    class procedure ClickReinitialize(Sender: TObject);
+    class procedure ClickJoystickSelect(Sender: TObject);
+    class procedure JoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
+    class procedure JoyButtonPress(const Joy: TJoystick; const Button: Byte);
+    class procedure JoyButtonUp(const Joy: TJoystick; const Button: Byte);
+    class procedure JoyButtonDown(const Joy: TJoystick; const Button: Byte);
   end;
 
-procedure TEventsHandler.JoyAxisMove(const Joy: TJoystick; const Axis: Byte;
+class procedure TEventsHandler.JoyAxisMove(const Joy: TJoystick; const Axis: Byte;
   const Value: Single);
 begin
   // We show axes position only for the selected joystick.
@@ -131,13 +135,12 @@ begin
     JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStr(Value);
 end;
 
-procedure TEventsHandler.JoyButtonPress(const Joy: TJoystick; const Button: Byte);
+class procedure TEventsHandler.JoyButtonPress(const Joy: TJoystick; const Button: Byte);
 begin
-  Notifications.Show(Format('Button press event (b: %d)',
-    [Button]));
+  Notifications.Show(Format('Button press event (b: %d)', [Button]));
 end;
 
-procedure TEventsHandler.JoyButtonUp(const Joy: TJoystick; const Button: Byte);
+class procedure TEventsHandler.JoyButtonUp(const Joy: TJoystick; const Button: Byte);
 begin
   if (SelectedJoystick = -1) or
      (Joy <> Joysticks[SelectedJoystick]) then
@@ -149,7 +152,7 @@ begin
   Notifications.Show('Joy button up');
 end;
 
-procedure TEventsHandler.JoyButtonDown(const Joy: TJoystick; const Button: Byte);
+class procedure TEventsHandler.JoyButtonDown(const Joy: TJoystick; const Button: Byte);
 begin
   if (SelectedJoystick = -1) or
      (Joy <> Joysticks[SelectedJoystick]) then
@@ -161,33 +164,49 @@ begin
   Notifications.Show('Joy button down');
 end;
 
-procedure TEventsHandler.ClickReinitialize(Sender: TObject);
+class procedure TEventsHandler.ClickReinitialize(Sender: TObject);
 begin
   // If any joystick is plugged or unplugged then reinitialize is needed
   Notifications.Show('Detecting joysticks again...');
-  OnScreenMenu.MenuItems.ClearControls;
-  InitializeJoysticks;
+  Joysticks.Initialize;
 end;
 
-procedure TEventsHandler.ClickJoystickSelect(Sender: TObject);
+class procedure TEventsHandler.ClearSelectedJoystickUI;
 var
-  i: Integer;
+  I: Integer;
 begin
-  // Show selected joystick details
-  SelectedJoystick := (Sender as TComponent).Tag;
-
-  // Free previously selected data
-  for i := Low(JoyButtons) to High(JoyButtons) do
+  for I := Low(JoyButtons) to High(JoyButtons) do
     JoyButtons[i].Free;
   SetLength(JoyButtons, 0);
-  for i := Low(JoyAxes) to High(JoyAxes) do
+  for I := Low(JoyAxes) to High(JoyAxes) do
     JoyAxes[i].Free;
   SetLength(JoyAxes, 0);
   FreeAndNil(JoyAxisVisualize);
 
+  SelectedJoystick := -1;
+  LabelSelectedJoystick.Caption := 'Selected: none';
+end;
+
+class procedure TEventsHandler.ClearJoystickUI;
+begin
+  OnScreenMenu.MenuItems.ClearControls;
+  ClearSelectedJoystickUI;
+end;
+
+class procedure TEventsHandler.ClickJoystickSelect(Sender: TObject);
+var
+  i: Integer;
+begin
+  ClearSelectedJoystickUI;
+
+  // Show selected joystick details
+  SelectedJoystick := (Sender as TComponent).Tag;
+  LabelSelectedJoystick.Caption := Format('Selected: [%d] %s',
+    [SelectedJoystick, Joysticks.GetInfo(SelectedJoystick)^.Name]);
+
   // Create array of buttons
   SetLength(JoyButtons, Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons);
-  for i := 0 to High(JoyButtons) do
+  for I := 0 to High(JoyButtons) do
   begin
     JoyButtons[i] := TCastleButton.Create(Application);
     JoyButtons[i].Toggle := True;
@@ -205,7 +224,7 @@ begin
 
   // Create axis labels
   SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
-  for i := 0 to High(JoyAxes) do
+  for I := 0 to High(JoyAxes) do
   begin
     JoyAxes[i] := TCastleLabel.Create(Application);
     JoyAxes[i].Left := 10;
@@ -223,6 +242,26 @@ begin
   Window.Controls.InsertFront(JoyAxisVisualize);
 end;
 
+class procedure TEventsHandler.InitializeJoystickUI(Sender: TObject);
+var
+  I: Integer;
+  JoystickSelect: TCastleOnScreenMenuItem;
+begin
+  ClearJoystickUI;
+
+  LabelJoysticksCount.Caption := Format('Number of joysticks found: %d', [Joysticks.Count]);
+
+  // List all joysticks
+  for I := 0 to Joysticks.Count - 1 do
+  begin
+    JoystickSelect := TCastleOnScreenMenuItem.Create(Application);
+    JoystickSelect.Caption := Format('[%d] %s', [I, Joysticks.GetInfo(I)^.Name]);
+    JoystickSelect.OnClick := @TEventsHandler(nil).ClickJoystickSelect;
+    JoystickSelect.Tag := I;
+    OnScreenMenu.Add(JoystickSelect);
+  end;
+end;
+
 { other routines ------------------------------------------------------------- }
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -235,34 +274,10 @@ begin
   end;
 end;
 
-procedure InitializeJoysticks;
-var
-  I: Integer;
-  JoystickSelect: TCastleOnScreenMenuItem;
-begin
-  Joysticks.Initialize;
-
-  Title.Caption := Format('Number of joysticks found: %d', [Joysticks.Count]);
-
-  // List all joysticks
-  for I := 0 to Joysticks.Count - 1 do
-  begin
-    JoystickSelect := TCastleOnScreenMenuItem.Create(Application);
-    JoystickSelect.Caption := Format('[%d] %s', [I, Joysticks.GetInfo(I)^.Name]);
-    JoystickSelect.OnClick := @TEventsHandler(nil).ClickJoystickSelect;
-    JoystickSelect.Tag := I;
-    OnScreenMenu.Add(JoystickSelect);
-  end;
-
-  // Bind joystick events
-  Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
-  Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
-  Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
-  Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
-end;
-
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
+var
+  MenuGroup: TCastleVerticalGroup;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
@@ -285,18 +300,33 @@ begin
   ButtonReinitialize.OnClick := @TEventsHandler(nil).ClickReinitialize;
   Window.Controls.InsertFront(ButtonReinitialize);
 
-  Title := TCastleLabel.Create(Application);
-  Title.Left := 10;
-  Title.Anchor(vpTop, -10);
-  Title.Color := White;
-  Window.Controls.InsertFront(Title);
+  MenuGroup := TCastleVerticalGroup.Create(Application);
+  MenuGroup.Left := 10;
+  MenuGroup.Anchor(vpTop, -10);
+  MenuGroup.Spacing := 10;
+  Window.Controls.InsertFront(MenuGroup);
+
+  LabelJoysticksCount := TCastleLabel.Create(Application);
+  LabelJoysticksCount.Color := White;
+  MenuGroup.InsertFront(LabelJoysticksCount);
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Application);
-  OnScreenMenu.Left := 10;
-  OnScreenMenu.Anchor(vpTop, -40);
-  Window.Controls.InsertFront(OnScreenMenu);
+  MenuGroup.InsertFront(OnScreenMenu);
 
-  InitializeJoysticks;
+  LabelSelectedJoystick := TCastleLabel.Create(Application);
+  LabelSelectedJoystick.Color := White;
+  LabelSelectedJoystick.Caption := 'Selected: none';
+  MenuGroup.InsertFront(LabelSelectedJoystick);
+
+  Joysticks.OnChange := @TEventsHandler(nil).InitializeJoystickUI;
+  Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
+  Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
+  Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
+  Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
+
+  { Actually detect joysticks.
+    This will automatically call TEventsHandler.JoysticksChanged on some platforms. }
+  Joysticks.Initialize;
 end;
 
 initialization
