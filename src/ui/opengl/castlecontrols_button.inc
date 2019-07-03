@@ -546,9 +546,10 @@ begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
-  Result := ExclusiveEvents;
   if Enabled then
   begin
+    Result := ExclusiveEvents;
+
     if not Toggle then
     begin
       FPressed := true;
@@ -819,7 +820,7 @@ begin
     { Allow to change Pressed always.
       This is necessary for correct deserialization,
       where Pressed may be deserialized
-      befoire Toggle is deserialized. }
+      before Toggle is deserialized. }
     // if not Toggle then
     //   raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
