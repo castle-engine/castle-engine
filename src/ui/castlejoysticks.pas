@@ -126,8 +126,14 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    { Check state of every connected joystick and run event procedures.  }
-    procedure Poll;
+    { Check state of every connected joystick and run event procedures.
+      This is internal, called automatically by CastleUIControls unit,
+      user code does not need to call this.
+      @exclude }
+    procedure InternalPoll;
+    { @exclude }
+    procedure Poll; deprecated 'do not call this, it is not necessary';
+
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
     function  AxisPos( JoyID, Axis : Byte ): Single;
     function  Down( JoyID, Button : Byte ): Boolean;
@@ -225,6 +231,11 @@ begin
 end;
 
 procedure TJoysticks.Poll;
+begin
+  InternalPoll;
+end;
+
+procedure TJoysticks.InternalPoll;
 begin
   if FInitialized then
     Backend.Poll(FList, Self);

@@ -2783,7 +2783,7 @@ procedure TUIContainer.EventUpdate;
     Joys := Joysticks;
     if Joys.Initialized then
     begin
-      Joys.Poll;
+      Joys.InternalPoll;
 
       for I := 0 to Joys.Count - 1 do
       begin
