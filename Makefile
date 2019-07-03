@@ -7,17 +7,13 @@
 #     Compile most examples and tools (that don't use Lazarus LCL).
 #     Lazarus is not required (LCL dependent examples are not compiled).
 #
-#     This compilation method uses our xxx_compile.sh Unix scripts,
-#     and calls our "build tool" to compile examples and other tools
-#     (build tool, in turn, calls a compiler like FPC or Delphi).
+#     This compilation method calls our "build tool" to compile examples
+#     and other tools (build tool, in turn, calls a compiler like FPC or Delphi).
 #
 #     The exception is when compiling the "build tool" itself,
 #     then we call FPC directly. (Although we *could* use
 #     the "build tool" to compile (bootstrap) itself, but it's not what
 #     people expect by default, so we don't do it for now.)
-#
-#     Note that you can also compile each example separately,
-#     just execute directly appropriate xxx_compile.sh scripts.
 #
 #   examples-laz --
 #     Compile all examples and tools using Lazarus.
@@ -44,7 +40,7 @@
 #   cleanall --
 #     Same as cleanmore for now.
 #     Intention is to remove *everything* that can be manually recreated,
-#     even if somewhat hard, and clean editor backup.
+#     even if it's somewhat hard to recreate.
 
 ifeq ($(OS),Windows_NT)
   # Hack for Cygwin, to avoid using Windows built-in "find" program.
@@ -414,22 +410,6 @@ cleanmore: clean
 	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
 
 cleanall: cleanmore
-
-# Clean compiled versions of CastleWindow unit.
-# Makes sure that unit CastleWindow will be *always* *rebuild* in next compilation.
-#
-# This is useful, since CastleWindow unit may be compiled with various
-# back-ends (e.g. under Unices two most useful back-ends
-# are XLIB and GTK). To make sure that compilation of some program
-# will produce exactly what you need, it's useful to force rebuild of CastleWindow.
-#
-# Of course this means that compilation time will suffer a little,
-# since CastleWindow unit will be possibly rebuild without any real need.
-clean-window:
-	rm -f src/window/castlewindow.o \
-	      src/window/castlewindow.ppu \
-	      src/window/CastleWindow.o \
-	      src/window/CastleWindow.ppu
 
 # tests ----------------------------------------
 
