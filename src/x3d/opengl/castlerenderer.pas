@@ -454,18 +454,6 @@ type
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
-
-    { The initial VRML/X3D node that created this cache record.
-      This is only the first node, that initiated this
-      TTextureImageCache item. Note that many TAbstractTexture2DNode nodes
-      may correspond to a single TTextureImageCache (since TTextureImageCache
-      only tries to share GLName between them). So this may help during
-      _IncReference, but nothing more --- it's *not* an exhaustive list
-      of texture nodes related to this video texture!
-
-      It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
-    InitialNode: TAbstractTextureNode;
-
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -477,18 +465,9 @@ type
   TTextureImageCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
-
-    { The initial VRML/X3D node that created this cache record.
-      This is only the first TMovieTextureNode node, that initiated this
-      TTextureVideoCache item. Note that many TMovieTextureNode nodes
-      may correspond to a single TTextureVideoCache (since TTextureVideoCache
-      only tries to share TGLVideo3D between them, they don't have to share
-      other fields like current time etc.). So this may help during
-      _IncReference, but nothing more --- it's *not* an exhaustive list
-      of MovieTexture nodes related to this video texture! }
-    InitialNode: TMovieTextureNode;
-
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -500,7 +479,9 @@ type
   TTextureVideoCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
-    InitialNode: TAbstractEnvironmentTextureNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
@@ -509,7 +490,9 @@ type
   TTextureCubeMapCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
-    InitialNode: TAbstractTexture3DNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
@@ -521,9 +504,9 @@ type
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
   TTextureDepthOrFloatCache = class
-    { The initial VRML/X3D node that created this cache record.
-      For now, this may be TGeneratedShadowMapNode or TRenderedTextureNode. }
-    InitialNode: TAbstractTextureNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
@@ -621,7 +604,6 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TAbstractTextureNode;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -635,7 +617,7 @@ type
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
       const TextureFullUrl: string;
-      const TextureNode: TMovieTextureNode;
+      const FlipVertically: Boolean;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -649,13 +631,13 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      Node: TAbstractEnvironmentTextureNode;
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
-      PositiveX, NegativeX,
-      PositiveY, NegativeY,
-      PositiveZ, NegativeZ: TEncodedImage;
-      CompositeForMipmaps: TCompositeImage): TGLuint;
+      const PositiveX, NegativeX,
+            PositiveY, NegativeY,
+            PositiveZ, NegativeZ: TEncodedImage;
+      const CompositeForMipmaps: TCompositeImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -664,7 +646,7 @@ type
       For interpreating CompareMode, ARB_shadow will be needed
       (but we'll make nice warning if it's not available). }
     function TextureDepth_IncReference(
-      Node: TAbstractTextureNode;
+      const TextureFullUrl: string;
       const TextureWrap: TTextureWrap2D;
       CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
@@ -677,7 +659,8 @@ type
       Required ARB_texture_float or ATI_texture_float before calling this.
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
-    function TextureFloat_IncReference(Node: TAbstractTextureNode;
+    function TextureFloat_IncReference(
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -690,11 +673,12 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      Node: TAbstractTexture3DNode;
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
-      Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
+      const Image: TEncodedImage;
+      const Composite: TCompositeImage): TGLuint;
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
@@ -1153,7 +1137,6 @@ end;
 function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TAbstractTextureNode;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1189,9 +1172,8 @@ begin
 
       For now, I don't use this idea, and rely on TextureFullUrl. }
 
-    if ( ( (TextureFullUrl <> '') and
-           (TextureCached.FullUrl = TextureFullUrl) ) or
-         (TextureCached.InitialNode = TextureNode) ) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
@@ -1217,7 +1199,6 @@ begin
   TextureImageCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
   TextureCached.FlipVertically := FlipVertically;
-  TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
@@ -1257,7 +1238,7 @@ end;
 function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
-  const TextureNode: TMovieTextureNode;
+  const FlipVertically: Boolean;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1270,10 +1251,9 @@ begin
   begin
     TextureCached := TextureVideoCaches[I];
 
-    if ( ( (TextureFullUrl <> '') and
-           (TextureCached.FullUrl = TextureFullUrl) ) or
-         (TextureCached.InitialNode = TextureNode) ) and
-       (TextureCached.FlipVertically = TextureNode.FlipVertically) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
+       (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
@@ -1295,8 +1275,7 @@ begin
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
-  TextureCached.FlipVertically := TextureNode.FlipVertically;
-  TextureCached.InitialNode := TextureNode;
+  TextureCached.FlipVertically := FlipVertically;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
@@ -1318,8 +1297,10 @@ begin
     begin
       Dec(TextureVideoCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', '%s: %d', [TextureVideoCaches[I].FullUrl,
-                                    TextureVideoCaches[I].References]);
+        WritelnLog('--', '%s: %d', [
+          TextureVideoCaches[I].FullUrl,
+          TextureVideoCaches[I].References
+        ]);
       if TextureVideoCaches[I].References = 0 then
       begin
         FreeAndNil(TextureVideoCaches[I].GLVideo);
@@ -1334,13 +1315,13 @@ begin
 end;
 
 function TGLRendererContextCache.TextureCubeMap_IncReference(
-  Node: TAbstractEnvironmentTextureNode;
+  const TextureFullUrl: string;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
-  PositiveX, NegativeX,
-  PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TEncodedImage;
-  CompositeForMipmaps: TCompositeImage): TGLuint;
+  const PositiveX, NegativeX,
+        PositiveY, NegativeY,
+        PositiveZ, NegativeZ: TEncodedImage;
+  const CompositeForMipmaps: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
@@ -1349,13 +1330,17 @@ begin
   begin
     TextureCached := TextureCubeMapCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached.References]);
+        WritelnLog('++', 'cube map %s: %d', [
+          TextureFullUrl,
+          TextureCached.References
+        ]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1378,14 +1363,14 @@ begin
 
   TextureCached := TTextureCubeMapCache.Create;
   TextureCubeMapCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
+    WritelnLog('++', 'cube map %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureCubeMap_DecReference(
@@ -1398,7 +1383,10 @@ begin
     begin
       Dec(TextureCubeMapCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches[I].InitialNode), TextureCubeMapCaches[I].References]);
+        WritelnLog('--', 'cube map %s: %d', [
+          TextureCubeMapCaches[I].FullUrl,
+          TextureCubeMapCaches[I].References
+        ]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
         glFreeTexture(TextureCubeMapCaches[I].GLName);
@@ -1413,11 +1401,12 @@ begin
 end;
 
 function TGLRendererContextCache.Texture3D_IncReference(
-  Node: TAbstractTexture3DNode;
+  const TextureFullUrl: string;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
-  Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
+  const Image: TEncodedImage;
+  const Composite: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTexture3DCache;
@@ -1426,14 +1415,15 @@ begin
   begin
     TextureCached := Texture3DCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+        WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1453,7 +1443,7 @@ begin
 
   TextureCached := TTexture3DCache.Create;
   Texture3DCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.Wrap := TextureWrap;
@@ -1461,7 +1451,7 @@ begin
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
+    WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.Texture3D_DecReference(
@@ -1474,7 +1464,10 @@ begin
     begin
       Dec(Texture3DCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches[I].InitialNode), Texture3DCaches[I].References]);
+        WritelnLog('--', '3d texture %s: %d', [
+          Texture3DCaches[I].FullUrl,
+          Texture3DCaches[I].References
+        ]);
       if Texture3DCaches[I].References = 0 then
       begin
         glFreeTexture(Texture3DCaches[I].GLName);
@@ -1489,7 +1482,7 @@ begin
 end;
 
 function TGLRendererContextCache.TextureDepth_IncReference(
-  Node: TAbstractTextureNode;
+  const TextureFullUrl: String;
   const TextureWrap: TTextureWrap2D;
   CompareMode: TShadowMapCompareMode;
   const Width, Height: Cardinal;
@@ -1506,12 +1499,16 @@ begin
   begin
     TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+        WritelnLog('++', 'Depth texture %s: %d', [
+          TextureFullUrl,
+          TextureCached.References
+        ]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1586,13 +1583,13 @@ begin
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.References := 1;
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
 
   if LogRendererCache then
-    WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
+    WritelnLog('++', 'Depth texture %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureDepth_DecReference(
@@ -1605,7 +1602,10 @@ begin
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+        WritelnLog('--', 'Depth texture %s: %d', [
+          TextureDepthOrFloatCaches[I].FullUrl,
+          TextureDepthOrFloatCaches[I].References
+        ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
@@ -1620,7 +1620,7 @@ begin
 end;
 
 function TGLRendererContextCache.TextureFloat_IncReference(
-  Node: TAbstractTextureNode;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
@@ -1635,12 +1635,13 @@ begin
   begin
     TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache then
-        WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+        WritelnLog('++', 'Float texture %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1663,7 +1664,7 @@ begin
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.References := 1;
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
@@ -1672,7 +1673,7 @@ begin
     one Node will require only one float texture anyway. }
 
   if LogRendererCache then
-    WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
+    WritelnLog('++', 'Float texture %s: %d', [TextureFullUrl, 1]);
 {$else}
 begin
   raise Exception.Create('Float textures not available on OpenGL ES 2.0');
@@ -1690,7 +1691,10 @@ begin
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
       if LogRendererCache then
-        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+        WritelnLog('--', 'Float texture %s: %d', [
+          TextureDepthOrFloatCaches[I].FullUrl,
+          TextureDepthOrFloatCaches[I].References
+        ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
