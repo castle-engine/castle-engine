@@ -23,7 +23,7 @@ uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
   CastleURIUtils, CastleProgress, CastleProgressConsole, CastleUnicode,
-  CastleImages, CastleApplicationProperties;
+  CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
 
 var
   Size: Integer = 10;
@@ -34,7 +34,7 @@ var
   Characters: TUnicodeCharList;
 
 const
-  Options: array [0..9] of TOption =
+  Options: array [0..10] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -42,6 +42,7 @@ const
     (Short: #0; Long: 'no-anti-alias'; Argument: oaNone),
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
     (Short: #0; Long: 'sample-code'; Argument: oaRequired),
+    (Short: #0; Long: 'sample-get-text-mo'; Argument: oaRequired),
     (Short: #0; Long: 'unit-name'; Argument: oaRequired),
     (Short: #0; Long: 'debug-log'; Argument: oaNone),
     (Short: #0; Long: 'debug-font-image'; Argument: oaNone),
@@ -70,6 +71,8 @@ begin
              'Load (if existing in the font file) all the listed characters. You can use this parameter multiple times.') + NL +
            OptionDescription('--sample-code=TEXT',
              'Load (if existing in the font file) the listed character code. You can use this parameter multiple times.') + NL +
+           OptionDescription('--sample-get-text-mo=URL',
+             'Load (if existing in the font file) all the character codes present in translated strings in URL. URL must point to a GetText MO file, it can be a regular filename as well. You can use this parameter multiple times.') + NL +
            OptionDescription('--only-sample-text',
              'Load only characters from --sample-text and --sample-code, do not add standard ASCII chars. By default we add standard ASCII chars, regardless of --sample-text and --sample-code.') + NL +
            OptionDescription('--unit-name=UnitName',
@@ -91,10 +94,11 @@ begin
     3: AntiAliasing := false;
     4: Characters.Add(Argument);
     5: Characters.Add(StrToInt(Argument));
-    6: ParamUnitName := Argument;
-    7: InitializeLog;
-    8: DebugFontImage := true;
-    9: OnlySampleText := true;
+    6: AddTranslatedCharacters(Argument, Characters);
+    7: ParamUnitName := Argument;
+    8: InitializeLog;
+    9: DebugFontImage := true;
+    10: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -114,6 +118,7 @@ begin
       Characters.Add(SimpleAsciiCharacters);
     if Characters.Count = 0 then
       raise EInvalidParams.Create('No font characters requested to be loaded');
+
 
     Progress.UserInterface := ProgressConsoleInterface;
 

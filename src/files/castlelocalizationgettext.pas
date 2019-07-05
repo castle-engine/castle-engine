@@ -18,8 +18,8 @@ unit CastleLocalizationGetText;
 
 interface
 
-uses SysUtils, Classes,
-  CastleClassUtils;
+uses SysUtils, Classes, GetText,
+  CastleClassUtils, CastleUnicode;
 
 type
   ETranslationEmptyId = class(Exception);
@@ -84,10 +84,29 @@ function GetTextPoEntry(const Context, Id, EnglishText: String;
 function GenerateGetTextPo(const C: TComponent; const GroupName: String): String;
 function GenerateGetTextPo(const UrlMask: String): String;
 
+type
+  { TMOFile descendant that allows iterating through all strings. }
+  TCastleMOFile = class(TMOFile)
+  protected
+    function GetKey(const AIndex: Cardinal): String;
+    function GetValue(const AIndex: Cardinal): String;
+  public
+    property Count: Cardinal read StringCount;
+    property Keys[const AIndex: Cardinal]: String read GetKey;
+    property Values[const AIndex: Cardinal]: String read GetValue;
+  end;
+
+{ Load GetText MO file from and URL. }
+function LoadGetTextMo(const Url: String): TCastleMOFile;
+
+{ Extract from MO file all unique characters in translated strings,
+  add them to Characters. }
+procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
+
 implementation
 
 uses CastleUtils, CastleStringUtils, CastleFindFiles, CastleComponentSerialize,
-  CastleURIUtils, CastleLog;
+  CastleURIUtils, CastleLog, CastleDownload;
 
 function GetTextPoEntry(const Context, Id, EnglishText: String;
   const MsgidFromId: Boolean): String;
@@ -194,6 +213,40 @@ begin
     WriteLnLog('Generated GetText PO for %d files matching "%s"', [FilesCount, UrlMask]);
     Result := Handler.Output;
   finally FreeAndNil(Handler) end;
+end;
+
+function LoadGetTextMo(const Url: String): TCastleMOFile;
+var
+  S: TStream;
+begin
+  S := Download(Url);
+  try
+    Result := TCastleMOFile.Create(S);
+  finally FreeAndNil(S) end;
+end;
+
+procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
+var
+  Mo: TCastleMOFile;
+  I: Integer;
+begin
+  Mo := LoadGetTextMo(Url);
+  try
+    for I := 0 to Mo.Count - 1 do
+      Characters.Add(Mo.Values[I]);
+  finally FreeAndNil(Mo) end;
+end;
+
+{ TCastleMOFile ------------------------------------------------------------ }
+
+function TCastleMOFile.GetKey(const AIndex: Cardinal): String;
+begin
+  Result := OrigStrings^[AIndex];
+end;
+
+function TCastleMOFile.GetValue(const AIndex: Cardinal): String;
+begin
+  Result := TranslStrings^[AIndex];
 end;
 
 end.

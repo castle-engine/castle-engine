@@ -151,8 +151,6 @@ begin
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
-    P.Targets.AddUnit('castlelocalization.pas');
-    P.Targets.AddUnit('castlelocalizationfileloader.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
@@ -279,10 +277,12 @@ begin
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
+    P.Targets.AddUnit('castlelocalization.pas');
+    P.Targets.AddUnit('castlelocalizationfileloader.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleuriutils.pas');
-    P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlcfginternal.pas');
+    P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'physics' + PathDelim + 'kraft');

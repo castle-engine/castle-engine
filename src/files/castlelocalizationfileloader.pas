@@ -42,37 +42,15 @@ type
   { Represents the full language JSON file containing all translated strings. }
   TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
 
-  { TMOFile descendent that allows iterating through all strings. }
-  TMOFileIterable = class(TMOFile)
-  protected
-    function GetKey(AIndex: Cardinal): String;
-    function GetValue(AIndex: Cardinal): String;
-  public
-    property Count: Cardinal read StringCount;
-    property Keys[AIndex: Cardinal]: String read GetKey;
-    property Values[AIndex: Cardinal]: String read GetValue;
-  end;
-
 { Called by CastleLocalization to load all standard file loader.
   See Castle examples or documentation for detailed description of the file formats. }
 procedure ActivateAllFileLoader;
 
 implementation
 
-uses
-  CastleLocalization;
-
-{ TMOFileIterable }
-
-function TMOFileIterable.GetKey(AIndex: Cardinal): String;
-begin
-    Result := OrigStrings^[AIndex];
-end;
-
-function TMOFileIterable.GetValue(AIndex: Cardinal): String;
-begin
-    Result := TranslStrings^[AIndex];
-end;
+uses CastleLocalization, 
+  { For TCastleMOFile }
+  CastleLocalizationGetText;
 
 { LoadLanguageFiles }
 
@@ -166,10 +144,10 @@ end;
 
 procedure LoadLanguageFileMO(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
 var
-  LanguageMO: TMOFileIterable;
+  LanguageMO: TCastleMOFile;
   i: Integer;
 begin
-  LanguageMO := TMOFileIterable.Create(AFileStream);
+  LanguageMO := TCastleMOFile.Create(AFileStream);
   try
     for i := 0 to LanguageMO.Count - 1 do
       ALanguageDictionary.AddOrSetValue(LanguageMO.Keys[i], LanguageMO.Values[i]);

@@ -294,15 +294,15 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalZStream"/>
       </Item47>
       <Item48>
-        <Filename Value="../src/base/castlelocalization.pas"/>
+        <Filename Value="../src/files/castlelocalization.pas"/>
         <UnitName Value="CastleLocalization"/>
       </Item48>
       <Item49>
-        <Filename Value="../src/base/castlelocalization_castlecore.inc"/>
+        <Filename Value="../src/files/castlelocalization_castlecore.inc"/>
         <Type Value="Include"/>
       </Item49>
       <Item50>
-        <Filename Value="../src/base/castlelocalizationfileloader.pas"/>
+        <Filename Value="../src/files/castlelocalizationfileloader.pas"/>
         <UnitName Value="CastleLocalizationFileLoader"/>
       </Item50>
       <Item51>
