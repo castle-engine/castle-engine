@@ -20,7 +20,9 @@ import com.google.android.gms.ads.reward.RewardItem;
 public class ServiceAdMob extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceAdMob";
-    private static final int NO_ERROR = -1;
+    private final boolean debug = false; // set to true for debug (more logs)
+
+    private static final int NO_ERROR = -1; // no error constant
 
     private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId, mRewardedUnitId;
@@ -30,14 +32,14 @@ public class ServiceAdMob extends ServiceAbstract
     private InterstitialAd interstitial = null;
     private Boolean interstitialOpenWhenLoaded = false; // used when you want to wait for interstitial ad
     private Boolean failedToLoadInterstitialLastTime = false; // when loading failed last time, this is needed to try again on next call
-    private Boolean interstitialIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when add is loading now)
+    private Boolean interstitialIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when ad is loading now)
     private int interstitialLastErroCode = NO_ERROR; // store last ad loading error code (interstitial)
 
     private RewardedVideoAd rewarded = null;
     private Boolean rewardedWatched = false; // should we set rewarded video as watched
     private Boolean rewardedOpenWhenLoaded = false; // used when you want to wait for rewarded ad
     private Boolean failedToLoadRewardedLastTime = false; // when loading failed last time, this is needed to try again on next call
-    private Boolean rewardedIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when add is loading now)
+    private Boolean rewardedIsLoading = false; // used to when waitUntilLoaded = false to better error reporting (true when ad is loading now)
     private int rewardedLastErroCode = NO_ERROR; // store last ad loading error code (rewarded)
 
     private String[] testDeviceIds;
@@ -74,7 +76,9 @@ public class ServiceAdMob extends ServiceAbstract
 
     private void fullScreenAdClosed(TAdWatchStatus watchedStatus)
     {
-        logInfo(CATEGORY, "fullScreenAdClosed - watchedStatus: " + watchedStatus.toString());
+        if (debug) {
+            logInfo(CATEGORY, "fullScreenAdClosed - watchedStatus: " + watchedStatus.toString());
+        }
         messageSend(new String[]{"ads-admob-full-screen-ad-closed", Integer.toString(watchedStatus.ordinal()) });
     }
 
@@ -110,19 +114,23 @@ public class ServiceAdMob extends ServiceAbstract
         interstitial.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                logInfo(CATEGORY, "onAdLoaded");
+                if (debug) {
+                    logInfo(CATEGORY, "onAdLoaded");
+                }
                 failedToLoadInterstitialLastTime = false;
                 interstitialIsLoading = false;
                 if (interstitialOpenWhenLoaded) {
                     interstitialOpenWhenLoaded = false;
-                    logInfo(CATEGORY, "Show ad after waiting for add.");
+                    logInfo(CATEGORY, "Show ad after waiting for ad.");
                     interstitial.show();
                 }
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode)  {
-                logInfo(CATEGORY, "onAdFailedToLoad");
+                if (debug) {
+                    logInfo(CATEGORY, "onAdFailedToLoad");
+                }
                 failedToLoadInterstitialLastTime = true;
                 interstitialLastErroCode = errorCode;
                 interstitialIsLoading = false;
@@ -135,7 +143,9 @@ public class ServiceAdMob extends ServiceAbstract
 
             @Override
             public void onAdClosed() {
-                logInfo(CATEGORY, "Ad Closed");
+                if (debug) {
+                    logInfo(CATEGORY, "Ad Closed");
+                }
                 fullScreenAdClosed(TAdWatchStatus.wsWatched);
                 loadInterstitial(); // load next ad
             }
@@ -148,7 +158,9 @@ public class ServiceAdMob extends ServiceAbstract
     public void loadInterstitial() {
         failedToLoadInterstitialLastTime = false;
         if (!interstitial.isLoaded()) {
-            logInfo(CATEGORY, "start loading interstitial");
+            if (debug) {
+                logInfo(CATEGORY, "Started loading interstitial.");
+            }
             interstitialIsLoading = true;
             interstitialLastErroCode = NO_ERROR;
             interstitial.loadAd(buildAdRequest());
@@ -168,13 +180,17 @@ public class ServiceAdMob extends ServiceAbstract
         {
             @Override
             public void onRewarded(RewardItem reward) {
-                logInfo(CATEGORY, "onRewarded");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewarded");
+                }   
                 rewardedWatched = true;
             }
             
             @Override
             public void onRewardedVideoAdClosed() {
-                logInfo(CATEGORY, "onRewardedVideoAdClosed");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoAdClosed");
+                }
                 loadRewarded();
                 if (rewardedWatched)
                     fullScreenAdClosed(TAdWatchStatus.wsWatched);
@@ -185,7 +201,9 @@ public class ServiceAdMob extends ServiceAbstract
 
             @Override
             public void onRewardedVideoAdFailedToLoad(int errorCode) {
-                logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoAdFailedToLoad");
+                }
                 failedToLoadRewardedLastTime = true;
                 rewardedIsLoading = false;
                 rewardedLastErroCode = errorCode;
@@ -198,33 +216,43 @@ public class ServiceAdMob extends ServiceAbstract
 
             @Override
             public void onRewardedVideoAdLoaded() {
-                logInfo(CATEGORY, "onRewardedVideoAdLoaded");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoAdLoaded");
+                }
                 rewardedIsLoading = false;
                 if (rewardedOpenWhenLoaded) {
                     rewardedOpenWhenLoaded = false;
-                    logInfo(CATEGORY, "Show ad after waiting for add.");
+                    logInfo(CATEGORY, "Show ad after waiting for ad.");
                     rewarded.show();
                 }
             }
 
             @Override
             public void onRewardedVideoAdLeftApplication() {
-                logInfo(CATEGORY, "onRewardedVideoAdLeftApplication");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoAdLeftApplication");
+                }
             }
 
             @Override
             public void onRewardedVideoAdOpened() {
-                logInfo(CATEGORY, "onRewardedVideoAdOpened");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoAdOpened");
+                }
             }
 
             @Override
             public void onRewardedVideoStarted() {
-                logInfo(CATEGORY, "onRewardedVideoStarted");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoStarted");
+                }
             }
 
             @Override
             public void onRewardedVideoCompleted() {
-                logInfo(CATEGORY, "onRewardedVideoCompleted");
+                if (debug) {
+                    logInfo(CATEGORY, "onRewardedVideoCompleted");
+                }
             }
         });
 
@@ -235,7 +263,9 @@ public class ServiceAdMob extends ServiceAbstract
     public void loadRewarded() {
         failedToLoadRewardedLastTime = false;
         if (!rewarded.isLoaded()) {
-            logInfo(CATEGORY, "start loading rewarded video");
+            if (debug) {
+                logInfo(CATEGORY, "Started loading rewarded video.");
+            }
             rewardedIsLoading = true;
             rewardedLastErroCode = NO_ERROR;
             rewarded.loadAd(mRewardedUnitId, buildAdRequest());
@@ -301,7 +331,7 @@ public class ServiceAdMob extends ServiceAbstract
         if (initialized && !mInterstitialUnitId.equals("")) {
             if (waitUntilLoaded || interstitial.isLoaded()) {
                 if (waitUntilLoaded && !interstitial.isLoaded()) {
-                    // calling show() when add is not loaded do nothing, so we show add when it will be aviable
+                    // calling show() when ad is not loaded do nothing, so we show ad when it will be available
                     logInfo(CATEGORY, "Requested showing interstitial ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");
                     interstitialOpenWhenLoaded = true;
                     if (failedToLoadInterstitialLastTime) //loading ad failed last time so there was no load in onAdClose()
@@ -318,7 +348,7 @@ public class ServiceAdMob extends ServiceAbstract
                     fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
                 }
                 else {
-                    // add loading failed so return error and try load add again (for next request)
+                    // ad loading failed so return error and try load ad again (for next request)
                     fullScreenAdClosedWithError(interstitialLastErroCode);
                     loadInterstitial();
                 }
@@ -360,7 +390,7 @@ public class ServiceAdMob extends ServiceAbstract
                     fullScreenAdClosed(TAdWatchStatus.wsAdNotReady);
                 }
                 else {
-                    // add loading failed so return error and try load add again (for next request)
+                    // ad loading failed so return error and try load ad again (for next request)
                     fullScreenAdClosedWithError(rewardedLastErroCode);
                     loadRewarded();
                 }
