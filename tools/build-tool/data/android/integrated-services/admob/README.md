@@ -34,4 +34,9 @@ Statuses used by the admob service:
 | wsInvalidRequest | ERROR_CODE_INVALID_REQUEST | Invalid Request - bad Unit ID for example. |
 | wsApplicationReinitialized | - | Java application was killed, but native code survived, while waiting for ad to finish. |
 
+## Debug
+
+If you have any problems with the admob service or want more logs, change the value of the `ServiceAdMob.debug` from `false` to `true`. 
+Service source file is located in: 
+`tools/build-tool/data/android/integrated-services/admob/app/src/main/java/net/sourceforge/castleengine/ServiceAdMob.java`
 
