@@ -2946,8 +2946,32 @@ begin
       https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt }
     tcASTC_4x4_RGBA, tcASTC_4x4_SRGB8_ALPHA8:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16;
+    tcASTC_5x4_RGBA, tcASTC_5x4_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 5) * DivRoundUp(FHeight, 4) * 16;
+    tcASTC_5x5_RGBA, tcASTC_5x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 5) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_6x5_RGBA, tcASTC_6x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 6) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_6x6_RGBA, tcASTC_6x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 6) * DivRoundUp(FHeight, 6) * 16;
+    tcASTC_8x5_RGBA, tcASTC_8x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_8x6_RGBA, tcASTC_8x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 6) * 16;
     tcASTC_8x8_RGBA, tcASTC_8x8_SRGB8_ALPHA8:
       FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 8) * 16;
+    tcASTC_10x5_RGBA, tcASTC_10x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_10x6_RGBA, tcASTC_10x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 6) * 16;
+    tcASTC_10x8_RGBA, tcASTC_10x8_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 8) * 16;
+    tcASTC_10x10_RGBA, tcASTC_10x10_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 10) * 16;
+    tcASTC_12x10_RGBA, tcASTC_12x10_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 12) * DivRoundUp(FHeight, 10) * 16;
+    tcASTC_12x12_RGBA, tcASTC_12x12_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 12) * DivRoundUp(FHeight, 12) * 16;
 
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
       [TextureCompressionInfo[Compression].Name]);
