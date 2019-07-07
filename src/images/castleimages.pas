@@ -960,7 +960,37 @@ type
       See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
       Available on almost all Android OpenGLES 2.0 devices,
       unfortunately it doesn't support alpha channel. }
-    tcETC1
+    tcETC1,
+    { ASTC compression with alpha - should be available on all modern mobile GPU.
+      See https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt}
+    tcASTC_4x4_RGBA,
+    tcASTC_5x4_RGBA,
+    tcASTC_5x5_RGBA,
+    tcASTC_6x5_RGBA,
+    tcASTC_6x6_RGBA,
+    tcASTC_8x5_RGBA,
+    tcASTC_8x6_RGBA,
+    tcASTC_8x8_RGBA,
+    tcASTC_10x5_RGBA,
+    tcASTC_10x6_RGBA,
+    tcASTC_10x8_RGBA,
+    tcASTC_10x10_RGBA,
+    tcASTC_12x10_RGBA,
+    tcASTC_12x12_RGBA,
+    tcASTC_4x4_SRGB8_ALPHA8,
+    tcASTC_5x4_SRGB8_ALPHA8,
+    tcASTC_5x5_SRGB8_ALPHA8,
+    tcASTC_6x5_SRGB8_ALPHA8,
+    tcASTC_6x6_SRGB8_ALPHA8,
+    tcASTC_8x5_SRGB8_ALPHA8,
+    tcASTC_8x6_SRGB8_ALPHA8,
+    tcASTC_8x8_SRGB8_ALPHA8,
+    tcASTC_10x5_SRGB8_ALPHA8,
+    tcASTC_10x6_SRGB8_ALPHA8,
+    tcASTC_10x8_SRGB8_ALPHA8,
+    tcASTC_10x10_SRGB8_ALPHA8,
+    tcASTC_12x10_SRGB8_ALPHA8,
+    tcASTC_12x12_SRGB8_ALPHA8
   );
   TTextureCompressions = set of TTextureCompression;
 
@@ -1798,7 +1828,36 @@ const
     (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
     (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true)
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
+
+    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true)
   );
 
 { Convert TTextureCompression enum to string. }
@@ -2882,6 +2941,13 @@ begin
       "ETC1 takes 4x4 groups of pixel data and compresses each into a single 64-bit word" }
     tcETC1:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
+
+    { size formuala from
+      https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt }
+    tcASTC_4x4_RGBA, tcASTC_4x4_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16;
+    tcASTC_8x8_RGBA, tcASTC_8x8_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 8) * 16;
 
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
       [TextureCompressionInfo[Compression].Name]);

@@ -568,6 +568,38 @@ begin
 
     if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
       TextureCompression := TextureCompression + [tcETC1];
+
+    if glext_ExtensionSupported('GL_KHR_texture_compression_astc_ldr', SupportedExtensions) or
+       glext_ExtensionSupported('GL_KHR_texture_compression_astc_hdr', SupportedExtensions) then
+      TextureCompression := TextureCompression + [
+        tcASTC_4x4_RGBA,
+        tcASTC_5x4_RGBA,
+        tcASTC_5x5_RGBA,
+        tcASTC_6x5_RGBA,
+        tcASTC_6x6_RGBA,
+        tcASTC_8x5_RGBA,
+        tcASTC_8x6_RGBA,
+        tcASTC_8x8_RGBA,
+        tcASTC_10x5_RGBA,
+        tcASTC_10x6_RGBA,
+        tcASTC_10x8_RGBA,
+        tcASTC_10x10_RGBA,
+        tcASTC_12x10_RGBA,
+        tcASTC_12x12_RGBA,
+        tcASTC_4x4_SRGB8_ALPHA8,
+        tcASTC_5x4_SRGB8_ALPHA8,
+        tcASTC_5x5_SRGB8_ALPHA8,
+        tcASTC_6x5_SRGB8_ALPHA8,
+        tcASTC_6x6_SRGB8_ALPHA8,
+        tcASTC_8x5_SRGB8_ALPHA8,
+        tcASTC_8x6_SRGB8_ALPHA8,
+        tcASTC_8x8_SRGB8_ALPHA8,
+        tcASTC_10x5_SRGB8_ALPHA8,
+        tcASTC_10x6_SRGB8_ALPHA8,
+        tcASTC_10x8_SRGB8_ALPHA8,
+        tcASTC_10x10_SRGB8_ALPHA8,
+        tcASTC_12x10_SRGB8_ALPHA8,
+        tcASTC_12x12_SRGB8_ALPHA8 ];
   end;
 
   SupportedTextureCompressionKnown := true;

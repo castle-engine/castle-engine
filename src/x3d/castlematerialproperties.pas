@@ -584,7 +584,41 @@ begin
     Result := Result + 'downscaled_' + IntToStr(Scaling) + '/';
   Result := Result + ExtractURIName(URL);
   if UseCompression then
-    Result := Result + '.dds' // this is supported by all compression tools now
+  begin
+    if TextureCompression in [
+      tcETC1,
+      tcASTC_4x4_RGBA,
+      tcASTC_5x4_RGBA,
+      tcASTC_5x5_RGBA,
+      tcASTC_6x5_RGBA,
+      tcASTC_6x6_RGBA,
+      tcASTC_8x5_RGBA,
+      tcASTC_8x6_RGBA,
+      tcASTC_8x8_RGBA,
+      tcASTC_10x5_RGBA,
+      tcASTC_10x6_RGBA,
+      tcASTC_10x8_RGBA,
+      tcASTC_10x10_RGBA,
+      tcASTC_12x10_RGBA,
+      tcASTC_12x12_RGBA,
+      tcASTC_4x4_SRGB8_ALPHA8,
+      tcASTC_5x4_SRGB8_ALPHA8,
+      tcASTC_5x5_SRGB8_ALPHA8,
+      tcASTC_6x5_SRGB8_ALPHA8,
+      tcASTC_6x6_SRGB8_ALPHA8,
+      tcASTC_8x5_SRGB8_ALPHA8,
+      tcASTC_8x6_SRGB8_ALPHA8,
+      tcASTC_8x8_SRGB8_ALPHA8,
+      tcASTC_10x5_SRGB8_ALPHA8,
+      tcASTC_10x6_SRGB8_ALPHA8,
+      tcASTC_10x8_SRGB8_ALPHA8,
+      tcASTC_10x10_SRGB8_ALPHA8,
+      tcASTC_12x10_SRGB8_ALPHA8,
+      tcASTC_12x12_SRGB8_ALPHA8] then
+      Result := Result + '.ktx'
+    else
+      Result := Result + '.dds';
+  end
   else
     Result := Result + PreferredOutputFormat;
 end;
