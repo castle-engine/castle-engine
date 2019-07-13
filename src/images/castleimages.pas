@@ -2942,7 +2942,7 @@ begin
     tcETC1:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
 
-    { size formuala from
+    { size formula from
       https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt }
     tcASTC_4x4_RGBA, tcASTC_4x4_SRGB8_ALPHA8:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16;
