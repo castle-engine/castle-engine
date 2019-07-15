@@ -87,6 +87,12 @@ function GenerateGetTextPo(const UrlMask: String): String;
 type
   { TMOFile descendant that allows iterating through all strings. }
   TCastleMOFile = class(TMOFile)
+  private
+    { Does the given id exist in MO file.
+      Using it is much slower than just attempting to translate using
+      @code(Translate) method, but allows to recognize when a key is missing
+      (as opposed to when a key translation is empty). }
+    function ContainsKey(const TranslationId: String): Boolean;
   protected
     function GetKey(const AIndex: Cardinal): String;
     function GetValue(const AIndex: Cardinal): String;
@@ -103,10 +109,40 @@ function LoadGetTextMo(const Url: String): TCastleMOFile;
   add them to Characters. }
 procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
 
+{ Translate all future designs (component hierarchies) loaded using @link(CastleComponentSerialize)
+  using the given GetText MO file.
+  This is the simplest way to translate user interface designed using CGE Editor.
+
+  The GetText PO file with suitable identifiers should be earlier generated using
+  @link(GenerateGetTextPo), translated, and processed to MO format using GetText
+  tools.
+
+  Calling this routine again will override the effect of the previous call.
+  That is, at a given time, only one MO file is "active" and automatically translates
+  all the loaded designs.
+
+  @seealso TranslateDesign }
+procedure TranslateAllDesigns(const GetTextMoUrl: String);
+
+{ Translate all possible properties in the given component hierarchy
+  with given translation file. Missing translations will cause a warning in
+  the log (indicating that your translation file is outdated and
+  doesn't reflect all UI stuff anymore).
+
+  If all your designs are loaded from files (using @link(CastleComponentSerialize))
+  then usually it's more comfortable to use @link(TranslateAllDesigns)
+  instead of this routine. This routine is however more flexible,
+  and allows to translate any component hierarchy.
+
+  @seealso TranslateAllDesigns }
+procedure TranslateDesign(const C: TComponent; const GroupName: String; const GetTextMo: TCastleMOFile);
+
 implementation
 
 uses CastleUtils, CastleStringUtils, CastleFindFiles, CastleComponentSerialize,
   CastleURIUtils, CastleLog, CastleDownload;
+
+{ GetTextPoEntry ------------------------------------------------------------- }
 
 function GetTextPoEntry(const Context, Id, EnglishText: String;
   const MsgidFromId: Boolean): String;
@@ -152,6 +188,8 @@ begin
   Result += NL;
 end;
 
+{ GenerateGetTextPo(TComponent) and helper ----------------------------------------------- }
+
 type
   TComponentHandler = class
     GroupName: String;
@@ -182,6 +220,8 @@ begin
     Result := Handler.Output;
   finally FreeAndNil(Handler) end;
 end;
+
+{ GenerateGetTextPo(string) -------------------------------------------------- }
 
 type
   TFilesHandler = class
@@ -215,6 +255,8 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
+{ LoadGetTextMo -------------------------------------------------------------- }
+
 function LoadGetTextMo(const Url: String): TCastleMOFile;
 var
   S: TStream;
@@ -224,6 +266,8 @@ begin
     Result := TCastleMOFile.Create(S);
   finally FreeAndNil(S) end;
 end;
+
+{ AddTranslatedCharacters ---------------------------------------------------- }
 
 procedure AddTranslatedCharacters(const Url: String; const Characters: TUnicodeCharList);
 var
@@ -235,6 +279,66 @@ begin
     for I := 0 to Mo.Count - 1 do
       Characters.Add(Mo.Values[I]);
   finally FreeAndNil(Mo) end;
+end;
+
+{ TranslateAllDesigns -------------------------------------------------------- }
+
+var
+  TranslateAllDesignsMo: TCastleMOFile;
+
+procedure TranslateDesignCallback(const C: TComponent; const GroupName: String);
+begin
+  if TranslateAllDesignsMo = nil then
+    Exit; // in case this is called after finalization of this unit
+  TranslateDesign(C, GroupName, TranslateAllDesignsMo);
+end;
+
+procedure TranslateAllDesigns(const GetTextMoUrl: String);
+begin
+  TranslateAllDesignsMo := LoadGetTextMo(GetTextMoUrl);
+  OnInternalTranslateDesign := @TranslateDesignCallback;
+end;
+
+{ TranslateDesign ------------------------------------------------------------ }
+
+type
+  TTranslateDesignHelper = class
+    GroupName: String;
+    Mo: TCastleMOFile;
+    procedure TranslateProperty(const Sender: TCastleComponent;
+      const PropertyName: String; var PropertyValue: String);
+  end;
+
+procedure TTranslateDesignHelper.TranslateProperty(const Sender: TCastleComponent;
+  const PropertyName: String; var PropertyValue: String);
+const
+  PoContextDelimiter = #4;
+var
+  TranslationId: String;
+begin
+  Assert(Sender.Name <> '');
+  Assert(PropertyName <> '');
+  TranslationId := 'castle-components' + PoContextDelimiter +
+    GroupName + '.' + Sender.Name + '.' + PropertyName;
+  if not Mo.ContainsKey(TranslationId) then
+  begin
+    WritelnWarning('Translation id "%s" is not present in the GetText MO file. Translation was done for an outdated UI file, add new keys to the GetText PO files and translate them and recreate MO file.',
+      [TranslationId]);
+    Exit;
+  end;
+  PropertyValue := Mo.Translate(TranslationId);
+end;
+
+procedure TranslateDesign(const C: TComponent; const GroupName: String; const GetTextMo: TCastleMOFile);
+var
+  Helper: TTranslateDesignHelper;
+begin
+  Helper := TTranslateDesignHelper.Create;
+  try
+    Helper.Mo := GetTextMo;
+    Helper.GroupName := GroupName;
+    TranslateProperties(C, @Helper.TranslateProperty);
+  finally FreeAndNil(Helper) end;
 end;
 
 { TCastleMOFile ------------------------------------------------------------ }
@@ -249,4 +353,16 @@ begin
   Result := TranslStrings^[AIndex];
 end;
 
+function TCastleMOFile.ContainsKey(const TranslationId: String): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Keys[I] = TranslationId then
+      Exit(true);
+  Result := false;
+end;
+
+finalization
+  FreeAndNil(TranslateAllDesignsMo);
 end.
