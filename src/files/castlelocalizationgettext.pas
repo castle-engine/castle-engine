@@ -88,18 +88,21 @@ type
   { TMOFile descendant that allows iterating through all strings. }
   TCastleMOFile = class(TMOFile)
   private
-    { Does the given id exist in MO file.
-      Using it is much slower than just attempting to translate using
-      @code(Translate) method, but allows to recognize when a key is missing
-      (as opposed to when a key translation is empty). }
-    function ContainsKey(const TranslationId: String): Boolean;
-  protected
     function GetKey(const AIndex: Cardinal): String;
     function GetValue(const AIndex: Cardinal): String;
   public
     property Count: Cardinal read StringCount;
     property Keys[const AIndex: Cardinal]: String read GetKey;
     property Values[const AIndex: Cardinal]: String read GetValue;
+
+    { Does the given id exist in MO file.
+      Using it is much slower than just attempting to translate using
+      @code(Translate) method, but allows to recognize when a key is missing
+      (as opposed to when a key translation is empty). }
+    function ContainsKey(const TranslationId: String): Boolean;
+    function ContainsKeyWithContext(const Context, Id: String): Boolean;
+
+    function TranslateWithContext(const Context, Id: String): String;
   end;
 
 { Load GetText MO file from and URL. }
@@ -141,6 +144,9 @@ implementation
 
 uses CastleUtils, CastleStringUtils, CastleFindFiles, CastleComponentSerialize,
   CastleURIUtils, CastleLog, CastleDownload;
+
+const
+  PoContextDelimiter = #4;
 
 { GetTextPoEntry ------------------------------------------------------------- }
 
@@ -311,8 +317,6 @@ type
 
 procedure TTranslateDesignHelper.TranslateProperty(const Sender: TCastleComponent;
   const PropertyName: String; var PropertyValue: String);
-const
-  PoContextDelimiter = #4;
 var
   TranslationId: String;
 begin
@@ -361,6 +365,16 @@ begin
     if Keys[I] = TranslationId then
       Exit(true);
   Result := false;
+end;
+
+function TCastleMOFile.ContainsKeyWithContext(const Context, Id: String): Boolean;
+begin
+  Result := ContainsKey(Context + PoContextDelimiter + Id);
+end;
+
+function TCastleMOFile.TranslateWithContext(const Context, Id: String): String;
+begin
+  Result := Translate(Context + PoContextDelimiter + Id);
 end;
 
 finalization
