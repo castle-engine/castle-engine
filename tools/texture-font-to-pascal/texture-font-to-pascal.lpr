@@ -119,7 +119,6 @@ begin
     if Characters.Count = 0 then
       raise EInvalidParams.Create('No font characters requested to be loaded');
 
-
     Progress.UserInterface := ProgressConsoleInterface;
 
     FontName := DeleteURIExt(ExtractURIName(FontURL));
