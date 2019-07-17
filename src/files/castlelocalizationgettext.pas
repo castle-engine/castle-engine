@@ -140,6 +140,10 @@ procedure TranslateAllDesigns(const GetTextMoUrl: String);
   @seealso TranslateAllDesigns }
 procedure TranslateDesign(const C: TComponent; const GroupName: String; const GetTextMo: TCastleMOFile);
 
+{ Use this instead of FPC TranslateResourceStrings.
+  This supports URL to MO file, and works cross-platform. }
+procedure CastleTranslateResourceStrings(const GetTextMoUrl: String);
+
 implementation
 
 uses CastleUtils, CastleStringUtils, CastleFindFiles, CastleComponentSerialize,
@@ -343,6 +347,18 @@ begin
     Helper.GroupName := GroupName;
     TranslateProperties(C, @Helper.TranslateProperty);
   finally FreeAndNil(Helper) end;
+end;
+
+{ CastleTranslateResourceStrings --------------------------------------------- }
+
+procedure CastleTranslateResourceStrings(const GetTextMoUrl: String);
+var
+  Mo: TCastleMOFile;
+begin
+  Mo := LoadGetTextMo(GetTextMoUrl);
+  try
+    TranslateResourceStrings(Mo);
+  finally FreeAndNil(Mo) end;
 end;
 
 { TCastleMOFile ------------------------------------------------------------ }
