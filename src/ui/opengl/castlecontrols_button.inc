@@ -28,16 +28,16 @@
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TCastleUserInterfaceFont)
   strict private
-    FCalculatedPreferred: Boolean;
+    FCalculatedSize: Boolean;
     { The only method that can access these is PreferredSize.
       Everything else should use
       RenderRect, EffectiveWidth, EffectiveHeight or other methods.
-      This makes sure that FCalculatedPreferred is honored. }
+      This makes sure that FCalculatedSize is honored. }
     FCalculatedPreferredWidth, FCalculatedPreferredHeight: Single;
+    TextWidth, TextHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
-    TextWidth, TextHeight: Single;
     FPressed: boolean;
     FImage,
       FCustomBackgroundPressed,
@@ -67,6 +67,9 @@
     FLineSpacing: Single;
     FHtml: boolean;
     FCaptionTranslate: Boolean;
+    { Make sure FCalculatedSize is true and if necessary
+      calculate TextWidth, TextHeight, FCalculatedPreferredWidth/Height. }
+    procedure CalculateSizeIfNecessary;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -75,8 +78,6 @@
     procedure SetCustomColorFocused(const AValue: TCastleColor);
     procedure SetCustomColorNormal(const AValue: TCastleColor);
     procedure SetCustomColorPressed(const AValue: TCastleColor);
-    { Recalculate TextWidth, TextHeight, and set FCalculatedPreferred to false. }
-    procedure UpdateTextSize;
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetMinWidth(const Value: Single);
     procedure SetMinHeight(const Value: Single);
@@ -111,6 +112,9 @@
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure FontChanged; override;
+    { Internal: set FCalculatedSize to false,
+      to make sure TextWidth, TextWidth and FCalculatedPreferredWidth/Height are recalculated
+      at next PreferredSize. } { }
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
@@ -341,8 +345,6 @@ begin
   FCustomBackgroundNormal := TCastleImagePersistent.Create;
   FCustomBackgroundNormal.OnChange := @SomeImageChanged;
 
-  { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
-
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlebutton_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -411,6 +413,8 @@ var
   Tint, SolidColor, OriginalColor: TCastleColor;
 begin
   inherited;
+
+  CalculateSizeIfNecessary;
 
   ImageMarginScaled := ImageMargin * UIScale;
 
@@ -632,7 +636,13 @@ begin
   if Value <> FCaption then
   begin
     FCaption := Value;
-    UpdateTextSize;
+    { Note that actually recalculating size is deferred to CalculateSizeIfNecessary,
+      which will be called from Render or PreferredSize.
+      This way we will not recalculate button size e.g. when merely loading the design
+      from castle-user-interface file (which would be wasteful, as Container is not
+      assigned then, so Container.DefaultFont is unknown and calculation would likely
+      use a different font and be overridden anyway from FontChanged). }
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -641,7 +651,7 @@ begin
   if Value <> FAutoSize then
   begin
     FAutoSize := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -650,7 +660,7 @@ begin
   if Value <> FAutoSizeWidth then
   begin
     FAutoSizeWidth := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -659,7 +669,7 @@ begin
   if Value <> FAutoSizeHeight then
   begin
     FAutoSizeHeight := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -706,7 +716,7 @@ end;
 procedure TCastleButton.FontChanged;
 begin
   inherited;
-  UpdateTextSize;
+  VisibleChange([chRectangle]);
 end;
 
 procedure TCastleButton.SomeImageChanged(Sender: TObject);
@@ -717,32 +727,6 @@ end;
 function TCastleButton.GetTextToRender: TRichText;
 begin
   Result := TRichText.Create(Font, Caption, Html);
-end;
-
-procedure TCastleButton.UpdateTextSize;
-var
-  LineSpacingScaled: Single;
-  TextToRender: TRichText;
-begin
-  if Font <> nil then
-  begin
-    if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
-    begin
-      { fast case: single line, and no need to use TRichText in this case }
-      TextWidth := Font.TextWidth(Caption);
-      TextHeight := Font.RowHeight;
-    end else
-    begin
-      LineSpacingScaled := UIScale * LineSpacing;
-      TextToRender := GetTextToRender;
-      try
-        TextWidth := TextToRender.Width;
-        TextHeight := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
-      finally FreeAndNil(TextToRender) end;
-    end;
-
-    VisibleChange([chRectangle]);
-  end;
 end;
 
 procedure TCastleButton.UIScaleChanged;
@@ -782,7 +766,7 @@ begin
   if FLineSpacing <> Value then
   begin
     FLineSpacing := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -791,7 +775,7 @@ begin
   if FPaddingHorizontal <> Value then
   begin
     FPaddingHorizontal := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -800,7 +784,7 @@ begin
   if FPaddingVertical <> Value then
   begin
     FPaddingVertical := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -809,7 +793,7 @@ begin
   if FHtml <> Value then
   begin
     FHtml := Value;
-    UpdateTextSize;
+    VisibleChange([chRectangle]);
   end;
 end;
 
@@ -873,7 +857,32 @@ begin
   end;
 end;
 
-procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+
+procedure TCastleButton.CalculateSizeIfNecessary;
+
+  procedure CalculateTextSize;
+  var
+    LineSpacingScaled: Single;
+    TextToRender: TRichText;
+  begin
+    if Font <> nil then
+    begin
+      if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
+      begin
+        { fast case: single line, and no need to use TRichText in this case }
+        TextWidth := Font.TextWidth(Caption);
+        TextHeight := Font.RowHeight;
+      end else
+      begin
+        LineSpacingScaled := UIScale * LineSpacing;
+        TextToRender := GetTextToRender;
+        try
+          TextWidth := TextToRender.Width;
+          TextHeight := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+        finally FreeAndNil(TextToRender) end;
+      end;
+    end;
+  end;
 
   procedure CalculatePreferredSize;
   var
@@ -920,13 +929,20 @@ procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Singl
   end;
 
 begin
-  inherited;
-
-  if not FCalculatedPreferred then
+  if not FCalculatedSize then
   begin
-    FCalculatedPreferred := true;
+    FCalculatedSize := true;
+    CalculateTextSize;
     CalculatePreferredSize;
   end;
+end;
+
+procedure TCastleButton.PreferredSize(var PreferredWidth, PreferredHeight: Single);
+begin
+  inherited;
+
+  CalculateSizeIfNecessary;
+  Assert(FCalculatedSize);
 
   if AutoSize and AutoSizeWidth then
     PreferredWidth := FCalculatedPreferredWidth;
@@ -956,7 +972,7 @@ begin
   inherited;
   // react to SetWidth, SetHeight etc.
   if [chRectangle, chChildren] * Changes <> [] then
-    FCalculatedPreferred := false;
+    FCalculatedSize := false;
 end;
 
 function TCastleButton.GetInternalText: String;
