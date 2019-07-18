@@ -26,7 +26,7 @@ type
 
 { Generate text to insert to POT (PO template) to allow translating given text.
   Depending on MsgidFromId:
-  @unoderedList(
+  @unorderedList(
     @item(@true (default):
 
       msgid is Id, msgstr is EnglishText in output.
