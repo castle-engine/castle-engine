@@ -531,7 +531,7 @@ type
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
     function MainScene: TCastleScene;
-    function Camera: TCamera;
+    function Camera: TCastleCamera; deprecated 'use SceneManger.Camera or SceneManger.Navigation';
   published
     property SceneManager: TControlGameSceneManager read FSceneManager;
 
@@ -1326,7 +1326,7 @@ begin
   Result := SceneManager.MainScene;
 end;
 
-function TCastleControl.Camera: TCamera;
+function TCastleControl.Camera: TCastleCamera;
 begin
   Result := SceneManager.Camera;
 end;

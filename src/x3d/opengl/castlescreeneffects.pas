@@ -129,7 +129,7 @@ type
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
       World: TSceneManagerWorld;
-      Camera: TWalkCamera;
+      Camera: TCastleCamera;
 
       { Valid only between Render and RenderOverChildren calls. }
       RenderScreenEffects: Boolean;
@@ -304,7 +304,7 @@ begin
     // TODO: creating class with abstract methods here
     World := TSceneManagerWorld.Create(Self);
     World.Add(ScreenEffectsScene);
-    Camera := TWalkCamera.Create(Self);
+    Camera := TCastleCamera.Create(Self);
   end;
 
   { Note that AddChildren by default has AllowDuplicates=true,

@@ -1009,7 +1009,7 @@ type
     { Main camera observing this 3D object changed.
       This is usually called by our container (like TCastleSceneManager)
       to notify that camera changed. }
-    procedure CameraChanged(ACamera: TCamera); virtual;
+    procedure CameraChanged(const ACamera: TCastleCamera); virtual;
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
@@ -1864,7 +1864,7 @@ type
     property CameraKnown: boolean read FCameraKnown;
     { @groupEnd }
 
-    procedure CameraChanged(ACamera: TCamera); override;
+    procedure CameraChanged(const ACamera: TCastleCamera); override;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
@@ -2605,7 +2605,7 @@ begin
     List[I].VisibleChangeNotification(Changes);
 end;
 
-procedure TCastleTransform.CameraChanged(ACamera: TCamera);
+procedure TCastleTransform.CameraChanged(const ACamera: TCastleCamera);
 var
   I: Integer;
 begin
@@ -3393,7 +3393,7 @@ begin
   Result := PointCollision2D(Point, nil);
 end;
 
-procedure TSceneManagerWorld.CameraChanged(ACamera: TCamera);
+procedure TSceneManagerWorld.CameraChanged(const ACamera: TCastleCamera);
 begin
   ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
   FCameraKnown := true;

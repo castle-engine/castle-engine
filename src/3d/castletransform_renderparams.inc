@@ -90,7 +90,7 @@
 
     This is interesting to you only if you write custom rendering code.
 
-    In normal applications, you shoud only get/set camera using TCamera
+    In normal applications, you shoud only get/set camera using TCastleCamera
     descendants, through TCastleAbstractViewport.Camera and related properties.
     Do not use the TRenderingCamera class in normal applications. }
   TRenderingCamera = class
@@ -147,11 +147,11 @@
     function RotationMatrix3: TMatrix3;
     function RotationInverseMatrix3: TMatrix3;
 
-    { Set all properties (except Target) from TCamera instance in ACamera.
+    { Set all properties (except Target) from TCastleCamera instance in ACamera.
       See @link(FromMatrix) for comments about @link(Target) property.
       The IgnoredViewpoint parameter is only for backward compatibility,
       it is ignored. }
-    procedure FromCameraObject(const ACamera: TCamera;
+    procedure FromCameraObject(const ACamera: TCastleCamera;
       const IgnoredViewpoint: TObject = nil);
 
     { Set all properties (except Target) from explict matrices.
@@ -290,7 +290,7 @@ begin
   Move(RotationInverseMatrix.Data[2], Result.Data[2], SizeOf(Single) * 3);
 end;
 
-procedure TRenderingCamera.FromCameraObject(const ACamera: TCamera;
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera;
   const IgnoredViewpoint: TObject = nil);
 begin
   Matrix := ACamera.Matrix;

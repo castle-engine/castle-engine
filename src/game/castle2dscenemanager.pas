@@ -83,7 +83,7 @@ type
       DefaultCameraZ = DefaultProjectionSpan / 2;
 
     constructor Create(AOwner: TComponent); override;
-    procedure AssignDefaultCamera; override;
+    procedure AssignDefaultNavigation; override;
 
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
@@ -221,24 +221,24 @@ begin
   FProjectionWidth := 0;
 
   { Make camera already existing, so WalkCamera returns it,
-    instead of using AssignDefaultCamera and then switching to ntWalk. }
-  AssignDefaultCamera;
+    instead of using AssignDefaultNavigation and then switching to ntWalk. }
+  AssignDefaultNavigation;
 end;
 
-procedure TCastle2DSceneManager.AssignDefaultCamera;
+procedure TCastle2DSceneManager.AssignDefaultNavigation;
 begin
   { Set Camera explicitly, otherwise SetNavigationType below could call
-    ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
-    and we would have infinite AssignDefaultCamera calls loop. }
-  Camera := InternalWalkCamera;
+    ExamineCamera / WalkCamera that call AssignDefaultNavigation when Camera = nil,
+    and we would have infinite AssignDefaultNavigation calls loop. }
+  Navigation := InternalWalkNavigation;
 
   NavigationType := ntNone;
-  Camera.SetInitialView(
+  Navigation.SetInitialView(
     { pos } Vector3(0, 0, DefaultCameraZ),
     { dir } Vector3(0, 0, -1),
     { up } Vector3(0, 1, 0), false);
-  Camera.GoToInitial;
-  Camera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
+  Navigation.GoToInitial;
+  Navigation.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
 end;
 
 function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
@@ -262,8 +262,8 @@ begin
     raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
   ProjRect := Proj.Dimensions;
 
-  if Camera <> nil then
-    ProjRect := ProjRect.Translate(Camera.Position.XY);
+  if Navigation <> nil then
+    ProjRect := ProjRect.Translate(Navigation.Position.XY);
 
   Result := Vector2(
     MapRange(P.X, 0, EffectiveWidth , ProjRect.Left  , ProjRect.Right),
@@ -285,7 +285,7 @@ begin
     P := Position * UIScale + RenderRect.LeftBottom
   else
     P := Position;
-  RequiredCamera.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
+  RequiredNavigation.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
   Result := RayOrigin.XY;
 end; }
 
@@ -300,7 +300,7 @@ var
   ScreenToWorldMatrix: TMatrix4;
   P: TVector2;
 begin
-  WorldToScreenMatrix := RequiredCamera.ProjectionMatrix * RequiredCamera.Matrix;
+  WorldToScreenMatrix := RequiredNavigation.ProjectionMatrix * RequiredNavigation.Matrix;
   if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
     raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
 

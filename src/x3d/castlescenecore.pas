@@ -1669,7 +1669,7 @@ type
       The scene is notified about camera changes automatically,
       by the @link(TCastleSceneManager). This method may be renamed / removed
       in future releases.) }
-    procedure CameraChanged(ACamera: TCamera); override;
+    procedure CameraChanged(const ACamera: TCastleCamera); override;
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -6714,13 +6714,13 @@ begin
   Result := (World <> nil) and World.CameraKnown;
 end;
 
-procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
+procedure TCastleSceneCore.CameraChanged(const ACamera: TCastleCamera);
 begin
   inherited;
   UpdateCameraEvents;
 
   { handle WatchForTransitionComplete, looking at ACamera.Animation }
-  if ProcessEvents and WatchForTransitionComplete and not ACamera.Animation then
+  if ProcessEvents and WatchForTransitionComplete {TODO:and not ACamera.Animation} then
   begin
     BeginChangesSchedule;
     try

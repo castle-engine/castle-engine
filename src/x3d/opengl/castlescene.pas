@@ -685,7 +685,7 @@ type
     procedure ViewChangedSuddenly; override;
 
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    procedure CameraChanged(ACamera: TCamera); override;
+    procedure CameraChanged(const ACamera: TCastleCamera); override;
 
     { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
@@ -2148,7 +2148,7 @@ begin
   end;
 end;
 
-procedure TCastleScene.CameraChanged(ACamera: TCamera);
+procedure TCastleScene.CameraChanged(const ACamera: TCastleCamera);
 var
   I: Integer;
 begin

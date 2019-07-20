@@ -841,7 +841,7 @@ var
       WalkCamera.MoveVerticalSpeed := 20;
     end;
 
-    Camera := WalkCamera;
+    Navigation := WalkCamera;
 
     WalkCamera.Init(InitialPosition, InitialDirection,
       InitialUp, GravityUp, PreferredHeight, CameraRadius);
@@ -875,7 +875,7 @@ begin
       Otherwise, it would be updated by MainScene loading binding new
       NavigationInfo (with it's speed) and Viewpoint.
       We prefer to do it ourselves in InitializeCamera. }
-    Camera := nil;
+    Navigation := nil;
 
     MainScene := TCastleScene.Create(Self);
     Inc(MainScene.InternalDirty);
