@@ -48,9 +48,11 @@ procedure ActivateAllFileLoader;
 
 implementation
 
+{$warnings off} // using deprecated unit here
 uses CastleLocalization,
   { For TCastleMOFile }
   CastleLocalizationGetText;
+{$warnings on}
 
 { LoadLanguageFiles }
 

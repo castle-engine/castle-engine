@@ -28,6 +28,7 @@
     @item(uses TCastleComponent.TranslateProperties (mutiple translatable properties on a component are possible).)
   )
 }
+
 unit CastleLocalization deprecated 'use CastleLocalizationGetText instead, it offers more features for now (GenerateGetTextPo, TranslateAllDesigns, TCastleComponent.TranslateProperties)';
 
 {$I castleconf.inc}
@@ -128,10 +129,12 @@ var
 
 implementation
 
+{$warnings off} // using deprecated unit here
 uses
   SysUtils,
   CastleURIUtils, CastleUtils, CastleDownload,
   CastleLocalizationFileLoader;
+{$warnings on}
 
 {$define read_implementation}
 {$I castlelocalization_castlecore.inc}

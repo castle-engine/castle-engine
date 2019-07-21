@@ -488,8 +488,7 @@ type
   components (like TCastleUserInterface or TCastleTransform).
 
   You usually don't want to call this method (it is called by other engine routines).
-  Use higher-level routines in @link(CastleLocalizationGetText) or
-  @link(CastleLocalization).
+  Use higher-level routines in @link(CastleLocalizationGetText).
 
   @seealso TCastleComponent.TranslateProperties }
 procedure TranslateProperties(const C: TComponent;
