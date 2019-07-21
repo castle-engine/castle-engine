@@ -305,6 +305,7 @@ end;
 
 procedure TranslateAllDesigns(const GetTextMoUrl: String);
 begin
+  FreeAndNil(TranslateAllDesignsMo);
   TranslateAllDesignsMo := LoadGetTextMo(GetTextMoUrl);
   OnInternalTranslateDesign := @TranslateDesignCallback;
 end;
