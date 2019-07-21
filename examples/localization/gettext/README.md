@@ -8,9 +8,9 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
 1. To translate strings used in Pascal code:
 
-    1.1. Place strings in `resourcestring`. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
+    1. Place strings in `resourcestring`. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
 
-    1.2. Create initial `game.pot` file (that describes the possible strings to translate).
+    2. Create initial `game.pot` file (that describes the possible strings to translate).
 
         _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
 
@@ -24,9 +24,9 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
 2. To translate user interface:
 
-    2.1. Design it using the CGE editor, and write as `xxx.castle-user-interface` files. (More complex scenarios can also be handled using CastleLocalizationGetText utilities, like TranslateDesign.)
+    1. Design it using the CGE editor, and write as `xxx.castle-user-interface` files. (More complex scenarios can also be handled using CastleLocalizationGetText utilities, like TranslateDesign.)
 
-    2.2. Generate the `user_interface.pot` file using `GenerateGetTextPo`. See the trivial utility inside `po_files/generator/po_generator.lpr` in this example.
+    2. Generate the `user_interface.pot` file using `GenerateGetTextPo`. See the trivial utility inside `po_files/generator/po_generator.lpr` in this example.
 
 3. Then translate the PO files.
 
