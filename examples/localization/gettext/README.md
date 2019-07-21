@@ -12,15 +12,15 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
     1.2. Create initial `game.pot` file (that describes the possible strings to translate).
 
-	_Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
+        _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
 
-	The `game.pot` can serve a basis for translations. You can create it using strings from the source code:
+        The `game.pot` can serve a basis for translations. You can create it using strings from the source code:
 
-	* Compile the game (`castle-engine compile`).
+        * Compile the game (`castle-engine compile`).
 
-	* Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
+        * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
 
-	* Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
+        * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
 
 2. To translate user interface:
 
@@ -30,9 +30,11 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
 3. Then translate the PO files.
 
-    * For each `xxxx.pot`, you create a file like `xxxx.ll.po` inserting the 2-latter character code indicating a language. You can create the `.po` file from `.pot` just by copying it -- it's the same file format, the `.pot` (PO Template) extension is just a way to indicate _"this is a basis for translation"_.
+    * For each `xxxx.pot`, you create a file like `xxxx.ll.po` inserting the 2-latter character code indicating a language.
 
-	Or you can create the `.po` by calling `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+        You can create the `.po` file from `.pot` just by copying it -- it's the same file format, the `.pot` (PO Template) extension is just a way to indicate _"this is a basis for translation"_.
+
+        Or you can create the `.po` by calling `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
 
     * E.g. you copy `game.pot` to `game.pl.po` to translate to Polish the resourcestrings, and you copy `user_interface.pot` to `user_interface.pl.po` to translate to Polish the user interface designed using the CGE Editor. `pl` stands for a Polish translation, `de` for German, `en` for English etc.
 
