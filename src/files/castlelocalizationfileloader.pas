@@ -14,7 +14,7 @@
 }
 
 { Contains the standard file loader for the CastleLocalization unit. }
-unit CastleLocalizationFileLoader;
+unit CastleLocalizationFileLoader deprecated 'use CastleLocalizationGetText instead, it offers more features for now (GenerateGetTextPo, TranslateAllDesigns, TCastleComponent.TranslateProperties)';
 
 {$I castleconf.inc}
 
@@ -48,7 +48,7 @@ procedure ActivateAllFileLoader;
 
 implementation
 
-uses CastleLocalization, 
+uses CastleLocalization,
   { For TCastleMOFile }
   CastleLocalizationGetText;
 

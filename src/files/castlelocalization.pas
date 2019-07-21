@@ -17,8 +17,18 @@
   Use this in your games for easy localization. A basic example can be found at "examples/localization/custom".
   Note that this is not the only way to localize your Castle Game Engine games.
   You can as well use resourcestrings and standard FPC GetText unit directly,
-  as shown in the example code in "examples/localization/gettext". }
-unit CastleLocalization;
+  as shown in the example code in "examples/localization/gettext".
+
+  This unit is deprecated now, as CastleLocalizationGetText offers some additional
+  features:
+
+  @unorderedList(
+    @item(GenerateGetTextPo (generating translation template),)
+    @item(TranslateAllDesigns (automatic translation of all deserialized components),)
+    @item(uses TCastleComponent.TranslateProperties (mutiple translatable properties on a component are possible).)
+  )
+}
+unit CastleLocalization deprecated 'use CastleLocalizationGetText instead, it offers more features for now (GenerateGetTextPo, TranslateAllDesigns, TCastleComponent.TranslateProperties)';
 
 {$I castleconf.inc}
 {$ifdef FPC}{$interfaces corba}{$endif}
