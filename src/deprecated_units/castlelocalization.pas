@@ -23,6 +23,7 @@
   features:
 
   @unorderedList(
+    @item(Translating resource strings (so the constant strings in code are "magically" translated),)
     @item(GenerateGetTextPo (generating translation template),)
     @item(TranslateAllDesigns (automatic translation of all deserialized components),)
     @item(uses TCastleComponent.TranslateProperties (mutiple translatable properties on a component are possible).)
