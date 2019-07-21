@@ -69,43 +69,43 @@ type
 type
   { Main comonent for localization, singleton as @link(Localization). }
   TCastleLocalization = class (TComponent)
-    protected
-      FLanguageDictionary: TLanguageDictionary;
-      FLanguageURL: String;
-      FFileLoaderDictionary: TFileLoaderDictionary;
-      FLocalizationIDList: TLocalizationIDList;
-      FOnUpdateLocalizationEventList: TOnUpdateLocalizationEventList;
-      FOnLocalizationUpdatedEventList: TOnLocalizationUpdatedEventList;
-      function Get(AKey: String): String;
-      procedure LoadLanguage(const ALanguageURL: String);
-      procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-      function AddOrSet(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent; const ALocalizationID: String): Boolean; overload; inline;
-      procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent); inline;
-    public
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
-      { Returns the current system language as language code.
-        For example: en, de, pl }
-      function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
-      { Returns the current system locale as langauge code and locale info.
-        For example: en_US, en_GB, es_ES }
-      function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
-      { Adds a new component to the automised localization list or, if it already is listed, updates it's localization ID.
-        If ALocalizationID is empty, the element is removed from the localization list. }
-      procedure AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String); overload;
-      { Adds a new custom localization class to the automised localization list or, if it already is listed, updates it's localization ID.
-        If ALocalizationID is empty, the element is removed from the localization list. }
-      procedure AddOrSet(ALocalizationComponent: ICastleLocalizationCustom; const ALocalizationID: String); overload;
-    public
-      property Items[AKey: String]: String read Get; default;
-      { The URL to the language file that shall be loaded for localization. }
-      property LanguageURL: String read FLanguageURL write LoadLanguage;
-      { A list (dictionary) of file loaders.
-        You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
-      property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
-      { A list of subscribed procedures of that each will be called when the langauge changes.
-        You can add a procedure to this to localise images or such that is no descendent of TComponent. }
-      property OnUpdateLocalization: TOnLocalizationUpdatedEventList read FOnLocalizationUpdatedEventList;
+  protected
+    FLanguageDictionary: TLanguageDictionary;
+    FLanguageURL: String;
+    FFileLoaderDictionary: TFileLoaderDictionary;
+    FLocalizationIDList: TLocalizationIDList;
+    FOnUpdateLocalizationEventList: TOnUpdateLocalizationEventList;
+    FOnLocalizationUpdatedEventList: TOnLocalizationUpdatedEventList;
+    function Get(AKey: String): String;
+    procedure LoadLanguage(const ALanguageURL: String);
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function AddOrSet(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent; const ALocalizationID: String): Boolean; overload; inline;
+    procedure RemoveFromUpdateList(AOnUpdateLocalizationEvent: TOnUpdateLocalizationEvent); inline;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    { Returns the current system language as language code.
+      For example: en, de, pl }
+    function SystemLanguage(const ADefaultLanguage: String = SystemDefaultLanguage): String; inline;
+    { Returns the current system locale as langauge code and locale info.
+      For example: en_US, en_GB, es_ES }
+    function SystemLocale(const ADefaultLocale: String = SystemDefaultLocale): String; inline;
+    { Adds a new component to the automised localization list or, if it already is listed, updates it's localization ID.
+      If ALocalizationID is empty, the element is removed from the localization list. }
+    procedure AddOrSet(ALocalizationComponent: ICastleLocalization; const ALocalizationID: String); overload;
+    { Adds a new custom localization class to the automised localization list or, if it already is listed, updates it's localization ID.
+      If ALocalizationID is empty, the element is removed from the localization list. }
+    procedure AddOrSet(ALocalizationComponent: ICastleLocalizationCustom; const ALocalizationID: String); overload;
+  public
+    property Items[AKey: String]: String read Get; default;
+    { The URL to the language file that shall be loaded for localization. }
+    property LanguageURL: String read FLanguageURL write LoadLanguage;
+    { A list (dictionary) of file loaders.
+      You can use this to add custom file loader for new file extensions or overwrite existing ones to change the file format. }
+    property FileLoader: TFileLoaderDictionary read FFileLoaderDictionary;
+    { A list of subscribed procedures of that each will be called when the langauge changes.
+      You can add a procedure to this to localise images or such that is no descendent of TComponent. }
+    property OnUpdateLocalization: TOnLocalizationUpdatedEventList read FOnLocalizationUpdatedEventList;
   end;
 
 var
