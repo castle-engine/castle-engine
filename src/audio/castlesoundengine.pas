@@ -2787,9 +2787,31 @@ var
   I: TXMLElementIterator;
   BaseUrl: string;
   TimeStart: TCastleProfilerTime;
+  J: Integer;
+  SoundInfo: TSoundInfo;
+  SoundInfoBuffer: TSoundInfoBuffer;
 begin
   if FRepositoryURL = Value then Exit;
   FRepositoryURL := Value;
+
+  { Remove sound buffers }
+  for J := 0 to FSounds.Count - 1 do
+  begin
+    SoundInfo := FSounds[J];
+    if SoundInfo is TSoundInfoBuffer then
+      SoundInfoBuffer := TSoundInfoBuffer(SoundInfo)
+    else
+      continue;
+
+    if SoundInfoBuffer.Buffer <> nil then
+    begin
+      { ommit stNone }
+      if SoundInfo.Name = '' then
+        continue;
+
+      FreeBuffer(SoundInfoBuffer.Buffer);
+    end;
+  end;
 
   FSoundGroups.Clear;
   FSounds.Clear;
