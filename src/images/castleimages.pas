@@ -1805,59 +1805,65 @@ type
       For KTX, we can generate KTX images using PowerVR Texture Tools
       that already have a correct (bottom-to-top) orientation.
       So we can have textures compressed to PVRTC1_4bpp_RGB
-      with correct orientation. }
+      with correct orientation.
+
+      This field is ignored if FileExtension is not .dds. }
     DDSFlipped: boolean;
+
+    { File extension/format the engine expects when try load GPU compressed
+      version of texture. }
+    FileExtension: String;
   end;
 
 const
   TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false),
-    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
     { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.ktx'),
 
-    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true)
+    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx')
   );
 
 { Convert TTextureCompression enum to string. }
