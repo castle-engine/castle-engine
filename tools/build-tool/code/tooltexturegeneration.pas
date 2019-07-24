@@ -379,6 +379,34 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
                       // or Compressonator(InputFile, OutputFile, C, 'ETC_RGB');
+        tcASTC_4x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4');
+        tcASTC_5x4_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4');
+        tcASTC_5x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5');
+        tcASTC_6x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5');
+        tcASTC_6x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6');
+        tcASTC_8x5_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5');
+        tcASTC_8x6_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6');
+        tcASTC_8x8_RGBA:           PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8');
+        tcASTC_10x5_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5');
+        tcASTC_10x6_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6');
+        tcASTC_10x8_RGBA:          PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8');
+        tcASTC_10x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10');
+        tcASTC_12x10_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10');
+        tcASTC_12x12_RGBA:         PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12');
+        tcASTC_4x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_4x4,UBN,sRGB');
+        tcASTC_5x4_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x4,UBN,sRGB');
+        tcASTC_5x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_5x5,UBN,sRGB');
+        tcASTC_6x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x5,UBN,sRGB');
+        tcASTC_6x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_6x6,UBN,sRGB');
+        tcASTC_8x5_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x5,UBN,sRGB');
+        tcASTC_8x6_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x6,UBN,sRGB');
+        tcASTC_8x8_SRGB8_ALPHA8:   PVRTexTool(InputFile, OutputFile, C, 'ASTC_8x8,UBN,sRGB');
+        tcASTC_10x5_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x5,UBN,sRGB');
+        tcASTC_10x6_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x6,UBN,sRGB');
+        tcASTC_10x8_SRGB8_ALPHA8:  PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x8,UBN,sRGB');
+        tcASTC_10x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_10x10,UBN,sRGB');
+        tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10,UBN,sRGB');
+        tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12,UBN,sRGB');
 
         else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
           [TextureCompressionToString(C), OutputFile]));
