@@ -250,7 +250,7 @@ end;
 { TCastleProfiler.TTimes ----------------------------------------------------- }
 
   { Helper for TTimes.Sort }
-  function TimeSort(constref Value1, Value2: TCastleProfiler.TTime): Integer;
+  function TimeSort({$ifdef FPC}constref{$else}const{$endif} Value1, Value2: TCastleProfiler.TTime): Integer;
   begin
     Result := Sign(Value2.Time - Value1.Time);
   end;
@@ -259,7 +259,7 @@ procedure TCastleProfiler.TTimes.Sort;
 type
   TTimeComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TTime>;
 begin
-  inherited Sort(TTimeComparer.Construct(@TimeSort));
+  inherited Sort(TTimeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif} TimeSort));
 end;
 
 function TCastleProfiler.TTimes.Summary(const Indent: String): String;

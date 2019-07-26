@@ -160,7 +160,7 @@ type
           and not at Lazarus design time.)
       )
     }
-    property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
+    property LimitFPS: Single read FLimitFPS write FLimitFPS {$ifdef FPC} default DefaultLimitFPS {$endif};
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,

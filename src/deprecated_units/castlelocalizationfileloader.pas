@@ -39,9 +39,6 @@ type
     property value: String read FValue write FValue;
   end;
 
-  { Represents the full language JSON file containing all translated strings. }
-  TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
-
 { Called by CastleLocalization to load all standard file loader.
   See Castle examples or documentation for detailed description of the file formats. }
 procedure ActivateAllFileLoader;
@@ -54,7 +51,48 @@ uses CastleLocalization,
   CastleLocalizationGetText;
 {$warnings on}
 
-{ LoadLanguageFiles }
+{ TGenericCollection -------------------------------------------------------- }
+
+type
+  { A generic version of TCollection.
+    Main usage is preventing code redundancy when working with JSON serialisation. }
+  generic TGenericCollection<T> = class(TCollection)
+  private
+    function GetItems(AIndex: Integer): T;
+    procedure SetItems(AIndex: Integer; AValue: T);
+  public
+    constructor Create;
+    function Add: T;
+    property Items[AIndex: Integer]: T read GetItems write SetItems; default;
+  end;
+
+function TGenericCollection.GetItems(AIndex: Integer): T;
+begin
+  Result := T(inherited Items[AIndex]);
+end;
+
+procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
+begin
+  Items[AIndex].Assign(AValue);
+end;
+
+constructor TGenericCollection.Create;
+begin
+  inherited Create(T);
+end;
+
+function TGenericCollection.Add: T;
+begin
+  Result := T(inherited Add);
+end;
+
+{ TFileLoaderJSONList -------------------------------------------------------- }
+
+type
+  { Represents the full language JSON file containing all translated strings. }
+  TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
+
+{ LoadLanguageFiles ---------------------------------------------------------- }
 
 procedure LoadLanguageFileXML(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
 var

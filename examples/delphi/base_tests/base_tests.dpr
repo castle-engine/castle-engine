@@ -4,8 +4,14 @@ program base_tests;
 
 uses
   System.SysUtils,
-  CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
-  CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
+  CastleUtils,
+  CastleVectors,
+  CastleColors,
+  CastleStringUtils,
+  CastleLog,
+  CastleClassUtils,
+  CastleProjection,
+  CastleTimeUtils,
   CastleRectangles;
 
 var

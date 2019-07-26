@@ -110,9 +110,9 @@ procedure WritelnStr(const S: AnsiString); overload;
 
 { Read one character from stream.
   @raises EReadError If end of stream. }
-function StreamReadChar(Stream: TStream): char;
+function StreamReadChar(Stream: TStream): AnsiChar;
 
-function StreamReadZeroEndString(Stream: TStream): string;
+function StreamReadZeroEndString(Stream: TStream): AnsiString;
 
 { Read stream, until you find some character in EndingChars.
   Returns read contents, without final character (the one in EndingChars set).
@@ -131,12 +131,12 @@ function StreamReadZeroEndString(Stream: TStream): string;
   @raises EReadError If the stream will end before encountering one of EndingChars.
   @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: char): string; overload;
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+  out endingChar: AnsiChar): AnsiString; overload;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
 { Read stream, until you find some character in EndingChars, or end of stream.
@@ -149,12 +149,12 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): string; overload;
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+  out endingChar: integer): AnsiString; overload;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
 { Read a growing stream, and append it to another destination stream.
@@ -246,7 +246,7 @@ type
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
-    procedure UpdateLineColumn(const C: char); overload;
+    procedure UpdateLineColumn(const C: AnsiChar); overload;
     procedure UpdateLineColumn(const Buffer; const BufferCount: Integer); overload;
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
@@ -289,7 +289,7 @@ type
     { Read characters, until one of EndingChars (or end of stream) is found.
       The ending character is not "consumed" from the stream.
       The Result is guaranteed to not contain any char from EndingChars. }
-    function ReadUpto(const EndingChars: TSetOfChars): string; virtual;
+    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; virtual;
 
     {$ifndef FPC}
     property Position: Int64 read GetPosition;
@@ -363,7 +363,7 @@ type
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
-    function ReadUpto(const EndingChars: TSetOfChars): string; override;
+    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
 
     property BufferSize: LongWord read FBufferSize;
   end;
@@ -679,22 +679,6 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
-{ ---------------------------------------------------------------------------- }
-{ @section(Generics) }
-
-type
-  { A generic version of TCollection.
-    Main usage is preventing code redundancy when working with JSON serialisation. }
-  generic TGenericCollection<T> = class(TCollection)
-  private
-    function GetItems(AIndex: Integer): T;
-    procedure SetItems(AIndex: Integer; AValue: T);
-  public
-    constructor Create;
-    function Add: T;
-    property Items[AIndex: Integer]: T read GetItems write SetItems; default;
-  end;
-
 {$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
@@ -807,21 +791,21 @@ begin
   WritelnStr(StdOutStream, S);
 end;
 
-function StreamReadChar(Stream: TStream): char;
+function StreamReadChar(Stream: TStream): AnsiChar;
 begin
   Stream.ReadBuffer(result, SizeOf(result));
 end;
 
-function StreamReadZeroEndString(Stream: TStream): string;
+function StreamReadZeroEndString(Stream: TStream): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, [#0], false);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
   readLen: integer; { ile znakow odczytales }
-  ch: char;
+  ch: AnsiChar;
 begin
   readLen := 0;
   result := '';
@@ -846,28 +830,28 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean):AnsiString; overload;
 var
-  dummy: char;
+  dummy: AnsiChar;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, backEndingChar, dummy);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: char): string;
+  out endingChar: AnsiChar): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): string;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
 var readLen: integer; { ile znakow odczytales }
-    ch: char;
+    ch: AnsiChar;
 begin
   readLen := 0;
   result := '';
@@ -897,7 +881,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 var
   dummy: integer;
 begin
@@ -905,12 +889,12 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): string;
+  out endingChar: integer): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
@@ -1032,7 +1016,7 @@ begin
   Result := 0; { just to get rid of dummy fpc warning }
 end;
 
-procedure TPeekCharStream.UpdateLineColumn(const C: char);
+procedure TPeekCharStream.UpdateLineColumn(const C: AnsiChar);
 begin
   if (C = #13) or
      (C = #10) then
@@ -1050,10 +1034,10 @@ var
   I: Integer;
 begin
   for I := 0 to BufferCount - 1 do
-    UpdateLineColumn(PChar(@Buffer)[I]);
+    UpdateLineColumn(PAnsiChar(@Buffer)[I]);
 end;
 
-function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): string;
+function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
 begin
@@ -1061,10 +1045,10 @@ begin
   while true do
   begin
     Peeked := PeekChar;
-    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+    if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
     { ReadChar will return same thing as Peeked now }
-    Result := Result + Chr(ReadChar);
+    Result := Result + AnsiChar(ReadChar);
   end;
 end;
 
@@ -1123,7 +1107,7 @@ function TSimplePeekCharStream.ReadChar: Integer;
 { This is somehow optimized version of TSimplePeekCharStream.Read
   for the case when Count = 1. }
 var
-  C: char;
+  C: AnsiChar;
 begin
   if IsPeekedChar then
   begin
@@ -1141,7 +1125,7 @@ begin
   end;
 
   if Result <> -1 then
-    UpdateLineColumn(Chr(Result));
+    UpdateLineColumn(AnsiChar(Result));
 end;
 
 { TBufferedReadStream ----------------------------------------------------- }
@@ -1247,20 +1231,20 @@ begin
   end;
 
   if Result <> -1 then
-    UpdateLineColumn(Chr(Result));
+    UpdateLineColumn(AnsiChar(Result));
 end;
 
-function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): string;
+function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
   BufferBeginPos, OldResultLength, ReadCount: LongWord;
-  ConsumingChar: char;
+  ConsumingChar: AnsiChar;
 begin
   Result := '';
   while true do
   begin
     Peeked := PeekChar;
-    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+    if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
 
     (*Since this is TBufferedReadStream, we often have a lot of data in our
@@ -1283,7 +1267,7 @@ begin
       chunk from the buffer, and copy it to Result at once.
     *)
 
-    UpdateLineColumn(Chr(Peeked));
+    UpdateLineColumn(AnsiChar(Peeked));
 
     { Increase BufferPos as much as you can. We know that we can increase
       at least by one, since we just called PeekChar and it returned character
@@ -1296,7 +1280,7 @@ begin
         Break
       else
       begin
-        ConsumingChar := Chr(Buffer^[BufferPos]);
+        ConsumingChar := AnsiChar(Buffer^[BufferPos]);
         if ConsumingChar in EndingChars then
           Break
         else
@@ -1349,7 +1333,13 @@ end;
 
 procedure TCastleComponent.InternalLoading;
 begin
+  {$ifdef FPC}
   Loading;
+  {$else}
+  // TODO:
+  // How do we implement this in Delphi?
+  // ComponentState := ComponentState + [csLoading];
+  {$endif}
 end;
 
 procedure TCastleComponent.InternalLoaded;
@@ -1443,7 +1433,7 @@ begin
     try
       GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
       TCastleComponent(C).GetChildren(
-        @GetChildrenHandler.TranslatePropertiesOnChild, nil);
+        {$ifdef CASTLE_OBJFPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
     finally FreeAndNil(GetChildrenHandler) end;
   end;
 
@@ -1453,7 +1443,7 @@ begin
     for I := 0 to PropInfos.Count - 1 do
     begin
       PropInfo := PropInfos[I];
-      TypeInfo := PropInfo^.PropType;
+      TypeInfo := PropInfo^.PropType {$ifndef FPC}^{$endif};
       if TypeInfo^.Kind = tkClass then
         TranslateChildClass(GetObjectProp(C, PropInfo));
     end;
@@ -1709,28 +1699,6 @@ begin
 
     if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
-end;
-
-{ TGenericCollection -------------------------------------------------------- }
-
-function TGenericCollection.GetItems(AIndex: Integer): T;
-begin
-  Result := T(inherited Items[AIndex]);
-end;
-
-procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
-begin
-  Items[AIndex].Assign(AValue);
-end;
-
-constructor TGenericCollection.Create;
-begin
-  inherited Create(T);
-end;
-
-function TGenericCollection.Add: T;
-begin
-  Result := T(inherited Add);
 end;
 
 { DumpStack ------------------------------------------------------------------ }
