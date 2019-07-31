@@ -41,6 +41,8 @@ uses SysUtils, Classes, Math, StrUtils,
 { sound backend classes interface -------------------------------------------- }
 
 type
+  TOpenALStreamFeedThread = class;
+
   TOpenALSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
   private
     ALBuffer: TALuint;
@@ -50,10 +52,35 @@ type
     procedure ContextClose; override;
   end;
 
+  TOpenALStreamBuffersBackend = class (TSoundBufferBackendFromStreamedFile)
+  private
+    ALBuffers: array[0..3] of TALuint;
+    StreamedSFile: TStreamedSoundFile;
+    FeedThread: TOpenALStreamFeedThread;
+
+    function FillBuffer(ALBuffer: TALuint): Integer;
+  public
+    procedure FeedBuffers(ALSource: TALuint);
+    procedure StopFeedingBuffers;
+
+    procedure ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile); override;
+    procedure ContextClose; override;
+  end;
+
+  TOpenALStreamFeedThread = class(TThread)
+    private
+      FStreamedBuffer: TOpenALStreamBuffersBackend;
+      FALSource: TALuint;
+    protected
+      procedure Execute; override;
+    public
+      constructor Create(CreateSuspended: Boolean; ALSource: TALuint; StreamedBuffer: TOpenALStreamBuffersBackend);reintroduce;
+  end;
+
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
     ALSource: TALuint;
-    FBuffer: TOpenALSoundBufferBackend;
+    FBuffer: TSoundBufferBackend;
     function ALVersion11: Boolean;
   public
     procedure ContextOpen; override;
@@ -98,7 +125,7 @@ type
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer: TSoundBufferBackend; override;
+    function CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
     procedure SetGain(const Value: Single); override;
@@ -116,6 +143,131 @@ type
       when IsContextOpenSuccess, that is it's initialized by . }
     property EFXSupported: boolean read FEFXSupported;
   end;
+
+{ TOpenALStreamFeedThread }
+
+procedure TOpenALStreamFeedThread.Execute;
+var
+  ALBuffersProcessed: TALint;
+  ALBuffer: TALuint;
+begin
+  ALBuffersProcessed := 0;
+  while (not Terminated) do
+  begin
+    Sleep(10);
+
+    alGetSourcei(FALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+
+    while ALBuffersProcessed > 0 do
+    begin
+      alSourceUnqueueBuffers(FALSource, 1, @ALBuffer);
+
+      if FStreamedBuffer.FillBuffer(ALBuffer) > 0 then
+      begin
+        alSourceQueueBuffers(FALSource, 1, @ALBuffer);
+      end
+      else
+        Exit;
+
+      Dec(ALBuffersProcessed);
+    end;
+  end;
+end;
+
+constructor TOpenALStreamFeedThread.Create(CreateSuspended: Boolean; ALSource: TALuint; StreamedBuffer: TOpenALStreamBuffersBackend);
+begin
+  inherited Create(CreateSuspended);
+  FALSource := ALSource;
+  FStreamedBuffer := StreamedBuffer;
+
+  FreeOnTerminate := false;
+end;
+
+{ TOpenALStreamBuffersBackend }
+
+function TOpenALStreamBuffersBackend.FillBuffer(ALBuffer: TALuint): Integer;
+var
+  Buffer: Pointer;
+const
+  ALDataFormat: array [TSoundDataFormat] of TALuint = (
+    AL_FORMAT_MONO8,
+    AL_FORMAT_MONO16,
+    AL_FORMAT_STEREO8,
+    AL_FORMAT_STEREO16
+  );
+  BufSize = 1024 * 6; // 100kB for tests
+begin
+  Buffer := GetMem(BufSize);
+  try
+    Result := StreamedSFile.Read(Buffer^, BufSize);
+    if Result > 0 then
+    begin
+      alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], Buffer, Result, StreamedSFile.Frequency);
+    end
+    else
+      alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], nil, 0, StreamedSFile.Frequency);
+  finally
+    FreeMemNiling(Buffer);
+  end;
+end;
+
+procedure TOpenALStreamBuffersBackend.FeedBuffers(ALSource: TALuint);
+begin
+  if FeedThread <> nil then
+  begin
+    FeedThread.Terminate;
+    FeedThread.WaitFor;
+    FreeAndNil(FeedThread);
+  end;
+
+  FeedThread := TOpenALStreamFeedThread.Create(true, ALSource, Self);
+  FeedThread.Resume;
+end;
+
+procedure TOpenALStreamBuffersBackend.StopFeedingBuffers;
+begin
+  if FeedThread <> nil then
+  begin
+    FeedThread.Terminate;
+    FeedThread.WaitFor;
+    FreeAndNil(FeedThread);
+  end;
+end;
+
+procedure TOpenALStreamBuffersBackend.ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile);
+var
+  I: Integer;
+begin
+  StreamedSFile := StreamedSoundFile;
+  alCreateBuffers(4, ALBuffers);
+  CheckAL('before filling buffers');
+
+  try
+    for I := 0 to 3 do
+    begin
+      FillBuffer(ALBuffers[I]);
+      CheckAL('after filling buffer '+IntToStr(I));
+    end;
+
+  except
+    alDeleteBuffers(4, @ALBuffers);
+    raise
+  end;
+
+  CheckAL('after filling all buffers');
+end;
+
+procedure TOpenALStreamBuffersBackend.ContextClose;
+begin
+  if FeedThread <> nil then
+  begin
+    FeedThread.Terminate;
+    FeedThread.WaitFor;
+    FreeAndNil(FeedThread);
+  end;
+  alDeleteBuffers(4, ALBuffers);
+  FreeAndNil(StreamedSFile);
+end;
 
 { TOpenALSoundBufferBackend -------------------------------------------------- }
 
@@ -187,46 +339,91 @@ begin
 end;
 
 procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
+var
+  ALBuffersProcessed: TALint;
+  ALBuffer: TALuint;
+  StreamedBuffer: TOpenALStreamBuffersBackend;
+  FullSoundBuffer: TOpenALSoundBufferBackend;
 begin
-  if BufferChangedRecently and
-     (FBuffer <> nil) and
-     (FBuffer.ALBuffer <> 0) then
+  if FBuffer is TOpenALStreamBuffersBackend then
   begin
-    { This is a workaround needed on Apple OpenAL implementation
-      (although I think that at some time I experienced similar
-      problems (that would be cured by this workaround) on Linux
-      (Loki OpenAL implementation)).
+    StreamedBuffer := TOpenALStreamBuffersBackend(FBuffer);
 
-      The problem: music on some
-      levels doesn't play. This happens seemingly random: sometimes
-      when you load a level music starts playing, sometimes it's
-      silent. Then when you go to another level, then go back to the
-      same level, music plays.
+    alSourcePlay(ALSource);
 
-      Investigation: I found that sometimes changing the buffer
-      of the sound doesn't work immediately. Simple
-        Writeln(SoundInfos.List^[Sound].Buffer, ' ',
-          alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
-      right after alCommonSourceSetup shows this (may output
-      two different values). Then if you wait a little, OpenAL
-      reports correct buffer. This probably means that OpenAL
-      internally finishes some tasks related to loading buffer
-      into source. Whatever it is, it seems that it doesn't
-      occur (or rather, is not noticeable) on normal game sounds
-      that are short --- but it's noticeable delay with larger
-      sounds, like typical music.
+    // tutaj wątek
+    StreamedBuffer.FeedBuffers(ALSource);
 
-      So the natural workaround below follows. For OpenAL implementations
-      that immediately load the buffer, this will not cause any delay. }
+    {ALBuffersProcessed := 0;
 
-    { We have to do CheckAL first, to catch eventual errors.
-      Otherwise the loop could hang. }
-    CheckAL('PlaySound');
-    while FBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
+    while (true) do
+    begin
       Sleep(10);
+
+      alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+
+      while ALBuffersProcessed > 0 do
+      begin
+        alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
+
+        if StreamedBuffer.FillBuffer(ALBuffer) > 0 then
+        begin
+          alSourceQueueBuffers(ALSource, 1, @ALBuffer);
+        end
+        else
+          Exit;
+
+        Dec(ALBuffersProcessed);
+      end;
+    end; }
+
+    Exit;
   end;
 
-  alSourcePlay(ALSource);
+  if FBuffer is TOpenALSoundBufferBackend then
+  begin
+    FullSoundBuffer := TOpenALSoundBufferBackend(FBuffer);
+
+    if BufferChangedRecently and
+       (FullSoundBuffer <> nil) and
+       (FullSoundBuffer.ALBuffer <> 0) then
+    begin
+      { This is a workaround needed on Apple OpenAL implementation
+        (although I think that at some time I experienced similar
+        problems (that would be cured by this workaround) on Linux
+        (Loki OpenAL implementation)).
+
+        The problem: music on some
+        levels doesn't play. This happens seemingly random: sometimes
+        when you load a level music starts playing, sometimes it's
+        silent. Then when you go to another level, then go back to the
+        same level, music plays.
+
+        Investigation: I found that sometimes changing the buffer
+        of the sound doesn't work immediately. Simple
+          Writeln(SoundInfos.List^[Sound].Buffer, ' ',
+            alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
+        right after alCommonSourceSetup shows this (may output
+        two different values). Then if you wait a little, OpenAL
+        reports correct buffer. This probably means that OpenAL
+        internally finishes some tasks related to loading buffer
+        into source. Whatever it is, it seems that it doesn't
+        occur (or rather, is not noticeable) on normal game sounds
+        that are short --- but it's noticeable delay with larger
+        sounds, like typical music.
+
+        So the natural workaround below follows. For OpenAL implementations
+        that immediately load the buffer, this will not cause any delay. }
+
+      { We have to do CheckAL first, to catch eventual errors.
+        Otherwise the loop could hang. }
+      CheckAL('PlaySound');
+      while FullSoundBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
+        Sleep(10);
+    end;
+    alSourcePlay(ALSource);
+  end;
+
 end;
 
 procedure TOpenALSoundSourceBackend.Stop;
@@ -250,7 +447,7 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
 begin
-  alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
+  //alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
 end;
 
 procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
@@ -274,16 +471,30 @@ begin
 end;
 
 procedure TOpenALSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
+var
+  I: Integer;
+  Stream: TOpenALStreamBuffersBackend;
+  FullLoaded: TOpenALSoundBufferBackend;
 begin
-  FBuffer := Value as TOpenALSoundBufferBackend;
-  if Value <> nil then
+  FBuffer := Value;
+
+  if Assigned(FBuffer) then
   begin
-    { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
-      But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
-      whatever alSourcei requires. }
-    {$I norqcheckbegin.inc}
-    alSourcei(ALSource, AL_BUFFER, FBuffer.ALBuffer);
-    {$I norqcheckend.inc}
+    if FBuffer is TOpenALSoundBufferBackend then
+    begin
+      FullLoaded := TOpenALSoundBufferBackend(FBuffer);
+      { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
+        But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
+        whatever alSourcei requires. }
+      {$I norqcheckbegin.inc}
+      alSourcei(ALSource, AL_BUFFER, FullLoaded.ALBuffer);
+      {$I norqcheckend.inc}
+    end
+    else if FBuffer is TOpenALStreamBuffersBackend then
+    begin
+      Stream := TOpenALStreamBuffersBackend(FBuffer);
+      alSourceQueueBuffers(ALSource, 4, Stream.ALBuffers);
+    end;
   end else
     alSourcei(ALSource, AL_BUFFER, 0);
 end;
@@ -646,9 +857,15 @@ begin
   alListenerOrientation(Direction, Up);
 end;
 
-function TOpenALSoundEngineBackend.CreateBuffer: TSoundBufferBackend;
+function TOpenALSoundEngineBackend.CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend;
 begin
-  Result := TOpenALSoundBufferBackend.Create(Self);
+  case BufferType of
+    sbtFullLoad:
+      Result := TOpenALSoundBufferBackend.Create(Self);
+    sbtStreamed:
+      Result := TOpenALStreamBuffersBackend.Create(Self);
+  end;
+
 end;
 
 function TOpenALSoundEngineBackend.CreateSource: TSoundSourceBackend;

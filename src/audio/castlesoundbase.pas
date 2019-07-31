@@ -64,6 +64,12 @@ type
     sfStereo16
   );
 
+  TSoundBufferType = (
+    sbtFullLoad,
+    sbtStreamed
+  );
+
+
 function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
 
 implementation

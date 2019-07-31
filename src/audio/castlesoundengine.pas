@@ -55,13 +55,14 @@ type
     FDuration: TFloatTime;
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
+    FBufferType: TSoundBufferType;
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
     procedure ContextOpen(const ExceptionOnError: boolean);
     procedure ContextClose;
   public
-    constructor Create(const SoundEngineBackend: TSoundEngineBackend);
+    constructor Create(const SoundEngineBackend: TSoundEngineBackend; BufferType: TSoundBufferType);
     destructor Destroy; override;
 
     { Duration of the sound, in seconds. Zero if not loaded yet. }
@@ -564,8 +565,8 @@ type
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; const ExceptionOnError: boolean = true): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+    function LoadBuffer(const URL: string; const BufferType: TSoundBufferType; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const BufferType: TSoundBufferType; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
     { @groupEnd }
@@ -1269,10 +1270,11 @@ var
 
 { TSoundBuffer --------------------------------------------------------------- }
 
-constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend);
+constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend; BufferType: TSoundBufferType);
 begin
   inherited Create;
-  Backend := SoundEngineBackend.CreateBuffer;
+  FBufferType := BufferType;
+  Backend := SoundEngineBackend.CreateBuffer(BufferType);
 end;
 
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
@@ -2105,13 +2107,13 @@ begin
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; const BufferType: TSoundBufferType; out Duration: TFloatTime): TSoundBuffer;
 begin
-  Result := LoadBuffer(URL);
+  Result := LoadBuffer(URL, BufferType);
   Duration := Result.Duration;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; const BufferType: TSoundBufferType; const ExceptionOnError: Boolean): TSoundBuffer;
 var
   I: Integer;
   FullURL: string;
@@ -2132,7 +2134,7 @@ begin
       Exit;
     end;
 
-  Result := TSoundBuffer.Create(Backend);
+  Result := TSoundBuffer.Create(Backend, BufferType);
   Result.FURL := FullURL;
   Result.References := 1;
   LoadedBuffers.Add(Result);
@@ -2487,6 +2489,8 @@ procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMEleme
 var
   ImportanceStr, URLPrefix: String;
   SoundImportanceIndex: Integer;
+  Streamed: Boolean;
+  BufferType: TSoundBufferType;
 begin
   inherited;
 
@@ -2542,7 +2546,15 @@ begin
 
   { set Buffer at the end, when URL is set }
   if URL <> '' then
-    Buffer := ASoundEngine.LoadBuffer(URL, false);
+  begin
+    Streamed := false;
+    Element.AttributeBoolean('stream', Streamed);
+    if Streamed then
+      BufferType := sbtStreamed
+    else
+      BufferType := sbtFullLoad;
+    Buffer := ASoundEngine.LoadBuffer(URL, BufferType, false);
+  end;
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;

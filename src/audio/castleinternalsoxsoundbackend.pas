@@ -80,7 +80,7 @@ type
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer: TSoundBufferBackend; override;
+    function CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
     procedure SetGain(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
@@ -258,9 +258,14 @@ procedure TSoxSoundEngineBackend.SetListener(const Position, Direction, Up: TVec
 begin
 end;
 
-function TSoxSoundEngineBackend.CreateBuffer: TSoundBufferBackend;
+function TSoxSoundEngineBackend.CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend;
 begin
-  Result := TSoxSoundBufferBackend.Create(Self);
+  case BufferType of
+    sbtStreamed:
+      raise Exception.Create('Streamed buffers are not supported in Soc backend.');
+    sbtFullLoad:
+      Result := TSoxSoundBufferBackend.Create(Self);
+  end;
 end;
 
 function TSoxSoundEngineBackend.CreateSource: TSoundSourceBackend;

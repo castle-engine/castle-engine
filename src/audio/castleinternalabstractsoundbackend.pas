@@ -74,6 +74,23 @@ type
     procedure ContextOpen(const AURL: String); override;
   end;
 
+
+  { TSoundBufferBackend descendant that can load TSoundFile instance.
+    Should be used by sound backends that cannot load sound files themselves,
+    and rely on TSoundFile to do it (right now, this applies to all backends except FMOD). }
+
+  { TSoundBufferBackendFromStreamedFile }
+
+  TSoundBufferBackendFromStreamedFile = class(TSoundBufferBackend)
+  protected
+    { Load from @link(SoundFile).
+      When overriding, call inherited first.
+      @raises Exception In case sound loading failed for any reason. }
+    procedure ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile); virtual;
+  public
+    procedure ContextOpen(const AURL: String); override;
+  end;
+
   { Abstract sound engine sound source: something in 3D that plays sound. }
   TSoundSourceBackend = class
   strict private
@@ -137,7 +154,7 @@ type
     procedure ContextClose; virtual; abstract;
 
     { Create suitable non-abstract TSoundBufferBackend descendant. }
-    function CreateBuffer: TSoundBufferBackend; virtual; abstract;
+    function CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend; virtual; abstract;
 
     { Create suitable non-abstract TSoundSourceBackend descendant. }
     function CreateSource: TSoundSourceBackend; virtual; abstract;
@@ -159,6 +176,31 @@ type
 implementation
 
 uses SysUtils;
+
+{ TSoundBufferBackendFromStreamedFile }
+
+procedure TSoundBufferBackendFromStreamedFile.ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile);
+begin
+
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);
+var
+  F: TStreamedSoundFile;
+begin
+  inherited;
+
+  F := TStreamedSoundFile.CreateFromFile(URL);
+  try
+    FDuration := -1;
+    FDataFormat := F.DataFormat;
+    FFrequency := F.Frequency;
+    ContextOpenFromStreamedFile(F);
+  except
+    FreeAndNil(F);
+    raise;
+  end;
+end;
 
 { TSoundBufferBackend -------------------------------------------------------- }
 
