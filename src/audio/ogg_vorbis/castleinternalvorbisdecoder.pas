@@ -21,7 +21,7 @@ unit CastleInternalVorbisDecoder;
 interface
 
 uses SysUtils, Classes,
-  CastleSoundBase, CastleInternalSoundFile;
+  CastleSoundBase, CastleInternalSoundFile, CastleInternalVorbisFile, CTypes;
 
 type
   EVorbisLoadError = class(Exception);
@@ -40,9 +40,20 @@ type
 function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
   out Frequency: LongWord): TMemoryStream;
 
+procedure OpenVorbisFile(var VorbisFile: TOggVorbis_File; Stream: TStream; out DataFormat: TSoundDataFormat; out Frequency: LongWord);
+
+{ Simply one read. Note this function may not fill the entire buffer. }
+function ReadVorbisFile(var VorbisFile: TOggVorbis_File; var Buffer; const BufferSize: LongInt): CLong;
+
+{ Like docs (https://xiph.org/vorbis/doc/vorbisfile/ov_read.html) say ov_read not fill buffer. This version ensures that the buffer is full }
+function ReadVorbisFileFillBuffer(var VorbisFile: TOggVorbis_File; var Buffer; const BufferSize: Integer): CLong;
+
+procedure CloseVorbisFile(var VorbisFile: TOggVorbis_File);
+
+
 implementation
 
-uses CastleUtils, CastleInternalVorbisFile, CastleInternalVorbisCodec, CTypes;
+uses CastleUtils, CastleInternalVorbisCodec;
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
@@ -110,91 +121,248 @@ end;
   I check for errors). See [http://xiph.org/vorbis/doc/vorbisfile/index.html]
   for vorbisfile overview. }
 
-function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
-  out Frequency: LongWord): TMemoryStream;
+{  function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
+    out Frequency: LongWord): TMemoryStream;
 
-  procedure CheckVorbisFile(Err: CInt; const Event: string);
-  var
-    ErrDescription: string;
-  begin
-    { Errors list and ErrDescription values based on
-      [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
-    case Err of
-      OV_FALSE: ErrDescription := 'No data available';
-      OV_HOLE: ErrDescription := 'Vorbisfile encountered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
-      OV_EREAD: ErrDescription := 'Read error while fetching compressed data for decode';
-      OV_EFAULT: ErrDescription := 'Internal inconsistency in decode state'; {. Continuing is likely not possible. }
-      OV_EIMPL: ErrDescription := 'Feature not implemented';
-      OV_EINVAL: ErrDescription := 'Either an invalid argument, or incompletely initialized argument passed to libvorbisfile call';
-      OV_ENOTVORBIS: ErrDescription := 'The given file/data was not recognized as Ogg Vorbis data';
-      OV_EBADHEADER: ErrDescription := 'The file/data is apparently an Ogg Vorbis stream, but contains a corrupted or undecipherable header';
-      OV_EVERSION: ErrDescription := 'The bitstream format revision of the given stream is not supported';
-      OV_EBADLINK: ErrDescription := 'The given link exists in the Vorbis data stream, but is not decipherable due to garbacge or corruption';
-      OV_ENOSEEK: ErrDescription := 'The given stream is not seekable';
-      else ErrDescription := '(unknown vorbisfile error code)';
+    procedure CheckVorbisFile(Err: CInt; const Event: string);
+    var
+      ErrDescription: string;
+    begin
+      { Errors list and ErrDescription values based on
+        [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
+      case Err of
+        OV_FALSE: ErrDescription := 'No data available';
+        OV_HOLE: ErrDescription := 'Vorbisfile encountered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
+        OV_EREAD: ErrDescription := 'Read error while fetching compressed data for decode';
+        OV_EFAULT: ErrDescription := 'Internal inconsistency in decode state'; {. Continuing is likely not possible. }
+        OV_EIMPL: ErrDescription := 'Feature not implemented';
+        OV_EINVAL: ErrDescription := 'Either an invalid argument, or incompletely initialized argument passed to libvorbisfile call';
+        OV_ENOTVORBIS: ErrDescription := 'The given file/data was not recognized as Ogg Vorbis data';
+        OV_EBADHEADER: ErrDescription := 'The file/data is apparently an Ogg Vorbis stream, but contains a corrupted or undecipherable header';
+        OV_EVERSION: ErrDescription := 'The bitstream format revision of the given stream is not supported';
+        OV_EBADLINK: ErrDescription := 'The given link exists in the Vorbis data stream, but is not decipherable due to garbacge or corruption';
+        OV_ENOSEEK: ErrDescription := 'The given stream is not seekable';
+        else ErrDescription := '(unknown vorbisfile error code)';
+      end;
+
+      if Err <> 0 then
+        raise EVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
+          [Err, Event, ErrDescription]);
     end;
 
-    if Err <> 0 then
-      raise EVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
-        [Err, Event, ErrDescription]);
+  const
+    { Noone uses ogg vorbis with small files, so it's sensible to make
+      this buffer at least 1 MB. Above this, increasing BufSize doesn't
+      seem to make loading OggVorbis faster. }
+    BufSize = 1000 * 1000;
+
+  var
+    OggFile: TOggVorbis_File;
+    OggInfo: Pvorbis_info;
+    Callbacks: Tov_callbacks;
+    ReadCount: CLong;
+    Buffer: Pointer;
+    BitStream: CInt;
+  begin
+    if not VorbisFileInitialized then
+      raise EVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
+
+    Result := TMemoryStream.Create;
+    try
+      Callbacks.read_func := @VorbisDecoder_read_func;
+      Callbacks.seek_func := @VorbisDecoder_seek_func;
+      Callbacks.close_func := @VorbisDecoder_close_func;
+      Callbacks.tell_func := @VorbisDecoder_tell_func;
+      CheckVorbisFile(ov_open_callbacks(Stream, @OggFile, nil, 0, Callbacks),
+        'ov_open_callbacks');
+
+      OggInfo := ov_info(@OggFile, -1);
+
+      if OggInfo^.channels = 1 then
+        DataFormat := sfMono16
+      else
+        DataFormat := sfStereo16;
+
+      Frequency := OggInfo^.rate;
+
+      Buffer := GetMem(BufSize);
+      try
+
+        repeat
+          ReadCount := ov_read(@OggFile, Buffer^, BufSize,
+            { OpenAL always wants little endian ? } 0,
+            { Always give us 16 bits } 2, 1, @BitStream);
+
+          if ReadCount < 0 then
+            CheckVorbisFile(ReadCount, 'ov_read');
+
+          Result.WriteBuffer(Buffer^, ReadCount);
+        until ReadCount <= 0;
+
+      finally FreeMemNiling(Buffer) end;
+
+      ov_clear(@OggFile);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  end;}
+
+
+procedure CheckVorbisFile(Err: CInt; const Event: string);
+var
+  ErrDescription: string;
+begin
+  { Errors list and ErrDescription values based on
+    [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
+  case Err of
+    OV_FALSE: ErrDescription := 'No data available';
+    OV_HOLE: ErrDescription := 'Vorbisfile encountered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
+    OV_EREAD: ErrDescription := 'Read error while fetching compressed data for decode';
+    OV_EFAULT: ErrDescription := 'Internal inconsistency in decode state'; {. Continuing is likely not possible. }
+    OV_EIMPL: ErrDescription := 'Feature not implemented';
+    OV_EINVAL: ErrDescription := 'Either an invalid argument, or incompletely initialized argument passed to libvorbisfile call';
+    OV_ENOTVORBIS: ErrDescription := 'The given file/data was not recognized as Ogg Vorbis data';
+    OV_EBADHEADER: ErrDescription := 'The file/data is apparently an Ogg Vorbis stream, but contains a corrupted or undecipherable header';
+    OV_EVERSION: ErrDescription := 'The bitstream format revision of the given stream is not supported';
+    OV_EBADLINK: ErrDescription := 'The given link exists in the Vorbis data stream, but is not decipherable due to garbacge or corruption';
+    OV_ENOSEEK: ErrDescription := 'The given stream is not seekable';
+    else ErrDescription := '(unknown vorbisfile error code)';
   end;
 
+  if Err <> 0 then
+    raise EVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
+      [Err, Event, ErrDescription]);
+end;
+
+
+procedure OpenVorbisFile(var VorbisFile: TOggVorbis_File; Stream: TStream; out DataFormat: TSoundDataFormat; out Frequency: LongWord);
+var
+  OggInfo: Pvorbis_info;
+  Callbacks: Tov_callbacks;
+begin
+  if not VorbisFileInitialized then
+    raise EVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
+
+  Callbacks.read_func := @VorbisDecoder_read_func;
+  Callbacks.seek_func := @VorbisDecoder_seek_func;
+  Callbacks.close_func := @VorbisDecoder_close_func;
+  Callbacks.tell_func := @VorbisDecoder_tell_func;
+  CheckVorbisFile(ov_open_callbacks(Stream, @VorbisFile, nil, 0, Callbacks),
+    'ov_open_callbacks');
+
+  OggInfo := ov_info(@VorbisFile, -1);
+
+  if OggInfo^.channels = 1 then
+    DataFormat := sfMono16
+  else
+    DataFormat := sfStereo16;
+
+  Frequency := OggInfo^.rate;
+
+end;
+
+function ReadVorbisFile(var VorbisFile: TOggVorbis_File; var Buffer; const BufferSize: LongInt): CLong;
+var
+  BitStream: CInt;
+begin
+  Result := ov_read(@VorbisFile, Buffer, BufferSize,
+    { OpenAL always wants little endian ? } 0,
+    { Always give us 16 bits } 2, 1, @BitStream);
+
+  if Result < 0 then
+    CheckVorbisFile(Result, 'ov_read');
+end;
+
+function ReadVorbisFileFillBuffer(var VorbisFile: TOggVorbis_File; var Buffer; const BufferSize: LongInt): CLong;
+var
+  BitStream: CInt;
+  Readed, TotalReaded: LongInt;
+  FreeSpace: LongInt;
+  InternalBuffer: Pointer;
+  BufferPoint: PByte;
+begin
+
+  BufferPoint := @Buffer;
+
+  Readed := ov_read(@VorbisFile, Buffer, BufferSize,
+    { OpenAL always wants little endian ? } 0,
+    { Always give us 16 bits } 2, 1, @BitStream);
+
+  if Readed < 0 then
+    CheckVorbisFile(Readed, 'ov_read');
+
+  TotalReaded := Readed;
+
+  FreeSpace := BufferSize - TotalReaded;
+
+  if FreeSpace > 4096 then
+  begin
+    BufferPoint := BufferPoint + TotalReaded;
+
+    while FreeSpace > 4096 do
+    begin
+      Readed := ov_read(@VorbisFile, BufferPoint^, FreeSpace,
+      { OpenAL always wants little endian ? } 0,
+      { Always give us 16 bits } 2, 1, @BitStream);
+
+      if Readed < 0 then
+        CheckVorbisFile(Readed, 'ov_read');
+
+      if Readed = 0 then
+        Exit(TotalReaded);
+
+      Inc(TotalReaded, Readed);
+      FreeSpace := FreeSpace - Readed;
+      BufferPoint := BufferPoint + Readed;
+    end;
+
+  end;
+
+  Result := TotalReaded;
+end;
+
+procedure CloseVorbisFile(var VorbisFile: TOggVorbis_File);
+begin
+  ov_clear(@VorbisFile);
+end;
+
+function VorbisDecode(Stream: TStream; out DataFormat: TSoundDataFormat;
+  out Frequency: LongWord): TMemoryStream;
 const
   { Noone uses ogg vorbis with small files, so it's sensible to make
     this buffer at least 1 MB. Above this, increasing BufSize doesn't
     seem to make loading OggVorbis faster. }
   BufSize = 1000 * 1000;
-
 var
   OggFile: TOggVorbis_File;
-  OggInfo: Pvorbis_info;
-  Callbacks: Tov_callbacks;
   ReadCount: CLong;
   Buffer: Pointer;
   BitStream: CInt;
 begin
-  if not VorbisFileInitialized then
-    raise EVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
-
   Result := TMemoryStream.Create;
   try
-    Callbacks.read_func := @VorbisDecoder_read_func;
-    Callbacks.seek_func := @VorbisDecoder_seek_func;
-    Callbacks.close_func := @VorbisDecoder_close_func;
-    Callbacks.tell_func := @VorbisDecoder_tell_func;
-    CheckVorbisFile(ov_open_callbacks(Stream, @OggFile, nil, 0, Callbacks),
-      'ov_open_callbacks');
-
-    OggInfo := ov_info(@OggFile, -1);
-
-    if OggInfo^.channels = 1 then
-      DataFormat := sfMono16
-    else
-      DataFormat := sfStereo16;
-
-    Frequency := OggInfo^.rate;
+    OpenVorbisFile(OggFile, Stream, DataFormat, Frequency);
 
     Buffer := GetMem(BufSize);
     try
 
       repeat
-        ReadCount := ov_read(@OggFile, Buffer^, BufSize,
-          { OpenAL always wants little endian ? } 0,
-          { Always give us 16 bits } 2, 1, @BitStream);
-
-        if ReadCount < 0 then
-          CheckVorbisFile(ReadCount, 'ov_read');
+        ReadCount := ReadVorbisFileFillBuffer(OggFile, Buffer^, BufSize);
 
         Result.WriteBuffer(Buffer^, ReadCount);
       until ReadCount <= 0;
 
-    finally FreeMemNiling(Buffer) end;
+    finally
+      FreeMemNiling(Buffer)
+    end;
 
-    ov_clear(@OggFile);
+    CloseVorbisFile(OggFile);
   except
     FreeAndNil(Result);
     raise;
   end;
 end;
+
 
 end.
