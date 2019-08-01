@@ -44,8 +44,9 @@
         <DCC_K>false</DCC_K>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>base_tests</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\..\..\src\base;..\..\..\src\base\windows;..\..\..\src\compatibility\delphi-only;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\src\base;..\..\..\src\base\windows;..\..\..\src\compatibility\delphi-only;..\..\..\src\3d;..\..\..\src\x3d;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1045</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>rtl;vcl;vclactnband;vcldsnap;IndyCore;IndySystem;vclx;bindcomp;tethering;svnui;appanalytics;dsnap;bindcompvcl;vclimg;vcltouch;VclSmp;vcldb;bindcompfmx;svn;bindengine;dbrtl;IndyProtocols;fmx;fmxdae;xmlrtl;fmxobj;vclwinx;fmxase;$(DCC_UsePackage)</DCC_UsePackage>
