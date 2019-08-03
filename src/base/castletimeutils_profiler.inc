@@ -75,9 +75,9 @@ type
           WritelnLogMultiline('Time Profile', Profiler.Summary);
         #)
 
-        After displaying the profile,
-        you can clear the profile afterwards by calling @link(Clear),
-        if you prefer the next profile to no longer show what you already output.
+        An alternative way to display the profile is to pass @true as a 2nd
+        argument to any @link(Stop) call. This allows to display a profile
+        limited to given @link(Start) .. @link(Stop) pair.
       )
     )
 
@@ -147,7 +147,7 @@ type
       and stopping it will cause a one-time warning,
       but don't depend on this exact behaviour in the future.
       We will always gracefully accept this case (not crash). }
-    procedure Clear;
+    procedure Clear; deprecated 'This method is not reliable (may cause crashes when used between Start/Stop) and also not comfortable. To display partial profile information, better use Stop with 2nd argument true.';
 
     { Start a task which execution time will be measured.
       You @italic(must) later call @link(Stop) with
@@ -250,7 +250,7 @@ end;
 { TCastleProfiler.TTimes ----------------------------------------------------- }
 
   { Helper for TTimes.Sort }
-  function TimeSort(constref Value1, Value2: TCastleProfiler.TTime): Integer;
+  function TimeSort({$ifdef FPC}constref{$else}const{$endif} Value1, Value2: TCastleProfiler.TTime): Integer;
   begin
     Result := Sign(Value2.Time - Value1.Time);
   end;
@@ -259,7 +259,7 @@ procedure TCastleProfiler.TTimes.Sort;
 type
   TTimeComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TTime>;
 begin
-  inherited Sort(TTimeComparer.Construct(@TimeSort));
+  inherited Sort(TTimeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif} TimeSort));
 end;
 
 function TCastleProfiler.TTimes.Summary(const Indent: String): String;

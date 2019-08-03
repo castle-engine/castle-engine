@@ -297,6 +297,13 @@ begin
   raise Exception.Create('Parameterless constructor of ' + ClassName + ' should never be called');
 end;
 
+{$ifndef FPC}
+function DefaultFormatSettings: TFormatSettings;
+begin
+  Result := TFormatSettings.Create;
+end;
+{$endif}
+
 function FormatDot(const Fmt: String; const Args: array of const): String;
 var
   FormatSettings: TFormatSettings;

@@ -108,9 +108,29 @@ var
   var
     ExpStr: String;
     Exp: TCasScriptExpression;
+    {$ifdef DEBUG_MACROS}
+    Pair: TStringStringMap.TDictionaryPair;
+    {$endif}
   begin
     ExpStr := CopyPos(Source, ExpressionBegin + Length(ExpressionPrefix[Expression]), ExpressionEnd - 1);
+
+    {$ifdef DEBUG_MACROS}
+    Writeln('Replacements:');
+    Writeln(ExpStr);
+    Writeln(CastleScriptReplacements.Count);
+    for Pair in CastleScriptReplacements do
+    begin
+      Writeln('  ', Pair.Key, ' -> ', Pair.Value);
+    end;
+    {$endif}
+
     ExpStr := SReplacePatterns(ExpStr, CastleScriptReplacements, MacrosIgnoreCase);
+
+    {$ifdef DEBUG_MACROS}
+    Writeln('Output:');
+    Writeln(ExpStr);
+    {$endif}
+
     case Expression of
       meIf:
         begin

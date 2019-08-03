@@ -465,7 +465,7 @@ function TTextPropertyString.Wrap(const Font: TFontFamily; const State: TTextLin
   const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
 
   { Split line in the middle of this TTextPropertyString. }
-  procedure BreakLine(const PropWidthBytes: Integer; const LineIsNonEmptyAlready: boolean);
+  procedure BreakLine(const PropWidthBytes: Integer);
   var
     NewProp: TTextPropertyString;
     ExtractedProp: TTextProperty;
@@ -480,10 +480,27 @@ function TTextPropertyString.Wrap(const Font: TFontFamily; const State: TTextLin
       BreakOutput2 := SEnding(S, P + 1) { break at pos p, delete p-th char }
     end else
     begin
-      { in case we don't find a whitespace on which to break }
-      if LineIsNonEmptyAlready then
-        BreakOutput1 := '' else
-        BreakOutput1 := Copy(S, 1, PropWidthBytes);
+      { Code in case we don't find a whitespace on which to break.
+
+        Note: we used to have here logic like this:
+
+          if LineIsNonEmptyAlready then // calculated by looking at CurrentWidth <> 0 when TTextPropertyString.Wrap starts
+            BreakOutput1 := ''
+          else
+            BreakOutput1 := Copy(S, 1, PropWidthBytes);
+
+        In effect, if we have "blablah<b>foobar</b>", we would prefer to break
+        "blablah" + newline + "<b>foobar</b>" (if this would make both lines fit in MaxWidth)
+        instead of "blablah<b>foo" + newline + "bar</b>".
+        But it seemed incorrect: in any case we are breaking in the middle of
+        the word (not at space),
+        so why do we favor the place where font style (bold/non-bold) changes?
+        In particular it looked incorrect in Japanese, where there are no spaces
+        between words, and any place is a valid breaking point.
+        So the line should should be typically long in Japanese and it should
+        be broken where it doesn't fit (not earlier, when bold/non-bold changes).
+      }
+      BreakOutput1 := Copy(S, 1, PropWidthBytes);
       BreakOutput2 := SEnding(S, Length(BreakOutput1) + 1);
     end;
 
@@ -510,10 +527,8 @@ var
   C: TUnicodeChar;
   SPtr: PChar;
   CharLen: Integer;
-  LineIsNonEmptyAlready: boolean;
 begin
   Result := nil;
-  LineIsNonEmptyAlready := CurrentWidth <> 0;
   SPtr := PChar(S);
 
   { If S is empty, there's no need to break it. }
@@ -540,7 +555,7 @@ begin
     end;
 
     if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
-      BreakLine(PropWidthBytes, LineIsNonEmptyAlready);
+      BreakLine(PropWidthBytes);
   end;
 end;
 

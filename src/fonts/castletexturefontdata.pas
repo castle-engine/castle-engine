@@ -397,7 +397,9 @@ begin
         Inc(GlyphsCount);
         MaxVar(MaxWidth , GlyphInfo.Width);
         MaxVar(MaxHeight, GlyphInfo.Height);
-      end;
+      end else
+        WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
+          [URIDisplay(URL), UnicodeToUTF8(C), C]);
     end;
 
     if GlyphsCount = 0 then

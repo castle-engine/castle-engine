@@ -24,7 +24,7 @@ unit CastleJoysticks;
 
 interface
 
-uses Generics.Collections,
+uses Generics.Collections, Classes,
   CastleVectors;
 
 type
@@ -119,15 +119,25 @@ type
     Backend: TJoysticksBackend;
     FList: TJoystickList;
     FInitialized: Boolean;
+    FOnChange: TNotifyEvent;
     function GetItems(const Index: Integer): TJoystick;
     { Get (creating if necessary) joystick's explicit backend.
       Always returns TExplicitJoystickBackend, but cannot be declared as such. }
     function ExplicitBackend: TJoysticksBackend;
+  protected
+    { See OnChange. }
+    procedure DoChange;
   public
     constructor Create;
     destructor Destroy; override;
-    { Check state of every connected joystick and run event procedures.  }
-    procedure Poll;
+    { Check state of every connected joystick and run event procedures.
+      This is internal, called automatically by CastleUIControls unit,
+      user code does not need to call this.
+      @exclude }
+    procedure InternalPoll;
+    { @exclude }
+    procedure Poll; deprecated 'do not call this, it is not necessary';
+
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
     function  AxisPos( JoyID, Axis : Byte ): Single;
     function  Down( JoyID, Button : Byte ): Boolean;
@@ -159,6 +169,12 @@ type
     procedure InternalSetJoystickCount(const JoystickCount: Integer);
     { @exclude }
     procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
+
+    { Called after TJoystick instances on the list change (some are added, destroyed).
+      In case of some backends, this is only called at the end of @link(Initialize),
+      but it may be called in other cases (e.g. "explicit" joystick backend,
+      used by Nintendo Switch, may call this at any moment). }
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
 { Detect connected joysticks. }
@@ -218,13 +234,27 @@ end;
 
 procedure TJoysticks.Initialize;
 begin
+  { In case of TExplicitJoystickBackend,
+    do not clear the list and call Backend.Initialize.
+    That's because Backend.Initialize doesn't have a way to get new joystick information
+    (in case of TExplicitJoystickBackend, it is CGE that is informed by external code
+    about joystick existence). }
+  if Backend is TExplicitJoystickBackend then
+    Exit;
+
   FList.Clear;
   Backend.Initialize(FList);
   FInitialized := true;
   ClearState;
+  DoChange;
 end;
 
 procedure TJoysticks.Poll;
+begin
+  InternalPoll;
+end;
+
+procedure TJoysticks.InternalPoll;
 begin
   if FInitialized then
     Backend.Poll(FList, Self);
@@ -310,6 +340,7 @@ end;
 procedure TJoysticks.InternalSetJoystickCount(const JoystickCount: Integer);
 begin
   TExplicitJoystickBackend(ExplicitBackend).SetJoystickCount(FList, JoystickCount);
+  DoChange;
 end;
 
 procedure TJoysticks.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
@@ -330,6 +361,12 @@ end;
 function TJoysticks.Count: Integer;
 begin
   Result := FList.Count;
+end;
+
+procedure TJoysticks.DoChange;
+begin
+  if Assigned(OnChange) then
+    OnChange(Self);
 end;
 
 { global --------------------------------------------------------------------- }

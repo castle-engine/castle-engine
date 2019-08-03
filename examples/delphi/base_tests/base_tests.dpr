@@ -4,9 +4,16 @@ program base_tests;
 
 uses
   System.SysUtils,
-  CastleUtils, CastleVectors, CastleColors, CastleStringUtils,
-  CastleLog, CastleClassUtils, CastleProjection, CastleTimeUtils,
-  CastleRectangles;
+  CastleUtils,
+  CastleVectors,
+  CastleColors,
+  CastleStringUtils,
+  CastleLog,
+  CastleClassUtils,
+  CastleProjection,
+  CastleTimeUtils,
+  CastleRectangles,
+  CastleAssertions;
 
 var
   M: TMatrix4;
@@ -27,6 +34,7 @@ begin
   V := Vector3(1, 2, 3);
   V := M.MultPoint(V);
   Writeln('Translated vector: ', V.ToString);
+  AssertVectorEquals(Vector3(11, 22, 33), V);
 
   // colors
   Col := RedRGB;
@@ -34,6 +42,7 @@ begin
   ColHsv.Z := 0.5; // half brightness
   Col := HsvToRgb(ColHsv);
   Writeln('Red color with half brightness ', Col.ToString);
+  AssertVectorEquals(Vector3(0.5, 0, 0), Col);
 
   // useful stuff from FPC RTL
   Writeln('ApplicationName: ', ApplicationName);
@@ -44,6 +53,7 @@ begin
   R := FloatRectangle(2, 3, 10, 10);
   R := R.Grow(100, 100);
   Writeln(R.ToString);
+  AssertRectsEqual(FloatRectangle(-98, -97, 210, 210), R);
 
   // timer
   Writeln('This was done in ', TimerSeconds(Timer, TimeStart):1:2, ' seconds');

@@ -584,7 +584,7 @@ begin
     Result := Result + 'downscaled_' + IntToStr(Scaling) + '/';
   Result := Result + ExtractURIName(URL);
   if UseCompression then
-    Result := Result + '.dds' // this is supported by all compression tools now
+    Result := Result + TextureCompressionInfo[TextureCompression].FileExtension
   else
     Result := Result + PreferredOutputFormat;
 end;

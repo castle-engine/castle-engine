@@ -103,7 +103,6 @@ begin
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlesectors.pas');
-    P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlespacefillingcurves.pas');
     P.Targets.AddUnit('castlespheresampling.pas');
     P.Targets.AddUnit('castlesphericalharmonics.pas');
@@ -139,20 +138,26 @@ begin
     P.Targets.AddUnit('castleinternalvorbisdecoder.pas');
     P.Targets.AddUnit('castleinternalvorbisfile.pas');
 
+    P.SourcePath.Add('src' + PathDelim + 'deprecated_units');
+    P.Targets.AddUnit('castlegenericlists.pas');
+    P.Targets.AddUnit('castlegoogleplaygames.pas');
+    P.Targets.AddUnit('castleshaders.pas');
+    P.Targets.AddUnit('castlewarnings.pas');
+    P.Targets.AddUnit('castlelocalization.pas');
+    P.Targets.AddUnit('castlelocalizationfileloader.pas');
+    P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
+
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
-    P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castleinternaldoublelists.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');
-    P.Targets.AddUnit('castlelocalization.pas');
-    P.Targets.AddUnit('castlelocalizationfileloader.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
@@ -170,7 +175,6 @@ begin
     P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlevectorsinternalsingle.pas');
     P.Targets.AddUnit('castlevectorsinternaldouble.pas');
-    P.Targets.AddUnit('castlewarnings.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegles20.pas');
@@ -181,7 +185,6 @@ begin
     P.Targets.AddUnit('castleanalytics.pas');
     P.Targets.AddUnit('castlefacebook.pas');
     P.Targets.AddUnit('castlegameservice.pas');
-    P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castlephotoservice.pas');
@@ -279,10 +282,11 @@ begin
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castleinternaldirectoryinformation.pas');
+    P.Targets.AddUnit('castlelocalizationgettext.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleuriutils.pas');
-    P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlcfginternal.pas');
+    P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'physics' + PathDelim + 'kraft');
