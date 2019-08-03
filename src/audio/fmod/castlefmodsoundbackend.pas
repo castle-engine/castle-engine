@@ -26,7 +26,7 @@ interface
 { Use this to set sound engine backend to FMOD.
   You can call this at any point of your application.
   If you call it before any sound loading/playing,
-  then the previous sound backend wil not even be initialized. }
+  then the previous sound backend will not even be initialized. }
 procedure UseFMODSoundBackend;
 
 implementation
