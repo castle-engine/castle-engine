@@ -99,9 +99,10 @@ type
   { Load the serialized component once, instantiate it many times. }
   TSerializedComponent = class
   strict private
+    FUrl, FTranslationGroupName: String;
     JsonObject: TJSONObject;
   public
-    constructor Create(const Url: String);
+    constructor Create(const AUrl: String);
     constructor CreateFromString(const Contents: String);
     destructor Destroy; override;
 
@@ -124,10 +125,18 @@ type
     function ComponentLoad(const Owner: TComponent): TComponent;
   end;
 
+  { Internal, used by TranslateAllDesigns. @exclude }
+  TInternalTranslateDesignCallback = procedure (const C: TComponent; const GroupName: String);
+
+var
+  { Internal, used by TranslateAllDesigns. @exclude }
+  OnInternalTranslateDesign: TInternalTranslateDesignCallback;
+
 implementation
 
 uses JsonParser, RtlConsts,
-  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils;
+  CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
+  CastleURIUtils;
 
 { component registration ----------------------------------------------------- }
 
@@ -330,9 +339,11 @@ end;
 
 { TSerializedComponent ------------------------------------------------------- }
 
-constructor TSerializedComponent.Create(const Url: String);
+constructor TSerializedComponent.Create(const AUrl: String);
 begin
-  CreateFromString(FileToString(Url));
+  FUrl := AUrl;
+  FTranslationGroupName := DeleteURIExt(ExtractURIName(FUrl));
+  CreateFromString(FileToString(AUrl));
 end;
 
 constructor TSerializedComponent.CreateFromString(const Contents: String);
@@ -379,6 +390,9 @@ begin
 
     { read Result contents from JSON }
     Reader.FJsonReader.JSONToObject(JsonObject, Result);
+
+    if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
+      OnInternalTranslateDesign(Result, FTranslationGroupName);
   finally
     FreeAndNil(Reader.FJsonReader);
     FreeAndNil(Reader);
@@ -406,8 +420,22 @@ begin
 end;
 
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
+
+{ We could use StringToComponent now, but then TSerializedComponent
+  would not know Url, so TSerializedComponent.FTranslationGroupName
+  would be empty and TranslateAllDesigns would not work.
+
 begin
   Result := StringToComponent(FileToString(Url), Owner);
+end;}
+
+var
+  SerializedComponent: TSerializedComponent;
+begin
+  SerializedComponent := TSerializedComponent.Create(Url);
+  try
+    Result := SerializedComponent.ComponentLoad(Owner);
+  finally FreeAndNil(SerializedComponent) end;
 end;
 
 { saving to JSON ------------------------------------------------------------- }

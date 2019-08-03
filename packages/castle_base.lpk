@@ -8,8 +8,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl;../src/x3d/opengl;../src/x3d;../src/base/opengl;../src/images/opengl;../src/images/opengl/glsl;../src/images;../src/x3d/auto_generated_node_helpers;../src/ui/opengl;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft;../src/pasgltf;../src/audio/openal;../src/audio/ogg_vorbis;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="701">
+    <Files Count="703">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -269,7 +269,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFileFilters"/>
       </Item41>
       <Item42>
-        <Filename Value="../src/base/castlegenericlists.pas"/>
+        <Filename Value="../src/deprecated_units/castlegenericlists.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGenericLists"/>
       </Item42>
@@ -294,15 +294,17 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleInternalZStream"/>
       </Item47>
       <Item48>
-        <Filename Value="../src/base/castlelocalization.pas"/>
+        <Filename Value="../src/deprecated_units/castlelocalization.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleLocalization"/>
       </Item48>
       <Item49>
-        <Filename Value="../src/base/castlelocalization_castlecore.inc"/>
+        <Filename Value="../src/deprecated_units/castlelocalization_castlecore.inc"/>
         <Type Value="Include"/>
       </Item49>
       <Item50>
-        <Filename Value="../src/base/castlelocalizationfileloader.pas"/>
+        <Filename Value="../src/deprecated_units/castlelocalizationfileloader.pas"/>
+        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleLocalizationFileLoader"/>
       </Item50>
       <Item51>
@@ -342,7 +344,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleRendererBaseTypes"/>
       </Item59>
       <Item60>
-        <Filename Value="../src/base/castleshaders.pas"/>
+        <Filename Value="../src/deprecated_units/castleshaders.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleShaders"/>
       </Item60>
@@ -499,7 +501,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item98>
       <Item99>
-        <Filename Value="../src/base/castlewarnings.pas"/>
+        <Filename Value="../src/deprecated_units/castlewarnings.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWarnings"/>
       </Item99>
@@ -976,7 +978,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleGameService"/>
       </Item217>
       <Item218>
-        <Filename Value="../src/services/castlegoogleplaygames.pas"/>
+        <Filename Value="../src/deprecated_units/castlegoogleplaygames.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGooglePlayGames"/>
       </Item218>
@@ -2921,6 +2923,14 @@ See https://castle-engine.io/license.php for details.
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleFMODSoundBackend"/>
       </Item128>
+      <Item702>
+        <Filename Value="../src/files/castlelocalizationgettext.pas"/>
+        <UnitName Value="CastleLocalizationGetText"/>
+      </Item702>
+      <Item703>
+        <Filename Value="../src/deprecated_units/castleinternalusedeprecatedunits.pas"/>
+        <UnitName Value="CastleInternalUseDeprecatedUnits"/>
+      </Item703>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

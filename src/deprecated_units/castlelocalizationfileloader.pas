@@ -14,7 +14,7 @@
 }
 
 { Contains the standard file loader for the CastleLocalization unit. }
-unit CastleLocalizationFileLoader;
+unit CastleLocalizationFileLoader deprecated 'use CastleLocalizationGetText instead, it offers more features for now (GenerateGetTextPo, TranslateAllDesigns, TCastleComponent.TranslateProperties)';
 
 {$I castleconf.inc}
 
@@ -39,42 +39,60 @@ type
     property value: String read FValue write FValue;
   end;
 
-  { Represents the full language JSON file containing all translated strings. }
-  TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
-
-  { TMOFile descendent that allows iterating through all strings. }
-  TMOFileIterable = class(TMOFile)
-  protected
-    function GetKey(AIndex: Cardinal): String;
-    function GetValue(AIndex: Cardinal): String;
-  public
-    property Count: Cardinal read StringCount;
-    property Keys[AIndex: Cardinal]: String read GetKey;
-    property Values[AIndex: Cardinal]: String read GetValue;
-  end;
-
 { Called by CastleLocalization to load all standard file loader.
   See Castle examples or documentation for detailed description of the file formats. }
 procedure ActivateAllFileLoader;
 
 implementation
 
-uses
-  CastleLocalization;
+{$warnings off} // using deprecated unit here
+uses CastleLocalization,
+  { For TCastleMOFile }
+  CastleLocalizationGetText;
+{$warnings on}
 
-{ TMOFileIterable }
+{ TGenericCollection -------------------------------------------------------- }
 
-function TMOFileIterable.GetKey(AIndex: Cardinal): String;
+type
+  { A generic version of TCollection.
+    Main usage is preventing code redundancy when working with JSON serialisation. }
+  generic TGenericCollection<T> = class(TCollection)
+  private
+    function GetItems(AIndex: Integer): T;
+    procedure SetItems(AIndex: Integer; AValue: T);
+  public
+    constructor Create;
+    function Add: T;
+    property Items[AIndex: Integer]: T read GetItems write SetItems; default;
+  end;
+
+function TGenericCollection.GetItems(AIndex: Integer): T;
 begin
-    Result := OrigStrings^[AIndex];
+  Result := T(inherited Items[AIndex]);
 end;
 
-function TMOFileIterable.GetValue(AIndex: Cardinal): String;
+procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
 begin
-    Result := TranslStrings^[AIndex];
+  Items[AIndex].Assign(AValue);
 end;
 
-{ LoadLanguageFiles }
+constructor TGenericCollection.Create;
+begin
+  inherited Create(T);
+end;
+
+function TGenericCollection.Add: T;
+begin
+  Result := T(inherited Add);
+end;
+
+{ TFileLoaderJSONList -------------------------------------------------------- }
+
+type
+  { Represents the full language JSON file containing all translated strings. }
+  TFileLoaderJSONList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TGenericCollection<TFileLoaderJSONEntry>;
+
+{ LoadLanguageFiles ---------------------------------------------------------- }
 
 procedure LoadLanguageFileXML(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
 var
@@ -166,10 +184,10 @@ end;
 
 procedure LoadLanguageFileMO(const AFileStream: TStream; const ALanguageDictionary: TLanguageDictionary);
 var
-  LanguageMO: TMOFileIterable;
+  LanguageMO: TCastleMOFile;
   i: Integer;
 begin
-  LanguageMO := TMOFileIterable.Create(AFileStream);
+  LanguageMO := TCastleMOFile.Create(AFileStream);
   try
     for i := 0 to LanguageMO.Count - 1 do
       ALanguageDictionary.AddOrSetValue(LanguageMO.Keys[i], LanguageMO.Values[i]);

@@ -4,6 +4,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="${ANDROID.ADMOB.APP_ID}"/>
+
         <!-- For Google Ads (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start) -->
         <!-- Include the AdActivity configChanges and theme. -->
         <activity android:name="com.google.android.gms.ads.AdActivity"

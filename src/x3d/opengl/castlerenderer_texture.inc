@@ -924,7 +924,6 @@ begin
   FGLName := Renderer.Cache.TextureImage_IncReference(
     TextureNode.TextureImage,
     TextureNode.TextureUsedFullUrl,
-    TextureNode,
     Filter,
     Anisotropy,
     TextureWrap,
@@ -1007,7 +1006,7 @@ begin
   GLVideo := Renderer.Cache.TextureVideo_IncReference(
     TextureNode.TextureVideo,
     TextureNode.TextureUsedFullUrl,
-    TextureNode,
+    TextureNode.FlipVertically,
     Filter,
     Anisotropy,
     TextureWrap,
@@ -1147,7 +1146,8 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, smNone, Width, Height, false);
+      '' { generated texture contents means empty URL },
+      TextureWrap, smNone, Width, Height, false);
   end else
   begin
     InitialImage := TRGBImage.Create(Width, Height);
@@ -1162,8 +1162,7 @@ begin
 
       FGLName := Renderer.Cache.TextureImage_IncReference(
         InitialImage,
-        '',
-        TextureNode,
+        '' { generated texture contents means empty URL },
         Filter,
         Anisotropy,
         TextureWrap,
@@ -1646,7 +1645,9 @@ begin
     SetTextureRGBFromImage(RightRot);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      { TODO: we could implement TComposedCubeMapTextureNode.TextureUsedFullUrl
+        by glueing 6 URLs for 6 sides, and pass it below. }
+      '',
       Filter, Anisotropy,
       { positive x } RightRot,
       { negative x } LeftRot,
@@ -1710,7 +1711,8 @@ begin
     SetTextureRGBFromImage(Composite.CubeMapImage(csPositiveX));
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      { TODO: we could implement TImageCubeMapTextureNode.TextureUsedFullUrl and pass it below. }
+      '',
       Filter, Anisotropy,
       Composite.CubeMapImage(csPositiveX),
       Composite.CubeMapImage(csNegativeX),
@@ -1790,7 +1792,7 @@ begin
     SetTextureRGBFromImage(InitialImage);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      '' { generated texture contents means empty URL },
       Filter, Anisotropy,
       InitialImage, InitialImage,
       InitialImage, InitialImage,
@@ -1899,7 +1901,9 @@ begin
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
   GLName := Renderer.Cache.Texture3D_IncReference(
-    TextureNode, Filter, Anisotropy,
+    { TODO: We could implement TAbstractTexture3DNode.TextureUsedFullUrl }
+    '',
+    Filter, Anisotropy,
     TextureWrap, TextureNode.TextureImage, TextureNode.TextureComposite);
 end;
 
@@ -1999,7 +2003,8 @@ begin
   if VarianceShadowMaps then
   begin
     FGLName := Renderer.Cache.TextureFloat_IncReference(
-      TextureNode, Filter, TextureWrap, Size, Size, true);
+      '' { generated texture contents means empty URL },
+      Filter, TextureWrap, Size, Size, true);
   end else
   begin
     if not GLFeatures.TextureDepth then
@@ -2009,7 +2014,8 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, TextureNode.CompareMode, Size, Size,
+      '' { generated texture contents means empty URL },
+      TextureWrap, TextureNode.CompareMode, Size, Size,
       VisualizeDepthMap);
   end;
 

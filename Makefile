@@ -7,17 +7,13 @@
 #     Compile most examples and tools (that don't use Lazarus LCL).
 #     Lazarus is not required (LCL dependent examples are not compiled).
 #
-#     This compilation method uses our xxx_compile.sh Unix scripts,
-#     and calls our "build tool" to compile examples and other tools
-#     (build tool, in turn, calls a compiler like FPC or Delphi).
+#     This compilation method calls our "build tool" to compile examples
+#     and other tools (build tool, in turn, calls a compiler like FPC or Delphi).
 #
 #     The exception is when compiling the "build tool" itself,
 #     then we call FPC directly. (Although we *could* use
 #     the "build tool" to compile (bootstrap) itself, but it's not what
 #     people expect by default, so we don't do it for now.)
-#
-#     Note that you can also compile each example separately,
-#     just execute directly appropriate xxx_compile.sh scripts.
 #
 #   examples-laz --
 #     Compile all examples and tools using Lazarus.
@@ -44,7 +40,7 @@
 #   cleanall --
 #     Same as cleanmore for now.
 #     Intention is to remove *everything* that can be manually recreated,
-#     even if somewhat hard, and clean editor backup.
+#     even if it's somewhat hard to recreate.
 
 ifeq ($(OS),Windows_NT)
   # Hack for Cygwin, to avoid using Windows built-in "find" program.
@@ -156,13 +152,15 @@ strip-precompiled-libraries:
 #    fftw library (especially since it's really not needed by my engine,
 #    currently my fftw code is just for testing, it's not actually used
 #    by our engine or any game for anything).
+#
+# Note that examples with CastleEngineManifest.xml are not listed here.
+# They will be found and compiled by a Makefile rule that searches using
+# "find ... -iname CastleEngineManifest.xml ..." .
+#
+# TODO: In the long run, it would be best if *all* examples had CastleEngineManifest.xml,
+# then the need to maintain EXAMPLES_BASE_NAMES would disappear.
 
 EXAMPLES_BASE_NAMES := \
-  examples/2d_standard_ui/edit_test/edit_test \
-  examples/2d_standard_ui/quick_2d_game/quick_2d_game \
-  examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
-  examples/2d_standard_ui/timer_test/timer_test \
-  examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/build_3d_object_by_code \
@@ -185,7 +183,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
-  examples/3d_sound_game/lets_take_a_walk \
   examples/audio/simplest_play_sound \
   examples/audio/doppler_demo \
   examples/castlescript/castle_calculator \
@@ -195,8 +192,6 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/font_from_texture \
   examples/fonts/html_text \
   examples/fonts/test_font_break \
-  examples/fonts/test_local_characters/test_local_characters \
-  examples/fps_game/fps_game \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
   examples/images_videos/draw_images_on_gpu \
@@ -208,10 +203,6 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_render_custom_shader \
   examples/images_videos/simple_video_editor \
   examples/images_videos/test_castleimage_draw3x3 \
-  examples/joystick/joystick_demo \
-  examples/localization/custom/localization \
-  examples/localization/gettext/localization_test \
-  examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
   examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test \
@@ -223,8 +214,6 @@ EXAMPLES_BASE_NAMES := \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper \
   examples/space_filling_curve/draw_space_filling_curve \
-  examples/terrain/terrain \
-  examples/tiled/map_viewer/tiled_demo_standalone \
   examples/window/multi_window \
   examples/window/window_events \
   examples/window/window_gtk_mix \
@@ -397,7 +386,7 @@ clean: cleanexamples
 # (will never be compiled).
 	$(FIND) . \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -or \
-	  '(' -path ./tools/build-tool/tests/data/ -prune ')' -or \
+	  '(' -path ./tools/build-tool/tests/data -prune ')' -or \
 	  '(' -iname CastleEngineManifest.xml \
 	      -execdir castle-engine clean ';' ')'
 
@@ -421,22 +410,6 @@ cleanmore: clean
 	rm -f castle-engine*.zip tools/internal/pack_release/castle-engine*.zip
 
 cleanall: cleanmore
-
-# Clean compiled versions of CastleWindow unit.
-# Makes sure that unit CastleWindow will be *always* *rebuild* in next compilation.
-#
-# This is useful, since CastleWindow unit may be compiled with various
-# back-ends (e.g. under Unices two most useful back-ends
-# are XLIB and GTK). To make sure that compilation of some program
-# will produce exactly what you need, it's useful to force rebuild of CastleWindow.
-#
-# Of course this means that compilation time will suffer a little,
-# since CastleWindow unit will be possibly rebuild without any real need.
-clean-window:
-	rm -f src/window/castlewindow.o \
-	      src/window/castlewindow.ppu \
-	      src/window/CastleWindow.o \
-	      src/window/CastleWindow.ppu
 
 # tests ----------------------------------------
 

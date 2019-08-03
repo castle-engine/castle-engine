@@ -781,6 +781,14 @@ type
 
       { Sound that can be played -- actual sound with buffer, or an alias to it. }
       TSoundInfo = class
+      strict private
+        { Although we only support one instance of TSoundEngine,
+          in @link(SoundEngine), but it seems more future-proof
+          to store in TSoundInfo own reference to TSoundEngine.
+          Automatically assigned in ReadElement. }
+        FOwningSoundEngine: TSoundEngine;
+      strict protected
+        property OwningSoundEngine: TSoundEngine read FOwningSoundEngine;
       public
         { Unique sound name (including parent group names). Empty for the special sound stNone. }
         Name: String;
@@ -897,6 +905,7 @@ type
           const AParentGroup: TSoundGroup;
           const BaseUrl: String; const ASoundEngine: TRepoSoundEngine); override;
         function FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer; override;
+        destructor Destroy; override;
       end;
 
       TSoundGroup = class(TSoundInfoList)
@@ -2386,6 +2395,7 @@ procedure TRepoSoundEngine.TSoundInfo.ReadElement(const Element: TDOMElement;
   const AParentGroup: TSoundGroup;
   const BaseUrl: String; const ASoundEngine: TRepoSoundEngine);
 begin
+  FOwningSoundEngine := ASoundEngine;
   ShortName := Element.AttributeString('name');
   Name := ShortName;
 
@@ -2538,6 +2548,13 @@ end;
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
 begin
   Result := Self;
+end;
+
+destructor TRepoSoundEngine.TSoundInfoBuffer.Destroy;
+begin
+  if OwningSoundEngine <> nil then
+    OwningSoundEngine.FreeBuffer(Buffer);
+  inherited;
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }

@@ -2983,7 +2983,13 @@ begin
     comments) will be set immediately. }
   ForceTeleportTransitions := true;
 
-  ScheduleChangedAll;
+  { Call ChangedAll instead of ScheduleChangedAll.
+    That's because below we potentially do SetProcessEvents(true)
+    (if loading a scene when ProcessEvents already enabled),
+    and it may require that ChangedAll already run (e.g. it may
+    initialize Script nodes, that require Node.Scene to be set,
+    see https://github.com/castle-engine/view3dscene/issues/16 ). }
+  ChangedAll;
 
   if AResetTime then
     ResetTimeAtLoad;
@@ -3745,6 +3751,15 @@ procedure TCastleSceneCore.ChangedAll;
 var
   Traverser: TChangedAllTraverser;
 begin
+  { Whether this is called by EndChangesSchedule, or from other places,
+    we can always reset the ChangedAllScheduled flag.
+
+    Note that ChangedAll calls ChangedAllEnumerate inside,
+    which in turn calls Begin/EndChangesSchedule.
+    So ChangedAllScheduled flag must be ready for this,
+    so it should be reset early, at the very beginning of ChangedAll implementation. }
+  ChangedAllScheduled := false;
+
   { We really need to use InternalDirty here, to forbid rendering during this.
 
     For example, ProcessShadowMapsReceivers work assumes this:
@@ -5544,6 +5559,8 @@ end;
 
 procedure TCastleSceneCore.ScriptsInitializeCallback(Node: TX3DNode);
 begin
+  // Node.Scene must be set in order for TScriptNode.SetInitialized to work
+  Assert(Node.Scene = Self);
   TScriptNode(Node).Initialized := true;
 end;
 
@@ -6547,13 +6564,7 @@ begin
   Dec(ChangedAllSchedule);
   if (ChangedAllSchedule = 0) and ChangedAllScheduled then
   begin
-    ChangedAllScheduled := false;
-
-    { ChangedAll calls ChangedAllEnumerate, which in turn calls
-      Begin/EndChangesSchedule. Which means that
-      ChangedAllSchedule/ChangedAllScheduled must be Ok for this.
-      That's why ChangedAllScheduled := false must be done previously. }
-
+    { Note that ChangedAll will set ChangedAllScheduled to false. }
     ChangedAll;
   end;
 end;
