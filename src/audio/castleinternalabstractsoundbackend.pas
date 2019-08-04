@@ -36,6 +36,10 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
 
+    function GetDuration: TFloatTime; virtual;
+    function GetDataFormat: TSoundDataFormat; virtual;
+    function GetFrequency: LongWord; virtual;
+
     property SoundEngine: TSoundEngineBackend read FSoundEngine;
   public
     { Absolute URL.
@@ -44,9 +48,9 @@ type
     property URL: String read FURL;
 
     { Sound buffer information. }
-    property Duration: TFloatTime read FDuration;
-    property DataFormat: TSoundDataFormat read FDataFormat;
-    property Frequency: LongWord read FFrequency;
+    property Duration: TFloatTime read GetDuration;
+    property DataFormat: TSoundDataFormat read GetDataFormat;
+    property Frequency: LongWord read GetFrequency;
 
     constructor Create(const ASoundEngine: TSoundEngineBackend);
 
@@ -83,11 +87,22 @@ type
 
   TSoundBufferBackendFromStreamedFile = class(TSoundBufferBackend)
   protected
+    FStreamConfigReaded: Boolean;
+
+    function GetDuration: TFloatTime; override;
+    function GetDataFormat: TSoundDataFormat; override;
+    function GetFrequency: LongWord; override;
+
+    procedure ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile); overload;
+    procedure ReadStreamConfig; overload;
+
     { Load from @link(SoundFile).
       When overriding, call inherited first.
       @raises Exception In case sound loading failed for any reason. }
-    procedure ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile); virtual;
+    procedure ContextOpenFromStreamedFile(const AURL: String); virtual;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend);
+
     procedure ContextOpen(const AURL: String); override;
   end;
 
@@ -179,30 +194,80 @@ uses SysUtils;
 
 { TSoundBufferBackendFromStreamedFile }
 
-procedure TSoundBufferBackendFromStreamedFile.ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile);
+procedure TSoundBufferBackendFromStreamedFile.ContextOpenFromStreamedFile(const AURL: String);
 begin
 
 end;
 
-procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);
+function TSoundBufferBackendFromStreamedFile.GetDuration: TFloatTime;
+begin
+  Result := -1;
+end;
+
+function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
+begin
+  if not FStreamConfigReaded then
+    ReadStreamConfig;
+
+  Result := FDataFormat;
+end;
+
+function TSoundBufferBackendFromStreamedFile.GetFrequency: LongWord;
+begin
+  if not FStreamConfigReaded then
+    ReadStreamConfig;
+  Result := FFrequency;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
+begin
+  FDuration := -1;
+  FDataFormat := StreamedSoundFile.DataFormat;
+  FFrequency := StreamedSoundFile.Frequency;
+  FStreamConfigReaded := true;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig;
 var
   F: TStreamedSoundFile;
 begin
-  inherited;
-
-  F := TStreamedSoundFile.CreateFromFile(URL);
+  F := TStreamedSoundFile.CreateFromFile(FURL);
   try
-    FDuration := -1;
-    FDataFormat := F.DataFormat;
-    FFrequency := F.Frequency;
-    ContextOpenFromStreamedFile(F);
-  except
+    ReadStreamConfig(F);
+  finally
     FreeAndNil(F);
-    raise;
   end;
 end;
 
+constructor TSoundBufferBackendFromStreamedFile.Create(const ASoundEngine: TSoundEngineBackend);
+begin
+  inherited Create(ASoundEngine);
+  FStreamConfigReaded := false;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);
+begin
+  inherited;
+
+  ContextOpenFromStreamedFile(AURL);
+end;
+
 { TSoundBufferBackend -------------------------------------------------------- }
+
+function TSoundBufferBackend.GetDuration: TFloatTime;
+begin
+  Result := FDuration;
+end;
+
+function TSoundBufferBackend.GetDataFormat: TSoundDataFormat;
+begin
+  Result := FDataFormat;
+end;
+
+function TSoundBufferBackend.GetFrequency: LongWord;
+begin
+  Result := FFrequency;
+end;
 
 constructor TSoundBufferBackend.Create(const ASoundEngine: TSoundEngineBackend);
 begin

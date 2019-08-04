@@ -50,15 +50,20 @@ type
     and freed by @link(TSoundEngine.FreeBuffer).
     @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
+  strict private
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
   private
     FURL: string;
     FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
     FBufferType: TSoundBufferType;
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
+
+    function GetDataFormat: TSoundDataFormat;
+    function GetFrequency: LongWord;
+
     procedure ContextOpen(const ExceptionOnError: boolean);
     procedure ContextClose;
   public
@@ -76,14 +81,14 @@ type
     { Data format (bits per sample, stereo or mono) of the loaded sound file.
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
-      Undefined if not loaded yet. }
-    property DataFormat: TSoundDataFormat read FDataFormat;
+      Undefined if backend is not loaded. }
+    property DataFormat: TSoundDataFormat read GetDataFormat;
 
     { Frequency (sample rate) of the loaded sound file.
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
-      Undefined if not loaded yet. }
-    property Frequency: LongWord read FFrequency;
+      Undefined if backend is not loaded. }
+    property Frequency: LongWord read GetFrequency;
   end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
@@ -1277,6 +1282,20 @@ begin
   Backend := SoundEngineBackend.CreateBuffer(BufferType);
 end;
 
+function TSoundBuffer.GetDataFormat: TSoundDataFormat;
+begin
+  if BackendIsOpen then
+    FDataFormat := Backend.DataFormat;
+  Result := FDataFormat;
+end;
+
+function TSoundBuffer.GetFrequency: LongWord;
+begin
+  if BackendIsOpen then
+    FFrequency := Backend.Frequency;
+  Result := FFrequency;
+end;
+
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
@@ -1284,8 +1303,6 @@ procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
     FURL := URL;
     Backend.ContextOpen(URL);
     FDuration := Backend.Duration;
-    FDataFormat := Backend.DataFormat;
-    FFrequency := Backend.Frequency;
     BackendIsOpen := true;
   end;
 

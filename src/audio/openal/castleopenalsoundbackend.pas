@@ -32,7 +32,7 @@ procedure UseOpenALSoundBackend;
 
 implementation
 
-uses SysUtils, Classes, Math, StrUtils,
+uses SysUtils, Classes, Math, StrUtils, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile,
   CastleInternalAbstractSoundBackend, CastleSoundBase, CastleSoundEngine,
@@ -42,6 +42,8 @@ uses SysUtils, Classes, Math, StrUtils,
 
 type
   TOpenALStreamFeedThread = class;
+  TOpenALSoundSourceBackend = class;
+  TOpenALStreamBuffersBackend = class;
 
   TOpenALSoundBufferBackend = class(TSoundBufferBackendFromSoundFile)
   private
@@ -52,36 +54,62 @@ type
     procedure ContextClose; override;
   end;
 
-  TOpenALStreamBuffersBackend = class (TSoundBufferBackendFromStreamedFile)
+  { TOpenALStreamBuffersSoundSourceRes }
+
+  TOpenALStreamBuffersSoundSourceRes = class
   private
+    FSoundSource: TOpenALSoundSourceBackend;
     ALBuffers: array[0..3] of TALuint;
     StreamedSFile: TStreamedSoundFile;
     FeedThread: TOpenALStreamFeedThread;
+    FStreamBuffer: TOpenALStreamBuffersBackend;
 
     function FillBuffer(ALBuffer: TALuint): Integer;
   public
-    procedure FeedBuffers(ALSource: TALuint);
-    procedure StopFeedingBuffers;
+    constructor Create(ASoundSurce: TOpenALSoundSourceBackend; StreamBuffer: TOpenALStreamBuffersBackend);
 
-    procedure ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile); override;
+    procedure ContextOpen(const AURL: String);
+    procedure ContextClose;
+
+    procedure FeedBuffers;
+    procedure StopFeedingBuffers;
+  end;
+
+  TOpenALStreamSoundSourceResDict = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectDictionary<TOpenALSoundSourceBackend, TOpenALStreamBuffersSoundSourceRes>;
+
+  { TOpenALStreamBuffersBackend }
+
+  TOpenALStreamBuffersBackend = class (TSoundBufferBackendFromStreamedFile)
+  private
+    FSoundSourcesRes: TOpenALStreamSoundSourceResDict;
+  public
+    procedure AddSoundSource(const SoundSource: TOpenALSoundSourceBackend);
+    procedure RemoveSoundSource(const SoundSource: TOpenALSoundSourceBackend);
+
+    procedure FeedBuffers(SoundSource: TOpenALSoundSourceBackend);
+    procedure StopFeedingBuffers(SoundSource: TOpenALSoundSourceBackend);
+
+    procedure ContextOpenFromStreamedFile(const AURL: String); override;
     procedure ContextClose; override;
   end;
 
   TOpenALStreamFeedThread = class(TThread)
     private
-      FStreamedBuffer: TOpenALStreamBuffersBackend;
-      FALSource: TALuint;
+      FStreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
     protected
       procedure Execute; override;
     public
-      constructor Create(CreateSuspended: Boolean; ALSource: TALuint; StreamedBuffer: TOpenALStreamBuffersBackend);reintroduce;
+      constructor Create(CreateSuspended: Boolean; StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes); reintroduce;
   end;
+
+  { TOpenALSoundSourceBackend }
 
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
-    ALSource: TALuint;
-    FBuffer: TSoundBufferBackend;
     function ALVersion11: Boolean;
+  private
+    FBuffer: TSoundBufferBackend;
+    ALSource: TALuint;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -144,48 +172,73 @@ type
     property EFXSupported: boolean read FEFXSupported;
   end;
 
-{ TOpenALStreamFeedThread }
+{ TOpenALStreamBuffersSoundSourceRes }
 
-procedure TOpenALStreamFeedThread.Execute;
+procedure TOpenALStreamBuffersSoundSourceRes.ContextOpen(const AURL: String);
 var
-  ALBuffersProcessed: TALint;
-  ALBuffer: TALuint;
+  I: Integer;
 begin
-  ALBuffersProcessed := 0;
-  while (not Terminated) do
-  begin
-    Sleep(10);
+  StreamedSFile := TStreamedSoundFile.CreateFromFile(AURL);
 
-    alGetSourcei(FALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+  { Maybe strange but this is optimal buffer config loading. }
+  if not FStreamBuffer.FStreamConfigReaded then
+    FStreamBuffer.ReadStreamConfig(StreamedSFile);
 
-    while ALBuffersProcessed > 0 do
+  alCreateBuffers(4, ALBuffers);
+  CheckAL('Before filling buffers');
+
+  try
+    for I := 0 to 3 do
     begin
-      alSourceUnqueueBuffers(FALSource, 1, @ALBuffer);
-
-      if FStreamedBuffer.FillBuffer(ALBuffer) > 0 then
-      begin
-        alSourceQueueBuffers(FALSource, 1, @ALBuffer);
-      end
-      else
-        Exit;
-
-      Dec(ALBuffersProcessed);
+      FillBuffer(ALBuffers[I]);
+      CheckAL('After filling buffer '+IntToStr(I));
     end;
+
+  except
+    alDeleteBuffers(4, @ALBuffers);
+    raise
+  end;
+  CheckAL('After filling all buffers');
+
+  WritelnLog('ALSource: ' + IntToStr(FSoundSource.ALSource));
+  alSourceQueueBuffers(FSoundSource.ALSource, 4, ALBuffers);
+  CheckAL('After queue');
+end;
+
+procedure TOpenALStreamBuffersSoundSourceRes.ContextClose;
+begin
+  StopFeedingBuffers;
+  alDeleteBuffers(4, ALBuffers);
+  FreeAndNil(StreamedSFile);
+  { Sound Stream can be destroyed before FSoundSource, so need to fix dangling
+    pointer here. }
+  FSoundSource.FBuffer := nil;
+end;
+
+procedure TOpenALStreamBuffersSoundSourceRes.FeedBuffers;
+begin
+  if FeedThread <> nil then
+  begin
+    FeedThread.Terminate;
+    FeedThread.WaitFor;
+    FreeAndNil(FeedThread);
+  end;
+
+  FeedThread := TOpenALStreamFeedThread.Create(true, Self);
+  FeedThread.Start;
+end;
+
+procedure TOpenALStreamBuffersSoundSourceRes.StopFeedingBuffers;
+begin
+  if FeedThread <> nil then
+  begin
+    FeedThread.Terminate;
+    FeedThread.WaitFor;
+    FreeAndNil(FeedThread);
   end;
 end;
 
-constructor TOpenALStreamFeedThread.Create(CreateSuspended: Boolean; ALSource: TALuint; StreamedBuffer: TOpenALStreamBuffersBackend);
-begin
-  inherited Create(CreateSuspended);
-  FALSource := ALSource;
-  FStreamedBuffer := StreamedBuffer;
-
-  FreeOnTerminate := false;
-end;
-
-{ TOpenALStreamBuffersBackend }
-
-function TOpenALStreamBuffersBackend.FillBuffer(ALBuffer: TALuint): Integer;
+function TOpenALStreamBuffersSoundSourceRes.FillBuffer(ALBuffer: TALuint): Integer;
 var
   Buffer: Pointer;
 const
@@ -195,7 +248,7 @@ const
     AL_FORMAT_STEREO8,
     AL_FORMAT_STEREO16
   );
-  BufSize = 1024 * 6; // 100kB for tests
+  BufSize = 1024 * 16; // 100kB for tests
 begin
   Buffer := GetMem(BufSize);
   try
@@ -211,63 +264,117 @@ begin
   end;
 end;
 
-procedure TOpenALStreamBuffersBackend.FeedBuffers(ALSource: TALuint);
+constructor TOpenALStreamBuffersSoundSourceRes.Create(ASoundSurce: TOpenALSoundSourceBackend; StreamBuffer: TOpenALStreamBuffersBackend);
 begin
-  if FeedThread <> nil then
-  begin
-    FeedThread.Terminate;
-    FeedThread.WaitFor;
-    FreeAndNil(FeedThread);
-  end;
-
-  FeedThread := TOpenALStreamFeedThread.Create(true, ALSource, Self);
-  FeedThread.Resume;
+  FSoundSource := ASoundSurce;
+  FStreamBuffer := StreamBuffer;
+  StreamedSFile := nil;
+  FeedThread := nil;
 end;
 
-procedure TOpenALStreamBuffersBackend.StopFeedingBuffers;
-begin
-  if FeedThread <> nil then
-  begin
-    FeedThread.Terminate;
-    FeedThread.WaitFor;
-    FreeAndNil(FeedThread);
-  end;
-end;
+{ TOpenALStreamFeedThread }
 
-procedure TOpenALStreamBuffersBackend.ContextOpenFromStreamedFile(const StreamedSoundFile: TStreamedSoundFile);
+procedure TOpenALStreamFeedThread.Execute;
 var
-  I: Integer;
+  ALBuffersProcessed: TALint;
+  ALBuffer: TALuint;
+  ALSource: TALuint;
 begin
-  StreamedSFile := StreamedSoundFile;
-  alCreateBuffers(4, ALBuffers);
-  CheckAL('before filling buffers');
+  ALBuffersProcessed := 0;
+  ALSource := FStreamSoundSourceRes.FSoundSource.ALSource;
+  while (not Terminated) do
+  begin
+    Sleep(10);
 
-  try
-    for I := 0 to 3 do
+    alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+
+    while ALBuffersProcessed > 0 do
     begin
-      FillBuffer(ALBuffers[I]);
-      CheckAL('after filling buffer '+IntToStr(I));
+      alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
+
+      if FStreamSoundSourceRes.FillBuffer(ALBuffer) > 0 then
+      begin
+        alSourceQueueBuffers(ALSource, 1, @ALBuffer);
+      end
+      else
+        Exit;
+
+      Dec(ALBuffersProcessed);
     end;
-
-  except
-    alDeleteBuffers(4, @ALBuffers);
-    raise
   end;
+end;
 
-  CheckAL('after filling all buffers');
+constructor TOpenALStreamFeedThread.Create(CreateSuspended: Boolean; StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes);
+begin
+  inherited Create(CreateSuspended);
+  FStreamSoundSourceRes := StreamSoundSourceRes;
+
+  FreeOnTerminate := false;
+end;
+
+{ TOpenALStreamBuffersBackend }
+
+procedure TOpenALStreamBuffersBackend.AddSoundSource(const SoundSource: TOpenALSoundSourceBackend);
+var
+  StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
+begin
+  if not FSoundSourcesRes.TryGetValue(SoundSource, StreamSoundSourceRes) then
+  begin
+    StreamSoundSourceRes := TOpenALStreamBuffersSoundSourceRes.Create(SoundSource, Self);
+    FSoundSourcesRes.AddOrSetValue(SoundSource, StreamSoundSourceRes);
+  end;
+  StreamSoundSourceRes.ContextOpen(FURL);
+end;
+
+procedure TOpenALStreamBuffersBackend.RemoveSoundSource(const SoundSource: TOpenALSoundSourceBackend);
+var
+  StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
+begin
+  if FSoundSourcesRes.TryGetValue(SoundSource, StreamSoundSourceRes) then
+  begin
+    StreamSoundSourceRes.ContextClose;
+    FSoundSourcesRes.Remove(SoundSource);
+    StreamSoundSourceRes.Free;
+  end;
+end;
+
+procedure TOpenALStreamBuffersBackend.FeedBuffers(SoundSource: TOpenALSoundSourceBackend);
+var
+  StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
+begin
+  if FSoundSourcesRes.TryGetValue(SoundSource, StreamSoundSourceRes) then
+  begin
+    StreamSoundSourceRes.FeedBuffers;
+  end;
+end;
+
+procedure TOpenALStreamBuffersBackend.StopFeedingBuffers(SoundSource: TOpenALSoundSourceBackend);
+var
+  StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
+begin
+  if FSoundSourcesRes.TryGetValue(SoundSource, StreamSoundSourceRes) then
+  begin
+    StreamSoundSourceRes.StopFeedingBuffers;
+  end;
+end;
+
+procedure TOpenALStreamBuffersBackend.ContextOpenFromStreamedFile(const AURL: String);
+begin
+  inherited;
+  FSoundSourcesRes := TOpenALStreamSoundSourceResDict.Create([doOwnsValues]);
 end;
 
 procedure TOpenALStreamBuffersBackend.ContextClose;
+var
+  StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes;
 begin
-  if FeedThread <> nil then
+  for StreamSoundSourceRes in FSoundSourcesRes.Values do
   begin
-    FeedThread.Terminate;
-    FeedThread.WaitFor;
-    FreeAndNil(FeedThread);
+    StreamSoundSourceRes.ContextClose;
   end;
-  alDeleteBuffers(4, ALBuffers);
-  FreeAndNil(StreamedSFile);
+  FreeAndNil(FSoundSourcesRes);
 end;
+
 
 { TOpenALSoundBufferBackend -------------------------------------------------- }
 
@@ -314,7 +421,6 @@ begin
     (and convert to ENoMoreSources exception) alGetError after
     alCreateSources. So we want to have "clean error state" first. }
   CheckAL('Checking before TOpenALSoundSourceBackend.ContextOpen');
-
   alCreateSources(1, @ALSource);
 
   ErrorCode := alGetError();
@@ -352,7 +458,7 @@ begin
     alSourcePlay(ALSource);
 
     // tutaj wątek
-    StreamedBuffer.FeedBuffers(ALSource);
+    StreamedBuffer.FeedBuffers(Self);
 
     {ALBuffersProcessed := 0;
 
@@ -476,6 +582,12 @@ var
   Stream: TOpenALStreamBuffersBackend;
   FullLoaded: TOpenALSoundBufferBackend;
 begin
+  { If some streamed buffer was connected to this source, disconnect it before
+  the change. }
+  if Assigned(FBuffer) and (FBuffer is TOpenALStreamBuffersBackend) then
+    TOpenALStreamBuffersBackend(FBuffer).RemoveSoundSource(Self);
+
+  WritelnLog('Sound Source set buffer '+ IntToStr(ALSource));
   FBuffer := Value;
 
   if Assigned(FBuffer) then
@@ -493,7 +605,7 @@ begin
     else if FBuffer is TOpenALStreamBuffersBackend then
     begin
       Stream := TOpenALStreamBuffersBackend(FBuffer);
-      alSourceQueueBuffers(ALSource, 4, Stream.ALBuffers);
+      Stream.AddSoundSource(Self);
     end;
   end else
     alSourcei(ALSource, AL_BUFFER, 0);
