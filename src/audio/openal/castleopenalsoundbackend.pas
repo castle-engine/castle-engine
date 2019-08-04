@@ -106,6 +106,7 @@ type
 
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
+    FStreamedBuffer: Boolean;
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
@@ -256,8 +257,7 @@ begin
     if Result > 0 then
     begin
       alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], Buffer, Result, StreamedSFile.Frequency);
-    end
-    else
+    end else
       alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], nil, 0, StreamedSFile.Frequency);
   finally
     FreeMemNiling(Buffer);
@@ -295,8 +295,7 @@ begin
       if FStreamSoundSourceRes.FillBuffer(ALBuffer) > 0 then
       begin
         alSourceQueueBuffers(ALSource, 1, @ALBuffer);
-      end
-      else
+      end else
         Exit;
 
       Dec(ALBuffersProcessed);
@@ -423,9 +422,12 @@ begin
   CheckAL('Checking before TOpenALSoundSourceBackend.ContextOpen');
   alCreateSources(1, @ALSource);
 
+  FStreamedBuffer := false;
+
   ErrorCode := alGetError();
   if ErrorCode = AL_INVALID_VALUE then
-    raise ENoMoreSources.Create('No more sound sources available') else
+    raise ENoMoreSources.Create('No more sound sources available')
+  else
   if ErrorCode <> AL_NO_ERROR then
     raise EALError.Create(ErrorCode,
       'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
@@ -584,7 +586,7 @@ var
 begin
   { If some streamed buffer was connected to this source, disconnect it before
   the change. }
-  if Assigned(FBuffer) and (FBuffer is TOpenALStreamBuffersBackend) then
+  if FStreamedBuffer and Assigned(FBuffer) and (FBuffer is TOpenALStreamBuffersBackend) then
     TOpenALStreamBuffersBackend(FBuffer).RemoveSoundSource(Self);
 
   WritelnLog('Sound Source set buffer '+ IntToStr(ALSource));
@@ -594,6 +596,7 @@ begin
   begin
     if FBuffer is TOpenALSoundBufferBackend then
     begin
+      FStreamedBuffer := false;
       FullLoaded := TOpenALSoundBufferBackend(FBuffer);
       { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
         But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
@@ -601,9 +604,10 @@ begin
       {$I norqcheckbegin.inc}
       alSourcei(ALSource, AL_BUFFER, FullLoaded.ALBuffer);
       {$I norqcheckend.inc}
-    end
-    else if FBuffer is TOpenALStreamBuffersBackend then
+    end else
+    if FBuffer is TOpenALStreamBuffersBackend then
     begin
+      FStreamedBuffer := true;
       Stream := TOpenALStreamBuffersBackend(FBuffer);
       Stream.AddSoundSource(Self);
     end;
