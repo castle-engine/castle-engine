@@ -207,11 +207,25 @@ begin
 end;
 
 procedure TOpenALStreamBuffersSoundSourceRes.ContextClose;
+var
+  ALBuffersProcessed: TALint;
+  ALBuffer: TALuint;
+  I:Integer;
 begin
   StopFeedingBuffers;
-  alDeleteBuffers(4, ALBuffers);
+  FSoundSource.Stop;
+
+  { Stoping sound source mark all buffers as processed so we can delete them safely. }
+  alGetSourcei(FSoundSource.ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
+  for I := 0 to ALBuffersProcessed - 1 do
+  begin
+    alSourceUnqueueBuffers(FSoundSource.ALSource, 1, @ALBuffer);
+    alFreeBuffer(ALBuffer);
+  end;
+
   FreeAndNil(StreamedSFile);
-  { Sound Stream can be destroyed before FSoundSource, so need to fix dangling
+
+  { Sound stream can be destroyed before FSoundSource, so need to fix dangling
     pointer here. }
   FSoundSource.FBuffer := nil;
 end;
@@ -333,7 +347,6 @@ begin
   begin
     StreamSoundSourceRes.ContextClose;
     FSoundSourcesRes.Remove(SoundSource);
-    StreamSoundSourceRes.Free;
   end;
 end;
 
