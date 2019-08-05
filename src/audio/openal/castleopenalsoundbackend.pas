@@ -166,7 +166,7 @@ type
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend; override;
+    function CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
     procedure SetGain(const Value: Single); override;
@@ -998,12 +998,12 @@ begin
   alListenerOrientation(Direction, Up);
 end;
 
-function TOpenALSoundEngineBackend.CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend;
+function TOpenALSoundEngineBackend.CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
-  case BufferType of
-    sbtFullLoad:
+  case SoundLoading of
+    slComplete:
       Result := TOpenALSoundBufferBackend.Create(Self);
-    sbtStreamed:
+    slStreaming:
       Result := TOpenALStreamBuffersBackend.Create(Self);
   end;
 

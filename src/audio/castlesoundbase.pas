@@ -64,9 +64,9 @@ type
     sfStereo16
   );
 
-  TSoundBufferType = (
-    sbtFullLoad,
-    sbtStreamed
+  TSoundLoading = (
+    slComplete,
+    slStreaming
   );
 
 

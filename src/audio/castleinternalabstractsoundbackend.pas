@@ -169,7 +169,7 @@ type
     procedure ContextClose; virtual; abstract;
 
     { Create suitable non-abstract TSoundBufferBackend descendant. }
-    function CreateBuffer(BufferType: TSoundBufferType): TSoundBufferBackend; virtual; abstract;
+    function CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend; virtual; abstract;
 
     { Create suitable non-abstract TSoundSourceBackend descendant. }
     function CreateSource: TSoundSourceBackend; virtual; abstract;
