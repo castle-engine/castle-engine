@@ -136,7 +136,7 @@ implementation
 
 uses JsonParser, RtlConsts,
   CastleFilesUtils, CastleUtils, CastleLog, CastleStringUtils, CastleClassUtils,
-  CastleURIUtils;
+  CastleURIUtils, CastleVectors, CastleColors;
 
 { component registration ----------------------------------------------------- }
 
@@ -502,6 +502,7 @@ var
   MethodValue, DefMethodValue: TMethod;
   VarValue, DefVarValue : tvardata;
   BoolValue, DefBoolValue: boolean;
+  C: TObject;
 begin
   Result := false; // for unknown types, assume false
 
@@ -544,7 +545,7 @@ begin
     tkVariant:
       begin
         { Ensure that a Variant manager is installed }
-        if not assigned(VarClearProc) then
+        if not Assigned(VarClearProc) then
           raise EWriteError.Create(SErrNoVariantSupport);
         VarValue := tvardata(GetVariantProp(Instance, PropInfo));
         FillChar(DefVarValue,sizeof(DefVarValue),0);
@@ -552,7 +553,27 @@ begin
       end;
     tkClass:
       begin
-        Result := GetObjectProp(Instance, PropInfo) = nil;
+        C := GetObjectProp(Instance, PropInfo);
+        Result :=
+          (C = nil) or
+          (
+            { Avoid saving common subcomponents with all values left as default.
+              This makes .castle-user-interface files smaller, which makes also their
+              diffs easier to read (useful when commiting them, reviewing etc.)
+
+              The TCastleVector*Persistent and TBorder do not descend from TComponent
+              so we cannot actually check are they subcomponents:
+
+                (C is TComponent) and
+                (csSubComponent * TComponent(C).ComponentState) and
+            }
+            ((C.ClassType = TCastleVector2Persistent) and TCastleVector2Persistent(C).HasDefaultValue) or
+            ((C.ClassType = TCastleVector3Persistent) and TCastleVector3Persistent(C).HasDefaultValue) or
+            ((C.ClassType = TCastleVector4Persistent) and TCastleVector4Persistent(C).HasDefaultValue) or
+            ((C.ClassType = TCastleColorRGBPersistent) and TCastleColorRGBPersistent(C).HasDefaultValue) or
+            ((C.ClassType = TCastleColorPersistent) and TCastleColorPersistent(C).HasDefaultValue) or
+            ((C.ClassType = TBorder) and TBorder(C).HasDefaultValue)
+          );
       end;
     tkInt64, tkQWord:
       begin

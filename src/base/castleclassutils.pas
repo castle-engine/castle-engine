@@ -461,7 +461,8 @@ type
       (which is normal for "subcomponents")
       then it will be serialized anyway, just as part of it's own property
       (like TCastleScrollView.ScrollArea).
-      So to @italic(really) avoid serializing the component,
+      So to @italic(really) avoid serializing the component
+      (that you have to insert to @code(TComponent.GetChildren) list),
       make it csSubComponent and/or csTransient,
       and do not publish it.
     }
