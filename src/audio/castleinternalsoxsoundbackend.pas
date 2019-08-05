@@ -262,7 +262,7 @@ function TSoxSoundEngineBackend.CreateBuffer(BufferType: TSoundBufferType): TSou
 begin
   case BufferType of
     sbtStreamed:
-      raise Exception.Create('Streamed buffers are not supported in Soc backend.');
+      raise Exception.Create('Streamed buffers are not supported in Sox backend.');
     sbtFullLoad:
       Result := TSoxSoundBufferBackend.Create(Self);
   end;
