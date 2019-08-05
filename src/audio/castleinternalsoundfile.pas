@@ -90,8 +90,6 @@ type
     procedure ConvertTo16bit; virtual;
   end;
 
-  { TStreamedSoundFile }
-
   TStreamedSoundFile = class
   strict private
   var
@@ -131,6 +129,8 @@ type
 
       { Returns readed size. }
       function Read(var Buffer; const BufferSize: LongInt): LongInt; virtual; abstract;
+      { Rewind streamed sound file, this is necessary for looping. }
+      procedure Rewind;virtual;abstract;
 
       { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
         not sfMono8 or sfStereo8).
@@ -175,6 +175,7 @@ type
     destructor Destroy; override;
 
     function Read(var Buffer; const BufferSize: LongInt): LongInt; override;
+    procedure Rewind; override;
 
     function DataFormat: TSoundDataFormat; override;
     function Frequency: LongWord; override;
@@ -226,6 +227,13 @@ function TStreamedSoundOggVorbis.Read(var Buffer; const BufferSize: LongInt): Lo
 begin
   Result := ReadVorbisFileFillBuffer(OggFile, Buffer, BufferSize);
   //Result := ReadVorbisFile(OggFile, Buffer, BufferSize);
+end;
+
+procedure TStreamedSoundOggVorbis.Rewind;
+begin
+  CloseVorbisFile(OggFile);
+  SourceFileStream.Position := 0;
+  OpenVorbisFile(OggFile, SourceFileStream, FDataFormat, FFrequency);
 end;
 
 function TStreamedSoundOggVorbis.DataFormat: TSoundDataFormat;
