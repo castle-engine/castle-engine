@@ -106,11 +106,23 @@ type
 
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
+    { Because TOpenALSoundBufferBackend is one for all sources we don't have pointer to sound source
+      to correctly set FBuffer to nil like in TOpenALStreamBuffersSoundSourceRes.ContextClose.
+      That makes a problem when FBuffer is checked in TOpenALSoundSourceBackend.SetBuffer
+      because FBuffer can be dangling pointer.
+      So we set this variable to see do we have to check remove the sourcefrom buffer at all.
+      FBuffer variable is always correct when is set to TOpenALStreamBuffersBackend and
+      can be dangling pointer when set to TOpenALSoundBufferBackend. }
     FStreamedBuffer: Boolean;
     function ALVersion11: Boolean;
   private
     FBuffer: TSoundBufferBackend;
     ALSource: TALuint;
+    FLooping: Boolean;
+
+    { When buffer is stremed, OpenAL source looping need to be off,
+      otherwise, one buffer will be looped. This procedure cares about that. }
+    procedure AdjustALLooping;
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
@@ -263,7 +275,7 @@ const
     AL_FORMAT_STEREO8,
     AL_FORMAT_STEREO16
   );
-  BufSize = 1024 * 16; // 100kB for tests
+  BufSize = 1024 * 16; // 16kB for tests
 begin
   Buffer := GetMem(BufSize);
   try
@@ -272,7 +284,11 @@ begin
     begin
       alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], Buffer, Result, StreamedSFile.Frequency);
     end else
-      alBufferData(ALBuffer, ALDataFormat[StreamedSFile.DataFormat], nil, 0, StreamedSFile.Frequency);
+      if FSoundSource.FLooping then
+      begin
+        StreamedSFile.Rewind;
+        Result := FillBuffer(ALBuffer);
+      end;
   finally
     FreeMemNiling(Buffer);
   end;
@@ -310,10 +326,18 @@ begin
       begin
         alSourceQueueBuffers(ALSource, 1, @ALBuffer);
       end else
+      begin
         Exit;
+      end;
 
       Dec(ALBuffersProcessed);
     end;
+
+    if not FStreamSoundSourceRes.FSoundSource.PlayingOrPaused then
+    begin
+      alSourcePlay(ALSource);
+    end;
+
   end;
 end;
 
@@ -425,6 +449,14 @@ begin
   Result := (SoundEngine as TOpenALSoundEngineBackend).ALVersion11;
 end;
 
+procedure TOpenALSoundSourceBackend.AdjustALLooping;
+begin
+  if FStreamedBuffer then
+    alSourcei(ALSource, AL_LOOPING, BoolToAL[false])
+  else
+    alSourcei(ALSource, AL_LOOPING, BoolToAL[FLooping]);
+end;
+
 procedure TOpenALSoundSourceBackend.ContextOpen;
 var
   ErrorCode: TALenum;
@@ -472,31 +504,8 @@ begin
 
     alSourcePlay(ALSource);
 
-    // tutaj wątek
+    // start feed buffers thread
     StreamedBuffer.FeedBuffers(Self);
-
-    {ALBuffersProcessed := 0;
-
-    while (true) do
-    begin
-      Sleep(10);
-
-      alGetSourcei(ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
-
-      while ALBuffersProcessed > 0 do
-      begin
-        alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
-
-        if StreamedBuffer.FillBuffer(ALBuffer) > 0 then
-        begin
-          alSourceQueueBuffers(ALSource, 1, @ALBuffer);
-        end
-        else
-          Exit;
-
-        Dec(ALBuffersProcessed);
-      end;
-    end; }
 
     Exit;
   end;
@@ -568,7 +577,8 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
 begin
-  //alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
+  FLooping := Value;
+  AdjustALLooping;
 end;
 
 procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
@@ -598,7 +608,7 @@ var
   FullLoaded: TOpenALSoundBufferBackend;
 begin
   { If some streamed buffer was connected to this source, disconnect it before
-  the change. }
+  the change. Why FStreamedBuffer? See comment above FStreamedBuffer declaration. }
   if FStreamedBuffer and Assigned(FBuffer) and (FBuffer is TOpenALStreamBuffersBackend) then
     TOpenALStreamBuffersBackend(FBuffer).RemoveSoundSource(Self);
 
@@ -610,6 +620,7 @@ begin
     if FBuffer is TOpenALSoundBufferBackend then
     begin
       FStreamedBuffer := false;
+      AdjustALLooping;
       FullLoaded := TOpenALSoundBufferBackend(FBuffer);
       { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
         But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
@@ -621,6 +632,7 @@ begin
     if FBuffer is TOpenALStreamBuffersBackend then
     begin
       FStreamedBuffer := true;
+      AdjustALLooping;
       Stream := TOpenALStreamBuffersBackend(FBuffer);
       Stream.AddSoundSource(Self);
     end;
