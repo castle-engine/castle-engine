@@ -41,7 +41,9 @@ uses SysUtils, Classes, Math, StrUtils, Generics.Collections,
 { sound backend classes interface -------------------------------------------- }
 
 type
+  {$ifdef CASTLE_SUPPORTS_THREADING}
   TOpenALStreamFeedThread = class;
+  {$endif}
   TOpenALSoundSourceBackend = class;
   TOpenALStreamBuffersBackend = class;
 
@@ -61,7 +63,9 @@ type
     FSoundSource: TOpenALSoundSourceBackend;
     ALBuffers: array[0..3] of TALuint;
     StreamedSFile: TStreamedSoundFile;
+    {$ifdef CASTLE_SUPPORTS_THREADING}
     FeedThread: TOpenALStreamFeedThread;
+    {$endif}
     FStreamBuffer: TOpenALStreamBuffersBackend;
 
     function FillBuffer(ALBuffer: TALuint): Integer;
@@ -244,6 +248,7 @@ end;
 
 procedure TOpenALStreamBuffersSoundSourceRes.FeedBuffers;
 begin
+  {$ifdef CASTLE_SUPPORTS_THREADING}
   if FeedThread <> nil then
   begin
     FeedThread.Terminate;
@@ -253,16 +258,19 @@ begin
 
   FeedThread := TOpenALStreamFeedThread.Create(true, Self);
   FeedThread.Start;
+  {$endif}
 end;
 
 procedure TOpenALStreamBuffersSoundSourceRes.StopFeedingBuffers;
 begin
+  {$ifdef CASTLE_SUPPORTS_THREADING}
   if FeedThread <> nil then
   begin
     FeedThread.Terminate;
     FeedThread.WaitFor;
     FreeAndNil(FeedThread);
   end;
+  {$endif}
 end;
 
 function TOpenALStreamBuffersSoundSourceRes.FillBuffer(ALBuffer: TALuint): Integer;
@@ -299,7 +307,9 @@ begin
   FSoundSource := ASoundSurce;
   FStreamBuffer := StreamBuffer;
   StreamedSFile := nil;
+  {$ifdef CASTLE_SUPPORTS_THREADING}
   FeedThread := nil;
+  {$endif}
 end;
 
 { TOpenALStreamFeedThread }
@@ -577,6 +587,13 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
 begin
+  { This variable is set from main thread but can be read by 2 threads (main and
+    TOpenALStreamFeedThread, but I think this is Boolean and changeing Boolean
+    value is atomic so we don't need critical section here.
+    Can be changed if that make any issues.
+    More info:
+    https://stackoverflow.com/questions/5481030/are-delphi-simple-types-thread-safe
+    }
   FLooping := Value;
   AdjustALLooping;
 end;
@@ -1000,13 +1017,16 @@ end;
 
 function TOpenALSoundEngineBackend.CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
+  {$ifdef CASTLE_SUPPORTS_THREADING}
   case SoundLoading of
     slComplete:
       Result := TOpenALSoundBufferBackend.Create(Self);
     slStreaming:
       Result := TOpenALStreamBuffersBackend.Create(Self);
   end;
-
+  {$else}
+  Result := TOpenALSoundBufferBackend.Create(Self);
+  {$endif}
 end;
 
 function TOpenALSoundEngineBackend.CreateSource: TSoundSourceBackend;

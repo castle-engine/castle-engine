@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -386,5 +386,12 @@
   Undefine this to conserve around 0.7 MB in exe size.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
+
+{ Threading --------------------------------------------------------------- }
+
+{ Threading support, some platform don't have threads (implemented yet). }
+{$define CASTLE_SUPPORTS_THREADING}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_SUPPORTS_THREADING} {$endif}
+
 
 {$endif not CASTLE_CONF_INCLUDED}
