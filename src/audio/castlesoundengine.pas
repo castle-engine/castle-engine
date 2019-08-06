@@ -571,6 +571,10 @@ type
 
       @groupBegin }
     function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+      overload;
+      deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
     function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
@@ -2159,6 +2163,16 @@ begin
   if IsContextOpenSuccess then
     { let LoadBuffer raise exception on missing sound file }
     Result.ContextOpen(ExceptionOnError);
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
+begin
+  LoadBuffer(URL, slComplete, ExceptionOnError);
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+begin
+  LoadBuffer(URL, slComplete, Duration);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
