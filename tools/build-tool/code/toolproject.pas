@@ -1004,6 +1004,7 @@ function TCastleProject.PackageFiles(const OnlyData: boolean): TCastleStringList
 var
   I: Integer;
   FindOptions: TFindFilesOptions;
+  FullPath: String;
 begin
   Result := TCastleStringList.Create;
 
@@ -1020,7 +1021,16 @@ begin
           or <include path="docs/README.txt" />
           should not include *all* README.txt files inside. }
         FindOptions := [];
-      FindFiles(Path + IncludePaths[I], false, @PackageFilesGather, FindOptions);
+      FullPath := Path + IncludePaths[I];
+      if IsSuffix('/', FullPath, false) or
+         IsSuffix('\', FullPath, false) then
+      begin
+        WritelnWarning('Include path ends with slash or backslash, it would not match anything: "%s". Appending "*" at the end to match everything inside.',
+          [FullPath]);
+        FullPath := FullPath + '*';
+      end;
+
+      FindFiles(FullPath, false, @PackageFilesGather, FindOptions);
     end;
   GatheringFiles := nil;
 
