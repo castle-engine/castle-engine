@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -131,19 +131,12 @@ type
       function Read(var Buffer; const BufferSize: LongInt): LongInt; virtual; abstract;
       { Rewind streamed sound file, this is necessary for looping. }
       procedure Rewind;virtual;abstract;
-
-      { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
-        not sfMono8 or sfStereo8).
-
-        The default implementation just raises an exception if data is not 16-bit.
-        When overriding this you call "inherited" at the end. }
-      procedure ConvertTo16bit; virtual;
   end;
 
   TSoundFileClass = class of TSoundFile;
   TStreamedSoundFileClass = class of TStreamedSoundFile;
 
-  { OggVorbis file loader.
+  { OggVorbis file loader. Loads complete file to memory.
     Loads using libvorbisfile or tremolo. Both are open-source libraries
     for reading OggVorbis music from https://xiph.org/.
     Tremolo is used on mobile devices, libvorbisfile on desktop. }
@@ -162,14 +155,17 @@ type
     function Frequency: LongWord; override;
   end;
 
-  { TStreamedSoundOggVorbis }
-
+    { OggVorbis file loader used when you streaming sounds.
+      Loads using libvorbisfile or tremolo. Both are open-source libraries
+      for reading OggVorbis music from https://xiph.org/.
+      Tremolo is used on mobile devices, libvorbisfile on desktop. }
   TStreamedSoundOggVorbis = class(TStreamedSoundFile)
+  strict private
+    OggFile: TOggVorbis_File;
   private
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
     SourceFileStream: TStream;
-    OggFile: TOggVorbis_File;
   public
     constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
@@ -226,7 +222,6 @@ end;
 function TStreamedSoundOggVorbis.Read(var Buffer; const BufferSize: LongInt): LongInt;
 begin
   Result := ReadVorbisFileFillBuffer(OggFile, Buffer, BufferSize);
-  //Result := ReadVorbisFile(OggFile, Buffer, BufferSize);
 end;
 
 procedure TStreamedSoundOggVorbis.Rewind;
@@ -284,8 +279,6 @@ begin
 
         Result := C.CreateFromStream(S, AURL);
 
-        //Result.CheckCorrectness;
-
         if LogSoundLoading then
         begin
           WritelnLog('Sound', 'Loaded "%s": %s, %s, frequency: %d', [
@@ -327,13 +320,6 @@ begin
   finally
     Profiler.Stop(TimeStart)
   end;
-end;
-
-procedure TStreamedSoundFile.ConvertTo16bit;
-begin
-  // TODO: This could be implemented as independent from sound format
-  if not (DataFormat in [sfMono16, sfStereo16]) then
-    raise ESoundFileError.CreateFmt('Cannot convert this sound class to 16-bit: %s', [ClassName]);
 end;
 
 { TSoundFile ----------------------------------------------------------------- }

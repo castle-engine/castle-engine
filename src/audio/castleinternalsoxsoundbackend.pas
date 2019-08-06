@@ -262,7 +262,7 @@ function TSoxSoundEngineBackend.CreateBuffer(SoundLoading: TSoundLoading): TSoun
 begin
   case SoundLoading of
     slStreaming:
-      raise Exception.Create('Streamed buffers are not supported in Sox backend.');
+      raise Exception.Create('Streaming is not supported in Sox backend.');
     slComplete:
       Result := TSoxSoundBufferBackend.Create(Self);
   end;

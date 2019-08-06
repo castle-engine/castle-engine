@@ -78,13 +78,6 @@ type
     procedure ContextOpen(const AURL: String); override;
   end;
 
-
-  { TSoundBufferBackend descendant that can load TSoundFile instance.
-    Should be used by sound backends that cannot load sound files themselves,
-    and rely on TSoundFile to do it (right now, this applies to all backends except FMOD). }
-
-  { TSoundBufferBackendFromStreamedFile }
-
   TSoundBufferBackendFromStreamedFile = class(TSoundBufferBackend)
   protected
     FStreamConfigReaded: Boolean;
@@ -208,7 +201,6 @@ function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
 begin
   if not FStreamConfigReaded then
     ReadStreamConfig;
-
   Result := FDataFormat;
 end;
 

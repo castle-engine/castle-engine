@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2018 Michalis Kamburelis.
+  Copyright 2010-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -56,8 +56,6 @@ type
     procedure ContextClose; override;
   end;
 
-  { TOpenALStreamBuffersSoundSourceRes }
-
   TOpenALStreamBuffersSoundSourceRes = class
   private
     FSoundSource: TOpenALSoundSourceBackend;
@@ -81,8 +79,6 @@ type
 
   TOpenALStreamSoundSourceResDict = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectDictionary<TOpenALSoundSourceBackend, TOpenALStreamBuffersSoundSourceRes>;
 
-  { TOpenALStreamBuffersBackend }
-
   TOpenALStreamBuffersBackend = class (TSoundBufferBackendFromStreamedFile)
   private
     FSoundSourcesRes: TOpenALStreamSoundSourceResDict;
@@ -105,8 +101,6 @@ type
     public
       constructor Create(CreateSuspended: Boolean; StreamSoundSourceRes: TOpenALStreamBuffersSoundSourceRes); reintroduce;
   end;
-
-  { TOpenALSoundSourceBackend }
 
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
@@ -217,7 +211,6 @@ begin
   end;
   CheckAL('After filling all buffers');
 
-  WritelnLog('ALSource: ' + IntToStr(FSoundSource.ALSource));
   alSourceQueueBuffers(FSoundSource.ALSource, 4, ALBuffers);
   CheckAL('After queue');
 end;
@@ -234,10 +227,9 @@ begin
   { Stoping sound source mark all buffers as processed so we can delete them safely. }
   alGetSourcei(FSoundSource.ALSource, AL_BUFFERS_PROCESSED, @ALBuffersProcessed);
   for I := 0 to ALBuffersProcessed - 1 do
-  begin
     alSourceUnqueueBuffers(FSoundSource.ALSource, 1, @ALBuffer);
-    alFreeBuffer(ALBuffer);
-  end;
+
+  alDeleteBuffers(4, ALBuffers);
 
   FreeAndNil(StreamedSFile);
 
@@ -283,7 +275,7 @@ const
     AL_FORMAT_STEREO8,
     AL_FORMAT_STEREO16
   );
-  BufSize = 1024 * 16; // 16kB for tests
+  BufSize = 1024 * 32; // 32kB should be enough
 begin
   Buffer := GetMem(BufSize);
   try
@@ -333,12 +325,9 @@ begin
       alSourceUnqueueBuffers(ALSource, 1, @ALBuffer);
 
       if FStreamSoundSourceRes.FillBuffer(ALBuffer) > 0 then
-      begin
-        alSourceQueueBuffers(ALSource, 1, @ALBuffer);
-      end else
-      begin
+        alSourceQueueBuffers(ALSource, 1, @ALBuffer)
+      else
         Exit;
-      end;
 
       Dec(ALBuffersProcessed);
     end;
@@ -503,8 +492,6 @@ end;
 
 procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
 var
-  ALBuffersProcessed: TALint;
-  ALBuffer: TALuint;
   StreamedBuffer: TOpenALStreamBuffersBackend;
   FullSoundBuffer: TOpenALSoundBufferBackend;
 begin
@@ -512,11 +499,11 @@ begin
   begin
     StreamedBuffer := TOpenALStreamBuffersBackend(FBuffer);
 
+    CheckAL('PlayStream');
     alSourcePlay(ALSource);
 
     // start feed buffers thread
     StreamedBuffer.FeedBuffers(Self);
-
     Exit;
   end;
 
@@ -620,7 +607,6 @@ end;
 
 procedure TOpenALSoundSourceBackend.SetBuffer(const Value: TSoundBufferBackend);
 var
-  I: Integer;
   Stream: TOpenALStreamBuffersBackend;
   FullLoaded: TOpenALSoundBufferBackend;
 begin
