@@ -3,7 +3,7 @@
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split
       and https://developers.heyzap.com/docs/android_sdk_setup_and_requirements# -->
-    <dependency>compile 'com.google.android.gms:play-services-ads:17.2.0'</dependency>
+    <dependency>compile 'com.google.android.gms:play-services-ads:16.0.0'</dependency>
     <dependency>compile 'com.google.android.gms:play-services-location:16.0.0'</dependency>
   </dependencies>
 </build_gradle_merge>

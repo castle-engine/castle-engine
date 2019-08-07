@@ -2,6 +2,6 @@
 <build_gradle_merge>
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split -->
-    <dependency>compile 'com.google.android.gms:play-services-base:16.1.0'</dependency>
+    <dependency>compile 'com.google.android.gms:play-services-base:16.0.0'</dependency>
   </dependencies>
 </build_gradle_merge>
