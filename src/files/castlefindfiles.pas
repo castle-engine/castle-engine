@@ -503,7 +503,7 @@ begin
   FileMethodWrapper.Contents := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
     {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
-    {$ifdef CASTLE_OBJFPC}@{$endif} FileMethodWrapper, Options);
+    @FileMethodWrapper, Options);
 end;
 
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;

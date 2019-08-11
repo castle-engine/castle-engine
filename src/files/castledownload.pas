@@ -130,9 +130,9 @@ type
     So, to be really safe, be ready that this function may raise @italic(any)
     Exception class.)
 }
-function Download(const URL: string; const Options: TStreamOptions = []): TStream;
+function Download(const URL: string; const Options: TStreamOptions = []): TStream; overload;
 function Download(const URL: string; const Options: TStreamOptions;
-  out MimeType: string): TStream;
+  out MimeType: string): TStream; overload;
 
 (* TODO: API for asynchronous downloader is below, not implemented yet.
 
@@ -227,7 +227,7 @@ type
     property FreeOnFinish: boolean read write default false;
   end;
 
-  TDownloadList = specialize TObjectList<TDownload>;
+  TDownloadList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDownload>;
 
 { List of currently existing TDownload instances.
   You can use this e.g. to implement a GUI to show ongoing downloads.
@@ -406,11 +406,10 @@ type
       Uses Castle Game Engine @link(Download) to get the contents,
       then uses standard LoadFromStream to load them.
 
-      The meaning (and default behaviour) of optional IgnoreEncoding
-      and AEncoding is the same as for TStrings.LoadFromFile
-      and TStrings.LoadFromStream. }
-    procedure LoadFromURL(const URL: string; const IgnoreEncoding: Boolean = false);
-    procedure LoadFromURL(const URL: string; const AEncoding: TEncoding);
+      The meaning (and default behaviour) of optional AEncoding
+      is the same as for TStrings.LoadFromFile and TStrings.LoadFromStream. }
+    procedure LoadFromURL(const URL: string); overload;
+    procedure LoadFromURL(const URL: string; const AEncoding: TEncoding); overload;
 
     { Save the contents to URL.
       Uses standard SaveToStream combined with
@@ -435,7 +434,7 @@ type
     WriteEvent: TUrlWriteEvent;
   end;
 
-  TRegisteredProtocols = class(specialize TObjectList<TRegisteredProtocol>)
+  TRegisteredProtocols = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
     { @nil if not found. }
     function Find(const Protocol: String): TRegisteredProtocol;
 
@@ -730,7 +729,7 @@ end;
 function TAndroidDownloadService.Wait(const URL: string): TStream;
 begin
   Finished := false;
-  Messaging.OnReceive.Add(@HandleDownloadMessages);
+  Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
   Messaging.Send(['download-url', URL]);
   try
     { TODO: introduce download-progress messages,
@@ -741,7 +740,7 @@ begin
       Sleep(200)
     until Finished;
   finally
-    Messaging.OnReceive.Remove(@HandleDownloadMessages);
+    Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
   end;
   if FinishedSuccess then
     Result := TFileStream.Create(TemporaryFileName, fmOpenRead)
@@ -804,7 +803,10 @@ end;
 procedure CheckFileAccessSafe(const URL: string);
 begin
   if not ApplicationProperties._FileAccessSafe then
-    WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
+    WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. ' +
+      'This is not reliable on mobile platforms (Android, iOS). ' +
+      'This usually happens if you open a file from the "initialization" section of a unit. ' +
+      'You should do it in Application.OnInitialize instead.',
       [URL]);
 end;
 
@@ -1250,13 +1252,13 @@ end;
 
 { TStringsHelper ---------------------------------------------------------- }
 
-procedure TStringsHelper.LoadFromURL(const URL: string; const IgnoreEncoding: Boolean = false);
+procedure TStringsHelper.LoadFromURL(const URL: string);
 var
   Stream: TStream;
 begin
   Stream := Download(URL);
   try
-    LoadFromStream(Stream {$ifndef VER3_0}, IgnoreEncoding {$endif});
+    LoadFromStream(Stream);
   finally FreeAndNil(Stream) end;
 end;
 
@@ -1280,6 +1282,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
+initialization
 finalization
   FreeAndNil(FRegisteredProtocols);
 end.

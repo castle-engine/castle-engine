@@ -286,11 +286,6 @@ begin
       But it will fail on Android, where the 'castle-data:/example_text.txt'
       is an URL inside "assets:/", it doesn't map to the filename.
       So instead we use StringList.LoadFromURL.
-
-      As 2nd parameter we could pass true (as IgnoreEncoding), since it's UTF-8 file
-      loaded into a String that assumes UTF-8.
-      Or we can use TEncoding.UTF8.
-      TODO: Why with the default (IgnoreEncoding=false), it's not auto-detected as UTF-8?
     }
     StringList.LoadFromURL('castle-data:/example_text.txt', TEncoding.UTF8);
     TestLabel := TCastleLabel.Create(Application);

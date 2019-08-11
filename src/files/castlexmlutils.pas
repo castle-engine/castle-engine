@@ -33,20 +33,23 @@ type
     procedure SetNodeValue8(const S: string);
   public
     { Node name (attribute, element or such name).
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeName
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the NodeName from FPC DOM unit that is a WideString (DOMString). }
     function NodeName8: string;
 
     { Node value (like an attribute value).
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeValue
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the NodeValue from FPC DOM unit that is a WideString (DOMString). }
     property NodeValue8: string read GetNodeValue8 write SetNodeValue8;
   end;
 
   TDOMCharacterDataHelper = class helper for TDOMCharacterData
     { String data.
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the Data
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the Data from FPC DOM unit that is a WideString (DOMString). }
     function Data8: string;
   end;
 
@@ -56,6 +59,7 @@ type
     { ------------------------------------------------------------------------
       Get an optional attribute to a "var" parameter, returns if found. }
 
+    {$ifdef FPC}
     { Read from Element attribute value and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
@@ -65,6 +69,7 @@ type
       Note that the returned Value may be empty, even when this returns @true,
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
     function AttributeString(const AttrName: string; var Value: string): boolean; overload;
+    {$endif}
 
     { Read from Element attribute value as URL and returns @true,
       or (if there is no such attribute) returns @false
@@ -622,16 +627,19 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String); overload;
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
 function URLReadXML(const URL: String): TXMLDocument; overload;
-function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String); overload;
+
+{$ifdef FPC}
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+{$endif}
 { @groupEnd }
 
 implementation
 
-uses Classes, XMLRead, XMLWrite, BlowFish,
+uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
   CastleURIUtils, CastleClassUtils;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
@@ -662,6 +670,7 @@ end;
   TDOMElementHelper:
   Get an optional attribute to a "var" parameter, returns if found. }
 
+{$ifdef FPC}
 function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): boolean;
 var
   AttrNode: TDOMNode;
@@ -675,6 +684,7 @@ begin
     Value := UTF8Encode((AttrNode as TDOMAttr).Value);
   end;
 end;
+{$endif}
 
 function TDOMElementHelper.AttributeURL(
   const AttrName: string; const BaseUrl: string; var URL: string): boolean;
@@ -1100,7 +1110,7 @@ begin
   begin
     Node := Children.Item[I];
     case Node.NodeType of
-      TEXT_NODE: Result := Result + UTF8Encode((Node as TDOMText).Data);
+      TEXT_NODE: Result := Result + (Node as TDOMText).NodeValue8;
       ELEMENT_NODE: raise Exception.CreateFmt(
         'Child elements not allowed within element <%s>, but found %s',
           [TagName, (Node as TDOMElement).TagName]);
@@ -1311,6 +1321,8 @@ begin
   {$ifdef VER2_2} ChildNodes.Release; {$endif}
 end;
 
+{$ifdef FPC}
+
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 var
   Stream: TStream;
@@ -1347,6 +1359,8 @@ begin
     finally FreeAndNil(DecryptStream) end;
   finally FreeAndNil(Stream) end;
 end;
+
+{$endif}
 
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 var
@@ -1385,6 +1399,8 @@ begin
   except FreeAndNil(Result); raise; end;
 end;
 
+{$ifdef FPC}
+
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
 begin
   try
@@ -1406,6 +1422,8 @@ begin
     finally FreeAndNil(EncryptStream) end;
   finally FreeAndNil(Stream) end;
 end;
+
+{$endif}
 
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 var

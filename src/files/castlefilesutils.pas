@@ -469,11 +469,11 @@ function BundlePath: string;
   If AllowStdIn, then URL = '-' (one dash) is treated specially:
   it means to read contents from standard input (stdin, Input in Pascal). }
 function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): string; overload;
+  const AllowStdIn: boolean; out MimeType: string): AnsiString; overload;
 function FileToString(const URL: string;
-  const AllowStdIn: boolean = false): string; overload;
+  const AllowStdIn: boolean = false): AnsiString; overload;
 
-procedure StringToFile(const URL, contents: string);
+procedure StringToFile(const URL: String; const Contents: AnsiString);
 
 implementation
 
@@ -540,7 +540,10 @@ begin
     and ApplicationConfigOverride is set
     (on iOS, it's not set before CGEApp_Initialize called). }
   if not ApplicationProperties._FileAccessSafe then
-    WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
+    WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. ' +
+      'This is not reliable on mobile platforms (Android, iOS). ' +
+      'This usually happens if you open a file from the "initialization" section of a unit. ' +
+      'You should do it in Application.OnInitialize instead.',
       [Path]);
 
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
@@ -858,6 +861,8 @@ end;
 
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
+{$ifdef FPC}
+
 { This is identical to FileSearch, except on Windows each $PATH component
   is stripped from surrounding double quotes.
   Added also "not DirectoryExists(Result)" check, to avoid accidentaly finding
@@ -905,6 +910,14 @@ begin
   result:='';
 end;
 
+{$else}
+
+begin
+  Result := FileSearch(Name, GetEnvironmentVariable('PATH'));
+end;
+
+{$endif}
+
 function FindExe(const ExeName: string): string;
 begin
   {$ifdef MSWINDOWS}
@@ -940,6 +953,31 @@ begin
   {$endif}
 end;
 
+{$ifndef FPC}
+{ Get temporary filename, also creating this file, using WinAPI.
+  There seems to be no cross-platform function for this in Delphi. }
+function GetTempFileNameWindows(const Prefix: AnsiString): AnsiString;
+var
+  MyPath, MyFileName: array[0..MAX_PATH] of AnsiChar;
+begin
+  FillChar(MyPath, MAX_PATH, 0);
+  FillChar(MyFileName, MAX_PATH, 0);
+  OSCheck(GetTempPathA(SizeOf(MyPath), MyPath) <> 0);
+  OSCheck(GetTempFileNameA(MyPath, PAnsiChar(Prefix), 0, MyFileName) <> 0);
+  Result := MyFileName;
+end;
+
+function GetTempFileNameCheck: string;
+begin
+  Result := GetTempFileNameWindows(ApplicationName);
+end;
+
+function GetTempFileNamePrefix: string;
+begin
+  Result := GetTempFileNameWindows(ApplicationName);
+end;
+{$else}
+
 function GetTempFileNameCheck: string;
 begin
   Result := GetTempFileName('', ApplicationName);
@@ -966,6 +1004,8 @@ begin
     raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
       [Result, FileInfo.AbsoluteName]);
 end;
+
+{$endif}
 
 {$ifdef DARWIN}
 var
@@ -1002,7 +1042,7 @@ end;
 {$endif DARWIN}
 
 function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): string;
+  const AllowStdIn: boolean; out MimeType: string): AnsiString;
 var
   F: TStream;
 begin
@@ -1027,14 +1067,14 @@ begin
   end;
 end;
 
-function FileToString(const URL: string; const AllowStdIn: boolean): string;
+function FileToString(const URL: string; const AllowStdIn: boolean): AnsiString;
 var
   MimeType: string;
 begin
   Result := FileToString(URL, AllowStdIn, MimeType { ignored });
 end;
 
-procedure StringToFile(const URL, Contents: string);
+procedure StringToFile(const URL: String; const Contents: AnsiString);
 var
   F: TStream;
 begin
