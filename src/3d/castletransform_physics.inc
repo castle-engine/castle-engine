@@ -199,7 +199,7 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
-    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write FOnCollisionEnter;
+    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write SetOnCollisionEnter;
 
     { Occurs when TRigidBody stops colliding with another TRigidBody.
 
