@@ -615,7 +615,6 @@ begin
   if FStreamedBuffer and Assigned(FBuffer) and (FBuffer is TOpenALStreamBuffersBackend) then
     TOpenALStreamBuffersBackend(FBuffer).RemoveSoundSource(Self);
 
-  WritelnLog('Sound Source set buffer '+ IntToStr(ALSource));
   FBuffer := Value;
 
   if Assigned(FBuffer) then
