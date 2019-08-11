@@ -109,6 +109,19 @@
     including the Collider and all properties of Collider,
     must be assigned before setting TCastleTransform.RigidBody . }
   TRigidBody = class(TComponent)
+  strict private
+    { List of collisions from previous step. }
+    FPrevCollisions: TList;
+    { List of collisions from current step. }
+    FCurrentCollisions: TList;
+
+    FOnCollisionEnter: TOnCollision;
+    FOnCollisionStay: TOnCollision;
+    FOnCollisionExit: TOnCollision;
+
+    procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
+    { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
+    procedure CheckPhysicsPostStepNeeded;
   private
     FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
@@ -126,8 +139,6 @@
     FMaximalLinearVelocity: Single;
     FTransform: TCastleTransform;
     FCollisionList: TCastleTransformList;
-    FOnCollisionEnter: TOnCollision;
-    FOnCollisionExit: TOnCollision;
 
     procedure UpdateCollides(const Transform: TCastleTransform);
 
@@ -141,6 +152,10 @@
     procedure SetLinearVelocity(const LVelocity: TVector3);
     procedure SetLinearVelocityDamp(const AValue: Single);
     procedure SetMaximalLinearVelocity(const AValue: Single);
+
+    procedure SetOnCollisionEnter(const AValue: TOnCollision);
+    procedure SetOnCollisionStay(const AValue: TOnCollision);
+    procedure SetOnCollisionExit(const AValue: TOnCollision);
 
     procedure SetExists(const Value: Boolean);
   public
@@ -193,7 +208,17 @@
       It would free the rigid body instance, which will crash the physics engine for now.
       Instead, you can set @link(TCastleTransform.Exists) to @false
       (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
-    property OnCollisionExit: TOnCollision read FOnCollisionExit write FOnCollisionExit;
+    property OnCollisionExit: TOnCollision read FOnCollisionExit write SetOnCollisionExit;
+
+    { Occurs when TRigidBody still colliding with another TRigidBody.
+
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
+    property OnCollisionStay: TOnCollision read FOnCollisionStay write SetOnCollisionStay;
+
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -416,6 +441,9 @@ begin
 
   FKraftBody := nil;
   FCollisionList := TCastleTransformList.Create(false, nil);
+  FPrevCollisions := TList.Create;
+  FCurrentCollisions := TList.Create;
+
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
   FTransform := nil;
@@ -444,6 +472,8 @@ begin
   FreeAndNil(FKraftBody);
   FreeAndNil(FCollider);
   FreeAndNil(FCollisionList);
+  FreeAndNil(FPrevCollisions);
+  FreeAndNil(FCurrentCollisions);
   inherited;
 end;
 
@@ -542,6 +572,8 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
       it for correct result. }
     FKraftBody.SynchronizeTransformIncludingShapes;
     Collider.FKraftShape.StoreWorldTransform;
+
+    CheckPhysicsPostStepNeeded;
   end;
 
 begin
@@ -568,6 +600,80 @@ begin
     Collider.FKraftShape := nil;
 
   FTransform := nil;
+end;
+
+procedure TRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
+var
+  ContactPairEdge: PKraftContactPairEdge;
+  RBody: TRigidBody;
+  CollisionDetails: TPhysicsCollisionDetails;
+  I: Integer;
+begin
+  FCurrentCollisions.Clear;
+  ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+  while Assigned(ContactPairEdge) do
+  begin
+    RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+
+    // Omit next collision point with the same body.
+    if FCurrentCollisions.IndexOf(RBody) <> - 1 then
+      continue;
+
+    // Add to current collisons.
+    FCurrentCollisions.Add(RBody);
+
+    // Prepare collision data.
+    CollisionDetails.OtherTransform := RBody.FTransform;
+    CollisionDetails.Transforms[0] := FTransform;
+    CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
+
+    // New and ongoing collisons.
+    if FPrevCollisions.IndexOf(RBody) = -1 then
+    begin
+      // New collision.
+      if Assigned(FOnCollisionEnter) then
+        FOnCollisionEnter(CollisionDetails);
+    end else
+    begin
+      // Still in collision.
+      if Assigned(FOnCollisionStay) then
+        FOnCollisionStay(CollisionDetails);
+
+      // Remove used collison.
+      FPrevCollisions.Remove(RBody);
+    end;
+
+    ContactPairEdge := ContactPairEdge^.Next;
+  end;
+
+  // check collision exit
+  if Assigned(FOnCollisionExit) then
+  begin
+    CollisionDetails.Transforms[0] := FTransform;
+
+    for I := 0  to FPrevCollisions.Count - 1 do
+    begin
+      CollisionDetails.OtherTransform := TRigidBody(FPrevCollisions[I]).FTransform;
+      CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
+
+      FOnCollisionExit(CollisionDetails);
+    end;
+  end;
+
+  // Make previous list from current list.
+  FPrevCollisions.Clear;
+  FPrevCollisions.Assign(FCurrentCollisions);
+end;
+
+procedure TRigidBody.CheckPhysicsPostStepNeeded;
+begin
+  if not Assigned(FKraftBody) then
+    Exit;
+
+  if Assigned(FOnCollisionEnter) or Assigned(FOnCollisionStay) or Assigned(FOnCollisionExit) then
+    FKraftBody.OnPostStep := @PhysicsPostStep
+  else
+    FKraftBody.OnPostStep := nil;
 end;
 
 procedure TRigidBody.UpdateCollides(const Transform: TCastleTransform);
@@ -602,6 +708,24 @@ begin
   { Kraft uses max velocity for delta time which is physics update frequency. }
   if FKraftBody <> nil then
     FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
+end;
+
+procedure TRigidBody.SetOnCollisionEnter(const AValue: TOnCollision);
+begin
+  FOnCollisionEnter := AValue;
+  CheckPhysicsPostStepNeeded;
+end;
+
+procedure TRigidBody.SetOnCollisionStay(const AValue: TOnCollision);
+begin
+  FOnCollisionStay := AValue;
+  CheckPhysicsPostStepNeeded;
+end;
+
+procedure TRigidBody.SetOnCollisionExit(const AValue: TOnCollision);
+begin
+  FOnCollisionExit := AValue;
+  CheckPhysicsPostStepNeeded;
 end;
 
 procedure TRigidBody.SetAngularVelocityDamp(const AValue: Single);
@@ -824,95 +948,12 @@ begin
   if FKraftEngine = nil then
   begin
     FKraftEngine := TKraft.Create(-1);
-    FKraftEngine.ContactManager.OnContactBegin := @CollisionBegin;
-    FKraftEngine.ContactManager.OnContactEnd := @CollisionEnd;
     { Kraft sets MaximalLinearVelocity in TKraft Constructor to 2.
       With this limit can't make velocity greater than about 120
       (2 * engine step frequency = 2 * 60 = 120). That makes physics
       very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
     //FKraftEngine.SetFrequency(120.0); // default is 60
-  end;
-end;
-
-procedure TSceneManagerWorld.CollisionBegin(const ContactPair: PKraftContactPair);
-var
-  CollisionDetails: TPhysicsCollisionDetails;
-  RigidBody1: TRigidBody;
-  RigidBody2: TRigidBody;
-begin
-  {
-  // I'm not sure these checks are needed.
-  if Assigned(ContactPair^.RigidBodies[0]) and  Assigned(ContactPair^.RigidBodies[0].UserData) then
-    RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData)
-  else
-    RigidBody1 := nil;
-
-  if Assigned(ContactPair^.RigidBodies[1]) and  Assigned(ContactPair^.RigidBodies[1].UserData) then
-    RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData)
-  else
-    RigidBody2 := nil;
-
-  if (RigidBody1 = nil) and (RigidBody2 = nil) then
-    exit;}
-
-  Assert(ContactPair^.RigidBodies[0] <> nil);
-  Assert(ContactPair^.RigidBodies[0].UserData <> nil);
-  Assert(ContactPair^.RigidBodies[1] <> nil);
-  Assert(ContactPair^.RigidBodies[1].UserData <> nil);
-
-  RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData);
-  RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData);
-
-  if Assigned(RigidBody1.OnCollisionEnter) or Assigned(RigidBody2.OnCollisionEnter) then
-  begin
-    CollisionDetails.Transforms[0] := RigidBody1.FTransform;
-    CollisionDetails.Transforms[1] := RigidBody2.FTransform;
-
-    if Assigned(RigidBody1.OnCollisionEnter) then
-    begin
-      CollisionDetails.OtherTransform := RigidBody2.FTransform;
-      RigidBody1.OnCollisionEnter(CollisionDetails);
-    end;
-
-    if Assigned(RigidBody2.OnCollisionEnter) then
-    begin
-      CollisionDetails.OtherTransform := RigidBody1.FTransform;
-      RigidBody2.OnCollisionEnter(CollisionDetails);
-    end;
-  end;
-end;
-
-procedure TSceneManagerWorld.CollisionEnd(const ContactPair: PKraftContactPair);
-var
-  CollisionDetails: TPhysicsCollisionDetails;
-  RigidBody1: TRigidBody;
-  RigidBody2: TRigidBody;
-begin
-  Assert(ContactPair^.RigidBodies[0] <> nil);
-  Assert(ContactPair^.RigidBodies[0].UserData <> nil);
-  Assert(ContactPair^.RigidBodies[1] <> nil);
-  Assert(ContactPair^.RigidBodies[1].UserData <> nil);
-
-  RigidBody1 := TRigidBody(ContactPair^.RigidBodies[0].UserData);
-  RigidBody2 := TRigidBody(ContactPair^.RigidBodies[1].UserData);
-
-  if Assigned(RigidBody1.OnCollisionExit) or Assigned(RigidBody2.OnCollisionExit) then
-  begin
-    CollisionDetails.Transforms[0] := RigidBody1.FTransform;
-    CollisionDetails.Transforms[1] := RigidBody2.FTransform;
-
-    if Assigned(RigidBody1.OnCollisionExit) then
-    begin
-      CollisionDetails.OtherTransform := RigidBody2.FTransform;
-      RigidBody1.OnCollisionExit(CollisionDetails);
-    end;
-
-    if Assigned(RigidBody2.OnCollisionExit) then
-    begin
-      CollisionDetails.OtherTransform := RigidBody1.FTransform;
-      RigidBody2.OnCollisionExit(CollisionDetails);
-    end;
   end;
 end;
 
