@@ -3,4 +3,15 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.play.sounds"
 >
+  <!--
+    Uncomment this to test music streaming (which requires threads).
+    Uncomment also relevant part of gamestatemain.pas.
+  -->
+  <!--
+  <compiler_options>
+    <custom_options>
+      <option>-dCASTLE_THREADS</option>
+    </custom_options>
+  </compiler_options>
+  -->
 </project>
