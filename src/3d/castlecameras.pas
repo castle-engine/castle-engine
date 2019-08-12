@@ -2848,7 +2848,7 @@ begin
     Zoom(Factor / ZoomScale);
   end;
 
-  if MoveEnabled and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (not FModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
     Size := FModelBox.AverageSize;
     FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst));
