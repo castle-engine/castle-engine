@@ -613,11 +613,20 @@ begin
   ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
   while Assigned(ContactPairEdge) do
   begin
+    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
+      continue;
+    end;
+
     RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
 
     // Omit next collision point with the same body.
     if FCurrentCollisions.IndexOf(RBody) <> - 1 then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
       continue;
+    end;
 
     // Add to current collisons.
     FCurrentCollisions.Add(RBody);
@@ -816,6 +825,12 @@ begin
   ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
   while Assigned(ContactPairEdge) do
   begin
+    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
+      continue;
+    end;
+
     CastleTransform := (TRigidBody(ContactPairEdge^.OtherRigidBody.UserData)).FTransform;
     if FCollisionList.IndexOf(CastleTransform) = -1 then
       FCollisionList.Add(CastleTransform);
