@@ -69,7 +69,6 @@ type
     slStreaming
   );
 
-
 function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
 
 implementation
