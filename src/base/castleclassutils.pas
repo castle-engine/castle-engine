@@ -168,13 +168,14 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): An
   This procedure ends when GrowingStream ends. If ResetDestStreamPosition
   then at the end we do DestStream.Position := 0 (since it is usually useful
   and it would be easy for you to forget about it). }
-procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
-  ResetDestStreamPosition: boolean);
+procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
+  const ResetDestStreamPosition: Boolean;
+  const BufferSize: Cardinal = 10 * 1000);
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end. }
-function ReadGrowingStreamToString(GrowingStream: TStream): string;
+function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
@@ -899,21 +900,25 @@ begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
 
-procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
-  ResetDestStreamPosition: boolean);
+procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
+  const ResetDestStreamPosition: Boolean;
+  const BufferSize: Cardinal);
 var
   ReadCount: Integer;
-  Buffer: array[1..10000]of Byte;
+  Buffer: Pointer;
 begin
-  repeat
-    ReadCount := GrowingStream.Read(Buffer, SizeOf(Buffer));
-    if ReadCount = 0 then Break;
-    DestStream.WriteBuffer(Buffer, ReadCount);
-  until false;
+  Buffer := GetMem(BufferSize);
+  try
+    repeat
+      ReadCount := GrowingStream.Read(Buffer^, BufferSize);
+      if ReadCount = 0 then Break;
+      DestStream.WriteBuffer(Buffer^, ReadCount);
+    until false;
+  finally FreeMemNiling(Buffer) end;
   if ResetDestStreamPosition then DestStream.Position := 0;
 end;
 
-function ReadGrowingStreamToString(GrowingStream: TStream): string;
+function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 const
   BufferSize = 10000;
 var

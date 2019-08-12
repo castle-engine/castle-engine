@@ -161,11 +161,10 @@ type
       Tremolo is used on mobile devices, libvorbisfile on desktop. }
   TStreamedSoundOggVorbis = class(TStreamedSoundFile)
   strict private
-    OggFile: TOggVorbis_File;
+    DecodingStream: TOwnerStream;
   private
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
-    SourceFileStream: TStream;
   public
     constructor CreateFromStream(const Stream: TStream; const AURL: String); override;
     destructor Destroy; override;
@@ -201,34 +200,31 @@ var
 implementation
 
 uses CastleStringUtils, CastleInternalVorbisDecoder,
-  CastleLog, CastleDownload, CastleURIUtils;
+  CastleLog, CastleDownload, CastleURIUtils, CastleClassUtils;
 
 { TStreamedSoundOggVorbis }
 
 constructor TStreamedSoundOggVorbis.CreateFromStream(const Stream: TStream; const AURL: String);
 begin
-  SourceFileStream := Stream;
-  OpenVorbisFile(OggFile, SourceFileStream, FDataFormat, FFrequency);
+  // TODO: inherited Create;
+  DecodingStream := TOggVorbisStream.Create(Stream, FDataFormat, FFrequency);
+  DecodingStream.SourceOwner := true;
 end;
 
 destructor TStreamedSoundOggVorbis.Destroy;
 begin
-  CloseVorbisFile(OggFile);
-  FreeAndNil(SourceFileStream);
-
-  inherited Destroy;
+  FreeAndNil(DecodingStream);
+  inherited;
 end;
 
 function TStreamedSoundOggVorbis.Read(var Buffer; const BufferSize: LongInt): LongInt;
 begin
-  Result := ReadVorbisFileFillBuffer(OggFile, Buffer, BufferSize);
+  Result := DecodingStream.Read(Buffer, BufferSize);
 end;
 
 procedure TStreamedSoundOggVorbis.Rewind;
 begin
-  CloseVorbisFile(OggFile);
-  SourceFileStream.Position := 0;
-  OpenVorbisFile(OggFile, SourceFileStream, FDataFormat, FFrequency);
+  DecodingStream.Position := 0;
 end;
 
 function TStreamedSoundOggVorbis.DataFormat: TSoundDataFormat;
@@ -556,10 +552,21 @@ end;
 { TSoundOggVorbis ------------------------------------------------------------ }
 
 constructor TSoundOggVorbis.CreateFromStream(const Stream: TStream; const AURL: String);
+const
+  { Noone uses OggVorbis with small files, so it's sensible to make
+    this buffer at least 1 MB. Above this, increasing BufferSize doesn't
+    seem to make loading OggVorbis faster. }
+  BufferSize = 1000 * 1000;
+var
+  DecodingStream: TStream;
 begin
   inherited;
   try
-    DataStream := VorbisDecode(Stream, FDataFormat, FFrequency);
+    DecodingStream := TOggVorbisStream.Create(Stream, FDataFormat, FFrequency);
+    try
+      DataStream := TMemoryStream.Create;
+      ReadGrowingStream(DecodingStream, DataStream, true, BufferSize);
+    finally FreeAndNil(DecodingStream) end;
   except
     { convert EVorbisLoadError to ESoundFileError }
     on E: EVorbisLoadError do
