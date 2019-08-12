@@ -563,6 +563,9 @@ type
       URL second time returns the same buffer instance. The buffer
       is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
+      TODO: clarify case of caching + streaming, is cache even possible then?
+
+      Not specifying SoundLoading means to use slComplete.
 
       @raises(ESoundFileError If loading of this sound file failed.
         There are many reasons why this may happen: we cannot read given URL,
@@ -573,9 +576,6 @@ type
     function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
     function LoadBuffer(const URL: string; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
     function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
-      overload;
-      deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
-    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
     { @groupEnd }
@@ -2128,9 +2128,9 @@ begin
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; out Duration: TFloatTime): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
 begin
-  Result := LoadBuffer(URL, SoundLoading);
+  Result := LoadBuffer(URL);
   Duration := Result.Duration;
 end;
 
@@ -2167,12 +2167,7 @@ end;
 
 function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
 begin
-  LoadBuffer(URL, slComplete, ExceptionOnError);
-end;
-
-function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
-begin
-  LoadBuffer(URL, slComplete, Duration);
+  Result := LoadBuffer(URL, slComplete, ExceptionOnError);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
