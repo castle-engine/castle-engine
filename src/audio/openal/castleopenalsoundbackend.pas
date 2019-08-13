@@ -189,7 +189,7 @@ procedure TOpenALStreamBuffersSoundSourceRes.ContextOpen(const AURL: String);
 var
   I: Integer;
 begin
-  StreamedSFile := TStreamedSoundFile.CreateFromFile(AURL);
+  StreamedSFile := TStreamedSoundFile.Create(AURL);
 
   { Maybe strange but this is optimal buffer config loading. }
   if not FStreamBuffer.FStreamConfigRead then

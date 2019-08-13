@@ -37,7 +37,7 @@ type
   ENoMoreOpenALSources = ENoMoreSources deprecated 'use ENoMoreSources';
   ESoundBufferNotLoaded = class(Exception);
   EInvalidSoundBufferFree = class(Exception);
-  ESoundFileError = CastleInternalSoundFile.ESoundFileError;
+  ESoundFileError = CastleSoundBase.ESoundFileError;
   EInvalidSoundRepositoryXml = class(Exception);
 
   TSound = class;

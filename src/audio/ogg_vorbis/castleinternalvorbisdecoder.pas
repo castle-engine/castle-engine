@@ -24,9 +24,9 @@ uses SysUtils, Classes,
   CastleSoundBase, CastleInternalSoundFile, CastleInternalVorbisFile, CTypes;
 
 type
-  EVorbisLoadError = class(Exception);
-  EVorbisMissingLibraryError = class(EVorbisLoadError);
-  EVorbisFileError = class(EVorbisLoadError);
+  EOggVorbisLoadError = class(Exception);
+  EOggVorbisMissingLibraryError = class(EOggVorbisLoadError);
+  EOggVorbisFileError = class(EOggVorbisLoadError);
 
 type
   { Decode OggVorbis file contents.
@@ -38,7 +38,7 @@ type
 
     Gets data from ObjectPascal TStream (like TFileStream) and returns data as TStream.
 
-    All methods may raise EVorbisLoadError If decoding OggVorbis stream failed,
+    All methods may raise EOggVorbisLoadError If decoding OggVorbis stream failed,
     this may also happen if the vorbisfile / tremolo library is not available.
   }
   TOggVorbisStream = class(TOwnerStream)
@@ -144,7 +144,7 @@ begin
   end;
 
   if Err <> 0 then
-    raise EVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
+    raise EOggVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
       [Err, Event, ErrDescription]);
 end;
 
@@ -170,7 +170,7 @@ var
   Callbacks: Tov_callbacks;
 begin
   if not VorbisFileInitialized then
-    raise EVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
+    raise EOggVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
 
   Callbacks.read_func := @VorbisDecoder_read_func;
   Callbacks.seek_func := @VorbisDecoder_seek_func;

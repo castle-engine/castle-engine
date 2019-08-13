@@ -24,6 +24,7 @@ uses SysUtils, Generics.Collections;
 
 type
   ENoMoreSources = class(Exception);
+  ESoundFileError = class(Exception);
 
   TSoundDistanceModel = (dmNone,
     dmInverseDistance , dmInverseDistanceClamped,

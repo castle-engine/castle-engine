@@ -223,7 +223,7 @@ procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig;
 var
   F: TStreamedSoundFile;
 begin
-  F := TStreamedSoundFile.CreateFromFile(FURL);
+  F := TStreamedSoundFile.Create(FURL);
   try
     ReadStreamConfig(F);
   finally
@@ -284,7 +284,7 @@ var
 begin
   inherited;
 
-  F := TSoundFile.CreateFromFile(URL);
+  F := TSoundFile.Create(URL);
   try
     FDuration := F.Duration;
     FDataFormat := F.DataFormat;
