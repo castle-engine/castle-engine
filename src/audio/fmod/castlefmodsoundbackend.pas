@@ -96,7 +96,7 @@ type
 type
   EFMODError = class(Exception);
 
-procedure CheckFMOD(const FMODResult: TFMOD_RESULT);
+procedure CheckFMOD(const FMODResult: TFMOD_RESULT; const When: String = ''; const Warning: Boolean = false);
 var
   ErrorStr: String;
 begin
@@ -105,7 +105,13 @@ begin
     // FPC error "No type info available for this type", because it's an enum with assignments
     //ErrorStr := GetEnumName(TypeInfo(TFMOD_RESULT), Ord(FMODResult));
     System.WriteStr(ErrorStr, FMODResult);
-    raise EFMODError.CreateFmt('FMOD error: %s', [ErrorStr]);
+    ErrorStr := 'FMOD error ' + ErrorStr;
+    if When <> '' then
+      ErrorStr := ErrorStr + ' when doing ' + When;
+    if Warning then
+      WritelnWarning(ErrorStr)
+    else
+      raise EFMODError.Create(ErrorStr);
   end;
 end;
 
@@ -256,7 +262,10 @@ procedure TFMODSoundSourceBackend.Stop;
 begin
   if FMODChannel <> nil then
   begin
-    CheckFMOD(FMOD_Channel_Stop(FMODChannel));
+    { This causes FMOD_ERR_INVALID_HANDLE sometimes on Windows.
+      No other problem is visible and it seems completely random,
+      so I assume it is a random FMOD error. }
+    CheckFMOD(FMOD_Channel_Stop(FMODChannel), 'FMOD_Channel_Stop', true);
     FMODChannel := nil; // FMODChannel should not be used anymore
   end;
 end;
