@@ -459,7 +459,7 @@ var
   P: TRegisteredProtocol;
 begin
   if Find(Protocol) <> nil then
-    EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
+    raise EProtocolAlreadyRegistered.CreateFmt('URL protocol "%s" is already registered', [Protocol]);
   P := TRegisteredProtocol.Create;
   P.Protocol := Protocol;
   P.ReadEvent := ReadEvent;
