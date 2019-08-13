@@ -39,8 +39,6 @@ type
       FDataFormat: TSoundDataFormat;
       FFrequency: LongWord;
     procedure CheckCorrectness;
-    { Analyze sound data. }
-    function DataStatistics: String;
   public
     { Load a sound data from a given URL.
 
@@ -216,12 +214,6 @@ begin
           Frequency,
           Duration
         ]);
-        { This is informative, but takes some time, so is commented out.
-        WritelnLog('Sound', '"%s" data analysis: %s', [
-          URIDisplay(AURL),
-          DataStatistics
-        ]);
-        }
       end;
     except
       { May be raised by Download in case opening the underlying stream failed. }
@@ -323,136 +315,6 @@ begin
     ]);
 end;
 
-function TSoundFile.DataStatistics: String;
-
-  procedure Mono8(out MinValue, MaxValue: SmallInt);
-  type
-    TSample = packed record Main: Byte; end;
-    PSample = ^TSample;
-  var
-    Sample: PSample;
-    MinSample, MaxSample: TSample;
-    EndSample: PtrUInt;
-  begin
-    Sample := Data;
-    EndSample := PtrUInt(Sample) + DataSize;
-    MinSample := Sample^;
-    MaxSample := Sample^;
-    Inc(Sample);
-    while PtrUInt(Sample) < EndSample do
-    begin
-      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
-      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
-      Inc(Sample);
-    end;
-    MinValue := MinSample.Main;
-    MaxValue := MaxSample.Main;
-  end;
-
-  procedure Mono16(out MinValue, MaxValue: SmallInt);
-  type
-    TSample = packed record Main: SmallInt; end;
-    PSample = ^TSample;
-  var
-    Sample: PSample;
-    MinSample, MaxSample: TSample;
-    EndSample: PtrUInt;
-  begin
-    Sample := Data;
-    EndSample := PtrUInt(Sample) + DataSize;
-    MinSample := Sample^;
-    MaxSample := Sample^;
-    Inc(Sample);
-    while PtrUInt(Sample) < EndSample do
-    begin
-      if Sample^.Main < MinSample.Main then MinSample.Main := Sample^.Main;
-      if Sample^.Main > MaxSample.Main then MaxSample.Main := Sample^.Main;
-      Inc(Sample);
-    end;
-    MinValue := MinSample.Main;
-    MaxValue := MaxSample.Main;
-  end;
-
-  procedure Stereo8(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
-  type
-    TSample = packed record Left, Right: Byte; end;
-    PSample = ^TSample;
-  var
-    Sample: PSample;
-    MinSample, MaxSample: TSample;
-    EndSample: PtrUInt;
-  begin
-    Sample := Data;
-    EndSample := PtrUInt(Sample) + DataSize;
-    MinSample := Sample^;
-    MaxSample := Sample^;
-    Inc(Sample);
-    while PtrUInt(Sample) < EndSample do
-    begin
-      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
-      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
-      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
-      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
-      Inc(Sample);
-    end;
-    LeftMinValue := MinSample.Left;
-    LeftMaxValue := MaxSample.Left;
-    RightMinValue := MinSample.Right;
-    RightMaxValue := MaxSample.Right;
-  end;
-
-  procedure Stereo16(out LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt);
-  type
-    TSample = packed record Left, Right: SmallInt; end;
-    PSample = ^TSample;
-  var
-    Sample: PSample;
-    MinSample, MaxSample: TSample;
-    EndSample: PtrUInt;
-  begin
-    Sample := Data;
-    EndSample := PtrUInt(Sample) + DataSize;
-    MinSample := Sample^;
-    MaxSample := Sample^;
-    Inc(Sample);
-    while PtrUInt(Sample) < EndSample do
-    begin
-      if Sample^.Left < MinSample.Left then MinSample.Left := Sample^.Left;
-      if Sample^.Left > MaxSample.Left then MaxSample.Left := Sample^.Left;
-      if Sample^.Right < MinSample.Right then MinSample.Right := Sample^.Right;
-      if Sample^.Right > MaxSample.Right then MaxSample.Right := Sample^.Right;
-      Inc(Sample);
-    end;
-    LeftMinValue := MinSample.Left;
-    LeftMaxValue := MaxSample.Left;
-    RightMinValue := MinSample.Right;
-    RightMaxValue := MaxSample.Right;
-  end;
-
-var
-  LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue: SmallInt;
-begin
-  case DataFormat of
-    sfMono8: Mono8(LeftMinValue, LeftMaxValue);
-    sfMono16: Mono16(LeftMinValue, LeftMaxValue);
-    sfStereo8: Stereo8(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
-    sfStereo16: Stereo16(LeftMinValue, LeftMaxValue, RightMinValue, RightMaxValue);
-    else raise EInternalError.Create('TSoundFile.DataStatistics:DataFormat?');
-  end;
-  if DataFormat in [sfMono8, sfMono16] then
-    Result := Format('Mono data. Min Sample: %d. Max Sample: %d.', [
-      LeftMinValue,
-      LeftMaxValue
-    ]);
-  if DataFormat in [sfStereo8, sfStereo16] then
-    Result := Format('Stereo data. Min Sample Left / Right: %d / %d. Max Sample Left / Right: %d / %d.', [
-      LeftMinValue,
-      RightMinValue,
-      LeftMaxValue,
-      RightMaxValue
-    ]);
-end;
-
 { TStreamedSoundFile --------------------------------------------------------- }
 
 constructor TStreamedSoundFile.Create(const AURL: string);
@@ -487,12 +349,6 @@ begin
           DataFormatToStr(DataFormat),
           Frequency
         ]);
-        { This is informative, but takes some time, so is commented out.
-        WritelnLog('Sound', '"%s" data analysis: %s', [
-          URIDisplay(AURL),
-          DataStatistics
-        ]);
-        }
       end;
     except
       { May be raised by Download in case opening the underlying stream failed. }
