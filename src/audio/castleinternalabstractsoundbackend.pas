@@ -80,7 +80,7 @@ type
 
   TSoundBufferBackendFromStreamedFile = class(TSoundBufferBackend)
   protected
-    FStreamConfigReaded: Boolean;
+    FStreamConfigRead: Boolean;
 
     function GetDuration: TFloatTime; override;
     function GetDataFormat: TSoundDataFormat; override;
@@ -199,14 +199,14 @@ end;
 
 function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
 begin
-  if not FStreamConfigReaded then
+  if not FStreamConfigRead then
     ReadStreamConfig;
   Result := FDataFormat;
 end;
 
 function TSoundBufferBackendFromStreamedFile.GetFrequency: LongWord;
 begin
-  if not FStreamConfigReaded then
+  if not FStreamConfigRead then
     ReadStreamConfig;
   Result := FFrequency;
 end;
@@ -216,7 +216,7 @@ begin
   FDuration := -1;
   FDataFormat := StreamedSoundFile.DataFormat;
   FFrequency := StreamedSoundFile.Frequency;
-  FStreamConfigReaded := true;
+  FStreamConfigRead := true;
 end;
 
 procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig;
@@ -234,7 +234,7 @@ end;
 constructor TSoundBufferBackendFromStreamedFile.Create(const ASoundEngine: TSoundEngineBackend);
 begin
   inherited Create(ASoundEngine);
-  FStreamConfigReaded := false;
+  FStreamConfigRead := false;
 end;
 
 procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);

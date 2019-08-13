@@ -222,45 +222,45 @@ end;
 
 var
   BitStream: CInt;
-  Readed, TotalReaded: LongInt;
+  NowRead, TotalRead: LongInt;
   FreeSpace: LongInt;
   BufferPoint: PByte;
 begin
   BufferPoint := @Buffer;
 
-  Readed := ov_read(@VorbisFile, Buffer, BufferSize,
+  NowRead := ov_read(@VorbisFile, Buffer, BufferSize,
     { OpenAL always wants little endian ? } 0,
     { Always give us 16 bits } 2, 1, @BitStream);
 
-  if Readed < 0 then
-    CheckVorbisFile(Readed, 'ov_read');
+  if NowRead < 0 then
+    CheckVorbisFile(NowRead, 'ov_read');
 
-  TotalReaded := Readed;
-  FreeSpace := BufferSize - TotalReaded;
+  TotalRead := NowRead;
+  FreeSpace := BufferSize - TotalRead;
 
   if FreeSpace > 4096 then
   begin
-    BufferPoint := BufferPoint + TotalReaded;
+    BufferPoint := BufferPoint + TotalRead;
 
     while FreeSpace > 4096 do
     begin
-      Readed := ov_read(@VorbisFile, BufferPoint^, FreeSpace,
+      NowRead := ov_read(@VorbisFile, BufferPoint^, FreeSpace,
       { OpenAL always wants little endian ? } 0,
       { Always give us 16 bits } 2, 1, @BitStream);
 
-      if Readed < 0 then
-        CheckVorbisFile(Readed, 'ov_read');
+      if NowRead < 0 then
+        CheckVorbisFile(NowRead, 'ov_read');
 
-      if Readed = 0 then
-        Exit(TotalReaded);
+      if NowRead = 0 then
+        Exit(TotalRead);
 
-      Inc(TotalReaded, Readed);
-      FreeSpace := FreeSpace - Readed;
-      BufferPoint := BufferPoint + Readed;
+      Inc(TotalRead, NowRead);
+      FreeSpace := FreeSpace - NowRead;
+      BufferPoint := BufferPoint + NowRead;
     end;
   end;
 
-  Result := TotalReaded;
+  Result := TotalRead;
 end;
 
 function TOggVorbisStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;

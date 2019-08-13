@@ -127,7 +127,7 @@ type
       function DataFormat: TSoundDataFormat; virtual; abstract;
       function Frequency: LongWord; virtual; abstract;
 
-      { Returns readed size. }
+      { Returns read size. }
       function Read(var Buffer; const BufferSize: LongInt): LongInt; virtual; abstract;
       { Rewind streamed sound file, this is necessary for looping. }
       procedure Rewind;virtual;abstract;

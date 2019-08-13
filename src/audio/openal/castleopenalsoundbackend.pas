@@ -192,7 +192,7 @@ begin
   StreamedSFile := TStreamedSoundFile.CreateFromFile(AURL);
 
   { Maybe strange but this is optimal buffer config loading. }
-  if not FStreamBuffer.FStreamConfigReaded then
+  if not FStreamBuffer.FStreamConfigRead then
     FStreamBuffer.ReadStreamConfig(StreamedSFile);
 
   alCreateBuffers(4, ALBuffers);
