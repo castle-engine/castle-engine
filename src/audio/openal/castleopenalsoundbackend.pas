@@ -164,7 +164,7 @@ type
     procedure DetectDevices(const Devices: TSoundDeviceList); override;
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend; override;
+    function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
     procedure SetGain(const Value: Single); override;
@@ -1000,14 +1000,13 @@ begin
   alListenerOrientation(Direction, Up);
 end;
 
-function TOpenALSoundEngineBackend.CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend;
+function TOpenALSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
   {$ifdef CASTLE_SUPPORTS_THREADING}
   case SoundLoading of
-    slComplete:
-      Result := TOpenALSoundBufferBackend.Create(Self);
-    slStreaming:
-      Result := TOpenALStreamBuffersBackend.Create(Self);
+    slComplete : Result := TOpenALSoundBufferBackend.Create(Self);
+    slStreaming: Result := TOpenALStreamBuffersBackend.Create(Self);
+    else raise EInternalError.Create('TOpenALSoundEngineBackend.CreateBuffer: Invalid SoundLoading');
   end;
   {$else}
   Result := TOpenALSoundBufferBackend.Create(Self);

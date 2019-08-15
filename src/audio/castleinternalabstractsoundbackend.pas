@@ -65,9 +65,10 @@ type
     procedure ContextClose; virtual; abstract;
   end;
 
-  { TSoundBufferBackend descendant that can load TSoundFile instance.
+  { TSoundBufferBackend descendant that loads sound files using TSoundFile.
     Should be used by sound backends that cannot load sound files themselves,
-    and rely on TSoundFile to do it (right now, this applies to all backends except FMOD). }
+    and rely on TSoundFile to do it (right now, this applies to all backends
+    except FMOD). }
   TSoundBufferBackendFromSoundFile = class(TSoundBufferBackend)
   protected
     { Load from @link(SoundFile).
@@ -78,6 +79,7 @@ type
     procedure ContextOpen(const AURL: String); override;
   end;
 
+  { TSoundBufferBackend descendant that loads sound files using TStreamedSoundFile. }
   TSoundBufferBackendFromStreamedFile = class(TSoundBufferBackend)
   protected
     FStreamConfigRead: Boolean;
@@ -162,7 +164,7 @@ type
     procedure ContextClose; virtual; abstract;
 
     { Create suitable non-abstract TSoundBufferBackend descendant. }
-    function CreateBuffer(SoundLoading: TSoundLoading): TSoundBufferBackend; virtual; abstract;
+    function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; virtual; abstract;
 
     { Create suitable non-abstract TSoundSourceBackend descendant. }
     function CreateSource: TSoundSourceBackend; virtual; abstract;
@@ -184,65 +186,6 @@ type
 implementation
 
 uses SysUtils;
-
-{ TSoundBufferBackendFromStreamedFile }
-
-procedure TSoundBufferBackendFromStreamedFile.ContextOpenFromStreamedFile(const AURL: String);
-begin
-
-end;
-
-function TSoundBufferBackendFromStreamedFile.GetDuration: TFloatTime;
-begin
-  Result := -1;
-end;
-
-function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
-begin
-  if not FStreamConfigRead then
-    ReadStreamConfig;
-  Result := FDataFormat;
-end;
-
-function TSoundBufferBackendFromStreamedFile.GetFrequency: LongWord;
-begin
-  if not FStreamConfigRead then
-    ReadStreamConfig;
-  Result := FFrequency;
-end;
-
-procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
-begin
-  FDuration := -1;
-  FDataFormat := StreamedSoundFile.DataFormat;
-  FFrequency := StreamedSoundFile.Frequency;
-  FStreamConfigRead := true;
-end;
-
-procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig;
-var
-  F: TStreamedSoundFile;
-begin
-  F := TStreamedSoundFile.Create(FURL);
-  try
-    ReadStreamConfig(F);
-  finally
-    FreeAndNil(F);
-  end;
-end;
-
-constructor TSoundBufferBackendFromStreamedFile.Create(const ASoundEngine: TSoundEngineBackend);
-begin
-  inherited Create(ASoundEngine);
-  FStreamConfigRead := false;
-end;
-
-procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);
-begin
-  inherited;
-
-  ContextOpenFromStreamedFile(AURL);
-end;
 
 { TSoundBufferBackend -------------------------------------------------------- }
 
@@ -291,6 +234,66 @@ begin
     FFrequency := F.Frequency;
     ContextOpenFromSoundFile(F);
   finally FreeAndNil(F) end;
+end;
+
+{ TSoundBufferBackendFromStreamedFile ---------------------------------------- }
+
+constructor TSoundBufferBackendFromStreamedFile.Create(const ASoundEngine: TSoundEngineBackend);
+begin
+  inherited Create(ASoundEngine);
+  FStreamConfigRead := false;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ContextOpenFromStreamedFile(const AURL: String);
+begin
+
+end;
+
+function TSoundBufferBackendFromStreamedFile.GetDuration: TFloatTime;
+begin
+  // This never returns Duration for now
+  Result := -1;
+end;
+
+function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
+begin
+  if not FStreamConfigRead then
+    ReadStreamConfig;
+  Result := FDataFormat;
+end;
+
+function TSoundBufferBackendFromStreamedFile.GetFrequency: LongWord;
+begin
+  if not FStreamConfigRead then
+    ReadStreamConfig;
+  Result := FFrequency;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
+begin
+  FDuration := -1;
+  FDataFormat := StreamedSoundFile.DataFormat;
+  FFrequency := StreamedSoundFile.Frequency;
+  FStreamConfigRead := true;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig;
+var
+  F: TStreamedSoundFile;
+begin
+  // TODO: Using this means that TStreamedSoundFile.Create may be created twice, which seems wasteful (each creation means we read the OggVorbis header, so it's a filesystem operation)
+  F := TStreamedSoundFile.Create(FURL);
+  try
+    ReadStreamConfig(F);
+  finally
+    FreeAndNil(F);
+  end;
+end;
+
+procedure TSoundBufferBackendFromStreamedFile.ContextOpen(const AURL: String);
+begin
+  inherited;
+  ContextOpenFromStreamedFile(AURL);
 end;
 
 { TSoundSourceBackend -------------------------------------------------------- }

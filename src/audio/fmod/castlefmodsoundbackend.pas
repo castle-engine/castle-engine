@@ -45,9 +45,12 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
 type
   TFMODSoundBufferBackend = class(TSoundBufferBackend)
   private
+    FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
     function FMODSystem: PFMOD_SYSTEM;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend;
+      const ASoundLoading: TSoundLoading);
     procedure ContextOpen(const AURL: String); override;
     procedure ContextClose; override;
   end;
@@ -85,7 +88,7 @@ type
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer: TSoundBufferBackend; override;
+    function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
     procedure Update; override;
@@ -128,6 +131,13 @@ end;
 
 { TFMODSoundBufferBackend -------------------------------------------------- }
 
+constructor TFMODSoundBufferBackend.Create(
+  const ASoundEngine: TSoundEngineBackend; const ASoundLoading: TSoundLoading);
+begin
+  inherited Create(ASoundEngine);
+  FSoundLoading := ASoundLoading;
+end;
+
 function TFMODSoundBufferBackend.FMODSystem: PFMOD_SYSTEM;
 begin
   Result := (SoundEngine as TFMODSoundEngineBackend).FMODSystem;
@@ -135,7 +145,6 @@ end;
 
 procedure TFMODSoundBufferBackend.ContextOpen(const AURL: String);
 var
-  S: String;
   TimeStart: TCastleProfilerTime;
 
   procedure CalculateProperties;
@@ -188,15 +197,21 @@ var
       ]);
   end;
 
+var
+  Mode: TFMOD_MODE;
+  FmodName: String;
 begin
   inherited;
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
   try
 
-    S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
-    if URIProtocol(S) = 'file' then
-      S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
-    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
+    FmodName := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
+    if URIProtocol(FmodName) = 'file' then
+      FmodName := URIToFilenameSafe(FmodName); // resolve file:/, as FMOD cannot understand it
+    Mode := FMOD_DEFAULT or FMOD_2D;
+    if FSoundLoading = slStreaming then
+      Mode := Mode or FMOD_CREATESTREAM;
+    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(FmodName), Mode,
       nil { @SoundInfo }, @FMODSound));
 
     CalculateProperties;
@@ -356,9 +371,9 @@ end;
 
 { TFMODSoundEngineBackend -------------------------------------------------- }
 
-function TFMODSoundEngineBackend.CreateBuffer: TSoundBufferBackend;
+function TFMODSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
-  Result := TFMODSoundBufferBackend.Create(Self);
+  Result := TFMODSoundBufferBackend.Create(Self, SoundLoading);
 end;
 
 function TFMODSoundEngineBackend.CreateSource: TSoundSourceBackend;
