@@ -4,7 +4,8 @@
   qualified_name="io.castleengine.play.sounds"
 >
   <!--
-    Uncomment this to test music streaming (which requires threads).
+    Uncomment this to test music streaming (which requires threads
+    when used with the default OpenAL backend).
     Uncomment also relevant part of gamestatemain.pas.
   -->
   <!--
