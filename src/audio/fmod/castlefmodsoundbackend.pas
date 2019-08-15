@@ -26,7 +26,10 @@ interface
 { Use this to set sound engine backend to FMOD.
   You can call this at any point of your application.
   If you call it before any sound loading/playing,
-  then the previous sound backend wil not even be initialized. }
+  then the previous sound backend wil not even be initialized.
+
+  This does nothing (and shows a warning) if the FMOD library
+  is dynamic on this platform (like Windows, Linux) and it could not be found. }
 procedure UseFMODSoundBackend;
 
 implementation
@@ -414,6 +417,12 @@ end;
 
 procedure UseFMODSoundBackend;
 begin
+  if not FmodLibraryAvailable then
+  begin
+    WritelnWarning('FMOD library not available, aborting setting FMOD as sound backend');
+    Exit;
+  end;
+
   SoundEngine.InternalBackend := TFMODSoundEngineBackend.Create;
 end;
 
