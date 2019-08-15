@@ -613,6 +613,11 @@ begin
   ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
   while Assigned(ContactPairEdge) do
   begin
+    { Without this code, OnCollisonEnter reports fake collisons when
+      one of colliding body has non regural shape (for example when
+      TBoxCollider is rotated).
+      kcfColliding = From kraft source comment: "Set when contact
+      collides during a step" }
     if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
     begin
       ContactPairEdge := ContactPairEdge^.Next;
@@ -628,7 +633,7 @@ begin
       continue;
     end;
 
-    // Add to current collisons.
+    // Add to current collisions.
     FCurrentCollisions.Add(RBody);
 
     // Prepare collision data.
@@ -636,7 +641,7 @@ begin
     CollisionDetails.Transforms[0] := FTransform;
     CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
 
-    // New and ongoing collisons.
+    // New and ongoing collisions.
     if FPrevCollisions.IndexOf(RBody) = -1 then
     begin
       // New collision.
@@ -648,7 +653,7 @@ begin
       if Assigned(FOnCollisionStay) then
         FOnCollisionStay(CollisionDetails);
 
-      // Remove used collison.
+      // Remove used collision.
       FPrevCollisions.Remove(RBody);
     end;
 
