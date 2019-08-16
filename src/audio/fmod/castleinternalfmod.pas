@@ -778,6 +778,26 @@ type
     functionparams: PChar;
   end;
 
+{ Load FMOD library and it's entry points.
+  This is important in case of dynamic FMOD loading, in case of static
+  loading this does nothing.
+  You only need to call it explicitly on platforms that don't define
+  ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION. }
+procedure InitializeFmodLibrary;
+
+{ Did we found dynamic FMOD library in the last InitializeFmodLibrary call.
+  In case of static loading this is always @true, since the static library
+  must be present at compile-time. }
+function FmodLibraryAvailable: Boolean;
+
+{ Surround calls to Fmod library in these routines.
+  This protects from freeing the dynamic FMOD library too early.
+  Makes everything working correctly even if this unit's "finalization"
+  section is run even when FMOD backend is still used (because CastleSoundEngine
+  "finalization" didn't finish yet). }
+procedure FmodLibraryUsingBegin;
+procedure FmodLibraryUsingEnd;
+
 {$ifdef MSWINDOWS} {$define FMOD_DYNAMIC_LINK} {$endif}
 {$ifdef LINUX} {$define FMOD_DYNAMIC_LINK} {$endif}
 {$ifdef FMOD_DYNAMIC_LINK}

@@ -654,14 +654,6 @@ var
   FMOD_Reverb3D_SetUserData             : function (reverb3d: PFMOD_REVERB3D; userdata: Pointer): TFMOD_RESULT; extdecl;
   FMOD_Reverb3D_GetUserData             : function (reverb3d: PFMOD_REVERB3D; userdata: PPointer): TFMOD_RESULT; extdecl;
 
-{ Load dynamic FMOD library and it's entry points.
-  You only need to call it explicitly on platforms that don't define
-  ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION. }
-procedure InitializeFmodLibrary;
-
-{ Did we found FMOD library in last InitializeFmodLibrary call. }
-function FmodLibraryAvailable: Boolean;
-
 implementation
 
 uses SysUtils, CastleDynLib;
@@ -669,9 +661,14 @@ uses SysUtils, CastleDynLib;
 var
   FmodLibrary: TDynLib;
 
-procedure InitializeFmodLibrary;
+procedure FinalizeFmodLibrary;
 begin
   FreeAndNil(FmodLibrary);
+end;
+
+procedure InitializeFmodLibrary;
+begin
+  FinalizeFmodLibrary;
 
   FmodLibrary := TDynLib.Load('libfmod.so.11', false);
   if FmodLibrary = nil then
@@ -1052,10 +1049,31 @@ begin
   Result := FmodLibrary <> nil;
 end;
 
+var
+  UnitFinalizationDone: Boolean;
+  FmodUsing: Cardinal;
+
+procedure FmodLibraryUsingBegin;
+begin
+  Assert(FmodLibraryAvailable, 'Check FmodLibraryAvailable before using FMOD');
+  Inc(FmodUsing);
+end;
+
+procedure FmodLibraryUsingEnd;
+begin
+  Assert(FmodLibraryAvailable, 'Check FmodLibraryAvailable before using FMOD');
+  Assert(FmodUsing > 0, 'FmodLibraryUsingEnd called more times than FmodLibraryUsingBegin');
+  Dec(FmodUsing);
+  if (FmodUsing = 0) and UnitFinalizationDone then
+    FinalizeFmodLibrary;
+end;
+
 initialization
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   InitializeFmodLibrary;
   {$endif}
 finalization
-  FreeAndNil(FmodLibrary);
+  UnitFinalizationDone := true;
+  if FmodUsing = 0 then
+    FinalizeFmodLibrary;
 end.

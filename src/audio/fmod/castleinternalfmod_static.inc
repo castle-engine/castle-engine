@@ -655,4 +655,21 @@ function FMOD_Reverb3D_GetUserData             (reverb3d: PFMOD_REVERB3D; userda
 
 implementation
 
+procedure InitializeFmodLibrary;
+begin
+end;
+
+function FmodLibraryAvailable: Boolean;
+begin
+  Result := true;
+end;
+
+procedure FmodLibraryUsingBegin;
+begin
+end;
+
+procedure FmodLibraryUsingEnd;
+begin
+end;
+
 end.

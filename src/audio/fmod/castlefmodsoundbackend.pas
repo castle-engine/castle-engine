@@ -386,6 +386,7 @@ function TFMODSoundEngineBackend.ContextOpen(const ADevice: String;
 var
   Version: CUInt;
 begin
+  FmodLibraryUsingBegin;
   CheckFMOD(FMOD_System_Create(@FMODSystem));
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version));
@@ -402,6 +403,7 @@ begin
   CheckFMOD(FMOD_System_Close(FMODSystem));
   CheckFMOD(FMOD_System_Release(FMODSystem));
   FMODSystem := nil;
+  FmodLibraryUsingEnd;
 end;
 
 procedure TFMODSoundEngineBackend.Update;
