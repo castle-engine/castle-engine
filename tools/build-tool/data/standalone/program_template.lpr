@@ -8,7 +8,12 @@ program ${NAME_PASCAL}_standalone;
   automatically created by "castle-engine compile". }
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
-uses CastleApplicationProperties, CastleLog, CastleWindow, ${GAME_UNITS};
+uses
+  {$ifdef CASTLE_THREADS}
+    {$info Thread support enabled.}
+    {$ifdef UNIX} CThreads, {$endif}
+  {$endif}
+  CastleApplicationProperties, CastleLog, CastleWindow, ${GAME_UNITS};
 
 begin
   ApplicationProperties.Version := '${VERSION}';

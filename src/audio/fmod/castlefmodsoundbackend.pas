@@ -26,7 +26,10 @@ interface
 { Use this to set sound engine backend to FMOD.
   You can call this at any point of your application.
   If you call it before any sound loading/playing,
-  then the previous sound backend wil not even be initialized. }
+  then the previous sound backend wil not even be initialized.
+
+  This does nothing (and shows a warning) if the FMOD library
+  is dynamic on this platform (like Windows, Linux) and it could not be found. }
 procedure UseFMODSoundBackend;
 
 implementation
@@ -41,12 +44,22 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
 
 type
   TFMODSoundBufferBackend = class(TSoundBufferBackend)
+  strict private
+    FDuration: TFloatTime;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
   private
+    FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
     function FMODSystem: PFMOD_SYSTEM;
   public
+    constructor Create(const ASoundEngine: TSoundEngineBackend;
+      const ASoundLoading: TSoundLoading);
     procedure ContextOpen(const AURL: String); override;
     procedure ContextClose; override;
+    function Duration: TFloatTime; override;
+    function DataFormat: TSoundDataFormat; override;
+    function Frequency: LongWord; override;
   end;
 
   TFMODSoundSourceBackend = class(TSoundSourceBackend)
@@ -82,7 +95,7 @@ type
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer: TSoundBufferBackend; override;
+    function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
 
     procedure Update; override;
@@ -131,6 +144,13 @@ end;
 
 { TFMODSoundBufferBackend -------------------------------------------------- }
 
+constructor TFMODSoundBufferBackend.Create(
+  const ASoundEngine: TSoundEngineBackend; const ASoundLoading: TSoundLoading);
+begin
+  inherited Create(ASoundEngine);
+  FSoundLoading := ASoundLoading;
+end;
+
 function TFMODSoundBufferBackend.FMODSystem: PFMOD_SYSTEM;
 begin
   Result := (SoundEngine as TFMODSoundEngineBackend).FMODSystem;
@@ -138,7 +158,6 @@ end;
 
 procedure TFMODSoundBufferBackend.ContextOpen(const AURL: String);
 var
-  S: String;
   TimeStart: TCastleProfilerTime;
 
   procedure CalculateProperties;
@@ -191,15 +210,22 @@ var
       ]);
   end;
 
+var
+  Mode: TFMOD_MODE;
+  FmodName: String;
 begin
   inherited;
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
   try
+    FmodName := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
+    if URIProtocol(FmodName) = 'file' then
+      FmodName := URIToFilenameSafe(FmodName); // resolve file:/, as FMOD cannot understand it
 
-    S := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
-    if URIProtocol(S) = 'file' then
-      S := URIToFilenameSafe(S); // resolve file:/, as FMOD cannot understand it
-    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(S), FMOD_DEFAULT or FMOD_2D,
+    Mode := FMOD_DEFAULT or FMOD_2D;
+    if FSoundLoading = slStreaming then
+      Mode := Mode or FMOD_CREATESTREAM;
+
+    CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(FmodName), Mode,
       nil { @SoundInfo }, @FMODSound));
 
     CalculateProperties;
@@ -210,6 +236,22 @@ procedure TFMODSoundBufferBackend.ContextClose;
 begin
   CheckFMOD(FMOD_Sound_Release(FMODSound));
   FMODSound := nil;
+  inherited;
+end;
+
+function TFMODSoundBufferBackend.Duration: TFloatTime;
+begin
+  Result := FDuration;
+end;
+
+function TFMODSoundBufferBackend.DataFormat: TSoundDataFormat;
+begin
+  Result := FDataFormat;
+end;
+
+function TFMODSoundBufferBackend.Frequency: LongWord;
+begin
+  Result := FFrequency;
 end;
 
 { TFMODSoundSourceBackend -------------------------------------------------- }
@@ -362,9 +404,9 @@ end;
 
 { TFMODSoundEngineBackend -------------------------------------------------- }
 
-function TFMODSoundEngineBackend.CreateBuffer: TSoundBufferBackend;
+function TFMODSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
-  Result := TFMODSoundBufferBackend.Create(Self);
+  Result := TFMODSoundBufferBackend.Create(Self, SoundLoading);
 end;
 
 function TFMODSoundEngineBackend.CreateSource: TSoundSourceBackend;
@@ -377,6 +419,7 @@ function TFMODSoundEngineBackend.ContextOpen(const ADevice: String;
 var
   Version: CUInt;
 begin
+  FmodLibraryUsingBegin;
   CheckFMOD(FMOD_System_Create(@FMODSystem));
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
   CheckFMOD(FMOD_System_GetVersion(FMODSystem, @Version));
@@ -393,6 +436,7 @@ begin
   CheckFMOD(FMOD_System_Close(FMODSystem));
   CheckFMOD(FMOD_System_Release(FMODSystem));
   FMODSystem := nil;
+  FmodLibraryUsingEnd;
 end;
 
 procedure TFMODSoundEngineBackend.Update;
@@ -423,6 +467,12 @@ end;
 
 procedure UseFMODSoundBackend;
 begin
+  if not FmodLibraryAvailable then
+  begin
+    WritelnWarning('FMOD library not available, aborting setting FMOD as sound backend');
+    Exit;
+  end;
+
   SoundEngine.InternalBackend := TFMODSoundEngineBackend.Create;
 end;
 

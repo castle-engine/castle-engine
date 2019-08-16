@@ -71,7 +71,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils;
+  CastleLog, CastleUIControls, CastleWindow, CastleURIUtils, CastleTimeUtils, CastleSoundBase;
 
 { TButtonSoundBuffer --------------------------------------------------------- }
 
@@ -79,7 +79,21 @@ constructor TStateMain.TButtonSoundBuffer.Create(const AOwner: TComponent;
   const SoundFileURL: String);
 begin
   inherited Create(AOwner);
-  Buffer := SoundEngine.LoadBuffer(SoundFileURL);
+  Buffer := SoundEngine.LoadBuffer(SoundFileURL
+    { Uncomment this (pass slStreaming argument) to allow streaming loading.
+      This means that sound file will be loaded partially, on-demand,
+      instead of being loaded to memory all at once.
+
+      The upside is much faster initialization (loading of a sound file
+      with slStreaming is almost instant, even for large files).
+
+      The downside is a possible additional work at run-time
+      (but it's done in a thread and should not matter in normal use-cases).
+      Make sure to also uncomment thread support in CastleEngineManifest.xml,
+      see the example in CastleEngineManifest.xml in this directory.
+    }
+    // , slStreaming
+  );
   Caption := Format('%s (%f)', [
     // extract last URL component, i.e. just the filename
     URIDisplay(SoundFileURL, true),

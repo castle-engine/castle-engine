@@ -353,7 +353,7 @@ begin
             - click on lower-bottom speakers }
           Inc(InsideLoadBuffer);
           try
-            Buffer := SoundEngine.LoadBuffer(FullUrl);
+            Buffer := SoundEngine.LoadBuffer(FullUrl, slComplete);
             FDuration := Buffer.Duration;
           finally Dec(InsideLoadBuffer) end;
 

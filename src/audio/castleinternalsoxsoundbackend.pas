@@ -43,7 +43,6 @@ type
     FileName: String;
   public
     procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); override;
-    procedure ContextClose; override;
   end;
 
   TSoxSoundSourceBackend = class(TSoundSourceBackend)
@@ -80,7 +79,7 @@ type
   public
     function ContextOpen(const ADevice: String; out Information: String): Boolean; override;
     procedure ContextClose; override;
-    function CreateBuffer: TSoundBufferBackend; override;
+    function CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend; override;
     function CreateSource: TSoundSourceBackend; override;
     procedure SetGain(const Value: Single); override;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); override;
@@ -106,10 +105,6 @@ begin
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
       [SoundFile.URL]);
-end;
-
-procedure TSoxSoundBufferBackend.ContextClose;
-begin
 end;
 
 { TSoxSoundSourceBackend -------------------------------------------------- }
@@ -258,8 +253,9 @@ procedure TSoxSoundEngineBackend.SetListener(const Position, Direction, Up: TVec
 begin
 end;
 
-function TSoxSoundEngineBackend.CreateBuffer: TSoundBufferBackend;
+function TSoxSoundEngineBackend.CreateBuffer(const SoundLoading: TSoundLoading): TSoundBufferBackend;
 begin
+  // Ignore SoundLoading
   Result := TSoxSoundBufferBackend.Create(Self);
 end;
 

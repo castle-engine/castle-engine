@@ -282,6 +282,7 @@ uses
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument,
+  CastleSoundBase,
   X3DLoadInternalUtils;
 
 {$warnings on}
