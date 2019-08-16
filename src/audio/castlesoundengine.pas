@@ -55,7 +55,6 @@ type
     FFrequency: LongWord;
   private
     FURL: string;
-    FDuration: TFloatTime;
     FSoundLoading: TSoundLoading;
     References: Cardinal;
     Backend: TSoundBufferBackend;
@@ -70,8 +69,8 @@ type
     constructor Create(const SoundEngineBackend: TSoundEngineBackend; SoundLoading: TSoundLoading);
     destructor Destroy; override;
 
-    { Duration of the sound, in seconds. Zero if not loaded yet. }
-    property Duration: TFloatTime read FDuration;
+    { Duration of the sound, in seconds. -1 if not loaded yet. }
+    function Duration: TFloatTime;
 
     { Absolute sound file URL.
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
@@ -1300,13 +1299,20 @@ begin
   Result := FFrequency;
 end;
 
+function TSoundBuffer.Duration: TFloatTime;
+begin
+  if BackendIsOpen then
+    Result := Backend.Duration
+  else
+    Result := -1;
+end;
+
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
 
   procedure OpenCore;
   begin
     FURL := URL;
     Backend.ContextOpen(URL);
-    FDuration := Backend.Duration;
     BackendIsOpen := true;
   end;
 

@@ -43,7 +43,6 @@ type
     FileName: String;
   public
     procedure ContextOpenFromSoundFile(const SoundFile: TSoundFile); override;
-    procedure ContextClose; override;
   end;
 
   TSoxSoundSourceBackend = class(TSoundSourceBackend)
@@ -106,10 +105,6 @@ begin
   if FileName = '' then
     raise ESoundFileError.CreateFmt('URL "%s" does not translate to a filename, and SOX can only play local files',
       [SoundFile.URL]);
-end;
-
-procedure TSoxSoundBufferBackend.ContextClose;
-begin
 end;
 
 { TSoxSoundSourceBackend -------------------------------------------------- }

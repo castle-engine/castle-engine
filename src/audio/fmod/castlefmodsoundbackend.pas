@@ -44,6 +44,10 @@ uses SysUtils, Classes, Math, StrUtils, CTypes,
 
 type
   TFMODSoundBufferBackend = class(TSoundBufferBackend)
+  strict private
+    FDuration: TFloatTime;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
   private
     FSoundLoading: TSoundLoading;
     FMODSound: PFMOD_SOUND;
@@ -53,6 +57,9 @@ type
       const ASoundLoading: TSoundLoading);
     procedure ContextOpen(const AURL: String); override;
     procedure ContextClose; override;
+    function Duration: TFloatTime; override;
+    function DataFormat: TSoundDataFormat; override;
+    function Frequency: LongWord; override;
   end;
 
   TFMODSoundSourceBackend = class(TSoundSourceBackend)
@@ -222,6 +229,22 @@ procedure TFMODSoundBufferBackend.ContextClose;
 begin
   CheckFMOD(FMOD_Sound_Release(FMODSound));
   FMODSound := nil;
+  inherited;
+end;
+
+function TFMODSoundBufferBackend.Duration: TFloatTime;
+begin
+  Result := FDuration;
+end;
+
+function TFMODSoundBufferBackend.DataFormat: TSoundDataFormat;
+begin
+  Result := FDataFormat;
+end;
+
+function TFMODSoundBufferBackend.Frequency: LongWord;
+begin
+  Result := FFrequency;
 end;
 
 { TFMODSoundSourceBackend -------------------------------------------------- }
