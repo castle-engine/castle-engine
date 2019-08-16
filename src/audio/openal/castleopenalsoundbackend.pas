@@ -56,6 +56,8 @@ type
     procedure ContextClose; override;
   end;
 
+  { Manages resources (OpenAL buffers, thread) to play the given
+    sound buffer on a given sound source using streaming. }
   TOpenALStreamBuffersSoundSourceRes = class
   private
     const
@@ -109,13 +111,17 @@ type
 
   TOpenALSoundSourceBackend = class(TSoundSourceBackend)
   strict private
-    { Because TOpenALSoundBufferBackend is one for all sources we don't have pointer to sound source
-      to correctly set FBuffer to nil like in TOpenALStreamBuffersSoundSourceRes.ContextClose.
-      That makes a problem when FBuffer is checked in TOpenALSoundSourceBackend.SetBuffer
-      because FBuffer can be dangling pointer.
-      So we set this variable to see do we have to check remove the sourcefrom buffer at all.
-      FBuffer variable is always correct when is set to TOpenALStreamBufferBackend and
-      can be dangling pointer when set to TOpenALSoundBufferBackend. }
+    { Only when FStreamedBuffer is true,
+      the FBuffer is guaranteed to be either nil or a valid instance.
+      It TOpenALStreamBuffersSoundSourceRes.ContextClose we make sure of it,
+      setting FBuffer to nil when necessary.
+
+      When FStreamedBuffer is false (using non-streamed,
+      TOpenALSoundBufferBackend buffer) then FBuffer may be invalid reference
+      (dangling pointer) because TOpenALSoundBufferBackend doesn't make effort
+      to clear it. (TOpenALSoundBufferBackend would need to clear all connected
+      sources, which it doesn't track now.)
+    }
     FStreamedBuffer: Boolean;
     function ALVersion11: Boolean;
   private
@@ -356,7 +362,6 @@ begin
     begin
       alSourcePlay(ALSource);
     end;
-
   end;
 end;
 
@@ -365,8 +370,7 @@ constructor TOpenALStreamFeedThread.Create(const CreateSuspended: Boolean;
 begin
   inherited Create(CreateSuspended);
   FStreamSoundSourceRes := StreamSoundSourceRes;
-
-  FreeOnTerminate := false;
+  Assert(not FreeOnTerminate); // should be default
 end;
 
 { TOpenALStreamBufferBackend ------------------------------------------------ }
@@ -515,7 +519,7 @@ end;
 procedure TOpenALSoundSourceBackend.Play(const BufferChangedRecently: Boolean);
 var
   StreamedBuffer: TOpenALStreamBufferBackend;
-  FullSoundBuffer: TOpenALSoundBufferBackend;
+  CompleteBuffer: TOpenALSoundBufferBackend;
 begin
   if FBuffer is TOpenALStreamBufferBackend then
   begin
@@ -526,16 +530,15 @@ begin
 
     // start feed buffers thread
     StreamedBuffer.FeedBuffers(Self);
-    Exit;
-  end;
+  end else
 
   if FBuffer is TOpenALSoundBufferBackend then
   begin
-    FullSoundBuffer := TOpenALSoundBufferBackend(FBuffer);
+    CompleteBuffer := TOpenALSoundBufferBackend(FBuffer);
 
     if BufferChangedRecently and
-       (FullSoundBuffer <> nil) and
-       (FullSoundBuffer.ALBuffer <> 0) then
+       (CompleteBuffer <> nil) and
+       (CompleteBuffer.ALBuffer <> 0) then
     begin
       { This is a workaround needed on Apple OpenAL implementation
         (although I think that at some time I experienced similar
@@ -567,12 +570,13 @@ begin
       { We have to do CheckAL first, to catch eventual errors.
         Otherwise the loop could hang. }
       CheckAL('PlaySound');
-      while FullSoundBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
+      while CompleteBuffer.ALBuffer <> alGetSource1ui(ALSource, AL_BUFFER) do
         Sleep(10);
     end;
     alSourcePlay(ALSource);
-  end;
+  end else
 
+    raise EInternalError.CreateFmt('Cannot play buffer class type %s', [FBuffer.ClassName]);
 end;
 
 procedure TOpenALSoundSourceBackend.Stop;
@@ -633,8 +637,12 @@ var
   FullLoaded: TOpenALSoundBufferBackend;
 begin
   { If some streamed buffer was connected to this source, disconnect it before
-    the change. Why FStreamedBuffer? See comment above FStreamedBuffer declaration. }
-  if FStreamedBuffer and Assigned(FBuffer) and (FBuffer is TOpenALStreamBufferBackend) then
+    the change. For reasons why we need to use FStreamedBuffer below,
+    see the FStreamedBuffer docs (old FBuffer may be invalid pointer when
+    FStreamedBuffer = false). }
+  if FStreamedBuffer and
+     Assigned(FBuffer) and
+     (FBuffer is TOpenALStreamBufferBackend) then
     TOpenALStreamBufferBackend(FBuffer).RemoveSoundSource(Self);
 
   FBuffer := Value;
@@ -653,13 +661,16 @@ begin
       alSourcei(ALSource, AL_BUFFER, FullLoaded.ALBuffer);
       {$I norqcheckend.inc}
     end else
+
     if FBuffer is TOpenALStreamBufferBackend then
     begin
       FStreamedBuffer := true;
       AdjustALLooping;
       Stream := TOpenALStreamBufferBackend(FBuffer);
       Stream.AddSoundSource(Self);
-    end;
+    end else
+
+      raise EInternalError.CreateFmt('Cannot assign buffer class type %s', [FBuffer.ClassName]);
   end else
     alSourcei(ALSource, AL_BUFFER, 0);
 end;
