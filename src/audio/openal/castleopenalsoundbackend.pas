@@ -208,6 +208,7 @@ end;
 procedure TOpenALStreamBuffersSoundSourceRes.ContextOpen(const AURL: String);
 var
   I: Integer;
+  NecessaryBuffers: Integer;
 begin
   { Note: It is tempting to reuse one TStreamedSoundFile instance
     created inside FBuffer (TSoundBufferBackendFromStreamedFile class).
@@ -235,19 +236,28 @@ begin
   CheckAL('Before filling buffers');
 
   try
+    NecessaryBuffers := 0;
     for I := 0 to StreamBuffersCount - 1 do
     begin
-      FillBuffer(ALBuffers[I]);
+      { FillBuffer may return 0 if sound is non-looping and is too short
+        to need StreamBuffersCount buffers.
+        Testcase: play_sounds example,
+        play castle-data:/sounds/misc_sound-22000Hz-8bit-mono.wav
+        with slStreaming . }
+      if FillBuffer(ALBuffers[I]) = 0 then
+        Break;
+      Inc(NecessaryBuffers);
       CheckAL('After filling buffer '+IntToStr(I));
     end;
-
   except
     alDeleteBuffers(StreamBuffersCount, @ALBuffers);
     raise;
   end;
   CheckAL('After filling all buffers');
 
-  alSourceQueueBuffers(FSoundSource.ALSource, StreamBuffersCount, ALBuffers);
+  Assert(NecessaryBuffers > 0);
+  Assert(NecessaryBuffers <= StreamBuffersCount);
+  alSourceQueueBuffers(FSoundSource.ALSource, NecessaryBuffers, ALBuffers);
   CheckAL('After queue');
 end;
 
