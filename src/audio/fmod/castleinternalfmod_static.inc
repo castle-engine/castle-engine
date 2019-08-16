@@ -13,7 +13,7 @@
   On Unix platforms, the library must exist at compile-time
   (on Windows it is not necessary). }
 
-{$define extdecl := extdecl_callback; external 'fmod'}
+{$define extdecl := extdecl_callback; external}
 
 { FMOD global system functions (optional). }
 function FMOD_Memory_Initialize           (poolmem: Pointer; poollen: CInt; useralloc: TFMOD_MEMORY_ALLOC_CALLBACK; userrealloc: TFMOD_MEMORY_REALLOC_CALLBACK; userfree: TFMOD_MEMORY_FREE_CALLBACK; memtypeflags: TFMOD_MEMORY_TYPE): TFMOD_RESULT; extdecl;

@@ -66,6 +66,13 @@ type
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
   protected
+    { Optionally change (pre-process in some way) SoundFile contents
+      before loading it. Called by @link(ContextOpen),
+      always before @link(ContextOpenFromSoundFile).
+      E.g. if backend only supports 16-bit sound formats,
+      here you can call SoundFile.ConvertTo16bit. }
+    procedure ContextOpenPreProcess(const SoundFile: TSoundFile); virtual;
+
     { Load from @link(SoundFile).
       When overriding, call inherited first.
       @raises Exception In case sound loading failed for any reason. }
@@ -231,6 +238,10 @@ begin
 end;
 
 procedure TSoundBufferBackendFromSoundFile.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
+begin
+end;
+
+procedure TSoundBufferBackendFromSoundFile.ContextOpenPreProcess(const SoundFile: TSoundFile);
 begin
 end;
 
