@@ -211,13 +211,14 @@ begin
   inherited;
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TFMODSoundBufferBackend)');
   try
-
     FmodName := ResolveCastleDataURL(URL); // resolve castle-data:/, as FMOD cannot understand it
     if URIProtocol(FmodName) = 'file' then
       FmodName := URIToFilenameSafe(FmodName); // resolve file:/, as FMOD cannot understand it
+
     Mode := FMOD_DEFAULT or FMOD_2D;
     if FSoundLoading = slStreaming then
       Mode := Mode or FMOD_CREATESTREAM;
+
     CheckFMOD(FMOD_System_CreateSound(FMODSystem, PCharOrNil(FmodName), Mode,
       nil { @SoundInfo }, @FMODSound));
 

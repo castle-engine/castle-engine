@@ -50,23 +50,17 @@ type
     and freed by @link(TSoundEngine.FreeBuffer).
     @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
-  strict private
-    FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
   private
     FURL: string;
     FSoundLoading: TSoundLoading;
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
-
-    function GetDataFormat: TSoundDataFormat;
-    function GetFrequency: LongWord;
-
     procedure ContextOpen(const ExceptionOnError: boolean);
     procedure ContextClose;
   public
-    constructor Create(const SoundEngineBackend: TSoundEngineBackend; SoundLoading: TSoundLoading);
+    constructor Create(const SoundEngineBackend: TSoundEngineBackend;
+      const SoundLoading: TSoundLoading);
     destructor Destroy; override;
 
     { Duration of the sound, in seconds. -1 if not loaded yet. }
@@ -81,13 +75,13 @@ type
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
       Undefined if backend is not loaded. }
-    property DataFormat: TSoundDataFormat read GetDataFormat;
+    function DataFormat: TSoundDataFormat;
 
     { Frequency (sample rate) of the loaded sound file.
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
       Undefined if backend is not loaded. }
-    property Frequency: LongWord read GetFrequency;
+    function Frequency: LongWord;
   end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
@@ -562,9 +556,18 @@ type
       URL second time returns the same buffer instance. The buffer
       is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
-      TODO: clarify case of caching + streaming, is cache even possible then?
 
-      Not specifying SoundLoading means to use slComplete.
+      Not specifying SoundLoading means to use slComplete,
+      which loads sound at once. It means that loading time is long,
+      but there's zero additional work at runtime, and caching buffers
+      works great.
+
+      Using SoundLoading = slStreaming means that we decompress
+      the sound (like OggVorbis) during playback.
+      It allows for much quicker sound loading (almost instant, if you use streaming
+      for everything) but means that sounds will be loaded (in parts)
+      during playback.
+      In general case, we advise to use it for longer sounds (like music tracks).
 
       @raises(ESoundFileError If loading of this sound file failed.
         There are many reasons why this may happen: we cannot read given URL,
@@ -1278,25 +1281,28 @@ var
 
 { TSoundBuffer --------------------------------------------------------------- }
 
-constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend; SoundLoading: TSoundLoading);
+constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend;
+  const SoundLoading: TSoundLoading);
 begin
   inherited Create;
   FSoundLoading := SoundLoading;
   Backend := SoundEngineBackend.CreateBuffer(SoundLoading);
 end;
 
-function TSoundBuffer.GetDataFormat: TSoundDataFormat;
+function TSoundBuffer.DataFormat: TSoundDataFormat;
 begin
   if BackendIsOpen then
-    FDataFormat := Backend.DataFormat;
-  Result := FDataFormat;
+    Result := Backend.DataFormat
+  else
+    Result := Default(TSoundDataFormat);
 end;
 
-function TSoundBuffer.GetFrequency: LongWord;
+function TSoundBuffer.Frequency: LongWord;
 begin
   if BackendIsOpen then
-    FFrequency := Backend.Frequency;
-  Result := FFrequency;
+    Result := Backend.Frequency
+  else
+    Result := 0;
 end;
 
 function TSoundBuffer.Duration: TFloatTime;
@@ -2579,8 +2585,7 @@ begin
   { set Buffer at the end, when URL is set }
   if URL <> '' then
   begin
-    Streaming := false;
-    Element.AttributeBoolean('stream', Streaming);
+    Streaming := Element.AttributeBooleanDef('stream', false);
     if Streaming then
       SoundLoading := slStreaming
     else

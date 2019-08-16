@@ -81,15 +81,16 @@ type
 
     Note that this doesn't actually open file immediately in ContextOpen
     (it does not create TStreamedSoundFile instance at that point).
-    Instead the file will be opened on-demand when needed (if descendant
-    will try to play this by accessing StreamedSoundFile,
-    or if you try to read Duration / DataFormat / Frequency).
+    Instead the file will be opened on-demand when needed (when playing this,
+    or accessing Duration / DataFormat / Frequency).
 
-    This is esp. useful on Android, where switching from/to the application
-    requires to close/ open the context.
+    This is especially useful on Android, where switching from/to the application
+    requires to close/reopen the OpenAL context.
     The sounds that are streamed do not need to be immediately loaded
-    in this case, only the playing sounds need to be loaded on-demand.
-    In contrast, slComplete loading loads them all immediately,
+    in this case (only the playing sounds need to be loaded on-demand).
+    So starting and switching back to the application is much faster.
+
+    In contrast, slComplete loads complete data immediately,
     making it more predictable (no additional work at runtime)
     but introducing a loading time.
   }
