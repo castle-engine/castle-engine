@@ -31,14 +31,11 @@ type
 
   TSoundFile = class
   strict private
-    const
-      SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
-    var
-      FURL: String;
-      DataStream: TMemoryStream;
-      FDataFormat: TSoundDataFormat;
-      FFrequency: LongWord;
-    procedure CheckCorrectness;
+    FURL: String;
+    DataStream: TMemoryStream;
+    FDataFormat: TSoundDataFormat;
+    FFrequency: LongWord;
+    FDuration: TFloatTime;
   public
     { Load a sound data from a given URL.
 
@@ -66,24 +63,21 @@ type
     property DataFormat: TSoundDataFormat read FDataFormat;
     property Frequency: LongWord read FFrequency;
 
-    { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero). }
-    function Duration: TFloatTime;
+    { Duration in seconds. Returns -1 if not known. }
+    property Duration: TFloatTime read FDuration;
 
     { Convert sound data to ensure it is 16bit (DataFormat is sfMono16 or sfStereo16,
-      not sfMono8 or sfStereo8).
-
-      The default implementation just raises an exception if data is not 16-bit.
-      When overriding this you call "inherited" at the end. }
-    procedure ConvertTo16bit; virtual;
+      not sfMono8 or sfStereo8). }
+    procedure ConvertTo16bit;
   end;
 
   TStreamedSoundFile = class
   strict private
-  var
     FURL: String;
     CompressedStream, DecompressedStream: TStream;
     FDataFormat: TSoundDataFormat;
     FFrequency: LongWord;
+    FDuration: TFloatTime;
   public
     { Load a sound from a given URL.
 
@@ -104,6 +98,7 @@ type
 
     property DataFormat: TSoundDataFormat read FDataFormat;
     property Frequency: LongWord read FFrequency;
+    property Duration: TFloatTime read FDuration;
 
     { Returns read size. }
     function Read(var Buffer; const BufferSize: LongInt): LongInt;
@@ -121,7 +116,8 @@ type
     by DataFormat. }
   TSoundReadEvent = function (
     const Url: string; const Stream: TStream;
-    out DataFormat: TSoundDataFormat; out Frequency: LongWord): TStream
+    out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+    out Duration: TFloatTime): TStream
     of object;
 
 { Register sound format. }
@@ -133,6 +129,9 @@ implementation
 uses Generics.Collections,
   CastleStringUtils, CastleInternalVorbisDecoder,
   CastleLog, CastleDownload, CastleURIUtils, CastleClassUtils;
+
+const
+  SampleSize: array [TSoundDataFormat] of Cardinal = (1, 2, 2, 4);
 
 { Registering sound formats - declare interface ------------------------------ }
 
@@ -167,7 +166,7 @@ constructor TSoundFile.Create(const AURL: string);
   var
     DecodingStream: TStream;
   begin
-    DecodingStream := ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency);
+    DecodingStream := ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency, FDuration);
     if DecodingStream is TMemoryStream then
       DataStream := TMemoryStream(DecodingStream)
     else
@@ -175,6 +174,20 @@ constructor TSoundFile.Create(const AURL: string);
       DataStream := TMemoryStream.Create;
       ReadGrowingStream(DecodingStream, DataStream, true, BufferSize);
     finally FreeAndNil(DecodingStream) end;
+  end;
+
+  procedure CheckCorrectness;
+  begin
+    if DataSize mod SampleSize[DataFormat] <> 0 then
+      raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
+        URIDisplay(URL),
+        DataSize,
+        SampleSize[DataFormat]
+      ]);
+    if DataSize = 0 then
+      raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
+        URIDisplay(URL)
+      ]);
   end;
 
 var
@@ -189,7 +202,7 @@ begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TSoundFile)');
   try
     try
-      { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
+      { Use soForceMemoryStream as file readers may need seeking }
       CompressedStream := Download(AURL, [soForceMemoryStream], MimeType);
       try
         F := RegisteredSoundFormats.Find(MimeType);
@@ -245,38 +258,24 @@ begin
   Result := DataStream.Size;
 end;
 
-function TSoundFile.Duration: TFloatTime;
-begin
-  if (Frequency = 0) or (DataSize = 0) then
-    Exit(-1);
-  Result := DataSize / (Frequency * SampleSize[DataFormat]);
-end;
-
 procedure TSoundFile.ConvertTo16bit;
-begin
-  if not (DataFormat in [sfMono16, sfStereo16]) then
-    raise ESoundFileError.CreateFmt('Cannot convert this sound class to 16-bit: %s', [ClassName]);
-
-(*
-// TODO: Implement this independently from sound format, remaking the code below
-
-procedure TSoundWAV.ConvertTo16bit;
 var
   PSource: PByte;
   // To unsigned 16-bit:
   //PDest: PWord;
   // To signed 16-bit:
   PDest: PSmallInt;
-  NewData: Pointer;
+  NewDataStream: TMemoryStream;
 begin
   if DataFormat in [sfMono8, sfStereo8] then
   begin
     WritelnWarning('Sound', 'Converting to 16-bit "%s".', [URIDisplay(URL)]);
 
-    { create NewData with 16-bit samples }
-    NewData := GetMem(DataSize * 2);
+    { create NewDataStream with 16-bit samples }
+    NewDataStream := TMemoryStream.Create;
+    NewDataStream.Size  := DataSize * 2;
     PSource := Data;
-    PDest := NewData;
+    PDest := NewDataStream.Memory;
     while PtrUInt(PSource) < PtrUInt(Data) + DataSize do
     begin
       // To unsigned 16-bit:
@@ -288,31 +287,13 @@ begin
     end;
 
     { update fields }
-    FreeMemNiling(FData);
-    FData := NewData;
-    FDataSize := DataSize * 2;
+    FreeAndNil(DataStream);
+    DataStream := NewDataStream;
     case DataFormat of
       sfMono8  : FDataFormat := sfMono16;
       sfStereo8: FDataFormat := sfStereo16;
     end;
   end;
-  inherited;
-end;
-*)
-end;
-
-procedure TSoundFile.CheckCorrectness;
-begin
-  if DataSize mod SampleSize[DataFormat] <> 0 then
-    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": %d is not a multiple of sample size (%d)', [
-      URIDisplay(URL),
-      DataSize,
-      SampleSize[DataFormat]
-    ]);
-  if DataSize = 0 then
-    raise ESoundFileError.CreateFmt('Invalid size for the sound file "%s": size cannot be zero', [
-      URIDisplay(URL)
-    ]);
 end;
 
 { TStreamedSoundFile --------------------------------------------------------- }
@@ -329,7 +310,7 @@ begin
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (TStreamedSoundFile)');
   try
     try
-      { soForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
+      { Use soForceMemoryStream as file readers may need seeking }
       CompressedStream := Download(AURL, [soForceMemoryStream], MimeType);
 
       F := RegisteredSoundFormats.Find(MimeType);
@@ -339,15 +320,16 @@ begin
           URIDisplay(AURL)
         ]);
 
-      DecompressedStream := F.ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency);
+      DecompressedStream := F.ReadEvent(AURL, CompressedStream, FDataFormat, FFrequency, FDuration);
 
       if LogSoundLoading then
       begin
-        WritelnLog('Sound', 'Loaded "%s": %s, %s, frequency: %d', [
+        WritelnLog('Sound', 'Loaded "%s": %s, %s, frequency: %d, duration: %f', [
           URIDisplay(AURL),
           MimeType,
           DataFormatToStr(DataFormat),
-          Frequency
+          Frequency,
+          Duration
         ]);
       end;
     except
@@ -386,24 +368,6 @@ begin
   DecompressedStream.Position := 0;
 end;
 
-{ TOggVorbisReader ------------------------------------------------------------ }
-
-type
-  { OggVorbis file loader. Loads
-    Loads using libvorbisfile or tremolo. Both are open-source libraries
-    for reading OggVorbis music from https://xiph.org/.
-    Tremolo is used on mobile devices, libvorbisfile on desktop. }
-  TOggVorbisReader = class
-    class function Read(const Url: string; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord): TStream;
-  end;
-
-class function TOggVorbisReader.Read(const Url: string; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord): TStream;
-begin
-  Result := TOggVorbisStream.Create(Stream, DataFormat, Frequency);
-end;
-
 { TWAVReader ------------------------------------------------------------ }
 
 type
@@ -411,11 +375,13 @@ type
 
   TWAVReader = class
     class function Read(const Url: string; const Stream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord): TStream;
+      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+      out Duration: TFloatTime): TStream;
   end;
 
 class function TWAVReader.Read(const Url: string; const Stream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord): TStream;
+  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out Duration: TFloatTime): TStream;
 
 { WAV file reader. Written mostly based on
     http://www.technology.niagarac.on.ca/courses/comp630/WavFileFormat.html
@@ -556,6 +522,10 @@ begin
 
   if Result = nil then
     raise EWavLoadError.Create('WAV file has no data chunk');
+
+  if (Frequency = 0) or (Result.Size = 0) then
+    raise EWavLoadError.Create('WAV file has Frequency or DataSize equal zero');
+  Duration := Result.Size / (Frequency * SampleSize[DataFormat]);
 end;
 
 { Registering sound formats -------------------------------------------------- }
@@ -592,7 +562,6 @@ begin
     FRegisteredSoundFormats := TRegisteredSoundFormats.Create(true);
     // register default formats, handled in this unit
     FRegisteredSoundFormats.Add('audio/x-wav', @TWAVReader(nil).Read);
-    FRegisteredSoundFormats.Add('audio/ogg', @TOggVorbisReader(nil).Read);
   end;
   Result := FRegisteredSoundFormats;
 end;

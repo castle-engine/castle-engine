@@ -13,54 +13,29 @@
   ----------------------------------------------------------------------------
 }
 
-{ OggVorbis decoder. }
+{ OggVorbis decoder.
+  During the initialization, this unit registers handling of OggVorbis
+  file format using RegisterSoundFormat.
+}
 unit CastleInternalVorbisDecoder;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes,
-  CastleSoundBase, CastleInternalSoundFile, CastleInternalVorbisFile, CTypes;
+uses SysUtils;
 
 type
   EOggVorbisLoadError = class(Exception);
   EOggVorbisMissingLibraryError = class(EOggVorbisLoadError);
   EOggVorbisFileError = class(EOggVorbisLoadError);
 
-type
-  { Decode OggVorbis file contents.
-    TODO: Should be used only internally by internal @ReadOggVorbis .
-
-    Uses LibVorbisFile or Tremolo libraries.
-    Checks VorbisFileInitialized at the beginning, so you don't have to
-    worry about it.
-
-    Gets data from ObjectPascal TStream (like TFileStream) and returns data as TStream.
-
-    All methods may raise EOggVorbisLoadError If decoding OggVorbis stream failed,
-    this may also happen if the vorbisfile / tremolo library is not available.
-  }
-  TOggVorbisStream = class(TOwnerStream)
-  strict private
-    VorbisFile: TOggVorbis_File;
-    // Is VorbisFile valid, e.g. we can call ov_clear on it.
-    VorbisFileValid: Boolean;
-    procedure OpenVorbisFile(out DataFormat: TSoundDataFormat; out Frequency: LongWord);
-    procedure CloseVorbisFile;
-  public
-    constructor Create(const ASourceStream: TStream;
-      out DataFormat: TSoundDataFormat; out Frequency: LongWord);
-    destructor Destroy; override;
-    function Read(var Buffer; BufferSize: Longint): Longint; override;
-    { Only supports seeking to the beginning (or seeking to current position,
-      which does nothing). }
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
-  end;
-
 implementation
 
-uses CastleUtils, CastleClassUtils, CastleInternalVorbisCodec;
+uses Classes, CTypes,
+  CastleUtils, CastleClassUtils, CastleInternalVorbisCodec,
+  CastleSoundBase, CastleInternalSoundFile, CastleInternalVorbisFile,
+  CastleTimeUtils;
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
@@ -150,11 +125,53 @@ end;
 
 { TOggVorbisStream ----------------------------------------------------------- }
 
+type
+  { Decode OggVorbis file contents.
+
+    Uses LibVorbisFile or Tremolo libraries.
+    Both are open-source libraries
+    for reading OggVorbis music from https://xiph.org/.
+    Tremolo is used on mobile devices, libvorbisfile on desktop.
+    Checks VorbisFileInitialized at the beginning, so you don't have to
+    worry about it.
+
+    Gets data from ObjectPascal TStream (like TFileStream)
+    and returns data as TStream.
+
+    All methods may raise EOggVorbisLoadError If decoding OggVorbis stream failed,
+    this may also happen if the vorbisfile / tremolo library is not available.
+  }
+  TOggVorbisStream = class(TOwnerStream)
+  strict private
+    VorbisFile: TOggVorbis_File;
+    // Is VorbisFile valid, e.g. we can call ov_clear on it.
+    VorbisFileValid: Boolean;
+    procedure OpenVorbisFile(out DataFormat: TSoundDataFormat;
+      out Frequency: LongWord; out Duration: TFloatTime);
+    procedure CloseVorbisFile;
+  public
+    constructor Create(const ASourceStream: TStream;
+      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+      out Duration: TFloatTime);
+    destructor Destroy; override;
+    function Read(var Buffer; BufferSize: Longint): Longint; override;
+
+    { Only supports seeking to the beginning (or seeking to current position,
+      which does nothing). }
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+
+    { Use this function to register OggVorbis handling with RegisterSoundFormat. }
+    class function ReadStream(const Url: string; const Stream: TStream;
+      out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+      out Duration: TFloatTime): TStream;
+  end;
+
 constructor TOggVorbisStream.Create(const ASourceStream: TStream;
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord);
+  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out Duration: TFloatTime);
 begin
   inherited Create(ASourceStream);
-  OpenVorbisFile(DataFormat, Frequency);
+  OpenVorbisFile(DataFormat, Frequency, Duration);
 end;
 
 destructor TOggVorbisStream.Destroy;
@@ -164,7 +181,8 @@ begin
 end;
 
 procedure TOggVorbisStream.OpenVorbisFile(
-  out DataFormat: TSoundDataFormat; out Frequency: LongWord);
+  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out Duration: TFloatTime);
 var
   OggInfo: Pvorbis_info;
   Callbacks: Tov_callbacks;
@@ -179,9 +197,9 @@ begin
   CheckVorbisFile(ov_open_callbacks(Source, @VorbisFile, nil, 0, Callbacks),
     'ov_open_callbacks');
 
-  OggInfo := ov_info(@VorbisFile, -1);
+  VorbisFileValid := true; // ov_clear on VorbisFile now is valid
 
-  VorbisFileValid := true;
+  OggInfo := ov_info(@VorbisFile, -1);
 
   if OggInfo^.channels = 1 then
     DataFormat := sfMono16
@@ -189,6 +207,8 @@ begin
     DataFormat := sfStereo16;
 
   Frequency := OggInfo^.rate;
+
+  Duration := ov_time_total(@VorbisFile, -1);
 end;
 
 procedure TOggVorbisStream.CloseVorbisFile;
@@ -267,6 +287,7 @@ function TOggVorbisStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 var
   IgnoreDataFormat: TSoundDataFormat;
   IgnoreFrequency: LongWord;
+  IgnoreDuration: TFloatTime;
 begin
   if (Origin = soCurrent  ) and (Offset = 0) then
     { nothing needs to be done, ok }
@@ -276,7 +297,7 @@ begin
   begin
     CloseVorbisFile;
     Source.Position := 0;
-    OpenVorbisFile(IgnoreDataFormat, IgnoreFrequency);
+    OpenVorbisFile(IgnoreDataFormat, IgnoreFrequency, IgnoreDuration);
     Exit;
   end;
 
@@ -284,4 +305,13 @@ begin
   Result := 0; // just to get rid of warning
 end;
 
+class function TOggVorbisStream.ReadStream(const Url: string; const Stream: TStream;
+  out DataFormat: TSoundDataFormat; out Frequency: LongWord;
+  out Duration: TFloatTime): TStream;
+begin
+  Result := TOggVorbisStream.Create(Stream, DataFormat, Frequency, Duration);
+end;
+
+initialization
+  RegisterSoundFormat('audio/ogg', @TOggVorbisStream(nil).ReadStream);
 end.

@@ -251,8 +251,9 @@ end;
 
 function TSoundBufferBackendFromStreamedFile.GetDuration: TFloatTime;
 begin
-  // This never returns Duration for now
-  Result := -1;
+  if not FStreamConfigRead then
+    ReadStreamConfig;
+  Result := FDuration;
 end;
 
 function TSoundBufferBackendFromStreamedFile.GetDataFormat: TSoundDataFormat;
@@ -271,7 +272,7 @@ end;
 
 procedure TSoundBufferBackendFromStreamedFile.ReadStreamConfig(const StreamedSoundFile: TStreamedSoundFile);
 begin
-  FDuration := -1;
+  FDuration := StreamedSoundFile.Duration;
   FDataFormat := StreamedSoundFile.DataFormat;
   FFrequency := StreamedSoundFile.Frequency;
   FStreamConfigRead := true;
