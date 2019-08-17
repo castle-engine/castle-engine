@@ -2866,58 +2866,58 @@ begin
   if RepositoryURL = '' then Exit;
 
   TimeStart := Profiler.Start('Loading All Sounds From ' + RepositoryURL + ' (TRepoSoundEngine)');
-
-  { This must be an absolute path, since FSounds[].URL should be
-    absolute (to not depend on the current dir when loading sound files. }
-  BaseUrl := AbsoluteURI(RepositoryURL);
-
-  Stream := Download(BaseUrl);
   try
-    ReadXMLFile(SoundConfig, Stream, BaseUrl);
-  finally FreeAndNil(Stream) end;
+    { This must be an absolute path, since FSounds[].URL should be
+      absolute (to not depend on the current dir when loading sound files. }
+    BaseUrl := AbsoluteURI(RepositoryURL);
 
-  // cut off last part from BaseUrl, for ReadSound / ReadGroup calls
-  BaseUrl := ExtractURIPath(BaseUrl);
-
-  try
-    Check(SoundConfig.DocumentElement.TagName = 'sounds',
-      'Root node of sounds/index.xml must be <sounds>');
-
-    { TODO: This could display a progress bar using Progress.Init / Fini
-      if IsContextOpenSuccess, since it loads sounds in this case (calls LoadBuffer),
-      so can take a while. }
-
-    I := SoundConfig.DocumentElement.ChildrenIterator;
+    Stream := Download(BaseUrl);
     try
-      while I.GetNext do
-        ReadGroupChild(I.Current, nil, BaseUrl);
-    finally FreeAndNil(I) end;
-  finally
-    FreeAndNil(SoundConfig);
-  end;
+      ReadXMLFile(SoundConfig, Stream, BaseUrl);
+    finally FreeAndNil(Stream) end;
 
-  ResolveNames;
+    // cut off last part from BaseUrl, for ReadSound / ReadGroup calls
+    BaseUrl := ExtractURIPath(BaseUrl);
 
-  { read common sound names }
-  stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
-  stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
-  stPlayerPickItem             := SoundFromName('player_pick_item', false);
-  stPlayerDropItem             := SoundFromName('player_drop_item', false);
-  stPlayerDies                 := SoundFromName('player_dies', false);
-  stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
-  stPlayerSwimming             := SoundFromName('player_swimming', false);
-  stPlayerDrowning             := SoundFromName('player_drowning', false);
-  stPlayerFootstepsDefault     := SoundFromName('player_footsteps_default', false);
-  stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
+    try
+      Check(SoundConfig.DocumentElement.TagName = 'sounds',
+        'Root node of sounds/index.xml must be <sounds>');
 
-  stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
-  stMenuClick              := SoundFromName('menu_click'               , false);
+      { TODO: This could display a progress bar using Progress.Init / Fini
+        if IsContextOpenSuccess, since it loads sounds in this case (calls LoadBuffer),
+        so can take a while. }
 
-  { in case you set RepositoryURL when sound context is already
-    initialized, start playing music immediately if necessary }
-  RestartLoopingChannels;
+      I := SoundConfig.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          ReadGroupChild(I.Current, nil, BaseUrl);
+      finally FreeAndNil(I) end;
+    finally
+      FreeAndNil(SoundConfig);
+    end;
 
-  Profiler.Stop(TimeStart);
+    ResolveNames;
+
+    { read common sound names }
+    stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
+    stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
+    stPlayerPickItem             := SoundFromName('player_pick_item', false);
+    stPlayerDropItem             := SoundFromName('player_drop_item', false);
+    stPlayerDies                 := SoundFromName('player_dies', false);
+    stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
+    stPlayerSwimming             := SoundFromName('player_swimming', false);
+    stPlayerDrowning             := SoundFromName('player_drowning', false);
+    stPlayerFootstepsDefault     := SoundFromName('player_footsteps_default', false);
+    stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
+
+    stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
+    stMenuClick              := SoundFromName('menu_click'               , false);
+
+    { in case you set RepositoryURL when sound context is already
+      initialized, start playing music immediately if necessary }
+    RestartLoopingChannels;
+
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;
