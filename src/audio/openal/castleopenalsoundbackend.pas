@@ -166,6 +166,14 @@ type
     property EFXSupported: boolean read FEFXSupported;
   end;
 
+const
+  ALDataFormat: array [TSoundDataFormat] of TALuint = (
+    AL_FORMAT_MONO8,
+    AL_FORMAT_MONO16,
+    AL_FORMAT_STEREO8,
+    AL_FORMAT_STEREO16
+  );
+
 { TOpenALStreaming ----------------------------------------- }
 
 constructor TOpenALStreaming.Create(
@@ -287,12 +295,6 @@ function TOpenALStreaming.FillBuffer(const ALBuffer: TALuint): Integer;
 var
   BufferPtr: Pointer;
 const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
-  );
   BufSize = 1024 * 32; // 32kB should be enough
 begin
   BufferPtr := GetMem(BufSize);
@@ -363,13 +365,6 @@ begin
 end;
 
 procedure TOpenALSoundBufferBackend.ContextOpenFromSoundFile(const SoundFile: TSoundFile);
-const
-  ALDataFormat: array [TSoundDataFormat] of TALuint = (
-    AL_FORMAT_MONO8,
-    AL_FORMAT_MONO16,
-    AL_FORMAT_STEREO8,
-    AL_FORMAT_STEREO16
-  );
 begin
   inherited;
 
