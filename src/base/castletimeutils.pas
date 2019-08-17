@@ -593,6 +593,7 @@ var
   { Note that using this makes Timer not thread-safe
     (but we neved guaranteed in the interface that it's thread-safe...). }
   LastTimer: TTimerResult;
+  LastTimerLog: TTimerResult;
 {$endif}
 
 function Timer: TTimerResult;
@@ -606,12 +607,21 @@ begin
 
   {$ifdef ANDROID}
   { We cannot trust some Android systems to return increasing values here
-    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
+    (Android devices we found this bug:
+     - "Moto X Play", "XT1562", OS version 5.1.1;
+     - "Xiaomi Redmi Note 4", MediaTek Helio X20, OS version 6.0, MIUI Global 10.2
+    ).
     Maybe they synchronize the time from the Internet, and do not take care
     to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
   if Result.Value < LastTimer.Value then
   begin
-    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    { Limit logs to not affect performance (one detection can make about
+      300 lines of log) }
+    if LastTimerLog.Value <> LastTimer.Value then
+    begin
+      WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+      LastTimerLog.Value := LastTimer.Value;
+    end;
     Result.Value := LastTimer.Value;
   end else
     LastTimer.Value := Result.Value;
