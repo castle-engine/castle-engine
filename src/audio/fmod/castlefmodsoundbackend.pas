@@ -304,7 +304,8 @@ procedure TFMODSoundSourceBackend.Stop;
 begin
   if FMODChannel <> nil then
   begin
-    { This causes FMOD_ERR_INVALID_HANDLE sometimes on Windows.
+    { This causes FMOD_ERR_INVALID_HANDLE sometimes on Windows when exiting
+      application (destroying FMOD backend).
       No other problem is visible and it seems completely random,
       so I assume it is a random FMOD error. }
     CheckFMOD(FMOD_Channel_Stop(FMODChannel), 'FMOD_Channel_Stop', true);
