@@ -59,18 +59,24 @@ type
   { Manages resources (OpenAL buffers, thread) to play the given
     sound buffer on a given sound source using streaming. }
   TOpenALStreaming = class
-  private
+  strict private
     const
       StreamBuffersCount = 4;
+      HelperBufferSize = 1024 * 32; // 32kB should be enough
     var
-      Source: TOpenALSoundSourceBackend;
       Buffer: TOpenALStreamBufferBackend;
       ALBuffers: array [0..StreamBuffersCount - 1] of TALuint;
       StreamedFile: TStreamedSoundFile;
       {$ifdef CASTLE_SUPPORTS_THREADING}
       FeedThread: TOpenALStreamFeedThread;
       {$endif}
-
+      { Used in each FillBuffer.
+        Contents of this between FillBuffer are undefined,
+        we keep this field only to avoid wasting time on GetMem/FreeMem in each
+        FillBuffer call. }
+      HelperBufferPtr: Pointer;
+  private
+    Source: TOpenALSoundSourceBackend;
     function FillBuffer(const ALBuffer: TALuint): Integer;
   public
     constructor Create(const ASoundSurce: TOpenALSoundSourceBackend;
@@ -187,6 +193,8 @@ begin
   Source := ASoundSurce;
   Buffer := StreamBuffer;
 
+  HelperBufferPtr := GetMem(HelperBufferSize);
+
   { Note: It is tempting to reuse one TStreamedSoundFile instance
     created inside FBuffer (TSoundBufferBackendFromStreamedFile class).
     This one instance could be used to initialize
@@ -273,6 +281,8 @@ begin
     pointer here. }
   Source.FBuffer := nil;
 
+  FreeMemNiling(HelperBufferPtr);
+
   inherited;
 end;
 
@@ -292,25 +302,17 @@ begin
 end;
 
 function TOpenALStreaming.FillBuffer(const ALBuffer: TALuint): Integer;
-var
-  BufferPtr: Pointer;
-const
-  BufSize = 1024 * 32; // 32kB should be enough
 begin
-  BufferPtr := GetMem(BufSize);
-  try
-    Result := StreamedFile.Read(BufferPtr^, BufSize);
-    if Result > 0 then
-    begin
-      alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat], BufferPtr, Result, StreamedFile.Frequency);
-    end else
-    if Source.FLooping then
-    begin
-      StreamedFile.Rewind;
-      Result := FillBuffer(ALBuffer);
-    end;
-  finally
-    FreeMemNiling(BufferPtr);
+  Result := StreamedFile.Read(HelperBufferPtr^, HelperBufferSize);
+  if Result > 0 then
+  begin
+    alBufferData(ALBuffer, ALDataFormat[StreamedFile.DataFormat],
+      HelperBufferPtr, Result, StreamedFile.Frequency);
+  end else
+  if Source.FLooping then
+  begin
+    StreamedFile.Rewind;
+    Result := FillBuffer(ALBuffer);
   end;
 end;
 
