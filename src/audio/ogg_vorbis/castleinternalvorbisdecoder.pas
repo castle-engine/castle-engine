@@ -23,19 +23,19 @@ unit CastleInternalVorbisDecoder;
 
 interface
 
-uses SysUtils;
+implementation
+
+uses SysUtils, Classes, CTypes,
+  CastleUtils, CastleClassUtils, CastleSoundBase, CastleInternalVorbisCodec,
+  CastleInternalSoundFile, CastleInternalVorbisFile,
+  CastleTimeUtils;
 
 type
-  EOggVorbisLoadError = class(Exception);
+  EOggVorbisLoadError = class(ESoundFileError);
   EOggVorbisMissingLibraryError = class(EOggVorbisLoadError);
   EOggVorbisFileError = class(EOggVorbisLoadError);
 
-implementation
-
-uses Classes, CTypes,
-  CastleUtils, CastleClassUtils, CastleInternalVorbisCodec,
-  CastleSoundBase, CastleInternalSoundFile, CastleInternalVorbisFile,
-  CastleTimeUtils;
+{ global routines (callbacks for ov_open_callbacks) -------------------------- }
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
