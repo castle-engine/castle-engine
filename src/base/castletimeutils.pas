@@ -26,7 +26,7 @@ interface
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif} {$ifdef ANDROID}linux, {$endif}
+  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif} {$ifdef ANDROID} Linux, {$endif}
   SysUtils, Math, Generics.Collections,
   CastleUtils;
 
@@ -592,9 +592,8 @@ const
 var
   { Note that using this makes Timer not thread-safe
     (but we neved guaranteed in the interface that it's thread-safe...).
-    This variables can be removed once everyone confirms that the solution is
-    always working.
-    }
+    This variables can be removed once everyone confirms that the
+    solution of using CLOCK_MONOTONIC is always working. }
   LastTimer: TTimerResult;
   LastTimerLog: TTimerResult;
 
@@ -602,7 +601,7 @@ function Timer: TTimerResult;
 var
   tp: TimeSpec;
 begin
-  { Android have three clocks we need use clock which never leaps forward
+  { Android has three clocks we need use clock which never leaps forward
     or backward. This clock we can get by clock_gettime(CLOCK_MONOTONIC).
     The FpGettimeofday() uses "wall" clock which can go back or forward when
     synchronization comes more info:
@@ -612,7 +611,8 @@ begin
   clock_gettime(CLOCK_MONOTONIC, @tp);
   Result.Value := QWord(tp.tv_sec) * 1000000 + QWord(tp.tv_nsec div 1000);
 
-  { I leave this test to check the solution, but it really isn't needed anymore }
+  { I leave this test to check the solution of using CLOCK_MONOTONIC, but it
+    really isn't needed anymore. }
   if Result.Value < LastTimer.Value then
   begin
     { Limit logs to not affect performance (one detection can make about
