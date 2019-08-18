@@ -210,7 +210,7 @@
       (you can free it later, e.g. during @link(TCastleTransform.OnUpdate)). }
     property OnCollisionExit: TOnCollision read FOnCollisionExit write SetOnCollisionExit;
 
-    { Occurs when TRigidBody still colliding with another TRigidBody.
+    { Occurs when TRigidBody still collides with another TRigidBody.
 
       @italic(Warning:) Do not free the @link(TCastleTransform) instances
       that collide during this event.
