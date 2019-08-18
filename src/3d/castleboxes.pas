@@ -106,10 +106,10 @@ type
     only a single 3D point --- it's not empty, but all the sizes must be 0. }
   TBox3D = record
   strict private
-    function GetMin: TVector3; inline;
-    procedure SetMin(const Value: TVector3); inline;
-    function GetMax: TVector3; inline;
-    procedure SetMax(const Value: TVector3); inline;
+    function GetMin: TVector3;
+    procedure SetMin(const Value: TVector3);
+    function GetMax: TVector3;
+    procedure SetMax(const Value: TVector3);
   public
     Data: array [0..1] of TVector3;
 
@@ -709,7 +709,7 @@ begin
   Data[1] := Value;
 end;
 
-class function TBox3D.Empty: TBox3D; static;
+class function TBox3D.Empty: TBox3D;
 const
   R: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1))));
 begin
@@ -2112,7 +2112,7 @@ begin
 end;
 
 class function TBox3D.CompareBackToFront3D(
-  const A, B: TBox3D; const SortPosition: TVector3): Integer; static;
+  const A, B: TBox3D; const SortPosition: TVector3): Integer;
 begin
   { We always treat empty box as closer than non-empty.
     And two empty boxes are always equal.
@@ -2136,7 +2136,7 @@ begin
 end;
 
 class function TBox3D.CompareBackToFront2D(
-  const A, B: TBox3D): Integer; static;
+  const A, B: TBox3D): Integer;
 begin
   { Note that we ignore SortPosition, we do not look at distance between
     SortPosition and A, we merely look at A.

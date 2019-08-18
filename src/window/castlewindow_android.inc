@@ -242,7 +242,14 @@ begin
       end;
     {$endif CASTLE_PERSISTENT_ANDROID_STATE}
     APP_CMD_PAUSE : ApplicationProperties._Pause;
-    APP_CMD_RESUME: ResumeScheduled := true;
+    APP_CMD_RESUME:
+      { In some cases context is not destroyed, so ContextOpen will not be called.
+        In those cases we need only call _Resume.
+        Test case: share button click and return to app. }
+      if (Application.MainWindow <> nil) and (Application.MainWindow.NativeWindow <> nil) then
+        ApplicationProperties._Resume
+      else
+        ResumeScheduled := true;
   end;
 end;
 

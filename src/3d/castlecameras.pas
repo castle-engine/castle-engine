@@ -3237,7 +3237,7 @@ begin
     Zoom(Factor / ZoomScale);
   end;
 
-  if MoveEnabled and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (not FModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
     Size := FModelBox.AverageSize;
     Translation := Translation - Vector3(

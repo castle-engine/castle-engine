@@ -50,6 +50,7 @@ type
     InternalSetValue: TSetVector2Event;
     InternalDefaultValue: TVector2;
     property Value: TVector2 read GetValue write SetValue;
+    function HasDefaultValue: Boolean;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -83,6 +84,7 @@ type
     InternalSetValue: TSetVector3Event;
     InternalDefaultValue: TVector3;
     property Value: TVector3 read GetValue write SetValue;
+    function HasDefaultValue: Boolean;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -120,6 +122,7 @@ type
     InternalSetValue: TSetVector4Event;
     InternalDefaultValue: TVector4;
     property Value: TVector4 read GetValue write SetValue;
+    function HasDefaultValue: Boolean;
   published
     property X: Single read GetX write SetX stored XIsStored nodefault;
     property Y: Single read GetY write SetY stored YIsStored nodefault;
@@ -179,6 +182,11 @@ end;
 function TCastleVector2Persistent.YIsStored: Boolean;
 begin
   Result := Value.Data[1] <> InternalDefaultValue.Data[1];
+end;
+
+function TCastleVector2Persistent.HasDefaultValue: Boolean;
+begin
+  Result := TVector2.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 { TCastleVector3Persistent ---------------------------------------------------- }
@@ -248,6 +256,11 @@ end;
 function TCastleVector3Persistent.ZIsStored: Boolean;
 begin
   Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+end;
+
+function TCastleVector3Persistent.HasDefaultValue: Boolean;
+begin
+  Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 { TCastleVector4Persistent ---------------------------------------------------- }
@@ -336,6 +349,11 @@ end;
 function TCastleVector4Persistent.WIsStored: Boolean;
 begin
   Result := Value.Data[3] <> InternalDefaultValue.Data[3];
+end;
+
+function TCastleVector4Persistent.HasDefaultValue: Boolean;
+begin
+  Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 {$endif read_implementation}

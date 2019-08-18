@@ -437,11 +437,11 @@ type
 
     { Is another rectangle equal to this one.
       Floating-point values are compared with an epsilon tolerance. }
-    function Equals(const R: TFloatRectangle): Boolean;
+    function Equals(const R: TFloatRectangle): Boolean; overload;
 
     { Is another rectangle equal to this one.
       Floating-point values are compared with an epsilon tolerance. }
-    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
+    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean; overload;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }

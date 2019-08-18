@@ -191,8 +191,8 @@ function FilenameToURISafe(FileName: string): string;
   mappings to the @link(URIMimeExtensions).
 
   @groupBegin }
-function URIMimeType(const URI: string): string;
-function URIMimeType(const URI: string; out Gzipped: boolean): string;
+function URIMimeType(const URI: string): string; overload;
+function URIMimeType(const URI: string; out Gzipped: boolean): string; overload;
 { @groupEnd }
 
 { Map from an extension to a MIME type, used by @link(URIMimeType).
@@ -427,8 +427,10 @@ function RawURIDecode(const S: string): string;
         Exit(false);
       end;
 
-      Byte(DecodedChar) := (HexDigit(S[Position + 1]) shl 4) or
-                            HexDigit(S[Position + 2]);
+      DecodedChar := Chr(
+        (HexDigit(S[Position + 1]) shl 4) or
+         HexDigit(S[Position + 2])
+      );
     end;
   end;
 
@@ -1119,6 +1121,7 @@ begin
     Result := URL;
 end;
 
+initialization
 finalization
   FreeAndNil(FURIMimeExtensions);
 end.

@@ -13,8 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ TODO: This should be removed, use TranslateProperties routine
-  to uniformly translate UI stuff in CGE now. }
+{ TODO:
+
+  This file should be removed, use TranslateProperties routine
+  to uniformly translate UI stuff in CGE now.
+  However, it's hard to fix it without breaking compatibility
+  (of translation files) because now, CastleLocalization only allows
+  a single string per component (while TranslateProperties allows
+  to expose e.g. 2 properties on a component, like TCastleEdit.Text
+  and TCastleEdit.Placeholder).
+}
 
 {$ifdef read_interface}
 
