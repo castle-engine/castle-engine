@@ -102,6 +102,8 @@
 
   TOnCollision = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
 
+  TRigidBodyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TRigidBody>;
+
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
 
@@ -111,9 +113,9 @@
   TRigidBody = class(TComponent)
   strict private
     { List of collisions from previous step. }
-    FPrevCollisions: TList;
+    FPrevCollisions: TRigidBodyList;
     { List of collisions from current step. }
-    FCurrentCollisions: TList;
+    FCurrentCollisions: TRigidBodyList;
 
     FOnCollisionEnter: TOnCollision;
     FOnCollisionStay: TOnCollision;
@@ -441,8 +443,8 @@ begin
 
   FKraftBody := nil;
   FCollisionList := TCastleTransformList.Create(false, nil);
-  FPrevCollisions := TList.Create;
-  FCurrentCollisions := TList.Create;
+  FPrevCollisions := TRigidBodyList.Create;
+  FCurrentCollisions := TRigidBodyList.Create;
 
   FOnCollisionEnter := nil;
   FOnCollisionExit := nil;
@@ -676,7 +678,7 @@ begin
 
   // Make previous list from current list.
   FPrevCollisions.Clear;
-  FPrevCollisions.Assign(FCurrentCollisions);
+  FPrevCollisions.AddRange(FCurrentCollisions);
 end;
 
 procedure TRigidBody.CheckPhysicsPostStepNeeded;
