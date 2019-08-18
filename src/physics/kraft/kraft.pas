@@ -162,6 +162,9 @@ uses {$ifdef windows}
        {$ifdef linux}
         linux,
        {$endif}
+      {$ifdef android}
+       linux,
+      {$endif}
       {$else}
        SDL,
       {$endif}
@@ -10406,10 +10409,14 @@ begin
 {$ifdef linux}
   fFrequency:=1000000000;
 {$else}
+{$ifdef android}
+  fFrequency:=1000000000;
+{$else}
 {$ifdef unix}
   fFrequency:=1000000;
 {$else}
   fFrequency:=1000;
+{$endif}
 {$endif}
 {$endif}
 {$endif}
@@ -10436,10 +10443,15 @@ function TKraftHighResolutionTimer.GetTime:int64;
 var NowTimeSpec:TimeSpec;
     ia,ib:int64;
 {$else}
+{$ifdef android}
+var NowTimeSpec:TimeSpec;
+    ia,ib:int64;
+{$else}
 {$ifdef unix}
 var tv:timeval;
     tz:timezone;
     ia,ib:int64;
+{$endif}
 {$endif}
 {$endif}
 begin
@@ -10454,6 +10466,12 @@ begin
  ib:=NowTimeSpec.tv_nsec;
  result:=ia+ib;
 {$else}
+{$ifdef android}
+clock_gettime(CLOCK_MONOTONIC,@NowTimeSpec);
+ia:=int64(NowTimeSpec.tv_sec)*int64(1000000000);
+ib:=NowTimeSpec.tv_nsec;
+result:=ia+ib;
+{$else}
 {$ifdef unix}
   tz.tz_minuteswest:=0;
   tz.tz_dsttime:=0;
@@ -10463,6 +10481,7 @@ begin
   result:=ia+ib;
 {$else}
  result:=SDL_GetTicks;
+{$endif}
 {$endif}
 {$endif}
 {$endif}

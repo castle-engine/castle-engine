@@ -26,7 +26,7 @@ interface
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
+  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif} {$ifdef ANDROID}linux, {$endif}
   SysUtils, Math, Generics.Collections,
   CastleUtils;
 
@@ -591,28 +591,28 @@ const
 {$ifdef ANDROID}
 var
   { Note that using this makes Timer not thread-safe
-    (but we neved guaranteed in the interface that it's thread-safe...). }
+    (but we neved guaranteed in the interface that it's thread-safe...).
+    This variables can be removed once everyone confirms that the solution is
+    always working.
+    }
   LastTimer: TTimerResult;
   LastTimerLog: TTimerResult;
-{$endif}
 
 function Timer: TTimerResult;
 var
-  tv: TTimeval;
+  tp: TimeSpec;
 begin
-  FpGettimeofday(@tv, nil);
+  { Android have three clocks we need use clock which never leaps forward
+    or backward. This clock we can get by clock_gettime(CLOCK_MONOTONIC).
+    The FpGettimeofday() uses "wall" clock which can go back or forward when
+    synchronization comes more info:
+    https://stackoverflow.com/questions/3832097/how-to-get-the-current-time-in-native-android-code
+    https://developer.android.com/reference/android/os/SystemClock.html }
 
-  { We can fit whole TTimeval inside QWord, no problem. }
-  Result.Value := QWord(tv.tv_sec) * 1000000 + QWord(tv.tv_usec);
+  clock_gettime(CLOCK_MONOTONIC, @tp);
+  Result.Value := QWord(tp.tv_sec) * 1000000 + QWord(tp.tv_nsec div 1000);
 
-  {$ifdef ANDROID}
-  { We cannot trust some Android systems to return increasing values here
-    (Android devices we found this bug:
-     - "Moto X Play", "XT1562", OS version 5.1.1;
-     - "Xiaomi Redmi Note 4", MediaTek Helio X20, OS version 6.0, MIUI Global 10.2
-    ).
-    Maybe they synchronize the time from the Internet, and do not take care
-    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
+  { I leave this test to check the solution, but it really isn't needed anymore }
   if Result.Value < LastTimer.Value then
   begin
     { Limit logs to not affect performance (one detection can make about
@@ -625,8 +625,20 @@ begin
     Result.Value := LastTimer.Value;
   end else
     LastTimer.Value := Result.Value;
-  {$endif ANDROID}
 end;
+
+{$else}
+
+function Timer: TTimerResult;
+var
+  tv: TTimeval;
+begin
+  FpGettimeofday(@tv, nil);
+
+  { We can fit whole TTimeval inside QWord, no problem. }
+  Result.Value := QWord(tv.tv_sec) * 1000000 + QWord(tv.tv_usec);
+end;
+{$endif}
 {$endif UNIX}
 
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;
