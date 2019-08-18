@@ -623,6 +623,8 @@ type
       it becomes visible, which is not perfect (although it would be Ok
       in practice too?) }
     procedure UpdateNewPlayingAnimation;
+
+    function SensibleCameraRadius(const WorldBox: TBox3D): Single;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -1685,7 +1687,7 @@ type
     { TNavigationType value determined by current NavigationInfo node. }
     function NavigationTypeFromNavigationInfo: TNavigationType;
 
-    { Update camera properties based on currently bound NavigationInfo.
+    { Update Navigation properties based on currently bound NavigationInfo.
 
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
@@ -1695,14 +1697,14 @@ type
 
       This initializes a lot of camera properties:
       @unorderedList(
-        @item(TCamera.Radius,)
-        @item(TCamera.Input,)
-        @item(TWalkCamera.Gravity,)
-        @item(TWalkCamera.PreferGravityUpForRotations,)
-        @item(TWalkCamera.PreferGravityUpForMoving,)
-        @item(TWalkCamera.PreferredHeight,)
-        @item(TWalkCamera.ClimbHeight,)
-        @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
+        @item(TCastleNavigation.Radius,)
+        @item(TCastleNavigation.Input,)
+        @item(TCastleWalkNavigation.Gravity,)
+        @item(TCastleWalkNavigation.PreferGravityUpForRotations,)
+        @item(TCastleWalkNavigation.PreferGravityUpForMoving,)
+        @item(TCastleWalkNavigation.PreferredHeight,)
+        @item(TCastleWalkNavigation.ClimbHeight,)
+        @item(TCastleWalkNavigation.HeadBobbing, TCastleWalkNavigation.HeadBobbingTime.)
       )
 
       Box is the expected bounding box of the whole 3D scene.
@@ -1710,12 +1712,12 @@ type
       In simple cases (if this scene is the only TCastleScene instance
       in your world, and it's not transformed) it may be equal to just
       @link(BoundingBox) of this scene. }
-    procedure CameraFromNavigationInfo(Camera: TCamera; const WorldBox: TBox3D);
+    procedure CameraFromNavigationInfo(
+      const Navigation: TCastleNavigation; const WorldBox: TBox3D);
 
-    { Update camera to the currently bound VRML/X3D viewpoint.
+    { Update Camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
-      viewpoint to see the whole scene (based on the Camera.ModelBox,
-      which should be set in CameraFromNavigationInfo to the world bounding box).
+      viewpoint to see the whole world (based on the WorldBox).
 
       The initial camera vectors (TCamera.InitialPosition,
       TCamera.InitialDirection, TCamera.InitialUp, TWalkCamera.GravityUp)
@@ -1743,7 +1745,8 @@ type
           of the viewpoint. When viewpoint is moved, then the current
           camera moves with it.)
       ) }
-    procedure CameraFromViewpoint(ACamera: TCamera;
+    procedure CameraFromViewpoint(const ACamera: TCastleCamera;
+      const WorldBox: TBox3D;
       const RelativeCameraTransform: boolean = false;
       const AllowTransitionAnimate: boolean = true);
 
@@ -1758,8 +1761,12 @@ type
       Will generate NavigationInfo.transitionComplete when transition ends.
 
       @groupBegin }
-    procedure CameraTransition(Camera: TCamera; const APosition, ADirection, AUp: TVector3);
-    procedure CameraTransition(Camera: TCamera; const APosition, ADirection, AUp, GravityUp: TVector3);
+    procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp: TVector3); overload;
+    procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+    procedure CameraTransition(const Camera: TCastleNavigation; const APosition, ADirection, AUp: TVector3); overload;
+      deprecated 'use overloaded version with TCastleCamera';
+    procedure CameraTransition(const Camera: TCastleNavigation; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+      deprecated 'use overloaded version with TCastleCamera';
     { @groupEnd }
 
     { Detect position/direction of the main light that produces shadows.
@@ -2394,9 +2401,9 @@ const
 
 implementation
 
-uses Math,
-  X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
-  X3DLoad, CastleURIUtils, CastleTimeUtils;
+uses Math, DateUtils,
+  X3DCameraUtils, CastleStringUtils, CastleLog,
+  X3DLoad, CastleURIUtils, CastleTimeUtils, CastleSceneManager;
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}
@@ -6871,8 +6878,24 @@ begin
   Result := ntExamine;
 end;
 
+function TCastleSceneCore.SensibleCameraRadius(const WorldBox: TBox3D): Single;
+var
+  NavigationNode: TNavigationInfoNode;
+begin
+  NavigationNode := NavigationInfoStack.Top;
+
+  Result := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    Result := NavigationNode.FdAvatarSize.Items[0];
+  { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
+    calculate something suitable based on Box. }
+  if Result <= 0 then
+    Result := WorldBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+end;
+
 procedure TCastleSceneCore.CameraFromNavigationInfo(
-  Camera: TCamera; const WorldBox: TBox3D);
+  const Navigation: TCastleNavigation; const WorldBox: TBox3D);
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
@@ -6880,86 +6903,81 @@ begin
   NavigationNode := NavigationInfoStack.Top;
 
   { calculate Radius }
-  Radius := 0;
-  if (NavigationNode <> nil) and
-     (NavigationNode.FdAvatarSize.Count >= 1) then
-    Radius := NavigationNode.FdAvatarSize.Items[0];
-  { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
-    calculate something suitable based on Box. }
-  if Radius <= 0 then
-    Radius := WorldBox.AverageSize(false, 1.0) * 0.005;
-  Camera.Radius := Radius;
+  Radius := SensibleCameraRadius(WorldBox);
+  Navigation.Radius := Radius;
 
   { Note that we cannot here conditionally set some properties
-    e.g. only if "Camera is TWalkCamera".
+    e.g. only if "Navigation is TWalkCamera".
     This would mean that e.g. value of PreferredHeight
     (from NavigationInfo.avatarSize) is lost when NavigationInfo.type="EXAMINE",
     even if developer later switches NavigationType to Walk. }
 
-  { calculate Camera.PreferredHeight }
+  { calculate Navigation.PreferredHeight }
   if (NavigationNode <> nil) and
      (NavigationNode.FdAvatarSize.Count >= 2) then
-    Camera.PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
+    Navigation.PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
   else
-    { Make it something >> Radius * 2, to allow some
-      space to decrease (e.g. by Input_DecreasePreferredHeight
-      in view3dscene). Remember that CorrectPreferredHeight
-      adds a limit to PreferredHeight, around Radius * 2. }
-    Camera.PreferredHeight := Radius * 4;
+    Navigation.PreferredHeight := Radius * RadiusToPreferredHeight;
 
-  Camera.CorrectPreferredHeight;
+  Navigation.CorrectPreferredHeight;
 
-  { calculate Camera.ClimbHeight }
+  { calculate Navigation.ClimbHeight }
   if (NavigationNode <> nil) and
      (NavigationNode.FdAvatarSize.Count >= 3) then
-    Camera.ClimbHeight := Max(NavigationNode.FdAvatarSize.Items[2], 0.0)
+    Navigation.ClimbHeight := Max(NavigationNode.FdAvatarSize.Items[2], 0.0)
   else
-    Camera.ClimbHeight := 0;
+    Navigation.ClimbHeight := 0;
 
-  { calculate Camera.HeadBobbing* }
+  { calculate Navigation.HeadBobbing* }
   if (NavigationNode <> nil) and
      (NavigationNode is TKambiNavigationInfoNode) then
   begin
-    Camera.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
-    Camera.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
+    Navigation.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
+    Navigation.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
   end else
   begin
-    Camera.HeadBobbing := TWalkCamera.DefaultHeadBobbing;
-    Camera.HeadBobbingTime := TWalkCamera.DefaultHeadBobbingTime;
+    Navigation.HeadBobbing := TCastleWalkNavigation.DefaultHeadBobbing;
+    Navigation.HeadBobbingTime := TCastleWalkNavigation.DefaultHeadBobbingTime;
   end;
 
-  { calculate Camera.MoveSpeed }
+  { calculate Navigation.MoveSpeed }
   if NavigationNode = nil then
     { Since we don't have NavigationNode.speed, we just calculate some
       speed that should "feel sensible". We base it on Radius,
       that was set above. }
-    Camera.MoveSpeed := Camera.Radius * 20
+    Navigation.MoveSpeed := Navigation.Radius * 20
   else
     { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
-    Camera.MoveSpeed := NavigationNode.FdSpeed.Value;
+    Navigation.MoveSpeed := NavigationNode.FdSpeed.Value;
 
-  Camera.ModelBox := WorldBox;
+  Navigation.ModelBox := WorldBox;
 
-  { No point in calling TWalkCamera.Init or TExamineCamera.Init here:
+  { No point in calling TWalkCamera.Init or TExamineCamera.Init
+    or TCastleCamera.Init here:
     this method, together with CameraFromViewpoint
     (with RelativeCameraTransform = false),
     together initialize everything that Init does. }
 end;
 
-procedure TCastleSceneCore.CameraFromViewpoint(ACamera: TCamera;
+procedure TCastleSceneCore.CameraFromViewpoint(const ACamera: TCastleCamera;
+  const WorldBox: TBox3D;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
   APosition: TVector3;
   ADirection: TVector3;
   AUp: TVector3;
   GravityUp: TVector3;
+  Radius: Single;
 begin
+  Radius := SensibleCameraRadius(WorldBox);
+  ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
+
   if ViewpointStack.Top <> nil then
     ViewpointStack.Top.GetView(APosition, ADirection, AUp, GravityUp) else
   begin
     { Suitable viewpoint,
       with dir -Z and up +Y (like standard VRML/X3D viewpoint) }
-    CameraViewpointForWholeScene(ACamera.ModelBox, 2, 1, false, true,
+    CameraViewpointForWholeScene(WorldBox, 2, 1, false, true,
       APosition, ADirection, AUp, GravityUp);
   end;
 
@@ -6977,7 +6995,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
+procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
   const APosition, ADirection, AUp: TVector3);
 var
   NavigationNode: TNavigationInfoNode;
@@ -7029,11 +7047,25 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
+procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
   const APosition, ADirection, AUp, GravityUp: TVector3);
 begin
   Camera.GravityUp := GravityUp;
   CameraTransition(Camera, APosition, ADirection, AUp);
+end;
+
+procedure TCastleSceneCore.CameraTransition(const Camera: TCastleNavigation;
+  const APosition, ADirection, AUp: TVector3); overload;
+begin
+  CameraTransition((Camera.Viewport as TCastleAbstractViewport).Camera,
+    APosition, ADirection, AUp);
+end;
+
+procedure TCastleSceneCore.CameraTransition(const Camera: TCastleNavigation;
+  const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+begin
+  CameraTransition((Camera.Viewport as TCastleAbstractViewport).Camera,
+    APosition, ADirection, AUp, GravityUp);
 end;
 
 { misc ----------------------------------------------------------------------- }

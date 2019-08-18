@@ -125,6 +125,9 @@ type
     LastPressEvent: TInputPressRelease;
     FOnProjection: TProjectionEvent;
     FEnableParentDragging: boolean;
+    AssignDefaultCameraDone: Boolean;
+    FAutoDetectCamera: Boolean;
+    FAutoDetectNavigation: Boolean;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -184,19 +187,22 @@ type
 
       This cooperates closely with current @link(Camera) definition.
 
-      TODO: update below.
-      Viewport's @link(Camera), if not assigned, is automatically created here,
-      see @link(Camera) and AssignDefaultNavigation.
+      If AutoDetectCamera then the initial and current @link(Camera) vectors
+      are also initialized here (see TCastleCamera.Init
+      and @link(AssignDefaultCamera).
+      If AutoDetectNavigation then the @link(Navigation) is automatically created here,
+      see @link(AssignDefaultNavigation).
+
       This takes care to always update Camera.ProjectionMatrix,
-      Projection, GetMainScene.BackgroundSkySphereRadius.
-      In turn, this expects Camera.Radius to be already properly set
-      (usually by AssignDefaultNavigation). }
+      Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
 
     procedure SetPaused(const Value: boolean);
 
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType); virtual;
+
+    function ItemsBoundingBox: TBox3D;
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -329,10 +335,11 @@ type
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
 
-    { Assign Navigation to a default TCastleNavigation suitable for navigating in this scene.
+    { Assign Navigation to a default TCastleNavigation suitable
+      for navigating in this scene (used only if @link(AutoDetectNavigation)).
       The newly created navigation owned should be Self.
       This is automatically used when @link(Navigation) is @nil at various places,
-      and implementation may assume that @link(Navigation) is @nil at entry.
+      and implementation of this may assume that @link(Navigation) is @nil at entry.
 
       The implementation in base TCastleAbstractViewport uses
       MainScene.NavigationTypeFromNavigationInfo
@@ -340,6 +347,12 @@ type
       If MainScene is not assigned, we create a simple
       navigation in Examine mode. }
     procedure AssignDefaultNavigation; virtual;
+
+    { Assign initial and current camera vectors
+      (used only if @link(AutoDetectCamera)) and camera ProjectionNear.
+      This sets the same things as set by TCastleCamera.Init,
+      and additionally TCastleCamera.ProjectionNear. }
+    procedure AssignDefaultCamera; virtual;
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
@@ -874,6 +887,30 @@ type
       all the motion events for dragging. }
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
+
+    { Assign sensible camera vectors (initial position etc.) looking
+      at the initial world (@link(Items)) when rendering for the 1st time.
+
+      This also allows to later synchronize camera when X3D Viewpoint
+      node changes, or a new Viewpoint node is bound.
+
+      By default it is @true. Setting it to @false effectively means
+      that you control @link(Camera) properties on your own.
+    }
+    property AutoDetectCamera: Boolean
+      read FAutoDetectCamera write FAutoDetectCamera default true;
+
+    { Assign sensible @link(Navigation) looking
+      at the initial world (@link(Items)) if it is not assigned.
+
+      This also allows to later synchronize navigation properties when X3D NavigationInfo
+      node changes, or a new NavigationInfo node is bound.
+
+      By default it is @true. Setting it to @false effectively means
+      that you control @link(Navigation) on your own.
+    }
+    property AutoDetectNavigation: Boolean
+      read FAutoDetectNavigation write FAutoDetectNavigation default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
@@ -1539,6 +1576,8 @@ begin
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   FullSize := true;
+  FAutoDetectNavigation := true;
+  FAutoDetectCamera := true;
 
   FCamera := TCastleCamera.Create(Self);
   FCamera.Viewport := Self;
@@ -1978,9 +2017,11 @@ begin
     get Pressed information (which keys/mouse buttons are pressed) at all,
     so they could not process keys/mouse anyway. }
 
-  // TODO: will this still work ok?
+  // TODO: will this still work ok for Navigation stuff?
   // if Camera <> nil then
   //   Camera.Update(SecondsPassedScaled, HandleInput);
+
+  Camera.Update(SecondsPassedScaled);
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -2005,8 +2046,13 @@ var
   AspectRatio: Single;
   M: TMatrix4;
 begin
-  // TODO: this should be removed, at least when AutoDetectNavigation = false
-  RequiredNavigation; // create Navigation if necessary
+  if AutoDetectNavigation and (Navigation = nil) then
+    AssignDefaultNavigation; // create Navigation if necessary
+  if AutoDetectCamera and not AssignDefaultCameraDone then
+  begin
+    AssignDefaultCamera;
+    AssignDefaultCameraDone := true;
+  end;
 
   { We need to know container size now. }
   Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
@@ -2035,6 +2081,14 @@ begin
         FProjection.ProjectionNear,
         FProjection.ProjectionFarFinite,
         GetMainScene.BackgroundSkySphereRadius);
+end;
+
+function TCastleAbstractViewport.ItemsBoundingBox: TBox3D;
+begin
+  if GetItems <> nil then
+    Result := GetItems.BoundingBox
+  else
+    Result := TBox3D.Empty;
 end;
 
 function TCastleAbstractViewport.CalculateProjection: TProjection;
@@ -2090,10 +2144,7 @@ var
   PerspectiveFieldOfViewForceVertical: boolean;
   PerspectiveAnglesRad: TVector2;
 begin
-  if GetItems <> nil then
-    Box := GetItems.BoundingBox
-  else
-    Box := TBox3D.Empty;
+  Box := ItemsBoundingBox;
   Viewport := RenderRect.Round;
 
   { calculate ViewpointNode }
@@ -2127,9 +2178,7 @@ begin
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }
 
-  // TODO: this should not read Navigation.Radius, it should look at scene, like ProjectionFar
-  Assert(Navigation.Radius > 0, 'Navigation.Radius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
-  Result.ProjectionNear := Navigation.Radius * 0.6;
+  Result.ProjectionNear := Camera.ProjectionNear;
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
   Result.ProjectionFar := 0;
@@ -2923,6 +2972,9 @@ end;
 
 function TCastleAbstractViewport.RequiredNavigation: TCastleNavigation;
 begin
+  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
+  // make sure to also assign Camera, because caller may expect this, for backward compatibility
+
   if Navigation = nil then
     AssignDefaultNavigation;
   Result := Navigation;
@@ -2976,6 +3028,8 @@ begin
       Exit(nil);
 
     NewNavigation := InternalExamineNavigation;
+  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
+  // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     NewNavigation.Assign(Navigation);
@@ -3002,6 +3056,8 @@ begin
       Exit(nil);
 
     NewNavigation := InternalWalkNavigation;
+  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
+  // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     NewNavigation.Assign(Navigation);
@@ -3118,10 +3174,7 @@ var
   C: TCastleExamineNavigation;
   Nav: TNavigationType;
 begin
-  if GetItems <> nil then
-    Box := GetItems.BoundingBox
-  else
-    Box := TBox3D.Empty;
+  Box := ItemsBoundingBox;
   Scene := GetMainScene;
   if Scene <> nil then
   begin
@@ -3137,12 +3190,34 @@ begin
 
     NavigationType := Nav;
     Scene.CameraFromNavigationInfo(Navigation, Box);
-    Scene.CameraFromViewpoint(Navigation, false, false);
   end else
   begin
     C := InternalExamineCamera;
-    C.Init(Box, Box.AverageSize(false, 1.0) * 0.005);
+    C.ModelBox := Box;
+    C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
     Navigation := C;
+  end;
+end;
+
+procedure TCastleAbstractViewport.AssignDefaultCamera;
+var
+  Box: TBox3D;
+  Scene: TCastleScene;
+  APos, ADir, AUp, NewGravityUp: TVector3;
+  Radius: Single;
+begin
+  Box := ItemsBoundingBox;
+  Scene := GetMainScene;
+  if Scene <> nil then
+  begin
+    Scene.CameraFromViewpoint(Camera, Box, false, false);
+  end else
+  begin
+    CameraViewpointForWholeScene(Box, 2, 1, false, true,
+      APos, ADir, AUp, NewGravityUp);
+    Camera.Init(APos, ADir, AUp, NewGravityUp);
+    Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
+    Camera.ProjectionNear := Radius * RadiusToProjectionNear;
   end;
 end;
 
@@ -3959,14 +4034,16 @@ end;
 
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
 begin
-  if Navigation <> nil then
-    Scene.CameraFromViewpoint(Navigation, false);
-  BoundViewpointChanged;
+  if AutoDetectCamera then
+  begin
+    Scene.CameraFromViewpoint(Camera, ItemsBoundingBox, false);
+    BoundViewpointChanged;
+  end;
 end;
 
 procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 begin
-  if Navigation <> nil then
+  if AutoDetectNavigation and (Navigation <> nil) then
   begin
     NavigationType := Scene.NavigationTypeFromNavigationInfo;
     Scene.CameraFromNavigationInfo(Navigation, Items.BoundingBox);
@@ -3976,8 +4053,8 @@ end;
 
 procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
 begin
-  if Navigation <> nil then
-    Scene.CameraFromViewpoint(Navigation, true);
+  if AutoDetectCamera then
+    Scene.CameraFromViewpoint(Camera, ItemsBoundingBox, true);
 end;
 
 function TCastleSceneManager.GetItems: TSceneManagerWorld;

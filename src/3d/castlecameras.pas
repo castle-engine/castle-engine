@@ -90,9 +90,22 @@ type
   TCastleCamera = class(TComponent)
   strict private
     FPosition, FDirection, FUp, FGravityUp: TVector3;
+    FInitialPosition, FInitialDirection, FInitialUp: TVector3;
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
     FProjectionMatrix: TMatrix4;
+    FProjectionNear: Single;
+
+    FAnimation: boolean;
+    AnimationEndTime: TFloatTime;
+    AnimationCurrentTime: TFloatTime;
+
+    AnimationBeginPosition: TVector3;
+    AnimationBeginDirection: TVector3;
+    AnimationBeginUp: TVector3;
+    AnimationEndPosition: TVector3;
+    AnimationEndDirection: TVector3;
+    AnimationEndUp: TVector3;
 
     FFrustum: TFrustum;
 
@@ -153,9 +166,9 @@ type
 
     { Camera position, looking direction and up vector.
 
-      Initially (after creating this object) they are equal to
+      After calling @link(Init) they are equal to
       InitialPosition, InitialDirection, InitialUp.
-      Also @link(Init) and @link(GoToInitial) methods reset them to these
+      Calling @link(Init) and @link(GoToInitial) resets them to these
       initial values.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
@@ -244,6 +257,90 @@ type
       const WindowPosition: TVector2;
       const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3);
+
+    { Animate a camera smoothly into another camera settings.
+      This will gradually change our settings (only the most important
+      settings, that determine actual camera view, i.e. @link(Matrix) result)
+      into another camera.
+
+      Current OtherCamera settings will be internally copied during this call.
+      So you can even free OtherCamera instance immediately after calling this.
+
+      Calling AnimateTo while the previous animation didn't finish yet
+      is OK. This simply cancels the previous animation,
+      and starts the new animation from the current position.
+
+      @groupBegin }
+    procedure AnimateTo(OtherCamera: TCastleCamera; const Time: TFloatTime);
+    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
+    { @groupEnd }
+
+    { Are we currently during animation (caused by @link(AnimateTo)).
+
+      TCastleNavigation descendants may use it to abort normal
+      input handling. E.g. when camera is animating,
+      then the gravity in TCastleWalkNavigation should not work,
+      key/mouse handling in TCastleWalkNavigation shoult not work etc. }
+    function Animation: boolean;
+
+    { Initial camera values. Can be set by @link(Init) or @link(SetInitialView).
+      Camera vectors are reset to these values by @link(Init) and @link(GoToInitial).
+
+      InitialDirection and InitialUp must be always normalized,
+      and orthogonal.
+
+      Default value of InitialPosition is (0, 0, 0),
+      InitialDirection is DefaultCameraDirection = (0, -1, 0),
+      InitialUp is DefaultCameraUp = (0, 1, 0).
+
+      @groupBegin }
+    property InitialPosition : TVector3 read FInitialPosition;
+    property InitialDirection: TVector3 read FInitialDirection;
+    property InitialUp       : TVector3 read FInitialUp;
+    { @groupEnd }
+
+    { Set three initial camera vectors.
+
+      AInitialDirection and AInitialUp will be automatically normalized.
+      Corresponding properties (InitialDirection and InitialUp) will always
+      contain normalized values.
+
+      AInitialUp will be also automatically corrected to be orthogonal
+      to AInitialDirection. We will correct AInitialUp to make it orthogonal,
+      but still preserving the plane they were indicating together with
+      AInitialDirection. Do not ever give here
+      AInitialUp that is parallel to AInitialDirection.
+
+      If TransformCurrentCamera = @true, then they will also
+      try to change current camera relative to the initial vectors changes.
+      This implements VRML/X3D desired behavior that
+      "viewer position/orientation is conceptually a child of
+      viewpoint position/orientation, and when viewpoint position/orientation
+      changes, viewer should also change". }
+    procedure SetInitialView(
+      const AInitialPosition: TVector3;
+      AInitialDirection, AInitialUp: TVector3;
+      const TransformCurrentCamera: boolean);
+
+    { Jump to initial camera view (set by SetInitialView). }
+    procedure GoToInitial;
+
+    { Projection near plane distance.
+      TODO: other projection params here, move here all TProjection stuff? }
+    property ProjectionNear: Single read FProjectionNear write FProjectionNear;
+
+    { Set the initial camera vectors (InitialPosition, InitialDirection...),
+      and set current camera vectors (Position, Direction...) to the same values.
+
+      Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
+      and AInitialUp will be adjusted to be orthogonal to AInitialDirection
+      (see SetInitialView). }
+    procedure Init(const AInitialPosition, AInitialDirection, AInitialUp,
+      AGravityUp: TVector3);
+
+    { Called by TCastleAbstractViewport to make @link(AnimateTo) working.
+      Internal. @exclude }
+    procedure Update(const SecondsPassed: Single);
   end;
 
   TCameraClass = class of TCamera;
@@ -274,7 +371,6 @@ type
   TCastleNavigation = class(TCastleUserInterface)
   private
     FInput: TCameraInputs;
-    FInitialPosition, FInitialDirection, FInitialUp: TVector3;
     FRadius: Single;
     FPreferredHeight: Single;
     FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
@@ -283,17 +379,6 @@ type
     FClimbHeight: Single;
     FModelBox: TBox3D;
     FCrouchHeight: Single;
-
-    FAnimation: boolean;
-    AnimationEndTime: TFloatTime;
-    AnimationCurrentTime: TFloatTime;
-
-    AnimationBeginPosition: TVector3;
-    AnimationBeginDirection: TVector3;
-    AnimationBeginUp: TVector3;
-    AnimationEndPosition: TVector3;
-    AnimationEndDirection: TVector3;
-    AnimationEndUp: TVector3;
 
     function GetPosition: TVector3;
     function GetDirection: TVector3;
@@ -520,89 +605,22 @@ type
       const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3); overload; deprecated 'use Viewport.Camera.CustomRay';
 
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
-    { Animate a camera smoothly into another camera settings.
-      This will gradually change our settings (only the most important
-      settings, that determine actual camera view, i.e. @link(Matrix) result)
-      into another camera.
-
-      Current OtherCamera settings will be internally copied during this call.
-      So you can even free OtherCamera instance immediately after calling this.
-
-      When we're during camera animation, @link(Update) doesn't do other stuff
-      (e.g. gravity for TCastleWalkNavigation doesn't work, rotating for TCastleExamineNavigation
-      doesn't work). This also means that the key/mouse controls of the camera
-      do not work. Instead, we remember the source and target position
-      (at the time AnimateTo was called) of the camera,
-      and smoothly interpolate camera parameters to match the target.
-
-      Once the animation stops, @link(Update) goes back to normal: gravity
-      in TCastleWalkNavigation works again, rotating in TCastleExamineNavigation works again etc.
-
-      Calling AnimateTo while the previous animation didn't finish yet
-      is OK. This simply cancels the previous animation,
-      and starts the new animation from the current position.
-
-      @italic(Descendants implementors notes:) In this class,
-      almost everything is handled (through GetView / SetView).
-      In descendants you have to only ignore key/mouse/Update events
-      when IsAnimation is @true.
-      (Although each Update would override the view anyway, but for
-      stability it's best to explicitly ignore them --- you never know
-      how often Update will be called.)
-
-      @groupBegin }
-    procedure AnimateTo(OtherCamera: TCastleCamera; const Time: TFloatTime);
+    procedure AnimateTo(OtherCamera: TCastleCamera; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
     procedure AnimateTo(OtherCamera: TCastleNavigation; const Time: TFloatTime); deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
-    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
-    { @groupEnd }
-
-    function Animation: boolean; virtual;
-
-    { Initial camera values.
-
-      InitialDirection and InitialUp must be always normalized,
-      and orthogonal.
-
-      Default value of InitialPosition is (0, 0, 0),
-      InitialDirection is DefaultCameraDirection = (0, -1, 0),
-      InitialUp is DefaultCameraUp = (0, 1, 0).
-
-      @groupBegin }
-    property InitialPosition : TVector3 read FInitialPosition;
-    property InitialDirection: TVector3 read FInitialDirection;
-    property InitialUp       : TVector3 read FInitialUp;
-    { @groupEnd }
-
-    { Set three initial camera vectors.
-
-      AInitialDirection and AInitialUp will be automatically normalized.
-      Corresponding properties (InitialDirection and InitialUp) will always
-      contain normalized values.
-
-      AInitialUp will be also automatically corrected to be orthogonal
-      to AInitialDirection. We will correct AInitialUp to make it orthogonal,
-      but still preserving the plane they were indicating together with
-      AInitialDirection. Do not ever give here
-      AInitialUp that is parallel to AInitialDirection.
-
-      If TransformCurrentCamera = @true, then they will also
-      try to change current camera relative to the initial vectors changes.
-      This implements VRML/X3D desired behavior that
-      "viewer position/orientation is conceptually a child of
-      viewpoint position/orientation, and when viewpoint position/orientation
-      changes, viewer should also change". }
+    procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
+    function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
+    function InitialPosition : TVector3; deprecated 'use Viewport.Camera.InitialPosition';
+    function InitialDirection: TVector3; deprecated 'use Viewport.Camera.InitialDirection';
+    function InitialUp       : TVector3; deprecated 'use Viewport.Camera.InitialUp';
     procedure SetInitialView(
       const AInitialPosition: TVector3;
       AInitialDirection, AInitialUp: TVector3;
-      const TransformCurrentCamera: boolean); virtual;
-
-    { Jump to initial camera view (set by SetInitialView). }
-    procedure GoToInitial; virtual;
+      const TransformCurrentCamera: boolean);
+      deprecated 'use Viewport.Camera.SetInitialView';
+    procedure GoToInitial; deprecated 'use Viewport.Camera.GoToInitial';
 
     function GetNavigationType: TNavigationType; virtual; abstract;
 
@@ -952,6 +970,7 @@ type
       setting suitable initial view by SetInitialView,
       and then going to initial view by GoToInitial. }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
+      deprecated 'use Viewport.Camera.Init, and set ModelBox, Radius manually';
 
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
@@ -1412,6 +1431,7 @@ type
       const AGravityUp: TVector3;
       const APreferredHeight: Single;
       const ARadius: Single); overload;
+      deprecated 'use Viewport.Camera.Init, and set PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { Alternative Init that sets camera properties such that
       an object inside Box is more or less "visible good".
@@ -1420,6 +1440,7 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
+      deprecated 'use Viewport.Camera.Init, and set PreferredHeight, Radius and call CorrectPreferredHeight manually';
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
@@ -1901,6 +1922,25 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   out Position: TVector3;
   out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
 
+{ TODO: move these consts somewhere more private? }
+
+const
+  { Following X3D spec of NavigationType:
+    "It is recommended that the near clipping plane be set to one-half
+    of the collision radius as specified in the avatarSize field." }
+  RadiusToProjectionNear = 0.6;
+
+  { Multiply radius by this to get sensible "preferred height".
+
+    We need to make "preferred height" much larger than Radius * 2, to allow some
+    space to decrease (e.g. by Input_DecreasePreferredHeight).
+    Remember that CorrectPreferredHeight
+    adds a limit to PreferredHeight, around Radius * 2. }
+  RadiusToPreferredHeight = 4.0;
+
+  { Multiply world bounding box AverageSize by this to get sensible radius. }
+  WorldBoxSizeToRadius = 0.005;
+
 procedure Register;
 
 implementation
@@ -1920,10 +1960,13 @@ end;
 constructor TCastleCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FPosition  := TVector3.Zero;
-  FDirection := DefaultCameraDirection;
-  FUp        := DefaultCameraUp;
-  FGravityUp := DefaultCameraUp;
+  FInitialPosition  := TVector3.Zero;
+  FInitialDirection := DefaultCameraDirection;
+  FInitialUp        := DefaultCameraUp;
+  FPosition  := FInitialPosition;
+  FDirection := FInitialDirection;
+  FUp        := FInitialUp;
+  FGravityUp := FInitialUp;
   FProjectionMatrix := TMatrix4.Identity; // any sensible initial value
   FFrustum.Init(TMatrix4.Identity); // any sensible initial value
 end;
@@ -2078,14 +2121,121 @@ begin
     RayOrigin, RayDirection);
 end;
 
+procedure TCastleCamera.Update(const SecondsPassed: Single);
+begin
+  if FAnimation then
+  begin
+    AnimationCurrentTime := AnimationCurrentTime + SecondsPassed;
+    if AnimationCurrentTime > AnimationEndTime then
+    begin
+      FAnimation := false;
+      { When animation ended, make sure you're exactly at the final view. }
+      SetView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
+    end else
+    begin
+      SetView(
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
+    end;
+  end;
+end;
+
+procedure TCastleCamera.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
+begin
+  GetView(
+    AnimationBeginPosition,
+    AnimationBeginDirection,
+    AnimationBeginUp);
+
+  AnimationEndPosition := APos;
+  AnimationEndDirection := ADir;
+  AnimationEndUp := AUp;
+
+  AnimationEndTime := Time;
+  AnimationCurrentTime := 0;
+  { No point in doing animation (especially since it blocks camera movement
+    for Time seconds) if we're already there. }
+  FAnimation := not (
+    TVector3.Equals(AnimationBeginPosition , AnimationEndPosition) and
+    TVector3.Equals(AnimationBeginDirection, AnimationEndDirection) and
+    TVector3.Equals(AnimationBeginUp       , AnimationEndUp));
+end;
+
+procedure TCastleCamera.AnimateTo(OtherCamera: TCastleCamera; const Time: TFloatTime);
+var
+  APos, ADir, AUp: TVector3;
+begin
+  OtherCamera.GetView(APos, ADir, AUp);
+  AnimateTo(APos, ADir, AUp, Time);
+end;
+
+function TCastleCamera.Animation: boolean;
+begin
+  Result := FAnimation;
+end;
+
+procedure TCastleCamera.SetInitialView(
+  const AInitialPosition: TVector3;
+  AInitialDirection, AInitialUp: TVector3;
+  const TransformCurrentCamera: boolean);
+var
+  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
+  APos, ADir, AUp: TVector3;
+begin
+  AInitialDirection.NormalizeMe;
+  AInitialUp.NormalizeMe;
+  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
+
+  if TransformCurrentCamera then
+  begin
+    GetView(APos, ADir, AUp);
+
+    APos := APos + AInitialPosition - FInitialPosition;
+
+    if not (TVector3.PerfectlyEquals(FInitialDirection, AInitialDirection) and
+            TVector3.PerfectlyEquals(FInitialUp       , AInitialUp ) ) then
+    begin
+      OldInitialOrientation := OrientationQuaternionFromDirectionUp(FInitialDirection, FInitialUp);
+      NewInitialOrientation := OrientationQuaternionFromDirectionUp(AInitialDirection, AInitialUp);
+      Orientation           := OrientationQuaternionFromDirectionUp(ADir, AUp);
+
+      { I want new Orientation :=
+          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
+      Orientation := OldInitialOrientation.Conjugate * Orientation;
+      Orientation := NewInitialOrientation * Orientation;
+
+      { Now that we have Orientation, transform it into new Dir/Up. }
+      ADir := Orientation.Rotate(DefaultCameraDirection);
+      AUp  := Orientation.Rotate(DefaultCameraUp);
+    end;
+
+    SetView(APos, ADir, AUp);
+  end;
+
+  FInitialPosition  := AInitialPosition;
+  FInitialDirection := AInitialDirection;
+  FInitialUp        := AInitialUp;
+end;
+
+procedure TCastleCamera.GoToInitial;
+begin
+  SetView(FInitialPosition, FInitialDirection, FInitialUp);
+end;
+
+procedure TCastleCamera.Init(
+  const AInitialPosition, AInitialDirection, AInitialUp, AGravityUp: TVector3);
+begin
+  SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
+  GravityUp := AGravityUp;
+  GoToInitial;
+end;
+
 { TCastleNavigation ------------------------------------------------------------ }
 
 constructor TCastleNavigation.Create(AOwner: TComponent);
 begin
   inherited;
-  FInitialPosition  := Vector3(0, 0, 0);
-  FInitialDirection := DefaultCameraDirection;
-  FInitialUp        := DefaultCameraUp;
   FRadius := DefaultRadius;
   FInput := DefaultInput;
   FModelBox := TBox3D.Empty;
@@ -2160,47 +2310,11 @@ begin
     WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
-procedure TCastleNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-begin
-  inherited;
-  if FAnimation then
-  begin
-    AnimationCurrentTime := AnimationCurrentTime + SecondsPassed;
-    if AnimationCurrentTime > AnimationEndTime then
-    begin
-      FAnimation := false;
-      { When animation ended, make sure you're exactly at the final view. }
-      SetView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
-    end else
-    begin
-      SetView(
-        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
-        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
-        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
-    end;
-  end;
-end;
-
 procedure TCastleNavigation.AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime);
 begin
-  GetView(
-    AnimationBeginPosition,
-    AnimationBeginDirection,
-    AnimationBeginUp);
-
-  AnimationEndPosition := APos;
-  AnimationEndDirection := ADir;
-  AnimationEndUp := AUp;
-
-  AnimationEndTime := Time;
-  AnimationCurrentTime := 0;
-  { No point in doing animation (especially since it blocks camera movement
-    for Time seconds) if we're already there. }
-  FAnimation := not (
-    TVector3.Equals(AnimationBeginPosition , AnimationEndPosition) and
-    TVector3.Equals(AnimationBeginDirection, AnimationEndDirection) and
-    TVector3.Equals(AnimationBeginUp       , AnimationEndUp));
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling AnimateTo');
+  (Viewport as TCastleAbstractViewport).Camera.AnimateTo(APos, ADir, AUp, Time);
 end;
 
 procedure TCastleNavigation.AnimateTo(OtherCamera: TCastleNavigation; const Time: TFloatTime);
@@ -2208,68 +2322,63 @@ var
   APos, ADir, AUp: TVector3;
 begin
   OtherCamera.GetView(APos, ADir, AUp);
-  AnimateTo(APos, ADir, AUp, Time);
+
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling AnimateTo');
+  (Viewport as TCastleAbstractViewport).Camera.AnimateTo(APos, ADir, AUp, Time);
 end;
 
 procedure TCastleNavigation.AnimateTo(OtherCamera: TCastleCamera; const Time: TFloatTime);
-var
-  APos, ADir, AUp: TVector3;
 begin
-  OtherCamera.GetView(APos, ADir, AUp);
-  AnimateTo(APos, ADir, AUp, Time);
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling AnimateTo');
+  (Viewport as TCastleAbstractViewport).Camera.AnimateTo(OtherCamera, Time);
 end;
 
 function TCastleNavigation.Animation: boolean;
 begin
-  Result := FAnimation;
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling Animation');
+  Result := (Viewport as TCastleAbstractViewport).Camera.Animation;
+end;
+
+function TCastleNavigation.InitialPosition: TVector3;
+begin
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling InitialPosition');
+  Result := (Viewport as TCastleAbstractViewport).Camera.InitialPosition;
+end;
+
+function TCastleNavigation.InitialDirection: TVector3;
+begin
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling InitialDirection');
+  Result := (Viewport as TCastleAbstractViewport).Camera.InitialDirection;
+end;
+
+function TCastleNavigation.InitialUp: TVector3;
+begin
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling InitialUp');
+  Result := (Viewport as TCastleAbstractViewport).Camera.InitialUp;
 end;
 
 procedure TCastleNavigation.SetInitialView(
   const AInitialPosition: TVector3;
   AInitialDirection, AInitialUp: TVector3;
   const TransformCurrentCamera: boolean);
-var
-  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
-  APos, ADir, AUp: TVector3;
 begin
-  AInitialDirection.NormalizeMe;
-  AInitialUp.NormalizeMe;
-  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
-
-  if TransformCurrentCamera then
-  begin
-    GetView(APos, ADir, AUp);
-
-    APos := APos + AInitialPosition - FInitialPosition;
-
-    if not (TVector3.PerfectlyEquals(FInitialDirection, AInitialDirection) and
-            TVector3.PerfectlyEquals(FInitialUp       , AInitialUp ) ) then
-    begin
-      OldInitialOrientation := OrientationQuaternionFromDirectionUp(FInitialDirection, FInitialUp);
-      NewInitialOrientation := OrientationQuaternionFromDirectionUp(AInitialDirection, AInitialUp);
-      Orientation           := OrientationQuaternionFromDirectionUp(ADir, AUp);
-
-      { I want new Orientation :=
-          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
-      Orientation := OldInitialOrientation.Conjugate * Orientation;
-      Orientation := NewInitialOrientation * Orientation;
-
-      { Now that we have Orientation, transform it into new Dir/Up. }
-      ADir := Orientation.Rotate(DefaultCameraDirection);
-      AUp  := Orientation.Rotate(DefaultCameraUp);
-    end;
-
-    SetView(APos, ADir, AUp);
-  end;
-
-  FInitialPosition  := AInitialPosition;
-  FInitialDirection := AInitialDirection;
-  FInitialUp        := AInitialUp;
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling SetInitialView');
+  (Viewport as TCastleAbstractViewport).Camera.SetInitialView(AInitialPosition,
+    AInitialDirection, AInitialUp, TransformCurrentCamera);
 end;
 
 procedure TCastleNavigation.GoToInitial;
 begin
-  SetView(FInitialPosition, FInitialDirection, FInitialUp);
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling GoToInitial');
+  (Viewport as TCastleAbstractViewport).Camera.GoToInitial;
 end;
 
 function TCastleNavigation.GetIgnoreAllInputs: boolean;
@@ -2887,9 +2996,12 @@ begin
 
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
     APos, ADir, AUp, NewGravityUp);
-  GravityUp := NewGravityUp;
-  SetInitialView(APos, ADir, AUp, false);
-  GoToInitial;
+
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling Init');
+  (Viewport as TCastleAbstractViewport).Camera.Init(
+    APos, ADir, AUp, NewGravityUp);
+  (Viewport as TCastleAbstractViewport).Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 end;
 
 { TCastleExamineNavigation.Set* properties }
@@ -4640,12 +4752,15 @@ procedure TCastleWalkNavigation.Init(
   const APreferredHeight: Single;
   const ARadius: Single);
 begin
-  SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
-  GravityUp := AGravityUp;
   PreferredHeight := APreferredHeight;
   Radius := ARadius;
   CorrectPreferredHeight;
-  GoToInitial;
+
+  if Viewport = nil then
+    raise EViewportNotAssigned.Create('TCastleNavigation.Viewport not assigned when calling Init');
+  (Viewport as TCastleAbstractViewport).Camera.Init(
+    AInitialPosition, AInitialDirection, AInitialUp, AGravityUp);
+  (Viewport as TCastleAbstractViewport).Camera.ProjectionNear := Radius * RadiusToProjectionNear;
 end;
 
 procedure TCastleWalkNavigation.Init(const Box: TBox3D; const ARadius: Single);

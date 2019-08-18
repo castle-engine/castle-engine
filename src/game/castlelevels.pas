@@ -778,7 +778,7 @@ var
     Logic.PlaceholdersEnd;
   end;
 
-  { Assign Camera, knowing MainScene and Player.
+  { Assign Camera and Navigation, knowing MainScene and Player.
     We need to assign Camera early, as initial Camera also is used
     when placing initial resources on the level (to determine their
     initial direciton, World.GravityUp etc.) }
@@ -788,7 +788,8 @@ var
     InitialDirection: TVector3;
     InitialUp: TVector3;
     GravityUp: TVector3;
-    CameraRadius, PreferredHeight: Single;
+    Radius, PreferredHeight: Single;
+    ProjectionNear: Single;
     NavigationNode: TNavigationInfoNode;
     WalkCamera: TWalkCamera;
   begin
@@ -804,14 +805,25 @@ var
 
     NavigationNode := MainScene.NavigationInfoStack.Top;
 
-    if (NavigationNode <> nil) and (NavigationNode.FdAvatarSize.Count >= 1) then
-      CameraRadius := NavigationNode.FdAvatarSize.Items[0] else
-      CameraRadius := MainScene.BoundingBox.AverageSize(false, 1) * 0.007;
+    // calculate Radius
+    Radius := 0;
+    if (NavigationNode <> nil) and
+       (NavigationNode.FdAvatarSize.Count >= 1) then
+      Radius := NavigationNode.FdAvatarSize.Items[0];
+    // If radius not specified, or invalid (<0), calculate it
+    if Radius <= 0 then
+      Radius := MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+    Assert(Radius > 0, 'Navigation Radius must be > 0');
 
-    if (NavigationNode <> nil) and (NavigationNode.FdAvatarSize.Count >= 2) then
-      PreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      PreferredHeight := CameraRadius * 5;
-    CorrectPreferredHeight(PreferredHeight, CameraRadius,
+    // calculate ProjectionNear
+    ProjectionNear := Radius * RadiusToProjectionNear;
+
+    if (NavigationNode <> nil) and
+      (NavigationNode.FdAvatarSize.Count >= 2) then
+      PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
+    else
+      PreferredHeight := Radius * RadiusToPreferredHeight;
+    CorrectPreferredHeight(PreferredHeight, Radius,
       TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
 
     if Player <> nil then
@@ -841,11 +853,14 @@ var
       WalkCamera.MoveVerticalSpeed := 20;
     end;
 
+    WalkCamera.PreferredHeight := PreferredHeight;
+    WalkCamera.Radius := Radius;
+    WalkCamera.CorrectPreferredHeight;
+    WalkCamera.CancelFalling;
+
     Navigation := WalkCamera;
 
-    WalkCamera.Init(InitialPosition, InitialDirection,
-      InitialUp, GravityUp, PreferredHeight, CameraRadius);
-    WalkCamera.CancelFalling;
+    Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
   end;
 
 var

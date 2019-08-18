@@ -77,13 +77,14 @@ type
     FProjectionOriginCenter: boolean;
   protected
     function CalculateProjection: TProjection; override;
+    procedure AssignDefaultNavigation; override;
+    procedure AssignDefaultCamera; override;
   public
     const
       DefaultProjectionSpan = 1000.0;
       DefaultCameraZ = DefaultProjectionSpan / 2;
 
     constructor Create(AOwner: TComponent); override;
-    procedure AssignDefaultNavigation; override;
 
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
@@ -219,26 +220,23 @@ begin
   FProjectionSpan := DefaultProjectionSpan;
   FProjectionHeight := 0;
   FProjectionWidth := 0;
-
-  { Make camera already existing, so WalkCamera returns it,
-    instead of using AssignDefaultNavigation and then switching to ntWalk. }
-  AssignDefaultNavigation;
 end;
 
 procedure TCastle2DSceneManager.AssignDefaultNavigation;
 begin
-  { Set Camera explicitly, otherwise SetNavigationType below could call
-    ExamineCamera / WalkCamera that call AssignDefaultNavigation when Camera = nil,
-    and we would have infinite AssignDefaultNavigation calls loop. }
-  Navigation := InternalWalkNavigation;
+  Assign(Navigation = nil);
+  // does nothing, leaves Navigation = nil
+end;
 
-  NavigationType := ntNone;
-  Navigation.SetInitialView(
+procedure TCastle2DSceneManager.AssignDefaultCamera;
+begin
+  Camera.Init(
     { pos } Vector3(0, 0, DefaultCameraZ),
     { dir } Vector3(0, 0, -1),
-    { up } Vector3(0, 1, 0), false);
-  Navigation.GoToInitial;
-  Navigation.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
+    { up } Vector3(0, 1, 0),
+    { gravity up } Vector3(0, 1, 0)
+  );
+  Camera.ProjectionNear := WorldBoxSizeToRadius; // assume bbox size = 1
 end;
 
 function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
