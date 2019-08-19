@@ -20,10 +20,9 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleWindow, CastleImages, CastleGLUtils, CastleLog,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
-  CastleKeysMouse, CastleParameters, CastleClassUtils,
+  CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
   CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
   CastleApplicationProperties;
@@ -66,7 +65,8 @@ var
   BackgroundImage: TDrawableImage;
   BackgroundImageURL: string;
 
-  Zoom: Single = 1;
+  SceneZoom: Single = 1;
+  SceneMove: TVector2;
 
 const
   Version = '2.0.0';
@@ -155,10 +155,10 @@ end;
 
 type
   TStatusText = class(TCastleLabel)
-    procedure Render; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   end;
 
-procedure TStatusText.Render;
+procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: boolean);
 
   function IntToStrOrNone(i: Integer): string;
   begin
@@ -166,9 +166,8 @@ procedure TStatusText.Render;
   end;
 
 begin
-  if not GetExists then Exit;
-
-  { regenerate Text contents at every Render call }
+  inherited;
+  { regenerate Text contents at every Update call }
   Text.Clear;
   Text.Append(Format('Selected curve : %s', [IntToStrOrNone(SelectedCurve)]));
   if SelectedCurve <> -1 then
@@ -176,8 +175,6 @@ begin
   Text.Append(Format('Selected point : %s', [IntToStrOrNone(SelectedPoint)]));
   Text.Append('');
   Text.Append(Format('Rendering segments = %d', [RenderSegments]));
-
-  inherited;
 end;
 
 var
@@ -192,106 +189,92 @@ type
 
 procedure TCurvesDisplay.Render;
 
+  function TransformPoint(const V: TVector2): TVector2;
+  begin
+    Result := (V + SceneMove) * SceneZoom;
+  end;
+
+  function TransformPoint(const V: TVector3): TVector2;
+  begin
+    Result := TransformPoint(V.XY);
+  end;
+
   { Render curve by dividing it into a given number of line segments. }
   procedure RenderCurve(const Curve: TCurve; const Segments: Cardinal;
     const Color: TCastleColor; const LineWidth: Single);
-  {$ifndef OpenGLES} //TODO-es
   var
-    i: Integer;
+    Points: array of TVector2;
+    I: Integer;
   begin
-    glColorv(Color);
-    RenderContext.LineWidth := LineWidth;
-    glBegin(GL_LINE_STRIP);
-    for i := 0 to Segments do
-      glVertexv(Curve.PointOfSegment(i, Segments));
-    glEnd;
-  {$else}
-  begin
-  {$endif}
+    SetLength(Points, Segments + 1);
+    for I := 0 to Segments do
+      Points[I] := TransformPoint(Curve.PointOfSegment(I, Segments));
+    DrawPrimitive2D(pmLineStrip, Points, Color);
   end;
 
   procedure RenderControlPoints(const Curve: TControlPointsCurve;
     const ControlPointsColor: TCastleColor);
-  {$ifndef OpenGLES} //TODO-es
   var
-    i: Integer;
+    Points: array of TVector2;
+    I: Integer;
   begin
-    glColorv(ControlPointsColor);
-    glBegin(GL_POINTS);
-    for i := 0 to Curve.ControlPoints.Count-1 do
-      glVertexv(Curve.ControlPoints.L[i]);
-    glEnd;
-  {$else}
-  begin
-  {$endif}
+    SetLength(Points, Curve.ControlPoints.Count);
+    for I := 0 to Curve.ControlPoints.Count - 1 do
+      Points[I] := TransformPoint(Curve.ControlPoints.L[I]);
+    DrawPrimitive2D(pmPoints, Points, ControlPointsColor);
   end;
 
   { Render convex hull polygon, using ConvexHullColor.
     Ignores Z-coord of ControlPoints. }
   procedure RenderConvexHull(const Curve: TControlPointsCurve;
     const ConvexHullColor: TCastleColor);
-  {$ifndef OpenGLES} //TODO-es
   var
     ConvexHull: TVector3List;
+    Points: array of TVector2;
     I: Integer;
   begin
     ConvexHull := Curve.ConvexHull;
     try
-      {$push}
-      {$warnings off}
-      glColorv(ConvexHullColor);
-      {$pop}
-      glBegin(GL_POLYGON);
-      for i := 0 to ConvexHull.Count - 1 do
-        glVertexv(ConvexHull.L[I]);
-      glEnd;
+      SetLength(Points, ConvexHull.Count);
+      for I := 0 to ConvexHull.Count - 1 do
+        Points[I] := TransformPoint(ConvexHull.L[I]);
+      DrawPrimitive2D(pmTriangleFan, Points, ConvexHullColor);
     finally FreeAndNil(ConvexHull) end;
-  {$else}
-  begin
-  {$endif}
   end;
 
 var
   I: Integer;
   Color: TCastleColor;
+  SelectedPointXY: TVector2;
 begin
-  glLoadIdentity;
-
   RenderContext.Clear([cbColor], Black);
   if BackgroundImage <> nil then
-    BackgroundImage.Draw(BackgroundImage.Rect.ScaleAround0(Zoom));
+    BackgroundImage.Draw(FloatRectangle(BackgroundImage.Rect).Translate(SceneMove).ScaleAround0(SceneZoom));
 
-  glPushMatrix;
-    glScalef(Zoom, Zoom, Zoom);
+  { draw convex hull of SelectedCurve }
+  if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
+  begin
+    RenderConvexHull(Curves[SelectedCurve], ColorConvexHull);
+  end;
 
-    { draw convex hull of SelectedCurve }
-    if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
-    begin
-      RenderConvexHull(Curves[SelectedCurve], ColorConvexHull);
-    end;
+  { draw all curves and their control points }
+  for i := 0 to Curves.Count-1 do
+  begin
+    if i = SelectedCurve then
+      Color := ColorCurveSelected
+    else
+      Color := ColorCurveNotSelected;
+    if ShowPoints then
+      RenderControlPoints(Curves[i], Color);
+    RenderCurve(Curves[i], RenderSegments, Color, LineWidth);
+  end;
 
-    { draw all curves and their control points }
-    for i := 0 to Curves.Count-1 do
-    begin
-      if i = SelectedCurve then
-        Color := ColorCurveSelected
-      else
-        Color := ColorCurveNotSelected;
-      if ShowPoints then
-        RenderControlPoints(Curves[i], Color);
-      RenderCurve(Curves[i], RenderSegments, Color, LineWidth);
-    end;
-
-    { draw SelectedPoint }
-    if SelectedPoint <> -1 then
-    begin
-      glColorv(ColorPointSelected);
-      glBegin(GL_POINTS);
-        glVertexv(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
-      glEnd;
-    end;
-
-  glPopMatrix;
+  { draw SelectedPoint }
+  if SelectedPoint <> -1 then
+  begin
+    SelectedPointXY := TransformPoint(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
+    DrawPrimitive2D(pmPoints, [SelectedPointXY], ColorPointSelected);
+  end;
 end;
 
 { Add new curve point and select it. }
@@ -322,8 +305,8 @@ end;
 
 procedure ChangeZoom(const Multiply: Single);
 begin
-  Zoom *= Multiply;
-  ClampVar(Zoom, 0.01, 100);
+  SceneZoom *= Multiply;
+  ClampVar(SceneZoom, 0.01, 100);
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
@@ -379,7 +362,7 @@ const
 var
   Pos: TVector2;
 begin
-  Pos := Event.Position / Zoom;
+  Pos := Event.Position / SceneZoom;
   if Event.IsMouseButton(mbLeft) then
   begin
     SelectClosestPoint(Pos);
@@ -390,7 +373,7 @@ begin
   if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
     ChangeZoom(ZoomFactor) else
   if Event.IsMouseWheel(mwDown) or Event.IsMouseWheel(mwRight) then
-    ChangeZoom(1/ZoomFactor) else
+    ChangeZoom(1 / ZoomFactor) else
     Exit;
 
   Window.Invalidate;
@@ -444,13 +427,18 @@ end;
 procedure Open(Container: TUIContainer);
 begin
   RenderContext.PointSize := 10;
-  { TODO: This uses some direct GL rendering for now in immediate-mode.
-    Without EnableFixedFunction := true e.g. selected curve color
-    doesn't work, and scaling whole screen doesn't work correctly. }
-  GLFeatures.EnableFixedFunction := true;
 end;
 
 procedure Update(Container: TUIContainer);
+
+  procedure ChangeMove(const X, Y: Single);
+  const
+    MoveSpeed = 10;
+  begin
+    { Divide by / Zoom, to effectively move slower when in larger zoom. }
+    SceneMove := SceneMove + Vector2(X, Y) * MoveSpeed / SceneZoom;
+  end;
+
 const
   ZoomFactor = 2;
 begin
@@ -458,6 +446,14 @@ begin
     ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
     ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
+  if Container.Pressed[keyUp] then
+    ChangeMove(0, 1);
+  if Container.Pressed[keyDown] then
+    ChangeMove(0, -1);
+  if Container.Pressed[keyLeft] then
+    ChangeMove(-1, 0);
+  if Container.Pressed[keyRight] then
+    ChangeMove(1, 0);
 end;
 
 { menu ------------------------------------------------------------ }
@@ -613,7 +609,10 @@ begin
     305: StatusText.Exists := not StatusText.Exists;
     310: ShowPoints := not ShowPoints;
     320: ShowSelectedCurveConvexHull := not ShowSelectedCurveConvexHull;
-    326: Zoom := 1;
+    326: begin
+           SceneZoom := 1;
+           SceneMove := TVector2.Zero;
+         end;
     330: RenderSegments := Max(1, MessageInputCardinal(Window,
            'Render curves as ... segments ?', RenderSegments));
     331: RenderSegments *= 2;
@@ -686,7 +685,7 @@ begin
       'Show / Hide _convex hull of selected curve',         320,
       ShowSelectedCurveConvexHull, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('No Zoom' , 326, K_Home));
+    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, K_Home));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
     M.Append(TMenuItem.Create('Curves rendering segments x 2',      331, 's'));
@@ -790,6 +789,7 @@ begin
     StatusText.Left := 5;
     StatusText.Bottom := 5;
     StatusText.Frame := true;
+    StatusText.Color := Yellow;
     Window.Controls.InsertFront(StatusText);
 
     Window.Controls.InsertBack(TCurvesDisplay.Create(Window));
