@@ -424,11 +424,6 @@ begin
   end;
 end;
 
-procedure Open(Container: TUIContainer);
-begin
-  RenderContext.PointSize := 10;
-end;
-
 procedure Update(Container: TUIContainer);
 
   procedure ChangeMove(const X, Y: Single);
@@ -677,7 +672,7 @@ begin
     Result.Append(M);
   M := TMenu.Create('_View');
     M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, K_F1,
-      StatusText.Exists, true));
+      true { default of StatusText.Exists }, true));
     M.Append(TMenuItemChecked.Create(
       'Show / Hide non-selected _points',                   310,
       ShowPoints, true));
@@ -758,17 +753,8 @@ begin
   end;
 end;
 
-{ main ------------------------------------------------------------ }
-
+procedure ApplicationInitialize;
 begin
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-
-  Window := TCastleWindowBase.Create(Application);
-
-  Window.ParseParameters(StandardParseOptions);
-  Parameters.Parse(Options, @OptionProc, nil);
-  Parameters.CheckHighAtMost(1);
-
   { initialize variables }
   ColorConvexHull := Gray;
   ColorCurveSelected := Yellow;
@@ -783,32 +769,52 @@ begin
   end;
 
   Curves := TControlPointsCurveList.Create(true);
+
+  StatusText := TStatusText.Create(Window);
+  StatusText.Padding := 5;
+  StatusText.Left := 5;
+  StatusText.Bottom := 5;
+  StatusText.Frame := true;
+  StatusText.Color := Yellow;
+  Window.Controls.InsertFront(StatusText);
+
+  Window.Controls.InsertBack(TCurvesDisplay.Create(Window));
+
+  { SetCurvesURL also initializes Window.Caption }
+  if Parameters.High = 1 then
+    LoadCurves(Parameters[1]) else
+    SetCurvesURL('my_curves.xml');
+
+  Window.OnPress := @Press;
+  Window.OnRelease := @Release;
+  Window.OnMotion := @Motion;
+  Window.OnUpdate := @Update;
+  Window.OnMenuClick := @MenuClick;
+
+  RenderContext.PointSize := 10;
+end;
+
+{ main ------------------------------------------------------------ }
+
+begin
+  ApplicationProperties.ApplicationName := 'castle-curves';
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  InitializeLog;
+
+  Window := TCastleWindowBase.Create(Application);
+
+  Window.ParseParameters(StandardParseOptions);
+  Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHighAtMost(1);
+
+  { initialize menu (before Window.Open) }
+  Window.MainMenu := CreateMainMenu;
+
+  Application.OnInitialize := @ApplicationInitialize;
+
   try
-    StatusText := TStatusText.Create(Window);
-    StatusText.Padding := 5;
-    StatusText.Left := 5;
-    StatusText.Bottom := 5;
-    StatusText.Frame := true;
-    StatusText.Color := Yellow;
-    Window.Controls.InsertFront(StatusText);
-
-    Window.Controls.InsertBack(TCurvesDisplay.Create(Window));
-
-    { init menu }
-    Window.OnMenuClick := @MenuClick;
-    Window.MainMenu := CreateMainMenu;
-
-    { SetCurvesURL also initializes Window.Caption }
-    if Parameters.High = 1 then
-      LoadCurves(Parameters[1]) else
-      SetCurvesURL('my_curves.xml');
-
-    Window.OnPress := @Press;
-    Window.OnRelease := @Release;
-    Window.OnMotion := @Motion;
-    Window.OnOpen := @Open;
-    Window.OnUpdate := @Update;
-    Window.OpenAndRun;
+    Window.Open;
+    Application.Run;
   finally
     FreeAndNil(Curves);
     FreeAndNil(BackgroundImage);
