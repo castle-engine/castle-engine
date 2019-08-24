@@ -233,7 +233,7 @@ begin
   Player.Camera.MouseLook := true;
   Player.DefaultPreferredHeight := 1;
   Player.DefaultMoveHorizontalSpeed := 10;
-  Window.SceneManager.Camera := Player.camera;
+  Window.SceneManager.Navigation := Player.camera;
 
   { finally run the application }
 
