@@ -1,67 +1,34 @@
 {
   "FullSize" : true,
   "Name" : "Group1",
-  "_Children" : [
+  "$Children" : [
     {
-      "HeadlightNode" : {
-        "_ClassName" : "TDirectionalLightNode"
-      },
       "Items" : {
-        "CenterPersistent" : {
-          "_ClassName" : "TCastleVector3Persistent"
-        },
         "Name" : "Items",
-        "RotationPersistent" : {
-          "_ClassName" : "TCastleVector4Persistent"
-        },
-        "ScaleOrientationPersistent" : {
-          "_ClassName" : "TCastleVector4Persistent"
-        },
-        "ScalePersistent" : {
-          "_ClassName" : "TCastleVector3Persistent"
-        },
-        "TranslationPersistent" : {
-          "_ClassName" : "TCastleVector3Persistent"
-        },
-        "_Children" : [
+        "$Children" : [
           {
-            "CenterPersistent" : {
-              "_ClassName" : "TCastleVector3Persistent"
-            },
             "Name" : "Scene1",
-            "RotationPersistent" : {
-              "_ClassName" : "TCastleVector4Persistent"
-            },
-            "ScaleOrientationPersistent" : {
-              "_ClassName" : "TCastleVector4Persistent"
-            },
-            "ScalePersistent" : {
-              "_ClassName" : "TCastleVector3Persistent"
-            },
-            "TranslationPersistent" : {
-              "_ClassName" : "TCastleVector3Persistent"
-            },
             "URL" : "castle-data:/example.x3dv",
-            "_Children" : [
+            "$Children" : [
             ],
-            "_ClassName" : "TCastleScene"
+            "$ClassName" : "TCastleScene"
           }
         ],
-        "_ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TSceneManagerWorldConcrete"
       },
       "MainScene" : "Scene1",
       "Name" : "SceneManager1",
       "UseHeadlight" : "hlOn",
-      "_Children" : [
+      "$Children" : [
       ],
-      "_ClassName" : "TCastleSceneManager"
+      "$ClassName" : "TCastleSceneManager"
     },
     {
       "ColorPersistent" : {
         "Alpha" : 5.0000000000000000E-001,
         "Green" : 5.0000000000000000E-001,
         "Red" : 5.0000000000000000E-001,
-        "_ClassName" : "TCastleColorPersistent"
+        "$ClassName" : "TCastleColorPersistent"
       },
       "Height" : 5.0000000000000000E+002,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
@@ -72,28 +39,38 @@
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "Width" : 5.0000000000000000E+002,
-      "_Children" : [
+      "$Children" : [
         {
           "Caption" : "I am a button",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomTextColorUse" : false,
           "FontSize" : 5.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
           "Name" : "Button1",
           "VerticalAnchorDelta" : -1.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
-          "_Children" : [
+          "$Children" : [
           ],
-          "_ClassName" : "TCastleButton"
+          "$ClassName" : "TCastleButton"
         },
         {
-          "ColorPersistent" : {
-            "_ClassName" : "TCastleColorPersistent"
-          },
           "FontSize" : 5.0000000000000000E+001,
-          "FrameColorPersistent" : {
-            "_ClassName" : "TCastleColorPersistent"
-          },
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",
           "Name" : "Label1",
@@ -101,32 +78,30 @@
           "VerticalAnchorDelta" : -1.0000000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
-          "_Children" : [
+          "$Children" : [
           ],
-          "_ClassName" : "TCastleLabel"
+          "$ClassName" : "TCastleLabel"
         }
       ],
-      "_ClassName" : "TCastleRectangleControl"
+      "$ClassName" : "TCastleRectangleControl"
     },
     {
       "ColorPersistent" : {
-        "Blue" : 0.0000000000000000E+000,
-        "_ClassName" : "TCastleColorPersistent"
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
       },
-      "FontSize" : 2.0000000000000000E+001,
-      "FrameColorPersistent" : {
-        "_ClassName" : "TCastleColorPersistent"
-      },
+      "FontSize" : 3.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelFps",
       "Text" : "FPS: xxx\n",
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
-      "_Children" : [
+      "$Children" : [
       ],
-      "_ClassName" : "TCastleLabel"
+      "$ClassName" : "TCastleLabel"
     }
   ],
-  "_ClassName" : "TCastleUserInterface"
+  "$ClassName" : "TCastleUserInterface"
 }
