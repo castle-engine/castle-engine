@@ -38,16 +38,17 @@ implementation
 uses SysUtils, Classes,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
-  CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
+  CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
-  CastleTiledMap, CastleGLImages;
+  CastleTiledMap, CastleGLImages, CastleStringUtils;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
 {$I castlepropedits_url.inc}
 {$I castlepropedits_color.inc}
 {$I castlepropedits_vector.inc}
+{$I castlepropedits_image.inc}
 {$I castlepropedits_unused_controls.inc}
 
 procedure Register;
@@ -67,16 +68,17 @@ begin
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
     (not any descendant of it) is still necessary to expand them
-    in castle-editor and Lazarus design-time.
-    Although it seems not necessary for object inspector in castle-editor? }
+    in castle-editor and Lazarus design-time. }
   RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
+  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleSceneManager, '',
     TSubPropertiesEditor);
 
   { Other properties }
+  RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
+    TCastleImagePersistentEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorPersistent), nil, '',
     TCastleColorPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',

@@ -14,17 +14,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ TSubPropertiesEditor ----------------------------------------------------- }
+{ TCastleImagePersistentEditor ----------------------------------------------------- }
 
 type
-  { Editor for any published SubComponent, you want to be able to
-    expand it in the LCL object inspector. }
-  TSubPropertiesEditor = class(TClassPropertyEditor)
+  { Editor for TCastleImagePersistent. }
+  TCastleImagePersistentEditor = class(TSubPropertiesEditor)
   public
-    function GetAttributes: TPropertyAttributes; override;
+    function GetName: shortstring; override;
   end;
 
-function TSubPropertiesEditor.GetAttributes: TPropertyAttributes;
+function TCastleImagePersistentEditor.GetName: shortstring;
 begin
-  Result := [paMultiSelect, paSubProperties, paReadOnly];
+  Result := inherited GetName;
+  Result := SuffixRemove('persistent', Result, true);
 end;
+

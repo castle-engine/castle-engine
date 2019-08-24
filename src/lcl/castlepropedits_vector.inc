@@ -21,6 +21,7 @@
 type
   TCastleVector3PropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
+    function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
   end;
@@ -30,6 +31,15 @@ begin
   Result := inherited GetAttributes + [paRevertable]
     // our SetValue allows to set value from string
     - [paReadOnly];
+end;
+
+function TCastleVector3PropertyEditor.GetName: shortstring;
+begin
+  Result := inherited GetName;
+  { Since all such properties are called XxxPersistent, and they correspond
+    to properties called just Xxx (TCastleVector3PropertyEditor corresponds
+    to TVector3) so it's more readable to just hide the "persistent" suffix. }
+  Result := SuffixRemove('persistent', Result, true);
 end;
 
 function TCastleVector3PropertyEditor.GetValue: String;
@@ -53,6 +63,7 @@ end;
 type
   TCastleVector4PropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
+    function GetName: shortstring; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
   end;
@@ -62,6 +73,12 @@ begin
   Result := inherited GetAttributes + [paRevertable]
     // our SetValue allows to set value from string
     - [paReadOnly];
+end;
+
+function TCastleVector4PropertyEditor.GetName: shortstring;
+begin
+  Result := inherited GetName;
+  Result := SuffixRemove('persistent', Result, true);
 end;
 
 function TCastleVector4PropertyEditor.GetValue: String;
