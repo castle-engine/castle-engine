@@ -17,7 +17,7 @@
 program build_3d_tunnel;
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
-  X3dnodes, CastlePlayer, CastleKeysMouse, CastleRandom;
+  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog;
 
 const
   { Amount of vertexes generated on the floor.
@@ -51,7 +51,6 @@ var
   { global variables of the Engine }
   Window: TCastleWindow;
   Scene: TCastleScene;
-  player: TPlayer;
 
   { 3D geometry containers for the passage }
   ROOT: TX3DRootNode;             // contains all the geometry
@@ -177,6 +176,8 @@ begin
 end;
 
 begin
+  InitializeLog;
+
   { initialize TCoordinateNode and TIndexedFaceSetNode}
   Coords := TCoordinateNode.Create;
   Geometry := TIndexedFaceSetNode.Create;
@@ -209,12 +210,6 @@ begin
 
   Window := TCastleWindow.Create(Application);
 
-  { Create player }
-
-  Player := TPlayer.Create(Window.SceneManager);
-  Window.SceneManager.Items.Add(Player);
-  Window.SceneManager.Player := Player;
-
   { Create a scene based on Root node }
 
   Scene := TCastleScene.Create(Application);
@@ -227,13 +222,16 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  { Set some parameters for the player }
+  { Set camera and navigation }
 
-  Player.Translation := Vector3(0,0,-1);
-  Player.Camera.MouseLook := true;
-  Player.DefaultPreferredHeight := 1;
-  Player.DefaultMoveHorizontalSpeed := 10;
-  Window.SceneManager.Navigation := Player.camera;
+  Window.SceneManager.AutoDetectCamera := false;
+  Window.SceneManager.AutoDetectNavigation := false;
+  Window.SceneManager.WalkNavigation.MouseLook := true;
+  Window.SceneManager.WalkNavigation.PreferredHeight := 1;
+  Window.SceneManager.WalkNavigation.MoveHorizontalSpeed := 0.05;
+  Window.SceneManager.WalkNavigation.Radius := 0.1;
+  Window.SceneManager.Camera.Position := Vector3(0, 0, -1);
+  Window.SceneManager.Camera.ProjectionNear := Window.SceneManager.WalkNavigation.Radius * 0.5;
 
   { finally run the application }
 
