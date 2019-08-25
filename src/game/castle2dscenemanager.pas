@@ -30,7 +30,8 @@ type
     Features:
 
     @unorderedList(
-      @item(The default @bold(camera position, direction, up) is suitable
+      @item(If you leave @link(AutoDetectCamera) at @true,
+        then default @bold(camera position, direction, up) is suitable
         for 2D worlds that span horizontally in X,
         span vertically in Y,
         and are more-or-less flat around the Z = 0 plane.
@@ -38,13 +39,23 @@ type
         More precisely, the camera is positioned at the point
         @code((0, 0, DefaultCameraZ)),
         and looks along the -Z direction, with "up" vector in +Y.
+
+        Just like with any @link(TCastleAbstractViewport), you can set
+        @link(AutoDetectCamera) to @false and adjust the initial camera vectors
+        in CGE editor.
+        Regardless of @link(AutoDetectCamera), you can also always
+        change the camera by code using @link(TCastleCamera.SetView Camera.SetView).
       )
 
-      @item(The @bold(camera does not give the user any automatic way
+      @item(The @bold(navigation does not give the user any automatic way
         to move in the world). Because you typically want to
         code yourself all your camera movement for 2D games.
 
-        More precisely, the NavigationType is ntNone by default.
+        More precisely, the NavigationType is ntNone by default,
+        and this means that @link(Navigation) is @nil.
+
+        Just like with any @link(TCastleAbstractViewport), you can set
+        @link(Navigation) to any custom navigation component.
       )
 
       @item(Sets @bold(2D projection). By default
