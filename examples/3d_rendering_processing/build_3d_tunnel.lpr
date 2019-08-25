@@ -231,6 +231,8 @@ begin
   Navigation.MoveHorizontalSpeed := 10;
   Navigation.Radius := 0.1;
   Window.SceneManager.Navigation := Navigation;
+  // We could also set AutoDetectNavigation to false,
+  // but it's not necessary since we assign Navigation explicitly.
 
   Window.SceneManager.AutoDetectCamera := false;
   Window.SceneManager.Camera.Position := Vector3(0, 0, -1);
