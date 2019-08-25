@@ -3030,12 +3030,16 @@ end;
 
 function TCastleAbstractViewport.InternalExamineCamera: TCastleExamineNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := InternalExamineNavigation;
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.InternalWalkCamera: TCastleWalkNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := InternalWalkNavigation;
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.InternalExamineNavigation: TCastleExamineNavigation;
@@ -3075,7 +3079,9 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
+    {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalExamineNavigation;
+    {$warnings on}
   // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
   // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
@@ -3091,7 +3097,9 @@ end;
 
 function TCastleAbstractViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := ExamineNavigation(SwitchNavigationTypeIfNeeded);
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
@@ -3103,7 +3111,9 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
+    {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalWalkNavigation;
+    {$warnings on}
   // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
   // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
@@ -3119,7 +3129,9 @@ end;
 
 function TCastleAbstractViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := WalkNavigation(SwitchNavigationTypeIfNeeded);
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.GetNavigationType: TNavigationType;
@@ -3162,19 +3174,25 @@ begin
   case Value of
     ntExamine:
       begin
+        {$warnings off} // TODO: this should be internal
         E := ExamineNavigation;
+        {$warnings on}
         E.Input := TCastleNavigation.DefaultInput;
         E.Turntable := false;
       end;
     ntTurntable:
       begin
+        {$warnings off} // TODO: this should be internal
         E := ExamineNavigation;
+        {$warnings on}
         E.Input := TCastleNavigation.DefaultInput;
         E.Turntable := true;
       end;
     ntWalk:
       begin
+        {$warnings off} // TODO: this should be internal
         W := WalkNavigation;
+        {$warnings on}
         W.Input := TCastleNavigation.DefaultInput;
         W.PreferGravityUpForRotations := true;
         W.PreferGravityUpForMoving := true;
@@ -3182,7 +3200,9 @@ begin
       end;
     ntFly:
       begin
+        {$warnings off} // TODO: this should be internal
         W := WalkNavigation;
+        {$warnings on}
         W.Input := TCastleNavigation.DefaultInput;
         W.PreferGravityUpForRotations := true;
         W.PreferGravityUpForMoving := false;
@@ -3228,16 +3248,20 @@ begin
     { Set Navigation explicitly, otherwise SetNavigationType below could call
       ExamineNavigation / WalkNavigation that call AssignDefaultNavigation when Navigation = nil,
       and we would have infinite AssignDefaultNavigation calls loop. }
+    {$warnings off} // TODO: this should be internal
     if Nav in [ntExamine, ntTurntable] then
       Navigation := InternalExamineNavigation
     else
       Navigation := InternalWalkNavigation;
+    {$warnings on}
 
     NavigationType := Nav;
     Scene.CameraFromNavigationInfo(Navigation, Box);
   end else
   begin
+    {$warnings off} // TODO: this should be internal
     C := InternalExamineNavigation;
+    {$warnings on}
     C.ModelBox := Box;
     C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
     Navigation := C;
