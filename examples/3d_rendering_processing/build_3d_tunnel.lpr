@@ -17,7 +17,7 @@
 program build_3d_tunnel;
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
-  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog;
+  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog, CastleCameras;
 
 const
   { Amount of vertexes generated on the floor.
@@ -51,6 +51,7 @@ var
   { global variables of the Engine }
   Window: TCastleWindow;
   Scene: TCastleScene;
+  Navigation: TCastleWalkNavigation;
 
   { 3D geometry containers for the passage }
   ROOT: TX3DRootNode;             // contains all the geometry
@@ -224,14 +225,16 @@ begin
 
   { Set camera and navigation }
 
+  Navigation := TCastleWalkNavigation.Create(Application);
+  Navigation.MouseLook := true;
+  Navigation.PreferredHeight := 1;
+  Navigation.MoveHorizontalSpeed := 10;
+  Navigation.Radius := 0.1;
+  Window.SceneManager.Navigation := Navigation;
+
   Window.SceneManager.AutoDetectCamera := false;
-  Window.SceneManager.AutoDetectNavigation := false;
-  Window.SceneManager.WalkNavigation.MouseLook := true;
-  Window.SceneManager.WalkNavigation.PreferredHeight := 1;
-  Window.SceneManager.WalkNavigation.MoveHorizontalSpeed := 0.05;
-  Window.SceneManager.WalkNavigation.Radius := 0.1;
   Window.SceneManager.Camera.Position := Vector3(0, 0, -1);
-  Window.SceneManager.Camera.ProjectionNear := Window.SceneManager.WalkNavigation.Radius * 0.5;
+  Window.SceneManager.Camera.ProjectionNear := Navigation.Radius * 0.5;
 
   { finally run the application }
 

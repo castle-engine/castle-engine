@@ -427,7 +427,9 @@ type
       )
     }
     function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
-    function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation; deprecated 'use WalkNavigation';
+      deprecated 'create own instance of TCastleWalkNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+    function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
+      deprecated 'create own instance of TCastleWalkNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
 
     { Return the currently used camera as TCastleExamineNavigation, making sure that current
       NavigationType is something using TCastleExamineNavigation.
@@ -456,7 +458,9 @@ type
       )
     }
     function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
-    function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation; deprecated 'use ExamineNavigation';
+      deprecated 'create own instance of TCastleExamineNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+    function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
+      deprecated 'create own instance of TCastleExamineNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
 
     { Make @link(Navigation) @nil.
       The actual creation may be caused by calling
@@ -483,9 +487,16 @@ type
       This way all the camera properties
       (not only those copied by TCastleNavigation.Assign) are preserved when you switch
       e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
+
+      @deprecated This is deprecated now, because it causes auto-detection
+      of navigation parameters, which is (in general) more surprising than helpful.
+      E.g. it adjusts camera radius, speed and more properties.
+
       @groupBegin }
     function InternalExamineNavigation: TCastleExamineNavigation;
+      deprecated 'create own instance of TCastleExamineNavigation instead of using this one, it results in more obvious code';
     function InternalWalkNavigation: TCastleWalkNavigation;
+      deprecated 'create own instance of TCastleWalkNavigation instead of using this one, it results in more obvious code';
     function InternalExamineCamera: TCastleExamineNavigation; deprecated 'use InternalExamineNavigation';
     function InternalWalkCamera: TCastleWalkNavigation; deprecated 'use InternalWalkNavigation';
     { @groupEnd }
