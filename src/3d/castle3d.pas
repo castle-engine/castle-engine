@@ -36,12 +36,12 @@ type
 
   T3DOrient = class(CastleTransform.TCastleTransform)
   private
-    FCamera: TWalkCamera;
+    FCamera: TCastleWalkNavigation;
   protected
     procedure ChangedTransform; override;
   public
     { Camera that is automatically synchronized with this 3D object. }
-    property Camera: TWalkCamera read FCamera; deprecated 'instead of using this, better define your own TWalkCamera instance synchronized with this TCastleTransform';
+    property Camera: TCastleWalkNavigation read FCamera; deprecated 'instead of using this, better define your own TCastleWalkNavigation instance synchronized with this TCastleTransform';
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     constructor Create(AOwner: TComponent); override;
   end deprecated 'use TCastleTransform from CastleTransform unit';
@@ -430,7 +430,7 @@ uses CastleLog;
 constructor T3DOrient.Create(AOwner: TComponent);
 begin
   inherited;
-  FCamera := TWalkCamera.Create(Self);
+  FCamera := TCastleWalkNavigation.Create(Self);
 end;
 
 procedure T3DOrient.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

@@ -32,6 +32,7 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemCameraSetInitial: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
     MenuItemPasteComponent: TMenuItem;
     MenuItemCopyComponent: TMenuItem;
@@ -107,6 +108,7 @@ type
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
     procedure MenuItemBreakProcessClick(Sender: TObject);
+    procedure MenuItemCameraSetInitialClick(Sender: TObject);
     procedure MenuItemCameraViewAllClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
@@ -272,6 +274,12 @@ begin
   OutputList.AddSeparator;
   OutputList.AddLine('Forcefully killing the process.', okError);
   FreeProcess;
+end;
+
+procedure TProjectForm.MenuItemCameraSetInitialClick(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.CameraSetInitial;
 end;
 
 procedure TProjectForm.MenuItemCameraViewAllClick(Sender: TObject);

@@ -1101,7 +1101,8 @@ type
     function ViewpointsCount: Cardinal;
     function GetViewpointName(Idx: integer): string;
     procedure MoveToViewpoint(Idx: integer; Animated: boolean = true);
-    procedure AddViewpointFromCamera(ACamera: TCamera; AName: string);
+    procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
+      const AName: string);
     { @groupEnd }
 
     { Methods to notify this class about changes to the underlying RootNode
@@ -1719,8 +1720,8 @@ type
       When no viewpoint is currently bound, we will go to a suitable
       viewpoint to see the whole world (based on the WorldBox).
 
-      The initial camera vectors (TCamera.InitialPosition,
-      TCamera.InitialDirection, TCamera.InitialUp, TWalkCamera.GravityUp)
+      The initial camera vectors (TCastleCamera.InitialPosition,
+      TCastleCamera.InitialDirection, TCastleCamera.InitialUp, TCastleWalkNavigation.GravityUp)
       are set to the current viewpoint. This is done
       regardless of the RelativeCameraTransform value.
 
@@ -6907,7 +6908,7 @@ begin
   Navigation.Radius := Radius;
 
   { Note that we cannot here conditionally set some properties
-    e.g. only if "Navigation is TWalkCamera".
+    e.g. only if "Navigation is TCastleWalkNavigation".
     This would mean that e.g. value of PreferredHeight
     (from NavigationInfo.avatarSize) is lost when NavigationInfo.type="EXAMINE",
     even if developer later switches NavigationType to Walk. }
@@ -6952,7 +6953,7 @@ begin
 
   Navigation.ModelBox := WorldBox;
 
-  { No point in calling TWalkCamera.Init or TExamineCamera.Init
+  { No point in calling TCastleWalkNavigation.Init or TCastleExamineNavigation.Init
     or TCastleCamera.Init here:
     this method, together with CameraFromViewpoint
     (with RelativeCameraTransform = false),
@@ -7333,7 +7334,8 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.AddViewpointFromCamera(ACamera: TCamera; AName: string);
+procedure TCastleSceneCore.AddViewpointFromCamera(
+  const Navigation: TCastleNavigation; const AName: string);
 var
   APosition: TVector3;
   ADirection: TVector3;
@@ -7343,8 +7345,8 @@ var
   NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
   NavigationType: string;
-  Walk: TWalkCamera;
-  Examine: TExamineCamera;
+  Walk: TCastleWalkNavigation;
+  Examine: TCastleExamineNavigation;
   WalkSpeed, VisibilityLimit: Single;
   AvatarSize: TVector3;
   NewNavigationNode: TNavigationInfoNode;
@@ -7353,8 +7355,10 @@ var
 begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
+  if Navigation.Viewport = nil then
+    raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromCamera');
 
-  ACamera.GetView(APosition, ADirection, AUp, GravityUp);
+  Navigation.Camera.GetView(APosition, ADirection, AUp, GravityUp);
 
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     Version := cvVrml1_Inventor else
@@ -7368,24 +7372,24 @@ begin
   { Create NavigationInfo node }
   Walk := nil;
   Examine := nil;
-  if ACamera is TWalkCamera then
+  if Navigation is TCastleWalkNavigation then
   begin
-    Walk := ACamera as TWalkCamera;
+    Walk := Navigation as TCastleWalkNavigation;
     if Walk.Gravity then
       NavigationType := 'WALK'
     else
       NavigationType := 'FLY';
   end else
-  if ACamera is TExamineCamera then
+  if Navigation is TCastleExamineNavigation then
   begin
-    Examine := ACamera as TExamineCamera;
+    Examine := Navigation as TCastleExamineNavigation;
     if Examine.Turntable then
       NavigationType := 'TURNTABLE'
     else
       NavigationType := 'EXAMINE';
   end;
 
-  AvatarSize[0] := ACamera.Radius;
+  AvatarSize[0] := Navigation.Radius;
   if Walk <> nil then begin
     WalkSpeed := Walk.MoveSpeed;
     AvatarSize[1] := Walk.PreferredHeight;

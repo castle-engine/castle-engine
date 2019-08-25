@@ -2428,21 +2428,29 @@ type
       This is nice for simple 3D model browsers, but usually for games you
       don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
-      scene_manager_basic.lpr. }
-    procedure Load(const SceneURL: string);
-    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      examples/3d_rendering_processing/view_3d_model_basic.lpr .
 
+      See manual for explanation:
+      https://castle-engine.io/manual_load_3d.php }
+    procedure Load(const SceneURL: string);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
+    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     function MainScene: TCastleScene;
+      deprecated 'use SceneManager.MainScene';
+
     property SceneManager: TGameSceneManager read FSceneManager;
 
     { See TCastleAbstractViewport.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
       default TCastleAbstractViewport.DefaultShadowVolumes;
+      deprecated 'use SceneManager.ShadowVolumes';
 
     { See TCastleAbstractViewport.ShadowVolumesRender. }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
+      deprecated 'use SceneManager.ShadowVolumesRender';
 
     { Navigation type of the main camera associated with the default SceneManager.
       Note that this may not be the only camera used for rendering,
@@ -2451,6 +2459,7 @@ type
       So use this property only if you use only a single default viewport. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
+      deprecated 'use SceneManager.NavigationType';
   end;
 
   TWindowList = class(specialize TObjectList<TCastleWindowBase>)
@@ -4665,8 +4674,8 @@ begin
   MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Camera always non-nil }
-  SceneManager.RequiredCamera;
+  { just to make our Navigation always non-nil }
+  SceneManager.RequiredNavigation;
 end;
 
 function TCastleWindow.MainScene: TCastleScene;

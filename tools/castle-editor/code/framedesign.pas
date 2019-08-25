@@ -160,11 +160,11 @@ type
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
 
-    procedure InspectorBasicFilter(Sender: TObject; aEditor: TPropertyEditor;
+    procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
-    procedure InspectorLayoutFilter(Sender: TObject; aEditor: TPropertyEditor;
+    procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
-    procedure InspectorOtherFilter(Sender: TObject; aEditor: TPropertyEditor;
+    procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
@@ -207,6 +207,7 @@ type
     procedure PasteComponent;
     procedure DuplicateComponent;
     procedure CameraViewAll;
+    procedure CameraSetInitial;
     procedure SortBackToFront2D;
     { set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
@@ -1246,9 +1247,24 @@ procedure TDesignFrame.CameraViewAll;
 begin
   if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
   begin
-    // TODO: for now, camera is not saved to file, so this isn't really necessary.
-    // But camera should be saved to design file one day.
+    ModifiedOutsideObjectInspector;
+  end;
+end;
 
+procedure TDesignFrame.CameraSetInitial;
+
+  procedure AdjustCamera(const SceneManager: TCastleSceneManager);
+  var
+    APos, ADir, AUp: TVector3;
+  begin
+    SceneManager.Camera.GetView(APos, ADir, AUp);
+    SceneManager.Camera.SetInitialView(APos, ADir, AUp, false);
+    SceneManager.AutoDetectCamera := false;
+  end;
+
+begin
+  if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
+  begin
     ModifiedOutsideObjectInspector;
   end;
 end;
@@ -1388,15 +1404,15 @@ var
 begin
   AShow := false;
 
-  if aEditor.GetPropInfo = nil then
+  if AEditor.GetPropInfo = nil then
     Exit;
 
-  PropertyName := aEditor.GetPropInfo^.Name;
+  PropertyName := AEditor.GetPropInfo^.Name;
 
-  if (aEditor.GetInstProp <> nil) and
-     (aEditor.GetInstProp^.Instance <> nil) then
+  if (AEditor.GetInstProp <> nil) and
+     (AEditor.GetInstProp^.Instance <> nil) then
   begin
-    Instance := aEditor.GetInstProp^.Instance;
+    Instance := AEditor.GetInstProp^.Instance;
     { Show=true when Instance is some class used for subcomponents,
       like TCastleVector3Persistent, TBorder, TCastleImagePersistent... }
     if (not (Instance is TCastleComponent)) or
@@ -1409,19 +1425,19 @@ begin
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var AShow: boolean);
+  AEditor: TPropertyEditor; var aShow: boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psBasic);
 end;
 
 procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
-  aEditor: TPropertyEditor; var aShow: boolean);
+  AEditor: TPropertyEditor; var aShow: boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psLayout);
 end;
 
 procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
-  aEditor: TPropertyEditor; var aShow: boolean);
+  AEditor: TPropertyEditor; var aShow: boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psOther);
 end;

@@ -224,7 +224,7 @@ end;
 
 procedure TCastle2DSceneManager.AssignDefaultNavigation;
 begin
-  Assign(Navigation = nil);
+  Assert(Navigation = nil);
   // does nothing, leaves Navigation = nil
 end;
 
@@ -318,7 +318,7 @@ var
   CameraToWorldMatrix: TMatrix4;
   P: TVector2;
 begin
-  CameraToWorldMatrix := RequiredCamera.MatrixInverse;
+  CameraToWorldMatrix := Camera.MatrixInverse;
 
   if ScreenCoordinates then
     P := (Position - RenderRect.LeftBottom) / UIScale

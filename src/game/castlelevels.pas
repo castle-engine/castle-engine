@@ -791,7 +791,7 @@ var
     Radius, PreferredHeight: Single;
     ProjectionNear: Single;
     NavigationNode: TNavigationInfoNode;
-    WalkCamera: TWalkCamera;
+    WalkNavigation: TCastleWalkNavigation;
   begin
     if MainScene.ViewpointStack.Top <> nil then
       MainScene.ViewpointStack.Top.GetView(InitialPosition,
@@ -824,14 +824,14 @@ var
     else
       PreferredHeight := Radius * RadiusToPreferredHeight;
     CorrectPreferredHeight(PreferredHeight, Radius,
-      TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
+      TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
 
     if Player <> nil then
-      WalkCamera := Player.Camera
+      WalkNavigation := Player.Camera
     else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
-      WalkCamera := TWalkCamera.Create(Self);
+      WalkNavigation := TCastleWalkNavigation.Create(Self);
 
     { initialize some navigation settings of player }
     if Player <> nil then
@@ -846,21 +846,22 @@ var
       { if you use Player with TGameSceneManager, then Player will automatically
         update camera's speed properties. But if not, we have to set them
         here. }
-      WalkCamera.PreferredHeight := PreferredHeight;
+      WalkNavigation.PreferredHeight := PreferredHeight;
       if NavigationNode <> nil then
-        WalkCamera.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        WalkCamera.MoveHorizontalSpeed := 1.0;
-      WalkCamera.MoveVerticalSpeed := 20;
+        WalkNavigation.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+        WalkNavigation.MoveHorizontalSpeed := 1.0;
+      WalkNavigation.MoveVerticalSpeed := 20;
     end;
 
-    WalkCamera.PreferredHeight := PreferredHeight;
-    WalkCamera.Radius := Radius;
-    WalkCamera.CorrectPreferredHeight;
-    WalkCamera.CancelFalling;
+    WalkNavigation.PreferredHeight := PreferredHeight;
+    WalkNavigation.Radius := Radius;
+    WalkNavigation.CorrectPreferredHeight;
+    WalkNavigation.CancelFalling;
 
-    Navigation := WalkCamera;
+    Navigation := WalkNavigation;
 
     Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
+    Camera.ProjectionNear := ProjectionNear;
   end;
 
 var

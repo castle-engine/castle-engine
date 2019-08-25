@@ -632,11 +632,11 @@ begin
   FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
-  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
+  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
   AddField(FFdHeadBobbing);
 
-  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
+  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime, true);
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   AddField(FdHeadBobbingTime);
 

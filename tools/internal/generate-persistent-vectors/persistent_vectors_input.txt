@@ -56,4 +56,9 @@
 ../../../src/3d/ TCastleTransform ScaleOrientation TVector4
 ../../../src/3d/ TCastleTransform Translation TVector3
 
+../../../src/3d/ TCastleCamera InitialPosition TVector3
+../../../src/3d/ TCastleCamera InitialDirection TVector3
+../../../src/3d/ TCastleCamera InitialUp TVector3
+../../../src/3d/ TCastleCamera GravityUp TVector3
+
 ../../../src/game/ TCastleAbstractViewport BackgroundColor TCastleColor

@@ -98,72 +98,82 @@ type
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
   TCastleAbstractViewport = class(TCastleScreenEffects)
-  private
+  strict private
     type
       TScreenPoint = packed record
         Position: TVector2;
         TexCoord: TVector2;
       end;
     var
-    FNavigation: TCastleNavigation;
-    FCamera: TCastleCamera;
-    FPaused: boolean;
-    FRenderParams: TManagerRenderParams;
-    FPrepareParams: TPrepareParams;
-    FBackgroundWireframe: boolean;
-    FBackgroundColor: TCastleColor;
-    FOnRender3D: TRender3DEvent;
-    FHeadlightFromViewport: boolean;
-    FUseGlobalLights, FUseGlobalFog: boolean;
-    FApproximateActivation: boolean;
-    FDefaultVisibilityLimit: Single;
-    FTransparent, FClearDepth: boolean;
-    FProjection: TProjection;
-    FInternalExamineNavigation: TCastleExamineNavigation;
-    FInternalWalkNavigation: TCastleWalkNavigation;
-    FWithinSetNavigationType: boolean;
-    LastPressEvent: TInputPressRelease;
-    FOnProjection: TProjectionEvent;
-    FEnableParentDragging: boolean;
-    AssignDefaultCameraDone: Boolean;
-    FAutoDetectCamera: Boolean;
-    FAutoDetectNavigation: Boolean;
+      FCamera: TCastleCamera;
+      FPaused: boolean;
+      FRenderParams: TManagerRenderParams;
+      FPrepareParams: TPrepareParams;
+      FBackgroundWireframe: boolean;
+      FBackgroundColor: TCastleColor;
+      FOnRender3D: TRender3DEvent;
+      FHeadlightFromViewport: boolean;
+      FUseGlobalLights, FUseGlobalFog: boolean;
+      FApproximateActivation: boolean;
+      FDefaultVisibilityLimit: Single;
+      FTransparent, FClearDepth: boolean;
+      FInternalExamineNavigation: TCastleExamineNavigation;
+      FInternalWalkNavigation: TCastleWalkNavigation;
+      FWithinSetNavigationType: boolean;
+      LastPressEvent: TInputPressRelease;
+      FOnProjection: TProjectionEvent;
+      FEnableParentDragging: boolean;
+      AssignDefaultCameraDone: Boolean;
+      FAutoDetectCamera: Boolean;
+      FAutoDetectNavigation: Boolean;
 
-    FShadowVolumes: boolean;
-    FShadowVolumesRender: boolean;
+      FShadowVolumes: boolean;
+      FShadowVolumesRender: boolean;
 
-    { If a texture for screen effects is ready, then
-      ScreenEffectTextureDest/Src/Depth/Target are non-zero and
-      ScreenEffectRTT is non-nil.
-      Also, ScreenEffectTextureWidth/Height indicate size of the texture,
-      as well as ScreenEffectRTT.Width/Height. }
-    ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
-    ScreenEffectTextureTarget: TGLenum;
-    ScreenEffectTextureDepth: TGLuint;
-    ScreenEffectRTT: TGLRenderToTexture;
-    ScreenEffectTextureWidth: Cardinal;
-    ScreenEffectTextureHeight: Cardinal;
-    { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
-    CurrentScreenEffectsCount: Integer;
-    CurrentScreenEffectsNeedDepth: boolean;
-    ScreenPointVbo: TGLuint;
-    ScreenPoint: packed array [0..3] of TScreenPoint;
+      { If a texture for screen effects is ready, then
+        ScreenEffectTextureDest/Src/Depth/Target are non-zero and
+        ScreenEffectRTT is non-nil.
+        Also, ScreenEffectTextureWidth/Height indicate size of the texture,
+        as well as ScreenEffectRTT.Width/Height. }
+      ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
+      ScreenEffectTextureTarget: TGLenum;
+      ScreenEffectTextureDepth: TGLuint;
+      ScreenEffectRTT: TGLRenderToTexture;
+      ScreenEffectTextureWidth: Cardinal;
+      ScreenEffectTextureHeight: Cardinal;
+      { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
+      CurrentScreenEffectsCount: Integer;
+      CurrentScreenEffectsNeedDepth: boolean;
+      ScreenPointVbo: TGLuint;
+      ScreenPoint: packed array [0..3] of TScreenPoint;
 
-    FScreenSpaceAmbientOcclusion: boolean;
-    SSAOShader: TGLSLScreenEffect;
-    SSAOShaderInitialized: Boolean;
+      FScreenSpaceAmbientOcclusion: boolean;
+      SSAOShader: TGLSLScreenEffect;
+      SSAOShaderInitialized: Boolean;
 
-    { Set these to non-1 to deliberately distort field of view / aspect ratio.
-      This is useful for special effects when you want to create unrealistic
-      projection. Used by ApplyProjection. }
-    DistortFieldOfViewY, DistortViewAspect: Single;
-    SickProjectionTime: TFloatTime;
+      { Set these to non-1 to deliberately distort field of view / aspect ratio.
+        This is useful for special effects when you want to create unrealistic
+        projection. Used by ApplyProjection. }
+      DistortFieldOfViewY, DistortViewAspect: Single;
+      SickProjectionTime: TFloatTime;
 
     function FillsWholeContainer: boolean;
-    procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SSAOShaderInitialize;
+    procedure RenderWithScreenEffectsCore;
+    function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
+    procedure SetPaused(const Value: boolean);
+    function GetNavigationType: TNavigationType;
+    function IsStoredNavigationType: Boolean;
+  private
+    var
+      FNavigation: TCastleNavigation;
+      FProjection: TProjection;
+
+    procedure RecalculateCursor(Sender: TObject);
+    procedure SetNavigationType(const Value: TNavigationType); virtual;
+    function ItemsBoundingBox: TBox3D;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
@@ -179,9 +189,6 @@ type
       call UpdateGeneratedTexturesIfNeeded. }
     procedure RenderOnScreen(ACamera: TCastleCamera);
 
-    procedure RenderWithScreenEffectsCore;
-    function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
-
     { Set the projection parameters and matrix.
       Used by our Render method.
 
@@ -196,13 +203,6 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
-
-    procedure SetPaused(const Value: boolean);
-
-    function GetNavigationType: TNavigationType;
-    procedure SetNavigationType(const Value: TNavigationType); virtual;
-
-    function ItemsBoundingBox: TBox3D;
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -338,18 +338,22 @@ type
     { Assign Navigation to a default TCastleNavigation suitable
       for navigating in this scene (used only if @link(AutoDetectNavigation)).
       The newly created navigation owned should be Self.
-      This is automatically used when @link(Navigation) is @nil at various places,
-      and implementation of this may assume that @link(Navigation) is @nil at entry.
+
+      This is automatically used when @link(Navigation) is @nil
+      and @link(AutoDetectNavigation).
+      Implementation of this may assume that @link(Navigation) is @nil at entry.
 
       The implementation in base TCastleAbstractViewport uses
-      MainScene.NavigationTypeFromNavigationInfo
-      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
+      @link(TCastleSceneCore.NavigationTypeFromNavigationInfo MainScene.NavigationTypeFromNavigationInfo)
+      and
+      @link(TCastleSceneCore.CameraFromNavigationInfo MainScene.CameraFromNavigationInfo),
+      thus it follows your X3D scene NavigationInfo.
       If MainScene is not assigned, we create a simple
       navigation in Examine mode. }
     procedure AssignDefaultNavigation; virtual;
 
-    { Assign initial and current camera vectors
-      (used only if @link(AutoDetectCamera)) and camera ProjectionNear.
+    { Assign initial and current camera vectors and ProjectionNear
+      (used only if @link(AutoDetectCamera)).
       This sets the same things as set by TCastleCamera.Init,
       and additionally TCastleCamera.ProjectionNear. }
     procedure AssignDefaultCamera; virtual;
@@ -454,62 +458,6 @@ type
     function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
     function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation; deprecated 'use ExamineNavigation';
 
-    { Choose navigation method by creating and adjusting the camera,
-      and various camera properies (like TCastleWalkNavigation.Gravity and so on).
-      This is automatically determined from the currently bound NavigatinInfo X3D
-      node in the @link(GetMainScene).
-      You can also set this manually, thus overriding the NavigatinInfo node.
-
-      This is a shortcut property for adjusting the camera class
-      (by calling @link(WalkCamera), @link(ExamineCamera))
-      and adjusting a couple of camera properties.
-      Note that you can also affect the current NavigationType by directly
-      changing the camera properties,
-      e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
-      and thus you effectively switch from ntFly to ntWalk navigation types.
-      When you read the NavigationType property, we determine the current navigation
-      type from current camera properties.
-
-      TODO: update below comment.
-      When the camera is created for the first time,
-      it's parameters are determined from the current NavigationInfo
-      and Viewpoint nodes in @link(GetMainScene), and from bounding box of the world.
-      When the camera class is switched later, the common camera properties
-      (defined at TCastleNavigation, like @link(TCastleNavigation.Radius) and view vectors
-      -- position, direction, up) are copied, so they are preserved.
-      The other camera properties (those defined only at TCastleWalkNavigation or TCastleExamineNavigation
-      descendants, e.g. @link(TCastleWalkNavigation.MouseLook) and various inputs
-      of cameras) are also preserved within InternalExamineCamera and
-      InternalWalkCamera.
-
-      To reliably force recreating the camera from scratch, call @link(ClearCameras).
-      Simply freeing the current camera by @code(SceneManager.Camera.Free)
-      is also valid operation, but it does not free both cameras
-      (@link(InternalExamineCamera) and @link(InternalWalkCamera))
-      so it doesn't guarantee that all cameras will be recreated from a "clean"
-      state.
-      You can also explicitly assign your own camera descendant to
-      @code(SceneManager.Camera).
-
-      Setting this sets:
-      @unorderedList(
-        @itemSpacing compact
-        @item @link(TCastleNavigation.Input)
-        @item @link(TCastleExamineNavigation.Turntable), only in case of @link(TCastleExamineNavigation)
-        @item @link(TCastleWalkNavigation.Gravity), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForRotations), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForMoving), only in case of @link(TCastleWalkNavigation)
-      )
-
-      If you write to NavigationType, then you @italic(should not) touch the
-      above properties directly. That's because not every combination of
-      above properties correspond to some sensible value of NavigationType.
-      If you directly set some weird configuration, reading NavigationType will
-      try it's best to determine the closest TNavigationType value
-      that is similar to your configuration. }
-    property NavigationType: TNavigationType
-      read GetNavigationType write SetNavigationType;
-
     { Make @link(Navigation) @nil.
       The actual creation may be caused by calling
       @link(ExamineCamera), @link(WalkCamera),
@@ -595,10 +543,6 @@ type
       Updated in every mouse move. May be @nil. }
     function TriangleHit: PTriangle;
 
-    { Camera determines the viewer position and orientation.
-      The given camera instance is always available and connected with this viewport. }
-    property Camera: TCastleCamera read FCamera;
-
     { Navigation method is an optional component that handles
       the user input to control the camera.
 
@@ -655,6 +599,10 @@ type
       TODO: should be private. }
     function NavigationEnableDragging: Boolean;
   published
+    { Camera determines the viewer position and orientation.
+      The given camera instance is always available and connected with this viewport. }
+    property Camera: TCastleCamera read FCamera;
+
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
       (not responsive).
@@ -887,6 +835,63 @@ type
       all the motion events for dragging. }
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
+
+    { Choose navigation method by creating and adjusting the camera,
+      and various camera properies (like TCastleWalkNavigation.Gravity and so on).
+      This is automatically determined from the currently bound NavigatinInfo X3D
+      node in the @link(GetMainScene).
+      You can also set this manually, thus overriding the NavigatinInfo node.
+
+      This is a shortcut property for adjusting the camera class
+      (by calling @link(WalkCamera), @link(ExamineCamera))
+      and adjusting a couple of camera properties.
+      Note that you can also affect the current NavigationType by directly
+      changing the camera properties,
+      e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
+      and thus you effectively switch from ntFly to ntWalk navigation types.
+      When you read the NavigationType property, we determine the current navigation
+      type from current camera properties.
+
+      TODO: update below comment.
+      When the camera is created for the first time,
+      it's parameters are determined from the current NavigationInfo
+      and Viewpoint nodes in @link(GetMainScene), and from bounding box of the world.
+      When the camera class is switched later, the common camera properties
+      (defined at TCastleNavigation, like @link(TCastleNavigation.Radius) and view vectors
+      -- position, direction, up) are copied, so they are preserved.
+      The other camera properties (those defined only at TCastleWalkNavigation or TCastleExamineNavigation
+      descendants, e.g. @link(TCastleWalkNavigation.MouseLook) and various inputs
+      of cameras) are also preserved within InternalExamineCamera and
+      InternalWalkCamera.
+
+      To reliably force recreating the camera from scratch, call @link(ClearCameras).
+      Simply freeing the current camera by @code(SceneManager.Camera.Free)
+      is also valid operation, but it does not free both cameras
+      (@link(InternalExamineCamera) and @link(InternalWalkCamera))
+      so it doesn't guarantee that all cameras will be recreated from a "clean"
+      state.
+      You can also explicitly assign your own camera descendant to
+      @code(SceneManager.Camera).
+
+      Setting this sets:
+      @unorderedList(
+        @itemSpacing compact
+        @item @link(TCastleNavigation.Input)
+        @item @link(TCastleExamineNavigation.Turntable), only in case of @link(TCastleExamineNavigation)
+        @item @link(TCastleWalkNavigation.Gravity), only in case of @link(TCastleWalkNavigation)
+        @item @link(TCastleWalkNavigation.PreferGravityUpForRotations), only in case of @link(TCastleWalkNavigation)
+        @item @link(TCastleWalkNavigation.PreferGravityUpForMoving), only in case of @link(TCastleWalkNavigation)
+      )
+
+      If you write to NavigationType, then you @italic(should not) touch the
+      above properties directly. That's because not every combination of
+      above properties correspond to some sensible value of NavigationType.
+      If you directly set some weird configuration, reading NavigationType will
+      try it's best to determine the closest TNavigationType value
+      that is similar to your configuration. }
+    property NavigationType: TNavigationType
+      read GetNavigationType write SetNavigationType
+      stored IsStoredNavigationType default ntNone;
 
     { Assign sensible camera vectors (initial position etc.) looking
       at the initial world (@link(Items)) when rendering for the 1st time.
@@ -2091,6 +2096,25 @@ begin
     Result := TBox3D.Empty;
 end;
 
+function TCastleAbstractViewport.IsStoredNavigationType: Boolean;
+begin
+  { Do not store NavigationType when AutoDetectNavigation.
+    Reasons:
+
+    - When AutoDetectNavigation, NavigationType is by default detected as ntExamine,
+      so it would be non-default and stored even though user didn't set it.
+
+    - Changing NavigationType in editor (when AutoDetectNavigation) would be
+      inconsistent then:
+      Changing to ntWalk would work (since AssignDefaultNavigation doesn't work
+      when Navigation already <> nil).
+      Changing to ntNone would not work (since Navigation is nil then,
+      and auto-detection would occur).
+  }
+
+  Result := not AutoDetectNavigation;
+end;
+
 function TCastleAbstractViewport.CalculateProjection: TProjection;
 var
   Box: TBox3D;
@@ -2139,6 +2163,14 @@ var
       Viewport.Width / Viewport.Height);
   end;
 
+  function GetDefaultProjectionNear: Single;
+  var
+    Radius: Single;
+  begin
+    Radius := Box.AverageSize(false, 1) * WorldBoxSizeToRadius;
+    Result := Radius * RadiusToProjectionNear;
+  end;
+
 var
   PerspectiveFieldOfView: Single;
   PerspectiveFieldOfViewForceVertical: boolean;
@@ -2178,7 +2210,11 @@ begin
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }
 
+  { calculate Result.ProjectionNear }
   Result.ProjectionNear := Camera.ProjectionNear;
+  if Result.ProjectionNear <= 0 then
+    Result.ProjectionNear := GetDefaultProjectionNear;
+  Assert(Result.ProjectionNear > 0);
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
   Result.ProjectionFar := 0;
@@ -2194,6 +2230,7 @@ begin
         It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }
       Result.ProjectionNear) * 20.0;
+  Assert(Result.ProjectionFar > 0);
 
   { At some point, I was using here larger projection near when
     (Navigation is TCastleExamineNavigation). Reasoning: you do not get so close
@@ -3142,12 +3179,9 @@ begin
       end;
     ntNone:
       begin
-        W := WalkNavigation;
-        W.Input := [];
-        // gravity stuff set like for ntFly
-        W.PreferGravityUpForRotations := true;
-        W.PreferGravityUpForMoving := false;
-        W.Gravity := false;
+        { This way setting NavigationType to ntNone (default NavigationType value)
+          will restore Navigation to nil, which is Navigation default value. }
+        Navigation := nil;
       end;
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
   end;
@@ -3192,7 +3226,7 @@ begin
     Scene.CameraFromNavigationInfo(Navigation, Box);
   end else
   begin
-    C := InternalExamineCamera;
+    C := InternalExamineNavigation;
     C.ModelBox := Box;
     C.Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
     Navigation := C;
@@ -3294,7 +3328,7 @@ end;
 
 function TSceneManagerWorldConcrete.GravityUp: TVector3;
 begin
-  Result := Owner.GravityUp;
+  Result := Owner.Camera.GravityUp;
 end;
 
 function TSceneManagerWorldConcrete.Player: TCastleTransform;
@@ -3344,7 +3378,7 @@ end;
 function TSceneManagerWorldConcrete.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
-  Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
+  Result := HeightCollision(APosition, Owner.Camera.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 
@@ -3675,10 +3709,6 @@ begin
         as BackgroundSkySphereRadius will change later, and MainScene.Background
         will have to be recreated. }
       ChosenViewport.ApplyProjection;
-    end else
-    begin
-      ChosenViewport.RequiredCamera; // create Camera if necessary
-      // WritelnLog('Calling TCastleSceneManager.PrepareResources(Scene) before TCastleSceneManager.Resize was done. This is valid, but preparing the Scene.Background will be deferred to a later time.');
     end;
 
     { RenderingCamera properties must be already set,
@@ -4181,7 +4211,7 @@ begin
   else
     ScreenPosition := Position * UIScale + R.LeftBottom;
 
-  RequiredCamera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
 
   Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
     RayOrigin, RayDirection);

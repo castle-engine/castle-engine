@@ -150,7 +150,7 @@ type
       FFallingEffect: boolean;
       CurrentEquippedScene: TCastleScene;
 
-      FCamera: TWalkCamera;
+      FCamera: TCastleWalkNavigation;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -159,7 +159,7 @@ type
       or @link(Swimming) or @link(Blocked) change. }
     procedure UpdateCamera;
 
-    procedure CameraFall(ACamera: TWalkCamera; const FallHeight: Single);
+    procedure CameraFall(ACamera: TCastleWalkNavigation; const FallHeight: Single);
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
@@ -351,7 +351,7 @@ type
     { Disables changing the camera by user.
       It's useful when you want to temporarily force camera to some specific
       setting (you can even use handy Player.Camera.AnimateTo method
-      to do this easily, see TWalkCamera.AnimateTo). }
+      to do this easily, see TCastleWalkNavigation.AnimateTo). }
     property Blocked: boolean read FBlocked write FBlocked;
 
     { Render 3D children (like EquippedWeapon) on top of everything else. }
@@ -371,16 +371,16 @@ type
     property FallSound: TSoundType
       read FFallSound write FFallSound;
     { Controls head bobbing, but only when player is walking.
-      See TWalkCamera.HeadBobbing for exact meaning of this.
+      See TCastleWalkNavigation.HeadBobbing for exact meaning of this.
       TPlayer.Camera.HeadBobbing is automatically updated as necessary.
 
       Note that when using CastleLevels, then the headBobbing defined
       inside VRML/X3D file (see
       https://castle-engine.io/x3d_extensions.php#section_ext_head_bobbing )
-      is ignored. Instead, Player properties control TWalkCamera.HeadBobbing
-      and TWalkCamera.HeadBobbingTime. }
+      is ignored. Instead, Player properties control TCastleWalkNavigation.HeadBobbing
+      and TCastleWalkNavigation.HeadBobbingTime. }
     property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing default TWalkCamera.DefaultHeadBobbing;
+      read FHeadBobbing write FHeadBobbing default TCastleWalkNavigation.DefaultHeadBobbing;
 
     { How many seconds you can swin before you start to drown. }
     property SwimBreath: Single read FSwimBreath write FSwimBreath default DefaultSwimBreath;
@@ -398,7 +398,7 @@ type
     property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause default DefaultSwimSoundPause;
 
     { Enable camera falling down effect due to gravity.
-      This indirectly controls @link(TWalkCamera.FallingEffect)
+      This indirectly controls @link(TCastleWalkNavigation.FallingEffect)
       underneath.
 
       Note: do not set @code(Camera.FallingEffect), as it will
@@ -413,21 +413,21 @@ type
       to allow user to directly control this player in first-person game.
       @link(TGameSceneManager.LoadLevel) sets this automatically.
 
-      The view vectors (position, direction and up), @link(TWalkCamera.Gravity),
+      The view vectors (position, direction and up), @link(TCastleWalkNavigation.Gravity),
       and various camera inputs are automatically adjusted based on the current
       player state (@link(Dead), @link(Blocked)) and global PlayerInput_Xxx
       values, like @link(PlayerInput_Forward).
       The outside code may still directly access and change some camera
-      properties like TWalkCamera.PreferredHeight,
-      TWalkCamera.RotationHorizontalSpeed
-      TWalkCamera.RotationVerticalSpeed. In fact, it's Ok to call
-      TWalkCamera.Init. }
-    property Camera: TWalkCamera read FCamera;
+      properties like TCastleWalkNavigation.PreferredHeight,
+      TCastleWalkNavigation.RotationHorizontalSpeed
+      TCastleWalkNavigation.RotationVerticalSpeed. In fact, it's Ok to call
+      TCastleWalkNavigation.Init. }
+    property Camera: TCastleWalkNavigation read FCamera;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
 
     { Enable camera navigation by dragging. This results in including
-      ciMouseDragging in TCamera.Input (when player is not
+      ciMouseDragging in TCastleNavigation.Input (when player is not
       @link(Dead) or @link(Blocked)). }
     property EnableCameraDragging: boolean
       read FEnableCameraDragging write SetEnableCameraDragging default true;
@@ -494,7 +494,7 @@ end;
 procedure TPlayer.TBox.UpdateBox;
 var
   B: TBox3D;
-  Camera: TWalkCamera;
+  Camera: TCastleWalkNavigation;
 begin
   Camera := TPlayer(Owner).Camera;
 
@@ -541,7 +541,7 @@ begin
   FSwimSoundPause := DefaultSwimSoundPause;
   FFallingEffect := true;
   FEnableCameraDragging := true;
-  FCamera := TWalkCamera.Create(nil);
+  FCamera := TCastleWalkNavigation.Create(nil);
 
   FInventoryCurrentItem := -1;
 
@@ -735,7 +735,8 @@ begin
 
   // synchronize Position, Direction, Up *to* Camera
   GetView(P, D, U);
-  Camera.SetView(P, D, U);
+  if Camera.Viewport <> nil then
+    Camera.Camera.SetView(P, D, U);
 end;
 
 procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
@@ -752,7 +753,8 @@ begin
     (Testcase: move/rotate using touch control
     in fps_game when you have shooting_eye.) }
 
-  Camera.GetView(P, D, U);
+  if Camera.Viewport <> nil then
+    Camera.Camera.GetView(P, D, U);
   SetView(P, D, U);
 end;
 
@@ -799,8 +801,8 @@ begin
     { No need to do MakeClear now on any inputs, as we already set
       Input := []. }
 
-    Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
-    Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
+    Camera.FallSpeedStart := TCastleWalkNavigation.DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := TCastleWalkNavigation.DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -822,8 +824,8 @@ begin
     Camera.Input_LeftStrafe.MakeClear;
     Camera.Input_RightStrafe.MakeClear;
 
-    Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
-    Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
+    Camera.FallSpeedStart := TCastleWalkNavigation.DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := TCastleWalkNavigation.DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -850,7 +852,7 @@ begin
       Camera.PreferGravityUpForMoving := false;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart / 6;
+      Camera.FallSpeedStart := TCastleWalkNavigation.DefaultFallSpeedStart / 6;
       Camera.FallSpeedIncrease := 1.0;
       Camera.HeadBobbing := 0.0;
       Camera.PreferredHeight := Camera.Radius * 1.01;
@@ -862,8 +864,8 @@ begin
       Camera.PreferGravityUpForMoving := true;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
-      Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
+      Camera.FallSpeedStart := TCastleWalkNavigation.DefaultFallSpeedStart;
+      Camera.FallSpeedIncrease := TCastleWalkNavigation.DefaultFallSpeedIncrease;
       Camera.HeadBobbing := HeadBobbing;
       Camera.PreferredHeight := DefaultPreferredHeight;
 
@@ -1153,7 +1155,7 @@ begin
   FFadeOutIntensity := 1;
 end;
 
-procedure TPlayer.CameraFall(ACamera: TWalkCamera; const FallHeight: Single);
+procedure TPlayer.CameraFall(ACamera: TCastleWalkNavigation; const FallHeight: Single);
 begin
   Fall(FallHeight);
 end;
@@ -1273,11 +1275,11 @@ begin
     Config.URL := URL;
 
     KnockBackSpeed := Config.GetFloat('knockback_speed', DefaultPlayerKnockBackSpeed);
-    Camera.JumpMaxHeight := Config.GetFloat('jump/max_height', TWalkCamera.DefaultJumpMaxHeight);
-    Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', TWalkCamera.DefaultJumpHorizontalSpeedMultiply);
-    Camera.JumpTime := Config.GetFloat('jump/time', TWalkCamera.DefaultJumpTime);
-    Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', TWalkCamera.DefaultHeadBobbingTime);
-    HeadBobbing := Config.GetFloat('head_bobbing', TWalkCamera.DefaultHeadBobbing);
+    Camera.JumpMaxHeight := Config.GetFloat('jump/max_height', TCastleWalkNavigation.DefaultJumpMaxHeight);
+    Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', TCastleWalkNavigation.DefaultJumpHorizontalSpeedMultiply);
+    Camera.JumpTime := Config.GetFloat('jump/time', TCastleWalkNavigation.DefaultJumpTime);
+    Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', TCastleWalkNavigation.DefaultHeadBobbingTime);
+    HeadBobbing := Config.GetFloat('head_bobbing', TCastleWalkNavigation.DefaultHeadBobbing);
     SickProjectionSpeed := Config.GetFloat('sick_projection_speed', DefaultSickProjectionSpeed);
     FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
     FallMinHeightToDamage := Config.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
@@ -1411,7 +1413,7 @@ begin
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
     is true), so the player is not affected by simple gravity implemented in
     CastleTransform unit, so there's no point in overriding methods like PreferredHeight.
-    TWalkCamera.Gravity does all the work now. }
+    TCastleWalkNavigation.Gravity does all the work now. }
 
   Result := Translation;
 end;
