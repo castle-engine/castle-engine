@@ -337,7 +337,7 @@ type
 
     { Assign Navigation to a default TCastleNavigation suitable
       for navigating in this scene (used only if @link(AutoDetectNavigation)).
-      The newly created navigation owned should be Self.
+      The newly created navigation owner should be Self.
 
       This is automatically used when @link(Navigation) is @nil
       and @link(AutoDetectNavigation).
@@ -904,11 +904,14 @@ type
       read GetNavigationType write SetNavigationType
       stored IsStoredNavigationType default ntNone;
 
-    { Assign sensible camera vectors (initial position etc.) looking
-      at the initial world (@link(Items)) when rendering for the 1st time.
+    { Assign initial camera properties
+      (initial position, direction, up, TCastleCamera.ProjectionNear)
+      by looking at the initial world (@link(Items)) when rendering the first frame.
 
-      This also allows to later synchronize camera when X3D Viewpoint
-      node changes, or a new Viewpoint node is bound.
+      The @link(AssignDefaultCamera) is called only if this property is @true.
+
+      Also, only if this property is @true, we synchronize
+      camera when X3D Viewpoint node changes, or a new X3D Viewpoint node is bound.
 
       By default it is @true. Setting it to @false effectively means
       that you control @link(Camera) properties on your own.
