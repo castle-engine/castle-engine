@@ -166,6 +166,7 @@ type
     procedure SetPaused(const Value: boolean);
     function GetNavigationType: TNavigationType;
     function IsStoredNavigationType: Boolean;
+    procedure SetAutoDetectCamera(const Value: Boolean);
   private
     var
       FNavigation: TCastleNavigation;
@@ -917,7 +918,7 @@ type
       that you control @link(Camera) properties on your own.
     }
     property AutoDetectCamera: Boolean
-      read FAutoDetectCamera write FAutoDetectCamera default true;
+      read FAutoDetectCamera write SetAutoDetectCamera default true;
 
     { Assign sensible @link(Navigation) looking
       at the initial world (@link(Items)) if it is not assigned.
@@ -2067,11 +2068,13 @@ var
 begin
   if AutoDetectNavigation and (Navigation = nil) then
     AssignDefaultNavigation; // create Navigation if necessary
+
   if AutoDetectCamera and not AssignDefaultCameraDone then
-  begin
     AssignDefaultCamera;
-    AssignDefaultCameraDone := true;
-  end;
+  { set AssignDefaultCameraDone to done,
+    otherwise later setting AutoDetectCamera to true would suddenly
+    reinitialize camera (initial and current vectors) in the middle of game. }
+  AssignDefaultCameraDone := true;
 
   { We need to know container size now. }
   Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
@@ -2127,6 +2130,44 @@ begin
   }
 
   Result := not AutoDetectNavigation;
+end;
+
+procedure TCastleAbstractViewport.SetAutoDetectCamera(const Value: Boolean);
+begin
+  if FAutoDetectCamera <> Value then
+  begin
+    FAutoDetectCamera := Value;
+
+    (*
+    At one point I had an idea to do this:
+
+    { When setting AutoDetectCamera to false, then back to true,
+      call AssignDefaultCamera again (thus resetting camera initial and current
+      vectors).
+      This provides a way to cause AssignDefaultCamera initialization again. }
+    if Value then
+      AssignDefaultCameraDone := false;
+
+    Docs in interface:
+    Setting it back to @true will make the initialization again at nearest
+    render.
+
+    Later:
+    This does not seem useful, and makes more confusion,
+    because it overrides both initial and current camera vectors.
+    You would not expect that
+
+    if AutoDetectCamera then
+    begin
+      AutoDetectCamera := false;
+      AutoDetectCamera := true;
+    end;
+
+    does something, but here it would do something.
+    Doing the same thing with AutoDetectNavigation doesn't
+    recreate navigation (if Navigation <> nil, it will stay as it was).
+    *)
+  end;
 end;
 
 function TCastleAbstractViewport.CalculateProjection: TProjection;
