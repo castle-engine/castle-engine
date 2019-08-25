@@ -3069,6 +3069,11 @@ begin
 
   if Navigation = nil then
     AssignDefaultNavigation;
+  {$warnings off} // using deprecated in deprecated
+  // Since AssignDefaultNavigation may leave Navigation nil, make sure it is assigned now
+  if Navigation = nil then
+    Result := InternalExamineNavigation;
+  {$warnings on}
   Result := Navigation;
 end;
 
@@ -3130,7 +3135,9 @@ begin
   // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
-    NewNavigation.Assign(Navigation);
+    // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
+    if Navigation <> nil then
+      NewNavigation.Assign(Navigation);
     Navigation := NewNavigation;
     { make sure it's in ntExamine mode (as we possibly reuse old navigation,
       by reusing InternalExamineNavigation, so we're not sure what state it's in. }
@@ -3162,7 +3169,9 @@ begin
   // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
-    NewNavigation.Assign(Navigation);
+    // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
+    if Navigation <> nil then
+      NewNavigation.Assign(Navigation);
     Navigation := NewNavigation;
     { make sure it's in ntWalk mode (as we possibly reuse old navigation,
       by reusing InternalWalkNavigation, so we're not sure what state it's in. }
