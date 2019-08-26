@@ -85,7 +85,8 @@ function CreateBackground(const Node: TAbstractBackgroundNode;
 
 implementation
 
-uses CastleLog, CastleScene, X3DFields, Math, CastleSceneCore;
+uses Math,
+  CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -613,14 +614,88 @@ begin
   Transform.Rotation := Rotation;
 end;
 
+{ TBackground2D --------------------------------------------------------------- }
+
+type
+  TBackground2D = class(TBackground)
+  strict private
+    Image: TDrawableImage;
+    ImageRect: TFloatRectangle;
+  public
+    constructor Create(const Node: TImageBackgroundNode);
+    destructor Destroy; override;
+    procedure Render(const RenderingCamera: TRenderingCamera;
+      const Wireframe: boolean;
+      const RenderRect: TFloatRectangle); override;
+  end;
+
+constructor TBackground2D.Create(const Node: TImageBackgroundNode);
+var
+  ImageCore: TEncodedImage;
+  LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
+  TexLeftBottom, TexRightTop: TVector2;
+begin
+  inherited Create;
+
+  if Node.Texture is TAbstractTexture2DNode then // also checks it is non-nil
+    ImageCore := TAbstractTexture2DNode(Node.Texture).TextureImage
+  else
+    ImageCore := nil;
+
+  if ImageCore <> nil then
+  begin
+    Image := TDrawableImage.Create(ImageCore, true { smooth scaling }, false { owns });
+    Image.Color := Node.Color;
+
+    ImageRect := FloatRectangle(Image.Rect);
+    if Node.FdTexCoords.Count = 4 then
+    begin
+      { Note that we ignore texCoords[1] and [3], they cannot be implemented
+        using TDrawableImage.Draw. }
+      TexLeftBottom := Node.FdTexCoords.Items[0];
+      TexRightTop := Node.FdTexCoords.Items[2];
+
+      LeftFraction := TexLeftBottom.X;
+      BottomFraction := TexLeftBottom.Y;
+      WidthFraction := TexRightTop.X - TexLeftBottom.X;
+      HeightFraction := TexRightTop.Y - TexLeftBottom.Y;
+
+      ImageRect.Left := ImageRect.Width * LeftFraction;
+      ImageRect.Bottom := ImageRect.Height * BottomFraction;
+      ImageRect.Width := ImageRect.Width * WidthFraction;
+      ImageRect.Height := ImageRect.Height * HeightFraction;
+    end;
+
+    // Note: use Node.Texture.RepeatS / Node.Texture.RepeatT
+  end;
+end;
+
+destructor TBackground2D.Destroy;
+begin
+  FreeAndNil(Image);
+  inherited;
+end;
+
+procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean;
+  const RenderRect: TFloatRectangle);
+begin
+  inherited;
+  RenderContext.Clear([cbColor], Black); // in case image is partially-transparent
+  if Image <> nil then
+    Image.Draw(RenderRect, ImageRect);
+end;
+
 { global routines ------------------------------------------------------------ }
 
 function CreateBackground(const Node: TAbstractBackgroundNode;
   const SkySphereRadius: Single): TBackground;
 begin
   if Node is TAbstract3DBackgroundNode then
-    Result := TBackground3D.Create(
-      TAbstract3DBackgroundNode(Node), SkySphereRadius)
+    Result := TBackground3D.Create(TAbstract3DBackgroundNode(Node), SkySphereRadius)
+  else
+  if Node is TImageBackgroundNode then
+    Result := TBackground2D.Create(TImageBackgroundNode(Node))
   else
     Result := nil;
 end;
