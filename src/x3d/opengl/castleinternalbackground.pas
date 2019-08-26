@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,7 @@
 }
 
 { Background for 3D world (TBackground). }
-unit CastleBackground;
+unit CastleInternalBackground;
 
 {$I castleconf.inc}
 
@@ -24,29 +24,34 @@ uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
   CastleColors, CastleGLUtils, CastleTransform;
 
 type
-  { Background for 3D world.
-    Background defined here has the same features as VRML/X3D Background:
+  { Background under X3D scene.
+
+    It supports all features of X3D nodes descending
+    from TAbstractBackgroundNode.
 
     @unorderedList(
       @itemSpacing Compact
-      @item(skybox - a cube with each face potentially textured
-        (textures may have alpha channel))
-      @item a ground sphere around this, with color rings for ground colors
-      @item a sky sphere around this, with color rings for sky colors
-    )
-
-    Engine users should not use this class directly. Instead TCastleSceneManager
-    automatically uses this to render the background defined by
-    TCastleSceneManager.MainScene. }
+      @item(May be a skybox: A cube with each face potentially textured
+        (textures may have alpha channel),)
+      @item(Behind the skybox: you can see ground sphere,
+        with color rings for ground colors,)
+      @item(Behind the ground sphere: you can see sky sphere,
+        with color rings for sky colors,)
+      @item(May also be a single full-screen quad (for TImageBackgroundNode).)
+    ) }
   TBackground = class
-  private
+  strict private
     { TCastleScene to render the background in most cases.
       Cannot be declared as TCastleScene as it would create a circular dependency
       with CastleScene unit. }
     SceneObj: TObject;
     ParamsObj: TObject;
     ClearColor: TCastleColor;
+    { Only non-nil if Create3DBackground was used. }
     Transform: TTransformNode;
+    procedure Create3DBackground(const RootNode: TX3DRootNode;
+      const Node: TAbstract3DBackgroundNode;
+      const SkySphereRadius: Single);
   public
     { Calculate (or just confirm that Proposed value is still OK)
       the sky sphere radius that fits nicely in your projection near/far.
@@ -157,10 +162,8 @@ begin
   inherited;
 end;
 
-procedure TBackground.Update(const Node: TAbstractBackgroundNode;
-  const SkySphereRadius: Single);
-var
-  RootNode: TX3DRootNode;
+procedure TBackground.Create3DBackground(const RootNode: TX3DRootNode;
+  const Node: TAbstract3DBackgroundNode; const SkySphereRadius: Single);
 
   procedure RenderCubeSides;
   var
@@ -521,7 +524,6 @@ const
   end;
 
 begin
-  RootNode := TX3DRootNode.Create('', Node.BaseUrl);
   SphereCreated := false;
 
   Transform := TTransformNode.Create('', Node.BaseUrl);
@@ -531,6 +533,18 @@ begin
   RenderSky;
   RenderGround;
   RenderCubeSides;
+end;
+
+procedure TBackground.Update(const Node: TAbstractBackgroundNode;
+  const SkySphereRadius: Single);
+var
+  RootNode: TX3DRootNode;
+begin
+  RootNode := TX3DRootNode.Create('', Node.BaseUrl);
+  ClearColor := Black; // set it, in case Create3DBackground will not override it
+
+  if Node is TAbstract3DBackgroundNode then
+    Create3DBackground(RootNode, TAbstract3DBackgroundNode(Node), SkySphereRadius);
 
   Scene.Load(RootNode, true);
 end;
@@ -545,16 +559,16 @@ begin
   Params.RenderingCamera := RenderingCamera;
 
   if Wireframe then
-    Scene.Attributes.WireframeEffect := weWireframeOnly else
+    Scene.Attributes.WireframeEffect := weWireframeOnly
+  else
     Scene.Attributes.WireframeEffect := weNormal;
 
-  { TODO: in the old times, we had here an optimization:
-    if the background is not displayed as Wireframe,
-    and it has all 6 cube sides filled with textures without
-    an alpha channel, then there's no need to display sky/ground spheres,
-    and no need to even clear color buffer before.
-    We lose this optimization now, since we don't know now which cube sides
-    are successfully loaded and which have alpha. }
+  { We always clear color,
+    - in case the background is partially-transparent,
+    - or one of the textures on 6 cube sides didn't load,
+    - or background is displayed as wireframe.
+    It's easiest to just always clear, than to detect and optimize
+    special cases. }
   RenderContext.Clear([cbColor], ClearColor);
 
   { We don't calculate correct Frustum (accounting for the fact that camera
@@ -574,7 +588,8 @@ end;
 
 procedure TBackground.UpdateRotation(const Rotation: TVector4);
 begin
-  Transform.Rotation := Rotation;
+  if Transform <> nil then
+    Transform.Rotation := Rotation;
 end;
 
 end.

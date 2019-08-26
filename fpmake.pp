@@ -370,8 +370,8 @@ begin
     P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');
+    P.Targets.AddUnit('castleinternalbackground.pas');
     P.Targets.AddUnit('castlerenderer.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');

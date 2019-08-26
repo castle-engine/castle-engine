@@ -298,10 +298,9 @@ end;
 function GetSceneBackgroundColor(const Background: TAbstractBackgroundNode;
   const Default: TCastleColorRGB): TCastleColorRGB;
 begin
-  if (Background <> nil) and
-     (Background is TBackgroundNode) and
-     (TBackgroundNode(Background).FdSkyColor.Count <> 0) then
-    Result := TBackgroundNode(Background).FdSkyColor.Items[0]
+  if (Background is TAbstract3DBackgroundNode) and
+     (TAbstract3DBackgroundNode(Background).FdSkyColor.Count <> 0) then
+    Result := TAbstract3DBackgroundNode(Background).FdSkyColor.Items[0]
   else
     Result := Default;
 end;

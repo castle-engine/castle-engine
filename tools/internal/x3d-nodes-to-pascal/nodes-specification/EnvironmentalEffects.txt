@@ -1,4 +1,9 @@
 X3DBackgroundNode : X3DBindableNode {
+}
+
+# We split X3D into one empty abstract class, and X3D3DBackgroundNode.
+# This allows to cleanly define ImageBackground.
+X3D3DBackgroundNode : X3DBindableNode {
   MFFloat [in,out] groundAngle   []      [0,Pi/2]
   MFColor [in,out] groundColor   []      [0,1]
   MFFloat [in,out] skyAngle      []      [0,Pi]
