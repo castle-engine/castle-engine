@@ -135,6 +135,7 @@ type
       FImage: TEncodedImage;
       FOwnsImage: boolean;
       FURL: String;
+      FRepeatS, FRepeatT: Boolean;
 
       FRenderToImage: TGLRenderToTexture;
       HasViewportToRestore: boolean;
@@ -143,6 +144,7 @@ type
     function FinalAlpha: TAlphaChannel;
     procedure SetSmoothScaling(const Value: boolean);
     function CurrentFilter: TTextureFilter;
+    function CurrentWrap: TTextureWrap2D;
     procedure SetImage(const AImage: TEncodedImage);
     procedure GLContextCloseEvent(Sender: TObject);
     procedure GLContextOpen(const AImage: TEncodedImage);
@@ -151,6 +153,8 @@ type
     function GetCenterY: Single;
     procedure SetCenterX(const Value: Single);
     procedure SetCenterY(const Value: Single);
+    procedure SetRepeatS(const Value: Boolean);
+    procedure SetRepeatT(const Value: Boolean);
   private
     StaticResourcesReady: boolean; static;
     { Create / destroy static stuff for rendering. }
@@ -640,6 +644,12 @@ type
 
     { Non-empty only if the image was loaded from URL. }
     property URL: String read FURL;
+
+    { Repeat or clamp texture in S (width) or T (height) dimensions.
+      @groupBegin }
+    property RepeatS: Boolean read FRepeatS write SetRepeatS default false;
+    property RepeatT: Boolean read FRepeatT write SetRepeatT default false;
+    { @groupEnd }
   end;
 
   TGLImageManaged = TDrawableImage deprecated 'use TDrawableImage';
@@ -769,7 +779,7 @@ begin
     if FTexture = 0 then
       glGenTextures(1, @FTexture);
     LoadGLGeneratedTexture(FTexture, AImage, CurrentFilter,
-      Texture2DClampToEdge, nil, true);
+      CurrentWrap, nil, true);
   end;
 end;
 
@@ -1440,6 +1450,21 @@ begin
   end;
 end;
 
+function TDrawableImage.CurrentWrap: TTextureWrap2D;
+
+  function RepeatToGL(const IsRepeat: Boolean): TGLenum;
+  begin
+    if IsRepeat then
+      Result := GL_REPEAT
+    else
+      Result := GLFeatures.CLAMP_TO_EDGE;
+  end;
+
+begin
+  Result.Data[0] := RepeatToGL(RepeatS);
+  Result.Data[1] := RepeatToGL(RepeatT);
+end;
+
 procedure TDrawableImage.SetSmoothScaling(const Value: boolean);
 begin
   if FSmoothScaling <> Value then
@@ -1559,6 +1584,32 @@ end;
 procedure TDrawableImage.SetCenterY(const Value: Single);
 begin
   FRotationCenter.Data[1] := Value;
+end;
+
+procedure TDrawableImage.SetRepeatS(const Value: Boolean);
+begin
+  if FRepeatS <> Value then
+  begin
+    FRepeatS := Value;
+    if FTexture <> 0 then
+    begin
+      glBindTexture(GL_TEXTURE_2D, FTexture);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, CurrentWrap.Data[0]);
+    end;
+  end;
+end;
+
+procedure TDrawableImage.SetRepeatT(const Value: Boolean);
+begin
+  if FRepeatT <> Value then
+  begin
+    FRepeatT := Value;
+    if FTexture <> 0 then
+    begin
+      glBindTexture(GL_TEXTURE_2D, FTexture);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, CurrentWrap.Data[1]);
+    end;
+  end;
 end;
 
 {$endif read_implementation}

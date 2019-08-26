@@ -631,14 +631,20 @@ type
 
 constructor TBackground2D.Create(const Node: TImageBackgroundNode);
 var
+  Texture2D: TAbstractTexture2DNode;
   ImageCore: TEncodedImage;
   LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
   TexLeftBottom, TexRightTop: TVector2;
 begin
   inherited Create;
 
-  if Node.Texture is TAbstractTexture2DNode then // also checks it is non-nil
-    ImageCore := TAbstractTexture2DNode(Node.Texture).TextureImage
+  if Node.Texture is TAbstractTexture2DNode then // also checks is it non-nil
+    Texture2D := TAbstractTexture2DNode(Node.Texture)
+  else
+    Texture2D := nil;
+
+  if Texture2D <> nil then
+    ImageCore := Texture2D.TextureImage
   else
     ImageCore := nil;
 
@@ -646,6 +652,9 @@ begin
   begin
     Image := TDrawableImage.Create(ImageCore, true { smooth scaling }, false { owns });
     Image.Color := Node.Color;
+    Assert(Texture2D <> nil); // since ImageCore <> nil
+    Image.RepeatS := Texture2D.RepeatS;
+    Image.RepeatT := Texture2D.RepeatT;
 
     ImageRect := FloatRectangle(Image.Rect);
     if Node.FdTexCoords.Count = 4 then
@@ -665,8 +674,6 @@ begin
       ImageRect.Width := ImageRect.Width * WidthFraction;
       ImageRect.Height := ImageRect.Height * HeightFraction;
     end;
-
-    // Note: use Node.Texture.RepeatS / Node.Texture.RepeatT
   end;
 end;
 
