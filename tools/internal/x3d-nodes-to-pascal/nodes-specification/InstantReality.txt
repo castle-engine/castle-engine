@@ -101,8 +101,6 @@ CommonSurfaceShader :  X3DShaderNode {
   MFBool          []           textureTransformEnabled          [FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE]
 }
 
-# For now, this descends from X3DBackgroundNode that has fields like skyColor.
-# They are ignored for ImageBackground now.
 ImageBackground : X3DBackgroundNode {
   SFColorRGBA [in,out] color     1 1 1 1
   SFNode      [in,out] texture   NULL                    # [X3DTextureNode]
