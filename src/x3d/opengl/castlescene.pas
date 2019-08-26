@@ -2029,15 +2029,8 @@ begin
     InvalidateBackground;
 
   if BackgroundStack.Top <> nil then
-  begin
-    // WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
-    //   [BackgroundSkySphereRadius]));
-
-    { In the future we could use FBackground.Update without recreating
-      the instance. }
-    FBackground := TBackground.Create;
-    FBackground.Update(BackgroundStack.Top, BackgroundSkySphereRadius);
-  end else
+    FBackground := CreateBackground(BackgroundStack.Top, BackgroundSkySphereRadius)
+  else
     FBackground := nil;
 
   FBackgroundNode := BackgroundStack.Top;

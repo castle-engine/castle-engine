@@ -234,7 +234,7 @@ type
 
     { Render everything from given camera view (as TRenderingCamera).
       Given RenderingCamera.Target says to where we generate the image.
-      Takes method must take care of making many rendering passes
+      This method must take care of making many rendering passes
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything(const RenderingCamera: TRenderingCamera); virtual;
 
@@ -2333,7 +2333,7 @@ var
   UsedBackground: TBackground;
   MainLightPosition: TVector4; { ignored }
   SavedProjectionMatrix: TMatrix4;
-  R: TFloatRectangle;
+  RR: TFloatRectangle;
 begin
   { TODO: Temporary compatibiliy cludge:
     Because some rendering code still depends on
@@ -2369,6 +2369,8 @@ begin
       end;
       RenderingCamera.RotationOnly := true;
 
+      RR := RenderRect;
+
       { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
@@ -2378,14 +2380,13 @@ begin
       if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-        R := RenderRect;
-        PerspectiveProjection(45, R.Width / R.Height,
+        PerspectiveProjection(45, RR.Width / RR.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
       end else
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
 
       RenderingCamera.RotationOnly := false;
     end else
