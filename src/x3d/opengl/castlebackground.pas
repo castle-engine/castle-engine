@@ -46,7 +46,7 @@ type
     SceneObj: TObject;
     ParamsObj: TObject;
     ClearColor: TCastleColor;
-    MatrixTransform: TMatrixTransformNode;
+    Transform: TTransformNode;
   public
     { Calculate (or just confirm that Proposed value is still OK)
       the sky sphere radius that fits nicely in your projection near/far.
@@ -78,7 +78,7 @@ type
       const SkySphereRadius: Single);
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean);
-    procedure UpdateTransform(const Transform: TMatrix4);
+    procedure UpdateRotation(const Rotation: TVector4);
     procedure FreeResources;
   end;
 
@@ -226,7 +226,7 @@ var
       Shape.FdGeometry.Value := QuadSet;
       Shape.Appearance := Appearance;
 
-      MatrixTransform.AddChildren(Shape);
+      Transform.AddChildren(Shape);
     end;
 
   var
@@ -270,7 +270,7 @@ var
       Shape := TShapeNode.Create('', Node.BaseUrl);
       Shape.FdGeometry.Value := Geometry;
 
-      MatrixTransform.AddChildren(Shape);
+      Transform.AddChildren(Shape);
     end;
   end;
 
@@ -524,9 +524,9 @@ begin
   RootNode := TX3DRootNode.Create('', Node.BaseUrl);
   SphereCreated := false;
 
-  MatrixTransform := TMatrixTransformNode.Create('', Node.BaseUrl);
-  MatrixTransform.FdMatrix.Value := Node.TransformRotation;
-  RootNode.AddChildren(MatrixTransform);
+  Transform := TTransformNode.Create('', Node.BaseUrl);
+  Transform.Rotation := Node.TransformRotation;
+  RootNode.AddChildren(Transform);
 
   RenderSky;
   RenderGround;
@@ -572,9 +572,9 @@ begin
   Scene.FreeResources([frTextureDataInNodes]);
 end;
 
-procedure TBackground.UpdateTransform(const Transform: TMatrix4);
+procedure TBackground.UpdateRotation(const Rotation: TVector4);
 begin
-  MatrixTransform.FdMatrix.Send(Transform);
+  Transform.Rotation := Rotation;
 end;
 
 end.

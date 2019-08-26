@@ -2056,7 +2056,7 @@ begin
     TAbstractBackgroundNode may be supported. }
   BackgroundNode := BackgroundStack.Top;
   if (BackgroundNode <> nil) and (Result <> nil) then
-    Result.UpdateTransform(BackgroundNode.TransformRotation);
+    Result.UpdateRotation(BackgroundNode.TransformRotation);
 end;
 
 function TCastleScene.Attributes: TSceneRenderingAttributes;

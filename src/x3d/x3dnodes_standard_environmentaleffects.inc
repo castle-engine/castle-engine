@@ -59,7 +59,8 @@
     strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
-    function TransformRotation: TMatrix4;
+    { Extract only rotation (axis-angle format) from the transformation. }
+    function TransformRotation: TVector4;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
   end;
@@ -359,17 +360,11 @@ begin
   Result := ntcBackground;
 end;
 
-function TAbstractBackgroundNode.TransformRotation: TMatrix4;
+function TAbstractBackgroundNode.TransformRotation: TVector4;
+var
+  IgnoreTranslation, IgnoreScale: TVector3;
 begin
-  Result := Transform;
-
-  { TODO: We should extract here only rotation from BgTransform matrix.
-    Below is a very hacky way of at least cancelling the translation.
-    This will work OK for any rigid body matrix, i.e. composed only from
-    rotation and translation. }
-  Result.Data[3, 0] := 0;
-  Result.Data[3, 1] := 0;
-  Result.Data[3, 2] := 0;
+  MatrixDecompose(Transform, IgnoreTranslation, Result, IgnoreScale);
 end;
 
 procedure TBackgroundNode.CreateNode;
