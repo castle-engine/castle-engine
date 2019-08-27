@@ -686,11 +686,34 @@ end;
 procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
   const RenderRect: TFloatRectangle);
+{$ifndef OpenGLES}
+var
+  SavedProjectionMatrix: TMatrix4;
+{$endif}
 begin
   inherited;
   RenderContext.Clear([cbColor], Black); // in case image is partially-transparent
+
   if Image <> nil then
+  begin
+    { With fixed-function, we need to have orthographic projection for TDrawableImage rendering. }
+    if GLFeatures.EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      OrthoProjection(FloatRectangle(RenderContext.Viewport));
+      {$endif}
+    end;
+
     Image.Draw(RenderRect, ImageRect);
+
+    if GLFeatures.EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      {$endif}
+    end;
+  end;
 end;
 
 { global routines ------------------------------------------------------------ }
