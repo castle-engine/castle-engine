@@ -3,24 +3,6 @@
   <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
   <dependencies>
     <!-- See https://developers.google.com/android/guides/setup#split -->
-
-    <!--
-      Note: Do not upgrade it to the latest (17.0.0) as this requires upgrading API level
-      to 28 now, otherwise APK building fails at appcompat.
-      See https://stackoverflow.com/questions/49208772/error-resource-androidattr-fontvariationsettings-not-found
-      comment:
-
-      """
-      For those that must keep compileSdkVersion 27 and are unable to upgrade to androidx yet, you must not upgrade to (or over) the versions of dependencies in the following links. These links are where the breaking change was introduced. You must find an earlier version that doesn't use androidx.
-
-      https://firebase.google.com/support/release-notes/android#update_-_june_17_2019
-
-      https://developers.google.com/android/guides/releases#june_17_2019
-      """
-    -->
-    <dependency>compile 'com.google.android.gms:play-services-analytics:16.0.0'</dependency>
+    <dependency>compile 'com.google.android.gms:play-services-analytics:17.0.0'</dependency>
   </dependencies>
-  <plugins>
-    <plugin>apply plugin: 'com.google.gms.google-services'</plugin>
-  </plugins>
 </build_gradle_merge>
