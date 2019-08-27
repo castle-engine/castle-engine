@@ -674,6 +674,10 @@ begin
       ImageRect.Width := ImageRect.Width * WidthFraction;
       ImageRect.Height := ImageRect.Height * HeightFraction;
     end;
+
+    if Texture2D.TextureProperties <> nil then
+      if Texture2D.TextureProperties.MagnificationFilter = magNearest then
+        Image.SmoothScaling := false;
   end;
 end;
 
