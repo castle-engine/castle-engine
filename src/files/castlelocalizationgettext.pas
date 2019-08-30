@@ -91,6 +91,9 @@ type
     function GetKey(const AIndex: Cardinal): String;
     function GetValue(const AIndex: Cardinal): String;
   public
+    constructor Create(const Stream: TStream);
+    constructor Create(const Url: String);
+
     property Count: Cardinal read StringCount;
     property Keys[const AIndex: Cardinal]: String read GetKey;
     property Values[const AIndex: Cardinal]: String read GetValue;
@@ -107,6 +110,7 @@ type
 
 { Load GetText MO file from and URL. }
 function LoadGetTextMo(const Url: String): TCastleMOFile;
+  deprecated 'use TCastleMOFile.Create';
 
 { Extract from MO file all unique characters in translated strings,
   add them to Characters. }
@@ -363,6 +367,21 @@ begin
 end;
 
 { TCastleMOFile ------------------------------------------------------------ }
+
+constructor TCastleMOFile.Create(const Stream: TStream);
+begin
+  inherited Create(Stream);
+end;
+
+constructor TCastleMOFile.Create(const Url: String);
+var
+  S: TStream;
+begin
+  S := Download(Url);
+  try
+    Create(S);
+  finally FreeAndNil(S) end;
+end;
 
 function TCastleMOFile.GetKey(const AIndex: Cardinal): String;
 begin
