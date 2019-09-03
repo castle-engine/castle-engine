@@ -272,13 +272,8 @@ end;
 { LoadGetTextMo -------------------------------------------------------------- }
 
 function LoadGetTextMo(const Url: String): TCastleMOFile;
-var
-  S: TStream;
 begin
-  S := Download(Url);
-  try
-    Result := TCastleMOFile.Create(S);
-  finally FreeAndNil(S) end;
+  Result := TCastleMOFile.Create(Url);
 end;
 
 { AddTranslatedCharacters ---------------------------------------------------- }
@@ -288,7 +283,7 @@ var
   Mo: TCastleMOFile;
   I: Integer;
 begin
-  Mo := LoadGetTextMo(Url);
+  Mo := TCastleMOFile.Create(Url);
   try
     for I := 0 to Mo.Count - 1 do
       Characters.Add(Mo.Values[I]);
@@ -310,7 +305,7 @@ end;
 procedure TranslateAllDesigns(const GetTextMoUrl: String);
 begin
   FreeAndNil(TranslateAllDesignsMo);
-  TranslateAllDesignsMo := LoadGetTextMo(GetTextMoUrl);
+  TranslateAllDesignsMo := TCastleMOFile.Create(GetTextMoUrl);
   OnInternalTranslateDesign := @TranslateDesignCallback;
 end;
 
@@ -360,7 +355,7 @@ procedure CastleTranslateResourceStrings(const GetTextMoUrl: String);
 var
   Mo: TCastleMOFile;
 begin
-  Mo := LoadGetTextMo(GetTextMoUrl);
+  Mo := TCastleMOFile.Create(GetTextMoUrl);
   try
     TranslateResourceStrings(Mo);
   finally FreeAndNil(Mo) end;
