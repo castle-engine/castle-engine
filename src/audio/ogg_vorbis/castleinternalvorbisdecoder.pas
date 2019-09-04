@@ -27,7 +27,7 @@ implementation
 
 uses SysUtils, Classes, CTypes,
   CastleUtils, CastleClassUtils, CastleSoundBase, CastleInternalVorbisCodec,
-  CastleInternalSoundFile, CastleInternalVorbisFile,
+  CastleInternalSoundFile, CastleInternalVorbisFile, CastleLog,
   CastleTimeUtils;
 
 type
@@ -184,6 +184,7 @@ procedure TOggVorbisStream.OpenVorbisFile(
   out DataFormat: TSoundDataFormat; out Frequency: LongWord;
   out Duration: TFloatTime);
 var
+  DurationRaw: {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif};
   OggInfo: Pvorbis_info;
   Callbacks: Tov_callbacks;
 begin
@@ -208,7 +209,18 @@ begin
 
   Frequency := OggInfo^.rate;
 
-  Duration := ov_time_total(@VorbisFile, -1);
+  DurationRaw := ov_time_total(@VorbisFile, -1);
+  if Int64(DurationRaw) = OV_EINVAL then
+  begin
+    WritelnWarning('Cannot read OggVorbis duration, the requested bitstream may not be seekable');
+    DurationRaw := 0;
+  end;
+
+  {$ifdef CASTLE_TREMOLO}
+  Duration := DurationRaw / 1000;
+  {$else}
+  Duration := DurationRaw;
+  {$endif}
 end;
 
 procedure TOggVorbisStream.CloseVorbisFile;
