@@ -13,6 +13,7 @@ type
     SearchingForDescription: string;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
     procedure NodeMultipleTimesWarning(Sender: TObject; const Category, S: string);
+    procedure OnWarningRaiseException(Sender: TObject; const Category, S: string);
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -25,6 +26,7 @@ type
     procedure TestManifold;
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
+    procedure TestSpineUtf8Names;
   end;
 
 implementation
@@ -150,10 +152,10 @@ begin
   CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
 
   // This once failed to be read with FPC 3.1.1
-  CheckIterator('data/escape_from_the_universe_boss/boss.json');
+  CheckIterator('data/spine/escape_from_the_universe_boss/boss.json');
 
   // This once failed to be read, as the Spine has DefaultSkin = nil
-  CheckIterator('data/empty_spine.json');
+  CheckIterator('data/spine/empty_spine.json');
 end;
 
 procedure TTestSceneCore.TestFind;
@@ -379,6 +381,27 @@ begin
     FreeAndNil(SceneTemplate);
     FreeAndNil(Scene1);
     FreeAndNil(Scene2);
+  end;
+end;
+
+procedure TTestSceneCore.OnWarningRaiseException(Sender: TObject; const Category, S: string);
+begin
+  raise Exception.CreateFmt('TTestSceneCore made a warning, and any warning here is an error: %s: %s', [Category, S]);
+end;
+
+procedure TTestSceneCore.TestSpineUtf8Names;
+var
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.Load('castle-data:/spine/uhholy_chapter_one_end/skeleton.json');
+      Scene.Load('castle-data:/spine/unholy_transition/phone.json');
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
 end;
 
