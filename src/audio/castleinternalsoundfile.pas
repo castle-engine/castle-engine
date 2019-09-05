@@ -190,6 +190,8 @@ constructor TSoundFile.Create(const AURL: string);
       ]);
   end;
 
+const
+  DurationSuggestStreaming = 10.0;
 var
   CompressedStream: TStream;
   MimeType: string;
@@ -228,6 +230,11 @@ begin
           Duration
         ]);
       end;
+      if Duration > DurationSuggestStreaming then
+        WritelnLog('Sound', 'Consider using streaming when loading long sound file "%s" (duration %f)', [
+          URIDisplay(AURL),
+          Duration
+        ]);
     except
       { May be raised by Download in case opening the underlying stream failed. }
       on E: EFOpenError do
