@@ -111,10 +111,19 @@ procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringSt
 procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
   const ParameterMacroPrefix: String);
 
+{ Find the filename of linker input produced by FPC when called with -Cn .
+  Path must contain a final path delimiter.
+
+  For old FPC, it is just link.res.
+  For new FPC 3.3.1 it may be any link<id>.res and unfortunately we don't know the <id>
+  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows). }
+function FindLinkRes(const Path: String): String;
+
 implementation
 
 uses Classes, Process, SysUtils,
   CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
+  CastleFindFiles,
   ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
@@ -253,6 +262,33 @@ var
 begin
   for Pair in Parameters do
     Macros.Add(UpperCase(ParameterMacroPrefix + Pair.Key), Pair.Value);
+end;
+
+type
+  TFindLinkResHandler = class
+    FileName: String;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+  end;
+
+procedure TFindLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if FileName <> '' then
+    raise Exception.CreateFmt('Multiple linker input files in the same directory: "%s" and "%s". Delete all "link*.res" here and run the process again', [
+      FileName,
+      FileInfo.AbsoluteName
+    ]);
+  FileName := FileInfo.AbsoluteName;
+end;
+
+function FindLinkRes(const Path: String): String;
+var
+  Handler: TFindLinkResHandler;
+begin
+  Handler := TFindLinkResHandler.Create;
+  try
+    FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
+    Result := Handler.FileName;
+  finally FreeAndNil(Handler) end;
 end;
 
 end.

@@ -67,7 +67,7 @@ var
     { now use libtool to create a static library .a }
 
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
-    LinkRes := CompilationOutput + 'link.res';
+    LinkRes := FindLinkRes(CompilationOutput);
     if not FileExists(LinkRes) then
     begin
       if Verbose then
@@ -89,6 +89,8 @@ var
           ObjectFiles.SaveToFile(CompilationOutput + 'lib_cge_project_object_files.txt');
         finally FreeAndNil(ObjectFiles) end;
       finally FreeAndNil(LinkResContents) end;
+
+      DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
 
       RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
         CompilationOutput + 'lib_cge_project_object_files.txt']);
