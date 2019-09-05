@@ -25,12 +25,14 @@ type
   TTestCastleComponentSerialize = class(TCastleTestCase)
     procedure TestDefaultValues;
     procedure TestEmptyCaption;
+    procedure TestSaveLoad1;
+    procedure TestSaveLoad2;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
-  CastleUIControls, CastleControls;
+  CastleUIControls, CastleControls, CastleUtils;
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -179,6 +181,89 @@ begin
     AssertEquals('Button1', (UiOwner.FindRequiredComponent('Button1') as TCastleButton).Caption);
     AssertEquals('', (UiOwner.FindRequiredComponent('Button2') as TCastleButton).Caption);
     AssertEquals('Button3', (UiOwner.FindRequiredComponent('Button3') as TCastleButton).Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveLoad1;
+var
+  UiOwner: TComponent;
+  Ui: TCastleButton;
+  Lab: TCastleLabel;
+  LoadedUi: TCastleUserInterface;
+  TempFileName: String;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    Ui := TCastleButton.Create(UiOwner);
+
+    Lab := TCastleLabel.Create(UiOwner);
+    Lab.Color := Vector4(0, 1, 0, 1);
+    Lab.FrameColor := Vector4(0, 1, 0, 1);
+    Lab.Caption := 'test caption' + NL + 'another caption';
+    Lab.LineSpacing := 4;
+    Ui.InsertFront(Lab);
+
+    TempFileName := GetTempFileNameCheck;
+    UserInterfaceSave(Ui, TempFileName);
+  finally FreeAndNil(UiOwner) end;
+
+  Ui := nil; // make sure state is cleared
+  Lab := nil;
+
+  UiOwner := TComponent.Create(nil);
+  try
+    LoadedUi := UserInterfaceLoad(TempFileName, UiOwner);
+    AssertTrue(LoadedUi is TCastleButton);
+    Ui := LoadedUi as TCastleButton;
+
+    AssertEquals(Ui.ControlsCount, 1);
+    AssertTrue(Ui.Controls[0] is TCastleLabel);
+    Lab := Ui.Controls[0] as TCastleLabel;
+
+    AssertVectorEquals(Vector4(0, 1, 0, 1), Lab.Color);
+    AssertVectorEquals(Vector4(0, 1, 0, 1), Lab.FrameColor);
+    AssertEquals(4, Lab.LineSpacing);
+    AssertEquals('test caption' + NL + 'another caption', Lab.Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveLoad2;
+var
+  UiOwner: TComponent;
+  Ui: TCastleButton;
+  Lab: TCastleLabel;
+  LoadedUi: TCastleUserInterface;
+  TempFileName: String;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    Ui := TCastleButton.Create(UiOwner);
+
+    Lab := TCastleLabel.Create(UiOwner);
+    // leave defaults
+    Ui.InsertFront(Lab);
+
+    TempFileName := GetTempFileNameCheck;
+    UserInterfaceSave(Ui, TempFileName);
+  finally FreeAndNil(UiOwner) end;
+
+  Ui := nil; // make sure state is cleared
+  Lab := nil;
+
+  UiOwner := TComponent.Create(nil);
+  try
+    LoadedUi := UserInterfaceLoad(TempFileName, UiOwner);
+    AssertTrue(LoadedUi is TCastleButton);
+    Ui := LoadedUi as TCastleButton;
+
+    AssertEquals(Ui.ControlsCount, 1);
+    AssertTrue(Ui.Controls[0] is TCastleLabel);
+    Lab := Ui.Controls[0] as TCastleLabel;
+
+    AssertVectorEquals(Vector4(0, 0, 0, 1), Lab.Color);
+    AssertVectorEquals(Vector4(1, 1, 1, 1), Lab.FrameColor);
+    AssertEquals(TCastleLabel.DefaultLineSpacing, Lab.LineSpacing);
+    AssertEquals('', Lab.Caption);
   finally FreeAndNil(UiOwner) end;
 end;
 
