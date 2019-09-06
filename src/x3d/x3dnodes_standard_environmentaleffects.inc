@@ -459,7 +459,9 @@ begin
     bsLeft  : TextureField := FdLeftUrl;
     bsRight : TextureField := FdRightUrl;
     bsTop   : TextureField := FdTopUrl;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Items.Count <> 0 then
   begin
@@ -615,6 +617,7 @@ var
     case AFogType of
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+      ftNone  : F := 1;
     end;
     Color := Lerp(F, FdColor.Value, Color);
   end;
@@ -835,7 +838,9 @@ begin
     bsLeft  : TextureField := FdLeftTexture;
     bsRight : TextureField := FdRightTexture;
     bsTop   : TextureField := FdTopTexture;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Value is TAbstractTextureNode then
     Result := TAbstractTextureNode(TextureField.Value) else

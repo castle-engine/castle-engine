@@ -2709,6 +2709,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
                   HasContent := true else
                   FileItems[I].SaveToStream(Writer);
               sxChildElement: HasContent := true;
+              else ;
             end;
           Writer.DecIndent;
 
@@ -2807,7 +2808,9 @@ begin
   case Writer.Encoding of
     xeClassic: Classic;
     xeXML    : Xml;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DNode.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 

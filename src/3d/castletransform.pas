@@ -2050,7 +2050,9 @@ begin
           if B.World <> Owner then
             B.RemoveFreeNotification(Owner);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleTransformList.Notify action?');
+      {$endif}
     end;
 
     if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
@@ -2438,6 +2440,7 @@ begin
         SortCameraPosition := CameraPosition;
         List.Sort(@CompareBackToFront3D);
       end;
+    else ;
   end;
 end;
 

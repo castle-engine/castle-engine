@@ -637,7 +637,9 @@ begin
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
     itMouseButton: Result := IsMouseButton(Event.MouseButton);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
+    {$endif}
   end;
 end;
 
@@ -759,7 +761,9 @@ begin
         Key2 := Key1;
         Key1 := NewEvent.Key;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
+    {$endif}
   end;
 end;
 

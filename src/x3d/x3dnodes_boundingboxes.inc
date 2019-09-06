@@ -211,14 +211,18 @@ begin
               begin MinX := 0;                 MaxX := MaxRowWidth end;
     fjMiddle: begin MinX := - MaxRowWidth / 2; MaxX := MaxRowWidth / 2 end;
     fjEnd   : begin MinX := - MaxRowWidth;     MaxX := 0 end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Text_LocalBoundingBox: Invalid FontStyle Justify value');
+    {$endif}
   end;
   case JustifyMinor of
     fjFirst : begin MaxY := 1;                   MinY := - (Strings.Count - 1); end;
     fjBegin : begin MaxY := 0;                   MinY := - Strings.Count; end;
     fjMiddle: begin MaxY := - Strings.Count / 2; MinY := -MaxY; end;
     fjEnd   : begin MaxY :=   Strings.Count;     MinY := 0; end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Text_LocalBoundingBox: Invalid FontStyle JustifyMinor value');
+    {$endif}
   end;
   MinY := MinY * (Size * Spacing);
   MaxY := MaxY * (Size * Spacing);

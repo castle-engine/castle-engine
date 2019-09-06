@@ -3420,7 +3420,9 @@ begin
         //    Width, Height,
         //    Result, Width / Result, Height / Result]);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('UIScaling unknown');
+    {$endif}
   end;
 end;
 
@@ -5081,7 +5083,9 @@ begin
         if Container <> nil then UnregisterContainer(C, FContainer);
         C.RemoveFreeNotification(FCaptureFreeNotifications);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TChildrenControls.Notify action?');
+    {$endif}
   end;
 
   { This notification may get called during FreeAndNil(FControls)

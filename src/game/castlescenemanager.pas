@@ -3035,7 +3035,9 @@ begin
         W.PreferGravityUpForMoving := false;
         W.Gravity := false;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
+    {$endif}
   end;
 
   { This assertion should be OK. It is commented out only to prevent
@@ -4038,7 +4040,9 @@ begin
           Result := HeadlightNode;
         Assert(Result <> nil);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create(2018081902);
+    {$endif}
   end;
 end;
 

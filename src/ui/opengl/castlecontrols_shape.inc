@@ -222,7 +222,9 @@ begin
           DrawCircle(SR.Center, SR.Width / 2 + OutlineOut, SR.Height / 2 + OutlineOut, OutlineColor);
           DrawCircle(SR.Center, SR.Width / 2 + OutlineIn , SR.Height / 2 + OutlineIn , Color);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+      {$endif}
     end;
   end else
   begin
@@ -230,14 +232,18 @@ begin
       case ShapeType of
         stRectangle: DrawRectangle(SR, Color);
         stCircle   : DrawCircle(SR.Center, SR.Width / 2, SR.Height / 2, Color);
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+        {$endif}
       end;
 
     if Outline then
       case ShapeType of
         stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
         stCircle   : DrawCircleOutline(SR.Center, SR.Width / 2, SR.Height / 2, OutlineColor, UIScale * OutlineWidth);
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+        {$endif}
       end;
   end;
 end;

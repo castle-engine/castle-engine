@@ -165,7 +165,9 @@ begin
     ptFrustum:
       Result := TFrustumRaysWindow.Create(
         ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TRaysWindow.CreateDescendant:ProjectionType?');
+    {$endif}
   end;
 end;
 

@@ -2625,7 +2625,9 @@ var
              TexCoord.Data[1] := Arrays.TexCoord4D(0, VI2)^;
              TexCoord.Data[2] := Arrays.TexCoord4D(0, VI3)^;
            end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at TShape.localtriangulate');
+        {$endif}
       end;
     end else
       TexCoord := UnknownTexCoord;

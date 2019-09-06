@@ -299,6 +299,7 @@ begin
     case DataFormat of
       sfMono8  : FDataFormat := sfMono16;
       sfStereo8: FDataFormat := sfStereo16;
+      else ;
     end;
   end;
 end;

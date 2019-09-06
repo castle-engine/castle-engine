@@ -586,6 +586,7 @@ begin
         DefValue := PropInfo^.Default;
         Result := (BoolValue = DefBoolValue) and (DefValue <> longint($80000000));
       end;
+    else ;
   end;
 end;
 

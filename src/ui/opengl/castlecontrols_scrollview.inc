@@ -495,6 +495,7 @@ begin
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
+          else ;
         end;
       itMouseWheel:
         if Event.MouseWheelVertical then
@@ -503,6 +504,7 @@ begin
           ResetInertialForce;
           Result := ExclusiveEvents;
         end;
+      else ;
     end;
 
   { We do not process mouse button clicks (or touches) here

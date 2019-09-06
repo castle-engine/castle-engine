@@ -1572,7 +1572,9 @@ begin
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
+      {$endif}
     end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
@@ -2858,7 +2860,9 @@ const
       case FogType of
         ftLinear: FogLinearEnd := VisibilityRangeScaled;
         ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
+        {$endif}
       end;
     end;
   end;
@@ -2889,7 +2893,9 @@ begin
               glFogi(GL_FOG_MODE, GL_EXP);
               glFogf(GL_FOG_DENSITY, FogExpDensity);
             end;
+          {$ifndef COMPILER_CASE_ANALYSIS}
           else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
+          {$endif}
         end;
         { We want to be able to render any scene --- so we have to be prepared
           that fog interpolation has to be corrected for perspective. }
@@ -3760,7 +3766,9 @@ begin
       ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
       ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
       ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('LineType?');
+      {$endif}
     end;
     {$endif}
   end;

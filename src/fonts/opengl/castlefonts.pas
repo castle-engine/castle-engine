@@ -708,7 +708,9 @@ begin
         hpLeft   : X := ThisRect.Left;
         hpMiddle : X := ThisRect.Center[0];
         hpRight  : X := ThisRect.Right;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TextHorizontalAlignment? in TCastleFont.PrintRectMultiline');
+        {$endif}
       end;
       PrintStrings(X, ThisRect.Bottom, Color, Strings,
         Html, LineSpacing, TextHorizontalAlignment);
@@ -877,7 +879,9 @@ procedure TCastleFont.PrintStrings(const X0, Y0: Single;
       hpLeft  : Result := X0;
       hpMiddle: Result := X0 - TextWidth(S) / 2;
       hpRight : Result := X0 - TextWidth(S);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
+      {$endif}
     end;
   end;
 
@@ -983,7 +987,9 @@ begin
       hpLeft  : X0 := Rect.Left;
       hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) / 2;
       hpRight : X0 := Rect.Right - Text.Width;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
+      {$endif}
     end;
     { calculate Y0 based on Rect and BrokenHeight }
     BrokenHeight := Text.Count * (LineSpacing + RowHeight);
@@ -991,7 +997,9 @@ begin
       vpBottom: Y0 := Rect.Bottom;
       vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
       vpTop   : Y0 := Rect.Top - BrokenHeight;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
+      {$endif}
     end;
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;

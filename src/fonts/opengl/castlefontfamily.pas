@@ -690,7 +690,9 @@ begin
         Font.Size := FontState.Size;
         State.FontStack.Delete(State.FontStack.Count - 1); // remove last, popping from stack
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextPropertyCommand.Print unknown enum');
+    {$endif}
   end;
 end;
 
@@ -1125,7 +1127,9 @@ var
       hpLeft  : Result := X0;
       hpMiddle: Result := X0 - Items[Line].KnownWidth / 2;
       hpRight : Result := X0 - Items[Line].KnownWidth;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TRichText.Print: TextHorizontalAlignment unknown');
+      {$endif}
     end;
   end;
 

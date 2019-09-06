@@ -1159,6 +1159,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         tgBounds2d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors;
         tgBounds3d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds3DTextureGenVectors;
         tgProjection: Arrays.TexCoords[TextureUnit].GenerationProjectorMatrix := GetProjectorMatrixFunction(TexCoord);
+        else ;
       end;
     end;
 
@@ -1577,6 +1578,7 @@ begin
       Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(MaterialIndex.ItemsSafe[IndexNum]);
     miPerFace, miPerFaceMatIndexed:
       Arrays.Color(ArrayIndexNum)^ := FaceMaterial1Color;
+    else ;
   end;
 end;
 
@@ -1590,6 +1592,7 @@ begin
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
       FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.L[RangeNumber]);
+    else ;
   end;
 end;
 
@@ -1838,6 +1841,7 @@ begin
         Assert(Arrays.Indexes = nil);
         Arrays.Normal(ArrayIndexNum)^ := FaceNormal;
       end;
+    else ;
   end;
 end;
 
@@ -1893,6 +1897,7 @@ begin
       FaceNormal := NormalsSafe(RangeNumber);
     niPerFaceNormalIndexed:
       FaceNormal := NormalsSafe(NormalIndex.ItemsSafe[RangeNumber]);
+    else ;
   end;
 end;
 

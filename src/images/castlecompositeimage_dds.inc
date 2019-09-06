@@ -954,7 +954,9 @@ var
               Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
               ReadToGrayscaleAlphaPure;
             end;
+          {$ifndef COMPILER_CASE_ANALYSIS}
           else raise EInternalError.Create('UncompressedType?');
+          {$endif}
         end;
       end { ReadUncompressed };
 
@@ -1201,7 +1203,9 @@ var
             Images.Add(ReadImage(Width, Height, Depth, 0));
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('CompositeType?');
+      {$endif}
     end;
   end { ReadImages };
 
@@ -1267,7 +1271,9 @@ procedure TDDSHandler.SaveToStream(const Stream: TStream);
           Header.Flags := Header.Flags or DDSD_DEPTH;
           Header.Depth := Depth;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('CompositeType');
+      {$endif}
     end;
 
     if Images[0] is TCastleImage then

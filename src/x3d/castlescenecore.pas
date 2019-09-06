@@ -4225,7 +4225,9 @@ begin
     ntcLight: HandleLight(TAbstractLightNode(Node));
     ntcProximitySensor: HandleProximitySensor(TProximitySensorNode(Node));
     ntcVisibilitySensor: HandleVisibilitySensor(TVisibilitySensorNode(Node));
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('HandleTransform: NodeTransformationChange?');
+    {$endif}
   end;
 end;
 

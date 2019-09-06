@@ -1904,7 +1904,9 @@ begin
       fcSphere: FrustumCullingFunc := @FrustumCulling_Sphere;
       fcBox   : FrustumCullingFunc := @FrustumCulling_Box;
       fcBoth  : FrustumCullingFunc := @FrustumCulling_Both;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SetFrustumCulling?');
+      {$endif}
     end;
   end;
 end;
@@ -1919,7 +1921,9 @@ begin
       fcSphere: OctreeFrustumCullingFunc := @FrustumCulling_Sphere;
       fcBox   : OctreeFrustumCullingFunc := @FrustumCulling_Box;
       fcBoth  : OctreeFrustumCullingFunc := @FrustumCulling_Both;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SetOctreeFrustumCulling?');
+      {$endif}
     end;
   end;
 end;

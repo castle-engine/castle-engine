@@ -127,6 +127,7 @@ type
     case TextAlign of
       hpMiddle: X := X + ((Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) / 2);
       hpRight : X := X + ( Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth));
+      else ;
     end;
     if Caret = cmVisible then
       Text := Text + CaretChar;

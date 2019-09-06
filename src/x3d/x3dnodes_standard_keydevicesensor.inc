@@ -228,6 +228,7 @@ begin
       K_Alt  : HandleSpecial(AltKey, EventAltKey);
       K_Ctrl : HandleSpecial(ControlKey, EventControlKey);
       K_Shift: HandleSpecial(ShiftKey, EventShiftKey);
+      else ;
     end;
   end;
 end;
@@ -263,6 +264,7 @@ begin
       K_Alt  : HandleSpecial(AltKey, EventAltKey);
       K_Ctrl : HandleSpecial(ControlKey, EventControlKey);
       K_Shift: HandleSpecial(ShiftKey, EventShiftKey);
+      else ;
     end;
   end;
   inherited;

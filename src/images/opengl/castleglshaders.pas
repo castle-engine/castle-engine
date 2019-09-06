@@ -705,6 +705,7 @@ begin
     gsExtension: glUniform1iARB(Location, Ord(Value));
     {$endif}
     gsStandard : glUniform1i   (Location, Ord(Value));
+    else ;
   end;
 end;
 
@@ -717,6 +718,7 @@ begin
     gsExtension: glUniform1iARB(Location, Value);
     {$endif}
     gsStandard : glUniform1i   (Location, Value);
+    else ;
   end;
 end;
 
@@ -729,6 +731,7 @@ begin
     gsExtension: glUniform2ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2iv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -741,6 +744,7 @@ begin
     gsExtension: glUniform3ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3iv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -753,6 +757,7 @@ begin
     gsExtension: glUniform4ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4iv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -765,6 +770,7 @@ begin
     gsExtension: glUniform1fARB(Location, Value);
     {$endif}
     gsStandard : glUniform1f   (Location, Value);
+    else ;
   end;
 end;
 
@@ -777,6 +783,7 @@ begin
     gsExtension: glUniform2fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2fv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -789,6 +796,7 @@ begin
     gsExtension: glUniform3fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3fv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -801,6 +809,7 @@ begin
     gsExtension: glUniform4fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4fv   (Location, 1, @Value);
+    else ;
   end;
 end;
 
@@ -813,6 +822,7 @@ begin
     gsExtension: glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value);
+    else ;
   end;
 end;
 
@@ -825,6 +835,7 @@ begin
     gsExtension: glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value);
+    else ;
   end;
 end;
 
@@ -837,6 +848,7 @@ begin
     gsExtension: glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value);
+    else ;
   end;
 end;
 
@@ -862,6 +874,7 @@ begin
       gsExtension: glUniform1ivARB(Location, Value.Count, Ints.L);
       {$endif}
       gsStandard : glUniform1iv   (Location, Value.Count, Ints.L);
+      else ;
     end;
     finally FreeAndNil(Ints) end;
 end;
@@ -876,6 +889,7 @@ begin
     gsExtension: glUniform1ivARB(Location, Value.Count, Value.L);
     {$endif}
     gsStandard : glUniform1iv   (Location, Value.Count, Value.L);
+    else ;
   end;
 end;
 
@@ -888,6 +902,7 @@ begin
     gsExtension: glUniform1fvARB(Location, Value.Count, Value.L);
     {$endif}
     gsStandard : glUniform1fv   (Location, Value.Count, Value.L);
+    else ;
   end;
 end;
 
@@ -900,6 +915,7 @@ begin
     gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.L));
+    else ;
   end;
 end;
 
@@ -912,6 +928,7 @@ begin
     gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.L));
+    else ;
   end;
 end;
 
@@ -924,6 +941,7 @@ begin
     gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.L));
+    else ;
   end;
 end;
 
@@ -936,6 +954,7 @@ begin
     gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
+    else ;
   end;
 end;
 
@@ -948,6 +967,7 @@ begin
     gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
+    else ;
   end;
 end;
 
@@ -962,6 +982,7 @@ begin
     gsExtension: glVertexAttrib1fARB(Location, Value);
     {$endif}
     gsStandard : glVertexAttrib1f   (Location, Value);
+    else ;
   end;
 end;
 
@@ -974,6 +995,7 @@ begin
     gsExtension: glVertexAttrib2fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib2fv   (Location, @Value);
+    else ;
   end;
 end;
 
@@ -986,6 +1008,7 @@ begin
     gsExtension: glVertexAttrib3fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib3fv   (Location, @Value);
+    else ;
   end;
 end;
 
@@ -998,6 +1021,7 @@ begin
     gsExtension: glVertexAttrib4fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib4fv   (Location, @Value);
+    else ;
   end;
 end;
 
@@ -1020,6 +1044,7 @@ begin
         glVertexAttrib3fv   (Location + 1, @Value.Data[1]);
         glVertexAttrib3fv   (Location + 2, @Value.Data[2]);
       end;
+    else ;
   end;
 end;
 
@@ -1044,6 +1069,7 @@ begin
         glVertexAttrib4fv   (Location + 2, @Value.Data[2]);
         glVertexAttrib4fv   (Location + 3, @Value.Data[3]);
       end;
+    else ;
   end;
 end;
 
@@ -1055,6 +1081,7 @@ begin
   case Owner.Support of
     gsExtension: glVertexAttrib4ivARB(Location, @Value);
     gsStandard : glVertexAttrib4iv   (Location, @Value);
+    else ;
   end;
 end;
 
@@ -1065,6 +1092,7 @@ begin
   case Owner.Support of
     gsExtension: glVertexAttrib4ubvARB(Location, @Value);
     gsStandard : glVertexAttrib4ubv   (Location, @Value);
+    else ;
   end;
 end;
 
@@ -1075,6 +1103,7 @@ begin
   case Owner.Support of
     gsExtension: glVertexAttrib1dARB(Location, Value);
     gsStandard : glVertexAttrib1d   (Location, Value);
+    else ;
   end;
 end;
 
@@ -1132,6 +1161,7 @@ begin
         glEnableVertexAttribArray   (Location + LocationOffset);
         glVertexAttribPointer   (Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
       end;
+    else ;
   end;
 end;
 
@@ -1183,6 +1213,7 @@ begin
         gsExtension: glDisableVertexAttribArrayARB(Location + Offset);
         {$endif}
         gsStandard : glDisableVertexAttribArray   (Location + Offset);
+        else ;
       end;
 end;
 
@@ -1203,6 +1234,7 @@ begin
     gsExtension: GLhandleARB(ProgramId) := glCreateProgramObjectARB();
     {$endif}
     gsStandard :             ProgramId  := glCreateProgram         ();
+    else ;
   end;
 
   { Program id = 0 means that an error occurred. Citing GL documentation:
@@ -1260,6 +1292,7 @@ begin
     gsExtension: glDeleteObjectARB(GLhandleARB(ProgramId));
     {$endif}
     gsStandard : glDeleteProgram  (ProgramId);
+    else ;
   end;
 
   FreeAndNil(ShaderIds);
@@ -1413,6 +1446,7 @@ function TGLSLProgram.DebugInfo: string;
               [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
+      else ;
     end;
   end;
 
@@ -1480,6 +1514,7 @@ function TGLSLProgram.DebugInfo: string;
               [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
+      else ;
     end;
   end;
 
@@ -1490,6 +1525,7 @@ function TGLSLProgram.DebugInfo: string;
       gsExtension: Result := GetInfoLogARB(ShaderId);
       {$endif}
       gsStandard : Result := GetShaderInfoLog(ShaderId);
+      else ;
     end;
   end;
 
@@ -1643,7 +1679,9 @@ begin
         gsStandard : AType := GL_FRAGMENT_SHADER    ;
         else Exit;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TGLSLProgram.AttachShader ShaderType?');
+    {$endif}
   end;
 
   case Support of
@@ -1661,6 +1699,7 @@ begin
         glAttachShader(ProgramId, ShaderId);
         ShaderIds.Add(ShaderId);
       end;
+    else ;
   end;
 
   {$ifdef CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
@@ -1725,6 +1764,7 @@ begin
         glDetachShader   (ProgramId, ShaderIds[I]);
         glDeleteShader   (ShaderIds[I]);
       end;
+    else ;
   end;
   ShaderIds.Count := 0;
 
@@ -1783,6 +1823,7 @@ begin
         if Linked <> GL_TRUE then
           ReportLinkError(GetProgramInfoLog(ProgramId));
       end;
+    else ;
   end;
 
   if LogShaders then
@@ -1836,7 +1877,9 @@ function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: 
       uaWarning  : WritelnWarning('GLSL', ErrMessage);
       uaException: raise EGLSLUniformNotFound.Create(ErrMessage);
       uaIgnore   : ;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('AUniformNotFoundAction? in TGLSLProgram.UniformNotFound');
+      {$endif}
     end;
   end;
 
@@ -2116,6 +2159,7 @@ begin
       gsExtension: glDisableVertexAttribArrayARB(Location);
       {$endif}
       gsStandard : glDisableVertexAttribArray   (Location);
+      else ;
     end;
 end;
 
@@ -2137,6 +2181,7 @@ begin
         gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
         {$endif}
         gsStandard : glUseProgram         (Value.ProgramId);
+        else ;
       end;
     end else
     begin
@@ -2156,6 +2201,7 @@ begin
           end;
         {$endif}
         gsStandard    : glUseProgram         (0);
+        else ;
       end;
     end;
   end;

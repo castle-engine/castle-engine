@@ -1632,6 +1632,7 @@ begin
   case AEnv.TextureFunction of
     tfComplement    : Result += FragmentColor + '.rgb = vec3(1.0) - ' + FragmentColor + '.rgb;';
     tfAlphaReplicate: Result += FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);';
+    else ;
   end;
 
   if AEnv.Scale[cRGB] <> 1 then
@@ -1733,7 +1734,9 @@ begin
         through TextureCoordinate4D, so we have to use texture3DProj }
       tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
       ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
+            {$endif}
     end;
 
     Code := TShaderSource.Create;
@@ -2641,7 +2644,9 @@ var
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
         fcPassedCoordinate: CoordinateSource := 'castle_FogCoord';
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogCoordinateSource?');
+        {$endif}
       end;
 
       Plug(stVertex,
@@ -2677,7 +2682,9 @@ var
             USingle.Value := FFogExpDensity;
             DynamicUniforms.Add(USingle);
           end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
+        {$endif}
       end;
 
       UColor := TDynamicUniformVec3.Create;
@@ -2923,7 +2930,9 @@ begin
     ttCubeMap       : GLEnableTexture(etCubeMap);
     tt3D            : GLEnableTexture(et3D);
     ttShader        : GLEnableTexture(etNone);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TextureEnableDisable?');
+    {$endif}
   end;
 
   { Enable for shader pipeline }
@@ -3032,7 +3041,9 @@ begin
         TextureCoordGen += Format('%s.xyz = castle_mirror_plane_tex_coords(castle_CameraInverseMatrix * castle_vertex_eye);' + NL,
           [TexCoordName]);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
+    {$endif}
   end;
 
   if TransformToWorldSpace then
@@ -3067,7 +3078,9 @@ begin
       1: glEnable(GL_TEXTURE_GEN_T);
       2: glEnable(GL_TEXTURE_GEN_R);
       3: glEnable(GL_TEXTURE_GEN_Q);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TShader.EnableTexGen:Component?');
+      {$endif}
     end;
     {$endif}
   end;
@@ -3079,7 +3092,9 @@ begin
   case Generation of
     tgEye   : begin PlaneName := 'EyePlane'   ; CoordSource := 'castle_vertex_eye'; end;
     tgObject: begin PlaneName := 'ObjectPlane'; CoordSource := 'vertex_object' ; end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
+    {$endif}
   end;
 
   PlaneName := 'castle_' + PlaneName + PlaneComponentNames[Component] +

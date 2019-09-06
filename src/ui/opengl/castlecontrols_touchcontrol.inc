@@ -280,6 +280,7 @@ begin
         Y := -FLeverOffset[1] * FxConst;
         Length := 5;
       end;
+    else ;
   end;
 end;
 

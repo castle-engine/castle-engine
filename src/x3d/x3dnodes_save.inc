@@ -454,7 +454,9 @@ begin
     case Encoding of
       xeClassic: Classic;
       xeXML:     Xml;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Saving Encoding?');
+      {$endif}
     end;
   finally FreeAndNil(Writer) end;
 end;

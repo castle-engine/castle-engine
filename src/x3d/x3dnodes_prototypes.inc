@@ -949,7 +949,9 @@ begin
   case Writer.Encoding of
     xeClassic: Writer.WriteIndent('PROTO ' + X3DName + ' ');
     xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(X3DName) + '>');
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DPrototype.SaveToStream Encoding?');
+    {$endif}
   end;
 
   if Writer.Encoding = xeXML then
@@ -976,7 +978,9 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('{');
       xeXML    : Writer.WritelnIndent('<ProtoBody>');
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TX3DPrototype.SaveToStream 2 Encoding?');
+      {$endif}
     end;
     { Node may be TX3DRootNode here, that's OK,
       TX3DRootNode.SaveToStream will magically handle this right. }
@@ -986,7 +990,9 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('}');
       xeXML    : Writer.WritelnIndent('</ProtoBody>');
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TX3DPrototype.SaveToStream 3 Encoding?');
+      {$endif}
     end;
   finally
     FreeAndNil(WriterNames.NodeNames);
@@ -1081,7 +1087,9 @@ begin
 
         Writer.WritelnIndent('</ExternProtoDeclare>');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DExternalPrototype.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 

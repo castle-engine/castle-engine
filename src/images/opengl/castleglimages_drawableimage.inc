@@ -1009,6 +1009,7 @@ procedure TDrawableImage.Draw(
           GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
           glEnable(GL_BLEND);
         end;
+      else ;
     end;
   end;
 
@@ -1019,6 +1020,7 @@ procedure TDrawableImage.Draw(
       acTest: if GLFeatures.EnableFixedFunction then glDisable(GL_ALPHA_TEST);
       {$endif not OpenGLES}
       acBlending: glDisable(GL_BLEND);
+      else ;
     end;
   end;
 
