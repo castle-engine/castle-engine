@@ -180,6 +180,7 @@ begin
   case Dialog.TextAlign of
     hpMiddle: TextX := (SR.Left + SR.Right) / 2;
     hpRight : TextX := SR.Right - Dialog.BoxMarginScaled;
+    else ;
   end;
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
