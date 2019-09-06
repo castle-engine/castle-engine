@@ -3061,7 +3061,11 @@ begin
   begin
     if AutoAnimation <> '' then
     begin
-      if not PlayAnimation(AutoAnimation, AutoAnimationLoop) then
+      if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
+        { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
+          right after loading the UI design from file. }
+        ForceInitialAnimationPose
+      else
         WritelnWarning('Animation "%s" not found on "%s"', [
           AutoAnimation,
           URIDisplay(URL)
