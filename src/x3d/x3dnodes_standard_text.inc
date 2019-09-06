@@ -821,11 +821,11 @@ begin
         DisplayChars := MaxDisplayChars;
         for I := 0 to Strings.Count - 1 do
         begin
-          if Length(Strings[I]) < DisplayChars then
+          if UTF8Length(Strings[I]) < DisplayChars then
             Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
           else
-            Print(StringPosX(I), StringPosY(I), Copy(Strings[I], 0, DisplayChars), XScale, YScale);
-          Dec(DisplayChars, Length(Strings[I]));
+            Print(StringPosX(I), StringPosY(I), UTF8Copy(Strings[I], 1, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, UTF8Length(Strings[I]));
           if DisplayChars <= 0 then
             Break;
         end;
