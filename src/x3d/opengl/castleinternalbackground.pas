@@ -584,14 +584,6 @@ begin
   else
     Scene.Attributes.WireframeEffect := weNormal;
 
-  { We always clear color,
-    - in case the background is partially-transparent,
-    - or one of the textures on 6 cube sides didn't load,
-    - or background is displayed as wireframe.
-    It's easiest to just always clear, than to detect and optimize
-    special cases. }
-  RenderContext.Clear([cbColor], ClearColor);
-
   { We don't calculate correct Frustum (accounting for the fact that camera
     is rotated but never shifted during background rendering) now.
     But also frustum culling for this would not be very useful,
@@ -710,7 +702,6 @@ var
 {$endif}
 begin
   inherited;
-  RenderContext.Clear([cbColor], Black); // in case image is partially-transparent
 
   if Image <> nil then
   begin

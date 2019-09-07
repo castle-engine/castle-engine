@@ -734,7 +734,7 @@ type
       It's your responsibility in such case to clear the depth buffer.
       E.g. place one scene manager in the back that has ClearDepth = @true.
       Or place a TCastleUserInterface descendant in the back, that calls
-      @code(TRenderContent.Clear RenderContent.Clear) in overridden
+      @code(TRenderContext.Clear RenderContext.Clear) in overridden
       @link(TCastleUserInterface.Render).
 
       Note: to disable clearning the color buffer, set @link(Transparent)
@@ -2327,36 +2327,60 @@ begin
 end;
 
 procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
-var
-  ClearBuffers: TClearBuffers;
-  ClearColor: TCastleColor;
-  UsedBackground: TBackground;
-  MainLightPosition: TVector4; { ignored }
-  SavedProjectionMatrix: TMatrix4;
-  RR: TFloatRectangle;
-begin
-  { TODO: Temporary compatibiliy cludge:
-    Because some rendering code still depends on
-    the CastleRenderingCamera.RenderingCamera singleton being initialized,
-    so initialize it from current parameter. }
-  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
-    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
 
-  { Make ClearColor anything defined.
-    If we will include cbColor in ClearBuffers, it will actually always
-    be adjusted to something appropriate. }
-  ClearColor := Black;
-  ClearBuffers := [];
-  if ClearDepth then
-    Include(ClearBuffers, cbDepth);
-
-  if RenderingCamera.Target = rtVarianceShadowMap then
+  { Call RenderContext.Clear with proper options. }
+  procedure RenderClear;
+  var
+    ClearBuffers: TClearBuffers;
+    ClearColor: TCastleColor;
+    MainLightPosition: TVector4; { ignored }
   begin
-    { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
-    Include(ClearBuffers, cbColor);
-    ClearColor := Vector4(1, 1, 0, 1);
-  end else
-  if not Transparent then
+    { Make ClearColor anything defined.
+      If we will include cbColor in ClearBuffers, it will actually always
+      be adjusted to something appropriate. }
+    ClearColor := Black;
+    ClearBuffers := [];
+
+    if ClearDepth then
+      Include(ClearBuffers, cbDepth);
+
+    if RenderingCamera.Target = rtVarianceShadowMap then
+    begin
+      { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
+      Include(ClearBuffers, cbColor);
+      ClearColor := Vector4(1, 1, 0, 1);
+    end else
+    if not Transparent then
+    begin
+      { Note that we clear cbColor regardless whether Background exists.
+        This is more reliable, in case Background rendering is transparent,
+
+        - e.g. ImageBackground can be completely transparent or partially-transparent
+          in a couple of ways. When ImageBackground.color has alpha < 1,
+          when ImageBackground.texture is transparent,
+          when ImageBackground.texture is NULL...
+
+        - likewise, Background can be transparent.
+          E.g. if one of the textures on 6 cube sides didn't load.
+          Or when BackgroundWireframe.
+      }
+      Include(ClearBuffers, cbColor);
+      ClearColor := BackgroundColor;
+    end;
+
+    if GLFeatures.ShadowVolumesPossible and
+       ShadowVolumes and
+       MainLightForShadows(MainLightPosition) then
+      Include(ClearBuffers, cbStencil);
+
+    RenderContext.Clear(ClearBuffers, ClearColor);
+  end;
+
+  procedure RenderBackground;
+  var
+    UsedBackground: TBackground;
+    SavedProjectionMatrix: TMatrix4;
+    RR: TFloatRectangle;
   begin
     UsedBackground := Background;
     if UsedBackground <> nil then
@@ -2389,19 +2413,19 @@ begin
         UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
 
       RenderingCamera.RotationOnly := false;
-    end else
-    begin
-      Include(ClearBuffers, cbColor);
-      ClearColor := BackgroundColor;
     end;
   end;
 
-  if GLFeatures.ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
-    Include(ClearBuffers, cbStencil);
+begin
+  { TODO: Temporary compatibiliy cludge:
+    Because some rendering code still depends on
+    the CastleRenderingCamera.RenderingCamera singleton being initialized,
+    so initialize it from current parameter. }
+  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
+    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
 
-  RenderContext.Clear(ClearBuffers, ClearColor);
+  RenderClear;
+  RenderBackground;
 
   if GLFeatures.EnableFixedFunction then
   begin

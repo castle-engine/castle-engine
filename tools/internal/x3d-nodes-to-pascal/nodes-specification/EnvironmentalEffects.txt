@@ -22,7 +22,7 @@ X3DFogObject {
   SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
-Background : X3DBackgroundNode {
+Background : X3D3DBackgroundNode {
   MFString [in,out] backUrl      []    [URI]
   MFString [in,out] bottomUrl    []    [URI]
   MFString [in,out] frontUrl     []    [URI]
@@ -48,7 +48,7 @@ LocalFog : X3DChildNode, X3DFogObject {
   SFFloat  [in,out] visibilityRange 0        [0,-Inf)
 }
 
-TextureBackground : X3DBackgroundNode {
+TextureBackground : X3D3DBackgroundNode {
   SFNode  [in,out] backTexture   NULL  [X3DTextureNode]
   SFNode  [in,out] bottomTexture NULL  [X3DTextureNode]
   SFNode  [in,out] frontTexture  NULL  [X3DTextureNode]
