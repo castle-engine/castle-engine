@@ -620,23 +620,23 @@ type
   TBackground2D = class(TBackground)
   strict private
     Image: TDrawableImage;
-    ImageRect: TFloatRectangle;
+    Node: TImageBackgroundNode;
+    Texture2D: TAbstractTexture2DNode;
   public
-    constructor Create(const Node: TImageBackgroundNode);
+    constructor Create(const ANode: TImageBackgroundNode);
     destructor Destroy; override;
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle); override;
   end;
 
-constructor TBackground2D.Create(const Node: TImageBackgroundNode);
+constructor TBackground2D.Create(const ANode: TImageBackgroundNode);
 var
-  Texture2D: TAbstractTexture2DNode;
   ImageCore: TEncodedImage;
-  LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
-  TexLeftBottom, TexRightTop: TVector2;
 begin
   inherited Create;
+
+  Node := ANode;
 
   if Node.Texture is TAbstractTexture2DNode then // also checks is it non-nil
     Texture2D := TAbstractTexture2DNode(Node.Texture)
@@ -649,8 +649,31 @@ begin
     ImageCore := nil;
 
   if ImageCore <> nil then
-  begin
     Image := TDrawableImage.Create(ImageCore, true { smooth scaling }, false { owns });
+end;
+
+destructor TBackground2D.Destroy;
+begin
+  FreeAndNil(Image);
+  inherited;
+end;
+
+procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean;
+  const RenderRect: TFloatRectangle);
+
+  { Apply various Node and Texture2D properties at the beginning of each Render,
+    this way we can animate them.
+    See demo-models/background/background_image_animated.x3d example. }
+  procedure UpdateImageProperties(const Image: TDrawableImage;
+    out ImageRect: TFloatRectangle);
+  var
+    LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
+    TexLeftBottom, TexRightTop: TVector2;
+  begin
+    Assert(Node <> nil); // since Image <> nil, it should be Node <> nil also
+    Assert(Texture2D <> nil); // since Image <> nil, it should be Texture2D <> nil also
+
     Image.Color := Node.Color;
     Assert(Texture2D <> nil); // since ImageCore <> nil
     Image.RepeatS := Texture2D.RepeatS;
@@ -679,19 +702,10 @@ begin
       if Texture2D.TextureProperties.MagnificationFilter = magNearest then
         Image.SmoothScaling := false;
   end;
-end;
 
-destructor TBackground2D.Destroy;
-begin
-  FreeAndNil(Image);
-  inherited;
-end;
-
-procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean;
-  const RenderRect: TFloatRectangle);
-{$ifndef OpenGLES}
 var
+  ImageRect: TFloatRectangle;
+{$ifndef OpenGLES}
   SavedProjectionMatrix: TMatrix4;
 {$endif}
 begin
@@ -709,6 +723,7 @@ begin
       {$endif}
     end;
 
+    UpdateImageProperties(Image, ImageRect);
     Image.Draw(RenderRect, ImageRect);
 
     if GLFeatures.EnableFixedFunction then
