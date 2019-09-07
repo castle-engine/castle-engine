@@ -84,7 +84,7 @@ uses SysUtils, Classes,
 
   To actually display, animate and do many other things with the loaded
   model, you usually want to load it to TCastleScene, using
-  the @link(TCastleScene.Load) method.
+  the @link(TCastleSceneCore.Load) method.
   Like this:
 
 @longCode(#

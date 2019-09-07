@@ -304,7 +304,7 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 
     { Save a particular input to a config file.
-      This creates an XML element named @link(Name) under the indicated ConfigPath
+      This creates an XML element named @code(Name) under the indicated ConfigPath
       in the config file.
 
       Note: It is often easier to group your controls in TInputShortcutList,

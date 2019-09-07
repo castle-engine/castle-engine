@@ -251,7 +251,7 @@ type
 
       Default implementation of this method in TCastleSceneManager
       returns non-nil headlight node
-      if the algorithm described at @link(UseHeadlight) and
+      if the algorithm described at @link(TCastleSceneManager.UseHeadlight) and
       @link(TUseHeadlight) indicates we should use a headlight.
       Otherwise returns @nil, to indicate we do not show a headlight now.
 
@@ -260,7 +260,7 @@ type
 
       You can override this method to determine the headlight in any other way.
       Instead of overriding this method, you can often also
-      change the @link(UseHeadlight) value,
+      change the @link(TCastleSceneManager.UseHeadlight) value,
       or @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) value. }
     function Headlight: TAbstractLightNode; virtual; abstract;
 
@@ -1190,8 +1190,8 @@ type
           (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
-          just like @link(TInputPressReleaseEvent.Position)
-          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
           when mouse is moved.
         )
 

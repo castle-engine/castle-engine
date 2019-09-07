@@ -37,9 +37,9 @@ type
       Using LogSummary for Stop instead of both easier, and safe. }
     //function Summary(const Indent: String = ''): string;
   public
-    { Elapsed time in seconds since calling @link(TProfiler.Start)
-      that returned this. Useful if you use @link(TProfiler),
-      but in addition to @link(TProfiler.Summary) you also want to show
+    { Elapsed time in seconds since calling @link(TCastleProfiler.Start)
+      that returned this. Useful if you use @link(TCastleProfiler),
+      but in addition to @link(TCastleProfiler.Summary) you also want to show
       the operation time in some other way. }
     function ElapsedTime: TFloatTime;
   end;

@@ -389,7 +389,7 @@ type
     constructor Create;
   end;
 
-  { Possible values for @link(TCastleScene.PrimitiveGeometry). }
+  { Possible values for @link(TCastleSceneCore.PrimitiveGeometry). }
   TPrimitiveGeometry = (
     pgNone,
     pgRectangle2D,

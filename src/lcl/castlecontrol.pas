@@ -53,7 +53,7 @@ type
     @link(TCastleControl.SceneManager) for your world.
 
     By default, the control is filled with simple color from
-    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
+    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
   private

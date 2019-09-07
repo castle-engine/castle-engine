@@ -557,7 +557,7 @@ type
       or alpha test (yes-or-no transparency)
       or none of it (shape is simply opaque).
 
-      This is determined looking at the @link(TShapeNode.AlphaChannel) field.
+      This is determined looking at the @link(TAppearanceNode.AlphaChannel) field.
       By default, it is acAuto, which in turn means that the final value
       of this method (which cannot be acAuto) is calculated
       looking at material, color, texture nodes data (including at texture

@@ -112,7 +112,7 @@ type
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
     You may use e.g. @link(TCastleRectangleControl)
-    or TCastleSceneManager with @link(TCastleSceneManager.Background)=true
+    or TCastleSceneManager with @link(TCastleAbstractViewport.Background)=true
     to always reliably fill the background.
   }
   TCastleScreenEffects = class(TCastleUserInterface)
