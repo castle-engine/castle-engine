@@ -625,10 +625,14 @@ begin
         Vendor: ATI Technologies Inc.
         Vendor type: ATI
         Renderer: AMD Radeon HD 8200 / R3 Series
+
+      Later: bumped to 13571 after Elmar Knittel mail,
+      https://github.com/castle-engine/view3dscene/issues/9
+      still occurs with later release.
     }
     ( (VendorType = gvATI) and
       ReleaseExists and
-      (Release <= 13492) )
+      (Release <= 13571) )
     {$else} false
     {$endif};
 end;
