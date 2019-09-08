@@ -589,14 +589,6 @@ const
   TimerFrequency: TTimerFrequency = 1000000;
 
 {$ifdef ANDROID}
-var
-  { Note that using this makes Timer not thread-safe
-    (but we neved guaranteed in the interface that it's thread-safe...).
-    This variables can be removed once everyone confirms that the
-    solution of using CLOCK_MONOTONIC is always working. }
-  LastTimer: TTimerResult;
-  LastTimerLog: TTimerResult;
-
 function Timer: TTimerResult;
 var
   tp: TimeSpec;
@@ -610,21 +602,6 @@ begin
 
   clock_gettime(CLOCK_MONOTONIC, @tp);
   Result.Value := QWord(tp.tv_sec) * 1000000 + QWord(tp.tv_nsec div 1000);
-
-  { I leave this test to check the solution of using CLOCK_MONOTONIC, but it
-    really isn't needed anymore. }
-  if Result.Value < LastTimer.Value then
-  begin
-    { Limit logs to not affect performance (one detection can make about
-      300 lines of log) }
-    if LastTimerLog.Value <> LastTimer.Value then
-    begin
-      WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
-      LastTimerLog.Value := LastTimer.Value;
-    end;
-    Result.Value := LastTimer.Value;
-  end else
-    LastTimer.Value := Result.Value;
 end;
 
 {$else}
