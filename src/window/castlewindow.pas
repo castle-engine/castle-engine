@@ -4654,7 +4654,9 @@ end;
 
 procedure TCastleWindow.Load(const SceneURL: string);
 begin
+  {$warnings off} // using one deprecated from another
   Load(Load3D(SceneURL, false), true);
+  {$warnings on}
 end;
 
 procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
@@ -4671,8 +4673,8 @@ begin
   SceneManager.Items.Add(SceneManager.MainScene);
 
   { initialize octrees titles }
-  MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   { just to make our Navigation always non-nil }
   SceneManager.RequiredNavigation;

@@ -2289,8 +2289,10 @@ begin
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
   Result.ProjectionFar := Camera.ProjectionFar;
+  {$warnings off} // using deprecated to keep it working
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := DefaultVisibilityLimit;
+  {$warnings on}
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := GetDefaultProjectionFar;
   Assert(Result.ProjectionFar > 0);

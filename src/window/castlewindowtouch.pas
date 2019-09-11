@@ -167,7 +167,7 @@ procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchInterface);
   end;
 
 var
-  WalkCamera: TWalkCamera;
+  WalkNavigation: TCastleWalkNavigation;
 
   procedure UpdateTouchControllers(
     const MouseDragMode: TMouseDragMode;
@@ -177,8 +177,8 @@ var
   begin
     UpdateTouchController(false, LeftVisible , LeftMode);
     UpdateTouchController(true , RightVisible, RightMode);
-    if WalkCamera <> nil then
-      WalkCamera.MouseDragMode := MouseDragMode;
+    if WalkNavigation <> nil then
+      WalkNavigation.MouseDragMode := MouseDragMode;
   end;
 
 begin
@@ -186,7 +186,7 @@ begin
   begin
     FTouchInterface := Value;
 
-    WalkCamera := SceneManager.WalkCamera(false);
+    WalkNavigation := SceneManager.WalkNavigation(false);
 
     case Value of
       tiNone:
@@ -210,7 +210,7 @@ procedure TCastleWindowTouch.UpdateAutomaticTouchInterface;
 begin
   if AutomaticTouchInterface then
   begin
-    case NavigationType of
+    case SceneManager.NavigationType of
       ntNone:      TouchInterface := tiNone;
       ntWalk:      TouchInterface := FAutomaticWalkTouchCtl;
       ntFly:       TouchInterface := tiCtlFlyCtlWalkDragRotate;
