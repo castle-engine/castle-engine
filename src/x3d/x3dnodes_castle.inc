@@ -664,7 +664,9 @@ begin
     opDynamicCollisions: N := FdOctreeDynamicCollisions  .Value;
     opVisibleTriangles : N := FdOctreeVisibleTriangles   .Value;
     opStaticCollisions : N := FdOctreeStaticCollisions.Value;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TKambiOctreePropertiesNode.OctreeProperties');
+    {$endif}
   end;
   if N is TKambiOctreePropertiesNode then
     Result := TKambiOctreePropertiesNode(N) else

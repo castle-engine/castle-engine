@@ -592,7 +592,9 @@ var
                 Result := 0;
       fjMiddle: Result := - TextWidths.Items[I] / 2;
       fjEnd   : Result := - TextWidths.Items[I];
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('StringPosX: Invalid font Justify value');
+      {$endif}
     end;
   end;
 
@@ -603,7 +605,9 @@ var
       fjBegin : Result := - (I + 1);
       fjMiddle: Result := Strings.Count / 2 - (I + 1);
       fjEnd   : Result := Strings.Count     - (I + 1);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('StringPosY: Invalid font JustifyMinor value');
+      {$endif}
     end;
     Result := Result * (Font.RowHeight * Spacing);
   end;
@@ -641,14 +645,18 @@ var
                   Origin[0] := 0;
         fjMiddle: Origin[0] := -MaxTextWidth * XScale / 2;
         fjEnd   : Origin[0] := -MaxTextWidth * XScale    ;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
+        {$endif}
       end;
       case JustifyMinor of
         fjFirst : Origin[1] := -FinalRowHeight;
         fjBegin : Origin[1] := 0;
         fjMiddle: Origin[1] := -FinalRowHeight * Strings.Count / 2;
         fjEnd   : Origin[1] := -FinalRowHeight * Strings.Count;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
+        {$endif}
       end;
       EventOrigin.Send(Origin, OriginalNode.Scene.NextEventTime);
 
@@ -671,7 +679,9 @@ var
               for I := 0 to TextWidths.Count - 1 do
                 LineBounds.Items.List^[I] := Vector2(
                   MaxTextWidth * XScale, FinalRowHeight);
+            {$ifndef COMPILER_CASE_ANALYSIS}
             else raise EInternalError.Create('Invalid font justify value');
+            {$endif}
           end;
 
           EventLineBounds.Send(LineBounds, OriginalNode.Scene.NextEventTime);
@@ -811,11 +821,11 @@ begin
         DisplayChars := MaxDisplayChars;
         for I := 0 to Strings.Count - 1 do
         begin
-          if Length(Strings[I]) < DisplayChars then
+          if UTF8Length(Strings[I]) < DisplayChars then
             Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
           else
-            Print(StringPosX(I), StringPosY(I), Copy(Strings[I], 0, DisplayChars), XScale, YScale);
-          Dec(DisplayChars, Length(Strings[I]));
+            Print(StringPosX(I), StringPosY(I), UTF8Copy(Strings[I], 1, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, UTF8Length(Strings[I]));
           if DisplayChars <= 0 then
             Break;
         end;
@@ -942,7 +952,9 @@ begin
       if Italic then
         Result := TextureFont_DejaVuSansMonoOblique_20 else
         Result := TextureFont_DejaVuSansMono_20;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('GetFont:Family?');
+    {$endif}
   end;
 {$else}
 begin

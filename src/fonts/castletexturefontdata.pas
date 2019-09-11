@@ -96,7 +96,7 @@ type
 
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
     procedure CalculateFallbackGlyph;
-    procedure MakeFallbackWarning(const C:TUnicodeChar);
+    procedure MakeFallbackWarning(const C: TUnicodeChar);
   public
     { Create by reading a FreeType font file, like ttf.
 
@@ -532,12 +532,12 @@ begin
   end;
 end;
 
-procedure TTextureFontData.MakeFallbackWarning(const C:TUnicodeChar);
+procedure TTextureFontData.MakeFallbackWarning(const C: TUnicodeChar);
 begin
   if FallbackGlyphWarnings < MaxFallbackGlyphWarnings then
   begin
     Inc(FallbackGlyphWarnings);
-    WritelnWarning('Font is missing glyph for character %s (UTF-8 number %d)',
+    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)',
       [UnicodeToUTF8(C), C]);
     if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
       WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');

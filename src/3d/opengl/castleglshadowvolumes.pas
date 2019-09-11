@@ -581,7 +581,9 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         ssFrontAndBack: SetStencilOpSeparate;
         ssFront: SetStencilOpForFront;
         ssBack: SetStencilOpForBack;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('shadowvolumes.pas 456');
+        {$endif}
       end;
     end;
 

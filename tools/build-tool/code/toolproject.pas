@@ -339,7 +339,7 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
-    DefaultAndroidCompileSdkVersion = 27;
+    DefaultAndroidCompileSdkVersion = 28;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
       for reasons behind this minimal version. }

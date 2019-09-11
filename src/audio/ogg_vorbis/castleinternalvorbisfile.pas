@@ -97,7 +97,11 @@ function ov_serialnumber(Vf: POggVorbis_File; i: CInt): CLong; cdecl; external;
 
 function ov_raw_total(Vf: POggVorbis_File; i: CInt): Int64; cdecl; external;
 function ov_pcm_total(Vf: POggVorbis_File; i: CInt): Int64; cdecl; external;
-function ov_time_total(Vf: POggVorbis_File; i: CInt): Double; cdecl; external;
+{ Returns Int64 on Tremolo, Double on VorbisFile.
+  Compare
+  https://xiph.org/vorbis/doc/vorbisfile/ov_time_total.html
+  https://svn.xiph.org/trunk/Tremor/doc/ov_time_total.html . }
+function ov_time_total(Vf: POggVorbis_File; i: CInt): {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif}; cdecl; external;
 
 function ov_raw_seek(Vf: POggVorbis_File; pos: Int64): CInt; cdecl; external;
 function ov_pcm_seek(Vf: POggVorbis_File; pos: Int64): CInt; cdecl; external;
@@ -134,7 +138,7 @@ var
 
   ov_raw_total: function (Vf: POggVorbis_File; i: CInt): Int64; cdecl;
   ov_pcm_total: function (Vf: POggVorbis_File; i: CInt): Int64; cdecl;
-  ov_time_total: function (Vf: POggVorbis_File; i: CInt): Double; cdecl;
+  ov_time_total: function (Vf: POggVorbis_File; i: CInt): {$ifdef CASTLE_TREMOLO} Int64 {$else} Double {$endif}; cdecl;
 
   ov_raw_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl;
   ov_pcm_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl;

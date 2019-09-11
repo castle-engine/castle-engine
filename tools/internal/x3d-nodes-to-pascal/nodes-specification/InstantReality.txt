@@ -100,3 +100,9 @@ CommonSurfaceShader :  X3DShaderNode {
 
   MFBool          []           textureTransformEnabled          [FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE]
 }
+
+ImageBackground : X3DBackgroundNode {
+  SFColorRGBA [in,out] color     1 1 1 1
+  SFNode      [in,out] texture   NULL                    # [X3DTextureNode]
+  MFVec2f     [in,out] texCoords [ 0 0, 1 0, 1 1, 0 1 ]
+}

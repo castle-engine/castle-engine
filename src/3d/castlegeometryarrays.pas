@@ -571,7 +571,9 @@ begin
     2: AddTexCoord2D(NewTextureUnit);
     3: AddTexCoord3D(NewTextureUnit);
     4: AddTexCoord4D(NewTextureUnit);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TexCoords[ExistingTextureUnit].Dimensions?');
+    {$endif}
   end;
 end;
 

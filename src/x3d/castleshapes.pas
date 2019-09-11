@@ -557,7 +557,7 @@ type
       or alpha test (yes-or-no transparency)
       or none of it (shape is simply opaque).
 
-      This is determined looking at the @link(TShapeNode.AlphaChannel) field.
+      This is determined looking at the @link(TAppearanceNode.AlphaChannel) field.
       By default, it is acAuto, which in turn means that the final value
       of this method (which cannot be acAuto) is calculated
       looking at material, color, texture nodes data (including at texture
@@ -1219,14 +1219,12 @@ begin
     Node.InternalSceneShape := nil
   else
   begin
-    {$ifdef DEBUG}
-    //Assert(Node.InternalSceneShape <> nil);
     if Node.InternalSceneShape = nil then
     begin
-      raise EInternalError.CreateFmt('Calling %s.UnAssociateNode on X3D node that is already not associated with anything: %s',
+      WritelnWarning('Calling %s.UnAssociateNode on X3D node that is already not associated with anything: %s. This can happen when you manually change nodes.',
         [ClassName, Node.NiceName]);
+      Exit;
     end;
-    {$endif}
     Assert(Node.InternalSceneShape is TShapeTreeList);
     if TShapeTreeList(Node.InternalSceneShape).Count = 1 then
     begin
@@ -2627,7 +2625,9 @@ var
              TexCoord.Data[1] := Arrays.TexCoord4D(0, VI2)^;
              TexCoord.Data[2] := Arrays.TexCoord4D(0, VI3)^;
            end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at TShape.localtriangulate');
+        {$endif}
       end;
     end else
       TexCoord := UnknownTexCoord;

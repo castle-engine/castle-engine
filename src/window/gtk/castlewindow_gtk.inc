@@ -546,6 +546,7 @@ SIGNAL_WINDOW_BEGIN
             keyTab      : KeyString := CharTab;
             keyBackSpace: KeyString := CharBackSpace;
             keyDelete   : KeyString := CharDelete;
+            else ;
           end;
 
         DoKeyDown(Key, KeyString);
@@ -628,7 +629,9 @@ SIGNAL_GLAREA_BEGIN
     GDK_SCROLL_DOWN: DoMouseWheel(-1, true);
     GDK_SCROLL_LEFT: DoMouseWheel( 1, false);
     GDK_SCROLL_RIGHT:DoMouseWheel(-1, false);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction');
+    {$endif}
   end;
   Result := g_true;
 SIGNAL_GLAREA_END;

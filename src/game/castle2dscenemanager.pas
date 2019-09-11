@@ -119,8 +119,8 @@ type
           (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
-          just like @link(TInputPressReleaseEvent.Position)
-          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
           when mouse is moved.
         )
 

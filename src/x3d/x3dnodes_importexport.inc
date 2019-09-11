@@ -119,7 +119,9 @@ begin
           Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ImportedNodeAlias)));
         Writer.Writeln(' />');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DImport.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 
@@ -184,7 +186,9 @@ begin
           Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ExportedNodeAlias)));
         Writer.Writeln(' />');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DExport.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 

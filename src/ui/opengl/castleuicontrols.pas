@@ -469,9 +469,8 @@ type
       We call UI sizes "scaled" when they are expressed in real device pixels,
       because they are usually calculated as "desired size * UIScaling".
       So the UI size is "unscaled" when it's expressed in your "desired size".
-      We usually don't use the prefix "unscaled" (e.g. @link(TCastleButton.Width)
-      is "unscaled" by we don't call it "UnscaledWidth"; every property inside
-      TCastleButton is actually "unscaled"). But here, we use prefix "unscaled",
+      We usually don't use the prefix "unscaled" (e.g. @link(TCastleUserInterface.Width)
+      is "unscaled" by we don't call it "UnscaledWidth"). But here, we use prefix "unscaled",
       because the @link(TUIContainer.Width) is (for historic reasons) the "real" size.
 
       @seealso UnscaledHeight }
@@ -674,7 +673,7 @@ type
       read FForceCaptureInput write SetForceCaptureInput;
 
     { When this is not mcDefault, it sets the cursor, regardless of
-      cursor specified at the @link(TCastleUserInterface.Cursor) value of
+      cursor specified at the @link(TInputListener.Cursor) value of
       the focused control. It even takes precedence over any control using
       mcForceNone (so it can force the cursor to be visible anyway). }
     property OverrideCursor: TMouseCursor read FOverrideCursor write FOverrideCursor
@@ -768,7 +767,7 @@ type
         @item(or use @link(TCastleSceneManager) with
           @link(TCastleUserInterface.FullSize) = @true and
           @link(TCastleAbstractViewport.Transparent) = @false and set
-          @link(TCastleSceneManager.BackgroundColor) as desired,)
+          @link(TCastleAbstractViewport.BackgroundColor) as desired,)
 
         @item(eventually you can also call
           @link(TRenderContext.Clear RenderContext.Clear)
@@ -859,12 +858,12 @@ type
       The events PreviewPress and PreviewRelease are passed first to
       the parent control, before children have a chance to process this event.
       Overriding them makes sense if you draw something
-      in @link(RenderOverChildren).
+      in @link(TCastleUserInterface.RenderOverChildren).
 
       The events Press and Release are passed to the parent only
       after the children had a chance to process this event.
       Overriding them makes sense if you draw something
-      in @link(Render). This is usually more natural, and adviced.
+      in @link(TCastleUserInterface.Render). This is usually more natural, and adviced.
 
       @groupBegin *)
     function Press(const Event: TInputPressRelease): boolean; virtual;
@@ -3420,7 +3419,9 @@ begin
         //    Width, Height,
         //    Result, Width / Result, Height / Result]);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('UIScaling unknown');
+    {$endif}
   end;
 end;
 
@@ -5081,7 +5082,9 @@ begin
         if Container <> nil then UnregisterContainer(C, FContainer);
         C.RemoveFreeNotification(FCaptureFreeNotifications);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TChildrenControls.Notify action?');
+    {$endif}
   end;
 
   { This notification may get called during FreeAndNil(FControls)

@@ -116,7 +116,9 @@ begin
     vsNormalBinding     : Result := NormalBinding     ;
     vsTexture2          : Result := Texture2          ;
     vsTextureCoordinate2: Result := TextureCoordinate2;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TVRML1State.GetNode: StateNode?');
+    {$endif}
   end;
 end;
 
@@ -133,7 +135,9 @@ begin
     vsNormalBinding     : TX3DNode(NormalBinding     ) := Node;
     vsTexture2          : TX3DNode(Texture2          ) := Node;
     vsTextureCoordinate2: TX3DNode(TextureCoordinate2) := Node;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TVRML1State.SetNode: StateNode?');
+    {$endif}
   end;
 end;
 

@@ -2215,7 +2215,9 @@ begin
   case Interpolation of
     riNearest : MakeLine := @MakeLineNearest;
     riBilinear: MakeLine := @MakeLineBilinear;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
+    {$endif}
   end;
 
 {$else}
@@ -2979,8 +2981,10 @@ begin
     tcASTC_12x12_RGBA, tcASTC_12x12_SRGB8_ALPHA8:
       FSize := FDepth * DivRoundUp(FWidth, 12) * DivRoundUp(FHeight, 12) * 16;
 
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
       [TextureCompressionInfo[Compression].Name]);
+    {$endif}
   end;
 
   FRawPixels := GetMem(FSize);
@@ -4600,7 +4604,9 @@ begin
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
           end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
+        {$endif}
       end;
     end else
     begin
@@ -4791,7 +4797,9 @@ begin
             Save(Img, Stream) else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SaveImage: SavedClasses?');
+      {$endif}
     end;
   end else
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);

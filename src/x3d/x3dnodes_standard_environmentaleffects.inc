@@ -26,6 +26,26 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
+
+    { Shaders used to render background geometry. }
+    strict private FFdShaders: TMFNodeShaders;
+    public property FdShaders: TMFNodeShaders read FFdShaders;
+
+    { Shader effects (see https://castle-engine.io/compositing_shaders.php)
+      used to render background geometry. }
+    strict private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
+
+    { Extract only rotation (axis-angle format) from the transformation. }
+    function TransformRotation: TVector4;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
+  end;
+
+  { Abstract type from which 3D backgrounds inherit. }
+  TAbstract3DBackgroundNode = class(TAbstractBackgroundNode)
+  public
+    procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Texture node for given background side.
@@ -53,15 +73,7 @@
     strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
-
-    function TransformRotation: TMatrix4;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
+    {$I auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc}
   end;
 
   TFogTypeOrNone = (ftLinear, ftExp, ftNone);
@@ -92,7 +104,7 @@
 
   { 3D background of a scene, comprised of sky and ground colors (gradients)
     and optional six textures (skybox). }
-  TBackgroundNode = class(TAbstractBackgroundNode)
+  TBackgroundNode = class(TAbstract3DBackgroundNode)
   public
     procedure CreateNode; override;
 
@@ -257,7 +269,7 @@
     and optional six textures (skybox), with flexible texture nodes.
     This is somewhat more flexible version of the @link(TBackgroundNode),
     with this you can use e.g. @link(TMovieTextureNode) as the skybox textures. }
-  TTextureBackgroundNode = class(TAbstractBackgroundNode)
+  TTextureBackgroundNode = class(TAbstract3DBackgroundNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -288,7 +300,61 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TAbstractBackgroundNode ---------------------------------------------------- }
+
 procedure TAbstractBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
+   FdShaders.ChangesAlways := [chEverything];
+  AddField(FFdShaders);
+
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
+   FdEffects.ChangesAlways := [chEverything];
+  AddField(FFdEffects);
+
+  DefaultContainerField := 'children';
+
+  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+end;
+
+function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+begin
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FFdEffects.Enumerate(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdShaders.Enumerate(Func);
+  if Result <> nil then Exit;
+end;
+
+procedure TAbstractBackgroundNode.EventSet_BindReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+begin
+  if Scene <> nil then
+  begin
+    Scene.GetBackgroundStack.Set_Bind(Self, (Value as TSFBool).Value);
+    { Background is something visible, so we must actually redisplay
+      for user to see the new scene. This is not done by Set_Bind method
+      automatically, as this is specific to Background node. }
+    Scene.VisibleChangeHere([vcVisibleNonGeometry]);
+  end;
+end;
+
+function TAbstractBackgroundNode.TransformRotation: TVector4;
+var
+  IgnoreTranslation, IgnoreScale: TVector3;
+begin
+  MatrixDecompose(Transform, IgnoreTranslation, Result, IgnoreScale);
+end;
+
+{ TAbstract3DBackgroundNode -------------------------------------------------- }
+
+procedure TAbstract3DBackgroundNode.CreateNode;
 begin
   inherited;
 
@@ -318,59 +384,14 @@ begin
    FdTransparency.ChangesAlways := [chBackground];
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
-
-  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangesAlways := [chEverything];
-  AddField(FFdShaders);
-
-  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangesAlways := [chEverything];
-  AddField(FFdEffects);
-
-  DefaultContainerField := 'children';
-
-  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
-function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
-begin
-  Result := inherited;
-  if Result <> nil then Exit;
-
-  Result := FFdShaders.Enumerate(Func);
-  if Result <> nil then Exit;
-end;
-
-procedure TAbstractBackgroundNode.EventSet_BindReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-begin
-  if Scene <> nil then
-  begin
-    Scene.GetBackgroundStack.Set_Bind(Self, (Value as TSFBool).Value);
-    { Background is something visible, so we must actually redisplay
-      for user to see the new scene. This is not done by Set_Bind method
-      automatically, as this is specific to Background node. }
-    Scene.VisibleChangeHere([vcVisibleNonGeometry]);
-  end;
-end;
-
-function TAbstractBackgroundNode.TransformationChange: TNodeTransformationChange;
+function TAbstract3DBackgroundNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcBackground;
 end;
 
-function TAbstractBackgroundNode.TransformRotation: TMatrix4;
-begin
-  Result := Transform;
-
-  { TODO: We should extract here only rotation from BgTransform matrix.
-    Below is a very hacky way of at least cancelling the translation.
-    This will work OK for any rigid body matrix, i.e. composed only from
-    rotation and translation. }
-  Result.Data[3, 0] := 0;
-  Result.Data[3, 1] := 0;
-  Result.Data[3, 2] := 0;
-end;
+{ TBackgroundNode ------------------------------------------------------------ }
 
 procedure TBackgroundNode.CreateNode;
 begin
@@ -438,7 +459,9 @@ begin
     bsLeft  : TextureField := FdLeftUrl;
     bsRight : TextureField := FdRightUrl;
     bsTop   : TextureField := FdTopUrl;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Items.Count <> 0 then
   begin
@@ -448,6 +471,8 @@ begin
   end else
     Result := nil;
 end;
+
+{ TFogNode ------------------------------------------------------------------- }
 
 procedure TFogNode.CreateNode;
 begin
@@ -592,6 +617,7 @@ var
     case AFogType of
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+      ftNone  : F := 1;
     end;
     Color := Lerp(F, FdColor.Value, Color);
   end;
@@ -644,6 +670,8 @@ begin
   end;
 end;
 
+{ TFogCoordinateNode --------------------------------------------------------- }
+
 procedure TFogCoordinateNode.CreateNode;
 begin
   inherited;
@@ -665,6 +693,8 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
 end;
+
+{ TLocalFogNode -------------------------------------------------------------- }
 
 procedure TLocalFogNode.CreateNode;
 begin
@@ -770,6 +800,8 @@ begin
   end;
 end;
 
+{ TTextureBackgroundNode ----------------------------------------------------- }
+
 procedure TTextureBackgroundNode.CreateNode;
 begin
   inherited;
@@ -806,7 +838,9 @@ begin
     bsLeft  : TextureField := FdLeftTexture;
     bsRight : TextureField := FdRightTexture;
     bsTop   : TextureField := FdTopTexture;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Value is TAbstractTextureNode then
     Result := TAbstractTextureNode(TextureField.Value) else
@@ -823,6 +857,8 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
 end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterEnvironmentalEffectsNodes;
 begin

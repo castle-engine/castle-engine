@@ -57,7 +57,7 @@ begin
   if DetectAndroidCPUSCached = [] then
   begin
     DetectAndroidCPUSCached := [Arm];
-    if FPCVersion.AtLeast(3, 3, 1) then
+    if FPCVersion.AtLeast(3, 2, 0) then
       Include(DetectAndroidCPUSCached, Aarch64)
     else
       WritelnWarning('FPC version ' + FPCVersion.ToString + ' does not support compiling for 64-bit Android (Aarch64). Resulting APK will only support 32-bit Android devices.');

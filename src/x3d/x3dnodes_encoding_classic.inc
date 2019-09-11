@@ -89,6 +89,7 @@ begin
       vtOpenSqBracket: Inc(LevelSqBracket);
       vtCloseSqBracket: Dec(LevelSqBracket);
       vtEnd: raise EX3DParserError.Create(Lexer, 'Unexpected end of stream');
+      else ;
     end;
     Lexer.NextToken;
   end;

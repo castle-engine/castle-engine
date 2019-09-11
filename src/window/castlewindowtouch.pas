@@ -199,7 +199,9 @@ begin
         UpdateTouchControllers(mdRotate, true, true, ctcmFlyUpdown, ctcmWalking);
       tiCtlPanXYDragRotate:
         UpdateTouchControllers(mdRotate, false, true, ctcmPanXY, ctcmPanXY);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Value unhandled in SetTouchInterface');
+      {$endif}
     end;
   end;
 end;
@@ -214,7 +216,9 @@ begin
       ntFly:       TouchInterface := tiCtlFlyCtlWalkDragRotate;
       ntExamine:   TouchInterface := FAutomaticExamineTouchCtl;
       ntTurntable: TouchInterface := FAutomaticExamineTouchCtl;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleWindowTouch.UpdateAutomaticTouchInterface not implemented for this NavigationType value');
+      {$endif}
     end;
   end;
 end;

@@ -2413,8 +2413,8 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item575>
       <Item576>
-        <Filename Value="../src/x3d/opengl/castlebackground.pas"/>
-        <UnitName Value="CastleBackground"/>
+        <Filename Value="../src/x3d/opengl/castleinternalbackground.pas"/>
+        <UnitName Value="CastleInternalBackground"/>
       </Item576>
       <Item577>
         <Filename Value="../src/x3d/opengl/castleglcubemaps.pas"/>

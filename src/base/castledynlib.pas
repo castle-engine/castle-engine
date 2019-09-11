@@ -229,7 +229,9 @@ begin
       seRaise: raise EDynLibError.Create(ErrStr);
       seReturnNil: ;
       seWarnAndReturnNil: WarningWrite(ErrStr);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SymbolErrorBehaviour=?');
+      {$endif}
     end;
 end;
 

@@ -698,7 +698,9 @@ begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
     xeXML    : Result := StringToX3DXmlMulti(Items[ItemNum]);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
+    {$endif}
   end;
 end;
 

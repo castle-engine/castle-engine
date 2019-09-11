@@ -349,7 +349,9 @@ var
       TPasGLTF.TMaterial.TAlphaMode.Opaque: AlphaChannel := acNone;
       TPasGLTF.TMaterial.TAlphaMode.Blend : AlphaChannel := acBlending;
       TPasGLTF.TMaterial.TAlphaMode.Mask  : AlphaChannel := acTest;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected glTF Material.AlphaMode value');
+      {$endif}
     end;
     Result.AlphaChannel := AlphaChannel;
 
@@ -802,7 +804,9 @@ type
           AccessorToRotation(Sampler.Output, InterpolateRotation.FdKeyValue, false);
           TargetField := Node.FdRotation;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ReadSampler - Path?');
+      {$endif}
     end;
 
     Interpolator.X3DName := 'Animate_' + TargetField.X3DName + '_' + TimeSensor.X3DName;
@@ -870,13 +874,17 @@ type
                     InterpolateRotation.FdKeyValue.Items[3 * I + 1];
                 InterpolateRotation.FdKeyValue.Count := InterpolateRotation.FdKeyValue.Count div 3;
               end;
+            {$ifndef COMPILER_CASE_ANALYSIS}
             else raise EInternalError.Create('ReadSampler - Path?');
+            {$endif}
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else
         begin
           WritelnWarning('Given animation interpolation is not supported');
         end;
+      {$endif}
     end;
 
     // TODO: reset fields not used by this animation, but possibly changed by others?

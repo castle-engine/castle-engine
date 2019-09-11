@@ -24,7 +24,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, CastleSceneCore, CastleRenderer, CastleBackground,
+  CastleUtils, CastleSceneCore, CastleRenderer, CastleInternalBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
@@ -1904,7 +1904,9 @@ begin
       fcSphere: FrustumCullingFunc := @FrustumCulling_Sphere;
       fcBox   : FrustumCullingFunc := @FrustumCulling_Box;
       fcBoth  : FrustumCullingFunc := @FrustumCulling_Both;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SetFrustumCulling?');
+      {$endif}
     end;
   end;
 end;
@@ -1919,7 +1921,9 @@ begin
       fcSphere: OctreeFrustumCullingFunc := @FrustumCulling_Sphere;
       fcBox   : OctreeFrustumCullingFunc := @FrustumCulling_Box;
       fcBoth  : OctreeFrustumCullingFunc := @FrustumCulling_Both;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SetOctreeFrustumCulling?');
+      {$endif}
     end;
   end;
 end;
@@ -2029,15 +2033,8 @@ begin
     InvalidateBackground;
 
   if BackgroundStack.Top <> nil then
-  begin
-    // WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
-    //   [BackgroundSkySphereRadius]));
-
-    { In the future we could use FBackground.Update without recreating
-      the instance. }
-    FBackground := TBackground.Create;
-    FBackground.Update(BackgroundStack.Top, BackgroundSkySphereRadius);
-  end else
+    FBackground := CreateBackground(BackgroundStack.Top, BackgroundSkySphereRadius)
+  else
     FBackground := nil;
 
   FBackgroundNode := BackgroundStack.Top;
@@ -2056,7 +2053,7 @@ begin
     TAbstractBackgroundNode may be supported. }
   BackgroundNode := BackgroundStack.Top;
   if (BackgroundNode <> nil) and (Result <> nil) then
-    Result.UpdateTransform(BackgroundNode.TransformRotation);
+    Result.UpdateRotation(BackgroundNode.TransformRotation);
 end;
 
 function TCastleScene.Attributes: TSceneRenderingAttributes;

@@ -51,7 +51,7 @@ type
     BtnCanPress : array[ 0..31 ] of Boolean;
   end;
 
-  { Properties of a given joystick, use through @link(TJoysticks.Joystick).
+  { Properties of a given joystick, use by accessing @link(TJoysticks.Items Joysticks[Index]).
     Do not construct instances of this yourself, TJoysticks creates
     this automatically when necessary. }
   TJoystick = class

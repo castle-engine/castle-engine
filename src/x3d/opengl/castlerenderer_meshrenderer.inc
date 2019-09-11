@@ -205,7 +205,9 @@ var
         atMatrix3: A.EnableArrayMatrix3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
         atMatrix4: A.EnableArrayMatrix4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
+        {$endif}
       end;
       Attribs.Add(A);
     end;
@@ -336,6 +338,7 @@ begin
                 in castlearraysgenerator_rendering.inc . }
               CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
             end;
+          else ;
         end;
 
         if Arrays.HasFogCoord then
@@ -372,6 +375,7 @@ begin
               Assert(Arrays.HasDefaultColor);
               glColorv(Arrays.DefaultColor);
             end;
+          else ;
         end;
 
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then

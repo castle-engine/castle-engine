@@ -91,6 +91,9 @@ type
     function GetKey(const AIndex: Cardinal): String;
     function GetValue(const AIndex: Cardinal): String;
   public
+    constructor Create(const Stream: TStream);
+    constructor Create(const Url: String);
+
     property Count: Cardinal read StringCount;
     property Keys[const AIndex: Cardinal]: String read GetKey;
     property Values[const AIndex: Cardinal]: String read GetValue;
@@ -107,6 +110,7 @@ type
 
 { Load GetText MO file from and URL. }
 function LoadGetTextMo(const Url: String): TCastleMOFile;
+  deprecated 'use TCastleMOFile.Create';
 
 { Extract from MO file all unique characters in translated strings,
   add them to Characters. }
@@ -268,13 +272,8 @@ end;
 { LoadGetTextMo -------------------------------------------------------------- }
 
 function LoadGetTextMo(const Url: String): TCastleMOFile;
-var
-  S: TStream;
 begin
-  S := Download(Url);
-  try
-    Result := TCastleMOFile.Create(S);
-  finally FreeAndNil(S) end;
+  Result := TCastleMOFile.Create(Url);
 end;
 
 { AddTranslatedCharacters ---------------------------------------------------- }
@@ -284,7 +283,7 @@ var
   Mo: TCastleMOFile;
   I: Integer;
 begin
-  Mo := LoadGetTextMo(Url);
+  Mo := TCastleMOFile.Create(Url);
   try
     for I := 0 to Mo.Count - 1 do
       Characters.Add(Mo.Values[I]);
@@ -306,7 +305,7 @@ end;
 procedure TranslateAllDesigns(const GetTextMoUrl: String);
 begin
   FreeAndNil(TranslateAllDesignsMo);
-  TranslateAllDesignsMo := LoadGetTextMo(GetTextMoUrl);
+  TranslateAllDesignsMo := TCastleMOFile.Create(GetTextMoUrl);
   OnInternalTranslateDesign := @TranslateDesignCallback;
 end;
 
@@ -356,13 +355,28 @@ procedure CastleTranslateResourceStrings(const GetTextMoUrl: String);
 var
   Mo: TCastleMOFile;
 begin
-  Mo := LoadGetTextMo(GetTextMoUrl);
+  Mo := TCastleMOFile.Create(GetTextMoUrl);
   try
     TranslateResourceStrings(Mo);
   finally FreeAndNil(Mo) end;
 end;
 
 { TCastleMOFile ------------------------------------------------------------ }
+
+constructor TCastleMOFile.Create(const Stream: TStream);
+begin
+  inherited Create(Stream);
+end;
+
+constructor TCastleMOFile.Create(const Url: String);
+var
+  S: TStream;
+begin
+  S := Download(Url);
+  try
+    Create(S);
+  finally FreeAndNil(S) end;
+end;
 
 function TCastleMOFile.GetKey(const AIndex: Cardinal): String;
 begin
