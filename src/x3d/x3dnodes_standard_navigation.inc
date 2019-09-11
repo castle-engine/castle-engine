@@ -1308,7 +1308,9 @@ begin
         Result.Data[1] := FieldOfView;
         CalculateFovWidth;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('ViewpointAngleOfView-FieldOfViewAxis?');
+    {$endif}
   end;
 end;
 
