@@ -300,6 +300,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Assign(Source: TPersistent); override;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -2246,6 +2247,36 @@ begin
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
+end;
+
+procedure TCastleCamera.Assign(Source: TPersistent);
+var
+  SourceCamera: TCastleCamera;
+begin
+  if Source is TCastleCamera then
+  begin
+    SourceCamera := TCastleCamera(Source);
+
+    { Copies non-temporary properties (in particular, the published properties). }
+    GravityUp := SourceCamera.GravityUp;
+    SetInitialView(
+      SourceCamera.InitialPosition,
+      SourceCamera.InitialDirection,
+      SourceCamera.InitialUp,
+      false);
+    SetView(SourceCamera.Position, SourceCamera.Direction, SourceCamera.Up);
+    ProjectionNear              := SourceCamera.ProjectionNear;
+    ProjectionFar               := SourceCamera.ProjectionFar;
+    ProjectionType              := SourceCamera.ProjectionType;
+    Perspective.FieldOfView     := SourceCamera.Perspective.FieldOfView;
+    Perspective.FieldOfViewAxis := SourceCamera.Perspective.FieldOfViewAxis;
+    Orthographic.Origin         := SourceCamera.Orthographic.Origin;
+    Orthographic.Width          := SourceCamera.Orthographic.Width;
+    Orthographic.Height         := SourceCamera.Orthographic.Height;
+  end else
+    { Call inherited ONLY when you cannot handle Source class,
+      to raise EConvertError from TPersistent.Assign. }
+    inherited Assign(Source);
 end;
 
 procedure TCastleCamera.GetView(out APos, ADir, AUp: TVector3);
