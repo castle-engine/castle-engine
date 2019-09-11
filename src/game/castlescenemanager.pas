@@ -222,6 +222,7 @@ type
       @link(TCastle2DSceneManager.ProjectionWidth),
       @link(TCastle2DSceneManager.ProjectionHeight).
       It doesn't look at MainScene settings or Viewpoint/OrthoViewpoint nodes.
+      TODO: update this paragraph.
 
       You can override this method, or assign the @link(OnProjection) event
       to adjust the projection settings. }
@@ -827,6 +828,7 @@ type
     }
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
+      deprecated 'use Camera.ProjectionFar, and set AutoDetectCamera to false';
 
     { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
@@ -835,6 +837,7 @@ type
       See the @link(CalculateProjection) for a description how to default
       projection parameters are calculated. }
     property OnProjection: TProjectionEvent read FOnProjection write FOnProjection;
+      deprecated 'adjust projection by changing Camera.ProjectionType and other projection parameters inside Camera';
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
       that contains this scene manager, even when the scene inside contains
@@ -2083,8 +2086,10 @@ begin
   RenderContext.Viewport := Viewport;
 
   FProjection := CalculateProjection;
+  {$warnings off} // using deprecated to keep it working
   if Assigned(OnProjection) then
     OnProjection(FProjection);
+  {$warnings on}
 
   { take into account Distort* properties }
   AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
@@ -2173,51 +2178,67 @@ end;
 function TCastleAbstractViewport.CalculateProjection: TProjection;
 var
   Box: TBox3D;
-  Viewport: TRectangle;
-  ViewpointNode: TAbstractViewpointNode;
+  Viewport: TFloatRectangle;
 
-  procedure CalculateDimensions;
+  { Update Result.Dimensions and Camera.Orthographic.EffectiveXxx
+    based on Camera.Orthographic.Width, Height and current control size. }
+  procedure UpdateOrthographicDimensions;
   var
-    FieldOfView: TSingleList;
-    MaxSize: Single;
-  begin
-    MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
+    ControlWidth, ControlHeight, EffectiveProjectionWidth, EffectiveProjectionHeight: Single;
 
-    { default Result.Dimensions, when not OrthoViewpoint }
-    Result.Dimensions.Left   := -MaxSize / 2;
-    Result.Dimensions.Bottom := -MaxSize / 2;
-    Result.Dimensions.Width  :=  MaxSize;
-    Result.Dimensions.Height :=  MaxSize;
-
-    { update Dimensions using OrthoViewpoint.fieldOfView }
-    if (ViewpointNode <> nil) and
-       (ViewpointNode is TOrthoViewpointNode) then
+    procedure CalculateDimensions;
     begin
-      { default Dimensions, for OrthoViewpoint }
-      Result.Dimensions.Left   := -1;
-      Result.Dimensions.Bottom := -1;
-      Result.Dimensions.Width  :=  2;
-      Result.Dimensions.Height :=  2;
-
-      FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
-      if FieldOfView.Count > 0 then Result.Dimensions.Left   := FieldOfView.Items[0];
-      if FieldOfView.Count > 1 then Result.Dimensions.Bottom := FieldOfView.Items[1];
-      if FieldOfView.Count > 2 then Result.Dimensions.Width  := FieldOfView.Items[2] - Result.Dimensions.Left;
-      if FieldOfView.Count > 3 then Result.Dimensions.Height := FieldOfView.Items[3] - Result.Dimensions.Bottom;
-    end else
-    if (ViewpointNode <> nil) and
-       (ViewpointNode is TOrthographicCameraNode_1) then
-    begin
-      Result.Dimensions.Left   := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.Dimensions.Bottom := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.Dimensions.Width  :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
-      Result.Dimensions.Height :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
+      Result.Dimensions.Width  := EffectiveProjectionWidth;
+      Result.Dimensions.Height := EffectiveProjectionHeight;
+      Result.Dimensions.Left   := - Camera.Orthographic.Origin.X * EffectiveProjectionWidth;
+      Result.Dimensions.Bottom := - Camera.Orthographic.Origin.Y * EffectiveProjectionHeight;
     end;
 
-    TOrthoViewpointNode.AspectFieldOfView(Result.Dimensions,
-      Viewport.Width / Viewport.Height);
+  begin
+    ControlWidth := EffectiveWidthForChildren;
+    ControlHeight := EffectiveHeightForChildren;
+
+    if (Camera.Orthographic.Width = 0) and
+       (Camera.Orthographic.Height = 0) then
+    begin
+      EffectiveProjectionWidth := ControlWidth;
+      EffectiveProjectionHeight := ControlHeight;
+      CalculateDimensions;
+    end else
+    if Camera.Orthographic.Width = 0 then
+    begin
+      EffectiveProjectionWidth := Camera.Orthographic.Height * ControlWidth / ControlHeight;
+      EffectiveProjectionHeight := Camera.Orthographic.Height;
+      CalculateDimensions;
+    end else
+    if Camera.Orthographic.Height = 0 then
+    begin
+      EffectiveProjectionWidth := Camera.Orthographic.Width;
+      EffectiveProjectionHeight := Camera.Orthographic.Width * ControlHeight / ControlWidth;
+      CalculateDimensions;
+    end else
+    begin
+      EffectiveProjectionWidth := Camera.Orthographic.Width;
+      EffectiveProjectionHeight := Camera.Orthographic.Height;
+
+      CalculateDimensions;
+
+      Result.Dimensions := TOrthoViewpointNode.InternalFieldOfView(
+        Result.Dimensions,
+        Viewport.Width,
+        Viewport.Height);
+
+      EffectiveProjectionWidth := Result.Dimensions.Width;
+      EffectiveProjectionHeight := Result.Dimensions.Height;
+    end;
+
+    Camera.Orthographic.InternalSetEffectiveSize(
+      EffectiveProjectionWidth, EffectiveProjectionHeight);
+
+    // WritelnLog('Orthographic dimensions %s', [Result.Dimensions.ToString]);
   end;
 
+  { Calculate reasonable perspective projection near, looking at Box. }
   function GetDefaultProjectionNear: Single;
   var
     Radius: Single;
@@ -2226,93 +2247,68 @@ var
     Result := Radius * RadiusToProjectionNear;
   end;
 
+  { Calculate reasonable perspective projection far, looking at Box. }
+  function GetDefaultProjectionFar: Single;
+  begin
+    { Note that when box is empty (or has 0 sizes),
+      ProjectionFar cannot be simply "any dummy value".
+      It must be appropriately larger than GetDefaultProjectionNear
+      to provide sufficient space for rendering Background node. }
+    Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
+  end;
+
 var
-  PerspectiveFieldOfView: Single;
-  PerspectiveFieldOfViewForceVertical: boolean;
   PerspectiveAnglesRad: TVector2;
 begin
   Box := ItemsBoundingBox;
-  Viewport := RenderRect.Round;
+  Viewport := RenderRect;
 
-  { calculate ViewpointNode }
-  if GetMainScene <> nil then
-    ViewpointNode := GetMainScene.ViewpointStack.Top else
-    ViewpointNode := nil;
+  Result.ProjectionType := Camera.ProjectionType;
 
-  if (ViewpointNode <> nil) and
-     (ViewpointNode is TViewpointNode) then
-  begin
-    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FieldOfView;
-    PerspectiveFieldOfViewForceVertical := TViewpointNode(ViewpointNode).FieldOfViewForceVertical;
-  end else
-  if (ViewpointNode <> nil) and
-     (ViewpointNode is TPerspectiveCameraNode_1) then
-  begin
-    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value;
-    PerspectiveFieldOfViewForceVertical := false;
-  end else
-  begin
-    PerspectiveFieldOfView := DefaultViewpointFieldOfView;
-    PerspectiveFieldOfViewForceVertical := false;
-  end;
-
-  PerspectiveAnglesRad := TViewpointNode.ViewpointAngleOfView(
-    PerspectiveFieldOfView, PerspectiveFieldOfViewForceVertical,
-    Viewport.Width, Viewport.Height);
+  PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
+    Camera.Perspective.FieldOfView,
+    Camera.Perspective.FieldOfViewAxis,
+    Viewport.Width,
+    Viewport.Height);
   Result.PerspectiveAngles[0] := RadToDeg(PerspectiveAnglesRad[0]);
   Result.PerspectiveAngles[1] := RadToDeg(PerspectiveAnglesRad[1]);
 
-  { Tests:
-    Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }
+  // WritelnLog('Perspective angle of view: %f x %f', [
+  //   Result.PerspectiveAngles[0],
+  //   Result.PerspectiveAngles[1]
+  // ]);
 
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := Camera.ProjectionNear;
-  if Result.ProjectionNear <= 0 then
+  if (Result.ProjectionType = ptPerspective) and
+     (Result.ProjectionNear <= 0) then
+  begin
     Result.ProjectionNear := GetDefaultProjectionNear;
-  Assert(Result.ProjectionNear > 0);
+    Assert(Result.ProjectionNear > 0);
+  end;
 
   { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
-  Result.ProjectionFar := 0;
-  if (GetMainScene <> nil) and
-     (GetMainScene.NavigationInfoStack.Top <> nil) then
-    Result.ProjectionFar := GetMainScene.NavigationInfoStack.Top.FdVisibilityLimit.Value;
+  Result.ProjectionFar := Camera.ProjectionFar;
   if Result.ProjectionFar <= 0 then
     Result.ProjectionFar := DefaultVisibilityLimit;
   if Result.ProjectionFar <= 0 then
-    Result.ProjectionFar := Box.AverageSize(false,
-      { When box is empty (or has 0 sizes), ProjectionFar is not simply
-        "any dummy value".
-        It must be appropriately larger than ProjectionNear
-        to provide sufficient space for rendering Background node. }
-      Result.ProjectionNear) * 20.0;
+    Result.ProjectionFar := GetDefaultProjectionFar;
   Assert(Result.ProjectionFar > 0);
-
-  { At some point, I was using here larger projection near when
-    (Navigation is TCastleExamineNavigation). Reasoning: you do not get so close
-    to the model with Examine view, and you do not need collision detection.
-    Both arguments are wrong now, you can switch between Examine/Walk
-    in view3dscene and easily get close to the model, and collision detection
-    in Examine mode will be some day implemented (VRML/X3D spec require this). }
-
-  if ViewpointNode <> nil then
-    Result.ProjectionType := ViewpointNode.ProjectionType
-  else
-    Result.ProjectionType := ptPerspective;
 
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
   Result.ProjectionFarFinite := Result.ProjectionFar;
 
- { We need infinite ZFar in case of shadow volumes.
-   But only perspective projection supports ZFar in infinity. }
+  { We need infinite ZFar in case of shadow volumes.
+    But only perspective projection supports ZFar in infinity. }
   if (Result.ProjectionType = ptPerspective) and
      GLFeatures.ShadowVolumesPossible and
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
   { Calculate Result.Dimensions regardless of Result.ProjectionType,
-    this way OnProjection can easily change projectio type to orthographic. }
-  CalculateDimensions;
+    this way OnProjection can easily change projection type to orthographic. }
+  UpdateOrthographicDimensions;
 end;
 
 function TCastleAbstractViewport.Background: TBackground;

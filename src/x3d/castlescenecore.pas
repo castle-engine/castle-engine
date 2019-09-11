@@ -6968,19 +6968,79 @@ var
   ADirection: TVector3;
   AUp: TVector3;
   GravityUp: TVector3;
-  Radius: Single;
+  Radius, OriginX, OriginY: Single;
+  ViewpointNode: TAbstractViewpointNode;
+  NavigationNode: TNavigationInfoNode;
+  FieldOfView: TSingleList;
 begin
   Radius := SensibleCameraRadius(WorldBox);
   ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
 
-  if ViewpointStack.Top <> nil then
-    ViewpointStack.Top.GetView(APosition, ADirection, AUp, GravityUp) else
+  { Default projection parameters.
+    Reset here anything that is determined by TCastleSceneCore.CameraFromViewpoint. }
+  ACamera.ProjectionType := ptPerspective;
+  ACamera.ProjectionFar := 0;
+  ACamera.Perspective.FieldOfView := TCastlePerspective.DefaultFieldOfView;
+  ACamera.Perspective.FieldOfViewAxis := TCastlePerspective.DefaultFieldOfViewAxis;
+  ACamera.Orthographic.Width := 0;
+  ACamera.Orthographic.Height := 0;
+  ACamera.Orthographic.Origin := TVector2.Zero;
+
+  ViewpointNode := ViewpointStack.Top;
+  NavigationNode := NavigationInfoStack.Top;
+
+  if ViewpointNode <> nil then
+  begin
+    ViewpointNode.GetView(APosition, ADirection, AUp, GravityUp);
+    if ViewpointNode is TViewpointNode then
+    begin
+      ACamera.Perspective.FieldOfView :=
+        TViewpointNode(ViewpointNode).FieldOfView;
+      if TViewpointNode(ViewpointNode).FieldOfViewForceVertical then
+        ACamera.Perspective.FieldOfViewAxis := faVertical;
+    end else
+    if ViewpointNode is TPerspectiveCameraNode_1 then
+    begin
+      ACamera.Perspective.FieldOfView :=
+        TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value;
+    end else
+    if ViewpointNode is TOrthoViewpointNode then
+    begin
+      ACamera.ProjectionType := ptOrthographic;
+
+      { default Dimensions, for default OrthoViewpoint.fieldOfView }
+      ACamera.Orthographic.Width := 2;
+      ACamera.Orthographic.Height := 2;
+      OriginX := 0.5;
+      OriginY := 0.5;
+
+      FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
+
+      if FieldOfView.Count > 2 then ACamera.Orthographic.Width  := FieldOfView.Items[2] - FieldOfView.Items[0];
+      if FieldOfView.Count > 3 then ACamera.Orthographic.Height := FieldOfView.Items[3] - FieldOfView.Items[1];
+
+      if FieldOfView.Count > 0 then OriginX := - FieldOfView.Items[0] / ACamera.Orthographic.Width;
+      if FieldOfView.Count > 1 then OriginY := - FieldOfView.Items[1] / ACamera.Orthographic.Height;
+
+      ACamera.Orthographic.Origin := Vector2(OriginX, OriginY);
+    end else
+    if ViewpointNode is TOrthographicCameraNode_1 then
+    begin
+      ACamera.ProjectionType := ptOrthographic;
+      ACamera.Orthographic.Width := TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
+      ACamera.Orthographic.Height := TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
+      ACamera.Orthographic.Origin := Vector2(0.5, 0.5);
+    end;
+  end else
   begin
     { Suitable viewpoint,
       with dir -Z and up +Y (like standard VRML/X3D viewpoint) }
     CameraViewpointForWholeScene(WorldBox, 2, 1, false, true,
       APosition, ADirection, AUp, GravityUp);
   end;
+
+  if NavigationNode <> nil then
+    ACamera.ProjectionFar := NavigationNode.VisibilityLimit;
 
   ACamera.GravityUp := GravityUp;
 

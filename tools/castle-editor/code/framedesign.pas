@@ -1213,7 +1213,7 @@ procedure TDesignFrame.CameraViewAll;
   procedure AdjustCamera(const SceneManager: TCastleSceneManager);
   var
     Position, Direction, Up, GravityUp: TVector3;
-    ProjectionWidth, ProjectionHeight, ProjectionSpan: Single;
+    ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
     SceneManager2D: TCastle2DSceneManager;
   begin
     if SceneManager is TCastle2DSceneManager then
@@ -1221,12 +1221,11 @@ procedure TDesignFrame.CameraViewAll;
       SceneManager2D := TCastle2DSceneManager(SceneManager);
       CameraOrthoViewpointForWholeScene(SceneManager.Items.BoundingBox,
       SceneManager2D.EffectiveWidth, SceneManager2D.EffectiveHeight,
-        SceneManager2D.ProjectionOriginCenter,
-        Position, ProjectionWidth, ProjectionHeight, ProjectionSpan);
-      SceneManager2D.ProjectionAutoSize := false;
-      SceneManager2D.ProjectionWidth := ProjectionWidth;
-      SceneManager2D.ProjectionHeight := ProjectionHeight;
-      SceneManager2D.ProjectionSpan := ProjectionSpan;
+        SceneManager2D.Camera.Orthographic.Origin,
+        Position, ProjectionWidth, ProjectionHeight, ProjectionFar);
+      SceneManager2D.Camera.Orthographic.Width := ProjectionWidth;
+      SceneManager2D.Camera.Orthographic.Height := ProjectionHeight;
+      SceneManager2D.Camera.ProjectionFar := ProjectionFar;
       // set the rest of variables to constant values, matching 2D game view
       Direction := Vector3(0, 0, -1);
       Up := Vector3(0, 1, 0);

@@ -1240,13 +1240,13 @@ procedure TGLRenderedTextureNode.Update(
   var MirrorPlaneUniforms: TMirrorPlaneUniforms);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
-  { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
-    we have to calculate projection, given Viewpoint node.
+  { We have to calculate projection, given Viewpoint node.
+    Similar to TCastleSceneCore.CameraFromViewpoint.
 
     We have to calculate things a little differently, e.g. we have
-    no NavigationInfo (it would be bad to use scene bound NavigationInfo,
-    since VRML author cannot change it by any RenderedTexture field,
-    and adding such field could be too much...),
+    no NavigationInfo (it could be undesirable to use scene bound NavigationInfo,
+    since X3D author cannot change it by any RenderedTexture field,
+    and for now we have no field RenderedTexture.navigationInfo...),
     no knowledge of scene box (although we do have ProjectionNear / Far
     already).
   }
@@ -1254,28 +1254,30 @@ procedure TGLRenderedTextureNode.Update(
     procedure DoPerspective;
     var
       FieldOfView, AngleOfViewY: Single;
-      FieldOfViewForceVertical: boolean;
+      FieldOfViewAxis: TFieldOfViewAxis;
       Angles: TVector2;
     begin
       if (Viewpoint <> nil) and
          (Viewpoint is TViewpointNode) then
       begin
         FieldOfView := TViewpointNode(Viewpoint).FieldOfView;
-        FieldOfViewForceVertical := TViewpointNode(Viewpoint).FieldOfViewForceVertical;
+        if TViewpointNode(Viewpoint).FieldOfViewForceVertical then
+          FieldOfViewAxis := faVertical
+        else
+          FieldOfViewAxis := faSmallest;
       end else
       if (Viewpoint <> nil) and
          (Viewpoint is TPerspectiveCameraNode_1) then
       begin
         FieldOfView := TPerspectiveCameraNode_1(Viewpoint).FdHeightAngle.Value;
-        FieldOfViewForceVertical := false;
+        FieldOfViewAxis := faSmallest;
       end else
       begin
         FieldOfView := DefaultViewpointFieldOfView;
-        FieldOfViewForceVertical := false;
+        FieldOfViewAxis := faSmallest;
       end;
 
-      Angles := TViewpointNode.ViewpointAngleOfView(
-        FieldOfView, FieldOfViewForceVertical, Width, Height);
+      Angles := TViewpointNode.InternalFieldOfView(FieldOfView, FieldOfViewAxis, Width, Height);
       AngleOfViewY := RadToDeg(Angles[1]);
 
       Result := PerspectiveProjectionMatrixDeg(AngleOfViewY, Width / Height,
@@ -1312,7 +1314,8 @@ procedure TGLRenderedTextureNode.Update(
         FinalFieldOfView.Height :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value;
       end;
 
-      TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);
+      FinalFieldOfView := TOrthoViewpointNode.InternalFieldOfView(
+        FinalFieldOfView, Width, Height);
 
       Result := OrthoProjectionMatrix(FinalFieldOfView, ProjectionNear, ProjectionFar);
     end;

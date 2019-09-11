@@ -76,6 +76,170 @@ type
 
   EViewportNotAssigned = class(Exception);
 
+  { Value of @link(TCastlePerspective.FieldOfViewAxis). }
+  TFieldOfViewAxis = (
+    { @link(TCastlePerspective.FieldOfView)
+      specifies the angle along the smaller viewport axis.
+
+      E.g. on a full-screen viewport, on a typical desktop screen,
+      with a typical panoramic window (wide, not tall),
+      this will determine the vertical axis angle.
+      The horizontal axis will be adjusted following the aspect ratio. }
+    faSmallest,
+    { @link(TCastlePerspective.FieldOfView)
+      specifies the angle along the larger viewport axis.
+      The other axis will be adjusted, following the aspect ratio. }
+    faLargest,
+    { @link(TCastlePerspective.FieldOfView)
+      specifies the angle along the horizontal axis.
+      The vertical axis will be adjusted, following the aspect ratio. }
+    faHorizontal,
+    { @link(TCastlePerspective.FieldOfView)
+      specifies the angle along the vertical axis.
+      The horizontal axis will be adjusted, following the aspect ratio. }
+    faVertical
+  );
+
+  TCastleCamera = class;
+
+  { Subcomponent used in @link(TCastleCamera.Perspective) to set perspective
+    projection parameters.
+
+    Do not create instances of this class yourself,
+    these are automatically created by TCastleCamera. }
+  TCastlePerspective = class(TComponent)
+  strict private
+    FFieldOfView: Single;
+    FFieldOfViewAxis: TFieldOfViewAxis;
+    procedure SetFieldOfView(const Value: Single);
+    procedure SetFieldOfViewAxis(const Value: TFieldOfViewAxis);
+  private
+    Camera: TCastleCamera;
+  public
+    const
+      DefaultFieldOfView = Pi / 4;
+      DefaultFieldOfViewAxis = faSmallest;
+
+    constructor Create(AOwner: TComponent); override;
+  published
+    { Perspective field of view angle, in radians.
+      The @link(FieldOfViewAxis) determines whether this is horizontal
+      or vertical angle. }
+    property FieldOfView: Single read FFieldOfView write SetFieldOfView
+      default DefaultFieldOfView;
+
+    { Which axis is determined explicitly by @link(FieldOfView).
+      @seealso TFieldOfViewAxis }
+    property FieldOfViewAxis: TFieldOfViewAxis
+      read FFieldOfViewAxis write SetFieldOfViewAxis default DefaultFieldOfViewAxis;
+  end;
+
+  { Subcomponent used in @link(TCastleCamera.Orthographic) to set orthographic
+    projection parameters.
+
+    Do not create instances of this class yourself,
+    these are automatically created by TCastleCamera. }
+  TCastleOrthographic = class(TComponent)
+  strict private
+    FOrigin: TVector2;
+    FWidth, FHeight: Single;
+    FEffectiveWidth, FEffectiveHeight: Single;
+    procedure SetOrigin(const Value: TVector2);
+    procedure SetWidth(const Value: Single);
+    procedure SetHeight(const Value: Single);
+  private
+    Camera: TCastleCamera;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    { Additional translation of the camera.
+      The camera movement applied here is always scaled by
+      the calculated orthographic projection width and height.
+
+      By default this equals (0,0) which means that TCastleCamera.Position
+      determines what is visible in the left-bottom corner of the viewport.
+      This matches the typical 2D drawing coordinates used throughout our engine.
+      In other words, if the camera is at position (0,0,whatever),
+      then the (0,0) position in 2D is in the left-bottom corner of the scene manager
+      rectangle.
+
+      You can change it e.g. to (0.5,0.5) to move the camera to
+      the middle of the viewport.
+      In effect, if the camera is at position (0,0,whatever),
+      then the (0,0) position is in the center of the scene manager
+      rectangle.
+
+      Both values of @name make sense,
+      it depends on the game type and how you prefer to think in 2D coordinates.
+      And how do you want the result to behave when aspect ratio changes:
+
+      @unorderedList(
+        @item(With (0.5,0.5), things will stay "glued"
+          to the center.)
+        @item(With (0,0), things will stay "glued"
+          to the left-bottom corner.)
+      )
+    }
+    property Origin: TVector2 read FOrigin write SetOrigin;
+
+    procedure InternalSetEffectiveSize(const W, H: Single);
+  published
+    { Orthographic projection width and height.
+
+      You can leave one or both of them as zero (default) to automatically
+      calculate effective projection width and height
+      (in @link(EffectiveWidth) and @link(EffectiveHeight)):
+
+      @unorderedList(
+        @item(When both @link(Width) and @link(Height) are zero,
+          then the effetive projection width and height
+          are based on the viewport width and height.
+          That is, they will follow
+          @link(TCastleUserInterface.EffectiveWidth TCastleAbstractViewport.EffectiveWidth)
+          and
+          @link(TCastleUserInterface.EffectiveHeight TCastleAbstractViewport.EffectiveHeight).
+        )
+
+        @item(When exactly one of @link(Width) and @link(Height) is non-zero,
+          then it explicitly determines the projection width or height accordingily.
+          This allows to easily display the same piece of the game world,
+          regardless of the viewport size.
+
+          The other size is then calculated to follow the aspect ratio
+          of the viewport control.
+        )
+
+        @item(When both @link(Width) and @link(Height) are non-zero,
+          then they explicitly determine the @italic(minimum)
+          projection width and height along the given axis.
+
+          This, again, allows to easily display the same piece of the game world,
+          regardless of the viewport size.
+
+          If the displayed viewport aspect ratio wil be different than given
+          @link(Width) and @link(Height) ratio, then these value will be
+          treated as minimum values, and they will be adjusted.
+          This follows the X3D OrthoViewpoint.fieldOfView specification.
+        )
+      )
+
+      In all cases, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
+      to know the actual projection width and height, calculated using
+      the above algorithm.
+
+      @groupBegin }
+    property Width: Single read FWidth write SetWidth default 0;
+    property Height: Single read FHeight write SetHeight default 0;
+    { @groupEnd }
+
+    { Currently used projection width and height, calculated following
+      the algorithm described at @link(Width) and @link(Height).
+      @groupBegin }
+    property EffectiveWidth: Single read FEffectiveWidth;
+    property EffectiveHeight: Single read FEffectiveHeight;
+    { @groupEnd }
+  end;
+
   { Camera determines viewer position and orientation in a 3D or 2D world.
 
     An instance of this class is automatically available
@@ -91,10 +255,9 @@ type
   strict private
     FPosition, FDirection, FUp, FGravityUp: TVector3;
     FInitialPosition, FInitialDirection, FInitialUp: TVector3;
-    VisibleChangeSchedule: Cardinal;
-    IsVisibleChangeScheduled: boolean;
     FProjectionMatrix: TMatrix4;
-    FProjectionNear: Single;
+    FProjectionNear, FProjectionFar: Single;
+    FProjectionType: TProjectionType;
 
     FAnimation: boolean;
     AnimationEndTime: TFloatTime;
@@ -108,24 +271,10 @@ type
     AnimationEndUp: TVector3;
 
     FFrustum: TFrustum;
+    FPerspective: TCastlePerspective;
+    FOrthographic: TCastleOrthographic;
 
     procedure RecalculateFrustum;
-
-    { Mechanism to schedule Viewport.VisibleChange calls.
-
-      This mechanism allows to defer calling Viewport.VisibleChange.
-      Idea: BeginVisibleChangeSchedule increases internal VisibleChangeSchedule
-      counter, EndVisibleChangeSchedule decreases it and calls
-      actual Viewport.VisibleChange if counter is zero and some
-      ScheduleVisibleChange was called in between.
-
-      When ScheduleVisibleChange is called when counter is zero,
-      Viewport.VisibleChange is called immediately, so it's safe to always
-      use ScheduleVisibleChange instead of direct Viewport.VisibleChange
-      in this class. }
-    procedure BeginVisibleChangeSchedule;
-    procedure ScheduleVisibleChange;
-    procedure EndVisibleChangeSchedule;
 
     procedure SetPosition(const Value: TVector3);
     procedure SetDirection(const Value: TVector3);
@@ -138,6 +287,12 @@ type
     { Setter of the @link(ProjectionMatrix) property.
       TODO: We should actually manage projection properties here. }
     procedure SetProjectionMatrix(const Value: TMatrix4);
+
+    procedure SetProjectionNear(const Value: Single);
+    procedure SetProjectionFar(const Value: Single);
+    procedure SetProjectionType(const Value: TProjectionType);
+  private
+    procedure VisibleChange;
   protected
     procedure Loaded; override;
   public
@@ -346,8 +501,30 @@ type
 
   published
     { Projection near plane distance.
-      TODO: other projection params here, move here all TProjection stuff? }
-    property ProjectionNear: Single read FProjectionNear write FProjectionNear;
+
+      Keep it always >= 0 (although in orthographic projection it makes sense
+      to use values < 0 too, but for future it's best to avoid them).
+
+      Use 0 to auto-calculate this each frame, based on the world bounding box,
+      in case of perspective projection.
+      In case of orthographic projection value of 0 is a normal, perfectly reasonable value. }
+    property ProjectionNear: Single read FProjectionNear write SetProjectionNear default 0;
+
+    { Projection far plane distance.
+      Use 0 to auto-calculate this each frame, based on world bounding box.
+      If shadow volumes are used, this may be overridden to be infinite. }
+    property ProjectionFar: Single read FProjectionFar write SetProjectionFar default 0;
+
+    { Perspective or orthographic projection.
+      Depending on it, we either use @link(Perspective) or @link(Orthographic) settings. }
+    property ProjectionType: TProjectionType
+      read FProjectionType write SetProjectionType default ptPerspective;
+
+    { Perspective projection properties, used only if @link(ProjectionType) is ptPerspective. }
+    property Perspective: TCastlePerspective read FPerspective;
+
+    { Orthographic projection properties, used only if @link(ProjectionType) is ptOrthographic. }
+    property Orthographic: TCastleOrthographic read FOrthographic;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}
@@ -1917,25 +2094,19 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   vertical axis is Y.
   These are default values of camera in TCastle2DSceneManager.
 
-  The meaning of ProjectionOriginCenter is the same as
-  @link(TCastle2DSceneManager.ProjectionOriginCenter).
+  The meaning of Origin is the same as @link(TCastleOrthographic.Origin).
 
   Returns new correct values of
-  @link(TCastle2DSceneManager.ProjectionWidth),
-  @link(TCastle2DSceneManager.ProjectionHeight),
-  @link(TCastle2DSceneManager.ProjectionSpan) and camera position
-  (set it like @code(SceneManager.RequiredCamera.Position := NewPosition;)).
-
-  Remember to set @link(TCastle2DSceneManager.ProjectionAutoSize) to @false,
-  otherwise
-  @link(TCastle2DSceneManager.ProjectionWidth),
-  @link(TCastle2DSceneManager.ProjectionHeight) are ignored.
+  @link(TCastleOrthographic.Width),
+  @link(TCastleOrthographic.Height),
+  @link(TCastleCamera.ProjectionFar) and camera position
+  (set it like @code(SceneManager.Camera.Position := NewPosition;)).
 }
 procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   const ViewportWidth, ViewportHeight: Single;
-  const ProjectionOriginCenter: Boolean;
+  const Origin: TVector2;
   out Position: TVector3;
-  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+  out AProjectionWidth, AProjectionHeight, AProjectionFar: Single);
 
 { TODO: move these consts somewhere more private? }
 
@@ -1944,6 +2115,8 @@ const
     "It is recommended that the near clipping plane be set to one-half
     of the collision radius as specified in the avatarSize field." }
   RadiusToProjectionNear = 0.6;
+
+  WorldBoxSizeToProjectionFar = 20.0;
 
   { Multiply radius by this to get sensible "preferred height".
 
@@ -1961,13 +2134,80 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleStringUtils, CastleLog, CastleSceneManager;
+  CastleStringUtils, CastleLog, CastleSceneManager, Castle2DSceneManager;
 
 procedure Register;
 begin
   {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}
   RegisterComponents('Castle', [TCastleExamineNavigation, TCastleWalkNavigation]);
   {$endif}
+end;
+
+{ TCastlePerspective --------------------------------------------------------- }
+
+constructor TCastlePerspective.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFieldOfView := DefaultFieldOfView;
+  FFieldOfViewAxis := DefaultFieldOfViewAxis;
+end;
+
+procedure TCastlePerspective.SetFieldOfView(const Value: Single);
+begin
+  if FFieldOfView <> Value then
+  begin
+    FFieldOfView := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastlePerspective.SetFieldOfViewAxis(const Value: TFieldOfViewAxis);
+begin
+  if FFieldOfViewAxis <> Value then
+  begin
+    FFieldOfViewAxis := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+{ TCastleOrthographic --------------------------------------------------------- }
+
+constructor TCastleOrthographic.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
+procedure TCastleOrthographic.SetOrigin(const Value: TVector2);
+begin
+  if not TVector2.PerfectlyEquals(FOrigin, Value) then
+  begin
+    FOrigin := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastleOrthographic.SetWidth(const Value: Single);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastleOrthographic.SetHeight(const Value: Single);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastleOrthographic.InternalSetEffectiveSize(const W, H: Single);
+begin
+  FEffectiveWidth := W;
+  FEffectiveHeight := H;
 end;
 
 { TCastleCamera -------------------------------------------------------------- }
@@ -1984,6 +2224,16 @@ begin
   FGravityUp := FInitialUp;
   FProjectionMatrix := TMatrix4.Identity; // any sensible initial value
   FFrustum.Init(TMatrix4.Identity); // any sensible initial value
+
+  FPerspective := TCastlePerspective.Create(Self);
+  FPerspective.Camera := Self;
+  FPerspective.Name := 'Perspective';
+  FPerspective.SetSubComponent(true);
+
+  FOrthographic := TCastleOrthographic.Create(Self);
+  FOrthographic.Camera := Self;
+  FOrthographic.Name := 'Orthographic';
+  FOrthographic.SetSubComponent(true);
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlecamera_persistent_vectors.inc}
@@ -2021,14 +2271,14 @@ begin
   else
     MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
 
-  ScheduleVisibleChange;
+  VisibleChange;
 end;
 
 procedure TCastleCamera.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   FPosition := APos;
-  SetView(ADir, AUp, AdjustUp); // calls ScheduleVisibleChange at the end
+  SetView(ADir, AUp, AdjustUp); // calls VisibleChange at the end
 end;
 
 procedure TCastleCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
@@ -2046,21 +2296,21 @@ end;
 procedure TCastleCamera.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
-  ScheduleVisibleChange;
+  VisibleChange;
 end;
 
 procedure TCastleCamera.SetDirection(const Value: TVector3);
 begin
   FDirection := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  ScheduleVisibleChange;
+  VisibleChange;
 end;
 
 procedure TCastleCamera.SetUp(const Value: TVector3);
 begin
   FUp := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  ScheduleVisibleChange;
+  VisibleChange;
 end;
 
 procedure TCastleCamera.SetInitialPosition(const Value: TVector3);
@@ -2084,39 +2334,13 @@ procedure TCastleCamera.UpPrefer(const AUp: TVector3);
 begin
   FUp := AUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  ScheduleVisibleChange;
+  VisibleChange;
 end;
 
-procedure TCastleCamera.BeginVisibleChangeSchedule;
+procedure TCastleCamera.VisibleChange;
 begin
-  { IsVisibleChangeScheduled = false always when VisibleChangeSchedule = 0. }
-  Assert((VisibleChangeSchedule <> 0) or (not IsVisibleChangeScheduled));
-
-  Inc(VisibleChangeSchedule);
-end;
-
-procedure TCastleCamera.ScheduleVisibleChange;
-begin
-  if VisibleChangeSchedule = 0 then
-    Viewport.VisibleChange([chCamera])
-  else
-    IsVisibleChangeScheduled := true;
-  RecalculateFrustum;
-end;
-
-procedure TCastleCamera.EndVisibleChangeSchedule;
-begin
-  Dec(VisibleChangeSchedule);
-  if (VisibleChangeSchedule = 0) and IsVisibleChangeScheduled then
-  begin
-    { Set IsVisibleChangeScheduled first.
-      That is because VisibleChange may be overriden and/or may call
-      various callbacks, and these callbacks in turn may again call
-      BeginVisibleChangeSchedule. And BeginVisibleChangeSchedule must start
-      with good state, see assertion there. }
-    IsVisibleChangeScheduled := false;
+  if Viewport <> nil then
     Viewport.VisibleChange([chCamera]);
-  end;
 end;
 
 function TCastleCamera.Matrix: TMatrix4;
@@ -2279,6 +2503,33 @@ procedure TCastleCamera.Loaded;
 begin
   inherited;
   GoToInitial;
+end;
+
+procedure TCastleCamera.SetProjectionNear(const Value: Single);
+begin
+  if FProjectionNear <> Value then
+  begin
+    FProjectionNear := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleCamera.SetProjectionFar(const Value: Single);
+begin
+  if FProjectionFar <> Value then
+  begin
+    FProjectionFar := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleCamera.SetProjectionType(const Value: TProjectionType);
+begin
+  if FProjectionType <> Value then
+  begin
+    FProjectionType := Value;
+    VisibleChange;
+  end;
 end;
 
 {$define read_implementation_methods}
@@ -2774,6 +3025,7 @@ begin
     What's more important, this avoids the need to call VisibleChange,
     so things like Invalidate will not be continuously called when
     model doesn't rotate.
+    TODO: This isn't honored anymore, we set ExamineCamera always.
 
     We check using exact equality <> 0, this is Ok since the main point is to
     avoid work when StopRotating was called and user didn't touch arrow
@@ -4004,7 +4256,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
             FallingVectorLength). So why initing it again here ?
 
             Answer: Because Move above called MoveTo, that set Position
-            that actually called ScheduleVisibleChange that possibly
+            that actually called VisibleChange that possibly
             called OnVisibleChange.
             And OnVisibleChange is user callback and user could do there
             things like
@@ -4017,7 +4269,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
               "FallSpeedStart" was already done, that's unavoidable...).
 
             TODO: Is the above reasoning still valid? Now only TCastleCamera
-            calls ScheduleVisibleChange.
+            calls VisibleChange.
           }
           FFallSpeed := FallSpeedStart;
 
@@ -5165,15 +5417,15 @@ end;
 
 procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   const ViewportWidth, ViewportHeight: Single;
-  const ProjectionOriginCenter: Boolean;
+  const Origin: TVector2;
   out Position: TVector3;
-  out AProjectionWidth, AProjectionHeight, AProjectionSpan: Single);
+  out AProjectionWidth, AProjectionHeight, AProjectionFar: Single);
 
   { Calculate Position.XY and AProjectionWidth, AProjectionHeight. }
   function PositionXY: TVector2;
   var
     Rect: TFloatRectangle;
-    ResultingProjectionWidth, ResultingProjectionHeight: Single;
+    EffectiveProjectionWidth, EffectiveProjectionHeight: Single;
   begin
     if Box.IsEmpty then
     begin
@@ -5189,55 +5441,54 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
       begin
         AProjectionWidth := 0;
         AProjectionHeight := Rect.Height;
-        { Calculate ResultingProjectionXxx
-          the same way that CurrentProjectionWidth/Height would be calculated. }
-        ResultingProjectionWidth := Rect.Height * ViewportWidth / ViewportHeight;
-        ResultingProjectionHeight := AProjectionHeight;
+        { Calculate EffectiveProjectionXxx
+          the same way that TCastleOrthographic.EffectiveWidth/Height would be calculated. }
+        EffectiveProjectionWidth := Rect.Height * ViewportWidth / ViewportHeight;
+        EffectiveProjectionHeight := AProjectionHeight;
       end else
       begin
         AProjectionWidth := Rect.Width;
         AProjectionHeight := 0;
-        { Calculate ResultingProjectionXxx
+        { Calculate EffectiveProjectionXxx
           the same way that CurrentProjectionWidth/Height would be calculated. }
-        ResultingProjectionWidth := AProjectionWidth;
-        ResultingProjectionHeight := Rect.Width * ViewportHeight / ViewportWidth;
+        EffectiveProjectionWidth := AProjectionWidth;
+        EffectiveProjectionHeight := Rect.Width * ViewportHeight / ViewportWidth;
       end;
 
       // calculate PositionXY
-      Result := Rect.Center;
-      if not ProjectionOriginCenter then
-        Result := Result - Vector2(
-          ResultingProjectionWidth / 2,
-          ResultingProjectionHeight / 2);
+      Result := Rect.Center +
+        (Origin - Vector2(0.5, 0.5)) *
+        Vector2(EffectiveProjectionWidth, EffectiveProjectionHeight);
     end;
   end;
 
-  { Calculate Position.Z and AProjectionSpan. }
+  { Calculate Position.Z and AProjectionFar. }
   function PositionZ: Single;
   const
     // Same as TCastle2DSceneManager constants
-    DefaultProjectionSpan = 1000.0;
-    DefaultCameraZ = DefaultProjectionSpan / 2;
+    Default2DProjectionFar = 1000.0;
+    DefaultCameraZ = Default2DProjectionFar / 2;
   var
     MinZ, MaxZ: Single;
   begin
     if Box.IsEmpty then
     begin
       Result := DefaultCameraZ;
-      AProjectionSpan := DefaultProjectionSpan;
+      AProjectionFar := Default2DProjectionFar;
     end else
     begin
       MinZ := Box.Min.Z;
       MaxZ := Box.Max.Z;
-      if (MinZ > - DefaultProjectionSpan / 2) and
-         (MaxZ < DefaultProjectionSpan / 2) then
+      if (MinZ > - Default2DProjectionFar / 2) and
+         (MaxZ < Default2DProjectionFar / 2) then
       begin
+        // prefer to use Default2DProjectionFar and DefaultCameraZ, if the scene fits inside
         Result := DefaultCameraZ;
-        AProjectionSpan := DefaultProjectionSpan;
+        AProjectionFar := Default2DProjectionFar;
       end else
       begin
         Result := MaxZ + 1;
-        AProjectionSpan := MaxZ - MinZ;
+        AProjectionFar := MaxZ - MinZ;
       end;
     end;
   end;

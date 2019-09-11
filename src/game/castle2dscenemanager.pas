@@ -62,14 +62,16 @@ type
         our visible X range is @code([0..scene manager width in pixels]),
         visible Y range is @code([0..scene manager height in pixels]).
 
-        You can set the @link(ProjectionAutoSize) to @false,
-        and then set @link(ProjectionWidth) or @link(ProjectionHeight)
+        You can set the
+        @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
+        @link(TCastleOrthographic.Height Camera.Orthographic.Height)
         to explicitly control the size of the game world @italic(inside the scene manager),
         regardless of the size of the scene manager control.
         This is a trivial way to scale your 2D game contents.
 
-        You can set the @link(ProjectionOriginCenter) to control where the
-        origin is (how does the Camera.Position affect the view).
+        You can set the @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
+        to control where the
+        origin is (how does the @link(TCastleCamera.Position Camera.Position) affect the view).
 
         Such projection is set regardless of the X3D viewpoint nodes
         present in the MainScene.
@@ -80,25 +82,30 @@ type
       )
     ) }
   TCastle2DSceneManager = class(TCastleSceneManager)
-  private
-    FProjectionAutoSize: boolean;
-    FProjectionHeight, FProjectionWidth: Single;
-    FCurrentProjectionWidth, FCurrentProjectionHeight: Single;
-    FProjectionSpan: Single;
-    FProjectionOriginCenter: boolean;
+  strict private
+    function GetProjectionAutoSize: Boolean;
+    function GetProjectionWidth: Single;
+    function GetProjectionHeight: Single;
+    function GetProjectionSpan: Single;
+    function GetProjectionOriginCenter: Boolean;
+    procedure SetProjectionAutoSize(const Value: Boolean);
+    procedure SetProjectionWidth(const Value: Single);
+    procedure SetProjectionHeight(const Value: Single);
+    procedure SetProjectionSpan(const Value: Single);
+    procedure SetProjectionOriginCenter(const Value: Boolean);
   protected
-    function CalculateProjection: TProjection; override;
     procedure AssignDefaultNavigation; override;
     procedure AssignDefaultCamera; override;
   public
     const
-      DefaultProjectionSpan = 1000.0;
-      DefaultCameraZ = DefaultProjectionSpan / 2;
+      Default2DProjectionFar = 1000.0;
+      DefaultProjectionSpan = Default2DProjectionFar deprecated 'use Default2DProjectionFar';
+      DefaultCameraZ = Default2DProjectionFar / 2;
 
     constructor Create(AOwner: TComponent); override;
 
-    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
-    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+    function CurrentProjectionWidth: Single; deprecated 'use Camera.Orthographic.EffectiveWidth';
+    function CurrentProjectionHeight: Single; deprecated 'use Camera.Orthographic.EffectiveHeight';
 
     { Convert 2D position into "world coordinates", which is the coordinate
       space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
@@ -148,22 +155,18 @@ type
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
     property ProjectionAutoSize: boolean
-      read FProjectionAutoSize write FProjectionAutoSize default true;
+      read GetProjectionAutoSize write SetProjectionAutoSize default true;
+      deprecated 'use Camera.Orthographic.Width and Height; only when both are zero, it is auto-sized';
     property ProjectionHeight: Single
-      read FProjectionHeight write FProjectionHeight default 0;
+      read GetProjectionHeight write SetProjectionHeight default 0;
+      deprecated 'use Camera.Orthographic.Height, and note that ProjectionAutoSize is ignored';
     property ProjectionWidth: Single
-      read FProjectionWidth write FProjectionWidth default 0;
+      read GetProjectionWidth write SetProjectionWidth default 0;
+      deprecated 'use Camera.Orthographic.Width, and note that ProjectionAutoSize is ignored';
 
-    { Determines the minimum and maximum depth visible, relative to the camera Z.
-
-      Higher values allow to see more.
-      The objects are visible in Z range
-      @code([Camera.Position.Z - ProjectionSpan ..
-      Camera.Position.Z + ProjectionSpan]).
-
-      Lower values improve depth buffer precision. }
     property ProjectionSpan: Single
-      read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+      read GetProjectionSpan write SetProjectionSpan default Default2DProjectionFar;
+      deprecated 'use Camera.ProjectionFar';
 
     { Where is the (0,0) world point with respect to the viewport.
 
@@ -190,7 +193,8 @@ type
       )
     }
     property ProjectionOriginCenter: boolean
-      read FProjectionOriginCenter write FProjectionOriginCenter default false;
+      read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
+      deprecated 'use Camera.Orthographic.Origin';
   end;
 
   T2DSceneManager = class(TCastle2DSceneManager)
@@ -220,17 +224,13 @@ implementation
 
 uses SysUtils,
   CastleBoxes, CastleGLUtils, X3DNodes, CastleComponentSerialize, CastleUtils,
-  CastleRectangles;
+  CastleRectangles, CastleLog;
 
 { TCastle2DSceneManager -------------------------------------------------------- }
 
 constructor TCastle2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
-  ProjectionAutoSize := true;
-  FProjectionSpan := DefaultProjectionSpan;
-  FProjectionHeight := 0;
-  FProjectionWidth := 0;
 end;
 
 procedure TCastle2DSceneManager.AssignDefaultNavigation;
@@ -248,6 +248,8 @@ begin
     { gravity up } Vector3(0, 1, 0)
   );
   Camera.ProjectionNear := WorldBoxSizeToRadius; // assume bbox size = 1
+  Camera.ProjectionFar := Default2DProjectionFar;
+  Camera.ProjectionType := ptOrthographic;
 end;
 
 function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
@@ -343,48 +345,68 @@ begin
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
 end;
 
-function TCastle2DSceneManager.CalculateProjection: TProjection;
-var
-  ControlWidth, ControlHeight: Single;
+function TCastle2DSceneManager.CurrentProjectionWidth: Single;
 begin
-  Result.ProjectionType := ptOrthographic;
-  Result.Dimensions.Left := 0;
-  Result.Dimensions.Bottom := 0;
+  Result := Camera.Orthographic.EffectiveWidth;
+end;
 
-  ControlWidth := EffectiveWidthForChildren;
-  ControlHeight := EffectiveHeightForChildren;
+function TCastle2DSceneManager.CurrentProjectionHeight: Single;
+begin
+  Result := Camera.Orthographic.EffectiveHeight;
+end;
 
-  if ProjectionAutoSize or
-     ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
-  begin
-    FCurrentProjectionWidth := ControlWidth;
-    FCurrentProjectionHeight := ControlHeight;
-  end else
-  if ProjectionWidth = 0 then
-  begin
-    FCurrentProjectionWidth := ProjectionHeight * ControlWidth / ControlHeight;
-    FCurrentProjectionHeight := ProjectionHeight;
-  end else
-  if ProjectionHeight = 0 then
-  begin
-    FCurrentProjectionWidth := ProjectionWidth;
-    FCurrentProjectionHeight := ProjectionWidth * ControlHeight / ControlWidth;
-  end else
-  begin
-    FCurrentProjectionWidth := ProjectionWidth;
-    FCurrentProjectionHeight := ProjectionHeight;
-  end;
+function TCastle2DSceneManager.GetProjectionAutoSize: Boolean;
+begin
+  Result := false; // it behaves like always false, now
+end;
 
-  Result.Dimensions.Width  := FCurrentProjectionWidth;
-  Result.Dimensions.Height := FCurrentProjectionHeight;
-  if FProjectionOriginCenter then
-  begin
-    Result.Dimensions.Left   := -Result.Dimensions.Width / 2;
-    Result.Dimensions.Bottom := -Result.Dimensions.Height / 2;
-  end;
-  Result.ProjectionNear := -ProjectionSpan;
-  Result.ProjectionFar := ProjectionSpan;
-  Result.ProjectionFarFinite := Result.ProjectionFar;
+function TCastle2DSceneManager.GetProjectionWidth: Single;
+begin
+  Result := Camera.Orthographic.Width;
+end;
+
+function TCastle2DSceneManager.GetProjectionHeight: Single;
+begin
+  Result := Camera.Orthographic.Height;
+end;
+
+function TCastle2DSceneManager.GetProjectionSpan: Single;
+begin
+  Result := Camera.ProjectionFar;
+end;
+
+function TCastle2DSceneManager.GetProjectionOriginCenter: Boolean;
+begin
+  Result := not Camera.Orthographic.Origin.IsPerfectlyZero;
+end;
+
+procedure TCastle2DSceneManager.SetProjectionAutoSize(const Value: Boolean);
+begin
+  if Value then
+    WritelnWarning('TCastle2DSceneManager always behaves as if ProjectionAutoSize = false. We will automatically calculate projection width or height if one (or both) of Camera.Orthographic.Width/Height are zero.');
+end;
+
+procedure TCastle2DSceneManager.SetProjectionWidth(const Value: Single);
+begin
+  Camera.Orthographic.Width := Value;
+end;
+
+procedure TCastle2DSceneManager.SetProjectionHeight(const Value: Single);
+begin
+  Camera.Orthographic.Height := Value;
+end;
+
+procedure TCastle2DSceneManager.SetProjectionSpan(const Value: Single);
+begin
+  Camera.ProjectionFar := Value;
+end;
+
+procedure TCastle2DSceneManager.SetProjectionOriginCenter(const Value: Boolean);
+begin
+  if Value then
+    Camera.Orthographic.Origin := Vector2(0.5, 0.5)
+  else
+    Camera.Orthographic.Origin := TVector2.Zero;
 end;
 
 { T2DSceneManager ------------------------------------------------------------ }

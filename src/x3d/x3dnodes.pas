@@ -168,7 +168,7 @@ interface
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVectors, CastleInternalDoubleLists, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages, CastleColors,
+  X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
@@ -281,7 +281,7 @@ uses
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
-  CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument,
+  CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
   CastleSoundBase,
   X3DLoadInternalUtils;
 

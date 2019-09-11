@@ -105,7 +105,7 @@ const
   DefaultHeightMapScale = 0.01;
   DefaultVRML1CreaseAngle = 0.5;
 
-  DefaultViewpointFieldOfView = Pi / 4;
+  DefaultViewpointFieldOfView = TCastlePerspective.DefaultFieldOfView;
   DefaultNavigationInfoHeadlight = true;
 
   DefaultRenderedTextureWidth  = 128;
