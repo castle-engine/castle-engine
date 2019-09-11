@@ -397,6 +397,7 @@ type
       @bold(This is read only). To change the projection parameters,
       override @link(CalculateProjection) or handle event @link(OnProjection). }
     property Projection: TProjection read FProjection;
+      deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
 
     { Return current navigation. Automatically creates it if missing. }
     function RequiredNavigation: TCastleNavigation;
