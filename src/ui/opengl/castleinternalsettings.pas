@@ -222,32 +222,6 @@ type
   end;
 
   function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;
-    procedure AddCommaSeparatedCharactersCode(const AString: String; ACharacters: TUnicodeCharList);
-    var
-      I: Integer;
-      S: String;
-      procedure AddSymbol;
-      begin
-        if Length(S) > 0 then
-        begin
-          ACharacters.Add(StrToInt(S));
-          S := '';
-        end else
-          raise Exception.Create('Unable to parse sample_code field. Expecting a comma-separated list of integers.');
-      end;
-    begin
-      //note, expecting only ASCII-safe string here consisting of numbers and commas
-      S := '';
-      for I := 1 to Length(AString) do
-        case AString[I] of
-          '0'..'9': S := S + AString[I];
-          ',': AddSymbol;
-          ' ': ; //skip space character
-          else
-            raise Exception.CreateFmt('Unexpected character in sample_code: %s. Expecting a comma-separated list of integers.', [AString[I]]);
-        end;
-      AddSymbol;
-    end;
   var
     NewFontUrl: String;
     NewFontSize, NewFontLoadSize: Cardinal;
@@ -255,8 +229,9 @@ type
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
     UnicodeCharList: TUnicodeCharList;
-    MoFileUrl: String;
-    CommaSeparatedNumericList: String;
+    RawString: String;
+    S: String;
+    StringList: TCastleStringList;
   begin
     if FontElement <> nil then
     begin
@@ -273,13 +248,23 @@ type
       UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
       { Load characters from a translation file,
         in contrast to texture-font-to-pascal only one file can be specified }
-      MoFileUrl := FontElement.AttributeStringDef('sample_get_text_mo', '');
-      if MoFileUrl <> '' then
-        AddTranslatedCharacters(CombineURI(SettingsUrl, MoFileUrl), UnicodeCharList);
+      RawString := FontElement.AttributeStringDef('sample_get_text_mo', '');
+      if RawString <> '' then
+      begin
+        StringList := CreateTokens(RawString, WhiteSpaces + [',']);
+        for S in StringList do
+          AddTranslatedCharacters(CombineURI(SettingsUrl, S), UnicodeCharList);
+        FreeAndNil(StringList);
+      end;
       { Loads a comma separated list of UTF8 characters decimal code }
-      CommaSeparatedNumericList := FontElement.AttributeStringDef('sample_code', '');
-      if CommaSeparatedNumericList <> '' then
-        AddCommaSeparatedCharactersCode(CommaSeparatedNumericList, UnicodeCharList);
+      RawString := FontElement.AttributeStringDef('sample_code', '');
+      if RawString <> '' then
+      begin
+        StringList := CreateTokens(RawString, WhiteSpaces + [',']);
+        for S in StringList do
+          UnicodeCharList.Add(StrToInt(S));
+        FreeAndNil(StringList);
+      end;
 
       if UnicodeCharList.Count = 0 then
         raise Exception.Create('No characters were loaded for font at ' + NewFontUrl);
