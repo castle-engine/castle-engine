@@ -527,7 +527,7 @@ type
       deprecated 'use IsContextOpenSuccess';
 
     { Did we attempt to initialize sound rendering context.
-      This indicates that ContextOpen  was called,
+      This indicates that ContextOpen was called,
       and not closed with ContextClose yet.
       Contrary to IsContextOpenSuccess,
       this @italic(doesn't care if ContextOpen was a success). }

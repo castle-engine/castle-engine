@@ -193,7 +193,6 @@ type
     procedure Update; virtual;
 
     { All the methods below are guaranteed to be called only after ContextOpen. }
-    { }
     procedure SetGain(const Value: Single); virtual; abstract;
     procedure SetDistanceModel(const Value: TSoundDistanceModel); virtual; abstract;
     procedure SetListener(const Position, Direction, Up: TVector3); virtual; abstract;
