@@ -80,7 +80,7 @@ implementation
 
 uses Math, TypInfo,
   CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
-  CastleFontFamily, CastleUnicode;
+  CastleFontFamily, CastleUnicode, CastleUriUtils, CastleLocalizationGetText;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -222,14 +222,40 @@ type
   end;
 
   function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;
+    procedure AddCommaSeparatedCharactersCode(const AString: String; ACharacters: TUnicodeCharList);
+    var
+      I: Integer;
+      S: String;
+      procedure AddSymbol;
+      begin
+        if Length(S) > 0 then
+        begin
+          ACharacters.Add(StrToInt(S));
+          S := '';
+        end else
+          raise Exception.Create('Unable to parse sample_code field. Expecting a comma-separated list of integers.');
+      end;
+    begin
+      //note, expecting only ASCII-safe string here consisting of numbers and commas
+      S := '';
+      for I := 1 to Length(AString) do
+        case AString[I] of
+          '0'..'9': S := S + AString[I];
+          ',': AddSymbol;
+          else
+            raise Exception.CreateFmt('Unexpected character in sample_code: %s. Expecting a comma-separated list of integers.', [AString[I]]);
+        end;
+      AddSymbol;
+    end;
   var
     NewFontUrl: String;
     NewFontSize, NewFontLoadSize: Cardinal;
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
-    NewFontCharList: String;
     UnicodeCharList: TUnicodeCharList;
+    MoFileUrl: String;
+    CommaSeparatedNumericList: String;
   begin
     if FontElement <> nil then
     begin
@@ -238,19 +264,22 @@ type
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
       { Load additional character list for the font }
-      NewFontCharList := FontElement.AttributeStringDef('sample_text', '');
-      if NewFontCharList = '' then
-        UnicodeCharList := nil
-      else
-      begin
-        UnicodeCharList := TUnicodeCharList.Create;
-        { providing exclude_ascii="true" will force loading only characters
-          specified by characters="..." field,
-          may be useful e.g. for having a large numbers-only font }
-        if not FontElement.AttributeBooleanDef('only_sample_text', false) then
-          UnicodeCharList.Add(SimpleAsciiCharacters);
-        UnicodeCharList.Add(NewFontCharList);
-      end;
+      UnicodeCharList := TUnicodeCharList.Create;
+      { providing exclude_ascii="true" will force loading only characters
+        specified by characters="..." field,
+        may be useful e.g. for having a large numbers-only font }
+      if not FontElement.AttributeBooleanDef('only_sample_text', false) then
+        UnicodeCharList.Add(SimpleAsciiCharacters);
+      UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
+      MoFileUrl := FontElement.AttributeStringDef('sample_get_text_mo', '');
+      if MoFileUrl <> '' then
+        AddTranslatedCharacters(CombineURI(SettingsUrl, MoFileUrl), UnicodeCharList);
+      CommaSeparatedNumericList := FontElement.AttributeStringDef('sample_code', '');
+      if CommaSeparatedNumericList <> '' then
+        AddCommaSeparatedCharactersCode(CommaSeparatedNumericList, UnicodeCharList);
+
+      if UnicodeCharList.Count = 0 then
+        raise Exception.Create('No characters were loaded for font at ' + NewFontUrl);
 
       if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
       begin
