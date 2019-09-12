@@ -246,8 +246,7 @@ type
       if not FontElement.AttributeBooleanDef('only_sample_text', false) then
         UnicodeCharList.Add(SimpleAsciiCharacters);
       UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
-      { Load characters from a translation file,
-        in contrast to texture-font-to-pascal only one file can be specified }
+      { Load characters from one or several translation files }
       RawString := FontElement.AttributeStringDef('sample_get_text_mo', '');
       if RawString <> '' then
       begin
@@ -256,7 +255,7 @@ type
           AddTranslatedCharacters(CombineURI(SettingsUrl, S), UnicodeCharList);
         FreeAndNil(StringList);
       end;
-      { Loads a comma separated list of UTF8 characters decimal code }
+      { Loads a comma/whitespace separated list of UTF8 characters decimal code }
       RawString := FontElement.AttributeStringDef('sample_code', '');
       if RawString <> '' then
       begin
