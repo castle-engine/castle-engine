@@ -238,7 +238,7 @@ type
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
       { Load additional character list for the font }
-      NewFontCharList := FontElement.AttributeStringDef('characters', '');
+      NewFontCharList := FontElement.AttributeStringDef('sample_text', '');
       if NewFontCharList = '' then
         UnicodeCharList := nil
       else
@@ -247,7 +247,7 @@ type
         { providing exclude_ascii="true" will force loading only characters
           specified by characters="..." field,
           may be useful e.g. for having a large numbers-only font }
-        if not FontElement.AttributeBooleanDef('exclude_ascii', false) then
+        if not FontElement.AttributeBooleanDef('only_sample_text', false) then
           UnicodeCharList.Add(SimpleAsciiCharacters);
         UnicodeCharList.Add(NewFontCharList);
       end;
