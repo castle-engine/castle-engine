@@ -201,7 +201,9 @@ begin
             FreeAndNil(ParameterTime)
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unknown script type initialized');
+      {$endif}
     end;
   end;
 end;

@@ -169,7 +169,7 @@ type
       See TDrawableImage.CustomShader for explanation. }
     property CustomShader: TGLSLProgram read FCustomShader write SetCustomShader;
 
-    { In case of @link(Draw3x3) the corners
+    { In case of @link(TDrawableImage.Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
       for UI scaling, see @link(TUIContainer.UIScaling)
       and @link(TCastleUserInterface.UIScale). }
@@ -252,7 +252,7 @@ type
       default false;
 
     { Corners and edges of the image that are protected from scaling distortion
-      when @link(Stretch) is used.
+      when @link(TCastleImageControl.Stretch) is used.
       We use the 9-slicing algorithm,
       described at @link(TDrawableImage.Draw3x3)
       and https://en.wikipedia.org/wiki/9-slice_scaling to scale the image. }

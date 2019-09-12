@@ -282,6 +282,7 @@ uses
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument,
+  CastleSoundBase,
   X3DLoadInternalUtils;
 
 {$warnings on}
@@ -460,6 +461,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
@@ -614,6 +616,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
 {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}

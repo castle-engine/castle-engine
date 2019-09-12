@@ -73,10 +73,6 @@ public class ServiceGameAnalytics extends ServiceAbstract
         if (!initialized) {
             return;
         }
-        // Only needed if your API level is below 14.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            GAPlatform.onActivityResumed(getActivity());
-        }
     }
 
     @Override
@@ -85,10 +81,6 @@ public class ServiceGameAnalytics extends ServiceAbstract
         if (!initialized) {
             return;
         }
-        // Only needed if your API level is below 14.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            GAPlatform.onActivityPaused(getActivity());
-        }
     }
 
     @Override
@@ -96,10 +88,6 @@ public class ServiceGameAnalytics extends ServiceAbstract
     {
         if (!initialized) {
             return;
-        }
-        // Only needed if your API level is below 14.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            GAPlatform.onActivityStopped(getActivity());
         }
     }
 

@@ -541,7 +541,9 @@ begin
           StringToX3DXml(EncodeX3DName(DestinationNodeName)),
           StringToX3DXml(EncodeX3DName(DestinationEventName))
         ]));
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TX3DRoute.SaveToStream Encoding?');
+      {$endif}
     end;
   except
     on E: EX3DRouteSaveError do

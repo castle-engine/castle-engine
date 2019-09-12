@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
-  CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors,
   CastleProjection, CastleScreenEffects;
@@ -234,7 +234,7 @@ type
 
     { Render everything from given camera view (as TRenderingCamera).
       Given RenderingCamera.Target says to where we generate the image.
-      Takes method must take care of making many rendering passes
+      This method must take care of making many rendering passes
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything(const RenderingCamera: TRenderingCamera); virtual;
 
@@ -251,7 +251,7 @@ type
 
       Default implementation of this method in TCastleSceneManager
       returns non-nil headlight node
-      if the algorithm described at @link(UseHeadlight) and
+      if the algorithm described at @link(TCastleSceneManager.UseHeadlight) and
       @link(TUseHeadlight) indicates we should use a headlight.
       Otherwise returns @nil, to indicate we do not show a headlight now.
 
@@ -260,7 +260,7 @@ type
 
       You can override this method to determine the headlight in any other way.
       Instead of overriding this method, you can often also
-      change the @link(UseHeadlight) value,
+      change the @link(TCastleSceneManager.UseHeadlight) value,
       or @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) value. }
     function Headlight: TAbstractLightNode; virtual; abstract;
 
@@ -734,7 +734,7 @@ type
       It's your responsibility in such case to clear the depth buffer.
       E.g. place one scene manager in the back that has ClearDepth = @true.
       Or place a TCastleUserInterface descendant in the back, that calls
-      @code(TRenderContent.Clear RenderContent.Clear) in overridden
+      @code(TRenderContext.Clear RenderContext.Clear) in overridden
       @link(TCastleUserInterface.Render).
 
       Note: to disable clearning the color buffer, set @link(Transparent)
@@ -1190,8 +1190,8 @@ type
           (like TCastleWindow or TCastleControl).
 
           And it is expressed in real device coordinates,
-          just like @link(TInputPressReleaseEvent.Position)
-          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
           when mouse is moved.
         )
 
@@ -2327,36 +2327,60 @@ begin
 end;
 
 procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
-var
-  ClearBuffers: TClearBuffers;
-  ClearColor: TCastleColor;
-  UsedBackground: TBackground;
-  MainLightPosition: TVector4; { ignored }
-  SavedProjectionMatrix: TMatrix4;
-  R: TFloatRectangle;
-begin
-  { TODO: Temporary compatibiliy cludge:
-    Because some rendering code still depends on
-    the CastleRenderingCamera.RenderingCamera singleton being initialized,
-    so initialize it from current parameter. }
-  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
-    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
 
-  { Make ClearColor anything defined.
-    If we will include cbColor in ClearBuffers, it will actually always
-    be adjusted to something appropriate. }
-  ClearColor := Black;
-  ClearBuffers := [];
-  if ClearDepth then
-    Include(ClearBuffers, cbDepth);
-
-  if RenderingCamera.Target = rtVarianceShadowMap then
+  { Call RenderContext.Clear with proper options. }
+  procedure RenderClear;
+  var
+    ClearBuffers: TClearBuffers;
+    ClearColor: TCastleColor;
+    MainLightPosition: TVector4; { ignored }
   begin
-    { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
-    Include(ClearBuffers, cbColor);
-    ClearColor := Vector4(1, 1, 0, 1);
-  end else
-  if not Transparent then
+    { Make ClearColor anything defined.
+      If we will include cbColor in ClearBuffers, it will actually always
+      be adjusted to something appropriate. }
+    ClearColor := Black;
+    ClearBuffers := [];
+
+    if ClearDepth then
+      Include(ClearBuffers, cbDepth);
+
+    if RenderingCamera.Target = rtVarianceShadowMap then
+    begin
+      { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
+      Include(ClearBuffers, cbColor);
+      ClearColor := Vector4(1, 1, 0, 1);
+    end else
+    if not Transparent then
+    begin
+      { Note that we clear cbColor regardless whether Background exists.
+        This is more reliable, in case Background rendering is transparent,
+
+        - e.g. ImageBackground can be completely transparent or partially-transparent
+          in a couple of ways. When ImageBackground.color has alpha < 1,
+          when ImageBackground.texture is transparent,
+          when ImageBackground.texture is NULL...
+
+        - likewise, Background can be transparent.
+          E.g. if one of the textures on 6 cube sides didn't load.
+          Or when BackgroundWireframe.
+      }
+      Include(ClearBuffers, cbColor);
+      ClearColor := BackgroundColor;
+    end;
+
+    if GLFeatures.ShadowVolumesPossible and
+       ShadowVolumes and
+       MainLightForShadows(MainLightPosition) then
+      Include(ClearBuffers, cbStencil);
+
+    RenderContext.Clear(ClearBuffers, ClearColor);
+  end;
+
+  procedure RenderBackground;
+  var
+    UsedBackground: TBackground;
+    SavedProjectionMatrix: TMatrix4;
+    RR: TFloatRectangle;
   begin
     UsedBackground := Background;
     if UsedBackground <> nil then
@@ -2369,6 +2393,8 @@ begin
       end;
       RenderingCamera.RotationOnly := true;
 
+      RR := RenderRect;
+
       { The background rendering doesn't like custom orthographic Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
@@ -2378,29 +2404,28 @@ begin
       if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-        R := RenderRect;
-        PerspectiveProjection(45, R.Width / R.Height,
+        PerspectiveProjection(45, RR.Width / RR.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
       end else
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe);
+        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
 
       RenderingCamera.RotationOnly := false;
-    end else
-    begin
-      Include(ClearBuffers, cbColor);
-      ClearColor := BackgroundColor;
     end;
   end;
 
-  if GLFeatures.ShadowVolumesPossible and
-     ShadowVolumes and
-     MainLightForShadows(MainLightPosition) then
-    Include(ClearBuffers, cbStencil);
+begin
+  { TODO: Temporary compatibiliy cludge:
+    Because some rendering code still depends on
+    the CastleRenderingCamera.RenderingCamera singleton being initialized,
+    so initialize it from current parameter. }
+  if RenderingCamera <> CastleRenderingCamera.RenderingCamera then
+    CastleRenderingCamera.RenderingCamera.Assign(RenderingCamera);
 
-  RenderContext.Clear(ClearBuffers, ClearColor);
+  RenderClear;
+  RenderBackground;
 
   if GLFeatures.EnableFixedFunction then
   begin
@@ -3034,7 +3059,9 @@ begin
         W.PreferGravityUpForMoving := false;
         W.Gravity := false;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
+    {$endif}
   end;
 
   { This assertion should be OK. It is commented out only to prevent
@@ -4037,7 +4064,9 @@ begin
           Result := HeadlightNode;
         Assert(Result <> nil);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create(2018081902);
+    {$endif}
   end;
 end;
 

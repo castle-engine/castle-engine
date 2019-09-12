@@ -552,6 +552,38 @@
 
     {$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
   end;
+
+  { Display a static 2D image as a background. }
+  TImageBackgroundNode = class(TAbstractBackgroundNode)
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    strict private FFdColor: TSFColorRGBA;
+    { @seealso Color }
+    public property FdColor: TSFColorRGBA read FFdColor;
+
+    strict private FFdTexture: TSFNode;
+    { @seealso Texture }
+    public property FdTexture: TSFNode read FFdTexture;
+
+    strict private FFdTexCoords: TMFVec2f;
+    { Texture coordinates of the full-screen quad.
+      By default they use the whole texture area:
+
+      @orderedList(
+        @item Vector2(0, 0),
+        @item Vector2(1, 0),
+        @item Vector2(1, 1),
+        @item Vector2(0, 1)
+      )
+
+      It is undefined what happens if there are not exactly 4 items. }
+    public property FdTexCoords: TMFVec2f read FFdTexCoords;
+
+    {$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1538,6 +1570,49 @@ begin
   Result := FMaterialInfo;
 end;
 
+{ TImageBackgroundNode ------------------------------------------------------- }
+
+procedure TImageBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdColor := TSFColorRGBA.Create(Self, true, 'color', White);
+  AddField(FFdColor);
+
+  FFdTexture := TSFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
+  AddField(FFdTexture);
+
+  FFdTexCoords := TMFVec2f.Create(Self, true, 'texCoords', [
+    Vector2(0, 0),
+    Vector2(1, 0),
+    Vector2(1, 1),
+    Vector2(0, 1)
+  ]);
+  AddField(FFdTexCoords);
+end;
+
+class function TImageBackgroundNode.ClassX3DType: string;
+begin
+  Result := 'ImageBackground';
+end;
+
+class function TImageBackgroundNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    URNMatchingCastle(URN, ClassX3DType);
+end;
+
+{
+function TImageBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
+begin
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdTexture.Enumerate(Func);
+  if Result <> nil then Exit;
+end;
+}
+
 { registration ----------------------------------------------------------------- }
 
 procedure RegisterInstantRealityNodes;
@@ -1550,7 +1625,8 @@ begin
     TRenderedTextureNode,
     TPlaneNode,
     TTogglerNode,
-    TCommonSurfaceShaderNode
+    TCommonSurfaceShaderNode,
+    TImageBackgroundNode
   ]);
 end;
 {$endif read_implementation}

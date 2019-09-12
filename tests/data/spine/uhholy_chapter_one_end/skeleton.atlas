@@ -1,0 +1,83 @@
+
+skeleton.png
+size: 3846,1776
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Kształt 59
+  rotate: false
+  xy: 1924, 8
+  size: 672, 841
+  orig: 672, 841
+  offset: 0, 0
+  index: -1
+Kształt 60
+  rotate: true
+  xy: 2, 2
+  size: 690, 837
+  orig: 690, 837
+  offset: 0, 0
+  index: -1
+Kształt 61
+  rotate: false
+  xy: 2760, 806
+  size: 720, 834
+  orig: 720, 834
+  offset: 0, 0
+  index: -1
+Kształt 62
+  rotate: true
+  xy: 2724, 108
+  size: 696, 832
+  orig: 696, 832
+  offset: 0, 0
+  index: -1
+Kształt 63
+  rotate: true
+  xy: 841, 31
+  size: 661, 837
+  orig: 661, 837
+  offset: 0, 0
+  index: -1
+Next Chapter coming soon_
+  rotate: true
+  xy: 2598, 117
+  size: 732, 40
+  orig: 732, 40
+  offset: 0, 0
+  index: -1
+Thank you for playing
+  rotate: true
+  xy: 2682, 254
+  size: 595, 40
+  orig: 595, 40
+  offset: 0, 0
+  index: -1
+The end of Chapter One
+  rotate: true
+  xy: 2640, 202
+  size: 647, 40
+  orig: 647, 40
+  offset: 0, 0
+  index: -1
+end_screen_bg
+  rotate: false
+  xy: 2, 694
+  size: 1920, 1080
+  orig: 1920, 1080
+  offset: 0, 0
+  index: -1
+light
+  rotate: true
+  xy: 1924, 851
+  size: 789, 834
+  orig: 943, 917
+  offset: 77, 0
+  index: -1
+shadow
+  rotate: false
+  xy: 1924, 1642
+  size: 1920, 132
+  orig: 1920, 132
+  offset: 0, 0
+  index: -1

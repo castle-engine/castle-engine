@@ -282,7 +282,10 @@ begin
   finally p.free end;
 end;
 
-procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Options: array of string;var OutputString:string;var ExitStatus:integer;
+procedure RunCommandIndirPassthrough(const CurDir: string;
+  const ExeName: string;
+  const Options: array of string;
+  var OutputString:string; var ExitStatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }

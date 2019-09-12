@@ -262,7 +262,9 @@ begin
         if I <> Count - 1 then
           Writer.Write(' ');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DSimpleMultField.SaveToStreamValue Encoding?');
+    {$endif}
   end;
 end;
 

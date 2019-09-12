@@ -37,7 +37,7 @@ type
   ENoMoreOpenALSources = ENoMoreSources deprecated 'use ENoMoreSources';
   ESoundBufferNotLoaded = class(Exception);
   EInvalidSoundBufferFree = class(Exception);
-  ESoundFileError = CastleInternalSoundFile.ESoundFileError;
+  ESoundFileError = CastleSoundBase.ESoundFileError;
   EInvalidSoundRepositoryXml = class(Exception);
 
   TSound = class;
@@ -52,20 +52,19 @@ type
   TSoundBuffer = class
   private
     FURL: string;
-    FDuration: TFloatTime;
-    FDataFormat: TSoundDataFormat;
-    FFrequency: LongWord;
+    FSoundLoading: TSoundLoading;
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
     procedure ContextOpen(const ExceptionOnError: boolean);
     procedure ContextClose;
   public
-    constructor Create(const SoundEngineBackend: TSoundEngineBackend);
+    constructor Create(const SoundEngineBackend: TSoundEngineBackend;
+      const SoundLoading: TSoundLoading);
     destructor Destroy; override;
 
-    { Duration of the sound, in seconds. Zero if not loaded yet. }
-    property Duration: TFloatTime read FDuration;
+    { Duration of the sound, in seconds. -1 if not loaded yet. }
+    function Duration: TFloatTime;
 
     { Absolute sound file URL.
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
@@ -75,14 +74,14 @@ type
     { Data format (bits per sample, stereo or mono) of the loaded sound file.
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
-      Undefined if not loaded yet. }
-    property DataFormat: TSoundDataFormat read FDataFormat;
+      Undefined if backend is not loaded. }
+    function DataFormat: TSoundDataFormat;
 
     { Frequency (sample rate) of the loaded sound file.
       Typical applications don't need this value, this is just an information
       about the loaded sound file.
-      Undefined if not loaded yet. }
-    property Frequency: LongWord read FFrequency;
+      Undefined if backend is not loaded. }
+    function Frequency: LongWord;
   end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
@@ -558,13 +557,26 @@ type
       is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
 
+      Not specifying SoundLoading means to use slComplete,
+      which loads sound at once. It means that loading time is long,
+      but there's zero additional work at runtime, and caching buffers
+      works great.
+
+      Using SoundLoading = slStreaming means that we decompress
+      the sound (like OggVorbis) during playback.
+      It allows for much quicker sound loading (almost instant, if you use streaming
+      for everything) but means that sounds will be loaded (in parts)
+      during playback.
+      In general case, we advise to use it for longer sounds (like music tracks).
+
       @raises(ESoundFileError If loading of this sound file failed.
         There are many reasons why this may happen: we cannot read given URL,
         or it may contain invalid contents,
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; const ExceptionOnError: boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
     function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
@@ -1269,10 +1281,36 @@ var
 
 { TSoundBuffer --------------------------------------------------------------- }
 
-constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend);
+constructor TSoundBuffer.Create(const SoundEngineBackend: TSoundEngineBackend;
+  const SoundLoading: TSoundLoading);
 begin
   inherited Create;
-  Backend := SoundEngineBackend.CreateBuffer;
+  FSoundLoading := SoundLoading;
+  Backend := SoundEngineBackend.CreateBuffer(SoundLoading);
+end;
+
+function TSoundBuffer.DataFormat: TSoundDataFormat;
+begin
+  if BackendIsOpen then
+    Result := Backend.DataFormat
+  else
+    Result := Default(TSoundDataFormat);
+end;
+
+function TSoundBuffer.Frequency: LongWord;
+begin
+  if BackendIsOpen then
+    Result := Backend.Frequency
+  else
+    Result := 0;
+end;
+
+function TSoundBuffer.Duration: TFloatTime;
+begin
+  if BackendIsOpen then
+    Result := Backend.Duration
+  else
+    Result := -1;
 end;
 
 procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
@@ -1281,9 +1319,6 @@ procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
   begin
     FURL := URL;
     Backend.ContextOpen(URL);
-    FDuration := Backend.Duration;
-    FDataFormat := Backend.DataFormat;
-    FFrequency := Backend.Frequency;
     BackendIsOpen := true;
   end;
 
@@ -2111,7 +2146,7 @@ begin
   Duration := Result.Duration;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TSoundBuffer;
 var
   I: Integer;
   FullURL: string;
@@ -2132,7 +2167,7 @@ begin
       Exit;
     end;
 
-  Result := TSoundBuffer.Create(Backend);
+  Result := TSoundBuffer.Create(Backend, SoundLoading);
   Result.FURL := FullURL;
   Result.References := 1;
   LoadedBuffers.Add(Result);
@@ -2140,6 +2175,11 @@ begin
   if IsContextOpenSuccess then
     { let LoadBuffer raise exception on missing sound file }
     Result.ContextOpen(ExceptionOnError);
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
+begin
+  Result := LoadBuffer(URL, slComplete, ExceptionOnError);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
@@ -2487,6 +2527,8 @@ procedure TRepoSoundEngine.TSoundInfoBuffer.ReadElement(const Element: TDOMEleme
 var
   ImportanceStr, URLPrefix: String;
   SoundImportanceIndex: Integer;
+  Streaming: Boolean;
+  SoundLoading: TSoundLoading;
 begin
   inherited;
 
@@ -2542,7 +2584,14 @@ begin
 
   { set Buffer at the end, when URL is set }
   if URL <> '' then
-    Buffer := ASoundEngine.LoadBuffer(URL, false);
+  begin
+    Streaming := Element.AttributeBooleanDef('stream', false);
+    if Streaming then
+      SoundLoading := slStreaming
+    else
+      SoundLoading := slComplete;
+    Buffer := ASoundEngine.LoadBuffer(URL, SoundLoading, false);
+  end;
 end;
 
 function TRepoSoundEngine.TSoundInfoBuffer.FinalSound(const RecursionDepth: Cardinal): TSoundInfoBuffer;
@@ -2817,58 +2866,58 @@ begin
   if RepositoryURL = '' then Exit;
 
   TimeStart := Profiler.Start('Loading All Sounds From ' + RepositoryURL + ' (TRepoSoundEngine)');
-
-  { This must be an absolute path, since FSounds[].URL should be
-    absolute (to not depend on the current dir when loading sound files. }
-  BaseUrl := AbsoluteURI(RepositoryURL);
-
-  Stream := Download(BaseUrl);
   try
-    ReadXMLFile(SoundConfig, Stream, BaseUrl);
-  finally FreeAndNil(Stream) end;
+    { This must be an absolute path, since FSounds[].URL should be
+      absolute (to not depend on the current dir when loading sound files. }
+    BaseUrl := AbsoluteURI(RepositoryURL);
 
-  // cut off last part from BaseUrl, for ReadSound / ReadGroup calls
-  BaseUrl := ExtractURIPath(BaseUrl);
-
-  try
-    Check(SoundConfig.DocumentElement.TagName = 'sounds',
-      'Root node of sounds/index.xml must be <sounds>');
-
-    { TODO: This could display a progress bar using Progress.Init / Fini
-      if IsContextOpenSuccess, since it loads sounds in this case (calls LoadBuffer),
-      so can take a while. }
-
-    I := SoundConfig.DocumentElement.ChildrenIterator;
+    Stream := Download(BaseUrl);
     try
-      while I.GetNext do
-        ReadGroupChild(I.Current, nil, BaseUrl);
-    finally FreeAndNil(I) end;
-  finally
-    FreeAndNil(SoundConfig);
-  end;
+      ReadXMLFile(SoundConfig, Stream, BaseUrl);
+    finally FreeAndNil(Stream) end;
 
-  ResolveNames;
+    // cut off last part from BaseUrl, for ReadSound / ReadGroup calls
+    BaseUrl := ExtractURIPath(BaseUrl);
 
-  { read common sound names }
-  stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
-  stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
-  stPlayerPickItem             := SoundFromName('player_pick_item', false);
-  stPlayerDropItem             := SoundFromName('player_drop_item', false);
-  stPlayerDies                 := SoundFromName('player_dies', false);
-  stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
-  stPlayerSwimming             := SoundFromName('player_swimming', false);
-  stPlayerDrowning             := SoundFromName('player_drowning', false);
-  stPlayerFootstepsDefault     := SoundFromName('player_footsteps_default', false);
-  stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
+    try
+      Check(SoundConfig.DocumentElement.TagName = 'sounds',
+        'Root node of sounds/index.xml must be <sounds>');
 
-  stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
-  stMenuClick              := SoundFromName('menu_click'               , false);
+      { TODO: This could display a progress bar using Progress.Init / Fini
+        if IsContextOpenSuccess, since it loads sounds in this case (calls LoadBuffer),
+        so can take a while. }
 
-  { in case you set RepositoryURL when sound context is already
-    initialized, start playing music immediately if necessary }
-  RestartLoopingChannels;
+      I := SoundConfig.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          ReadGroupChild(I.Current, nil, BaseUrl);
+      finally FreeAndNil(I) end;
+    finally
+      FreeAndNil(SoundConfig);
+    end;
 
-  Profiler.Stop(TimeStart);
+    ResolveNames;
+
+    { read common sound names }
+    stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
+    stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
+    stPlayerPickItem             := SoundFromName('player_pick_item', false);
+    stPlayerDropItem             := SoundFromName('player_drop_item', false);
+    stPlayerDies                 := SoundFromName('player_dies', false);
+    stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
+    stPlayerSwimming             := SoundFromName('player_swimming', false);
+    stPlayerDrowning             := SoundFromName('player_drowning', false);
+    stPlayerFootstepsDefault     := SoundFromName('player_footsteps_default', false);
+    stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
+
+    stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
+    stMenuClick              := SoundFromName('menu_click'               , false);
+
+    { in case you set RepositoryURL when sound context is already
+      initialized, start playing music immediately if necessary }
+    RestartLoopingChannels;
+
+  finally Profiler.Stop(TimeStart) end;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;

@@ -309,6 +309,7 @@ begin
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);
     {$endif}
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , Fbo);
+    else ;
   end;
 end;
 
@@ -349,6 +350,7 @@ begin
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
     {$endif}
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , PreviousFbo);
+    else ;
   end;
 end;
 
@@ -400,6 +402,7 @@ begin
         end else
           glFramebufferTexture2D(Target, Attachment, TexTarget, Texture, Level);
       end;
+    else ;
   end;
 end;
 
@@ -443,6 +446,7 @@ begin
         gsExtension: glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
         {$endif}
         gsStandard : glFramebufferTexture2D   (GL_FRAMEBUFFER    , GL_COLOR_ATTACHMENT0    , TextureTarget, Texture, 0);
+        else ;
       end;
       if not FramebufferBound then
         UnbindFramebuffer;
@@ -517,6 +521,7 @@ procedure TGLRenderToTexture.GLContextOpen;
           end else
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
         end;
+      else ;
     end;
   end;
 
@@ -550,6 +555,7 @@ begin
       gsExtension: glGenFramebuffersEXT(1, @Framebuffer);
       {$endif}
       gsStandard : glGenFramebuffers   (1, @Framebuffer);
+      else ;
     end;
     BindFramebuffer(Framebuffer);
 
@@ -611,7 +617,9 @@ begin
           GenBindRenderbuffer(RenderbufferColor, ColorBufferFormat, false, GL_COLOR_ATTACHMENT0);
           GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentWithStencil, DepthAttachmentPacked);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Buffer 1?');
+      {$endif}
     end;
 
     { setup separate stencil buffer }
@@ -627,6 +635,7 @@ begin
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
         {$endif}
         gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
+        else ;
       end;
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;
@@ -641,6 +650,7 @@ begin
         gsExtension: glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
         {$endif}
         gsStandard : glBindRenderbuffer   (GL_RENDERBUFFER    , 0);
+        else ;
       end;
       UnbindFramebuffer(PreviousFboDefaultBuffer);
 
@@ -671,6 +681,7 @@ procedure TGLRenderToTexture.GLContextClose;
         gsExtension: glDeleteRenderbuffersEXT(1, @Buf);
         {$endif}
         gsStandard : glDeleteRenderbuffers   (1, @Buf);
+        else ;
       end;
       Buf := 0;
     end;
@@ -685,6 +696,7 @@ procedure TGLRenderToTexture.GLContextClose;
         gsExtension: glDeleteFramebuffersEXT(1, @Buf);
         {$endif}
         gsStandard : glDeleteFramebuffers   (1, @Buf);
+        else ;
       end;
       Buf := 0;
     end;

@@ -14,8 +14,7 @@
 }
 
 { Logging. Log has to be activated in your program (nothing in the
-  Castle Game Engine activates it automatically) by InitializeLog.
-  Various units of the engine print some logging info when @link(Log) is true. }
+  Castle Game Engine activates it automatically) by InitializeLog. }
 unit CastleLog;
 
 {$include castleconf.inc}
@@ -99,16 +98,11 @@ procedure InitializeLog(const ProgramVersion: string;
   const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
   deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
 
-{ Log message. Ignored when log is not initialized (@link(Log) is @false).
-
-  Although we check @link(Log) here, you can also check it yourself
-  before even calling this procedure. This way you can avoid spending time
-  on constructing Message. }
+{ Log message. }
 procedure WritelnLog(const Category: string; const Message: string); overload;
 procedure WritelnLog(const Message: string); overload;
 
 { Format and log a message.
-  Ignored when log is not initialized (@link(Log) is @false).
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
 procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const); overload;
@@ -131,7 +125,7 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
   event.
 
-  This outputs a log message, if the log is initialized by @link(InitializeLog).
+  This outputs a log message.
   We simply append the word "warning" to the Category, and pass arguments
   to WritelnLog.
 

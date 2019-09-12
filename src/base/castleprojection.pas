@@ -149,7 +149,9 @@ begin
         Dimensions,
         ProjectionNear,
         ProjectionFar);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create(2018081901);
+    {$endif}
   end;
 end;
 

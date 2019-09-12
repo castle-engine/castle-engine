@@ -331,7 +331,9 @@ begin
     hpLeft  : TextX := SR.Left + PaddingHorizontalScaled;
     hpMiddle: TextX := (SR.Left + SR.Right) / 2;
     hpRight : TextX := SR.Right - PaddingHorizontalScaled;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
+    {$endif}
   end;
 
   { calculate TextBottom }
@@ -352,6 +354,7 @@ begin
       case VerticalAlignment of
         vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / 2;
         vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
+        else ;
       end;
 
     TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment,

@@ -1067,6 +1067,7 @@ begin
   vtFloat: result := result +' ' +FloatToStr(TokenFloat);
   vtInteger: result := result +' ' +IntToStr(TokenInteger);
   vtString: result := result+' "'+TokenString+'"';
+  else ;
  end;
 end;
 

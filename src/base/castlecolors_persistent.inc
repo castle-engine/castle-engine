@@ -46,6 +46,7 @@ type
     InternalSetValue: TSetVector3Event;
     InternalDefaultValue: TCastleColorRGB;
     property Value: TCastleColorRGB read GetValue write SetValue;
+    function HasDefaultValue: Boolean;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -83,6 +84,7 @@ type
     InternalSetValue: TSetVector4Event;
     InternalDefaultValue: TCastleColor;
     property Value: TCastleColor read GetValue write SetValue;
+    function HasDefaultValue: Boolean;
   published
     property Red: Single read GetRed write SetRed stored RedIsStored nodefault;
     property Green: Single read GetGreen write SetGreen stored GreenIsStored nodefault;
@@ -161,6 +163,11 @@ end;
 function TCastleColorRGBPersistent.BlueIsStored: Boolean;
 begin
   Result := Value.Data[2] <> InternalDefaultValue.Data[2];
+end;
+
+function TCastleColorRGBPersistent.HasDefaultValue: Boolean;
+begin
+  Result := TVector3.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 { TCastleColorPersistent ---------------------------------------------------- }
@@ -249,6 +256,11 @@ end;
 function TCastleColorPersistent.AlphaIsStored: Boolean;
 begin
   Result := Value.Data[3] <> InternalDefaultValue.Data[3];
+end;
+
+function TCastleColorPersistent.HasDefaultValue: Boolean;
+begin
+  Result := TVector4.PerfectlyEquals(Value, InternalDefaultValue);
 end;
 
 {$endif read_implementation}

@@ -25,83 +25,11 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetTransparency: Single;
-    procedure SetTransparency(const Value: Single);
-  public
-    { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: array of Single);
-    { Set X3D field "groundAngle". } { }
-    procedure SetGroundAngle(const Value: TSingleList);
-    { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: array of TCastleColorRGB);
-    { Set X3D field "groundColor". } { }
-    procedure SetGroundColor(const Value: TVector3List);
-    { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: array of Single);
-    { Set X3D field "skyAngle". } { }
-    procedure SetSkyAngle(const Value: TSingleList);
-    { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: array of TCastleColorRGB);
-    { Set X3D field "skyColor". } { }
-    procedure SetSkyColor(const Value: TVector3List);
-    { X3D field "transparency". } { }
-    property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractBackgroundNode ----------------------------------------------- }
-
-procedure TAbstractBackgroundNode.SetGroundAngle(const Value: array of Single);
-begin
-  FdGroundAngle.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetGroundAngle(const Value: TSingleList);
-begin
-  FdGroundAngle.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetGroundColor(const Value: array of TCastleColorRGB);
-begin
-  FdGroundColor.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetGroundColor(const Value: TVector3List);
-begin
-  FdGroundColor.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetSkyAngle(const Value: array of Single);
-begin
-  FdSkyAngle.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetSkyAngle(const Value: TSingleList);
-begin
-  FdSkyAngle.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetSkyColor(const Value: array of TCastleColorRGB);
-begin
-  FdSkyColor.Send(Value);
-end;
-
-procedure TAbstractBackgroundNode.SetSkyColor(const Value: TVector3List);
-begin
-  FdSkyColor.Send(Value);
-end;
-
-function TAbstractBackgroundNode.GetTransparency: Single;
-begin
-  Result := FdTransparency.Value;
-end;
-
-procedure TAbstractBackgroundNode.SetTransparency(const Value: Single);
-begin
-  FdTransparency.Send(Value);
-end;
 
 {$endif read_implementation}

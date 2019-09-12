@@ -389,7 +389,7 @@ type
     constructor Create;
   end;
 
-  { Possible values for @link(TCastleScene.PrimitiveGeometry). }
+  { Possible values for @link(TCastleSceneCore.PrimitiveGeometry). }
   TPrimitiveGeometry = (
     pgNone,
     pgRectangle2D,
@@ -3061,7 +3061,11 @@ begin
   begin
     if AutoAnimation <> '' then
     begin
-      if not PlayAnimation(AutoAnimation, AutoAnimationLoop) then
+      if PlayAnimation(AutoAnimation, AutoAnimationLoop) then
+        { call ForceInitialAnimationPose, to avoid blinking with "setup pose"
+          right after loading the UI design from file. }
+        ForceInitialAnimationPose
+      else
         WritelnWarning('Animation "%s" not found on "%s"', [
           AutoAnimation,
           URIDisplay(URL)
@@ -4221,7 +4225,9 @@ begin
     ntcLight: HandleLight(TAbstractLightNode(Node));
     ntcProximitySensor: HandleProximitySensor(TProximitySensorNode(Node));
     ntcVisibilitySensor: HandleVisibilitySensor(TVisibilitySensorNode(Node));
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('HandleTransform: NodeTransformationChange?');
+    {$endif}
   end;
 end;
 

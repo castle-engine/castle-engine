@@ -502,6 +502,7 @@ begin
     case Box.PlaneCollision(Planes[fp]) of
       pcInside: Exit(fcNoCollision);
       pcOutside: Inc(InsidePlanesCount);
+      else ;
     end;
   end;
 

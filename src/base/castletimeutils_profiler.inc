@@ -37,9 +37,9 @@ type
       Using LogSummary for Stop instead of both easier, and safe. }
     //function Summary(const Indent: String = ''): string;
   public
-    { Elapsed time in seconds since calling @link(TProfiler.Start)
-      that returned this. Useful if you use @link(TProfiler),
-      but in addition to @link(TProfiler.Summary) you also want to show
+    { Elapsed time in seconds since calling @link(TCastleProfiler.Start)
+      that returned this. Useful if you use @link(TCastleProfiler),
+      but in addition to @link(TCastleProfiler.Summary) you also want to show
       the operation time in some other way. }
     function ElapsedTime: TFloatTime;
   end;
@@ -337,6 +337,7 @@ end;
 procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean);
 var
   T: TTime;
+  IndexInStack: Integer;
 begin
   if TimeStart.FTime = nil then
     Exit; // Start was called when Enabled = false
@@ -359,8 +360,19 @@ begin
      (CurrentStack.Last = T) then
     CurrentStack.Delete(CurrentStack.Count - 1)
   else
-    WritelnWarning('Mismatched Profiler.Start/Stop calls, the currently Stopped time measure (%s) was not the last one started',
-      [T.Description]);
+  begin
+    WritelnWarning('Mismatched Profiler.Start/Stop calls, the currently stopped time measurement (%s) is not the last measurement started (%s). Use try...finally to always run "Profiler.Stop" for each "Profiler.Start".', [
+      T.Description,
+      CurrentStack.Last.Description
+    ]);
+    IndexInStack := CurrentStack.IndexOf(T);
+    if IndexInStack <> - 1 then
+      CurrentStack.DeleteRange(IndexInStack, CurrentStack.Count - IndexInStack)
+    else
+      WritelnWarning('Cannot find in stack the start of "%s", profiler information is corrupt, possible Access Violations errors later', [
+        T.Description
+      ]);
+  end;
 end;
 
 procedure TCastleProfiler.Clear;

@@ -1209,7 +1209,9 @@ begin
     ltDotted      : FdLineType.Send(3);
     ltDashedDotted: FdLineType.Send(4);
     ltDashDotDot  : FdLineType.Send(5);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TLinePropertiesNode.SetLineType:this Value not implemented');
+    {$endif}
   end;
 end;
 

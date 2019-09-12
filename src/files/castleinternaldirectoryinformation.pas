@@ -22,7 +22,7 @@ unit CastleInternalDirectoryInformation;
 interface
 
 uses DOM, Generics.Collections,
-  CastleFindFiles;
+  CastleFindFiles, CastleUtils;
 
 type
   { Generate, load, save to file an information about files under given path.
@@ -98,7 +98,7 @@ function DataDirectoryInformation: TDirectoryInformation;
 implementation
 
 uses SysUtils,
-  CastleXMLUtils, CastleUtils, CastleURIUtils, CastleStringUtils, CastleLog;
+  CastleXMLUtils, CastleURIUtils, CastleStringUtils, CastleLog;
 
 { TDirectory ----------------------------------------------------------------- }
 
@@ -403,6 +403,7 @@ begin
   Result := FDataDirectoryInformation;
 end;
 
+initialization
 finalization
   FreeAndNil(FDataDirectoryInformation);
 end.

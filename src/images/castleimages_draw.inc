@@ -341,7 +341,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -437,7 +439,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -549,7 +553,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -776,7 +782,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -849,7 +857,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -938,7 +948,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1111,7 +1123,9 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1176,7 +1190,9 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1255,7 +1271,9 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1314,7 +1332,9 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1564,7 +1584,9 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1650,7 +1672,9 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 
@@ -1736,7 +1760,9 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
+      {$endif}
     end;
   end;
 

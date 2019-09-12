@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -174,6 +174,21 @@
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$endif}
+
+{$ifdef FPC}
+  {$ifndef VER3_0}
+    {$ifndef VER3_1}
+      { Compiler automatically detects and warns when "case" doesn't cover
+        all possibilities. This means we do not have to, and actually
+        we should not have to (as it would cause "Warning: Unreachable code" warning),
+        add a clause like "else raise EInternalError.Create('xxx');"
+        to "case" statements that should always have a matching possibility.
+
+        This is true for FPC >= 3.2 now. }
+      {$define COMPILER_CASE_ANALYSIS}
+    {$endif}
+  {$endif}
 {$endif}
 
 { Nintendo Switch ------------------------------------------------------------ }
@@ -386,5 +401,19 @@
   Undefine this to conserve around 0.7 MB in exe size.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
+
+{ Threading --------------------------------------------------------------- }
+
+{ Threading support, some platform don't have threads (implemented yet). }
+{$define CASTLE_SUPPORTS_THREADING}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_SUPPORTS_THREADING} {$endif}
+
+{ Audio ---------------------------------------------------------------------- }
+
+{ Although Tremolo is largely compatible with VorbisFile, there are small differences,
+  e.g. ov_time_total returns Int64 with Tremolo instead of Double with VorbisFile. }
+{$if defined(IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$define CASTLE_TREMOLO}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

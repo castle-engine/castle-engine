@@ -483,7 +483,9 @@ function TCastleImage.MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
       riCatrom         : Result := TCatromInterpolation.Create;
       riHanning        : Result := THanningInterpolation.Create;
       riHamming        : Result := THammingInterpolation.Create;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('CreateInterpolation:I?');
+      {$endif}
     end;
   end;
 

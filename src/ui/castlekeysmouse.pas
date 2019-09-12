@@ -1288,7 +1288,9 @@ begin
       [ MouseWheelDirectionStr[MouseWheel],
         MouseWheelScroll,
         BoolToStr(MouseWheelVertical, true) ]);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
+    {$endif}
   end;
   if KeyRepeated then
     Result := Result + ', key repeated';

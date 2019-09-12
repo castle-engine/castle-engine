@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,40 +13,39 @@
   ----------------------------------------------------------------------------
 }
 
-{ Background for 3D world (TBackground). }
-unit CastleBackground;
+{ Background under X3D scene (TBackground). }
+unit CastleInternalBackground;
 
 {$I castleconf.inc}
 
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
-  CastleColors, CastleGLUtils, CastleTransform;
+  CastleColors, CastleGLUtils, CastleTransform, CastleRectangles;
 
 type
-  { Background for 3D world.
-    Background defined here has the same features as VRML/X3D Background:
+  { Background under X3D scene.
+
+    It supports all features of X3D nodes descending
+    from TAbstractBackgroundNode.
 
     @unorderedList(
       @itemSpacing Compact
-      @item(skybox - a cube with each face potentially textured
-        (textures may have alpha channel))
-      @item a ground sphere around this, with color rings for ground colors
-      @item a sky sphere around this, with color rings for sky colors
+      @item(May be a skybox: A cube with each face potentially textured
+        (textures may have alpha channel),)
+      @item(Behind the skybox: you can see ground sphere,
+        with color rings for ground colors,)
+      @item(Behind the ground sphere: you can see sky sphere,
+        with color rings for sky colors,)
+      @item(May also be a single full-screen quad (for TImageBackgroundNode).)
     )
 
-    Engine users should not use this class directly. Instead TCastleSceneManager
-    automatically uses this to render the background defined by
-    TCastleSceneManager.MainScene. }
-  TBackground = class
-  private
-    { TCastleScene to render the background in most cases.
-      Cannot be declared as TCastleScene as it would create a circular dependency
-      with CastleScene unit. }
-    SceneObj: TObject;
-    ParamsObj: TObject;
-    ClearColor: TCastleColor;
-    MatrixTransform: TMatrixTransformNode;
+    This is an abstract class.
+    Do not construct it explicitly.
+    The only way to create non-abstract instances of this class
+    is to use @link(CreateBackground).
+  }
+  TBackground = class abstract
   public
     { Calculate (or just confirm that Proposed value is still OK)
       the sky sphere radius that fits nicely in your projection near/far.
@@ -72,19 +71,22 @@ type
     class function NearFarToSkySphereRadius(const zNear, zFar: Single;
       const Proposed: Single = 0): Single;
 
-    constructor Create;
-    destructor Destroy; override;
-    procedure Update(const Node: TAbstractBackgroundNode;
-      const SkySphereRadius: Single);
     procedure Render(const RenderingCamera: TRenderingCamera;
-      const Wireframe: boolean);
-    procedure UpdateTransform(const Transform: TMatrix4);
-    procedure FreeResources;
+      const Wireframe: boolean;
+      const RenderRect: TFloatRectangle); virtual;
+    procedure UpdateRotation(const Rotation: TVector4); virtual;
+    procedure FreeResources; virtual;
   end;
+
+{ Create background renderer.
+  Returns @nil if this Node class is not supported. }
+function CreateBackground(const Node: TAbstractBackgroundNode;
+  const SkySphereRadius: Single): TBackground;
 
 implementation
 
-uses CastleLog, CastleScene, X3DFields, Math, CastleSceneCore;
+uses Math,
+  CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -135,32 +137,42 @@ begin
     Result := (Min + Max) / 2;
 end;
 
-{$define Scene := TCastleScene(SceneObj)}
-{$define Params := TBasicRenderParams(ParamsObj)}
-
-constructor TBackground.Create;
+procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean;
+  const RenderRect: TFloatRectangle);
 begin
-  inherited;
-  Scene := TCastleScene.Create(nil);
-  { We don't need depth test (we put our shapes in proper order),
-    we even don't want it (because we don't clear depth buffer
-    before drawing, so it may contain the depths on 3D world rendered
-    in previous frame). }
-  Scene.Attributes.DepthTest := false;
-  Params := TBasicRenderParams.Create;
 end;
 
-destructor TBackground.Destroy;
+procedure TBackground.UpdateRotation(const Rotation: TVector4);
 begin
-  FreeAndNil(Scene);
-  FreeAndNil(Params);
-  inherited;
 end;
 
-procedure TBackground.Update(const Node: TAbstractBackgroundNode;
-  const SkySphereRadius: Single);
-var
-  RootNode: TX3DRootNode;
+procedure TBackground.FreeResources;
+begin
+end;
+
+{ TBackground3D --------------------------------------------------------------- }
+
+type
+  TBackground3D = class(TBackground)
+  strict private
+    Scene: TCastleScene;
+    Params: TBasicRenderParams;
+    ClearColor: TCastleColor;
+    Transform: TTransformNode;
+  public
+    constructor Create(const Node: TAbstract3DBackgroundNode;
+      const SkySphereRadius: Single);
+    destructor Destroy; override;
+    procedure Render(const RenderingCamera: TRenderingCamera;
+      const Wireframe: boolean;
+      const RenderRect: TFloatRectangle); override;
+    procedure UpdateRotation(const Rotation: TVector4); override;
+    procedure FreeResources; override;
+  end;
+
+constructor TBackground3D.Create(
+  const Node: TAbstract3DBackgroundNode; const SkySphereRadius: Single);
 
   procedure RenderCubeSides;
   var
@@ -226,7 +238,7 @@ var
       Shape.FdGeometry.Value := QuadSet;
       Shape.Appearance := Appearance;
 
-      MatrixTransform.AddChildren(Shape);
+      Transform.AddChildren(Shape);
     end;
 
   var
@@ -270,7 +282,7 @@ var
       Shape := TShapeNode.Create('', Node.BaseUrl);
       Shape.FdGeometry.Value := Geometry;
 
-      MatrixTransform.AddChildren(Shape);
+      Transform.AddChildren(Shape);
     end;
   end;
 
@@ -520,13 +532,27 @@ const
     end;
   end;
 
+var
+  RootNode: TX3DRootNode;
 begin
-  RootNode := TX3DRootNode.Create('', Node.BaseUrl);
+  inherited Create;
+
+  Scene := TCastleScene.Create(nil);
+  { We don't need depth test (we put our shapes in proper order),
+    we even don't want it (because we don't clear depth buffer
+    before drawing, so it may contain the depths on 3D world rendered
+    in previous frame). }
+  Scene.Attributes.DepthTest := false;
+
+  Params := TBasicRenderParams.Create;
+
   SphereCreated := false;
 
-  MatrixTransform := TMatrixTransformNode.Create('', Node.BaseUrl);
-  MatrixTransform.FdMatrix.Value := Node.TransformRotation;
-  RootNode.AddChildren(MatrixTransform);
+  RootNode := TX3DRootNode.Create('', Node.BaseUrl);
+
+  Transform := TTransformNode.Create('', Node.BaseUrl);
+  Transform.Rotation := Node.TransformRotation;
+  RootNode.AddChildren(Transform);
 
   RenderSky;
   RenderGround;
@@ -535,9 +561,18 @@ begin
   Scene.Load(RootNode, true);
 end;
 
-procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean);
+destructor TBackground3D.Destroy;
 begin
+  FreeAndNil(Scene);
+  FreeAndNil(Params);
+  inherited;
+end;
+
+procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean; const RenderRect: TFloatRectangle);
+begin
+  inherited;
+
   Params.InShadow := false;
   { since we constructed Scene ourselves,
     we know it only has ShadowVolumesReceivers=true shapes }
@@ -545,17 +580,9 @@ begin
   Params.RenderingCamera := RenderingCamera;
 
   if Wireframe then
-    Scene.Attributes.WireframeEffect := weWireframeOnly else
+    Scene.Attributes.WireframeEffect := weWireframeOnly
+  else
     Scene.Attributes.WireframeEffect := weNormal;
-
-  { TODO: in the old times, we had here an optimization:
-    if the background is not displayed as Wireframe,
-    and it has all 6 cube sides filled with textures without
-    an alpha channel, then there's no need to display sky/ground spheres,
-    and no need to even clear color buffer before.
-    We lose this optimization now, since we don't know now which cube sides
-    are successfully loaded and which have alpha. }
-  RenderContext.Clear([cbColor], ClearColor);
 
   { We don't calculate correct Frustum (accounting for the fact that camera
     is rotated but never shifted during background rendering) now.
@@ -567,14 +594,150 @@ begin
   Params.Transparent := true ; Scene.Render(Params);
 end;
 
-procedure TBackground.FreeResources;
+procedure TBackground3D.FreeResources;
 begin
+  inherited;
   Scene.FreeResources([frTextureDataInNodes]);
 end;
 
-procedure TBackground.UpdateTransform(const Transform: TMatrix4);
+procedure TBackground3D.UpdateRotation(const Rotation: TVector4);
 begin
-  MatrixTransform.FdMatrix.Send(Transform);
+  inherited;
+  Transform.Rotation := Rotation;
+end;
+
+{ TBackground2D --------------------------------------------------------------- }
+
+type
+  TBackground2D = class(TBackground)
+  strict private
+    Image: TDrawableImage;
+    Node: TImageBackgroundNode;
+    Texture2D: TAbstractTexture2DNode;
+  public
+    constructor Create(const ANode: TImageBackgroundNode);
+    destructor Destroy; override;
+    procedure Render(const RenderingCamera: TRenderingCamera;
+      const Wireframe: boolean;
+      const RenderRect: TFloatRectangle); override;
+  end;
+
+constructor TBackground2D.Create(const ANode: TImageBackgroundNode);
+var
+  ImageCore: TEncodedImage;
+begin
+  inherited Create;
+
+  Node := ANode;
+
+  if Node.Texture is TAbstractTexture2DNode then // also checks is it non-nil
+    Texture2D := TAbstractTexture2DNode(Node.Texture)
+  else
+    Texture2D := nil;
+
+  if Texture2D <> nil then
+    ImageCore := Texture2D.TextureImage
+  else
+    ImageCore := nil;
+
+  if ImageCore <> nil then
+    Image := TDrawableImage.Create(ImageCore, true { smooth scaling }, false { owns });
+end;
+
+destructor TBackground2D.Destroy;
+begin
+  FreeAndNil(Image);
+  inherited;
+end;
+
+procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean;
+  const RenderRect: TFloatRectangle);
+
+  { Apply various Node and Texture2D properties at the beginning of each Render,
+    this way we can animate them.
+    See demo-models/background/background_image_animated.x3d example. }
+  procedure UpdateImageProperties(const Image: TDrawableImage;
+    out ImageRect: TFloatRectangle);
+  var
+    LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
+    TexLeftBottom, TexRightTop: TVector2;
+  begin
+    Assert(Node <> nil); // since Image <> nil, it should be Node <> nil also
+    Assert(Texture2D <> nil); // since Image <> nil, it should be Texture2D <> nil also
+
+    Image.Color := Node.Color;
+    Assert(Texture2D <> nil); // since ImageCore <> nil
+    Image.RepeatS := Texture2D.RepeatS;
+    Image.RepeatT := Texture2D.RepeatT;
+
+    ImageRect := FloatRectangle(Image.Rect);
+    if Node.FdTexCoords.Count = 4 then
+    begin
+      { Note that we ignore texCoords[1] and [3], they cannot be implemented
+        using TDrawableImage.Draw. }
+      TexLeftBottom := Node.FdTexCoords.Items[0];
+      TexRightTop := Node.FdTexCoords.Items[2];
+
+      LeftFraction := TexLeftBottom.X;
+      BottomFraction := TexLeftBottom.Y;
+      WidthFraction := TexRightTop.X - TexLeftBottom.X;
+      HeightFraction := TexRightTop.Y - TexLeftBottom.Y;
+
+      ImageRect.Left := ImageRect.Width * LeftFraction;
+      ImageRect.Bottom := ImageRect.Height * BottomFraction;
+      ImageRect.Width := ImageRect.Width * WidthFraction;
+      ImageRect.Height := ImageRect.Height * HeightFraction;
+    end;
+
+    if Texture2D.TextureProperties <> nil then
+      if Texture2D.TextureProperties.MagnificationFilter = magNearest then
+        Image.SmoothScaling := false;
+  end;
+
+var
+  ImageRect: TFloatRectangle;
+{$ifndef OpenGLES}
+  SavedProjectionMatrix: TMatrix4;
+{$endif}
+begin
+  inherited;
+
+  if Image <> nil then
+  begin
+    { With fixed-function, we need to have orthographic projection for TDrawableImage rendering. }
+    if GLFeatures.EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      OrthoProjection(FloatRectangle(RenderContext.Viewport));
+      {$endif}
+    end;
+
+    UpdateImageProperties(Image, ImageRect);
+    Image.Draw(RenderRect, ImageRect);
+
+    if GLFeatures.EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      {$endif}
+    end;
+  end;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+function CreateBackground(const Node: TAbstractBackgroundNode;
+  const SkySphereRadius: Single): TBackground;
+begin
+  if Node is TAbstract3DBackgroundNode then
+    Result := TBackground3D.Create(TAbstract3DBackgroundNode(Node), SkySphereRadius)
+  else
+  if Node is TImageBackgroundNode then
+    Result := TBackground2D.Create(TImageBackgroundNode(Node))
+  else
+    Result := nil;
 end;
 
 end.

@@ -391,7 +391,9 @@ var
         hpLeft  : TextX := TextLeft;
         hpMiddle: TextX := TextLeft + TextWidth / 2;
         hpRight : TextX := TextLeft + TextWidth;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+        {$endif}
       end;
 
       LineSpacingScaled := UIScale * LineSpacing;
@@ -535,10 +537,12 @@ begin
       case ImageLayout of
         ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
         ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
+        else ;
       end;
       case ImageLayout of
         ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
         ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
+        else ;
       end;
     end;
     FImage.Draw(FloatRectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));

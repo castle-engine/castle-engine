@@ -632,7 +632,7 @@ type
     and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
 
     By default, the window is filled with simple color from
-    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
+    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
 
     If you're looking for an analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
@@ -2699,7 +2699,7 @@ type
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
     { Continuously occuring event.
-      @seealso TCastleWindowBase.OnUpdate. }
+      @seealso TCastleWindowBase.OnUpdate }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 
     { @deprecated Deprecated name for OnUpdate. }

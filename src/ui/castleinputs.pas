@@ -304,7 +304,7 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig; ConfigPath: String);
 
     { Save a particular input to a config file.
-      This creates an XML element named @link(Name) under the indicated ConfigPath
+      This creates an XML element named @code(Name) under the indicated ConfigPath
       in the config file.
 
       Note: It is often easier to group your controls in TInputShortcutList,
@@ -637,7 +637,9 @@ begin
     itKey        : Result := IsKey(Event.Key, Event.KeyString);
     itMouseButton: Result := IsMouseButton(Event.MouseButton);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
+    {$endif}
   end;
 end;
 
@@ -759,7 +761,9 @@ begin
         Key2 := Key1;
         Key1 := NewEvent.Key;
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
+    {$endif}
   end;
 end;
 

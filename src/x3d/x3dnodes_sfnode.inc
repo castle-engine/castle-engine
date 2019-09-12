@@ -272,7 +272,9 @@ begin
     acAll      : Result := true;
     acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
     acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AllowedChildren?');
+    {$endif}
   end;
 end;
 

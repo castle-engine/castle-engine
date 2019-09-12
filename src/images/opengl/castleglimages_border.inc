@@ -47,6 +47,7 @@ type
 
     { Anything not zero? }
     function Exists: Boolean;
+    function HasDefaultValue: Boolean;
   published
     property Top: Single read FTop write SetTop default 0;
     property Right: Single read FRight write SetRight default 0;
@@ -139,6 +140,15 @@ begin
     (FRight <> 0) or
     (FBottom <> 0) or
     (FLeft <> 0);
+end;
+
+function TBorder.HasDefaultValue: Boolean;
+begin
+  { For now, TBorder is by default always equal zero.
+    So for now, this method is equal to "not Exists".
+    (This may change some day if we'll use TBorder as subcomponent
+    and will want to customize it's default value in parent.) }
+  Result := not Exists;
 end;
 
 {$endif read_implementation}
