@@ -79,7 +79,8 @@ procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String)
 implementation
 
 uses Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages, CastleFontFamily;
+  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
+  CastleFontFamily, CastleUnicode;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -227,6 +228,8 @@ type
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
+    NewFontCharList: String;
+    UnicodeCharList: TUnicodeCharList;
   begin
     if FontElement <> nil then
     begin
@@ -234,16 +237,31 @@ type
       NewFontSize := FontElement.AttributeCardinalDef('size', 20);
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
+      { Load additional character list for the font }
+      NewFontCharList := FontElement.AttributeStringDef('characters', '');
+      if NewFontCharList = '' then
+        UnicodeCharList := nil
+      else
+      begin
+        UnicodeCharList := TUnicodeCharList.Create;
+        { providing exclude_ascii="true" will force loading only characters
+          specified by characters="..." field,
+          may be useful e.g. for having a large numbers-only font }
+        if not FontElement.AttributeBooleanDef('exclude_ascii', false) then
+          UnicodeCharList.Add(SimpleAsciiCharacters);
+        UnicodeCharList.Add(NewFontCharList);
+      end;
+
       if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
       begin
         AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
         Result := TCustomizedFont.Create(Container);
-        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased);
+        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased, UnicodeCharList);
       end else
       begin
         NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
         Result := TTextureFont.Create(Container);
-        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased);
+        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased, UnicodeCharList);
       end;
       Result.Size := NewFontSize;
     end else
