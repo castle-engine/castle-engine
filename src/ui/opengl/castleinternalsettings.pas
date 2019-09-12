@@ -242,6 +242,7 @@ type
         case AString[I] of
           '0'..'9': S := S + AString[I];
           ',': AddSymbol;
+          ' ': ; //skip space character
           else
             raise Exception.CreateFmt('Unexpected character in sample_code: %s. Expecting a comma-separated list of integers.', [AString[I]]);
         end;
