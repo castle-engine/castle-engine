@@ -265,15 +265,17 @@ type
 
       { Load additional character list for the font }
       UnicodeCharList := TUnicodeCharList.Create;
-      { providing exclude_ascii="true" will force loading only characters
-        specified by characters="..." field,
-        may be useful e.g. for having a large numbers-only font }
+      { providing only_sample_text="true" will force loading only characters
+        explicitly specified, e.g. by sample_text="..." field or other means }
       if not FontElement.AttributeBooleanDef('only_sample_text', false) then
         UnicodeCharList.Add(SimpleAsciiCharacters);
       UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
+      { Load characters from a translation file,
+        in contrast to texture-font-to-pascal only one file can be specified }
       MoFileUrl := FontElement.AttributeStringDef('sample_get_text_mo', '');
       if MoFileUrl <> '' then
         AddTranslatedCharacters(CombineURI(SettingsUrl, MoFileUrl), UnicodeCharList);
+      { Loads a comma separated list of UTF8 characters decimal code }
       CommaSeparatedNumericList := FontElement.AttributeStringDef('sample_code', '');
       if CommaSeparatedNumericList <> '' then
         AddCommaSeparatedCharactersCode(CommaSeparatedNumericList, UnicodeCharList);
