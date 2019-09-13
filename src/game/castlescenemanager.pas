@@ -1662,12 +1662,11 @@ begin
     or after the scene manager / viewport on the Controls list (as there's really
     no perfect ordering for them).
 
-    TODO: In the future it should be possible (even encouraged) to assign
-    one of your custom viewport cameras also to TCastleSceneManager.Camera.
-    It should also be possible to share one camera instance among a couple
-    of viewports.
-    For now, it doesn't work (last viewport/scene manager will hijack some
-    camera events making it not working in other ones). }
+    TODO: In the future it should be possible to assign
+    the same Navigation instance to multiple viewports.
+    For now, it doesn't work (last viewport will hijack some
+    navigation events, and set Navigation.Viewport,
+    making it not working in other viewports). }
 
   if FNavigation <> Value then
   begin
