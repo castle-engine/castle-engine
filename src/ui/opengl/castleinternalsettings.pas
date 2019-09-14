@@ -266,7 +266,7 @@ type
       end;
 
       if UnicodeCharList.Count = 0 then
-        raise Exception.Create('No characters were loaded for font at ' + NewFontUrl);
+        raise EInvalidSettingsXml.Create('No characters were loaded for font at ' + NewFontUrl);
 
       if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
       begin
