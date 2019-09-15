@@ -3089,7 +3089,9 @@ end;
 
 function TCastleAbstractViewport.RequiredCamera: TCastleNavigation;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := RequiredNavigation;
+  {$warnings on}
 end;
 
 function TCastleAbstractViewport.RequiredNavigation: TCastleNavigation;
