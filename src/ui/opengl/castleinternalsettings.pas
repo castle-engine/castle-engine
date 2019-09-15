@@ -79,7 +79,8 @@ procedure SettingsLoad(const Container: TUIContainer; const SettingsUrl: String)
 implementation
 
 uses Math, TypInfo,
-  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages, CastleFontFamily;
+  CastleLog, CastleXMLUtils, CastleStringUtils, CastleGLImages,
+  CastleFontFamily, CastleUnicode, CastleUriUtils, CastleLocalizationGetText;
 
 { TWarmupCacheFormatList ----------------------------------------------------- }
 
@@ -227,6 +228,10 @@ type
     NewFontAntiAliased: Boolean;
     AllSizesAtLoadStr: String;
     AllSizesAtLoad: TDynIntegerArray;
+    UnicodeCharList: TUnicodeCharList;
+    RawString: String;
+    S: String;
+    StringList: TCastleStringList;
   begin
     if FontElement <> nil then
     begin
@@ -234,18 +239,48 @@ type
       NewFontSize := FontElement.AttributeCardinalDef('size', 20);
       NewFontAntiAliased := FontElement.AttributeBooleanDef('anti_aliased', true);
 
+      { Load additional character list for the font }
+      UnicodeCharList := TUnicodeCharList.Create;
+      { providing only_sample_text="true" will force loading only characters
+        explicitly specified, e.g. by sample_text="..." field or other means }
+      if not FontElement.AttributeBooleanDef('only_sample_text', false) then
+        UnicodeCharList.Add(SimpleAsciiCharacters);
+      UnicodeCharList.Add(FontElement.AttributeStringDef('sample_text', ''));
+      { Load characters from one or several translation files }
+      RawString := FontElement.AttributeStringDef('sample_get_text_mo', '');
+      if RawString <> '' then
+      begin
+        StringList := CreateTokens(RawString, WhiteSpaces + [',']);
+        for S in StringList do
+          AddTranslatedCharacters(CombineURI(SettingsUrl, S), UnicodeCharList);
+        FreeAndNil(StringList);
+      end;
+      { Loads a comma/whitespace separated list of UTF8 characters decimal code }
+      RawString := FontElement.AttributeStringDef('sample_code', '');
+      if RawString <> '' then
+      begin
+        StringList := CreateTokens(RawString, WhiteSpaces + [',']);
+        for S in StringList do
+          UnicodeCharList.Add(StrToInt(S));
+        FreeAndNil(StringList);
+      end;
+
+      if UnicodeCharList.Count = 0 then
+        raise EInvalidSettingsXml.Create('No characters were loaded for font at ' + NewFontUrl);
+
       if FontElement.AttributeString('sizes_at_load', AllSizesAtLoadStr) then
       begin
         AllSizesAtLoad := ParseIntegerList(AllSizesAtLoadStr);
         Result := TCustomizedFont.Create(Container);
-        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased);
+        TCustomizedFont(Result).Load(NewFontUrl, AllSizesAtLoad, NewFontAntiAliased, UnicodeCharList);
       end else
       begin
         NewFontLoadSize := FontElement.AttributeCardinalDef('size_at_load', NewFontSize);
         Result := TTextureFont.Create(Container);
-        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased);
+        TTextureFont(Result).Load(NewFontUrl, NewFontLoadSize, NewFontAntiAliased, UnicodeCharList);
       end;
       Result.Size := NewFontSize;
+      FreeAndNil(UnicodeCharList);
     end else
       Result := nil;
   end;

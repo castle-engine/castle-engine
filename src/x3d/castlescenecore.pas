@@ -2400,6 +2400,9 @@ const
 
   ssCollidableTriangles = ssStaticCollisions deprecated 'use ssStaticCollisions instead';
 
+var
+  InternalEnableAnimation: Boolean = true;
+
 implementation
 
 uses Math, DateUtils,
@@ -6355,7 +6358,7 @@ begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
 
-  if ProcessEvents then
+  if ProcessEvents and InternalEnableAnimation then
   begin
     BeginChangesSchedule;
     try
