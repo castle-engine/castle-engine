@@ -167,6 +167,8 @@ type
     function GetNavigationType: TNavigationType;
     function IsStoredNavigationType: Boolean;
     procedure SetAutoDetectCamera(const Value: Boolean);
+    { Make sure to call AssignDefaultCamera, if needed because of AutoDetectCamera. }
+    procedure EnsureCameraDetected;
   private
     var
       FNavigation: TCastleNavigation;
@@ -400,8 +402,8 @@ type
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
 
     { Return current navigation. Automatically creates it if missing. }
-    function RequiredNavigation: TCastleNavigation;
-    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties. it is always <> nil; if you require Navigation to be <> nil, just assign it explicitly or use ExamineNavigation or WalkNavigation';
+    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it';
+    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it';
 
     { Return the currently used camera as TCastleWalkNavigation, making sure that current
       NavigationType is something using TCastleWalkNavigation.
@@ -2063,6 +2065,16 @@ begin
   Result := Paused;
 end;
 
+procedure TCastleAbstractViewport.EnsureCameraDetected;
+begin
+  if AutoDetectCamera and not AssignDefaultCameraDone then
+    AssignDefaultCamera;
+  { set AssignDefaultCameraDone to done,
+    otherwise later setting AutoDetectCamera to true would suddenly
+    reinitialize camera (initial and current vectors) in the middle of game. }
+  AssignDefaultCameraDone := true;
+end;
+
 procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
@@ -2072,12 +2084,7 @@ begin
   if AutoDetectNavigation and (Navigation = nil) then
     AssignDefaultNavigation; // create Navigation if necessary
 
-  if AutoDetectCamera and not AssignDefaultCameraDone then
-    AssignDefaultCamera;
-  { set AssignDefaultCameraDone to done,
-    otherwise later setting AutoDetectCamera to true would suddenly
-    reinitialize camera (initial and current vectors) in the middle of game. }
-  AssignDefaultCameraDone := true;
+  EnsureCameraDetected;
 
   { We need to know container size now. }
   Check(ContainerSizeKnown, ClassName + ' did not receive "Resize" event yet, cannnot apply projection. This usually means you try to call "Render" method with a container that does not yet have an open context.');
@@ -3087,8 +3094,10 @@ end;
 
 function TCastleAbstractViewport.RequiredNavigation: TCastleNavigation;
 begin
-  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
-  // make sure to also assign Camera, because caller may expect this, for backward compatibility
+  { For backward-compatibility, this also initializes Camera vectors
+    (even though the method docs only guarantee that it initializes Navigation,
+    but in the past Camera and Navigation were the same thing). }
+  EnsureCameraDetected;
 
   if Navigation = nil then
     AssignDefaultNavigation;
@@ -3151,11 +3160,14 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
+    { For backward-compatibility, this also initializes Camera vectors
+      (even though the method docs only guarantee that it initializes Navigation,
+      but in the past Camera and Navigation were the same thing). }
+    EnsureCameraDetected;
+
     {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalExamineNavigation;
     {$warnings on}
-  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
-  // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
@@ -3185,11 +3197,14 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
+    { For backward-compatibility, this also initializes Camera vectors
+      (even though the method docs only guarantee that it initializes Navigation,
+      but in the past Camera and Navigation were the same thing). }
+    EnsureCameraDetected;
+
     {$warnings off} // using deprecated in deprecated
     NewNavigation := InternalWalkNavigation;
     {$warnings on}
-  // TODO: also call AssignDefaultCamera if needed, like in ApplyProjection?
-  // make sure to also assign Camera, because caller may expect this, for backward compatibility
     if Navigation = nil then
       AssignDefaultNavigation; // initialize defaults from MainScene
     // AssignDefaultNavigation could leave Navigation at nil, in which case ignor
