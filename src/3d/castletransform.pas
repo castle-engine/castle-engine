@@ -1009,7 +1009,9 @@ type
     { Main camera observing this 3D object changed.
       This is usually called by our container (like TCastleSceneManager)
       to notify that camera changed. }
-    procedure CameraChanged(const ACamera: TCastleCamera); virtual;
+    procedure CameraChanged(const ACamera: TCastleCamera); overload; virtual;
+    procedure CameraChanged(const ACamera: TCastleNavigation); overload;
+      deprecated 'use CameraChanged with TCastleCamera instance';
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
@@ -2612,6 +2614,11 @@ var
 begin
   for I := 0 to List.Count - 1 do
     List[I].CameraChanged(ACamera);
+end;
+
+procedure TCastleTransform.CameraChanged(const ACamera: TCastleNavigation);
+begin
+  CameraChanged(ACamera.Camera);
 end;
 
 function TCastleTransform.Dragging: boolean;
