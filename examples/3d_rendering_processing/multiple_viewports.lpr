@@ -271,9 +271,9 @@ begin
   Viewports[2].Caption := 'Screen effect shader';
 
   Theme.Images[tiActiveFrame] := FrameThickWhite;
-  Theme.Corners[tiActiveFrame] := Vector4Integer(3, 3, 3, 3);
+  Theme.Corners[tiActiveFrame] := Vector4(3, 3, 3, 3);
   Theme.Images[tiLabel] := FrameYellowBlack;
-  Theme.Corners[tiLabel] := Vector4Integer(1, 1, 1, 1);
+  Theme.Corners[tiLabel] := Vector4(1, 1, 1, 1);
 
   for I := 0 to High(Viewports) do
   begin

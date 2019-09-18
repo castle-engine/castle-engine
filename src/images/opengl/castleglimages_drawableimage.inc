@@ -1298,6 +1298,18 @@ begin
   Draw(ScreenRect, ImageRect);
 end;
 
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  { Draw3x3 implementation is broken by optimizations on Aarch64,
+    it seems like it doesn't receive DrawWidth correctly,
+    and even when we workaround it, it calculates partial rectangles
+    (for DrawAdd) incorrectly.
+    Testcase: e.g. examples/2d_standard_ui/show_various_ui_controls/ on Android/Aarch64.
+
+    TODO: Reproduce this in a simple testcase, submit to FPC devs. }
+  {$optimization OFF}
+  {$info Workaround Aarch optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
+{$endif}
+
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Single);
 var
@@ -1407,6 +1419,14 @@ begin
 
   UseScreenRotationCenter := false;
 end;
+
+{ Turn optimizations back on.
+  FPC $push / $pop unfortunately doesn't save/restore optimization level,
+  so we restore it if -dRELEASE. }
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  {$optimization ON}
+  {$info Workaround Aarch optimizer: TDrawableImage.Draw3x3 not optimized (end)}
+{$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const Corner: TVector4Integer);

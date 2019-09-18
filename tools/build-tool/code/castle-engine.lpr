@@ -17,6 +17,8 @@
   Call with --help for detailed usage instructions.
 }
 
+{$I castleconf.inc}
+
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile". }
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
@@ -266,7 +268,9 @@ begin
       targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
       targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Operation not implemented for this target');
+      {$endif}
     end;
   end else
   begin

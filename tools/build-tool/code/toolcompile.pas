@@ -485,7 +485,9 @@ begin
           FpcOptions.Add('-gl');
           FpcOptions.Add('-dDEBUG');
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('DoCompile: Mode?');
+      {$endif}
     end;
 
     if (OS = Android) and (CPU = arm) then

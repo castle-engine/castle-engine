@@ -16,6 +16,8 @@
 { Simple macro system, to use in CGE build tool templates. }
 unit ToolMacros;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleStringUtils;
@@ -160,7 +162,9 @@ var
           Exp := ParseStringExpression(ExpStr, []);
           Result := Exp.AsString;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.CreateFmt('Unknown expression %d', [Ord(Expression)]);
+      {$endif}
     end;
   end;
 
@@ -172,7 +176,9 @@ var
       isNone: Active := true;
       isThen: Active := IfCondition;
       isElse: Active := not IfCondition;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unknown IfState');
+      {$endif}
     end;
     if Active then
       Result := SReplacePatterns(S, Replacements, MacrosIgnoreCase)

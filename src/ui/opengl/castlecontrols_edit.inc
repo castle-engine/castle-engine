@@ -363,7 +363,7 @@ procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single)
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
-  FrameCorners: TVector4Integer;
+  FrameCorners: TVector4;
 begin
   inherited;
 
@@ -417,7 +417,7 @@ var
   SR, RectInside: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US, TextLeft, TextBottom: Single;
-  FrameCorners: TVector4Integer;
+  FrameCorners: TVector4;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;

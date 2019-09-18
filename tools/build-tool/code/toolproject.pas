@@ -16,7 +16,7 @@
 { Project information (from CastleEngineManifest.xml) and operations. }
 unit ToolProject;
 
-{$modeswitch advancedrecords}
+{$I castleconf.inc}
 
 interface
 
@@ -960,7 +960,9 @@ begin
               end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unhandled --target for DoCompile');
+      {$endif}
     end;
   finally FreeAndNil(ExtraOptions) end;
 end;
@@ -1131,6 +1133,7 @@ begin
           AddExternalLibrary('openssl/ssleay32.dll');
         end;
       end;
+    else ; { no need to do anything on other OSes }
   end;
 end;
 

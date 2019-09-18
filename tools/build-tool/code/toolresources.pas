@@ -89,12 +89,14 @@ begin
     case CPU of
       i386  : WindresExe := FindExe('i586-mingw32msvc-windres');
       x86_64: WindresExe := FindExe('amd64-mingw32msvc-windres');
+      else raise Exception.Create('CPU not supported on Windows');
     end;
   { try new names, https://packages.debian.org/search?searchon=contents&keywords=windres&mode=path&suite=stable&arch=any }
   if WindresExe = '' then
     case CPU of
       i386  : WindresExe := FindExe('i686-w64-mingw32-windres');
       x86_64: WindresExe := FindExe('x86_64-w64-mingw32-windres');
+      else raise Exception.Create('CPU not supported on Windows');
     end;
   if WindresExe = '' then
     raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');

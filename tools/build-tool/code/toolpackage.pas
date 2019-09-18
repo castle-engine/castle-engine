@@ -16,6 +16,8 @@
 { Packaging data in archives. }
 unit ToolPackage;
 
+{$I castleconf.inc}
+
 interface
 
 type
@@ -111,7 +113,9 @@ begin
           ['czf', PackageFileName, TopDirectoryName],
           ProcessOutput, ProcessExitStatus);
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TPackageDirectory.Make PackageType?');
+    {$endif}
   end;
 
   if Verbose then
