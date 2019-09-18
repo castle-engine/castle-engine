@@ -318,6 +318,8 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'show_various_ui_controls';
 
+  InitializeLog;
+
   Window := TCastleWindowBase.Create(Application);
 
   Application.MainWindow := Window;
