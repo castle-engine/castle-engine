@@ -153,6 +153,8 @@
       it is ignored. }
     procedure FromCameraObject(const ACamera: TCastleCamera;
       const IgnoredViewpoint: TObject = nil);
+    procedure FromCameraObject(const ACamera: TCastleNavigation;
+      const IgnoredViewpoint: TObject = nil); deprecated 'use FromCameraObject overload with TCastleCamera';
 
     { Set all properties (except Target) from explict matrices.
       ProjectionMatrix is needed to calculate frustum.
@@ -298,6 +300,12 @@ begin
   RotationMatrix := ACamera.RotationMatrix;
   RotationInverseMatrixDone := false;
   Frustum := ACamera.Frustum;
+end;
+
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleNavigation;
+  const IgnoredViewpoint: TObject = nil);
+begin
+  FromCameraObject(ACamera, IgnoredViewpoint);
 end;
 
 procedure TRenderingCamera.FromMatrix(

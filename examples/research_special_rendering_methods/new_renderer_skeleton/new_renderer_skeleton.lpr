@@ -194,7 +194,7 @@ var
   Application: TVulkanApplication;
   Window: TVulkanWindow;
   Scene: TCastleSceneVulkan;
-  Camera: TWalkCamera;
+  Navigation: TCastleWalkNavigation;
   RenderParams: TRenderParams;
 begin
   Application := TVulkanApplication.Create(nil);
@@ -204,8 +204,8 @@ begin
     Window.Height := 768;
     Window.Open;
 
-    Camera := TWalkCamera.Create(Application);
-    Camera.Init(
+    Navigation := TCastleWalkNavigation.Create(Application);
+    Navigation.Init(
       Vector3(0, 0, 0), // position
       Vector3(0, 0, -1), // direction
       Vector3(0, 0, 1), // up
@@ -240,7 +240,7 @@ begin
     RenderParams := TRenderParams.Create;
     RenderParams.RenderingCamera := TRenderingCamera.Create;
     RenderParams.RenderingCamera.Target := rtScreen;
-    RenderParams.RenderingCamera.FromCameraObject(Camera);
+    RenderParams.RenderingCamera.FromCameraObject(Navigation);
     RenderParams.Frustum := @RenderParams.RenderingCamera.Frustum;
 
     while not Application.Quit do
