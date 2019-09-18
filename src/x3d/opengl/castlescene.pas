@@ -783,6 +783,8 @@ var
     and they all automatically share this cache. }
   GLContextCache: TGLRendererContextCache;
 
+  InternalEnableRendering: Boolean = true;
+
 const
   bsNone = CastleBoxes.bsNone;
   bs2D = CastleBoxes.bs2D;
@@ -1976,7 +1978,9 @@ procedure TCastleScene.LocalRender(const Params: TRenderParams);
 begin
   inherited;
 
-  if GetVisible and (InternalDirty = 0) and
+  if InternalEnableRendering and
+     GetVisible and
+     (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := Params.Frustum;
