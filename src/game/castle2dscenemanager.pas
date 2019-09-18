@@ -30,57 +30,52 @@ type
     Features:
 
     @unorderedList(
-      @item(If you leave @link(AutoDetectCamera) at @true,
-        then default @bold(camera position, direction, up) is suitable
-        for 2D worlds that span horizontally in X,
-        span vertically in Y,
-        and are more-or-less flat around the Z = 0 plane.
+      @item(
+        In constructor, we initialize the @link(Camera) to be suitable for 2D worlds.
 
+        The 2D world spans horizontally in X and vertically in Y.
+        The Z (depth) can be used to put things in front/behind each other.
         More precisely, the camera is positioned at the point
         @code((0, 0, DefaultCameraZ)),
-        and looks along the -Z direction, with "up" vector in +Y.
+        looks along the -Z direction, with "up" vector in +Y.
 
-        Just like with any @link(TCastleAbstractViewport), you can set
-        @link(AutoDetectCamera) to @false and adjust the initial camera vectors
-        in CGE editor.
-        Regardless of @link(AutoDetectCamera), you can also always
-        change the camera by code using @link(TCastleCamera.SetView Camera.SetView).
+        You can change the camera by code, of course,
+        e.g. by changing @link(TCastleCamera.Position Camera.Position).
+
+        Since the constructor already initializes the camera sensibly,
+        this component also sets @link(AutoDetectCamera) by default to false.
       )
 
-      @item(The @bold(navigation does not give the user any automatic way
-        to move in the world). Because you typically want to
-        code yourself all your camera movement for 2D games.
-
-        More precisely, the NavigationType is ntNone by default,
-        and this means that @link(Navigation) is @nil.
-
-        Just like with any @link(TCastleAbstractViewport), you can set
-        @link(Navigation) to any custom navigation component.
-      )
-
-      @item(Sets @bold(2D projection). By default
-        our visible X range is @code([0..scene manager width in pixels]),
+      @item(
+        The default camera has orthographic projection,
+        that is @link(TCastleCamera.ProjectionType) is ptOrthographic.
+        By default our visible X range is @code([0..scene manager width in pixels]),
         visible Y range is @code([0..scene manager height in pixels]).
 
-        You can set the
+        Use the properties of @link(TCastleOrthographic Camera.Orthographic)
+        to control the projection.
+        For example set
         @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
         @link(TCastleOrthographic.Height Camera.Orthographic.Height)
-        to explicitly control the size of the game world @italic(inside the scene manager),
-        regardless of the size of the scene manager control.
-        This is a trivial way to scale your 2D game contents.
+        to define visible projection size (horizontal or vertical) explicitly,
+        regardless of the scene manager size.
 
-        You can set the @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
-        to control where the
-        origin is (how does the @link(TCastleCamera.Position Camera.Position) affect the view).
-
-        Such projection is set regardless of the X3D viewpoint nodes
-        present in the MainScene.
-        This is in contrast to the ancestor TCastleSceneManager,
-        that sets projection using a flexible
-        algorithm that takes into account X3D viewpoint nodes,
-        @link(TViewpointNode), in @link(TCastleSceneManager.MainScene).
+        Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
+        is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
+        at (0,0) in the world visible at the middle of the scene manager.
       )
-    ) }
+
+      @item(The navigation by default remains @nil,
+        because @link(AutoDetectNavigation) is by default @false.
+
+        That is because you typically want to
+        code yourself all camera movement for 2D games.
+
+        Of course, just like with any @link(TCastleAbstractViewport), you can set
+        @link(Navigation) to any custom navigation component.
+      )
+    )
+  }
   TCastle2DSceneManager = class(TCastleSceneManager)
   strict private
     function GetProjectionAutoSize: Boolean;
@@ -93,9 +88,6 @@ type
     procedure SetProjectionHeight(const Value: Single);
     procedure SetProjectionSpan(const Value: Single);
     procedure SetProjectionOriginCenter(const Value: Boolean);
-  protected
-    procedure AssignDefaultNavigation; override;
-    procedure AssignDefaultCamera; override;
   public
     const
       Default2DProjectionFar = 1000.0;
@@ -141,6 +133,9 @@ type
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
   published
+    property AutoDetectCamera default false;
+    property AutoDetectNavigation default false;
+
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
       ProjectionHeight and ProjectionWidth are ignored then.
@@ -229,27 +224,25 @@ uses SysUtils,
 { TCastle2DSceneManager -------------------------------------------------------- }
 
 constructor TCastle2DSceneManager.Create(AOwner: TComponent);
+
+  procedure MakeCamera2D;
+  begin
+    Camera.Init(
+      { pos } Vector3(0, 0, DefaultCameraZ),
+      { dir } Vector3(0, 0, -1),
+      { up } Vector3(0, 1, 0),
+      { gravity up } Vector3(0, 1, 0)
+    );
+    Camera.ProjectionNear := WorldBoxSizeToRadius; // assume bbox size = 1
+    Camera.ProjectionFar := Default2DProjectionFar;
+    Camera.ProjectionType := ptOrthographic;
+  end;
+
 begin
   inherited;
-end;
-
-procedure TCastle2DSceneManager.AssignDefaultNavigation;
-begin
-  Assert(Navigation = nil);
-  // does nothing, leaves Navigation = nil
-end;
-
-procedure TCastle2DSceneManager.AssignDefaultCamera;
-begin
-  Camera.Init(
-    { pos } Vector3(0, 0, DefaultCameraZ),
-    { dir } Vector3(0, 0, -1),
-    { up } Vector3(0, 1, 0),
-    { gravity up } Vector3(0, 1, 0)
-  );
-  Camera.ProjectionNear := WorldBoxSizeToRadius; // assume bbox size = 1
-  Camera.ProjectionFar := Default2DProjectionFar;
-  Camera.ProjectionType := ptOrthographic;
+  MakeCamera2D;
+  AutoDetectCamera := false;
+  AutoDetectNavigation := false;
 end;
 
 function TCastle2DSceneManager.PositionTo2DWorld(const Position: TVector2;
