@@ -16,6 +16,8 @@
 { Compiling, packaging, installing, running on Android. }
 unit ToolAndroid;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,
@@ -256,7 +258,9 @@ var
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
       apIntegrated: TemplatePath := 'android/integrated/';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
+      {$endif}
     end;
     Project.ExtractTemplate(TemplatePath, DestinationPath);
 

@@ -16,6 +16,8 @@
 { Compressing and downscaling textures. }
 unit ToolTextureGeneration;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleStringUtils,
@@ -76,7 +78,9 @@ begin
       acNone    : Result:= tcDxt1_RGB;
       acTest    : Result:= tcDxt1_RGBA;
       acBlending: Result:= tcDxt5;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unexpected Image.AlphaChannel in AutoDetectDxt');
+      {$endif}
     end;
   finally FreeAndNil(Image) end;
 
@@ -408,8 +412,10 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcASTC_12x10_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x10,UBN,sRGB');
         tcASTC_12x12_SRGB8_ALPHA8: PVRTexTool(InputFile, OutputFile, C, 'ASTC_12x12,UBN,sRGB');
 
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
           [TextureCompressionToString(C), OutputFile]));
+        {$endif}
       end;
 
       Stats.CompressionTime := Stats.CompressionTime + TimeStart.ElapsedTime;
