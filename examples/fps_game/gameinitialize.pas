@@ -477,7 +477,7 @@ begin
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
   Theme.Images[tiActiveFrame] := LoadImage('castle-data:/box.png');
   Theme.OwnsImages[tiActiveFrame] := true;
-  Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
+  Theme.Corners[tiActiveFrame] := Vector4(38, 38, 38, 38);
 
   { Create extra viewport to observe the 3D world.
 

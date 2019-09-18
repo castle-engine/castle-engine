@@ -118,7 +118,7 @@ begin
   { customize tooltips to use rounded corners.
     Just because we can :) }
   Theme.Images[tiTooltip] := TooltipRounded;
-  Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
+  Theme.Corners[tiTooltip] := Vector4(9, 9, 9, 9);
 
   ImageWithBorders := TCastleImageControl.Create(Window);
   ImageWithBorders.URL := 'castle-data:/box_with_borders.png';

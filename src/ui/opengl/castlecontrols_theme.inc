@@ -21,7 +21,7 @@
   TCastleTheme = class
   strict private
     FImages: array [TThemeImage] of TCastleImage;
-    FCorners: array [TThemeImage] of TVector4Integer;
+    FCorners: array [TThemeImage] of TVector4;
     FDrawableImages: array [TThemeImage] of TDrawableImage;
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
@@ -30,8 +30,8 @@
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
     procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
-    function GetCorners(const ImageType: TThemeImage): TVector4Integer;
-    procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
+    function GetCorners(const ImageType: TThemeImage): TVector4;
+    procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4);
     function GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
     procedure GLContextClose(Sender: TObject);
     procedure SetMessageFont(const Value: TCastleFont);
@@ -124,7 +124,7 @@
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
-    property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
+    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners;
 
     { Draw the selected theme image on screen.
 
@@ -184,75 +184,75 @@ begin
   FOwnsMessageFont := true;
 
   FImages[tiPanel] := Panel;
-  FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiPanel] := Vector4(0, 0, 0, 0);
   FImages[tiPanelSeparator] := PanelSeparator;
-  FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiPanelSeparator] := Vector4(0, 0, 0, 0);
   FImages[tiProgressBar] := ProgressBar;
-  FCorners[tiProgressBar] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiProgressBar] := Vector4(2, 2, 2, 2);
   FImages[tiProgressFill] := ProgressFill;
-  FCorners[tiProgressFill] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiProgressFill] := Vector4(2, 2, 2, 2);
   FImages[tiSwitchControl] := ProgressBar;      // reuse same images as ProgressBar
-  FCorners[tiSwitchControl] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiSwitchControl] := Vector4(2, 2, 2, 2);
   FImages[tiSwitchControlFill] := ProgressFill;
-  FCorners[tiSwitchControlFill] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiSwitchControlFill] := Vector4(2, 2, 2, 2);
   FImages[tiButtonNormal] := ButtonNormal;
-  FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonNormal] := Vector4(2, 2, 2, 2);
   FImages[tiButtonDisabled] := ButtonDisabled;
-  FCorners[tiButtonDisabled] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonDisabled] := Vector4(2, 2, 2, 2);
   FImages[tiButtonPressed] := ButtonPressed;
-  FCorners[tiButtonPressed] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonPressed] := Vector4(2, 2, 2, 2);
   FImages[tiButtonFocused] := ButtonFocused;
-  FCorners[tiButtonFocused] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonFocused] := Vector4(2, 2, 2, 2);
   FImages[tiWindow] := WindowDark;
-  FCorners[tiWindow] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiWindow] := Vector4(2, 2, 2, 2);
   FImages[tiScrollbarFrame] := ScrollbarFrame;
-  FCorners[tiScrollbarFrame] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiScrollbarFrame] := Vector4(1, 1, 1, 1);
   FImages[tiScrollbarSlider] := ScrollbarSlider;
-  FCorners[tiScrollbarSlider] := Vector4Integer(3, 3, 3, 3);
+  FCorners[tiScrollbarSlider] := Vector4(3, 3, 3, 3);
   FImages[tiSlider] := Slider;
-  FCorners[tiSlider] := Vector4Integer(4, 7, 4, 7);
+  FCorners[tiSlider] := Vector4(4, 7, 4, 7);
   FImages[tiSliderPosition] := SliderPosition;
-  FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiSliderPosition] := Vector4(1, 1, 1, 1);
   FImages[tiLabel] := FrameWhiteBlack;
-  FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiLabel] := Vector4(2, 2, 2, 2);
   FImages[tiGroup] := FrameWhiteBlack;
-  FCorners[tiGroup] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiGroup] := Vector4(2, 2, 2, 2);
   FImages[tiActiveFrame] := FrameWhite;
-  FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiActiveFrame] := Vector4(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;
-  FCorners[tiTooltip] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiTooltip] := Vector4(1, 1, 1, 1);
   FImages[tiTouchCtlInner] := TouchCtlInner;
-  FCorners[tiTouchCtlInner] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlInner] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlOuter] := TouchCtlOuter;
-  FCorners[tiTouchCtlOuter] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlOuter] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlFlyInner] := TouchCtlFlyInner;
-  FCorners[tiTouchCtlFlyInner] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlFlyInner] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlFlyOuter] := TouchCtlFlyOuter;
-  FCorners[tiTouchCtlFlyOuter] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlFlyOuter] := Vector4(0, 0, 0, 0);
   FImages[tiCrosshair1] := Crosshair1;
-  FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCrosshair1] := Vector4(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
-  FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCrosshair2] := Vector4(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
-  FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCheckmark] := Vector4(0, 0, 0, 0);
 
   { Note that tiSquareEmpty and tiSquarePressedBackground could have
     corners = (4, 4, 4, 4), but tiSquareChecked cannot.
     And these 3 images must be consistent.
     So, do not declare any corners for them. }
   FImages[tiSquareEmpty] := SquareEmpty;
-  FCorners[tiSquareEmpty] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquareEmpty] := Vector4(0, 0, 0, 0);
   FImages[tiSquareChecked] := SquareChecked;
-  FCorners[tiSquareChecked] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquareChecked] := Vector4(0, 0, 0, 0);
   FImages[tiSquarePressedBackground] := SquarePressedBackground;
-  FCorners[tiSquarePressedBackground] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquarePressedBackground] := Vector4(0, 0, 0, 0);
 
   FImages[tiDisclosure] := Disclosure;
-  FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiDisclosure] := Vector4(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
-  FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiLoading] := Vector4(0, 0, 0, 0);
   FImages[tiEdit] := Edit;
-  FCorners[tiEdit] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiEdit] := Vector4(2, 2, 2, 2);
 
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
@@ -299,12 +299,12 @@ begin
   FOwnsImages[ImageType] := Value;
 end;
 
-function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4Integer;
+function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4;
 begin
   Result := FCorners[ImageType];
 end;
 
-procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
+procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4);
 begin
   FCorners[ImageType] := Value;
 end;
