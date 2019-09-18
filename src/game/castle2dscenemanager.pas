@@ -35,9 +35,9 @@ type
 
         The 2D world spans horizontally in X and vertically in Y.
         The Z (depth) can be used to put things in front/behind each other.
+
         More precisely, the camera is positioned at the point
-        @code((0, 0, DefaultCameraZ)),
-        looks along the -Z direction, with "up" vector in +Y.
+        @code((0, 0, 500)), looks along the -Z direction, with "up" vector in +Y.
 
         You can change the camera by code, of course,
         e.g. by changing @link(TCastleCamera.Position Camera.Position).
@@ -63,6 +63,13 @@ type
         Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
         is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
         at (0,0) in the world visible at the middle of the scene manager.
+
+        By default our visible Z range is [-1500, 500],
+        because ProjectionNear is -1000, ProjectionFar is 1000,
+        and camera default depth (@code(Camera.Position.Z)) is 500.
+        This was chosen to be comfortable for all cases -- you can
+        keep camera Z unchanged and comfortably position things around [-500, 500],
+        or set camera Z to zero and then comfortably position things around [-1000, 1000].
       )
 
       @item(The navigation by default remains @nil,
@@ -233,7 +240,7 @@ constructor TCastle2DSceneManager.Create(AOwner: TComponent);
       { up } Vector3(0, 1, 0),
       { gravity up } Vector3(0, 1, 0)
     );
-    Camera.ProjectionNear := WorldBoxSizeToRadius; // assume bbox size = 1
+    Camera.ProjectionNear := -Default2DProjectionFar;
     Camera.ProjectionFar := Default2DProjectionFar;
     Camera.ProjectionType := ptOrthographic;
   end;

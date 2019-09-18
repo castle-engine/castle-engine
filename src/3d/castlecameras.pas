@@ -503,12 +503,12 @@ type
   published
     { Projection near plane distance.
 
-      Keep it always >= 0 (although in orthographic projection it makes sense
-      to use values < 0 too, but for future it's best to avoid them).
+      For perspective projection, values <= 0 are invalid,
+      and imply that a suitable value should actually be automatically
+      calculated (looking at the world size).
 
-      Use 0 to auto-calculate this each frame, based on the world bounding box,
-      in case of perspective projection.
-      In case of orthographic projection value of 0 is a normal, perfectly reasonable value. }
+      For orthographic projection, all values are valid and reasonable,
+      including 0 and < 0 values. }
     property ProjectionNear: Single read FProjectionNear write SetProjectionNear default 0;
 
     { Projection far plane distance.
