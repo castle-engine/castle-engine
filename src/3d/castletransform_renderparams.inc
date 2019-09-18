@@ -305,7 +305,7 @@ end;
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleNavigation;
   const IgnoredViewpoint: TObject = nil);
 begin
-  FromCameraObject(ACamera, IgnoredViewpoint);
+  FromCameraObject(ACamera.Camera, IgnoredViewpoint);
 end;
 
 procedure TRenderingCamera.FromMatrix(
