@@ -1326,6 +1326,7 @@ var
 var
   I: Integer;
   LightRenderEvent: TLightRenderEvent;
+  BlendingEnabled: Boolean;
 begin
   { We update ShapesVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
@@ -1348,6 +1349,7 @@ begin
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
     RenderContext.ProjectionMatrix * ModelView;
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+  BlendingEnabled := false;
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -1367,11 +1369,6 @@ begin
         or GL_BLEND enable state. Just render everything
         (except: don't render partially transparent stuff for shadow maps). }
       RenderAllAsOpaque(Attributes.Mode = rmDepth);
-
-      BatchingCommit;
-
-      { Each RenderShape_SomeTests inside could set OcclusionBoxState }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
@@ -1380,11 +1377,6 @@ begin
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
         Params, RenderCameraKnown, RenderCameraPosition);
-
-      BatchingCommit;
-
-      { Inside we could set OcclusionBoxState }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     begin
       if Attributes.Blending then
@@ -1409,12 +1401,11 @@ begin
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
           end else
             Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
-
-          BatchingCommit;
         end else
         { this means Params.Transparent = true }
         begin
           { draw partially transparent objects }
+          BlendingEnabled := true;
           glDepthMask(GL_FALSE);
           glEnable(GL_BLEND);
 
@@ -1436,25 +1427,29 @@ begin
             end;
           end else
             Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
-
-          BatchingCommit;
-
-          { restore glDepthMask and blending state to default values }
-          glDepthMask(GL_TRUE);
-          glDisable(GL_BLEND);
         end;
       end else
         RenderAllAsOpaque;
-
-      { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-
-        TODO: in case of fixed-function path,
-        glPopAttrib inside could restore now
-        glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-        This problem will disappear when we'll get rid of fixed-function
-        possibility in OcclusionBoxStateEnd. }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end;
+
+    BatchingCommit;
+
+    if BlendingEnabled then
+    begin
+      { restore glDepthMask and blending state to default values }
+      glDepthMask(GL_TRUE);
+      glDisable(GL_BLEND);
+      BlendingEnabled := false;
+    end;
+
+    { Each RenderShape_SomeTests inside could set OcclusionBoxState.
+
+      TODO: in case of fixed-function path,
+      glPopAttrib inside could restore now
+      glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
+      This problem will disappear when we'll get rid of fixed-function
+      possibility in OcclusionBoxStateEnd. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
