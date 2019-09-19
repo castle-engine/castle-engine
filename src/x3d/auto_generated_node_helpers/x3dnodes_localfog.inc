@@ -32,6 +32,12 @@
     procedure SetEnabled(const Value: boolean);
     function GetVisibilityRange: Single;
     procedure SetVisibilityRange(const Value: Single);
+    function GetVolumetric: boolean;
+    procedure SetVolumetric(const Value: boolean);
+    function GetVolumetricDirection: TVector3;
+    procedure SetVolumetricDirection(const Value: TVector3);
+    function GetVolumetricVisibilityStart: Single;
+    procedure SetVolumetricVisibilityStart(const Value: Single);
   public
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
@@ -39,6 +45,12 @@
     property Enabled: boolean read GetEnabled write SetEnabled;
     { X3D field "visibilityRange". } { }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
+    { X3D field "volumetric". } { }
+    property Volumetric: boolean read GetVolumetric write SetVolumetric;
+    { X3D field "volumetricDirection". } { }
+    property VolumetricDirection: TVector3 read GetVolumetricDirection write SetVolumetricDirection;
+    { X3D field "volumetricVisibilityStart". } { }
+    property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;
 
 {$endif read_interface}
 
@@ -74,6 +86,36 @@ end;
 procedure TLocalFogNode.SetVisibilityRange(const Value: Single);
 begin
   FdVisibilityRange.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetric: boolean;
+begin
+  Result := FdVolumetric.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetric(const Value: boolean);
+begin
+  FdVolumetric.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetricDirection: TVector3;
+begin
+  Result := FdVolumetricDirection.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetricDirection(const Value: TVector3);
+begin
+  FdVolumetricDirection.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetricVisibilityStart: Single;
+begin
+  Result := FdVolumetricVisibilityStart.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetricVisibilityStart(const Value: Single);
+begin
+  FdVolumetricVisibilityStart.Send(Value);
 end;
 
 {$endif read_implementation}

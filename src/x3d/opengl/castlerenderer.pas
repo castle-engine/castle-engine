@@ -690,8 +690,8 @@ type
       instance from cache or creating and adding a new one.
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
-    function Shape_IncReference(Shape: TX3DRendererShape;
-      Fog: IAbstractFogObject; ARenderer: TGLRenderer): TShapeCache;
+    function Shape_IncReference(const Shape: TX3DRendererShape;
+      const ARenderer: TGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
 
@@ -739,6 +739,9 @@ type
 
     { Assign this each time before passing this shape to RenderShape. }
     ModelView: TMatrix4;
+
+    { Assign this each time before passing this shape to RenderShape. }
+    Fog: TFogFunctionality;
 
     { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
@@ -852,7 +855,7 @@ type
     LightsRenderer: TVRMLGLLightsRenderer;
 
     { Currently set fog parameters, during render. }
-    FogNode: IAbstractFogObject;
+    FogFunctionality: TFogFunctionality;
     FogEnabled: boolean;
     FogType: TFogType;
     FogColor: TVector3;
@@ -876,7 +879,7 @@ type
     Pass: TTotalRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
-    procedure GetFog(Node: IAbstractFogObject;
+    procedure GetFog(const AFogFunctionality: TFogFunctionality;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3;
       out VolumetricVisibilityStart: Single);
@@ -895,41 +898,41 @@ type
     procedure DisableTexture(const TextureUnit: Cardinal);
     procedure DisableCurrentTexture;
 
-    procedure RenderShapeLineProperties(Shape: TX3DRendererShape;
-      Fog: IAbstractFogObject; Shader: TShader);
-    procedure RenderShapeMaterials(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader);
-    procedure RenderShapeLights(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
+      const Shader: TShader);
+    procedure RenderShapeMaterials(const Shape: TX3DRendererShape;
+      const Shader: TShader);
+    procedure RenderShapeLights(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeFog(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeFog(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeTextureTransform(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeClipPlanes(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeShaders(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeShaders(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject);
-    procedure RenderShapeTextures(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject);
+    procedure RenderShapeTextures(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject;
-      UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeInside(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject;
+      const UsedGLSLTexCoordsNeeded: Cardinal);
+    procedure RenderShapeInside(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject);
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
       (to prepare state for following RenderShape calls) and at RenderEnd
@@ -982,8 +985,7 @@ type
       const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(const Shape: TX3DRendererShape;
-      const Fog: IAbstractFogObject);
+    procedure RenderShape(const Shape: TX3DRendererShape);
 
     { Update generated texture for this shape.
 
@@ -1711,8 +1713,8 @@ begin
 end;
 
 function TGLRendererContextCache.Shape_IncReference(
-  Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-  ARenderer: TGLRenderer): TShapeCache;
+  const Shape: TX3DRendererShape;
+  const ARenderer: TGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
   FogVolumetricDirection: TVector3;
@@ -1756,7 +1758,7 @@ var
 var
   I: Integer;
 begin
-  ARenderer.GetFog(Fog, FogEnabled, FogVolumetric,
+  ARenderer.GetFog(Shape.Fog, FogEnabled, FogVolumetric,
     FogVolumetricDirection, FogVolumetricVisibilityStart);
 
   for I := 0 to ShapeCaches.Count - 1 do
@@ -2416,21 +2418,24 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
+procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
   Enabled := (Attributes.Mode = rmFull) and
-    (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
-  Volumetric := Enabled and Node.FdVolumetric.Value
+    (AFogFunctionality <> nil) and
+    (AFogFunctionality.VisibilityRange <> 0.0);
+  Volumetric := Enabled and
+    AFogFunctionality.Volumetric
     {$ifndef OpenGLES} and GLFeatures.EXT_fog_coord {$endif};
 
   if Volumetric then
   begin
     VolumetricVisibilityStart :=
-      Node.FdVolumetricVisibilityStart.Value * Node.TransformScale;
-    VolumetricDirection := Node.FdVolumetricDirection.Value;
+      AFogFunctionality.VolumetricVisibilityStart *
+      AFogFunctionality.TransformScale;
+    VolumetricDirection := AFogFunctionality.VolumetricDirection;
   end else
   begin
     { whatever, just set them to any determined values }
@@ -2640,7 +2645,7 @@ begin
     {$endif}
   end;
 
-  Assert(FogNode = nil);
+  Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
@@ -2656,7 +2661,7 @@ begin
 
   FreeAndNil(LightsRenderer);
 
-  FogNode := nil;
+  FogFunctionality := nil;
   FogEnabled := false;
 
   if GLFeatures.EnableFixedFunction then
@@ -2675,8 +2680,7 @@ begin
   RenderingCamera := nil;
 end;
 
-procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
-  const Fog: IAbstractFogObject);
+procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
 
   function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
   var
@@ -2735,11 +2739,11 @@ begin
 
   Shader.ShapeBoundingBox := Shape.BoundingBox;
   Shader.ShadowSampling := Attributes.ShadowSampling;
-  RenderShapeLineProperties(Shape, Fog, Shader);
+  RenderShapeLineProperties(Shape, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeLineProperties(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader);
+procedure TGLRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
+  const Shader: TShader);
 var
   LP: TLinePropertiesNode;
 begin
@@ -2756,21 +2760,21 @@ begin
     LineType := ltSolid;
   end;
 
-  RenderShapeMaterials(Shape, Fog, Shader);
+  RenderShapeMaterials(Shape, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeMaterials(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader);
+procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
+  const Shader: TShader);
 
   {$I castlerenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
-  RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeLights(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeLights(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
@@ -2788,17 +2792,18 @@ begin
   if Lighting then
   begin
     if Attributes.UseSceneLights then
-      SceneLights := Shape.State.Lights else
+      SceneLights := Shape.State.Lights
+    else
       SceneLights := nil;
 
     LightsRenderer.Render(BaseLights, SceneLights, Shader);
   end;
 
-  RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeFog(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeFog(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeFog(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
 const
@@ -2807,7 +2812,7 @@ const
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
-  procedure RenderFog(Node: IAbstractFogObject;
+  procedure RenderFog(const AFogFunctionality: TFogFunctionality;
     out Volumetric: boolean;
     out VolumetricDirection: TVector3;
     out VolumetricVisibilityStart: Single);
@@ -2816,13 +2821,15 @@ const
   const
     FogDensityFactor = 3.0;
   begin
-    GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
+    GetFog(AFogFunctionality, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
     if FogEnabled then
     begin
-      Assert(Node <> nil);
+      Assert(AFogFunctionality <> nil);
 
-      VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
+      VisibilityRangeScaled :=
+        AFogFunctionality.VisibilityRange *
+        AFogFunctionality.TransformScale;
 
       if GLFeatures.EnableFixedFunction then
       begin
@@ -2831,7 +2838,7 @@ const
           where we know that fog coord is possible and will be realized by passing
           castle_FogCoord to shader. }
 
-        if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
+        if AFogFunctionality.Volumetric and (not GLFeatures.EXT_fog_coord) then
         begin
           { Try to make normal fog that looks similar. This looks poorly,
             but it's not a real problem --- EXT_fog_coord is supported
@@ -2855,8 +2862,8 @@ const
       end;
 
       { calculate FogType and other Fog parameters }
-      FogType := Node.FogType;
-      FogColor := Node.FdColor.Value;
+      FogType := AFogFunctionality.FogType;
+      FogColor := AFogFunctionality.Color;
       case FogType of
         ftLinear: FogLinearEnd := VisibilityRangeScaled;
         ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
@@ -2869,10 +2876,10 @@ const
 
 begin
   { Enable / disable fog and set fog parameters if needed }
-  if Fog <> FogNode then
+  if FogFunctionality <> Shape.Fog then
   begin
-    FogNode := Fog;
-    RenderFog(FogNode, FogVolumetric,
+    FogFunctionality := Shape.Fog;
+    RenderFog(FogFunctionality, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
     if GLFeatures.EnableFixedFunction then
@@ -2910,12 +2917,11 @@ begin
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
       FogColor, FogLinearEnd, FogExpDensity);
-  RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeTextureTransform(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+procedure TGLRenderer.RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
@@ -3066,7 +3072,7 @@ begin
     end;
   end;
 
-  RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeClipPlanes(Shape, Shader, MaterialOpacity, Lighting);
 
   if GLFeatures.EnableFixedFunction then
   begin
@@ -3098,8 +3104,8 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderShapeClipPlanes(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
@@ -3161,7 +3167,7 @@ begin
   {$endif}
 
     Shape.ModelView := Shape.ModelView * Shape.State.Transform;
-    RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
+    RenderShapeCreateMeshRenderer(Shape, Shader, MaterialOpacity, Lighting);
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -3171,9 +3177,8 @@ begin
   ClipPlanesEnd;
 end;
 
-procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+procedure TGLRenderer.RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
   MeshRenderer: TMeshRenderer;
@@ -3213,7 +3218,7 @@ begin
   Assert(MeshRenderer <> nil);
 
   try
-    RenderShapeShaders(Shape, Fog, Shader, MaterialOpacity, Lighting,
+    RenderShapeShaders(Shape, Shader, MaterialOpacity, Lighting,
       GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
@@ -3222,11 +3227,11 @@ end;
 
 {$define MeshRenderer := TMeshRenderer(ExposedMeshRenderer) }
 
-procedure TGLRenderer.RenderShapeShaders(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject);
 var
   { > 0 means that we had custom shader node *and* it already
     needs given number texture units. Always 0 otherwise. }
@@ -3316,16 +3321,16 @@ begin
     end;
   end;
 
-  RenderShapeTextures(Shape, Fog, Shader, MaterialOpacity, Lighting,
+  RenderShapeTextures(Shape, Shader, MaterialOpacity, Lighting,
     GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
-procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject;
-  UsedGLSLTexCoordsNeeded: Cardinal);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject;
+  const UsedGLSLTexCoordsNeeded: Cardinal);
 
   function NodeTextured(Node: TAbstractGeometryNode): boolean;
   begin
@@ -3471,16 +3476,16 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Fog, Shader, MaterialOpacity, Lighting,
+    RenderShapeInside(Shape, Shader, MaterialOpacity, Lighting,
       GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
 end;
 
-procedure TGLRenderer.RenderShapeInside(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject);
 var
   Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
@@ -3494,7 +3499,7 @@ begin
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
-      Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
+      Shape.Cache := Cache.Shape_IncReference(Shape, Self);
 
     VBO := GLFeatures.VertexBufferObject;
 

@@ -601,12 +601,12 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 var
   Lights: TLightList;
 
-  procedure HereShapeRemove(Shape: TShape);
+  procedure HereShapeRemove(const Shape: TShape);
   begin
     Lights.ShapeRemove(Shape);
   end;
 
-  procedure HereShapeAdd(Shape: TShape);
+  procedure HereShapeAdd(const Shape: TShape);
   begin
     Lights.ShapeAdd(Shape);
   end;

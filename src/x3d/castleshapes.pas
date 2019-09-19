@@ -81,7 +81,7 @@ type
 
   TShape = class;
 
-  TShapeTraverseFunc = procedure (Shape: TShape) is nested;
+  TShapeTraverseFunc = procedure (const Shape: TShape) is nested;
 
   TEnumerateShapeTexturesFunction = function (Shape: TShape;
     Texture: TAbstractTextureNode): Pointer of object;
@@ -384,7 +384,7 @@ type
     procedure FreeOctreeTriangles;
   public
     { Constructor.
-      @param(ParentInfo Resursive information about parents,
+      @param(ParentInfo Recursive information about parents,
         for the geometry node of given shape.
         Note that for VRML 2.0/X3D, the immediate parent
         of geometry node is always TShapeNode.) }
@@ -3311,7 +3311,7 @@ constructor TShapeList.Create(Tree: TShapeTree;
 var
   AddedCount: Integer;
 
-  procedure AddToList(Shape: TShape);
+  procedure AddToList(const Shape: TShape);
   begin
     Items[AddedCount] := Shape;
     Inc(AddedCount);

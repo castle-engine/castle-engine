@@ -302,13 +302,13 @@ procedure ShapesFilterBlending(
   TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
-  procedure AddToList(Shape: TShape);
+  procedure AddToList(const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending = UseBlending then
       FilteredShapes.Add(Shape);
   end;
 
-  procedure AddToListIfTested(Shape: TShape);
+  procedure AddToListIfTested(const Shape: TShape);
   begin
     if (TGLShape(Shape).UseBlending = UseBlending) and
        TestShapeVisibility(TGLShape(Shape)) then

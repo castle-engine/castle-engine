@@ -42,6 +42,18 @@
   ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
   end;
 
+  { Simple component system inside TX3DNode.
+    See @link(TX3DNode.Functionality). }
+  TNodeFunctionality = class
+  strict private
+    FParent: TX3DNode;
+  public
+    constructor Create(const AParent: TX3DNode);
+    property Parent: TX3DNode read FParent;
+  end;
+
+  TNodeFunctionalityClass = class of TNodeFunctionality;
+
   { X3D node. Every VRML/X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem, IX3DNode)
   private
@@ -1077,6 +1089,14 @@
     { Find field set by given event of this node.
       @nil if not found (including when this Event doesn't actually belong to this node). }
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; virtual;
+
+    { Return an instance performing given functionality of this class
+      (like a fog, transformation, material...), or @nil if none.
+      This implements a simple component system inside TX3DNode,
+      allowing some functionality to have common interface and implementation
+      across a few nodes that are not otherwise related in the ancestor hierarchy. }
+    function Functionality(
+      const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; virtual;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -1136,6 +1156,14 @@ begin
     Result := OriginalNode.DeepCopyCore(Self);
   end else
     Result := New[I];
+end;
+
+{ TNodeFunctionality --------------------------------------------------------- }
+
+constructor TNodeFunctionality.Create(const AParent: TX3DNode);
+begin
+  inherited Create;
+  FParent := AParent;
 end;
 
 { TX3DNode ------------------------------------------------------------------ }
@@ -3390,6 +3418,12 @@ begin
     if F.EventIn = Event then
       Exit(F);
   end;
+  Result := nil;
+end;
+
+function TX3DNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
   Result := nil;
 end;
 

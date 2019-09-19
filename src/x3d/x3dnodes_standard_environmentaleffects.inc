@@ -79,27 +79,17 @@
   TFogTypeOrNone = (ftLinear, ftExp, ftNone);
   TFogType = ftLinear..ftExp;
 
-  { Interface that describes a node that influences the look by blending with fog. }
-  IAbstractFogObject = interface(IX3DNode)
-  ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-
-    property FdColor: TSFColor read GetFdcolor;
-    property FdFogType: TSFString read GetFdfogType;
-    property FdVisibilityRange: TSFFloat read GetFdvisibilityRange;
-    property FdVolumetric: TSFBool read GetFdvolumetric;
-    property FdVolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
-    property FdVolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
-
-    function GetTransformScale: Single;
-    property TransformScale: Single read GetTransformScale;
-
-    function FogType: TFogType;
+  { Functionality that describes a fog (blend objects with a fog color).
+    Used by various X3D fog nodes, like TLocalFogNode, TFogNode. }
+  TFogFunctionality = class(TNodeFunctionality)
+  public
+    function Color: TCastleColorRGB; virtual; abstract;
+    function FogType: TFogType; virtual; abstract;
+    function VisibilityRange: Single; virtual; abstract;
+    function TransformScale: Single; virtual; abstract;
+    function Volumetric: Boolean; virtual; abstract;
+    function VolumetricDirection: TVector3; virtual; abstract;
+    function VolumetricVisibilityStart: Single; virtual; abstract;
   end;
 
   { 3D background of a scene, comprised of sky and ground colors (gradients)
@@ -135,22 +125,37 @@
 
   { Simulate atmospheric fog effects (for the whole scene) by blending
     with the fog colour, based on the distance from the viewer. }
-  TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
+  TFogNode = class(TAbstractBindableNode)
   strict private
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetTransformScale: Single;
+    type
+      TFogNodeFogFunctionality = class(TFogFunctionality)
+      strict private
+        FParent: TFogNode;
+      public
+        constructor Create(const AParent: TFogNode);
+        property Parent: TFogNode read FParent;
+
+        function Color: TCastleColorRGB; override;
+        function FogType: TFogType; override;
+        function VisibilityRange: Single; override;
+        function TransformScale: Single; override;
+        function Volumetric: Boolean; override;
+        function VolumetricDirection: TVector3; override;
+        function VolumetricVisibilityStart: Single; override;
+      end;
+
+    var
+      FogFunctionality: TFogNodeFogFunctionality;
+
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
+    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -217,22 +222,36 @@
     with the fog colour, based on the distance from the viewer.
     This is the "local" version of the @link(TFogNode), this affects
     only the sibling nodes of the @code(LocalFog) node, not the whole scene. }
-  TLocalFogNode = class(TAbstractChildNode, IAbstractFogObject)
+  TLocalFogNode = class(TAbstractChildNode)
   strict private
-    FTransformScale: Single;
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetTransformScale: Single;
+    type
+      TFogNodeFogFunctionality = class(TFogFunctionality)
+      strict private
+        FParent: TLocalFogNode;
+      public
+        constructor Create(const AParent: TLocalFogNode);
+        property Parent: TLocalFogNode read FParent;
+
+        function Color: TCastleColorRGB; override;
+        function FogType: TFogType; override;
+        function VisibilityRange: Single; override;
+        function TransformScale: Single; override;
+        function Volumetric: Boolean; override;
+        function VolumetricDirection: TVector3; override;
+        function VolumetricVisibilityStart: Single; override;
+      end;
+
+    var
+      FogFunctionality: TFogNodeFogFunctionality;
+      FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -472,51 +491,98 @@ begin
     Result := nil;
 end;
 
+{ TFogNode.TFogNodeFogFunctionality ------------------------------------------ }
+
+constructor TFogNode.TFogNodeFogFunctionality.Create(const AParent: TFogNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.Color: TCastleColorRGB;
+begin
+  Result := Parent.Color;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.FogType: TFogType;
+begin
+  Result := Parent.FogType;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VisibilityRange: Single;
+begin
+  Result := Parent.VisibilityRange;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.TransformScale: Single;
+begin
+  Result := Parent.TransformScale;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.Volumetric: Boolean;
+begin
+  Result := Parent.Volumetric;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VolumetricDirection: TVector3;
+begin
+  Result := Parent.VolumetricDirection;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
+begin
+  Result := Parent.VolumetricVisibilityStart;
+end;
+
 { TFogNode ------------------------------------------------------------------- }
 
 procedure TFogNode.CreateNode;
 begin
   inherited;
 
-  { TODO: this is very unoptimal.
-    With new renderer, we possible don't have to do *anything*
-    when fog property changes, they will be automatically used? }
-
   FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangesAlways := [chEverything];
+   FdColor.ChangesAlways := [chRedisplay];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
   FFdFogType := TSFString.Create(Self, true, 'fogType', 'LINEAR');
-   FdFogType.ChangesAlways := [chEverything];
+   FdFogType.ChangesAlways := [chRedisplay];
   AddField(FFdFogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
   FFdVisibilityRange := TSFFloat.Create(Self, true, 'visibilityRange', 0);
-   FdVisibilityRange.ChangesAlways := [chEverything];
+   FdVisibilityRange.ChangesAlways := [chRedisplay];
   AddField(FFdVisibilityRange);
   { X3D specification comment: [0,Inf) }
 
   FFdVolumetric := TSFBool.Create(Self, true, 'volumetric', false);
-   FdVolumetric.ChangesAlways := [chEverything];
+   FdVolumetric.ChangesAlways := [chRedisplay];
   AddField(FFdVolumetric);
 
   FFdVolumetricDirection := TSFVec3f.Create(Self, true, 'volumetricDirection', Vector3(0, -1, 0));
-   FdVolumetricDirection.ChangesAlways := [chEverything];
+   FdVolumetricDirection.ChangesAlways := [chRedisplay];
   AddField(FFdVolumetricDirection);
 
   FFdVolumetricVisibilityStart := TSFFloat.Create(Self, true, 'volumetricVisibilityStart', 0);
-   FdVolumetricVisibilityStart.ChangesAlways := [chEverything];
+   FdVolumetricVisibilityStart.ChangesAlways := [chRedisplay];
   AddField(FFdVolumetricVisibilityStart);
 
   { Only for backward compatibility. Not used anymore. }
   FFdAlternative := TSFNode.Create(Self, true, 'alternative', [TFogNode]);
-   FdAlternative.ChangesAlways := [chEverything];
+   FdAlternative.ChangesAlways := [];
   AddField(FFdAlternative);
 
   DefaultContainerField := 'children';
 
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+
+  FogFunctionality := TFogNode.TFogNodeFogFunctionality.Create(Self);
+end;
+
+destructor TFogNode.Destroy;
+begin
+  FreeAndNil(FogFunctionality);
+  inherited;
 end;
 
 class function TFogNode.ClassX3DType: string;
@@ -547,41 +613,6 @@ end;
 function TFogNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcFog;
-end;
-
-function TFogNode.GetFdcolor: TSFColor;
-begin
-  Result := FFdColor;
-end;
-
-function TFogNode.GetFdfogType: TSFString;
-begin
-  Result := FdFogType;
-end;
-
-function TFogNode.GetFdvisibilityRange: TSFFloat;
-begin
-  Result := FdVisibilityRange;
-end;
-
-function TFogNode.GetFdvolumetric: TSFBool;
-begin
-  Result := FFdVolumetric;
-end;
-
-function TFogNode.GetFdvolumetricDirection: TSFVec3f;
-begin
-  Result := FFdVolumetricDirection;
-end;
-
-function TFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
-begin
-  Result := FFdVolumetricVisibilityStart;
-end;
-
-function TFogNode.GetTransformScale: Single;
-begin
-  Result := TransformScale;
 end;
 
 function TFogNode.FogType: TFogType;
@@ -670,6 +701,15 @@ begin
   end;
 end;
 
+function TFogNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
+  if FogFunctionality.InheritsFrom(FunctionalityClass) then
+    Result := FogFunctionality
+  else
+    Result := nil;
+end;
+
 { TFogCoordinateNode --------------------------------------------------------- }
 
 procedure TFogCoordinateNode.CreateNode;
@@ -692,6 +732,52 @@ class function TFogCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
+end;
+
+{ TLocalFogNode.TFogNodeFogFunctionality ------------------------------------------ }
+
+constructor TLocalFogNode.TFogNodeFogFunctionality.Create(const AParent: TLocalFogNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.Color: TCastleColorRGB;
+begin
+  Result := Parent.Color;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.FogType: TFogType;
+begin
+  Result := Parent.FogType;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VisibilityRange: Single;
+begin
+  Result := Parent.VisibilityRange;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.TransformScale: Single;
+begin
+  { TODO: this is actually bad, each LocalFog occurrence may have
+    different scale, depending on parent transform node.
+    We should keep LocalFogScale in State, and pass it around. }
+  Result := Parent.FTransformScale;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.Volumetric: Boolean;
+begin
+  Result := Parent.Volumetric;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VolumetricDirection: TVector3;
+begin
+  Result := Parent.VolumetricDirection;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
+begin
+  Result := Parent.VolumetricVisibilityStart;
 end;
 
 { TLocalFogNode -------------------------------------------------------------- }
@@ -730,6 +816,14 @@ begin
   DefaultContainerField := 'children';
 
   FTransformScale := 1;
+
+  FogFunctionality := TLocalFogNode.TFogNodeFogFunctionality.Create(Self);
+end;
+
+destructor TLocalFogNode.Destroy;
+begin
+  FreeAndNil(FogFunctionality);
+  inherited;
 end;
 
 procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -749,45 +843,6 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TLocalFogNode.GetFdcolor: TSFColor;
-begin
-  Result := FFdColor;
-end;
-
-function TLocalFogNode.GetFdfogType: TSFString;
-begin
-  Result := FdFogType;
-end;
-
-function TLocalFogNode.GetFdvisibilityRange: TSFFloat;
-begin
-  Result := FdVisibilityRange;
-end;
-
-function TLocalFogNode.GetFdvolumetric: TSFBool;
-begin
-  Result := FFdVolumetric;
-end;
-
-function TLocalFogNode.GetFdvolumetricDirection: TSFVec3f;
-begin
-  Result := FFdVolumetricDirection;
-end;
-
-function TLocalFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
-begin
-  Result := FFdVolumetricVisibilityStart;
-end;
-
-function TLocalFogNode.GetTransformScale: Single;
-begin
-  { TODO: this is actually bad, each LocalFog occurrence may have
-    different scale, depending on parent transform node.
-    We should keep LocalFogScale in State, and pass it along
-    to RenderShape. This method should not exist. }
-  Result := FTransformScale;
-end;
-
 function TLocalFogNode.FogType: TFogType;
 begin
   if FdFogType.Value = 'LINEAR' then
@@ -798,6 +853,15 @@ begin
     WritelnWarning('VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
     Result := ftLinear;
   end;
+end;
+
+function TLocalFogNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
+  if FogFunctionality.InheritsFrom(FunctionalityClass) then
+    Result := FogFunctionality
+  else
+    Result := nil;
 end;
 
 { TTextureBackgroundNode ----------------------------------------------------- }
