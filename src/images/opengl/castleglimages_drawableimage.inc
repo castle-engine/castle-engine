@@ -1307,7 +1307,7 @@ end;
 
     TODO: Reproduce this in a simple testcase, submit to FPC devs. }
   {$optimization OFF}
-  {$info Workaround Aarch optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
+  {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (begin)}
 {$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
@@ -1425,7 +1425,7 @@ end;
   so we restore it if -dRELEASE. }
 {$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
   {$optimization ON}
-  {$info Workaround Aarch optimizer: TDrawableImage.Draw3x3 not optimized (end)}
+  {$info Workaround Aarch64 optimizer: TDrawableImage.Draw3x3 not optimized (end)}
 {$endif}
 
 procedure TDrawableImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
