@@ -1182,6 +1182,7 @@ var
       Shape.Cache.FreeArrays([vtAttribute]);
     {$warnings on}
 
+    BlendingRenderer.BeforeRenderShape(Shape);
     Renderer.RenderShape(Shape);
     IsVisibleNow := true;
   end;
@@ -1267,11 +1268,7 @@ var
   procedure RenderShape_AllTests_Blending(const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending then
-    begin
-      // TODO: This doesn't cooperate with batching,
-      BlendingRenderer.BeforeRenderShape(Shape);
       RenderShape_AllTests(Shape);
-    end;
   end;
 
   procedure RenderAllAsOpaque(const IgnoreShapesWithBlending: boolean = false);
@@ -1326,7 +1323,6 @@ var
 var
   I: Integer;
   LightRenderEvent: TLightRenderEvent;
-  BlendingEnabled: Boolean;
 begin
   { We update ShapesVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
@@ -1349,7 +1345,6 @@ begin
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
     RenderContext.ProjectionMatrix * ModelView;
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
-  BlendingEnabled := false;
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -1405,10 +1400,6 @@ begin
         { this means Params.Transparent = true }
         begin
           { draw partially transparent objects }
-          BlendingEnabled := true;
-          glDepthMask(GL_FALSE);
-          glEnable(GL_BLEND);
-
           BlendingRenderer.RenderBegin;
 
           { sort for blending, if BlendingSort not bsNone.
@@ -1421,26 +1412,20 @@ begin
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
-            begin
-              BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-            end;
           end else
             Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
         end;
+
       end else
         RenderAllAsOpaque;
     end;
 
     BatchingCommit;
 
-    if BlendingEnabled then
-    begin
-      { restore glDepthMask and blending state to default values }
-      glDepthMask(GL_TRUE);
-      glDisable(GL_BLEND);
-      BlendingEnabled := false;
-    end;
+    { this must be called after BatchingCommit,
+      since BatchingCommit may render some shapes }
+    BlendingRenderer.RenderEnd;
 
     { Each RenderShape_SomeTests inside could set OcclusionBoxState.
 
