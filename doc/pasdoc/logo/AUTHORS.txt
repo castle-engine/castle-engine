@@ -1,6 +1,6 @@
 The Castle Game Engine logo in castle_game_engine_icon.svg ,
 along with some proposals (not yet used) in unused/ subdirectory, are
-Copyright 2016-2018 Paweł Wojciechowicz, Michalis Kamburelis.
+Copyright 2008-2018 Paweł Wojciechowicz, Michalis Kamburelis, Katarzyna Obrycka.
 
 Distributed on the same license as the Castle Game Engine itself:
 - GNU GPL >= 2 or
