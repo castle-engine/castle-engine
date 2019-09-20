@@ -193,7 +193,7 @@ type
 
       @unorderedList(
         @item(
-          With Params.ShadowVolumesReceivers = @true, renders only things that
+          When Params.ShadowVolumesReceivers includes @true, renders things that
           may be in the shadow.
           You should use Params.InShadow to either display the version
           of the scene in the shadows (so probably darker, probably with some
@@ -201,9 +201,10 @@ type
           (probably brighter, with normal scene lights on).)
 
         @item(
-          With Params.ShadowVolumesReceivers = @false, renders only things that
+          When Params.ShadowVolumesReceivers includes @true, renders things that
           must never be considered in shadow (are not shadow receivers).
-          Params.InShadow is always @false when Params.ShadowVolumesReceivers = @false.)
+          Params.InShadow is always @false when Params.ShadowVolumesReceivers is only [@false]
+          (to render only stuff that is never in shadow).)
       )
 
       Render3D must also honour Params.Transparent,
@@ -639,10 +640,8 @@ procedure TGLShadowVolumeRenderer.Render(
 {$ifdef OpenGLES}
 begin
   // TODO-es
-  Params.Transparent := false; Params.ShadowVolumesReceivers := false; Render3D(Params);
-  Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Render3D(Params);
-  Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Render3D(Params);
-  Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+  Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+  Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
 {$else}
 
 const
@@ -670,12 +669,12 @@ var
 begin
   Params.InShadow := false;
   Params.Transparent := false;
-  Params.ShadowVolumesReceivers := false;
+  Params.ShadowVolumesReceivers := [false];
   Render3D(Params);
 
   Params.InShadow := true;
   Params.Transparent := false;
-  Params.ShadowVolumesReceivers := true;
+  Params.ShadowVolumesReceivers := [true];
   Render3D(Params);
 
   glEnable(GL_STENCIL_TEST);
@@ -789,7 +788,7 @@ begin
       Inc(Params.StencilTest);
       Params.InShadow := false;
       Params.Transparent := false;
-      Params.ShadowVolumesReceivers := true;
+      Params.ShadowVolumesReceivers := [true];
       Render3D(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
@@ -813,12 +812,12 @@ begin
 
   Params.InShadow := false;
   Params.Transparent := true;
-  Params.ShadowVolumesReceivers := true;
+  Params.ShadowVolumesReceivers := [true];
   Render3D(Params);
 
   Params.InShadow := false;
   Params.Transparent := true;
-  Params.ShadowVolumesReceivers := false;
+  Params.ShadowVolumesReceivers := [false];
   Render3D(Params);
 {$endif}
 end;

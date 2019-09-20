@@ -574,9 +574,7 @@ begin
   inherited;
 
   Params.InShadow := false;
-  { since we constructed Scene ourselves,
-    we know it only has ShadowVolumesReceivers=true shapes }
-  Params.ShadowVolumesReceivers := true;
+  Params.ShadowVolumesReceivers := [false, true];
   Params.RenderingCamera := RenderingCamera;
 
   if Wireframe then

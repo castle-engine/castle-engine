@@ -141,7 +141,7 @@ begin
       is first in SceneManager.Items. }
 
     if (not Params.Transparent) and
-       (Params.ShadowVolumesReceivers = ReceiveShadowVolumes) then
+       (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
     begin
       { Nole that the 3 lines that save, set and restore RenderContext.ProjectionMatrix
         are necessary only in case GLFeatures.EnableFixedFunction = true,

@@ -1782,7 +1782,7 @@ begin
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
   if GetVisible and
      (InternalDirty = 0) and
-     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
+     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
       to prepare for particular shapes only right before they are rendered
@@ -2005,7 +2005,7 @@ begin
   if InternalEnableRendering and
      GetVisible and
      (InternalDirty = 0) and
-     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
+     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
@@ -2468,12 +2468,12 @@ begin
   inherited;
   FBaseLights := TLightInstancesList.Create;
   InShadow := false;
-  { Transparent and ShadowVolumesReceivers do not have good default values.
-    User of TBasicRenderParams should call Render method with
-    all 4 combinations of them, to really render everything correctly.
+  ShadowVolumesReceivers := [false, true];
+  { Transparent does not have good default value.
+    User of TBasicRenderParams should call Render method with both Transparent values,
+    to really render everything correctly.
     We just set them here to capture most 3D objects
     (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  ShadowVolumesReceivers := true;
   Transparent := false;
   RenderingCamera := CastleRenderingCamera.RenderingCamera;
   Frustum := @RenderingCamera.Frustum;

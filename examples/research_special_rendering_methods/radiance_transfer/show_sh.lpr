@@ -96,7 +96,8 @@ end;
 
 procedure TMyScene.LocalRender(const Params: TRenderParams);
 begin
-  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  if (not Params.Transparent) and
+     (true in Params.ShadowVolumesReceivers) then
   begin
     { before every rendering clear Min/MaxSHValue, so that VertexColor can set them }
     MinSHValue :=  MaxFloat;

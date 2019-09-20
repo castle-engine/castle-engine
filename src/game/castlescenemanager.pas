@@ -2304,10 +2304,8 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.Transparent := false; Params.ShadowVolumesReceivers := false; Render3D(Params);
-    Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);

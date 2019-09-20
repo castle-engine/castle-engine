@@ -185,10 +185,11 @@
       This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
     Transparent: boolean;
 
-    { Should we render parts that may receive shadow volumes, or ones that don't.
+    { Should we render parts that may receive shadow volumes, or ones that don't, or both.
+      This should never be [].
       During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
       This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    ShadowVolumesReceivers: boolean;
+    ShadowVolumesReceivers: set of Boolean;
 
     { If @true, means that we're using multi-pass
       shadowing technique (like shadow volumes),
