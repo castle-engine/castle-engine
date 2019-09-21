@@ -1188,7 +1188,7 @@ begin
   if IsEmpty then
     Result := 'EMPTY'
   else
-    Result := Data[0].ToString+' - '+Data[1].ToString;
+    Result := '(Min: ' + Data[0].ToString + ') - (Max: ' + Data[1].ToString + ')';
 end;
 
 function TBox3D.ToRawString: string;
@@ -1196,7 +1196,7 @@ begin
   if IsEmpty then
     Result := 'EMPTY'
   else
-    Result := '(' + Data[0].ToRawString + ') - (' + Data[1].ToRawString + ')';
+    Result := '(Min: ' + Data[0].ToRawString + ') - (Max: ' + Data[1].ToRawString + ')';
 end;
 
 function TBox3D.ToNiceStr: string;
