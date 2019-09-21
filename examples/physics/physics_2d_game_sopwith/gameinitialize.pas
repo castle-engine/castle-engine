@@ -57,7 +57,7 @@ var
 begin
   inherited;
   B := BoundingBox;
-  if (B.Min.X > SceneManager.CurrentProjectionWidth) or
+  if (B.Min.X > SceneManager.Camera.Orthographic.EffectiveWidth) or
      (B.Max.X < 0) or
      (B.Max.Y < 0) then
     RemoveMe := rtRemoveAndFree;
@@ -275,10 +275,7 @@ end;
 
 procedure UpdatePlanePosition(const EventPosition: TVector2);
 begin
-  Plane.Translation := Vector3(
-    MapRange(EventPosition.X, 0, Window.Width, 0, SceneManager.CurrentProjectionWidth),
-    MapRange(EventPosition.Y, 0, Window.Height, 0, SceneManager.CurrentProjectionHeight),
-    0);
+  Plane.Translation := Vector3(SceneManager.PositionTo2DWorld(EventPosition, true), 0);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
