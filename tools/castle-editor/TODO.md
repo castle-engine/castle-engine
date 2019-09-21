@@ -47,19 +47,6 @@ Before 6.6 release:
   unless it's already forced, is it possible to set name='' without
   exception from SetName?
 
-* publish and save SceneManager.NavigationType
-  and last camera
-  { Use initial camera settings stored in
-    InitialCameraPosition,
-    InitialCameraDirection,
-    InitialCameraUp
-    values. They are used if you create a camera using one of the
-    TCastleAbstractViewport methods, like RequiredCamera or WalkCamera
-    or ExamineCamera. They will not be used if you assign to @link(Camera)
-    your own camera instance. }
-  StoreInitialCamera: Boolean
-  InitialCamera
-
 * templates:
     * Create other than "empty" project templates
     * Proper screenshots of all project templates

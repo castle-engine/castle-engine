@@ -570,7 +570,7 @@ begin
   { Initialize ExtraViewport camera to something
     that nicely views the scene from above. }
   ExtraViewport.NavigationType := ntExamine;
-  ExtraViewport.RequiredCamera.SetView(
+  ExtraViewport.Camera.SetView(
     { position } Vector3(0, 55, 44),
     { direction } Vector3(0, -1, 0),
     { up } Vector3(0, 0, -1), false

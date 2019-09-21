@@ -154,13 +154,14 @@ begin
 
   Window.SceneManager.Items.Add(CreateBoxesScene);
 
-  Window.SceneManager.RequiredCamera.SetView(
+  Window.SceneManager.AutoDetectCamera := false;
+  Window.SceneManager.Camera.SetView(
     Vector3(-43.30, 27.23, -80.74),
     Vector3(  0.60, -0.36,   0.70),
     Vector3(  0.18,  0.92,   0.32)
   );
   // better camera for only a car:
-  {Window.SceneManager.RequiredCamera.SetView(
+  {Window.SceneManager.Camera.SetView(
     Vector3(-7.83,  6.15, -7.55),
     Vector3( 0.47, -0.30,  0.82),
     Vector3( 0.16,  0.95,  0.25)

@@ -143,7 +143,7 @@ type
       repaint at a constant rate, even when user is moving around.
 
       The problem is most obvious when moving the mouse, for example when using
-      the mouse look to walk and look around in Walk mode (TWalkCamera.MouseLook),
+      the mouse look to walk and look around in Walk mode (TCastleWalkNavigation.MouseLook),
       or when dragging with mouse
       in Examine mode. The event loop is then typically busy processing mouse move
       events all the time, so it's never/seldom empty (note: it doesn't mean that
@@ -440,7 +440,7 @@ type
 
       Note that this is different than LCL "idle" event,
       as it's guaranteed to be run continuously, even when your application
-      is clogged with events (like when using TWalkCamera.MouseLook).
+      is clogged with events (like when using TCastleWalkNavigation.MouseLook).
 
       Note: As we need to continuously call the "update" event (to update animations
       and more), we listen on the Lazarus Application "idle" event,
@@ -528,7 +528,9 @@ type
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneURL: string);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
 
     function MainScene: TCastleScene;
     function Camera: TCastleCamera; deprecated 'use SceneManger.Camera or SceneManger.Navigation';
@@ -1315,10 +1317,10 @@ begin
   MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Camera always non-nil.
-    Useful for model_3d_viewer that wants to initialize NavigationType
-    from camera. }
-  SceneManager.RequiredCamera;
+  { For backward compatibility, to make our Navigation always non-nil. }
+  {$warnings off} // using deprecated in deprecated
+  SceneManager.RequiredNavigation;
+  {$warnings on}
 end;
 
 function TCastleControl.MainScene: TCastleScene;

@@ -562,36 +562,20 @@ type
     { Navigation method is an optional component that handles
       the user input to control the camera.
 
-      TODO: update description below. Do we really create navigation
-      always? Maybe sometimes we leave it nil?
+      You can assign here an instance of @link(TCastleNavigation),
+      like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
+      Or you can leave it as @nil.
 
-      Note this property may be @nil before rendering.
-      If you don't assign anything here, we'll create a default navigation
-      when necessary (usually at the ApplyProjection which
-      happens before the rendering).
-      Use @link(RequiredCamera) instead of this property to get a camera
-      that is never @nil.
-      Or use @link(ExamineCamera) or @link(WalkCamera) to get a camera
-      that is never @nil, and has particular type.
-      Or set @link(NavigationType) first, this also sets the camera always.
+      Note that, if you leave it as @nil and have @link(AutoDetectNavigation) as @true
+      (default) then a default navigation will be calculated
+      right before the first rendering. It will take into account the 3D world
+      initialized in SceneManager.Items, e.g. the NavigatinInfo inside SceneManager.MainScene.
+      Set @link(AutoDetectNavigation) to false to avoid this automatic detection.
 
-      For many purposes, you can directly operate on this camera,
-      for example you can change it's @link(TCastleNavigation.Position Position).
-      An exception to this is assigning events to the camera instance.
-      The scene manager or viewport will "hijack" some Camera events:
-      TCastleNavigation.OnVisibleChange, TCastleWalkNavigation.OnMoveAllowed,
-      TCastleWalkNavigation.OnHeight.
-      We will handle them in a proper way. Do not assign them yourself.
-
-      @italic(Comments for TCastleViewport only:)
-      The TCastleViewport's camera is slightly less important than
-      TCastleSceneManager.Camera, because TCastleSceneManager.Camera may be treated
-      as a "central" camera. Viewport's camera may not (because you may
-      have many viewports and they all deserve fair treatment).
-      So e.g. headlight is done only from TCastleSceneManager.Camera
-      (for mirror textures, there must be one headlight for your 3D world).
-      Also VRML/X3D ProximitySensors receive events only from
-      TCastleSceneManager.Camera.
+      Note that assigning @link(NavigationType) also implicitly sets
+      this property to an internal instance of
+      @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
+      Setting @link(NavigationType) to @nil sets this property to @nil.
 
       @seealso TCastleSceneManager.OnCameraChanged }
     property Navigation: TCastleNavigation read FNavigation write SetNavigation;
@@ -620,8 +604,10 @@ type
     property Camera: TCastleCamera read FCamera;
 
     { For scene manager: you can pause everything inside your 3D world,
-      for viewport: you can make the camera of this viewpoint paused
+      for viewport: you can make the navigation of this viewpoint paused
       (not responsive).
+
+      TODO: fix pausing of Navigation.
 
       @italic(For scene manager:)
 
@@ -655,7 +641,7 @@ type
           may still run, for example MovieTexture will still animate,
           if only TCastleScene.TimePlaying.)
 
-        @item(For cameras, you can set @code(TCastleNavigation.Input := []) to ignore
+        @item(For navigation, you can set @code(TCastleNavigation.Input := []) to ignore
           key / mouse clicks.)
       ) }
     property Paused: boolean read FPaused write SetPaused default false;

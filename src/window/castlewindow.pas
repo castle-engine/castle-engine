@@ -4676,8 +4676,10 @@ begin
   SceneManager.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   SceneManager.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Navigation always non-nil }
+  { For backward compatibility, to make our Navigation always non-nil. }
+  {$warnings off} // using deprecated in deprecated
   SceneManager.RequiredNavigation;
+  {$warnings on}
 end;
 
 function TCastleWindow.MainScene: TCastleScene;
