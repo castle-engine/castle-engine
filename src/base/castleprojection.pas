@@ -123,6 +123,8 @@ function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Sing
 function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
+function ProjectionTypeToStr(const ProjectionType: TProjectionType): String;
+
 implementation
 
 uses Math,
@@ -311,6 +313,13 @@ begin
   end;
 
   Result.Data[2, 3] := -1;
+end;
+
+function ProjectionTypeToStr(const ProjectionType: TProjectionType): String;
+const
+  Names: array[TProjectionType] of String = ('Orthographic', 'Perspective', 'Frustum');
+begin
+  Result := Names[ProjectionType];
 end;
 
 end.

@@ -2241,8 +2241,6 @@ var
 
     Camera.Orthographic.InternalSetEffectiveSize(
       EffectiveProjectionWidth, EffectiveProjectionHeight);
-
-    // WritelnLog('Orthographic dimensions %s', [Result.Dimensions.ToString]);
   end;
 
   { Calculate reasonable perspective projection near, looking at Box. }
@@ -2280,11 +2278,6 @@ begin
   Result.PerspectiveAngles[0] := RadToDeg(PerspectiveAnglesRad[0]);
   Result.PerspectiveAngles[1] := RadToDeg(PerspectiveAnglesRad[1]);
 
-  // WritelnLog('Perspective angle of view: %f x %f', [
-  //   Result.PerspectiveAngles[0],
-  //   Result.PerspectiveAngles[1]
-  // ]);
-
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := Camera.ProjectionNear;
   if (Result.ProjectionType = ptPerspective) and
@@ -2318,6 +2311,22 @@ begin
   { Calculate Result.Dimensions regardless of Result.ProjectionType,
     this way OnProjection can easily change projection type to orthographic. }
   UpdateOrthographicDimensions;
+
+{
+  WritelnLogMultiline('Projection', Format(
+    'ProjectionType: %s' + NL +
+    'Perspective Field of View (in degrees): %f x %f' + NL +
+    'Orthographic Dimensions: %s' + NL +
+    'Near: %f' + NL +
+    'Far: %f', [
+    ProjectionTypeToStr(Result.ProjectionType),
+    Result.PerspectiveAngles[0],
+    Result.PerspectiveAngles[1],
+    Result.Dimensions.ToString,
+    Result.ProjectionNear,
+    Result.ProjectionFar
+  ]));
+}
 end;
 
 function TCastleAbstractViewport.Background: TBackground;
