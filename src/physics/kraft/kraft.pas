@@ -149,6 +149,12 @@ unit kraft;
  {$endif}
 {$endif}
 
+{ CGE: Avoid FPC note: "nested procedures" not yet supported inside inline procedure/function
+  TODO: submit to Kraft. }
+{$ifdef FPC}
+  {$notes off}
+{$endif}
+
 interface
 
 uses {$ifdef windows}
