@@ -79,9 +79,9 @@ begin
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
   SceneManager.NavigationType := ntWalk;
-  SceneManager.WalkCamera.MoveSpeed := 10;
+  SceneManager.WalkNavigation.MoveSpeed := 10;
   { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
-  SceneManager.WalkCamera.HeadBobbing := 0;
+  SceneManager.WalkNavigation.HeadBobbing := 0;
   InsertFront(SceneManager);
 
   ViewportRect := TCastleRectangleControl.Create(FreeAtStop);
@@ -102,7 +102,8 @@ begin
   Viewport.SceneManager := SceneManager;
   Viewport.Transparent := true;
   Viewport.NavigationType := ntNone;
-  Viewport.RequiredCamera.SetView(
+  Viewport.AutoDetectCamera := false;
+  Viewport.Camera.SetView(
     Vector3(5, 92.00, 0.99),
     Vector3(0, -1, 0),
     Vector3(0, 0, 1));

@@ -190,9 +190,8 @@ begin
     we know it starts from bottom = 0.
     BoudingBox.Data[1][1] is the maximum Y value, i.e. our height.
     So projection height should adjust to background.x3dv height. }
-  SceneManager.ProjectionAutoSize := false;
-  SceneManager.ProjectionHeight := Background.BoundingBox.Data[1][1];
-  SceneManager.ProjectionSpan := 10000.0;
+  SceneManager.Camera.Orthographic.Height := Background.BoundingBox.Data[1][1];
+  SceneManager.Camera.ProjectionFar := 10000;
 
   Dragon := TCastle2DScene.Create(Application);
   Dragon.Load('castle-data:/dragon/dragon.json');
@@ -280,9 +279,9 @@ begin
   if CameraFollowsDragon.Pressed then
   begin
     Pos[0] := Dragon.Translation[0]
-      { subtract half of the screen, because camera is at the left screen corner
-        when using default 2D projection of TCastle2DSceneManager. }
-      - 0.5 * SceneManager.CurrentProjectionWidth;
+      { Subtract half of the screen, because camera is at the left screen corner
+        when using default 2D projection (with default Camera.Orthographic.Origin = zero). }
+      - 0.5 * SceneManager.Camera.Orthographic.EffectiveWidth;
     { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
       we need to offset the above calculation }
     if CameraView3D.Pressed then
@@ -296,7 +295,7 @@ begin
   if not CameraView3D.Pressed then
     Pos[0] := Clamped(Pos[0],
       Background.BoundingBox.Data[0].Data[0],
-      Background.BoundingBox.Data[1].Data[0] - SceneManager.CurrentProjectionWidth);
+      Background.BoundingBox.Data[1].Data[0] - SceneManager.Camera.Orthographic.EffectiveWidth);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -304,11 +303,11 @@ var
   SecondsPassed: Single;
   T: TVector3;
   Pos, Dir, Up: TVector3;
-  Camera: TCamera;
+  Camera: TCastleCamera;
 begin
   Status.Caption := 'FPS: ' + Window.Fps.ToString;
 
-  Camera := SceneManager.RequiredCamera;
+  Camera := SceneManager.Camera;
 
   { check Camera.Animation, to not mess in the middle
     of Camera.AnimateTo (we could mess it by changing Dragon now

@@ -1269,7 +1269,7 @@ type
         )
       )
 
-      This intersects the ray cast by @link(RequiredCamera)
+      This intersects the ray cast by @link(Camera)
       with a plane at Z = PlaneZ.
 
       Returns true and sets 3D PlanePosition (the Z component of this vector

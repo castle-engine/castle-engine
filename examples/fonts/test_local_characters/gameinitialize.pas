@@ -184,7 +184,8 @@ begin
   Window.SceneManager.Width := 800;
   Window.SceneManager.Height := 300;
   Window.SceneManager.BackgroundColor := Gray;
-  Window.SceneManager.RequiredCamera.SetView(
+  Window.SceneManager.AutoDetectCamera := false;
+  Window.SceneManager.Camera.SetView(
     Vector3(2, -2, 10),
     Vector3(0.5, 0, -1),
     Vector3(0, 1, 0)
