@@ -26,15 +26,15 @@ uses SysUtils, Classes,
   CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils;
 
 type
-  { Possible navigation input types in cameras, set in TCamera.Input. }
+  { Possible navigation input types in cameras, set in TCastleNavigation.Input. }
   TCameraInput = (
     { Normal input types. This includes all inputs available as
-      Input_Xxx properties in TCamera descendants.
+      Input_Xxx properties in TCastleNavigation descendants.
       They are all fully configurable (as TInputShortcut class),
       they may be mouse button presses, mouse wheel clicks, or key presses.
       You can always clear some shortcut (like @code(WalkCamera.Input_Forward.MakeClear))
       to disable a specific shortcut.
-      Excluding ciNormal from TCamera.Input is an easy way to disable @italic(all)
+      Excluding ciNormal from TCastleNavigation.Input is an easy way to disable @italic(all)
       shortcuts. }
     ciNormal,
 
@@ -532,7 +532,7 @@ type
   {$undef read_interface_class}
   end;
 
-  TCameraClass = class of TCamera;
+  TCameraClass = class of TCamera deprecated 'use "class of TCastleNavigation"';
 
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
@@ -5482,7 +5482,7 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
         AProjectionWidth := Rect.Width;
         AProjectionHeight := 0;
         { Calculate EffectiveProjectionXxx
-          the same way that CurrentProjectionWidth/Height would be calculated. }
+          the same way that TCastleOrthographic.EffectiveWidth/Height would be calculated. }
         EffectiveProjectionWidth := AProjectionWidth;
         EffectiveProjectionHeight := Rect.Width * ViewportHeight / ViewportWidth;
       end;

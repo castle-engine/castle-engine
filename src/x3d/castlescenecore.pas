@@ -504,7 +504,7 @@ type
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
     LastUpdateFrameId: Int64;
-    { All CameraFromViewpoint calls will disable smooth (animated)
+    { All InternalUpdateCamera calls will disable smooth (animated)
       transitions when this is true.
       This is set to true by @link(Load),
       when ChangedAll is scheduled, so that first camera bindings
@@ -1688,7 +1688,7 @@ type
     { TNavigationType value determined by current NavigationInfo node. }
     function NavigationTypeFromNavigationInfo: TNavigationType;
 
-    { Update Navigation properties based on currently bound NavigationInfo.
+    { Update TCastleNavigation properties based on currently bound NavigationInfo.
 
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
@@ -1696,7 +1696,8 @@ type
       values (this is following VRML/X3D spec), so it will have
       initial type = EXAMINE.
 
-      This initializes a lot of camera properties:
+      This initializes various navigation properties:
+
       @unorderedList(
         @item(TCastleNavigation.Radius,)
         @item(TCastleNavigation.Input,)
@@ -1708,15 +1709,16 @@ type
         @item(TCastleWalkNavigation.HeadBobbing, TCastleWalkNavigation.HeadBobbingTime.)
       )
 
-      Box is the expected bounding box of the whole 3D scene.
+      WorldBox is the expected bounding box of the whole 3D scene.
       Usually, it should be SceneManager.Items.BoundingBox.
       In simple cases (if this scene is the only TCastleScene instance
       in your world, and it's not transformed) it may be equal to just
       @link(BoundingBox) of this scene. }
-    procedure CameraFromNavigationInfo(
+    procedure InternalUpdateNavigation(
       const Navigation: TCastleNavigation; const WorldBox: TBox3D);
 
-    { Update Camera to the currently bound VRML/X3D viewpoint.
+    { Update TCastleCamera properties based on the current X3D nodes
+      (currently bound X3D Viewpoint NavigationInfo nodes).
       When no viewpoint is currently bound, we will go to a suitable
       viewpoint to see the whole world (based on the WorldBox).
 
@@ -1741,12 +1743,12 @@ type
         @item(RelativeCameraTransform = @true means that we translate/rotate
           the current camera in the same manner as initial camera
           changed. This is suitable when you change transformation, position
-          or orientation of the VRML/X3D Viewpoint node: conceptually,
+          or orientation of the X3D Viewpoint node: conceptually,
           there exists a "user" camera transformation that is the child
           of the viewpoint. When viewpoint is moved, then the current
           camera moves with it.)
       ) }
-    procedure CameraFromViewpoint(const ACamera: TCastleCamera;
+    procedure InternalUpdateCamera(const ACamera: TCastleCamera;
       const WorldBox: TBox3D;
       const RelativeCameraTransform: boolean = false;
       const AllowTransitionAnimate: boolean = true);
@@ -6904,7 +6906,7 @@ begin
     Result := WorldBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
 end;
 
-procedure TCastleSceneCore.CameraFromNavigationInfo(
+procedure TCastleSceneCore.InternalUpdateNavigation(
   const Navigation: TCastleNavigation; const WorldBox: TBox3D);
 var
   NavigationNode: TNavigationInfoNode;
@@ -6964,12 +6966,12 @@ begin
 
   { No point in calling TCastleWalkNavigation.Init or TCastleExamineNavigation.Init
     or TCastleCamera.Init here:
-    this method, together with CameraFromViewpoint
+    this method, together with InternalUpdateCamera
     (with RelativeCameraTransform = false),
     together initialize everything that Init does. }
 end;
 
-procedure TCastleSceneCore.CameraFromViewpoint(const ACamera: TCastleCamera;
+procedure TCastleSceneCore.InternalUpdateCamera(const ACamera: TCastleCamera;
   const WorldBox: TBox3D;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
@@ -6986,7 +6988,7 @@ begin
   ACamera.ProjectionNear := Radius * RadiusToProjectionNear;
 
   { Default projection parameters.
-    Reset here anything that is determined by TCastleSceneCore.CameraFromViewpoint. }
+    Reset here anything that is determined by TCastleSceneCore.InternalUpdateCamera. }
   ACamera.ProjectionType := ptPerspective;
   ACamera.ProjectionFar := 0;
   ACamera.Perspective.FieldOfView := TCastlePerspective.DefaultFieldOfView;

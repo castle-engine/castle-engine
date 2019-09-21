@@ -139,10 +139,15 @@ begin
   { for changing the crosshair shape }
   Browser.MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
 
-  { simple Browser.Load always recreates the Camera each time, which means
+  { simple Browser.Load always recreates the Navigation each time, which means
     that we have to restore all camera properties that should be
     "persistent" when loading scenes.
     For now, this means mouse look stuff.
+
+    TODO:
+    - is above still true?
+      Load() recreates camera vectors? probably no more. fix
+    - And fix this example and this comment, to not use deprecated Load().
 
     Note that you can instead load your scene manually (see *trivial*
     TCastleControl.Load implementation), and this way avoid recreating
@@ -150,7 +155,7 @@ begin
     have to explicitly update camera properties that *should* change when
     new scene is loaded, like the default viewpoint and navigation mode.
     Which isn't really a serious problem (you have comfortable
-    TCastleSceneCore.CameraFromNavigationInfo and CameraFromViewpoint
+    TCastleSceneCore.InternalUpdateNavigation and TCastleSceneCore.InternalUpdateCamera
     to deal with it). It's your choice, anyway. }
   MenuMouseLookToggleClick(MenuMouseLookToggle);
 end;

@@ -1241,7 +1241,7 @@ procedure TGLRenderedTextureNode.Update(
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
   { We have to calculate projection, given Viewpoint node.
-    Similar to TCastleSceneCore.CameraFromViewpoint.
+    Similar to TCastleSceneCore.InternalUpdateCamera.
 
     We have to calculate things a little differently, e.g. we have
     no NavigationInfo (it could be undesirable to use scene bound NavigationInfo,

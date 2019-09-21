@@ -245,7 +245,7 @@
 
     { NavigationInfo field value used in
       TCastleSceneCore.NavigationTypeFromNavigationInfo or
-      TCastleSceneCore.CameraFromNavigationInfo
+      TCastleSceneCore.UpdateNavigation
       changed. }
     chNavigationInfo,
 

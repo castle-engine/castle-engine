@@ -840,42 +840,28 @@ type
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
 
-    { Choose navigation method by creating and adjusting the camera,
-      and various camera properies (like TCastleWalkNavigation.Gravity and so on).
-      This is automatically determined from the currently bound NavigatinInfo X3D
-      node in the @link(GetMainScene).
-      You can also set this manually, thus overriding the NavigatinInfo node.
+    { Set @link(Navigation) and some of its' parameters
+      (like TCastleWalkNavigation.Gravity and so on).
 
-      This is a shortcut property for adjusting the camera class
-      (by calling @link(WalkCamera), @link(ExamineCamera))
-      and adjusting a couple of camera properties.
+      If @link(AutoDetectNavigation), the initial @link(Navigation)
+      as well as initial value of this property are automatically determined
+      by the currently bound X3D NavigatinInfo node in the @link(GetMainScene),
+      and world bounding box.
+      They are also automatically adjusted e.g. when current NavigatinInfo
+      node changes.
+
+      But you can set @link(Navigation), or this property,
+      manually to override the detected navigation.
+      You should set @link(AutoDetectNavigation) to @false to take control
+      of @link(Navigation) and this property completely (no auto-detection
+      based on @link(GetMainScene) will then take place).
+
       Note that you can also affect the current NavigationType by directly
       changing the camera properties,
       e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
       and thus you effectively switch from ntFly to ntWalk navigation types.
       When you read the NavigationType property, we determine the current navigation
       type from current camera properties.
-
-      TODO: update below comment.
-      When the camera is created for the first time,
-      it's parameters are determined from the current NavigationInfo
-      and Viewpoint nodes in @link(GetMainScene), and from bounding box of the world.
-      When the camera class is switched later, the common camera properties
-      (defined at TCastleNavigation, like @link(TCastleNavigation.Radius) and view vectors
-      -- position, direction, up) are copied, so they are preserved.
-      The other camera properties (those defined only at TCastleWalkNavigation or TCastleExamineNavigation
-      descendants, e.g. @link(TCastleWalkNavigation.MouseLook) and various inputs
-      of cameras) are also preserved within InternalExamineCamera and
-      InternalWalkCamera.
-
-      To reliably force recreating the camera from scratch, call @link(ClearCameras).
-      Simply freeing the current camera by @code(SceneManager.Camera.Free)
-      is also valid operation, but it does not free both cameras
-      (@link(InternalExamineCamera) and @link(InternalWalkCamera))
-      so it doesn't guarantee that all cameras will be recreated from a "clean"
-      state.
-      You can also explicitly assign your own camera descendant to
-      @code(SceneManager.Camera).
 
       Setting this sets:
       @unorderedList(
@@ -3344,7 +3330,7 @@ begin
     {$warnings on}
 
     NavigationType := Nav;
-    Scene.CameraFromNavigationInfo(Navigation, Box);
+    Scene.InternalUpdateNavigation(Navigation, Box);
   end else
   begin
     {$warnings off} // TODO: this should be internal
@@ -3367,7 +3353,7 @@ begin
   Scene := GetMainScene;
   if Scene <> nil then
   begin
-    Scene.CameraFromViewpoint(Camera, Box, false, false);
+    Scene.InternalUpdateCamera(Camera, Box, false, false);
   end else
   begin
     CameraViewpointForWholeScene(Box, 2, 1, false, true,
@@ -4189,7 +4175,7 @@ procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore
 begin
   if AutoDetectCamera then
   begin
-    Scene.CameraFromViewpoint(Camera, ItemsBoundingBox, false);
+    Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
     BoundViewpointChanged;
   end;
 end;
@@ -4199,7 +4185,7 @@ begin
   if AutoDetectNavigation and (Navigation <> nil) then
   begin
     NavigationType := Scene.NavigationTypeFromNavigationInfo;
-    Scene.CameraFromNavigationInfo(Navigation, Items.BoundingBox);
+    Scene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
   end;
   BoundNavigationInfoChanged;
 end;
@@ -4207,7 +4193,7 @@ end;
 procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
 begin
   if AutoDetectCamera then
-    Scene.CameraFromViewpoint(Camera, ItemsBoundingBox, true);
+    Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
 function TCastleSceneManager.GetItems: TSceneManagerWorld;
