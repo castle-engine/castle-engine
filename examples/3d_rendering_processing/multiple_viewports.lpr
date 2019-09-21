@@ -177,14 +177,11 @@ begin
   for I := 0 to High(Viewports) do
   begin
     { set different camera views for all viewports, to make it interesting }
-    Viewports[I].Camera.Free;
     if (I < 3) and
-       (Viewports[I].RequiredCamera is TExamineCamera) then
-      Viewports[I].ExamineCamera.Rotations := QuatFromAxisAngle(TVector3.One[I], Pi/2);
+       (Viewports[I].RequiredNavigation is TCastleExamineNavigation) then
+      (Viewports[I].RequiredNavigation as TCastleExamineNavigation).Rotations :=
+        QuatFromAxisAngle(TVector3.One[I], Pi / 2);
   end;
-
-  { scene manager needs assigned camera to make a headlight. }
-  Window.SceneManager.RequiredCamera;
 end;
 
 var
