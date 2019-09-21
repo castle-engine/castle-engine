@@ -368,6 +368,54 @@ begin
   end;
 end;
 
+var
+  NavigationExamine: Boolean;
+
+procedure SetNavigationExamine(const Value: Boolean);
+var
+  MoveLimit: TBox3D;
+  Y: Single;
+begin
+  if NavigationExamine <> Value then
+  begin
+    NavigationExamine := Value;
+
+    if Value then
+    begin
+      SceneManager.Navigation := ExamineNavigation;
+      ExamineNavigation.Init(Box3D(
+        Vector3(-1, -1, -1),
+        Vector3( 1,  1,  1)), { Radius } 0.2);
+      ExamineNavigation.SetView(
+        Vector3(0, 20, 0),
+        Vector3(0, -1, 0),
+        Vector3(0, 0, -1)
+      );
+    end else
+    begin
+      SceneManager.Navigation := WalkNavigation;
+      WalkNavigation.Init(
+        Vector3(0, 10, 0),
+        Vector3(0, 0, -1),
+        Vector3(0, 1, 0),
+        Vector3(0, 1, 0),
+        { PreferredHeight } 2,
+        { Radius } 0.02);
+
+      Y := CurrentTerrain.Height(0, 0) + WalkNavigation.PreferredHeight;
+      WalkNavigation.SetView(
+        Vector3(0, Y, 0),
+        Vector3(0, 0, -1),
+        Vector3(0, 1, 0));
+
+      // make gravity work even if your position is over the world bbox
+      MoveLimit := SceneManager.Items.BoundingBox;
+      MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
+      SceneManager.MoveLimit := MoveLimit;
+    end;
+  end;
+end;
+
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
@@ -394,26 +442,8 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   end;
 
   procedure ToggleWalk;
-  var
-    MoveLimit: TBox3D;
-    Y: Single;
   begin
-    if SceneManager.Navigation = ExamineNavigation then
-    begin
-      SceneManager.Navigation := WalkNavigation;
-
-      Y := CurrentTerrain.Height(0, 0) + WalkNavigation.PreferredHeight;
-      WalkNavigation.SetView(
-        Vector3(0, Y, 0),
-        Vector3(0, 0, -1),
-        Vector3(0, 1, 0));
-
-      // make gravity work even if your position is over the world bbox
-      MoveLimit := SceneManager.Items.BoundingBox;
-      MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-      SceneManager.MoveLimit := MoveLimit;
-    end else
-      SceneManager.Navigation := ExamineNavigation;
+    SetNavigationExamine(not NavigationExamine);
   end;
 
   procedure ToggleFog;
@@ -489,6 +519,7 @@ begin
         end;
       end;
     120: ToggleWalk;
+    125: WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
     130: Scene.Lighting := not Scene.Lighting;
     140: Scene.Textured := not Scene.Textured;
     142: ToggleFog;
@@ -587,6 +618,7 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { SceneManager.Navigation = WalkNavigation }, true));
+    M.Append(TMenuItemChecked.Create('Mouse Look in Walk Mode', 125, CtrlM, false { initial WalkNavigation.MouseLook }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
     Result.Append(M);
@@ -624,33 +656,20 @@ begin
   Window.Container.UIScaling := usEncloseReferenceSize;
 
   ExamineNavigation := TCastleExamineNavigation.Create(Window);
-  ExamineNavigation.Init(Box3D(
-    Vector3(-1, -1, -1),
-    Vector3( 1,  1,  1)), { Radius } 0.2);
-  ExamineNavigation.SetView(
-    Vector3(0, 20, 0),
-    Vector3(0, -1, 0),
-    Vector3(0, 0, -1)
-  );
 
   WalkNavigation := TCastleWalkNavigation.Create(Window);
-  WalkNavigation.Init(
-    Vector3(0, 10, 0),
-    Vector3(0, 0, -1),
-    Vector3(0, 1, 0),
-    Vector3(0, 1, 0),
-    { PreferredHeight } 2,
-    { Radius } 0.02);
   WalkNavigation.MoveSpeed := 10.0;
   WalkNavigation.Gravity := true;
-  WalkNavigation.MouseLook := true;
 
   Scene := TTerrainScene.Create(Window);
   Scene.Spatial := [ssDynamicCollisions]; // for proper walking
 
   SceneManager := Window.SceneManager;
+  SceneManager.AutoDetectNavigation := false;
+  SceneManager.AutoDetectCamera := false;
   SceneManager.Items.Add(Scene);
-  SceneManager.Navigation := ExamineNavigation;
+  NavigationExamine := false; // do this only to make sure SetNavigationExamine updates state
+  SetNavigationExamine(true);
 
   EnvironmentScene := TCastleScene.Create(Window);
   EnvironmentScene.Load('castle-data:/environment/environment.x3dv');
