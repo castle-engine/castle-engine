@@ -2216,6 +2216,7 @@ end;
 constructor TCastleCamera.Create(AOwner: TComponent);
 begin
   inherited;
+  FProjectionType := ptPerspective;
   FInitialPosition  := TVector3.Zero;
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
