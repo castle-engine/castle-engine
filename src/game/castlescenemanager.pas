@@ -338,29 +338,6 @@ type
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
-
-    { Assign Navigation to a default TCastleNavigation suitable
-      for navigating in this scene (used only if @link(AutoDetectNavigation)).
-      The newly created navigation owner should be Self.
-
-      This is automatically used when @link(Navigation) is @nil
-      and @link(AutoDetectNavigation).
-      Implementation of this may assume that @link(Navigation) is @nil at entry.
-
-      The implementation in base TCastleAbstractViewport uses
-      @link(TCastleSceneCore.NavigationTypeFromNavigationInfo MainScene.NavigationTypeFromNavigationInfo)
-      and
-      @link(TCastleSceneCore.CameraFromNavigationInfo MainScene.CameraFromNavigationInfo),
-      thus it follows your X3D scene NavigationInfo.
-      If MainScene is not assigned, we create a simple
-      navigation in Examine mode. }
-    procedure AssignDefaultNavigation; virtual;
-
-    { Assign initial and current camera vectors and ProjectionNear
-      (used only if @link(AutoDetectCamera)).
-      This sets the same things as set by TCastleCamera.Init,
-      and additionally TCastleCamera.ProjectionNear. }
-    procedure AssignDefaultCamera; virtual;
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
@@ -505,6 +482,28 @@ type
     function InternalExamineCamera: TCastleExamineNavigation; deprecated 'use InternalExamineNavigation';
     function InternalWalkCamera: TCastleWalkNavigation; deprecated 'use InternalWalkNavigation';
     { @groupEnd }
+
+    { Assign @link(Navigation) to a default TCastleNavigation suitable
+      for navigating in this scene.
+
+      This is automatically used when @link(Navigation) is @nil
+      and @link(AutoDetectNavigation).
+      You can also use it explicitly.
+
+      The implementation in base TCastleAbstractViewport uses
+      @link(TCastleSceneCore.NavigationTypeFromNavigationInfo MainScene.NavigationTypeFromNavigationInfo)
+      and
+      @link(TCastleSceneCore.InternalUpdateNavigation MainScene.InternalUpdateNavigation),
+      thus it follows your X3D scene NavigationInfo.
+      If MainScene is not assigned, we create a simple
+      navigation in Examine mode. }
+    procedure AssignDefaultNavigation; virtual;
+
+    { Assign initial and current camera vectors and projection.
+
+      This is automatically used at first rendering if @link(AutoDetectCamera).
+      You can also use it explicitly. }
+    procedure AssignDefaultCamera; virtual;
 
     { Screen effects are shaders that post-process the rendered screen.
       If any screen effects are active, we will automatically render
@@ -2041,8 +2040,9 @@ procedure TCastleAbstractViewport.EnsureCameraDetected;
 begin
   if AutoDetectCamera and not AssignDefaultCameraDone then
     AssignDefaultCamera;
-  { set AssignDefaultCameraDone to done,
-    otherwise later setting AutoDetectCamera to true would suddenly
+  { Set AssignDefaultCameraDone to done,
+    regardless if AssignDefaultCameraDone was done or not.
+    Otherwise later setting AutoDetectCamera to true would suddenly
     reinitialize camera (initial and current vectors) in the middle of game. }
   AssignDefaultCameraDone := true;
 end;
@@ -3362,6 +3362,13 @@ begin
     Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;
   end;
+
+  { Mark it as done, so that next EnsureCameraDetected does nothing
+    if you manually call this.
+    This is consistent with AssignDefaultNavigation,
+    that sets Navigation <> nil thus it is no longer auto-detected
+    if you call AssignDefaultNavigation. }
+  AssignDefaultCameraDone := true;
 end;
 
 function TCastleAbstractViewport.Statistics: TRenderStatistics;
