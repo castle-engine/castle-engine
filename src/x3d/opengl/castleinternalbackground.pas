@@ -159,6 +159,7 @@ type
     Scene: TCastleScene;
     Params: TBasicRenderParams;
     ClearColor: TCastleColor;
+    UseClearColor: Boolean;
     Transform: TTransformNode;
   public
     constructor Create(const Node: TAbstract3DBackgroundNode;
@@ -472,6 +473,8 @@ const
     Assert(AngleCount + 1 = ColorCount);
 
     ClearColor := Vector4(Color[0], 1.0);
+    UseClearColor := ColorCount = 1;
+
     if ColorCount > 1 then
     begin
       { When ColorCount >= 2, the idea of rendering is to do:
@@ -581,6 +584,9 @@ begin
     Scene.Attributes.WireframeEffect := weWireframeOnly
   else
     Scene.Attributes.WireframeEffect := weNormal;
+
+  if UseClearColor then
+    RenderContext.Clear([cbColor], ClearColor);
 
   { We don't calculate correct Frustum (accounting for the fact that camera
     is rotated but never shifted during background rendering) now.
