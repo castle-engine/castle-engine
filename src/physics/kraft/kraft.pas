@@ -21068,6 +21068,7 @@ begin
     SolverContact^.Separation:=Contact^.Penetration;
    end;
   end;
+  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 end;
 
@@ -22888,6 +22889,7 @@ begin
       kstTriangle:begin
        CollideSphereWithTriangle(TKraftShapeSphere(ShapeA),TKraftShapeTriangle(ShapeB));
       end;
+      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
     kstCapsule:begin
@@ -22904,6 +22906,7 @@ begin
       kstTriangle:begin
        CollideCapsuleWithTriangle(TKraftShapeCapsule(ShapeA),TKraftShapeTriangle(ShapeB));
       end;{}
+      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
     kstConvexHull,kstBox,kstPlane,kstTriangle:begin
@@ -22911,8 +22914,10 @@ begin
       kstConvexHull,kstBox,kstPlane,kstTriangle:begin
        CollideConvexHullWithConvexHull(TKraftShapeConvexHull(ShapeA),TKraftShapeConvexHull(ShapeB));
       end;
+      else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
      end;
     end;
+    else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
    end;
 
   end;
@@ -24816,6 +24821,7 @@ begin
     end;
 
    end;
+   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   fRigidBodyType:=ARigidBodyType;
@@ -24869,6 +24875,7 @@ begin
     inc(fPhysics.fKinematicRigidBodyCount);
 
    end;
+   else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
   end;
 
   Shape:=fShapeFirst;
@@ -32269,6 +32276,7 @@ begin
     inc(fContinuousTime,fHighResolutionTimer.GetTime-StartTime);
    end;
   end;
+  else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
  end;
 
  Constraint:=fConstraintFirst;
@@ -32969,6 +32977,7 @@ var Hit:boolean;
         kstMesh:begin
          CollideSphereWithMesh(TKraftShapeMesh(CurrentShape));
         end;
+        else ; // CGE: avoid "Warning: Case statement does not handle all possible cases" with new FPC, TODO: Submit to Kraft
        end;
       end;
      end else begin
