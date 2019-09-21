@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,7 +28,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
-  CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
+  CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
+  CastleInternalBatchShapes;
 
 {$define read_interface}
 
@@ -409,6 +410,7 @@ type
     FilteredShapes: TShapeList;
 
     InternalScenePass: TInternalSceneRenderingPass;
+    FBatching: TBatchShapes;
 
     { Render everything using Renderer.
 
@@ -476,9 +478,11 @@ type
       const Params: TRenderParams);
 
     procedure GLContextCloseEvent(Sender: TObject);
+
+    function Batching: TBatchShapes;
   private
     { Fog for this shape. @nil if none. }
-    function ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
+    function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
     function EffectiveBlendingSort: TBlendingSort;
   private
     type
@@ -785,6 +789,11 @@ var
 
   InternalEnableRendering: Boolean = true;
 
+  { Combine (right before rendering) multiple shapes with a similar appearance into one.
+    This can drastically reduce the number of "draw calls",
+    making rendering much faster. }
+  DynamicBatching: Boolean = false experimental;
+
 const
   bsNone = CastleBoxes.bsNone;
   bs2D = CastleBoxes.bs2D;
@@ -939,6 +948,7 @@ begin
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
   FreeAndNil(FTempPrepareParams);
+  FreeAndNil(FBatching);
 
   if RegisteredGLContextCloseListener and
      (ApplicationProperties <> nil) then
@@ -1106,13 +1116,16 @@ begin
   GLContextClose;
 end;
 
-function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
+function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
 begin
-  Result := Shape.State.LocalFog;
-  if Result = nil then
-    Result := FogStack.Top;
-  if Result = nil then
-    Result := GlobalFog as TFogNode;
+  Result := nil;
+
+  if {(Result = nil) and} (Shape.State.LocalFog <> nil) then
+    Result := Shape.State.LocalFog.Functionality(TFogFunctionality) as TFogFunctionality;
+  if (Result = nil) and (FogStack.Top <> nil) then
+    Result := FogStack.Top.Functionality(TFogFunctionality) as TFogFunctionality;
+  if (Result = nil) and (GlobalFog <> nil) then
+    Result := GlobalFog.Functionality(TFogFunctionality) as TFogFunctionality;
 end;
 
 function TCastleScene.EffectiveBlendingSort: TBlendingSort;
@@ -1153,12 +1166,9 @@ var
       Result := CameraMatrix^ * Params.Transform^;
   end;
 
-  { Renders Shape, by calling Renderer.RenderShape. }
-  procedure RenderShape_NoTests(Shape: TGLShape);
+  { Renders Shape, caling unconditionally Renderer.RenderShape. }
+  procedure RenderShape_NoTests(const Shape: TGLShape);
   begin
-    { implement Shape node "render" field here, by a trivial check }
-    if (Shape.Node <> nil) and (not Shape.Node.Render) then Exit;
-
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
@@ -1172,17 +1182,42 @@ var
       Shape.Cache.FreeArrays([vtAttribute]);
     {$warnings on}
 
-    Shape.ModelView := ModelView;
-    Renderer.RenderShape(Shape, ShapeFog(Shape, Params.GlobalFog));
+    BlendingRenderer.BeforeRenderShape(Shape);
+    Renderer.RenderShape(Shape);
     IsVisibleNow := true;
   end;
 
-  { Call RenderShape if some tests succeed.
-    It assumes that test with TestShapeVisibility is already done. }
-  procedure RenderShape_SomeTests(Shape: TGLShape);
+  { Renders Shape, testing only Batching.Collect before RenderShape_NoTests.
+    This sets Shape.ModelView and other properties necessary right before rendering. }
+  procedure RenderShape_BatchingTest(const Shape: TGLShape);
+  begin
+    Shape.ModelView := ModelView;
+    Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
+    if not (DynamicBatching and Batching.Collect(Shape)) then
+      RenderShape_NoTests(Shape);
+  end;
+
+  procedure BatchingCommit;
+  var
+    Shape: TShape;
+  begin
+    if (not DynamicBatching) or
+       (Batching.Collected.Count = 0) then
+      Exit;
+    for Shape in Batching.Collected do
+      RenderShape_NoTests(TGLShape(Shape));
+    Batching.FreeCollected;
+  end;
+
+  { Render Shape if all tests pass, except TestShapeVisibility callback is ignored.
+    It assumes that filtering by TestShapeVisibility is already done. }
+  procedure RenderShape_SomeTests(const Shape: TGLShape);
   begin
     if (Shape <> AvoidShapeRendering) and
-       ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) then
+       ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) and
+       ( { implement Shape node "render" field here, by a trivial check }
+         (Shape.Node = nil) or Shape.Node.Render
+       ) then
     begin
       { We do not make occlusion query when rendering to something else
         than screen (like shadow map or cube map environment for mirror).
@@ -1199,7 +1234,7 @@ var
       if Attributes.ReallyUseOcclusionQuery and
          (Params.RenderingCamera.Target = rtScreen) then
       begin
-        SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
+        SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_BatchingTest, Params);
       end else
       {$warnings off}
       if Attributes.DebugHierOcclusionQueryResults and
@@ -1207,35 +1242,33 @@ var
       {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
-          RenderShape_NoTests(Shape);
+          RenderShape_BatchingTest(Shape);
       end else
         { No occlusion query-related stuff. Just render the shape. }
-        RenderShape_NoTests(Shape);
+        RenderShape_BatchingTest(Shape);
     end;
   end;
 
-  { Call RenderShape if many tests, including TestShapeVisibility,
-    succeed. }
-  procedure RenderShape_AllTests(Shape: TShape);
+  { Render Shape if all tests pass. }
+  procedure RenderShape_AllTests(const Shape: TShape);
   begin
     if ( (not Assigned(TestShapeVisibility)) or
          TestShapeVisibility(TGLShape(Shape))) then
       RenderShape_SomeTests(TGLShape(Shape));
   end;
 
-  procedure RenderShape_AllTests_Opaque(Shape: TShape);
+  { Render Shape if all tests pass, and it is opaque. }
+  procedure RenderShape_AllTests_Opaque(const Shape: TShape);
   begin
     if not TGLShape(Shape).UseBlending then
       RenderShape_AllTests(Shape);
   end;
 
-  procedure RenderShape_AllTests_Blending(Shape: TShape);
+  { Render Shape if all tests pass, and it is using blending. }
+  procedure RenderShape_AllTests_Blending(const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending then
-    begin
-      BlendingRenderer.BeforeRenderShape(Shape);
       RenderShape_AllTests(Shape);
-    end;
   end;
 
   procedure RenderAllAsOpaque(const IgnoreShapesWithBlending: boolean = false);
@@ -1331,9 +1364,6 @@ begin
         or GL_BLEND enable state. Just render everything
         (except: don't render partially transparent stuff for shadow maps). }
       RenderAllAsOpaque(Attributes.Mode = rmDepth);
-
-      { Each RenderShape_SomeTests inside could set OcclusionBoxState }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
@@ -1342,9 +1372,6 @@ begin
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
         Params, RenderCameraKnown, RenderCameraPosition);
-
-      { Inside we could set OcclusionBoxState }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     begin
       if Attributes.Blending then
@@ -1373,9 +1400,6 @@ begin
         { this means Params.Transparent = true }
         begin
           { draw partially transparent objects }
-          glDepthMask(GL_FALSE);
-          glEnable(GL_BLEND);
-
           BlendingRenderer.RenderBegin;
 
           { sort for blending, if BlendingSort not bsNone.
@@ -1388,29 +1412,29 @@ begin
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
-            begin
-              BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-            end;
           end else
             Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
-
-          { restore glDepthMask and blending state to default values }
-          glDepthMask(GL_TRUE);
-          glDisable(GL_BLEND);
         end;
+
       end else
         RenderAllAsOpaque;
-
-      { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-
-        TODO: in case of fixed-function path,
-        glPopAttrib inside could restore now
-        glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-        This problem will disappear when we'll get rid of fixed-function
-        possibility in OcclusionBoxStateEnd. }
-      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end;
+
+    BatchingCommit;
+
+    { this must be called after BatchingCommit,
+      since BatchingCommit may render some shapes }
+    BlendingRenderer.RenderEnd;
+
+    { Each RenderShape_SomeTests inside could set OcclusionBoxState.
+
+      TODO: in case of fixed-function path,
+      glPopAttrib inside could restore now
+      glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
+      This problem will disappear when we'll get rid of fixed-function
+      possibility in OcclusionBoxStateEnd. }
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
@@ -1492,8 +1516,8 @@ procedure TCastleScene.PrepareResources(
               PlaneTransform(Plane, SceneModelView); will fail,
               with SceneModelView matrix = zero. }
             Shape.ModelView := TMatrix4.Identity;
-
-            Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
+            Shape.Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+            Renderer.RenderShape(Shape);
           end;
           Renderer.RenderEnd;
         finally FreeAndNil(DummyCamera) end;
@@ -1758,7 +1782,7 @@ begin
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
   if GetVisible and
      (InternalDirty = 0) and
-     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
+     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
       to prepare for particular shapes only right before they are rendered
@@ -1964,7 +1988,7 @@ procedure TCastleScene.LocalRender(const Params: TRenderParams);
 
   procedure TestOctreeWithFrustum(Octree: TShapeOctree);
 
-    procedure ResetShapeVisible(Shape: TShape);
+    procedure ResetShapeVisible(const Shape: TShape);
     begin
       TGLShape(Shape).RenderFrustumOctree_Visible := false;
     end;
@@ -1981,7 +2005,7 @@ begin
   if InternalEnableRendering and
      GetVisible and
      (InternalDirty = 0) and
-     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
+     (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
@@ -2241,6 +2265,13 @@ begin
   Result := (inherited Clone(AOwner)) as TCastleScene;
 end;
 
+function TCastleScene.Batching: TBatchShapes;
+begin
+  if FBatching = nil then
+    FBatching := TBatchShapes.Create;
+  Result := FBatching;
+end;
+
 { TSceneRenderingAttributes ---------------------------------------------- }
 
 constructor TSceneRenderingAttributes.Create;
@@ -2437,12 +2468,12 @@ begin
   inherited;
   FBaseLights := TLightInstancesList.Create;
   InShadow := false;
-  { Transparent and ShadowVolumesReceivers do not have good default values.
-    User of TBasicRenderParams should call Render method with
-    all 4 combinations of them, to really render everything correctly.
+  ShadowVolumesReceivers := [false, true];
+  { Transparent does not have good default value.
+    User of TBasicRenderParams should call Render method with both Transparent values,
+    to really render everything correctly.
     We just set them here to capture most 3D objects
     (as using TBasicRenderParams for anything is a discouraged hack anyway). }
-  ShadowVolumesReceivers := true;
   Transparent := false;
   RenderingCamera := CastleRenderingCamera.RenderingCamera;
   Frustum := @RenderingCamera.Frustum;

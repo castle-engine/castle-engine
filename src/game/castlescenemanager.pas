@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2470,10 +2470,8 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.Transparent := false; Params.ShadowVolumesReceivers := false; Render3D(Params);
-    Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Render3D(Params);
-    Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Render3D(Params);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);

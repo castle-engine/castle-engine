@@ -439,39 +439,62 @@ begin
     case Mode of
       cmRelease:
         begin
-          { Aarch64 optimizations exhibit bugs, on both iOS and Android:
+          { Aarch64 optimizations exhibit bugs, on all OSes, with FPC 3.0.x.
+            Testcases:
 
-            iOS:
-            With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
-            programs compiled with -O1 or -O2 crash at start.
-            Earlier engine version, Draw3x3 was doing something weird.
+            - iOS:
 
-            (This is confirmed to really be needed only on darwin/aarch64,
-            Michalis simply never tested on darwin/arm.)
+              With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+              it seems all programs compiled with -O1 or -O2 crash at start.
 
-            Android:
-            Reading some PNG fails (testcase: Silhouette), at least with -O2.
+            - Android:
 
-            Disable optimizations on Aarch64 now. }
+              Reading some PNG fails (testcase: Silhouette), at least with -O2, fails.
 
-          if CPU = aarch64 then
-            FpcOptions.Add('-O-')
-          else
+              It is unsure with which FPC version this was reproducible.
+              Probably some FPC 3.0.x.
+              Michalis can no longer reproduce it with FPC 3.3.1 revision 42921
+              (latest revision as of 2019/09/05).
+
+            - Android and Nintendo Switch and iOS:
+
+              TDrawableImage.Draw3x3 calculations are wildly wrong,
+              and in effect TDrawableImage.Draw3x3 usually doesn't seem to draw anything.
+              It seems like DrawWidth parameter is not received correctly,
+              but workarounding it only uncovers more problems, it looks like
+              the values in local Single variables there randomly change.
+
+              This is still reproducible with FPC 3.3.1 revision 42921
+              (latest revision as of 2019/09/05),
+              however it is locally workarounded by "$optimizations off" around
+              Draw3x3 implementation now.
+
+            So we disable optimizations on Aarch64, for FPC 3.0.x. }
+
+          if (CPU = aarch64) and not FPCVer.AtLeast(3, 1, 1) then
+          begin
+            FpcOptions.Add('-O-');
+            WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC 3.0.x.');
+          end else
             FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
           FpcOptions.Add('-dRELEASE');
         end;
       cmValgrind:
         begin
-          { Like cmRelease, but
+          { The logic of -Oxxx and -dRELEASE is the same as for cmRelease. }
+          if (CPU = aarch64) and not FPCVer.AtLeast(3, 1, 1) then
+          begin
+            FpcOptions.Add('-O-');
+            WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC 3.0.x.');
+          end else
+            FpcOptions.Add('-O2');
+          FpcOptions.Add('-dRELEASE');
+
+          { The cmValgrind is similar to cmRelease, but
             - without -Xs
             - with -gv, -gl
             See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind }
-          if CPU = aarch64 then
-            FpcOptions.Add('-O-')
-          else
-            FpcOptions.Add('-O2');
-          FpcOptions.Add('-dRELEASE');
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;

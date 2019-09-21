@@ -623,10 +623,8 @@ begin
   case DrawType of
     dtNormalGL:
       begin
-        Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
-        Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
+        Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
+        Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
       end;
     dtElements:
       begin
@@ -650,10 +648,8 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
-          Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(Params);
+          Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
+          Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;
   end;

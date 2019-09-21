@@ -30,22 +30,32 @@ type
     SceneCore: TCastleSceneCore;
     SourceFactorSet: TBlendingSourceFactor;
     DestinationFactorSet: TBlendingDestinationFactor;
+    Active: Boolean; //< between RenderBegin and RenderEnd
     function DefaultSourceFactor: TBlendingSourceFactor;
     function DefaultDestinationFactor: TBlendingDestinationFactor;
   public
     constructor Create(const AScene: TCastleSceneCore);
+
+    { Start rendering shapes with blending. }
     procedure RenderBegin;
-    { Determine what blending source/destination factors
-      to use for rendering Shape, and set OpenGL glBlendFunc. }
-    procedure BeforeRenderShape(const Shape: TShape);
+
+    { Stop rendering shapes with blending.
+      It is ignored if RenderBegin was not called earlier. }
+    procedure RenderEnd;
+
+    { If we are rendering with blending (between RenderBegin and RenderEnd)
+      and this Shape uses blending,
+      then determine what blending source/destination factors
+      to use for rendering Shape, and set OpenGL state like glBlendFunc. }
+    procedure BeforeRenderShape(const Shape: TGLShape);
   end;
 
 { Fill a TShapeList with only opaque (UseBlending = @false) or
   only transparent shapes (UseBlending = @true). }
 procedure ShapesFilterBlending(
-  Tree: TShapeTree;
+  const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
-  TestShapeVisibility: TTestShapeVisibility;
+  const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
 implementation
@@ -214,13 +224,29 @@ end;
 
 procedure TBlendingRenderer.RenderBegin;
 begin
+  Active := true;
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+
   { Set glBlendFunc using Attributes.BlendingXxxFactor }
   SourceFactorSet := DefaultSourceFactor;
   DestinationFactorSet := DefaultDestinationFactor;
   GLBlendFunction(SourceFactorSet, DestinationFactorSet);
 end;
 
-procedure TBlendingRenderer.BeforeRenderShape(const Shape: TShape);
+procedure TBlendingRenderer.RenderEnd;
+begin
+  if not Active then
+    Exit;
+  Active := false;
+
+  { restore glDepthMask and blending state to default values }
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
+end;
+
+procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
 
 { Looks at Scene.Attributes.BlendingXxx and Appearance.blendMode of X3D node.
   If different than currently set, then changes BlendingXxxFactorSet and updates
@@ -233,6 +259,9 @@ var
   NewDest: TBlendingDestinationFactor;
   NeedsConstColor, NeedsConstAlpha: boolean;
 begin
+  if not (Active and Shape.UseBlending) then
+    Exit;
+
   NeedsConstColor := false;
   NeedsConstAlpha := false;
 
@@ -297,18 +326,18 @@ end;
 }
 
 procedure ShapesFilterBlending(
-  Tree: TShapeTree;
+  const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
-  TestShapeVisibility: TTestShapeVisibility;
+  const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
-  procedure AddToList(Shape: TShape);
+  procedure AddToList(const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending = UseBlending then
       FilteredShapes.Add(Shape);
   end;
 
-  procedure AddToListIfTested(Shape: TShape);
+  procedure AddToListIfTested(const Shape: TShape);
   begin
     if (TGLShape(Shape).UseBlending = UseBlending) and
        TestShapeVisibility(TGLShape(Shape)) then

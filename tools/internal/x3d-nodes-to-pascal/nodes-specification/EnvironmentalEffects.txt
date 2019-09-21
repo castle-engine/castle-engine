@@ -32,9 +32,20 @@ Background : X3D3DBackgroundNode {
 }
 
 Fog : X3DBindableNode, X3DFogObject {
+  # Although some of these fields are already present in X3DFogObject,
+  # but we repeat them here, because only the fields from 1st ancestor
+  # (X3DBindableNode here) are automatically inherited.
+  # In Pascal we realize the remaining ancestors as interfaces
+  # or TNodeFunctionality components.
+
   SFColor  [in,out] color           1 1 1    [0,1]
   SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
   SFFloat  [in,out] visibilityRange 0        [0,Inf)
+
+  # EXTENSIONS:
+  SFBool   [in,out]      volumetric                    FALSE
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 FogCoordinate : X3DGeometricPropertyNode {
@@ -42,10 +53,21 @@ FogCoordinate : X3DGeometricPropertyNode {
 }
 
 LocalFog : X3DChildNode, X3DFogObject {
+  # Although some of these fields are already present in X3DFogObject,
+  # but we repeat them here, because only the fields from 1st ancestor
+  # (X3DBindableNode here) are automatically inherited.
+  # In Pascal we realize the remaining ancestors as interfaces
+  # or TNodeFunctionality components.
+
   SFColor  [in,out] color           1 1 1    [0,1]
   SFBool   [in,out] enabled         TRUE
   SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
   SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+
+  # EXTENSIONS:
+  SFBool   [in,out]      volumetric                    FALSE
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 TextureBackground : X3D3DBackgroundNode {

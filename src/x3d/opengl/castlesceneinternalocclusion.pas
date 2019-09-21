@@ -28,7 +28,7 @@ uses
   CastleFrustum, CastleGLShaders, CastleBoxes;
 
 type
-  TShapeProcedure = procedure (Shape: TGLShape) is nested;
+  TShapeProcedure = procedure (const Shape: TGLShape) is nested;
 
   TOcclusionQueryUtilsRenderer = class
   strict private
