@@ -1129,7 +1129,7 @@ class function TOrthoViewpointNode.InternalFieldOfView(
   const AFieldOfView: TFloatRectangle;
   const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
 
-  { Scale the extent. Since AspectFieldOfView should only make AFieldOfView
+  { Scale the extent. Since InternalFieldOfView should only make AFieldOfView
     larger (because OrthoViewpoint.fieldOfView gives the minimal extents),
     so given here Scale should always be >= 1. }
   procedure ScaleExtent(const Scale: Single; var Min, Max: Single);
