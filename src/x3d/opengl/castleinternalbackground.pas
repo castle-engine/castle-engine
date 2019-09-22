@@ -151,16 +151,19 @@ procedure TBackground.FreeResources;
 begin
 end;
 
-{ TBackground3D --------------------------------------------------------------- }
+{ TBackgroundScene ----------------------------------------------------------- }
 
 type
-  TBackground3D = class(TBackground)
-  strict private
+  { Background implementation using internal TCastleScene to render.
+    In overridden constructor, load Scene contents.
+    You can also use ClearColor and UseClearColor if the background
+    may be realized by simple clearing of the viewport with solid color. }
+  TBackgroundScene = class(TBackground)
+  protected
     Scene: TCastleScene;
     Params: TBasicRenderParams;
     ClearColor: TCastleColor;
     UseClearColor: Boolean;
-    Transform: TTransformNode;
   public
     constructor Create(const Node: TAbstract3DBackgroundNode;
       const SkySphereRadius: Single);
@@ -168,8 +171,74 @@ type
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
       const RenderRect: TFloatRectangle); override;
-    procedure UpdateRotation(const Rotation: TVector4); override;
     procedure FreeResources; override;
+  end;
+
+constructor TBackgroundScene.Create(
+  const Node: TAbstract3DBackgroundNode; const SkySphereRadius: Single);
+begin
+  inherited Create;
+
+  Scene := TCastleScene.Create(nil);
+  { We don't need depth test (we put our shapes in proper order),
+    we even don't want it (because we don't clear depth buffer
+    before drawing, so it may contain the depths on 3D world rendered
+    in previous frame). }
+  Scene.Attributes.DepthTest := false;
+
+  Params := TBasicRenderParams.Create;
+end;
+
+destructor TBackgroundScene.Destroy;
+begin
+  FreeAndNil(Scene);
+  FreeAndNil(Params);
+  inherited;
+end;
+
+procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean; const RenderRect: TFloatRectangle);
+begin
+  inherited;
+
+  Params.InShadow := false;
+  Params.ShadowVolumesReceivers := [false, true];
+  Params.RenderingCamera := RenderingCamera;
+
+  if Wireframe then
+    Scene.Attributes.WireframeEffect := weWireframeOnly
+  else
+    Scene.Attributes.WireframeEffect := weNormal;
+
+  if UseClearColor then
+    RenderContext.Clear([cbColor], ClearColor);
+
+  { We don't calculate correct Frustum (accounting for the fact that camera
+    is rotated but never shifted during 3D background rendering) now.
+    But also frustum culling for this would not be very useful,
+    so just disable it. }
+  Scene.InternalIgnoreFrustum := true;
+
+  Params.Transparent := false; Scene.Render(Params);
+  Params.Transparent := true ; Scene.Render(Params);
+end;
+
+procedure TBackgroundScene.FreeResources;
+begin
+  inherited;
+  Scene.FreeResources([frTextureDataInNodes]);
+end;
+
+{ TBackground3D --------------------------------------------------------------- }
+
+type
+  TBackground3D = class(TBackgroundScene)
+  strict private
+    Transform: TTransformNode;
+  public
+    constructor Create(const Node: TAbstract3DBackgroundNode;
+      const SkySphereRadius: Single);
+    procedure UpdateRotation(const Rotation: TVector4); override;
   end;
 
 constructor TBackground3D.Create(
@@ -538,16 +607,7 @@ const
 var
   RootNode: TX3DRootNode;
 begin
-  inherited Create;
-
-  Scene := TCastleScene.Create(nil);
-  { We don't need depth test (we put our shapes in proper order),
-    we even don't want it (because we don't clear depth buffer
-    before drawing, so it may contain the depths on 3D world rendered
-    in previous frame). }
-  Scene.Attributes.DepthTest := false;
-
-  Params := TBasicRenderParams.Create;
+  inherited;
 
   SphereCreated := false;
 
@@ -562,46 +622,6 @@ begin
   RenderCubeSides;
 
   Scene.Load(RootNode, true);
-end;
-
-destructor TBackground3D.Destroy;
-begin
-  FreeAndNil(Scene);
-  FreeAndNil(Params);
-  inherited;
-end;
-
-procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean; const RenderRect: TFloatRectangle);
-begin
-  inherited;
-
-  Params.InShadow := false;
-  Params.ShadowVolumesReceivers := [false, true];
-  Params.RenderingCamera := RenderingCamera;
-
-  if Wireframe then
-    Scene.Attributes.WireframeEffect := weWireframeOnly
-  else
-    Scene.Attributes.WireframeEffect := weNormal;
-
-  if UseClearColor then
-    RenderContext.Clear([cbColor], ClearColor);
-
-  { We don't calculate correct Frustum (accounting for the fact that camera
-    is rotated but never shifted during background rendering) now.
-    But also frustum culling for this would not be very useful,
-    so just disable it. }
-  Scene.InternalIgnoreFrustum := true;
-
-  Params.Transparent := false; Scene.Render(Params);
-  Params.Transparent := true ; Scene.Render(Params);
-end;
-
-procedure TBackground3D.FreeResources;
-begin
-  inherited;
-  Scene.FreeResources([frTextureDataInNodes]);
 end;
 
 procedure TBackground3D.UpdateRotation(const Rotation: TVector4);
