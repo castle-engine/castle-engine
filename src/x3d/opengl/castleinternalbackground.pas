@@ -186,6 +186,13 @@ begin
     before drawing, so it may contain the depths on 3D world rendered
     in previous frame). }
   Scene.Attributes.DepthTest := false;
+  { We may share some nodes with the main scene.
+    And both scenes must have Static=false (as we will change them,
+    e.g. in TBackground3D.UpdateRotation or TBackground2D.Render (UpdateProperties)).
+    So, for now, just hide the warning about
+    "You cannot use the same X3D node in multiple instances of TCastleScene".
+    Testcase: demo-models/background/ with ImageBackground or TextureBackground }
+  Scene.InternalNodeSharing := true;
 
   Params := TBasicRenderParams.Create;
 end;
