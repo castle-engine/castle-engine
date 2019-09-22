@@ -21,7 +21,7 @@ unit CastleInternalBackground;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
-  CastleColors, CastleGLUtils, CastleTransform, CastleRectangles;
+  CastleColors, CastleGLUtils, CastleTransform, CastleRectangles, CastleProjection;
 
 type
   { Background under X3D scene.
@@ -73,7 +73,8 @@ type
 
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
-      const RenderRect: TFloatRectangle); virtual;
+      const RenderRect: TFloatRectangle;
+      const CurrentProjection: TProjection); virtual;
     procedure UpdateRotation(const Rotation: TVector4); virtual;
     procedure FreeResources; virtual;
   end;
@@ -139,7 +140,8 @@ end;
 
 procedure TBackground.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
-  const RenderRect: TFloatRectangle);
+  const RenderRect: TFloatRectangle;
+  const CurrentProjection: TProjection);
 begin
 end;
 
@@ -165,19 +167,18 @@ type
     ClearColor: TCastleColor;
     UseClearColor: Boolean;
   public
-    constructor Create(const Node: TAbstract3DBackgroundNode;
-      const SkySphereRadius: Single);
+    constructor Create;
     destructor Destroy; override;
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
-      const RenderRect: TFloatRectangle); override;
+      const RenderRect: TFloatRectangle;
+      const CurrentProjection: TProjection); override;
     procedure FreeResources; override;
   end;
 
-constructor TBackgroundScene.Create(
-  const Node: TAbstract3DBackgroundNode; const SkySphereRadius: Single);
+constructor TBackgroundScene.Create;
 begin
-  inherited Create;
+  inherited;
 
   Scene := TCastleScene.Create(nil);
   { We don't need depth test (we put our shapes in proper order),
@@ -197,7 +198,8 @@ begin
 end;
 
 procedure TBackgroundScene.Render(const RenderingCamera: TRenderingCamera;
-  const Wireframe: boolean; const RenderRect: TFloatRectangle);
+  const Wireframe: boolean; const RenderRect: TFloatRectangle;
+  const CurrentProjection: TProjection);
 begin
   inherited;
 
@@ -239,6 +241,10 @@ type
     constructor Create(const Node: TAbstract3DBackgroundNode;
       const SkySphereRadius: Single);
     procedure UpdateRotation(const Rotation: TVector4); override;
+    procedure Render(const RenderingCamera: TRenderingCamera;
+      const Wireframe: boolean;
+      const RenderRect: TFloatRectangle;
+      const CurrentProjection: TProjection); override;
   end;
 
 constructor TBackground3D.Create(
@@ -607,7 +613,7 @@ const
 var
   RootNode: TX3DRootNode;
 begin
-  inherited;
+  inherited Create;
 
   SphereCreated := false;
 
@@ -630,10 +636,34 @@ begin
   Transform.Rotation := Rotation;
 end;
 
+procedure TBackground3D.Render(const RenderingCamera: TRenderingCamera;
+  const Wireframe: boolean;
+  const RenderRect: TFloatRectangle;
+  const CurrentProjection: TProjection);
+var
+  SavedProjectionMatrix: TMatrix4;
+begin
+  { The background rendering doesn't like custom orthographic Dimensions.
+    They could make the background sky box very small, such that it
+    doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
+    testcase. So temporary set good perspective projection.}
+
+  if CurrentProjection.ProjectionType = ptOrthographic then
+  begin
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+    PerspectiveProjection(45, RenderRect.Width / RenderRect.Height,
+      CurrentProjection.ProjectionNear,
+      CurrentProjection.ProjectionFar);
+    inherited;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  end else
+    inherited;
+end;
+
 { TBackground2D --------------------------------------------------------------- }
 
 type
-  TBackground2D = class(TBackground)
+  TBackground2D = class(TBackgroundScene)
   strict private
     Image: TDrawableImage;
     Node: TImageBackgroundNode;
@@ -643,7 +673,8 @@ type
     destructor Destroy; override;
     procedure Render(const RenderingCamera: TRenderingCamera;
       const Wireframe: boolean;
-      const RenderRect: TFloatRectangle); override;
+      const RenderRect: TFloatRectangle;
+      const CurrentProjection: TProjection); override;
   end;
 
 constructor TBackground2D.Create(const ANode: TImageBackgroundNode);
@@ -676,7 +707,8 @@ end;
 
 procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   const Wireframe: boolean;
-  const RenderRect: TFloatRectangle);
+  const RenderRect: TFloatRectangle;
+  const CurrentProjection: TProjection);
 
   { Apply various Node and Texture2D properties at the beginning of each Render,
     this way we can animate them.
