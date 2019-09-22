@@ -24513,17 +24513,14 @@ begin
  fStaticMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.StaticBufferClearMove(ProxyID: longint);
-var
-  I:integer;
+procedure TKraftBroadPhase.StaticBufferClearMove(ProxyID:longint);
+var I:integer;
 begin
-  I := 0;
-  while I < fStaticMoveBufferSize do
-  begin
-    if fStaticMoveBuffer[I]=ProxyID then
-    begin
-      if I <> fStaticMoveBufferSize - 1 then
-        move(fStaticMoveBuffer[I+1], fStaticMoveBuffer[I], SizeOf(fStaticMoveBuffer[I]) * (fStaticMoveBufferSize - I));
+  I:=0;
+  while I<fStaticMoveBufferSize do begin
+    if fStaticMoveBuffer[I]=ProxyID then begin
+      if I<>fStaticMoveBufferSize-1 then
+        move(fStaticMoveBuffer[I+1],fStaticMoveBuffer[I],SizeOf(fStaticMoveBuffer[I])*(fStaticMoveBufferSize-I));
       Dec(fStaticMoveBufferSize);
       continue;
     end;
@@ -24542,17 +24539,14 @@ begin
  fDynamicMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.DynamicBufferClearMove(ProxyID: longint);
-var
-  I:integer;
+procedure TKraftBroadPhase.DynamicBufferClearMove(ProxyID:longint);
+var I:integer;
 begin
-  I := 0;
-  while I < fDynamicMoveBufferSize do
-  begin
-    if fDynamicMoveBuffer[I]=ProxyID then
-    begin
-      if I <> fDynamicMoveBufferSize - 1 then
-        move(fDynamicMoveBuffer[I+1], fDynamicMoveBuffer[I], SizeOf(fDynamicMoveBuffer[I]) * (fDynamicMoveBufferSize - I));
+  I:=0;
+  while I<fDynamicMoveBufferSize do begin
+    if fDynamicMoveBuffer[I]=ProxyID then begin
+      if I<>fDynamicMoveBufferSize-1 then
+        move(fDynamicMoveBuffer[I+1],fDynamicMoveBuffer[I],SizeOf(fDynamicMoveBuffer[I])*(fDynamicMoveBufferSize-I));
       Dec(fDynamicMoveBufferSize);
       continue;
     end;
@@ -24571,17 +24565,14 @@ begin
  fKinematicMoveBuffer[Index]:=ProxyID;
 end;
 
-procedure TKraftBroadPhase.KinematicBufferClearMove(ProxyID: longint);
-var
-  I:integer;
+procedure TKraftBroadPhase.KinematicBufferClearMove(ProxyID:longint);
+var I:integer;
 begin
-  I := 0;
-  while I < fKinematicMoveBufferSize do
-  begin
-    if fKinematicMoveBuffer[I]=ProxyID then
-    begin
-      if I <> fKinematicMoveBufferSize - 1 then
-        move(fKinematicMoveBuffer[I+1], fKinematicMoveBuffer[I], SizeOf(fKinematicMoveBuffer[I]) * (fKinematicMoveBufferSize - I));
+  I:=0;
+  while I<fKinematicMoveBufferSize do begin
+    if fKinematicMoveBuffer[I]=ProxyID then begin
+      if I<>fKinematicMoveBufferSize-1 then
+        move(fKinematicMoveBuffer[I+1],fKinematicMoveBuffer[I],SizeOf(fKinematicMoveBuffer[I])*(fKinematicMoveBufferSize-I));
       Dec(fKinematicMoveBufferSize);
       continue;
     end;
