@@ -21,10 +21,7 @@ interface
 implementation
 
 uses SysUtils,
-  { TODO: Temporarily commented out because our https://jenkins.castle-engine.io/
-    has older revision of FPC 3.3.1. Uncomment this if you use recent FPC 3.3.1
-    to be able to handle https. }
-  // {$ifndef VER3_0} OpenSSLSockets, {$endif}
+  {$ifndef VER3_0} OpenSSLSockets, {$endif}
   CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
