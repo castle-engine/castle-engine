@@ -665,9 +665,11 @@ end;
 type
   TBackground2D = class(TBackgroundScene)
   strict private
-    Image: TDrawableImage;
     Node: TImageBackgroundNode;
+    Shape: TShapeNode;
     Texture2D: TAbstractTexture2DNode;
+    TexCoords: TTextureCoordinateNode;
+    IndexedFaceSet: TIndexedFaceSetNode;
   public
     constructor Create(const ANode: TImageBackgroundNode);
     destructor Destroy; override;
@@ -679,7 +681,8 @@ type
 
 constructor TBackground2D.Create(const ANode: TImageBackgroundNode);
 var
-  ImageCore: TEncodedImage;
+  RootNode: TX3DRootNode;
+  Coordinate: TCoordinateNode;
 begin
   inherited Create;
 
@@ -691,17 +694,38 @@ begin
     Texture2D := nil;
 
   if Texture2D <> nil then
-    ImageCore := Texture2D.TextureImage
-  else
-    ImageCore := nil;
+  begin
+    RootNode := TX3DRootNode.Create;
 
-  if ImageCore <> nil then
-    Image := TDrawableImage.Create(ImageCore, true { smooth scaling }, false { owns });
+    Coordinate := TCoordinateNode.Create;
+    Coordinate.SetPoint([
+      Vector3(-1, -1, 0),
+      Vector3( 1, -1, 0),
+      Vector3( 1,  1, 0),
+      Vector3(-1,  1, 0)
+    ]);
+
+    TexCoords := TTextureCoordinateNode.Create;
+
+    IndexedFaceSet := TIndexedFaceSetNode.CreateWithShape(Shape);
+    IndexedFaceSet.Coord := Coordinate;
+    IndexedFaceSet.TexCoord := TexCoords;
+    IndexedFaceSet.SetCoordIndex([0, 1, 2, 3]);
+
+    Shape.Appearance := TAppearanceNode.Create;
+    Shape.Appearance.Texture := Texture2D;
+
+    Shape.Appearance.Material := TMaterialNode.Create;
+    Shape.Appearance.Material.ForcePureEmissive;
+
+    RootNode.AddChildren(Shape);
+
+    Scene.Load(RootNode, true);
+  end;
 end;
 
 destructor TBackground2D.Destroy;
 begin
-  FreeAndNil(Image);
   inherited;
 end;
 
@@ -710,76 +734,46 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
   const RenderRect: TFloatRectangle;
   const CurrentProjection: TProjection);
 
-  { Apply various Node and Texture2D properties at the beginning of each Render,
+  { Apply various Node properties at the beginning of each Render,
     this way we can animate them.
     See demo-models/background/background_image_animated.x3d example. }
-  procedure UpdateImageProperties(const Image: TDrawableImage;
-    out ImageRect: TFloatRectangle);
-  var
-    LeftFraction, BottomFraction, WidthFraction, HeightFraction: Single;
-    TexLeftBottom, TexRightTop: TVector2;
+  procedure UpdateProperties;
   begin
-    Assert(Node <> nil); // since Image <> nil, it should be Node <> nil also
-    Assert(Texture2D <> nil); // since Image <> nil, it should be Texture2D <> nil also
+    Assert(Node <> nil);
+    Assert(Texture2D <> nil);
 
-    Image.Color := Node.Color;
-    Assert(Texture2D <> nil); // since ImageCore <> nil
-    Image.RepeatS := Texture2D.RepeatS;
-    Image.RepeatT := Texture2D.RepeatT;
+    Shape.Appearance.Material.EmissiveColor := Node.Color.XYZ;
+    Shape.Appearance.Material.Transparency := 1 - Node.Color.W;
 
-    ImageRect := FloatRectangle(Image.Rect);
-    if Node.FdTexCoords.Count = 4 then
-    begin
-      { Note that we ignore texCoords[1] and [3], they cannot be implemented
-        using TDrawableImage.Draw. }
-      TexLeftBottom := Node.FdTexCoords.Items[0];
-      TexRightTop := Node.FdTexCoords.Items[2];
-
-      LeftFraction := TexLeftBottom.X;
-      BottomFraction := TexLeftBottom.Y;
-      WidthFraction := TexRightTop.X - TexLeftBottom.X;
-      HeightFraction := TexRightTop.Y - TexLeftBottom.Y;
-
-      ImageRect.Left := ImageRect.Width * LeftFraction;
-      ImageRect.Bottom := ImageRect.Height * BottomFraction;
-      ImageRect.Width := ImageRect.Width * WidthFraction;
-      ImageRect.Height := ImageRect.Height * HeightFraction;
-    end;
-
-    if Texture2D.TextureProperties <> nil then
-      if Texture2D.TextureProperties.MagnificationFilter = magNearest then
-        Image.SmoothScaling := false;
+    // TODO: check do they differ
+    TexCoords.SetPoint(Node.FdTexCoords.Items);
   end;
 
 var
-  ImageRect: TFloatRectangle;
-{$ifndef OpenGLES}
-  SavedProjectionMatrix: TMatrix4;
-{$endif}
+  SavedProjectionMatrix, SavedModelviewMatrix: TMatrix4;
 begin
+  if Texture2D = nil then Exit;
+
+  UpdateProperties;
+
+  { Our Scene geometry assumes that modelview matrix is identity }
+  if GLFeatures.EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glLoadMatrix(TMatrix4.Identity);
+    {$endif}
+  end;
+  SavedModelviewMatrix := RenderingCamera.RotationMatrix;
+  RenderingCamera.RotationMatrix := TMatrix4.Identity;
+
+  { Our Scene geometry assumes an orthographic projection (-1,-1) - (1,1) }
+  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+  OrthoProjection(FloatRectangle(-1, -1, 2, 2));
+
   inherited;
 
-  if Image <> nil then
-  begin
-    { With fixed-function, we need to have orthographic projection for TDrawableImage rendering. }
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-      OrthoProjection(FloatRectangle(RenderContext.Viewport));
-      {$endif}
-    end;
-
-    UpdateImageProperties(Image, ImageRect);
-    Image.Draw(RenderRect, ImageRect);
-
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
-      {$endif}
-    end;
-  end;
+  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  RenderingCamera.RotationMatrix := SavedModelviewMatrix;
 end;
 
 { global routines ------------------------------------------------------------ }
