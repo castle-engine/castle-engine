@@ -2293,27 +2293,23 @@ begin
 
   for i := 0 to 2 do { i = column, j = row }
     for j := 0 to 2 do
-      Result.Data[i, j] := v.Data[i]*v.Data[j];
+      Result.Data[i, j] := V.Data[i]*V.Data[j];
 
   Expanded and optimized version below. *)
 
-  Result.Data[0, 0] := sqr(v.Data[0]);
-  Result.Data[1, 1] := sqr(v.Data[1]);
-  Result.Data[2, 2] := sqr(v.Data[2]);
+  Assert(SizeOf(Result) mod SizeOf(DWord) = 0);
+  FillDWord(Result, SizeOf(Result) div SizeOf(DWord), 0);
 
-  Result.Data[0, 1] := v.Data[0]*v.Data[1]; Result.Data[1, 0] := Result.Data[0, 1];
-  Result.Data[0, 2] := v.Data[0]*v.Data[2]; Result.Data[2, 0] := Result.Data[0, 2];
-  Result.Data[1, 2] := v.Data[1]*v.Data[2]; Result.Data[2, 1] := Result.Data[1, 2];
+  Result.Data[0, 0] := Sqr(V.Data[0]);
+  Result.Data[1, 1] := Sqr(V.Data[1]);
+  Result.Data[2, 2] := Sqr(V.Data[2]);
 
-  { Fill the last row and column like an identity matrix }
-  Result.Data[3, 0] := 0;
-  Result.Data[3, 1] := 0;
-  Result.Data[3, 2] := 0;
+  Result.Data[0, 1] := V.Data[0] * V.Data[1]; Result.Data[1, 0] := Result.Data[0, 1];
+  Result.Data[0, 2] := V.Data[0] * V.Data[2]; Result.Data[2, 0] := Result.Data[0, 2];
+  Result.Data[1, 2] := V.Data[1] * V.Data[2]; Result.Data[2, 1] := Result.Data[1, 2];
 
-  Result.Data[0, 3] := 0;
-  Result.Data[1, 3] := 0;
-  Result.Data[2, 3] := 0;
-
+  { Fill the last row and column like an identity matrix.
+    Note that FillDWord above already took care of zeros. }
   Result.Data[3, 3] := 1;
 end;
 

@@ -49,6 +49,7 @@
     procedure SetProjectionLocationLocal(const Value: TVector3); virtual;
     function  GetProjectionDirectionLocal: TVector3; virtual;
     procedure SetProjectionDirectionLocal(const Value: TVector3); virtual;
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
 
@@ -629,6 +630,76 @@ begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocal;
+end;
+
+procedure TAbstractLightNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  if Scope = lsLocal then
+  begin
+    (*We append lights with lsLocal scope (global=FALSE and VRML/X3D >= 2.0)
+      to the current State.
+
+      It may seem wasteful to enumerate children twice
+      (first we enumerate in TAbstractGroupingNode.BeforeTraverse,
+      then actual TX3DNode.Traverse enumerates again,
+      this time recursively time). But it turned out to
+      be the fastest and simplest method of propagating lsLocal lights
+      correctly...
+
+      Other (rejected) approach was to add ParentGroup to TLightInstance
+      and do it as post-processing step, i.e. in TCastleSceneCore in
+      AddGlobalLights take this ParentGroup and add light everywhere.
+      But that was
+
+      1. even slower, since it must traverse ParentGroup once again
+         for each directional light, and for each shape within this ParentGroup,
+         it must find all it's occurrences inside Shapes, and add light there
+
+      2. it fails ugly in case of DEF / USE of shapes.
+
+         See demo_models/lights_materials/directional_light_scope.wrl test. Imagine
+         (simplified VRML below) :
+
+           Group {
+             DEF S Shape { .... some sphere .... }
+             Group {
+               USE S
+               DirectionalLight { }
+               USE S
+             }
+             USE S
+           }
+
+         What would happen here? ParentGroup.Enumerate would find S *two* times.
+         For each of these occurrences, it would find *four* shapes with
+         matching node value. So 1. all four spheres would be lighted (incorrect,
+         only two spheres in the middle should be lighted) 2. all of them would
+         be lighted two times by the same light... Fix for 1st problem would
+         require us to record some list of parents within State (which would
+         awfully slow down Traverse work, that already is too crowded). Fix for 2nd
+         problem would require some intelligent avoiding of duplicates
+         (set light only for first node, that is both matching and has the light
+         not set yet).
+
+         So fixing the above solution would be quite more convoluted and slower
+         than simple, correct solution below.
+
+    *)
+
+    { Note: We do CreateLightInstance with State from TAbstractGroupingNode node,
+      while precisely we should rather use State from TAbstractLightNode
+      traverse. But, fortunately, State of TAbstractLightNode doesn't
+      change inside (TAbstractLightNode doesn't do anything inside
+      BeforeTraverse), so this is the same thing. }
+
+    { TODO: we ignore here light radius, which may be relevant
+      for TAbstractPositionalLightNode with HasRadius = true.
+      E.g. PointLight with global = false should be limited by *both*
+      scope (in graph hierarchy) and radius, as far as I understand. }
+
+    State.AddLight(CreateLightInstance(State));
+  end;
 end;
 
 procedure TAbstractDirectionalLightNode.CreateNode;

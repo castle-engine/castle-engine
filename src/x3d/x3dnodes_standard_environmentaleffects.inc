@@ -246,6 +246,7 @@
       FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -830,6 +831,12 @@ procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   FTransformScale := StateStack.Top.TransformScale;
+end;
+
+procedure TLocalFogNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  State.LocalFog := Self;
 end;
 
 class function TLocalFogNode.ClassX3DType: string;

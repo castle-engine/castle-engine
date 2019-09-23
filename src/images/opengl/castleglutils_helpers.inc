@@ -244,7 +244,8 @@ var
 type
   TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D);
 
-{ Enable exactly one (or none, for Target=etNone) OpenGL texture target.
+{ Enable exactly one (or none, for Target=etNone) OpenGL texture target
+  for fixed-function pipeline.
   Always use this instead of manually calling @code(glDisable(GL_TEXTURE_2D)),
   @code(glEnable(GL_TEXTURE_2D)) and such. This makes sure to have at most
   one texture target enabled, and disable others.

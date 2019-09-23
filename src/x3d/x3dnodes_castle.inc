@@ -339,6 +339,8 @@
   strict private
     function GetLanguage: TShaderLanguage;
     procedure SetLanguage(const Value: TShaderLanguage);
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -870,6 +872,8 @@ begin
   Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
+{ TEffectNode ---------------------------------------------------------------- }
+
 procedure TEffectNode.CreateNode;
 begin
   inherited;
@@ -887,6 +891,14 @@ begin
   AddField(FFdEnabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
+end;
+
+procedure TEffectNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  if State.Effects = nil then
+    State.Effects := TX3DNodeList.Create(false);
+  State.Effects.Add(Self);
 end;
 
 class function TEffectNode.ClassX3DType: string;
