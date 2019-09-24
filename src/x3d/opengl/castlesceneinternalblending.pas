@@ -64,6 +64,21 @@ uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleLog, X3DNodes, CastleScene;
 
+{ Given blending name (as defined by X3D BlendMode node spec,
+  http://www.instantreality.org/documentation/nodetype/BlendMode/),
+  returns @true and corresponding Factor.
+
+  Returns @false if S doesn't match any known name, or it's "none",
+  or it's not supported by the current OpenGL implementation (some factors
+  may require newer OpenGL versions), or it's not for this kind
+  (which means it's not for source factor if Source = true,
+  or it's not for dest factor is Source = false).
+
+  If returns @true, then also updates NeedsConstXxx.
+  "Updates" means that always does something like
+    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
+  so can only change from false to true.
+}
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
   var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
@@ -308,22 +323,6 @@ begin
 end;
 
 { global --------------------------------------------------------------------- }
-
-{ Given blending name (as defined by X3D BlendMode node spec,
-  http://www.instantreality.org/documentation/nodetype/BlendMode/),
-  returns @true and corresponding Factor.
-
-  Returns @false if S doesn't match any known name, or it's "none",
-  or it's not supported by the current OpenGL implementation (some factors
-  may require newer OpenGL versions), or it's not for this kind
-  (which means it's not for source factor if Source = true,
-  or it's not for dest factor is Source = false).
-
-  If returns @true, then also updates NeedsConstXxx.
-  "Updates" means that always does something like
-    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
-  so can only change from false to true.
-}
 
 procedure ShapesFilterBlending(
   const Tree: TShapeTree;
