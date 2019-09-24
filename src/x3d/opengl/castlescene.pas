@@ -1342,9 +1342,15 @@ begin
     LightRenderEvent := nil;
 
   ModelView := GetModelViewTransform;
-  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
-    RenderContext.ProjectionMatrix * ModelView;
-  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+
+  { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
+  if Attributes.ReallyUseOcclusionQuery or
+     Attributes.ReallyUseHierarchicalOcclusionQuery then
+  begin
+    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
+      RenderContext.ProjectionMatrix * ModelView;
+    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+  end;
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
