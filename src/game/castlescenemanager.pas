@@ -276,7 +276,7 @@ type
       @nil if no background should be rendered.
 
       The default implementation in this class does what is usually
-      most natural: return MainScene.Background, if MainScene assigned. }
+      most natural: return MainScene.InternalBackground, if MainScene assigned. }
     function Background: TBackground; virtual;
 
     { Detect position/direction of the main light that produces shadows.
@@ -2157,7 +2157,8 @@ end;
 function TCastleAbstractViewport.Background: TBackground;
 begin
   if GetMainScene <> nil then
-    Result := GetMainScene.Background else
+    Result := GetMainScene.InternalBackground
+  else
     Result := nil;
 end;
 

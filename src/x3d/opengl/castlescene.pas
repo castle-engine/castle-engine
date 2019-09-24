@@ -648,23 +648,19 @@ type
       default 1;
 
     { TBackground instance to render current background. Current background
-      is the top node on the BackgroundStack of this scene, following VRML/X3D
-      specifications, and can be dynamic.
+      is the top node on the BackgroundStack of this scene, following X3D
+      specifications, and can be animated.
       The scene manager should use this to render background.
 
       You should not access the background this way in your own code.
       This is public only because our own TCastleSceneManager needs to access it.
-      And this is not marked "internal" because you may want to implement custom
-      TCastleScene descendants that override this.
 
-      @bold(If you simply use TCastleScene to render 3D stuff,
-      and want to change background properties,
-      then do not use this method.) To change the background,
-      find (or add) an X3D @code(Background) node (@link(TBackgroundNode) instance)
-      in the X3D graph in @link(RootNode), and change it's properties
-      or "bind" to change current backround.
-
-      We use the current value of BackgroundSkySphereRadius.
+      If you want to change the background,
+      instead of using this internal reference,
+      access X3D background nodes in @code(BackgroundStack).
+      You can modify existing background node by @code(BackgroundStack.Top),
+      or you can push a different background node by adding @link(TBackgroundNode)
+      to @link(RootNode) and setting @link(TBackgroundNode.Bound) to @true.
 
       Returns @nil if there is no currently bound (and supported) background node
       in this scene.
@@ -674,7 +670,7 @@ type
       (so that it's recreated only when relevant things change,
       like VRML/X3D nodes affecting this background,
       or changes to BackgroundSkySphereRadius, or OpenGL context is closed). }
-    function Background: TBackground;
+    function InternalBackground: TBackground;
 
     { Rendering attributes.
 
@@ -2177,7 +2173,7 @@ begin
   FBackgroundValid := true;
 end;
 
-function TCastleScene.Background: TBackground;
+function TCastleScene.InternalBackground: TBackground;
 var
   BackgroundNode: TAbstractBackgroundNode;
 begin
