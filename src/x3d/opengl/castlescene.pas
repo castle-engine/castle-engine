@@ -711,7 +711,7 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
     function Clone(const AOwner: TComponent): TCastleScene;
-  published
+
     { What kind of per-shape frustum culling do when
       ShapeFrustumCulling is @true,
       and we don't have octree (ssRendering is not included in @link(TCastleSceneCore.Spatial)). }
@@ -725,7 +725,7 @@ type
     property OctreeFrustumCulling: TFrustumCulling
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
       deprecated 'use simpler ShapeFrustumCulling';
-
+  published
     { Improve performance of rendering by checking for each shape whether
       it is inside frustum (camera pyramid of view) before rendering.
 
