@@ -805,7 +805,7 @@ var
   { Combine (right before rendering) multiple shapes with a similar appearance into one.
     This can drastically reduce the number of "draw calls",
     making rendering much faster. }
-  DynamicBatching: Boolean = false experimental;
+  InternalDynamicBatching: Boolean = false;
 
 const
   bsNone = CastleBoxes.bsNone;
@@ -1206,7 +1206,7 @@ var
   begin
     Shape.ModelView := ModelView;
     Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
-    if not (DynamicBatching and Batching.Collect(Shape)) then
+    if not (InternalDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -1214,7 +1214,7 @@ var
   var
     Shape: TShape;
   begin
-    if (not DynamicBatching) or
+    if (not InternalDynamicBatching) or
        (Batching.Collected.Count = 0) then
       Exit;
     for Shape in Batching.Collected do
