@@ -52,7 +52,7 @@ procedure TTestScene.TestScene;
 
    AssertTrue(EmptyScene.FogStack.Top = nil);
 
-   AssertTrue(EmptyScene.Background = nil);
+   AssertTrue(EmptyScene.InternalBackground = nil);
   end;
 
 var EmptyScene: TCastleScene;
