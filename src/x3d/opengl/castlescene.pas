@@ -1337,14 +1337,17 @@ var
   I: Integer;
   LightRenderEvent: TLightRenderEvent;
 begin
-  { We update ShapesVisible only for one value of Params.Transparent.
+  { We update XxxVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
   if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
+    begin
       Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
+      Inc(Params.Statistics.ScenesRendered);
+    end;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;
@@ -2105,6 +2108,13 @@ begin
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
+    if (not Params.Transparent) and
+       (Params.InternalPass = 0) and
+       (not ExcludeFromStatistics) then
+    begin
+      Inc(Params.Statistics.ScenesVisible);
+    end;
+
     if FSceneFrustumCulling and not InternalIgnoreFrustum then
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
