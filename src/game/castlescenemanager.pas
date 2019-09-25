@@ -156,6 +156,8 @@ type
         projection. Used by ApplyProjection. }
       DistortFieldOfViewY, DistortViewAspect: Single;
       SickProjectionTime: TFloatTime;
+      FOnCameraChanged: TNotifyEvent;
+      FMainCamera: Boolean;
 
     function FillsWholeContainer: boolean;
     function PlayerNotBlocked: boolean;
@@ -303,9 +305,10 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Information about the 3D world.
-      For scene maager, these methods simply return it's own properties.
+      For scene manager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
+    function GetSceneManager: TCastleSceneManager; virtual; abstract;
     function GetItems: TSceneManagerWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
@@ -332,8 +335,6 @@ type
     function NavigationHeight(ANavigation: TCastleWalkNavigation; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
-    procedure NavigationVisibleChange(const Sender: TInputListener;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); virtual; abstract;
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
@@ -363,6 +364,8 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
+      const ChangeInitiatedByChildren: boolean = false); override;
 
     { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
       about the current pointing device.
@@ -378,8 +381,8 @@ type
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
 
     { Return current navigation. Automatically creates it if missing. }
-    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it';
-    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it';
+    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it, or call AssignDefaultNavigation';
+    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it, or call AssignDefaultNavigation';
 
     { Return the currently used camera as TCastleWalkNavigation, making sure that current
       NavigationType is something using TCastleWalkNavigation.
@@ -575,7 +578,7 @@ type
       @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
       Setting @link(NavigationType) to @nil sets this property to @nil.
 
-      @seealso TCastleSceneManager.OnCameraChanged }
+      @seealso OnCameraChanged }
     property Navigation: TCastleNavigation read FNavigation write SetNavigation;
 
     { Instance for headlight that should be used for this scene.
@@ -596,6 +599,28 @@ type
     { TCastleNavigation should check it in Motion overrides.
       TODO: should be private. }
     function NavigationEnableDragging: Boolean;
+
+    { Called on any camera change. }
+    property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
+
+    { Is this the central @link(Camera), that controls the features that require
+      a single camera (cannot adapt to multiple possible viewports).
+      The main camera controls the X3D nodes like ProximitySensor, Billboard.
+      The main camera also sets an audio listener (controlling the spatial sound).
+
+      TODO: It should also control the headlight.
+      For now, headlight is controlled by the scene manager always.
+
+      Only one TCastleViewport or an associated TCastleSceneManager
+      should have MainCamera set to @true, otherwise they would all try to
+      control the camera in the same world.
+
+      TODO; Maybe instead of this at each viewport,
+      we should have
+      SceneManager.MainViewport property,
+      which by default points to Self but could point to any other viewport? }
+    property MainCamera: Boolean read FMainCamera write FMainCamera default false;
+
   published
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
@@ -969,7 +994,6 @@ type
     FViewports: TCastleAbstractViewportList;
     FTimeScale: Single;
 
-    FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
     FMoveLimit: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
@@ -1034,9 +1058,8 @@ type
     function NavigationHeight(ANavigation: TCastleWalkNavigation; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure NavigationVisibleChange(const Sender: TInputListener;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
 
+    function GetSceneManager: TCastleSceneManager; override;
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
@@ -1265,6 +1288,9 @@ type
     function PositionToWorldPlane(const Position: TVector2;
       const ScreenCoordinates: Boolean;
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+
+    property MainCamera default true;
+
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -1336,9 +1362,6 @@ type
 
       Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
-
-    { Called on any camera change. }
-    property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1456,6 +1479,7 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
     procedure CheckSceneManagerAssigned;
   protected
+    function GetSceneManager: TCastleSceneManager; override;
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
@@ -1472,8 +1496,6 @@ type
     function NavigationHeight(ANavigation: TCastleWalkNavigation; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
-    procedure NavigationVisibleChange(const Sender: TInputListener;
-      const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean); override;
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
@@ -1648,7 +1670,6 @@ begin
       after freed it's fields. }
     if (FNavigation <> nil) and not (csDestroying in FNavigation.ComponentState) then
     begin
-      FNavigation.OnVisibleChange := nil;
       if FNavigation is TCastleWalkNavigation then
       begin
         TCastleWalkNavigation(FNavigation).OnMoveAllowed := nil;
@@ -1669,10 +1690,6 @@ begin
 
     if FNavigation <> nil then
     begin
-      { Unconditionally change FNavigation.OnVisibleChange callback,
-        to override TCastleWindowBase / TCastleControlBase that also try
-        to "hijack" this navigation's event. }
-      FNavigation.OnVisibleChange := @NavigationVisibleChange;
       if FNavigation is TCastleWalkNavigation then
       begin
         TCastleWalkNavigation(FNavigation).OnMoveAllowed := @NavigationMoveAllowed;
@@ -2321,8 +2338,8 @@ procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
   GetItems.Render(Params);
-  if Assigned(OnRender3D) then
-    OnRender3D(Self, Params);
+  if Assigned(FOnRender3D) then
+    FOnRender3D(Self, Params);
 end;
 
 procedure TCastleAbstractViewport.RenderShadowVolume;
@@ -3517,6 +3534,7 @@ begin
   FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
+  MainCamera := true;
 
   FViewports := TCastleAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
@@ -4072,36 +4090,40 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-procedure TCastleSceneManager.NavigationVisibleChange(const Sender: TInputListener;
-  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
-var
-  Pos, Dir, Up: TVector3;
-begin
-  // TODO: this should be called directly by TCastleCamera
-  // (now it just calls Viewport.VisibleChange),
-  // and it should be unrelated to Navigation
-  if chCamera in Changes then
-  begin
-    if Sender = Navigation then
-    begin
-      { Call CameraChanged for all Items, not just MainScene.
-        This allows ProximitySensor and Billboard and such nodes
-        to work in all 3D scenes, not just in MainScene. }
-      Items.CameraChanged(Camera);
-      { ItemsVisibleChange will also cause our own VisibleChange. }
-      ItemsVisibleChange(Items, CameraToChanges);
-    end else
-      VisibleChange(Changes, true);
+procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+  const ChangeInitiatedByChildren: boolean = false);
 
-    Camera.GetView(Pos, Dir, Up);
-    SoundEngine.UpdateListener(Pos, Dir, Up);
+  procedure CameraChange;
+  var
+    Pos, Dir, Up: TVector3;
+    SM: TCastleSceneManager;
+  begin
+    if MainCamera then
+    begin
+      SM := GetSceneManager;
+      if SM <> nil then
+      begin
+        { Call CameraChanged on all TCastleTransform.
+          Note that we have to call it on all Items, not just MainScene,
+          to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
+        SM.Items.CameraChanged(Camera);
+        { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleSceneManager),
+          but without chCamera, so no infinite recursion. }
+        SM.ItemsVisibleChange(SM.Items, SM.CameraToChanges);
+      end;
+
+      Camera.GetView(Pos, Dir, Up);
+      SoundEngine.UpdateListener(Pos, Dir, Up);
+    end;
 
     if Assigned(OnCameraChanged) then
-      OnCameraChanged(Sender);
+      OnCameraChanged(Self);
   end;
 
-  if chCursor in Changes then
-    RecalculateCursor(Sender);
+begin
+  inherited;
+  if chCamera in Changes then
+    CameraChange;
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
@@ -4181,6 +4203,11 @@ procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSc
 begin
   if AutoDetectCamera then
     Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
+end;
+
+function TCastleSceneManager.GetSceneManager: TCastleSceneManager;
+begin
+  Result := Self;
 end;
 
 function TCastleSceneManager.GetItems: TSceneManagerWorld;
@@ -4329,12 +4356,6 @@ begin
     raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
 end;
 
-procedure TCastleViewport.NavigationVisibleChange(const Sender: TInputListener;
-  const Changes: TCastleUserInterfaceChanges; const ChangeInitiatedByChildren: boolean);
-begin
-  VisibleChange(Changes, true);
-end;
-
 function TCastleViewport.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
   const ProposedNewPos: TVector3; out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
@@ -4366,6 +4387,11 @@ begin
   if SceneManager <> nil then
     Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
     Result := nil;
+end;
+
+function TCastleViewport.GetSceneManager: TCastleSceneManager;
+begin
+  Result := SceneManager;
 end;
 
 function TCastleViewport.GetItems: TSceneManagerWorld;
