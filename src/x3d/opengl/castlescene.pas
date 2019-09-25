@@ -2137,8 +2137,12 @@ begin
     if InternalIgnoreFrustum then
       LocalRenderOutside(nil, Params)
     else
-    if InternalOctreeRendering <> nil then
+    if (InternalOctreeRendering <> nil) and ShapeFrustumCulling then
     begin
+      { Check above ShapeFrustumCulling, since the InternalOctreeRendering
+        does per-shape frustum culling automatically, even before
+        ShapeCullingOctreeFunc test. Thanks to octree, many shapes
+        don't even reach the stage when ShapeCullingOctreeFunc could be called. }
       TestOctreeWithFrustum(InternalOctreeRendering);
       LocalRenderOutside(@RenderFrustumOctree_TestShape, Params);
     end else
