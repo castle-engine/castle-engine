@@ -2071,10 +2071,15 @@ var
 begin
   Shape := TGLShape(InternalOctreeRendering.ShapesList[ShapeIndex]);
 
-  if (not Shape.PassedShapeCulling) and
-     // TODO: When CollidesForSure, we ignore DistanceCulling now
-     (CollidesForSure or ShapeCullingOctreeFunc(Shape)) then
-    Shape.PassedShapeCulling := true;
+  if not Shape.PassedShapeCulling then
+  begin
+    if CollidesForSure then
+      // frustum culling already passed, but still check distance culling
+      Shape.PassedShapeCulling := (DistanceCulling <= 0) or DistanceCullingCheck(Shape)
+    else
+      // this function performs frustum culling and distance culling too
+      Shape.PassedShapeCulling := ShapeCullingOctreeFunc(Shape);
+  end;
 end;
 
 procedure TCastleScene.LocalRender(const Params: TRenderParams);
