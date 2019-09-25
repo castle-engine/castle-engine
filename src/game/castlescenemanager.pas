@@ -207,35 +207,34 @@ type
       Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
   protected
-    { The projection parameters. Determines if the view is perspective
+    { Calculate projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
-      Used by our Render method.
+      Called each time at the beginning of rendering.
 
       The default implementation of this method in TCastleAbstractViewport
-      calculates projection based on the @link(Camera) parameters,
-      and based on the currently bound Viewpoint/OrthoViewpoint, NavigationInfo
-      nodes in @link(TCastleSceneManager.MainScene).
-      If the scene manager's MainScene is not assigned, or it doesn't have
-      a Viewpoint/OrthoViewpoint node, we use a default perspective projection.
+      calculates projection based on the @link(Camera) parameters.
 
-      Note that the TCastle2DSceneManager overrides this method
-      to calculate always orthographic projection, using it's own properties
-      like @link(TCastle2DSceneManager.ProjectionAutoSize),
-      @link(TCastle2DSceneManager.ProjectionWidth),
-      @link(TCastle2DSceneManager.ProjectionHeight).
-      It doesn't look at MainScene settings or Viewpoint/OrthoViewpoint nodes.
-      TODO: update this paragraph.
+      In turn, the @link(Camera) parameters may be automatically
+      calculated (if @link(AutoDetectCamera))
+      based on the nodes in the @link(TCastleSceneManager.MainScene).
+      Nodes like TViewpointNode or TOrthoViewpointNode or TNavigationInfoNode
+      determine the default camera and projection details.
+      Note that the TCastle2DSceneManager turns off @link(AutoDetectCamera),
+      and initializes camera to orthographic, regardless of the
+      @link(TCastleSceneManager.MainScene).
 
       You can override this method, or assign the @link(OnProjection) event
-      to adjust the projection settings. }
+      to adjust the projection settings.
+      But please note: instead of overriding this method,
+      it's usually easier (and more advised) to simply change the @link(Camera) properties,
+      like @link(TCastleCamera.ProjectionType Camera.ProjectionType)
+      or @link(TCastleOrthographic.Width Camera.Orthographic.Width)
+      or @link(TCastlePerspective.FieldOfView Camera.Perspective.FieldOfView). }
     function CalculateProjection: TProjection; virtual;
 
-    { Render one pass, with current camera and parameters.
+    { Render one pass, with current camera and parameters (e.g. only transparent
+      or only opaque shapes).
       All current camera settings are saved in RenderParams.RenderingCamera.
-      If you want to write custom OpenGL rendering code,
-      this is the simplest method to override. (Or you can use OnRender3D
-      event, which is called at the end of this method.)
-
       @param(Params Rendering parameters, see @link(TRenderParams).) }
     procedure Render3D(const Params: TRenderParams); virtual;
 
@@ -277,9 +276,9 @@ type
       or @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) value. }
     function Headlight: TAbstractLightNode; virtual; abstract;
 
-    { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
-      when everything (clearing, background, headlight, loading camera
-      matrix) is done and all that remains is to pass to OpenGL actual 3D world.
+    { Render the scene, assuming that buffers were already cleared and background
+      was rendered. Called by RenderFromViewEverything at the end.
+      Lights are calculated in Params at this point.
 
       This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
       as needed. Their previous values do not matter. }
@@ -647,6 +646,7 @@ type
 
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
+      deprecated 'do not customize rendering with this; instead add TCastleUserInterface descendants where you can override TCastleUserInterface.Render to do custom rendering';
 
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
