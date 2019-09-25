@@ -31,6 +31,8 @@
 
   { Base type for all pointing device sensors. }
   TAbstractPointingDeviceSensorNode = class(TAbstractSensorNode)
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
 
@@ -324,6 +326,13 @@ begin
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
   AddEvent(FEventIsOver);
+end;
+
+procedure TAbstractPointingDeviceSensorNode.GroupBeforeTraverse(
+  const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  GroupBeforeTraverse_AddPointingDeviceSensor(Self, State, WasPointingDeviceSensor);
 end;
 
 procedure TAbstractPointingDeviceSensorNode.Activate(const Time: TX3DTime;

@@ -2923,16 +2923,19 @@ var
   TextureShader: TTextureShader;
 begin
   { Enable for fixed-function pipeline }
-  if GLFeatures.UseMultiTexturing then
-    glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  case TextureType of
-    tt2D, tt2DShadow: GLEnableTexture(et2D);
-    ttCubeMap       : GLEnableTexture(etCubeMap);
-    tt3D            : GLEnableTexture(et3D);
-    ttShader        : GLEnableTexture(etNone);
-    {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TextureEnableDisable?');
-    {$endif}
+  if GLFeatures.EnableFixedFunction then
+  begin
+    if GLFeatures.UseMultiTexturing then
+      glActiveTexture(GL_TEXTURE0 + TextureUnit);
+    case TextureType of
+      tt2D, tt2DShadow: GLEnableTexture(et2D);
+      ttCubeMap       : GLEnableTexture(etCubeMap);
+      tt3D            : GLEnableTexture(et3D);
+      ttShader        : GLEnableTexture(etNone);
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('TextureEnableDisable?');
+      {$endif}
+    end;
   end;
 
   { Enable for shader pipeline }

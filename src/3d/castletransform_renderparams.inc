@@ -27,11 +27,11 @@
 
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts
-      works good. This includes frustum culling (automatically
-      used by TCastleScene), or occlusion culling (see
-      TSceneRenderingAttributes.UseOcclusionQuery),
-      or any custom algorithm you implement by using TTestShapeVisibility
-      callback with @link(TCastleScene.LocalRender). }
+      works good.
+      This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
+      distance culling (@link(TCastleScene.DistanceCulling)),
+      occlusion culling (see @link(
+      TSceneRenderingAttributes.UseOcclusionQuery)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
     { The number of shapes that were not rendered,
@@ -40,6 +40,13 @@
       TSceneRenderingAttributes.UseOcclusionQuery).
       Basically, this measures the "invisible overhead" of occlusion query. }
     BoxesOcclusionQueriedCount: Cardinal;
+
+    { TCastleScene rendered vs all visible. }
+    ScenesRendered, ScenesVisible: Cardinal;
+
+    { Present the statistics information as a multi-line string.
+      Display it e.g. by assigning to TCastleLabel.Caption. }
+    function ToString: String;
   end;
 
   { @exclude Internal.
@@ -248,6 +255,28 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TRenderStatistics ---------------------------------------------------------- }
+
+function TRenderStatistics.ToString: String;
+var
+  OcclusionStats: String;
+begin
+  if BoxesOcclusionQueriedCount <> 0 then
+    OcclusionStats := Format(' (+ %d boxes for occlusion query)', [
+      BoxesOcclusionQueriedCount
+    ])
+  else
+    OcclusionStats := '';
+
+  Result := Format('Shapes %d%s / %d, Scenes: %d / %d', [
+    ShapesRendered,
+    OcclusionStats,
+    ShapesVisible,
+    ScenesRendered,
+    ScenesVisible
+  ]);
+end;
 
 { TRenderingCamera --------------------------------------------------------------- }
 

@@ -553,6 +553,8 @@
 
   { Clip the geometry with a plane. }
   TClipPlaneNode = class(TAbstractChildNode)
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -1366,6 +1368,8 @@ begin
   DefaultContainerField := 'coord';
 end;
 
+{ TClipPlaneNode ------------------------------------------------------------- }
+
 procedure TClipPlaneNode.CreateNode;
 begin
   inherited;
@@ -1383,6 +1387,16 @@ begin
     says that containerField of this should be "color"... which doesn't
     make sense? I leave DefaultContainerField as "children"
     (inherited from X3DChilNode. }
+end;
+
+procedure TClipPlaneNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+var
+  CP: PClipPlane;
+begin
+  inherited;
+  CP := State.AddClipPlane;
+  CP^.Node := Self;
+  CP^.Transform := State.Transform;
 end;
 
 class function TClipPlaneNode.ClassX3DType: string;

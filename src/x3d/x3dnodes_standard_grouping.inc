@@ -20,7 +20,16 @@
     So, you can create a hierarchy of nodes with any depth. }
   TAbstractGroupingNode = class(TAbstractChildNode)
   strict private
-    BeforeTraversePushedState: boolean;
+    type
+      TGeneralGroupingEnumerator = class
+        State: TX3DGraphTraverseState;
+        WasPointingDeviceSensor: boolean;
+        function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
+      end;
+    var
+      BeforeTraversePushedState: boolean;
+      TempEnumerator: TGeneralGroupingEnumerator;
+      TempEnumeratorUsed: Boolean;
   protected
     { If @true (default implementation in this class), then this really
       behaves like a grouping node. If @false, this allows everything
@@ -41,6 +50,9 @@
       implementation... So ApplyTransform must happen in the middle of
       TAbstractGroupingNode.BeforeTraverse call. }
     procedure ApplyTransform(State: TX3DGraphTraverseState); virtual;
+  public
+    procedure CreateNode; override;
+    destructor Destroy; override;
   end;
 
   { Basis for all node types that have bounds specified as part of the definition. }
@@ -397,68 +409,48 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-type
-  TGeneralGroupingEnumerator = class
-    State: TX3DGraphTraverseState;
-    WasPointingDeviceSensor: boolean;
-    { Add pointing device sensor (including Anchor) node. }
-    procedure AddPointingDeviceSensor(Child:TX3DNode);
-    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
-  end;
 
-  procedure TGeneralGroupingEnumerator.AddPointingDeviceSensor(Child:TX3DNode);
+{ TGeneralGroupingEnumerator ------------------------------------------------- }
+
+function TAbstractGroupingNode.TGeneralGroupingEnumerator.EnumerateChildrenFunction(
+  Node, Child: TX3DNode): Pointer;
+begin
+  Result := nil;
+  Child.GroupBeforeTraverse(State, WasPointingDeviceSensor);
+end;
+
+procedure GroupBeforeTraverse_AddPointingDeviceSensor(const Child: TX3DNode;
+  const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  { When we encounter the *first* pointing device sensor within a grouping node,
+    it obscures the other pointing devices (from parent nodes).
+    Other pointing device sensors within the same grouping node are added. }
+
+  if not WasPointingDeviceSensor then
   begin
-    { Testing for WasPointingDeviceSensor guarantees that multiple
-      pointing devices within the same grouping node will all work. }
-    if not WasPointingDeviceSensor then
-    begin
-      State.PointingDeviceSensors.Clear;
-      State.PointingDeviceSensors.Transform := State.Transform;
-      State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
-      WasPointingDeviceSensor := true;
-    end;
-
-    State.PointingDeviceSensors.Add(Child);
+    State.PointingDeviceSensors.Clear;
+    State.PointingDeviceSensors.Transform := State.Transform;
+    State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
+    WasPointingDeviceSensor := true;
   end;
 
-  function TGeneralGroupingEnumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode): Pointer;
-  var
-    CP: PClipPlane;
-  begin
-    Result := nil;
-    if (Child is TAbstractLightNode) and
-       (TAbstractLightNode(Child).Scope = lsLocal) then
-      { We do CreateLightInstance with State from TAbstractGroupingNode node,
-        while precisely we should rather use State from TAbstractLightNode
-        traverse. But, fortunately, State of TAbstractLightNode doesn't
-        change inside (TAbstractLightNode doesn't do anything inside
-        BeforeTraverse), so this is the same thing. }
-      { TODO: we ignore here light radius, which may be relevant
-        for TAbstractPositionalLightNode with HasRadius = true.
-        E.g. PointLight with global = false should be limited by *both*
-        scope (in graph hierarchy) and radius, as far as I understand. }
-      State.AddLight(
-        TAbstractLightNode(Child).CreateLightInstance(State)) else
-    if Child is TAbstractPointingDeviceSensorNode then
-    begin
-      AddPointingDeviceSensor(Child);
-    end else
-    if Child is TClipPlaneNode then
-    begin
-      CP := State.AddClipPlane;
-      CP^.Node := TClipPlaneNode(Child);
-      CP^.Transform := State.Transform;
-    end else
-    if Child is TLocalFogNode then
-      State.LocalFog := TLocalFogNode(Child) else
-    if Child is TEffectNode then
-    begin
-      if State.Effects = nil then
-        State.Effects := TX3DNodeList.Create(false);
-      State.Effects.Add(Child);
-    end;
-  end;
+  State.PointingDeviceSensors.Add(Child);
+end;
+
+{ TAbstractGroupingNode ------------------------------------------------------ }
+
+procedure TAbstractGroupingNode.CreateNode;
+begin
+  inherited;
+  TempEnumerator := TGeneralGroupingEnumerator.Create;
+  TempEnumeratorUsed := false;
+end;
+
+destructor TAbstractGroupingNode.Destroy;
+begin
+  FreeAndNil(TempEnumerator);
+  inherited;
+end;
 
 function TAbstractGroupingNode.SeparateGroup: boolean;
 begin
@@ -478,50 +470,6 @@ begin
 
   ApplyTransform(StateStack.Top);
 
-  (*We append lights with lsLocal scope (global=FALSE and VRML/X3D >= 2.0)
-    to the current State.
-
-    It may seem wasteful to enumerate children twice
-    (first we enumerate here, then actual Traverse enumerates,
-    this time recursively, for the second time). But it turned out to
-    be the fastest and simplest method of propagating lsLocal lights
-    correctly...
-
-    Other (rejected) approach was to add ParentGroup to TLightInstance
-    and do it as post-processing step, i.e. in TCastleSceneCore in
-    AddGlobalLights take this ParentGroup and add light everywhere.
-    But that was 1. even slower, since it must traverse ParentGroup once again
-    for each directional light, and for each shape within this ParentGroup,
-    it must find all it's occurrences inside Shapes, and add light there
-    2. it fails ugly in case of DEF / USE of shapes.
-
-    See demo_models/lights_materials/directional_light_scope.wrl test. Imagine
-    (simplified VRML below) :
-
-      Group {
-        DEF S Shape { .... some sphere .... }
-        Group {
-          USE S
-          DirectionalLight { }
-          USE S
-        }
-        USE S
-      }
-
-    What would happen here? ParentGroup.Enumerate would find S *two* times.
-    For each of these occurrences, it would find *four* shapes with
-    matching node value. So 1. all four spheres would be lighted (incorrect,
-    only two spheres in the middle should be lighted) 2. all of them would
-    be lighted two times by the same light... Fix for 1st problem would
-    require us to record some list of parents within State (which would
-    awfully slow down Traverse work, that already is too crowded). Fix for 2nd
-    problem would require some intelligent avoiding of duplicates
-    (set light only for first node, that is both matching and has the light
-    not set yet).
-
-    So fixing the above solution would be quite more convoluted and slower
-    than simple, correct solution below. *)
-
   { We also use it to collect State.PointingDeviceSensors,
     as it turns our that the same approach is possible, for the same reasons.
     And the same goes for State.ClipPlanes.
@@ -529,8 +477,16 @@ begin
     so this doesn't slow down the code.
   }
 
-  Enumerator := TGeneralGroupingEnumerator.Create;
+  if not TempEnumeratorUsed then
+  begin
+    // for speed, usually we can reuse the same TempEnumerator instance
+    Enumerator := TempEnumerator;
+    TempEnumeratorUsed := true;
+  end else
+    Enumerator := TGeneralGroupingEnumerator.Create;
+
   try
+    // initialize complete Enumerator state, as it may be a reused TempEnumerator instance
     Enumerator.State := StateStack.Top;
     Enumerator.WasPointingDeviceSensor := false;
 
@@ -546,10 +502,15 @@ begin
       So it's correct to just call AddPointingDeviceSensor that wil set
       WasPointingDeviceSensor := true. }
     if Self is TAnchorNode then
-      Enumerator.AddPointingDeviceSensor(Self);
+      GroupBeforeTraverse_AddPointingDeviceSensor(Self, Enumerator.State, Enumerator.WasPointingDeviceSensor);
 
     DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.EnumerateChildrenFunction);
-  finally FreeAndNil(Enumerator) end;
+  finally
+    if Enumerator = TempEnumerator then
+      TempEnumeratorUsed := false
+    else
+      FreeAndNil(Enumerator);
+  end;
 end;
 
 procedure TAbstractGroupingNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -564,6 +525,8 @@ begin
 
   inherited;
 end;
+
+{ TAbstractX3DGroupingNode --------------------------------------------------- }
 
 procedure TAbstractX3DGroupingNode.CreateNode;
 begin

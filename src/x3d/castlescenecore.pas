@@ -941,25 +941,29 @@ type
     procedure Loaded; override;
 
   public
-    { Nonzero value prevents rendering of this scene,
-      and generally means that our state isn't complete.
-      This is useful if we're in the middle of some operation
-      (like ChangedAll call or octree creation).
+    var
+      { Nonzero value prevents rendering of this scene,
+        and generally means that our state isn't complete.
+        This is useful if we're in the middle of some operation
+        (like ChangedAll call or octree creation).
 
-      Some callbacks *may* be called during such time: namely,
-      the progress call (e.g. done during constructing octrees).
-      As these callbacks may try to e.g. render our scene (which should
-      not be done on the dirty state), we have to protect ourselves
-      using this variable (e.g. Render routines will exit immediately
-      when InternalDirty <> 0).
+        Some callbacks *may* be called during such time: namely,
+        the progress call (e.g. done during constructing octrees).
+        As these callbacks may try to e.g. render our scene (which should
+        not be done on the dirty state), we have to protect ourselves
+        using this variable (e.g. Render routines will exit immediately
+        when InternalDirty <> 0).
 
-      Note: in the future, we could replace this by just Enable/Disable
-      feature on TCastleTransform. But it's not so trivial now, as Enable/Disable
-      makes even *too much* things non-existing, e.g. GetCollides
-      may return false, LocalBoundingBox may be empty etc.
+        Note: in the future, we could replace this by just Enable/Disable
+        feature on TCastleTransform. But it's not so trivial now, as Enable/Disable
+        makes even *too much* things non-existing, e.g. GetCollides
+        may return false, LocalBoundingBox may be empty etc.
 
-      @exclude }
-    InternalDirty: Cardinal;
+        @exclude }
+      InternalDirty: Cardinal;
+
+      { @exclude }
+      InternalNodeSharing: Boolean;
 
     const
       DefaultShadowMapsDefaultSize = 256;
@@ -3661,7 +3665,8 @@ begin
   if not FStatic then
   begin
     if (Node.Scene <> nil) and
-       (Node.Scene <> Self) then
+       (Node.Scene <> Self) and
+       (not InternalNodeSharing) then
       WritelnWarning('X3D node %s is already part of another TCastleScene instance. You cannot use the same X3D node in multiple instances of TCastleScene. Instead you must copy the node, using "Node.DeepCopy". It is usually most comfortable to copy the entire scene, using "TCastleScene.Clone".',
         [Node.NiceName]);
     Node.Scene := Self;

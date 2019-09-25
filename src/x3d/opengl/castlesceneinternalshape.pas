@@ -38,8 +38,7 @@ type
     { Is UseAlphaChannel calculated and current. }
     PreparedUseAlphaChannel: boolean;
 
-    { Used only by RenderFrustumOctree. }
-    RenderFrustumOctree_Visible: boolean;
+    PassedShapeCulling: Boolean;
 
     { Used only when Attributes.ReallyUseOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.

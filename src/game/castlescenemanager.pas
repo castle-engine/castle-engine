@@ -289,7 +289,7 @@ type
       @nil if no background should be rendered.
 
       The default implementation in this class does what is usually
-      most natural: return MainScene.Background, if MainScene assigned. }
+      most natural: return MainScene.InternalBackground, if MainScene assigned. }
     function Background: TBackground; virtual;
 
     { Detect position/direction of the main light that produces shadows.
@@ -2304,7 +2304,8 @@ end;
 function TCastleAbstractViewport.Background: TBackground;
 begin
   if GetMainScene <> nil then
-    Result := GetMainScene.Background else
+    Result := GetMainScene.InternalBackground
+  else
     Result := nil;
 end;
 
@@ -2524,8 +2525,6 @@ procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera
   procedure RenderBackground;
   var
     UsedBackground: TBackground;
-    SavedProjectionMatrix: TMatrix4;
-    RR: TFloatRectangle;
   begin
     UsedBackground := Background;
     if UsedBackground <> nil then
@@ -2537,26 +2536,7 @@ procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera
         {$endif}
       end;
       RenderingCamera.RotationOnly := true;
-
-      RR := RenderRect;
-
-      { The background rendering doesn't like custom orthographic Dimensions.
-        They could make the background sky box very small, such that it
-        doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
-        testcase. So temporary set good perspective projection.
-
-        The code below always calls "UsedBackground.Render(...)" }
-      if FProjection.ProjectionType = ptOrthographic then
-      begin
-        SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-        PerspectiveProjection(45, RR.Width / RR.Height,
-          FProjection.ProjectionNear,
-          FProjection.ProjectionFar);
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
-        RenderContext.ProjectionMatrix := SavedProjectionMatrix;
-      end else
-        UsedBackground.Render(RenderingCamera, BackgroundWireframe, RR);
-
+      UsedBackground.Render(RenderingCamera, BackgroundWireframe, RenderRect, FProjection);
       RenderingCamera.RotationOnly := false;
     end;
   end;

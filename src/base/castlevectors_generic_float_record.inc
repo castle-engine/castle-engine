@@ -592,6 +592,12 @@ type
     procedure SetRows(const ARow: TIndex; const Value: TGenericVector4); inline;
     function GetColumns(const AColumn: TIndex): TGenericVector4; inline;
     procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector4); inline;
+    procedure RaisePositionTransformResultInvalid;
+    { Raise ETransformedResultInvalid.
+      Since TGenericMatrix4.MultDirection is time-critical (it is used in TFrustum.Transform
+      which can be a bottleneck, testcase: The Unholy Society),
+      keep it fast. }
+    procedure RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -2248,6 +2254,11 @@ begin
   Result.Data[3, 3] := Data[3, 3];
 end;
 
+procedure TGenericMatrix4.RaisePositionTransformResultInvalid;
+begin
+  raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
+end;
+
 function TGenericMatrix4.MultPoint(const Pt: TGenericVector3): TGenericVector3;
 var
   Divisor: TGenericScalar;
@@ -2289,7 +2300,7 @@ begin
       Data[2, 3] * Pt.Data[2] +
       Data[3, 3];
     if Math.IsZero(Divisor) then
-      raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
+      RaisePositionTransformResultInvalid;
 
     Divisor := 1 / Divisor;
     Result.Data[0] := Result.Data[0] * Divisor;
@@ -2313,6 +2324,13 @@ begin
   Result.Data[1] := Res3D.Data[1];
 end;
 
+procedure TGenericMatrix4.RaiseDirectionTransformedResultInvalid(const Divisor: TGenericScalar);
+begin
+  raise ETransformedResultInvalid.Create(Format(
+    '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
+    [Divisor, Divisor]) + NL + ToString);
+end;
+
 function TGenericMatrix4.MultDirection(const Dir: TGenericVector3): TGenericVector3;
 var
   Divisor: TGenericScalar;
@@ -2333,9 +2351,7 @@ begin
   begin
     Divisor := Data[0, 3] * Dir.Data[0] + Data[1, 3] * Dir.Data[1] + Data[2, 3] * Dir.Data[2];
     if not Math.IsZero(Divisor) then
-      raise ETransformedResultInvalid.Create(Format(
-        '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
-        [Divisor, Divisor]) + NL + ToString);
+      RaiseDirectionTransformedResultInvalid(Divisor);
   end;
 end;
 

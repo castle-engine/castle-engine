@@ -228,7 +228,8 @@ function URIDisplay(const URI: string; const Short: boolean = false): string;
   Returns empty string for empty URI (contrary to most other routines that
   treat empty string like a current directory).
 
-  See URIDisplay documentation for details. }
+  See URIDisplay documentation for details.
+  This calls URIDisplay with Short = @true. }
 function URICaption(const URI: string): string;
 
 { Change extension of the URL. }

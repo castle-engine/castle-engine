@@ -277,6 +277,10 @@
 
       This should be set in descendants constructor. }
     property CDataField: TMFString read FCDataField write FCDataField;
+
+    { React when this node is processed as an immediate child of a grouping node,
+      within grouping node's BeforeTraverse. }
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); virtual;
   public
     { Node fields.
 
@@ -3425,6 +3429,10 @@ function TX3DNode.Functionality(
   const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
 begin
   Result := nil;
+end;
+
+procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

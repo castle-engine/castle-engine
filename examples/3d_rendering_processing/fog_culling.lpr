@@ -20,7 +20,10 @@
 
   This loads data/fog_culling_final.x3dv X3D file.
 
-  Press [F] key to turn DistanceCulling (and fog display) on/off.
+  Press [Ctrl + F] to toggle DistanceCulling (and fog display) on/off.
+
+  Press [Cltr + C] to toggle per-shape frustum culling on/off,
+  ths also makes a difference in this demo.
 }
 
 program fog_culling;
@@ -43,7 +46,7 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
   FogNode: TFogNode;
 begin
-  if Event.IsKey(K_F) then
+  if Event.IsKey(CtrlF) then
   begin
     FogCulling := not FogCulling;
     FogNode := Scene.FogStack.Top;
@@ -58,6 +61,9 @@ begin
       Scene.DistanceCulling := 0;
     end;
   end;
+
+  if Event.IsKey(CtrlC) then
+    Scene.ShapeFrustumCulling := not Scene.ShapeFrustumCulling;
 end;
 
 procedure Render(Container: TUIContainer);
@@ -65,11 +71,16 @@ begin
   UIFont.Outline := 1;
   UIFont.OutlineColor := Black;
   UIFont.PrintStrings(10, 10, Yellow,
-    [ Format('Rendered Shapes: %d / %d',
-       [Window.SceneManager.Statistics.ShapesRendered,
-        Window.SceneManager.Statistics.ShapesVisible]),
-      Format('Fog culling: %s (toggle using the "F" key)',
-       [BoolToStr(FogCulling, true)])
+    [ Format('Rendered Shapes: %d / %d', [
+        Window.SceneManager.Statistics.ShapesRendered,
+        Window.SceneManager.Statistics.ShapesVisible
+      ]),
+      Format('Fog culling: %s (toggle by Ctrl+F)', [
+        BoolToStr(FogCulling, true)
+      ]),
+      Format('Frustum culling of each shape: %s (toggle by Ctrl+C)', [
+        BoolToStr(Scene.ShapeFrustumCulling, true)
+      ])
     ], false, 0);
 end;
 
@@ -85,10 +96,10 @@ begin
   Window.SceneManager.Items.Add(Scene);
 
   // fake pressing "F" to turn on FogCulling correctly
-  Press(nil, InputKey(TVector2.Zero, K_F, ''));
+  Press(nil, InputKey(TVector2.Zero, keyNone, CtrlF));
 
   Window.OnPress := @Press;
   Window.OnRender := @Render;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.OpenAndRun;
 end.

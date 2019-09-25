@@ -2148,6 +2148,7 @@ type
           @unorderedList(
             @itemSpacing Compact
             @item(@--fullscreen: sets FullScreen to @true.)
+            @item(@--window: sets FullScreen to @false.)
             @item(@--geometry: sets FullScreen to @false
               and changes @link(Width), @link(Height), @link(Left), @link(Top)
               as user wants.)
@@ -3990,11 +3991,12 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData^.SpecifiedOptions, poGeometry);
- case OptionNum of
-  0: ProcData^.Window.FullScreen := true;
-  1: ApplyGeometryParam(Argument);
- end;
+  Include(ProcData^.SpecifiedOptions, poGeometry);
+  case OptionNum of
+    0: ProcData^.Window.FullScreen := true;
+    1: ProcData^.Window.FullScreen := false;
+    2: ApplyGeometryParam(Argument);
+  end;
 end;
 
 procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -4021,10 +4023,10 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData^.SpecifiedOptions, poScreenGeometry);
- case OptionNum of
-  0: ApplyFullScreenCustomParam(Argument);
- end;
+  Include(ProcData^.SpecifiedOptions, poScreenGeometry);
+  case OptionNum of
+    0: ApplyFullScreenCustomParam(Argument);
+  end;
 end;
 
 procedure DisplayOptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -4070,17 +4072,18 @@ procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOp
   out SpecifiedOptions: TWindowParseOptions);
 
 const
-  GeometryOptions: array[0..1]of TOption =
+  GeometryOptions: array [0..2] of TOption =
   ( (Short:#0; Long:'fullscreen'; Argument: oaNone),
+    (Short:#0; Long:'window'; Argument: oaNone),
     (short:#0; Long:'geometry'; Argument: oaRequired) );
 
-  ScreenGeometryOptions: array[0..0]of TOption =
+  ScreenGeometryOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'fullscreen-custom'; Argument: oaRequired) );
 
-  DisplayOptions: array[0..0]of TOption =
+  DisplayOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'display'; Argument: oaRequired) );
 
-  LimitFpsOptions: array[0..0]of TOption =
+  LimitFpsOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'no-limit-fps'; Argument: oaNone) );
 
   OptionsForParam: array[TWindowParseOption] of
@@ -4129,21 +4132,21 @@ var
 var
   ParamKind: TWindowParseOption;
 begin
- Data.SpecifiedOptions := [];
- Data.Window := Self;
+  Data.SpecifiedOptions := [];
+  Data.Window := Self;
 
- for ParamKind := Low(ParamKind) to High(ParamKind) do
-   if ParamKind in AllowedOptions then
-   begin
-     if ParamKind = poMacOsXProcessSerialNumber then
-       HandleMacOsXProcessSerialNumber
-     else
-       Parameters.Parse(OptionsForParam[ParamKind].pOptions,
-         OptionsForParam[ParamKind].Count,
-         OptionsForParam[ParamKind].OptionProc, @Data, true);
-   end;
+  for ParamKind := Low(ParamKind) to High(ParamKind) do
+    if ParamKind in AllowedOptions then
+    begin
+      if ParamKind = poMacOsXProcessSerialNumber then
+        HandleMacOsXProcessSerialNumber
+      else
+        Parameters.Parse(OptionsForParam[ParamKind].pOptions,
+          OptionsForParam[ParamKind].Count,
+          OptionsForParam[ParamKind].OptionProc, @Data, true);
+    end;
 
- SpecifiedOptions := Data.SpecifiedOptions;
+  SpecifiedOptions := Data.SpecifiedOptions;
 end;
 
 procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOptions);
@@ -4157,20 +4160,27 @@ class function TCastleWindowBase.ParseParametersHelp(
   const AllowedOptions: TWindowParseOptions;
   AddHeader: boolean): string;
 const
-  HelpForParam: array[TWindowParseOption] of string =
-  ('  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' +nl+
-   '                        Set initial window size and/or position.' +nl+
-   '  --fullscreen          Set initial window size to cover whole screen.',
-   '  --fullscreen-custom WIDTHxHEIGHT' +nl+
-   '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
-   '                        then set initial window size to cover whole screen.',
-   '  --display DISPLAY-NAME' +nl+
-   '                        Use given X display name.',
-   '',
-   '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' +nl+
-   '                        vertical synchonization in your GPU settings,' +nl+
-   '                        to get maximum FPS.'
-   );
+  HelpForParam: array [TWindowParseOption] of string =
+  (
+    // poGeometry
+    '  --fullscreen          Set window to full-screen (cover whole screen).' + NL +
+    '  --window              Set window to not full-screen.' + NL +
+    '  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' + NL +
+    '                        Set window to not full-screen, and set size and/or position.',
+    // poScreenGeometry
+    '  --fullscreen-custom WIDTHxHEIGHT' + NL +
+    '                        Try to resize the screen to WIDTHxHEIGHT and' + NL +
+    '                        then set window to full-screen.',
+    // poDisplay
+    '  --display DISPLAY-NAME' + NL +
+    '                        Use given X display name.',
+    // poMacOsXProcessSerialNumber
+    '',
+    // poLimitFps
+    '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' + NL +
+    '                        vertical synchonization in your GPU settings,' + NL +
+    '                        to get maximum FPS.'
+  );
 var
   ParamKind: TWindowParseOption;
 begin

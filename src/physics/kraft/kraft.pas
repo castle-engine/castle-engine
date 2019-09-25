@@ -1882,8 +1882,11 @@ type PKraftForceMode=^TKraftForceMode;
        procedure UpdatePairs; {$ifdef caninline}inline;{$endif}
 
        procedure StaticBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure StaticBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
        procedure DynamicBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure DynamicBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
        procedure KinematicBufferMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
+       procedure KinematicBufferClearMove(ProxyID:longint); {$ifdef caninline}inline;{$endif}
 
      end;
 
@@ -18966,6 +18969,8 @@ begin
  end;
 
  if fStaticAABBTreeProxy>=0 then begin
+  if fPhysics.NewShapes then
+   fPhysics.fBroadPhase.StaticBufferClearMove(fStaticAABBTreeProxy);
   fPhysics.fStaticAABBTree.DestroyProxy(fStaticAABBTreeProxy);
   fStaticAABBTreeProxy:=-1;
  end;
@@ -18976,11 +18981,15 @@ begin
  end;
 
  if fDynamicAABBTreeProxy>=0 then begin
+  if fPhysics.NewShapes then
+    fPhysics.fBroadPhase.DynamicBufferClearMove(fDynamicAABBTreeProxy);
   fPhysics.fDynamicAABBTree.DestroyProxy(fDynamicAABBTreeProxy);
   fDynamicAABBTreeProxy:=-1;
  end;
 
  if fKinematicAABBTreeProxy>=0 then begin
+   if fPhysics.NewShapes then
+    fPhysics.fBroadPhase.KinematicBufferClearMove(fKinematicAABBTreeProxy);
   fPhysics.fKinematicAABBTree.DestroyProxy(fKinematicAABBTreeProxy);
   fKinematicAABBTreeProxy:=-1;
  end;
@@ -24515,6 +24524,21 @@ begin
  fStaticMoveBuffer[Index]:=ProxyID;
 end;
 
+procedure TKraftBroadPhase.StaticBufferClearMove(ProxyID:longint);
+var I:integer;
+begin
+  I:=0;
+  while I<fStaticMoveBufferSize do begin
+    if fStaticMoveBuffer[I]=ProxyID then begin
+      if I<>fStaticMoveBufferSize-1 then
+        move(fStaticMoveBuffer[I+1],fStaticMoveBuffer[I],SizeOf(fStaticMoveBuffer[I])*(fStaticMoveBufferSize-I));
+      Dec(fStaticMoveBufferSize);
+      continue;
+    end;
+    Inc(I);
+  end;
+end;
+
 procedure TKraftBroadPhase.DynamicBufferMove(ProxyID:longint);
 var Index:longint;
 begin
@@ -24526,6 +24550,21 @@ begin
  fDynamicMoveBuffer[Index]:=ProxyID;
 end;
 
+procedure TKraftBroadPhase.DynamicBufferClearMove(ProxyID:longint);
+var I:integer;
+begin
+  I:=0;
+  while I<fDynamicMoveBufferSize do begin
+    if fDynamicMoveBuffer[I]=ProxyID then begin
+      if I<>fDynamicMoveBufferSize-1 then
+        move(fDynamicMoveBuffer[I+1],fDynamicMoveBuffer[I],SizeOf(fDynamicMoveBuffer[I])*(fDynamicMoveBufferSize-I));
+      Dec(fDynamicMoveBufferSize);
+      continue;
+    end;
+    Inc(I);
+  end;
+end;
+
 procedure TKraftBroadPhase.KinematicBufferMove(ProxyID:longint);
 var Index:longint;
 begin
@@ -24535,6 +24574,21 @@ begin
   SetLength(fKinematicMoveBuffer,fKinematicMoveBufferSize*2);
  end;
  fKinematicMoveBuffer[Index]:=ProxyID;
+end;
+
+procedure TKraftBroadPhase.KinematicBufferClearMove(ProxyID:longint);
+var I:integer;
+begin
+  I:=0;
+  while I<fKinematicMoveBufferSize do begin
+    if fKinematicMoveBuffer[I]=ProxyID then begin
+      if I<>fKinematicMoveBufferSize-1 then
+        move(fKinematicMoveBuffer[I+1],fKinematicMoveBuffer[I],SizeOf(fKinematicMoveBuffer[I])*(fKinematicMoveBufferSize-I));
+      Dec(fKinematicMoveBufferSize);
+      continue;
+    end;
+    Inc(I);
+  end;
 end;
 
 constructor TKraftRigidBody.Create(const APhysics:TKraft);

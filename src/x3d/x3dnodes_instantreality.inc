@@ -553,8 +553,10 @@
     {$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
   end;
 
-  { Display a static 2D image as a background. }
+  { Display a 2D image as a background. }
   TImageBackgroundNode = class(TAbstractBackgroundNode)
+  protected
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -1602,7 +1604,6 @@ begin
     URNMatchingCastle(URN, ClassX3DType);
 end;
 
-{
 function TImageBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -1611,7 +1612,6 @@ begin
   Result := FdTexture.Enumerate(Func);
   if Result <> nil then Exit;
 end;
-}
 
 { registration ----------------------------------------------------------------- }
 
