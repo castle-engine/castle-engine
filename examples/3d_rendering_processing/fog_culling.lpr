@@ -20,7 +20,10 @@
 
   This loads data/fog_culling_final.x3dv X3D file.
 
-  Press [F] key to turn DistanceCulling (and fog display) on/off.
+  Press [Ctrl + F] to toggle DistanceCulling (and fog display) on/off.
+
+  Press [Cltr + C] to toggle per-shape frustum culling on/off,
+  ths also makes a difference in this demo.
 }
 
 program fog_culling;
