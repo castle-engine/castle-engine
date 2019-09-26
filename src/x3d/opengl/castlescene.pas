@@ -1344,10 +1344,7 @@ begin
   if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
-    begin
       Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
-      Inc(Params.Statistics.ScenesRendered);
-    end;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;
@@ -2116,15 +2113,18 @@ begin
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
        (not ExcludeFromStatistics) then
-    begin
       Inc(Params.Statistics.ScenesVisible);
-    end;
 
     if FSceneFrustumCulling and not InternalIgnoreFrustum then
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
         Exit;
     end;
+
+    if (not Params.Transparent) and
+       (Params.InternalPass = 0) and
+       (not ExcludeFromStatistics) then
+      Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
