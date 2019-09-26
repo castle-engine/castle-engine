@@ -112,7 +112,6 @@ type
       FBackgroundWireframe: boolean;
       FBackgroundColor: TCastleColor;
       FOnRender3D: TRender3DEvent;
-      FHeadlightFromViewport: boolean;
       FUseGlobalLights, FUseGlobalFog: boolean;
       FApproximateActivation: boolean;
       FDefaultVisibilityLimit: Single;
@@ -157,7 +156,6 @@ type
       DistortFieldOfViewY, DistortViewAspect: Single;
       SickProjectionTime: TFloatTime;
       FOnCameraChanged: TNotifyEvent;
-      FMainCamera: Boolean;
 
     function FillsWholeContainer: boolean;
     function PlayerNotBlocked: boolean;
@@ -309,6 +307,7 @@ type
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
     function GetSceneManager: TCastleSceneManager; virtual; abstract;
+    function GetMainCamera: TCastleCamera; virtual; abstract;
     function GetItems: TSceneManagerWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
@@ -603,24 +602,6 @@ type
     { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
-    { Is this the central @link(Camera), that controls the features that require
-      a single camera (cannot adapt to multiple possible viewports).
-      The main camera controls the X3D nodes like ProximitySensor, Billboard.
-      The main camera also sets an audio listener (controlling the spatial sound).
-
-      TODO: It should also control the headlight.
-      For now, headlight is controlled by the scene manager always.
-
-      Only one TCastleViewport or an associated TCastleSceneManager
-      should have MainCamera set to @true, otherwise they would all try to
-      control the camera in the same world.
-
-      TODO; Maybe instead of this at each viewport,
-      we should have
-      SceneManager.MainViewport property,
-      which by default points to Self but could point to any other viewport? }
-    property MainCamera: Boolean read FMainCamera write FMainCamera default false;
-
   published
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
@@ -747,38 +728,6 @@ type
       at the beginning of rendering.
     }
     property ClearDepth: boolean read FClearDepth write FClearDepth default true;
-
-    { When @true then headlight is always rendered from custom viewport's
-      (TCastleViewport) camera, not from central camera (the one in scene manager).
-      This is meaningless in TCastleSceneManager.
-
-      By default this is @false, which means that when rendering
-      custom viewport (TCastleViewport) we render headlight from
-      TCastleViewport.SceneManager.Camera (not from current viewport's
-      TCastleViewport.Camera). On one hand, this is sensible: there is exactly one
-      headlight in your 3D world, and it shines from a central camera
-      in SceneManager.Camera. When SceneManager.Camera is @nil (which
-      may happen if you set SceneManager.DefaultViewport := false and you
-      didn't assign SceneManager.Camera explicitly) headlight is never done.
-      This means that when observing 3D world from other cameras,
-      you will see a light shining from SceneManager.Camera.
-      This is also the only way to make headlight lighting correctly reflected
-      in mirror textures (like GeneratedCubeMapTexture) --- since we render
-      to one mirror texture, we need a knowledge of "cental" camera for this.
-
-      When this is @true, then each viewport actually renders headlight
-      from it's current camera. This means that actually each viewport
-      has it's own, independent headlight (althoug they all follow VRML/X3D
-      NavigationInfo.headlight and KambiNavigationInfo settings).
-      This may allow you to light your view better (if you only use
-      headlight to "just make the view brighter"), but it's not entirely
-      correct (in particular, mirror reflections of the headlight are
-      undefined then).
-
-      @deprecated This is deprecated, since HeadlightFromViewport = @true
-      is not really nicely defined, and it's not practically that useful either. }
-    property HeadlightFromViewport: boolean
-      read FHeadlightFromViewport write FHeadlightFromViewport default false; deprecated;
 
     { Let MainScene.GlobalLights shine on every 3D object, not only
       MainScene. This is an easy way to lit your whole world with lights
@@ -1010,6 +959,7 @@ type
     FOnMoveAllowed: TWorldMoveAllowedEvent;
     FHeadlightNode: TAbstractLightNode;
     FUseHeadlight: TUseHeadlight;
+    FMainCamera: TCastleCamera;
 
     ScheduledVisibleChangeNotification: boolean;
     ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
@@ -1021,6 +971,7 @@ type
 
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
+    procedure SetMainCamera(const Value: TCastleCamera);
 
     procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 
@@ -1036,6 +987,10 @@ type
 
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
+
+    { What changes happen when camera changes.
+      You may want to use it when calling Scene.CameraChanged. }
+    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
   protected
     FSectors: TSectorList;
     Waypoints: TWaypointList;
@@ -1060,6 +1015,7 @@ type
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
 
     function GetSceneManager: TCastleSceneManager; override;
+    function GetMainCamera: TCastleCamera; override;
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
@@ -1112,12 +1068,6 @@ type
 
     procedure BeforeRender; override;
     procedure Render; override;
-
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged.
-
-      Implementation in this class is correlated with RenderHeadlight. }
-    function CameraToChanges: TVisibleChanges; virtual;
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -1289,7 +1239,31 @@ type
       const ScreenCoordinates: Boolean;
       const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 
-    property MainCamera default true;
+    { The central camera, that controls the features that require
+      a single camera (cannot adapt to multiple possible viewports)
+      like a headlight.
+      This camera controls:
+
+      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
+      - an audio listener (controlling the spatial sound).
+      - the headlight.
+
+      Note that it means that "headlight" is assigned to one camera
+      in case of multiple viewports looking at the same world.
+      You cannot have a different "headlight" in each viewport,
+      this would cause subtle problems since it's not how it would work in reality
+      (where every light is visible in all viewports),
+      e.g. mirror textures (like GeneratedCubeMapTexture)
+      would need different contents in different viewpoints.
+
+      By default this is set to @link(Camera) of the @link(TCastleSceneManager).
+      So in @link(TCastleSceneManager), by default @link(Camera) = @name.
+      However you can change this to any camera of any associated @link(TCastleViewport),
+      or @nil (in case no camera should be that "central" camera).
+
+      TODO: Use free notification to automatically nil this.
+      For now, be sure to unassign it early enough, before freeing the camera. }
+    property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
 
   published
     { Time scale used when not @link(Paused). }
@@ -1480,6 +1454,7 @@ type
     procedure CheckSceneManagerAssigned;
   protected
     function GetSceneManager: TCastleSceneManager; override;
+    function GetMainCamera: TCastleCamera; override;
     function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
@@ -2396,30 +2371,9 @@ begin
   Node := Headlight;
   if Node <> nil then
   begin
-    {$warnings off}
-    if HeadlightFromViewport then
-      HC := Camera
-    else
-      HC := GetHeadlightCamera;
-    {$warnings on}
-
-    { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
-      rendering is done by a custom viewport and HeadlightFromViewport = false.
-      So check HC <> nil.
-      When nil we have to assume headlight doesn't shine.
-
-      We don't want to use camera settings from current viewport
-      (unless HeadlightFromViewport = true, which is a hack).
-      This would mean that mirror textures (like GeneratedCubeMapTexture)
-      will need to have different contents in different viewpoints,
-      which isn't possible. We also want to use scene manager's camera,
-      to have it tied with scene manager's CameraToChanges implementation.
-
-      So if you use custom viewports and want headlight Ok,
-      be sure to explicitly set TCastleSceneManager.Camera
-      (probably, to one of your viewpoints' cameras).
-      Or use a hacky HeadlightFromViewport. }
-
+    HC := GetMainCamera;
+    { GetMainCamera may be nil in case TCastleViewport.SceneManager not assigned,
+      or SceneManager.MainCamera set to @nil. }
     if HC <> nil then
     begin
       PrepareInstance;
@@ -3534,7 +3488,8 @@ begin
   FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
-  MainCamera := true;
+
+  FMainCamera := Camera;
 
   FViewports := TCastleAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
@@ -3673,7 +3628,7 @@ begin
         from Eugene.
       }
       MainScene.CameraChanged(Camera);
-      ItemsVisibleChange(MainScene, CameraToChanges);
+      ItemsVisibleChange(MainScene, CameraToChanges(Camera));
     end;
   end;
 end;
@@ -3736,19 +3691,10 @@ begin
   begin
     inherited;
 
-    // TODO: this should be removed?
-    if FNavigation <> nil then
-    begin
-      { Call initial CameraChanged (this allows ProximitySensors to work
-        as soon as ProcessEvents becomes true). }
-      Items.CameraChanged(Camera);
-      ItemsVisibleChange(Items, CameraToChanges);
-    end;
-
-    // TODO: this should be removed?
-    { Changing camera changes also the view rapidly. }
-    if MainScene <> nil then
-      MainScene.ViewChangedSuddenly;
+    // TODO: when to call ViewChangedSuddenly now? From TCastleCamera?
+    // { Changing camera changes also the view rapidly. }
+    // if MainScene <> nil then
+    //   MainScene.ViewChangedSuddenly;
 
     { Call OnBoundNavigationInfoChanged when camera instance changed.
       This allows code that observes Camera.NavigationType to work,
@@ -3855,9 +3801,10 @@ begin
   PrepareResources;
 end;
 
-function TCastleSceneManager.CameraToChanges: TVisibleChanges;
+function TCastleSceneManager.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 begin
-  if Headlight <> nil then
+  // headlight exists, and we changed camera controlling headlight
+  if (Headlight <> nil) and (ACamera = GetMainCamera) then
     Result := [vcVisibleNonGeometry]
   else
     Result := [];
@@ -4096,21 +4043,22 @@ procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterf
   procedure CameraChange;
   var
     Pos, Dir, Up: TVector3;
+    MC: TCastleCamera;
     SM: TCastleSceneManager;
   begin
-    if MainCamera then
+    MC := GetMainCamera;
+    if MC = Camera then
     begin
       SM := GetSceneManager;
-      if SM <> nil then
-      begin
-        { Call CameraChanged on all TCastleTransform.
-          Note that we have to call it on all Items, not just MainScene,
-          to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-        SM.Items.CameraChanged(Camera);
-        { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleSceneManager),
-          but without chCamera, so no infinite recursion. }
-        SM.ItemsVisibleChange(SM.Items, SM.CameraToChanges);
-      end;
+      Assert(SM <> nil); // since GetMainCamera <> nil, so GetSceneManager must also <> nil
+
+      { Call CameraChanged on all TCastleTransform.
+        Note that we have to call it on all Items, not just MainScene,
+        to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
+      SM.Items.CameraChanged(Camera);
+      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleSceneManager),
+        but without chCamera, so no infinite recursion. }
+      SM.ItemsVisibleChange(SM.Items, SM.CameraToChanges(Camera));
 
       Camera.GetView(Pos, Dir, Up);
       SoundEngine.UpdateListener(Pos, Dir, Up);
@@ -4213,6 +4161,11 @@ begin
   Result := Self;
 end;
 
+function TCastleSceneManager.GetMainCamera: TCastleCamera;
+begin
+  Result := MainCamera;
+end;
+
 function TCastleSceneManager.GetItems: TSceneManagerWorld;
 begin
   Result := Items;
@@ -4254,8 +4207,18 @@ begin
   begin
     FDefaultViewport := Value;
     if DefaultViewport then
-      Viewports.Add(Self) else
+      Viewports.Add(Self)
+    else
       Viewports.Remove(Self);
+  end;
+end;
+
+procedure TCastleSceneManager.SetMainCamera(const Value: TCastleCamera);
+begin
+  if FMainCamera <> Value then
+  begin
+    FMainCamera := Value;
+    VisibleChange([chRender]);
   end;
 end;
 
@@ -4395,6 +4358,14 @@ end;
 function TCastleViewport.GetSceneManager: TCastleSceneManager;
 begin
   Result := SceneManager;
+end;
+
+function TCastleViewport.GetMainCamera: TCastleCamera;
+begin
+  if SceneManager <> nil then
+    Result := SceneManager.MainCamera
+  else
+    Result := nil; // to work even before SceneManager is assigned
 end;
 
 function TCastleViewport.GetItems: TSceneManagerWorld;

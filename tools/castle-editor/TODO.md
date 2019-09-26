@@ -52,8 +52,6 @@ Before 6.6 release:
     * Proper screenshots of all project templates
     * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
 
-* unpublish HeadlightFromViewport, since unsure (deprecated even, or planned to be deprecated?)
-
 * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
 
 ------------------------------------------------------------------------------

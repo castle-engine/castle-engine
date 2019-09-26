@@ -187,8 +187,8 @@ begin
 end;
 
 var
-  URL: string = 'data/teapot.x3dv';
-  // 'data/bridge_final.x3dv';
+  URL: string = 'castle-data:/teapot.x3dv';
+  // 'castle-data:/bridge_final.x3dv';
   // '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
 type
@@ -264,7 +264,8 @@ begin
 
   { shadow on one viewport }
   Viewports[1] := TMyViewport.Create(Application);
-  Viewports[1].Caption := 'Shadow volumes On';
+  Viewports[1].Caption := 'Shadow volumes On' + NL + 'Main Camera (controls headlight)';
+  Window.SceneManager.MainCamera := Viewports[1].Camera; // just a test of MainCamera
 
   Viewports[2] := TScreenEffectDemoViewport.Create(Application);
   Viewports[2].Caption := 'Screen effect shader';

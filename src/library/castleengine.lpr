@@ -277,7 +277,6 @@ begin
     Window.Load(StrPas(PChar(szFile)));
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     Window.MainScene.ProcessEvents := true;
-    Window.SceneManager.Items.VisibleChangeNotification(Window.SceneManager.CameraToChanges);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
