@@ -500,6 +500,8 @@ type
       Internal. @exclude }
     procedure Update(const SecondsPassed: Single);
 
+    procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleAbstractViewport should create and destroy TCastleAbstractViewport.Camera; this method does nothing now';
+
   published
     { Projection near plane distance.
 
@@ -2562,6 +2564,10 @@ begin
     FProjectionType := Value;
     VisibleChange;
   end;
+end;
+
+procedure TCastleCamera.Free;
+begin
 end;
 
 {$define read_implementation_methods}

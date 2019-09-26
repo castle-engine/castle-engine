@@ -46,8 +46,7 @@ begin
     { Setting MainScene allows SceneManager to adjust
       viewpoint, headlight, background etc. based on MainScene contents. }
     SceneManager.MainScene := Scene;
-    { Freeing camera each time, forces recreating best camera at render. }
-    SceneManager.Camera.Free;
+    SceneManager.AssignDefaultCamera;
 
     Window.Container.RenderControl(SceneManager,
       Rectangle(0, 0, ImageWidth, ImageHeight));
@@ -110,6 +109,8 @@ begin
   }
 
   SceneManager := TCastleSceneManager.Create(Application);
+  SceneManager.AutoDetectCamera := false;
+  SceneManager.AutoDetectNavigation := false;
   SceneManager.FullSize := false;
   SceneManager.Width := ImageWidth;
   SceneManager.Height := ImageHeight;

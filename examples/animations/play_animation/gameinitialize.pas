@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
-  CastleApplicationProperties, CastleVectors;
+  CastleApplicationProperties, CastleVectors, CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -128,10 +128,7 @@ class procedure TEventsHandler.Open(const Url: string);
 
 begin
   Scene.Load(Url);
-  { force recreating camera, to adjust to new scene bounding box }
-  Window.SceneManager.Camera.Free;
-  { create camera with Examine navigation (regardless of NavigationInfo inside scene) }
-  Window.SceneManager.ExamineCamera;
+  Window.SceneManager.AssignDefaultCamera;
   RecreateAnimationsPanel;
 end;
 
@@ -201,6 +198,10 @@ begin
   Scene.ProcessEvents := true;
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
+
+  Window.SceneManager.AutoDetectCamera := false; // we will explicitly call AssignDefaultCamera
+  Window.SceneManager.AutoDetectNavigation := false;
+  Window.SceneManager.NavigationType := ntExamine; // always Examine, regardless of scene
 
   Y := -Margin;
 

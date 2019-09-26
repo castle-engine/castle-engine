@@ -46,10 +46,8 @@ begin
     { camera is separate from the 3D world, and so it is *not* reinitialized
       by simple reloading of the scene. In this demo, we want to move camera
       to most suitable place for the *new* scene (ignoring previous camera
-      mode and position). The simplest way to do it is to just free the previous
-      camera. SceneManager will automatically create new, suitable camera
-      before next render. }
-    Window.SceneManager.Camera.Free;
+      mode and position). }
+    Window.SceneManager.AssignDefaultCamera;
   end;
 end;
 
@@ -98,8 +96,8 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  { force recreating camera suitable for new Scene (after it's added to SceneManager) }
-  Window.SceneManager.Camera.Free;
+  Window.SceneManager.AssignDefaultCamera;
+  Window.SceneManager.AutoDetectCamera := false;
 
   { Output some information about the loaded scene }
   Writeln('Scene vertexes: ', Scene.VerticesCount(true),

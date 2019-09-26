@@ -82,8 +82,7 @@ begin
       // set MainScene, to set headlight
       if SceneManager.MainScene = nil then
         SceneManager.MainScene := Scene;
-      // force recreating the camera soon, to see the whole scene
-      SceneManager.Camera.Free;
+      SceneManager.AssignDefaultCamera;
     end;
 
     {$ifdef HAS_RENDER_AT_DESIGN_TIME}
