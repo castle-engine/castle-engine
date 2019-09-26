@@ -627,21 +627,23 @@ var
 begin
   MessageHandlingBegin := Timer;
   repeat
-    if WaitForMessage and AllowSuspendForInput and
-      { Unfortunately, we have to be more conservative than
-        AllowSuspendForInput to decide when we can suspend.
+    { Android app can't be suspended by WaitForMessage and AllowSuspendForInput
+      because we do not react to resize events soon enough then,
+      since we have to actually do a couple of loop passes until resize
+      reaches us. Reproducible on drawing_toy.
 
-        Right now we cannot suspend on non-closed window.
-        Otherwise we do not react to resize events soon enough,
-        since we have to actually do a couple of loop passes until resize
-        reaches us. Reproducible on drawing_toy: without this,
-        we will not receive resize before drawing. }
-      ((MainWindow = nil) or MainWindow.Closed) then
+      On the other hand, we must always stop the message loop when the
+      window is closed to not waste battery. }
+    if (MainWindow = nil) or MainWindow.Closed then
     begin
       WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
       Ident := ALooper_pollAll(-1 { wait }, nil, @Events, @Source);
     end else
+    begin
       Ident := ALooper_pollAll(0, nil, @Events, @Source);
+      { Uncomment it to test loop suspending solution. }
+      //WritelnLog('Android', 'Looping...');
+    end;
     if Ident < 0 then Break;
 
     if Source <> nil then
