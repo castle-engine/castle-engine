@@ -551,8 +551,9 @@ type
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
   protected
-    function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
+    function CreateShape(const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState;
+      const ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
 
     procedure LocalRender(const Params: TRenderParams); override;
@@ -1008,8 +1009,8 @@ begin
   inherited;
 end;
 
-function TCastleScene.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
+function TCastleScene.CreateShape(const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState; const ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TGLSceneShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
@@ -1023,34 +1024,6 @@ procedure TCastleScene.GLContextClose;
       constructor terminated with exception.
     So e.g. we have to check Renderer <> nil, Shapes <> nil here. }
 
-  { Free Arrays and Vbo of all shapes. }
-  procedure RendererDetachFromShapes;
-  var
-    SI: TShapeTreeIterator;
-    S: TGLShape;
-    Pass: TTotalRenderingPass;
-  begin
-    if (Renderer <> nil) and (Shapes <> nil) then
-    begin
-      { Iterate even over non-visible shapes, for safety:
-        since this GLContextClose may happen after some
-        "visibility" changed, that is you changed proxy
-        or such by event. }
-      SI := TShapeTreeIterator.Create(Shapes, false, false);
-      try
-        while SI.GetNext do
-        begin
-          S := TGLShape(SI.Current);
-          if S.Cache <> nil then
-            Renderer.Cache.Shape_DecReference(S.Cache);
-          for Pass := Low(Pass) to High(Pass) do
-            if S.ProgramCache[Pass] <> nil then
-              Renderer.Cache.Program_DecReference(S.ProgramCache[Pass]);
-        end;
-      finally FreeAndNil(SI) end;
-    end;
-  end;
-
   { Call TGLShape.GLContextClose. }
   procedure ShapesGLContextClose;
   var
@@ -1058,7 +1031,11 @@ procedure TCastleScene.GLContextClose;
   begin
     if Shapes <> nil then
     begin
-      SI := TShapeTreeIterator.Create(Shapes, false, true);
+      { Iterate even over non-visible shapes too, for safety:
+        since this GLContextClose may happen after some
+        "visibility" changed, that is you changed proxy
+        or such by event. }
+      SI := TShapeTreeIterator.Create(Shapes, false, false);
       try
         while SI.GetNext do
           TGLShape(SI.Current).GLContextClose;
@@ -1104,14 +1081,12 @@ begin
   PreparedRender := false;
   PreparedShapesResources := false;
 
-  RendererDetachFromShapes;
-
   ScreenEffectsGLContextClose;
+
+  ShapesGLContextClose;
 
   if Renderer <> nil then
     Renderer.UnprepareAll;
-
-  ShapesGLContextClose;
 
   VarianceShadowMapsProgram.Free;
   ShadowMapsProgram.Free;
@@ -1122,6 +1097,9 @@ begin
 
   if OcclusionQueryUtilsRenderer <> nil then
     OcclusionQueryUtilsRenderer.GLContextClose;
+
+  if FBatching <> nil then
+    FBatching.GLContextClose;
 end;
 
 procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
@@ -1182,6 +1160,9 @@ var
   { Renders Shape, caling unconditionally Renderer.RenderShape. }
   procedure RenderShape_NoTests(const Shape: TGLShape);
   begin
+    Shape.ModelView := ModelView;
+    Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
+
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
@@ -1204,8 +1185,6 @@ var
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    Shape.ModelView := ModelView;
-    Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
     if not (InternalDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
@@ -1214,12 +1193,16 @@ var
   var
     Shape: TShape;
   begin
-    if (not InternalDynamicBatching) or
-       (Batching.Collected.Count = 0) then
-      Exit;
-    for Shape in Batching.Collected do
-      RenderShape_NoTests(TGLShape(Shape));
-    Batching.FreeCollected;
+    if InternalDynamicBatching then
+    begin
+      Batching.Commit;
+      for Shape in Batching.Collected do
+      begin
+        TGLShape(Shape).PrepareResources; // otherwise, shapes from batching FPool would never have PrepareResources called?
+        RenderShape_NoTests(TGLShape(Shape));
+      end;
+      Batching.FreeCollected;
+    end;
   end;
 
   { Render Shape if all tests pass, except TestShapeVisibility callback is ignored.
@@ -1344,10 +1327,7 @@ begin
   if (not Params.Transparent) and (Params.InternalPass = 0) then
   begin
     if not ExcludeFromStatistics then
-    begin
       Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
-      Inc(Params.Statistics.ScenesRendered);
-    end;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;
@@ -2116,15 +2096,18 @@ begin
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
        (not ExcludeFromStatistics) then
-    begin
       Inc(Params.Statistics.ScenesVisible);
-    end;
 
     if FSceneFrustumCulling and not InternalIgnoreFrustum then
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
         Exit;
     end;
+
+    if (not Params.Transparent) and
+       (Params.InternalPass = 0) and
+       (not ExcludeFromStatistics) then
+      Inc(Params.Statistics.ScenesRendered);
 
     FrustumForShapeCulling := Params.Frustum;
     RenderCameraKnown := (World <> nil) and World.CameraKnown;
@@ -2391,7 +2374,7 @@ end;
 function TCastleScene.Batching: TBatchShapes;
 begin
   if FBatching = nil then
-    FBatching := TBatchShapes.Create;
+    FBatching := TBatchShapes.Create({$ifdef CASTLE_OBJFPC}@{$endif} CreateShape);
   Result := FBatching;
 end;
 
