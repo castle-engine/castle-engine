@@ -1,5 +1,5 @@
 {
-  Copyright 2017-2018 Michalis Kamburelis.
+  Copyright 2017-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -66,8 +66,8 @@ type
     procedure LocalRender(const Params: TRenderParams); override;
   end;
 
-function TCastleSceneVulkan.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
+function TCastleSceneVulkan.CreateShape(const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState; const ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TVulkanShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
