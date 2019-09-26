@@ -177,9 +177,11 @@ begin
   for I := 0 to High(Viewports) do
   begin
     { set different camera views for all viewports, to make it interesting }
+    Viewports[I].AssignDefaultCamera;
+    Viewports[I].AssignDefaultNavigation;
     if (I < 3) and
-       (Viewports[I].RequiredNavigation is TCastleExamineNavigation) then
-      (Viewports[I].RequiredNavigation as TCastleExamineNavigation).Rotations :=
+       (Viewports[I].Navigation is TCastleExamineNavigation) then
+      (Viewports[I].Navigation as TCastleExamineNavigation).Rotations :=
         QuatFromAxisAngle(TVector3.One[I], Pi / 2);
   end;
 end;
@@ -276,6 +278,9 @@ begin
   begin
     if Viewports[I] = nil then
       Viewports[I] := TMyViewport.Create(Application);
+
+    Viewports[I].AutoDetectCamera := false;
+    Viewports[I].AutoDetectNavigation := false;
     Viewports[I].SceneManager := Window.SceneManager;
     Viewports[I].FullSize := false;
     Viewports[I].ShadowVolumes := I = 1;
