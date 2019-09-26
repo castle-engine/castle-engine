@@ -20,27 +20,35 @@ unit CastleInternalBatchShapes;
 
 interface
 
-uses CastleSceneInternalShape, CastleShapes, X3DNodes;
+uses CastleSceneInternalShape, CastleShapes, X3DNodes, X3DFields;
 
 type
   TCreateShapeEvent = function(const AGeometry: TAbstractGeometryNode;
     const AState: TX3DGraphTraverseState;
     const ParentInfo: PTraversingInfo): TShape of object;
 
+  TMergePipeline = (mpNoTexCoord, mpTexCoord);
+
   TBatchShapes = class
   strict private
     FCollected: TShapeList;
-    FWaitingToBeCollected, FMergeTarget: TGLShape;
-    FPool: TShapeList;
+    FWaitingToBeCollected, FMergeTarget, FPool: array [TMergePipeline] of TGLShape;
     FPoolGeometries: TGroupNode;
     { Add Source into Target.
       You can assume that Target is one of our pool shapes,
       with initial state and geometry calculated
       by CreatePoolGeometry, CreatePoolState. }
-    procedure Merge(const Target, Source: TGLShape);
+    procedure Merge(const Target, Source: TGLShape;
+      const P: TMergePipeline);
 
     { Clear any possible leftovers from Merge, where a given shape was Target. }
-    procedure ClearMerge(const Target: TGLShape);
+    procedure ClearMerge(const Target: TGLShape;
+      const P: TMergePipeline);
+
+    { Similar to TAbstractGeometryNode.InternalCoordinates, but for tex coords. }
+    class function TexCoordinates(
+      const Geometry: TAbstractGeometryNode;
+      const State: TX3DGraphTraverseState): TMFVec2f;
   public
     constructor Create(const CreateShape: TCreateShapeEvent);
     destructor Destroy; override;
@@ -67,26 +75,26 @@ type
 implementation
 
 uses SysUtils,
-  X3DFields, CastleUtils, CastleLog;
+  CastleUtils, CastleLog;
 
 constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
 
   procedure InitializePool;
   var
-    I: Integer;
     ShapeNode: TShapeNode;
     Geometry: TIndexedFaceSetNode;
     State: TX3DGraphTraverseState;
     ParentInfo: TTraversingInfo;
-    Shape: TShape;
-  const
-    PoolSize = 1;
+    Shape: TGLShape;
+    P: TMergePipeline;
   begin
-    for I := 1 to PoolSize do
+    for P in TMergePipeline do
     begin
       // initialize Geometry and ShapeNode
       Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode);
       Geometry.Coord := TCoordinateNode.Create;
+      if P = mpTexCoord then
+        Geometry.TexCoord := TTextureCoordinateNode.Create;
       FPoolGeometries.AddChildren(ShapeNode);
 
       // initialize State
@@ -98,8 +106,8 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
       ParentInfo.ParentInfo := nil;
 
       // initialize Shape, add it to FPool
-      Shape := CreateShape(Geometry, State, @ParentInfo);
-      FPool.Add(Shape);
+      Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
+      FPool[P] := Shape;
     end;
   end;
 
@@ -111,21 +119,47 @@ begin
 
   FPoolGeometries := TGroupNode.Create;
 
-  FPool := TShapeList.Create;
-  FPool.OwnsObjects := true;
-
   InitializePool;
 end;
 
 destructor TBatchShapes.Destroy;
+var
+  P: TMergePipeline;
 begin
   FreeAndNil(FCollected);
-  FreeAndNil(FPool);
+  for P in TMergePipeline do
+    FreeAndNil(FPool[P]);
   FreeAndNil(FPoolGeometries);
   inherited;
 end;
 
 function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
+
+  function CanCollectGeometry(const Geometry: TAbstractGeometryNode;
+    out HasTexCoord: Boolean): Boolean;
+  var
+    TexCoord: TAbstractTextureCoordinateNode;
+  begin
+    Result := false;
+    HasTexCoord := false;
+    if not (Geometry is TIndexedFaceSetNode) then
+      Exit;
+
+    if TIndexedFaceSetNode(Geometry).FdTexCoordIndex.Count <> 0 then
+      Exit; // for now we don't handle FdTexCoord
+
+    TexCoord := TIndexedFaceSetNode(Geometry).TexCoord;
+    if (TexCoord = nil) or
+       (TexCoord is TTextureCoordinateNode) then
+    begin
+      Result := true;
+      HasTexCoord := TexCoord <> nil;
+    end;
+  end;
+
+var
+  HasTexCoord: Boolean;
+  P: TMergePipeline;
 begin
   { We can only Merge geometries
     - with TIndexedFaceSetNode
@@ -136,85 +170,100 @@ begin
   }
   Result :=
     (Shape.Node <> nil) and
-    (Shape.Geometry(true) is TIndexedFaceSetNode);
+    CanCollectGeometry(Shape.Geometry(true), HasTexCoord);
   if not Result then
     Exit;
+
+  if HasTexCoord then
+    P := mpTexCoord
+  else
+    P := mpNoTexCoord;
 
   { TODO: merging shapes with blending messes up their order,
     unless you merge them *all* into one shape (which is what we do now). }
 
-  if FMergeTarget <> nil then
+  if FMergeTarget[P] <> nil then
   begin
     // 3rd and subsequent shapes (FMergeTarget <> nil, FWaitingToBeCollected = nil)
     { Merge Shape into last FMergeTarget shape.
       TODO: In the future this should check into which (if any)
       FCollected shape we should merge. }
-    Merge(FMergeTarget, Shape);
+    Merge(FMergeTarget[P], Shape, P);
   end else
-  if FWaitingToBeCollected <> nil then
+  if FWaitingToBeCollected[P] <> nil then
   begin
     // 2nd shape (FMergeTarget was nil)
-    FMergeTarget := FPool[0] as TGLShape; // for now, assume Pool[0] is available and suitable for merging
-    FCollected.Add(FMergeTarget);
-    ClearMerge(FMergeTarget);
-    Merge(FMergeTarget, FWaitingToBeCollected);
-    Merge(FMergeTarget, Shape);
-    FWaitingToBeCollected := nil;
+    FMergeTarget[P] := FPool[P];
+    FCollected.Add(FMergeTarget[P]);
+    ClearMerge(FMergeTarget[P], P);
+    Merge(FMergeTarget[P], FWaitingToBeCollected[P], P);
+    Merge(FMergeTarget[P], Shape, P);
+    FWaitingToBeCollected[P] := nil;
   end else
   begin
     // 1st shape (both FMergeTarget and FWaitingToBeCollected were nil)
-    FWaitingToBeCollected := Shape;
+    FWaitingToBeCollected[P] := Shape;
   end;
 end;
 
 procedure TBatchShapes.FreeCollected;
+var
+  P: TMergePipeline;
 begin
   FCollected.Clear;
-  if FMergeTarget <> nil then
-  begin
-    // don't wait for ClearMerge for this, do this earlier to release reference count
-    FMergeTarget.Node.Appearance := nil;
-    FMergeTarget := nil;
-  end;
+  for P in TMergePipeline do
+    if FMergeTarget[P] <> nil then
+    begin
+      // don't wait for ClearMerge for this, do this earlier to release reference count
+      FMergeTarget[P].Node.Appearance := nil;
+      FMergeTarget[P] := nil;
+    end;
 end;
 
 procedure TBatchShapes.Commit;
+var
+  P: TMergePipeline;
 begin
-  if FWaitingToBeCollected <> nil then
+  for P in TMergePipeline do
   begin
-    FCollected.Add(FWaitingToBeCollected);
-    FWaitingToBeCollected := nil;
-  end;
-  if FMergeTarget <> nil then
-  begin
-    // WritelnLog('Merged into %s with %d vertexes, %d indexes, %s bbox', [
-    //   FMergeTarget.OriginalGeometry.NiceName,
-    //   ((FMergeTarget.OriginalGeometry as TIndexedFaceSetNode).Coord as TCoordinateNode).FdPoint.Count,
-    //   (FMergeTarget.OriginalGeometry as TIndexedFaceSetNode).FdCoordIndex.Count,
-    //   FMergeTarget.BoundingBox.ToString
-    // ]);
+    if FWaitingToBeCollected[P] <> nil then
+    begin
+      FCollected.Add(FWaitingToBeCollected[P]);
+      FWaitingToBeCollected[P] := nil;
+    end;
+    if FMergeTarget[P] <> nil then
+    begin
+      // WritelnLog('Merged into %s with %d vertexes, %d indexes, %s bbox', [
+      //   FMergeTarget[P].OriginalGeometry.NiceName,
+      //   ((FMergeTarget[P].OriginalGeometry as TIndexedFaceSetNode).Coord as TCoordinateNode).FdPoint.Count,
+      //   (FMergeTarget[P].OriginalGeometry as TIndexedFaceSetNode).FdCoordIndex.Count,
+      //   FMergeTarget[P].BoundingBox.ToString
+      // ]);
 
-    { Mark changes from
-      - TIndexedFaceSetNode.FdCoordIndex,
-      - TCoordinateNode.FdPoint
-    }
-    FMergeTarget.Changed(false, [chCoordinate, chGeometry]);
+      { Mark changes from
+        - TIndexedFaceSetNode.FdCoordIndex,
+        - TCoordinateNode.FdPoint
+      }
+      FMergeTarget[P].Changed(false, [chCoordinate, chGeometry]);
+    end;
   end;
 end;
 
 procedure TBatchShapes.GLContextClose;
 var
-  Shape: TShape;
+  P: TMergePipeline;
 begin
-  for Shape in FPool do
-    TGLShape(Shape).GLContextClose;
+  for P in TMergePipeline do
+    FPool[P].GLContextClose;
 end;
 
-procedure TBatchShapes.Merge(const Target, Source: TGLShape);
+procedure TBatchShapes.Merge(const Target, Source: TGLShape;
+  const P: TMergePipeline);
 var
   StateTarget, StateSource: TX3DGraphTraverseState;
   MeshTarget, MeshSource: TIndexedFaceSetNode;
   CoordTarget, CoordSource: TMFVec3f;
+  TexCoordTarget, TexCoordSource: TMFVec2f;
   IndexTarget, IndexSource: TLongIntList;
   OldCoordCount, I: Integer;
 begin
@@ -235,6 +284,14 @@ begin
   OldCoordCount := CoordTarget.Count;
   CoordTarget.Items.AddRangeTransformed(CoordSource.Items, StateSource.Transform);
 
+  if P = mpTexCoord then
+  begin
+    TexCoordTarget := TexCoordinates(MeshTarget, StateTarget);
+    TexCoordSource := TexCoordinates(MeshSource, StateSource);
+    OldCoordCount := TexCoordTarget.Count;
+    TexCoordTarget.Items.AddRange(TexCoordSource.Items);
+  end;
+
   IndexTarget := MeshTarget.FdCoordIndex.Items;
   IndexSource := MeshSource.FdCoordIndex.Items;
   if (IndexTarget.Count <> 0) and
@@ -249,11 +306,13 @@ begin
   end;
 end;
 
-procedure TBatchShapes.ClearMerge(const Target: TGLShape);
+procedure TBatchShapes.ClearMerge(const Target: TGLShape;
+  const P: TMergePipeline);
 var
   StateTarget: TX3DGraphTraverseState;
   MeshTarget: TIndexedFaceSetNode;
   CoordTarget: TMFVec3f;
+  TexCoordTarget: TMFVec2f;
   IndexTarget: TLongIntList;
 begin
   StateTarget := Target.OriginalState;
@@ -262,6 +321,26 @@ begin
   CoordTarget.Items.Clear;
   IndexTarget := MeshTarget.FdCoordIndex.Items;
   IndexTarget.Clear;
+  if P = mpTexCoord then
+  begin
+    TexCoordTarget := TexCoordinates(MeshTarget, StateTarget);
+    TexCoordTarget.Items.Clear;
+  end;
+end;
+
+class function TBatchShapes.TexCoordinates(
+  const Geometry: TAbstractGeometryNode;
+  const State: TX3DGraphTraverseState): TMFVec2f;
+var
+  TexCoordNode: TX3DNode;
+begin
+  if Geometry.InternalTexCoord(State, TexCoordNode) and
+     (TexCoordNode is TTextureCoordinateNode) then
+  begin
+    Result := TTextureCoordinateNode(TexCoordNode).FdPoint;
+  end else
+    raise Exception.CreateFmt('Node %s does not have texture coordinates',
+      [Geometry.NiceName]);
 end;
 
 end.
