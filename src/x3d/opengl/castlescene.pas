@@ -1160,6 +1160,9 @@ var
   { Renders Shape, caling unconditionally Renderer.RenderShape. }
   procedure RenderShape_NoTests(const Shape: TGLShape);
   begin
+    Shape.ModelView := ModelView;
+    Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
+
     OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
@@ -1182,8 +1185,6 @@ var
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    Shape.ModelView := ModelView;
-    Shape.Fog := ShapeFog(Shape, Params.GlobalFog as TFogNode);
     if not (InternalDynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
@@ -1196,7 +1197,10 @@ var
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
+      begin
+        TGLShape(Shape).PrepareResources; // otherwise, shapes from batching FPool would never have PrepareResources called?
         RenderShape_NoTests(TGLShape(Shape));
+      end;
       Batching.FreeCollected;
     end;
   end;

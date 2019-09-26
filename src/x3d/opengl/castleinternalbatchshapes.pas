@@ -130,6 +130,9 @@ begin
   { We can only Merge geometries
     - with TIndexedFaceSetNode
     - from VRML 2 (with TShapeNode)
+
+    TODO: Make sure Appearance matches.
+    TODO: Make sure fog state matches.
   }
   Result :=
     (Shape.Node <> nil) and
@@ -234,6 +237,9 @@ begin
 
   IndexTarget := MeshTarget.FdCoordIndex.Items;
   IndexSource := MeshSource.FdCoordIndex.Items;
+  if (IndexTarget.Count <> 0) and
+     (IndexTarget.Last >= 0) then
+    IndexTarget.Add(-1); // separate from next polygons
   for I := 0 to IndexSource.Count - 1 do
   begin
     if IndexSource[I] >= 0 then
