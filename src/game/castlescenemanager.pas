@@ -4201,7 +4201,10 @@ end;
 
 procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
 begin
-  if AutoDetectCamera then
+  { TODO: It may be useful to enable camera animation by some specific property,
+    like AnimateCameraByViewpoint (that works even when AutoDetectCamera = false,
+    as we advise for new scene managers). }
+  if AutoDetectCamera { or AnimateCameraByViewpoint } then
     Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
