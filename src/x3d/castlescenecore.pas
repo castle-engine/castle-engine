@@ -886,8 +886,9 @@ type
       this.
 
       Example: TCastleScene uses this to create TGLShape. }
-    function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
+    function CreateShape(const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState;
+      const ParentInfo: PTraversingInfo): TShape; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
 
@@ -3271,8 +3272,8 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function TCastleSceneCore.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
+function TCastleSceneCore.CreateShape(const AGeometry: TAbstractGeometryNode;
+  const AState: TX3DGraphTraverseState; const ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TShape.Create(Self, AGeometry, AState, ParentInfo);
 end;

@@ -99,6 +99,8 @@ type
     procedure AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector3List; Index, AddCount: Integer); deprecated 'use AddSubRange';
 
+    procedure AddRangeTransformed(const Source: TVector3List; const Transform: TMatrix4);
+
     { Convert to TVector4List, with 4th vector component in
       new array set to constant W. }
     function ToVector4(const W: Single): TVector4List;
@@ -453,6 +455,16 @@ begin
           Exit;
         end;
   end;
+end;
+
+procedure TVector3List.AddRangeTransformed(const Source: TVector3List; const Transform: TMatrix4);
+var
+  I, OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + Source.Count;
+  for I := 0 to Source.Count - 1 do
+    List^[OldCount + I] := Transform.MultPoint(Source.List^[I]);
 end;
 
 { TVector4List ----------------------------------------------------- }

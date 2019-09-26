@@ -57,8 +57,9 @@ type
   { Scene that can be rendered using Vulkan. }
   TCastleSceneVulkan = class(TCastleSceneCore)
   protected
-    function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
+    function CreateShape(const AGeometry: TAbstractGeometryNode;
+      const AState: TX3DGraphTraverseState;
+      const ParentInfo: PTraversingInfo): TShape; override;
   public
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); override;

@@ -131,6 +131,8 @@ begin
 end;
 
 procedure TGLShape.GLContextClose;
+var
+  Pass: TTotalRenderingPass;
 begin
   PreparedForRenderer := false;
   PreparedUseAlphaChannel := false;
@@ -142,6 +144,13 @@ begin
     OcclusionQueryId := 0;
   end;
   {$endif}
+
+  { Free Arrays and Vbo of all shapes. }
+  if Cache <> nil then
+    Renderer.Cache.Shape_DecReference(Cache);
+  for Pass := Low(Pass) to High(Pass) do
+    if ProgramCache[Pass] <> nil then
+      Renderer.Cache.Program_DecReference(ProgramCache[Pass]);
 end;
 
 function TGLShape.UseBlending: Boolean;
