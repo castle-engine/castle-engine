@@ -29,7 +29,7 @@ type
     Control1: TCastleControl;
     procedure FormCreate(Sender: TObject);
   private
-    WalkCamera: TWalkCamera;
+    WalkNavigation: TCastleWalkNavigation;
     Scene: TCastleScene;
   public
     { public declarations }
@@ -61,12 +61,11 @@ begin
   Control1.SceneManager.MainScene := Scene;
   Control1.SceneManager.Items.Add(Scene);
 
-  WalkCamera := Control1.SceneManager.WalkCamera;
-  WalkCamera.Init(Vector3(0, 0, 0), Vector3(1, 0, 0),
+  WalkNavigation := Control1.SceneManager.WalkNavigation;
+  WalkNavigation.Init(Vector3(0, 0, 0), Vector3(1, 0, 0),
     Vector3(0, 1, 0), Vector3(0, 1, 0), 1, 0.1);
-  WalkCamera.MoveSpeed := 10.0; // default is 1
-  WalkCamera.Gravity := true; // if you want gravity, of course
-  Control1.SceneManager.Camera := WalkCamera;
+  WalkNavigation.MoveSpeed := 10.0; // default is 1
+  WalkNavigation.Gravity := true; // if you want gravity, of course
 end;
 
 end.
