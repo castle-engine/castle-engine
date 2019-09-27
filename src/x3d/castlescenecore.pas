@@ -6435,6 +6435,8 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
+  InternalFrameProfiler.Start(fmUpdateScene);
+
   { Most of the "update" job happens inside InternalSetTime.
     Reasons are partially historiec: TCastlePrecalculatedAnimation
     called only SetTime, not Update. }
@@ -6450,6 +6452,8 @@ begin
   SP := TimePlayingSpeed * SecondsPassed;
   if TimePlaying and (SP <> 0) then
     IncreaseTime(SP);
+
+  InternalFrameProfiler.Stop(fmUpdateScene);
 end;
 
 procedure TCastleSceneCore.PartialSendBegin(const TimeHandler: TInternalTimeDependentHandler);

@@ -427,7 +427,7 @@ type
         during the Render call. }
       RenderCameraPosition: TVector3;
 
-        { Used by LocalRenderInside }
+      { Used by LocalRenderInside }
       FilteredShapes: TShapeList;
 
       InternalScenePass: TInternalSceneRenderingPass;
@@ -2093,6 +2093,8 @@ begin
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
+    InternalFrameProfiler.Start(fmRenderScene);
+
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
        (not ExcludeFromStatistics) then
@@ -2101,7 +2103,10 @@ begin
     if FSceneFrustumCulling and not InternalIgnoreFrustum then
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
+      begin
+        InternalFrameProfiler.Stop(fmRenderScene);
         Exit;
+      end;
     end;
 
     if (not Params.Transparent) and
@@ -2134,6 +2139,8 @@ begin
     { Nothing should even try to access camera outside of Render...
       But for security, set RenderCameraKnown to false. }
     RenderCameraKnown := false;
+
+    InternalFrameProfiler.Stop(fmRenderScene);
   end;
 end;
 
