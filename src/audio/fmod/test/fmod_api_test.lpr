@@ -109,12 +109,15 @@ var
   NewVolume, NewPitch: Single;
   ChannelWaiting: PFMOD_CHANNEL;
 begin
+  Check(FmodLibraryAvailable, 'FMOD library cannot be loaded');
+  FmodLibraryUsingBegin;
+
   CheckFMOD(FMOD_System_Create(@FMODSystem));
 
   CheckFMOD(FMOD_System_Init(FMODSystem, 256, FMOD_INIT_NORMAL, nil));
 
-  PlaySound('data/boss_destroy.wav', true);
-  ChannelWaiting := PlaySound('data/gamemusic_1.ogg', false);
+  PlaySound('../../../../examples/audio/data/tone.wav', true);
+  ChannelWaiting := PlaySound('../../../../examples/audio/data/temple-adam-goh.ogg', false);
 
   TimeStart := Timer;
 
@@ -141,6 +144,8 @@ begin
 
   CheckFMOD(FMOD_System_Release(FMODSystem));
   FMODSystem := nil;
+
+  FmodLibraryUsingEnd;
 
   Writeln('Finished OK.');
 end.
