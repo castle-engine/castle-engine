@@ -48,7 +48,10 @@ type
       FEnabled: Boolean;
       FramesTimes: array [0..MaxRecordFrames - 1, TFrameMetric] of TFloatTime;
       CurrentFrameStarted: array [TFrameMetric] of Boolean;
-      CurrentFrameStart: array [TFrameMetric] of TProcessTimerResult;
+      { Using ProcessTimer would be better for calculations,
+        but on Unix (the only platform where it's different from Timer) it has
+        too low precision (1/100 of second) to be useful for this. }
+      CurrentFrameStart: array [TFrameMetric] of TTimerResult;
       CurrentFrame: Integer;
       // if InitialFrame > CurrentFrame, then it means statistics wraps in FramesTimes array
       InitialFrame: Integer;
@@ -140,7 +143,7 @@ begin
   end else
   begin
     CurrentFrameStarted[Metric] := true;
-    CurrentFrameStart[Metric] := ProcessTimer;
+    CurrentFrameStart[Metric] := Timer;
   end;
 end;
 
