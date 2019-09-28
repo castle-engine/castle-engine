@@ -47,13 +47,13 @@ uses Generics.Defaults, DateUtils,
 
 {$define read_implementation}
 {$I castletimeutils_miscellaneous.inc}
+{$I castletimeutils_gettickcount64.inc} // must be included before castletimeutils_timer.inc on Windows or Nintendo Switch
 {$I castletimeutils_timer.inc}
 {$I castletimeutils_processtimer.inc}
 {$I castletimeutils_framespersecond.inc}
 {$I castletimeutils_now.inc}
 {$I castletimeutils_profiler.inc}
 {$I castletimeutils_frameprofiler.inc}
-{$I castletimeutils_gettickcount64.inc}
 
 initialization
   { Required by Random and all stuff on top of it }
