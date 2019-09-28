@@ -21,6 +21,7 @@
 type
   TFrameMetric = (
     fmFrame,
+    fmBeforeRender,
     fmRender,
     fmRenderFrameProfiler,
     fmRenderScene,
@@ -103,14 +104,16 @@ begin
       if CurrentFrame mod 60 = 0 then
       begin
         WritelnLogMultiline('FrameProfiler', Format(
-          'Frame time: %f (we should have %f FPS based on this):' + NL +
-          '- Render: %d%% (%f secs of total, we should have %f "only render FPS" based on this)' + NL +
+          'Frame time: %f secs (we should have %f FPS based on this):' + NL +
+          '- BeforeRender: %d%%' + NL +
+          '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
           '  - RenderFrameProfiler: %d%%' + NL +
           '  - RenderScene: %d%%' + NL +
           '- Update: %d%%' + NL +
           '  - UpdateScene: %d%%', [
           FramesTimes[CurrentFrame, fmFrame],
           1 / FramesTimes[CurrentFrame, fmFrame],
+          Round(100 * FramesTimes[CurrentFrame, fmBeforeRender] / FramesTimes[CurrentFrame, fmFrame]),
           Round(100 * FramesTimes[CurrentFrame, fmRender] / FramesTimes[CurrentFrame, fmFrame]),
           FramesTimes[CurrentFrame, fmRender],
           1 / FramesTimes[CurrentFrame, fmRender],
