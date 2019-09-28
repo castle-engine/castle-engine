@@ -3493,18 +3493,18 @@ end;
 
 procedure TCastleWindowBase.DoRender;
 begin
-  InternalFrameProfiler.Start(fmBeforeRender);
+  FrameProfiler.Start(fmBeforeRender);
   { We set Invalidated := false before EventRender (that calls OnRender),
     because we guarantee that calling Invalidate within OnRender will
     cause the redraw in next frame. }
   Invalidated := false;
   MakeCurrent;
   Container.EventBeforeRender;
-  InternalFrameProfiler.Stop(fmBeforeRender);
+  FrameProfiler.Stop(fmBeforeRender);
 
   if Closed then Exit; { check, in case window got closed in the event }
 
-  InternalFrameProfiler.Start(fmRender);
+  FrameProfiler.Start(fmRender);
   Fps._RenderBegin;
   try
     Container.EventRender;
@@ -3517,7 +3517,7 @@ begin
     if AutoRedisplay then Invalidate;
   finally
     Fps._RenderEnd;
-    InternalFrameProfiler.Stop(fmRender);
+    FrameProfiler.Stop(fmRender);
   end;
 
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
@@ -3664,8 +3664,8 @@ end;
 
 procedure TCastleWindowBase.DoUpdate;
 begin
-  InternalFrameProfiler.Start(fmFrame); // do not call Stop(fmFrame), it is special
-  InternalFrameProfiler.Start(fmUpdate);
+  FrameProfiler.StartFrame;
+  FrameProfiler.Start(fmUpdate);
 
   {$ifdef CASTLE_WINDOW_LCL}
   FKeyPressHandler.Flush; // finish any pending key presses
@@ -3684,7 +3684,7 @@ begin
 
   UpdateFullScreenBackend;
 
-  InternalFrameProfiler.Stop(fmUpdate);
+  FrameProfiler.Stop(fmUpdate);
 end;
 
 procedure TCastleWindowBase.DoTimer;

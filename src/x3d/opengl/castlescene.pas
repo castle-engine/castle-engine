@@ -2093,7 +2093,7 @@ begin
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
-    InternalFrameProfiler.Start(fmRenderScene);
+    FrameProfiler.Start(fmRenderScene);
 
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
@@ -2104,7 +2104,7 @@ begin
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
       begin
-        InternalFrameProfiler.Stop(fmRenderScene);
+        FrameProfiler.Stop(fmRenderScene);
         Exit;
       end;
     end;
@@ -2140,7 +2140,7 @@ begin
       But for security, set RenderCameraKnown to false. }
     RenderCameraKnown := false;
 
-    InternalFrameProfiler.Stop(fmRenderScene);
+    FrameProfiler.Stop(fmRenderScene);
   end;
 end;
 

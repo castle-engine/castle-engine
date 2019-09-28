@@ -14,13 +14,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleTimeUtils unit: TInternalCastleFrameProfiler. }
+{ Part of CastleTimeUtils unit: TCastleFrameProfiler. }
 
 {$ifdef read_interface}
 
 type
   TFrameMetric = (
-    fmFrame,
     fmBeforeRender,
     fmRender,
     fmRenderFrameProfiler,
@@ -36,109 +35,112 @@ type
     It is only specialized to gather some specific data, in each frame,
     to have statistics from the most recent frames.
 
-    You usually do not need to use this class (or it's instance
-    in @link(FrameProfile) at all).
-    Instead just display it using the TCastleFrameProfilerDisplay.
+    You have to enable the statistics gathering by setting @link(Enabled) to @true.
+    That's it.
+    In the log (see https://castle-engine.io/manual_log.php )
+    you will see a frame statistics, displayed after every 60 frames gathered.
+
+    Optionally, you can also report additional
+    measurements during the frame.
+    Do this by calling @link(Start) and @link(Stop) with String parameter,
+    like this:
+
+    @longCode(#
+    procedure TMyGameState.Update;
+    begin
+      FrameProfiler.Start('MyTimeConsumingOperation');
+      MyTimeConsumingOperation;
+      FrameProfiler.Stop('MyTimeConsumingOperation');
+    end;
+    #)
+
+    Use this class only through the singleton instance @link(FrameProfiler).
+
+    TODO: In the future we plan to implement UI to automatically
+    show this in a pretty manner, like TCastleDebugOverlay .
   }
-  TInternalCastleFrameProfiler = class
+  TCastleFrameProfiler = class
   private
     const
       MaxRecordFrames = 1000;
+      MaxUserMetrics = 16;
+      MetricsPerFrame = 1 //< frame total time
+        + Ord(High(TFrameMetric)) + 1 //< time, for each TFrameMetric
+        + 3 * MaxUserMetrics; //< user metrics, MaxUserMetrics for render, update, other
+      IndexTotalMetric = 0;
+    type
+      TMetricIndex = 0..MetricsPerFrame - 1;
+      TUserMetric = 0..MaxUserMetrics - 1;
     var
       FEnabled: Boolean;
-      FramesTimes: array [0..MaxRecordFrames - 1, TFrameMetric] of TFloatTime;
-      CurrentFrameStarted: array [TFrameMetric] of Boolean;
+      FramesTimes: array [0..MaxRecordFrames - 1, TMetricIndex] of TFloatTime;
+      CurrentFrameStarted: array [TMetricIndex] of Boolean;
       { Using ProcessTimer would be better for calculations,
         but on Unix (the only platform where it's different from Timer) it has
         too low precision (1/100 of second) to be useful for this. }
-      CurrentFrameStart: array [TFrameMetric] of TTimerResult;
+      CurrentFrameStart: array [TMetricIndex] of TTimerResult;
       CurrentFrame: Integer;
       // if InitialFrame > CurrentFrame, then it means statistics wraps in FramesTimes array
       InitialFrame: Integer;
+      UserMetricsRenderNames: array [TUserMetric] of String;
+      UserMetricsUpdateNames: array [TUserMetric] of String;
+      UserMetricsOtherNames: array [TUserMetric] of String;
+    function IndexFrameMetric(const Metric: TFrameMetric): TMetricIndex;
+    function IndexUserMetric(const Name: String; out Metric: TMetricIndex): Boolean;
+    { StartCore and StopCore unify all metrics (frame total, TFrameMetric, user metrics)
+      as a simple integer index. }
+    procedure StartCore(const Metric: TMetricIndex);
+    procedure StopCore(const Metric: TMetricIndex);
   public
+    constructor Create;
     { No data is gathered when Enabled = false, the calls to @link(StartFrame),
       @link(Start), @link(Stop) are ignored then. }
     property Enabled: Boolean read FEnabled write FEnabled;
+    procedure StartFrame;
     procedure Start(const Metric: TFrameMetric);
     procedure Stop(const Metric: TFrameMetric);
+    procedure Start(const UserMetric: String);
+    procedure Stop(const UserMetric: String);
   end;
 
-{ Single instance of TInternalCastleFrameProfiler that you can use for all profiling.
-  Castle Game Engine uses it to report loading times of various frame operations
-  automatically. }
-function InternalFrameProfiler: TInternalCastleFrameProfiler;
+{ Single instance of @link(TCastleFrameProfiler) that you can use for frame profiling.
+  See @link(TCastleFrameProfiler) for more documentation and examples.
+  Castle Game Engine uses this to report render/update times automatically. }
+function FrameProfiler: TCastleFrameProfiler;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function FrameMetricToStr(const Metric: TFrameMetric): String;
+{ internal globals ----------------------------------------------------------- }
+
+// not used for now
+// function FrameMetricToStr(const Metric: TFrameMetric): String;
+// begin
+//   WriteStr(Result, Metric);
+// end;
+
+{ TCastleFrameProfiler ------------------------------------------------------- }
+
+constructor TCastleFrameProfiler.Create;
 begin
-  WriteStr(Result, Metric);
+  inherited;
+  { Since the memory usage may grow quickly once increasing MaxUserMetrics, watch it }
+  WritelnLog('FrameProfiler created, eats around %f MB of memory', [
+    (SizeOf(FramesTimes) +
+     SizeOf(CurrentFrameStarted) +
+     SizeOf(CurrentFrameStart)) / (1024 * 1024)
+  ]);
 end;
 
-procedure TInternalCastleFrameProfiler.Start(const Metric: TFrameMetric);
-var
-  OtherMetric: TFrameMetric;
+procedure TCastleFrameProfiler.StartCore(const Metric: TMetricIndex);
 begin
   if not FEnabled then Exit;
 
-  if Metric = fmFrame then
-  begin
-    { Finish previous frame, if started.
-      For fmFrame, we do not except the other code to call Stop(fmFrame). }
-    if CurrentFrameStarted[fmFrame] then
-    begin
-      Assert(FramesTimes[CurrentFrame, fmFrame] = 0); // should be cleared at the beginning of frame
-      FramesTimes[CurrentFrame, fmFrame] := CurrentFrameStart[fmFrame].ElapsedTime;
-
-      // check do have any other time started in this frame, and not stopped
-      for OtherMetric in TFrameMetric do
-        if (OtherMetric <> fmFrame) and
-           CurrentFrameStarted[OtherMetric] then
-          begin
-            WritelnWarning('Frame time %s not stopped within this frame, probably broken by exception', [
-              FrameMetricToStr(OtherMetric)
-            ]);
-            FramesTimes[CurrentFrame, OtherMetric] += CurrentFrameStart[OtherMetric].ElapsedTime;
-          end;
-
-      // until we have a proper TCastleFrameProfilerDisplay, just dump it in the log every second
-      if CurrentFrame mod 60 = 0 then
-      begin
-        WritelnLogMultiline('FrameProfiler', Format(
-          'Frame time: %f secs (we should have %f FPS based on this):' + NL +
-          '- BeforeRender: %d%%' + NL +
-          '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
-          '  - RenderFrameProfiler: %d%%' + NL +
-          '  - RenderScene: %d%%' + NL +
-          '- Update: %d%%' + NL +
-          '  - UpdateScene: %d%%', [
-          FramesTimes[CurrentFrame, fmFrame],
-          1 / FramesTimes[CurrentFrame, fmFrame],
-          Round(100 * FramesTimes[CurrentFrame, fmBeforeRender] / FramesTimes[CurrentFrame, fmFrame]),
-          Round(100 * FramesTimes[CurrentFrame, fmRender] / FramesTimes[CurrentFrame, fmFrame]),
-          FramesTimes[CurrentFrame, fmRender],
-          1 / FramesTimes[CurrentFrame, fmRender],
-          Round(100 * FramesTimes[CurrentFrame, fmRenderFrameProfiler] / FramesTimes[CurrentFrame, fmFrame]),
-          Round(100 * FramesTimes[CurrentFrame, fmRenderScene] / FramesTimes[CurrentFrame, fmFrame]),
-          Round(100 * FramesTimes[CurrentFrame, fmUpdate] / FramesTimes[CurrentFrame, fmFrame]),
-          Round(100 * FramesTimes[CurrentFrame, fmUpdateScene] / FramesTimes[CurrentFrame, fmFrame])
-        ]));
-      end;
-
-      CurrentFrame := (CurrentFrame + 1) mod MaxRecordFrames;
-      FillChar(FramesTimes[CurrentFrame], SizeOf(FramesTimes[CurrentFrame]), 0);
-      FillChar(CurrentFrameStarted, SizeOf(CurrentFrameStarted), 0);
-      if InitialFrame = CurrentFrame then
-        InitialFrame := (InitialFrame + 1) mod MaxRecordFrames;
-    end;
-  end;
-
   if CurrentFrameStarted[Metric] then
   begin
-    WritelnWarning('Frame time %s not stopped yet (but started again), probably broken by exception', [
-      FrameMetricToStr(Metric)
+    WritelnWarning('Frame metric %d not stopped yet (but started again), probably broken by exception', [
+      Metric
     ]);
   end else
   begin
@@ -147,7 +149,7 @@ begin
   end;
 end;
 
-procedure TInternalCastleFrameProfiler.Stop(const Metric: TFrameMetric);
+procedure TCastleFrameProfiler.StopCore(const Metric: TMetricIndex);
 begin
   if not FEnabled then Exit;
 
@@ -156,15 +158,190 @@ begin
   CurrentFrameStarted[Metric] := false;
 end;
 
+procedure TCastleFrameProfiler.StartFrame;
+
+  procedure DisplaySummary;
+  var
+    TotalTime: TFloatTime;
+
+    function DisplayUserMetrics(const Names: array of String; const InitialIndex: TMetricIndex): String;
+    var
+      I: TUserMetric;
+    begin
+      Result := '';
+      for I := 0 to MaxUserMetrics - 1 do
+        if Names[I] <> '' then
+          Result += Format('  - %s: %d%%' + NL, [
+            Names[I],
+            Round(100 * FramesTimes[CurrentFrame, InitialIndex + I] / TotalTime)
+          ]);
+    end;
+
+  begin
+    TotalTime := FramesTimes[CurrentFrame, IndexTotalMetric];
+    WritelnLogMultiline('FrameProfiler', Format(
+      'Frame time: %f secs (we should have %f FPS based on this):' + NL +
+      '- BeforeRender: %d%%' + NL +
+      '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
+      '  - RenderFrameProfiler: %d%%' + NL +
+      '  - RenderScene: %d%%' + NL +
+      '%s' +
+      '- Update: %d%%' + NL +
+      '  - UpdateScene: %d%%' + NL +
+      '%s' +
+      '- Other:' + NL +
+      '%s'
+    , [
+      TotalTime,
+      1 / TotalTime,
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmBeforeRender)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)] / TotalTime),
+      FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
+      1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderFrameProfiler)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderScene)] / TotalTime),
+      DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdate)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdateScene)] / TotalTime),
+      DisplayUserMetrics(UserMetricsUpdateNames, 1 + Ord(High(TFrameMetric)) + 1 + MaxUserMetrics),
+      DisplayUserMetrics(UserMetricsOtherNames , 1 + Ord(High(TFrameMetric)) + 1 + 2 * MaxUserMetrics)
+    ]));
+  end;
+
+const
+  DisplaySummaryAtFrames = 60;
+var
+  OtherMetric: TMetricIndex;
+begin
+  if not FEnabled then Exit;
+
+  { Finish previous frame, if started.
+    For IndexTotalMetric, we do not except the user code to ever call
+    StopCore(IndexTotalMetric). }
+  if CurrentFrameStarted[IndexTotalMetric] then
+  begin
+    Assert(FramesTimes[CurrentFrame, IndexTotalMetric] = 0); // should be cleared at the beginning of frame
+    FramesTimes[CurrentFrame, IndexTotalMetric] := CurrentFrameStart[IndexTotalMetric].ElapsedTime;
+
+    // check do have any other time started in this frame, and not stopped
+    for OtherMetric in TMetricIndex do
+      if (OtherMetric <> IndexTotalMetric) and
+         CurrentFrameStarted[OtherMetric] then
+        begin
+          WritelnWarning('Frame time %d not stopped within this frame, probably broken by exception', [
+            OtherMetric
+          ]);
+          FramesTimes[CurrentFrame, OtherMetric] += CurrentFrameStart[OtherMetric].ElapsedTime;
+        end;
+
+    // until we have a proper TCastleFrameProfilerDisplay, just dump it in the log every second
+    if CurrentFrame mod DisplaySummaryAtFrames = 0 then
+      DisplaySummary;
+
+    CurrentFrame := (CurrentFrame + 1) mod MaxRecordFrames;
+    FillChar(FramesTimes[CurrentFrame], SizeOf(FramesTimes[CurrentFrame]), 0);
+    FillChar(CurrentFrameStarted, SizeOf(CurrentFrameStarted), 0);
+    if InitialFrame = CurrentFrame then
+      InitialFrame := (InitialFrame + 1) mod MaxRecordFrames;
+  end;
+
+  StartCore(IndexTotalMetric);
+end;
+
+function TCastleFrameProfiler.IndexFrameMetric(const Metric: TFrameMetric): TMetricIndex;
+begin
+  Result := 1 + Ord(Metric);
+end;
+
+function TCastleFrameProfiler.IndexUserMetric(const Name: String; out Metric: TMetricIndex): Boolean;
+
+  function FindUserMetricName(var Names: array of String; out Index: TUserMetric): Boolean;
+  begin
+    for Index in TUserMetric do
+      if Names[Index] = Name then
+        Exit(true);
+
+    // otherwise look for an empty slot
+    for Index in TUserMetric do
+      if Names[Index] = '' then
+      begin
+        Names[Index] := Name;
+        Exit(true);
+      end;
+
+    WritelnWarning('Cannot find slot to store user metrics %s. Increase MaxUserMetrics in CastleTimeUtils.', [
+      Name
+    ]);
+    Result := false;
+  end;
+
+var
+  Multiplier: Integer;
+  Index: TUserMetric;
+begin
+  Assert(Name <> '', 'User metric name cannot be empty, as we internally use empty metric names to mean "uninitialized"');
+
+  { We have MaxUserMetrics slots for custom metrics during rendering,
+    another MaxUserMetrics slots for custom metrics during updating,
+    another MaxUserMetrics slots for custom metrics during neither of rendering/updating. }
+  if CurrentFrameStarted[IndexFrameMetric(fmRender)] then
+  begin
+    if not FindUserMetricName(UserMetricsRenderNames, Index) then Exit(false);
+    Multiplier := 0;
+  end else
+  if CurrentFrameStarted[IndexFrameMetric(fmUpdate)] then
+  begin
+    if not FindUserMetricName(UserMetricsUpdateNames, Index) then Exit(false);
+    Multiplier := 1;
+  end else
+  begin
+    if not FindUserMetricName(UserMetricsOtherNames, Index) then Exit(false);
+    Multiplier := 2;
+  end;
+
+  Result := true;
+  Metric := 1 +
+    Ord(High(TFrameMetric)) + 1 +
+    (Multiplier * MaxUserMetrics) + Index;
+end;
+
+procedure TCastleFrameProfiler.Start(const Metric: TFrameMetric);
+begin
+  StartCore(IndexFrameMetric(Metric));
+end;
+
+procedure TCastleFrameProfiler.Stop(const Metric: TFrameMetric);
+begin
+  StopCore(IndexFrameMetric(Metric));
+end;
+
+procedure TCastleFrameProfiler.Start(const UserMetric: String);
+var
+  Metric: TMetricIndex;
+begin
+  if not FEnabled then Exit;
+  if not IndexUserMetric(UserMetric, Metric) then Exit;
+  StartCore(Metric);
+end;
+
+procedure TCastleFrameProfiler.Stop(const UserMetric: String);
+var
+  Metric: TMetricIndex;
+begin
+  if not FEnabled then Exit;
+  if not IndexUserMetric(UserMetric, Metric) then Exit;
+  StopCore(Metric);
+end;
+
 { global --------------------------------------------------------------------- }
 
 var
-  FFrameProfiler: TInternalCastleFrameProfiler;
+  FFrameProfiler: TCastleFrameProfiler;
 
-function InternalFrameProfiler: TInternalCastleFrameProfiler;
+function FrameProfiler: TCastleFrameProfiler;
 begin
   if FFrameProfiler = nil then
-    FFrameProfiler := TInternalCastleFrameProfiler.Create;
+    FFrameProfiler := TCastleFrameProfiler.Create;
   Result := FFrameProfiler;
 end;
 
