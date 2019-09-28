@@ -139,7 +139,7 @@ begin
 
   if CurrentFrameStarted[Metric] then
   begin
-    WritelnWarning('Frame metric %d not stopped yet (but started again), probably broken by exception', [
+    WritelnWarning('Frame metric %d not stopped yet (but started again). Possible causes: mismatched Start/Stop calls, or broken by exception', [
       Metric
     ]);
   end else
@@ -228,7 +228,7 @@ begin
       if (OtherMetric <> IndexTotalMetric) and
          CurrentFrameStarted[OtherMetric] then
         begin
-          WritelnWarning('Frame time %d not stopped within this frame, probably broken by exception', [
+          WritelnWarning('Frame metric %d not stopped within this frame. Possible causes: mismatched Start/Stop calls, or broken by exception', [
             OtherMetric
           ]);
           FramesTimes[CurrentFrame, OtherMetric] += CurrentFrameStart[OtherMetric].ElapsedTime;
