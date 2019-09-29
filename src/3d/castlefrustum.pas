@@ -224,7 +224,6 @@ type
 
     function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
     function ToString(const Indent: string): string;
-    function Equals(const F: TFrustum): Boolean;
   end;
   PFrustum = ^TFrustum;
 
@@ -647,25 +646,6 @@ begin
   end else
     for I := Low(I) to High(I) do
       Result := Result + Indent + Planes[I].ToString + LineEnding;
-end;
-
-function TFrustum.Equals(const F: TFrustum): Boolean;
-var
-  I: TFrustumPlane;
-begin
-  Result := ZFarInfinity = F.ZFarInfinity;
-  if Result then
-  begin
-    if ZFarInfinity then
-    begin
-      for I := Low(I) to Pred(High(I)) do
-        if not TVector4.Equals(Planes[I], F.Planes[I]) then Exit(false);
-    end else
-    begin
-      for I := Low(I) to High(I) do
-        if not TVector4.Equals(Planes[I], F.Planes[I]) then Exit(false);
-    end;
-  end;
 end;
 
 end.

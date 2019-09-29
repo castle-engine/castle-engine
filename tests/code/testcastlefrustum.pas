@@ -22,7 +22,7 @@ uses
   CastleTestCase, CastleVectors, CastleBoxes, CastleFrustum;
 
 type
-  TTestCastleFrustum = class(TTestCase)
+  TTestCastleFrustum = class(TCastleTestCase)
   private
     procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
       const SphereCenter: TVector3; const SphereRadiusSqt: Single;
@@ -38,7 +38,8 @@ type
 
 implementation
 
-uses Math, CastleUtils, CastleTimeUtils, CastleProjection;
+uses Math,
+  CastleUtils, CastleTimeUtils, CastleProjection, CastleTransform;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 
@@ -423,7 +424,7 @@ end;
 
 procedure TTestCastleFrustum.TestTransformFrustum;
 var
-  Frustum1, Frustum2, Frustum3: TFrustum;
+  Frustum1{, Frustum2, Frustum3}: TFrustum;
   M, MInverse: TMatrix4;
 begin
   Frustum1.Init(
@@ -438,8 +439,58 @@ begin
 
   AssertFrustumEquals(Frustum1, Frustum1.Transform(M));
   AssertFrustumEquals(Frustum1, Frustum1.TransformByInverse(MInverse));
+
+  TransformMatricesMult(M, MInverse,
+    Vector3(0, 0, 0),
+    Vector4(0, 0, 0, 0),
+    Vector3(1, 1, 1),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(1, 1, 1),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(10, 10, 10),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(10, 20, 30),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  // when using non-uniform scaling, we need larger epsilon to pass
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(8, 9, 10),
+    Vector4(11, 12, 13, 14),
+    Vector3(15, 16, 17));
+  // when using non-uniform scaling, we need larger epsilon to pass
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
 end;
 
 initialization
- RegisterTest(TTestCastleFrustum);
+  RegisterTest(TTestCastleFrustum);
 end.
