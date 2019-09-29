@@ -989,20 +989,17 @@ type
 
     { Update generated texture for this shape.
 
-      NeedsRestoreViewport will be set to @true if viewport was
-      (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
-      will not be modified).
-
       The given camera position, direction, up should be in world space
       (that is, in TCastleSceneManager space,
-      not in space local to this TCastleScene). }
-    procedure UpdateGeneratedTextures(Shape: TX3DRendererShape;
-      TextureNode: TAbstractTextureNode;
+      not in space local to this TCastleScene).
+
+      This does not change current viewport or projection matrix. }
+    procedure UpdateGeneratedTextures(const Shape: TX3DRendererShape;
+      const TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TAbstractViewpointNode;
-      CameraViewKnown: boolean;
+      const CurrentViewpoint: TAbstractViewpointNode;
+      const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3);
 
     { Load GLSL shader for the ScreenEffect node.
@@ -3597,13 +3594,12 @@ begin
 end;
 {$endif}
 
-procedure TGLRenderer.UpdateGeneratedTextures(Shape: TX3DRendererShape;
-  TextureNode: TAbstractTextureNode;
+procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
+  const TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TAbstractViewpointNode;
-  CameraViewKnown: boolean;
+  const CurrentViewpoint: TAbstractViewpointNode;
+  const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3);
 var
   { Only for CheckUpdateField and PostUpdateField }
@@ -3646,7 +3642,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport, Shape.BoundingBox.Center + TexNode.FdBias.Value);
+          Shape.BoundingBox.Center + TexNode.FdBias.Value);
 
         PostUpdate;
 
@@ -3668,7 +3664,6 @@ var
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
-            NeedsRestoreViewport,
             TAbstractLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
@@ -3699,7 +3694,6 @@ var
           GeometryCoords := GeometryCoordsField.Items;
 
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
           Shape.BoundingBox,

@@ -684,8 +684,7 @@ type
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewport: TRectangle); override;
+      const ProjectionNear, ProjectionFar: Single); override;
 
     procedure ViewChangedSuddenly; override;
 
@@ -1798,7 +1797,9 @@ begin
       - Occlusion query id must be generated (as we may start occlusion query
         before actually rendering the shape).
 
-      It's much simpler to just call PrepareResources at the beginning. }
+      It's much simpler to just call PrepareResources at the beginning.
+      The PrepareResources is already optimized to do nothing,
+      if everything is ready. }
     FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
     PrepareResources([prRender], false, FTempPrepareParams);
@@ -2204,16 +2205,12 @@ end;
 
 procedure TCastleScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewport: TRectangle);
+  const ProjectionNear, ProjectionFar: Single);
 var
   I: Integer;
-  NeedsRestoreViewport: boolean;
   Shape: TGLShape;
   TextureNode: TAbstractTextureNode;
 begin
-  NeedsRestoreViewport := false;
-
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
     Shape := TGLShape(GeneratedTextures.L[I].Shape);
@@ -2225,7 +2222,7 @@ begin
       AvoidNonShadowCasterRendering := true;
 
     Renderer.UpdateGeneratedTextures(Shape, TextureNode,
-      RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
+      RenderFunc, ProjectionNear, ProjectionFar,
       ViewpointStack.Top,
       World.CameraKnown,
       World.CameraPosition,
@@ -2235,9 +2232,6 @@ begin
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;
   end;
-
-  if NeedsRestoreViewport then
-    RenderContext.Viewport := OriginalViewport;
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;

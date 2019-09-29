@@ -19,6 +19,8 @@
 {$ifdef read_interface}
 
 type
+  TFrameId = QWord;
+
   { Utility to measure frames per second, independent of actual
     rendering API. For example, it can be easily "plugged" into TCastleWindowBase
     (see TCastleWindowBase.Fps) or Lazarus GL control (see TCastleControlBase.Fps).
@@ -180,7 +182,7 @@ type
       no need to have a TFramesPerSecond instance (which is usually
       accessed from TUIContainer, like @link(TUIContainer.Fps),
       @link(TCastleWindowBase.Fps), @link(TCastleControlBase.Fps). }
-    class function FrameId: QWord;
+    class function FrameId: TFrameId;
   end;
 
 {$endif read_interface}
@@ -190,7 +192,7 @@ type
 { TFramesPerSecond ----------------------------------------------------------- }
 
 var
-  FFrameId: QWord = 1;
+  FFrameId: TFrameId = 1;
 
 constructor TFramesPerSecond.Create;
 const
@@ -306,7 +308,7 @@ begin
   DoZeroNextSecondsPassed := true;
 end;
 
-class function TFramesPerSecond.FrameId: QWord;
+class function TFramesPerSecond.FrameId: TFrameId;
 begin
   Result := FFrameId;
 end;
