@@ -187,7 +187,7 @@ procedure TCastleFrameProfiler.StartFrame;
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
       '  - TCastleTransform.Render transformation: %d%%' + NL +
       '  - TCastleScene.Render: %d%%' + NL +
-      '  - ShapesFilterBlending (inside TCastleScene.Render): %d%%' + NL +
+      '    - ShapesFilterBlending: %d%%' + NL +
       // '  - RenderFrameProfiler: %d%%' + NL +
       '%s' +
       '- Update: %d%%' + NL +
