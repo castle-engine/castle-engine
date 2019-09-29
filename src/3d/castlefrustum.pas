@@ -219,7 +219,8 @@ type
     function Transform(const M: TMatrix4): TFrustum;
 
     { Transform frustum by a matrix, given inverse transformation.
-      This may bee much master than Transform. }
+      Right now, this is slower than @link(Transform) (at least as tested on x86_64),
+      so it is not advised. }
     function TransformByInverse(const MInverse: TMatrix4): TFrustum;
 
     function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
@@ -615,7 +616,6 @@ begin
   begin
     Assert(High(I) = fpFar);
     // Multiply by transpose(inverse(M)) to transform plane.
-    // This is faster than our PlaneTransform, since we already have MInverse.
     // See https://stackoverflow.com/questions/7685495/transforming-a-3d-plane-using-a-4x4-matrix
     for I := Low(I) to Pred(High(I)) do
       Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);

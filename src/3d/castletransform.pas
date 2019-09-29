@@ -398,6 +398,7 @@ type
     procedure UpdateWorldTransformAndInverse;
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
+    procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -2863,6 +2864,21 @@ begin
   finally Params.Frustum := OldFrustum end;
 end;
 
+procedure TCastleTransform.WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+begin
+  WritelnWarning('Transform', Format(
+    'Inverse transform matrix has NaN value inside:' + NL +
+    '%s' + NL +
+    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
+    [NewParamsInverseTransformValue.ToString('  '),
+     FCenter.ToString,
+     FRotation.ToString,
+     FScale.ToString,
+     FScaleOrientation.ToString,
+     FTranslation.ToString
+    ]));
+end;
+
 procedure TCastleTransform.Render(const Params: TRenderParams);
 var
   T: TVector3;
@@ -2904,17 +2920,8 @@ begin
     begin
       InternalTransformMatricesMult(NewParamsTransformValue, NewParamsInverseTransformValue);
       if IsNan(NewParamsInverseTransformValue.Data[0, 0]) then
-        WritelnWarning('Transform', Format(
-          'Inverse transform matrix has NaN value inside:' + NL +
-          '%s' + NL +
-          '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [NewParamsInverseTransformValue.ToString('  '),
-           FCenter.ToString,
-           FRotation.ToString,
-           FScale.ToString,
-           FScaleOrientation.ToString,
-           FTranslation.ToString
-          ]));
+        WarningMatrixNan(NewParamsInverseTransformValue);
+      // slower: NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
       NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
 

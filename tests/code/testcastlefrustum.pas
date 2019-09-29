@@ -39,7 +39,7 @@ type
 implementation
 
 uses Math,
-  CastleUtils, CastleTimeUtils, CastleProjection, CastleTransform;
+  CastleUtils, CastleTimeUtils, CastleProjection, CastleTransform, CastleLog;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 
@@ -423,6 +423,39 @@ begin
 end;
 
 procedure TTestCastleFrustum.TestTransformFrustum;
+
+  {$define TEST_FRUSTUM_TRANSFORM_SPEED}
+  {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
+  procedure DoTestSpeed;
+  const
+    TestsCount = 100 * 1000;
+  var
+    Frustum1{, Frustum2, Frustum3}: TFrustum;
+    M, MInverse: TMatrix4;
+    T: TTimerResult;
+    I: Integer;
+  begin
+    M := TMatrix4.Identity;
+    MInverse := TMatrix4.Identity;
+    TransformMatricesMult(M, MInverse,
+      Vector3(1, 2, 3),
+      Vector4(4, 5, 6, 7),
+      Vector3(8, 9, 10),
+      Vector4(11, 12, 13, 14),
+      Vector3(15, 16, 17));
+
+    T := Timer;
+    for I := 1 to TestsCount do
+      Frustum1.TransformByInverse(MInverse);
+    WritelnLog('Time of TFrustum.TransformByInverse: %f', [T.ElapsedTime]);
+
+    T := Timer;
+    for I := 1 to TestsCount do
+      Frustum1.Transform(M);
+    WritelnLog('Time of TFrustum.Transform: %f', [T.ElapsedTime]);
+  end;
+  {$endif}
+
 var
   Frustum1{, Frustum2, Frustum3}: TFrustum;
   M, MInverse: TMatrix4;
@@ -489,6 +522,10 @@ begin
     Vector3(15, 16, 17));
   // when using non-uniform scaling, we need larger epsilon to pass
   AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+
+  {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
+  DoTestSpeed;
+  {$endif}
 end;
 
 initialization
