@@ -619,6 +619,10 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4; inline;
 
+    { Calculates "M.Transpose * V" in a faster way
+      (without spending *any* time on calculating transposition). }
+    function TransposeMultiply(const V: TGenericVector4): TGenericVector4; inline;
+
     function ToString(const LineIndent: string = ''): string;
 
     { Convert to string using the most precise (not always easily readable
@@ -2015,6 +2019,14 @@ begin
   Result.Data[3, 1] := V.Data[3, 1] * Scalar;
   Result.Data[3, 2] := V.Data[3, 2] * Scalar;
   Result.Data[3, 3] := V.Data[3, 3] * Scalar;
+end;
+
+function TGenericMatrix4.TransposeMultiply(const V: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := Data[0, 0] * V.Data[0] + Data[0, 1] * V.Data[1] + Data[0, 2] * V.Data[2] + Data[0, 3] * V.Data[3];
+  Result.Data[1] := Data[1, 0] * V.Data[0] + Data[1, 1] * V.Data[1] + Data[1, 2] * V.Data[2] + Data[1, 3] * V.Data[3];
+  Result.Data[2] := Data[2, 0] * V.Data[0] + Data[2, 1] * V.Data[1] + Data[2, 2] * V.Data[2] + Data[2, 3] * V.Data[3];
+  Result.Data[3] := Data[3, 0] * V.Data[0] + Data[3, 1] * V.Data[1] + Data[3, 2] * V.Data[2] + Data[3, 3] * V.Data[3];
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;

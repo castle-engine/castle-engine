@@ -18,7 +18,7 @@ unit TestCastleTimeUtils;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleTestCase;
+uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleTimeUtils = class(TCastleTestCase)

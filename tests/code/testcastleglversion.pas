@@ -17,7 +17,7 @@ unit TestCastleGLVersion;
 
 interface
 
-uses fpcunit, testutils, testregistry;
+uses FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestGLVersion = class(TTestCase)

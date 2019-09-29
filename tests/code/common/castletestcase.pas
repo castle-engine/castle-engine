@@ -23,8 +23,8 @@ unit CastleTestCase;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, CastleVectors, CastleBoxes,
-  CastleImages, CastleRectangles;
+  Classes, SysUtils, FpcUnit, TestUtils,
+  CastleVectors, CastleBoxes, CastleImages, CastleRectangles, CastleFrustum;
 
 type
   TCastleTestCase = class(TTestCase)
@@ -63,6 +63,7 @@ type
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TRectangle; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle; AErrorAddrs: Pointer = nil);
+    procedure AssertFrustumEquals(const Expected, Actual: TFrustum; AErrorAddrs: Pointer = nil);
   end;
 
 implementation
@@ -374,6 +375,18 @@ begin
   if not Expected.Equals(Actual) then
     Fail(Format('Expected rect (%s) does not equal actual (%s)',
       [Expected.ToString, Actual.ToString]), AErrorAddrs);
+end;
+
+procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum; AErrorAddrs: Pointer = nil);
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+
+  if not Expected.Equals(Actual) then
+    Fail(Format('Expected frustum (%s) does not equal actual (%s)', [
+      Expected.ToString('  '),
+      Actual.ToString('  ')
+    ]), AErrorAddrs);
 end;
 
 end.

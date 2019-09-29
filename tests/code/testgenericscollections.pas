@@ -19,7 +19,7 @@ unit TestGenericsCollections;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, Generics.Collections;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, Generics.Collections;
 
 type
   TTestGenericsCollections = class(TTestCase)

@@ -21,7 +21,7 @@ unit TestCastleTriangulate;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
   CastleTriangulate, CastleTriangles, CastleTestCase;
 
 type

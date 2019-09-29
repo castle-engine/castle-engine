@@ -19,7 +19,7 @@ unit TestCastleScene;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestScene = class(TTestCase)

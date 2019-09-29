@@ -20,7 +20,7 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
   CastleTestCase;
 
 type

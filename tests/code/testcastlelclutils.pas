@@ -17,7 +17,7 @@ unit TestCastleLCLUtils;
 
 interface
 
-uses fpcunit, testutils, testregistry;
+uses FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestCastleLCLUtils = class(TTestCase)

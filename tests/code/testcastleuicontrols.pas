@@ -19,7 +19,7 @@ unit TestCastleUIControls;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
   CastleTestCase, CastleUIControls;
 
 type

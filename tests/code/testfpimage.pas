@@ -18,7 +18,7 @@ unit TestFPImage;
 interface
 
 uses
-  fpcunit, testutils, testregistry;
+  FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestFPImage = class(TTestCase)

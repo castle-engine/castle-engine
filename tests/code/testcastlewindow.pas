@@ -18,7 +18,7 @@ unit TestCastleWindow;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleTestCase;
+uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestWindow = class(TCastleTestCase)

@@ -18,8 +18,8 @@ unit TestCastleFrustum;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleVectors, CastleBoxes, CastleFrustum;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, CastleVectors, CastleBoxes, CastleFrustum;
 
 type
   TTestCastleFrustum = class(TTestCase)
@@ -33,6 +33,7 @@ type
     procedure TestFrustum;
     procedure TestInfiniteFrustum;
     procedure TestCompareWithUnoptimizedPlaneCollision;
+    procedure TestTransformFrustum;
   end;
 
 implementation
@@ -418,6 +419,25 @@ begin
   Writeln('Ratio of non-outside results: ', (NoOutsideResults/Tests):1:10);
 
   {$endif}
+end;
+
+procedure TTestCastleFrustum.TestTransformFrustum;
+var
+  Frustum1, Frustum2, Frustum3: TFrustum;
+  M, MInverse: TMatrix4;
+begin
+  Frustum1.Init(
+    PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
+    LookDirMatrix(
+      Vector3(10, 10, 10) { eye position },
+      Vector3(1, 0, 0) { look direction },
+      Vector3(0, 0, 1) { up vector } ));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+
+  AssertFrustumEquals(Frustum1, Frustum1.Transform(M));
+  AssertFrustumEquals(Frustum1, Frustum1.TransformByInverse(MInverse));
 end;
 
 initialization

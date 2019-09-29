@@ -19,7 +19,7 @@ unit TestCastleImages;
 
 interface
 
-uses fpcunit, testutils, testregistry,
+uses FpcUnit, TestUtils, TestRegistry,
   CastleTestCase;
 
 type

@@ -18,7 +18,7 @@ unit TestX3DNodesOptimizedProxy;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors, X3DNodes,
   CastleTestCase;
 
 type

@@ -218,8 +218,13 @@ type
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
     function Transform(const M: TMatrix4): TFrustum;
 
+    { Transform frustum by a matrix, given inverse transformation.
+      This may bee much master than Transform. }
+    function TransformByInverse(const MInverse: TMatrix4): TFrustum;
+
     function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
     function ToString(const Indent: string): string;
+    function Equals(const F: TFrustum): Boolean;
   end;
   PFrustum = ^TFrustum;
 
@@ -603,6 +608,26 @@ begin
   Result.ZFarInfinity := ZFarInfinity;
 end;
 
+function TFrustum.TransformByInverse(const MInverse: TMatrix4): TFrustum;
+var
+  I: TFrustumPlane;
+begin
+  if ZFarInfinity then
+  begin
+    Assert(High(I) = fpFar);
+    // Multiply by transpose(inverse(M)) to transform plane.
+    // This is faster than our PlaneTransform, since we already have MInverse.
+    // See https://stackoverflow.com/questions/7685495/transforming-a-3d-plane-using-a-4x4-matrix
+    for I := Low(I) to Pred(High(I)) do
+      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
+    Result.Planes[fpFar] := TVector4.Zero;
+  end else
+    for I := Low(I) to High(I) do
+      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
+
+  Result.ZFarInfinity := ZFarInfinity;
+end;
+
 function TFrustum.ToNiceStr(const Indent: string): string;
 begin
   Result := ToString(Indent);
@@ -622,6 +647,25 @@ begin
   end else
     for I := Low(I) to High(I) do
       Result := Result + Indent + Planes[I].ToString + LineEnding;
+end;
+
+function TFrustum.Equals(const F: TFrustum): Boolean;
+var
+  I: TFrustumPlane;
+begin
+  Result := ZFarInfinity = F.ZFarInfinity;
+  if Result then
+  begin
+    if ZFarInfinity then
+    begin
+      for I := Low(I) to Pred(High(I)) do
+        if not TVector4.Equals(Planes[I], F.Planes[I]) then Exit(false);
+    end else
+    begin
+      for I := Low(I) to High(I) do
+        if not TVector4.Equals(Planes[I], F.Planes[I]) then Exit(false);
+    end;
+  end;
 end;
 
 end.
