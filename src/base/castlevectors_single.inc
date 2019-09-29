@@ -101,16 +101,17 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
-function MaxVectorCoord(const v: TVector2): integer; overload;
-function MaxVectorCoord(const v: TVector3): integer; overload;
-function MaxVectorCoord(const v: TVector4): integer; overload;
-function MaxAbsVectorCoord(const v: TVector2): integer; overload;
-function MaxAbsVectorCoord(const v: TVector3): integer; overload;
+function MaxVectorCoord(const V: TVector2): integer; overload;
+function MaxVectorCoord(const V: TVector3): integer; overload;
+function MaxVectorCoord(const V: TVector4): integer; overload;
+function MaxAbsVectorCoord(const V: TVector2): integer; overload;
+function MaxAbsVectorCoord(const V: TVector3): integer; overload;
+function MaxAbsVectorCoord(const V: TVector4): integer; overload;
 { @groupEnd }
 
-function MinVectorCoord(const v: TVector3): integer; overload;
+function MinVectorCoord(const V: TVector3): integer; overload;
 
-procedure SortAbsVectorCoord(const v: TVector3; out Max, Middle, Min: Integer); overload;
+procedure SortAbsVectorCoord(const V: TVector3; out Max, Middle, Min: Integer); overload;
 
 { Vector orthogonal to plane and pointing in the given direction.
 
@@ -173,7 +174,7 @@ procedure SwapValues(var V1, V2: TVector4); overload;
   this will fail with some awful error (like floating point overflow)
   in case length of plane vector is zero. That's because we know
   that plane vector @italic(must) be always non-zero. }
-procedure NormalizePlaneVar(var v: TVector4); overload;
+procedure NormalizePlaneVar(var V: TVector4); overload;
 
 { Intersection of two 3D planes.
   @raises EPlanesParallel If planes are parallel.
@@ -283,8 +284,8 @@ procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
 { Return, deterministically, some vector orthogonal to V.
   When V is non-zero, then the result is non-zero.
   @groupBegin }
-function AnyOrthogonalVector(const v: TVector2): TVector2; overload;
-function AnyOrthogonalVector(const v: TVector3): TVector3; overload;
+function AnyOrthogonalVector(const V: TVector2): TVector2; overload;
+function AnyOrthogonalVector(const V: TVector3): TVector3; overload;
 { @groupEnd }
 
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean; overload;
@@ -657,7 +658,7 @@ function ModelViewToNormalMatrix(const M: TMatrix4): TMatrix3;
   we fill the last row and column just like for an identity matrix.
 
   This is useful for calculating rotation matrix. }
-function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+function VectorMultTransposedSameVector(const V: TVector3): TMatrix4;
 
 function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 
@@ -860,7 +861,7 @@ begin
   V2 := Tmp;
 end;
 
-procedure NormalizePlaneVar(var v: TVector4);
+procedure NormalizePlaneVar(var V: TVector4);
 var
   Len: Single;
 begin
@@ -995,56 +996,68 @@ begin
   Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
 end;
 
-function MaxVectorCoord(const v: TVector2): integer;
+function MaxVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if v.Data[1] > v.Data[Result] then Result := 1;
+  if V.Data[1] > V.Data[Result] then Result := 1;
 end;
 
-function MaxVectorCoord(const v: TVector3): integer;
+function MaxVectorCoord(const V: TVector3): integer;
 begin
   Result := 0;
   { order of comparisons is important. We start from 0, then 1 and 2,
     and change only when differ (>, not just >=). This way we
     guarantee that when values are equal, lower coordinate wins. }
-  if v.Data[1] > v.Data[Result] then Result := 1;
-  if v.Data[2] > v.Data[Result] then Result := 2;
+  if V.Data[1] > V.Data[Result] then Result := 1;
+  if V.Data[2] > V.Data[Result] then Result := 2;
 end;
 
-function MinVectorCoord(const v: TVector3): integer;
+function MinVectorCoord(const V: TVector3): integer;
 begin
   Result := 0;
-  if v.Data[1] < v.Data[Result] then Result := 1;
-  if v.Data[2] < v.Data[Result] then Result := 2;
+  if V.Data[1] < V.Data[Result] then Result := 1;
+  if V.Data[2] < V.Data[Result] then Result := 2;
 end;
 
-function MaxVectorCoord(const v: TVector4): integer;
+function MaxVectorCoord(const V: TVector4): integer;
 begin
   Result := 0;
-  if v.Data[1] > v.Data[Result] then Result := 1;
-  if v.Data[2] > v.Data[Result] then Result := 2;
-  if v.Data[3] > v.Data[Result] then Result := 3;
+  if V.Data[1] > V.Data[Result] then Result := 1;
+  if V.Data[2] > V.Data[Result] then Result := 2;
+  if V.Data[3] > V.Data[Result] then Result := 3;
 end;
 
-function MaxAbsVectorCoord(const v: TVector2): integer;
+function MaxAbsVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
+  if Abs(V.Data[1]) > Abs(V.Data[Result]) then Result := 1;
 end;
 
-function MaxAbsVectorCoord(const v: TVector3): integer;
+function MaxAbsVectorCoord(const V: TVector3): integer;
+var
+  Max, New: Single;
 begin
   Result := 0;
-  if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
-  if Abs(v.Data[2]) > Abs(v.Data[Result]) then Result := 2;
+  Max := Abs(V.Data[0]);
+  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Data[2]); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
 end;
 
-procedure SortAbsVectorCoord(const v: TVector3;
+function MaxAbsVectorCoord(const V: TVector4): integer;
+var
+  Max, New: Single;
+begin
+  Result := 0;
+  Max := Abs(V.Data[0]);
+  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Data[2]); if New > Max then begin Result := 2; Max := New; end;
+  New := Abs(V.Data[3]); if New > Max then begin Result := 3; { Max := New; not needed anymore } end;
+end;
+
+procedure SortAbsVectorCoord(const V: TVector3;
   out Max, Middle, Min: Integer);
 begin
-  Max := 0;
-  if Abs(V.Data[1]) > Abs(V.Data[Max]) then Max := 1;
-  if Abs(V.Data[2]) > Abs(V.Data[Max]) then Max := 2;
+  Max := MaxAbsVectorCoord(V);
   case Max of
     0: if Abs(V.Data[1]) >= Abs(V.Data[2]) then begin Middle := 1; Min := 2; end else begin Middle := 2; Min := 1; end;
     1: if Abs(V.Data[0]) >= Abs(V.Data[2]) then begin Middle := 0; Min := 2; end else begin Middle := 2; Min := 0; end;
@@ -1391,7 +1404,7 @@ begin
   MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi / 2, AnyOrthogonalVector(V2));
 end;
 
-function AnyOrthogonalVector(const v: TVector3): TVector3;
+function AnyOrthogonalVector(const V: TVector3): TVector3;
 begin
   { This uses a simple trick to make an orthogonal vector:
     if you take @code(Result := (V.Data[1], -V.Data[0], 0)) then the dot product
@@ -1399,20 +1412,20 @@ begin
     There's also a small check needed to use a similar but different version
     when the only non-zero component of V is V.Data[2]. }
 
-  if IsZero(v.Data[0]) and IsZero(v.Data[1]) then
+  if IsZero(V.Data[0]) and IsZero(V.Data[1]) then
   begin
     Result.Data[0] := 0;
-    Result.Data[1] := v.Data[2];
-    Result.Data[2] := -v.Data[1];
+    Result.Data[1] := V.Data[2];
+    Result.Data[2] := -V.Data[1];
   end else
   begin
-    Result.Data[0] := v.Data[1];
-    Result.Data[1] := -v.Data[0];
+    Result.Data[0] := V.Data[1];
+    Result.Data[1] := -V.Data[0];
     Result.Data[2] := 0;
   end;
 end;
 
-function AnyOrthogonalVector(const v: TVector2): TVector2;
+function AnyOrthogonalVector(const V: TVector2): TVector2;
 begin
   Result.Data[0] :=  V.Data[1];
   Result.Data[1] := -V.Data[0];
@@ -2287,7 +2300,7 @@ begin
     Result := M3.Inverse(D).Transpose;
 end;
 
-function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+function VectorMultTransposedSameVector(const V: TVector3): TMatrix4;
 begin
   (* Naive version:
 
