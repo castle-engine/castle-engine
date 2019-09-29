@@ -428,13 +428,20 @@ procedure TTestCastleFrustum.TestTransformFrustum;
   {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
   procedure DoTestSpeed;
   const
-    TestsCount = 100 * 1000;
+    TestsCount = 1000 * 1000;
   var
     Frustum1{, Frustum2, Frustum3}: TFrustum;
     M, MInverse: TMatrix4;
     T: TTimerResult;
     I: Integer;
   begin
+    Frustum1.Init(
+      PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
+      LookDirMatrix(
+        Vector3(10, 10, 10) { eye position },
+        Vector3(1, 0, 0) { look direction },
+        Vector3(0, 0, 1) { up vector } ));
+
     M := TMatrix4.Identity;
     MInverse := TMatrix4.Identity;
     TransformMatricesMult(M, MInverse,

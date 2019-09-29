@@ -2921,8 +2921,8 @@ begin
       InternalTransformMatricesMult(NewParamsTransformValue, NewParamsInverseTransformValue);
       if IsNan(NewParamsInverseTransformValue.Data[0, 0]) then
         WarningMatrixNan(NewParamsInverseTransformValue);
-      // slower: NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
-      NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
+      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
 
     FrameProfiler.Stop(fmRenderTransform);
