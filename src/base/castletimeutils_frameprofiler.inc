@@ -22,8 +22,10 @@ type
   TFrameMetric = (
     fmBeforeRender,
     fmRender,
-    fmRenderFrameProfiler,
+    fmRenderTransform,
     fmRenderScene,
+    fmRenderShapesFilterBlending,
+    //fmRenderFrameProfiler,
     fmUpdate,
     fmUpdateScene
   );
@@ -126,11 +128,11 @@ constructor TCastleFrameProfiler.Create;
 begin
   inherited;
   { Since the memory usage may grow quickly once increasing MaxUserMetrics, watch it }
-  WritelnLog('FrameProfiler created, eats around %f MB of memory', [
-    (SizeOf(FramesTimes) +
-     SizeOf(CurrentFrameStarted) +
-     SizeOf(CurrentFrameStart)) / (1024 * 1024)
-  ]);
+  // WritelnLog('FrameProfiler created, eats around %f MB of memory', [
+  //   (SizeOf(FramesTimes) +
+  //    SizeOf(CurrentFrameStarted) +
+  //    SizeOf(CurrentFrameStart)) / (1024 * 1024)
+  // ]);
 end;
 
 procedure TCastleFrameProfiler.StartCore(const Metric: TMetricIndex);
@@ -183,11 +185,13 @@ procedure TCastleFrameProfiler.StartFrame;
       'Frame time: %f secs (we should have %f FPS based on this):' + NL +
       '- BeforeRender: %d%%' + NL +
       '- Render: %d%% (%f secs, we should have %f "only render FPS" based on this)' + NL +
-      '  - RenderFrameProfiler: %d%%' + NL +
-      '  - RenderScene: %d%%' + NL +
+      '  - TCastleTransform.Render transformation: %d%%' + NL +
+      '  - TCastleScene.Render: %d%%' + NL +
+      '  - ShapesFilterBlending (inside TCastleScene.Render): %d%%' + NL +
+      // '  - RenderFrameProfiler: %d%%' + NL +
       '%s' +
       '- Update: %d%%' + NL +
-      '  - UpdateScene: %d%%' + NL +
+      '  - TCastleSceneCore.Update: %d%%' + NL +
       '%s' +
       '- Other:' + NL +
       '%s'
@@ -198,8 +202,10 @@ procedure TCastleFrameProfiler.StartFrame;
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)] / TotalTime),
       FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
       1 / FramesTimes[CurrentFrame, IndexFrameMetric(fmRender)],
-      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderFrameProfiler)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderTransform)] / TotalTime),
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderScene)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderShapesFilterBlending)] / TotalTime),
+      // Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmRenderFrameProfiler)] / TotalTime),
       DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdate)] / TotalTime),
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdateScene)] / TotalTime),

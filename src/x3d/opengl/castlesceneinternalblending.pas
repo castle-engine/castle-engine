@@ -62,7 +62,7 @@ implementation
 
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleLog, X3DNodes, CastleScene;
+  CastleLog, X3DNodes, CastleScene, CastleTimeUtils;
 
 { Given blending name (as defined by X3D BlendMode node spec,
   http://www.instantreality.org/documentation/nodetype/BlendMode/),
@@ -346,6 +346,7 @@ procedure ShapesFilterBlending(
 var
   Capacity: Integer;
 begin
+  FrameProfiler.Start(fmRenderShapesFilterBlending);
   FilteredShapes.Clear;
 
   { Set Capacity to max value at the beginning, to speed adding items later. }
@@ -355,6 +356,7 @@ begin
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
     Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+  FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 
 end.

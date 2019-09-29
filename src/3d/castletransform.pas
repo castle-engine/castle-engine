@@ -2879,6 +2879,8 @@ begin
     LocalRender(Params)
   else
   begin
+    FrameProfiler.Start(fmRenderTransform);
+
     OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
@@ -2918,14 +2920,18 @@ begin
       NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
 
+    FrameProfiler.Stop(fmRenderTransform);
+
     LocalRender(Params);
 
+    FrameProfiler.Start(fmRenderTransform);
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }
     Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
     Params.Frustum           := OldFrustum;
+    FrameProfiler.Stop(fmRenderTransform);
   end;
 end;
 
