@@ -167,14 +167,25 @@ type
     (TX3DGraphTraverseState) as leafs (TShape). }
   TShapeTree = class
   strict private
-    FParentScene: TObject;
+    FParentScene: TX3DEventsEngine;
+    { Cached MaxShapesCount result, or -1 if not in cache yet. }
+    FMaxShapesCount: Integer;
+  private
+    { Automatically set when adding item to TShapeTreeGroup. }
+    FParent: TShapeTree;
+    function MaxShapesCountCore: Integer; virtual; abstract;
+    procedure InvalidateMaxShapesCount;
   public
-    constructor Create(AParentScene: TObject);
+    constructor Create(const AParentScene: TX3DEventsEngine);
+
+    { Maximum value of ShapesCount.
+      This is cached, so it's usually instant, in contrast to ShapesCount. }
+    function MaxShapesCount: Integer;
 
     { Parent TCastleSceneCore instance. This cannot be declared here as
       TCastleSceneCore (this would create circular unit dependency),
       but it always is TCastleSceneCore. }
-    property ParentScene: TObject read FParentScene write FParentScene;
+    property ParentScene: TX3DEventsEngine read FParentScene write FParentScene;
 
     procedure Traverse(Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
@@ -382,15 +393,18 @@ type
       PointingDeviceClear on ParentScene (since some PTriangle pointers
       were freed). }
     procedure FreeOctreeTriangles;
+  private
+    function MaxShapesCountCore: Integer; override;
   public
     { Constructor.
       @param(ParentInfo Recursive information about parents,
         for the geometry node of given shape.
         Note that for VRML 2.0/X3D, the immediate parent
         of geometry node is always TShapeNode.) }
-    constructor Create(AParentScene: TObject;
-      AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TX3DGraphTraverseState;
-      ParentInfo: PTraversingInfo);
+    constructor Create(const AParentScene: TX3DEventsEngine;
+      const AOriginalGeometry: TAbstractGeometryNode;
+      const AOriginalState: TX3DGraphTraverseState;
+      const ParentInfo: PTraversingInfo);
     destructor Destroy; override;
 
     { Original geometry node, that you get from a VRML/X3D graph. }
@@ -731,8 +745,11 @@ type
   TShapeTreeGroup = class(TShapeTree)
   strict private
     FChildren: TShapeTreeList;
+    procedure ChildrenChanged(Sender: TObject; constref Item: TShapeTree; Action: TCollectionNotification);
+  private
+    function MaxShapesCountCore: Integer; override;
   public
-    constructor Create(AParentScene: TObject);
+    constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
 
     procedure Traverse(Func: TShapeTraverseFunc;
@@ -803,7 +820,7 @@ type
     FTransformState: TX3DGraphTraverseState;
     procedure SetTransformNode(const Value: TX3DNode);
   public
-    constructor Create(AParentScene: TObject);
+    constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
 
     { Internal note: We don't declare TransformNode as ITransformNode interface,
@@ -883,6 +900,8 @@ type
   TProximitySensorInstance = class(TShapeTree)
   strict private
     FNode: TProximitySensorNode;
+  private
+    function MaxShapesCountCore: Integer; override;
   public
     InvertedTransform: TMatrix4;
     IsActive: boolean;
@@ -903,6 +922,8 @@ type
   TVisibilitySensorInstance = class(TShapeTree)
   strict private
     FNode: TVisibilitySensorNode;
+  private
+    function MaxShapesCountCore: Integer; override;
   public
     { Bounding box of this visibility sensor instance,
       already transformed to global VRML/X3D scene coordinates.
@@ -941,7 +962,7 @@ type
     CurrentIndex: Integer;
     {$endif}
   public
-    constructor Create(Tree: TShapeTree; const OnlyActive: boolean;
+    constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false);
     destructor Destroy; override;
@@ -959,7 +980,7 @@ type
     constructor Create;
 
     { Constructor that initializes list contents by traversing given tree. }
-    constructor Create(Tree: TShapeTree; const OnlyActive: boolean;
+    constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false);
 
@@ -1147,10 +1168,18 @@ end;
 
 { TShapeTree ------------------------------------------------------------ }
 
-constructor TShapeTree.Create(AParentScene: TObject);
+constructor TShapeTree.Create(const AParentScene: TX3DEventsEngine);
 begin
   inherited Create;
   FParentScene := AParentScene;
+  FMaxShapesCount := -1;
+end;
+
+function TShapeTree.MaxShapesCount: Integer;
+begin
+  if FMaxShapesCount = -1 then
+    FMaxShapesCount := MaxShapesCountCore;
+  Result := FMaxShapesCount;
 end;
 
 function TShapeTree.FindGeometryNodeName(
@@ -1257,11 +1286,21 @@ begin
     Result := TShapeTreeList(Node.InternalSceneShape).Count;
 end;
 
+procedure TShapeTree.InvalidateMaxShapesCount;
+begin
+  FMaxShapesCount := -1;
+  if FParent <> nil then
+    FParent.InvalidateMaxShapesCount;
+end;
+
 { TShape -------------------------------------------------------------- }
 
-constructor TShape.Create(AParentScene: TObject;
-  AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TX3DGraphTraverseState;
-  ParentInfo: PTraversingInfo);
+constructor TShape.Create(const AParentScene: TX3DEventsEngine;
+  const AOriginalGeometry: TAbstractGeometryNode;
+  const AOriginalState: TX3DGraphTraverseState;
+  const ParentInfo: PTraversingInfo);
+var
+  PI: PTraversingInfo;
 begin
   inherited Create(AParentScene);
 
@@ -1274,16 +1313,17 @@ begin
   AssociateGeometryState(FOriginalGeometry, FOriginalState);
   AssociateGeometryStateNeverProxied(FOriginalGeometry, FOriginalState);
 
-  if ParentInfo <> nil then
+  PI := ParentInfo;
+  if PI <> nil then
   begin
-    FGeometryParentNodeName := ParentInfo^.Node.X3DName;
-    ParentInfo := ParentInfo^.ParentInfo;
-    if ParentInfo <> nil then
+    FGeometryParentNodeName := PI^.Node.X3DName;
+    PI := PI^.ParentInfo;
+    if PI <> nil then
     begin
-      FGeometryGrandParentNodeName := ParentInfo^.Node.X3DName;
-      ParentInfo := ParentInfo^.ParentInfo;
-      if ParentInfo <> nil then
-        FGeometryGrandGrandParentNodeName := ParentInfo^.Node.X3DName;
+      FGeometryGrandParentNodeName := PI^.Node.X3DName;
+      PI := PI^.ParentInfo;
+      if PI <> nil then
+        FGeometryGrandGrandParentNodeName := PI^.Node.X3DName;
     end;
   end;
 
@@ -2093,6 +2133,11 @@ begin
     Result := 0;
 end;
 
+function TShape.MaxShapesCountCore: Integer;
+begin
+  Result := 1;
+end;
+
 function TShape.Visible: boolean;
 begin
   Result := State.InsideInvisible = 0;
@@ -2808,16 +2853,27 @@ end;
 
 { TShapeTreeGroup -------------------------------------------------------- }
 
-constructor TShapeTreeGroup.Create(AParentScene: TObject);
+constructor TShapeTreeGroup.Create(const AParentScene: TX3DEventsEngine);
 begin
-  inherited Create(AParentScene);
+  inherited;
   FChildren := TShapeTreeList.Create(true);
+  FChildren.OnNotify := {$ifdef CASTLE_OBJFPC}@{$endif} ChildrenChanged;
 end;
 
 destructor TShapeTreeGroup.Destroy;
 begin
   FreeAndNil(FChildren);
   inherited;
+end;
+
+procedure TShapeTreeGroup.ChildrenChanged(Sender: TObject;
+  constref Item: TShapeTree; Action: TCollectionNotification);
+begin
+  if Action = cnAdded then
+    Item.FParent := Self;
+  if Action in [cnExtracted, cnRemoved] then
+    Item.FParent := nil;
+  InvalidateMaxShapesCount;
 end;
 
 procedure TShapeTreeGroup.Traverse(Func: TShapeTraverseFunc;
@@ -2843,6 +2899,15 @@ begin
     ResultPart := FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
     Result += ResultPart;
   end;
+end;
+
+function TShapeTreeGroup.MaxShapesCountCore: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to FChildren.Count - 1 do
+    Result += FChildren.Items[I].MaxShapesCount;
 end;
 
 function TShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer;
@@ -2946,7 +3011,7 @@ end;
 
 { TShapeTreeTransform ---------------------------------------------------- }
 
-constructor TShapeTreeTransform.Create(AParentScene: TObject);
+constructor TShapeTreeTransform.Create(const AParentScene: TX3DEventsEngine);
 begin
   inherited;
   FTransformState := TX3DGraphTraverseState.Create;
@@ -3065,6 +3130,12 @@ function TProximitySensorInstance.ShapesCount(const OnlyActive: boolean;
   const OnlyVisible: boolean = false;
   const OnlyCollidable: boolean = false): Cardinal;
 begin
+  { This is not a TShape instance, and has no TShape children. }
+  Result := 0;
+end;
+
+function TProximitySensorInstance.MaxShapesCountCore: Integer;
+begin
   Result := 0;
 end;
 
@@ -3090,6 +3161,12 @@ end;
 function TVisibilitySensorInstance.ShapesCount(const OnlyActive: boolean;
   const OnlyVisible: boolean = false;
   const OnlyCollidable: boolean = false): Cardinal;
+begin
+  { This is not a TShape instance, and has no TShape children. }
+  Result := 0;
+end;
+
+function TVisibilitySensorInstance.MaxShapesCountCore: Integer;
 begin
   Result := 0;
 end;
@@ -3171,7 +3248,7 @@ begin
     Result := (Current <> nil);
 end;
 
-constructor TShapeTreeIterator.Create(Tree: TShapeTree;
+constructor TShapeTreeIterator.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
@@ -3275,7 +3352,7 @@ end;
 
 {$else SHAPE_ITERATOR_SOPHISTICATED}
 
-constructor TShapeTreeIterator.Create(Tree: TShapeTree;
+constructor TShapeTreeIterator.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
@@ -3306,29 +3383,22 @@ begin
   inherited Create(false);
 end;
 
-constructor TShapeList.Create(Tree: TShapeTree;
+constructor TShapeList.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
-var
-  AddedCount: Integer;
 
   procedure AddToList(const Shape: TShape);
   begin
-    Items[AddedCount] := Shape;
-    Inc(AddedCount);
+    Add(Shape);
   end;
 
 begin
   Create;
-
-  { We know exactly how many shapes are present. So set Count once,
-    calculating by ShapesCount. This will be faster than resizing
-    in each AddToList. (Confirmed e.g. by profiling animate_3d_model_by_code_2). }
-  AddedCount := 0;
-  Count := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-
+  { Set Capacity, to make following operations faster.
+    Note that we use MaxShapesCount instead of ShapesCount,
+    since MaxShapesCount is usually instant.
+    Testcase of speedup: e.g. profiling animate_3d_model_by_code_2. }
+  Capacity := Tree.MaxShapesCount;
   Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
-
-  Assert(AddedCount = Count);
 end;
 
 type

@@ -343,15 +343,13 @@ procedure ShapesFilterBlending(
       FilteredShapes.Add(Shape);
   end;
 
-var
-  Capacity: Integer;
 begin
   FrameProfiler.Start(fmRenderShapesFilterBlending);
-  FilteredShapes.Clear;
 
+  { Use "Count := 0" instead of Clear, this way previous Capacity remains }
+  FilteredShapes.Count := 0;
   { Set Capacity to max value at the beginning, to speed adding items later. }
-  Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-  FilteredShapes.Capacity := Capacity;
+  FilteredShapes.Capacity := Tree.MaxShapesCount;
 
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
