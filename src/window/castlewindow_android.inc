@@ -627,21 +627,25 @@ var
 begin
   MessageHandlingBegin := Timer;
   repeat
-    if WaitForMessage and AllowSuspendForInput and
-      { Unfortunately, we have to be more conservative than
-        AllowSuspendForInput to decide when we can suspend.
+    { When the window is open: We cannot suspend (wait indefinitely for a message) 
+      an open window, even when AllowSuspendForInput or WaitForMessage. 
+      That's because we would not react to resize events soon enough then,
+      since we have to actually do a couple of loop passes until "resize" event
+      reaches us. Reproducible on drawing_toy.
 
-        Right now we cannot suspend on non-closed window.
-        Otherwise we do not react to resize events soon enough,
-        since we have to actually do a couple of loop passes until resize
-        reaches us. Reproducible on drawing_toy: without this,
-        we will not receive resize before drawing. }
-      ((MainWindow = nil) or MainWindow.Closed) then
+      When the window is closed: We can and should suspend in this case,
+      regardless of AllowSuspendForInput or WaitForMessage,
+      to not waste battery. }
+    if (MainWindow = nil) or MainWindow.Closed then
     begin
       WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
       Ident := ALooper_pollAll(-1 { wait }, nil, @Events, @Source);
     end else
+    begin
       Ident := ALooper_pollAll(0, nil, @Events, @Source);
+      { Uncomment it to test loop suspending solution. }
+      //WritelnLog('Android', 'Looping...');
+    end;
     if Ident < 0 then Break;
 
     if Source <> nil then
@@ -707,11 +711,9 @@ begin
   end;
 
   { Note that we ignore WaitToLimitFPS here, right now.
-    When redrawing (not MainWindow.Closed), it is always "on" in the main loop,
+    When the window is open, it is always "on" in the main loop,
     we don't control it, Android throttles render speed anyway.
-    When not redrawing, then there's not much point in WaitToLimitFPS,
-    we should rather let WaitForMessage mechanism work (when all windows are
-    closed, we should usually have WaitForMessage = true). }
+    When the window is closed, we always wait for message to conserve battery. }
 
   { the result of ProcessMessage must always be "not Terminated"
     to work with TCustomApplication correctly. }
