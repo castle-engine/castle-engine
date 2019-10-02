@@ -627,13 +627,15 @@ var
 begin
   MessageHandlingBegin := Timer;
   repeat
-    { Android app can't be suspended by WaitForMessage and AllowSuspendForInput
-      because we do not react to resize events soon enough then,
-      since we have to actually do a couple of loop passes until resize
+    { When the window is open: We cannot suspend (wait indefinitely for a message) 
+      an open window, even when AllowSuspendForInput or WaitForMessage. 
+      That's because we would not react to resize events soon enough then,
+      since we have to actually do a couple of loop passes until "resize" event
       reaches us. Reproducible on drawing_toy.
 
-      On the other hand, we must always stop the message loop when the
-      window is closed to not waste battery. }
+      When the window is closed: We can and should suspend in this case,
+      regardless of AllowSuspendForInput or WaitForMessage,
+      to not waste battery. }
     if (MainWindow = nil) or MainWindow.Closed then
     begin
       WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
@@ -709,11 +711,9 @@ begin
   end;
 
   { Note that we ignore WaitToLimitFPS here, right now.
-    When redrawing (not MainWindow.Closed), it is always "on" in the main loop,
+    When the window is open, it is always "on" in the main loop,
     we don't control it, Android throttles render speed anyway.
-    When not redrawing, then there's not much point in WaitToLimitFPS,
-    we should rather let WaitForMessage mechanism work (when all windows are
-    closed, we should usually have WaitForMessage = true). }
+    When the window is closed, we always wait for message to conserve battery. }
 
   { the result of ProcessMessage must always be "not Terminated"
     to work with TCustomApplication correctly. }
