@@ -189,7 +189,7 @@ type
 
       Always call ApplyProjection before this, to set correct
       projection matrix. }
-    procedure RenderOnScreen(ACamera: TCamera);
+    procedure RenderOnScreen(ACamera: TCastleCamera);
 
     { Set the projection parameters and matrix.
       Used by our Render method.
