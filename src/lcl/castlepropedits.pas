@@ -81,6 +81,8 @@ begin
     TCastleColorPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleColorRGBPersistent), nil, '',
     TCastleColorRGBPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleVector2Persistent), nil, '',
+    TCastleVector2PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector3Persistent), nil, '',
     TCastleVector3PropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleVector4Persistent), nil, '',
