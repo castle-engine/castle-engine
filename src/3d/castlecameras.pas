@@ -151,6 +151,7 @@ type
     Camera: TCastleCamera;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { Additional translation of the camera.
       The camera movement applied here is always scaled by
@@ -183,6 +184,13 @@ type
     property Origin: TVector2 read FOrigin write SetOrigin;
 
     procedure InternalSetEffectiveSize(const W, H: Single);
+
+    { Currently used projection width and height, calculated following
+      the algorithm described at @link(Width) and @link(Height).
+      @groupBegin }
+    property EffectiveWidth: Single read FEffectiveWidth;
+    property EffectiveHeight: Single read FEffectiveHeight;
+    { @groupEnd }
   published
     { Orthographic projection width and height.
 
@@ -232,12 +240,9 @@ type
     property Height: Single read FHeight write SetHeight default 0;
     { @groupEnd }
 
-    { Currently used projection width and height, calculated following
-      the algorithm described at @link(Width) and @link(Height).
-      @groupBegin }
-    property EffectiveWidth: Single read FEffectiveWidth;
-    property EffectiveHeight: Single read FEffectiveHeight;
-    { @groupEnd }
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   { Camera determines viewer position and orientation in a 3D or 2D world.
@@ -2178,6 +2183,17 @@ end;
 constructor TCastleOrthographic.Create(AOwner: TComponent);
 begin
   inherited;
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleOrthographic.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleOrthographic.SetOrigin(const Value: TVector2);
@@ -2212,6 +2228,10 @@ begin
   FEffectiveWidth := W;
   FEffectiveHeight := H;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 { TCastleCamera -------------------------------------------------------------- }
 
