@@ -19,7 +19,7 @@ unit TestFGL;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, FGL;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, FGL;
 
 type
   TTestObjectsList = class(TTestCase)

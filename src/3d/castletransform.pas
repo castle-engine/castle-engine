@@ -398,6 +398,7 @@ type
     procedure UpdateWorldTransformAndInverse;
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
+    procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -839,10 +840,11 @@ type
       will automatically call @code(MyScene.PrepareResources(...)) underneath,
       with proper parameters.
 
-      It is best to call this after the rendering context is initailized,
-      which means: at Application.OnInitialize, or Window.OnOpen or later.
-      Calling this method earlier will omit some preparations,
-      thus reducing the effectiveness of them.
+      It is best to call this when the rendering context is initailized,
+      e.g. at Application.OnInitialize or later.
+      Calling this method before the rendering context is initialized
+      (e.g. from initializaton section of some unit)
+      will have to skip some preparations, thus reducing the effectiveness of this method.
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -850,8 +852,8 @@ type
       But if you allow everything to be prepared "as needed",
       then e.g. the first @link(Render) call may take a long time because it may
       have to prepare resources that will be reused in next @link(Render) calls.
-      This is bad, as your program will seem very slow at the beginning
-      (when rendering resources are being prepared, so at first frame,
+      This may make your program seem slow at the beginning
+      (when rendering resources are being prepared, so at the first frame,
       or a couple of first animation frames). To avoid this, call this method,
       showing the user something like "now we're preparing
       the resources --- please wait".
@@ -1024,8 +1026,7 @@ type
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewport: TRectangle); virtual;
+      const ProjectionNear, ProjectionFar: Single); virtual;
 
     { Are we in the middle of dragging something by moving the mouse.
 
@@ -2206,7 +2207,7 @@ begin
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
-    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one TCastleTransform instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManger.Items.Remove(xxx)") before adding to new scene manager.');
+    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one TCastleTransform instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManager.Items.Remove(xxx)") before adding to new scene manager.');
 
   Dec(FWorldReferences);
   if FWorldReferences = 0 then
@@ -2590,14 +2591,12 @@ end;
 
 procedure TCastleTransform.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewport: TRectangle);
+  const ProjectionNear, ProjectionFar: Single);
 var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
-    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewport);
+    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar);
 end;
 
 procedure TCastleTransform.VisibleChangeNotification(const Changes: TVisibleChanges);
@@ -2872,6 +2871,21 @@ begin
   finally Params.Frustum := OldFrustum end;
 end;
 
+procedure TCastleTransform.WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
+begin
+  WritelnWarning('Transform', Format(
+    'Inverse transform matrix has NaN value inside:' + NL +
+    '%s' + NL +
+    '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
+    [NewParamsInverseTransformValue.ToString('  '),
+     FCenter.ToString,
+     FRotation.ToString,
+     FScale.ToString,
+     FScaleOrientation.ToString,
+     FTranslation.ToString
+    ]));
+end;
+
 procedure TCastleTransform.Render(const Params: TRenderParams);
 var
   T: TVector3;
@@ -2886,6 +2900,8 @@ begin
     LocalRender(Params)
   else
   begin
+    FrameProfiler.Start(fmRenderTransform);
+
     OldParamsTransformIdentity := Params.TransformIdentity;
     OldParamsTransform         := Params.Transform;
     OldParamsInverseTransform  := Params.InverseTransform;
@@ -2911,28 +2927,23 @@ begin
     begin
       InternalTransformMatricesMult(NewParamsTransformValue, NewParamsInverseTransformValue);
       if IsNan(NewParamsInverseTransformValue.Data[0, 0]) then
-        WritelnWarning('Transform', Format(
-          'Inverse transform matrix has NaN value inside:' + NL +
-          '%s' + NL +
-          '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [NewParamsInverseTransformValue.ToString('  '),
-           FCenter.ToString,
-           FRotation.ToString,
-           FScale.ToString,
-           FScaleOrientation.ToString,
-           FTranslation.ToString
-          ]));
-      NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
+        WarningMatrixNan(NewParamsInverseTransformValue);
+      NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
+      // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
+
+    FrameProfiler.Stop(fmRenderTransform);
 
     LocalRender(Params);
 
+    FrameProfiler.Start(fmRenderTransform);
     { Restore OldXxx values.
       They can be restored fast, thanks to using pointers to matrix/frustum. }
     Params.TransformIdentity := OldParamsTransformIdentity;
     Params.Transform         := OldParamsTransform;
     Params.InverseTransform  := OldParamsInverseTransform;
     Params.Frustum           := OldFrustum;
+    FrameProfiler.Stop(fmRenderTransform);
   end;
 end;
 

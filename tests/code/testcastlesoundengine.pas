@@ -19,7 +19,7 @@ unit TestCastleSoundEngine;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)

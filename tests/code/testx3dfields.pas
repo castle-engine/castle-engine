@@ -19,7 +19,7 @@ unit TestX3DFields;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, X3DFields, X3DTime;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, X3DFields, X3DTime;
 
 type
   TTestX3DFields = class(TTestCase)

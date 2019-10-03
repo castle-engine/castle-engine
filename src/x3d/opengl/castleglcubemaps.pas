@@ -293,8 +293,6 @@ procedure GLCaptureCubeMapTexture(
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
-      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
-
       RenderingCamera := TRenderingCamera.Create;
       try
         RenderingCamera.Target := rtCubeMapEnvironment;
@@ -308,16 +306,21 @@ procedure GLCaptureCubeMapTexture(
 var
   Side: TCubeMapSide;
   SavedProjectionMatrix: TMatrix4;
+  SavedViewport: TRectangle;
 begin
   RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
 
   SavedProjectionMatrix := RenderContext.ProjectionMatrix;
   PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
 
+  SavedViewport := RenderContext.Viewport;
+  RenderContext.Viewport := Rectangle(0, 0, Size, Size);
+
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 
   RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  RenderContext.Viewport := SavedViewport;
 end;
 
 end.

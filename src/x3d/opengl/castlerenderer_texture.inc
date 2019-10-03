@@ -270,7 +270,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
@@ -335,7 +334,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
       const CubeMiddle: TVector3);
   end;
 
@@ -384,7 +382,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
       Light: TAbstractLightNode);
 
     { Check would we use Variance Shadow Maps with current ARenderer
@@ -1230,7 +1227,6 @@ end;
 procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
@@ -1510,6 +1506,7 @@ procedure TGLRenderedTextureNode.Update(
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   Camera: TRenderingCamera;
+  SavedViewport: TRectangle;
 begin
   if FGLName = 0 then Exit;
 
@@ -1539,6 +1536,7 @@ begin
 
     RenderToTexture.RenderBegin;
 
+      SavedViewport := RenderContext.Viewport;
       RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
@@ -1547,6 +1545,7 @@ begin
       Render(Camera);
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.Viewport := SavedViewport;
 
     RenderToTexture.RenderEnd;
   finally FreeAndNil(Camera) end;
@@ -1559,8 +1558,6 @@ begin
     RenderToTexture.GenerateMipmap;
 
   TextureNode.EventRendering.Send(false);
-
-  NeedsRestoreViewport := true;
 end;
 
 function TGLRenderedTextureNode.GLName: TGLTextureId;
@@ -1845,7 +1842,6 @@ end;
 procedure TGLGeneratedCubeMapTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
   const CubeMiddle: TVector3);
 begin
   if GLName = 0 then Exit;
@@ -1859,8 +1855,6 @@ begin
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
-
-  NeedsRestoreViewport := true;
 end;
 
 { TGL3DTextureNode ----------------------------------------------------------- }
@@ -2075,10 +2069,10 @@ end;
 procedure TGLGeneratedShadowMap.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
   Light: TAbstractLightNode);
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
+  SavedViewport: TRectangle;
   SavedDepthRange: TDepthRange;
   Camera: TRenderingCamera;
 begin
@@ -2101,6 +2095,7 @@ begin
 
     RenderToTexture.RenderBegin;
 
+      SavedViewport := RenderContext.Viewport;
       RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
@@ -2134,6 +2129,7 @@ begin
         RenderContext.DepthRange := SavedDepthRange;
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.Viewport := SavedViewport;
 
     RenderToTexture.RenderEnd;
 
@@ -2141,8 +2137,6 @@ begin
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
-
-  NeedsRestoreViewport := true;
 end;
 
 function TGLGeneratedShadowMap.GLName: TGLTextureId;

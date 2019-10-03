@@ -202,6 +202,7 @@ packages/castle_components.pas
 packages/castle_window.pas
 packages/delphi/castle_base.res
 packages/lib/
+src/audio/fmod/test/fmod_api_test
 src/library/build-*
 src/library/ios-output/
 src/library/libcastleengine.dylib

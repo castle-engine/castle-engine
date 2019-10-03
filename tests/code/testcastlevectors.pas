@@ -20,7 +20,7 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
   CastleTestCase;
 
 type
@@ -50,6 +50,7 @@ type
     procedure TestPlaneMove;
     procedure TestPlaneMoveRandom;
     procedure TestTryInverseHarder;
+    procedure TestMaxAbsVectorCoord;
   end;
 
 function RandomVector: TVector3;
@@ -892,6 +893,36 @@ begin
 
   AssertFalse(M.TryInverse(M2));
   AssertTrue(TryInverseHarder(M, M2));
+end;
+
+procedure TTestCastleVectors.TestMaxAbsVectorCoord;
+begin
+  AssertEquals(0, MaxVectorCoord(Vector2(1,  -10)));
+  AssertEquals(1, MaxVectorCoord(Vector2(1,  10)));
+
+  AssertEquals(2, MaxVectorCoord(Vector3(1, 2, 3)));
+  AssertEquals(0, MaxVectorCoord(Vector3(10, 2, 3)));
+  AssertEquals(0, MaxVectorCoord(Vector3(1, 1, 1)));
+  AssertEquals(1, MaxVectorCoord(Vector3(1, 2, 2)));
+  AssertEquals(1, MaxVectorCoord(Vector3(1, 2, -3)));
+
+  AssertEquals(3, MaxVectorCoord(Vector4(1, 2, 3, 10)));
+  AssertEquals(0, MaxVectorCoord(Vector4(-1, -2, -3, -10)));
+
+  AssertEquals(1, MaxAbsVectorCoord(Vector2(1,  -10)));
+  AssertEquals(1, MaxAbsVectorCoord(Vector2(1,  10)));
+
+  AssertEquals(2, MaxAbsVectorCoord(Vector3(1,  10, -20)));
+  AssertEquals(1, MaxAbsVectorCoord(Vector3(1,  -20, 10)));
+
+  AssertEquals(2, MaxAbsVectorCoord(Vector3(1, 2, 3)));
+  AssertEquals(0, MaxAbsVectorCoord(Vector3(10, 2, 3)));
+  AssertEquals(0, MaxAbsVectorCoord(Vector3(1, 1, 1)));
+  AssertEquals(1, MaxAbsVectorCoord(Vector3(1, 2, 2)));
+  AssertEquals(2, MaxAbsVectorCoord(Vector3(1, 2, -3)));
+
+  AssertEquals(3, MaxAbsVectorCoord(Vector4(1, 2, 3, 10)));
+  AssertEquals(3, MaxAbsVectorCoord(Vector4(-1, -2, -3, -10)));
 end;
 
 initialization

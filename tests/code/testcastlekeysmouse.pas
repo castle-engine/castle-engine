@@ -18,7 +18,7 @@ unit TestCastleKeysMouse;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestKeysMouse = class(TTestCase)

@@ -5,7 +5,7 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, X3DNodes;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, X3DNodes;
 
 type
   TTestSceneCore = class(TTestCase)

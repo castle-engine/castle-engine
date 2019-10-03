@@ -18,7 +18,7 @@ unit TestSysUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestSysUtils = class(TTestCase)

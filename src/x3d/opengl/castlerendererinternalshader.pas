@@ -1882,8 +1882,10 @@ begin
   WarnMissingPlugs := true;
   HasGeometryMain := false;
 
-  { the rest of fields just restored to default clear state }
-  UniformsNodes.Clear;
+  { The rest of fields just restored to default clear state.
+    Note: use "Count := 0" instead of "Clear", this allows to keep Capacity of TList<T>.Clear,
+    which will hopefully avoid some resizing and make it faster. }
+  UniformsNodes.Count := 0;
   TextureCoordGen := '';
   ClipPlanesCount := 0;
   FragmentEnd := '';
@@ -1919,8 +1921,8 @@ begin
   MaterialEmission := TVector4.Zero;
   MaterialShininessExp := 0;
   MaterialUnlit := TVector4.Zero;
-  DynamicUniforms.Clear;
-  TextureMatrix.Clear;
+  DynamicUniforms.Count := 0;
+  TextureMatrix.Count := 0;
   NeedsCameraInverseMatrix := false;
   NeedsMirrorPlaneTexCoords := false;
   SeparateDiffuseTexture := false;

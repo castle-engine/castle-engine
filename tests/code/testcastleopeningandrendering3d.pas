@@ -19,7 +19,7 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleFilesUtils, CastleFindFiles,
+uses FpcUnit, TestUtils, TestRegistry, CastleFilesUtils, CastleFindFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 type

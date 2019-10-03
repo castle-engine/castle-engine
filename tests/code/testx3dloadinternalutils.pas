@@ -19,7 +19,7 @@ unit TestX3DLoadInternalUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestX3DLoadInternalUtils = class(TTestCase)

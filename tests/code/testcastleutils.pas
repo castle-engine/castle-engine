@@ -20,7 +20,7 @@ unit TestCastleUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleUtils = class(TCastleTestCase)

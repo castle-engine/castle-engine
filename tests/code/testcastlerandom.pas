@@ -19,7 +19,7 @@ unit TestCastleRandom;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleRandom = class(TCastleTestCase)

@@ -18,7 +18,7 @@ unit TestCastleWindowOpen;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testutils, testregistry, CastleWindow;
+uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleWindow;
 
 type
   TTestContainer = class(TTestCase)

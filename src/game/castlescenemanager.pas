@@ -187,10 +187,9 @@ type
       before we render to the actual screen,
       we may render a couple times to a texture by a framebuffer.
 
-      Always call ApplyProjection right before this, to set correct
-      projection matrix. And before ApplyProjection you should also
-      call UpdateGeneratedTexturesIfNeeded. }
-    procedure RenderOnScreen(ACamera: TCastleCamera);
+      Always call ApplyProjection before this, to set correct
+      projection matrix. }
+    procedure RenderOnScreen(ACamera: TCamera);
 
     { Set the projection parameters and matrix.
       Used by our Render method.
@@ -951,10 +950,6 @@ type
 
     FPlayer: TPlayer;
 
-    { calculated by every PrepareResources }
-    ChosenViewport: TCastleAbstractViewport;
-    NeedsUpdateGeneratedTextures: boolean;
-
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
     FHeadlightNode: TAbstractLightNode;
@@ -963,11 +958,8 @@ type
 
     ScheduledVisibleChangeNotification: boolean;
     ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
-
-    { Call at the beginning of Render (from both scene manager and custom viewport),
-      to make sure UpdateGeneratedTextures was done before actual drawing.
-      It *can* carelessly change the OpenGL projection matrix (but not viewport). }
-    procedure UpdateGeneratedTexturesIfNeeded;
+    PrepareResourcesDone: Boolean;
+    UpdateGeneratedTexturesFrameId: TFrameId;
 
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
@@ -991,6 +983,11 @@ type
     { What changes happen when camera changes.
       You may want to use it when calling Scene.CameraChanged. }
     function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
+
+    { Call at the beginning of Render (from both scene manager and custom viewport),
+      to make sure a first viewport rendered in this frame
+      causes Items.UpdateGeneratedTextures. }
+    procedure UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
   protected
     FSectors: TSectorList;
     Waypoints: TWaypointList;
@@ -3327,6 +3324,15 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
+procedure TCastleSceneManager.UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
+begin
+  if UpdateGeneratedTexturesFrameId <> TFramesPerSecond.FrameId then
+  begin
+    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+    Items.UpdateGeneratedTextures(@RenderFromViewEverything, ProjectionNear, ProjectionFar);
+  end;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3738,9 +3744,9 @@ procedure TCastleSceneManager.PrepareResources(const Item: TCastleTransform;
   const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
+  ChosenViewport: TCastleAbstractViewport;
 begin
   ChosenViewport := nil;
-  NeedsUpdateGeneratedTextures := false;
 
   { This preparation is done only once, before rendering all viewports.
     No point in doing this when no viewport is configured.
@@ -3763,8 +3769,8 @@ begin
 
     if ChosenViewport.ContainerSizeKnown then
     begin
-      { Apply projection now, as TCastleScene.GLProjection calculates
-        BackgroundSkySphereRadius, which is used by MainScene.Background.
+      { Apply projection now, it calculates
+        MainScene.BackgroundSkySphereRadius, which is used by MainScene.Background.
         Otherwise our preparations of "prBackground" here would be useless,
         as BackgroundSkySphereRadius will change later, and MainScene.Background
         will have to be recreated. }
@@ -3784,8 +3790,6 @@ begin
       finally Progress.Fini end;
     end else
       Item.PrepareResources(Options, false, PrepareParams);
-
-    NeedsUpdateGeneratedTextures := true;
   end;
 end;
 
@@ -3798,7 +3802,15 @@ procedure TCastleSceneManager.BeforeRender;
 begin
   inherited;
   if not GetExists then Exit;
-  PrepareResources;
+
+  { Do it only once, otherwise BeforeRender eats time each frame
+    (traversing TCastleTransform tree one more time, usually doing nothing if
+    the TCastleScene are already prepared). }
+  if not PrepareResourcesDone then
+  begin
+    PrepareResources;
+    PrepareResourcesDone := true;
+  end;
 end;
 
 function TCastleSceneManager.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
@@ -3810,38 +3822,14 @@ begin
     Result := [];
 end;
 
-procedure TCastleSceneManager.UpdateGeneratedTexturesIfNeeded;
-begin
-  if NeedsUpdateGeneratedTextures then
-  begin
-    NeedsUpdateGeneratedTextures := false;
-
-    { We depend here that right before Render, BeforeRender was called.
-      We depend on BeforeRender (actually PrepareResources) to set
-      ChosenViewport and make ChosenViewport.ApplyProjection.
-
-      This way below we can use sensible projection near/far calculated
-      by previous ChosenViewport.ApplyProjection,
-      and restore viewport used by previous ChosenViewport.ApplyProjection.
-
-      This could be moved to PrepareResources without problems, but we want
-      time needed to render textures be summed into "FPS frame time". }
-    Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-      ChosenViewport.FProjection.ProjectionNear,
-      ChosenViewport.FProjection.ProjectionFar,
-      ChosenViewport.RenderRect.Round);
-  end;
-end;
-
 procedure TCastleSceneManager.Render;
 begin
   if not GetExists then Exit;
 
-  UpdateGeneratedTexturesIfNeeded;
-
   inherited;
   if not DefaultViewport then Exit;
   ApplyProjection;
+  UpdateGeneratedTextures(FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 
@@ -4420,11 +4408,9 @@ procedure TCastleViewport.Render;
 begin
   if (not GetExists) or (SceneManager = nil) then Exit;
 
-  CheckSceneManagerAssigned;
-  SceneManager.UpdateGeneratedTexturesIfNeeded;
-
   inherited;
   ApplyProjection;
+  SceneManager.UpdateGeneratedTextures(FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
 end;
 

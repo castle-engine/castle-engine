@@ -18,7 +18,7 @@ unit TestCastleCompositeImage;
 interface
 
 uses
-  fpcunit, testutils, testregistry;
+  FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestCastleCompositeImage = class(TTestCase)

@@ -427,7 +427,7 @@ type
         during the Render call. }
       RenderCameraPosition: TVector3;
 
-        { Used by LocalRenderInside }
+      { Used by LocalRenderInside }
       FilteredShapes: TShapeList;
 
       InternalScenePass: TInternalSceneRenderingPass;
@@ -684,8 +684,7 @@ type
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewport: TRectangle); override;
+      const ProjectionNear, ProjectionFar: Single); override;
 
     procedure ViewChangedSuddenly; override;
 
@@ -1798,7 +1797,9 @@ begin
       - Occlusion query id must be generated (as we may start occlusion query
         before actually rendering the shape).
 
-      It's much simpler to just call PrepareResources at the beginning. }
+      It's much simpler to just call PrepareResources at the beginning.
+      The PrepareResources is already optimized to do nothing,
+      if everything is ready. }
     FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
     PrepareResources([prRender], false, FTempPrepareParams);
@@ -2093,6 +2094,8 @@ begin
      (InternalDirty = 0) and
      (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
   begin
+    FrameProfiler.Start(fmRenderScene);
+
     if (not Params.Transparent) and
        (Params.InternalPass = 0) and
        (not ExcludeFromStatistics) then
@@ -2101,7 +2104,10 @@ begin
     if FSceneFrustumCulling and not InternalIgnoreFrustum then
     begin
       if not Params.Frustum^.Box3DCollisionPossibleSimple(LocalBoundingBox) then
+      begin
+        FrameProfiler.Stop(fmRenderScene);
         Exit;
+      end;
     end;
 
     if (not Params.Transparent) and
@@ -2134,6 +2140,8 @@ begin
     { Nothing should even try to access camera outside of Render...
       But for security, set RenderCameraKnown to false. }
     RenderCameraKnown := false;
+
+    FrameProfiler.Stop(fmRenderScene);
   end;
 end;
 
@@ -2197,16 +2205,12 @@ end;
 
 procedure TCastleScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewport: TRectangle);
+  const ProjectionNear, ProjectionFar: Single);
 var
   I: Integer;
-  NeedsRestoreViewport: boolean;
   Shape: TGLShape;
   TextureNode: TAbstractTextureNode;
 begin
-  NeedsRestoreViewport := false;
-
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
     Shape := TGLShape(GeneratedTextures.L[I].Shape);
@@ -2218,7 +2222,7 @@ begin
       AvoidNonShadowCasterRendering := true;
 
     Renderer.UpdateGeneratedTextures(Shape, TextureNode,
-      RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
+      RenderFunc, ProjectionNear, ProjectionFar,
       ViewpointStack.Top,
       World.CameraKnown,
       World.CameraPosition,
@@ -2228,9 +2232,6 @@ begin
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;
   end;
-
-  if NeedsRestoreViewport then
-    RenderContext.Viewport := OriginalViewport;
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;

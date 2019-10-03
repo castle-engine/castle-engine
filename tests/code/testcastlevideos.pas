@@ -18,7 +18,7 @@ unit TestCastleVideos;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVideos;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVideos;
 
 type
   TTestVideos = class(TTestCase)

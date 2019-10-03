@@ -101,7 +101,7 @@ procedure TAnchorsFrame.AnyButtonClick(Sender: TObject);
       for V in TVerticalPosition do
         if Buttons[H, V] = Sender then
           Exit;
-    raise EInternalError.Create('Cannot find sender button');;
+    raise EInternalError.Create('Cannot find sender button');
   end;
 
 var
