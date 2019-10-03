@@ -16,6 +16,48 @@
 
 { Vector property editors. }
 
+{ TCastleVector2PropertyEditor ------------------------------------------------- }
+
+type
+  TCastleVector2PropertyEditor = class(TSubPropertiesEditor)
+    function GetAttributes: TPropertyAttributes; override;
+    function GetName: shortstring; override;
+    function GetValue: String; override;
+    procedure SetValue(const NewValue: String); override;
+  end;
+
+function TCastleVector2PropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paRevertable]
+    // our SetValue allows to set value from string
+    - [paReadOnly];
+end;
+
+function TCastleVector2PropertyEditor.GetName: shortstring;
+begin
+  Result := inherited GetName;
+  { Since all such properties are called XxxPersistent, and they correspond
+    to properties called just Xxx (TCastleVector2PropertyEditor corresponds
+    to TVector2) so it's more readable to just hide the "persistent" suffix. }
+  Result := SuffixRemove('persistent', Result, true);
+end;
+
+function TCastleVector2PropertyEditor.GetValue: String;
+var
+  VectorPersistent: TCastleVector2Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
+  Result := VectorPersistent.Value.ToString;
+end;
+
+procedure TCastleVector2PropertyEditor.SetValue(const NewValue: String);
+var
+  VectorPersistent: TCastleVector2Persistent;
+begin
+  VectorPersistent := (GetObjectValue as TCastleVector2Persistent);
+  VectorPersistent.Value := Vector2FromStr(NewValue);
+end;
+
 { TCastleVector3PropertyEditor ------------------------------------------------- }
 
 type
