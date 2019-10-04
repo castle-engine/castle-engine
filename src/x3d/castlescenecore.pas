@@ -5426,11 +5426,11 @@ begin
 
   if Collidable then
     { Add only active and collidable shapes }
-    ShapesList := TShapeList.Create(Shapes, true, false, true) else
+    ShapesList := Shapes.TraverseList(true, false, true) else
     { Add only active and visible shapes }
-    ShapesList := TShapeList.Create(Shapes, true, true, false);
+    ShapesList := Shapes.TraverseList(true, true, false);
 
-  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, true);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, false);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and

@@ -187,9 +187,10 @@ type
     FParent: TShapeTree;
     function MaxShapesCountCore: Integer; virtual; abstract;
     procedure InvalidateMaxShapesCount;
-    { Return TShapeList containing the traversed shapes. Using smart cache.
-      Caller should not free it. }
-    function TraversedShapeList(const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): TShapeList;
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean;
+      const OnlyCollidable: boolean); virtual; abstract;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -203,14 +204,34 @@ type
       but it always is TCastleSceneCore. }
     property ParentScene: TX3DEventsEngine read FParentScene write FParentScene;
 
+    { Traverse shapes inside. There are a few alternative ways to do this:
+
+      - Use this method, and have a callback called for each TShape.
+
+      - Use TraverseList, and have a list of TShape.
+
+      - Use TShapeTreeIterator.Create, that has it's own GetNext / Current methods to enumerate.
+        This is no longer advised -- using TraverseList is simpler and equally fast.
+
+      - Use TShapeList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable) overload.
+        This is no longer advised -- using TraverseList is simpler and faster.
+    }
     procedure Traverse(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); virtual; abstract;
+      const OnlyCollidable: boolean = false);
 
+    { Return TShapeList containing the traversed shapes, just like @link(Traverse).
+      Caller should never free the resulting list, it is owned by this TShapeTree instance. }
+    function TraverseList(
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): TShapeList;
+
+    { How many shapes would be enumerated by @link(Traverse). }
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; virtual; abstract;
+      const OnlyCollidable: boolean = false): Cardinal;
 
     { Look for shape with Geometry.X3DName = GeometryNodeName.
       Returns @nil if not found. }
@@ -411,6 +432,10 @@ type
     procedure FreeOctreeTriangles;
   private
     function MaxShapesCountCore: Integer; override;
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
   public
     { Constructor.
       @param(ParentInfo Recursive information about parents,
@@ -596,14 +621,6 @@ type
     function Blending: boolean; deprecated 'use "AlphaChannel = acBlending"';
     function Transparent: boolean; deprecated 'use "AlphaChannel = acBlending"';
 
-    procedure Traverse(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
-
     { Is shape visible, according to VRML Collision node rules.
       Ths is simply a shortcut (with more obvious name) for
       @code(State.InsideInvisible = 0). }
@@ -764,17 +781,13 @@ type
     procedure ChildrenChanged(Sender: TObject; constref Item: TShapeTree; Action: TCollectionNotification);
   private
     function MaxShapesCountCore: Integer; override;
-  public
-    constructor Create(const AParentScene: TX3DEventsEngine);
-    destructor Destroy; override;
-
-    procedure Traverse(const Func: TShapeTraverseFunc;
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
+  public
+    constructor Create(const AParentScene: TX3DEventsEngine);
+    destructor Destroy; override;
 
     property Children: TShapeTreeList read FChildren;
 
@@ -808,16 +821,13 @@ type
   TShapeTreeSwitch = class(TShapeTreeGroup)
   strict private
     FSwitchNode: TSwitchNode;
-  public
-    property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
-
-    procedure Traverse(const Func: TShapeTraverseFunc;
+  private
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
+  public
+    property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
@@ -877,6 +887,11 @@ type
     FLODInvertedTransform: TMatrix4;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
+  private
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
   public
     property LODNode: TAbstractLODNode read FLODNode write FLODNode;
     function LODInvertedTransform: PMatrix4;
@@ -899,14 +914,6 @@ type
     property WasLevel_ChangedSend: boolean
       read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
 
-    procedure Traverse(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
-
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     function IterateBeginIndex(OnlyActive: boolean): Integer; override;
     function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
@@ -918,19 +925,16 @@ type
     FNode: TProximitySensorNode;
   private
     function MaxShapesCountCore: Integer; override;
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
   public
     InvertedTransform: TMatrix4;
     IsActive: boolean;
 
     property Node: TProximitySensorNode read FNode write FNode;
 
-    procedure Traverse(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfo(const Indent: string = ''): string; override;
   end;
@@ -940,6 +944,10 @@ type
     FNode: TVisibilitySensorNode;
   private
     function MaxShapesCountCore: Integer; override;
+    procedure TraverseCore(const Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
   public
     { Bounding box of this visibility sensor instance,
       already transformed to global VRML/X3D scene coordinates.
@@ -949,13 +957,6 @@ type
 
     property Node: TVisibilitySensorNode read FNode write FNode;
 
-    procedure Traverse(const Func: TShapeTraverseFunc;
-      const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false); override;
-    function ShapesCount(const OnlyActive: boolean;
-      const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false): Cardinal; override;
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfo(const Indent: string = ''): string; override;
   end;
@@ -982,7 +983,7 @@ type
     destructor Destroy; override;
     function GetNext: boolean;
     property Current: TShape read FCurrent;
-  end;
+  end deprecated{ 'use Tree.TraverseList(...)'};
 
   TShapeList = class(specialize TObjectList<TShape>)
   strict private
@@ -996,7 +997,7 @@ type
     { Constructor that initializes list contents by traversing given tree. }
     constructor Create(const Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
-      const OnlyCollidable: boolean = false);
+      const OnlyCollidable: boolean = false); deprecated 'use Tree.TraverseList(...)';
 
     { Sort shapes by distance to given Position point, closest first. }
     procedure SortFrontToBack(const Position: TVector3);
@@ -1320,9 +1321,30 @@ begin
     FParent.InvalidateMaxShapesCount;
 end;
 
-function TShapeTree.TraversedShapeList(const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): TShapeList;
+function TShapeTree.TraverseList(const OnlyActive, OnlyVisible, OnlyCollidable: Boolean): TShapeList;
+
+  procedure AddToList(const Shape: TShape);
+  begin
+    Result.Add(Shape);
+  end;
+
 var
   CurrentShapesHash: TShapesHash;
+
+  { Call TraverseCore, gather shapes to a new list. }
+  procedure TraverseCoreToList;
+  begin
+    Result := TShapeList.Create;
+    { Set Capacity, to make AddToList calls faster.
+      Note that we use MaxShapesCount instead of ShapesCount,
+      since MaxShapesCount is usually instant, while ShapesCount...
+      now ShapesCount depends on TraverseList, so it would cause infinite loop. }
+    Result.Capacity := MaxShapesCount;
+    TraverseCore(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+    CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
+    CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
+  end;
+
 begin
   Result := CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable];
   if Result <> nil then
@@ -1334,16 +1356,30 @@ begin
     if CurrentShapesHash <> CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] then
     begin
       FreeAndNil(CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable]);
-      Result := TShapeList.Create(Self, OnlyActive, OnlyVisible, OnlyCollidable);
-      CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
-      CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
+      TraverseCoreToList;
     end;
   end else
   begin
-    Result := TShapeList.Create(Self, OnlyActive, OnlyVisible, OnlyCollidable);
-    CachedChildrenListHash[OnlyActive, OnlyVisible, OnlyCollidable] := CurrentShapesHash;
-    CachedChildrenList[OnlyActive, OnlyVisible, OnlyCollidable] := Result;
+    TraverseCoreToList;
   end;
+end;
+
+procedure TShapeTree.Traverse(const Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+var
+  I: Integer;
+  List: TShapeList;
+begin
+  List := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable);
+  for I := 0 to List.Count - 1 do
+    Func(List[I]);
+end;
+
+function TShapeTree.ShapesCount(
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
+begin
+  // Since TraverseList is optimized now by caching, this method can just call TraverseList
+  Result := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable).Count;
 end;
 
 { TShape -------------------------------------------------------------- }
@@ -2169,21 +2205,12 @@ begin
     Exit(acNone);
 end;
 
-procedure TShape.Traverse(const Func: TShapeTraverseFunc; const OnlyActive: boolean;
-  const OnlyVisible: boolean; const OnlyCollidable: boolean);
+procedure TShape.TraverseCore(const Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   if ((not OnlyVisible) or Visible) and
      ((not OnlyCollidable) or Collidable) then
     Func(Self);
-end;
-
-function TShape.ShapesCount(const OnlyActive: boolean;
-  const OnlyVisible: boolean; const OnlyCollidable: boolean): Cardinal;
-begin
-  if ((not OnlyVisible) or Visible) and
-     ((not OnlyCollidable) or Collidable) then
-    Result := 1 else
-    Result := 0;
 end;
 
 function TShape.MaxShapesCountCore: Integer;
@@ -2931,29 +2958,13 @@ begin
     TCastleSceneCore(ParentScene).InternalIncShapesHash;
 end;
 
-procedure TShapeTreeGroup.Traverse(const Func: TShapeTraverseFunc;
+procedure TShapeTreeGroup.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
   I: Integer;
 begin
   for I := 0 to FChildren.Count - 1 do
     FChildren.Items[I].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
-end;
-
-function TShapeTreeGroup.ShapesCount(
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
-var
-  I: Integer;
-  ResultPart: Cardinal;
-begin
-  Result := 0;
-  for I := 0 to FChildren.Count - 1 do
-  begin
-    { Workaround for http://bugs.freepascal.org/bug_view_page.php?bug_id=14403
-      Without using ResultPart to hold partial result, this raises range check error. }
-    ResultPart := FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-    Result += ResultPart;
-  end;
 end;
 
 function TShapeTreeGroup.MaxShapesCountCore: Integer;
@@ -3000,7 +3011,7 @@ end;
 
 { TShapeTreeSwitch ------------------------------------------------------- }
 
-procedure TShapeTreeSwitch.Traverse(const Func: TShapeTraverseFunc;
+procedure TShapeTreeSwitch.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
   WhichChoice: Integer;
@@ -3013,22 +3024,6 @@ begin
       Children.Items[WhichChoice].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
   end else
     inherited;
-end;
-
-function TShapeTreeSwitch.ShapesCount(
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
-var
-  WhichChoice: Integer;
-begin
-  if OnlyActive then
-  begin
-    WhichChoice := SwitchNode.FdWhichChoice.Value;
-    if (WhichChoice >= 0) and
-       (WhichChoice < Children.Count) then
-      Result := Children.Items[WhichChoice].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable) else
-      Result := 0;
-  end else
-    Result := inherited;
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
@@ -3132,29 +3127,17 @@ begin
     ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
 end;
 
-procedure TShapeTreeLOD.Traverse(const Func: TShapeTraverseFunc;
+procedure TShapeTreeLOD.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   if Children.Count > 0 then
   begin
     if OnlyActive then
       { Now we know that Level < Children.Count, no need to check it. }
-      Children.Items[Level].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable) else
+      Children.Items[Level].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable)
+    else
       inherited;
   end;
-end;
-
-function TShapeTreeLOD.ShapesCount(
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
-begin
-  if Children.Count > 0 then
-  begin
-    if OnlyActive then
-      { Now we know that Level < Children.Count, no need to check it. }
-      Result := Children.Items[Level].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable) else
-      Result := inherited;
-  end else
-    Result := 0;
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
@@ -3175,22 +3158,15 @@ end;
 
 { TProximitySensorInstance ---------------------------------------------- }
 
-procedure TProximitySensorInstance.Traverse(const Func: TShapeTraverseFunc;
+procedure TProximitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
 
-function TProximitySensorInstance.ShapesCount(const OnlyActive: boolean;
-  const OnlyVisible: boolean = false;
-  const OnlyCollidable: boolean = false): Cardinal;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
 function TProximitySensorInstance.MaxShapesCountCore: Integer;
 begin
+  { This is not a TShape instance, and has no TShape children. }
   Result := 0;
 end;
 
@@ -3207,22 +3183,15 @@ end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
 
-procedure TVisibilitySensorInstance.Traverse(const Func: TShapeTraverseFunc;
+procedure TVisibilitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
 
-function TVisibilitySensorInstance.ShapesCount(const OnlyActive: boolean;
-  const OnlyVisible: boolean = false;
-  const OnlyCollidable: boolean = false): Cardinal;
-begin
-  { This is not a TShape instance, and has no TShape children. }
-  Result := 0;
-end;
-
 function TVisibilitySensorInstance.MaxShapesCountCore: Integer;
 begin
+  { This is not a TShape instance, and has no TShape children. }
   Result := 0;
 end;
 
@@ -3413,7 +3382,7 @@ constructor TShapeTreeIterator.Create(const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
-  List := Tree.TraversedShapeList(OnlyActive, OnlyVisible, OnlyCollidable);
+  List := Tree.TraverseList(OnlyActive, OnlyVisible, OnlyCollidable);
   CurrentIndex := -1;
 end;
 
@@ -3454,6 +3423,9 @@ begin
     since MaxShapesCount is usually instant.
     Testcase of speedup: e.g. profiling animate_3d_model_by_code_2. }
   Capacity := Tree.MaxShapesCount;
+  { This method uses Tree.Traverse that uses Tree.TraverseList that creates a list,
+    iterates over it, and here we add results to another list...
+    This is clearly a waste of time. That's why this method is deprecated. }
   Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
