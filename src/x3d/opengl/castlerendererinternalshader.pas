@@ -41,6 +41,8 @@ type
     { Fog is determined by explicit coordinate (per-vertex glFogCoord*). }
     fcPassedCoordinate);
 
+  TBoundingBoxEvent = function: TBox3D of object;
+
   TShaderCodeHash = record
   strict private
     Sum, XorValue: LongWord;
@@ -446,7 +448,6 @@ type
 
     function DeclareShadowFunctions: string;
   public
-    ShapeBoundingBox: TBox3D;
 
     { Collected material properties for current shape.
       Must be set before EnableLight, and be constant later --- this matters
@@ -454,6 +455,12 @@ type
     MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4;
     MaterialShininessExp: Single;
     MaterialUnlit: TVector4;
+    { We use a callback, instead of storing TBox3D result, because
+      1. in many cases, we will not need to call it (so we don't need to recalculate
+         TShape.LocalBoundingBox every frame for a changing shape),
+      2. if it can be cached, TShape.LocalBoundingBox already implements
+         a proper cache mechanism. }
+    ShapeBoundingBox: TBoundingBoxEvent;
 
     { Camera * scene transformation (without the shape transformation).
 
@@ -908,7 +915,7 @@ begin
       { Do not activate per-pixel checking of light radius,
         if we know (by bounding box test below)
         that the whole shape is completely within radius. }
-      (Shader.ShapeBoundingBox.PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
+      (Shader.ShapeBoundingBox().PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
     begin
       Define(ldHasRadius);
       LightUniformName2 := 'castle_LightSource%dRadius';
@@ -1914,7 +1921,7 @@ begin
   Lighting := false;
   ColorPerVertex := false;
   FPhongShading := false;
-  ShapeBoundingBox := TBox3D.Empty;
+  ShapeBoundingBox := nil;
   MaterialAmbient := TVector4.Zero;
   MaterialDiffuse := TVector4.Zero;
   MaterialSpecular := TVector4.Zero;

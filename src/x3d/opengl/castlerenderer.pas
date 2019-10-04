@@ -2734,7 +2734,7 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := Shape.BoundingBox;
+  Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
   Shader.ShadowSampling := Attributes.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
