@@ -163,7 +163,7 @@ var
 begin
   { We can only Merge geometries
     - with TIndexedFaceSetNode
-    - from VRML 2 (with TShapeNode)
+    - from VRML 2 / X3D (with TShapeNode set)
 
     TODO: Make sure Appearance matches.
     TODO: Make sure fog state matches.
@@ -277,7 +277,8 @@ begin
     Exit;
 
   Assert(Source.Node <> nil); // only such source nodes are passed to Merge
-  Target.Node.Appearance := Source.Node.Appearance;
+  // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
+  Target.Node.FdAppearance.Value := Source.Node.Appearance;
 
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordSource := MeshSource.InternalCoordinates(StateSource);
