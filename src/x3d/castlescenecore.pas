@@ -569,6 +569,12 @@ type
 
     FPrimitiveGeometry: TPrimitiveGeometry;
 
+    { Increased when something changed that could affect the results
+      of Shapes tree traversal, i.e. different TShape instances returned
+      by Shapes.Traverse.
+      Never zero. }
+    FShapesHash: TShapesHash;
+
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
       TInternalTimeDependentHandler.SetTime. }
@@ -2119,6 +2125,9 @@ type
 
     { @deprecated Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
+
+    procedure InternalIncShapesHash;
+    property InternalShapesHash: TShapesHash read FShapesHash;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2247,15 +2256,15 @@ type
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
 
-    { Currently loaded scene URL. Set this to load a 3D scene
-      from the given URL, we can load from any known 3D format
-      (VRML, X3D, Collada, 3ds, Wavefront, etc.).
+    { Currently loaded scene URL. Change this property to load a scene
+      from the given URL. We support many 3D and 2D scene formats,
+      like X3D and glTF,
+      see https://castle-engine.io/creating_data_model_formats.php .
 
-      Works just like the @link(Load) method (the overloaded version
-      that takes @code(AURL: string) parameter). And, in fact, using
-      directly the @link(Load) method will also change this URL property.
+      Setting this property works just like using the @link(Load) method with a new URL.
+      In fact, using directly the @link(Load) method will also change this URL property.
 
-      The only difference of @code(Scene.URL := 'blah.x3d') vs
+      The only difference between @code(Scene.URL := 'blah.x3d') and
       @code(Scene.Load('blah.x3d')) is that setting the URL will
       @italic(not) reload the scene if you set it to the same value.
       That is, @code(Scene.URL := Scene.URL;) will not reload
@@ -2865,6 +2874,7 @@ begin
 
   FRootNode := nil;
   FOwnsRootNode := true;
+  FShapesHash := 1;
 
   FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
@@ -3625,6 +3635,7 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
+    InternalIncShapesHash;
   end;
 end;
 
@@ -3828,6 +3839,7 @@ begin
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
     NeedsDetectAffectedFields := false;
+    InternalIncShapesHash;
 
     if RootNode <> nil then
     begin
@@ -4598,6 +4610,8 @@ var
     DoGeometryChanged(gcActiveShapesChanged, nil);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+
+    InternalIncShapesHash; // TShapeTreeSwitch returns now different things
   end;
 
   procedure HandleChangeColorNode;
@@ -6769,6 +6783,10 @@ procedure TCastleSceneCore.UpdateCameraEvents;
   begin
     Assert(ProcessEvents);
 
+    // Active and visible shapes possibly changed, if we used LOD nodes and camera changed
+    if ShapeLODs.Count <> 0 then
+      InternalIncShapesHash;
+
     for I := 0 to ShapeLODs.Count - 1 do
       UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
 
@@ -7842,6 +7860,17 @@ begin
       Load(NewRootNode, true);
     end;
   end;
+end;
+
+procedure TCastleSceneCore.InternalIncShapesHash;
+begin
+  // WritelnLog('Scene %s shapes hash changed to %d', [Name, FShapesHash]);
+  if FShapesHash = High(FShapesHash) then
+  begin
+    WritelnWarning('Scene %s state hash reached the highest number of 64-bit value. Resetting', [Name]);
+    FShapesHash := 1;
+  end else
+    Inc(FShapesHash);
 end;
 
 end.
