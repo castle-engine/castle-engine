@@ -850,7 +850,8 @@ var
 
 var
   Options: TPrepareResourcesOptions;
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
   PreviousResources: T3DResourceList;
 begin
   { We want OpenGL context, but we don't want to require that this scene manager
@@ -919,10 +920,9 @@ begin
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
-      SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
-      try
-        while SI.GetNext do TraverseForPlaceholders(SI.Current);
-      finally SysUtils.FreeAndNil(SI) end;
+      ShapeList := MainScene.Shapes.TraverseList({ OnlyActive } true);
+      for Shape in ShapeList do
+        TraverseForPlaceholders(Shape);
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 

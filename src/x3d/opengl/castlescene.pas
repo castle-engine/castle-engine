@@ -1026,7 +1026,8 @@ procedure TCastleScene.GLContextClose;
   { Call TGLShape.GLContextClose. }
   procedure ShapesGLContextClose;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     if Shapes <> nil then
     begin
@@ -1034,11 +1035,9 @@ procedure TCastleScene.GLContextClose;
         since this GLContextClose may happen after some
         "visibility" changed, that is you changed proxy
         or such by event. }
-      SI := TShapeTreeIterator.Create(Shapes, false, false);
-      try
-        while SI.GetNext do
-          TGLShape(SI.Current).GLContextClose;
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false, false);
+      for Shape in ShapeList do
+        TGLShape(Shape).GLContextClose;
     end;
   end;
 
@@ -1450,19 +1449,18 @@ procedure TCastleScene.PrepareResources(
 
   procedure PrepareShapesResources;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false, false);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).PrepareResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false, false);
+    for Shape in ShapeList do
+      TGLShape(Shape).PrepareResources;
   end;
 
   procedure PrepareRenderShapes;
   var
-    SI: TShapeTreeIterator;
-    Shape: TGLShape;
+    ShapeList: TShapeList;
+    Shape: TShape;
     BaseLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
@@ -1471,61 +1469,57 @@ procedure TCastleScene.PrepareResources(
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
 
     { Note: we prepare also not visible shapes, in case they become visible. }
-    SI := TShapeTreeIterator.Create(Shapes, false, false);
+    ShapeList := Shapes.TraverseList(false, false);
+    Inc(Renderer.PrepareRenderShape);
     try
-      Inc(Renderer.PrepareRenderShape);
+      { calculate OwnParams, GoodParams }
+      if Params = nil then
+      begin
+        WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
+        OwnParams := TPrepareParams.Create;
+        GoodParams := OwnParams;
+      end else
+      begin
+        OwnParams := nil;
+        GoodParams := Params;
+      end;
+
+      { Prepare resources by doing rendering.
+        But with Renderer.PrepareRenderShape <> 0,
+        so nothing will be actually drawn). }
+
+      BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+
+      { We need some non-nil TRenderingCamera instance to be able
+        to render with lights. }
+      DummyCamera := TRenderingCamera.Create;
       try
-        { calculate OwnParams, GoodParams }
-        if Params = nil then
+        { Set matrix to be anything sensible.
+          Otherwise opening a scene with shadow maps makes a warning
+          that camera matrix is all 0,
+          and cannot be inverted, since
+          TTextureCoordinateRenderer.RenderCoordinateBegin does
+          RenderingCamera.InverseMatrixNeeded.
+          Testcase: silhouette. }
+        DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
+          TMatrix4.Identity);
+
+        Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+        for Shape in ShapeList do
         begin
-          WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
-          OwnParams := TPrepareParams.Create;
-          GoodParams := OwnParams;
-        end else
-        begin
-          OwnParams := nil;
-          GoodParams := Params;
+          { set sensible Shape.ModelView, otherwise it is zero
+            and TShader.EnableClipPlane will raise an exception since
+            PlaneTransform(Plane, SceneModelView); will fail,
+            with SceneModelView matrix = zero. }
+          TGLShape(Shape).ModelView := TMatrix4.Identity;
+          TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+          Renderer.RenderShape(TGLShape(Shape));
         end;
+        Renderer.RenderEnd;
+      finally FreeAndNil(DummyCamera) end;
 
-        { Prepare resources by doing rendering.
-          But with Renderer.PrepareRenderShape <> 0,
-          so nothing will be actually drawn). }
-
-        BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
-
-        { We need some non-nil TRenderingCamera instance to be able
-          to render with lights. }
-        DummyCamera := TRenderingCamera.Create;
-        try
-          { Set matrix to be anything sensible.
-            Otherwise opening a scene with shadow maps makes a warning
-            that camera matrix is all 0,
-            and cannot be inverted, since
-            TTextureCoordinateRenderer.RenderCoordinateBegin does
-            RenderingCamera.InverseMatrixNeeded.
-            Testcase: silhouette. }
-          DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
-            TMatrix4.Identity);
-
-          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
-          while SI.GetNext do
-          begin
-            Shape := TGLShape(SI.Current);
-
-            { set sensible Shape.ModelView, otherwise it is zero
-              and TShader.EnableClipPlane will raise an exception since
-              PlaneTransform(Plane, SceneModelView); will fail,
-              with SceneModelView matrix = zero. }
-            Shape.ModelView := TMatrix4.Identity;
-            Shape.Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
-            Renderer.RenderShape(Shape);
-          end;
-          Renderer.RenderEnd;
-        finally FreeAndNil(DummyCamera) end;
-
-        FreeAndNil(OwnParams);
-      finally Dec(Renderer.PrepareRenderShape) end;
-    finally FreeAndNil(SI) end;
+      FreeAndNil(OwnParams);
+    finally Dec(Renderer.PrepareRenderShape) end;
   end;
 
 var
@@ -1841,7 +1835,8 @@ procedure TCastleScene.LocalRenderShadowVolume(
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
@@ -1860,27 +1855,25 @@ begin
     begin
       { shadows are cast only by visible scene parts
         (not e.g. invisible collision box of castle-anim-frames) }
-      SI := TShapeTreeIterator.Create(Shapes, { OnlyActive } true, { OnlyVisible } true);
-      try
-        while SI.GetNext do
+      ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
+      for Shape in ShapeList do
+      begin
+        ShapeBox := Shape.BoundingBox;
+        if not ParentTransformIsIdentity then
+          ShapeBox := ShapeBox.Transform(ParentTransform);
+        SVRenderer.InitCaster(ShapeBox);
+        if SVRenderer.CasterShadowPossiblyVisible then
         begin
-          ShapeBox := SI.Current.BoundingBox;
-          if not ParentTransformIsIdentity then
-            ShapeBox := ShapeBox.Transform(ParentTransform);
-          SVRenderer.InitCaster(ShapeBox);
-          if SVRenderer.CasterShadowPossiblyVisible then
-          begin
-            if ParentTransformIsIdentity then
-              T :=                   SI.Current.State.Transform else
-              T := ParentTransform * SI.Current.State.Transform;
-            SI.Current.InternalShadowVolumes.RenderSilhouetteShadowVolume(
-              SVRenderer.LightPosition, T,
-              SVRenderer.ZFailAndLightCap,
-              SVRenderer.ZFail,
-              ForceOpaque);
-          end;
+          if ParentTransformIsIdentity then
+            T :=                   Shape.State.Transform else
+            T := ParentTransform * Shape.State.Transform;
+          Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
+            SVRenderer.LightPosition, T,
+            SVRenderer.ZFailAndLightCap,
+            SVRenderer.ZFail,
+            ForceOpaque);
         end;
-      finally FreeAndNil(SI) end;
+      end;
     end;
   end;
 end;
@@ -2236,7 +2229,8 @@ end;
 
 procedure TCastleScene.ViewChangedSuddenly;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   inherited;
 
@@ -2245,11 +2239,9 @@ begin
     WritelnLog('Occlusion query', 'View changed suddenly');
 
     { Set OcclusionQueryAsked := false for all shapes. }
-    SI := TShapeTreeIterator.Create(Shapes, false, false, false);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).OcclusionQueryAsked := false;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false, false, false);
+    for Shape in ShapeList do
+      TGLShape(Shape).OcclusionQueryAsked := false;
   end;
 end;
 
