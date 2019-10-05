@@ -26,7 +26,6 @@ Before 6.6 release:
   - Test a way to upgrade names in design files while doing above?
 
 * build tool integration:
-    * when running, provide CGE libs on path for Windows? Should this maybe be done by build tool, actually?
     * Detect lack of FPC / Delphi and make a nice error message
 
 * Show on recent list %20 as spaces, use URICaption or such ready function?
@@ -87,8 +86,6 @@ OK if after nearest release:
 * on Layout tab, new button for TCastleImageControl
   "Set Size Explicitly From Current Image"
   ? Unsure how much use-case.
-
-* castle-data:/ support in castlefindfiles.pas too
 
 * make https://github.com/castle-engine/blaise-pascal-article-examples/
   version using editor for level,

@@ -28,18 +28,24 @@ type
     DirectoryEditFpc: TDirectoryEdit;
     DirectoryEditLazarus: TDirectoryEdit;
     LabelFpc: TLabel;
+    LabelFpcAutoDetectedCaption: TLabel;
     LabelInstructions0: TLabel;
     LabelLazarus: TLabel;
     LabelInstructions1: TLabel;
+    LabelLazarusAutoDetectedCaption: TLabel;
     LabelTitle: TLabel;
     LabelInstructions2: TLabel;
     LabelFpcAutoDetected: TLabel;
     LabelLazarusAutoDetected: TLabel;
     LabelLazarusWebsite: TLabel;
+    procedure DirectoryEditFpcChange(Sender: TObject);
+    procedure DirectoryEditLazarusChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure LabelLazarusWebsiteClick(Sender: TObject);
   private
-
+    OriginalFpcCustomPath, OriginalLazarusCustomPath: String;
+    procedure UpdateAutoDetectedLabels;
   public
 
   end;
@@ -49,7 +55,8 @@ var
 
 implementation
 
-uses CastleOpenDocument;
+uses CastleOpenDocument, CastleUtils, CastleLog,
+  ToolCompilerInfo, ToolFpcVersion;
 
 {$R *.lfm}
 
@@ -60,13 +67,73 @@ begin
   OpenURL('https://www.lazarus-ide.org/');
 end;
 
+procedure TPreferencesForm.UpdateAutoDetectedLabels;
+var
+  FpcExe, FpcVer, LazarusExe: String;
+begin
+  try
+    FpcExe := FindExeFpcCompiler;
+    FpcVer := FpcVersion.ToString;
+    LabelFpcAutoDetected.Caption :=
+      'Detected FPC: ' + FpcExe + NL +
+      'Detected FPC version: ' + FpcVer;
+  except
+    on E: Exception do
+    begin
+      WritelnLog('Cannot determine FPC executable or version, error: ' + ExceptMessage(E));
+      LabelFpcAutoDetected.Caption :=
+        'Cannot determine FPC executable.' + NL +
+        'Make sure FPC is installed, and available on $PATH or configured above.';
+    end;
+  end;
+
+  try
+    LazarusExe := FindExeLazarusIDE;
+    LabelLazarusAutoDetected.Caption :=
+      'Detected Lazarus: ' + LazarusExe;
+  except
+    on E: EExecutableNotFound do
+    begin
+      WritelnLog('Cannot determine Lazarus executable, error: ' + ExceptMessage(E));
+      LabelLazarusAutoDetected.Caption :=
+        'Cannot determine Lazarus executable.' + NL +
+        'Make sure Lazarus is installed, and available on $PATH or configured above.';
+    end;
+  end;
+end;
+
 procedure TPreferencesForm.FormShow(Sender: TObject);
 begin
-  // TODO: fill
-  //LabelFpcAutoDetected
-  //LabelLazarusAutoDetected
-  //DirectoryEditFpc
-  //DirectoryEditLazarus
+  UpdateAutoDetectedLabels;
+
+  DirectoryEditFpc.Directory := FpcCustomPath;
+  DirectoryEditLazarus.Directory := LazarusCustomPath;
+  { We will change the global Fpc/LazarusCustomPath during this dialog,
+    so allow to revert them on "Cancel". }
+  OriginalFpcCustomPath := FpcCustomPath;
+  OriginalLazarusCustomPath := LazarusCustomPath;
+end;
+
+procedure TPreferencesForm.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  if ModalResult <> mrOK then
+  begin
+    FpcCustomPath := OriginalFpcCustomPath;
+    LazarusCustomPath := OriginalLazarusCustomPath;
+  end;
+end;
+
+procedure TPreferencesForm.DirectoryEditFpcChange(Sender: TObject);
+begin
+  FpcCustomPath := DirectoryEditFpc.Directory;
+  UpdateAutoDetectedLabels;
+end;
+
+procedure TPreferencesForm.DirectoryEditLazarusChange(Sender: TObject);
+begin
+  LazarusCustomPath := DirectoryEditLazarus.Directory;
+  UpdateAutoDetectedLabels;
 end;
 
 end.

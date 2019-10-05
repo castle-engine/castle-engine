@@ -84,7 +84,9 @@ begin
   OutputManifest := Project.ReplaceMacros(ManifestTemplate);
   StringToFile(ManifestFilename, OutputManifest);
 
-  WindresExe := FindExe('windres');
+  // Using FindExeFpc, because on Windows windres is installed along with FPC
+  WindresExe := FindExeFpc('windres');
+  // Try alternative names of windres from Debian packages
   if WindresExe = '' then
     case CPU of
       i386  : WindresExe := FindExe('i586-mingw32msvc-windres');

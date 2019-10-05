@@ -1,7 +1,7 @@
 object ChooseProjectForm: TChooseProjectForm
-  Left = 295
+  Left = 747
   Height = 671
-  Top = 48
+  Top = 99
   Width = 610
   BorderStyle = bsSingle
   BorderWidth = 40
@@ -520,12 +520,12 @@ object ChooseProjectForm: TChooseProjectForm
     TabOrder = 2
   end
   object ButtonPreferences: TBitBtn
-    Left = 0
-    Height = 42
-    Top = 624
-    Width = 158
-    Anchors = [akTop, akRight]
+    Left = 8
+    Height = 58
+    Top = 608
+    Width = 174
     AutoSize = True
+    BorderSpacing.InnerBorder = 8
     Caption = 'Preferences'
     Glyph.Data = {
       36100000424D3610000000000000360000002800000020000000200000000100

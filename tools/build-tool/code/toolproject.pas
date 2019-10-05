@@ -1761,7 +1761,7 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    LazbuildExe := FindExe('lazbuild');
+    LazbuildExe := FindExeLazarus('lazbuild');
     if LazbuildExe = '' then
       raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');

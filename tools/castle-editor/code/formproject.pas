@@ -189,7 +189,8 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences;
+  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
+  ToolCompilerInfo;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -701,11 +702,14 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    Exe := FindExe('lazarus');
-    if Exe = '' then
-    begin
-      EditorUtils.ErrorBox('Cannot find "lazarus" executable on environment variable PATH.');
-      Exit;
+    try
+      Exe := FindExeLazarusIDE;
+    except
+      on E: EExecutableNotFound do
+      begin
+        EditorUtils.ErrorBox(E.Message);
+        Exit;
+      end;
     end;
 
     if SameFileName(ProjectStandaloneSource, FileName) then

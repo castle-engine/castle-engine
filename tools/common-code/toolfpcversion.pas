@@ -14,12 +14,12 @@
 }
 
 { Detecting FPC version and some capabilities. }
-unit ToolFPCVersion;
+unit ToolFpcVersion;
 
 interface
 
 type
-  TFPCVersion = class
+  TFpcVersion = class
     Major, Minor, Release: Integer;
     IsCodeTyphon: Boolean;
     function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
@@ -28,18 +28,22 @@ type
     function ToString: String; override;
   end;
 
-{ FPC version singleton, automatically created and destroyed in this unit. }
-function FPCVersion: TFPCVersion;
+{ FPC version singleton, automatically created and destroyed in this unit.
+  Using this raises exception EExecutableNotFound if FPC cannot be found,
+  or any other Exception in case FPC cannot be executed
+  or version cannot be parsed.
+  Value of this may change when FpcCustomPath changes. }
+function FpcVersion: TFpcVersion;
 
 implementation
 
 uses SysUtils,
   CastleFilesUtils, CastleLog, CastleStringUtils,
-  ToolCommonUtils;
+  ToolCommonUtils, ToolCompilerInfo;
 
-{ TFPCVersion ---------------------------------------------------------------- }
+{ TFpcVersion ---------------------------------------------------------------- }
 
-function TFPCVersion.AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
+function TFpcVersion.AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
 begin
   Result :=
       (AMajor < Major) or
@@ -47,16 +51,14 @@ begin
     ( (AMajor = Major) and (AMinor = Minor) and (ARelease <= Release) );
 end;
 
-constructor TFPCVersion.Create;
+constructor TFpcVersion.Create;
 var
   FpcOutput, FpcExe, Token: string;
   FpcExitStatus, SeekPos: Integer;
 begin
   inherited;
 
-  FpcExe := FindExe('fpc');
-  if FpcExe = '' then
-    raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+  FpcExe := FindExeFpcCompiler;
   MyRunCommandIndir(GetCurrentDir, FpcExe, ['-iV'], FpcOutput, FpcExitStatus);
   if FpcExitStatus <> 0 then
     raise Exception.Create('Failed to query FPC version');
@@ -88,19 +90,27 @@ begin
   Writeln('FPC version: ' + ToString);
 end;
 
-function TFPCVersion.ToString: String;
+function TFpcVersion.ToString: String;
 begin
   Result := Format('%d.%d.%d', [Major, Minor, Release]);
 end;
 
 var
-  FPCVersionCached: TFPCVersion;
+  FpcVersionCached: TFpcVersion;
+  FpcVersionCachedFpcPath: String;
 
-function FPCVersion: TFPCVersion;
+function FpcVersion: TFpcVersion;
 begin
-  if FPCVersionCached = nil then
-    FPCVersionCached := TFPCVersion.Create;
-  Result := FPCVersionCached;
+  { Invalidate cache if FpcCustomPath changed.
+    FpcCustomPath is used by FpcPathExe which is used by TFpcVersion.Create. }
+  if FpcCustomPath <> FpcVersionCachedFpcPath then
+    FreeAndNil(FpcVersionCached);
+  if FpcVersionCached = nil then
+  begin
+    FpcVersionCached := TFpcVersion.Create;
+    FpcVersionCachedFpcPath := FpcCustomPath;
+  end;
+  Result := FpcVersionCached;
 end;
 
 end.
