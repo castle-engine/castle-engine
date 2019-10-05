@@ -130,6 +130,7 @@
     FGravity: Boolean;
     FDynamic: Boolean;
     FAnimated: Boolean;
+    FTrigger: Boolean;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -284,6 +285,9 @@
       )
     }
     property Animated: boolean read FAnimated write FAnimated default false;
+
+
+    property Trigger: Boolean read FTrigger write FTrigger default false;
 
     { Shape used for collisions with this object.
       You cannot assign this property directly,
@@ -525,6 +529,9 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
     if not FExists then
       FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
 
     // initialize Kraft shape
     if Collider = nil then
