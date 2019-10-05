@@ -161,6 +161,7 @@
     procedure SetOnCollisionExit(const AValue: TOnCollision);
 
     procedure SetExists(const Value: Boolean);
+    procedure SetTrigger(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -287,7 +288,7 @@
     property Animated: boolean read FAnimated write FAnimated default false;
 
 
-    property Trigger: Boolean read FTrigger write FTrigger default false;
+    property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Shape used for collisions with this object.
       You cannot assign this property directly,
@@ -895,6 +896,22 @@ begin
       Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
     else
       Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+  end;
+end;
+
+procedure TRigidBody.SetTrigger(const Value: Boolean);
+begin
+  if FTrigger = Value then
+    Exit;
+
+  FTrigger := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfSensor];
   end;
 end;
 
