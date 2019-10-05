@@ -3192,38 +3192,35 @@ end;
 
 function TCastleSceneCore.CalculateLocalBoundingBox: TBox3D;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := TBox3D.Empty;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result.Include(SI.Current.BoundingBox);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result.Include(Shape.BoundingBox);
 end;
 
 function TCastleSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result := Result + SI.Current.VerticesCount(OverTriangulate);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result := Result + Shape.VerticesCount(OverTriangulate);
 end;
 
 function TCastleSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result := Result + SI.Current.TrianglesCount(OverTriangulate);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result := Result + Shape.TrianglesCount(OverTriangulate);
 end;
 
 function TCastleSceneCore.LocalBoundingBox: TBox3D;
@@ -3704,13 +3701,12 @@ procedure TCastleSceneCore.ChangedAll;
 
     procedure AddLightEverywhere(const L: TLightInstance);
     var
-      SI: TShapeTreeIterator;
+      ShapeList: TShapeList;
+      Shape: TShape;
     begin
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          SI.Current.State.AddLight(L);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        Shape.State.AddLight(L);
     end;
 
     { Add L everywhere within given Radius from Location.
@@ -3720,14 +3716,13 @@ procedure TCastleSceneCore.ChangedAll;
     procedure AddLightRadius(const L: TLightInstance;
       const Location: TVector3; const Radius: Single);
     var
-      SI: TShapeTreeIterator;
+      ShapeList: TShapeList;
+      Shape: TShape;
     begin
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if SI.Current.BoundingBox.SphereCollision(Location, Radius) then
-            SI.Current.State.AddLight(L);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        if Shape.BoundingBox.SphereCollision(Location, Radius) then
+          Shape.State.AddLight(L);
     end;
 
   var
@@ -4110,23 +4105,20 @@ function TTransformChangeHelper.TransformChangeTraverse(
     end;
 
   var
-    SI: TShapeTreeIterator;
-    Current: TShape;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize using TShapeTree.AssociatedShape
 
-    SI := TShapeTreeIterator.Create(ParentScene.Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        Current := SI.Current;
-        HandleLightsList(Current.OriginalState.Lights);
-        if Current.State(true) <> Current.OriginalState then
-          HandleLightsList(Current.State(true).Lights);
-        if Current.State(false) <> Current.OriginalState then
-          HandleLightsList(Current.State(false).Lights);
-      end;
-    finally FreeAndNil(SI) end;
+    ShapeList := ParentScene.Shapes.TraverseList(false);
+    for Shape in ShapeList do
+    begin
+      HandleLightsList(Shape.OriginalState.Lights);
+      if Shape.State(true) <> Shape.OriginalState then
+        HandleLightsList(Shape.State(true).Lights);
+      if Shape.State(false) <> Shape.OriginalState then
+        HandleLightsList(Shape.State(false).Lights);
+    end;
 
     { Update also light state on GlobalLights list, in case other scenes
       depend on this light. Testcase: planets-demo. }
@@ -4471,19 +4463,18 @@ var
   procedure HandleVRML1State;
   var
     VRML1StateNode: TVRML1StateNode;
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     if ANode.VRML1StateNode(VRML1StateNode) then
     begin
       { ANode is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.VRML1State list. }
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.State.VRML1State.Nodes[VRML1StateNode] = ANode) or
-             (SI.Current.OriginalState.VRML1State.Nodes[VRML1StateNode] = ANode) then
-            SI.Current.Changed(false, Changes);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        if (Shape.State.VRML1State.Nodes[VRML1StateNode] = ANode) or
+           (Shape.OriginalState.VRML1State.Nodes[VRML1StateNode] = ANode) then
+          Shape.Changed(false, Changes);
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
   end;
@@ -4504,7 +4495,8 @@ var
   procedure HandleChangeLightInstanceProperty;
   var
     J: integer;
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
@@ -4524,20 +4516,18 @@ var
       constraints. Or not --- this will hurt performance, global = FALSE
       is a good optimization for local lights, we don't want long lights list. }
 
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.Lights <> nil then
-          for J := 0 to SI.Current.State.Lights.Count - 1 do
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      if Shape.State.Lights <> nil then
+        for J := 0 to Shape.State.Lights.Count - 1 do
+        begin
+          LightInstance := Shape.State.Lights.Ptr(J);
+          if LightInstance^.Node = LightNode then
           begin
-            LightInstance := SI.Current.State.Lights.Ptr(J);
-            if LightInstance^.Node = LightNode then
-            begin
-              LightNode.UpdateLightInstance(LightInstance^);
-              VisibleChangeHere([vcVisibleNonGeometry]);
-            end;
+            LightNode.UpdateLightInstance(LightInstance^);
+            VisibleChangeHere([vcVisibleNonGeometry]);
           end;
-    finally FreeAndNil(SI) end;
+        end;
 
     GeneratedTextures.UpdateShadowMaps(LightNode);
   end;
@@ -4666,22 +4656,21 @@ var
     end;
 
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize and simplify to use TShapeTree.AssociatedShape
 
     { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
       placed inside textureTransform field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.State.ShapeNode <> nil) and
-           (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
-           (SI.Current.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
-           AppearanceUsesTextureTransform(
-             TAppearanceNode(SI.Current.State.ShapeNode.FdAppearance.Value), ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      if (Shape.State.ShapeNode <> nil) and
+         (Shape.State.ShapeNode.FdAppearance.Value <> nil) and
+         (Shape.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
+         AppearanceUsesTextureTransform(
+           TAppearanceNode(Shape.State.ShapeNode.FdAppearance.Value), ANode) then
+        Shape.Changed(false, Changes);
   end;
 
   procedure HandleChangeGeometry;
@@ -4775,7 +4764,8 @@ var
   { Handle chTextureImage, chTextureRendererProperties }
   procedure HandleChangeTextureImageOrRenderer;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize using TShapeTree.AssociatedShape
     if chTextureImage in Changes then
@@ -4790,14 +4780,12 @@ var
         TAbstractTexture3DNode(ANode).TextureLoaded := false;
     end;
 
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if SI.Current.UsesTexture(TAbstractTextureNode(ANode)) then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+    begin
+      if Shape.UsesTexture(TAbstractTextureNode(ANode)) then
+        Shape.Changed(false, Changes);
+    end;
   end;
 
   procedure HandleChangeShadowCasters;
@@ -5102,18 +5090,17 @@ end;
 
 procedure TCastleSceneCore.EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   ManifoldEdges := 0;
   BorderEdges := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      ManifoldEdges := ManifoldEdges + SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
-      BorderEdges := BorderEdges + SI.Current.InternalShadowVolumes.BorderEdges.Count;
-    end;
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+  begin
+    ManifoldEdges := ManifoldEdges + Shape.InternalShadowVolumes.ManifoldEdges.Count;
+    BorderEdges := BorderEdges + Shape.InternalShadowVolumes.BorderEdges.Count;
+  end;
 end;
 
 function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
@@ -5201,36 +5188,33 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
   procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
     OnlyCollidable: boolean);
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      { When Value <> [], we honor OnlyCollidable. }
+      if (Value = []) or
+         (not OnlyCollidable) or
+         (Shape.Collidable) then
+      begin
+        { Note: do not change here
+            Shape.TriangleOctreeLimits :=
+          Our own TriangleOctreeLimits properties may be *not* suitable
+          for this (as our properties are for global octrees).
 
-        { When Value <> [], we honor OnlyCollidable. }
-        if (Value = []) or
-           (not OnlyCollidable) or
-           (SI.Current.Collidable) then
-        begin
-          { Note: do not change here
-              SI.Current.TriangleOctreeLimits :=
-            Our own TriangleOctreeLimits properties may be *not* suitable
-            for this (as our properties are for global octrees).
+          Just let programmer change per-shape properties if he wants,
+          or user to change this per-shape by
+          [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
+        }
 
-            Just let programmer change per-shape properties if he wants,
-            or user to change this per-shape by
-            [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-          }
-
-          SI.Current.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-          SI.Current.InternalSpatial := Value;
-          { prepare OctreeTriangles. Not really needed, but otherwise
-            shape's octrees would be updated (even on static scenes!)
-            when the model runs. }
-          SI.Current.InternalOctreeTriangles;
-        end;
-
-    finally FreeAndNil(SI) end;
+        Shape.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+        Shape.InternalSpatial := Value;
+        { prepare OctreeTriangles. Not really needed, but otherwise
+          shape's octrees would be updated (even on static scenes!)
+          when the model runs. }
+        Shape.InternalOctreeTriangles;
+      end;
   end;
 
 var
@@ -5372,15 +5356,14 @@ function TCastleSceneCore.CreateTriangleOctree(
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, true);
-    try
-      while SI.GetNext do
-        if (Collidable and SI.Current.Collidable) or
-           ((not Collidable) and SI.Current.Visible) then
-          SI.Current.Triangulate(false, TriangleEvent);
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(true);
+    for Shape in ShapeList do
+      if (Collidable and Shape.Collidable) or
+         ((not Collidable) and Shape.Visible) then
+        Shape.Triangulate(false, TriangleEvent);
   end;
 
 begin
@@ -5562,13 +5545,12 @@ procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
 
   procedure FreeShadowVolumes;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalShadowVolumes.FreeResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalShadowVolumes.FreeResources;
   end;
 
 begin
@@ -7199,24 +7181,22 @@ procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOpti
 
   procedure PrepareShapesOctrees;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalOctreeTriangles;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalOctreeTriangles;
   end;
 
   procedure PrepareShadowVolumes;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalShadowVolumes.PrepareResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalShadowVolumes.PrepareResources;
   end;
 
 begin

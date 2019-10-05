@@ -1213,32 +1213,30 @@ end;
 function TShapeTree.FindGeometryNodeName(
   const GeometryNodeName: string; OnlyActive: boolean): TShape;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
-  SI := TShapeTreeIterator.Create(Self, OnlyActive);
-  try
-    while SI.GetNext do
-    begin
-      Result := SI.Current;
-      if Result.OriginalGeometry.X3DName = GeometryNodeName then Exit;
-    end;
-  finally FreeAndNil(SI) end;
+  ShapeList := TraverseList(OnlyActive);
+  for Shape in ShapeList do
+  begin
+    Result := Shape;
+    if Result.OriginalGeometry.X3DName = GeometryNodeName then Exit;
+  end;
   Result := nil;
 end;
 
 function TShapeTree.FindShapeWithParentNamed(
   const ParentNodeName: string; OnlyActive: boolean): TShape;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
-  SI := TShapeTreeIterator.Create(Self, OnlyActive);
-  try
-    while SI.GetNext do
-    begin
-      Result := SI.Current;
-      if Result.OriginalGeometry.TryFindParentByName(ParentNodeName) <> nil then Exit;
-    end;
-  finally FreeAndNil(SI) end;
+  ShapeList := TraverseList(OnlyActive);
+  for Shape in ShapeList do
+  begin
+    Result := Shape;
+    if Result.OriginalGeometry.TryFindParentByName(ParentNodeName) <> nil then Exit;
+  end;
   Result := nil;
 end;
 
