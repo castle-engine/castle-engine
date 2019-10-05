@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemPreferences: TMenuItem;
+    N1: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
     MenuItemPasteComponent: TMenuItem;
     MenuItemCopyComponent: TMenuItem;
@@ -103,6 +105,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
@@ -186,7 +189,7 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout;
+  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -400,6 +403,11 @@ end;
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
   // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
+begin
+  PreferencesForm.ShowModal;
 end;
 
 procedure TProjectForm.MenuItemAutoGenerateCleanClick(Sender: TObject);

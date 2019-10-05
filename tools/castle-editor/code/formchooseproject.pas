@@ -28,6 +28,7 @@ uses
 type
   { Choose project (new or existing). }
   TChooseProjectForm = class(TForm)
+    ButtonPreferences: TBitBtn;
     ButtonOpenRecent: TBitBtn;
     ButtonNew: TBitBtn;
     ButtonOpen: TBitBtn;
@@ -35,6 +36,7 @@ type
     ImageLogo: TImage;
     LabelTitle: TLabel;
     PopupMenuRecentProjects: TPopupMenu;
+    procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
     procedure ButtonOpenClick(Sender: TObject);
     procedure ButtonOpenRecentClick(Sender: TObject);
@@ -59,7 +61,7 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters,
-  ProjectUtils, EditorUtils, FormNewProject;
+  ProjectUtils, EditorUtils, FormNewProject, FormPreferences;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -129,6 +131,11 @@ begin
     end;
   end else
     Show;
+end;
+
+procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
+begin
+  PreferencesForm.ShowModal;
 end;
 
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);

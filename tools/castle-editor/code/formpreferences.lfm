@@ -1,0 +1,168 @@
+object PreferencesForm: TPreferencesForm
+  Left = 458
+  Height = 794
+  Top = 87
+  Width = 824
+  Caption = 'Preferences'
+  ClientHeight = 794
+  ClientWidth = 824
+  DesignTimePPI = 140
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '2.0.0.4'
+  object DirectoryEditFpc: TDirectoryEdit
+    AnchorSideTop.Control = LabelFpc
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 37
+    Top = 102
+    Width = 790
+    ShowHidden = False
+    ButtonWidth = 34
+    NumGlyphs = 1
+    Anchors = [akTop, akLeft, akRight]
+    MaxLength = 0
+    TabOrder = 0
+  end
+  object LabelFpc: TLabel
+    AnchorSideTop.Control = LabelTitle
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 27
+    Top = 75
+    Width = 88
+    BorderSpacing.Top = 32
+    Caption = 'FPC Path'
+    ParentColor = False
+  end
+  object LabelLazarus: TLabel
+    AnchorSideTop.Control = LabelFpcAutoDetected
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 27
+    Top = 198
+    Width = 122
+    BorderSpacing.Top = 32
+    Caption = 'Lazarus Path'
+    ParentColor = False
+  end
+  object DirectoryEditLazarus: TDirectoryEdit
+    AnchorSideTop.Control = LabelLazarus
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 37
+    Top = 225
+    Width = 792
+    ShowHidden = False
+    ButtonWidth = 34
+    NumGlyphs = 1
+    Anchors = [akTop, akLeft, akRight]
+    MaxLength = 0
+    TabOrder = 1
+  end
+  object LabelInstructions1: TLabel
+    AnchorSideTop.Control = LabelInstructions0
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 81
+    Top = 380
+    Width = 766
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 32
+    Caption = 'To compile and edit "Castle Game Engine" programs, we advise using Lazarus and FPC (Free Pascal Compiler). It is easiest to download official Lazarus (already bundled with FPC) from:'
+    ParentColor = False
+    WordWrap = True
+  end
+  object LabelInstructions2: TLabel
+    AnchorSideTop.Control = LabelLazarusWebsite
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 189
+    Top = 520
+    Width = 766
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 16
+    Caption = 'If you''re an advanced user, note:'#10#10'- You can install only FPC (without Lazarus) if you prefer to use other IDE. Our engine doesn''t use LCL.'#10#10'- You can also install FPC and Lazarus by FpcUpDeluxe, which is great to get cross-compilers for Android and other platforms. See the CGE documentation.'
+    ParentColor = False
+    WordWrap = True
+  end
+  object LabelLazarusWebsite: TLabel
+    AnchorSideTop.Control = LabelInstructions1
+    AnchorSideTop.Side = asrBottom
+    Cursor = crHandPoint
+    Left = 16
+    Height = 27
+    Top = 477
+    Width = 278
+    BorderSpacing.Top = 16
+    Caption = 'https://www.lazarus-ide.org/'
+    Font.Color = clBlue
+    Font.Style = [fsUnderline]
+    ParentColor = False
+    ParentFont = False
+    OnClick = LabelLazarusWebsiteClick
+  end
+  object LabelTitle: TLabel
+    Left = 16
+    Height = 27
+    Top = 16
+    Width = 314
+    Caption = 'Configure FPC and Lazarus Paths'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelFpcAutoDetected: TLabel
+    AnchorSideTop.Control = DirectoryEditFpc
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 27
+    Top = 139
+    Width = 329
+    Caption = 'Leave empty to use auto-detected:'
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelLazarusAutoDetected: TLabel
+    AnchorSideTop.Control = DirectoryEditLazarus
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 27
+    Top = 262
+    Width = 329
+    Caption = 'Leave empty to use auto-detected:'
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelInstructions0: TLabel
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelLazarusAutoDetected
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 27
+    Top = 321
+    Width = 301
+    BorderSpacing.Top = 32
+    Caption = 'How to Install Lazarus and FPC?'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object ButtonPanel1: TButtonPanel
+    Left = 9
+    Height = 46
+    Top = 739
+    Width = 806
+    BorderSpacing.Around = 9
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 2
+    ShowButtons = [pbOK, pbCancel]
+  end
+end
