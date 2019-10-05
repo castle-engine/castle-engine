@@ -92,7 +92,7 @@ type
   EExeNameNotAvailable = class(Exception);
   ERemoveFailed = class(Exception);
 
-{ Full (absolute) filename to executable file of this program.
+{ Full (absolute) FileName to executable file of this program.
   If it's impossible to obtain, raises exception @link(EExeNameNotAvailable).
 
   Under Windows this is simply ParamStr(0) (and it never raises
@@ -126,16 +126,21 @@ function ExeName: string; deprecated 'as this function is not portable (may rais
   see ApplicationConfig and ApplicationData. }
 function ProgramName: string; deprecated;
 
-{ Returns true if file exists and is a normal file.
+{ Returns @true if file exists and is a "regular" file.
+
   Detects and returns @false for special Windows files
   like 'con', 'c:\con', 'c:\somedir\con' etc.
   ('con' is a special device name).
-  For all other files (and other OSes) this function returns the same
-  as FileExists.
 
-  @deprecated Deprecated, since we use URLs everywhere,
-  use URIFileExists or URIExists to check does file exist. }
-function NormalFileExists(const fileName: string): boolean; deprecated;
+  Returns @false for directories (on all operating systems,
+  unlike FPC FileExists which is inconsistent between OSes
+  -- on Unix, FPC FileExists surprisingly answers @true for a directory).
+
+  Consider using URIExists or URIFileExists instead of this function,
+  since in CGE you should use URLs for everything. }
+function RegularFileExists(const FileName: String): Boolean;
+
+function NormalFileExists(const FileName: String): Boolean; deprecated 'use RegularFileExists';
 
 { Path to store user configuration files.
   This is some directory that should be writeable
@@ -149,14 +154,14 @@ function UserConfigPath: string; deprecated;
 { Filename to store user configuration.
   Always returns absolute (not relative) path.
 
-  Returns filename that:
+  Returns FileName that:
   @unorderedList(
     @itemSpacing Compact
     @item is inside UserConfigPath
     @item depends on ApplicationName
     @item(has given Extension. Extension should contain
       beginning dot. E.g. FExtension = '.ini'. This way you can pass
-      FExtension = '' to have a filename without extension.)
+      FExtension = '' to have a FileName without extension.)
   )
 
   @deprecated Deprecated,
@@ -213,7 +218,7 @@ function ApplicationConfig(const Path: string): string;
   than explicitly calling @code(ApplicationData('xxx')).
 
   Given Path parameter must specify a path under the data directory,
-  with possible subdirectories, with possible filename at the end.
+  with possible subdirectories, with possible FileName at the end.
   The Path is a relative URL, so you should
   always use slashes "/" to separate subdirectories (regardless of OS),
   and you can escape characters by %xx.
@@ -351,14 +356,14 @@ function ExpandHomePath(const FileName: string): string;
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
+procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false);
 
 { Call RemoveDir and check result.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure CheckRemoveDir(const DirFileName: string; const Warn: boolean = false);
+procedure CheckRemoveDir(const DirFileName: string; const Warn: Boolean = false);
 
 { Make sure directory exists, eventually creating it, recursively, checking result. }
 procedure CheckForceDirectories(const Dir: string);
@@ -374,21 +379,21 @@ procedure CheckRenameFile(const Source, Dest: string);
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
+procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 
-{ Substitute %d in given filename (or URL) pattern with successive numbers,
-  until the filename doesn't exist.
+{ Substitute %d in given FileName (or URL) pattern with successive numbers,
+  until the FileName doesn't exist.
 
   The idea is to start with number = 0 and do
   @code(Format(FileNamePattern, [number])), until you find non-existing
-  filename. Example filename pattern is @code(screenshot_%d.png),
-  by saving to this filename you're relatively sure that each save goes
+  FileName. Example FileName pattern is @code(screenshot_%d.png),
+  by saving to this FileName you're relatively sure that each save goes
   to a new file. Since we use standard @code(Format) function,
   you can use e.g. @code(screenshot_%04d.png) to have a number inside
-  the filename always at least 4 digits long.
+  the FileName always at least 4 digits long.
 
   Note that it's possible on every OS that some other program,
-  or a second copy of your own program, will write to the filename
+  or a second copy of your own program, will write to the FileName
   between FileNameAutoInc determined it doesn't exist and you opened the file.
   So using this cannot guarantee that you really always write to a new file
   (use proper file open modes for this). }
@@ -401,7 +406,7 @@ function FnameAutoInc(const FileNamePattern: string): string;
 
   Given DirName may be absolute or relative.
   Given DirName may but doesn't have to include trailing PathDelim.
-  Result is always absolute filename, and contains trailing PathDelim.
+  Result is always absolute FileName, and contains trailing PathDelim.
 
   Returns the same DirName if there's no parent directory.
 
@@ -410,7 +415,7 @@ function FnameAutoInc(const FileNamePattern: string): string;
   (no actual reading of any filesystem info), so it works faster and
   DirName does not need to exist. }
 function ParentPath(DirName: string;
-  DoExpandDirName: boolean = true): string;
+  DoExpandDirName: Boolean = true): string;
   deprecated 'use URLs and operate on them using CastleURIUtils unit';
 
 { Combines BasePath with RelPath into complete path.
@@ -440,7 +445,7 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   On Windows, may also add alternative executable extensions (.com, .bat, .cmd).
   Searches in $PATH (and, if OS does this, in current directory --- this is standard
   on Windows but not on Unix).
-  Returns '' (if not found) or absolute filename. }
+  Returns '' (if not found) or absolute FileName. }
 function FindExe(const ExeName: string): string;
 
 { Add an exe file extension, searching for an existing file starting with ExePath.
@@ -450,11 +455,11 @@ function FindExe(const ExeName: string): string;
   just like @link(FindExe)), depending on what file exists. }
 function AddExeExtension(const ExePath: string): string;
 
-{ Get temporary filename, suitable for ApplicationName, checking that
+{ Get temporary FileName, suitable for ApplicationName, checking that
   it doesn't exist. }
 function GetTempFileNameCheck: string;
 
-{ Return a prefix (beginning of an absolute filename)
+{ Return a prefix (beginning of an absolute FileName)
   to save a series of temporary files. }
 function GetTempFileNamePrefix: string;
 
@@ -469,9 +474,9 @@ function BundlePath: string;
   If AllowStdIn, then URL = '-' (one dash) is treated specially:
   it means to read contents from standard input (stdin, Input in Pascal). }
 function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): AnsiString; overload;
+  const AllowStdIn: Boolean; out MimeType: string): AnsiString; overload;
 function FileToString(const URL: string;
-  const AllowStdIn: boolean = false): AnsiString; overload;
+  const AllowStdIn: Boolean = false): AnsiString; overload;
 
 procedure StringToFile(const URL: String; const Contents: AnsiString);
 
@@ -490,7 +495,7 @@ function ExeName: string;
 begin
   if FExeName = '' then
     raise EExeNameNotAvailable.Create(
-      'ExeName: Cannot obtain filename of executable of this program');
+      'ExeName: Cannot obtain FileName of executable of this program');
   Result := FExeName;
 end;
 
@@ -499,22 +504,26 @@ begin
   Result := ApplicationName;
 end;
 
-function NormalFileExists(const FileName: string): boolean;
-{$ifdef MSWINDOWS}
-var s: string;
+function NormalFileExists(const FileName: string): Boolean;
 begin
- { Don't warn about deprecation of ExtractOnlyFileName,
-   since NormalFileExists is deprecated too... }
- {$warnings off}
- s := UpperCase(ExtractOnlyFileName(fileName));
- {$warnings on}
- result :=  FileExists(fileName) and
-    (not( (s='CON') or (s='PRN') or (s='NUL') or
-          (s='LPT1') or (s='LPT2') or (s='LPT3') or (s='LPT4') or
-          (s='COM1') or (s='COM2') or (s='COM3') or (s='COM4') ) );
+  Result := RegularFileExists(FileName);
+end;
+
+function RegularFileExists(const FileName: string): Boolean;
+{$ifdef MSWINDOWS}
+var
+  S: String;
+begin
+  {$warnings off}
+  S := UpperCase(ExtractOnlyFileName(FileName));
+  {$warnings on}
+  Result := FileExists(FileName) and
+     (not( (S = 'CON') or (S = 'PRN') or (S = 'NUL') or
+           (S = 'LPT1') or (S = 'LPT2') or (S = 'LPT3') or (S = 'LPT4') or
+           (S = 'COM1') or (S = 'COM2') or (S = 'COM3') or (S = 'COM4') ) );
 {$else}
 begin
- result := FileExists(filename);
+  Result := FileExists(FileName) and not DirectoryExists(FileName);
 {$endif}
 end;
 
@@ -561,7 +570,7 @@ begin
 end;
 
 var
-  ApplicationDataIsCache: boolean = false;
+  ApplicationDataIsCache: Boolean = false;
   ApplicationDataCache: string;
 
 function ApplicationData(const Path: string): string;
@@ -712,7 +721,7 @@ end;
 
 { file handling ---------------------------------------------------------- }
 
-procedure CheckDeleteFile(const FileName: string; const Warn: boolean);
+procedure CheckDeleteFile(const FileName: string; const Warn: Boolean);
 begin
   if not SysUtils.DeleteFile(FileName) then
   begin
@@ -722,7 +731,7 @@ begin
   end;
 end;
 
-procedure CheckRemoveDir(const DirFileName:  string; const Warn: boolean = false);
+procedure CheckRemoveDir(const DirFileName:  string; const Warn: Boolean = false);
 begin
   if not RemoveDir(DirFileName) then
   begin
@@ -770,9 +779,9 @@ begin
   end;
 end;
 
-procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 var
-  Warn: boolean;
+  Warn: Boolean;
 begin
   Warn := PBoolean(Data)^;
 
@@ -782,7 +791,7 @@ begin
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
-procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
+procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 begin
   FindFiles(DirName, '*', true,
     @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
@@ -813,7 +822,7 @@ end;
   CastleFilesUtils instead of casleutils_filenames.inc is
   using ExpandFileName. }
 
-function ParentPath(DirName: string; DoExpandDirName: boolean): string;
+function ParentPath(DirName: string; DoExpandDirName: Boolean): string;
 var p: integer;
 begin
 {$ifdef MSWINDOWS}
@@ -865,9 +874,12 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
 
 { This is identical to FileSearch, except on Windows each $PATH component
   is stripped from surrounding double quotes.
-  Added also "not DirectoryExists(Result)" check, to avoid accidentaly finding
-  a directory named like file (esp. easy on Unix without '.exe' extension),
-  at least with FPC 2.6.4 and 2.7.1 FileExists is true for directories. }
+
+  Also, uses RegularFileExists instead of FileExists,
+  thus it avoids FPC FileExists inconsistency
+  (on Unix, FPC FileExists returns true).
+  It matters, otherwise e.g. searching for "fpc" on Unix
+  could find directory "fpc" that is under a directory on $PATH. }
 
 Var
   I : longint;
@@ -877,7 +889,7 @@ begin
   Result:=Name;
   temp:=SetDirSeparators(GetEnvironmentVariable('PATH'));
   // Start with checking the file in the current directory
-  If ImplicitCurrentDir and (Result <> '') and FileExists(Result) and not DirectoryExists(Result) Then
+  If ImplicitCurrentDir and (Result <> '') and RegularFileExists(Result) Then
     exit;
   while True do begin
     If Temp = '' then
@@ -904,7 +916,7 @@ begin
       {$endif}
       Result:=IncludeTrailingPathDelimiter(Result)+name;
     end;
-    If (Result <> '') and FileExists(Result) and not DirectoryExists(Result) Then
+    If (Result <> '') and RegularFileExists(Result) Then
       exit;
   end;
   result:='';
@@ -940,13 +952,13 @@ begin
   {$ifdef MSWINDOWS}
   { The default order of extensions is .com, .exe, .bat, .cmd,
     see http://stackoverflow.com/questions/605101/order-in-which-command-prompt-executes-files-with-the-same-name-a-bat-vs-a-cmd }
-  if FileExists(ExePath + '.com') then
+  if RegularFileExists(ExePath + '.com') then
     Result := ExePath + '.com' else
-  if FileExists(ExePath + '.exe' { ExeExtension }) then
+  if RegularFileExists(ExePath + '.exe' { ExeExtension }) then
     Result := ExePath + '.exe' { ExeExtension } else
-  if FileExists(ExePath + '.bat') then
+  if RegularFileExists(ExePath + '.bat') then
     Result := ExePath + '.bat' else
-  if FileExists(ExePath + '.cmd') then
+  if RegularFileExists(ExePath + '.cmd') then
     Result := ExePath + '.cmd' else
   {$else}
     Result := ExePath + ExeExtension;
@@ -954,7 +966,7 @@ begin
 end;
 
 {$ifndef FPC}
-{ Get temporary filename, also creating this file, using WinAPI.
+{ Get temporary FileName, also creating this file, using WinAPI.
   There seems to be no cross-platform function for this in Delphi. }
 function GetTempFileNameWindows(const Prefix: AnsiString): AnsiString;
 var
@@ -982,7 +994,8 @@ function GetTempFileNameCheck: string;
 begin
   Result := GetTempFileName('', ApplicationName);
   { Be paranoid and check whether file does not exist. }
-  if FileExists(Result) then
+  if RegularFileExists(Result) or
+     DirectoryExists(Result) then
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
 end;
 
@@ -1001,7 +1014,7 @@ begin
 
   { Check is it really Ok. }
   if FindFirstFile(Result, '*', true, [], FileInfo) then
-    raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+    raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": FileName "%s" already exists',
       [Result, FileInfo.AbsoluteName]);
 end;
 
@@ -1009,7 +1022,7 @@ end;
 
 {$ifdef DARWIN}
 var
-  BundlePathCached: boolean;
+  BundlePathCached: Boolean;
   BundlePathCache: string;
 
 function BundlePath: string;
@@ -1042,7 +1055,7 @@ end;
 {$endif DARWIN}
 
 function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): AnsiString;
+  const AllowStdIn: Boolean; out MimeType: string): AnsiString;
 var
   F: TStream;
 begin
@@ -1067,7 +1080,7 @@ begin
   end;
 end;
 
-function FileToString(const URL: string; const AllowStdIn: boolean): AnsiString;
+function FileToString(const URL: string; const AllowStdIn: Boolean): AnsiString;
 var
   MimeType: string;
 begin

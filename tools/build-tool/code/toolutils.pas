@@ -164,7 +164,7 @@ begin
       CheckForceDirectories(FOutputPath);
 
       OutputNote := FOutputPath + 'DO-NOT-COMMIT-THIS-DIRECTORY.txt';
-      if not FileExists(OutputNote) then
+      if not RegularFileExists(OutputNote) then
         StringToFile(OutputNote, OutputNoteContents);
     end;
   end;

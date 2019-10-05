@@ -68,7 +68,7 @@ var
 
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
     LinkRes := FindLinkRes(CompilationOutput);
-    if not FileExists(LinkRes) then
+    if not RegularFileExists(LinkRes) then
     begin
       if Verbose then
         Writeln('link.res not found inside "', LinkRes, '", probably what we compiled was only a unit, not a library');
@@ -94,7 +94,7 @@ var
 
       RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
         CompilationOutput + 'lib_cge_project_object_files.txt']);
-      if not FileExists(OutputLibrary) then
+      if not RegularFileExists(OutputLibrary) then
         raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
     end;
   end;

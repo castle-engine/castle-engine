@@ -1067,7 +1067,8 @@ function URIExists(URL: string): TURIExists;
       On Windows, returns false.
       See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
       http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
-      So check both. }
+      So check both, and if DirectoryExists then assume it's a directory
+      (regardless of FileExists result). }
     if D then
       Exit(ueDirectory)
     else

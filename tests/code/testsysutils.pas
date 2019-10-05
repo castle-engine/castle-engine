@@ -31,14 +31,27 @@ uses CastleFilesUtils, CastleURIUtils;
 
 procedure TTestSysUtils.TestDirectoryFileExists;
 begin
-  { window/gtk/castlewindow_gtk.inc uses FileExists and DirectoryExists
-    to detect file/dir }
-
-  { FileExists doesn't differ dirs and non-dirs... On non-Windows.
-    On Windows, it does, unfortunately
-    (although I would like to see it consistent one day...).
+  { FPC FileExists on Unix answers true for both regular files and directories.
+    Unlike FPC FileExists on Windows, that answers true only for regular files.
     See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
-    http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html }
+    http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
+
+    IMHO that's quite bad.
+    - It's inconsistent across two platforms.
+    - And Unix behavior is unexpected.
+
+        FPC docs for FileExists say that this is deliberate on Unix,
+        because "on Unix files are directories".
+        But this seems like an after-thought explanation of a broken behavior
+        in FPC docs.
+        Indeed on Unix many things are "some kind of files"
+        (including directories, sockets, pipes) when looking at C API and kernel API,
+        but that's an internal detail for most people.
+        In normal conversations, in normal API descriptions,
+        when someone talks about "files", it's natural
+        (also to Unix users and developers) to understand
+        that you mean "regular files; not directories, network sockets, pipes...".
+  }
   {$ifdef MSWINDOWS}
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
@@ -49,7 +62,13 @@ begin
   AssertTrue(FileExists(URIToFilenameSafe('castle-data:/test.xml')));
   AssertTrue(not FileExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
 
-  { DirectoryExists differs dirs and non-dirs }
+  { Our RegularFileExists does not detect directory as "file". }
+  AssertFalse(RegularFileExists(URIToFilenameSafe('castle-data:/')));
+  AssertFalse(RegularFileExists(URIToFilenameSafe('castle-data:/images/')));
+  AssertTrue(RegularFileExists(URIToFilenameSafe('castle-data:/test.xml')));
+  AssertTrue(not RegularFileExists(URIToFilenameSafe('castle-data:/test-not-existing.xml')));
+
+  { DirectoryExists detects directories, not regular files. }
   AssertTrue(DirectoryExists(URIToFilenameSafe('castle-data:/')));
   AssertTrue(DirectoryExists(URIToFilenameSafe('castle-data:/images/')));
   AssertTrue(not DirectoryExists(URIToFilenameSafe('castle-data:/test.xml')));

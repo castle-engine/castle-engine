@@ -106,7 +106,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
   procedure TryToolExe(var ToolExe: string; const ToolExeAbsolutePath: string);
   begin
-    if (ToolExe = '') and FileExists(ToolExeAbsolutePath) then
+    if (ToolExe = '') and RegularFileExists(ToolExeAbsolutePath) then
       ToolExe := ToolExeAbsolutePath;
   end;
 
@@ -301,7 +301,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
       But this was not working perfectly -- updating files from version control
       makes the modification times not-100%-reliable for this. }
 
-    Result := (not FileExists(OutputFile)) or (not ContentAlreadyProcessed);
+    Result := (not RegularFileExists(OutputFile)) or (not ContentAlreadyProcessed);
     if Result then
     begin
       Writeln(Format('Updating "%s" from input "%s"', [OutputFile, InputFile]));
@@ -550,7 +550,7 @@ procedure AutoGenerateClean(const Project: TCastleProject);
 
   procedure TryDeleteFile(const FileName: string);
   begin
-    if FileExists(FileName) then
+    if RegularFileExists(FileName) then
     begin
       Writeln('Deleting ' + FileName);
       CheckDeleteFile(FileName);
