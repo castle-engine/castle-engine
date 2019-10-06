@@ -42,8 +42,10 @@ type
   EExecutableNotFound = class(Exception);
 
 { Find the executable of FPC compiler.
-  This is just like FindExeFpc('fpc')
-  but raises EExecutableNotFound in case it failed.
+  It uses FindExeFpc, searching for 'fpc.sh' (script set by fpcupdeluxe
+  that should be used to run FPC)
+  or just 'fpc' (normal way to run FPC).
+  It raises EExecutableNotFound in case it failed.
   @raises EExecutableNotFound }
 function FindExeFpcCompiler: String;
 
@@ -88,7 +90,9 @@ end;
 
 function FindExeFpcCompiler: String;
 begin
-  Result := FindExeFpc('fpc');
+  Result := FindExeFpc('fpc.sh');
+  if Result = '' then
+    Result := FindExeFpc('fpc');
   if Result = '' then
     raise EExecutableNotFound.Create('Cannot find "fpc" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set FPC location in "Preferences".');
 end;
