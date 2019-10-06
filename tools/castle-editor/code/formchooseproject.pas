@@ -61,7 +61,8 @@ implementation
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters,
-  ProjectUtils, EditorUtils, FormNewProject, FormPreferences;
+  ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
+  ToolCompilerInfo;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -159,15 +160,31 @@ begin
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
+
+  procedure PathsConfigLoad;
+  begin
+    FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
+    LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+  end;
+
 begin
   UserConfig.Load;
   RecentProjects := TCastleRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
+  PathsConfigLoad;
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
+
+  procedure PathsConfigSave;
+  begin
+    UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
+    UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+  end;
+
 begin
+  PathsConfigSave;
   RecentProjects.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;

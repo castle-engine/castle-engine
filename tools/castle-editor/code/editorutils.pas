@@ -128,7 +128,8 @@ function YesNoBox(const Message: String): Boolean;
 implementation
 
 uses SysUtils, Dialogs, Graphics,
-  CastleUtils;
+  CastleUtils,
+  ToolCompilerInfo;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
 
@@ -252,6 +253,8 @@ begin
   for I := 1 to GetEnvironmentVariableCount do
     Environment.Add(GetEnvironmentString(I));
   Environment.Values['CASTLE_ENGINE_INSIDE_EDITOR'] := 'true';
+  Environment.Values['CASTLE_FPC_CUSTOM_PATH'] := FpcCustomPath;
+  Environment.Values['CASTLE_LAZARUS_CUSTOM_PATH'] := LazarusCustomPath;
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);

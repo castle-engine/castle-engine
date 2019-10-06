@@ -101,4 +101,9 @@ begin
     raise EExecutableNotFound.Create('Cannot find "lazarus" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
+
+initialization
+  // This way CGE editor passes the FPC/Lazarus locations to the build tool
+  FpcCustomPath := GetEnvironmentVariable('CASTLE_FPC_CUSTOM_PATH');
+  LazarusCustomPath := GetEnvironmentVariable('CASTLE_LAZARUS_CUSTOM_PATH');
 end.
