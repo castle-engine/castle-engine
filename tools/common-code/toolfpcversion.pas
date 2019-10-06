@@ -87,7 +87,7 @@ begin
   end else
     Release := StrToInt(Token);
 
-  WritelnLog('FPC version: ' + ToString);
+  WritelnVerbose('FPC version: ' + ToString);
 end;
 
 function TFpcVersion.ToString: String;
