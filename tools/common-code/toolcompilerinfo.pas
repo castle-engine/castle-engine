@@ -38,6 +38,10 @@ function FindExeFpc(const ExeName: String): String;
   Returns '' if not found, just like vanilla FindExe. }
 function FindExeLazarus(const ExeName: String): String;
 
+{ Extend $PATH environment variable as necessary to add FpcCustomPath
+  and LazarusCustomPath. }
+function PathExtendForFpcLazarus(const PathList: String): String;
+
 type
   EExecutableNotFound = class(Exception);
 
@@ -57,7 +61,7 @@ function FindExeLazarusIDE: String;
 
 implementation
 
-uses CastleUtils, CastleFilesUtils,
+uses CastleUtils, CastleFilesUtils, CastleStringUtils,
   ToolArchitectures;
 
 function FindExeFpc(const ExeName: String): String;
@@ -88,6 +92,38 @@ begin
   Result := FindExe(ExeName);
 end;
 
+function PathExtendForFpcLazarus(const PathList: String): String;
+
+  function PathAppend(const P, NewPart: String): String;
+  begin
+    if P = '' then
+      Result := NewPart
+    else
+      { Add NewPart at the beginning, this way FPC explicitly specified
+        in CGE editor "Preferences" should override FPC on PATH. }
+      Result := NewPart + PathSeparator + P;
+  end;
+
+var
+  FpcBin: String;
+begin
+  Result := PathList;
+
+  if FpcCustomPath <> '' then
+  begin
+    FpcBin := InclPathDelim(FpcCustomPath) +
+      'bin' + PathDelim +
+      CPUToString(DefaultCPU) + '-' + OSToString(DefaultOS);
+    if DirectoryExists(FpcBin) then
+      Result := PathAppend(Result, FpcBin)
+    else
+      Result := PathAppend(Result, FpcCustomPath);
+  end;
+
+  if LazarusCustomPath <> '' then
+    Result := PathAppend(Result, LazarusCustomPath);
+end;
+
 function FindExeFpcCompiler: String;
 begin
   Result := FindExeFpc('fpc.sh');
@@ -106,8 +142,4 @@ begin
 end;
 
 
-initialization
-  // This way CGE editor passes the FPC/Lazarus locations to the build tool
-  FpcCustomPath := GetEnvironmentVariable('CASTLE_FPC_CUSTOM_PATH');
-  LazarusCustomPath := GetEnvironmentVariable('CASTLE_LAZARUS_CUSTOM_PATH');
 end.

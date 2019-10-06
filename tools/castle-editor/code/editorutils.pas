@@ -128,7 +128,7 @@ function YesNoBox(const Message: String): Boolean;
 implementation
 
 uses SysUtils, Dialogs, Graphics,
-  CastleUtils,
+  CastleUtils, CastleLog,
   ToolCompilerInfo;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
@@ -253,8 +253,15 @@ begin
   for I := 1 to GetEnvironmentVariableCount do
     Environment.Add(GetEnvironmentString(I));
   Environment.Values['CASTLE_ENGINE_INSIDE_EDITOR'] := 'true';
-  Environment.Values['CASTLE_FPC_CUSTOM_PATH'] := FpcCustomPath;
-  Environment.Values['CASTLE_LAZARUS_CUSTOM_PATH'] := LazarusCustomPath;
+
+  { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
+    in the build tool.
+    Initially we used to just pass them in special environment variables,
+    and restore in ToolCompilerInfo initialization, but this is not enough:
+    on Windows, calling "windres" requires that "cpp" is also on PATH.
+    It seems more reliable to just add them to PATH. }
+  Environment.Values['PATH'] := PathExtendForFpcLazarus(Environment.Values['PATH']);
+  WritelnLog('Calling process with extended PATH: ' + Environment.Values['PATH']);
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
