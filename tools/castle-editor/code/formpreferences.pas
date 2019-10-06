@@ -75,8 +75,8 @@ begin
     FpcExe := FindExeFpcCompiler;
     FpcVer := FpcVersion.ToString;
     LabelFpcAutoDetected.Caption :=
-      'Detected FPC: ' + FpcExe + NL +
-      'Detected FPC version: ' + FpcVer;
+      'FPC executable: ' + FpcExe + NL +
+      'FPC version: ' + FpcVer;
   except
     on E: Exception do
     begin
@@ -90,7 +90,7 @@ begin
   try
     LazarusExe := FindExeLazarusIDE;
     LabelLazarusAutoDetected.Caption :=
-      'Detected Lazarus: ' + LazarusExe;
+      'Lazarus executable: ' + LazarusExe;
   except
     on E: EExecutableNotFound do
     begin
@@ -137,4 +137,3 @@ begin
 end;
 
 end.
-

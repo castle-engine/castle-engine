@@ -177,7 +177,7 @@ object PreferencesForm: TPreferencesForm
     Height = 27
     Top = 139
     Width = 329
-    Caption = 'Leave empty to use auto-detected:'
+    Caption = 'Leave empty to auto-detect.'
     Font.Style = [fsItalic]
     ParentColor = False
     ParentFont = False
@@ -189,7 +189,7 @@ object PreferencesForm: TPreferencesForm
     Height = 27
     Top = 289
     Width = 329
-    Caption = 'Leave empty to use auto-detected:'
+    Caption = 'Leave empty to auto-detect.'
     Font.Style = [fsItalic]
     ParentColor = False
     ParentFont = False
