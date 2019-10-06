@@ -32,9 +32,12 @@ type
     ButtonOpenRecent: TBitBtn;
     ButtonNew: TBitBtn;
     ButtonOpen: TBitBtn;
+    Image1: TImage;
+    Label1: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
+    PanelWarningFpcLazarus: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
     procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
@@ -48,6 +51,7 @@ type
     CommandLineHandled: Boolean;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
+    procedure UpdateWarningFpcLazarus;
   public
 
   end;
@@ -60,9 +64,9 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
-  CastleFilesUtils, CastleParameters,
+  CastleFilesUtils, CastleParameters, CastleLog,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo;
+  ToolCompilerInfo, ToolFpcVersion;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -137,6 +141,7 @@ end;
 procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
 begin
   PreferencesForm.ShowModal;
+  UpdateWarningFpcLazarus;
 end;
 
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
@@ -193,6 +198,30 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
+  UpdateWarningFpcLazarus;
+end;
+
+procedure TChooseProjectForm.UpdateWarningFpcLazarus;
+
+  function FpcOrLazarusMissing: Boolean;
+  begin
+    Result := true;
+    try
+      FindExeFpcCompiler;
+      FpcVersion;
+      FindExeLazarusIDE;
+      Result := false;
+    except
+      { FindExeFpcCompiler or FindExeLazarusIDE exit with EExecutableNotFound,
+        but FpcVersion may fail with any Exception unfortunately
+        (it runs external process, and many things can go wrong). }
+      on E: Exception do
+        WritelnLog('FPC or Lazarus not detected, or cannot run FPC to get version: ' + ExceptMessage(E));
+    end;
+  end;
+
+begin
+  PanelWarningFpcLazarus.Visible := FpcOrLazarusMissing;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);

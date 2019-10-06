@@ -98,6 +98,7 @@
         <Filename Value="formpreferences.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PreferencesForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormPreferences"/>
       </Unit9>

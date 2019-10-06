@@ -1,11 +1,11 @@
 object PreferencesForm: TPreferencesForm
-  Left = 458
-  Height = 827
-  Top = 87
-  Width = 973
+  Left = 328
+  Height = 805
+  Top = 146
+  Width = 1218
   Caption = 'Preferences'
-  ClientHeight = 827
-  ClientWidth = 973
+  ClientHeight = 805
+  ClientWidth = 1218
   DesignTimePPI = 140
   OnClose = FormClose
   OnShow = FormShow
@@ -17,7 +17,7 @@ object PreferencesForm: TPreferencesForm
     Left = 16
     Height = 37
     Top = 102
-    Width = 939
+    Width = 1184
     ShowHidden = False
     ButtonWidth = 34
     NumGlyphs = 1
@@ -54,7 +54,7 @@ object PreferencesForm: TPreferencesForm
     Left = 16
     Height = 37
     Top = 252
-    Width = 941
+    Width = 1186
     ShowHidden = False
     ButtonWidth = 34
     NumGlyphs = 1
@@ -69,7 +69,7 @@ object PreferencesForm: TPreferencesForm
     Left = 16
     Height = 54
     Top = 434
-    Width = 915
+    Width = 1160
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 32
     Caption = 'To compile and edit "Castle Game Engine" programs, we advise using Lazarus and FPC (Free Pascal Compiler). It is easiest to download official Lazarus (already bundled with FPC) from:'
@@ -80,9 +80,9 @@ object PreferencesForm: TPreferencesForm
     AnchorSideTop.Control = LabelLazarusWebsite
     AnchorSideTop.Side = asrBottom
     Left = 16
-    Height = 189
+    Height = 162
     Top = 547
-    Width = 915
+    Width = 1160
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 16
     Caption = 'If you''re an advanced user, note:'#10#10'- You can install only FPC (without Lazarus) if you prefer to use other IDE. Our engine doesn''t use LCL.'#10#10'- You can also install FPC and Lazarus by FpcUpDeluxe, which is great to get cross-compilers for Android and other platforms. See the CGE documentation.'
@@ -155,9 +155,9 @@ object PreferencesForm: TPreferencesForm
   end
   object ButtonPanel1: TButtonPanel
     Left = 9
-    Height = 46
-    Top = 772
-    Width = 955
+    Height = 45
+    Top = 751
+    Width = 1200
     BorderSpacing.Around = 9
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
