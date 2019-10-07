@@ -55,7 +55,7 @@ type
       You can assume that Target is one of our pool shapes,
       with initial state and geometry calculated by InitializePool. }
     procedure Merge(const Target, Source: TGLShape;
-      const P: TMergePipeline);
+      const P: TMergePipeline; const FirstMerge: Boolean);
 
     { Clear any possible leftovers from Merge, where a given shape was Target. }
     procedure ClearMerge(const Target: TGLShape;
@@ -182,6 +182,17 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     const P: TMergePipeline; const Shape: TGLShape;
     out MergeSlot: TMergeSlot): Boolean;
 
+    function IndexedFaceSetMatch(const I1, I2: TIndexedFaceSetNode): Boolean;
+    begin
+      Result :=
+        (I1 = I2) or
+        (
+          (I1.NormalPerVertex = I2.NormalPerVertex) and
+          (I1.Solid = I2.Solid) and
+          (I1.CreaseAngle = I2.CreaseAngle)
+        );
+    end;
+
     function MaterialsMatch(const M1, M2: TMaterialNode): Boolean;
     begin
       Result :=
@@ -211,16 +222,20 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   var
     //StateSource, StateTarget: TX3DGraphTraverseState;
     Target: TGLShape;
+    MeshTarget, MeshSource: TIndexedFaceSetNode;
   begin
     //StateSource := Shape.State(true);
+    MeshSource := Shape.Geometry(true) as TIndexedFaceSetNode;
 
     for MergeSlot in TMergeSlot do
       if Shapes[P, MergeSlot] <> nil then
       begin
         Target := Shapes[P, MergeSlot];
         //StateTarget := Target.OriginalState;
+        MeshTarget := Target.OriginalGeometry as TIndexedFaceSetNode;
         // TODO: Make sure fog state matches.
-        if AppearancesMatch(Shape.Node.Appearance, Target.Node.Appearance) then
+        if IndexedFaceSetMatch(MeshSource, MeshTarget) and
+           AppearancesMatch(Shape.Node.Appearance, Target.Node.Appearance) then
           Exit(true);
       end;
 
@@ -265,7 +280,7 @@ begin
   begin
     { Merge Shape into last FMergeTarget shape.
       This occurs for 3rd and subsequent shapes (has match on FMergeTarget). }
-    Merge(FMergeTarget[P, Slot], Shape, P);
+    Merge(FMergeTarget[P, Slot], Shape, P, false);
   end else
   if FindMergeable(FWaitingToBeCollected, P, Shape, Slot) then
   begin
@@ -274,8 +289,8 @@ begin
     FMergeTarget[P, Slot] := FPool[P, Slot];
     FCollected.Add(FMergeTarget[P, Slot]);
     ClearMerge(FMergeTarget[P, Slot], P);
-    Merge(FMergeTarget[P, Slot], FWaitingToBeCollected[P, Slot], P);
-    Merge(FMergeTarget[P, Slot], Shape, P);
+    Merge(FMergeTarget[P, Slot], FWaitingToBeCollected[P, Slot], P, true);
+    Merge(FMergeTarget[P, Slot], Shape, P, false);
     FWaitingToBeCollected[P, Slot] := nil;
   end else
   if FindFreeSlot(FWaitingToBeCollected, P, Slot) then
@@ -344,7 +359,7 @@ begin
 end;
 
 procedure TBatchShapes.Merge(const Target, Source: TGLShape;
-  const P: TMergePipeline);
+  const P: TMergePipeline; const FirstMerge: Boolean);
 var
   StateTarget, StateSource: TX3DGraphTraverseState;
   MeshTarget, MeshSource: TIndexedFaceSetNode;
@@ -362,9 +377,16 @@ begin
   if MeshSource.Coord = nil then
     Exit;
 
-  Assert(Source.Node <> nil); // only such source nodes are passed to Merge
-  // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
-  Target.Node.FdAppearance.Value := Source.Node.Appearance;
+  if FirstMerge then
+  begin
+    // assign things that should be equal when merging
+    Assert(Source.Node <> nil); // only such source nodes are passed to Merge
+    // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
+    Target.Node.FdAppearance.Value := Source.Node.Appearance;
+    MeshTarget.NormalPerVertex := MeshSource.NormalPerVertex;
+    MeshTarget.Solid := MeshSource.Solid;
+    MeshTarget.CreaseAngle := MeshSource.CreaseAngle;
+  end;
 
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordSource := MeshSource.InternalCoordinates(StateSource);
