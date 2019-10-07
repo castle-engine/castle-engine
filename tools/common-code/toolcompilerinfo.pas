@@ -20,7 +20,8 @@ unit ToolCompilerInfo;
 
 interface
 
-uses SysUtils;
+uses SysUtils,
+  CastleUtils;
 
 var
   { If set, use this path to search for FPC and related utils. }
@@ -43,7 +44,7 @@ function FindExeLazarus(const ExeName: String): String;
 function PathExtendForFpcLazarus(const PathList: String): String;
 
 type
-  EExecutableNotFound = class(Exception);
+  EExecutableNotFound = class(EShortErrorMessage);
 
 { Find the executable of FPC compiler.
   It uses FindExeFpc, searching for 'fpc.sh' (script set by fpcupdeluxe
@@ -61,7 +62,7 @@ function FindExeLazarusIDE: String;
 
 implementation
 
-uses CastleUtils, CastleFilesUtils, CastleStringUtils,
+uses CastleFilesUtils, CastleStringUtils,
   ToolArchitectures;
 
 function FindExeFpc(const ExeName: String): String;

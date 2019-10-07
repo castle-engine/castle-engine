@@ -5180,7 +5180,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     ErrMessage: string;
     ContinueApp: Boolean;
   begin
-    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr) + NL + NL + DumpExceptionBackTraceToString;
+    ErrMessage := ExceptMessage(ExceptObject) + NL + NL + DumpExceptionBackTraceToString;
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);
