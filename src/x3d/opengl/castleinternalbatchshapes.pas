@@ -27,17 +27,33 @@ type
     const AState: TX3DGraphTraverseState;
     const ParentInfo: PTraversingInfo): TShape of object;
 
-  TMergePipeline = (mpNoTexCoord, mpTexCoord);
-
   TBatchShapes = class
   strict private
-    FCollected: TShapeList;
-    FWaitingToBeCollected, FMergeTarget, FPool: array [TMergePipeline] of TGLShape;
-    FPoolGeometries: TGroupNode;
+    const
+      { In each TMergePipeline we have a few slots,
+        to account for different values of things that must match for all
+        merged shapes. E.g. Material.EmissiveColor in slot 0 may be white,
+        in slot 1 Material.EmissiveColor may be blue.
+
+        We need more than 1 slot, otherwise dynamic batching could be easily
+        made worthless if one shape would be e.g. blue, and then 100 others would
+        be white.
+
+        But we also cannot have too many slots,
+        or the time spent in "finding the right slot to merge" could grow. }
+      MergeSlots = 4;
+    type
+      TMergePipeline = (mpNoTexCoord, mpTexCoord);
+      TMergeSlot = 0 .. MergeSlots - 1;
+      TMergingShapes = array [TMergePipeline, TMergeSlot] of TGLShape;
+    var
+      FCollected: TShapeList;
+      FWaitingToBeCollected, FMergeTarget, FPool: TMergingShapes;
+      FPoolGeometries: TGroupNode;
+
     { Add Source into Target.
       You can assume that Target is one of our pool shapes,
-      with initial state and geometry calculated
-      by CreatePoolGeometry, CreatePoolState. }
+      with initial state and geometry calculated by InitializePool. }
     procedure Merge(const Target, Source: TGLShape;
       const P: TMergePipeline);
 
@@ -75,7 +91,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog;
+  CastleUtils, CastleLog, CastleVectors;
 
 constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
 
@@ -87,28 +103,30 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
     ParentInfo: TTraversingInfo;
     Shape: TGLShape;
     P: TMergePipeline;
+    Slot: TMergeSlot;
   begin
     for P in TMergePipeline do
-    begin
-      // initialize Geometry and ShapeNode
-      Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode);
-      Geometry.Coord := TCoordinateNode.Create;
-      if P = mpTexCoord then
-        Geometry.TexCoord := TTextureCoordinateNode.Create;
-      FPoolGeometries.AddChildren(ShapeNode);
+      for Slot in TMergeSlot do
+      begin
+        // initialize Geometry and ShapeNode
+        Geometry := TIndexedFaceSetNode.CreateWithShape(ShapeNode);
+        Geometry.Coord := TCoordinateNode.Create;
+        if P = mpTexCoord then
+          Geometry.TexCoord := TTextureCoordinateNode.Create;
+        FPoolGeometries.AddChildren(ShapeNode);
 
-      // initialize State
-      State := TX3DGraphTraverseState.Create;
-      State.ShapeNode := ShapeNode;
+        // initialize State
+        State := TX3DGraphTraverseState.Create;
+        State.ShapeNode := ShapeNode;
 
-      // initialize ParentInfo
-      ParentInfo.Node := ShapeNode;
-      ParentInfo.ParentInfo := nil;
+        // initialize ParentInfo
+        ParentInfo.Node := ShapeNode;
+        ParentInfo.ParentInfo := nil;
 
-      // initialize Shape, add it to FPool
-      Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
-      FPool[P] := Shape;
-    end;
+        // initialize Shape, add it to FPool
+        Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
+        FPool[P, Slot] := Shape;
+      end;
   end;
 
 begin
@@ -125,10 +143,12 @@ end;
 destructor TBatchShapes.Destroy;
 var
   P: TMergePipeline;
+  Slot: TMergeSlot;
 begin
   FreeAndNil(FCollected);
   for P in TMergePipeline do
-    FreeAndNil(FPool[P]);
+    for Slot in TMergeSlot do
+      FreeAndNil(FPool[P, Slot]);
   FreeAndNil(FPoolGeometries);
   inherited;
 end;
@@ -146,7 +166,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       Exit;
 
     if TIndexedFaceSetNode(Geometry).FdTexCoordIndex.Count <> 0 then
-      Exit; // for now we don't handle FdTexCoord
+      Exit; // for now we don't handle texCoordIndex
 
     TexCoord := TIndexedFaceSetNode(Geometry).TexCoord;
     if (TexCoord = nil) or
@@ -157,16 +177,75 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     end;
   end;
 
+  { Find a slot in Shapes[P] which is non-nil and can be merged with Shape. }
+  function FindMergeable(const Shapes: TMergingShapes;
+    const P: TMergePipeline; const Shape: TGLShape;
+    out MergeSlot: TMergeSlot): Boolean;
+
+    function MaterialsMatch(const M1, M2: TMaterialNode): Boolean;
+    begin
+      Result :=
+        (M1 = M2) or
+        (
+          (M1 <> nil) and
+          (M2 <> nil) and
+          M1.PureEmissive and
+          M2.PureEmissive and
+          TVector3.PerfectlyEquals(M1.EmissiveColor, M2.EmissiveColor) and
+          (M1.Transparency = M2.Transparency)
+        );
+    end;
+
+    function AppearancesMatch(const A1, A2: TAppearanceNode): Boolean;
+    begin
+      Result :=
+        (A1 = A2) or
+        (
+          (A1 <> nil) and
+          (A2 <> nil) and
+          (A1.FdTexture.Value = A2.FdTexture.Value) and
+          MaterialsMatch(A1.Material, A2.Material)
+        );
+    end;
+
+  var
+    //StateSource, StateTarget: TX3DGraphTraverseState;
+    Target: TGLShape;
+  begin
+    //StateSource := Shape.State(true);
+
+    for MergeSlot in TMergeSlot do
+      if Shapes[P, MergeSlot] <> nil then
+      begin
+        Target := Shapes[P, MergeSlot];
+        //StateTarget := Target.OriginalState;
+        // TODO: Make sure fog state matches.
+        if AppearancesMatch(Shape.Node.Appearance, Target.Node.Appearance) then
+          Exit(true);
+      end;
+
+    Result := false;
+  end;
+
+  { Find a nil slot. }
+  function FindFreeSlot(const Shapes: TMergingShapes;
+    const P: TMergePipeline;
+    out MergeSlot: TMergeSlot): Boolean;
+  begin
+    for MergeSlot in TMergeSlot do
+      if Shapes[P, MergeSlot] = nil then
+        Exit(true);
+    Result := false;
+  end;
+
 var
   HasTexCoord: Boolean;
   P: TMergePipeline;
+  Slot: TMergeSlot;
 begin
   { We can only Merge geometries
     - with TIndexedFaceSetNode
     - from VRML 2 / X3D (with TShapeNode set)
-
-    TODO: Make sure Appearance matches.
-    TODO: Make sure fog state matches.
   }
   Result :=
     (Shape.Node <> nil) and
@@ -182,79 +261,86 @@ begin
   { TODO: merging shapes with blending messes up their order,
     unless you merge them *all* into one shape (which is what we do now). }
 
-  if FMergeTarget[P] <> nil then
+  if FindMergeable(FMergeTarget, P, Shape, Slot) then
   begin
-    // 3rd and subsequent shapes (FMergeTarget <> nil, FWaitingToBeCollected = nil)
     { Merge Shape into last FMergeTarget shape.
-      TODO: In the future this should check into which (if any)
-      FCollected shape we should merge. }
-    Merge(FMergeTarget[P], Shape, P);
+      This occurs for 3rd and subsequent shapes (has match on FMergeTarget). }
+    Merge(FMergeTarget[P, Slot], Shape, P);
   end else
-  if FWaitingToBeCollected[P] <> nil then
+  if FindMergeable(FWaitingToBeCollected, P, Shape, Slot) then
   begin
-    // 2nd shape (FMergeTarget was nil)
-    FMergeTarget[P] := FPool[P];
-    FCollected.Add(FMergeTarget[P]);
-    ClearMerge(FMergeTarget[P], P);
-    Merge(FMergeTarget[P], FWaitingToBeCollected[P], P);
-    Merge(FMergeTarget[P], Shape, P);
-    FWaitingToBeCollected[P] := nil;
+    { Move unmodified shape from FWaitingToBeCollected to FMergeTarget.
+      This occurs for 2nd shape (no match on FMergeTarget, but match on FWaitingToBeCollected). }
+    FMergeTarget[P, Slot] := FPool[P, Slot];
+    FCollected.Add(FMergeTarget[P, Slot]);
+    ClearMerge(FMergeTarget[P, Slot], P);
+    Merge(FMergeTarget[P, Slot], FWaitingToBeCollected[P, Slot], P);
+    Merge(FMergeTarget[P, Slot], Shape, P);
+    FWaitingToBeCollected[P, Slot] := nil;
   end else
+  if FindFreeSlot(FWaitingToBeCollected, P, Slot) then
   begin
-    // 1st shape (both FMergeTarget and FWaitingToBeCollected were nil)
-    FWaitingToBeCollected[P] := Shape;
+    { Add shape to FWaitingToBeCollected.
+      This occurs on 1st shape (no match on FMergeTarget or FWaitingToBeCollected). }
+    FWaitingToBeCollected[P, Slot] := Shape;
   end;
 end;
 
 procedure TBatchShapes.FreeCollected;
 var
   P: TMergePipeline;
+  Slot: TMergeSlot;
 begin
   FCollected.Clear;
   for P in TMergePipeline do
-    if FMergeTarget[P] <> nil then
-    begin
-      // don't wait for ClearMerge for this, do this earlier to release reference count
-      FMergeTarget[P].Node.Appearance := nil;
-      FMergeTarget[P] := nil;
-    end;
+    for Slot in TMergeSlot do
+      if FMergeTarget[P, Slot] <> nil then
+      begin
+        // don't wait for ClearMerge for this, do this earlier to release reference count
+        FMergeTarget[P, Slot].Node.Appearance := nil;
+        FMergeTarget[P, Slot] := nil;
+      end;
 end;
 
 procedure TBatchShapes.Commit;
 var
   P: TMergePipeline;
+  Slot: TMergeSlot;
 begin
   for P in TMergePipeline do
-  begin
-    if FWaitingToBeCollected[P] <> nil then
+    for Slot in TMergeSlot do
     begin
-      FCollected.Add(FWaitingToBeCollected[P]);
-      FWaitingToBeCollected[P] := nil;
-    end;
-    if FMergeTarget[P] <> nil then
-    begin
-      // WritelnLog('Merged into %s with %d vertexes, %d indexes, %s bbox', [
-      //   FMergeTarget[P].OriginalGeometry.NiceName,
-      //   ((FMergeTarget[P].OriginalGeometry as TIndexedFaceSetNode).Coord as TCoordinateNode).FdPoint.Count,
-      //   (FMergeTarget[P].OriginalGeometry as TIndexedFaceSetNode).FdCoordIndex.Count,
-      //   FMergeTarget[P].BoundingBox.ToString
-      // ]);
+      if FWaitingToBeCollected[P, Slot] <> nil then
+      begin
+        FCollected.Add(FWaitingToBeCollected[P, Slot]);
+        FWaitingToBeCollected[P, Slot] := nil;
+      end;
+      if FMergeTarget[P, Slot] <> nil then
+      begin
+        // WritelnLog('Merged into %s with %d vertexes, %d indexes, %s bbox', [
+        //   FMergeTarget[P, Slot].OriginalGeometry.NiceName,
+        //   ((FMergeTarget[P, Slot].OriginalGeometry as TIndexedFaceSetNode).Coord as TCoordinateNode).FdPoint.Count,
+        //   (FMergeTarget[P, Slot].OriginalGeometry as TIndexedFaceSetNode).FdCoordIndex.Count,
+        //   FMergeTarget[P, Slot].BoundingBox.ToString
+        // ]);
 
-      { Mark changes from
-        - TIndexedFaceSetNode.FdCoordIndex,
-        - TCoordinateNode.FdPoint
-      }
-      FMergeTarget[P].Changed(false, [chCoordinate, chGeometry]);
+        { Mark changes from
+          - TIndexedFaceSetNode.FdCoordIndex,
+          - TCoordinateNode.FdPoint
+        }
+        FMergeTarget[P, Slot].Changed(false, [chCoordinate, chGeometry]);
+      end;
     end;
-  end;
 end;
 
 procedure TBatchShapes.GLContextClose;
 var
   P: TMergePipeline;
+  Slot: TMergeSlot;
 begin
   for P in TMergePipeline do
-    FPool[P].GLContextClose;
+    for Slot in TMergeSlot do
+      FPool[P, Slot].GLContextClose;
 end;
 
 procedure TBatchShapes.Merge(const Target, Source: TGLShape;
