@@ -252,7 +252,7 @@
         )
       )
     }
-    property Dynamic: boolean read FDynamic write FDynamic default true;
+    property Dynamic: Boolean read FDynamic write FDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
@@ -285,7 +285,7 @@
         )
       )
     }
-    property Animated: boolean read FAnimated write FAnimated default false;
+    property Animated: Boolean read FAnimated write FAnimated default false;
 
     { Triggers are like ghosts, they are objects that give information about,
       a collision with them but are ignored by the physics engine. Other rigid
@@ -307,7 +307,7 @@
     property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
-    property Gravity: boolean read FGravity write FGravity default true;
+    property Gravity: Boolean read FGravity write FGravity default true;
 
     { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.

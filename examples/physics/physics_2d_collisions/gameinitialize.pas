@@ -112,7 +112,7 @@ begin
     LastCollisionEnter := CollisionDetails.OtherTransform.Name;
 
     if CollisionDetails.OtherTransform.RigidBody.Trigger then
-      LastCollisionEnter := LastCollisionEnter + '(trigger)';
+      LastCollisionEnter := LastCollisionEnter + ' (trigger)';
   end
   else
     LastCollisionEnter := 'other thing';
