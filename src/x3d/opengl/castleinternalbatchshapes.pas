@@ -202,8 +202,8 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           (M2 <> nil) and
           M1.PureEmissive and
           M2.PureEmissive and
-          TVector3.PerfectlyEquals(M1.EmissiveColor, M2.EmissiveColor) and
-          (M1.Transparency = M2.Transparency)
+          TVector3.PerfectlyEquals(M1.FdEmissiveColor.Value, M2.FdEmissiveColor.Value) and
+          (M1.FdTransparency.Value = M2.FdTransparency.Value)
         );
     end;
 
@@ -397,8 +397,8 @@ begin
   begin
     TexCoordTarget := TexCoordinates(MeshTarget, StateTarget);
     TexCoordSource := TexCoordinates(MeshSource, StateSource);
-    OldCoordCount := TexCoordTarget.Count;
     TexCoordTarget.Items.AddRange(TexCoordSource.Items);
+    Check(CoordTarget.Count = TexCoordTarget.Count); // TODO: secure from it
   end;
 
   IndexTarget := MeshTarget.FdCoordIndex.Items;
