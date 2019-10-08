@@ -191,6 +191,9 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean;
       const OnlyCollidable: boolean); virtual; abstract;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); virtual; abstract;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -297,6 +300,8 @@ type
     procedure UnAssociateNode(const Node: TX3DNode);
     class function AssociatedShape(const Node: TX3DNode; const Index: Integer): TShapeTree; static;
     class function AssociatedShapesCount(const Node: TX3DNode): Integer; static;
+
+    procedure FastTransformUpdate(var AnythingChanged: Boolean); virtual;
   end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
@@ -436,6 +441,9 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); override;
   public
     { Constructor.
       @param(ParentInfo Recursive information about parents,
@@ -785,6 +793,9 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -845,9 +856,14 @@ type
     FTransformNode: TX3DNode;
     FTransformState: TX3DGraphTraverseState;
     procedure SetTransformNode(const Value: TX3DNode);
+  private
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
+    procedure FastTransformUpdate(var AnythingChanged: Boolean); override;
 
     { Internal note: We don't declare TransformNode as ITransformNode interface,
       because we don't want to keep reference to it too long,
@@ -929,6 +945,9 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); override;
   public
     InvertedTransform: TMatrix4;
     IsActive: boolean;
@@ -948,6 +967,9 @@ type
       const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
+    procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
+      const ParentTransform, ParentInvertedTransform: TMatrix4;
+      const ParentTransformScale: Single); override;
   public
     { Bounding box of this visibility sensor instance,
       already transformed to global VRML/X3D scene coordinates.
@@ -1378,6 +1400,11 @@ function TShapeTree.ShapesCount(
 begin
   // Since TraverseList is optimized now by caching, this method can just call TraverseList
   Result := TraverseList(OnlyActive, OnlyVisible, OnlyCollidable).Count;
+end;
+
+procedure TShapeTree.FastTransformUpdate(var AnythingChanged: Boolean);
+begin
+  FastTransformUpdateCore(AnythingChanged, TMatrix4.Identity, TMatrix4.Identity, 1);
 end;
 
 { TShape -------------------------------------------------------------- }
@@ -2211,6 +2238,21 @@ begin
     Func(Self);
 end;
 
+procedure TShape.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransform, ParentInvertedTransform: TMatrix4;
+  const ParentTransformScale: Single);
+begin
+  State.Transform := ParentTransform;
+  State.InvertedTransform := ParentInvertedTransform;
+  State.TransformScale := ParentTransformScale;
+
+  // Changed(false, [chTransform]);
+  // a bit faster:
+  Validities := Validities - [svBBox, svBoundingSphere];
+
+  AnythingChanged := true;
+end;
+
 function TShape.MaxShapesCountCore: Integer;
 begin
   Result := 1;
@@ -2965,6 +3007,17 @@ begin
     FChildren.Items[I].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
+procedure TShapeTreeGroup.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransform, ParentInvertedTransform: TMatrix4;
+  const ParentTransformScale: Single);
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    FChildren.Items[I].FastTransformUpdateCore(AnythingChanged,
+      ParentTransform, ParentInvertedTransform, ParentTransformScale);
+end;
+
 function TShapeTreeGroup.MaxShapesCountCore: Integer;
 var
   I: Integer;
@@ -3085,6 +3138,43 @@ begin
   end;
 end;
 
+procedure TShapeTreeTransform.FastTransformUpdate(var AnythingChanged: Boolean);
+begin
+  FastTransformUpdateCore(AnythingChanged,
+    FTransformState.Transform,
+    FTransformState.InvertedTransform,
+    FTransformState.TransformScale
+  );
+end;
+
+procedure TShapeTreeTransform.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransform, ParentInvertedTransform: TMatrix4;
+  const ParentTransformScale: Single);
+var
+  NewTransform, NewInvertedTransform: TMatrix4;
+  NewTransformScale: Single;
+  T: TTransformNode;
+begin
+  NewTransform := ParentTransform;
+  NewInvertedTransform := ParentInvertedTransform;
+  NewTransformScale := ParentTransformScale;
+
+  if FTransformNode is TTransformNode then
+  begin
+    T := TTransformNode(FTransformNode);
+    TransformMatricesMult(NewTransform, NewInvertedTransform,
+      T.Center,
+      T.Rotation,
+      T.Scale,
+      T.ScaleOrientation,
+      T.Translation);
+    NewTransformScale := NewTransformScale * Approximate3DScale(T.Scale);
+  end;
+
+  inherited FastTransformUpdateCore(AnythingChanged,
+    NewTransform, NewInvertedTransform, NewTransformScale);
+end;
+
 { TShapeTreeLOD ------------------------------------------------------- }
 
 function TShapeTreeLOD.LODInvertedTransform: PMatrix4;
@@ -3168,6 +3258,13 @@ begin
   Result := 0;
 end;
 
+procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransform, ParentInvertedTransform: TMatrix4;
+  const ParentTransformScale: Single);
+begin
+  { Nothing to do: This is not a TShape instance, and has no TShape children. }
+end;
+
 function TProximitySensorInstance.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 begin
   { Nothing to do: no geometry shapes, no children here }
@@ -3185,6 +3282,13 @@ procedure TVisibilitySensorInstance.TraverseCore(const Func: TShapeTraverseFunc;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
+end;
+
+procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
+  const ParentTransform, ParentInvertedTransform: TMatrix4;
+  const ParentTransformScale: Single);
+begin
+  { Nothing to do: This is not a TShape instance, and has no TShape children. }
 end;
 
 function TVisibilitySensorInstance.MaxShapesCountCore: Integer;

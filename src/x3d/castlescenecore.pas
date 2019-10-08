@@ -2398,6 +2398,17 @@ var
     skeletal animations of characters, 3D and 2D (e.g. from Spine). }
   OptimizeExtensiveTransformations: boolean = false;
 
+  { Experimental optimization of Transform animation.
+    It assumes that Transform nodes affect only geometry, i.e. their only effect
+    is moving/rotating etc. X3D shapes.
+    This is *usually*, but not always, true.
+    In X3D, Transform node can also affect lights, Background, Fog, cameras...
+
+    TODO: Why does it work correctly only with OptimizeExtensiveTransformations = true?
+
+    TODO: Extend it to include all cases, and use always. }
+  InternalFastTransformUpdate: Boolean = false;
+
 const
   // Old name for paLooping.
   paForceLooping    = paLooping;
@@ -4279,52 +4290,61 @@ begin
 
   DoVisibleChanged := false;
 
-  TraverseStack := nil;
-  TransformChangeHelper := nil;
-  try
-    TraverseStack := TX3DGraphTraverseStateStack.Create;
-
-    { initialize TransformChangeHelper, set before the loop properties
-      that cannot change }
-    TransformChangeHelper := TTransformChangeHelper.Create;
-    TransformChangeHelper.ParentScene := Self;
-    TransformChangeHelper.ChangingNode := TransformNode;
-    TransformChangeHelper.Changes := Changes;
-
+  if InternalFastTransformUpdate then
+  begin
     for I := 0 to C - 1 do
-    begin
-      TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
-      TraverseStack.Clear;
-      TraverseStack.Push(TransformShapeTree.TransformState);
+      TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(DoVisibleChanged);
+    if DoVisibleChanged then
+      Validities := Validities - [fvLocalBoundingBox];
+  end else
+  begin
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-      TransformShapesParentInfo.Group := TransformShapeTree;
-      TransformShapesParentInfo.Index := 0;
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := TransformNode;
+      TransformChangeHelper.Changes := Changes;
 
-      { initialize TransformChangeHelper properties that may be changed
-        during Node.Traverse later }
-      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-      TransformChangeHelper.AnythingChanged := false;
-      TransformChangeHelper.Inside := false;
-      TransformChangeHelper.Inactive := 0;
+      for I := 0 to C - 1 do
+      begin
+        TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
+        TraverseStack.Clear;
+        TraverseStack.Push(TransformShapeTree.TransformState);
 
-      TransformNode.TraverseInternal(TraverseStack, TX3DNode,
-        @TransformChangeHelper.TransformChangeTraverse, nil);
+        TransformShapesParentInfo.Group := TransformShapeTree;
+        TransformShapesParentInfo.Index := 0;
 
-      if TransformChangeHelper.AnythingChanged then
-        DoVisibleChanged := true;
+        { initialize TransformChangeHelper properties that may be changed
+          during Node.Traverse later }
+        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
 
-      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-        animated. Secure from Humanoid = nil (may happen if Joint
-        is outside Humanoid node, see VRML 97 test
-        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-      if (TransformNode is THAnimJointNode) and
-         (TransformShapeTree.TransformState.Humanoid <> nil) then
-        ScheduledHumanoidAnimateSkin.AddIfNotExists(
-          TransformShapeTree.TransformState.Humanoid);
+        TransformNode.TraverseInternal(TraverseStack, TX3DNode,
+          @TransformChangeHelper.TransformChangeTraverse, nil);
+
+        if TransformChangeHelper.AnythingChanged then
+          DoVisibleChanged := true;
+
+        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+          animated. Secure from Humanoid = nil (may happen if Joint
+          is outside Humanoid node, see VRML 97 test
+          ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+        if (TransformNode is THAnimJointNode) and
+           (TransformShapeTree.TransformState.Humanoid <> nil) then
+          ScheduledHumanoidAnimateSkin.AddIfNotExists(
+            TransformShapeTree.TransformState.Humanoid);
+      end;
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
     end;
-  finally
-    FreeAndNil(TraverseStack);
-    FreeAndNil(TransformChangeHelper);
   end;
 
   if DoVisibleChanged then
@@ -4350,46 +4370,59 @@ begin
 
   DoVisibleChanged := false;
 
-  TraverseStack := nil;
-  TransformChangeHelper := nil;
-  try
-    TraverseStack := TX3DGraphTraverseStateStack.Create;
+  if InternalFastTransformUpdate then
+  begin
+    Shapes.FastTransformUpdate(DoVisibleChanged);
+    { Manually adjust Validities, because FastTransformUpdate doesn't call DoGeometryChanged.
 
-    { initialize TransformChangeHelper, set before the loop properties
-      that cannot change }
-    TransformChangeHelper := TTransformChangeHelper.Create;
-    TransformChangeHelper.ParentScene := Self;
-    TransformChangeHelper.ChangingNode := RootNode;
-    TransformChangeHelper.Changes := Changes;
+      TODO: If uncommenting Changed(false, [chTransform]) in TShape.FastTransformUpdateCore,
+      it should call DoGeometryChanged, but it still doesn't? Why?
+      In any case, it doesn't matter, it's faster to fix Validities manually below. }
+    if DoVisibleChanged then
+      Validities := Validities - [fvLocalBoundingBox];
+  end else
+  begin
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-    TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
-    TransformShapesParentInfo.Index := 0;
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := RootNode;
+      TransformChangeHelper.Changes := Changes;
 
-    { initialize TransformChangeHelper properties that may be changed
-      during Node.Traverse later }
-    TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-    TransformChangeHelper.AnythingChanged := false;
-    TransformChangeHelper.Inside := false;
-    TransformChangeHelper.Inactive := 0;
+      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      TransformShapesParentInfo.Index := 0;
 
-    RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
+      { initialize TransformChangeHelper properties that may be changed
+        during Node.Traverse later }
+      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+      TransformChangeHelper.AnythingChanged := false;
+      TransformChangeHelper.Inside := false;
+      TransformChangeHelper.Inactive := 0;
 
-    if TransformChangeHelper.AnythingChanged then
-      DoVisibleChanged := true;
+      RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
 
-    { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-      animated. Secure from Humanoid = nil (may happen if Joint
-      is outside Humanoid node, see VRML 97 test
-      ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-    { TODO:
-    if (RootNode is THAnimJointNode) and
-       (TransformShapeTree.TransformState.Humanoid <> nil) then
-      ScheduledHumanoidAnimateSkin.AddIfNotExists(
-        TransformShapeTree.TransformState.Humanoid);
-    }
-  finally
-    FreeAndNil(TraverseStack);
-    FreeAndNil(TransformChangeHelper);
+      if TransformChangeHelper.AnythingChanged then
+        DoVisibleChanged := true;
+
+      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+        animated. Secure from Humanoid = nil (may happen if Joint
+        is outside Humanoid node, see VRML 97 test
+        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+      { TODO:
+      if (RootNode is THAnimJointNode) and
+         (TransformShapeTree.TransformState.Humanoid <> nil) then
+        ScheduledHumanoidAnimateSkin.AddIfNotExists(
+          TransformShapeTree.TransformState.Humanoid);
+      }
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
+    end;
   end;
 
   if DoVisibleChanged then
