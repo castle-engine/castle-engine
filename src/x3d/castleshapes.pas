@@ -3159,6 +3159,16 @@ begin
   NewInvertedTransform := ParentInvertedTransform;
   NewTransformScale := ParentTransformScale;
 
+  { Keep FTransformState up-to-date.
+    This is not necessary when OptimizeExtensiveTransformations = true,
+    so we don't do it to converve speed. }
+  if not OptimizeExtensiveTransformations then
+  begin
+    FTransformState.Transform := ParentTransform;
+    FTransformState.InvertedTransform := ParentInvertedTransform;
+    FTransformState.TransformScale := ParentTransformScale;
+  end;
+
   if FTransformNode is TTransformNode then
   begin
     T := TTransformNode(FTransformNode);

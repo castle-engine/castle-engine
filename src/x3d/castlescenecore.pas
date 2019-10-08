@@ -2404,8 +2404,6 @@ var
     This is *usually*, but not always, true.
     In X3D, Transform node can also affect lights, Background, Fog, cameras...
 
-    TODO: Why does it work correctly only with OptimizeExtensiveTransformations = true?
-
     TODO: Extend it to include all cases, and use always. }
   InternalFastTransformUpdate: Boolean = false;
 
