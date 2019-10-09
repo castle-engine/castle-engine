@@ -3,7 +3,6 @@ object ChooseProjectForm: TChooseProjectForm
   Height = 713
   Top = 99
   Width = 628
-  BorderStyle = bsSingle
   BorderWidth = 40
   Caption = 'Choose Project | Castle Game Engine Editor'
   ClientHeight = 713
@@ -664,22 +663,27 @@ object ChooseProjectForm: TChooseProjectForm
     TabOrder = 3
   end
   object PanelWarningFpcLazarus: TPanel
-    Left = 191
-    Height = 77
-    Top = 632
-    Width = 421
+    AnchorSideLeft.Control = ButtonPreferences
+    AnchorSideLeft.Side = asrBottom
+    Left = 190
+    Height = 72
+    Top = 637
+    Width = 415
     Anchors = [akLeft, akBottom]
-    ClientHeight = 77
-    ClientWidth = 421
+    AutoSize = True
+    BorderSpacing.Left = 8
+    ClientHeight = 72
+    ClientWidth = 415
     TabOrder = 4
     object Image1: TImage
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Side = asrCenter
-      Left = 13
+      Left = 9
       Height = 32
-      Top = 24
+      Top = 21
       Width = 32
       AutoSize = True
+      BorderSpacing.Around = 8
       Picture.Data = {
         1754506F727461626C654E6574776F726B477261706869638902000089504E47
         0D0A1A0A0000000D4948445200000020000000200806000000737A7AF4000000
@@ -706,10 +710,11 @@ object ChooseProjectForm: TChooseProjectForm
       }
     end
     object Label1: TLabel
-      Left = 72
+      Left = 68
       Height = 54
-      Top = 12
+      Top = 9
       Width = 338
+      BorderSpacing.Around = 8
       Caption = 'Warning: FPC or Lazarus not found.'#10'Configure them in "Preferences".'
       ParentColor = False
     end

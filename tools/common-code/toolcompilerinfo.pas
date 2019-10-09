@@ -142,5 +142,4 @@ begin
     raise EExecutableNotFound.Create('Cannot find "lazarus" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
 end;
 
-
 end.
