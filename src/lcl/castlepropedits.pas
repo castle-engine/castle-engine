@@ -41,7 +41,7 @@ uses SysUtils, Classes,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
-  CastleTiledMap, CastleGLImages;
+  CastleTiledMap, CastleGLImages, CastleStringUtils;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
