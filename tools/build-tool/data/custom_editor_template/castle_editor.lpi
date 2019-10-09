@@ -185,7 +185,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code"/>
+      <OtherUnitFiles Value="${CASTLE_ENGINE_PATH}tools/build-tool/code;${CASTLE_ENGINE_PATH}tools/castle-editor/code;${CASTLE_ENGINE_PATH}tools/common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       <Libraries Value="${ABSOLUTE_LIBRARY_PATHS}" />
     </SearchPaths>
