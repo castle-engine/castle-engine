@@ -73,8 +73,9 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleSceneManager, '',
-    TSubPropertiesEditor);
+  // TODO: restore when merging camera-refactor
+  // RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleSceneManager, '',
+  //   TSubPropertiesEditor);
 
   { Other properties }
   RegisterPropertyEditor(TypeInfo(TCastleImagePersistent), nil, '',
