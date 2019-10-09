@@ -36,9 +36,8 @@ type
     LabelProjectName: TLabel;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     ButtonTemplateEmpty: TSpeedButton;
-    ButtonTemplateFpsGame: TSpeedButton;
-    ButtonTemplate3DModel: TSpeedButton;
-    ButtonTemplate2DGame: TSpeedButton;
+    ButtonTemplate3D: TSpeedButton;
+    ButtonTemplate2D: TSpeedButton;
     procedure EditLocationButtonClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
