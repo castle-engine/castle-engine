@@ -18,11 +18,10 @@
   This is useful for example when auto-generating a complex 3D scene
   by code, from multiple small X3D files.
 
-  If you want to render the complex scene fast, it's better to combine
-  it, and use a single TCastleScene, than to use multiple TCastleScenes.
-  Using a single TCastleScene means that e.g. frustum culling will be
-  efficient.
-  See https://castle-engine.io/tutorial_transformation_hierarchy.php .
+  If you want to render the complex scene fast, it may be beneficial to combine
+  it into a single TCastleScene, instead of using multiple TCastleScenes.
+  See https://castle-engine.io/tutorial_transformation_hierarchy.php for detailed
+  discussion.
 }
 program combine_multiple_x3d_into_one;
 
