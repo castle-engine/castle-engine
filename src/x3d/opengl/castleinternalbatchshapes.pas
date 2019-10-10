@@ -93,7 +93,14 @@ implementation
 uses SysUtils,
   CastleUtils, CastleLog, CastleVectors;
 
+{.$define CASTLE_DEBUG_BATCHING}
+
 constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
+
+  function MergePipelineToStr(const P: TBatchShapes.TMergePipeline): String;
+  begin
+    WriteStr(Result, P);
+  end;
 
   procedure InitializePool;
   var
@@ -126,6 +133,10 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
         // initialize Shape, add it to FPool
         Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
         FPool[P, Slot] := Shape;
+
+        {$ifdef CASTLE_DEBUG_BATCHING}
+        Shape.Node.X3DName := 'Batched_' + MergePipelineToStr(P) + '_' + IntToStr(Slot);
+        {$endif}
       end;
   end;
 
@@ -318,6 +329,49 @@ begin
 end;
 
 procedure TBatchShapes.Commit;
+
+  procedure DebugOutput;
+  var
+    Shape: TShape;
+    RootNode: TX3DRootNode;
+    TexCoordNode: TX3DNode;
+    TexCoordsLog: String;
+    Geometry: TIndexedFaceSetNode;
+    State: TX3DGraphTraverseState;
+  begin
+    RootNode := TX3DRootNode.Create;
+    for Shape in FCollected do
+    begin
+      Geometry := Shape.OriginalGeometry as TIndexedFaceSetNode;
+      State := Shape.OriginalState;
+      if Geometry.InternalTexCoord(State, TexCoordNode) and
+         (TexCoordNode is TTextureCoordinateNode) then
+        TexCoordsLog := Format('%d tex coords, ', [
+          TTextureCoordinateNode(TexCoordNode).FdPoint.Count
+        ])
+      else
+        TexCoordsLog := '';
+      WritelnLog('Collected shape: %s %s with %d vertexes, %s%d indexes, %s bbox', [
+        Shape.Node.X3DName,
+        Geometry.NiceName,
+        (Geometry.Coord as TCoordinateNode).FdPoint.Count,
+        TexCoordsLog,
+        Geometry.FdCoordIndex.Count,
+        Shape.BoundingBox.ToString
+      ]);
+      Shape.Node.KeepExistingBegin;
+      RootNode.AddChildren(Shape.Node);
+    end;
+
+    if RootNode.FdChildren.Count <> 0 then
+      Save3D(RootNode, 'cge_batching_output.x3d', ApplicationName);
+
+    for Shape in FCollected do
+      Shape.Node.KeepExistingEnd;
+
+    FreeAndNil(RootNode);
+  end;
+
 var
   P: TMergePipeline;
   Slot: TMergeSlot;
@@ -332,20 +386,18 @@ begin
       end;
       if FMergeTarget[P, Slot] <> nil then
       begin
-        // WritelnLog('Merged into %s with %d vertexes, %d indexes, %s bbox', [
-        //   FMergeTarget[P, Slot].OriginalGeometry.NiceName,
-        //   ((FMergeTarget[P, Slot].OriginalGeometry as TIndexedFaceSetNode).Coord as TCoordinateNode).FdPoint.Count,
-        //   (FMergeTarget[P, Slot].OriginalGeometry as TIndexedFaceSetNode).FdCoordIndex.Count,
-        //   FMergeTarget[P, Slot].BoundingBox.ToString
-        // ]);
-
         { Mark changes from
           - TIndexedFaceSetNode.FdCoordIndex,
           - TCoordinateNode.FdPoint
+          - TTextureCoordinateNode.FdPoint
         }
-        FMergeTarget[P, Slot].Changed(false, [chCoordinate, chGeometry]);
+        FMergeTarget[P, Slot].Changed(false, [chCoordinate, chTextureCoordinate, chGeometry]);
       end;
     end;
+
+  {$ifdef CASTLE_DEBUG_BATCHING}
+  DebugOutput;
+  {$endif}
 end;
 
 procedure TBatchShapes.GLContextClose;
