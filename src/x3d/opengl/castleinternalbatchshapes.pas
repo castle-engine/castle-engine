@@ -50,6 +50,7 @@ type
       FCollected: TShapeList;
       FWaitingToBeCollected, FMergeTarget, FPool: TMergingShapes;
       FPoolGeometries: TGroupNode;
+      LogIncreaseSlotsDone: Boolean;
 
     { Add Source into Target.
       You can assume that Target is one of our pool shapes,
@@ -65,6 +66,8 @@ type
     class function TexCoordinates(
       const Geometry: TAbstractGeometryNode;
       const State: TX3DGraphTraverseState): TMFVec2f;
+
+    procedure DoLogIncreaseSlots;
   public
     constructor Create(const CreateShape: TCreateShapeEvent);
     destructor Destroy; override;
@@ -162,6 +165,15 @@ begin
       FreeAndNil(FPool[P, Slot]);
   FreeAndNil(FPoolGeometries);
   inherited;
+end;
+
+procedure TBatchShapes.DoLogIncreaseSlots;
+begin
+  if not LogIncreaseSlotsDone then
+  begin
+    LogIncreaseSlotsDone := true;
+    WritelnLog('Consider increasing MergeSlots, to allow more batching');
+  end;
 end;
 
 function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
@@ -314,7 +326,7 @@ begin
     FWaitingToBeCollected[P, Slot] := Shape;
   end else
   begin
-    WritelnLog('Consider increasing MergeSlots, to allow more batching');
+    DoLogIncreaseSlots;
     Exit(false); // we would like to batch it, but MergeSlots is not enough
   end;
 end;
