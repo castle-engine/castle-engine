@@ -253,13 +253,16 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     Result := false;
   end;
 
-  { Find a nil slot. }
-  function FindFreeSlot(const Shapes: TMergingShapes;
-    const P: TMergePipeline;
-    out MergeSlot: TMergeSlot): Boolean;
+  { Find an empty slot within this TMergePipeline (P).
+    We must have empty FWaitingToBeCollected[P, MergeSlot] (to place there new shape)
+    and empty FMergeTarget[P, MergeSlot] (otherwise FPool[P, MergeSlot]
+    is already used for other purpose). }
+  function FindFreeSlot(const P: TMergePipeline; out MergeSlot: TMergeSlot): Boolean;
   begin
+
     for MergeSlot in TMergeSlot do
-      if Shapes[P, MergeSlot] = nil then
+      if (FWaitingToBeCollected[P, MergeSlot] = nil) and
+         (FMergeTarget[P, MergeSlot] = nil) then
         Exit(true);
     Result := false;
   end;
@@ -304,11 +307,15 @@ begin
     Merge(FMergeTarget[P, Slot], Shape, P, false);
     FWaitingToBeCollected[P, Slot] := nil;
   end else
-  if FindFreeSlot(FWaitingToBeCollected, P, Slot) then
+  if FindFreeSlot(P, Slot) then
   begin
     { Add shape to FWaitingToBeCollected.
       This occurs on 1st shape (no match on FMergeTarget or FWaitingToBeCollected). }
     FWaitingToBeCollected[P, Slot] := Shape;
+  end else
+  begin
+    WritelnLog('Consider increasing MergeSlots, to allow more batching');
+    Exit(false); // we would like to batch it, but MergeSlots is not enough
   end;
 end;
 
