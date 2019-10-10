@@ -223,10 +223,11 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         (
           (M1 <> nil) and
           (M2 <> nil) and
-          M1.PureEmissive and
-          M2.PureEmissive and
-          TVector3.PerfectlyEquals(M1.FdEmissiveColor.Value, M2.FdEmissiveColor.Value) and
-          (M1.FdTransparency.Value = M2.FdTransparency.Value)
+          TVector3.PerfectlyEquals(M1.FdDiffuseColor    .Value, M2.FdDiffuseColor    .Value) and
+          TVector3.PerfectlyEquals(M1.FdSpecularColor   .Value, M2.FdSpecularColor   .Value) and
+          TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
+          (M1.FdAmbientIntensity.Value = M2.FdAmbientIntensity.Value) and
+          (M1.FdTransparency    .Value = M2.FdTransparency    .Value)
         );
     end;
 
