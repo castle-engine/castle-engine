@@ -269,7 +269,8 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         (
           (A1 <> nil) and
           (A2 <> nil) and
-          (A1.FdTexture.Value = A2.FdTexture.Value) and
+          (A1.FdTexture.Value          = A2.FdTexture         .Value) and
+          (A1.FdTextureTransform.Value = A2.FdTextureTransform.Value) and
           MaterialsMatch(A1.Material, A2.Material)
         );
     end;
