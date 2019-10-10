@@ -1391,7 +1391,8 @@ begin
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
             FilteredShapes.SortFrontToBack(RenderCameraPosition);
-
+            if InternalDynamicBatching then
+              Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
           end else
@@ -1411,6 +1412,8 @@ begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
+            if InternalDynamicBatching then
+              Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
           end else

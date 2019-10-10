@@ -43,6 +43,11 @@ type
         or the time spent in "finding the right slot to merge" could grow. }
       MergeSlots = 4;
     type
+      { Shapes from different pipelines cannot be merged with each other,
+        and the pool shapes (in FPool) may be prepared differently for each
+        TMergePipeline.
+        E.g. pool shapes for mpTexCoord has TexCoord assigned,
+        for mpNoTexCoord they have TexCoord=nil. }
       TMergePipeline = (mpNoTexCoord, mpTexCoord);
       TMergeSlot = 0 .. MergeSlots - 1;
       TMergingShapes = array [TMergePipeline, TMergeSlot] of TGLShape;
@@ -69,6 +74,18 @@ type
 
     procedure DoLogIncreaseSlots;
   public
+    var
+      { Make sure that shapes on the @link(Collected) list have the same order
+        as they are passed on @link(Collect) method.
+        This makes batching less aggressive (so less effective,
+        less chance of merging many shapes into few),
+        but it makes sure that rendering output will be the same,
+        if the order was important (e.g. you were rendering
+        without Z-buffer test).
+
+        Reset to @false in each @link(FreeCollected). }
+      PreserveShapeOrder: Boolean;
+
     constructor Create(const CreateShape: TCreateShapeEvent);
     destructor Destroy; override;
 
@@ -178,13 +195,22 @@ end;
 
 function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
 
-  function CanCollectGeometry(const Geometry: TAbstractGeometryNode;
-    out HasTexCoord: Boolean): Boolean;
+  { Is this Shape suitable to consider for merging with @italic(anything).
+    If yes, then we also determine the proper TMergePipeline. }
+  function MergeableWithAnything(const Shape: TGLShape;
+    out P: TMergePipeline): Boolean;
   var
+    Geometry: TAbstractGeometryNode;
     TexCoord: TAbstractTextureCoordinateNode;
   begin
     Result := false;
-    HasTexCoord := false;
+
+    // We can only Merge geometries from VRML 2 / X3D (with TShapeNode set)
+    if Shape.Node = nil then
+      Exit;
+
+    // We can only Merge TIndexedFaceSetNode for now
+    Geometry := Shape.Geometry(true);
     if not (Geometry is TIndexedFaceSetNode) then
       Exit;
 
@@ -192,18 +218,23 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       Exit; // for now we don't handle texCoordIndex
 
     TexCoord := TIndexedFaceSetNode(Geometry).TexCoord;
-    if (TexCoord = nil) or
-       (TexCoord is TTextureCoordinateNode) then
+    if TexCoord = nil then
+    begin
+      P := mpNoTexCoord;
+      Result := true;
+    end else
+    if TexCoord is TTextureCoordinateNode then
     begin
       Result := true;
-      HasTexCoord := TexCoord <> nil;
+      P := mpTexCoord;
     end;
   end;
 
-  { Find a slot in Shapes[P] which is non-nil and can be merged with Shape. }
-  function FindMergeable(const Shapes: TMergingShapes;
-    const P: TMergePipeline; const Shape: TGLShape;
-    out MergeSlot: TMergeSlot): Boolean;
+  { Can two given shapes be merged.
+    Assumes that both shapes already passed MergeableWithAnything test,
+    and have the same TMergePipeline. }
+  function Mergeable(const Shape1, Shape2: TGLShape;
+    const P: TMergePipeline): Boolean;
 
     function IndexedFaceSetMatch(const I1, I2: TIndexedFaceSetNode): Boolean;
     begin
@@ -244,25 +275,27 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     end;
 
   var
-    //StateSource, StateTarget: TX3DGraphTraverseState;
-    Target: TGLShape;
-    MeshTarget, MeshSource: TIndexedFaceSetNode;
+    //State1, State2: TX3DGraphTraverseState;
+    Mesh1, Mesh2: TIndexedFaceSetNode;
   begin
-    //StateSource := Shape.State(true);
-    MeshSource := Shape.Geometry(true) as TIndexedFaceSetNode;
+    Mesh1 := TIndexedFaceSetNode(Shape1.Geometry(true));
+    Mesh2 := TIndexedFaceSetNode(Shape2.Geometry(true));
+    Result :=
+      // TODO: Make sure also fog state matches.
+      IndexedFaceSetMatch(Mesh1, Mesh2) and
+      AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance);
+  end;
 
+  { Find a slot in Shapes[P] which is non-nil and can be merged with Shape.
+    Assumes that for Shape, we already determined given TMergePipeline. }
+  function FindMergeable(const Shapes: TMergingShapes;
+    const P: TMergePipeline; const Shape: TGLShape;
+    out MergeSlot: TMergeSlot): Boolean;
+  begin
     for MergeSlot in TMergeSlot do
       if Shapes[P, MergeSlot] <> nil then
-      begin
-        Target := Shapes[P, MergeSlot];
-        //StateTarget := Target.OriginalState;
-        MeshTarget := Target.OriginalGeometry as TIndexedFaceSetNode;
-        // TODO: Make sure fog state matches.
-        if IndexedFaceSetMatch(MeshSource, MeshTarget) and
-           AppearancesMatch(Shape.Node.Appearance, Target.Node.Appearance) then
+        if Mergeable(Shape, Shapes[P, MergeSlot], P) then
           Exit(true);
-      end;
-
     Result := false;
   end;
 
@@ -272,7 +305,6 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     is already used for other purpose). }
   function FindFreeSlot(const P: TMergePipeline; out MergeSlot: TMergeSlot): Boolean;
   begin
-
     for MergeSlot in TMergeSlot do
       if (FWaitingToBeCollected[P, MergeSlot] = nil) and
          (FMergeTarget[P, MergeSlot] = nil) then
@@ -281,27 +313,12 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   end;
 
 var
-  HasTexCoord: Boolean;
   P: TMergePipeline;
   Slot: TMergeSlot;
 begin
-  { We can only Merge geometries
-    - with TIndexedFaceSetNode
-    - from VRML 2 / X3D (with TShapeNode set)
-  }
-  Result :=
-    (Shape.Node <> nil) and
-    CanCollectGeometry(Shape.Geometry(true), HasTexCoord);
+  Result := MergeableWithAnything(Shape, P);
   if not Result then
     Exit;
-
-  if HasTexCoord then
-    P := mpTexCoord
-  else
-    P := mpNoTexCoord;
-
-  { TODO: merging shapes with blending messes up their order,
-    unless you merge them *all* into one shape (which is what we do now). }
 
   if FindMergeable(FMergeTarget, P, Shape, Slot) then
   begin
@@ -346,6 +363,7 @@ begin
         FMergeTarget[P, Slot].Node.Appearance := nil;
         FMergeTarget[P, Slot] := nil;
       end;
+  PreserveShapeOrder := false;
 end;
 
 procedure TBatchShapes.Commit;
