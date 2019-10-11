@@ -417,7 +417,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         Assert(FMergeTarget[P, Slot] <> nil);
         FUnorderedPreviousShapes[P, Slot] := FMergeTarget[P, Slot];
       end;
-    end;
+    end else
     if AllocateSlot(P, Slot) then
     begin
       { Add shape to FUnorderedPreviousShapes.
