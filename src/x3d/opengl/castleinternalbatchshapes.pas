@@ -55,14 +55,20 @@ type
       TMergingShapes = array [TMergePipeline, TMergeSlot] of TGLShape;
     var
       FCollected: TShapeList;
-      FWaitingToBeCollected, FMergeTarget, FPool: TMergingShapes;
+      FPool: TMergingShapes;
+      FPoolUsed: array [TMergePipeline] of Integer;
 
-      { When PreserveShapeOrder, we use FOrderPreviousShapeXxx.
-        We don't use FWaitingToBeCollected then. }
+      { FMergeTarget are copies of the respective shapes on FPool list,
+        when they first become used by Merge (not only allocated by AllocateSlot). }
+      FMergeTarget: TMergingShapes;
+
+      { When PreserveShapeOrder=false, we use this. }
+      FUnorderedPreviousShapes: TMergingShapes;
+
+      { When PreserveShapeOrder=true, we use this. }
       FOrderPreviousShape: TGLShape;
       FOrderPreviousShapeMerging: Boolean;
       FOrderPreviousShapePipeline: TMergePipeline;
-      FOrderPoolUsed: array [TMergePipeline] of Integer;
 
       FPoolGeometries: TGroupNode;
       LogIncreaseSlotsDone: Boolean;
@@ -331,6 +337,16 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     Merge(FMergeTarget[P, Slot], Shape2, P, false);
   end;
 
+  function AllocateSlot(const P: TMergePipeline; out Slot: TMergeSlot): Boolean;
+  begin
+    Result := FPoolUsed[P] < MergeSlots;
+    if Result then
+    begin
+      Slot := FPoolUsed[P];
+      Inc(FPoolUsed[P]);
+    end;
+  end;
+
   { Algorithm specific for PreserveShapeOrder=true case. }
   procedure DoPreserveShapeOrder(const P: TMergePipeline);
   var
@@ -354,10 +370,8 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         Merge(FOrderPreviousShape, Shape, P, false);
         Handled := true;
       end else
-      if FOrderPoolUsed[P] < MergeSlots then
+      if AllocateSlot(P, Slot) then
       begin
-        Slot := FOrderPoolUsed[P];
-        Inc(FOrderPoolUsed[P]);
         InitialMerge(FOrderPreviousShape, Shape, P, Slot);
         FOrderPreviousShape := FMergeTarget[P, Slot];
         FOrderPreviousShapeMerging := true;
@@ -380,50 +394,38 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
 
   { Algorithm specific for PreserveShapeOrder=false case. }
   procedure DoIgnoreShapeOrder(const P: TMergePipeline);
-
-    { Find an empty slot within this TMergePipeline (P).
-      We must have empty FWaitingToBeCollected[P, MergeSlot] (to place there new shape)
-      and empty FMergeTarget[P, MergeSlot] (otherwise FPool[P, MergeSlot]
-      is already used for other purpose). }
-    function FindFreeSlot(const P: TMergePipeline; out MergeSlot: TMergeSlot): Boolean;
-    begin
-      for MergeSlot in TMergeSlot do
-        if (FWaitingToBeCollected[P, MergeSlot] = nil) and
-           (FMergeTarget[P, MergeSlot] = nil) then
-          Exit(true);
-      Result := false;
-    end;
-
   var
     Slot: TMergeSlot;
   begin
     { When not PreserveShapeOrder, we try to merge an incoming shape with
-      - one of the merges "in progress" (on FMergeTarget)
-      - or one of the previous shapes, not yet during merging (on FWaitingToBeCollected)
+      - one of the merges "in progress" (on FUnorderedPreviousShapes and FMergeTarget)
+      - or one of the previous shapes, not yet during merging (only on FUnorderedPreviousShapes)
       - or we place it in a new slot, waiting for possible merge in the future. }
 
-    if FindMergeable(FMergeTarget, P, Shape, Slot) then
+    if FindMergeable(FUnorderedPreviousShapes, P, Shape, Slot) then
     begin
-      { Merge Shape into last FMergeTarget shape.
-        This occurs for 3rd and subsequent shapes (has match on FMergeTarget). }
-      Merge(FMergeTarget[P, Slot], Shape, P, false);
-    end else
-    if FindMergeable(FWaitingToBeCollected, P, Shape, Slot) then
+      if FMergeTarget[P, Slot] <> nil then
+      begin
+        { Slot in the middle of merging, so merge more. }
+        Merge(FMergeTarget[P, Slot], Shape, P, false);
+      end else
+      begin
+        { Slot not yet merging, so start merging.
+          This will set FMergeTarget[P, Slot], so next shapes will know we are in the middle
+          of merging. }
+        InitialMerge(FUnorderedPreviousShapes[P, Slot], Shape, P, Slot);
+        Assert(FMergeTarget[P, Slot] <> nil);
+        FUnorderedPreviousShapes[P, Slot] := FMergeTarget[P, Slot];
+      end;
+    end;
+    if AllocateSlot(P, Slot) then
     begin
-      { Move unmodified shape from FWaitingToBeCollected to FMergeTarget.
-        This occurs for 2nd shape (no match on FMergeTarget, but match on FWaitingToBeCollected). }
-      InitialMerge(FWaitingToBeCollected[P, Slot], Shape, P, Slot);
-      FWaitingToBeCollected[P, Slot] := nil;
-    end else
-    if FindFreeSlot(P, Slot) then
-    begin
-      // simplify: FPoolUsed instead of FindFreeSlot, FPreviousShapes with FPreviousShapesMerging
-      { Add shape to FWaitingToBeCollected.
-        This occurs on 1st shape (no match on FMergeTarget or FWaitingToBeCollected).
+      { Add shape to FUnorderedPreviousShapes.
+        The corresponding FMergeTarget remains nil, so we know it is not yet in the middle of merging.
 
-        Note that this reserves a slot, this we treat FPool[P, Slot] as already used.
+        Note that this reserves a slot, IOW we treat FPool[P, Slot] as already used.
         It may be wasteful (as we didn't start merging yet, we are not yet sure
-        whether FPool[P, Slot] wil be used) but we need to reserve this pool for possible
+        whether FPool[P, Slot] will be needed) but we need to reserve this pool for possible
         merging opportunity.
 
         TODO: Maybe the logic could be improved, to not reserve pool yet?
@@ -432,7 +434,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         The advantage would be that we don't need so many MergeSlots
         in case of PreserveShapeOrder=false to be efficient, in some cases.
       }
-      FWaitingToBeCollected[P, Slot] := Shape;
+      FUnorderedPreviousShapes[P, Slot] := Shape;
     end else
     begin
       DoLogIncreaseSlots;
@@ -468,7 +470,7 @@ begin
         FMergeTarget[P, Slot].Node.Appearance := nil;
         FMergeTarget[P, Slot] := nil;
       end;
-    FOrderPoolUsed[P] := 0;
+    FPoolUsed[P] := 0;
   end;
   PreserveShapeOrder := false;
 end;
@@ -524,10 +526,11 @@ begin
   for P in TMergePipeline do
     for Slot in TMergeSlot do
     begin
-      if FWaitingToBeCollected[P, Slot] <> nil then
+      if FUnorderedPreviousShapes[P, Slot] <> nil then
       begin
-        FCollected.Add(FWaitingToBeCollected[P, Slot]);
-        FWaitingToBeCollected[P, Slot] := nil;
+        if FMergeTarget[P, Slot] = nil then
+          FCollected.Add(FUnorderedPreviousShapes[P, Slot]);
+        FUnorderedPreviousShapes[P, Slot] := nil;
       end;
       if FMergeTarget[P, Slot] <> nil then
       begin
@@ -540,10 +543,10 @@ begin
       end;
     end;
 
-  if (FOrderPreviousShape <> nil) and
-     (not FOrderPreviousShapeMerging) then
+  if FOrderPreviousShape <> nil then
   begin
-    FCollected.Add(FOrderPreviousShape);
+    if not FOrderPreviousShapeMerging then
+      FCollected.Add(FOrderPreviousShape);
     FOrderPreviousShape := nil;
   end;
 
