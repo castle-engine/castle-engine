@@ -805,7 +805,7 @@ var
   { Combine (right before rendering) multiple shapes with a similar appearance into one.
     This can drastically reduce the number of "draw calls",
     making rendering much faster. }
-  InternalDynamicBatching: Boolean = false;
+  DynamicBatching: Boolean = false;
 
 const
   bsNone = CastleBoxes.bsNone;
@@ -1183,7 +1183,7 @@ var
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    if not (InternalDynamicBatching and Batching.Collect(Shape)) then
+    if not (DynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -1191,7 +1191,7 @@ var
   var
     Shape: TShape;
   begin
-    if InternalDynamicBatching then
+    if DynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
@@ -1391,7 +1391,7 @@ begin
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
             FilteredShapes.SortFrontToBack(RenderCameraPosition);
-            if InternalDynamicBatching then
+            if DynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1412,7 +1412,7 @@ begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
             FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
-            if InternalDynamicBatching then
+            if DynamicBatching then
               Batching.PreserveShapeOrder := true;
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
