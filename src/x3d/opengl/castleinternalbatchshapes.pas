@@ -298,9 +298,15 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     Mesh1 := TIndexedFaceSetNode(Shape1.Geometry(true));
     Mesh2 := TIndexedFaceSetNode(Shape2.Geometry(true));
     Result :=
-      // TODO: Make sure also fog state matches.
+      (Shape1.Node.Shading = Shape2.Node.Shading) and
       IndexedFaceSetMatch(Mesh1, Mesh2) and
       AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance);
+
+    { TODO: Things that should match, but are not checked yet:
+      - fog state
+      - lights (they should also be merged by transforming them into same space,
+        and resulting lights should be present in merged shape state)
+    }
   end;
 
   { Find a slot in Shapes[P] which is non-nil and can be merged with Shape.
@@ -574,6 +580,7 @@ begin
   begin
     // assign things that should be equal when merging
     Assert(Source.Node <> nil); // only such source nodes are passed to Merge
+    Target.Node.Shading := Source.Node.Shading;
     // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
     Target.Node.FdAppearance.Value := Source.Node.Appearance;
     MeshTarget.NormalPerVertex := MeshSource.NormalPerVertex;
