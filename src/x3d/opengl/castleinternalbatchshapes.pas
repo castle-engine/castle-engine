@@ -319,7 +319,9 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       IndexedFaceSetMatch(Mesh1, Mesh2) and
       (State1.LocalFog = State2.LocalFog) and
       (Shape1.Node.Shading = Shape2.Node.Shading) and
-      LightsMatch(State1.Lights, State2.Lights);
+      LightsMatch(State1.Lights, State2.Lights) and
+      (State1.ClipPlanes = State2.ClipPlanes) and
+      (State1.Effects = State2.Effects);
   end;
 
   { Find a slot in Shapes[P] which is non-nil and can be merged with Shape.
