@@ -561,9 +561,9 @@ var
   IndexTarget, IndexSource: TLongIntList;
   OldCoordCount, I: Integer;
 begin
-  StateTarget := Target.OriginalState;
+  StateTarget := Target.State(true);
   StateSource := Source.State(true);
-  MeshTarget := Target.OriginalGeometry as TIndexedFaceSetNode;
+  MeshTarget := Target.Geometry(true) as TIndexedFaceSetNode;
   MeshSource := Source.Geometry(true) as TIndexedFaceSetNode;
 
   // no vertexes in source mesh, ignore it
@@ -617,8 +617,8 @@ var
   TexCoordTarget: TMFVec2f;
   IndexTarget: TLongIntList;
 begin
-  StateTarget := Target.OriginalState;
-  MeshTarget := Target.OriginalGeometry as TIndexedFaceSetNode;
+  StateTarget := Target.State(true);
+  MeshTarget := Target.Geometry(true) as TIndexedFaceSetNode;
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordTarget.Items.Clear;
   IndexTarget := MeshTarget.FdCoordIndex.Items;
