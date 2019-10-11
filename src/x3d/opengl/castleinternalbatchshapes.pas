@@ -481,29 +481,15 @@ procedure TBatchShapes.Commit;
   var
     Shape: TShape;
     RootNode: TX3DRootNode;
-    TexCoordNode: TX3DNode;
-    TexCoordsLog: String;
-    Geometry: TIndexedFaceSetNode;
-    State: TX3DGraphTraverseState;
+    Geometry: TAbstractGeometryNode;
   begin
     RootNode := TX3DRootNode.Create;
     for Shape in FCollected do
     begin
-      Geometry := Shape.OriginalGeometry as TIndexedFaceSetNode;
-      State := Shape.OriginalState;
-      if Geometry.InternalTexCoord(State, TexCoordNode) and
-         (TexCoordNode is TTextureCoordinateNode) then
-        TexCoordsLog := Format('%d tex coords, ', [
-          TTextureCoordinateNode(TexCoordNode).FdPoint.Count
-        ])
-      else
-        TexCoordsLog := '';
-      WritelnLog('Collected shape: %s %s with %d vertexes, %s%d indexes, %s bbox', [
+      Geometry := Shape.OriginalGeometry;
+      WritelnLog('Collected shape: %s, geometry: %s, bbox: %s', [
         Shape.Node.X3DName,
         Geometry.NiceName,
-        (Geometry.Coord as TCoordinateNode).FdPoint.Count,
-        TexCoordsLog,
-        Geometry.FdCoordIndex.Count,
         Shape.BoundingBox.ToString
       ]);
       Shape.Node.KeepExistingBegin;
