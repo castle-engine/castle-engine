@@ -291,22 +291,35 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         );
     end;
 
+    function LightsMatch(const Lights1, Lights2: TLightInstancesList): Boolean;
+    begin
+      Result :=
+        (Lights1 = Lights2) or
+        (
+          (Lights1 <> nil) and
+          (Lights2 <> nil) and
+          Lights1.Equals(Lights2)
+        );
+    end;
+
   var
-    //State1, State2: TX3DGraphTraverseState;
     Mesh1, Mesh2: TIndexedFaceSetNode;
+    State1, State2: TX3DGraphTraverseState;
   begin
     Mesh1 := TIndexedFaceSetNode(Shape1.Geometry(true));
     Mesh2 := TIndexedFaceSetNode(Shape2.Geometry(true));
+    State1 := Shape1.State(true);
+    State2 := Shape2.State(true);
     Result :=
-      (Shape1.Node.Shading = Shape2.Node.Shading) and
+      { Checks begin from the ones most likely to be different (exit early).
+        Note that everything compared here must be also assigned in Merge
+        (when FirstMerge), to make sure all merged instances keep the same values
+        for this stuff. }
+      AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance) and
       IndexedFaceSetMatch(Mesh1, Mesh2) and
-      AppearancesMatch(Shape1.Node.Appearance, Shape2.Node.Appearance);
-
-    { TODO: Things that should match, but are not checked yet:
-      - fog state
-      - lights (they should also be merged by transforming them into same space,
-        and resulting lights should be present in merged shape state)
-    }
+      (State1.LocalFog = State2.LocalFog) and
+      (Shape1.Node.Shading = Shape2.Node.Shading) and
+      LightsMatch(State1.Lights, State2.Lights);
   end;
 
   { Find a slot in Shapes[P] which is non-nil and can be merged with Shape.
@@ -474,6 +487,8 @@ begin
       begin
         // don't wait for ClearMerge for this, do this earlier to release reference count
         FMergeTarget[P, Slot].Node.Appearance := nil;
+        // make sure this is unassigned, otherwise TX3DGraphTraverseState.Destroy would free it
+        FMergeTarget[P, Slot].State.Lights := nil;
         FMergeTarget[P, Slot] := nil;
       end;
     FPoolUsed[P] := 0;
@@ -581,6 +596,8 @@ begin
     // assign things that should be equal when merging
     Assert(Source.Node <> nil); // only such source nodes are passed to Merge
     Target.Node.Shading := Source.Node.Shading;
+    StateTarget.Lights := StateSource.Lights;
+    StateTarget.LocalFog := StateSource.LocalFog;
     // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
     Target.Node.FdAppearance.Value := Source.Node.Appearance;
     MeshTarget.NormalPerVertex := MeshSource.NormalPerVertex;
