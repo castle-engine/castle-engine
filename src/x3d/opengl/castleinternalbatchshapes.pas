@@ -218,6 +218,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   var
     Geometry: TAbstractGeometryNode;
     TexCoord: TAbstractTextureCoordinateNode;
+    FaceSet: TIndexedFaceSetNode;
   begin
     Result := false;
 
@@ -230,10 +231,18 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     if not (Geometry is TIndexedFaceSetNode) then
       Exit;
 
-    if TIndexedFaceSetNode(Geometry).FdTexCoordIndex.Count <> 0 then
-      Exit; // for now we don't handle texCoordIndex
+    FaceSet := TIndexedFaceSetNode(Geometry);
 
-    TexCoord := TIndexedFaceSetNode(Geometry).TexCoord;
+    if (FaceSet.FdTexCoordIndex.Count <> 0) or // for now we don't handle texCoordIndex
+       (FaceSet.FdColorIndex.Count <> 0) or
+       (FaceSet.FdNormalIndex.Count <> 0) or
+       (FaceSet.FdAttrib.Count <> 0) or
+       (FaceSet.FdColor.Value <> nil) or
+       (FaceSet.FdFogCoord.Value <> nil) or
+       (FaceSet.FdNormal.Value <> nil) then
+      Exit;
+
+    TexCoord := FaceSet.TexCoord;
     if TexCoord = nil then
     begin
       P := mpNoTexCoord;
@@ -257,9 +266,11 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       Result :=
         (I1 = I2) or
         (
-          (I1.NormalPerVertex = I2.NormalPerVertex) and
-          (I1.Solid = I2.Solid) and
-          (I1.CreaseAngle = I2.CreaseAngle)
+          (I1.FdNormalPerVertex.Value = I2.FdNormalPerVertex.Value) and
+          (I1.FdSolid          .Value = I2.FdSolid          .Value) and
+          (I1.FdConvex         .Value = I2.FdConvex         .Value) and
+          (I1.FdCcw            .Value = I2.FdCcw            .Value) and
+          (I1.FdCreaseAngle    .Value = I2.FdCreaseAngle    .Value)
         );
     end;
 
@@ -488,7 +499,7 @@ begin
       if FMergeTarget[P, Slot] <> nil then
       begin
         // don't wait for ClearMerge for this, do this earlier to release reference count
-        FMergeTarget[P, Slot].Node.Appearance := nil;
+        FMergeTarget[P, Slot].Node.FdAppearance.Value := nil;
         // make sure this is unassigned, otherwise TX3DGraphTraverseState.Destroy would free it
         FMergeTarget[P, Slot].State.Lights := nil;
         FMergeTarget[P, Slot] := nil;
@@ -602,9 +613,10 @@ begin
     StateTarget.LocalFog := StateSource.LocalFog;
     // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
     Target.Node.FdAppearance.Value := Source.Node.Appearance;
-    MeshTarget.NormalPerVertex := MeshSource.NormalPerVertex;
-    MeshTarget.Solid := MeshSource.Solid;
-    MeshTarget.CreaseAngle := MeshSource.CreaseAngle;
+    MeshTarget.FdNormalPerVertex.Value := MeshSource.FdNormalPerVertex.Value;
+    MeshTarget.FdSolid          .Value := MeshSource.FdSolid          .Value;
+    MeshTarget.FdConvex         .Value := MeshSource.FdConvex         .Value;
+    MeshTarget.FdCreaseAngle    .Value := MeshSource.FdCreaseAngle    .Value;
   end;
 
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
