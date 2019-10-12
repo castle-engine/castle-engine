@@ -1454,10 +1454,15 @@ procedure TCastleScene.PrepareResources(
   var
     ShapeList: TShapeList;
     Shape: TShape;
+    I: Integer;
   begin
     ShapeList := Shapes.TraverseList(false, false);
     for Shape in ShapeList do
       TGLShape(Shape).PrepareResources;
+
+    if DynamicBatching then
+      for I := 0 to Batching.PoolShapesCount - 1 do
+        Batching.PoolShapes[I].PrepareResources;
   end;
 
   procedure PrepareRenderShapes;
@@ -1467,6 +1472,7 @@ procedure TCastleScene.PrepareResources(
     BaseLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
+    I: Integer;
   begin
     if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -1508,6 +1514,7 @@ procedure TCastleScene.PrepareResources(
           TMatrix4.Identity);
 
         Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+
         for Shape in ShapeList do
         begin
           { set sensible Shape.ModelView, otherwise it is zero
@@ -1518,6 +1525,16 @@ procedure TCastleScene.PrepareResources(
           TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
           Renderer.RenderShape(TGLShape(Shape));
         end;
+
+        if DynamicBatching then
+          for I := 0 to Batching.PoolShapesCount - 1 do
+          begin
+            Shape := Batching.PoolShapes[I];
+            TGLShape(Shape).ModelView := TMatrix4.Identity;
+            TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+            Renderer.RenderShape(TGLShape(Shape));
+          end;
+
         Renderer.RenderEnd;
       finally FreeAndNil(DummyCamera) end;
 

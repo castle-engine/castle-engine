@@ -89,6 +89,7 @@ type
       const State: TX3DGraphTraverseState): TMFVec2f;
 
     procedure DoLogIncreaseSlots;
+    function GetPoolShapes(const Index: Integer): TGLShape;
   public
     var
       { Make sure that shapes on the @link(Collected) list have the same order
@@ -122,6 +123,12 @@ type
     procedure FreeCollected;
 
     procedure GLContextClose;
+
+    { Enumerate "pool" shapes.
+      This is useful to prepare them (e.g. in TCastleScene.PrepareResources),
+      to make sure further usage of them will be fast. }
+    property PoolShapes[const Index: Integer]: TGLShape read GetPoolShapes;
+    function PoolShapesCount: Integer;
   end;
 
 implementation
@@ -681,6 +688,23 @@ begin
   end else
     raise Exception.CreateFmt('Node %s does not have texture coordinates',
       [Geometry.NiceName]);
+end;
+
+function TBatchShapes.GetPoolShapes(const Index: Integer): TGLShape;
+var
+  PipelinesCount: Integer;
+begin
+  PipelinesCount := Ord(High(TMergePipeline)) + 1;
+  Assert(Index div MergeSlots < PipelinesCount);
+  Result := FPool[TMergePipeline(Index div MergeSlots), Index mod MergeSlots];
+end;
+
+function TBatchShapes.PoolShapesCount: Integer;
+var
+  PipelinesCount: Integer;
+begin
+  PipelinesCount := Ord(High(TMergePipeline)) + 1;
+  Result := MergeSlots * PipelinesCount;
 end;
 
 end.
