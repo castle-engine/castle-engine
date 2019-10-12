@@ -762,16 +762,23 @@ begin
     if IndexesFromCoordIndex <> nil then
     begin
       Assert(CoordIndex <> nil);
-      MaxIndex := IndexesFromCoordIndex.Max;
-
-      { check do we have enough coordinates. TGeometryArrays data may be passed
-        quite raw to OpenGL, so this may be our last chance to check correctness
-        and avoid passing data that would cause OpenGL errors. }
-      if MaxIndex >= Coord.Count then
+      { Do not check IndexesFromCoordIndex.Max when IndexesFromCoordIndex is empty.
+        The "Max" would be then 0 (it has to be, for an unsigned value),
+        and would cause invalid warnings on empty IndexedFaceSet
+        (with empty Coordinate and empty coordIndex). }
+      if IndexesFromCoordIndex.Count <> 0 then
       begin
-        CoordIndex.WritelnWarning_WrongVertexIndex(Geometry.X3DType,
-          MaxIndex, Coord.Count);
-        Exit; { leave Arrays created but empty }
+        MaxIndex := IndexesFromCoordIndex.Max;
+
+        { check do we have enough coordinates. TGeometryArrays data may be passed
+          quite raw to OpenGL, so this may be our last chance to check correctness
+          and avoid passing data that would cause OpenGL errors. }
+        if MaxIndex >= Coord.Count then
+        begin
+          CoordIndex.WritelnWarning_WrongVertexIndex(Geometry.X3DType,
+            MaxIndex, Coord.Count);
+          Exit; { leave Arrays created but empty }
+        end;
       end;
     end;
 
