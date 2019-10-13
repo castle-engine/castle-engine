@@ -287,15 +287,15 @@
     }
     property Animated: Boolean read FAnimated write FAnimated default false;
 
-    { Triggers are like ghosts, they are objects that give information about,
-      a collision with them but are ignored by the physics engine. Other rigid
-      bodies can pass through them instead of react by stoping/bouncing.
+    { Triggers report when other object collides with them,
+      but still allow the other object to pass through.
+      In other words, colliding with a trigger will not cause the collider to stop or 
+      "bounce off" the trigger.
 
-      They are used to triggering events when other bodies collide with them.
-      For example to displaying tutorial messages, to collecting items (coins
-      can be triggers), to run some script when player goes to some location.
-
-      Triggers use the same events as other rigid bodies
+      They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
+      that the player can "consume" by colliding with it.
+      
+      Triggers report collisions through the same events as other rigid bodies:
       (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
       @link(TRigidBody.OnCollisionExit)). }
     property Trigger: Boolean read FTrigger write SetTrigger default false;
