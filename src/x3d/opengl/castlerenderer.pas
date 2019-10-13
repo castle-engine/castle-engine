@@ -552,6 +552,8 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure FreeArrays(const Changed: TVboTypes);
+    { Debug description of this shape cache. }
+    function ToString: String; override;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -594,7 +596,7 @@ type
     TextureCubeMapCaches: TTextureCubeMapCacheList;
     Texture3DCaches: TTexture3DCacheList;
     TextureDepthOrFloatCaches: TTextureDepthOrFloatCacheList;
-    ShapeCaches: TShapeCacheList;
+    ShapeCaches: array [{ DisableSharedCache } Boolean] of TShapeCacheList;
     ProgramCaches: TShaderProgramCacheList;
 
     { Load given texture to OpenGL, using our cache.
@@ -693,7 +695,8 @@ type
     function Shape_IncReference(const Shape: TX3DRendererShape;
       const ARenderer: TGLRenderer): TShapeCache;
 
-    procedure Shape_DecReference(var ShapeCache: TShapeCache);
+    procedure Shape_DecReference(const Shape: TX3DRendererShape;
+      var ShapeCache: TShapeCache);
 
     { Shader program cache. We return TShaderProgramCache,
       either taking an existing instance from cache or creating and adding
@@ -1057,6 +1060,8 @@ uses Math,
 { TGLRendererContextCache -------------------------------------------- }
 
 constructor TGLRendererContextCache.Create;
+var
+  B: Boolean;
 begin
   inherited;
   TextureImageCaches := TTextureImageCacheList.Create;
@@ -1064,7 +1069,8 @@ begin
   TextureCubeMapCaches := TTextureCubeMapCacheList.Create;
   Texture3DCaches := TTexture3DCacheList.Create;
   TextureDepthOrFloatCaches := TTextureDepthOrFloatCacheList.Create;
-  ShapeCaches := TShapeCacheList.Create;
+  for B in Boolean do
+    ShapeCaches[B] := TShapeCacheList.Create;
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
 
@@ -1080,6 +1086,8 @@ destructor TGLRendererContextCache.Destroy;
   end;
 {$endif}
 
+var
+  B: Boolean;
 begin
   if TextureImageCaches <> nil then
   begin
@@ -1116,12 +1124,14 @@ begin
     FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
-  if ShapeCaches <> nil then
-  begin
-    Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
-      ' when freeing TGLRendererContextCache');
-    FreeAndNil(ShapeCaches);
-  end;
+  for B in Boolean do
+    if ShapeCaches[B] <> nil then
+    begin
+      Assert(ShapeCaches[B].Count = 0, Format('Some references to shape still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
+        BoolToStr(B, true)
+      ]));
+      FreeAndNil(ShapeCaches[B]);
+    end;
 
   if ProgramCaches <> nil then
   begin
@@ -1754,35 +1764,41 @@ var
 
 var
   I: Integer;
+  DisableSharedCache: Boolean;
+  Caches: TShapeCacheList;
 begin
   ARenderer.GetFog(Shape.Fog, FogEnabled, FogVolumetric,
     FogVolumetricDirection, FogVolumetricVisibilityStart);
 
-  for I := 0 to ShapeCaches.Count - 1 do
-  begin
-    Result := ShapeCaches[I];
-    if (Result.Geometry = Shape.Geometry) and
-       Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
-       Result.State.Equals(Shape.State, IgnoreStateTransform) and
-       FogVolumetricEqual(
-         Result.FogVolumetric,
-         Result.FogVolumetricDirection,
-         Result.FogVolumetricVisibilityStart,
-         FogVolumetric,
-         FogVolumetricDirection,
-         FogVolumetricVisibilityStart) then
+  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  Caches := ShapeCaches[DisableSharedCache];
+
+  if not DisableSharedCache then
+    for I := 0 to Caches.Count - 1 do
     begin
-      Inc(Result.References);
-      if LogRendererCache then
-        WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
-      Exit(Result);
+      Result := Caches[I];
+      if (Result.Geometry = Shape.Geometry) and
+         Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
+         Result.State.Equals(Shape.State, IgnoreStateTransform) and
+         FogVolumetricEqual(
+           Result.FogVolumetric,
+           Result.FogVolumetricDirection,
+           Result.FogVolumetricVisibilityStart,
+           FogVolumetric,
+           FogVolumetricDirection,
+           FogVolumetricVisibilityStart) then
+      begin
+        Inc(Result.References);
+        if LogRendererCache then
+          WritelnLog('++', Result.ToString);
+        Exit(Result);
+      end;
     end;
-  end;
 
   { not found, so create new }
 
   Result := TShapeCache.Create;
-  ShapeCaches.Add(Result);
+  Caches.Add(Result);
   Result.Attributes := ARenderer.Attributes;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
@@ -1792,29 +1808,31 @@ begin
   Result.References := 1;
 
   if LogRendererCache then
-    WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
+    WritelnLog('++', Result.ToString);
 end;
 
-procedure TGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
+procedure TGLRendererContextCache.Shape_DecReference(const Shape: TX3DRendererShape;
+  var ShapeCache: TShapeCache);
 var
   I: Integer;
+  DisableSharedCache: Boolean;
+  Caches: TShapeCacheList;
 begin
-  for I := 0 to ShapeCaches.Count - 1 do
-  begin
-    if ShapeCaches[I] = ShapeCache then
-    begin
-      Dec(ShapeCache.References);
-      if LogRendererCache then
-        WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.X3DType, ShapeCache.References]);
-      if ShapeCache.References = 0 then
-        ShapeCaches.Delete(I);
-      ShapeCache := nil;
-      Exit;
-    end;
-  end;
+  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  Caches := ShapeCaches[DisableSharedCache];
+  I := Caches.IndexOf(ShapeCache);
 
-  raise EInternalError.Create(
-    'TGLRendererContextCache.Shape_DecReference: no reference found');
+  if I <> -1 then
+  begin
+    Dec(ShapeCache.References);
+    if LogRendererCache then
+      WritelnLog('--', ShapeCache.ToString);
+    if ShapeCache.References = 0 then
+      Caches.Delete(I);
+    ShapeCache := nil;
+  end else
+    raise EInternalError.Create(
+      'TGLRendererContextCache.Shape_DecReference: no reference found');
 end;
 
 function TGLRendererContextCache.Program_IncReference(ARenderer: TGLRenderer;
@@ -2236,6 +2254,22 @@ begin
     work even if you call FreeArrays multiple times, the needed updates
     are summed). }
   VboToReload := [];
+end;
+
+function TShapeCache.ToString: String;
+var
+  ShapeNodeName: String;
+begin
+  if State.ShapeNode <> nil then
+    ShapeNodeName := ' ' + State.ShapeNode.X3DName
+  else
+    ShapeNodeName := '';
+  Result := Format('Shape%s %s (%s): %d', [
+    ShapeNodeName,
+    PointerToStr(Self),
+    Geometry.X3DType,
+    References
+ ]);
 end;
 
 { TShaderProgramCache -------------------------------------------------------- }

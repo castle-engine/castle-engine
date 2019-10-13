@@ -51,6 +51,11 @@ type
     { For Hierarchical Occlusion Culling. }
     RenderedFrameId: Cardinal;
 
+    { Do not share the cache of this shape with other shapes.
+      Offers tiny optimization when you know that this shape cannot be shared anyway.
+      Never change it after initial render. }
+    DisableSharedCache: Boolean;
+
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
@@ -147,7 +152,7 @@ begin
 
   { Free Arrays and Vbo of all shapes. }
   if Cache <> nil then
-    Renderer.Cache.Shape_DecReference(Cache);
+    Renderer.Cache.Shape_DecReference(Self, Cache);
   for Pass := Low(Pass) to High(Pass) do
     if ProgramCache[Pass] <> nil then
       Renderer.Cache.Program_DecReference(ProgramCache[Pass]);

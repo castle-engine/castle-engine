@@ -175,6 +175,7 @@ constructor TBatchShapes.Create(const CreateShape: TCreateShapeEvent);
 
         // initialize Shape, add it to FPool
         Shape := CreateShape(Geometry, State, @ParentInfo) as TGLShape;
+        Shape.DisableSharedCache := true;
         FPool[P, Slot] := Shape;
 
         {$ifdef CASTLE_DEBUG_BATCHING}
