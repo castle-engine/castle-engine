@@ -130,6 +130,7 @@
     FGravity: Boolean;
     FDynamic: Boolean;
     FAnimated: Boolean;
+    FTrigger: Boolean;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -160,6 +161,7 @@
     procedure SetOnCollisionExit(const AValue: TOnCollision);
 
     procedure SetExists(const Value: Boolean);
+    procedure SetTrigger(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -250,7 +252,7 @@
         )
       )
     }
-    property Dynamic: boolean read FDynamic write FDynamic default true;
+    property Dynamic: Boolean read FDynamic write FDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
@@ -283,7 +285,20 @@
         )
       )
     }
-    property Animated: boolean read FAnimated write FAnimated default false;
+    property Animated: Boolean read FAnimated write FAnimated default false;
+
+    { Triggers report when other object collides with them,
+      but still allow the other object to pass through.
+      In other words, colliding with a trigger will not cause the collider to stop or 
+      "bounce off" the trigger.
+
+      They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
+      that the player can "consume" by colliding with it.
+      
+      Triggers report collisions through the same events as other rigid bodies:
+      (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
+      @link(TRigidBody.OnCollisionExit)). }
+    property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Shape used for collisions with this object.
       You cannot assign this property directly,
@@ -292,7 +307,7 @@
     property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
-    property Gravity: boolean read FGravity write FGravity default true;
+    property Gravity: Boolean read FGravity write FGravity default true;
 
     { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.
@@ -525,6 +540,9 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
     if not FExists then
       FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
 
     // initialize Kraft shape
     if Collider = nil then
@@ -888,6 +906,22 @@ begin
       Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
     else
       Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+  end;
+end;
+
+procedure TRigidBody.SetTrigger(const Value: Boolean);
+begin
+  if FTrigger = Value then
+    Exit;
+
+  FTrigger := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfSensor];
   end;
 end;
 

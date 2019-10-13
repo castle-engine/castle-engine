@@ -29,6 +29,7 @@ uses SysUtils, Classes, Generics.Collections, Math,
 type
   TWall = class;
   TPlane = class;
+  TTrigger = class;
 
 { Global variables ----------------------------------------------------------- }
 
@@ -42,11 +43,18 @@ var
   TopWall: TWall;
   BottomWall: TWall;
 
+  TriggerGreen: TTrigger;
+
 type
 
   TWall = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent; const WallName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
+  end;
+
+  TTrigger = class(TCastleScene)
+  public
+    constructor Create(AOwner: TComponent; const TriggerName: TComponentName; const Pos, Size, Color: TVector3); reintroduce;
   end;
 
   TPlane = class(TCastleScene)
@@ -56,12 +64,56 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
+{ TTrigger }
+
+constructor TTrigger.Create(AOwner: TComponent; const TriggerName: TComponentName;  const Pos, Size, Color: TVector3);
+var
+  Box: TBoxNode;
+  Shape: TShapeNode;
+  Root: TX3DRootNode;
+  RBody: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  inherited Create(AOwner);
+
+  Translation := Pos; // initial position
+  Name := TriggerName;
+
+  Box := TBoxNode.CreateWithShape(Shape);
+  Box.Size := Size;
+
+  Shape.Appearance := TAppearanceNode.Create;
+  Shape.Appearance.Material := TMaterialNode.Create;
+  Shape.Appearance.Material.ForcePureEmissive;
+  Shape.Appearance.Material.EmissiveColor := Color;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(Shape);
+
+  Load(Root, true);
+
+  RBody := TRigidBody.Create(Self);
+  RBody.Dynamic := false;
+  RBody.Trigger := true;
+  RBody.Setup2D;
+
+  Collider := TBoxCollider.Create(RBody);
+  Collider.Size := Size;
+
+  RigidBody := RBody;
+end;
+
 { TPlane }
 
 procedure TPlane.CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
 begin
   if CollisionDetails.OtherTransform <> nil then
-    LastCollisionEnter := CollisionDetails.OtherTransform.Name
+  begin
+    LastCollisionEnter := CollisionDetails.OtherTransform.Name;
+
+    if CollisionDetails.OtherTransform.RigidBody.Trigger then
+      LastCollisionEnter := LastCollisionEnter + ' (trigger)';
+  end
   else
     LastCollisionEnter := 'other thing';
 end;
@@ -154,6 +206,13 @@ procedure ApplicationInitialize;
     BottomWall := TWall.Create(Application, 'BottomWall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
     SceneManager.Items.Add(BottomWall);
   end;
+
+  procedure LoadTriggers;
+  begin
+    TriggerGreen := TTrigger.Create(Application, 'TriggerGreen', Vector3(500, 210, -3), Vector3(200, 200, 4), Vector3(0.1, 0.5, 0.0));
+    SceneManager.Items.Add(TriggerGreen);
+  end;
+
 begin
   { make UI automatically scaled }
   Window.Container.UIReferenceWidth := 1024;
@@ -169,7 +228,9 @@ begin
   Window.Controls.InsertFront(SceneManager);
 
   LoadWalls;
+  LoadTriggers;
   LoadPlane;
+
   SceneManager.NavigationType := ntNone;
 
   Status := TCastleLabel.Create(Application);
@@ -191,9 +252,12 @@ begin
   for I := 0 to CollisionsList.Count - 1 do
   begin
     if CollisionsList[I] is TWall then
-       CollisionsListTXT := CollisionsListTXT + ' ' + TWall(CollisionsList[I]).Name
+      CollisionsListTXT := CollisionsListTXT + ' ' + TWall(CollisionsList[I]).Name
     else
-       CollisionsListTXT := CollisionsListTXT + ' other thing';
+    if CollisionsList[I].RigidBody.Trigger then
+      CollisionsListTXT := CollisionsListTXT + ' trigger'
+    else
+      CollisionsListTXT := CollisionsListTXT + ' other thing';
   end;
 
   if CollisionsList.Count = 0 then
