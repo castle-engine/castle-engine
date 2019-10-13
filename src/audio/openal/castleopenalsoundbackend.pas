@@ -796,6 +796,8 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
       ]);
   end;
 
+var
+  ErrMessage: String;
 begin
   { Workaround old OpenAL problems when trying to initialize OpenAL context again
     with another device. }
@@ -823,9 +825,15 @@ begin
     Assert(Assigned(alcOpenDevice), 'Assigned(alcOpenDevice)');
 
     ALDevice := alcOpenDevice(PCharOrNil(ADevice));
-    if (ALDevice = nil) then
-      raise EOpenALError.CreateFmt(
-        'OpenAL''s audio device "%s" is not available', [ADevice]);
+    if ALDevice = nil then
+    begin
+      ErrMessage := Format('OpenAL audio device "%s" is not available', [ADevice]);
+      {$ifdef MSWINDOWS}
+      if ADevice = '' then
+        ErrMessage := ErrMessage + '.' + NL + 'Note: It seems that even the default audio device is unavailable. Please check that you have all the necessary OpenAL DLL files present (alongside the exe file, or on $PATH). In case of standard Windows OpenAL implementation, you should have OpenAL32.dll and wrap_oal.dll present.';
+      {$endif}
+      raise EOpenALError.Create(ErrMessage);
+    end;
 
     ALContext := alcCreateContext(ALDevice, nil);
     CheckALC('initializing OpenAL (alcCreateContext)');
