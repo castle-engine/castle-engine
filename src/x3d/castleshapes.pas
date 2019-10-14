@@ -2063,7 +2063,7 @@ begin
   if FLocalGeometryChangedCount <> 0 then
   begin
     if DisableAutoDynamicGeometry = 0 then
-      DynamicGeometry := true;
+      FDynamicGeometry := true;
   end else
     Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
 
