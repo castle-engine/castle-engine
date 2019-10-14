@@ -353,12 +353,15 @@ type
     FGeometryGrandGrandParentNodeName: string;
 
     FLocalGeometryChangedCount: Cardinal;
-    FDynamicGeometry: boolean;
+    FDynamicGeometry: Boolean;
 
     IsCachedMaterialProperty: boolean;
     CachedMaterialProperty: TMaterialProperty;
 
     FShadowVolumes: TShapeShadowVolumes;
+
+    { TODO: expose as public property, if needed, some day. }
+    CollideAsBox: Boolean;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
@@ -727,15 +730,10 @@ type
     function DebugInfo(const Indent: string = ''): string; override;
     function NiceName: string;
 
-    { Local geometry is treated as dynamic (changes very often, like every frame).
-      This is automatically detected and set to @true, although you can also
-      explicitly set this if you want.
-
-      Dynamic geometry has worse collision detection (using a crude
-      approximation) and falls back to rendering method better for
-      dynamic geometry (for example, marking VBO data as dynamic for OpenGL
-      rendering). }
-    property DynamicGeometry: boolean read FDynamicGeometry write FDynamicGeometry;
+    { Local geometry changes very often (like every frame).
+      This is automatically detected and set to @true.
+      May be used as an optimization hint. }
+    property DynamicGeometry: Boolean read FDynamicGeometry;
 
     { Shape node in VRML/X3D graph.
       This is always present for VRML >= 2 (including X3D).
@@ -1041,8 +1039,7 @@ type
 var
   { If nonzero, disables automatic TShape.DynamicGeometry detection
     on every node modification. This is useful if you do some interactive
-    editing of the shape, but you don't want the shape octree to be replaced
-    by it's approximation. }
+    editing of the shape, but you don't want to mark shape as dynamic. }
   DisableAutoDynamicGeometry: Cardinal;
 
   { Log various information about shapes. This displays quite a lot of non-critical
@@ -2008,7 +2005,7 @@ function TShape.CreateTriangleOctree(
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
-    if DynamicGeometry then
+    if CollideAsBox then
     begin
       { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
         No point in progress here, as this is always fast. }
@@ -2066,12 +2063,7 @@ begin
   if FLocalGeometryChangedCount <> 0 then
   begin
     if DisableAutoDynamicGeometry = 0 then
-    begin
-      if not DynamicGeometry then
-        WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use more crude collision detection and more suitable rendering',
-          [OriginalGeometry.X3DType]));
       DynamicGeometry := true;
-    end;
   end else
     Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
 

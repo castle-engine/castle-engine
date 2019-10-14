@@ -546,7 +546,7 @@ type
 
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
-    procedure LoadArraysToVbo(DynamicGeometry: boolean);
+    procedure LoadArraysToVbo(const DynamicGeometry: boolean);
     procedure FreeVBO;
   public
     constructor Create;
@@ -2161,7 +2161,7 @@ begin
   VboToReload := VboToReload + Changed;
 end;
 
-procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
+procedure TShapeCache.LoadArraysToVbo(const DynamicGeometry: boolean);
 var
   DataUsage: TGLenum;
   NewVbos: boolean;
