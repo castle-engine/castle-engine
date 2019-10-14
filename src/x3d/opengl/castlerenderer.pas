@@ -2236,10 +2236,6 @@ begin
       according to
       https://www.khronos.org/opengl/wiki/Buffer_Object
       https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
-
-      TODO: DataUsage is only set when doing initial VBO load
-      (to glBufferData, not to glBufferSubData).
-      We should remake glBufferData when data usage changes?
     }
     DataUsage := GL_STREAM_DRAW
   else
