@@ -2232,7 +2232,17 @@ begin
   end;
 
   if DynamicGeometry then
-    DataUsage := GL_DYNAMIC_DRAW else
+    { GL_STREAM_DRAW is most suitable if we will modify this every frame,
+      according to
+      https://www.khronos.org/opengl/wiki/Buffer_Object
+      https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
+
+      TODO: DataUsage is only set when doing initial VBO load
+      (to glBufferData, not to glBufferSubData).
+      We should remake glBufferData when data usage changes?
+    }
+    DataUsage := GL_STREAM_DRAW
+  else
     DataUsage := GL_STATIC_DRAW;
 
   BufferData(vtCoordinate, GL_ARRAY_BUFFER,

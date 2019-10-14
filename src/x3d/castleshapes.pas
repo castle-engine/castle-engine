@@ -352,6 +352,7 @@ type
     FGeometryGrandParentNodeName,
     FGeometryGrandGrandParentNodeName: string;
 
+    FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: boolean;
 
     IsCachedMaterialProperty: boolean;
@@ -2062,7 +2063,7 @@ end;
 procedure TShape.LocalGeometryChanged(
   const CalledFromParentScene, ChangedOnlyCoord: boolean);
 begin
-  if FOctreeTriangles <> nil then
+  if FLocalGeometryChangedCount <> 0 then
   begin
     if DisableAutoDynamicGeometry = 0 then
     begin
@@ -2071,8 +2072,11 @@ begin
           [OriginalGeometry.X3DType]));
       DynamicGeometry := true;
     end;
+  end else
+    Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
+
+  if FOctreeTriangles <> nil then
     FreeOctreeTriangles;
-  end;
 
   { Remove cached normals }
   FreeAndNil(FNormals);
