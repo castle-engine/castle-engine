@@ -620,13 +620,17 @@ procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
       hpLeft: Result := Result or GravityLeft;
       hpRight: Result := Result or GravityRight;
       hpMiddle: Result := Result or GravityCenterHorizontal;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
+      {$endif}
     end;
     case VerticalGravity of
       vpTop: Result := Result or GravityTop;
       vpBottom: Result := Result or GravityBottom;
       vpMiddle: Result := Result or GravityCenterVertical;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ShowBanner:VerticalGravity?');
+      {$endif}
     end;
   end;
 
