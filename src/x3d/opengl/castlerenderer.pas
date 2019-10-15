@@ -2275,7 +2275,7 @@ begin
     PointerToStr(Self),
     Geometry.X3DType,
     References
- ]);
+  ]);
 end;
 
 { TShaderProgramCache -------------------------------------------------------- }
