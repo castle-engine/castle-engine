@@ -550,7 +550,6 @@ type
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
-    ForceImmediateProcessing: Integer;
 
     { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
     NeedsDetectAffectedFields: Boolean;
@@ -603,7 +602,15 @@ type
       It must be associated only with TShapeTreeTransform,
       which must be true for all ITransformNode nodes.
       Changes must include chTransform, may also include other changes
-      (this will be passed to shapes affected). }
+      (this will be passed to shapes affected).
+
+      Do not ever call this when OptimizeExtensiveTransformations.
+      It would be buggy when both OptimizeExtensiveTransformations
+      and InternalFastTransformUpdate are set, because in this case,
+      TShapeTreeTransform.FastTransformUpdateCore leaves
+      TShapeTreeTransform.Transform invalid,
+      which will cause TransformationChanged result invalid.
+    }
     procedure TransformationChanged(const TransformNode: TX3DNode;
       const Changes: TX3DChanges);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
@@ -629,6 +636,13 @@ type
       it becomes visible, which is not perfect (although it would be Ok
       in practice too?) }
     procedure UpdateNewPlayingAnimation;
+
+    { Apply TransformationDirty effect
+      (necessary to finalize OptimizeExtensiveTransformations,
+      after TTransformNode values changed).
+      Always call this after doing something that could change
+      TTransformNode values. }
+    procedure FinishTransformationChanges;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -4280,6 +4294,8 @@ begin
     Fog and Background nodes are affected by their parents transform.
   }
 
+  Assert(not OptimizeExtensiveTransformations);
+
   C := TShapeTree.AssociatedShapesCount(TransformNode);
 
   if LogChanges then
@@ -4449,17 +4465,20 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   begin
-    { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
-      otherwise TransformationDirty would never be processed }
-    if OptimizeExtensiveTransformations and
-       ProcessEvents and
-       (ForceImmediateProcessing = 0) then
-      TransformationDirty := TransformationDirty + Changes else
+    if OptimizeExtensiveTransformations then
+    begin
+      TransformationDirty := TransformationDirty + Changes
+    end else
     begin
       Check(Supports(ANode, ITransformNode),
         'chTransform flag may be set only for ITransformNode');
       TransformationChanged(ANode, Changes);
     end;
+
+    if not ProcessEvents then
+      { Otherwise FinishTransformationChanges would not be called in nearest Update,
+        leaving transformation effects unapplied to the Shapes tree. }
+      FinishTransformationChanges;
   end;
 
   procedure HandleChangeCoordinate;
@@ -6367,18 +6386,6 @@ procedure TCastleSceneCore.InternalSetTime(
     ScheduledHumanoidAnimateSkin.Count := 0;
   end;
 
-  { Process TransformationDirty at the end of increasing time, to apply scheduled
-    TransformationDirty in the same Update, as soon as possible
-    (useful e.g. for mana shot animation in dragon_squash). }
-  procedure UpdateTransformationDirty;
-  begin
-    if TransformationDirty <> [] then
-    begin
-      RootTransformationChanged(TransformationDirty);
-      TransformationDirty := [];
-    end;
-  end;
-
 begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
@@ -6395,10 +6402,22 @@ begin
       UpdateNewPlayingAnimation;
       UpdateTimeDependentHandlersIfVisible;
       UpdateHumanoidSkin;
-      UpdateTransformationDirty;
+      { Process TransformationDirty at the end of increasing time, to apply scheduled
+        TransformationDirty in the same Update, as soon as possible
+        (useful e.g. for mana shot animation in dragon_squash). }
+      FinishTransformationChanges;
     finally
       EndChangesSchedule;
     end;
+  end;
+end;
+
+procedure TCastleSceneCore.FinishTransformationChanges;
+begin
+  if TransformationDirty <> [] then
+  begin
+    RootTransformationChanged(TransformationDirty);
+    TransformationDirty := [];
   end;
 end;
 
@@ -6818,8 +6837,13 @@ procedure TCastleSceneCore.UpdateCameraEvents;
     for I := 0 to BillboardNodes.Count - 1 do
     begin
       (BillboardNodes[I] as TBillboardNode).CameraChanged(CameraVectors);
-      { TODO: use OptimizeExtensiveTransformations? }
-      TransformationChanged(BillboardNodes[I], [chTransform]);
+      { Apply transformation change to Shapes tree.
+        Note that we should never call TransformationChanged when
+        OptimizeExtensiveTransformations. }
+      if OptimizeExtensiveTransformations then
+        TransformationDirty := TransformationDirty + [chTransform]
+      else
+        TransformationChanged(BillboardNodes[I], [chTransform]);
     end;
   end;
 
@@ -7576,13 +7600,9 @@ begin
   if Result then
   begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
-    Inc(ForceImmediateProcessing);
-    try
-      ResetAnimationState(TimeNode);
-      TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
-    finally
-      Dec(ForceImmediateProcessing);
-    end;
+    ResetAnimationState(TimeNode);
+    TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
+    FinishTransformationChanges;
   end;
 end;
 
@@ -7590,17 +7610,13 @@ procedure TCastleSceneCore.ForceInitialAnimationPose;
 begin
   if NewPlayingAnimationUse then
   begin
-    Inc(ForceImmediateProcessing);
-    try
-      ResetAnimationState(NewPlayingAnimationNode);
-      NewPlayingAnimationNode.FakeTime(
-        NewPlayingAnimationInitialTime,
-        NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
-        NextEventTime);
-    finally
-      Dec(ForceImmediateProcessing);
-    end;
+    ResetAnimationState(NewPlayingAnimationNode);
+    NewPlayingAnimationNode.FakeTime(
+      NewPlayingAnimationInitialTime,
+      NewPlayingAnimationLoop,
+      NewPlayingAnimationForward,
+      NextEventTime);
+    FinishTransformationChanges;
   end;
 end;
 
@@ -7746,14 +7762,10 @@ procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSens
 var
   F: TX3DField;
 begin
-  Inc(ForceImmediateProcessing);
-  try
-    { set fields in AnimationAffectedFields to their reset values }
-    for F in AnimationAffectedFields do
-      F.InternalRestoreSaveValue;
-  finally
-    Dec(ForceImmediateProcessing);
-  end;
+  { set fields in AnimationAffectedFields to their reset values }
+  for F in AnimationAffectedFields do
+    F.InternalRestoreSaveValue;
+  FinishTransformationChanges;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);
