@@ -1127,8 +1127,10 @@ begin
   for B in Boolean do
     if ShapeCaches[B] <> nil then
     begin
-      Assert(ShapeCaches[B].Count = 0, Format('Some references to shape still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
+      Assert(ShapeCaches[B].Count = 0, Format('%d references to shapes still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
+        ShapeCaches[B].Count,
         BoolToStr(B, true)
+        // ShapeCaches[B][0].ToString // not printed, risks further SEGFAULT during log output in case invalid reference remained on the list
       ]));
       FreeAndNil(ShapeCaches[B]);
     end;

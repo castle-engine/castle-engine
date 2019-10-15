@@ -200,6 +200,10 @@ var
   P: TMergePipeline;
   Slot: TMergeSlot;
 begin
+  { In case our GLContextClose was not called yet, but we are destroyed,
+    make sure to remove our pool shapes from cache. }
+  GLContextClose;
+
   FreeAndNil(FCollected);
   for P in TMergePipeline do
     for Slot in TMergeSlot do
