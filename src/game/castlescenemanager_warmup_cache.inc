@@ -1,5 +1,8 @@
 { TSceneCache -------------------------------------------------------------- }
 
+var
+  SceneCacheId: QWord;
+
 type
   TSceneCache = class
     class procedure Event(const Cache: TWarmupCache;
@@ -16,6 +19,8 @@ begin
   URL := Element.AttributeURL('url', ElementBaseUrl);
   Scene := TCastleScene.Create(nil);
   Cache.OwnedObjects.Add(Scene);
+  Inc(SceneCacheId);
+  Cache.Name := 'SceneCache' + IntToStr(SceneCacheId);
   Scene.URL := URL; // loads the scene
 
   TempSceneManager := TCastleSceneManager.Create(nil);
