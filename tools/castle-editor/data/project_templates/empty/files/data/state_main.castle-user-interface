@@ -1,0 +1,100 @@
+{
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "Items" : {
+        "Name" : "Items",
+        "$Children" : [
+          {
+            "Name" : "Scene1",
+            "URL" : "castle-data:/example.x3dv",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          }
+        ],
+        "$ClassName" : "TSceneManagerWorldConcrete"
+      },
+      "MainScene" : "Scene1",
+      "Name" : "SceneManager1",
+      "UseHeadlight" : "hlOn",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleSceneManager"
+    },
+    {
+      "ColorPersistent" : {
+        "Alpha" : 5.0000000000000000E-001,
+        "Green" : 5.0000000000000000E-001,
+        "Red" : 5.0000000000000000E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "Height" : 2.4000000000000000E+002,
+      "HorizontalAnchorDelta" : -1.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "Rectangle1",
+      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "Width" : 1.3200000000000000E+003,
+      "$Children" : [
+        {
+          "Caption" : "I am a button, click me!",
+          "CustomBackgroundDisabled" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundFocused" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundNormal" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomBackgroundPressed" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "CustomTextColorUse" : false,
+          "FontSize" : 5.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Image" : {
+            "$ClassName" : "TCastleImagePersistent"
+          },
+          "Name" : "Button1",
+          "VerticalAnchorDelta" : -1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleButton"
+        },
+        {
+          "FontSize" : 5.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "Label1",
+          "Text" : "I am a label\n",
+          "VerticalAnchorDelta" : -1.0000000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        }
+      ],
+      "$ClassName" : "TCastleRectangleControl"
+    },
+    {
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelFps",
+      "Text" : "FPS: xxx\n",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
