@@ -392,8 +392,9 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   end;
 
   { Algorithm specific for PreserveShapeOrder=true case. }
-  procedure DoPreserveShapeOrder(const P: TMergePipeline);
+  procedure DoPreserveShapeOrder;
   var
+    P: TMergePipeline;
     Handled: Boolean;
     Slot: TMergeSlot;
   begin
@@ -405,6 +406,24 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
       of merging, depending on FOrderPreviousShapeMerging).
       If this is not possible, we just push previous shape to FCollected. }
 
+    { In case of DoPreserveShapeOrder, Collect must *always* return true,
+      even for non-mergeable shapes. }
+    Result := true;
+
+    if not MergeableWithAnything(Shape, P) then
+    begin
+      { The non-mergeable shapes have to be added
+        to FCollected, to make sure they are in correct order between mergeable.
+        Testcase: merging scene with indicator (IndexedFaceSet, Text and Rectangle2D) in Unholy. }
+      // finish merging previous shape
+      if (FOrderPreviousShape <> nil) and
+         (not FOrderPreviousShapeMerging) then
+        FCollected.Add(FOrderPreviousShape);
+      FCollected.Add(Shape);
+      FOrderPreviousShape := nil;
+      FOrderPreviousShapeMerging := false;
+      Handled := true;
+    end else
     if (FOrderPreviousShape <> nil) and
        (FOrderPreviousShapePipeline = P) and
        Mergeable(FOrderPreviousShape, Shape, P) then
@@ -437,10 +456,15 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
   end;
 
   { Algorithm specific for PreserveShapeOrder=false case. }
-  procedure DoIgnoreShapeOrder(const P: TMergePipeline);
+  procedure DoIgnoreShapeOrder;
   var
+    P: TMergePipeline;
     Slot: TMergeSlot;
   begin
+    Result := MergeableWithAnything(Shape, P);
+    if not Result then
+      Exit;
+
     { When not PreserveShapeOrder, we try to merge an incoming shape with
       - one of the merges "in progress" (on FUnorderedPreviousShapes and FMergeTarget)
       - or one of the previous shapes, not yet during merging (only on FUnorderedPreviousShapes)
@@ -486,17 +510,11 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     end;
   end;
 
-var
-  P: TMergePipeline;
 begin
-  Result := MergeableWithAnything(Shape, P);
-  if not Result then
-    Exit;
-
   if PreserveShapeOrder then
-    DoPreserveShapeOrder(P)
+    DoPreserveShapeOrder
   else
-    DoIgnoreShapeOrder(P);
+    DoIgnoreShapeOrder;
 end;
 
 procedure TBatchShapes.FreeCollected;
