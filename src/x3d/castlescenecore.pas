@@ -635,7 +635,7 @@ type
       is not visible.  Otherwise stop/start time would be delayed too until
       it becomes visible, which is not perfect (although it would be Ok
       in practice too?) }
-    procedure UpdateNewPlayingAnimation;
+    procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 
     { Apply TransformationDirty effect
       (necessary to finalize OptimizeExtensiveTransformations,
@@ -6181,8 +6181,10 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateNewPlayingAnimation;
+procedure TCastleSceneCore.UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 begin
+  NeedsUpdateTimeDependentHandlers := false;
+
   if NewPlayingAnimationUse then
   begin
     NewPlayingAnimationUse := false;
@@ -6285,6 +6287,9 @@ begin
        (NewPlayingAnimationNode <> nil) then
     begin
       ResetAnimationState(NewPlayingAnimationNode);
+      { As soon as possible, we need to process TimeSensors, otherwise user would
+        see a default animation pose. }
+      NeedsUpdateTimeDependentHandlers := true;
     end;
 
     PlayingAnimationNode := NewPlayingAnimationNode;
@@ -6348,19 +6353,40 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
-    Note that ResetTime = true forces always an UpdateTimeDependentHandlers(0.0) call. }
-  procedure UpdateTimeDependentHandlersIfVisible;
+    @param ResetTime Forces always an UpdateTimeDependentHandlers(0.0) call.
+    @param NeedsUpdate Forces always *some*\
+       UpdateTimeDependentHandlers call.
+    Note  }
+  procedure UpdateTimeDependentHandlersIfVisible(const NeedsUpdate: Boolean);
   begin
-    if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
-      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease else
-    if (AnimateSkipNextTicks <> 0) and (not ResetTime) then
+    if ResetTime then
+    begin
+      { Call UpdateTimeDependentHandlers and reset FAnimateGatheredTime.
+        However, do not reset AnimateSkipNextTicks (this would synchronize
+        all skipping ticks if multiple animations are reset at the beginning
+        of game, making randomization in SetAnimateSkipTicks pointless). }
+      FAnimateGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+    end else
+    if NeedsUpdate then
+    begin
+      { Call UpdateTimeDependentHandlers regardless of visibility and
+        of AnimateSkipNextTicks. Note that we do not reset AnimateSkipNextTicks
+        (to avoid synchronizing AnimateSkipNextTicks of multiple animations
+        started in the sam frame). }
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      FAnimateGatheredTime := 0;
+    end else
+    if FAnimateOnlyWhenVisible and (not IsVisibleNow) then
+    begin
+      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
+    end else
+    if AnimateSkipNextTicks <> 0 then
     begin
       Dec(AnimateSkipNextTicks);
       FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
-      if ResetTime then
-        FAnimateGatheredTime := 0;
       UpdateTimeDependentHandlers(FAnimateGatheredTime);
       AnimateSkipNextTicks := AnimateSkipTicks;
       FAnimateGatheredTime := 0;
@@ -6386,6 +6412,8 @@ procedure TCastleSceneCore.InternalSetTime(
     ScheduledHumanoidAnimateSkin.Count := 0;
   end;
 
+var
+  NeedsUpdateTimeDependentHandlers: Boolean;
 begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
@@ -6399,8 +6427,8 @@ begin
         first stops it (preventing from sending any events),
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
-      UpdateNewPlayingAnimation;
-      UpdateTimeDependentHandlersIfVisible;
+      UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
+      UpdateTimeDependentHandlersIfVisible(NeedsUpdateTimeDependentHandlers);
       UpdateHumanoidSkin;
       { Process TransformationDirty at the end of increasing time, to apply scheduled
         TransformationDirty in the same Update, as soon as possible
@@ -7732,6 +7760,8 @@ begin
 end;
 
 procedure TCastleSceneCore.StopAnimation;
+var
+  NeedsUpdateTimeDependentHandlers: Boolean;
 begin
   { New animation was requested, but not yet processed by UpdateNewPlayingAnimation.
     Make it start, to early call the "stop notification" callback
@@ -7742,10 +7772,15 @@ begin
     to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
   if NewPlayingAnimationUse then
   begin
-    UpdateNewPlayingAnimation;
+    UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
     if NewPlayingAnimationUse then
     begin
       WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
+      Exit;
+    end;
+    if NeedsUpdateTimeDependentHandlers then
+    begin
+      WritelnWarning('StopNotification callback of an old animation caused NeedsUpdateTimeDependentHandlers, suggesting it started another animation. A default animation pose may blink if AnimateSkipTicks <> 0.');
       Exit;
     end;
   end;
