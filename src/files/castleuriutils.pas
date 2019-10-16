@@ -880,6 +880,7 @@ begin
      (P = 'ftp') or
      (P = 'https') or
      (P = 'assets') or
+     (P = 'castle-nx-save') or
      (P = 'castle-nx-contents') or
      (P = 'castle-android-assets') or
      (P = 'castle-data') then
@@ -1043,14 +1044,10 @@ function URIExists(URL: string): TURIExists;
   end;
 
   {$ifdef CASTLE_NINTENDO_SWITCH}
-  // Detect existence of castle-nx-contents:/xxx URL using NX-specific function.
+  // Detect existence of castle-nx-contents or castle-nx-save URL using NX-specific function.
   function UseNXExists(const URL: string): TURIExists;
   begin
-    // TODO: We should extend NXFileExists to return file/directory/none
-    if NXFileExists(URL) then
-      Result := ueFile
-    else
-      Result := ueNotExists;
+    Result := NXFileExists(URL);
   end;
   {$endif CASTLE_NINTENDO_SWITCH}
 
@@ -1100,7 +1097,8 @@ begin
   P := URIProtocol(URL);
 
   {$ifdef CASTLE_NINTENDO_SWITCH}
-  if P = 'castle-nx-contents' then
+  if (P = 'castle-nx-contents') or
+     (P = 'castle-nx-save') then
     Exit(UseNXExists(URL));
   {$endif CASTLE_NINTENDO_SWITCH}
 

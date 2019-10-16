@@ -546,8 +546,9 @@ begin
     { convert Path to filename and continue }
     Path := URIToFilenameSafe(Path)
   else
-  if P = 'castle-nx-contents' then
-    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents
+  if (P = 'castle-nx-contents') or
+     (P = 'castle-nx-save') then
+    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents and castle-nx-save
   else
   if P <> '' then
     { we can't do anything with different protocols
