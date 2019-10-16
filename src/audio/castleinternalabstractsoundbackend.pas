@@ -252,6 +252,7 @@ begin
 
   F := TSoundFile.Create(URL);
   try
+    ContextOpenPreProcess(F);
     FDuration := F.Duration;
     FDataFormat := F.DataFormat;
     FFrequency := F.Frequency;
