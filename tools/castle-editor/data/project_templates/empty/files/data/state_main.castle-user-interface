@@ -84,6 +84,11 @@
       "$ClassName" : "TCastleRectangleControl"
     },
     {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
       "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelFps",
