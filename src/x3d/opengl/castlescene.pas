@@ -1265,9 +1265,11 @@ var
       RenderShape_AllTests(Shape);
   end;
 
-  procedure RenderAllAsOpaque(const IgnoreShapesWithBlending: boolean = false);
+  procedure RenderAllAsOpaque(
+    const IgnoreShapesWithBlending: Boolean = false;
+    const BlendingPipeline: Boolean = false);
   begin
-    if not Params.Transparent then
+    if BlendingPipeline = Params.Transparent then
     begin
       if IgnoreShapesWithBlending then
         Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true)
@@ -1314,57 +1316,11 @@ var
     end;
   end;
 
-var
-  I: Integer;
-  LightRenderEvent: TLightRenderEvent;
-begin
-  { We update XxxVisible only for one value of Params.Transparent.
-    Otherwise, we would increase it twice.
-    This method is always called first with Params.Transparent = false,
-    then Params.Transparent = true during a single frame. }
-  if (not Params.Transparent) and (Params.InternalPass = 0) then
+  { Render for Attributes.Mode = rmFull }
+  procedure RenderModeFull;
+  var
+    I: Integer;
   begin
-    if not ExcludeFromStatistics then
-      Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
-    { also do this only once per frame }
-    UpdateVisibilitySensors;
-  end;
-
-  if Params.InShadow then
-    LightRenderEvent := @LightRenderInShadow
-  else
-    LightRenderEvent := nil;
-
-  ModelView := GetModelViewTransform;
-
-  { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if Attributes.ReallyUseOcclusionQuery or
-     Attributes.ReallyUseHierarchicalOcclusionQuery then
-  begin
-    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
-      RenderContext.ProjectionMatrix * ModelView;
-    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
-  end;
-
-  {$ifndef OpenGLES}
-  if GLFeatures.EnableFixedFunction then
-  begin
-    glPushMatrix;
-    glLoadMatrix(ModelView);
-  end;
-  {$endif}
-
-  Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
-    Params.RenderingCamera,
-    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
-  try
-    if Attributes.Mode <> rmFull then
-    begin
-      { When not rmFull, we don't want to do anything with glDepthMask
-        or GL_BLEND enable state. Just render everything
-        (except: don't render partially transparent stuff for shadow maps). }
-      RenderAllAsOpaque(Attributes.Mode = rmDepth);
-    end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
        (Params.RenderingCamera.Target = rtScreen) and
@@ -1422,6 +1378,65 @@ begin
 
       end else
         RenderAllAsOpaque;
+    end;
+  end;
+
+var
+  LightRenderEvent: TLightRenderEvent;
+begin
+  { We update XxxVisible only for one value of Params.Transparent.
+    Otherwise, we would increase it twice.
+    This method is always called first with Params.Transparent = false,
+    then Params.Transparent = true during a single frame. }
+  if (not Params.Transparent) and (Params.InternalPass = 0) then
+  begin
+    if not ExcludeFromStatistics then
+      Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
+    { also do this only once per frame }
+    UpdateVisibilitySensors;
+  end;
+
+  if Params.InShadow then
+    LightRenderEvent := @LightRenderInShadow
+  else
+    LightRenderEvent := nil;
+
+  ModelView := GetModelViewTransform;
+
+  { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
+  if Attributes.ReallyUseOcclusionQuery or
+     Attributes.ReallyUseHierarchicalOcclusionQuery then
+  begin
+    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
+      RenderContext.ProjectionMatrix * ModelView;
+    OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
+  end;
+
+  {$ifndef OpenGLES}
+  if GLFeatures.EnableFixedFunction then
+  begin
+    glPushMatrix;
+    glLoadMatrix(ModelView);
+  end;
+  {$endif}
+
+  Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
+    Params.RenderingCamera,
+    LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
+  try
+    case Attributes.Mode of
+      rmDepth:
+        { When not rmFull, we don't want to do anything with glDepthMask
+          or GL_BLEND enable state. Just render everything
+          (except: don't render partially transparent stuff for shadow maps). }
+        RenderAllAsOpaque(true);
+      rmSolidColor:
+        RenderAllAsOpaque(false, Attributes.SolidColorBlendingPipeline);
+      rmFull:
+        RenderModeFull;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('Attributes.Mode?');
+      {$endif}
     end;
 
     BatchingCommit;

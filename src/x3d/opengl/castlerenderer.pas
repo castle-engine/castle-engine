@@ -186,6 +186,7 @@ type
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
+    FSolidColorBlendingPipeline: Boolean;
     FSeparateDiffuseTexture: boolean;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -426,6 +427,11 @@ type
 
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
+
+    { Whether to render shapes as transparent, when @link(Mode) is @link(rmSolidColor). }
+    property SolidColorBlendingPipeline: Boolean
+      read FSolidColorBlendingPipeline
+      write FSolidColorBlendingPipeline;
 
     { Set to @true to make diffuse texture affect only material diffuse color
       when the shape is lit and shading is Phong.
