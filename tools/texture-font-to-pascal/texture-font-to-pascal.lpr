@@ -28,13 +28,13 @@ uses Classes, SysUtils,
 var
   Size: Integer = 10;
   AntiAliasing: boolean = true;
-  ParamUnitName: string;
+  ParamUnitName, ParamFunctionName: string;
   OnlySampleText: boolean = false;
   DebugFontImage: boolean = false;
   Characters: TUnicodeCharList;
 
 const
-  Options: array [0..10] of TOption =
+  Options: array [0..11] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -43,6 +43,7 @@ const
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
     (Short: #0; Long: 'sample-code'; Argument: oaRequired),
     (Short: #0; Long: 'sample-get-text-mo'; Argument: oaRequired),
+    (Short: #0; Long: 'function-name'; Argument: oaRequired),
     (Short: #0; Long: 'unit-name'; Argument: oaRequired),
     (Short: #0; Long: 'debug-log'; Argument: oaNone),
     (Short: #0; Long: 'debug-font-image'; Argument: oaNone),
@@ -75,8 +76,10 @@ begin
              'Load (if existing in the font file) all the character codes present in translated strings in URL. URL must point to a GetText MO file, it can be a regular filename as well. You can use this parameter multiple times.') + NL +
            OptionDescription('--only-sample-text',
              'Load only characters from --sample-text and --sample-code, do not add standard ASCII chars. By default we add standard ASCII chars, regardless of --sample-text and --sample-code.') + NL +
-           OptionDescription('--unit-name=UnitName',
-             'Set UnitName, by default we automatically calculate it based on font name and size.') + NL +
+           OptionDescription('--function-name=PASCAL-FUNCTION-NAME',
+             'Set function name to access the font. By default we automatically calculate it based on font name and size.') + NL +
+           OptionDescription('--unit-name=PASCAL-UNIT-NAME',
+             'Set generated unit name. This also determines the output filename. By default we automatically calculate it based on function name (which in turn is automatically calculated based on font name and size).') + NL +
            OptionDescription('--debug-log',
              'See the log, showing e.g. the font image size.') + NL +
            OptionDescription('--debug-font-image',
@@ -95,17 +98,18 @@ begin
     4: Characters.Add(Argument);
     5: Characters.Add(StrToInt(Argument));
     6: AddTranslatedCharacters(Argument, Characters);
-    7: ParamUnitName := Argument;
-    8: InitializeLog;
-    9: DebugFontImage := true;
-    10: OnlySampleText := true;
+    7: ParamFunctionName := Argument;
+    8: ParamUnitName := Argument;
+    9: InitializeLog;
+    10: DebugFontImage := true;
+    11: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
 
 var
   Font: TTextureFontData;
-  PrecedingComment, UnitName, FontConstantName, OutURL, FontURL, FontName: string;
+  PrecedingComment, UnitName, FontFunctionName, OutURL, FontURL, FontName: string;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
@@ -122,13 +126,18 @@ begin
     Progress.UserInterface := ProgressConsoleInterface;
 
     FontName := DeleteURIExt(ExtractURIName(FontURL));
-    FontConstantName := 'TextureFont_' +
-      SDeleteChars(FontName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']) +
-      '_' + IntToStr(Size);
+    if ParamFunctionName <> '' then
+      FontFunctionName := ParamFunctionName
+    else
+      FontFunctionName := 'TextureFont_' +
+        SDeleteChars(FontName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']) +
+        '_' + IntToStr(Size);
 
     if ParamUnitName <> '' then
-      UnitName := ParamUnitName else
-      UnitName := 'Castle' + FontConstantName;
+      UnitName := ParamUnitName
+    else
+      UnitName := 'Castle' + FontFunctionName;
+
     PrecedingComment := Format(
       '  Source font:' +NL+
       '    Name         : %s' +NL+
@@ -139,7 +148,7 @@ begin
     Font := TTextureFontData.Create(FontURL, Size, AntiAliasing, Characters);
     try
       OutURL := LowerCase(UnitName) + '.pas';
-      Font2Pascal(Font, UnitName, PrecedingComment, FontConstantName, OutURL);
+      Font2Pascal(Font, UnitName, PrecedingComment, FontFunctionName, OutURL);
       Writeln('texture-font-to-pascal: "' + OutURL + '" generated, texture size ',
         Font.Image.Width, ' x ',
         Font.Image.Height);
