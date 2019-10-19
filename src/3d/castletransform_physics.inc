@@ -17,6 +17,27 @@
 
 {$ifdef read_interface}
 
+  { TPhysicsProperties }
+
+  TPhysicsProperties = class(TComponent)
+  strict private
+    FAngularVelocityRK4Integration: Boolean;
+    FLinearVelocityRK4Integration: Boolean;
+    FFrequency: Single;
+
+  public
+    const DefaultAngularVelocityRK4Integration = false;
+    const DefaultLinearVelocityRK4Integration = false;
+    const DefaultFrequency = 60.0;
+
+    constructor Create(AOwner: TComponent); override;
+
+  published
+    property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write FAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write FLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    property Frequency: Single read FFrequency write FFrequency default DefaultFrequency;
+  end;
+
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
   TCollider = class
   private
@@ -368,6 +389,16 @@ function MatrixFromKraft(const M: TKraftMatrix4x4): TMatrix4;
 begin
   Assert(SizeOf(M) = SizeOf(Result));
   Move(M, Result, SizeOf(M));
+end;
+
+{ TPhysicsProperties --------------------------------------------------------- }
+
+constructor TPhysicsProperties.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
+  FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
+  FFrequency := DefaultFrequency;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -1009,7 +1040,9 @@ begin
       (2 * engine step frequency = 2 * 60 = 120). That makes physics
       very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
-    //FKraftEngine.SetFrequency(120.0); // default is 60
+    FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
+    FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
+    FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
   end;
 end;
 

@@ -1757,6 +1757,8 @@ type
   {$undef read_interface_class}
   end;
 
+  TPhysicsProperties = class;
+
   { 3D world. List of 3D objects, with some central properties. }
   TSceneManagerWorld = class(TCastleTransform)
   private
@@ -1864,6 +1866,8 @@ type
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
+
+    function PhysicsProperties: TPhysicsProperties; virtual; abstract;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }

@@ -223,8 +223,14 @@ begin
   SceneManager.FullSize := true;
   SceneManager.ProjectionHeight := 768;
   SceneManager.ProjectionAutoSize := false;
-  // easy way to make the simulation feel more dynamic
-  SceneManager.TimeScale := 1.5;
+
+  { change physics frequency }
+  // SceneManager.PhysicsProperties.Frequency := 30;
+
+  { change velocity integration from Euler to RK4 }
+  // SceneManager.PhysicsProperties.AngularVelocityRK4Integration := true;
+  // SceneManager.PhysicsProperties.LinearVelocityRK4Integration := true;
+
   Window.Controls.InsertFront(SceneManager);
 
   LoadWalls;
