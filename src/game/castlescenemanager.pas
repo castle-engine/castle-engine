@@ -3171,6 +3171,32 @@ type
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
+{ TPhysicsPropertiesConcrete ------------------------------------------------- }
+
+  TPhysicsPropertiesConcrete = class(TPhysicsProperties)
+    strict private
+      FSceneManager: TCastleSceneManager;
+    protected
+      function SceneManagerWorld: TSceneManagerWorld; override;
+    public
+      constructor Create(SceneManager: TCastleSceneManager); reintroduce;
+  end;
+
+{ TPhysicsPropertiesConcrete }
+
+function TPhysicsPropertiesConcrete.SceneManagerWorld: TSceneManagerWorld;
+begin
+  Result := FSceneManager.Items;
+end;
+
+constructor TPhysicsPropertiesConcrete.Create(SceneManager: TCastleSceneManager);
+begin
+  FSceneManager := SceneManager;
+  inherited Create(SceneManager);
+end;
+
+{ TSceneManagerWorldConcrete }
+
 function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
@@ -3270,7 +3296,7 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FPhysicsProperties := TPhysicsProperties.Create(Self);
+  FPhysicsProperties := TPhysicsPropertiesConcrete.Create(Self);
   FPhysicsProperties.SetSubComponent(true);
   FPhysicsProperties.Name := 'PhysicsProperties';
 

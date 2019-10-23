@@ -17,13 +17,18 @@
 
 {$ifdef read_interface}
 
-  { TPhysicsProperties }
-
   TPhysicsProperties = class(TComponent)
   strict private
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
+
+    procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
+    procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
+    procedure SetFrequency(const AValue: Single);
+
+  protected
+    function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
 
   public
     const DefaultAngularVelocityRK4Integration = false;
@@ -33,9 +38,9 @@
     constructor Create(AOwner: TComponent); override;
 
   published
-    property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write FAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
-    property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write FLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
-    property Frequency: Single read FFrequency write FFrequency default DefaultFrequency;
+    property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
@@ -392,6 +397,39 @@ begin
 end;
 
 { TPhysicsProperties --------------------------------------------------------- }
+
+procedure TPhysicsProperties.SetFrequency(const AValue: Single);
+begin
+  if FFrequency = AValue then
+    Exit;
+
+  FFrequency := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
+end;
+
+procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FLinearVelocityRK4Integration = AValue then
+    Exit;
+
+  FLinearVelocityRK4Integration := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.LinearVelocityRK4Integration := AValue;
+end;
+
+procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FAngularVelocityRK4Integration = AValue then
+    Exit;
+
+  FAngularVelocityRK4Integration := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.AngularVelocityRK4Integration := AValue;
+end;
 
 constructor TPhysicsProperties.Create(AOwner: TComponent);
 begin
