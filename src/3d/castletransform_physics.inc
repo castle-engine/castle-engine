@@ -400,7 +400,7 @@ end;
 
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
 begin
-  if FFrequency = AValue then
+  if SameValue(FFrequency, AValue) then
     Exit;
 
   FFrequency := AValue;
