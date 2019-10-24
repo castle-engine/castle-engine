@@ -1180,7 +1180,7 @@ type
     FInsideRectWithoutAnchors: Boolean;
     FCulling: Boolean;
     FClipChildren: Boolean;
-    FOnRender: TUiNotifyEvent;
+    FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
 
     procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
@@ -1306,6 +1306,9 @@ type
       In most use-cases, you rather adjust preferred size by overriding
       @link(PreferredSize). }
     procedure BeforeSizing; virtual;
+
+    procedure DoInternalMouseEnter; virtual;
+    procedure DoInternalMouseLeave; virtual;
   public
     const
       DefaultWidth = 100.0;
@@ -1506,10 +1509,12 @@ type
 
    { Called when this control becomes or stops being focused,
      that is: under the mouse cursor and will receive events.
-     In this class, they simply update Focused property.
-     You can override this to react to mouse enter / mouse exit events. }
+
+     This updates Focused property.
+     This also calls OnInternalMouseEnter / OnInternalMouseLeave. }
     procedure SetFocused(const Value: boolean); virtual;
 
+    { See @link(SetFocused). }
     property Focused: boolean read FFocused write SetFocused;
 
     { Visual parent control. This control is rendered within the parent,
@@ -1825,6 +1830,24 @@ type
       "CaptureInput" or just universal "Enabled" in the future.) }
     property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
       default true;
+
+    { Called when control starts being under the mouse cursor and will receive events.
+      See @link(SetFocused), this is called when @link(Focused) changes from @false to @true.
+
+      This is called "Internal" now, because we do not guarantee it's 100%
+      always paired with @link(OnInternalMouseLeave). A different approach to this may
+      be done in the future releases. }
+    property OnInternalMouseEnter: TUiNotifyEvent
+      read FOnInternalMouseEnter write FOnInternalMouseEnter;
+
+    { Called when control stops being under the mouse cursor and will receive events.
+      See @link(SetFocused), this is called when @link(Focused) changes from @true to @false.
+
+      This is called "Internal" now, because we do not guarantee it's 100%
+      always paired with @link(OnInternalMouseEnter). A different approach to this may
+      be done in the future releases. }
+    property OnInternalMouseLeave: TUiNotifyEvent
+      read FOnInternalMouseLeave write FOnInternalMouseLeave;
   published
     { Control is being displayed.
       See @link(Render) for details.
@@ -4161,9 +4184,29 @@ begin
   Result := FExists;
 end;
 
-procedure TCastleUserInterface.SetFocused(const Value: boolean);
+procedure TCastleUserInterface.DoInternalMouseEnter;
 begin
+  if Assigned(OnInternalMouseEnter) then
+    OnInternalMouseEnter(Self);
+end;
+
+procedure TCastleUserInterface.DoInternalMouseLeave;
+begin
+  if Assigned(OnInternalMouseLeave) then
+    OnInternalMouseLeave(Self);
+end;
+
+procedure TCastleUserInterface.SetFocused(const Value: boolean);
+var
+  OldValue: Boolean;
+begin
+  OldValue := FFocused;
   FFocused := Value;
+  if (not OldValue) and Value then
+    DoInternalMouseEnter
+  else
+  if OldValue and (not Value) then
+    DoInternalMouseLeave;
 end;
 
 procedure TCastleUserInterface.VisibleChange(const Changes: TCastleUserInterfaceChanges;
