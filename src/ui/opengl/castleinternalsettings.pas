@@ -212,13 +212,17 @@ type
   var
     Cache: TWarmupCache;
     I: TXMLElementIterator;
+    TimeStart: TCastleProfilerTime;
   begin
-    Cache := TWarmupCache.Create(Container);
-    I := E.ChildrenIterator;
+    TimeStart := Profiler.Start('Warming up cache (following CastleSettings.xml contents)');
     try
-      while I.GetNext do
-        Cache.ReadElement(I.Current, SettingsUrl);
-    finally FreeAndNil(I) end;
+      Cache := TWarmupCache.Create(Container);
+      I := E.ChildrenIterator;
+      try
+        while I.GetNext do
+          Cache.ReadElement(I.Current, SettingsUrl);
+      finally FreeAndNil(I) end;
+    finally Profiler.Stop(TimeStart) end;
   end;
 
   function LoadFontSettings(const FontElement: TDOMElement): TCastleFont;

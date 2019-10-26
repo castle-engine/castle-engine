@@ -15,25 +15,22 @@
 
 {$ifdef read_interface}
 
-  { @exclude Internal for TX3DNodesCache. }
-  TCachedNode = class
-  private
-    URL: string;
-    References: Cardinal;
-    Node: TX3DRootNode;
-  end;
-
-  TCachedNodeList = class(specialize TObjectList<TCachedNode>)
-    procedure Pack;
-  end;
-
   { Cache for resources not specific to renderer (OpenGL).
     Includes all TTexturesVideosCache resources (texture, movie
     data) and adds cache for 3D models. }
   TX3DNodesCache = class(TTexturesVideosCache)
   strict private
-    CachedNodes: TCachedNodeList;
-    InsideFree3DNodeDelete: boolean;
+    type
+      TCachedNode = class
+      private
+        URL: string;
+        References: Cardinal;
+        Node: TX3DRootNode;
+      end;
+      TCachedNodeDictionary = specialize TDictionary<String, TCachedNode>;
+    var
+      CachedNodes: TCachedNodeDictionary;
+    function FindCachedNode(const Node: TX3DRootNode): TCachedNode;
   public
     constructor Create;
     destructor Destroy; override;
@@ -48,6 +45,12 @@
       modify one instance independent from another. }
     function Load3D(const URL: string): TX3DRootNode;
 
+    { If the given URL is cached, return a DeepCopy of the node from cache.
+      Otherwise returns @nil.
+      This makes sense if you possibly already have this model in the cache,
+      and now you want to load it again, *and* modify the X3D nodes tree afterwards. }
+    function TryCopy3D(const URL: string): TX3DRootNode;
+
     { Unload previously loaded here 3D model.
       Node may be @nil (then it's ignored), or something loaded by
       Load3D (then it's released and changed to @nil). }
@@ -60,13 +63,6 @@
 
 {$ifdef read_implementation}
 
-{ TCachedNodeList ------------------------------------------------------------ }
-
-procedure TCachedNodeList.Pack;
-begin
-  while Remove(nil) <> -1 do ;
-end;
-
 { TX3DNodesCache ------------------------------------------------------------ }
 
 { $define DEBUG_CACHE}
@@ -77,38 +73,43 @@ var
 constructor TX3DNodesCache.Create;
 begin
   inherited;
-  CachedNodes := TCachedNodeList.Create;
+  CachedNodes := TCachedNodeDictionary.Create;
 end;
 
 destructor TX3DNodesCache.Destroy;
 begin
   if CachedNodes <> nil then
   begin
-    CachedNodes.Pack; { remove nil items, see InsideFree3DNodeDelete mechanism }
     Assert(CachedNodes.Count = 0, 'Some references to 3D models still exist when freeing TX3DNodesCache');
     FreeAndNil(CachedNodes);
   end;
   inherited;
 end;
 
-function TX3DNodesCache.Load3D(const URL: string): TX3DRootNode;
+function TX3DNodesCache.TryCopy3D(const URL: string): TX3DRootNode;
 var
-  I, Index: Integer;
   C: TCachedNode;
 begin
-  for I := 0 to CachedNodes.Count - 1 do
+  if CachedNodes.TryGetValue(URL, C) then
+    Result := C.Node.DeepCopy as TX3DRootNode
+  else
+    Result := nil;
+end;
+
+function TX3DNodesCache.Load3D(const URL: string): TX3DRootNode;
+var
+  Index: Integer;
+  C: TCachedNode;
+begin
+  if CachedNodes.TryGetValue(URL, C) then
   begin
-    C := CachedNodes[I];
-    if (C <> nil) and (C.URL = URL) then
-    begin
-      Inc(C.References);
+    Inc(C.References);
 
-      {$ifdef DEBUG_CACHE}
-      Writeln('++ : 3D model ', URL, ' : ', C.References);
-      {$endif}
+    {$ifdef DEBUG_CACHE}
+    Writeln('++ : 3D model ', URL, ' : ', C.References);
+    {$endif}
 
-      Exit(C.Node);
-    end;
+    Exit(C.Node);
   end;
 
   { Add URL to CurrentlyLoading, detecting an infinite loop,
@@ -133,7 +134,7 @@ begin
   CurrentlyLoading.Delete(Index);
 
   C := TCachedNode.Create;
-  CachedNodes.Add(C);
+  CachedNodes.Add(URL, C);
   C.References := 1;
   C.URL := URL;
   C.Node := Result;
@@ -143,57 +144,51 @@ begin
   {$endif}
 end;
 
+function TX3DNodesCache.FindCachedNode(const Node: TX3DRootNode): TCachedNode;
+begin
+  for Result in CachedNodes.Values do
+    if Result.Node = Node then
+      Exit;
+  Result := nil;
+end;
+
 procedure TX3DNodesCache.Free3D(var Node: TX3DRootNode);
 var
-  I: Integer;
+  URL: String;
   C: TCachedNode;
 begin
   if Node = nil then Exit;
 
-  for I := 0 to CachedNodes.Count - 1 do
+  C := FindCachedNode(Node);
+  if C = nil then
+    raise EInternalError.CreateFmt('Free3D: no reference found for 3D model %s',
+      [PointerToStr(Node)]);
+
+  {$ifdef DEBUG_CACHE}
+  Writeln('-- : 3D model ', C.URL, ' : ', C.References - 1);
+  {$endif}
+
+  Node := nil;
+
+  if C.References = 1 then
   begin
-    C := CachedNodes[I];
-    if (C <> nil) and (C.Node = Node) then
-    begin
-      {$ifdef DEBUG_CACHE}
-      Writeln('-- : 3D model ', C.URL, ' : ', C.References - 1);
-      {$endif}
+    URL := C.URL;
 
-      Node := nil;
+    { Note that deleting a node may cause recursive Free3D call that may also remove
+      something, and shift our indexes.
+      Testcase when it's needed (TODO link not working anymore, find this):
+      http://www.web3d.org/x3d/content/examples/Basic/CAD/_pages/page02.html
+      Current code works regardless of this. }
+    FreeAndNil(C.Node);
 
-      if C.References = 1 then
-      begin
-        if InsideFree3DNodeDelete then
-        begin
-          { Deleting a node may cause recursive Free3D call that may also remove
-            something, and shift our indexes.
-            So only nil the item.
-            Testcase when it's needed:
-            http://www.web3d.org/x3d/content/examples/Basic/CAD/_pages/page02.html }
-          FreeAndNil(C.Node);
-          CachedNodes[I] := nil;
-        end else
-        begin
-          InsideFree3DNodeDelete := true;
-          FreeAndNil(C.Node);
-          CachedNodes.Delete(I);
-          InsideFree3DNodeDelete := false;
-        end;
-        CheckEmpty;
-      end else
-        Dec(C.References);
-
-      Exit;
-    end;
-  end;
-
-  raise EInternalError.CreateFmt('Free3D: no reference found for 3D model %s',
-    [PointerToStr(Node)]);
+    CachedNodes.Remove(URL);
+    CheckEmpty;
+  end else
+    Dec(C.References);
 end;
 
 function TX3DNodesCache.Empty: boolean;
 begin
-  CachedNodes.Pack; { remove nil items, see InsideFree3DNodeDelete mechanism }
   Result := (inherited Empty) and (CachedNodes.Count = 0);
 end;
 

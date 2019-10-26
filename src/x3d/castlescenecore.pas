@@ -3066,7 +3066,10 @@ begin
       }
 
       try
-        NewRoot := Load3D(AURL, AllowStdIn);
+        // first try to load using cache, this way <warmup_cache> for scenes works
+        NewRoot := X3DCache.TryCopy3D(AURL);
+        if NewRoot = nil then
+          NewRoot := Load3D(AURL, AllowStdIn);
       except
         on E: Exception do
         begin
