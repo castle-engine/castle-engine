@@ -27,7 +27,7 @@
         References: Cardinal;
         Node: TX3DRootNode;
       end;
-      TCachedNodeDictionary = specialize TDictionary<String, TCachedNode>;
+      TCachedNodeDictionary = specialize TObjectDictionary<String, TCachedNode>;
     var
       CachedNodes: TCachedNodeDictionary;
     function FindCachedNode(const Node: TX3DRootNode): TCachedNode;
@@ -76,7 +76,7 @@ var
 constructor TX3DNodesCache.Create;
 begin
   inherited;
-  CachedNodes := TCachedNodeDictionary.Create;
+  CachedNodes := TCachedNodeDictionary.Create([doOwnsValues]);
 end;
 
 destructor TX3DNodesCache.Destroy;
