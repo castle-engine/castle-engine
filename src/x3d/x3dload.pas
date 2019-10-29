@@ -180,7 +180,7 @@ procedure Load3DSequence(
 const
   { File filters for files loaded by Load3DSequence, suitable
     for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
-  Load3DSequence_FileFilters = Load3D_FileFilters deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
+  Load3DSequence_FileFilters = LoadScene_FileFilters deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
 
 const
   DefaultBakedAnimationSmoothness = 1;

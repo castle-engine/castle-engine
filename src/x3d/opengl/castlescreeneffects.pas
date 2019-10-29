@@ -171,12 +171,12 @@ type
       as children,
       and use TTimeSensorNode to provide time to your shader uniform parameter.
       Or you can e.g. pass an X3D graph loaded from X3D file
-      using @link(X3DLoad.Load3D), this way you can define effects
+      using @link(X3DLoad.LoadNode), this way you can define effects
       inside an external X3D file, e.g. like this:
 
       @longCode(#
       SceneManager.AddScreenEffect(
-        Load3D('castle-data:/screen_effects_scene.x3dv'));
+        LoadNode('castle-data:/screen_effects_scene.x3dv'));
       #)
 
       If you're looking for inspirations what to put in screen_effects_scene.x3dv,

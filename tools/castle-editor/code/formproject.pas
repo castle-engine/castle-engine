@@ -642,7 +642,7 @@ begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
     SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       NeedsViewFile;
       ViewFileFrame.LoadScene(SelectedURL);
@@ -728,7 +728,7 @@ begin
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
-    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       OpenWith('view3dscene', SelectedURL);
       Exit;

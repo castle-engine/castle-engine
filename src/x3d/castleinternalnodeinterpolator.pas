@@ -835,7 +835,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
             { Make FrameURL absolute, treating it as relative vs
               AbsoluteBaseUrl }
             FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-            NewNode := Load3D(FrameURL);
+            NewNode := LoadNode(FrameURL);
           end else
           begin
             NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);

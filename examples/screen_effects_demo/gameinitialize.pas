@@ -162,9 +162,9 @@ procedure ApplicationInitialize;
       For example, this is how to load film grain effect in SceneManager3D:
 
       SceneManager3D.AddScreenEffect(
-        Load3D('castle-data:/screen_effects/film_grain.x3dv'));
+        LoadNode('castle-data:/screen_effects/film_grain.x3dv'));
 
-      Alternatively, you may want to save the Load3D result,
+      Alternatively, you may want to save the LoadNode result,
       and find there an instance of TScreenEffectNode, to be able to
       toggle it's Enabled property:
 
@@ -172,7 +172,7 @@ procedure ApplicationInitialize;
         RootNode: TX3DRootNode;
         ScreenEffectNode: TScreenEffectNode;
       begin
-        RootNode := Load3D('castle-data:/screen_effects/film_grain.x3dv');
+        RootNode := LoadNode('castle-data:/screen_effects/film_grain.x3dv');
         ScreenEffectNode := RootNode.FindNodeByName(TScreenEffectNode,
           'FilmGrainScreenEffect', true) as TScreenEffectNode;
         SceneManager3D.AddScreenEffect(RootNode);
@@ -189,11 +189,11 @@ procedure ApplicationInitialize;
 
     for I := 0 to 2 do
     begin
-      FilmGrain.RootNodes[I] := Load3D('castle-data:/screen_effects/film_grain.x3dv');
+      FilmGrain.RootNodes[I] := LoadNode('castle-data:/screen_effects/film_grain.x3dv');
       FilmGrain.EffectNodes[I] := FilmGrain.RootNodes[I].FindNodeByName(TScreenEffectNode,
         'FilmGrainScreenEffect', true) as TScreenEffectNode;
 
-      Pixelate.RootNodes[I] := Load3D('castle-data:/screen_effects/pixelate.x3dv');
+      Pixelate.RootNodes[I] := LoadNode('castle-data:/screen_effects/pixelate.x3dv');
       Pixelate.EffectNodes[I] := Pixelate.RootNodes[I].FindNodeByName(TScreenEffectNode,
         'PixelateScreenEffect', true) as TScreenEffectNode;
 

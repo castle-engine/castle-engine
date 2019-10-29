@@ -38,7 +38,7 @@ type
 
 class procedure THelper.OpenButtonClick(Sender: TObject);
 begin
-  if Window.FileDialog('Open 3D model', URL, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open Scene', URL, true, LoadScene_FileFilters) then
   begin
     Scene.Load(URL);
     Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
@@ -108,7 +108,7 @@ begin
 
   { add an "Open" button to the window controls }
   OpenButton := TCastleButton.Create(Application);
-  OpenButton.Caption := 'Open 3D model';
+  OpenButton.Caption := 'Open Scene';
   OpenButton.OnClick := @THelper(nil).OpenButtonClick;
   OpenButton.Left := 10;
   OpenButton.Bottom := 10;

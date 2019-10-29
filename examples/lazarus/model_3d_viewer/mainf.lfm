@@ -918,7 +918,7 @@ object Main: TMain
     end
   end
   object OpenDialog1: TCastleOpen3DDialog
-    Title = 'Open 3d model file'
+    Title = 'Open Scene'
     left = 83
     top = 200
   end

@@ -305,7 +305,7 @@ begin
       Scene1 := nil;
       Scene2 := nil;
       try
-        Node := Load3D('castle-data:/game/scene.x3d');
+        Node := LoadNode('castle-data:/game/scene.x3d');
         Scene1 := TCastleScene.Create(nil);
         Scene2 := TCastleScene.Create(nil);
         Scene1.Load(Node, false);
@@ -336,7 +336,7 @@ begin
   Scene1 := nil;
   Scene2 := nil;
   try
-    Node := Load3D('castle-data:/game/scene.x3d');
+    Node := LoadNode('castle-data:/game/scene.x3d');
     Scene1 := TCastleScene.Create(nil);
     Scene1.Static := true;
     Scene2 := TCastleScene.Create(nil);
@@ -356,7 +356,7 @@ begin
   Scene1 := nil;
   Scene2 := nil;
   try
-    Node := Load3D('castle-data:/game/scene.x3d');
+    Node := LoadNode('castle-data:/game/scene.x3d');
     Scene1 := TCastleScene.Create(nil);
     Scene2 := TCastleScene.Create(nil);
     Scene1.Load(Node.DeepCopy as TX3DRootNode, true);
