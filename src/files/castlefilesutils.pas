@@ -470,13 +470,10 @@ function BundlePath: string;
 {$endif}
 
 { Read file or URL contents to a string.
-  MimeType is returned, calculated just like the @link(Download) function.
-  If AllowStdIn, then URL = '-' (one dash) is treated specially:
-  it means to read contents from standard input (stdin, Input in Pascal). }
+  MimeType is returned, calculated just like the @link(Download) function. }
 function FileToString(const URL: string;
-  const AllowStdIn: Boolean; out MimeType: string): AnsiString; overload;
-function FileToString(const URL: string;
-  const AllowStdIn: Boolean = false): AnsiString; overload;
+  out MimeType: string): AnsiString; overload;
+function FileToString(const URL: string): AnsiString; overload;
 
 procedure StringToFile(const URL: String; const Contents: AnsiString);
 
@@ -1055,36 +1052,29 @@ end;
 {$endif DARWIN}
 
 function FileToString(const URL: string;
-  const AllowStdIn: Boolean; out MimeType: string): AnsiString;
+  out MimeType: string): AnsiString;
 var
   F: TStream;
 begin
-  if AllowStdIn and (URL = '-') then
-  begin
-    Result := ReadGrowingStreamToString(StdInStream);
-    MimeType := '';
-  end else
-  begin
-    F := Download(URL, [], MimeType);
-    try
-      { Some streams can be optimized, just load file straight to string memory }
-      if (F is TFileStream) or
-         (F is TMemoryStream) then
-      begin
-        SetLength(Result, F.Size);
-        if F.Size <> 0 then
-          F.ReadBuffer(Result[1], Length(Result));
-      end else
-        Result := ReadGrowingStreamToString(F);
-    finally FreeAndNil(F) end;
-  end;
+  F := Download(URL, [], MimeType);
+  try
+    { Some streams can be optimized, just load file straight to string memory }
+    if (F is TFileStream) or
+       (F is TMemoryStream) then
+    begin
+      SetLength(Result, F.Size);
+      if F.Size <> 0 then
+        F.ReadBuffer(Result[1], Length(Result));
+    end else
+      Result := ReadGrowingStreamToString(F);
+  finally FreeAndNil(F) end;
 end;
 
-function FileToString(const URL: string; const AllowStdIn: Boolean): AnsiString;
+function FileToString(const URL: string): AnsiString;
 var
   MimeType: string;
 begin
-  Result := FileToString(URL, AllowStdIn, MimeType { ignored });
+  Result := FileToString(URL, MimeType { ignored });
 end;
 
 procedure StringToFile(const URL: String; const Contents: AnsiString);

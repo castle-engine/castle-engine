@@ -280,7 +280,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadX3DClassic(FileName, false, false);
+      Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 

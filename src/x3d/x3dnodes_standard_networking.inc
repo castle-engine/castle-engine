@@ -352,7 +352,7 @@ begin
       { in this case, we have either a new 3D world, or a document }
       UrlWithoutViewpoint := PathFromBaseUrl(UrlWithoutViewpoint);
       try
-        NewRootNode := Load3D(UrlWithoutViewpoint, false, true);
+        NewRootNode := LoadNode(UrlWithoutViewpoint, true);
 
         if NewRootNode = nil then
         begin
@@ -511,7 +511,7 @@ begin
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
-        FInlined := Load3D(FullUrl, false);
+        FInlined := LoadNode(FullUrl);
         if (Exported <> nil) and
            (TX3DRootNode(FInlined).ExportedNames <> nil) then
           Exported.Assign(TX3DRootNode(FInlined).ExportedNames);

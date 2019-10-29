@@ -1168,7 +1168,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
     URL := CombineURI(BaseUrl, RelativeURL);
     URIExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := X3DCache.Load3D(URL);
+      ReferencedPrototypeNode := X3DCache.LoadNode(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -1181,7 +1181,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
     FReferencedPrototype := TryFindProtoNonExternal(Anchor);
     if FReferencedPrototype = nil then
     begin
-      X3DCache.Free3D(ReferencedPrototypeNode);
+      X3DCache.FreeNode(ReferencedPrototypeNode);
       if Anchor = '' then
         ProtoWarning('No PROTO found') else
         ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
@@ -1225,7 +1225,7 @@ begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
 
-  X3DCache.Free3D(ReferencedPrototypeNode);
+  X3DCache.FreeNode(ReferencedPrototypeNode);
 
   FReferencedClass := nil;
 end;

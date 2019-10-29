@@ -450,7 +450,7 @@ begin
     begin
       FullUrl := Node.PathFromBaseUrl(FdUrl.Items[I]);
       try
-        Result := FileToString(FullUrl, false, MimeType);
+        Result := FileToString(FullUrl, MimeType);
         if (MimeType <> '') and
            (MimeType <> 'text/plain') then
           WritelnWarning('VRML/X3D', Format('MIME type "%s" not recognized as shader source. Using anyway. If this is a valid shader source mime type that should be recognized, please submit a feature request.', [MimeType]));

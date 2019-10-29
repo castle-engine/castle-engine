@@ -397,6 +397,12 @@ type
     pgBox
   );
 
+  { Possible options for @link(TCasteSceneCore.Load). }
+  TSceneLoadOption = (
+    slDisableResetTime
+  );
+  TSceneLoadOptions = set of TSceneLoadOption;
+
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
     @link(TCastleScene), which is a descendant of this class that adds rendering
@@ -1011,7 +1017,7 @@ type
 
       @longCode(#
         // DON'T DO THIS!
-        Node := Load3D(URL);
+        Node := LoadNode(URL);
         Scene1 := TCastleScene.Create(Application);
         Scene1.Load(Node, false);
         Scene2 := TCastleScene.Create(Application);
@@ -1032,7 +1038,7 @@ type
       so it is roughly like doing:
 
       @longCode(#
-        Node := Load3D(URL);
+        Node := LoadNode(URL);
         Scene1 := TCastleScene.Create(Application);
         Scene1.Load(Node.DeepCopy as TX3DRootNode, false);
         Scene2 := TCastleScene.Create(Application);
@@ -1046,8 +1052,8 @@ type
       See the manual:
       https://castle-engine.io/manual_scene.php#section_many_instances
     }
-    procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-      const AResetTime: boolean = true);
+    procedure Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+      const AOptions: TSceneLoadOptions = []);
 
     { Load the 3D model from given URL.
 
@@ -1062,14 +1068,10 @@ type
       about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
-      as the URL parameter.
-
-      @param(AllowStdIn If AllowStdIn and AURL = '-' then we will load
-        a file from standard input (StdInStream), using current working directory
-        as BaseUrl (to resolve relative URLs from the file).
-        Currently, this limits the file to be VRML/X3D.) }
-    procedure Load(const AURL: string; AllowStdIn: boolean = false;
-      const AResetTime: boolean = true);
+      as the URL parameter. }
+    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []);
+    procedure Load(const AURL: string; const AllowStdIn: boolean;
+      const AResetTime: boolean = true); deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
 
     { Save the current 3D model (X3D nodes graph) to the given file (URL).
 
@@ -2996,8 +2998,8 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-  const AResetTime: boolean);
+procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+  const AOptions: TSceneLoadOptions);
 var
   RestoreProcessEvents: boolean;
 begin
@@ -3032,7 +3034,7 @@ begin
     see https://github.com/castle-engine/view3dscene/issues/16 ). }
   ChangedAll;
 
-  if AResetTime then
+  if not (slDisableResetTime in AOptions) then
     ResetTimeAtLoad;
 
   { restore events processing, initialize new scripts and such }
@@ -3041,8 +3043,18 @@ begin
   UpdateAutoAnimation(false);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
+procedure TCastleSceneCore.Load(const AURL: string; const AllowStdIn: boolean;
   const AResetTime: boolean);
+var
+  Options: TSceneLoadOptions;
+begin
+  Options := [];
+  if not AResetTime then
+    Include(Options, slDisableResetTime);
+  Load(AURL, Options);
+end;
+
+procedure TCastleSceneCore.Load(const AURL: string; const AOptions: TSceneLoadOptions);
 var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
@@ -3051,10 +3063,10 @@ begin
   try
     if AURL <> '' then
     begin
-      { If Load3D fails:
+      { If LoadNode fails:
 
         - When CastleDesignMode is false:
-          We make an exception (just pass the exception from Load3D),
+          We make an exception (just pass the exception from LoadNode),
           and we do not change the RootNode or URL.
           So currently loaded scene will remain 100% valid.
 
@@ -3067,9 +3079,9 @@ begin
 
       try
         // first try to load using cache, this way <warmup_cache> for scenes works
-        NewRoot := X3DCache.TryCopy3D(AURL);
+        NewRoot := X3DCache.TryCopyNode(AURL);
         if NewRoot = nil then
-          NewRoot := Load3D(AURL, AllowStdIn);
+          NewRoot := LoadNode(AURL);
       except
         on E: Exception do
         begin
@@ -3087,7 +3099,7 @@ begin
       NewRoot := nil; // when AURL is ''
     end;
 
-    Load(NewRoot, true, AResetTime);
+    Load(NewRoot, true, AOptions);
 
     FURL := AURL;
 
@@ -6004,7 +6016,7 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
       FPointingDeviceActiveSensors.Count := 0;
 
       if NewRootNode <> nil then
-        Load(NewRootNode, true, { do not reset Time } false);
+        Load(NewRootNode, true, [slDisableResetTime]);
 
       { When NewRootNode <> nil, it's important here that we know
         we're inside BeginChangesSchedule.

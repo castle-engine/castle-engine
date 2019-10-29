@@ -15,17 +15,23 @@ procedure TSceneFromCache.LoadFromCache(const AURL: String);
 var
   TimeStart: TCastleProfilerTime;
 begin
+  { Do not load node again, if it is already in the cache.
+    It would cause warnings
+      Warning: X3D node xxx is already part of another TCastleScene instance
+    if uses uses the same URL twice in warmup_cache specification. }
+  if X3DCache.IsCached(AURL) then Exit;
+
   TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (warming up cache)');
   try
-    FRootNodeFromCache := X3DCache.Load3D(AURL);
+    FRootNodeFromCache := X3DCache.LoadNode(AURL);
   finally Profiler.Stop(TimeStart) end;
   Load(FRootNodeFromCache, false);
 end;
 
 destructor TSceneFromCache.Destroy;
 begin
-  RootNode := nil; // unassign RootNode, as X3DCache.Free3D may free it
-  X3DCache.Free3D(FRootNodeFromCache);
+  RootNode := nil; // unassign RootNode, as X3DCache.FreeNode may free it
+  X3DCache.FreeNode(FRootNodeFromCache);
   inherited;
 end;
 
