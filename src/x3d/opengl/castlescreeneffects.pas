@@ -746,8 +746,8 @@ procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
     { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRender, then PrepareParams (3rd argument below) is unused,
-      and may be nil. }
+      when there is no prRenderSelf or prRenderClones,
+      then PrepareParams (3rd argument below) is unused, and may be nil. }
     ScreenEffectsScene.PrepareResources([prScreenEffects], false, nil);
 end;
 

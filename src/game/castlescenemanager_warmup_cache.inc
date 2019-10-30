@@ -66,7 +66,8 @@ begin
   TempSceneManager := TCastleSceneManager.Create(nil);
   try
     // loads the textures inside scene
-    TempSceneManager.PrepareResources(Scene);
+    TempSceneManager.PrepareResources(Scene, '',
+      TCastleSceneManager.DefaultPrepareOptions - [prRenderSelf]);
   finally FreeAndNil(TempSceneManager) end;
 end;
 

@@ -948,14 +948,23 @@ type
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
   public
-    { If > 0, RenderShape will not actually render, only prepare
-      per-shape resources for fast rendering (arrays and vbos). }
-    PrepareRenderShape: Cardinal;
+    type
+      TRenderMode = (
+        { Normal rendering. }
+        rmRender,
+        { Prepare for future rendering of the same shapes. }
+        rmPrepareRenderSelf,
+        { Prepare for future rendering of the cloned shapes
+          (made by TCastleSceneCore.Clone, or TX3DNode.DeepCopy). }
+        rmPrepareRenderClones
+      );
+    var
+      RenderMode: TRenderMode;
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(AttributesClass: TRenderingAttributesClass;
-      ACache: TGLRendererContextCache);
+    constructor Create(const AttributesClass: TRenderingAttributesClass;
+      const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -2099,8 +2108,8 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  AttributesClass: TRenderingAttributesClass;
-  ACache: TGLRendererContextCache);
+  const AttributesClass: TRenderingAttributesClass;
+  const ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
@@ -3536,6 +3545,10 @@ var
   CoordinateRenderer: TBaseCoordinateRenderer;
   VBO: boolean;
 begin
+  { No point preparing VBO for clones, clones will need own VBOs anyway. }
+  if RenderMode = rmPrepareRenderClones then
+    Exit;
+
   { initialize TBaseCoordinateRenderer.Arrays now }
   if GeneratorClass <> nil then
   begin
@@ -3592,7 +3605,7 @@ begin
     CoordinateRenderer.Lighting := Lighting;
   end;
 
-  MeshRenderer.PrepareRenderShape := PrepareRenderShape;
+  MeshRenderer.PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
   MeshRenderer.Render;
 
   if (GeneratorClass <> nil) and VBO then

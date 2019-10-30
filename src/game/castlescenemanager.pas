@@ -960,8 +960,11 @@ type
       causes Items.UpdateGeneratedTextures. }
     procedure UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
   protected
-    FSectors: TSectorList;
-    Waypoints: TWaypointList;
+    var
+      FSectors: TSectorList;
+      Waypoints: TWaypointList;
+    const
+      DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
 
     procedure SetCamera(const Value: TCamera); override;
 
@@ -1030,9 +1033,11 @@ type
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
-    procedure PrepareResources(const DisplayProgressTitle: string = '');
+    procedure PrepareResources(const DisplayProgressTitle: string = '';
+      const Options: TPrepareResourcesOptions = DefaultPrepareOptions);
     procedure PrepareResources(const Item: TCastleTransform;
-      const DisplayProgressTitle: string = ''); virtual;
+      const DisplayProgressTitle: string = '';
+      Options: TPrepareResourcesOptions = DefaultPrepareOptions); virtual;
 
     procedure BeforeRender; override;
     procedure Render; override;
@@ -3529,9 +3534,9 @@ begin
 end;
 
 procedure TCastleSceneManager.PrepareResources(const Item: TCastleTransform;
-  const DisplayProgressTitle: string);
+  const DisplayProgressTitle: string;
+  Options: TPrepareResourcesOptions);
 var
-  Options: TPrepareResourcesOptions;
   ChosenViewport: TCastleAbstractViewport;
 begin
   ChosenViewport := nil;
@@ -3541,8 +3546,6 @@ begin
     Also, we'll need to use one of viewport's projection here. }
   if Viewports.Count <> 0 then
   begin
-    Options := [prRender, prBackground, prBoundingBox, prScreenEffects];
-
     if Viewports.UsesShadowVolumes then
       Include(Options, prShadowVolume);
 
@@ -3585,9 +3588,10 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
+procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string;
+  const Options: TPrepareResourcesOptions);
 begin
-  PrepareResources(Items, DisplayProgressTitle);
+  PrepareResources(Items, DisplayProgressTitle, Options);
 end;
 
 procedure TCastleSceneManager.BeforeRender;

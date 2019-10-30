@@ -439,16 +439,16 @@ type
     { Load 3D scene from file, doing common tasks.
       @unorderedList(
         @item optionally create triangle octree
-        @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
+        @item(call PrepareResources, with prRenderSelf, prBoundingBox, prShadowVolume
           (if shadow volumes possible at all in this OpenGL context),)
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
     function LoadLevelScene(const URL: string;
       const PrepareForCollisions: boolean;
-      const SceneClass: TCastleSceneClass): TCastleScene;
+      const SceneClass: TCastleSceneClass): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     function LoadLevelScene(const URL: string;
-      const PrepareForCollisions: boolean): TCastleScene;
+      const PrepareForCollisions: boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
@@ -929,7 +929,7 @@ begin
     PlaceholdersEnd;
 
     { calculate Options for PrepareResources }
-    Options := [prRender, prBackground, prBoundingBox];
+    Options := [prRenderSelf, prBackground, prBoundingBox];
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
@@ -1043,7 +1043,7 @@ begin
   Result.Load(URL);
 
   { calculate Options for PrepareResources }
-  Options := [prRender, prBoundingBox { always needed }];
+  Options := [prRenderSelf, prBoundingBox { always needed }];
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
@@ -1061,7 +1061,9 @@ function TLevelLogic.LoadLevelScene(
   const URL: string;
   const PrepareForCollisions: boolean): TCastleScene;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
+  {$warnings on}
 end;
 
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

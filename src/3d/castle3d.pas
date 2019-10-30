@@ -389,7 +389,7 @@ const
   prShadowVolume       = CastleTransform.prShadowVolume;
   prSpatial            = CastleTransform.prSpatial;
   prScreenEffects      = CastleTransform.prScreenEffects;
-  prRender             = CastleTransform.prRender;
+  prRender             = CastleTransform.prRenderSelf;
   prBackground         = CastleTransform.prBackground;
   prBoundingBox        = CastleTransform.prBoundingBox;
   rtNone               = CastleTransform.rtNone;

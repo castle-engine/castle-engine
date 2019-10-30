@@ -343,7 +343,8 @@ type
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
 const
-  prRender = CastleTransform.prRender;
+  prRenderSelf = CastleTransform.prRenderSelf;
+  prRenderClones = CastleTransform.prRenderClones;
   prBackground = CastleTransform.prBackground;
   prBoundingBox = CastleTransform.prBoundingBox;
   prShadowVolume = CastleTransform.prShadowVolume;
@@ -678,7 +679,7 @@ type
       You are free to change them all at any time.
       Although note that changing some attributes (the ones defined
       in base TRenderingAttributes class) may be a costly operation
-      (next PrepareResources with prRender, or Render call, may need
+      (next PrepareResources with prRenderSelf, or Render call, may need
       to recalculate some things). }
     function Attributes: TSceneRenderingAttributes;
 
@@ -1494,67 +1495,74 @@ procedure TCastleScene.PrepareResources(
 
     { Note: we prepare also not visible shapes, in case they become visible. }
     ShapeList := Shapes.TraverseList(false, false);
-    Inc(Renderer.PrepareRenderShape);
+
+    { Prepare resources by doing rendering.
+      But with Renderer.RenderMode set to rmPrepareRenderXxx so nothing will be actually drawn. }
+
+    if prRenderSelf in Options then
+      Renderer.RenderMode := rmPrepareRenderSelf
+    else
+    begin
+      Assert(prRenderClones in Options);
+      Renderer.RenderMode := rmPrepareRenderClones;
+    end;
+
+    { calculate OwnParams, GoodParams }
+    if Params = nil then
+    begin
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
+      OwnParams := TPrepareParams.Create;
+      GoodParams := OwnParams;
+    end else
+    begin
+      OwnParams := nil;
+      GoodParams := Params;
+    end;
+
+    BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+
+    { We need some non-nil TRenderingCamera instance to be able
+      to render with lights. }
+    DummyCamera := TRenderingCamera.Create;
     try
-      { calculate OwnParams, GoodParams }
-      if Params = nil then
+      { Set matrix to be anything sensible.
+        Otherwise opening a scene with shadow maps makes a warning
+        that camera matrix is all 0,
+        and cannot be inverted, since
+        TTextureCoordinateRenderer.RenderCoordinateBegin does
+        RenderingCamera.InverseMatrixNeeded.
+        Testcase: silhouette. }
+      DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
+        TMatrix4.Identity);
+
+      Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+
+      for Shape in ShapeList do
       begin
-        WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
-        OwnParams := TPrepareParams.Create;
-        GoodParams := OwnParams;
-      end else
-      begin
-        OwnParams := nil;
-        GoodParams := Params;
+        { set sensible Shape.ModelView, otherwise it is zero
+          and TShader.EnableClipPlane will raise an exception since
+          PlaneTransform(Plane, SceneModelView); will fail,
+          with SceneModelView matrix = zero. }
+        TGLShape(Shape).ModelView := TMatrix4.Identity;
+        TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+        Renderer.RenderShape(TGLShape(Shape));
       end;
 
-      { Prepare resources by doing rendering.
-        But with Renderer.PrepareRenderShape <> 0,
-        so nothing will be actually drawn). }
-
-      BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
-
-      { We need some non-nil TRenderingCamera instance to be able
-        to render with lights. }
-      DummyCamera := TRenderingCamera.Create;
-      try
-        { Set matrix to be anything sensible.
-          Otherwise opening a scene with shadow maps makes a warning
-          that camera matrix is all 0,
-          and cannot be inverted, since
-          TTextureCoordinateRenderer.RenderCoordinateBegin does
-          RenderingCamera.InverseMatrixNeeded.
-          Testcase: silhouette. }
-        DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
-          TMatrix4.Identity);
-
-        Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
-
-        for Shape in ShapeList do
+      if DynamicBatching then
+        for I := 0 to Batching.PoolShapesCount - 1 do
         begin
-          { set sensible Shape.ModelView, otherwise it is zero
-            and TShader.EnableClipPlane will raise an exception since
-            PlaneTransform(Plane, SceneModelView); will fail,
-            with SceneModelView matrix = zero. }
+          Shape := Batching.PoolShapes[I];
           TGLShape(Shape).ModelView := TMatrix4.Identity;
           TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
           Renderer.RenderShape(TGLShape(Shape));
         end;
 
-        if DynamicBatching then
-          for I := 0 to Batching.PoolShapesCount - 1 do
-          begin
-            Shape := Batching.PoolShapes[I];
-            TGLShape(Shape).ModelView := TMatrix4.Identity;
-            TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
-            Renderer.RenderShape(TGLShape(Shape));
-          end;
+      Renderer.RenderEnd;
+    finally FreeAndNil(DummyCamera) end;
 
-        Renderer.RenderEnd;
-      finally FreeAndNil(DummyCamera) end;
+    FreeAndNil(OwnParams);
 
-      FreeAndNil(OwnParams);
-    finally Dec(Renderer.PrepareRenderShape) end;
+    Renderer.RenderMode := rmRender; // restore Renderer.RenderMode
   end;
 
 var
@@ -1612,7 +1620,7 @@ begin
       PrepareShapesResources;
     end;
 
-    if (prRender in Options) and not PreparedRender then
+    if ([prRenderSelf, prRenderClones] * Options <> []) and not PreparedRender then
     begin
       { We use PreparedRender to avoid potentially expensive iteration
         over shapes and expensive Renderer.RenderBegin/End. }
@@ -1831,7 +1839,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
-    PrepareResources([prRender], false, FTempPrepareParams);
+    PrepareResources([prRenderSelf], false, FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;
