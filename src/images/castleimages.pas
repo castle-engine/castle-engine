@@ -1665,8 +1665,8 @@ type
     Right now, we simply let these exceptions to "pass through" from this function
     (instead of catching and re-raising).
     So be ready that this function may raise @italic(any) Exception class.
-    In case of local files (file:// URLs), the typical exception class
-    is EFOpenError.)
+    In case of local files (file:// URLs), the typical exceptions are
+    EFOpenError and EReadError.)
 
   @seealso LoadEncodedImage
 
@@ -4648,35 +4648,36 @@ var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
+  F := nil;
   TimeStart := Profiler.Start('Loading "' + URIDisplay(URL) + '" (CastleImages)');
-
   try
     try
       LoadImageEvents.Execute(URL);
       F := Download(URL, [soForceMemoryStream], MimeType);
-    except
-      on E: EReadError do raise EImageLoadError.Create(E.Message);
-    end;
-
-    try
       Result := LoadEncodedImage(F, MimeType, AllowedImageClasses, Options);
       Result.FURL := URL;
-    finally F.Free end;
-  except
-    { capture some exceptions to add URL to exception message }
-    on E: EImageLoadError do
-    begin
-      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
-      raise;
+    except
+      { capture some exceptions to add URL to exception message }
+      on E: EReadError do // maybe be raised by Download
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
+      on E: EImageLoadError do
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
+      on E: EImageFormatNotSupported do
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
     end;
-    on E: EImageFormatNotSupported do
-    begin
-      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
-      raise;
-    end;
+  finally
+    FreeAndNil(F);
+    Profiler.Stop(TimeStart);
   end;
-
-  Profiler.Stop(TimeStart);
 end;
 
 function LoadEncodedImage(const URL: string;
