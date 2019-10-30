@@ -270,7 +270,7 @@ begin
 
   RenderCoordinateBegin;
   try
-    if PrepareRenderShape then
+    if not PrepareRenderShape then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> 0 then
