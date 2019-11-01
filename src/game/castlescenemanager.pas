@@ -3171,32 +3171,6 @@ type
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
-{ TPhysicsPropertiesConcrete ------------------------------------------------- }
-
-  TPhysicsPropertiesConcrete = class(TPhysicsProperties)
-    strict private
-      FSceneManager: TCastleSceneManager;
-    protected
-      function SceneManagerWorld: TSceneManagerWorld; override;
-    public
-      constructor Create(SceneManager: TCastleSceneManager); reintroduce;
-  end;
-
-{ TPhysicsPropertiesConcrete }
-
-function TPhysicsPropertiesConcrete.SceneManagerWorld: TSceneManagerWorld;
-begin
-  Result := FSceneManager.Items;
-end;
-
-constructor TPhysicsPropertiesConcrete.Create(SceneManager: TCastleSceneManager);
-begin
-  FSceneManager := SceneManager;
-  inherited Create(SceneManager);
-end;
-
-{ TSceneManagerWorldConcrete }
-
 function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
@@ -3288,6 +3262,29 @@ begin
     { Do not use CollisionIgnoreItem here,
       as this is for picking, so the first object should win --- usually.
       May be configurable in the future. } nil);
+end;
+
+{ TPhysicsPropertiesConcrete ------------------------------------------------- }
+
+type
+  TPhysicsPropertiesConcrete = class(TPhysicsProperties)
+  strict private
+    FSceneManager: TCastleSceneManager;
+  protected
+    function SceneManagerWorld: TSceneManagerWorld; override;
+  public
+    constructor Create(SceneManager: TCastleSceneManager); reintroduce;
+  end;
+
+function TPhysicsPropertiesConcrete.SceneManagerWorld: TSceneManagerWorld;
+begin
+  Result := FSceneManager.Items;
+end;
+
+constructor TPhysicsPropertiesConcrete.Create(SceneManager: TCastleSceneManager);
+begin
+  FSceneManager := SceneManager;
+  inherited Create(SceneManager);
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }
