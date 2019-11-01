@@ -31,9 +31,10 @@
     function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
 
   public
-    const DefaultAngularVelocityRK4Integration = false;
-    const DefaultLinearVelocityRK4Integration = false;
-    const DefaultFrequency = 60.0;
+    const
+      DefaultAngularVelocityRK4Integration = false;
+      DefaultLinearVelocityRK4Integration = false;
+      DefaultFrequency = 60.0;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -400,7 +401,7 @@ end;
 
 procedure TPhysicsProperties.SetFrequency(const AValue: Single);
 begin
-  if SameValue(FFrequency, AValue) then
+  if FFrequency = AValue then
     Exit;
 
   FFrequency := AValue;
