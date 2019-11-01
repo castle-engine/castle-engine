@@ -113,6 +113,7 @@ type
     FFieldOfViewAxis: TFieldOfViewAxis;
     procedure SetFieldOfView(const Value: Single);
     procedure SetFieldOfViewAxis(const Value: TFieldOfViewAxis);
+    function IsStoredFieldOfView: Boolean;
   private
     Camera: TCastleCamera;
   public
@@ -126,7 +127,7 @@ type
       The @link(FieldOfViewAxis) determines whether this is horizontal
       or vertical angle. }
     property FieldOfView: Single read FFieldOfView write SetFieldOfView
-      default DefaultFieldOfView;
+      stored IsStoredFieldOfView default DefaultFieldOfView;
 
     { Which axis is determined explicitly by @link(FieldOfView).
       @seealso TFieldOfViewAxis }
@@ -2176,6 +2177,14 @@ begin
     FFieldOfViewAxis := Value;
     Camera.VisibleChange;
   end;
+end;
+
+function TCastlePerspective.IsStoredFieldOfView: Boolean;
+begin
+  { Seems like this is the only way to avoid always serializing FieldOfView.
+    Possibly displaying it in object inspector always modifies it a bit,
+    due to rounding when displaying? }
+  Result := not SameValue(FFieldOfView, DefaultFieldOfView);
 end;
 
 { TCastleOrthographic --------------------------------------------------------- }

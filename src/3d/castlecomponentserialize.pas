@@ -474,7 +474,7 @@ begin
     Exit;
   end;
 
-  // do not stream properties with stored=false or default values
+  // do not stream properties with stored=false
   if not IsStoredProp(AObject as TPersistent, Info) then
   begin
     //WritelnLog('Not serializing ' + AObject.ClassName + '.' + Info^.Name + ' because stored function answers false');

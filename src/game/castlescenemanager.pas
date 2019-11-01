@@ -3316,8 +3316,6 @@ begin
     CameraViewpointForWholeScene(Box, 2, 1, false, true,
       APos, ADir, AUp, NewGravityUp);
     Camera.Init(APos, ADir, AUp, NewGravityUp);
-    Radius := Box.AverageSize(false, 1.0) * WorldBoxSizeToRadius;
-    Camera.ProjectionNear := Radius * RadiusToProjectionNear;
   end;
 
   { Mark it as done, so that next EnsureCameraDetected does nothing
