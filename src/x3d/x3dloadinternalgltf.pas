@@ -23,7 +23,7 @@ interface
 uses X3DNodes, X3DFields;
 
 { Load 3D model in the GLTF format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(Load3D) to load an GLTF file. }
+  This routine is internally used by the @link(LoadNode) to load an GLTF file. }
 function LoadGLTF(const URL: string): TX3DRootNode;
 
 implementation

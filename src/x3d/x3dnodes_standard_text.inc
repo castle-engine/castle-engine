@@ -564,6 +564,15 @@ begin
   Result := FdSolid;
 end;
 
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  { TextProxy implementation is broken by optimizations on Aarch64,
+    it seems like it draws only 1st letter of each line.
+    Testcase: bubbles in unholy_society.
+    TODO: Reproduce this in a simple testcase, submit to FPC devs. }
+  {$optimization OFF}
+  {$info Workaround Aarch64 optimizer: TextProxy not optimized (begin)}
+{$endif}
+
 { Create a simple mesh (filling OutCoords, OutTexCoords fields
   to initialize X3D node like QuadSet) that represents input Text node.
   The interface is suitable for both VRML 2.0 / X3D Text node,
@@ -918,6 +927,14 @@ begin
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;
 end;
+
+{ Turn optimizations back on.
+  FPC $push / $pop unfortunately doesn't save/restore optimization level,
+  so we restore it if -dRELEASE. }
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  {$optimization ON}
+  {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
+{$endif}
 
 function TTextNode.ProxyUsesOverTriangulate: boolean;
 begin

@@ -24,9 +24,7 @@ interface
 uses SysUtils, CastleVectors, CastleUtils, CastleStringUtils;
 
 type
-  EInvalidParams = class(EWithHiddenClassName);
-
-type
+  EInvalidParams = class(EShortErrorMessage);
   EInvalidShortOption = class(EInvalidParams);
   EInvalidLongOption = class(EInvalidParams);
   EWrongOptionArgument = class(EInvalidParams);

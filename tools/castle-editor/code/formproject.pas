@@ -33,6 +33,8 @@ type
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
     MenuItemCameraSetInitial: TMenuItem;
+    MenuItemPreferences: TMenuItem;
+    N1: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
     MenuItemPasteComponent: TMenuItem;
     MenuItemCopyComponent: TMenuItem;
@@ -104,6 +106,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
@@ -188,7 +191,8 @@ uses TypInfo, LCLType,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
-  FormChooseProject, ToolCommonUtils, FormAbout;
+  FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
+  ToolCompilerInfo;
 
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
@@ -408,6 +412,11 @@ end;
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
   // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
+begin
+  PreferencesForm.ShowModal;
 end;
 
 procedure TProjectForm.MenuItemAutoGenerateCleanClick(Sender: TObject);
@@ -641,7 +650,7 @@ begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
     SelectedURL := FilenameToURISafe(SelectedFileName);
 
-    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       NeedsViewFile;
       ViewFileFrame.LoadScene(SelectedURL);
@@ -701,11 +710,14 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    Exe := FindExe('lazarus');
-    if Exe = '' then
-    begin
-      EditorUtils.ErrorBox('Cannot find "lazarus" executable on environment variable PATH.');
-      Exit;
+    try
+      Exe := FindExeLazarusIDE;
+    except
+      on E: EExecutableNotFound do
+      begin
+        EditorUtils.ErrorBox(E.Message);
+        Exit;
+      end;
     end;
 
     if SameFileName(ProjectStandaloneSource, FileName) then
@@ -724,7 +736,7 @@ begin
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
-    if TFileFilterList.Matches(Load3D_FileFilters, SelectedURL) then
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
       OpenWith('view3dscene', SelectedURL);
       Exit;

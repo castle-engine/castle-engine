@@ -143,7 +143,7 @@ begin
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + ExeName);
-    if not FileExists(Result) then
+    if not RegularFileExists(Result) then
       Result := '';
   end;
   { try to find in $ANDROID_HOME }
@@ -153,7 +153,7 @@ begin
     if Env <> '' then
     begin
       Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
-      if not FileExists(Result) then
+      if not RegularFileExists(Result) then
         Result := '';
     end;
   end;
@@ -178,7 +178,7 @@ begin
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
-    if not FileExists(Result) then
+    if not RegularFileExists(Result) then
       Result := '';
   end;
   { try to find on $PATH }
@@ -205,7 +205,7 @@ var
   procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
-    if not FileExists(AndroidProjectPath + FileName) then
+    if not RegularFileExists(AndroidProjectPath + FileName) then
       SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
@@ -214,7 +214,7 @@ var
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileTo));
-    if not FileExists(AndroidProjectPath + FileTo) then
+    if not RegularFileExists(AndroidProjectPath + FileTo) then
       SmartCopyFile(FileFrom, AndroidProjectPath + FileTo)
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileTo);
@@ -223,7 +223,7 @@ var
 {
   procedure PackageStringToFile(const FileTo, Contents: string);
   begin
-    if not FileExists(AndroidProjectPath + FileTo) then
+    if not RegularFileExists(AndroidProjectPath + FileTo) then
     begin
       PackageCheckForceDirectories(ExtractFilePath(FileTo));
       StringToFile(FileTo, Contents);
@@ -480,11 +480,11 @@ var
     KeyAlias := '';
     KeyStorePassword := '';
     KeyAliasPassword := '';
-    if FileExists(Project.Path + SourceAntProperties) then
+    if RegularFileExists(Project.Path + SourceAntProperties) then
     begin
       LoadSigningProperties(Project.Path + SourceAntProperties);
     end else
-    if FileExists(Project.Path + SourceAntPropertiesOld) then
+    if RegularFileExists(Project.Path + SourceAntPropertiesOld) then
     begin
       LoadSigningProperties(Project.Path + SourceAntPropertiesOld);
       WritelnWarning('Deprecated', 'Using deprecated configuration file name "' + SourceAntPropertiesOld + '". Rename it to "' + SourceAntProperties + '".');
@@ -565,7 +565,7 @@ var
       end;
 
       {$else}
-      if FileExists(AndroidProjectPath + 'gradlew') then
+      if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
         Args.Insert(0, './gradlew');
         RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
@@ -619,12 +619,12 @@ var
 begin
   ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
   ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
-  if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
+  if RegularFileExists(ApkDebugName) and RegularFileExists(ApkReleaseName) then
     raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);
-  if FileExists(ApkDebugName) then
+  if RegularFileExists(ApkDebugName) then
     ApkName := ApkDebugName else
-  if FileExists(ApkReleaseName) then
+  if RegularFileExists(ApkReleaseName) then
     ApkName := ApkReleaseName else
     raise Exception.CreateFmt('No Android apk found in this directory: "%s" or "%s"',
       [ApkDebugName, ApkReleaseName]);

@@ -21,7 +21,7 @@ interface
 uses X3DNodes;
 
 { Load 3D model in the STL format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(Load3D) to load an STL file.
+  This routine is internally used by the @link(LoadNode) to load an STL file.
   See https://en.wikipedia.org/wiki/STL_%28file_format%29 for
   more information about STL. }
 function LoadSTL(const URL: string): TX3DRootNode;

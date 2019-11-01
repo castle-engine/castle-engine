@@ -280,7 +280,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadX3DClassic(FileName, false, false);
+      Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
@@ -2037,7 +2037,7 @@ begin
   ApplicationProperties.OnWarning.Add(@WeakLinkUnusedWarning);
   try
     try
-      Load3D('castle-data:/warning_when_new_node_as_shadow_map_light.x3dv');
+      LoadNode('castle-data:/warning_when_new_node_as_shadow_map_light.x3dv');
       raise Exception.Create('We should not get here, expected EWeakLinkUnused on the way');
     except
       on EWeakLinkUnused do ; { good, silence this for the sake of test }

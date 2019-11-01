@@ -51,6 +51,11 @@ type
     { For Hierarchical Occlusion Culling. }
     RenderedFrameId: Cardinal;
 
+    { Do not share the cache of this shape with other shapes.
+      Offers tiny optimization when you know that this shape cannot be shared anyway.
+      Never change it after initial render. }
+    DisableSharedCache: Boolean;
+
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
@@ -82,7 +87,10 @@ begin
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
     if Changes * [chCoordinate] <> [] then
-      Cache.FreeArrays([vtCoordinate]) else
+      Cache.FreeArrays([vtCoordinate]);
+    { Note that Changes may contain both chCoordinate and chTextureCoordinate
+      (e.g. in case of batching)
+      in which case both "if" clauses should be entered. }
     if Changes * [chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
       Cache.FreeArrays(AllVboTypes);
@@ -147,7 +155,7 @@ begin
 
   { Free Arrays and Vbo of all shapes. }
   if Cache <> nil then
-    Renderer.Cache.Shape_DecReference(Cache);
+    Renderer.Cache.Shape_DecReference(Self, Cache);
   for Pass := Low(Pass) to High(Pass) do
     if ProgramCache[Pass] <> nil then
       Renderer.Cache.Program_DecReference(ProgramCache[Pass]);

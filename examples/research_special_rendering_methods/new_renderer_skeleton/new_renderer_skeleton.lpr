@@ -76,39 +76,37 @@ procedure TCastleSceneVulkan.PrepareResources(
   const Options: TPrepareResourcesOptions;
   const ProgressStep: boolean; const Params: TPrepareParams);
 var
-  SI: TShapeTreeIterator;
-  Shape: TVulkanShape;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
-  SI := TShapeTreeIterator.Create(Shapes, false, false);
-  try
-    while SI.GetNext do
-    begin
-      Shape := TVulkanShape(SI.Current);
-      Writeln('Prepare to render shape: ', Shape.NiceName);
+  ShapeList := Shapes.TraverseList(false, false);
+  for Shape in ShapeList do
+  begin
+    Writeln('Prepare to render shape: ', Shape.NiceName);
 
-      { TODO: Load Shape data to GPU now.
+    { TODO: Load Shape data to GPU now
+      (you can cast Shape to TShapeVulkan as necessary).
 
-        - E.g. load geometry data (Shape.GeometryArrays) to VBO.
-          You should call Shape.GeometryArrays.FreeData afterwards,
-          to not keep the data on CPU anymore.
+      - E.g. load geometry data (Shape.GeometryArrays) to VBO.
+        You should call Shape.GeometryArrays.FreeData afterwards,
+        to not keep the data on CPU anymore.
 
-        - E.g. load textures to GPU.
+      - E.g. load textures to GPU.
 
-        - You should be prepared that some data may be already loaded.
-          So all the loading should look like
+      - You should be prepared that some data may be already loaded.
+        So all the loading should look like
 
-            if not Shape.SomethingLoaded then
-            begin
-              Shape.SomethingLoaded := true;
-              // load something here ...
-            end;
+          if not Shape.SomethingLoaded then
+          begin
+            Shape.SomethingLoaded := true;
+            // load something here ...
+          end;
 
-        For a first renderer test you can also instead load on-demand
-        from the LocalRender implementation.
-      }
+      For a first renderer test you can also instead load on-demand
+      from the LocalRender implementation.
+    }
 
-    end;
-  finally FreeAndNil(SI) end;
+  end;
 end;
 
 procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
@@ -135,38 +133,35 @@ procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
 
 var
   SceneModelView, ShapeModelView: TMatrix4;
-  SI: TShapeTreeIterator;
-  Shape: TVulkanShape;
+  ShapeList: TShapeList;
+  Shape: TShape;
   GeometryArrays: TGeometryArrays;
 begin
   SceneModelView := GetSceneModelView;
-  SI := TShapeTreeIterator.Create(Shapes, true, true);
-  try
-    while SI.GetNext do
-    begin
-      Shape := TVulkanShape(SI.Current);
-      ShapeModelView := SceneModelView * Shape.State.Transform;
-      Writeln('Rendering shape: ', Shape.NiceName);
-      Writeln('Projection matrix:');
-      Writeln(ProjectionMatrix.ToString('    '));
-      Writeln('Modelview matrix: ');
-      Writeln(ShapeModelView.ToString('    '));
+  ShapeList := Shapes.TraverseList(true, true);
+  for Shape in ShapeList do
+  begin
+    ShapeModelView := SceneModelView * Shape.State.Transform;
+    Writeln('Rendering shape: ', Shape.NiceName);
+    Writeln('Projection matrix:');
+    Writeln(ProjectionMatrix.ToString('    '));
+    Writeln('Modelview matrix: ');
+    Writeln(ShapeModelView.ToString('    '));
 
-      GeometryArrays := Shape.GeometryArrays(true);
-      try
-        Writeln('Geometry:',
-          ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
-          ', HasIndexes: ',  GeometryArrays.HasIndexes,
-          ', IndexesCount: ', GeometryArrays.IndexesCount,
-          ', Count: ', GeometryArrays.Count);
+    GeometryArrays := Shape.GeometryArrays(true);
+    try
+      Writeln('Geometry:',
+        ' Primitive: ', PrimitiveToStr(GeometryArrays.Primitive),
+        ', HasIndexes: ',  GeometryArrays.HasIndexes,
+        ', IndexesCount: ', GeometryArrays.IndexesCount,
+        ', Count: ', GeometryArrays.Count);
 
-        { TODO: Render Shape here.
-          Load Shape.GeometryArrays to GPU,
-          and pass parameters (like projection and modelview matrix) to shaders.
-        }
-      finally FreeAndNil(GeometryArrays) end;
-    end;
-  finally FreeAndNil(SI) end;
+      { TODO: Render Shape here (you can cast it to TShapeVulkan as necessary).
+        Load Shape.GeometryArrays to GPU,
+        and pass parameters (like projection and modelview matrix) to shaders.
+      }
+    finally FreeAndNil(GeometryArrays) end;
+  end;
 end;
 
 { Vulkan application and window ---------------------------------------------- }

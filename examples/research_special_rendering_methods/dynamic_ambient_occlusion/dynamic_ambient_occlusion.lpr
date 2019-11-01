@@ -196,22 +196,16 @@ procedure CalculateElements;
   end;
 
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
   I, GoodElementsCount, ShapeIndex, ShapeCoord: Integer;
 begin
   Elements.Count := 0;
 
   SetLength(Shapes, Scene.Shapes.ShapesCount(true, true, false));
 
-  ShapeIndex := 0;
-  SI := TShapeTreeIterator.Create(Scene.Shapes, true, true, false);
-  try
-    while SI.GetNext do
-    begin
-      AddShapeElements(ShapeIndex, SI.Current);
-      Inc(ShapeIndex);
-    end;
-  finally FreeAndNil(SI) end;
+  ShapeList := Scene.Shapes.TraverseList(true, true, false);
+  for ShapeIndex := 0 to ShapeList.Count - 1 do
+    AddShapeElements(ShapeIndex, ShapeList[ShapeIndex]);
 
   { Remove Elements with zero normal vector.
 

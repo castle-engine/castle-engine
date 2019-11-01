@@ -455,7 +455,9 @@ begin
     Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
     Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
     Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else Result := false;
+    {$endif}
   end;
 end;
 
@@ -551,6 +553,7 @@ begin
       case Key of
         keyTab   : KeyString := CharTab;
         keyDelete: KeyString := CharDelete;
+        else ;
       end;
 
     OnPress(Self, InputKey(TVector2.Zero, Key, KeyString, Modifiers));

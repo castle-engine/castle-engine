@@ -43,7 +43,7 @@ var
   Switch: TCastleSwitchControl;
 
 type
-  TClicksHandler = class
+  TEventsHandler = class
     class procedure ButtonClick(Sender: TObject);
     class procedure ButtonDemoClick(Sender: TObject);
     class procedure ClickableItemClick(Sender: TObject);
@@ -53,61 +53,73 @@ type
     class procedure UIScalingEncloseReferenceClick(Sender: TObject);
     class procedure UIScalingFitReferenceClick(Sender: TObject);
     class procedure RotationChange(Sender: TObject);
+    class procedure MouseEnter(const Sender: TCastleUserInterface);
+    class procedure MouseLeave(const Sender: TCastleUserInterface);
   end;
 
-class procedure TClicksHandler.ButtonClick(Sender: TObject);
+class procedure TEventsHandler.ButtonClick(Sender: TObject);
 begin
   Notifications.Show('Button clicked');
 end;
 
-class procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
+class procedure TEventsHandler.ButtonDemoClick(Sender: TObject);
 begin
   Notifications.Show('Button in on-screen menu clicked');
 end;
 
-class procedure TClicksHandler.ClickableItemClick(Sender: TObject);
+class procedure TEventsHandler.ClickableItemClick(Sender: TObject);
 begin
   Notifications.Show('Clickable item in on-screen menu clicked');
 end;
 
-class procedure TClicksHandler.UIScalingExplicitTwiceClick(Sender: TObject);
+class procedure TEventsHandler.UIScalingExplicitTwiceClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 2.0;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-class procedure TClicksHandler.UIScalingExplicitHalfClick(Sender: TObject);
+class procedure TEventsHandler.UIScalingExplicitHalfClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 0.5;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-class procedure TClicksHandler.UIScalingExplicitNormalClick(Sender: TObject);
+class procedure TEventsHandler.UIScalingExplicitNormalClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 1.0;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-class procedure TClicksHandler.UIScalingEncloseReferenceClick(Sender: TObject);
+class procedure TEventsHandler.UIScalingEncloseReferenceClick(Sender: TObject);
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 end;
 
-class procedure TClicksHandler.UIScalingFitReferenceClick(Sender: TObject);
+class procedure TEventsHandler.UIScalingFitReferenceClick(Sender: TObject);
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usFitReferenceSize;
 end;
 
-class procedure TClicksHandler.RotationChange(Sender: TObject);
+class procedure TEventsHandler.RotationChange(Sender: TObject);
 begin
   Image.Rotation := SliderRotation.Value;
   Image2.Rotation := SliderRotation.Value;
   ImageInsideMenu.Rotation := SliderRotation.Value;
   ImageWithBorders.Rotation := SliderRotation.Value;
+end;
+
+class procedure TEventsHandler.MouseEnter(const Sender: TCastleUserInterface);
+begin
+  Notifications.Show('MouseEnter on ' + Sender.Name + ' ' + Sender.ClassName);
+end;
+
+class procedure TEventsHandler.MouseLeave(const Sender: TCastleUserInterface);
+begin
+  Notifications.Show('MouseLeave on ' + Sender.Name + ' ' + Sender.ClassName);
 end;
 
 procedure ApplicationInitialize;
@@ -143,15 +155,19 @@ begin
   Window.Controls.InsertBack(Background);
 
   Button := TCastleButton.Create(Window);
+  Button.Name := 'Button';
   Button.Caption := 'My Button (with a tooltip and icon!)';
   Button.Tooltip := 'Sample tooltip over my button';
   Button.Left := 10;
   Button.Bottom := 10;
   Button.Image.URL := 'castle-data:/sample_button_icon.png';
-  Button.OnClick := @TClicksHandler(nil).ButtonClick;
+  Button.OnClick := @TEventsHandler(nil).ButtonClick;
+  Button.OnInternalMouseEnter := @TEventsHandler(nil).MouseEnter;
+  Button.OnInternalMouseLeave := @TEventsHandler(nil).MouseLeave;
   Window.Controls.InsertFront(Button);
 
   Image := TCastleImageControl.Create(Window);
+  Image.Name := 'Image';
   Image.URL := 'castle-data:/sample_image_with_alpha.png';
   Image.Left := 200;
   Image.Bottom := 150;
@@ -160,6 +176,7 @@ begin
   Window.Controls.InsertFront(Image);
 
   Image2 := TCastleImageControl.Create(Window);
+  Image2.Name := 'Image2';
   Image2.URL := 'castle-data:/sample_image_with_alpha.png';
   Image2.Bottom := 150;
   Image2.Stretch := true;
@@ -169,6 +186,8 @@ begin
   //Image2.SmoothScaling := false;
   Image2.Clip := TestClip;
   Image2.ClipLine := TestClipLine;
+  Image2.OnInternalMouseEnter := @TEventsHandler(nil).MouseEnter;
+  Image2.OnInternalMouseLeave := @TEventsHandler(nil).MouseLeave;
   Window.Controls.InsertFront(Image2);
 
   ImageInsideMenu := TCastleImageControl.Create(Window);
@@ -181,29 +200,29 @@ begin
   SliderRotation.Min := -Pi;
   SliderRotation.Max := Pi;
   SliderRotation.Value := 0;
-  SliderRotation.OnChange := @TClicksHandler(nil).RotationChange;
+  SliderRotation.OnChange := @TEventsHandler(nil).RotationChange;
 
   ButtonDemo := TCastleButton.Create(Window);
   ButtonDemo.Caption := 'Button inside an on-screen menu';
-  ButtonDemo.OnClick := @TClicksHandler(nil).ButtonDemoClick;
+  ButtonDemo.OnClick := @TEventsHandler(nil).ButtonDemoClick;
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Add('Clickable item', @TClicksHandler(nil).ClickableItemClick);
-  OnScreenMenu.Add('Another clickable item', @TClicksHandler(nil).ClickableItemClick);
+  OnScreenMenu.Add('Clickable item', @TEventsHandler(nil).ClickableItemClick);
+  OnScreenMenu.Add('Another clickable item', @TEventsHandler(nil).ClickableItemClick);
   OnScreenMenu.Add('Non-clickable item');
   OnScreenMenu.Add('Item with image', ImageInsideMenu);
   OnScreenMenu.Add('Item with button', ButtonDemo);
   OnScreenMenu.Add('Slider to test images rotation', SliderRotation);
   OnScreenMenu.Add('UI Scale x2 (UIScaling := usExplicitScale, UIExplicitScale := 2.0)',
-    @TClicksHandler(nil).UIScalingExplicitTwiceClick);
+    @TEventsHandler(nil).UIScalingExplicitTwiceClick);
   OnScreenMenu.Add('UI Scale /2 (UIScaling := usExplicitScale, UIExplicitScale := 0.5)',
-    @TClicksHandler(nil).UIScalingExplicitHalfClick);
+    @TEventsHandler(nil).UIScalingExplicitHalfClick);
   OnScreenMenu.Add('Do not Scale UI (UIScaling := usExplicitScale, UIExplicitScale := 1.0)',
-    @TClicksHandler(nil).UIScalingExplicitNormalClick);
+    @TEventsHandler(nil).UIScalingExplicitNormalClick);
   OnScreenMenu.Add('UI Scale adjust to window size (usEncloseReferenceSize);',
-    @TClicksHandler(nil).UIScalingEncloseReferenceClick);
+    @TEventsHandler(nil).UIScalingEncloseReferenceClick);
   OnScreenMenu.Add('UI Scale adjust to window size (usFitReferenceSize);',
-    @TClicksHandler(nil).UIScalingFitReferenceClick);
+    @TEventsHandler(nil).UIScalingFitReferenceClick);
   OnScreenMenu.Left := 10;
   OnScreenMenu.Anchor(vpTop, -10);
   Window.Controls.InsertFront(OnScreenMenu);

@@ -53,7 +53,7 @@ type
 
   { 3D model open dialog. It uses an URL, and additionally initializes the filters
     to include all the 3D model types our engine can load (through
-    Load3D, through setting TCastleScene.URL and other functions). }
+    LoadNode, through setting TCastleScene.URL and other functions). }
   TCastleOpen3DDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
@@ -209,7 +209,7 @@ end;
 constructor TCastleOpen3DDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FileFiltersToDialog(Load3D_FileFilters, Self);
+  FileFiltersToDialog(LoadScene_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
 end;

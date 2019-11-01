@@ -207,7 +207,7 @@ begin
 
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
-      [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
+      [prRenderSelf, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
 
     WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);

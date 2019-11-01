@@ -619,13 +619,13 @@ function CalculateBoundingBox(
 
   @groupBegin }
 function CalculateBoundingBoxFromIndices(
-  GetVertIndex: TGetIndexFromIndexNumFunc;
-  VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc): TBox3D; overload;
+  const GetVertIndex: TGetIndexFromIndexNumFunc;
+  const VertsIndicesCount: integer;
+  const GetVertex: TGetVertexFromIndexFunc): TBox3D; overload;
 function CalculateBoundingBoxFromIndices(
-  GetVertIndex: TGetIndexFromIndexNumFunc;
-  VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc;
+  const GetVertIndex: TGetIndexFromIndexNumFunc;
+  const VertsIndicesCount: integer;
+  const GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4): TBox3D; overload;
 { @groupEnd }
 
@@ -2391,9 +2391,9 @@ begin
 end;
 
 function CalculateBoundingBoxFromIndices(
-  GetVertIndex: TGetIndexFromIndexNumFunc;
-  VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc): TBox3D;
+  const GetVertIndex: TGetIndexFromIndexNumFunc;
+  const VertsIndicesCount: integer;
+  const GetVertex: TGetVertexFromIndexFunc): TBox3D;
 var
   { pozycja pierwszego nieujemnego indexu.
     Zwracamy TBox3D.Empty wtw. gdy firstIndex nie istnieje }
@@ -2456,9 +2456,9 @@ type
   end;
 
 function CalculateBoundingBoxFromIndices(
-  GetVertIndex: TGetIndexFromIndexNumFunc;
-  VertsIndicesCount: integer;
-  GetVertex: TGetVertexFromIndexFunc;
+  const GetVertIndex: TGetIndexFromIndexNumFunc;
+  const VertsIndicesCount: integer;
+  const GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4): TBox3D;
 var
   Calculator: TVertTransform_Calculator;

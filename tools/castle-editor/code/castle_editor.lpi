@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <ProjectOptions BuildModesCount="3">
-    <Version Value="12"/>
+  <ProjectOptions>
+    <Version Value="11"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="castle_editor"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -13,88 +14,8 @@
       </XPManifest>
       <Icon Value="0"/>
     </General>
-    <BuildModes>
-      <Item1 Name="Default" Default="True"/>
-      <Item2 Name="Debug">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <Target>
-            <Filename Value="../castle-editor"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../common-code"/>
-            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-          </SearchPaths>
-          <Parsing>
-            <SyntaxOptions>
-              <IncludeAssertionCode Value="True"/>
-            </SyntaxOptions>
-          </Parsing>
-          <CodeGeneration>
-            <Checks>
-              <IOChecks Value="True"/>
-              <RangeChecks Value="True"/>
-              <OverflowChecks Value="True"/>
-              <StackChecks Value="True"/>
-            </Checks>
-            <VerifyObjMethodCallValidity Value="True"/>
-          </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <DebugInfoType Value="dsDwarf2Set"/>
-              <UseHeaptrc Value="True"/>
-              <TrashVariables Value="True"/>
-              <UseExternalDbgSyms Value="True"/>
-            </Debugging>
-            <Options>
-              <Win32>
-                <GraphicApplication Value="True"/>
-              </Win32>
-            </Options>
-          </Linking>
-          <Other>
-            <Verbosity>
-              <ShowHints Value="False"/>
-            </Verbosity>
-          </Other>
-        </CompilerOptions>
-      </Item2>
-      <Item3 Name="Release">
-        <CompilerOptions>
-          <Version Value="11"/>
-          <Target>
-            <Filename Value="../castle-editor"/>
-          </Target>
-          <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../../common-code"/>
-            <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
-          </SearchPaths>
-          <CodeGeneration>
-            <SmartLinkUnit Value="True"/>
-            <Optimizations>
-              <OptimizationLevel Value="3"/>
-            </Optimizations>
-          </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <GenerateDebugInfo Value="False"/>
-            </Debugging>
-            <LinkSmart Value="True"/>
-            <Options>
-              <Win32>
-                <GraphicApplication Value="True"/>
-              </Win32>
-            </Options>
-          </Linking>
-          <Other>
-            <Verbosity>
-              <ShowHints Value="False"/>
-            </Verbosity>
-          </Other>
-        </CompilerOptions>
-      </Item3>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -173,14 +94,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormAbout"/>
       </Unit8>
-      <Unit16>
-        <Filename Value="frameviewfile.pas"/>
+      <Unit9>
+        <Filename Value="formpreferences.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="ViewFileFrame"/>
+        <ComponentName Value="PreferencesForm"/>
         <HasResources Value="True"/>
-        <ResourceBaseClass Value="Frame"/>
-        <UnitName Value="FrameViewFile"/>
-      </Unit16>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="FormPreferences"/>
+      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -195,34 +116,34 @@
     </SearchPaths>
     <Conditionals Value="// See http://wiki.freepascal.org/Macros_and_Conditionals
 
-if GetProjValue(&apos;FPC_FULLVERSION&apos;) >= 30101 then
+if GetProjValue('FPC_FULLVERSION') >= 30101 then
 begin
   // do not show
   // Note: Private type &quot;TCustomPointersEnumerator$2&lt;CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T&quot; never used
-  CustomOptions += &apos; -vm5071&apos;;
+  CustomOptions += ' -vm5071';
 end;
 
-if GetProjValue(&apos;FPC_FULLVERSION&apos;) >= 30301 then
+if GetProjValue('FPC_FULLVERSION') >= 30301 then
 begin
   // do not show
   // Note:  Call to subroutine &quot;function TGenericVector3.Length:Single;&quot; marked as inline is not inlined
   // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-  CustomOptions += &apos; -vm6058&apos;;
+  CustomOptions += ' -vm6058';
 
   // do not show
   // Warning: Local variable &quot;$1&quot; of a managed type does not seem to be initialized
   // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += &apos; -vm5089&apos;;
+  CustomOptions += ' -vm5089';
 
   // do not show
   // Warning: Variable &quot;OutputFace&quot; of a managed type does not seem to be initialized
   // (3 false warnings since FPC 3.3.1 in Kraft)
-  CustomOptions += &apos; -vm5090&apos;;
+  CustomOptions += ' -vm5090';
 
   // do not show
   // Warning: function result variable of a managed type does not seem to be initialized
   // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += &apos; -vm5093&apos;;
+  CustomOptions += ' -vm5093';
 end;"/>
     <Linking>
       <Options>
@@ -241,7 +162,7 @@ end;"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="4">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -251,6 +172,9 @@ end;"/>
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
+      <Item4>
+        <Name Value="EExecutableNotFound"/>
+      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>

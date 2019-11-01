@@ -153,7 +153,7 @@ var
   Url: string;
 begin
   Url := Scene.Url;
-  if Window.FileDialog('Open model', Url, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
     Open(Url);
 end;
 

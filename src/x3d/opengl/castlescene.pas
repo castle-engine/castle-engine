@@ -343,7 +343,8 @@ type
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
 const
-  prRender = CastleTransform.prRender;
+  prRenderSelf = CastleTransform.prRenderSelf;
+  prRenderClones = CastleTransform.prRenderClones;
   prBackground = CastleTransform.prBackground;
   prBoundingBox = CastleTransform.prBoundingBox;
   prShadowVolume = CastleTransform.prShadowVolume;
@@ -678,7 +679,7 @@ type
       You are free to change them all at any time.
       Although note that changing some attributes (the ones defined
       in base TRenderingAttributes class) may be a costly operation
-      (next PrepareResources with prRender, or Render call, may need
+      (next PrepareResources with prRenderSelf, or Render call, may need
       to recalculate some things). }
     function Attributes: TSceneRenderingAttributes;
 
@@ -805,7 +806,7 @@ var
   { Combine (right before rendering) multiple shapes with a similar appearance into one.
     This can drastically reduce the number of "draw calls",
     making rendering much faster. }
-  InternalDynamicBatching: Boolean = false;
+  DynamicBatching: Boolean = false;
 
 const
   bsNone = CastleBoxes.bsNone;
@@ -1026,7 +1027,8 @@ procedure TCastleScene.GLContextClose;
   { Call TGLShape.GLContextClose. }
   procedure ShapesGLContextClose;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     if Shapes <> nil then
     begin
@@ -1034,11 +1036,9 @@ procedure TCastleScene.GLContextClose;
         since this GLContextClose may happen after some
         "visibility" changed, that is you changed proxy
         or such by event. }
-      SI := TShapeTreeIterator.Create(Shapes, false, false);
-      try
-        while SI.GetNext do
-          TGLShape(SI.Current).GLContextClose;
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false, false);
+      for Shape in ShapeList do
+        TGLShape(Shape).GLContextClose;
     end;
   end;
 
@@ -1184,7 +1184,7 @@ var
     This sets Shape.ModelView and other properties necessary right before rendering. }
   procedure RenderShape_BatchingTest(const Shape: TGLShape);
   begin
-    if not (InternalDynamicBatching and Batching.Collect(Shape)) then
+    if not (DynamicBatching and Batching.Collect(Shape)) then
       RenderShape_NoTests(Shape);
   end;
 
@@ -1192,7 +1192,7 @@ var
   var
     Shape: TShape;
   begin
-    if InternalDynamicBatching then
+    if DynamicBatching then
     begin
       Batching.Commit;
       for Shape in Batching.Collected do
@@ -1266,9 +1266,11 @@ var
       RenderShape_AllTests(Shape);
   end;
 
-  procedure RenderAllAsOpaque(const IgnoreShapesWithBlending: boolean = false);
+  procedure RenderAllAsOpaque(
+    const IgnoreShapesWithBlending: Boolean = false;
+    const BlendingPipeline: Boolean = false);
   begin
-    if not Params.Transparent then
+    if BlendingPipeline = Params.Transparent then
     begin
       if IgnoreShapesWithBlending then
         Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true)
@@ -1315,8 +1317,72 @@ var
     end;
   end;
 
+  { Render for Attributes.Mode = rmFull }
+  procedure RenderModeFull;
+  var
+    I: Integer;
+  begin
+    if Attributes.ReallyUseHierarchicalOcclusionQuery and
+       (not Attributes.DebugHierOcclusionQueryResults) and
+       (Params.RenderingCamera.Target = rtScreen) and
+       (InternalOctreeRendering <> nil) then
+    begin
+      HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
+        Params, RenderCameraKnown, RenderCameraPosition);
+    end else
+    begin
+      if Attributes.Blending then
+      begin
+        if not Params.Transparent then
+        begin
+          { draw fully opaque objects }
+          if RenderCameraKnown and
+            (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
+          begin
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, false);
+
+            { ShapesSplitBlending already filtered shapes through
+              TestShapeVisibility callback, so later we can render them
+              with RenderShape_SomeTests to skip checking TestShapeVisibility
+              twice. This is a good thing: it means that sorting below has
+              much less shapes to consider. }
+            FilteredShapes.SortFrontToBack(RenderCameraPosition);
+            if DynamicBatching then
+              Batching.PreserveShapeOrder := true;
+            for I := 0 to FilteredShapes.Count - 1 do
+              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+          end else
+            Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
+        end else
+        { this means Params.Transparent = true }
+        begin
+          { draw partially transparent objects }
+          BlendingRenderer.RenderBegin;
+
+          { sort for blending, if BlendingSort not bsNone.
+            Note that bs2D does not require knowledge of the camera,
+            CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
+          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
+              (EffectiveBlendingSort = bs2D) then
+          begin
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, true);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
+            if DynamicBatching then
+              Batching.PreserveShapeOrder := true;
+            for I := 0 to FilteredShapes.Count - 1 do
+              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+          end else
+            Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
+        end;
+
+      end else
+        RenderAllAsOpaque;
+    end;
+  end;
+
 var
-  I: Integer;
   LightRenderEvent: TLightRenderEvent;
 begin
   { We update XxxVisible only for one value of Params.Transparent.
@@ -1359,67 +1425,19 @@ begin
     Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
-    if Attributes.Mode <> rmFull then
-    begin
-      { When not rmFull, we don't want to do anything with glDepthMask
-        or GL_BLEND enable state. Just render everything
-        (except: don't render partially transparent stuff for shadow maps). }
-      RenderAllAsOpaque(Attributes.Mode = rmDepth);
-    end else
-    if Attributes.ReallyUseHierarchicalOcclusionQuery and
-       (not Attributes.DebugHierOcclusionQueryResults) and
-       (Params.RenderingCamera.Target = rtScreen) and
-       (InternalOctreeRendering <> nil) then
-    begin
-      HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Params, RenderCameraKnown, RenderCameraPosition);
-    end else
-    begin
-      if Attributes.Blending then
-      begin
-        if not Params.Transparent then
-        begin
-          { draw fully opaque objects }
-          if RenderCameraKnown and
-            (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
-          begin
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, false);
-
-            { ShapesSplitBlending already filtered shapes through
-              TestShapeVisibility callback, so later we can render them
-              with RenderShape_SomeTests to skip checking TestShapeVisibility
-              twice. This is a good thing: it means that sorting below has
-              much less shapes to consider. }
-            FilteredShapes.SortFrontToBack(RenderCameraPosition);
-
-            for I := 0 to FilteredShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-          end else
-            Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
-        end else
-        { this means Params.Transparent = true }
-        begin
-          { draw partially transparent objects }
-          BlendingRenderer.RenderBegin;
-
-          { sort for blending, if BlendingSort not bsNone.
-            Note that bs2D does not require knowledge of the camera,
-            CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
-              (EffectiveBlendingSort = bs2D) then
-          begin
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
-            for I := 0 to FilteredShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-          end else
-            Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
-        end;
-
-      end else
-        RenderAllAsOpaque;
+    case Attributes.Mode of
+      rmDepth:
+        { When not rmFull, we don't want to do anything with glDepthMask
+          or GL_BLEND enable state. Just render everything
+          (except: don't render partially transparent stuff for shadow maps). }
+        RenderAllAsOpaque(true);
+      rmSolidColor:
+        RenderAllAsOpaque(false, Attributes.SolidColorBlendingPipeline);
+      rmFull:
+        RenderModeFull;
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('Attributes.Mode?');
+      {$endif}
     end;
 
     BatchingCommit;
@@ -1450,82 +1468,101 @@ procedure TCastleScene.PrepareResources(
 
   procedure PrepareShapesResources;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
+    I: Integer;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false, false);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).PrepareResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false, false);
+    for Shape in ShapeList do
+      TGLShape(Shape).PrepareResources;
+
+    if DynamicBatching then
+      for I := 0 to Batching.PoolShapesCount - 1 do
+        Batching.PoolShapes[I].PrepareResources;
   end;
 
   procedure PrepareRenderShapes;
   var
-    SI: TShapeTreeIterator;
-    Shape: TGLShape;
+    ShapeList: TShapeList;
+    Shape: TShape;
     BaseLights: TLightInstancesList;
     GoodParams, OwnParams: TPrepareParams;
     DummyCamera: TRenderingCamera;
+    I: Integer;
   begin
     if LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
 
     { Note: we prepare also not visible shapes, in case they become visible. }
-    SI := TShapeTreeIterator.Create(Shapes, false, false);
+    ShapeList := Shapes.TraverseList(false, false);
+
+    { Prepare resources by doing rendering.
+      But with Renderer.RenderMode set to rmPrepareRenderXxx so nothing will be actually drawn. }
+
+    if prRenderSelf in Options then
+      Renderer.RenderMode := rmPrepareRenderSelf
+    else
+    begin
+      Assert(prRenderClones in Options);
+      Renderer.RenderMode := rmPrepareRenderClones;
+    end;
+
+    { calculate OwnParams, GoodParams }
+    if Params = nil then
+    begin
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
+      OwnParams := TPrepareParams.Create;
+      GoodParams := OwnParams;
+    end else
+    begin
+      OwnParams := nil;
+      GoodParams := Params;
+    end;
+
+    BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+
+    { We need some non-nil TRenderingCamera instance to be able
+      to render with lights. }
+    DummyCamera := TRenderingCamera.Create;
     try
-      Inc(Renderer.PrepareRenderShape);
-      try
-        { calculate OwnParams, GoodParams }
-        if Params = nil then
+      { Set matrix to be anything sensible.
+        Otherwise opening a scene with shadow maps makes a warning
+        that camera matrix is all 0,
+        and cannot be inverted, since
+        TTextureCoordinateRenderer.RenderCoordinateBegin does
+        RenderingCamera.InverseMatrixNeeded.
+        Testcase: silhouette. }
+      DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
+        TMatrix4.Identity);
+
+      Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
+
+      for Shape in ShapeList do
+      begin
+        { set sensible Shape.ModelView, otherwise it is zero
+          and TShader.EnableClipPlane will raise an exception since
+          PlaneTransform(Plane, SceneModelView); will fail,
+          with SceneModelView matrix = zero. }
+        TGLShape(Shape).ModelView := TMatrix4.Identity;
+        TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+        Renderer.RenderShape(TGLShape(Shape));
+      end;
+
+      if DynamicBatching then
+        for I := 0 to Batching.PoolShapesCount - 1 do
         begin
-          WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
-          OwnParams := TPrepareParams.Create;
-          GoodParams := OwnParams;
-        end else
-        begin
-          OwnParams := nil;
-          GoodParams := Params;
+          Shape := Batching.PoolShapes[I];
+          TGLShape(Shape).ModelView := TMatrix4.Identity;
+          TGLShape(Shape).Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
+          Renderer.RenderShape(TGLShape(Shape));
         end;
 
-        { Prepare resources by doing rendering.
-          But with Renderer.PrepareRenderShape <> 0,
-          so nothing will be actually drawn). }
+      Renderer.RenderEnd;
+    finally FreeAndNil(DummyCamera) end;
 
-        BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+    FreeAndNil(OwnParams);
 
-        { We need some non-nil TRenderingCamera instance to be able
-          to render with lights. }
-        DummyCamera := TRenderingCamera.Create;
-        try
-          { Set matrix to be anything sensible.
-            Otherwise opening a scene with shadow maps makes a warning
-            that camera matrix is all 0,
-            and cannot be inverted, since
-            TTextureCoordinateRenderer.RenderCoordinateBegin does
-            RenderingCamera.InverseMatrixNeeded.
-            Testcase: silhouette. }
-          DummyCamera.FromMatrix(TMatrix4.Identity, TMatrix4.Identity,
-            TMatrix4.Identity);
-
-          Renderer.RenderBegin(BaseLights, DummyCamera, nil, 0, 0, 0);
-          while SI.GetNext do
-          begin
-            Shape := TGLShape(SI.Current);
-
-            { set sensible Shape.ModelView, otherwise it is zero
-              and TShader.EnableClipPlane will raise an exception since
-              PlaneTransform(Plane, SceneModelView); will fail,
-              with SceneModelView matrix = zero. }
-            Shape.ModelView := TMatrix4.Identity;
-            Shape.Fog := ShapeFog(Shape, GoodParams.InternalGlobalFog as TFogNode);
-            Renderer.RenderShape(Shape);
-          end;
-          Renderer.RenderEnd;
-        finally FreeAndNil(DummyCamera) end;
-
-        FreeAndNil(OwnParams);
-      finally Dec(Renderer.PrepareRenderShape) end;
-    finally FreeAndNil(SI) end;
+    Renderer.RenderMode := rmRender; // restore Renderer.RenderMode
   end;
 
 var
@@ -1583,7 +1620,7 @@ begin
       PrepareShapesResources;
     end;
 
-    if (prRender in Options) and not PreparedRender then
+    if ([prRenderSelf, prRenderClones] * Options <> []) and not PreparedRender then
     begin
       { We use PreparedRender to avoid potentially expensive iteration
         over shapes and expensive Renderer.RenderBegin/End. }
@@ -1802,7 +1839,7 @@ begin
       if everything is ready. }
     FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
     FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
-    PrepareResources([prRender], false, FTempPrepareParams);
+    PrepareResources([prRenderSelf], false, FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;
@@ -1841,7 +1878,8 @@ procedure TCastleScene.LocalRenderShadowVolume(
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
@@ -1860,27 +1898,25 @@ begin
     begin
       { shadows are cast only by visible scene parts
         (not e.g. invisible collision box of castle-anim-frames) }
-      SI := TShapeTreeIterator.Create(Shapes, { OnlyActive } true, { OnlyVisible } true);
-      try
-        while SI.GetNext do
+      ShapeList := Shapes.TraverseList({ OnlyActive } true, { OnlyVisible } true);
+      for Shape in ShapeList do
+      begin
+        ShapeBox := Shape.BoundingBox;
+        if not ParentTransformIsIdentity then
+          ShapeBox := ShapeBox.Transform(ParentTransform);
+        SVRenderer.InitCaster(ShapeBox);
+        if SVRenderer.CasterShadowPossiblyVisible then
         begin
-          ShapeBox := SI.Current.BoundingBox;
-          if not ParentTransformIsIdentity then
-            ShapeBox := ShapeBox.Transform(ParentTransform);
-          SVRenderer.InitCaster(ShapeBox);
-          if SVRenderer.CasterShadowPossiblyVisible then
-          begin
-            if ParentTransformIsIdentity then
-              T :=                   SI.Current.State.Transform else
-              T := ParentTransform * SI.Current.State.Transform;
-            SI.Current.InternalShadowVolumes.RenderSilhouetteShadowVolume(
-              SVRenderer.LightPosition, T,
-              SVRenderer.ZFailAndLightCap,
-              SVRenderer.ZFail,
-              ForceOpaque);
-          end;
+          if ParentTransformIsIdentity then
+            T :=                   Shape.State.Transform else
+            T := ParentTransform * Shape.State.Transform;
+          Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
+            SVRenderer.LightPosition, T,
+            SVRenderer.ZFailAndLightCap,
+            SVRenderer.ZFail,
+            ForceOpaque);
         end;
-      finally FreeAndNil(SI) end;
+      end;
     end;
   end;
 end;
@@ -2236,7 +2272,8 @@ end;
 
 procedure TCastleScene.ViewChangedSuddenly;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   inherited;
 
@@ -2245,11 +2282,9 @@ begin
     WritelnLog('Occlusion query', 'View changed suddenly');
 
     { Set OcclusionQueryAsked := false for all shapes. }
-    SI := TShapeTreeIterator.Create(Shapes, false, false, false);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).OcclusionQueryAsked := false;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false, false, false);
+    for Shape in ShapeList do
+      TGLShape(Shape).OcclusionQueryAsked := false;
   end;
 end;
 

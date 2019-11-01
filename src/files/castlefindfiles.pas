@@ -160,9 +160,9 @@ function FindFirstFile(const Path, Mask: string;
 
 implementation
 
-uses URIParser,
-  CastleURIUtils, CastleLog, StrUtils, CastleXMLUtils, CastleStringUtils,
-  CastleInternalDirectoryInformation;
+uses URIParser, StrUtils,
+  CastleURIUtils, CastleLog, CastleXMLUtils, CastleStringUtils,
+  CastleInternalDirectoryInformation, CastleFilesUtils;
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
@@ -546,15 +546,16 @@ begin
     { convert Path to filename and continue }
     Path := URIToFilenameSafe(Path)
   else
-  if P = 'castle-nx-contents' then
-    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents
+  if (P = 'castle-nx-contents') or
+     (P = 'castle-nx-save') then
+    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents and castle-nx-save
   else
   if P <> '' then
     { we can't do anything with different protocols
       (note that empty protocol means it's a filename, so this is OK). }
     Exit(true);
 
-  if FileExists(Path + Base) then Exit(true);
+  if RegularFileExists(Path + Base) then Exit(true);
 
   Helper := TSearchFileHardHelper.Create;
   try

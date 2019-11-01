@@ -39,6 +39,8 @@ The `xxx.castle-user-interface` and `xxx.castle-transform` are simple text files
 
 Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TCastleUserInterface, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TCastleUserInterface` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
 
+TODO: `TCastleEditor` component, discussed below and covering 3 use-cases, is not ready yet. Our current editor covers 1st use-case.
+
 The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
 
 1. It allows to design inside the "Castle Game Engine Editor" here.
@@ -63,15 +65,24 @@ Larger projects may define custom components (descendants of the `TCastleUserInt
 
 2. Inside your [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples), set the attribute `editor_units` to list all the units that call the mentioned `RegisterSerializableComponent`. It is a comma-separated list, like `editor_units="MyButtonUnit, MyMenuUnit"`.
 
-3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `$CASTLE_ENGINE_PATH` is correctly defined.
+3. Make sure:
 
-4. Use the [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`. This will automatically build and run a customized version of the editor that includes your custom components. This step can be replaced by calling _"Project -> Restart Editor (may rebuild editor with custom controls)"_ from the editor.
+    - Lazarus location is correctly set. You can set it in the editor "Preferences" window (or by adjusting `$PATH`). We need to execute `lazbuild` from Lazarus, to rebuild an editor with custom components.
+    - Make sure the CGE location is correctly set. It should be detected automatically if you use the engine package (but you can always customize it using the environment variable `$CASTLE_ENGINE_PATH`).
+
+4. Click menu item _"Project -> Restart Editor (may rebuild editor with custom controls)"_ in the editor (once you open a project).
+
+    Alternatively, use the command-line [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`.
+
+    Both ways will rebuild and run a customized version of the editor that includes your custom components.
 
 ### Open and run source code with external applications
 
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).
 
 We automatically set up project files such that you can run the game from Lazarus or Delphi (to use their built-in debugger). So, you can either compile/run from the CGE editor (which will use our build tool, that wraps Lazarus/Delphi) or you can compile/run from Lazarus or Delphi (for desktop platforms).
+
+TODO: For now, we only work with Lazarus. Delphi support is planned.
 
 ### File browser
 
@@ -94,11 +105,11 @@ You can browse the application files. Our "Files Browser" just displays the file
     * On 3D and 2D models you can run view3dscene.
     * On images you can run castle-view-image.
     * On text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
-    * On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
+    * TODO: On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
     * On other files, we can run the default OS application for them (`OpenDocument`)
 
-* We also want to auto-generate and show a quick previews of models/images inside the CGE editor.
-* Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
+* We also show interactive previews of models/images inside the CGE editor.
+* TODO: Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
 
     * TCastleScene to load a 3D model,
     * TCastle2DScene to load a Spine JSON model,
@@ -114,7 +125,7 @@ The editor is distributed as part of Castle Game Engine, also in binary form (fo
 - view3dscene
 - castle-view-image
 - other tools from castle-engine/tools/ directory
-- maybe external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
+- TODO: In the future we may add external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
 
 The idea is that you only install FPC/Lazarus, then you run precompiled CGE editor and it all just works. Maybe in the future we could even bundle FPC/Lazarus with CGE editor, but this is not something I want to do initially (as packaging FPC/Lazarus is non-trivial, and I also would always want to have a version "unbundled" for people who prefer to install FPC/Lazarus themselves, or use Delphi).
 

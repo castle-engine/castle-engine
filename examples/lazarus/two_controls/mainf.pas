@@ -101,7 +101,7 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  FileFiltersToDialog(Load3D_FileFilters, OpenDialog);
+  FileFiltersToDialog(LoadScene_FileFilters, OpenDialog);
 end;
 
 procedure TMain.TimerTimer(Sender: TObject);

@@ -46,40 +46,40 @@ var
   { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FPCVersionForIPhoneSimulator: string = 'auto';
+  FpcVersionForIPhoneSimulator: string = 'auto';
 
 implementation
 
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  ToolCommonUtils, ToolUtils, ToolFPCVersion;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
 
 type
-  TFPCVersionForIPhoneSimulatorChecked = class
+  TFpcVersionForIPhoneSimulatorChecked = class
   strict private
     class var
       IsCached: boolean;
       CachedValue: string;
-    class function AutoDetect(const FPCVer: TFPCVersion): string; static;
+    class function AutoDetect(const FpcVer: TFpcVersion): string; static;
   public
-    { Return FPCVersionForIPhoneSimulator, but the 1st time this is run,
+    { Return FpcVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value(const FPCVer: TFPCVersion): string; static;
+    class function Value(const FpcVer: TFpcVersion): string; static;
   end;
 
-class function TFPCVersionForIPhoneSimulatorChecked.AutoDetect(
-  const FPCVer: TFPCVersion): string; static;
+class function TFpcVersionForIPhoneSimulatorChecked.AutoDetect(
+  const FpcVer: TFpcVersion): string; static;
 begin
-  if (not Odd(FPCVer.Minor)) and
-     (not Odd(FPCVer.Release)) then
+  if (not Odd(FpcVer.Minor)) and
+     (not Odd(FpcVer.Release)) then
   begin
     { If we have a stable FPC version (like 3.0.0, 3.0.2, 3.0.4...)
       then for iPhone Simulator pass -V with release bumped +1
       (making it 3.0.1, 3.0.3, 3.0.5...). }
     Result := Format('%d.%d.%d', [
-      FPCVer.Major,
-      FPCVer.Minor,
-      FPCVer.Release + 1]);
+      FpcVer.Major,
+      FpcVer.Minor,
+      FpcVer.Release + 1]);
     Writeln('Auto-detected FPC version for iPhone Simulator as ' + Result);
   end else
     { In other cases, do not pass any -Vxxx for iPhone Simulator.
@@ -87,25 +87,23 @@ begin
     Result := '';
 end;
 
-class function TFPCVersionForIPhoneSimulatorChecked.Value(
-  const FPCVer: TFPCVersion): string; static;
+class function TFpcVersionForIPhoneSimulatorChecked.Value(
+  const FpcVer: TFpcVersion): string; static;
 var
   FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
 begin
   if not IsCached then
   begin
-    CachedValue := FPCVersionForIPhoneSimulator;
+    CachedValue := FpcVersionForIPhoneSimulator;
     IsCached := true;
 
     if CachedValue = 'auto' then
-      CachedValue := AutoDetect(FPCVer);
+      CachedValue := AutoDetect(FpcVer);
 
     if CachedValue <> '' then
     begin
-      FpcExe := FindExe('fpc');
-      if FpcExe = '' then
-        raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+      FpcExe := FindExeFpcCompiler;
       MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
@@ -163,7 +161,7 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   CastleEngineSrc: string;
-  FPCVer: TFPCVersion;
+  FpcVer: TFpcVersion;
   FpcOptions: TCastleStringList;
 
   procedure AddEnginePath(Path: string);
@@ -221,7 +219,7 @@ var
       AddEnginePath('pasgltf');
       AddEnginePath('deprecated_units');
 
-      if (not FPCVer.AtLeast(3, 1, 1)) or FPCVer.IsCodeTyphon then
+      if (not FpcVer.AtLeast(3, 1, 1)) or FpcVer.IsCodeTyphon then
         AddEnginePath('compatibility/generics.collections/src');
 
       { Do not add castle-fpc.cfg.
@@ -279,7 +277,7 @@ var
     if OS = iphonesim then
     begin
       IOS := true;
-      VersionForSimulator := TFPCVersionForIPhoneSimulatorChecked.Value(FPCVer);
+      VersionForSimulator := TFpcVersionForIPhoneSimulatorChecked.Value(FpcVer);
       if VersionForSimulator <> '' then
         FpcOptions.Add('-V' + VersionForSimulator);
       {$ifdef DARWIN}
@@ -352,7 +350,7 @@ var
   FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
 begin
-  FPCVer := FPCVersion;
+  FpcVer := FpcVersion;
 
   FpcOptions := TCastleStringList.Create;
   try
@@ -398,7 +396,7 @@ begin
     // TODO: This is a pity, we also hide useful warnings this way.
     FpcOptions.Add('-vm04046');
 
-    if FPCVer.AtLeast(3, 1, 1) then
+    if FpcVer.AtLeast(3, 1, 1) then
     begin
       // do not show Warning: Symbol "TArrayHelper$1" is experimental
       // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
@@ -410,7 +408,7 @@ begin
       FpcOptions.Add('-vm5071');
     end;
 
-    if FPCVer.AtLeast(3, 3, 1) then
+    if FpcVer.AtLeast(3, 3, 1) then
     begin
       // do not show
       // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
@@ -436,65 +434,63 @@ begin
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
+    { Release build and valgrind build are quite similar, they share many options. }
+    if Mode in [cmRelease, cmValgrind] then
+    begin
+      { Aarch64 optimizations exhibit bugs, on all OSes, with FPC 3.0.x.
+        Testcases:
+
+        - iOS:
+
+          With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+          it seems all programs compiled with -O1 or -O2 crash at start.
+
+        - Android:
+
+          Reading some PNG fails (testcase: Silhouette), at least with -O2, fails.
+
+          It is unsure with which FPC version this was reproducible.
+          Probably some FPC 3.0.x.
+          Michalis can no longer reproduce it with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05).
+
+        - Android and Nintendo Switch and iOS:
+
+          TDrawableImage.Draw3x3 calculations are wildly wrong,
+          and in effect TDrawableImage.Draw3x3 usually doesn't seem to draw anything.
+          It seems like DrawWidth parameter is not received correctly,
+          but workarounding it only uncovers more problems, it looks like
+          the values in local Single variables there randomly change.
+
+          This is still reproducible with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05),
+          however it is locally workarounded by "$optimizations off" around
+          Draw3x3 implementation now.
+
+        So we disable optimizations on Aarch64.
+        For safety, we disable them always, unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
+        In the future, we would like to disable them only for FPC 3.0.x. }
+
+      if (CPU = Aarch64) and
+         {not FpcVer.AtLeast(3, 1, 1)}
+         not (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') = 'true') then
+      begin
+        FpcOptions.Add('-O-');
+        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64.');
+      end else
+        FpcOptions.Add('-O2');
+      FpcOptions.Add('-dRELEASE');
+    end;
+
     case Mode of
       cmRelease:
         begin
-          { Aarch64 optimizations exhibit bugs, on all OSes, with FPC 3.0.x.
-            Testcases:
-
-            - iOS:
-
-              With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
-              it seems all programs compiled with -O1 or -O2 crash at start.
-
-            - Android:
-
-              Reading some PNG fails (testcase: Silhouette), at least with -O2, fails.
-
-              It is unsure with which FPC version this was reproducible.
-              Probably some FPC 3.0.x.
-              Michalis can no longer reproduce it with FPC 3.3.1 revision 42921
-              (latest revision as of 2019/09/05).
-
-            - Android and Nintendo Switch and iOS:
-
-              TDrawableImage.Draw3x3 calculations are wildly wrong,
-              and in effect TDrawableImage.Draw3x3 usually doesn't seem to draw anything.
-              It seems like DrawWidth parameter is not received correctly,
-              but workarounding it only uncovers more problems, it looks like
-              the values in local Single variables there randomly change.
-
-              This is still reproducible with FPC 3.3.1 revision 42921
-              (latest revision as of 2019/09/05),
-              however it is locally workarounded by "$optimizations off" around
-              Draw3x3 implementation now.
-
-            So we disable optimizations on Aarch64, for FPC 3.0.x. }
-
-          if (CPU = aarch64) and not FPCVer.AtLeast(3, 1, 1) then
-          begin
-            FpcOptions.Add('-O-');
-            WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC 3.0.x.');
-          end else
-            FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
-          FpcOptions.Add('-dRELEASE');
         end;
       cmValgrind:
         begin
-          { The logic of -Oxxx and -dRELEASE is the same as for cmRelease. }
-          if (CPU = aarch64) and not FPCVer.AtLeast(3, 1, 1) then
-          begin
-            FpcOptions.Add('-O-');
-            WritelnWarning('Disabling optimizations, because they are buggy on Aarch64 with FPC 3.0.x.');
-          end else
-            FpcOptions.Add('-O2');
-          FpcOptions.Add('-dRELEASE');
-
-          { The cmValgrind is similar to cmRelease, but
-            - without -Xs
-            - with -gv, -gl
-            See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind }
+          { See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind
+            for reasons of Valgrind options. }
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
@@ -590,9 +586,7 @@ begin
       FpcOptions.AddRange(ExtraOptions);
 
     Writeln('FPC executing...');
-    FpcExe := FindExe('fpc');
-    if FpcExe = '' then
-      raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+    FpcExe := FindExeFpcCompiler;
 
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then

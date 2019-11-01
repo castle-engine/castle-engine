@@ -555,7 +555,7 @@ procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
     if DoProgress then Progress.Step;
 
     if Scene <> nil then
-      Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
+      Scene.PrepareResources([prRenderSelf, prBoundingBox, prShadowVolume],
         false, Params);
     if DoProgress then Progress.Step;
   end;

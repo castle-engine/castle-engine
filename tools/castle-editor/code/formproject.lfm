@@ -4,7 +4,7 @@ object ProjectForm: TProjectForm
   Top = 233
   Width = 1332
   Caption = ' my-project | Castle Game Engine'
-  ClientHeight = 703
+  ClientHeight = 705
   ClientWidth = 1332
   DesignTimePPI = 140
   Menu = MainMenu1
@@ -12,11 +12,11 @@ object ProjectForm: TProjectForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poMainFormCenter
-  LCLVersion = '1.8.0.6'
+  LCLVersion = '2.0.0.4'
   object PageControlBottom: TPageControl
     Left = 0
     Height = 262
-    Top = 441
+    Top = 443
     Width = 1332
     ActivePage = TabWarnings
     Align = alBottom
@@ -24,8 +24,8 @@ object ProjectForm: TProjectForm
     TabOrder = 0
     object TabFiles: TTabSheet
       Caption = 'Files'
-      ClientHeight = 217
-      ClientWidth = 1326
+      ClientHeight = 225
+      ClientWidth = 1328
       object SplitterBetweenFiles: TSplitter
         Left = 367
         Height = 217
@@ -35,8 +35,8 @@ object ProjectForm: TProjectForm
     end
     object TabOutput: TTabSheet
       Caption = 'Output'
-      ClientHeight = 217
-      ClientWidth = 1326
+      ClientHeight = 225
+      ClientWidth = 1328
       object ListOutput: TListBox
         Left = 0
         Height = 217
@@ -53,17 +53,17 @@ object ProjectForm: TProjectForm
     end
     object TabWarnings: TTabSheet
       Caption = 'Warnings'
-      ClientHeight = 217
-      ClientWidth = 1326
+      ClientHeight = 225
+      ClientWidth = 1328
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 217
+        Height = 225
         Top = 0
-        Width = 1326
+        Width = 1328
         Align = alClient
         ItemHeight = 0
-        ScrollWidth = 1324
+        ScrollWidth = 1326
         TabOrder = 0
         TopIndex = -1
       end
@@ -73,19 +73,19 @@ object ProjectForm: TProjectForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 434
+    Top = 436
     Width = 1332
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object PanelAboveTabs: TPanel
     Left = 0
-    Height = 434
+    Height = 436
     Top = 0
     Width = 1332
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 434
+    ClientHeight = 436
     ClientWidth = 1332
     TabOrder = 2
     object LabelNoDesign: TLabel
@@ -95,10 +95,10 @@ object ProjectForm: TProjectForm
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Side = asrCenter
       AnchorSideBottom.Side = asrCenter
-      Left = 328
-      Height = 216
-      Top = 109
-      Width = 677
+      Left = 344
+      Height = 192
+      Top = 122
+      Width = 645
       Alignment = taCenter
       Caption = 'To visually design'#10'user interface or 3D/2D game world, '#10'open or create a new design'#10'using the "Design" menu.'
       Font.Height = -39
@@ -115,6 +115,13 @@ object ProjectForm: TProjectForm
       object MenuItemRestartRebuildEditor: TMenuItem
         Caption = 'Restart Editor (may rebuild editor with custom controls)'
         OnClick = MenuItemRestartRebuildEditorClick
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItemPreferences: TMenuItem
+        Caption = 'Preferences'
+        OnClick = MenuItemPreferencesClick
       end
       object MenuItemSeparator788: TMenuItem
         Caption = '-'

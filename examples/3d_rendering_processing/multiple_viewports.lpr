@@ -202,7 +202,7 @@ var
   NewURL: string;
 begin
   NewURL := URL;
-  if Window.FileDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open Scene', NewURL, true, LoadScene_FileFilters) then
   begin
     Scene.Load(NewURL);
     // In case of trouble when loading, this will raise an exception.
@@ -304,7 +304,7 @@ begin
   CameraReinitialize;
 
   OpenButton := TCastleButton.Create(Application);
-  OpenButton.Caption := 'Open 3D file';
+  OpenButton.Caption := 'Open Scene';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   OpenButton.Anchor(hpLeft, Margin);
   OpenButton.Anchor(vpTop, -Margin);

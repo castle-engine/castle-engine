@@ -273,7 +273,7 @@ uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
-  ToolCommonUtils, ToolMacros;
+  ToolCommonUtils, ToolMacros, ToolCompilerInfo;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -314,7 +314,7 @@ var
   Dir, ParentDir: string;
 begin
   Dir := GetCurrentDir;
-  while not FileExists(InclPathDelim(Dir) + ManifestName) do
+  while not RegularFileExists(InclPathDelim(Dir) + ManifestName) do
   begin
     ParentDir := ExtractFileDir(ExclPathDelim(Dir));
     if (ParentDir = '') or (ParentDir = Dir) then
@@ -413,7 +413,7 @@ constructor TCastleProject.Create(const APath: string);
         FileInfo: TFileInfo;
       begin
         Result := ExtractFileName(ExtractFileDir(ManifestFile));
-        if not FileExists(Result + '.lpr') then
+        if not RegularFileExists(Result + '.lpr') then
         begin
           if FindFirstFile(GetCurrentDir, '*.lpr', false, [], FileInfo) then
             Result := DeleteFileExt(FileInfo.Name)
@@ -485,7 +485,7 @@ constructor TCastleProject.Create(const APath: string);
     NewCompilerOption: String;
   begin
     ManifestFile := Path + ManifestName;
-    if not FileExists(ManifestFile) then
+    if not RegularFileExists(ManifestFile) then
       AutoGuessManifest else
     begin
       WritelnVerbose('Manifest file found: ' + ManifestFile);
@@ -842,7 +842,7 @@ procedure TCastleProject.DoCreateManifest;
 var
   Contents: string;
 begin
-  if FileExists(ManifestFile) then
+  if RegularFileExists(ManifestFile) then
     raise Exception.CreateFmt('Manifest file "%s" already exists, refusing to overwrite it',
       [ManifestFile]);
   Contents := '<?xml version="1.0" encoding="utf-8"?>' +NL+
@@ -1069,7 +1069,7 @@ procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const
   begin
     LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
     Result := URIToFilenameSafe(LibraryURL);
-    if not FileExists(Result) then
+    if not RegularFileExists(Result) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
   end;
 
@@ -1613,7 +1613,7 @@ procedure TCastleProject.DoClean;
   { Delete a file, given as absolute FileName. }
   procedure TryDeleteAbsoluteFile(FileName: string);
   begin
-    if FileExists(FileName) then
+    if RegularFileExists(FileName) then
     begin
       if Verbose then
         Writeln('Deleting ' + FileName);
@@ -1761,7 +1761,7 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    LazbuildExe := FindExe('lazbuild');
+    LazbuildExe := FindExeLazarus('lazbuild');
     if LazbuildExe = '' then
       raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
@@ -1770,7 +1770,7 @@ begin
     RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    if not FileExists(EditorExe) then
+    if not RegularFileExists(EditorExe) then
       raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
   end;
 
@@ -2078,7 +2078,7 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if (not OverrideExisting) and FileExists(DestinationFileName) then
+  if (not OverrideExisting) and RegularFileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);

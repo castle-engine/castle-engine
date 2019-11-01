@@ -1297,7 +1297,7 @@ end;
 
 procedure TCastleControl.Load(const SceneURL: string);
 begin
-  Load(Load3D(SceneURL, false), true);
+  Load(LoadNode(SceneURL), true);
 end;
 
 procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);

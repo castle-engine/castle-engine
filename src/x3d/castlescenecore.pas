@@ -397,6 +397,12 @@ type
     pgBox
   );
 
+  { Possible options for @link(TCasteSceneCore.Load). }
+  TSceneLoadOption = (
+    slDisableResetTime
+  );
+  TSceneLoadOptions = set of TSceneLoadOption;
+
   { Loading and processing of a scene.
     Almost everything visible in your game will be an instance of
     @link(TCastleScene), which is a descendant of this class that adds rendering
@@ -550,7 +556,6 @@ type
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
-    ForceImmediateProcessing: Integer;
 
     { Some TimeSensor with DetectAffectedFields exists on TimeDependentHandlers list. }
     NeedsDetectAffectedFields: Boolean;
@@ -568,6 +573,12 @@ type
     ShapeLODs: TObjectList;
 
     FPrimitiveGeometry: TPrimitiveGeometry;
+
+    { Increased when something changed that could affect the results
+      of Shapes tree traversal, i.e. different TShape instances returned
+      by Shapes.Traverse.
+      Never zero. }
+    FShapesHash: TShapesHash;
 
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
@@ -597,7 +608,15 @@ type
       It must be associated only with TShapeTreeTransform,
       which must be true for all ITransformNode nodes.
       Changes must include chTransform, may also include other changes
-      (this will be passed to shapes affected). }
+      (this will be passed to shapes affected).
+
+      Do not ever call this when OptimizeExtensiveTransformations.
+      It would be buggy when both OptimizeExtensiveTransformations
+      and InternalFastTransformUpdate are set, because in this case,
+      TShapeTreeTransform.FastTransformUpdateCore leaves
+      TShapeTreeTransform.Transform invalid,
+      which will cause TransformationChanged result invalid.
+    }
     procedure TransformationChanged(const TransformNode: TX3DNode;
       const Changes: TX3DChanges);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
@@ -622,9 +641,16 @@ type
       is not visible.  Otherwise stop/start time would be delayed too until
       it becomes visible, which is not perfect (although it would be Ok
       in practice too?) }
-    procedure UpdateNewPlayingAnimation;
+    procedure UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 
     function SensibleCameraRadius(const WorldBox: TBox3D): Single;
+
+    { Apply TransformationDirty effect
+      (necessary to finalize OptimizeExtensiveTransformations,
+      after TTransformNode values changed).
+      Always call this after doing something that could change
+      TTransformNode values. }
+    procedure FinishTransformationChanges;
   private
     FGlobalLights: TLightInstancesList;
 
@@ -993,7 +1019,7 @@ type
 
       @longCode(#
         // DON'T DO THIS!
-        Node := Load3D(URL);
+        Node := LoadNode(URL);
         Scene1 := TCastleScene.Create(Application);
         Scene1.Load(Node, false);
         Scene2 := TCastleScene.Create(Application);
@@ -1014,7 +1040,7 @@ type
       so it is roughly like doing:
 
       @longCode(#
-        Node := Load3D(URL);
+        Node := LoadNode(URL);
         Scene1 := TCastleScene.Create(Application);
         Scene1.Load(Node.DeepCopy as TX3DRootNode, false);
         Scene2 := TCastleScene.Create(Application);
@@ -1028,8 +1054,8 @@ type
       See the manual:
       https://castle-engine.io/manual_scene.php#section_many_instances
     }
-    procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-      const AResetTime: boolean = true);
+    procedure Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+      const AOptions: TSceneLoadOptions = []);
 
     { Load the 3D model from given URL.
 
@@ -1044,14 +1070,10 @@ type
       about supported URL schemes.
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
-      as the URL parameter.
-
-      @param(AllowStdIn If AllowStdIn and AURL = '-' then we will load
-        a file from standard input (StdInStream), using current working directory
-        as BaseUrl (to resolve relative URLs from the file).
-        Currently, this limits the file to be VRML/X3D.) }
-    procedure Load(const AURL: string; AllowStdIn: boolean = false;
-      const AResetTime: boolean = true);
+      as the URL parameter. }
+    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []);
+    procedure Load(const AURL: string; const AllowStdIn: boolean;
+      const AResetTime: boolean = true); deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
 
     { Save the current 3D model (X3D nodes graph) to the given file (URL).
 
@@ -2129,6 +2151,9 @@ type
 
     { @deprecated Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
+
+    procedure InternalIncShapesHash;
+    property InternalShapesHash: TShapesHash read FShapesHash;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2257,15 +2282,15 @@ type
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
 
-    { Currently loaded scene URL. Set this to load a 3D scene
-      from the given URL, we can load from any known 3D format
-      (VRML, X3D, Collada, 3ds, Wavefront, etc.).
+    { Currently loaded scene URL. Change this property to load a scene
+      from the given URL. We support many 3D and 2D scene formats,
+      like X3D and glTF,
+      see https://castle-engine.io/creating_data_model_formats.php .
 
-      Works just like the @link(Load) method (the overloaded version
-      that takes @code(AURL: string) parameter). And, in fact, using
-      directly the @link(Load) method will also change this URL property.
+      Setting this property works just like using the @link(Load) method with a new URL.
+      In fact, using directly the @link(Load) method will also change this URL property.
 
-      The only difference of @code(Scene.URL := 'blah.x3d') vs
+      The only difference between @code(Scene.URL := 'blah.x3d') and
       @code(Scene.Load('blah.x3d')) is that setting the URL will
       @italic(not) reload the scene if you set it to the same value.
       That is, @code(Scene.URL := Scene.URL;) will not reload
@@ -2398,6 +2423,15 @@ var
     are animated at the same time. Often particularly effective for
     skeletal animations of characters, 3D and 2D (e.g. from Spine). }
   OptimizeExtensiveTransformations: boolean = false;
+
+  { Experimental optimization of Transform animation.
+    It assumes that Transform nodes affect only geometry, i.e. their only effect
+    is moving/rotating etc. X3D shapes.
+    This is *usually*, but not always, true.
+    In X3D, Transform node can also affect lights, Background, Fog, cameras...
+
+    TODO: Extend it to include all cases, and use always. }
+  InternalFastTransformUpdate: Boolean = false;
 
 const
   // Old name for paLooping.
@@ -2875,6 +2909,7 @@ begin
 
   FRootNode := nil;
   FOwnsRootNode := true;
+  FShapesHash := 1;
 
   FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
@@ -2973,8 +3008,8 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-  const AResetTime: boolean);
+procedure TCastleSceneCore.Load(const ARootNode: TX3DRootNode; const AOwnsRootNode: boolean;
+  const AOptions: TSceneLoadOptions);
 var
   RestoreProcessEvents: boolean;
 begin
@@ -3009,7 +3044,7 @@ begin
     see https://github.com/castle-engine/view3dscene/issues/16 ). }
   ChangedAll;
 
-  if AResetTime then
+  if not (slDisableResetTime in AOptions) then
     ResetTimeAtLoad;
 
   { restore events processing, initialize new scripts and such }
@@ -3018,8 +3053,18 @@ begin
   UpdateAutoAnimation(false);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
+procedure TCastleSceneCore.Load(const AURL: string; const AllowStdIn: boolean;
   const AResetTime: boolean);
+var
+  Options: TSceneLoadOptions;
+begin
+  Options := [];
+  if not AResetTime then
+    Include(Options, slDisableResetTime);
+  Load(AURL, Options);
+end;
+
+procedure TCastleSceneCore.Load(const AURL: string; const AOptions: TSceneLoadOptions);
 var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
@@ -3028,10 +3073,10 @@ begin
   try
     if AURL <> '' then
     begin
-      { If Load3D fails:
+      { If LoadNode fails:
 
         - When CastleDesignMode is false:
-          We make an exception (just pass the exception from Load3D),
+          We make an exception (just pass the exception from LoadNode),
           and we do not change the RootNode or URL.
           So currently loaded scene will remain 100% valid.
 
@@ -3043,7 +3088,10 @@ begin
       }
 
       try
-        NewRoot := Load3D(AURL, AllowStdIn);
+        // first try to load using cache, this way <warmup_cache> for scenes works
+        NewRoot := X3DCache.TryCopyNode(AURL);
+        if NewRoot = nil then
+          NewRoot := LoadNode(AURL);
       except
         on E: Exception do
         begin
@@ -3061,7 +3109,7 @@ begin
       NewRoot := nil; // when AURL is ''
     end;
 
-    Load(NewRoot, true, AResetTime);
+    Load(NewRoot, true, AOptions);
 
     FURL := AURL;
 
@@ -3192,38 +3240,35 @@ end;
 
 function TCastleSceneCore.CalculateLocalBoundingBox: TBox3D;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := TBox3D.Empty;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result.Include(SI.Current.BoundingBox);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result.Include(Shape.BoundingBox);
 end;
 
 function TCastleSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result := Result + SI.Current.VerticesCount(OverTriangulate);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result := Result + Shape.VerticesCount(OverTriangulate);
 end;
 
 function TCastleSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Result := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-      Result := Result + SI.Current.TrianglesCount(OverTriangulate);
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+    Result := Result + Shape.TrianglesCount(OverTriangulate);
 end;
 
 function TCastleSceneCore.LocalBoundingBox: TBox3D;
@@ -3635,6 +3680,7 @@ begin
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
+    InternalIncShapesHash;
   end;
 end;
 
@@ -3703,13 +3749,12 @@ procedure TCastleSceneCore.ChangedAll;
 
     procedure AddLightEverywhere(const L: TLightInstance);
     var
-      SI: TShapeTreeIterator;
+      ShapeList: TShapeList;
+      Shape: TShape;
     begin
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          SI.Current.State.AddLight(L);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        Shape.State.AddLight(L);
     end;
 
     { Add L everywhere within given Radius from Location.
@@ -3719,14 +3764,13 @@ procedure TCastleSceneCore.ChangedAll;
     procedure AddLightRadius(const L: TLightInstance;
       const Location: TVector3; const Radius: Single);
     var
-      SI: TShapeTreeIterator;
+      ShapeList: TShapeList;
+      Shape: TShape;
     begin
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if SI.Current.BoundingBox.SphereCollision(Location, Radius) then
-            SI.Current.State.AddLight(L);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        if Shape.BoundingBox.SphereCollision(Location, Radius) then
+          Shape.State.AddLight(L);
     end;
 
   var
@@ -3838,6 +3882,7 @@ begin
     FAnimationsList.Clear;
     AnimationAffectedFields.Clear;
     NeedsDetectAffectedFields := false;
+    InternalIncShapesHash;
 
     if RootNode <> nil then
     begin
@@ -4108,23 +4153,20 @@ function TTransformChangeHelper.TransformChangeTraverse(
     end;
 
   var
-    SI: TShapeTreeIterator;
-    Current: TShape;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize using TShapeTree.AssociatedShape
 
-    SI := TShapeTreeIterator.Create(ParentScene.Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        Current := SI.Current;
-        HandleLightsList(Current.OriginalState.Lights);
-        if Current.State(true) <> Current.OriginalState then
-          HandleLightsList(Current.State(true).Lights);
-        if Current.State(false) <> Current.OriginalState then
-          HandleLightsList(Current.State(false).Lights);
-      end;
-    finally FreeAndNil(SI) end;
+    ShapeList := ParentScene.Shapes.TraverseList(false);
+    for Shape in ShapeList do
+    begin
+      HandleLightsList(Shape.OriginalState.Lights);
+      if Shape.State(true) <> Shape.OriginalState then
+        HandleLightsList(Shape.State(true).Lights);
+      if Shape.State(false) <> Shape.OriginalState then
+        HandleLightsList(Shape.State(false).Lights);
+    end;
 
     { Update also light state on GlobalLights list, in case other scenes
       depend on this light. Testcase: planets-demo. }
@@ -4277,6 +4319,8 @@ begin
     Fog and Background nodes are affected by their parents transform.
   }
 
+  Assert(not OptimizeExtensiveTransformations);
+
   C := TShapeTree.AssociatedShapesCount(TransformNode);
 
   if LogChanges then
@@ -4285,52 +4329,61 @@ begin
 
   DoVisibleChanged := false;
 
-  TraverseStack := nil;
-  TransformChangeHelper := nil;
-  try
-    TraverseStack := TX3DGraphTraverseStateStack.Create;
-
-    { initialize TransformChangeHelper, set before the loop properties
-      that cannot change }
-    TransformChangeHelper := TTransformChangeHelper.Create;
-    TransformChangeHelper.ParentScene := Self;
-    TransformChangeHelper.ChangingNode := TransformNode;
-    TransformChangeHelper.Changes := Changes;
-
+  if InternalFastTransformUpdate then
+  begin
     for I := 0 to C - 1 do
-    begin
-      TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
-      TraverseStack.Clear;
-      TraverseStack.Push(TransformShapeTree.TransformState);
+      TShapeTree.AssociatedShape(TransformNode, I).FastTransformUpdate(DoVisibleChanged);
+    if DoVisibleChanged then
+      Validities := Validities - [fvLocalBoundingBox];
+  end else
+  begin
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-      TransformShapesParentInfo.Group := TransformShapeTree;
-      TransformShapesParentInfo.Index := 0;
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := TransformNode;
+      TransformChangeHelper.Changes := Changes;
 
-      { initialize TransformChangeHelper properties that may be changed
-        during Node.Traverse later }
-      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-      TransformChangeHelper.AnythingChanged := false;
-      TransformChangeHelper.Inside := false;
-      TransformChangeHelper.Inactive := 0;
+      for I := 0 to C - 1 do
+      begin
+        TransformShapeTree := TShapeTree.AssociatedShape(TransformNode, I) as TShapeTreeTransform;
+        TraverseStack.Clear;
+        TraverseStack.Push(TransformShapeTree.TransformState);
 
-      TransformNode.TraverseInternal(TraverseStack, TX3DNode,
-        @TransformChangeHelper.TransformChangeTraverse, nil);
+        TransformShapesParentInfo.Group := TransformShapeTree;
+        TransformShapesParentInfo.Index := 0;
 
-      if TransformChangeHelper.AnythingChanged then
-        DoVisibleChanged := true;
+        { initialize TransformChangeHelper properties that may be changed
+          during Node.Traverse later }
+        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
 
-      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-        animated. Secure from Humanoid = nil (may happen if Joint
-        is outside Humanoid node, see VRML 97 test
-        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-      if (TransformNode is THAnimJointNode) and
-         (TransformShapeTree.TransformState.Humanoid <> nil) then
-        ScheduledHumanoidAnimateSkin.AddIfNotExists(
-          TransformShapeTree.TransformState.Humanoid);
+        TransformNode.TraverseInternal(TraverseStack, TX3DNode,
+          @TransformChangeHelper.TransformChangeTraverse, nil);
+
+        if TransformChangeHelper.AnythingChanged then
+          DoVisibleChanged := true;
+
+        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+          animated. Secure from Humanoid = nil (may happen if Joint
+          is outside Humanoid node, see VRML 97 test
+          ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+        if (TransformNode is THAnimJointNode) and
+           (TransformShapeTree.TransformState.Humanoid <> nil) then
+          ScheduledHumanoidAnimateSkin.AddIfNotExists(
+            TransformShapeTree.TransformState.Humanoid);
+      end;
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
     end;
-  finally
-    FreeAndNil(TraverseStack);
-    FreeAndNil(TransformChangeHelper);
   end;
 
   if DoVisibleChanged then
@@ -4356,46 +4409,59 @@ begin
 
   DoVisibleChanged := false;
 
-  TraverseStack := nil;
-  TransformChangeHelper := nil;
-  try
-    TraverseStack := TX3DGraphTraverseStateStack.Create;
+  if InternalFastTransformUpdate then
+  begin
+    Shapes.FastTransformUpdate(DoVisibleChanged);
+    { Manually adjust Validities, because FastTransformUpdate doesn't call DoGeometryChanged.
 
-    { initialize TransformChangeHelper, set before the loop properties
-      that cannot change }
-    TransformChangeHelper := TTransformChangeHelper.Create;
-    TransformChangeHelper.ParentScene := Self;
-    TransformChangeHelper.ChangingNode := RootNode;
-    TransformChangeHelper.Changes := Changes;
+      TODO: If uncommenting Changed(false, [chTransform]) in TShape.FastTransformUpdateCore,
+      it should call DoGeometryChanged, but it still doesn't? Why?
+      In any case, it doesn't matter, it's faster to fix Validities manually below. }
+    if DoVisibleChanged then
+      Validities := Validities - [fvLocalBoundingBox];
+  end else
+  begin
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-    TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
-    TransformShapesParentInfo.Index := 0;
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := RootNode;
+      TransformChangeHelper.Changes := Changes;
 
-    { initialize TransformChangeHelper properties that may be changed
-      during Node.Traverse later }
-    TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-    TransformChangeHelper.AnythingChanged := false;
-    TransformChangeHelper.Inside := false;
-    TransformChangeHelper.Inactive := 0;
+      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      TransformShapesParentInfo.Index := 0;
 
-    RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
+      { initialize TransformChangeHelper properties that may be changed
+        during Node.Traverse later }
+      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+      TransformChangeHelper.AnythingChanged := false;
+      TransformChangeHelper.Inside := false;
+      TransformChangeHelper.Inactive := 0;
 
-    if TransformChangeHelper.AnythingChanged then
-      DoVisibleChanged := true;
+      RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
 
-    { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-      animated. Secure from Humanoid = nil (may happen if Joint
-      is outside Humanoid node, see VRML 97 test
-      ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-    { TODO:
-    if (RootNode is THAnimJointNode) and
-       (TransformShapeTree.TransformState.Humanoid <> nil) then
-      ScheduledHumanoidAnimateSkin.AddIfNotExists(
-        TransformShapeTree.TransformState.Humanoid);
-    }
-  finally
-    FreeAndNil(TraverseStack);
-    FreeAndNil(TransformChangeHelper);
+      if TransformChangeHelper.AnythingChanged then
+        DoVisibleChanged := true;
+
+      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+        animated. Secure from Humanoid = nil (may happen if Joint
+        is outside Humanoid node, see VRML 97 test
+        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+      { TODO:
+      if (RootNode is THAnimJointNode) and
+         (TransformShapeTree.TransformState.Humanoid <> nil) then
+        ScheduledHumanoidAnimateSkin.AddIfNotExists(
+          TransformShapeTree.TransformState.Humanoid);
+      }
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
+    end;
   end;
 
   if DoVisibleChanged then
@@ -4424,17 +4490,20 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   begin
-    { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
-      otherwise TransformationDirty would never be processed }
-    if OptimizeExtensiveTransformations and
-       ProcessEvents and
-       (ForceImmediateProcessing = 0) then
-      TransformationDirty := TransformationDirty + Changes else
+    if OptimizeExtensiveTransformations then
+    begin
+      TransformationDirty := TransformationDirty + Changes
+    end else
     begin
       Check(Supports(ANode, ITransformNode),
         'chTransform flag may be set only for ITransformNode');
       TransformationChanged(ANode, Changes);
     end;
+
+    if not ProcessEvents then
+      { Otherwise FinishTransformationChanges would not be called in nearest Update,
+        leaving transformation effects unapplied to the Shapes tree. }
+      FinishTransformationChanges;
   end;
 
   procedure HandleChangeCoordinate;
@@ -4469,19 +4538,18 @@ var
   procedure HandleVRML1State;
   var
     VRML1StateNode: TVRML1StateNode;
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     if ANode.VRML1StateNode(VRML1StateNode) then
     begin
       { ANode is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.VRML1State list. }
-      SI := TShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.State.VRML1State.Nodes[VRML1StateNode] = ANode) or
-             (SI.Current.OriginalState.VRML1State.Nodes[VRML1StateNode] = ANode) then
-            SI.Current.Changed(false, Changes);
-      finally FreeAndNil(SI) end;
+      ShapeList := Shapes.TraverseList(false);
+      for Shape in ShapeList do
+        if (Shape.State.VRML1State.Nodes[VRML1StateNode] = ANode) or
+           (Shape.OriginalState.VRML1State.Nodes[VRML1StateNode] = ANode) then
+          Shape.Changed(false, Changes);
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
   end;
@@ -4502,7 +4570,8 @@ var
   procedure HandleChangeLightInstanceProperty;
   var
     J: integer;
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
@@ -4522,20 +4591,18 @@ var
       constraints. Or not --- this will hurt performance, global = FALSE
       is a good optimization for local lights, we don't want long lights list. }
 
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.Lights <> nil then
-          for J := 0 to SI.Current.State.Lights.Count - 1 do
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      if Shape.State.Lights <> nil then
+        for J := 0 to Shape.State.Lights.Count - 1 do
+        begin
+          LightInstance := Shape.State.Lights.Ptr(J);
+          if LightInstance^.Node = LightNode then
           begin
-            LightInstance := SI.Current.State.Lights.Ptr(J);
-            if LightInstance^.Node = LightNode then
-            begin
-              LightNode.UpdateLightInstance(LightInstance^);
-              VisibleChangeHere([vcVisibleNonGeometry]);
-            end;
+            LightNode.UpdateLightInstance(LightInstance^);
+            VisibleChangeHere([vcVisibleNonGeometry]);
           end;
-    finally FreeAndNil(SI) end;
+        end;
 
     GeneratedTextures.UpdateShadowMaps(LightNode);
   end;
@@ -4608,6 +4675,8 @@ var
     DoGeometryChanged(gcActiveShapesChanged, nil);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+
+    InternalIncShapesHash; // TShapeTreeSwitch returns now different things
   end;
 
   procedure HandleChangeColorNode;
@@ -4662,22 +4731,21 @@ var
     end;
 
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize and simplify to use TShapeTree.AssociatedShape
 
     { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
       placed inside textureTransform field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if (SI.Current.State.ShapeNode <> nil) and
-           (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
-           (SI.Current.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
-           AppearanceUsesTextureTransform(
-             TAppearanceNode(SI.Current.State.ShapeNode.FdAppearance.Value), ANode) then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      if (Shape.State.ShapeNode <> nil) and
+         (Shape.State.ShapeNode.FdAppearance.Value <> nil) and
+         (Shape.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
+         AppearanceUsesTextureTransform(
+           TAppearanceNode(Shape.State.ShapeNode.FdAppearance.Value), ANode) then
+        Shape.Changed(false, Changes);
   end;
 
   procedure HandleChangeGeometry;
@@ -4771,7 +4839,8 @@ var
   { Handle chTextureImage, chTextureRendererProperties }
   procedure HandleChangeTextureImageOrRenderer;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
     // TODO: Optimize using TShapeTree.AssociatedShape
     if chTextureImage in Changes then
@@ -4786,14 +4855,12 @@ var
         TAbstractTexture3DNode(ANode).TextureLoaded := false;
     end;
 
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if SI.Current.UsesTexture(TAbstractTextureNode(ANode)) then
-          SI.Current.Changed(false, Changes);
-      end;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+    begin
+      if Shape.UsesTexture(TAbstractTextureNode(ANode)) then
+        Shape.Changed(false, Changes);
+    end;
   end;
 
   procedure HandleChangeShadowCasters;
@@ -5098,18 +5165,17 @@ end;
 
 procedure TCastleSceneCore.EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
 var
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   ManifoldEdges := 0;
   BorderEdges := 0;
-  SI := TShapeTreeIterator.Create(Shapes, true);
-  try
-    while SI.GetNext do
-    begin
-      ManifoldEdges := ManifoldEdges + SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
-      BorderEdges := BorderEdges + SI.Current.InternalShadowVolumes.BorderEdges.Count;
-    end;
-  finally FreeAndNil(SI) end;
+  ShapeList := Shapes.TraverseList(true);
+  for Shape in ShapeList do
+  begin
+    ManifoldEdges := ManifoldEdges + Shape.InternalShadowVolumes.ManifoldEdges.Count;
+    BorderEdges := BorderEdges + Shape.InternalShadowVolumes.BorderEdges.Count;
+  end;
 end;
 
 function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
@@ -5197,36 +5263,33 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
   procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
     OnlyCollidable: boolean);
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      { When Value <> [], we honor OnlyCollidable. }
+      if (Value = []) or
+         (not OnlyCollidable) or
+         (Shape.Collidable) then
+      begin
+        { Note: do not change here
+            Shape.TriangleOctreeLimits :=
+          Our own TriangleOctreeLimits properties may be *not* suitable
+          for this (as our properties are for global octrees).
 
-        { When Value <> [], we honor OnlyCollidable. }
-        if (Value = []) or
-           (not OnlyCollidable) or
-           (SI.Current.Collidable) then
-        begin
-          { Note: do not change here
-              SI.Current.TriangleOctreeLimits :=
-            Our own TriangleOctreeLimits properties may be *not* suitable
-            for this (as our properties are for global octrees).
+          Just let programmer change per-shape properties if he wants,
+          or user to change this per-shape by
+          [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
+        }
 
-            Just let programmer change per-shape properties if he wants,
-            or user to change this per-shape by
-            [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties].
-          }
-
-          SI.Current.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-          SI.Current.InternalSpatial := Value;
-          { prepare OctreeTriangles. Not really needed, but otherwise
-            shape's octrees would be updated (even on static scenes!)
-            when the model runs. }
-          SI.Current.InternalOctreeTriangles;
-        end;
-
-    finally FreeAndNil(SI) end;
+        Shape.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+        Shape.InternalSpatial := Value;
+        { prepare OctreeTriangles. Not really needed, but otherwise
+          shape's octrees would be updated (even on static scenes!)
+          when the model runs. }
+        Shape.InternalOctreeTriangles;
+      end;
   end;
 
 var
@@ -5368,15 +5431,14 @@ function TCastleSceneCore.CreateTriangleOctree(
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, true);
-    try
-      while SI.GetNext do
-        if (Collidable and SI.Current.Collidable) or
-           ((not Collidable) and SI.Current.Visible) then
-          SI.Current.Triangulate(false, TriangleEvent);
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(true);
+    for Shape in ShapeList do
+      if (Collidable and Shape.Collidable) or
+         ((not Collidable) and Shape.Visible) then
+        Shape.Triangulate(false, TriangleEvent);
   end;
 
 begin
@@ -5422,11 +5484,11 @@ begin
 
   if Collidable then
     { Add only active and collidable shapes }
-    ShapesList := TShapeList.Create(Shapes, true, false, true) else
+    ShapesList := Shapes.TraverseList(true, false, true) else
     { Add only active and visible shapes }
-    ShapesList := TShapeList.Create(Shapes, true, true, false);
+    ShapesList := Shapes.TraverseList(true, true, false);
 
-  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, true);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, false);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
@@ -5558,13 +5620,12 @@ procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
 
   procedure FreeShadowVolumes;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalShadowVolumes.FreeResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalShadowVolumes.FreeResources;
   end;
 
 begin
@@ -5965,7 +6026,7 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
       FPointingDeviceActiveSensors.Count := 0;
 
       if NewRootNode <> nil then
-        Load(NewRootNode, true, { do not reset Time } false);
+        Load(NewRootNode, true, [slDisableResetTime]);
 
       { When NewRootNode <> nil, it's important here that we know
         we're inside BeginChangesSchedule.
@@ -6145,8 +6206,10 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateNewPlayingAnimation;
+procedure TCastleSceneCore.UpdateNewPlayingAnimation(out NeedsUpdateTimeDependentHandlers: Boolean);
 begin
+  NeedsUpdateTimeDependentHandlers := false;
+
   if NewPlayingAnimationUse then
   begin
     NewPlayingAnimationUse := false;
@@ -6249,6 +6312,9 @@ begin
        (NewPlayingAnimationNode <> nil) then
     begin
       ResetAnimationState(NewPlayingAnimationNode);
+      { As soon as possible, we need to process TimeSensors, otherwise user would
+        see a default animation pose. }
+      NeedsUpdateTimeDependentHandlers := true;
     end;
 
     PlayingAnimationNode := NewPlayingAnimationNode;
@@ -6312,19 +6378,40 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
-    Note that ResetTime = true forces always an UpdateTimeDependentHandlers(0.0) call. }
-  procedure UpdateTimeDependentHandlersIfVisible;
+    @param ResetTime Forces always an UpdateTimeDependentHandlers(0.0) call.
+    @param NeedsUpdate Forces always *some*\
+       UpdateTimeDependentHandlers call.
+    Note  }
+  procedure UpdateTimeDependentHandlersIfVisible(const NeedsUpdate: Boolean);
   begin
-    if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
-      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease else
-    if (AnimateSkipNextTicks <> 0) and (not ResetTime) then
+    if ResetTime then
+    begin
+      { Call UpdateTimeDependentHandlers and reset FAnimateGatheredTime.
+        However, do not reset AnimateSkipNextTicks (this would synchronize
+        all skipping ticks if multiple animations are reset at the beginning
+        of game, making randomization in SetAnimateSkipTicks pointless). }
+      FAnimateGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+    end else
+    if NeedsUpdate then
+    begin
+      { Call UpdateTimeDependentHandlers regardless of visibility and
+        of AnimateSkipNextTicks. Note that we do not reset AnimateSkipNextTicks
+        (to avoid synchronizing AnimateSkipNextTicks of multiple animations
+        started in the sam frame). }
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      FAnimateGatheredTime := 0;
+    end else
+    if FAnimateOnlyWhenVisible and (not IsVisibleNow) then
+    begin
+      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
+    end else
+    if AnimateSkipNextTicks <> 0 then
     begin
       Dec(AnimateSkipNextTicks);
       FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
-      if ResetTime then
-        FAnimateGatheredTime := 0;
       UpdateTimeDependentHandlers(FAnimateGatheredTime);
       AnimateSkipNextTicks := AnimateSkipTicks;
       FAnimateGatheredTime := 0;
@@ -6350,18 +6437,8 @@ procedure TCastleSceneCore.InternalSetTime(
     ScheduledHumanoidAnimateSkin.Count := 0;
   end;
 
-  { Process TransformationDirty at the end of increasing time, to apply scheduled
-    TransformationDirty in the same Update, as soon as possible
-    (useful e.g. for mana shot animation in dragon_squash). }
-  procedure UpdateTransformationDirty;
-  begin
-    if TransformationDirty <> [] then
-    begin
-      RootTransformationChanged(TransformationDirty);
-      TransformationDirty := [];
-    end;
-  end;
-
+var
+  NeedsUpdateTimeDependentHandlers: Boolean;
 begin
   FTimeNow.Seconds := NewValue;
   FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
@@ -6375,13 +6452,25 @@ begin
         first stops it (preventing from sending any events),
         so a stopped animation will *not* send any events after StopAnimation
         (making it useful to call ResetAnimationState right after StopAnimation call). }
-      UpdateNewPlayingAnimation;
-      UpdateTimeDependentHandlersIfVisible;
+      UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
+      UpdateTimeDependentHandlersIfVisible(NeedsUpdateTimeDependentHandlers);
       UpdateHumanoidSkin;
-      UpdateTransformationDirty;
+      { Process TransformationDirty at the end of increasing time, to apply scheduled
+        TransformationDirty in the same Update, as soon as possible
+        (useful e.g. for mana shot animation in dragon_squash). }
+      FinishTransformationChanges;
     finally
       EndChangesSchedule;
     end;
+  end;
+end;
+
+procedure TCastleSceneCore.FinishTransformationChanges;
+begin
+  if TransformationDirty <> [] then
+  begin
+    RootTransformationChanged(TransformationDirty);
+    TransformationDirty := [];
   end;
 end;
 
@@ -6779,6 +6868,10 @@ procedure TCastleSceneCore.UpdateCameraEvents;
   begin
     Assert(ProcessEvents);
 
+    // Active and visible shapes possibly changed, if we used LOD nodes and camera changed
+    if ShapeLODs.Count <> 0 then
+      InternalIncShapesHash;
+
     for I := 0 to ShapeLODs.Count - 1 do
       UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
 
@@ -6797,8 +6890,13 @@ procedure TCastleSceneCore.UpdateCameraEvents;
     for I := 0 to BillboardNodes.Count - 1 do
     begin
       (BillboardNodes[I] as TBillboardNode).CameraChanged(CameraVectors);
-      { TODO: use OptimizeExtensiveTransformations? }
-      TransformationChanged(BillboardNodes[I], [chTransform]);
+      { Apply transformation change to Shapes tree.
+        Note that we should never call TransformationChanged when
+        OptimizeExtensiveTransformations. }
+      if OptimizeExtensiveTransformations then
+        TransformationDirty := TransformationDirty + [chTransform]
+      else
+        TransformationChanged(BillboardNodes[I], [chTransform]);
     end;
   end;
 
@@ -7276,24 +7374,22 @@ procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOpti
 
   procedure PrepareShapesOctrees;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalOctreeTriangles;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalOctreeTriangles;
   end;
 
   procedure PrepareShadowVolumes;
   var
-    SI: TShapeTreeIterator;
+    ShapeList: TShapeList;
+    Shape: TShape;
   begin
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.InternalShadowVolumes.PrepareResources;
-    finally FreeAndNil(SI) end;
+    ShapeList := Shapes.TraverseList(false);
+    for Shape in ShapeList do
+      Shape.InternalShadowVolumes.PrepareResources;
   end;
 
 begin
@@ -7645,13 +7741,9 @@ begin
   if Result then
   begin
     TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
-    Inc(ForceImmediateProcessing);
-    try
-      ResetAnimationState(TimeNode);
-      TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
-    finally
-      Dec(ForceImmediateProcessing);
-    end;
+    ResetAnimationState(TimeNode);
+    TimeNode.FakeTime(TimeInAnimation, Loop, Forward, NextEventTime);
+    FinishTransformationChanges;
   end;
 end;
 
@@ -7659,17 +7751,13 @@ procedure TCastleSceneCore.ForceInitialAnimationPose;
 begin
   if NewPlayingAnimationUse then
   begin
-    Inc(ForceImmediateProcessing);
-    try
-      ResetAnimationState(NewPlayingAnimationNode);
-      NewPlayingAnimationNode.FakeTime(
-        NewPlayingAnimationInitialTime,
-        NewPlayingAnimationLoop,
-        NewPlayingAnimationForward,
-        NextEventTime);
-    finally
-      Dec(ForceImmediateProcessing);
-    end;
+    ResetAnimationState(NewPlayingAnimationNode);
+    NewPlayingAnimationNode.FakeTime(
+      NewPlayingAnimationInitialTime,
+      NewPlayingAnimationLoop,
+      NewPlayingAnimationForward,
+      NextEventTime);
+    FinishTransformationChanges;
   end;
 end;
 
@@ -7785,6 +7873,8 @@ begin
 end;
 
 procedure TCastleSceneCore.StopAnimation;
+var
+  NeedsUpdateTimeDependentHandlers: Boolean;
 begin
   { New animation was requested, but not yet processed by UpdateNewPlayingAnimation.
     Make it start, to early call the "stop notification" callback
@@ -7795,10 +7885,15 @@ begin
     to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
   if NewPlayingAnimationUse then
   begin
-    UpdateNewPlayingAnimation;
+    UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
     if NewPlayingAnimationUse then
     begin
       WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
+      Exit;
+    end;
+    if NeedsUpdateTimeDependentHandlers then
+    begin
+      WritelnWarning('StopNotification callback of an old animation caused NeedsUpdateTimeDependentHandlers, suggesting it started another animation. A default animation pose may blink if AnimateSkipTicks <> 0.');
       Exit;
     end;
   end;
@@ -7815,14 +7910,10 @@ procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSens
 var
   F: TX3DField;
 begin
-  Inc(ForceImmediateProcessing);
-  try
-    { set fields in AnimationAffectedFields to their reset values }
-    for F in AnimationAffectedFields do
-      F.InternalRestoreSaveValue;
-  finally
-    Dec(ForceImmediateProcessing);
-  end;
+  { set fields in AnimationAffectedFields to their reset values }
+  for F in AnimationAffectedFields do
+    F.InternalRestoreSaveValue;
+  FinishTransformationChanges;
 end;
 
 procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);
@@ -7940,6 +8031,17 @@ begin
       Load(NewRootNode, true);
     end;
   end;
+end;
+
+procedure TCastleSceneCore.InternalIncShapesHash;
+begin
+  // WritelnLog('Scene %s shapes hash changed to %d', [Name, FShapesHash]);
+  if FShapesHash = High(FShapesHash) then
+  begin
+    WritelnWarning('Scene %s state hash reached the highest number of 64-bit value. Resetting', [Name]);
+    FShapesHash := 1;
+  end else
+    Inc(FShapesHash);
 end;
 
 end.

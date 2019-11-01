@@ -415,6 +415,7 @@ begin
     tokString: Result := Result + Format(' ''%s''', [TokenString]);
     tokIdentifier: Result := Result + Format(' %s', [TokenString]);
     tokFuncName: Result := Result + Format(' %s', [TokenFunctionClass.Name]);
+    else ;
   end;
 end;
 

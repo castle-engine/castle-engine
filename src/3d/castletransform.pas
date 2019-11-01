@@ -57,7 +57,15 @@ type
   TVisibleChangeEvent = procedure (const Sender: TCastleTransform; const Changes: TVisibleChanges) of object;
 
   { Various things that TCastleTransform.PrepareResources may prepare. }
-  TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
+  TPrepareResourcesOption = (
+    { Prepare resources for rendering *this* scene
+      (on which TCastleTransform.PrepareResources is called). }
+    prRenderSelf,
+    { Prepare resources for rendering clones of the scene.
+      E.g. textures, which are shared by clones using the cache. }
+    prRenderClones,
+    prBackground,
+    prBoundingBox,
     prShadowVolume,
     { Prepare octrees (determined by things like TCastleSceneCore.Spatial). }
     prSpatial,
@@ -873,7 +881,7 @@ type
 
       @param(Params
         Rendering parameters to prepare for.
-        It is used only if Options contains prRender.
+        It is used only if Options contains prRenderSelf or prRenderClones.
       ) }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); virtual;
@@ -1759,6 +1767,8 @@ type
   {$undef read_interface_class}
   end;
 
+  TPhysicsProperties = class;
+
   { 3D world. List of 3D objects, with some central properties. }
   TSceneManagerWorld = class(TCastleTransform)
   private
@@ -1866,6 +1876,8 @@ type
     { @groupEnd }
 
     procedure CameraChanged(const ACamera: TCastleCamera); override;
+
+    function PhysicsProperties: TPhysicsProperties; virtual; abstract;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }

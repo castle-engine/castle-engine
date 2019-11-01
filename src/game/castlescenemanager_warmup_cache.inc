@@ -1,4 +1,44 @@
+{ TSceneFromCache ------------------------------------------------------------ }
+
+type
+  { Like TCastleScene but loads/unloads model in a special way, from X3DCache.
+    This allows to utilize this cache when loading, in TCastleScene.Load. }
+  TSceneFromCache = class(TCastleScene)
+  strict private
+    FRootNodeFromCache: TX3DRootNode;
+  public
+    procedure LoadFromCache(const AURL: String);
+    destructor Destroy; override;
+  end;
+
+procedure TSceneFromCache.LoadFromCache(const AURL: String);
+var
+  TimeStart: TCastleProfilerTime;
+begin
+  { Do not load node again, if it is already in the cache.
+    It would cause warnings
+      Warning: X3D node xxx is already part of another TCastleScene instance
+    if uses uses the same URL twice in warmup_cache specification. }
+  if X3DCache.IsCached(AURL) then Exit;
+
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(AURL) + '" (warming up cache)');
+  try
+    FRootNodeFromCache := X3DCache.LoadNode(AURL);
+  finally Profiler.Stop(TimeStart) end;
+  Load(FRootNodeFromCache, false);
+end;
+
+destructor TSceneFromCache.Destroy;
+begin
+  RootNode := nil; // unassign RootNode, as X3DCache.FreeNode may free it
+  X3DCache.FreeNode(FRootNodeFromCache);
+  inherited;
+end;
+
 { TSceneCache -------------------------------------------------------------- }
+
+var
+  SceneCacheId: QWord;
 
 type
   TSceneCache = class
@@ -10,18 +50,24 @@ class procedure TSceneCache.Event(const Cache: TWarmupCache;
   const Element: TDOMElement; const ElementBaseUrl: String);
 var
   URL: String;
-  Scene: TCastleScene;
+  Scene: TSceneFromCache;
   TempSceneManager: TCastleSceneManager;
 begin
   URL := Element.AttributeURL('url', ElementBaseUrl);
-  Scene := TCastleScene.Create(nil);
+  Scene := TSceneFromCache.Create(nil);
   Cache.OwnedObjects.Add(Scene);
-  Scene.URL := URL; // loads the scene
+  Inc(SceneCacheId);
+  Cache.Name := 'SceneCache' + IntToStr(SceneCacheId);
+
+  // Scene.URL := URL; // loads the scene
+  // loads the scene using cache, this way other scenes may reload it by DeepCopy
+  Scene.LoadFromCache(URL);
 
   TempSceneManager := TCastleSceneManager.Create(nil);
   try
     // loads the textures inside scene
-    TempSceneManager.PrepareResources(Scene);
+    TempSceneManager.PrepareResources(Scene, '',
+      TCastleSceneManager.DefaultPrepareOptions - [prRenderSelf]);
   finally FreeAndNil(TempSceneManager) end;
 end;
 

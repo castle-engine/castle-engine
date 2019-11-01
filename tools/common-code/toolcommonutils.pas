@@ -119,10 +119,9 @@ begin
   if CastleEnginePath <> '' then
   begin
     Result := CastleEnginePath + 'bin' + PathDelim + ExeName + ExeExtension;
-    if FileExists(Result) then
+    if RegularFileExists(Result) then
       Exit;
   end;
-
   Result := FindExe(ExeName);
 end;
 

@@ -17,6 +17,33 @@
 
 {$ifdef read_interface}
 
+  TPhysicsProperties = class(TComponent)
+  strict private
+    FAngularVelocityRK4Integration: Boolean;
+    FLinearVelocityRK4Integration: Boolean;
+    FFrequency: Single;
+
+    procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
+    procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
+    procedure SetFrequency(const AValue: Single);
+
+  protected
+    function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
+
+  public
+    const
+      DefaultAngularVelocityRK4Integration = false;
+      DefaultLinearVelocityRK4Integration = false;
+      DefaultFrequency = 60.0;
+
+    constructor Create(AOwner: TComponent); override;
+
+  published
+    property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+  end;
+
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
   TCollider = class
   private
@@ -130,6 +157,7 @@
     FGravity: Boolean;
     FDynamic: Boolean;
     FAnimated: Boolean;
+    FTrigger: Boolean;
     FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
@@ -160,6 +188,7 @@
     procedure SetOnCollisionExit(const AValue: TOnCollision);
 
     procedure SetExists(const Value: Boolean);
+    procedure SetTrigger(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -250,7 +279,7 @@
         )
       )
     }
-    property Dynamic: boolean read FDynamic write FDynamic default true;
+    property Dynamic: Boolean read FDynamic write FDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
@@ -283,7 +312,20 @@
         )
       )
     }
-    property Animated: boolean read FAnimated write FAnimated default false;
+    property Animated: Boolean read FAnimated write FAnimated default false;
+
+    { Triggers report when other object collides with them,
+      but still allow the other object to pass through.
+      In other words, colliding with a trigger will not cause the collider to stop or 
+      "bounce off" the trigger.
+
+      They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
+      that the player can "consume" by colliding with it.
+      
+      Triggers report collisions through the same events as other rigid bodies:
+      (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
+      @link(TRigidBody.OnCollisionExit)). }
+    property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Shape used for collisions with this object.
       You cannot assign this property directly,
@@ -292,7 +334,7 @@
     property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
-    property Gravity: boolean read FGravity write FGravity default true;
+    property Gravity: Boolean read FGravity write FGravity default true;
 
     { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.
@@ -353,6 +395,49 @@ function MatrixFromKraft(const M: TKraftMatrix4x4): TMatrix4;
 begin
   Assert(SizeOf(M) = SizeOf(Result));
   Move(M, Result, SizeOf(M));
+end;
+
+{ TPhysicsProperties --------------------------------------------------------- }
+
+procedure TPhysicsProperties.SetFrequency(const AValue: Single);
+begin
+  if FFrequency = AValue then
+    Exit;
+
+  FFrequency := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
+end;
+
+procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FLinearVelocityRK4Integration = AValue then
+    Exit;
+
+  FLinearVelocityRK4Integration := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.LinearVelocityRK4Integration := AValue;
+end;
+
+procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FAngularVelocityRK4Integration = AValue then
+    Exit;
+
+  FAngularVelocityRK4Integration := AValue;
+
+  if Assigned(SceneManagerWorld.FKraftEngine) then
+    SceneManagerWorld.FKraftEngine.AngularVelocityRK4Integration := AValue;
+end;
+
+constructor TPhysicsProperties.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
+  FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
+  FFrequency := DefaultFrequency;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -525,6 +610,9 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
     if not FExists then
       FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
 
     // initialize Kraft shape
     if Collider = nil then
@@ -891,6 +979,22 @@ begin
   end;
 end;
 
+procedure TRigidBody.SetTrigger(const Value: Boolean);
+begin
+  if FTrigger = Value then
+    Exit;
+
+  FTrigger := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfSensor];
+  end;
+end;
+
 { TCastleTransform ---------------------------------------------------------- }
 
 procedure TCastleTransform.SetRigidBody(const Value: TRigidBody);
@@ -975,7 +1079,9 @@ begin
       (2 * engine step frequency = 2 * 60 = 120). That makes physics
       very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
-    //FKraftEngine.SetFrequency(120.0); // default is 60
+    FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
+    FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
+    FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
   end;
 end;
 

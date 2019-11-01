@@ -30,18 +30,16 @@
         "Red" : 5.0000000000000000E-001,
         "$ClassName" : "TCastleColorPersistent"
       },
-      "Height" : 5.0000000000000000E+002,
+      "Height" : 2.4000000000000000E+002,
       "HorizontalAnchorDelta" : -1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "Rectangle1",
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
-      "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "Width" : 5.0000000000000000E+002,
+      "VerticalAnchorDelta" : 1.0000000000000000E+001,
+      "Width" : 1.3200000000000000E+003,
       "$Children" : [
         {
-          "Caption" : "I am a button",
+          "Caption" : "I am a button, click me!",
           "CustomBackgroundDisabled" : {
             "$ClassName" : "TCastleImagePersistent"
           },
@@ -91,7 +89,7 @@
         "Red" : 1.0000000000000000E+000,
         "$ClassName" : "TCastleColorPersistent"
       },
-      "FontSize" : 3.0000000000000000E+001,
+      "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelFps",
       "Text" : "FPS: xxx\n",

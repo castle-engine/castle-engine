@@ -152,6 +152,8 @@ type
       ScreenPointVbo: TGLuint;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
+      FScreenEffectsEnable: Boolean;
+
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
@@ -169,12 +171,12 @@ type
       as children,
       and use TTimeSensorNode to provide time to your shader uniform parameter.
       Or you can e.g. pass an X3D graph loaded from X3D file
-      using @link(X3DLoad.Load3D), this way you can define effects
+      using @link(X3DLoad.LoadNode), this way you can define effects
       inside an external X3D file, e.g. like this:
 
       @longCode(#
       SceneManager.AddScreenEffect(
-        Load3D('castle-data:/screen_effects_scene.x3dv'));
+        LoadNode('castle-data:/screen_effects_scene.x3dv'));
       #)
 
       If you're looking for inspirations what to put in screen_effects_scene.x3dv,
@@ -204,7 +206,9 @@ type
       Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
 
       Note that you can enable/disable the effect using @link(TScreenEffectNode.Enabled),
-      you do not need to remove the node only to disable it.
+      or enable/disable all using @link(ScreenEffectsEnable).
+      You do not need to remove the node by @link(RemoveScreenEffect) if you only want
+      to disable it temporarily.
     }
     procedure AddScreenEffect(const Node: TAbstractChildNode);
     procedure RemoveScreenEffect(const Node: TAbstractChildNode);
@@ -222,6 +226,14 @@ type
       @link(TCastleSceneManager.TimeScale). }
     property ScreenEffectsTimeScale: Single
       read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
+
+    { Enable or disable all screen effects added by AddScreenEffect.
+      When this is @true, particular screen effects can still be enabled/disabled
+      using @link(TScreenEffectNode.Enabled).
+      When this is @false, all effects are disabled, regardless of
+      @link(TScreenEffectNode.Enabled). }
+    property ScreenEffectsEnable: Boolean
+      read FScreenEffectsEnable write FScreenEffectsEnable default true;
 
     { Make the screen effects rendering resources ready (e.g. link shaders). }
     procedure PrepareResources;
@@ -277,6 +289,7 @@ constructor TCastleScreenEffects.Create(AOwner: TComponent);
 begin
   inherited;
   FScreenEffectsTimeScale := 1;
+  FScreenEffectsEnable := true;
 end;
 
 destructor TCastleScreenEffects.Destroy;
@@ -326,10 +339,10 @@ end;
 
 function TCastleScreenEffects.GetScreenEffectsCount: Cardinal;
 begin
-  { TCastleScene already implemented logic to only count screen effects
-    that are enabled, and their GLSL code linked successfully.
-    Cool, we depend on it. }
-  if ScreenEffectsScene <> nil then
+  if (ScreenEffectsScene <> nil) and ScreenEffectsEnable then
+    { TCastleScene already implemented logic to only count screen effects
+      that are enabled, and their GLSL code linked successfully.
+      Cool, we depend on it. }
     Result := ScreenEffectsScene.ScreenEffectsCount
   else
     Result := 0;
@@ -338,6 +351,7 @@ end;
 function TCastleScreenEffects.GetScreenEffectsNeedDepth: Boolean;
 begin
   Result := (ScreenEffectsScene <> nil) and
+    ScreenEffectsEnable and
     ScreenEffectsScene.ScreenEffectsNeedDepth;
 end;
 
@@ -719,7 +733,7 @@ var
   RemoveItem: TRemoveType;
 begin
   inherited;
-  if ScreenEffectsScene <> nil then
+  if (ScreenEffectsScene <> nil) and ScreenEffectsEnable then
   begin
     RemoveItem := rtNone;
     ScreenEffectsScene.Update(SecondsPassed * ScreenEffectsTimeScale, RemoveItem);
@@ -732,8 +746,8 @@ procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
     { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRender, then PrepareParams (3rd argument below) is used,
-      and may be nil. }
+      when there is no prRenderSelf or prRenderClones,
+      then PrepareParams (3rd argument below) is unused, and may be nil. }
     ScreenEffectsScene.PrepareResources([prScreenEffects], false, nil);
 end;
 

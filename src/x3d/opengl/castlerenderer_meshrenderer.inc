@@ -51,9 +51,7 @@ type
     property State: TX3DGraphTraverseState read FState;
     property Attributes: TRenderingAttributes read FAttributes;
   public
-    { If > 0, RenderShape will not actually render, only prepare
-      per-shape resources for fast rendering (arrays and vbos). }
-    PrepareRenderShape: Cardinal;
+    PrepareRenderShape: Boolean;
 
     CurrentMeshShader: TX3DShaderProgramBase;
 
@@ -272,7 +270,7 @@ begin
 
   RenderCoordinateBegin;
   try
-    if PrepareRenderShape = 0 then
+    if not PrepareRenderShape then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> 0 then
