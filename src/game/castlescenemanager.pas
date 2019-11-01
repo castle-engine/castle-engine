@@ -911,6 +911,8 @@ type
     you still should add scene manager to the controls list
     (this allows e.g. 3D items to receive @link(Update) events). }
   TCastleSceneManager = class(TCastleAbstractViewport)
+  strict private
+    FPhysicsProperties: TPhysicsProperties;
   private
     FMainScene: TCastleScene;
     FItems: TSceneManagerWorld;
@@ -1357,6 +1359,8 @@ type
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
       read FUseHeadlight write FUseHeadlight default hlMainScene;
+
+    property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -3153,6 +3157,7 @@ type
     function GravityUp: TVector3; override;
     function Player: TCastleTransform; override;
     function PrepareParams: TPrepareParams; override;
+    function PhysicsProperties: TPhysicsProperties; override;
     function Sectors: TSectorList; override;
     function Water: TBox3D; override;
     function WorldMoveAllowed(
@@ -3197,6 +3202,11 @@ end;
 function TSceneManagerWorldConcrete.PrepareParams: TPrepareParams;
 begin
   Result := Owner.PrepareParams;
+end;
+
+function TSceneManagerWorldConcrete.PhysicsProperties: TPhysicsProperties;
+begin
+  Result := Owner.PhysicsProperties;
 end;
 
 function TSceneManagerWorldConcrete.Sectors: TSectorList;
@@ -3259,11 +3269,38 @@ begin
       May be configurable in the future. } nil);
 end;
 
+{ TPhysicsPropertiesConcrete ------------------------------------------------- }
+
+type
+  TPhysicsPropertiesConcrete = class(TPhysicsProperties)
+  strict private
+    FSceneManager: TCastleSceneManager;
+  protected
+    function SceneManagerWorld: TSceneManagerWorld; override;
+  public
+    constructor Create(SceneManager: TCastleSceneManager); reintroduce;
+  end;
+
+function TPhysicsPropertiesConcrete.SceneManagerWorld: TSceneManagerWorld;
+begin
+  Result := FSceneManager.Items;
+end;
+
+constructor TPhysicsPropertiesConcrete.Create(SceneManager: TCastleSceneManager);
+begin
+  FSceneManager := SceneManager;
+  inherited Create(SceneManager);
+end;
+
 { TCastleSceneManager -------------------------------------------------------- }
 
 constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
+
+  FPhysicsProperties := TPhysicsPropertiesConcrete.Create(Self);
+  FPhysicsProperties.SetSubComponent(true);
+  FPhysicsProperties.Name := 'PhysicsProperties';
 
   FItems := TSceneManagerWorldConcrete.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
