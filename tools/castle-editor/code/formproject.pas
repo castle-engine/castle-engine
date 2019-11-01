@@ -685,7 +685,7 @@ end;
 
 procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 
-  procedure OpenWith(Const ToolName: String; const SelectedURL: String);
+  procedure OpenWithCastleTool(const ToolName: String; const SelectedURL: String);
   var
     Exe: String;
   begin
@@ -700,7 +700,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
     RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
   end;
 
-  procedure OpenWithLazarus(const FileName: String);
+  procedure OpenPascal(const FileName: String);
   var
     Exe: String;
   begin
@@ -727,6 +727,23 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
   end;
 
+  procedure OpenLazarusProject(const FileName: String);
+  var
+    Exe: String;
+  begin
+    try
+      Exe := FindExeLazarusIDE;
+    except
+      on E: EExecutableNotFound do
+      begin
+        EditorUtils.ErrorBox(E.Message);
+        Exit;
+      end;
+    end;
+
+    RunCommandNoWait(CreateTemporaryDir, Exe, [FileName]);
+  end;
+
 var
   SelectedFileName, Ext, SelectedURL: String;
 begin
@@ -738,13 +755,13 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWith('view3dscene', SelectedURL);
+      OpenWithCastleTool('view3dscene', SelectedURL);
       Exit;
     end;
 
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWith('castle-view-image', SelectedURL);
+      OpenWithCastleTool('castle-view-image', SelectedURL);
       Exit;
     end;
 
@@ -765,7 +782,13 @@ begin
        AnsiSameText(Ext, '.lpr') or
        AnsiSameText(Ext, '.dpr') then
     begin
-      OpenWithLazarus(SelectedFileName);
+      OpenPascal(SelectedFileName);
+      Exit;
+    end;
+
+    if AnsiSameText(Ext, '.lpi') then
+    begin
+      OpenLazarusProject(SelectedFileName);
       Exit;
     end;
 
