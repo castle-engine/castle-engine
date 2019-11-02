@@ -10,7 +10,7 @@ object AnchorsFrame: TAnchorsFrame
   ParentFont = False
   TabOrder = 0
   DesignLeft = 626
-  DesignTop = 210
+  DesignTop = 213
   object GroupBox1: TGroupBox
     Left = 0
     Height = 176

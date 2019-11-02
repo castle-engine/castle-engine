@@ -37,13 +37,13 @@ type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
+    LabelSizeInfo: TLabel;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
     LabelSnap: TLabel;
-    LabelSizeInfo: TLabel;
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
@@ -768,6 +768,8 @@ begin
   Inspector[itLayout].Parent := TabLayout;
   Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
   Inspector[itLayout].Filter := tkProperties;
+  Inspector[itLayout].Align := alBottom;
+  Inspector[itLayout].AnchorToNeighbour(akTop, 8, CheckParentSelfAnchorsEqual);
 
   Inspector[itOther] := CommonInspectorCreate;
   Inspector[itOther].Parent := TabOther;
@@ -2143,7 +2145,7 @@ begin
      (not UI.Parent.RenderRect.Contains(UI.RenderRectWithBorder)) then
     S := S + NL + NL + 'WARNING: The rectangle occupied by this control is outside of the parent rectangle. The events (like mouse clicks) may not reach this control. You must always fit child control inside the parent.';
 
-  LabelSizeInfo.Caption := S;
+  LabelSizeInfo.Hint := S;
 end;
 
 procedure TDesignFrame.UpdateAnchors(const UI: TCastleUserInterface;
