@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemCamera2DViewInitial: TMenuItem;
+    MenuItemSceneManagerCamera: TMenuItem;
     MenuItemCameraSetInitial: TMenuItem;
     MenuItemPreferences: TMenuItem;
     N1: TMenuItem;
@@ -106,6 +108,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemCamera2DViewInitialClick(Sender: TObject);
     procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
@@ -290,6 +293,12 @@ procedure TProjectForm.MenuItemCameraViewAllClick(Sender: TObject);
 begin
   Assert(Design <> nil);
   Design.CameraViewAll;
+end;
+
+procedure TProjectForm.MenuItemCamera2DViewInitialClick(Sender: TObject);
+begin
+  Assert(Design <> nil);
+  Design.Camera2DViewInitial;
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -506,7 +515,7 @@ begin
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
-  MenuItemCameraViewAll.Enabled := Design <> nil;
+  MenuItemSceneManagerCamera.Enabled := Design <> nil;
   MenuItemSortBackToFront2D.Enabled := Design <> nil;
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
