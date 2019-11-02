@@ -46,6 +46,7 @@ type
     { Set this before starting this state. }
     MapName: String;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
   end;
@@ -147,6 +148,16 @@ begin
 
   HumanTurn := true;
   UpdateTurnStatus;
+end;
+
+procedure TStatePlay.Stop;
+begin
+  { Make sure to clear fields, otherwise stopping + starting this state again
+    (when you exit the game and start a new game) could have non-nil but
+    invalid SelectedUnit reference. }
+  TileUnderMouseExists := false;
+  SelectedUnit := nil;
+  inherited;
 end;
 
 procedure TStatePlay.ClickQuit(Sender: TObject);
