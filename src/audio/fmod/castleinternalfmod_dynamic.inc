@@ -670,9 +670,15 @@ procedure InitializeFmodLibrary;
 begin
   FinalizeFmodLibrary;
 
+  {$ifdef MSWINDOWS}
+  FmodLibrary := TDynLib.Load('fmod.dll', false);
+  {$endif}
+
+  {$ifdef UNIX}
   FmodLibrary := TDynLib.Load('libfmod.so.11', false);
   if FmodLibrary = nil then
     FmodLibrary := TDynLib.Load('libfmod.so', false);
+  {$endif}
 
   if FmodLibrary <> nil then
   begin
