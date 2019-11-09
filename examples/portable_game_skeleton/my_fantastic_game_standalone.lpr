@@ -23,7 +23,8 @@ begin
 
   { On standalone, activate log only after parsing command-line options.
     This allows to handle --version and --help command-line parameters
-    without any extra output on Unix. }
+    without any extra output on Unix.
+    This also allows to set --log-file from Application.ParseStandardParameters. }
   InitializeLog;
 
   Application.MainWindow.OpenAndRun;
