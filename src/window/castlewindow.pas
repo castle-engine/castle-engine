@@ -2879,6 +2879,7 @@ type
       @unorderedList(
         @item(@code(-h / --help))
         @item(@code(-v / --version), using @link(Version))
+        @item(@code(--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters).
           Requires @link(MainWindow) to be set.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
@@ -5306,16 +5307,18 @@ begin
         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
+    2:LogFileName := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
 
 procedure TCastleApplication.ParseStandardParameters;
 const
-  Options: array [0..1] of TOption =
+  Options: array [0..2] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
-    (Short: 'v'; Long: 'version'; Argument: oaNone)
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short: #0 ; Long: 'log-file'; Argument: oaRequired)
   );
 begin
   SoundEngine.ParseParameters;

@@ -169,7 +169,12 @@ end;
 
 initialization
   ApplicationProperties.ApplicationName := 'headlight_test';
-  InitializeLog;
+
+  { For programs, InitializeLog is not called here.
+    Instead InitializeLog is done by the program main file,
+    after command-line parameters are parsed. }
+  if IsLibrary then
+    InitializeLog;
 
   Application.OnInitialize := @ApplicationInitialize;
   Window := TCastleWindow.Create(Application);
