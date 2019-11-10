@@ -1193,7 +1193,6 @@ begin
         has comments.)
       }
       FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / FPhysicsTimeStep);
-      //FKraftEngine.InterpolateWorldTransforms(1.0);
     end;
     FrameProfiler.Stop(fmUpdatePhysics);
   end;
