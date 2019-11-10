@@ -27,7 +27,8 @@ type
     fmRenderShapesFilterBlending,
     //fmRenderFrameProfiler,
     fmUpdate,
-    fmUpdateScene
+    fmUpdateScene,
+    fmUpdatePhysics
   );
 
   { Profiler gathering statistics about each game frame.
@@ -192,6 +193,7 @@ procedure TCastleFrameProfiler.StartFrame;
       '%s' +
       '- Update: %d%%' + NL +
       '  - TCastleSceneCore.Update: %d%%' + NL +
+      '  - Update Kraft Physics: %d%% (%.5f secs)' + NL +
       '%s' +
       '- Other:' + NL +
       '%s'
@@ -209,6 +211,8 @@ procedure TCastleFrameProfiler.StartFrame;
       DisplayUserMetrics(UserMetricsRenderNames, 1 + Ord(High(TFrameMetric)) + 1 + 0),
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdate)] / TotalTime),
       Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdateScene)] / TotalTime),
+      Round(100 * FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdatePhysics)] / TotalTime),
+      FramesTimes[CurrentFrame, IndexFrameMetric(fmUpdatePhysics)],
       DisplayUserMetrics(UserMetricsUpdateNames, 1 + Ord(High(TFrameMetric)) + 1 + MaxUserMetrics),
       DisplayUserMetrics(UserMetricsOtherNames , 1 + Ord(High(TFrameMetric)) + 1 + 2 * MaxUserMetrics)
     ]));

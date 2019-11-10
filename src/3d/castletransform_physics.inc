@@ -1131,6 +1131,8 @@ var
 begin
   if EnablePhysics and (FKraftEngine <> nil) then
   begin
+    FrameProfiler.Start(fmUpdatePhysics);
+
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
     KraftGravity := -GravityUp * 9.81;
@@ -1193,6 +1195,7 @@ begin
       FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / FPhysicsTimeStep);
       //FKraftEngine.InterpolateWorldTransforms(1.0);
     end;
+    FrameProfiler.Stop(fmUpdatePhysics);
   end;
 
   { call inherited at the end,
