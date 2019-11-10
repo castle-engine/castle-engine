@@ -22,6 +22,7 @@
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
+    FMaxPhysicsTicksPerUpdate: Integer;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
@@ -35,6 +36,7 @@
       DefaultAngularVelocityRK4Integration = false;
       DefaultLinearVelocityRK4Integration = false;
       DefaultFrequency = 60.0;
+      DefaultMaxPhysicsTicksPerUpdate = 5;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -42,6 +44,13 @@
     property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+
+    { This helps to avoid spiral of death when physics step get more time than rendering.
+      You can disable this by set it to 0 but then when physics takes long than render,
+      next Update will get more time and leads to infinite time.
+      When you set it to 1 simulation will get max one step per Update, so on very
+      weak hardware physics will slow down instead of jumping. }
+    property MaxPhysicsTicksPerUpdate: Integer read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
@@ -405,6 +414,7 @@ begin
     Exit;
 
   FFrequency := AValue;
+  SceneManagerWorld.FPhysicsTimeStep := 1.0 / FFrequency;
 
   if Assigned(SceneManagerWorld.FKraftEngine) then
     SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
@@ -438,6 +448,7 @@ begin
   FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
   FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
   FFrequency := DefaultFrequency;
+  FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -1080,6 +1091,7 @@ begin
       very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
+    FPhysicsTimeStep := 1.0 / PhysicsProperties.Frequency;
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
   end;
@@ -1113,8 +1125,9 @@ end;
 
 procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  OldTimeAccumulator: TFloatTime;
 begin
   if EnablePhysics and (FKraftEngine <> nil) then
   begin
@@ -1123,6 +1136,8 @@ begin
     KraftGravity := -GravityUp * 9.81;
     FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
 
+    PhysicsTicksCount := 0;
+
     if not WasPhysicsStep then
     begin
       FKraftEngine.StoreWorldTransforms;
@@ -1130,13 +1145,28 @@ begin
       WasPhysicsStep := true;
     end else
     begin
-      PhysicsTimeStep := 1.0 / FKraftEngine.WorldFrequency;
       TimeAccumulator := TimeAccumulator + SecondsPassed;
-      while TimeAccumulator >= PhysicsTimeStep do
+      while TimeAccumulator >= FPhysicsTimeStep do
       begin
-        TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
+        TimeAccumulator := TimeAccumulator - FPhysicsTimeStep;
         FKraftEngine.StoreWorldTransforms;
-        FKraftEngine.Step(PhysicsTimeStep);
+        FKraftEngine.Step(FPhysicsTimeStep);
+
+        Inc(PhysicsTicksCount);
+
+        { This helps to avoid spiral of death when physics step get more time than rendering. }
+        if (TimeAccumulator >= FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate > 0) and
+           (PhysicsTicksCount >= PhysicsProperties.MaxPhysicsTicksPerUpdate) then
+        begin
+          OldTimeAccumulator := TimeAccumulator;
+          TimeAccumulator := TimeAccumulator - (FPhysicsTimeStep * Floor(TimeAccumulator / FPhysicsTimeStep));
+
+          WritelnLog('Max physics ticks in TSceneManagerWorld.Update() exceeded ('
+            + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
+            + FloatToStr(OldTimeAccumulator) + ' to ' + FloatToStr(TimeAccumulator));
+
+          break;
+        end;
       end;
 
       { One can wonder why we do interpolate below between
@@ -1160,8 +1190,8 @@ begin
         (The original https://gafferongames.com/post/fix_your_timestep/ no longer
         has comments.)
       }
-
-      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
+      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / FPhysicsTimeStep);
+      //FKraftEngine.InterpolateWorldTransforms(1.0);
     end;
   end;
 

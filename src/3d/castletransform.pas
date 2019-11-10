@@ -1776,6 +1776,8 @@ type
     FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraKnown: boolean;
     FEnablePhysics: boolean;
+    { Buffer to not count physics step time per frame }
+    FPhysicsTimeStep: TFloatTime;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
