@@ -1258,16 +1258,7 @@ procedure TDesignFrame.Camera2DViewInitial;
 
   procedure AdjustCamera(const SceneManager: TCastleSceneManager);
   begin
-    SceneManager.Camera.Init(
-      { pos } Vector3(0, 0, TCastle2DSceneManager.DefaultCameraZ),
-      { dir } Vector3(0, 0, -1),
-      { up } Vector3(0, 1, 0),
-      { gravity up } Vector3(0, 1, 0)
-    ); // sets both initial and current vectors
-    SceneManager.Camera.ProjectionNear := -TCastle2DSceneManager.Default2DProjectionFar;
-    SceneManager.Camera.ProjectionFar := TCastle2DSceneManager.Default2DProjectionFar;
-    SceneManager.Camera.ProjectionType := ptOrthographic;
-    SceneManager.AutoDetectCamera := false;
+    SceneManager.Setup2D;
   end;
 
 begin

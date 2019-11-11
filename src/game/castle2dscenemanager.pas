@@ -27,52 +27,12 @@ uses Classes,
 type
   { Scene manager best suited for 2D worlds.
 
-    Features:
-
     @unorderedList(
       @item(
-        In constructor, we initialize the @link(Camera) to be suitable for 2D worlds.
-
-        The 2D world spans horizontally in X and vertically in Y.
-        The Z (depth) can be used to put things in front/behind each other.
-
-        More precisely, the camera is positioned at the point
-        @code((0, 0, 500)), looks along the -Z direction, with "up" vector in +Y.
-
-        You can change the camera by code, of course,
-        e.g. by changing @link(TCastleCamera.Position Camera.Position).
-
-        Since the constructor already initializes the camera sensibly,
-        this component also sets @link(AutoDetectCamera) by default to false.
+        See @link(TCastleAbstractViewport.Setup2D) for a description what it does.
       )
 
-      @item(
-        The default camera has orthographic projection,
-        that is @link(TCastleCamera.ProjectionType) is ptOrthographic.
-        By default our visible X range is @code([0..scene manager width in pixels]),
-        visible Y range is @code([0..scene manager height in pixels]).
-
-        Use the properties of @link(TCastleOrthographic Camera.Orthographic)
-        to control the projection.
-        For example set
-        @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
-        @link(TCastleOrthographic.Height Camera.Orthographic.Height)
-        to define visible projection size (horizontal or vertical) explicitly,
-        regardless of the scene manager size.
-
-        Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
-        is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
-        at (0,0) in the world visible at the middle of the scene manager.
-
-        By default our visible Z range is [-1500, 500],
-        because ProjectionNear is -1000, ProjectionFar is 1000,
-        and camera default depth (@code(Camera.Position.Z)) is 500.
-        This was chosen to be comfortable for all cases -- you can
-        keep camera Z unchanged and comfortably position things around [-500, 500],
-        or set camera Z to zero and then comfortably position things around [-1000, 1000].
-      )
-
-      @item(The navigation by default remains @nil,
+      @item(Also, the navigation by default remains @nil,
         because @link(AutoDetectNavigation) is by default @false.
 
         That is because you typically want to
@@ -97,9 +57,8 @@ type
     procedure SetProjectionOriginCenter(const Value: Boolean);
   public
     const
-      Default2DProjectionFar = 1000.0;
       DefaultProjectionSpan = Default2DProjectionFar deprecated 'use Default2DProjectionFar';
-      DefaultCameraZ = Default2DProjectionFar / 2;
+      DefaultCameraZ = Default2DCameraZ deprecated 'use Default2DCameraZ';
 
     constructor Create(AOwner: TComponent); override;
 
@@ -197,24 +156,9 @@ uses SysUtils,
 { TCastle2DSceneManager -------------------------------------------------------- }
 
 constructor TCastle2DSceneManager.Create(AOwner: TComponent);
-
-  procedure MakeCamera2D;
-  begin
-    Camera.Init(
-      { pos } Vector3(0, 0, DefaultCameraZ),
-      { dir } Vector3(0, 0, -1),
-      { up } Vector3(0, 1, 0),
-      { gravity up } Vector3(0, 1, 0)
-    );
-    Camera.ProjectionNear := -Default2DProjectionFar;
-    Camera.ProjectionFar := Default2DProjectionFar;
-    Camera.ProjectionType := ptOrthographic;
-  end;
-
 begin
   inherited;
-  MakeCamera2D;
-  AutoDetectCamera := false;
+  Setup2D;
   AutoDetectNavigation := false;
 end;
 

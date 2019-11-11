@@ -343,6 +343,8 @@ type
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
       DefaultBackgroundColor: TVector4 = (Data: (0.1, 0.1, 0.1, 1));
+      Default2DProjectionFar = 1000.0;
+      Default2DCameraZ = Default2DProjectionFar / 2;
 
     var
       { Rendering pass, for user purposes.
@@ -601,6 +603,53 @@ type
     { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
+    { Utility method to set camera to a suitable state for 2D games.
+
+      @unorderedList(
+        @item(
+          Sets both initial and current camera vectors like this:
+          @unorderedList(
+            @itemSpacing compact
+            @item Position camera at @code((0, 0, 500)),
+            @item Looks along the -Z direction,
+            @item "Up" vector is in +Y.
+          )
+
+          This way the 2D world spans horizontally in X and vertically in Y.
+          The Z (depth) can be used to put things in front/behind each other.
+
+          Since this initialized the camera sensibly,
+          we also set @link(AutoDetectCamera) to false.
+        )
+
+        @item(
+          Sets orthographic projection for the camera
+          (@link(TCastleCamera.ProjectionType) set to ptOrthographic).
+
+          By default our visible X range is @code([0..viewport width in pixels]),
+          visible Y range is @code([0..viewport height in pixels]).
+          Use the properties of @link(TCastleOrthographic Camera.Orthographic)
+          to control the projection.
+          For example set
+          @link(TCastleOrthographic.Width Camera.Orthographic.Width) and/or
+          @link(TCastleOrthographic.Height Camera.Orthographic.Height)
+          to define visible projection size (horizontal or vertical) explicitly,
+          regardless of the scene manager size.
+
+          Setting @link(TCastleOrthographic.Origin Camera.Orthographic.Origin)
+          is also often useful, e.g. set it to (0.5,0.5) to make the things positioned
+          at (0,0) in the world visible at the middle of the scene manager.
+
+          By default our visible Z range is [-1500, 500],
+          because this sets ProjectionNear to -1000, ProjectionFar to 1000,
+          and camera default depth (@code(Camera.Position.Z)) is 500.
+          This was chosen to be comfortable for all cases -- you can
+          keep camera Z unchanged and comfortably position things around [-500, 500],
+          or set camera Z to zero and then comfortably position things around [-1000, 1000].
+        )
+      )
+    }
+    procedure Setup2D;
   published
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
@@ -3366,13 +3415,18 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
-procedure TCastleSceneManager.UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
+procedure TCastleAbstractViewport.Setup2D;
 begin
-  if UpdateGeneratedTexturesFrameId <> TFramesPerSecond.FrameId then
-  begin
-    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
-    Items.UpdateGeneratedTextures(@RenderFromViewEverything, ProjectionNear, ProjectionFar);
-  end;
+  Camera.Init(
+    { pos } Vector3(0, 0, Default2DCameraZ),
+    { dir } Vector3(0, 0, -1),
+    { up } Vector3(0, 1, 0),
+    { gravity up } Vector3(0, 1, 0)
+  ); // sets both initial and current vectors
+  Camera.ProjectionNear := -Default2DProjectionFar;
+  Camera.ProjectionFar := Default2DProjectionFar;
+  Camera.ProjectionType := ptOrthographic;
+  AutoDetectCamera := false;
 end;
 
 {$define read_implementation_methods}
@@ -4461,6 +4515,15 @@ begin
   );
 
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end;
+
+procedure TCastleSceneManager.UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
+begin
+  if UpdateGeneratedTexturesFrameId <> TFramesPerSecond.FrameId then
+  begin
+    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+    Items.UpdateGeneratedTextures(@RenderFromViewEverything, ProjectionNear, ProjectionFar);
+  end;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }
