@@ -16,9 +16,6 @@
 {$ifdef read_interface}
 
 const
-  ProjectionTypeToStr: array [TProjectionType] of string =
-  ('Orthographic', 'Perspective', 'Frustum');
-
   DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TMaterialInfo.DefaultAmbientColor';
   DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
   DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TMaterialInfo.DefaultDiffuseColor';

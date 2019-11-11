@@ -1327,7 +1327,6 @@ procedure TGLRenderedTextureNode.Update(
     case ProjectionType of
       ptPerspective: DoPerspective;
       ptOrthographic: DoOrthographic;
-      ptFrustum: raise EInternalError.Create('TGLRenderedTextureNode.Update: X3D Viewpoint node should not be able to specify ptFrustum projection');
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TGLRenderedTextureNode.Update-ProjectionType?');
       {$endif}

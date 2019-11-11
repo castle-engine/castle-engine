@@ -24,13 +24,14 @@ uses CastleVectors, CastleRectangles;
 
 type
   { Projection type, used by @link(TProjection.ProjectionType). }
-  TProjectionType = (ptOrthographic, ptPerspective, ptFrustum);
+  TProjectionTypeCore = (ptOrthographic, ptPerspective, ptFrustum);
+  TProjectionType = ptOrthographic .. ptPerspective;
 
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
     you usually want to override the @link(TCastleAbstractViewport.CalculateProjection). }
   TProjection = record
-    ProjectionType: TProjectionType;
+    ProjectionType: TProjectionTypeCore;
 
     { If ProjectionType is ptPerspective, this property specifies
       angles of view (horizontal and vertical), in degrees.
@@ -123,7 +124,7 @@ function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Sing
 function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
-function ProjectionTypeToStr(const ProjectionType: TProjectionType): String;
+function ProjectionTypeToStr(const ProjectionType: TProjectionTypeCore): String;
 
 implementation
 
@@ -315,9 +316,9 @@ begin
   Result.Data[2, 3] := -1;
 end;
 
-function ProjectionTypeToStr(const ProjectionType: TProjectionType): String;
+function ProjectionTypeToStr(const ProjectionType: TProjectionTypeCore): String;
 const
-  Names: array[TProjectionType] of String = ('Orthographic', 'Perspective', 'Frustum');
+  Names: array[TProjectionTypeCore] of String = ('Orthographic', 'Perspective', 'Frustum');
 begin
   Result := Names[ProjectionType];
 end;
