@@ -1039,6 +1039,8 @@ type
     procedure SetScaleFactorMax(const Value: Single);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
+    { Negative Factor makes "zoom out", positive makes "zoom on",
+      zero makes nothing. }
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
     procedure OnGestureRecognized(Sender: TObject);
@@ -1102,11 +1104,12 @@ type
     property MoveEnabled: Boolean read FMoveEnabled write FMoveEnabled default true;
 
     { Enable zooming the camera on the model by user input.
-      Depending on the projection, zooming either moves camera or scales the model.
+      Depending on the projection, zooming either moves camera or scales
+      the projection size.
       When @false, no keys / mouse dragging / 3d mouse etc. can make a zoom.
 
       Note that this doesn't prevent from zooming by code, e.g. by setting
-      @link(ScaleFactor) property (to scale the model)
+      @link(ScaleFactor) property (to scale the projection size)
       or calling @link(SetView) (to move closer to the model). }
     property ZoomEnabled: Boolean read FZoomEnabled write FZoomEnabled default true;
 
@@ -1156,7 +1159,7 @@ type
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
-    { Scale of the model. }
+    { Scale the projection size. }
     property ScaleFactor: Single
       read GetScaleFactor write SetScaleFactor default 1;
     property ScaleFactorMin: Single
@@ -3021,12 +3024,6 @@ begin
     included in Translation. }
   Result.Translation := Result.Rotations.Rotate(Result.Translation + CenterOfRotation)
     - CenterOfRotation;
-
-  { Reset ScaleFactor to 1, this way the camera view corresponds
-    exactly to the wanted SetView view. }
-  // TODO this always resets ScaleFactor, effectively e.g. ScaleFactorMin/Max will not work.
-  // Can we instead recover scale, assuming it was set by SetExamineVectors?
-  Result.ScaleFactor := 1;
 end;
 
 procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVectors);
@@ -3036,7 +3033,6 @@ begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
   MInverse :=
     TranslationMatrix(CenterOfRotation) *
-    ScalingMatrix(Vector3(1/Value.ScaleFactor, 1/Value.ScaleFactor, 1/Value.ScaleFactor)) *
     Value.Rotations.Conjugate.ToRotationMatrix *
     TranslationMatrix(-(Value.Translation + CenterOfRotation));
 
@@ -3076,10 +3072,12 @@ var
 
 var
   i: integer;
-  MoveChange, ScaleChange: Single;
+  MoveChange: Single;
   ModsDown: TModifierKeys;
   RotChange: Single;
   MoveChangeVector: TVector3;
+const
+  KeyZoomSpeed = 10.0;
 begin
   inherited;
 
@@ -3129,9 +3127,6 @@ begin
       MoveChange := KeysMoveSpeed * SecondsPassed else
       MoveChange := KeysMoveSpeed * ModelBox.AverageSize * SecondsPassed;
 
-    { we will apply SecondsPassed to ScaleChange later }
-    ScaleChange := 1.5;
-
     ModsDown := ModifiersDown(Container.Pressed);
 
     if MoveEnabled and (ModsDown = [mkCtrl]) then
@@ -3172,20 +3167,24 @@ begin
         end;
       end;
     end;
+  end;
 
+  ExamineVectors := V;
+
+  { process things that do not set ExamineVectors }
+  if HandleInput and (ciNormal in Input) then
+  begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
-      V.ScaleFactor := V.ScaleFactor * Power(ScaleChange, SecondsPassed);
+      Zoom(KeyZoomSpeed * SecondsPassed);
       HandleInput := not ExclusiveEvents;
     end;
     if Input_ScaleSmaller.IsPressed(Container) then
     begin
-      V.ScaleFactor := V.ScaleFactor * Power(1 / ScaleChange, SecondsPassed);
+      Zoom(-KeyZoomSpeed * SecondsPassed);
       HandleInput := not ExclusiveEvents;
     end;
   end;
-
-  ExamineVectors := V;
 end;
 
 function TCastleExamineNavigation.AllowSuspendForInput: boolean;
