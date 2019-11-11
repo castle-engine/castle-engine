@@ -553,8 +553,11 @@ type
   {$undef read_interface_class}
   end;
 
-  TCameraClass = class of TCamera deprecated 'use "class of TCastleNavigation"';
+  TCameraClass = class of TCamera;
+    // deprecated 'use "class of TCastleNavigation"';
+    // using deprecated (without a String too) breaks Lazarus Code Tools now
 
+  { }
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
   { Handle user input to modify viewport camera.
