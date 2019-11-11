@@ -1039,6 +1039,8 @@ type
       to make sure a first viewport rendered in this frame
       causes Items.UpdateGeneratedTextures. }
     procedure UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
+
+    class procedure CreateComponentSetup2D(Sender: TObject);
   protected
     var
       FSectors: TSectorList;
@@ -4535,6 +4537,11 @@ begin
   end;
 end;
 
+class procedure TCastleSceneManager.CreateComponentSetup2D(Sender: TObject);
+begin
+  (Sender as TCastleSceneManager).Setup2D;
+end;
+
 { TCastleViewport --------------------------------------------------------------- }
 
 destructor TCastleViewport.Destroy;
@@ -4689,6 +4696,8 @@ begin
   Result := SceneManager.Headlight;
 end;
 
+var
+  R: TRegisteredComponent;
 initialization
   { Basic shortcuts. }
   Input_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
@@ -4714,6 +4723,13 @@ initialization
   Input_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
 
   RegisterSerializableComponent(TCastleSceneManager, 'Scene Manager');
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleSceneManager;
+  R.Caption := 'Scene Manager (Configured For 2D)';
+  R.OnCreate := @TCastleSceneManager(nil).CreateComponentSetup2D;
+  RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastleViewport, 'Viewport');
   InitializeWarmupCache;
 end.

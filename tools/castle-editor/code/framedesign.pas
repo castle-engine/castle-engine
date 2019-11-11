@@ -196,11 +196,13 @@ type
     procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
       const NewDesignUrl: String);
     procedure OpenDesign(const NewDesignUrl: String);
-    procedure NewDesign(const ComponentClass: TComponentClass);
+    procedure NewDesign(const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent);
 
     function FormCaption: String;
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent;
       const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
     procedure DeleteComponent;
     procedure CopyComponent;
@@ -937,7 +939,8 @@ begin
 end;
 
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
-  const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
+  const ComponentOnCreate: TNotifyEvent;
+  const PrimitiveGeometry: TPrimitiveGeometry);
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
@@ -953,6 +956,8 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     if ComponentClass.InheritsFrom(TCastleTransform) then
     begin
       NewTransform := ComponentClass.Create(DesignOwner) as TCastleTransform;
+      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
+        ComponentOnCreate(NewTransform);
       NewTransform.Name := ProposeName(ComponentClass, DesignOwner);
       if PrimitiveGeometry <> pgNone then
       begin
@@ -973,6 +978,8 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     if ComponentClass.InheritsFrom(TCastleUserInterface) then
     begin
       NewUserInterface := ComponentClass.Create(DesignOwner) as TCastleUserInterface;
+      if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
+        ComponentOnCreate(NewUserInterface);
       NewUserInterface.Name := ProposeName(ComponentClass, DesignOwner);
       ParentComponent.InsertFront(NewUserInterface);
       FinishAddingComponent(NewUserInterface);
@@ -2210,7 +2217,8 @@ begin
   MarkModified;
 end;
 
-procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass);
+procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass;
+  const ComponentOnCreate: TNotifyEvent);
 var
   NewRoot: TComponent;
   NewDesignOwner: TComponent;
@@ -2218,6 +2226,8 @@ begin
   NewDesignOwner := TComponent.Create(Self);
 
   NewRoot := ComponentClass.Create(NewDesignOwner);
+  if Assigned(ComponentOnCreate) then
+    ComponentOnCreate(NewRoot);
   NewRoot.Name := ProposeName(ComponentClass, NewDesignOwner);
 
   { In these special cases, set FullSize to true,

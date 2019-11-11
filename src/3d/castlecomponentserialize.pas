@@ -67,17 +67,31 @@ function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 function ComponentToString(const C: TComponent): String;
 function StringToComponent(const Contents: String; const Owner: TComponent): TComponent;
 
-{ Register a component that can be serialized and edited using CGE editor.
-  @param(Caption Nice caption to show user in the editor.) }
-procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
-  const Caption: String);
-
 type
+  { Describes a component registered using @link(RegisterSerializableComponent),
+    enumerated using @link(RegisteredComponents) list. }
   TRegisteredComponent = class
+  public
+    { Class of the component. Never leave this @nil. }
     ComponentClass: TComponentClass;
+    { Nice caption to show user in the editor. }
     Caption: String;
+    { Called by the editor always after creating this component. }
+    OnCreate: TNotifyEvent;
+    { Should correspond to whether class is declared as "deprecated" in Pascal
+      (we cannot get it using RTTI for now). }
+    IsDeprecated: Boolean;
   end;
   TRegisteredComponents = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredComponent>;
+
+{ Register a component that can be serialized and edited using CGE editor.
+
+  In case of the overloaded version that gets TRegisteredComponent instance,
+  the TRegisteredComponent instance becomes internally owned in this unit
+  (do not free it yourself). }
+procedure RegisterSerializableComponent(const ComponentClass: TComponentClass;
+  const Caption: String);
+procedure RegisterSerializableComponent(const C: TRegisteredComponent);
 
 { Read-only list of currently registered
   (using @link(RegisterSerializableComponent)) components. }
@@ -159,6 +173,11 @@ begin
   R.ComponentClass := ComponentClass;
   R.Caption := Caption;
   RegisteredComponents.Add(R);
+end;
+
+procedure RegisterSerializableComponent(const C: TRegisteredComponent);
+begin
+  RegisteredComponents.Add(C);
 end;
 
 function FindComponentClass(const AClassName: string): TComponentClass;

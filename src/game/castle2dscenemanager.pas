@@ -122,14 +122,14 @@ type
     property ProjectionOriginCenter: boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       deprecated 'use Camera.Orthographic.Origin';
-  end;
+  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoDetectNavigation:=false';
 
   T2DSceneManager = class(TCastle2DSceneManager)
   public
     constructor Create(AOwner: TComponent); override;
   published
     property Transparent default true;
-  end deprecated 'use TCastle2DSceneManager instead (and note that it has different default Transparent value)';
+  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoDetectNavigation:=false, and set Transparent:=true';
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
     good when your transparent objects have proper order along the Z axis
@@ -249,7 +249,14 @@ begin
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
+var
+  R: TRegisteredComponent;
 initialization
-  RegisterSerializableComponent(TCastle2DSceneManager, '2D Scene Manager');
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastle2DSceneManager;
+  R.Caption := '2D Scene Manager';
+  R.IsDeprecated := true;
+  RegisterSerializableComponent(R);
+
   RegisterSerializableComponent(TCastle2DScene, '2D Scene');
 end.

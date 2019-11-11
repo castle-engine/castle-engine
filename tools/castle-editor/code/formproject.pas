@@ -312,10 +312,15 @@ end;
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
+  var
+    S: String;
   begin
     Result := TMenuItem.Create(Self);
-    Result.Caption := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    Result.Tag := PtrInt(Pointer(R.ComponentClass));
+    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+    if R.IsDeprecated then
+      S := '(Deprecated) ' + S;
+    Result.Caption := S;
+    Result.Tag := PtrInt(Pointer(R));
   end;
 
   procedure BuildComponentsMenu;
@@ -324,30 +329,60 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     R: TRegisteredComponent;
     SeparatorIndex: Integer;
   begin
+    { add non-deprecated components }
     for R in RegisteredComponents do
-    begin
-      if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+      if not R.IsDeprecated then
       begin
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-        MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
+        if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+          MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
 
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemAddComponentClick;
-        MenuItemDesignAddUserInterface.Add(MenuItem);
-      end else
-      if R.ComponentClass.InheritsFrom(TCastleTransform) then
-      begin
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-        MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          MenuItemDesignAddUserInterface.Add(MenuItem);
+        end else
+        if R.ComponentClass.InheritsFrom(TCastleTransform) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
+          MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
 
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemAddComponentClick;
-        SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
-        MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
+          MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+        end;
       end;
-    end;
+
+    { add separators from deprecated }
+    MenuItem := TMenuItem.Create(Self);
+    MenuItem.Caption := '-';
+    MenuItemDesignAddUserInterface.Add(MenuItem);
+
+    MenuItem := TMenuItem.Create(Self);
+    MenuItem.Caption := '-';
+    MenuItemDesignAddTransform.Add(MenuItem);
+
+    { add deprecated components }
+    for R in RegisteredComponents do
+      if R.IsDeprecated then
+      begin
+        if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          MenuItemDesignAddUserInterface.Add(MenuItem);
+        end else
+        if R.ComponentClass.InheritsFrom(TCastleTransform) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
+          MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+        end;
+      end;
   end;
 
   { We create some components by code, this way we don't have to put
@@ -458,19 +493,19 @@ end;
 procedure TProjectForm.MenuItemDesignAddBoxClick(Sender: TObject);
 begin
   NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, pgBox);
+  Design.AddComponent(TCastleScene, nil, pgBox);
 end;
 
 procedure TProjectForm.MenuItemDesignAddRectangle2DClick(Sender: TObject);
 begin
   NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, pgRectangle2D);
+  Design.AddComponent(TCastleScene, nil, pgRectangle2D);
 end;
 
 procedure TProjectForm.MenuItemDesignAddSphereClick(Sender: TObject);
 begin
   NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, pgSphere);
+  Design.AddComponent(TCastleScene, nil, pgSphere);
 end;
 
 procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
@@ -552,7 +587,7 @@ begin
   if ProposeSaveDesign then
   begin
     NeedsDesignFrame;
-    Design.NewDesign(TCastleUserInterface);
+    Design.NewDesign(TCastleUserInterface, nil);
   end;
 end;
 
@@ -561,7 +596,7 @@ begin
   if ProposeSaveDesign then
   begin
     NeedsDesignFrame;
-    Design.NewDesign(TCastleTransform);
+    Design.NewDesign(TCastleTransform, nil);
   end;
 end;
 
@@ -854,21 +889,21 @@ end;
 
 procedure TProjectForm.MenuItemAddComponentClick(Sender: TObject);
 var
-  ComponentClass: TComponentClass;
+  R: TRegisteredComponent;
 begin
-  ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
-  Design.AddComponent(ComponentClass);
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+  Design.AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
 procedure TProjectForm.MenuItemDesignNewCustomRootClick(Sender: TObject);
 var
-  ComponentClass: TComponentClass;
+  R: TRegisteredComponent;
 begin
   if ProposeSaveDesign then
   begin
-    ComponentClass := TComponentClass(Pointer((Sender as TComponent).Tag));
+    R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
     NeedsDesignFrame;
-    Design.NewDesign(ComponentClass);
+    Design.NewDesign(R.ComponentClass, R.OnCreate);
   end;
 end;
 
