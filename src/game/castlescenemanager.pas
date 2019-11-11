@@ -2249,6 +2249,11 @@ var
 
     procedure CalculateDimensions;
     begin
+      { Apply Camera.Orthographic.Scale here,
+        this way it scales around Origin (e.g. around middle, when Origin is 0.5,0.5) }
+      EffectiveProjectionWidth  *= Camera.Orthographic.Scale;
+      EffectiveProjectionHeight *= Camera.Orthographic.Scale;
+
       Result.Dimensions.Width  := EffectiveProjectionWidth;
       Result.Dimensions.Height := EffectiveProjectionHeight;
       Result.Dimensions.Left   := - Camera.Orthographic.Origin.X * EffectiveProjectionWidth;
@@ -2293,8 +2298,12 @@ var
       EffectiveProjectionHeight := Result.Dimensions.Height;
     end;
 
+    Assert(Result.Dimensions.Width  = EffectiveProjectionWidth);
+    Assert(Result.Dimensions.Height = EffectiveProjectionHeight);
+
     Camera.Orthographic.InternalSetEffectiveSize(
-      EffectiveProjectionWidth, EffectiveProjectionHeight);
+      Result.Dimensions.Width,
+      Result.Dimensions.Height);
   end;
 
   { Calculate reasonable perspective projection near, looking at Box. }

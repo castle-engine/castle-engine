@@ -143,11 +143,12 @@ type
   TCastleOrthographic = class(TComponent)
   strict private
     FOrigin: TVector2;
-    FWidth, FHeight: Single;
+    FWidth, FHeight, FScale: Single;
     FEffectiveWidth, FEffectiveHeight: Single;
     procedure SetOrigin(const Value: TVector2);
     procedure SetWidth(const Value: Single);
     procedure SetHeight(const Value: Single);
+    procedure SetScale(const Value: Single);
   private
     Camera: TCastleCamera;
   public
@@ -232,6 +233,9 @@ type
         )
       )
 
+      In alll cases, the resulting size is also multiplied by @link(Scale),
+      by default 1.0.
+
       In all cases, you can read @link(EffectiveWidth) and @link(EffectiveHeight)
       to know the actual projection width and height, calculated using
       the above algorithm.
@@ -240,6 +244,15 @@ type
     property Width: Single read FWidth write SetWidth default 0;
     property Height: Single read FHeight write SetHeight default 0;
     { @groupEnd }
+
+    { Scales the projection size derived from @link(Width) and @link(Height).
+
+      The effect of this scale is also affected by the @link(Origin).
+      When @link(Origin) is zero, this behaves like scaling around left-botttom corner
+      of the viewport.
+      When @link(Origin) is (0.5,0.5), this behaves like scaling around
+      the middle of the viewport. }
+    property Scale: Single read FScale write SetScale default 1;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
@@ -983,9 +996,7 @@ type
   end;
 
   { Navigate the 3D model in examine mode, like you would hold
-    a box with the model inside.
-    The model is moved by @link(Translation),
-    rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
+    a box with the model inside. }
   TCastleExamineNavigation = class(TCastleNavigation)
   private
     type
@@ -994,7 +1005,6 @@ type
       TExamineVectors = record
         Translation: TVector3;
         Rotations: TQuaternion;
-        ScaleFactor: Single;
       end;
 
     var
@@ -1162,6 +1172,7 @@ type
     { Scale the projection size. }
     property ScaleFactor: Single
       read GetScaleFactor write SetScaleFactor default 1;
+      deprecated 'use Camera.Orthographic.Scale';
     property ScaleFactorMin: Single
       read FScaleFactorMin write SetScaleFactorMin default 0.01;
     property ScaleFactorMax: Single
@@ -2195,6 +2206,7 @@ end;
 constructor TCastleOrthographic.Create(AOwner: TComponent);
 begin
   inherited;
+  FScale := 1;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleorthographic_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -2231,6 +2243,15 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
+    Camera.VisibleChange;
+  end;
+end;
+
+procedure TCastleOrthographic.SetScale(const Value: Single);
+begin
+  if FScale <> Value then
+  begin
+    FScale := Value;
     Camera.VisibleChange;
   end;
 end;
@@ -3030,7 +3051,6 @@ procedure TCastleExamineNavigation.SetExamineVectors(const Value: TExamineVector
 var
   MInverse: TMatrix4;
 begin
-  { This inverse always exists, assuming ScaleFactor is <> 0. }
   MInverse :=
     TranslationMatrix(CenterOfRotation) *
     Value.Rotations.Conjugate.ToRotationMatrix *
@@ -3210,7 +3230,7 @@ end;
 
 procedure TCastleExamineNavigation.Scale(const ScaleBy: Single);
 begin
-  ScaleFactor := ScaleFactor * ScaleBy;
+  ScaleFactor := ScaleFactor / ScaleBy;
 end;
 
 procedure TCastleExamineNavigation.Move(coord: integer; const MoveDistance: Single);
@@ -3325,16 +3345,12 @@ end;
 
 function TCastleExamineNavigation.GetScaleFactor: Single;
 begin
-  Result := ExamineVectors.ScaleFactor;
+  Result := Camera.Orthographic.Scale;
 end;
 
 procedure TCastleExamineNavigation.SetScaleFactor(const Value: Single);
-var
-  V: TExamineVectors;
 begin
-  V := ExamineVectors;
-  V.ScaleFactor := Value;
-  ExamineVectors := V;
+  Camera.Orthographic.Scale := Value;
 end;
 
 procedure TCastleExamineNavigation.SetScaleFactorMin(const Value: Single);
@@ -3452,8 +3468,8 @@ begin
     if OrthographicProjection then
     begin
       { In case of OrthographicProjection, changing Translation
-        would have no effect. So instead scale the model. }
-      ScaleFactor := ScaleFactor * Exp(Factor);
+        would have no effect. So instead scale the projection size. }
+      ScaleFactor := ScaleFactor * Exp(-Factor);
     end else
     begin
       { zoom by changing Translation }
