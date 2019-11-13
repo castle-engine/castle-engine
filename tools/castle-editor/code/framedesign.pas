@@ -38,6 +38,7 @@ type
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
     LabelSizeInfo: TLabel;
+    PanelAnchors: TPanel;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
@@ -773,7 +774,7 @@ begin
   Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
   Inspector[itLayout].Filter := tkProperties;
   Inspector[itLayout].Align := alBottom;
-  Inspector[itLayout].AnchorToNeighbour(akTop, 8, CheckParentSelfAnchorsEqual);
+  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelAnchors);
 
   Inspector[itOther] := CommonInspectorCreate;
   Inspector[itOther].Parent := TabOther;
@@ -1685,7 +1686,7 @@ begin
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  TabLayout.TabVisible := UI <> nil;
+  PanelAnchors.Visible := UI <> nil;
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);

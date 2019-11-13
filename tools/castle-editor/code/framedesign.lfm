@@ -65,187 +65,201 @@ object DesignFrame: TDesignFrame
         ClientHeight = 492
         ClientWidth = 411
         ParentFont = False
-        object CheckParentSelfAnchorsEqual: TCheckBox
-          AnchorSideTop.Control = SelfAnchorsFrame
-          AnchorSideTop.Side = asrBottom
-          Left = 9
-          Height = 29
-          Top = 267
-          Width = 343
-          BorderSpacing.Top = 8
-          Caption = 'Anchor to the same side of Parent'
-          OnChange = CheckParentSelfAnchorsEqualChange
-          ParentFont = False
-          TabOrder = 0
-        end
-        inline SelfAnchorsFrame: TAnchorsFrame
-          AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
-          AnchorSideTop.Control = ButtonClearAnchorDeltas
-          AnchorSideTop.Side = asrBottom
-          Left = 9
-          Height = 205
-          Top = 54
-          Width = 177
-          BorderSpacing.Top = 8
-          ClientHeight = 205
-          ClientWidth = 177
-          TabOrder = 1
-          DesignLeft = 730
-          DesignTop = 245
-          inherited GroupBox1: TGroupBox
-            Height = 205
-            Width = 177
-            ClientHeight = 176
-            ClientWidth = 173
-            inherited ButtonLeftTop: TSpeedButton
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonLeftMiddle: TSpeedButton
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonLeftBottom: TSpeedButton
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-            inherited ButtonMiddleTop: TSpeedButton
-              Left = 56
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonMiddleMiddle: TSpeedButton
-              Left = 56
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonMiddleBottom: TSpeedButton
-              Left = 56
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-            inherited ButtonRightTop: TSpeedButton
-              Left = 112
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonRightMiddle: TSpeedButton
-              Left = 112
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonRightBottom: TSpeedButton
-              Left = 112
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-          end
-        end
-        inline ParentAnchorsFrame: TAnchorsFrame
-          AnchorSideLeft.Control = SelfAnchorsFrame
-          AnchorSideLeft.Side = asrBottom
-          AnchorSideTop.Control = ButtonClearAnchorDeltas
-          AnchorSideTop.Side = asrBottom
-          Left = 198
-          Height = 205
-          Top = 54
-          Width = 177
-          BorderSpacing.Left = 12
-          BorderSpacing.Top = 8
-          ClientHeight = 205
-          ClientWidth = 177
-          TabOrder = 2
-          DesignLeft = 730
-          DesignTop = 245
-          inherited GroupBox1: TGroupBox
-            Height = 205
-            Width = 177
-            Caption = 'Parent Side'
-            ClientHeight = 176
-            ClientWidth = 173
-            inherited ButtonLeftTop: TSpeedButton
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonLeftMiddle: TSpeedButton
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonLeftBottom: TSpeedButton
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-            inherited ButtonMiddleTop: TSpeedButton
-              Left = 56
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonMiddleMiddle: TSpeedButton
-              Left = 56
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonMiddleBottom: TSpeedButton
-              Left = 56
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-            inherited ButtonRightTop: TSpeedButton
-              Left = 112
-              Height = 51
-              Width = 51
-            end
-            inherited ButtonRightMiddle: TSpeedButton
-              Left = 112
-              Height = 51
-              Top = 56
-              Width = 51
-            end
-            inherited ButtonRightBottom: TSpeedButton
-              Left = 112
-              Height = 51
-              Top = 112
-              Width = 51
-            end
-          end
-        end
-        object ButtonClearAnchorDeltas: TButton
-          AnchorSideLeft.Control = SelfAnchorsFrame
-          Left = 9
-          Height = 37
-          Top = 9
-          Width = 193
+        object PanelAnchors: TPanel
+          Left = 0
+          Height = 303
+          Top = 0
+          Width = 411
+          Align = alTop
           AutoSize = True
-          BorderSpacing.Top = 12
-          Caption = 'Move to the anchor'
-          OnClick = ButtonClearAnchorDeltasClick
-          ParentFont = False
-          TabOrder = 3
-        end
-        object LabelSizeInfo: TLabel
-          AnchorSideRight.Side = asrBottom
-          Left = 296
-          Height = 27
-          Top = 11
-          Width = 105
-          Anchors = [akTop, akRight]
-          Caption = 'Show sizes'
-          Font.Color = clBlue
-          Font.Style = [fsUnderline]
+          BevelOuter = bvNone
+          ChildSizing.LeftRightSpacing = 8
+          ChildSizing.TopBottomSpacing = 8
+          ClientHeight = 303
+          ClientWidth = 411
           ParentColor = False
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = True
+          TabOrder = 0
+          object CheckParentSelfAnchorsEqual: TCheckBox
+            AnchorSideTop.Control = SelfAnchorsFrame
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 29
+            Top = 266
+            Width = 343
+            BorderSpacing.Top = 8
+            Caption = 'Anchor to the same side of Parent'
+            OnChange = CheckParentSelfAnchorsEqualChange
+            ParentFont = False
+            TabOrder = 0
+          end
+          inline SelfAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
+            AnchorSideTop.Side = asrBottom
+            Left = 8
+            Height = 205
+            Top = 53
+            Width = 177
+            BorderSpacing.Top = 8
+            ClientHeight = 205
+            ClientWidth = 177
+            TabOrder = 1
+            DesignLeft = 730
+            DesignTop = 245
+            inherited GroupBox1: TGroupBox
+              Height = 205
+              Width = 177
+              ClientHeight = 176
+              ClientWidth = 173
+              inherited ButtonLeftTop: TSpeedButton
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonLeftMiddle: TSpeedButton
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonLeftBottom: TSpeedButton
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+              inherited ButtonMiddleTop: TSpeedButton
+                Left = 56
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonMiddleMiddle: TSpeedButton
+                Left = 56
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonMiddleBottom: TSpeedButton
+                Left = 56
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+              inherited ButtonRightTop: TSpeedButton
+                Left = 112
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonRightMiddle: TSpeedButton
+                Left = 112
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonRightBottom: TSpeedButton
+                Left = 112
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+            end
+          end
+          inline ParentAnchorsFrame: TAnchorsFrame
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = ButtonClearAnchorDeltas
+            AnchorSideTop.Side = asrBottom
+            Left = 197
+            Height = 205
+            Top = 53
+            Width = 177
+            BorderSpacing.Left = 12
+            BorderSpacing.Top = 8
+            ClientHeight = 205
+            ClientWidth = 177
+            TabOrder = 2
+            DesignLeft = 730
+            DesignTop = 245
+            inherited GroupBox1: TGroupBox
+              Height = 205
+              Width = 177
+              Caption = 'Parent Side'
+              ClientHeight = 176
+              ClientWidth = 173
+              inherited ButtonLeftTop: TSpeedButton
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonLeftMiddle: TSpeedButton
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonLeftBottom: TSpeedButton
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+              inherited ButtonMiddleTop: TSpeedButton
+                Left = 56
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonMiddleMiddle: TSpeedButton
+                Left = 56
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonMiddleBottom: TSpeedButton
+                Left = 56
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+              inherited ButtonRightTop: TSpeedButton
+                Left = 112
+                Height = 51
+                Width = 51
+              end
+              inherited ButtonRightMiddle: TSpeedButton
+                Left = 112
+                Height = 51
+                Top = 56
+                Width = 51
+              end
+              inherited ButtonRightBottom: TSpeedButton
+                Left = 112
+                Height = 51
+                Top = 112
+                Width = 51
+              end
+            end
+          end
+          object ButtonClearAnchorDeltas: TButton
+            AnchorSideLeft.Control = SelfAnchorsFrame
+            Left = 8
+            Height = 37
+            Top = 8
+            Width = 193
+            AutoSize = True
+            Caption = 'Move to the anchor'
+            OnClick = ButtonClearAnchorDeltasClick
+            ParentFont = False
+            TabOrder = 3
+          end
+          object LabelSizeInfo: TLabel
+            AnchorSideRight.Side = asrBottom
+            Left = 296
+            Height = 27
+            Top = 8
+            Width = 105
+            Anchors = [akTop, akRight]
+            Caption = 'Show sizes'
+            Font.Color = clBlue
+            Font.Style = [fsUnderline]
+            ParentColor = False
+            ParentFont = False
+            ParentShowHint = False
+            ShowHint = True
+          end
         end
       end
       object TabOther: TTabSheet
