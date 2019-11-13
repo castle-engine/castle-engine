@@ -177,21 +177,6 @@ object ProjectForm: TProjectForm
       end
       object MenuItemDesignAddTransform: TMenuItem
         Caption = 'Add Transform Component'
-        object MenuItemSeparatorInAddTransform: TMenuItem
-          Caption = '-'
-        end
-        object MenuItemDesignAddRectangle2D: TMenuItem
-          Caption = 'Rectangle (TCastleScene with TRectangle2DNode)'
-          OnClick = MenuItemDesignAddRectangle2DClick
-        end
-        object MenuItemDesignAddBox: TMenuItem
-          Caption = 'Box (TCastleScene with TBoxNode)'
-          OnClick = MenuItemDesignAddBoxClick
-        end
-        object MenuItemDesignAddSphere: TMenuItem
-          Caption = 'Sphere (TCastleScene with TSphereNode)'
-          OnClick = MenuItemDesignAddSphereClick
-        end
       end
       object MenuItemSeparator170: TMenuItem
         Caption = '-'

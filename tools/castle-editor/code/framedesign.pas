@@ -203,8 +203,7 @@ type
     function FormCaption: String;
     procedure BeforeProposeSaveDesign;
     procedure AddComponent(const ComponentClass: TComponentClass;
-      const ComponentOnCreate: TNotifyEvent;
-      const PrimitiveGeometry: TPrimitiveGeometry = pgNone);
+      const ComponentOnCreate: TNotifyEvent);
     procedure DeleteComponent;
     procedure CopyComponent;
     procedure PasteComponent;
@@ -940,8 +939,7 @@ begin
 end;
 
 procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
-  const ComponentOnCreate: TNotifyEvent;
-  const PrimitiveGeometry: TPrimitiveGeometry);
+  const ComponentOnCreate: TNotifyEvent);
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
@@ -960,11 +958,6 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
       if Assigned(ComponentOnCreate) then // call ComponentOnCreate ASAP after constructor
         ComponentOnCreate(NewTransform);
       NewTransform.Name := ProposeName(ComponentClass, DesignOwner);
-      if PrimitiveGeometry <> pgNone then
-      begin
-        Assert(NewTransform is TCastleSceneCore);
-        (NewTransform as TCastleSceneCore).PrimitiveGeometry := PrimitiveGeometry;
-      end;
       ParentComponent.Add(NewTransform);
       FinishAddingComponent(NewTransform);
     end else

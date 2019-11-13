@@ -551,6 +551,9 @@ type
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
+    class procedure CreateComponentPrimitive2DRectangle(Sender: TObject);
+    class procedure CreateComponentPrimitiveBox(Sender: TObject);
+    class procedure CreateComponentPrimitiveSphere(Sender: TObject);
   protected
     function CreateShape(const AGeometry: TAbstractGeometryNode;
       const AState: TX3DGraphTraverseState;
@@ -1852,6 +1855,21 @@ begin
     LightOn := false;
 end;
 
+class procedure TCastleScene.CreateComponentPrimitive2DRectangle(Sender: TObject);
+begin
+  (Sender as TCastleScene).PrimitiveGeometry := pgRectangle2D;
+end;
+
+class procedure TCastleScene.CreateComponentPrimitiveBox(Sender: TObject);
+begin
+  (Sender as TCastleScene).PrimitiveGeometry := pgBox;
+end;
+
+class procedure TCastleScene.CreateComponentPrimitiveSphere(Sender: TObject);
+begin
+  (Sender as TCastleScene).PrimitiveGeometry := pgSphere;
+end;
+
 procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
@@ -2632,9 +2650,38 @@ begin
   Result := FBaseLights;
 end;
 
+var
+  R: TRegisteredComponent;
 initialization
   GLContextCache := TGLRendererContextCache.Create;
+
   RegisterSerializableComponent(TCastleScene, 'Scene');
+
+  { TODO:
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleScene;
+  R.Caption := 'Scene (Blending Suitable For 2D)';
+  R.OnCreate := @TCastleScene(nil).CreateComponent2D;
+  RegisterSerializableComponent(R);
+  }
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleScene;
+  R.Caption := 'Scene (Primitive: 2D Rectangle)';
+  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitive2DRectangle;
+  RegisterSerializableComponent(R);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleScene;
+  R.Caption := 'Scene (Primitive: Box)';
+  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitiveBox;
+  RegisterSerializableComponent(R);
+
+  R := TRegisteredComponent.Create;
+  R.ComponentClass := TCastleScene;
+  R.Caption := 'Scene (Primitive: Sphere)';
+  R.OnCreate := @TCastleScene(nil).CreateComponentPrimitiveSphere;
+  RegisterSerializableComponent(R);
 finalization
   FreeAndNil(GLContextCache);
 end.

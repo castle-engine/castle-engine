@@ -46,10 +46,6 @@ type
     MenuItemSortBackToFront2D: TMenuItem;
     MenuItemCameraViewAll: TMenuItem;
     MenuItemSeparator1300: TMenuItem;
-    MenuItemSeparatorInAddTransform: TMenuItem;
-    MenuItemDesignAddSphere: TMenuItem;
-    MenuItemDesignAddRectangle2D: TMenuItem;
-    MenuItemDesignAddBox: TMenuItem;
     MenuItemSeparator170: TMenuItem;
     MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem;
     MenuItemDesignNewTransformCustomRoot: TMenuItem;
@@ -121,9 +117,6 @@ type
     procedure MenuItemCompileClick(Sender: TObject);
     procedure MenuItemCompileRunClick(Sender: TObject);
     procedure MenuItemCopyComponentClick(Sender: TObject);
-    procedure MenuItemDesignAddBoxClick(Sender: TObject);
-    procedure MenuItemDesignAddRectangle2DClick(Sender: TObject);
-    procedure MenuItemDesignAddSphereClick(Sender: TObject);
     procedure MenuItemDesignCloseClick(Sender: TObject);
     procedure MenuItemDesignDeleteComponentClick(Sender: TObject);
     procedure MenuItemDuplicateComponentClick(Sender: TObject);
@@ -327,7 +320,6 @@ procedure TProjectForm.FormCreate(Sender: TObject);
   var
     MenuItem: TMenuItem;
     R: TRegisteredComponent;
-    SeparatorIndex: Integer;
   begin
     { add non-deprecated components }
     for R in RegisteredComponents do
@@ -351,10 +343,12 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
           MenuItem := CreateMenuItemForComponent(R);
           MenuItem.OnClick := @MenuItemAddComponentClick;
-          SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
-          MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+          MenuItemDesignAddTransform.Add(MenuItem);
         end;
       end;
+
+    (*
+    Don't show deprecated -- at least in initial CGE release, keep the menu clean.
 
     { add separators from deprecated }
     MenuItem := TMenuItem.Create(Self);
@@ -379,10 +373,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
         begin
           MenuItem := CreateMenuItemForComponent(R);
           MenuItem.OnClick := @MenuItemAddComponentClick;
-          SeparatorIndex := MenuItemDesignAddTransform.IndexOf(MenuItemSeparatorInAddTransform);
-          MenuItemDesignAddTransform.Insert(SeparatorIndex, MenuItem);
+          MenuItemDesignAddTransform.Add(MenuItem);
         end;
       end;
+    *)
   end;
 
   { We create some components by code, this way we don't have to put
@@ -488,24 +482,6 @@ procedure TProjectForm.MenuItemCopyComponentClick(Sender: TObject);
 begin
   Assert(Design <> nil); // menu item is disabled otherwise
   Design.CopyComponent;
-end;
-
-procedure TProjectForm.MenuItemDesignAddBoxClick(Sender: TObject);
-begin
-  NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, nil, pgBox);
-end;
-
-procedure TProjectForm.MenuItemDesignAddRectangle2DClick(Sender: TObject);
-begin
-  NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, nil, pgRectangle2D);
-end;
-
-procedure TProjectForm.MenuItemDesignAddSphereClick(Sender: TObject);
-begin
-  NeedsDesignFrame;
-  Design.AddComponent(TCastleScene, nil, pgSphere);
 end;
 
 procedure TProjectForm.MenuItemDesignCloseClick(Sender: TObject);
