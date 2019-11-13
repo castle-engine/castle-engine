@@ -1226,18 +1226,17 @@ procedure TDesignFrame.CameraViewAll;
   var
     Position, Direction, Up, GravityUp: TVector3;
     ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
-    SceneManager2D: TCastle2DSceneManager;
   begin
-    if SceneManager is TCastle2DSceneManager then
+    if SceneManager.Camera.ProjectionType = ptOrthographic then
     begin
-      SceneManager2D := TCastle2DSceneManager(SceneManager);
       CameraOrthoViewpointForWholeScene(SceneManager.Items.BoundingBox,
-      SceneManager2D.EffectiveWidth, SceneManager2D.EffectiveHeight,
-        SceneManager2D.Camera.Orthographic.Origin,
+        SceneManager.EffectiveWidth,
+        SceneManager.EffectiveHeight,
+        SceneManager.Camera.Orthographic.Origin,
         Position, ProjectionWidth, ProjectionHeight, ProjectionFar);
-      SceneManager2D.Camera.Orthographic.Width := ProjectionWidth;
-      SceneManager2D.Camera.Orthographic.Height := ProjectionHeight;
-      SceneManager2D.Camera.ProjectionFar := ProjectionFar;
+      SceneManager.Camera.Orthographic.Width := ProjectionWidth;
+      SceneManager.Camera.Orthographic.Height := ProjectionHeight;
+      SceneManager.Camera.ProjectionFar := ProjectionFar;
       // set the rest of variables to constant values, matching 2D game view
       Direction := Vector3(0, 0, -1);
       Up := Vector3(0, 1, 0);
@@ -1251,8 +1250,9 @@ procedure TDesignFrame.CameraViewAll;
 
     SceneManager.Camera.AnimateTo(Position, Direction, Up, 0.5);
     SceneManager.Camera.GravityUp := GravityUp;
-    // Makes Examine camera pivot, and scroll speed, adjust to sizes
-    SceneManager.RequiredNavigation.ModelBox := SceneManager.Items.BoundingBox;
+    if SceneManager.Navigation <> nil then
+      // Makes Examine camera pivot, and scroll speed, adjust to sizes
+      SceneManager.Navigation.ModelBox := SceneManager.Items.BoundingBox;
   end;
 
 begin
