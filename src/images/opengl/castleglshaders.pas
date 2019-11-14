@@ -277,7 +277,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Support: TGLSupport read FSupport;
+    property Support: TGLSupport read FSupport; deprecated 'use GLFeatures.Shaders';
 
     { Create shader from given string, compile it and attach to current program.
 
@@ -700,7 +700,7 @@ begin
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Ord(Value));
     {$endif}
@@ -713,7 +713,7 @@ procedure TGLSLUniform.SetValue(const Value: TGLint; const ForceException: boole
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Value);
     {$endif}
@@ -726,7 +726,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector2Integer; const ForceExcepti
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2ivARB(Location, 1, @Value);
     {$endif}
@@ -739,7 +739,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector3Integer; const ForceExcepti
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3ivARB(Location, 1, @Value);
     {$endif}
@@ -752,7 +752,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector4Integer; const ForceExcepti
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4ivARB(Location, 1, @Value);
     {$endif}
@@ -765,7 +765,7 @@ procedure TGLSLUniform.SetValue(const Value: TGLfloat; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fARB(Location, Value);
     {$endif}
@@ -778,7 +778,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector2; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, 1, @Value);
     {$endif}
@@ -791,7 +791,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector3; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, 1, @Value);
     {$endif}
@@ -804,7 +804,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector4; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, 1, @Value);
     {$endif}
@@ -817,7 +817,7 @@ procedure TGLSLUniform.SetValue(const Value: TMatrix2; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
@@ -830,7 +830,7 @@ procedure TGLSLUniform.SetValue(const Value: TMatrix3; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
@@ -843,7 +843,7 @@ procedure TGLSLUniform.SetValue(const Value: TMatrix4; const ForceException: boo
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
@@ -869,7 +869,7 @@ begin
   Ints := Value.ToLongInt;
   try
     Owner.Enable;
-    case Owner.Support of
+    case GLFeatures.Shaders of
       {$ifndef ForceStandardGLSLApi}
       gsExtension: glUniform1ivARB(Location, Value.Count, Ints.L);
       {$endif}
@@ -884,7 +884,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1ivARB(Location, Value.Count, Value.L);
     {$endif}
@@ -897,7 +897,7 @@ procedure TGLSLUniform.SetValue(const Value: TSingleList; const ForceException: 
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fvARB(Location, Value.Count, Value.L);
     {$endif}
@@ -910,7 +910,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector2List; const ForceException:
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
@@ -923,7 +923,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector3List; const ForceException:
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
@@ -936,7 +936,7 @@ procedure TGLSLUniform.SetValue(const Value: TVector4List; const ForceException:
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
@@ -949,7 +949,7 @@ procedure TGLSLUniform.SetValue(const Value: TMatrix3List; const ForceException:
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
@@ -962,7 +962,7 @@ procedure TGLSLUniform.SetValue(const Value: TMatrix4List; const ForceException:
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
@@ -977,7 +977,7 @@ procedure TGLSLAttribute.SetValue(const Value: TGLfloat);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib1fARB(Location, Value);
     {$endif}
@@ -990,7 +990,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector2);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib2fvARB(Location, @Value);
     {$endif}
@@ -1003,7 +1003,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector3);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib3fvARB(Location, @Value);
     {$endif}
@@ -1016,7 +1016,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector4);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib4fvARB(Location, @Value);
     {$endif}
@@ -1029,7 +1029,7 @@ procedure TGLSLAttribute.SetValue(const Value: TMatrix3);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
@@ -1052,7 +1052,7 @@ procedure TGLSLAttribute.SetValue(const Value: TMatrix4);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
@@ -1078,7 +1078,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector4Integer);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib4ivARB(Location, @Value);
     gsStandard : glVertexAttrib4iv   (Location, @Value);
     else ;
@@ -1089,7 +1089,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector4Byte);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib4ubvARB(Location, @Value);
     gsStandard : glVertexAttrib4ubv   (Location, @Value);
     else ;
@@ -1100,7 +1100,7 @@ procedure TGLSLAttribute.SetValue(const Value: TGLdouble);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib1dARB(Location, Value);
     gsStandard : glVertexAttrib1d   (Location, Value);
     else ;
@@ -1113,7 +1113,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib2dvARB(Location, @Value);
     gsStandard : glVertexAttrib2dv   (Location, @Value);
   end;
@@ -1123,7 +1123,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector3Double);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib3dvARB(Location, @Value);
     gsStandard : glVertexAttrib3dv   (Location, @Value);
   end;
@@ -1133,7 +1133,7 @@ procedure TGLSLAttribute.SetValue(const Value: TVector4Double);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     gsExtension: glVertexAttrib4dvARB(Location, @Value);
     gsStandard : glVertexAttrib4dv   (Location, @Value);
   end;
@@ -1148,7 +1148,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   LocationOffsetsToDisable[LocationOffset] := true;
-  case Owner.Support of
+  case GLFeatures.Shaders of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
@@ -1208,7 +1208,7 @@ begin
 
   for Offset := Low(TLocationOffset) to High(TLocationOffset) do
     if LocationOffsetsToDisable[Offset] then
-      case Owner.Support of
+      case GLFeatures.Shaders of
         {$ifndef ForceStandardGLSLApi}
         gsExtension: glDisableVertexAttribArrayARB(Location + Offset);
         {$endif}
