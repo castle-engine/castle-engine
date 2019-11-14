@@ -3042,7 +3042,11 @@ begin
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
-      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease;
+      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease
+  else
+    WritelnWarning('Could not allocate sound source, to play looping sound %s', [
+      SoundInfo.Name
+    ]);
 end;
 
 procedure TLoopingChannel.SetSound(const Value: TSoundType);
