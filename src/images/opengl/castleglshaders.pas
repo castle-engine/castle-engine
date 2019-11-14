@@ -1229,7 +1229,7 @@ begin
 
   FSupport := GLFeatures.Shaders;
 
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: GLhandleARB(ProgramId) := glCreateProgramObjectARB();
     {$endif}
@@ -1287,7 +1287,7 @@ begin
     FreeAndNil(FSource[ShaderType]);
   {$endif}
 
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: glDeleteObjectARB(GLhandleARB(ProgramId));
     {$endif}
@@ -1309,7 +1309,7 @@ end;
 
 function TGLSLProgram.ProgramInfoLog: string;
 begin
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension: Result := GetInfoLogARB(ProgramId);
     {$endif}
@@ -1391,7 +1391,7 @@ function TGLSLProgram.DebugInfo: string;
     Name: string;
     ErrorCode: TGLenum;
   begin
-    case Support of
+    case FSupport of
       {$ifndef ForceStandardGLSLApi}
       gsExtension:
         begin
@@ -1460,7 +1460,7 @@ function TGLSLProgram.DebugInfo: string;
     Name: string;
     ErrorCode: TGLenum;
   begin
-    case Support of
+    case FSupport of
       {$ifndef ForceStandardGLSLApi}
       gsExtension:
         begin
@@ -1520,7 +1520,7 @@ function TGLSLProgram.DebugInfo: string;
 
   function ShaderInfoLog(ShaderId: TGLuint): string;
   begin
-    case Support of
+    case FSupport of
       {$ifndef ForceStandardGLSLApi}
       gsExtension: Result := GetInfoLogARB(ShaderId);
       {$endif}
@@ -1533,7 +1533,7 @@ var
   S: TStringList;
   I: Integer;
 begin
-  Result := 'GLSL program support: ' + GLSupportNames[Support];
+  Result := 'GLSL program support: ' + GLSupportNames[FSupport];
 
   CheckGLErrors('Check at the beginning of TGLSLProgram.DebugInfo');
 
@@ -1656,7 +1656,7 @@ begin
   { calculate AType }
   case ShaderType of
     stVertex:
-      case Support of
+      case FSupport of
         {$ifndef ForceStandardGLSLApi}
         gsExtension: AType := GL_VERTEX_SHADER_ARB;
         {$endif}
@@ -1664,15 +1664,15 @@ begin
         else Exit;
       end;
     stGeometry:
-      if GLVersion.AtLeast(3, 2) and (Support = gsStandard) then
+      if GLVersion.AtLeast(3, 2) and (FSupport = gsStandard) then
         AType := GL_GEOMETRY_SHADER else
-      { otherwise, raise an error --- but only if Support <> gsNone.
-        When Support = gsNone, everything should be silent NO-OP. }
-      if Support <> gsNone then
+      { otherwise, raise an error --- but only if FSupport <> gsNone.
+        When FSupport = gsNone, everything should be silent NO-OP. }
+      if FSupport <> gsNone then
         raise EGLSLShaderCompileError.Create('Geometry shaders not supported by your OpenGL version') else
         Exit;
     stFragment:
-      case Support of
+      case FSupport of
         {$ifndef ForceStandardGLSLApi}
         gsExtension: AType := GL_FRAGMENT_SHADER_ARB;
         {$endif}
@@ -1684,7 +1684,7 @@ begin
     {$endif}
   end;
 
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
@@ -1749,7 +1749,7 @@ var
   ShaderType: TShaderType;
   {$endif CASTLE_SHOW_SHADER_SOURCE_ON_ERROR}
 begin
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       for I := 0 to ShaderIds.Count - 1 do
@@ -1806,7 +1806,7 @@ procedure TGLSLProgram.Link;
 var
   Linked: TGLuint;
 begin
-  case Support of
+  case FSupport of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
@@ -1889,7 +1889,7 @@ begin
 
   if not FUniformLocations.TryGetValue(Name, Result.Location) then
   begin
-    case Support of
+    case FSupport of
       {$ifndef ForceStandardGLSLApi}
       gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
       {$endif}
@@ -2053,7 +2053,7 @@ begin
 
   if not FAttributeLocations.TryGetValue(Name, Result.Location) then
   begin
-    case Support of
+    case FSupport of
       {$ifndef ForceStandardGLSLApi}
       gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
       {$endif}
