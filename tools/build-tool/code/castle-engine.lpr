@@ -27,7 +27,7 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolProject, ToolCompile, ToolIOS, ToolAndroid,
+  ToolPackage, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
   ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils;
 
 var
@@ -39,9 +39,11 @@ var
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
   CompilerExtraOptions: TCastleStringList;
+  PackageFormat: TPackageFormat = pfDefault;
+  PackageNameIncludeVersion: Boolean = true;
 
 const
-  Options: array [0..13] of TOption =
+  Options: array [0..15] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -56,7 +58,9 @@ const
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
     (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired),
     (Short: #0 ; Long: 'output'; Argument: oaRequired),
-    (Short: #0 ; Long: 'project'; Argument: oaRequired)
+    (Short: #0 ; Long: 'project'; Argument: oaRequired),
+    (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
+    (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -200,6 +204,8 @@ begin
     11: CompilerExtraOptions.Add(Argument);
     12: OutputPathBase := Argument;
     13: ChangeProjectDir(Argument);
+    14: PackageFormat := StringToPackageFormat(Argument);
+    15: PackageNameIncludeVersion := false;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -292,7 +298,7 @@ begin
             Project.DoClean;
           Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Plugin, Mode);
+        Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion);
       end else
       if Command = 'install' then
         Project.DoInstall(Target, OS, CPU, Plugin) else
@@ -309,7 +315,7 @@ begin
       if Command = 'package-source' then
       begin
         Project.DoClean;
-        Project.DoPackageSource;
+        Project.DoPackageSource(PackageFormat, PackageNameIncludeVersion);
       end else
       if Command = 'clean' then
         Project.DoClean

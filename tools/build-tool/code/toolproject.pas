@@ -22,7 +22,8 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
+  ToolPackage;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
@@ -34,7 +35,6 @@ type
 
   ECannotGuessManifest = class(Exception);
 
-type
   TLocalizedAppName = record
     Language: String;
     AppName: String;
@@ -43,7 +43,6 @@ type
 
   TListLocalizedAppName = specialize TList<TLocalizedAppName>;
 
-type
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -83,8 +82,9 @@ type
     procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-    function PackageName(const OS: TOS; const CPU: TCPU): string;
-    function SourcePackageName: string;
+    function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
+      const PackageNameIncludeVersion: Boolean): string;
+    function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
     { Convert Name to a valid Pascal identifier. }
@@ -148,11 +148,19 @@ type
     { }
 
     procedure DoCreateManifest;
-    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
-    procedure DoPackage(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
-    procedure DoPackageSource;
+    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
+    procedure DoPackage(const Target: TTarget;
+      const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion: Boolean);
+    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean);
+    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean; const Params: TCastleStringList);
+    procedure DoPackageSource(
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoClean;
     procedure DoAutoGenerateTextures;
     procedure DoAutoGenerateClean;
@@ -271,7 +279,7 @@ implementation
 
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolPackage, ToolResources, ToolAndroid, ToolWindowsRegistry,
+  ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
   ToolCommonUtils, ToolMacros, ToolCompilerInfo;
 
@@ -1139,7 +1147,8 @@ end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode);
+  const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion: Boolean);
 var
   Pack: TPackageDirectory;
 
@@ -1182,6 +1191,7 @@ var
   I: Integer;
   PackageFileName: string;
   Files: TCastleStringList;
+  PackageFormatFinal: TPackageFormatNoDefault;
 begin
   Writeln(Format('Packaging project "%s" for %s.',
     [Name, PlatformToString(Target, OS, CPU, Plugin)]));
@@ -1189,30 +1199,40 @@ begin
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
 
-  { for iOS, the packaging process is special }
-  if Target = targetIOS then
+  if PackageFormat = pfDefault then
   begin
-    PackageIOS(Self);
-    Exit;
-  end;
+    { for iOS, the packaging process is special }
+    if Target = targetIOS then
+    begin
+      PackageIOS(Self);
+      Exit;
+    end;
 
-  { for Android, the packaging process is special }
-  if (Target = targetAndroid) or (OS = Android) then
-  begin
-    if Target = targetAndroid then
-      AndroidCPUS := DetectAndroidCPUS
+    { for Android, the packaging process is special }
+    if (Target = targetAndroid) or (OS = Android) then
+    begin
+      if Target = targetAndroid then
+        AndroidCPUS := DetectAndroidCPUS
+      else
+        AndroidCPUS := [CPU];
+      PackageAndroid(Self, OS, AndroidCPUS, Mode);
+      Exit;
+    end;
+
+    { for Nintendo Switch, the packaging process is special }
+    if Target = targetNintendoSwitch then
+    begin
+      PackageNintendoSwitch(Self);
+      Exit;
+    end;
+
+    { calculate PackageFormatFinal }
+    if OS in AllWindowsOSes then
+      PackageFormatFinal := pfZip
     else
-      AndroidCPUS := [CPU];
-    PackageAndroid(Self, OS, AndroidCPUS, Mode);
-    Exit;
-  end;
-
-  { for Nintendo Switch, the packaging process is special }
-  if Target = targetNintendoSwitch then
-  begin
-    PackageNintendoSwitch(Self);
-    Exit;
-  end;
+      PackageFormatFinal := pfTarGz;
+  end else
+    PackageFormatFinal := PackageFormat;
 
   Pack := TPackageDirectory.Create(Name);
   try
@@ -1227,14 +1247,10 @@ begin
         Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
-    PackageFileName := PackageName(OS, CPU);
-
     Pack.AddDataInformation(DataName);
 
-    if OS in AllWindowsOSes then
-      Pack.Make(OutputPath, PackageFileName, ptZip)
-    else
-      Pack.Make(OutputPath, PackageFileName, ptTarGz);
+    PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -1346,17 +1362,53 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoPackageSource;
+procedure TCastleProject.DoPackageSource(const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion: Boolean);
+
+  function PackageOutput(const FileName: String): Boolean;
+  var
+    OS: TOS;
+    CPU: TCPU;
+    PackageFormat: TPackageFormatNoDefault;
+    HasVersion: Boolean;
+  begin
+    for OS in TOS do
+      for CPU in TCPU do
+        // TODO: This will not exclude output of packaging with pfDirectory
+        for PackageFormat in TPackageFormatNoDefault do
+          for HasVersion in Boolean do
+            if OSCPUSupported[OS, CPU] then
+              if SameFileName(FileName, PackageName(OS, CPU, PackageFormat, HasVersion)) then
+                Exit(true);
+
+    for HasVersion in Boolean do
+      if SameFileName(FileName, SourcePackageName(HasVersion)) then
+        Exit(true);
+
+    if { avoid Android packages }
+       SameFileName(FileName, Name + '-debug.apk') or
+       SameFileName(FileName, Name + '-release.apk') or
+       { do not pack AndroidAntProperties.txt with private stuff }
+       SameFileName(FileName, 'AndroidAntProperties.txt') then
+      Exit(true);
+
+    Result := false;
+  end;
+
 var
+  PackageFormatFinal: TPackageFormatNoDefault;
   Pack: TPackageDirectory;
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
   Exclude: boolean;
-  OS: TOS;
-  CPU: TCPU;
 begin
   Writeln(Format('Packaging source code of project "%s".', [Name]));
+
+  if PackageFormat = pfDefault then
+    PackageFormatFinal := pfZip
+  else
+    PackageFormatFinal := PackageFormat;
 
   Pack := TPackageDirectory.Create(Name);
   try
@@ -1375,18 +1427,7 @@ begin
         { Do not pack packages (binary or source) into the source package.
           The packages are not cleaned by DoClean, so they could otherwise
           be packed by accident. }
-        for OS in TOS do
-          for CPU in TCPU do
-            if OSCPUSupported[OS, CPU] then
-              if SameFileName(Files[I], PackageName(OS, CPU)) then
-                Exclude := true;
-
-        if SameFileName(Files[I], SourcePackageName) or
-           { avoid Android packages }
-           SameFileName(Files[I], Name + '-debug.apk') or
-           SameFileName(Files[I], Name + '-release.apk') or
-           { do not pack AndroidAntProperties.txt with private stuff }
-           SameFileName(Files[I], 'AndroidAntProperties.txt') then
+        if PackageOutput(Files[I]) then
           Exclude := true;
 
         if not Exclude then
@@ -1394,27 +1435,30 @@ begin
       end;
     finally FreeAndNil(Files) end;
 
-    PackageFileName := SourcePackageName;
-    Pack.Make(OutputPath, PackageFileName, ptTarGz);
+    PackageFileName := SourcePackageName(PackageNameIncludeVersion);
+    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
 
-function TCastleProject.PackageName(
-  const OS: TOS; const CPU: TCPU): string;
+function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if Version <> '' then
+  if PackageNameIncludeVersion and (Version <> '') then
     Result += '-' + Version;
   Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
-  if OS in AllWindowsOSes then
-    Result += '.zip' else
-    Result += '.tar.gz';
+  case PackageFormat of
+    pfZip: Result += '.zip';
+    pfTarGz: Result += '.tar.gz';
+    else ; // leave without extension for pfDirectory
+  end;
 end;
 
-function TCastleProject.SourcePackageName: string;
+function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if Version <> '' then
+  if PackageNameIncludeVersion and (Version <> '') then
     Result += '-' + Version;
   Result += '-src';
   Result += '.tar.gz';
