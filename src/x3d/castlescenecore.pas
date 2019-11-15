@@ -6368,10 +6368,8 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
-    @param ResetTime Forces always an UpdateTimeDependentHandlers(0.0) call.
-    @param NeedsUpdate Forces always *some*\
-       UpdateTimeDependentHandlers call.
-    Note  }
+    When ResetTime, we force always an UpdateTimeDependentHandlers(0.0) call.
+    @param NeedsUpdate Forces always *some* UpdateTimeDependentHandlers call. }
   procedure UpdateTimeDependentHandlersIfVisible(const NeedsUpdate: Boolean);
   begin
     if ResetTime then
