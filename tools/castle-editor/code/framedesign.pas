@@ -81,6 +81,10 @@ type
     TabBasic: TTabSheet;
     TabOther: TTabSheet;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ButtonTransformRotateModeClick(Sender: TObject);
+    procedure ButtonTransformScaleModeClick(Sender: TObject);
+    procedure ButtonTransformSelectModeClick(Sender: TObject);
+    procedure ButtonTransformTranslateModeClick(Sender: TObject);
     procedure ButtonViewportMenuClick(Sender: TObject);
     procedure CheckParentSelfAnchorsEqualChange(Sender: TObject);
     procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
@@ -133,7 +137,14 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TMode = (moInteract, moModifyUi);
+      TMode = (
+        moInteract,
+        moModifyUi,
+        moTransformSelect,
+        moTransformTranslate,
+        moTransformRotate,
+        moTransformScale
+      );
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
@@ -1645,7 +1656,7 @@ begin
   SetEnabledExists(ButtonViewportMenu, V <> nil);
 
   if V <> nil then
-    LabelSelectedViewport.Caption := V.Name;
+    LabelSelectedViewport.Caption := V.Name + ':';
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
@@ -2023,6 +2034,38 @@ begin
   end;
 end;
 
+procedure TDesignFrame.ButtonTransformRotateModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moTransformRotate);
+  InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.ButtonTransformScaleModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moTransformScale);
+  InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.ButtonTransformSelectModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moTransformSelect);
+  InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.ButtonTransformTranslateModeClick(Sender: TObject);
+begin
+  if InsideToggleModeClick then Exit;
+  InsideToggleModeClick := true;
+  ChangeMode(moTransformTranslate);
+  InsideToggleModeClick := false;
+end;
+
 procedure TDesignFrame.ButtonViewportMenuClick(Sender: TObject);
 begin
   MenuViewport.PopupComponent := ButtonViewportMenu;
@@ -2289,13 +2332,19 @@ end;
 procedure TDesignFrame.ChangeMode(const NewMode: TMode);
 begin
   Mode := NewMode;
-  ButtonInteractMode.Down := Mode = moInteract;
 
+  ButtonInteractMode.Down := Mode = moInteract;
   ButtonModifyUiMode.Down := Mode = moModifyUi;
-  //LabelSnap.Visible := Mode = moModifyUi;
-  //LabelSnap.Enabled := Mode = moModifyUi;
-  SpinEditSnap.Visible := Mode = moModifyUi;
-  SpinEditSnap.Enabled := Mode = moModifyUi;
+
+  { Hiding this is not nice for user, as then clicking on ButtonTransformSelectMode
+    when current mode is moModifyUi will shift the position of the
+    ButtonTransformSelectMode under your mouse. }
+  //SetEnabledExists(SpinEditSnap, Mode = moModifyUi);
+
+  ButtonTransformSelectMode.Down := Mode = moTransformSelect;
+  ButtonTransformTranslateMode.Down := Mode = moTransformTranslate;
+  ButtonTransformRotateMode.Down := Mode = moTransformRotate;
+  ButtonTransformScaleMode.Down := Mode = moTransformScale;
 end;
 
 procedure TDesignFrame.ModifiedOutsideObjectInspector;

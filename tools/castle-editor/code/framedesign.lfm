@@ -341,58 +341,21 @@ object DesignFrame: TDesignFrame
       Align = alTop
       BorderSpacing.Around = 6
       BevelOuter = bvNone
+      ChildSizing.HorizontalSpacing = 4
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 100
       ClientHeight = 38
       ClientWidth = 753
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
-      object SpinEditSnap: TSpinEdit
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrCenter
-        Left = 110
-        Height = 37
-        Hint = 'Snap (when moving/resizing UI)'
-        Top = 0
-        Width = 64
-        BorderSpacing.Left = 6
-        ParentFont = False
-        TabOrder = 0
-        Value = 10
-      end
-      object LabelSelectedViewport: TLabel
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Side = asrCenter
-        Left = 192
-        Height = 27
-        Top = 6
-        Width = 243
-        BorderSpacing.Left = 23
-        Caption = 'In TCastleSceneManager:'
-        ParentColor = False
-        ParentFont = False
-      end
-      object LabelUIScaling: TLabel
-        Left = 706
-        Height = 27
-        Hint = 'UI Scaling to 1600x900'
-        Top = 0
-        Width = 47
-        Align = alCustom
-        Alignment = taRightJustify
-        Anchors = [akTop, akRight]
-        Caption = '50%'
-        ParentColor = False
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-      end
       object ButtonInteractMode: TSpeedButton
-        Left = 8
-        Height = 38
+        Left = 0
+        Height = 37
         Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in scene managers by mouse dragging, and more.'
         Top = 0
-        Width = 38
+        Width = 36
         AllowAllUp = True
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
@@ -530,11 +493,11 @@ object DesignFrame: TDesignFrame
         OnClick = ButtonInteractModeClick
       end
       object ButtonModifyUiMode: TSpeedButton
-        Left = 56
-        Height = 38
+        Left = 40
+        Height = 37
         Hint = 'Left mouse button: Select, move and resize user interface controls (TCastleUserInterface).'#10#10'Right mouse button: Only move and resize, without changing the current selection.'
         Top = 0
-        Width = 38
+        Width = 36
         AllowAllUp = True
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
@@ -671,14 +634,55 @@ object DesignFrame: TDesignFrame
         GroupIndex = 2
         OnClick = ButtonModifyUiModeClick
       end
+      object SpinEditSnap: TSpinEdit
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrCenter
+        Left = 82
+        Height = 37
+        Hint = 'Snap (when moving/resizing UI)'
+        Top = 0
+        Width = 73
+        BorderSpacing.Left = 6
+        ParentFont = False
+        TabOrder = 0
+        Value = 10
+      end
+      object LabelSelectedViewport: TLabel
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrCenter
+        Left = 187
+        Height = 37
+        Top = 0
+        Width = 176
+        BorderSpacing.Left = 32
+        BorderSpacing.Right = 8
+        Caption = 'MySceneManager:'
+        Layout = tlCenter
+        ParentColor = False
+        ParentFont = False
+      end
+      object LabelUIScaling: TLabel
+        Left = 706
+        Height = 27
+        Hint = 'UI Scaling to 1600x900'
+        Top = 0
+        Width = 47
+        Align = alCustom
+        Alignment = taRightJustify
+        Anchors = [akTop, akRight]
+        Caption = '50%'
+        ParentColor = False
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+      end
       object ButtonTransformSelectMode: TSpeedButton
-        Left = 440
-        Height = 38
+        Left = 371
+        Height = 37
         Hint = 'Select Scene (TCastleScene)'
         Top = 0
-        Width = 38
+        Width = 36
         AllowAllUp = True
-        Enabled = False
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000064000000640000000000000000000000000000000000
@@ -812,15 +816,15 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 3
+        OnClick = ButtonTransformSelectModeClick
       end
       object ButtonTransformTranslateMode: TSpeedButton
-        Left = 488
-        Height = 38
+        Left = 411
+        Height = 37
         Hint = 'Move Transform (TCastleTransform, including TCastleScene)'
         Top = 0
-        Width = 38
+        Width = 36
         AllowAllUp = True
-        Enabled = False
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000064000000640000000000000000000000000000000000
@@ -954,15 +958,15 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 4
+        OnClick = ButtonTransformTranslateModeClick
       end
       object ButtonTransformRotateMode: TSpeedButton
-        Left = 536
-        Height = 38
+        Left = 451
+        Height = 37
         Hint = 'Rotate Transform (TCastleTransform, including TCastleScene)'
         Top = 0
-        Width = 38
+        Width = 36
         AllowAllUp = True
-        Enabled = False
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000064000000640000000000000000000000000000000000
@@ -1096,14 +1100,15 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 5
+        OnClick = ButtonTransformRotateModeClick
       end
       object ButtonTransformScaleMode: TSpeedButton
-        Left = 584
-        Height = 38
+        Left = 491
+        Height = 37
         Hint = 'Scale Transform (TCastleTransform, including TCastleScene)'
         Top = 0
-        Width = 38
-        Enabled = False
+        Width = 36
+        AllowAllUp = True
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000064000000640000000000000000000000000000000000
@@ -1237,13 +1242,14 @@ object DesignFrame: TDesignFrame
           0000000000000000000000000000000000000000000000000000
         }
         GroupIndex = 6
+        OnClick = ButtonTransformScaleModeClick
       end
       object ButtonViewportMenu: TSpeedButton
-        Left = 632
-        Height = 38
+        Left = 531
+        Height = 37
         Hint = 'Scene Manager Options'
         Top = 0
-        Width = 38
+        Width = 36
         Glyph.Data = {
           36100000424D3610000000000000360000002800000020000000200000000100
           2000000000000010000064000000640000000000000000000000000000000000
