@@ -183,7 +183,8 @@ begin
 
     CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
       2, 1, false, true, Pos, Dir, Up, GravityUp);
-    SceneManager.ExamineCamera.SetView(Pos, Dir, Up, GravityUp);
+    SceneManager.NavigationType := ntExamine;
+    SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
     on E: Exception do
     begin
