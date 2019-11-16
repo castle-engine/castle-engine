@@ -39,6 +39,7 @@ type
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
+    LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
     MenuItemSeparator2: TMenuItem;
@@ -50,6 +51,7 @@ type
     MenuViewportNavigationWalk: TMenuItem;
     MenuViewportNavigationExamine: TMenuItem;
     MenuViewportNavigationNone: TMenuItem;
+    PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
     MenuViewport: TPopupMenu;
     SelfAnchorsFrame: TAnchorsFrame;
@@ -823,6 +825,7 @@ begin
   Inspector[itEvents] := CommonInspectorCreate;
   Inspector[itEvents].Parent := TabEvents;
   Inspector[itEvents].Filter := tkMethods;
+  Inspector[itEvents].AnchorToNeighbour(akTop, 0, PanelEventsInfo);
 
   CastleControl := TCastleControlBase.Create(Self);
   CastleControl.Parent := PanelMiddle;

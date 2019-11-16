@@ -51,10 +51,10 @@ object DesignFrame: TDesignFrame
       Height = 529
       Top = 66
       Width = 380
-      ActivePage = TabLayout
+      ActivePage = TabEvents
       Align = alClient
       ParentFont = False
-      TabIndex = 1
+      TabIndex = 3
       TabOrder = 0
       object TabBasic: TTabSheet
         Caption = 'Basic'
@@ -268,7 +268,32 @@ object DesignFrame: TDesignFrame
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
+        ClientHeight = 492
+        ClientWidth = 376
         ParentFont = False
+        object PanelEventsInfo: TPanel
+          Left = 0
+          Height = 97
+          Top = 0
+          Width = 376
+          Align = alTop
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 97
+          ClientWidth = 376
+          TabOrder = 0
+          object LabelEventsInfo: TLabel
+            Left = 8
+            Height = 81
+            Top = 8
+            Width = 360
+            Align = alTop
+            BorderSpacing.Around = 8
+            Caption = 'TODO: It''s not possible to assign the events using the CGE editor. For now, you have to assign events using code.'
+            ParentColor = False
+            WordWrap = True
+          end
+        end
       end
       object TabAll: TTabSheet
         Caption = 'All'
