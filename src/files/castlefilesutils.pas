@@ -381,6 +381,23 @@ procedure CheckRenameFile(const Source, Dest: string);
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
 
+{ Copies the contents from SourceDir to DestinationDir.
+  DestinationDir and necessary subdirectories are created, if needed.
+  Both SourceDir and DestinationDir may, but do not have to, end with PathDelim.
+
+  Note that DestinationDir contents are not cleared here.
+  In effect, the existing files (present in DestinationDir before the copy operation,
+  and not overwritten by corresponding files in SourceDir) will be left.
+  If you need to clear them, consider using
+
+  @longCode(#
+    if DirectoryExists(DestinationDir) then
+      RemoveNonEmptyDir(DestinationDir);
+    CopyDirectory(SourceDir, DestinationDir);
+  #)
+}
+procedure CopyDirectory(SourcePath, DestinationPath: string);
+
 { Substitute %d in given FileName (or URL) pattern with successive numbers,
   until the FileName doesn't exist.
 
@@ -716,8 +733,6 @@ begin
 {$endif}
 end;
 
-{ file handling ---------------------------------------------------------- }
-
 procedure CheckDeleteFile(const FileName: string; const Warn: Boolean);
 begin
   if not SysUtils.DeleteFile(FileName) then
@@ -776,6 +791,8 @@ begin
   end;
 end;
 
+{ RemoveNonEmptyDir with helpers ---------------------------------------------------------- }
+
 procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 var
   Warn: Boolean;
@@ -793,6 +810,46 @@ begin
   FindFiles(DirName, '*', true,
     @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
   CheckRemoveDir(Dirname, Warn);
+end;
+
+{ CopyDirectory with helpers ------------------------------------------------- }
+
+type
+  TCopyDirectoryHandler = class
+    SourcePath, DestinationPath: String;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+  end;
+
+procedure TCopyDirectoryHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
+var
+  NewFileName: String;
+begin
+  { Safer to use FileNameCaseSensitive always.
+    On Windows, this should still be true, as we glue SourcePath with rest ourselves
+    in CastleFindFiles. }
+  if not IsPrefix(SourcePath, FileInfo.AbsoluteName, false) then
+    raise Exception.CreateFmt('Cannot copy directory, filename in source directory ("%s") does not have prefix of this directory ("%s")', [
+      FileInfo.AbsoluteName,
+      SourcePath
+    ]);
+  NewFileName := DestinationPath + PrefixRemove(SourcePath, FileInfo.AbsoluteName, false);
+  CheckForceDirectories(ExtractFilePath(NewFileName));
+  CheckCopyFile(FileInfo.AbsoluteName, NewFileName);
+end;
+
+procedure CopyDirectory(SourcePath, DestinationPath: String);
+var
+  Handler: TCopyDirectoryHandler;
+begin
+  SourcePath := ExpandFileName(InclPathDelim(SourcePath));
+  DestinationPath := ExpandFileName(InclPathDelim(DestinationPath));
+
+  Handler := TCopyDirectoryHandler.Create;
+  try
+    Handler.SourcePath := SourcePath;
+    Handler.DestinationPath := DestinationPath;
+    FindFiles(SourcePath, '*', false, @Handler.FoundFile, [ffRecursive]);
+  finally FreeAndNil(Handler) end;
 end;
 
 { dir handling -------------------------------------------------------- }

@@ -2669,7 +2669,7 @@ begin
   { allocate sound for all TLoopingChannel }
   if IsContextOpenSuccess then
     for L in FLoopingChannels do
-      if L <> nil then
+      if (L <> nil) and (L.FAllocatedSource = nil) then
         L.AllocateSource;
 end;
 
@@ -3042,7 +3042,11 @@ begin
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
-      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease;
+      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease
+  else
+    WritelnWarning('Could not allocate sound source, to play looping sound %s', [
+      SoundInfo.Name
+    ]);
 end;
 
 procedure TLoopingChannel.SetSound(const Value: TSoundType);

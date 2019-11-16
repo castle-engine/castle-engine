@@ -354,6 +354,7 @@ var
   NC: TCubicBezier2DOrientationInterpolatorNode;
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
+  AngleValue: Single;
 begin
   if Curve then
   begin
@@ -374,10 +375,19 @@ begin
   begin
     N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
     for I := 0 to Angles.Count - 1 do
+    begin
+      { We need to make FloatModulo here, otherwise Spine may export
+        two adjacent frames as angle -263.74, then 96.26.
+        Which is nearly the same modulo 360.0.
+        Testcase: exorcist on Silent Virginia, animation going_on_ladder_up.
+        TODO: Shouldn't OrientationInterpolator account for this already?
+      }
+      AngleValue := FloatModulo(Angles[I], 360);
+      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(AngleValue);
       N.FdKeyValue.Items.Add(Vector4(0, 0, 1,
         { add setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdRotation.Value[3] +
-        DegToRad(Angles[I])));
+        AngleValue));
+    end;
     EventValueChanged := N.EventValue_changed;
     Node := N;
   end;

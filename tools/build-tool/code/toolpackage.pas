@@ -21,7 +21,8 @@ unit ToolPackage;
 interface
 
 type
-  TPackageType = (ptZip, ptTarGz);
+  TPackageFormat = (pfDefault, pfDirectory, pfZip, pfTarGz);
+  TPackageFormatNoDefault = pfDirectory..pfTarGz;
 
   TPackageDirectory = class
   private
@@ -41,7 +42,7 @@ type
     { Create final archive. It will be placed within OutputProjectPath.
       PackageName should contain only the base name, without extension. }
     procedure Make(const OutputProjectPath: string; const PackageFileName: string;
-      const PackageType: TPackageType);
+      const PackageFormat: TPackageFormatNoDefault);
 
     { Add file to the package. SourceFileName must be an absolute filename,
       DestinationFileName must be relative within package. }
@@ -60,6 +61,9 @@ type
   CurrentDataPath, if it exists.
   CurrentDataPath may but doesn't have to end with PathDelim. }
 procedure GenerateDataInformation(const CurrentDataPath: String);
+
+function PackageFormatToString(const O: TPackageFormat): string;
+function StringToPackageFormat(const S: string): TPackageFormat;
 
 implementation
 
@@ -89,48 +93,52 @@ begin
 end;
 
 procedure TPackageDirectory.Make(const OutputProjectPath: string;
-  const PackageFileName: string; const PackageType: TPackageType);
-var
-  FullPackageFileName, ProcessOutput, CommandExe: string;
-  ProcessExitStatus: Integer;
+  const PackageFileName: string; const PackageFormat: TPackageFormatNoDefault);
+
+  procedure PackageCommand(const PackagingExeName: String; const PackagingParameters: array of String);
+  var
+    FullPackageFileName, ProcessOutput, CommandExe: string;
+    ProcessExitStatus: Integer;
+  begin
+    CommandExe := FindExe(PackagingExeName);
+    if CommandExe = '' then
+      raise Exception.CreateFmt('Cannot find "%s" program on $PATH. Make sure it is installed, and available on $PATH', [
+        PackagingExeName
+      ]);
+    MyRunCommandIndir(TemporaryDir, CommandExe,
+      PackagingParameters,
+      ProcessOutput, ProcessExitStatus);
+
+    if Verbose then
+    begin
+      Writeln('Executed package process, output:');
+      Writeln(ProcessOutput);
+    end;
+
+    if ProcessExitStatus <> 0 then
+      raise Exception.CreateFmt('Package process exited with error, status %d', [ProcessExitStatus]);
+
+    FullPackageFileName := CombinePaths(OutputProjectPath, PackageFileName);
+    DeleteFile(FullPackageFileName);
+    CheckRenameFile(InclPathDelim(TemporaryDir) + PackageFileName, FullPackageFileName);
+    Writeln('Created package ' + PackageFileName + ', size: ', SizeToStr(FileSize(FullPackageFileName)));
+  end;
+
 begin
-  case PackageType of
-    ptZip:
+  case PackageFormat of
+    pfZip      : PackageCommand('zip', ['-q', '-r', PackageFileName, TopDirectoryName]);
+    pfTarGz    : PackageCommand('tar', ['czf', PackageFileName, TopDirectoryName]);
+    pfDirectory:
       begin
-        CommandExe := FindExe('zip');
-        if CommandExe = '' then
-          raise Exception.Create('Cannot find "zip" program on $PATH. Make sure it is installed, and available on $PATH');
-        MyRunCommandIndir(TemporaryDir, CommandExe,
-          ['-q', '-r', PackageFileName, TopDirectoryName],
-          ProcessOutput, ProcessExitStatus);
-      end;
-    ptTarGz:
-      begin
-        CommandExe := FindExe('tar');
-        if CommandExe = '' then
-          raise Exception.Create('Cannot find "tar" program on $PATH. Make sure it is installed, and available on $PATH');
-        MyRunCommandIndir(TemporaryDir, CommandExe,
-          ['czf', PackageFileName, TopDirectoryName],
-          ProcessOutput, ProcessExitStatus);
+        if DirectoryExists(PackageFileName) then
+          RemoveNonEmptyDir(PackageFileName);
+        CopyDirectory(Path, PackageFileName);
+        Writeln('Created directory ' + PackageFileName);
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TPackageDirectory.Make PackageType?');
+    else raise EInternalError.Create('TPackageDirectory.Make PackageFormat?');
     {$endif}
   end;
-
-  if Verbose then
-  begin
-    Writeln('Executed package process, output:');
-    Writeln(ProcessOutput);
-  end;
-
-  if ProcessExitStatus <> 0 then
-    raise Exception.CreateFmt('Package process exited with error, status %d', [ProcessExitStatus]);
-
-  FullPackageFileName := CombinePaths(OutputProjectPath, PackageFileName);
-  DeleteFile(FullPackageFileName);
-  CheckRenameFile(InclPathDelim(TemporaryDir) + PackageFileName, FullPackageFileName);
-  Writeln('Created package ' + PackageFileName + ', size: ', SizeToStr(FileSize(FullPackageFileName)));
 end;
 
 procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string);
@@ -185,6 +193,23 @@ begin
         [DirsCount, FilesCount, SizeToStr(FilesSize)]));
     finally FreeAndNil(DataInformation) end;
   end;
+end;
+
+const
+  PackageFormatNames: array [TPackageFormat] of string =
+  ('default', 'directory', 'zip', 'targz');
+
+function PackageFormatToString(const O: TPackageFormat): string;
+begin
+  Result := PackageFormatNames[O];
+end;
+
+function StringToPackageFormat(const S: string): TPackageFormat;
+begin
+  for Result in TPackageFormat do
+    if AnsiSameText(PackageFormatNames[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid package-format name "%s"', [S]);
 end;
 
 end.

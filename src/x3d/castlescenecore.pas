@@ -635,6 +635,15 @@ type
 
     procedure SetPrimitiveGeometry(const AValue: TPrimitiveGeometry);
 
+    { If we have NewPlayingAnimationUse, apply it
+      (actually start playing it using X3D nodes, calling UpdateNewPlayingAnimation).
+      This may be necessary to call in some circumstances.
+
+      Returns false if we had NewPlayingAnimationUse, applied it,
+      but we still have unapplied NewPlayingAnimationUse (which means that stopping
+      previous animation started yet another animation). }
+    function ApplyNewPlayingAnimation: Boolean;
+
     { Apply NewPlayingAnimation* stuff.
 
       Call outside of AnimateOnlyWhenVisible check, to do it even when object
@@ -6379,10 +6388,8 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
   { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
-    @param ResetTime Forces always an UpdateTimeDependentHandlers(0.0) call.
-    @param NeedsUpdate Forces always *some*\
-       UpdateTimeDependentHandlers call.
-    Note  }
+    When ResetTime, we force always an UpdateTimeDependentHandlers(0.0) call.
+    @param NeedsUpdate Forces always *some* UpdateTimeDependentHandlers call. }
   procedure UpdateTimeDependentHandlersIfVisible(const NeedsUpdate: Boolean);
   begin
     if ResetTime then
@@ -7829,6 +7836,23 @@ begin
   Result := Index <> -1;
   if Result then
   begin
+    { If we already have NewPlayingAnimationUse scheduled
+      (another PlayAnimation was done right before this),
+      then Parameters.TransitionDuration indicates to do blending from
+      NewPlayingAnimationNode to Parameters.Name animation.
+      In this case, we need to "apply" NewPlayingAnimationNode
+      (make it actually present in X3D nodes),
+      otherwise we would accidentally do blending with *even older* animation.
+
+      Testcase in Unholy:
+      - going out of sewers with keys or mouse
+        ('going_up_on_ladder' finishes, changes to 'idle', which changes to 'stealth_idle' immediately)
+      - going up the ladder to warehouse, only when using mouse
+        ('going_up_on_ladder' finishes, changes to 'idle', which changes to 'walking' immediately then)
+    }
+    if NewPlayingAnimationUse and (Parameters.TransitionDuration <> 0) then
+      ApplyNewPlayingAnimation;
+
     { We defer actual sending of stopTime and startTime to Update method.
       This way multiple calls to PlayAnimation within the same frame
       behave Ok, only last one matters.
@@ -7887,31 +7911,39 @@ begin
     Result := 0;
 end;
 
-procedure TCastleSceneCore.StopAnimation;
+function TCastleSceneCore.ApplyNewPlayingAnimation: Boolean;
 var
   NeedsUpdateTimeDependentHandlers: Boolean;
 begin
-  { New animation was requested, but not yet processed by UpdateNewPlayingAnimation.
-    Make it start, to early call the "stop notification" callback
-    for the previous animation (before calling the "stop notification"
-    callback for the new animation).
-    This also makes all behavior consistent with
-    "what if the new animation was actually applied already", i.e. the same calls
-    to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
+  Result := true;
   if NewPlayingAnimationUse then
   begin
     UpdateNewPlayingAnimation(NeedsUpdateTimeDependentHandlers);
     if NewPlayingAnimationUse then
     begin
       WritelnWarning('StopNotification callback of an old animation initialized another animation, bypassing the CurrentAnimation. The StopAnimation will not actually stop the animation, and the StopNotification callback of the CurrentAnimation is now overridden so we cannot call it anymore.');
-      Exit;
+      Exit(false);
     end;
     if NeedsUpdateTimeDependentHandlers then
     begin
       WritelnWarning('StopNotification callback of an old animation caused NeedsUpdateTimeDependentHandlers, suggesting it started another animation. A default animation pose may blink if AnimateSkipTicks <> 0.');
-      Exit;
+      Exit(false);
     end;
   end;
+end;
+
+procedure TCastleSceneCore.StopAnimation;
+begin
+  { If new animation was requested, but not yet processed by UpdateNewPlayingAnimation:
+
+    Make it start, to early call the "stop notification" callback
+    for the previous animation (before calling the "stop notification"
+    callback for the new animation).
+    This also makes all behavior consistent with
+    "what if the new animation was actually applied already", i.e. the same calls
+    to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
+  if not ApplyNewPlayingAnimation then
+    Exit;
 
   { Stop animation by setting NewPlayingAnimationNode to nil,
     this way the "stop notification" callback
