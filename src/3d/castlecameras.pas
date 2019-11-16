@@ -2160,7 +2160,8 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleStringUtils, CastleLog, CastleSceneManager, Castle2DSceneManager;
+  CastleStringUtils, CastleLog, CastleSceneManager, Castle2DSceneManager,
+  CastleComponentSerialize;
 
 procedure Register;
 begin
@@ -5582,4 +5583,7 @@ begin
   Position := Vector3(PositionXY, PositionZ);
 end;
 
+initialization
+  RegisterSerializableComponent(TCastleExamineNavigation, 'Examine Navigation');
+  RegisterSerializableComponent(TCastleWalkNavigation, 'Walk Navigation');
 end.

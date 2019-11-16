@@ -32,9 +32,6 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
-    MenuItemCamera2DViewInitial: TMenuItem;
-    MenuItemSceneManagerCamera: TMenuItem;
-    MenuItemCameraSetInitial: TMenuItem;
     MenuItemPreferences: TMenuItem;
     N1: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
@@ -43,8 +40,6 @@ type
     MenuItemSupport: TMenuItem;
     MenuItemSeparator788: TMenuItem;
     MenuItemRestartRebuildEditor: TMenuItem;
-    MenuItemSortBackToFront2D: TMenuItem;
-    MenuItemCameraViewAll: TMenuItem;
     MenuItemSeparator1300: TMenuItem;
     MenuItemSeparator170: TMenuItem;
     MenuItemDesignNewUserInterfaceCustomRoot: TMenuItem;
@@ -54,7 +49,6 @@ type
     MenuItemDesignAddUserInterface: TMenuItem;
     MenuItemSeparator150: TMenuItem;
     MenuItemDesignClose: TMenuItem;
-    MenuItemSeparator400: TMenuItem;
     MenuItemDesign: TMenuItem;
     OpenDesignDialog: TCastleOpenDialog;
     MenuItemOpenDesign: TMenuItem;
@@ -104,14 +98,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
-    procedure MenuItemCamera2DViewInitialClick(Sender: TObject);
     procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
     procedure MenuItemAutoGenerateTexturesClick(Sender: TObject);
     procedure MenuItemBreakProcessClick(Sender: TObject);
-    procedure MenuItemCameraSetInitialClick(Sender: TObject);
-    procedure MenuItemCameraViewAllClick(Sender: TObject);
     procedure MenuItemCgeWwwClick(Sender: TObject);
     procedure MenuItemCleanClick(Sender: TObject);
     procedure MenuItemCompileClick(Sender: TObject);
@@ -135,7 +126,6 @@ type
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
-    procedure MenuItemSortBackToFront2DClick(Sender: TObject);
     procedure MenuItemSupportClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
@@ -183,7 +173,7 @@ implementation
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
-  CastleScene, CastleSceneManager, Castle2DSceneManager,
+  CastleScene, CastleSceneManager, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
@@ -240,12 +230,6 @@ begin
     Design.SaveDesign(Design.DesignUrl);
 end;
 
-procedure TProjectForm.MenuItemSortBackToFront2DClick(Sender: TObject);
-begin
-  Assert(Design <> nil);
-  Design.SortBackToFront2D;
-end;
-
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
 begin
   OpenURL('https://patreon.com/castleengine/');
@@ -274,24 +258,6 @@ begin
   OutputList.AddSeparator;
   OutputList.AddLine('Forcefully killing the process.', okError);
   FreeProcess;
-end;
-
-procedure TProjectForm.MenuItemCameraSetInitialClick(Sender: TObject);
-begin
-  Assert(Design <> nil);
-  Design.CameraSetInitial;
-end;
-
-procedure TProjectForm.MenuItemCameraViewAllClick(Sender: TObject);
-begin
-  Assert(Design <> nil);
-  Design.CameraViewAll;
-end;
-
-procedure TProjectForm.MenuItemCamera2DViewInitialClick(Sender: TObject);
-begin
-  Assert(Design <> nil);
-  Design.Camera2DViewInitial;
 end;
 
 procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -325,7 +291,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     for R in RegisteredComponents do
       if not R.IsDeprecated then
       begin
-        if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
         begin
           MenuItem := CreateMenuItemForComponent(R);
           MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
@@ -363,7 +330,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     for R in RegisteredComponents do
       if R.IsDeprecated then
       begin
-        if R.ComponentClass.InheritsFrom(TCastleUserInterface) then
+        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
         begin
           MenuItem := CreateMenuItemForComponent(R);
           MenuItem.OnClick := @MenuItemAddComponentClick;
@@ -526,8 +494,6 @@ begin
   MenuItemDesignAddTransform.Enabled := Design <> nil;
   MenuItemDesignAddUserInterface.Enabled := Design <> nil;
   MenuItemDesignDeleteComponent.Enabled := Design <> nil;
-  MenuItemSceneManagerCamera.Enabled := Design <> nil;
-  MenuItemSortBackToFront2D.Enabled := Design <> nil;
   MenuItemCopyComponent.Enabled := Design <> nil;
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;

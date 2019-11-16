@@ -307,7 +307,6 @@ type
       @groupBegin }
     function GetSceneManager: TCastleSceneManager; virtual; abstract;
     function GetMainCamera: TCastleCamera; virtual; abstract;
-    function GetItems: TSceneManagerWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
@@ -366,6 +365,13 @@ type
       var HandleInput: boolean); override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
+
+    { Scenes and their transformations, displayed in this viewport.
+      In case of TCastleSceneManager, this is settable,
+      using @link(TCastleSceneManager.Items) property.
+      In case of TCastleViewport, this is a shortcut to access
+      @link(TCastleViewport.SceneManager.Items TCastleViewport.SceneManager). }
+    function GetItems: TSceneManagerWorld; virtual; abstract;
 
     { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
       about the current pointing device.
@@ -1069,7 +1075,6 @@ type
 
     function GetSceneManager: TCastleSceneManager; override;
     function GetMainCamera: TCastleCamera; override;
-    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -1107,7 +1112,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
+    function GetItems: TSceneManagerWorld; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
@@ -1547,7 +1552,6 @@ type
   protected
     function GetSceneManager: TCastleSceneManager; override;
     function GetMainCamera: TCastleCamera; override;
-    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -1566,7 +1570,7 @@ type
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
-
+    function GetItems: TSceneManagerWorld; override;
     procedure Render; override;
   published
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;

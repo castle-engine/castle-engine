@@ -201,30 +201,6 @@ object ProjectForm: TProjectForm
         ShortCut = 16430
         OnClick = MenuItemDesignDeleteComponentClick
       end
-      object MenuItemSeparator400: TMenuItem
-        Caption = '-'
-      end
-      object MenuItemSceneManagerCamera: TMenuItem
-        Caption = 'SceneManager.Camera'
-        object MenuItemCameraViewAll: TMenuItem
-          Caption = 'View All'
-          ShortCut = 16420
-          OnClick = MenuItemCameraViewAllClick
-        end
-        object MenuItemCameraSetInitial: TMenuItem
-          Caption = 'Apply Current View As Initial'
-          Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoDetectCamera to false.'
-          OnClick = MenuItemCameraSetInitialClick
-        end
-        object MenuItemCamera2DViewInitial: TMenuItem
-          Caption = 'Apply 2D View and Projection as Initial'
-          OnClick = MenuItemCamera2DViewInitialClick
-        end
-      end
-      object MenuItemSortBackToFront2D: TMenuItem
-        Caption = 'Scene Manager Sort For Correct 2D Blending'
-        OnClick = MenuItemSortBackToFront2DClick
-      end
       object MenuItemSeparator1300: TMenuItem
         Caption = '-'
       end

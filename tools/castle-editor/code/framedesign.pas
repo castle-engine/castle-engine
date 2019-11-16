@@ -24,27 +24,39 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, StdCtrls, ComCtrls,
-  Spin, Contnrs, Generics.Collections,
+  Spin, Buttons, Menus, Contnrs, Generics.Collections,
   // for TOIPropertyGrid usage
   ObjectInspector, PropEdits, PropEditUtils, GraphPropEdits,
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleSceneManager, CastleClassUtils, CastleControls, CastleTiledMap,
+  CastleCameras, CastleBoxes,
   FrameAnchors;
 
 type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
+    ButtonViewportMenu: TSpeedButton;
     LabelSizeInfo: TLabel;
+    LabelSelectedViewport: TLabel;
+    MenuItemSeparator2: TMenuItem;
+    MenuItemViewportCamera2DViewInitial: TMenuItem;
+    MenuItemViewportCameraSetInitial: TMenuItem;
+    MenuItemViewportCameraViewAll: TMenuItem;
+    MenuItemSeparator1: TMenuItem;
+    MenuItemViewportSort2D: TMenuItem;
+    MenuViewportNavigationWalk: TMenuItem;
+    MenuViewportNavigationExamine: TMenuItem;
+    MenuViewportNavigationNone: TMenuItem;
     PanelAnchors: TPanel;
+    MenuViewport: TPopupMenu;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
     ControlProperties: TPageControl;
     ControlsTree: TTreeView;
-    LabelSnap: TLabel;
     LabelUIScaling: TLabel;
     LabelControlSelected: TLabel;
     LabelHierarchy: TLabel;
@@ -52,6 +64,12 @@ type
     PanelMiddle: TPanel;
     PanelLeft: TPanel;
     PanelRight: TPanel;
+    ButtonInteractMode: TSpeedButton;
+    ButtonModifyUiMode: TSpeedButton;
+    ButtonTransformSelectMode: TSpeedButton;
+    ButtonTransformTranslateMode: TSpeedButton;
+    ButtonTransformRotateMode: TSpeedButton;
+    ButtonTransformScaleMode: TSpeedButton;
     Splitter1: TSplitter;
     TabLayoutScrollBox: TScrollBox;
     SpinEditSnap: TSpinEdit;
@@ -62,9 +80,8 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     TabOther: TTabSheet;
-    ToggleInteractMode: TToggleBox;
-    ToggleSelectTranslateResizeMode: TToggleBox;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ButtonViewportMenuClick(Sender: TObject);
     procedure CheckParentSelfAnchorsEqualChange(Sender: TObject);
     procedure ControlsTreeAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
@@ -74,8 +91,15 @@ type
       State: TDragState; var Accept: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
-    procedure ToggleInteractModeClick(Sender: TObject);
-    procedure ToggleSelectTranslateResizeModeClick(Sender: TObject);
+    procedure ButtonInteractModeClick(Sender: TObject);
+    procedure ButtonModifyUiModeClick(Sender: TObject);
+    procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
+    procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
+    procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
+    procedure MenuItemViewportSort2DClick(Sender: TObject);
+    procedure MenuViewportNavigationExamineClick(Sender: TObject);
+    procedure MenuViewportNavigationNoneClick(Sender: TObject);
+    procedure MenuViewportNavigationWalkClick(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
   private
@@ -109,9 +133,7 @@ type
       TTreeNodeMap = class(specialize TDictionary<TComponent, TTreeNode>)
       end;
 
-      TMode = (moInteract, moSelectTranslateResize);
-
-      TCastleSceneManagerCallback = procedure (const ASceneManager: TCastleSceneManager) is nested;
+      TMode = (moInteract, moModifyUi);
 
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
@@ -138,11 +160,15 @@ type
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     procedure CastleControlUpdate(Sender: TObject);
+    procedure ChangeViewportNavigation(
+      const NewNavigation: TCastleNavigation);
     function ComponentCaption(const C: TComponent): String;
     function ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
+    procedure SelectionRestoreAndFree(var Selection: Classes.TList);
+    function SelectionSave: Classes.TList;
 
     { Calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
@@ -160,6 +186,10 @@ type
     procedure SetSelectedComponent(const Value: TComponent);
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
+
+    { If the selected items all have the same TCastleAbstractViewport parent,
+      return it. Otherwise return nil. }
+    function SelectedViewport: TCastleAbstractViewport;
 
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
@@ -184,7 +214,6 @@ type
       const AllowToHideParentAnchorsFrame: Boolean);
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector;
-    function ForEachSelectedSceneManager(const Callback: TCastleSceneManagerCallback): Cardinal;
     procedure InspectorFilter(Sender: TObject;
       AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
   public
@@ -208,10 +237,6 @@ type
     procedure CopyComponent;
     procedure PasteComponent;
     procedure DuplicateComponent;
-    procedure CameraViewAll;
-    procedure Camera2DViewInitial;
-    procedure CameraSetInitial;
-    procedure SortBackToFront2D;
     { set UIScaling values. }
     procedure UIScaling(const UIScaling: TUIScaling;
       const UIReferenceWidth, UIReferenceHeight: Single);
@@ -228,7 +253,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
-  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleCameras,
+  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
   CastleProjection,
   EditorUtils;
 
@@ -392,7 +417,7 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if (Frame.Mode = moSelectTranslateResize) and
+  if (Frame.Mode = moModifyUi) and
      (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
   begin
     { Left mouse button selects before moving/resizing.
@@ -574,7 +599,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     WouldResizeVertical: TVerticalPosition;
     NewCursor: TMouseCursor;
   begin
-    if Frame.Mode <> moSelectTranslateResize then
+    if Frame.Mode <> moModifyUi then
       NewCursor := mcDefault
     else
     case DraggingMode of
@@ -618,7 +643,7 @@ begin
      ([mbLeft, mbRight] * Event.Pressed = []) then
     DraggingMode := dmNone;
 
-  if (Frame.Mode = moSelectTranslateResize) and (DraggingMode <> dmNone) then
+  if (Frame.Mode = moModifyUi) and (DraggingMode <> dmNone) then
   begin
     UI := Frame.SelectedUserInterface;
     if UI <> nil then
@@ -808,7 +833,7 @@ begin
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
   //ChangeMode(moInteract);
-  ChangeMode(moSelectTranslateResize); // most expected default, it seems
+  ChangeMode(moModifyUi); // most expected default, it seems
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1174,132 +1199,57 @@ begin
   end;
 end;
 
-function TDesignFrame.ForEachSelectedSceneManager(
-  const Callback: TCastleSceneManagerCallback): Cardinal;
+function TDesignFrame.SelectedViewport: TCastleAbstractViewport;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
   World: TSceneManagerWorld;
   Sel: TComponent;
+  NewResult: TCastleAbstractViewport;
+  Nav: TCastleNavigation;
 begin
-  Result := 0;
+  Result := nil;
 
   GetSelected(Selected, SelectedCount);
   try
-    if SelectedCount = 0 then
-    begin
-      ErrorBox('Select some SceneManager, or any transformation that is part of scene manager, first');
-      Exit;
-    end;
-
     for I := 0 to SelectedCount - 1 do
     begin
       Sel := Selected[I];
-      if Sel is TCastleSceneManager then
+      if Sel is TCastleAbstractViewport then
       begin
-        Callback(Sel as TCastleSceneManager);
-        Inc(Result);
+        NewResult := Sel as TCastleAbstractViewport;
+        if (Result <> nil) and (Result <> NewResult) then
+          Exit(nil); // multiple viewports selected
+        Result := NewResult;
+      end else
+      if Sel is TCastleNavigation then
+      begin
+        Nav := Sel as TCastleNavigation;
+        if Nav.Viewport is TCastleAbstractViewport then
+        begin
+          NewResult := Nav.Viewport as TCastleAbstractViewport;
+          if (Result <> nil) and (Result <> NewResult) then
+            Exit(nil); // multiple viewports selected
+          Result := NewResult;
+        end;
       end else
       if Sel is TCastleTransform then
       begin
         World := (Sel as TCastleTransform).World;
         if World <> nil then
         begin
-          Callback(World.Owner as TCastleSceneManager);
-          Inc(Result);
+          NewResult := World.Owner as TCastleSceneManager;
+          if (Result <> nil) and (Result <> NewResult) then
+            Exit(nil); // multiple viewports selected
+          Result := NewResult;
         end;
+      end else
+      begin
+        // UI that is not scene manager selected
+        Exit(nil);
       end;
     end;
   finally FreeAndNil(Selected) end;
-end;
-
-procedure TDesignFrame.CameraViewAll;
-
-  procedure AdjustCamera(const SceneManager: TCastleSceneManager);
-  var
-    Position, Direction, Up, GravityUp: TVector3;
-    ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
-  begin
-    if SceneManager.Camera.ProjectionType = ptOrthographic then
-    begin
-      CameraOrthoViewpointForWholeScene(SceneManager.Items.BoundingBox,
-        SceneManager.EffectiveWidth,
-        SceneManager.EffectiveHeight,
-        SceneManager.Camera.Orthographic.Origin,
-        Position, ProjectionWidth, ProjectionHeight, ProjectionFar);
-      SceneManager.Camera.Orthographic.Width := ProjectionWidth;
-      SceneManager.Camera.Orthographic.Height := ProjectionHeight;
-      SceneManager.Camera.ProjectionFar := ProjectionFar;
-      // set the rest of variables to constant values, matching 2D game view
-      Direction := Vector3(0, 0, -1);
-      Up := Vector3(0, 1, 0);
-      GravityUp := Up;
-    end else
-    begin
-      CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
-        2, 1, false, true, // dir = -Z, up = +Y
-        Position, Direction, Up, GravityUp);
-    end;
-
-    SceneManager.Camera.AnimateTo(Position, Direction, Up, 0.5);
-    SceneManager.Camera.GravityUp := GravityUp;
-    if SceneManager.Navigation <> nil then
-      // Makes Examine camera pivot, and scroll speed, adjust to sizes
-      SceneManager.Navigation.ModelBox := SceneManager.Items.BoundingBox;
-  end;
-
-begin
-  if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
-  begin
-    ModifiedOutsideObjectInspector;
-  end;
-end;
-
-procedure TDesignFrame.Camera2DViewInitial;
-
-  procedure AdjustCamera(const SceneManager: TCastleSceneManager);
-  begin
-    SceneManager.Setup2D;
-  end;
-
-begin
-  if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
-  begin
-    ModifiedOutsideObjectInspector;
-  end;
-end;
-
-procedure TDesignFrame.CameraSetInitial;
-
-  procedure AdjustCamera(const SceneManager: TCastleSceneManager);
-  var
-    APos, ADir, AUp: TVector3;
-  begin
-    SceneManager.Camera.GetView(APos, ADir, AUp);
-    SceneManager.Camera.SetInitialView(APos, ADir, AUp, false);
-    SceneManager.AutoDetectCamera := false;
-  end;
-
-begin
-  if ForEachSelectedSceneManager(@AdjustCamera) <> 0 then
-  begin
-    ModifiedOutsideObjectInspector;
-  end;
-end;
-
-procedure TDesignFrame.SortBackToFront2D;
-
-  procedure CallSortBackToFront2D(const SceneManager: TCastleSceneManager);
-  begin
-    SceneManager.Items.SortBackToFront2D;
-  end;
-
-begin
-  if ForEachSelectedSceneManager(@CallSortBackToFront2D) <> 0 then
-  begin
-    ModifiedOutsideObjectInspector;
-    UpdateDesign; // make the tree reflect new order
-  end;
 end;
 
 procedure TDesignFrame.UIScaling(const UIScaling: TUIScaling;
@@ -1657,6 +1607,7 @@ var
   I, SelectedCount: Integer;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
+  V: TCastleAbstractViewport;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1666,8 +1617,7 @@ begin
       else LabelControlSelected.Caption := 'Selected:' + NL + IntToStr(SelectedCount) + ' components';
     end;
 
-    ControlProperties.Visible := SelectedCount <> 0;
-    ControlProperties.Enabled := SelectedCount <> 0;
+    SetEnabledExists(ControlProperties, SelectedCount <> 0);
 
     SelectionForOI := TPersistentSelectionList.Create;
     try
@@ -1685,6 +1635,17 @@ begin
     UpdateLabelSizeInfo(UI);
     UpdateAnchors(UI, true);
   end;
+
+  V := SelectedViewport;
+  SetEnabledExists(LabelSelectedViewport, V <> nil);
+  SetEnabledExists(ButtonTransformSelectMode, V <> nil);
+  SetEnabledExists(ButtonTransformTranslateMode, V <> nil);
+  SetEnabledExists(ButtonTransformRotateMode, V <> nil);
+  SetEnabledExists(ButtonTransformScaleMode, V <> nil);
+  SetEnabledExists(ButtonViewportMenu, V <> nil);
+
+  if V <> nil then
+    LabelSelectedViewport.Caption := V.Name;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
@@ -2062,7 +2023,13 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ToggleInteractModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonViewportMenuClick(Sender: TObject);
+begin
+  MenuViewport.PopupComponent := ButtonViewportMenu;
+  MenuViewport.PopUp;
+end;
+
+procedure TDesignFrame.ButtonInteractModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
@@ -2070,12 +2037,148 @@ begin
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.ToggleSelectTranslateResizeModeClick(Sender: TObject);
+procedure TDesignFrame.ButtonModifyUiModeClick(Sender: TObject);
 begin
   if InsideToggleModeClick then Exit;
   InsideToggleModeClick := true;
-  ChangeMode(moSelectTranslateResize);
+  ChangeMode(moModifyUi);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(
+  Sender: TObject);
+var
+  V: TCastleAbstractViewport;
+begin
+  V := SelectedViewport;
+  V.Setup2D;
+  ModifiedOutsideObjectInspector;
+end;
+
+procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
+var
+  V: TCastleAbstractViewport;
+  Position, Direction, Up, GravityUp: TVector3;
+  ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
+  Box: TBox3D;
+begin
+  V := SelectedViewport;
+  Box := V.GetItems.BoundingBox;
+
+  if V.Camera.ProjectionType = ptOrthographic then
+  begin
+    CameraOrthoViewpointForWholeScene(Box,
+      V.EffectiveWidth,
+      V.EffectiveHeight,
+      V.Camera.Orthographic.Origin,
+      Position, ProjectionWidth, ProjectionHeight, ProjectionFar);
+    V.Camera.Orthographic.Width := ProjectionWidth;
+    V.Camera.Orthographic.Height := ProjectionHeight;
+    V.Camera.ProjectionFar := ProjectionFar;
+    // set the rest of variables to constant values, matching 2D game view
+    Direction := Vector3(0, 0, -1);
+    Up := Vector3(0, 1, 0);
+    GravityUp := Up;
+  end else
+  begin
+    CameraViewpointForWholeScene(Box,
+      2, 1, false, true, // dir = -Z, up = +Y
+      Position, Direction, Up, GravityUp);
+  end;
+
+  V.Camera.AnimateTo(Position, Direction, Up, 0.5);
+  V.Camera.GravityUp := GravityUp;
+  if V.Navigation <> nil then
+    // Makes Examine camera pivot, and scroll speed, adjust to sizes
+    V.Navigation.ModelBox := Box;
+
+  ModifiedOutsideObjectInspector;
+end;
+
+procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
+var
+  V: TCastleAbstractViewport;
+  APos, ADir, AUp: TVector3;
+begin
+  V := SelectedViewport;
+
+  V.Camera.GetView(APos, ADir, AUp);
+  V.Camera.SetInitialView(APos, ADir, AUp, false);
+  V.AutoDetectCamera := false;
+
+  ModifiedOutsideObjectInspector;
+end;
+
+procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
+var
+  V: TCastleAbstractViewport;
+begin
+  V := SelectedViewport;
+
+  V.GetItems.SortBackToFront2D;
+
+  ModifiedOutsideObjectInspector;
+  UpdateDesign; // make the tree reflect new order
+end;
+
+function TDesignFrame.SelectionSave: Classes.TList;
+var
+  I: Integer;
+begin
+  Result := Classes.TList.Create;
+  Result.Count := ControlsTree.SelectionCount;
+  for I := 0 to Result.Count - 1 do
+    Result[I] := ControlsTree.Selections[I];
+end;
+
+procedure TDesignFrame.SelectionRestoreAndFree(var Selection: Classes.TList);
+begin
+  ControlsTree.Select(Selection);
+  FreeAndNil(Selection);
+end;
+
+procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
+var
+  SavedSelection: Classes.TList;
+  V: TCastleAbstractViewport;
+begin
+  SavedSelection := SelectionSave;
+
+  V := SelectedViewport;
+
+  // free previous V.Navigation
+  if (V.Navigation <> nil) and
+     (V.Navigation.Owner = DesignOwner) then
+    V.Navigation.Free
+  else
+    // using internal navigation instance, through SetNavigationType
+    V.Navigation := nil;
+  Assert(V.Navigation = nil);
+
+  // set new V.Navigation
+  V.Navigation := NewNavigation;
+  if NewNavigation <> nil then
+    NewNavigation.Name := ProposeName(TComponentClass(NewNavigation.ClassType), DesignOwner);
+
+  ModifiedOutsideObjectInspector;
+  UpdateDesign;
+
+  SelectionRestoreAndFree(SavedSelection);
+end;
+
+procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
+begin
+  ChangeViewportNavigation(nil);
+end;
+
+procedure TDesignFrame.MenuViewportNavigationExamineClick(Sender: TObject);
+begin
+  ChangeViewportNavigation(TCastleExamineNavigation.Create(DesignOwner));
+end;
+
+procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
+begin
+  ChangeViewportNavigation(TCastleWalkNavigation.Create(DesignOwner));
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);
@@ -2186,13 +2289,13 @@ end;
 procedure TDesignFrame.ChangeMode(const NewMode: TMode);
 begin
   Mode := NewMode;
-  ToggleInteractMode.Checked := Mode = moInteract;
+  ButtonInteractMode.Down := Mode = moInteract;
 
-  ToggleSelectTranslateResizeMode.Checked := Mode = moSelectTranslateResize;
-  LabelSnap.Visible := Mode = moSelectTranslateResize;
-  LabelSnap.Enabled := Mode = moSelectTranslateResize;
-  SpinEditSnap.Visible := Mode = moSelectTranslateResize;
-  SpinEditSnap.Enabled := Mode = moSelectTranslateResize;
+  ButtonModifyUiMode.Down := Mode = moModifyUi;
+  //LabelSnap.Visible := Mode = moModifyUi;
+  //LabelSnap.Enabled := Mode = moModifyUi;
+  SpinEditSnap.Visible := Mode = moModifyUi;
+  SpinEditSnap.Enabled := Mode = moModifyUi;
 end;
 
 procedure TDesignFrame.ModifiedOutsideObjectInspector;
