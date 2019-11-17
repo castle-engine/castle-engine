@@ -303,8 +303,7 @@ type
     procedure SetInitialDirection(const Value: TVector3);
     procedure SetInitialUp(const Value: TVector3);
 
-    { Setter of the @link(ProjectionMatrix) property.
-      TODO: We should actually manage projection properties here. }
+    { Setter of the @link(ProjectionMatrix) property. }
     procedure SetProjectionMatrix(const Value: TMatrix4);
 
     procedure SetProjectionNear(const Value: Single);
@@ -416,9 +415,7 @@ type
 
       In normal circumstances, if you use our @italic(scene manager)
       and viewport (@link(TCastleAbstractViewport)) for rendering,
-      this is automatically correctly set for you.
-
-      TODO: We should actually manage projection params here. }
+      this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;
 
@@ -2142,6 +2139,7 @@ const
     of the collision radius as specified in the avatarSize field." }
   RadiusToProjectionNear = 0.6;
 
+  { Used when it is necessary to calculate projection far based on world size. }
   WorldBoxSizeToProjectionFar = 20.0;
 
   { Multiply radius by this to get sensible "preferred height".
@@ -3110,17 +3108,6 @@ begin
 
   V := ExamineVectors;
 
-  { If given RotationsAnim component is zero, no need to change current Rotations.
-    What's more important, this avoids the need to call VisibleChange,
-    so things like Invalidate will not be continuously called when
-    model doesn't rotate.
-    TODO: This isn't honored anymore, we set ExamineCamera always.
-
-    We check using exact equality <> 0, this is Ok since the main point is to
-    avoid work when StopRotating was called and user didn't touch arrow
-    keys (that increase RotationsAnim). Exact equality is Ok check
-    to detect this. }
-
   if RotationEnabled and (not FRotationsAnim.IsPerfectlyZero) then
   begin
     RotChange := SecondsPassed;
@@ -3718,14 +3705,6 @@ end;
 constructor TCastleWalkNavigation.Create(AOwner: TComponent);
 begin
   inherited;
-
-  { TODO: this means walk camera is initialized from InitialXxx, how to replicate?
-    move InitialXxx to TCastleCamera too?
-
-  FPosition  := InitialPosition;
-  FDirection := InitialDirection;
-  FUp        := InitialUp;
-  }
 
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;

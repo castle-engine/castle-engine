@@ -387,8 +387,8 @@ type
       deprecated 'in most cases, you can instead read Camera parameters, like Camera.Orthographic.EffectiveWidth, Camera.Orthographic.EffectiveHeight';
 
     { Return current navigation. Automatically creates it if missing. }
-    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it, or call AssignDefaultNavigation';
-    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation and assign it, or call AssignDefaultNavigation';
+    function RequiredNavigation: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
+    function RequiredCamera: TCastleNavigation; deprecated 'use Camera to set camera properties; if you require Navigation to be <> nil, just create own instance of TCastleWalkNavigation/TCastleExamineNavigation and assign it, or call AssignDefaultNavigation';
 
     { Return the currently used camera as TCastleWalkNavigation, making sure that current
       NavigationType is something using TCastleWalkNavigation.
@@ -1597,7 +1597,7 @@ var
     inputs must be satisfied, of course (TCastleAbstractViewport must exist,
     according to TCastleAbstractViewport.GetExists, and not be paused, see
     TCastleAbstractViewport.Paused). The event must also not be handled
-    first by something else, like navigation.
+    first by other input handler inside viewport, like TCastleNavigation.
     @groupBegin }
   Input_Attack: TInputShortcut;
   Input_InventoryShow: TInputShortcut; //< No key/mouse associated by default.
@@ -3162,7 +3162,7 @@ begin
   begin
     FInternalExamineNavigation := TCastleExamineNavigation.Create(Self);
     FInternalExamineNavigation.SetTransient;
-    { TODO: For easy backward-compatibility, Viewport is assigned here for the
+    { For easy backward-compatibility, Viewport is assigned here for the
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
     FInternalExamineNavigation.Viewport := Self;
@@ -3176,7 +3176,7 @@ begin
   begin
     FInternalWalkNavigation := TCastleWalkNavigation.Create(Self);
     FInternalWalkNavigation.SetTransient;
-    { TODO: For easy backward-compatibility, Viewport is assigned here for the
+    { For easy backward-compatibility, Viewport is assigned here for the
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
     FInternalWalkNavigation.Viewport := Self;
