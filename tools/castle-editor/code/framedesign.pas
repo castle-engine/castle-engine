@@ -918,7 +918,8 @@ begin
   FDesignUrl := NewDesignUrl;
   DesignOwner := NewDesignOwner;
   FDesignModified := DesignUrl = ''; // when opening '', mark new hierarchy modified
-  // TODO: is this correct? what should be set here?
+
+  // Allows object inspectors to find matching components, e.g. when editing SceneManager.MainScene
   PropertyEditorHook.LookupRoot := DesignOwner;
 
   UpdateDesign;

@@ -33,13 +33,42 @@ type
   { Internal for InternalAddChild methods. @exclude }
   TCastleComponentReader = class
   private
-    FJsonReader: TJSONDeStreamer;
-    FOwner: TComponent;
+    type
+      TMyJSONDeStreamer = class(TJSONDeStreamer)
+      private
+        Reader: TCastleComponentReader;
+      end;
+    { Events called by FJsonReader }
+    procedure GetObject(AObject: TObject; Info: PPropInfo;
+      AData: TJSONObject; DataName: TJSONStringType; var AValue: TObject);
+  strict private
+    type
+      TResolveObjectProperty = class
+        Instance: TObject;
+        InstanceProperty: PPropInfo;
+        PropertyValue: String;
+      end;
+      TResolveObjectPropertyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TResolveObjectProperty>;
+    var
+      FJsonReader: TMyJSONDeStreamer;
+      ResolveObjectProperties: TResolveObjectPropertyList;
+
+    { Events called by FJsonReader }
     procedure BeforeReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     procedure AfterReadObject(Sender: TObject; AObject: TObject; JSON: TJSONObject);
     procedure RestoreProperty(Sender: TObject; AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
+  private
+    FOwner: TComponent;
+    { Call immediately after using JsonReader to deserialize JSON.
+      Some object references may be unresolved, if the object is defined
+      in JSON after it was referred to by name.
+      In this case this method will finalize this resolution. }
+    procedure FinishResolvingObjectProperties;
   public
-    property JsonReader: TJSONDeStreamer read FJsonReader;
+    constructor Create;
+    destructor Destroy; override;
+
+    function JsonReader: TJSONDeStreamer;
     { Will own all deserialized components. }
     property Owner: TComponent read FOwner;
   end;
@@ -356,6 +385,97 @@ begin
   end;
 end;
 
+procedure TCastleComponentReader.GetObject(AObject: TObject; Info: PPropInfo;
+  AData: TJSONObject; DataName: TJSONStringType; var AValue: TObject);
+var
+  R: TResolveObjectProperty;
+begin
+  { OnGetObject may also be called with other parameters,
+    looking at FpJsonRtti code. Ignore them. }
+  if (DataName = '') or (Info = nil) then
+    Exit;
+
+  AValue := Owner.FindComponent(DataName);
+
+  { In this case TJSONDeStreamer.GetObject will create a new instance.
+    Allow it (we have no choise), but also rememeber to finalize this property later. }
+  if AValue = nil then
+  begin
+    R := TResolveObjectProperty.Create;
+    R.Instance := AObject;
+    R.InstanceProperty := Info;
+    R.PropertyValue := DataName;
+    ResolveObjectProperties.Add(R);
+    WritelnLog('Cannot resolve component name "%s", we will create a new empty instance, and resolve it later', [
+      DataName
+    ]);
+  end;
+end;
+
+procedure TCastleComponentReader.FinishResolvingObjectProperties;
+var
+  R: TResolveObjectProperty;
+  PropertyValueAsObject, OldPropertyValue: TObject;
+begin
+  for R in ResolveObjectProperties do
+  begin
+    PropertyValueAsObject := Owner.FindComponent(R.PropertyValue);
+    if PropertyValueAsObject = nil then
+    begin
+      WritelnWarning('Cannot resolve component name "%s", it will be a new empty instance', [
+        R.PropertyValue
+      ]);
+      Continue;
+    end;
+
+    // free previous property value, in the safest way possible
+    OldPropertyValue := GetObjectProp(R.Instance, R.InstanceProperty);
+    SetObjectProp(R.Instance, R.InstanceProperty, nil);
+    FreeAndNil(OldPropertyValue);
+
+    // set new property value
+    SetObjectProp(R.Instance, R.InstanceProperty, PropertyValueAsObject);
+  end;
+  ResolveObjectProperties.Clear;
+end;
+
+{ This is a global routine because TJSONDeStreamer.OnGetObject requires global.
+  We just call Reader.GetObject method. }
+procedure ReaderGetObject(Sender: TObject; AObject: TObject; Info: PPropInfo;
+  AData: TJSONObject; DataName: TJSONStringType; var AValue: TObject);
+var
+  SenderDeStreamer: TCastleComponentReader.TMyJSONDeStreamer;
+begin
+  SenderDeStreamer := Sender as TCastleComponentReader.TMyJSONDeStreamer;
+  SenderDeStreamer.Reader.GetObject(AObject, Info, AData, DataName, AValue);
+end;
+
+constructor TCastleComponentReader.Create;
+begin
+  inherited;
+
+  FJsonReader := TMyJSONDeStreamer.Create(nil);
+  FJsonReader.Reader := Self;
+  FJsonReader.BeforeReadObject := @BeforeReadObject;
+  FJsonReader.AfterReadObject := @AfterReadObject;
+  FJsonReader.OnRestoreProperty := @RestoreProperty;
+  FJsonReader.OnGetObject := @ReaderGetObject;
+
+  ResolveObjectProperties := TResolveObjectPropertyList.Create(true);
+end;
+
+destructor TCastleComponentReader.Destroy;
+begin
+  FreeAndNil(ResolveObjectProperties);
+  FreeAndNil(FJsonReader);
+  inherited;
+end;
+
+function TCastleComponentReader.JsonReader: TJSONDeStreamer;
+begin
+  Result := FJsonReader;
+end;
+
 { TSerializedComponent ------------------------------------------------------- }
 
 constructor TSerializedComponent.Create(const AUrl: String);
@@ -398,22 +518,19 @@ var
 begin
   Reader := TCastleComponentReader.Create;
   try
-    Reader.FJsonReader := TJSONDeStreamer.Create(nil);
-    Reader.FJsonReader.BeforeReadObject := @Reader.BeforeReadObject;
-    Reader.FJsonReader.AfterReadObject := @Reader.AfterReadObject;
-    Reader.FJsonReader.OnRestoreProperty := @Reader.RestoreProperty;
     Reader.FOwner := Owner;
 
     { create Result with appropriate class }
     Result := CreateComponentFromJson(JsonObject, Owner);
 
     { read Result contents from JSON }
-    Reader.FJsonReader.JSONToObject(JsonObject, Result);
+    Reader.JsonReader.JSONToObject(JsonObject, Result);
+
+    Reader.FinishResolvingObjectProperties;
 
     if Assigned(OnInternalTranslateDesign) and (FTranslationGroupName <> '') then
       OnInternalTranslateDesign(Result, FTranslationGroupName);
   finally
-    FreeAndNil(Reader.FJsonReader);
     FreeAndNil(Reader);
   end;
 end;
