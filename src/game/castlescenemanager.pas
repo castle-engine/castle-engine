@@ -158,6 +158,7 @@ type
       FOnCameraChanged: TNotifyEvent;
 
     function FillsWholeContainer: boolean;
+    function IsStoredNavigation: Boolean;
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SSAOShaderInitialize;
@@ -165,7 +166,6 @@ type
     function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
     procedure SetPaused(const Value: boolean);
     function GetNavigationType: TNavigationType;
-    function IsStoredNavigationType: Boolean;
     procedure SetAutoDetectCamera(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoDetectCamera. }
     procedure EnsureCameraDetected;
@@ -566,27 +566,6 @@ type
       Updated in every mouse move. May be @nil. }
     function TriangleHit: PTriangle;
 
-    { Navigation method is an optional component that handles
-      the user input to control the camera.
-
-      You can assign here an instance of @link(TCastleNavigation),
-      like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
-      Or you can leave it as @nil.
-
-      Note that, if you leave it as @nil and have @link(AutoDetectNavigation) as @true
-      (default) then a default navigation will be calculated
-      right before the first rendering. It will take into account the 3D world
-      initialized in SceneManager.Items, e.g. the NavigatinInfo inside SceneManager.MainScene.
-      Set @link(AutoDetectNavigation) to false to avoid this automatic detection.
-
-      Note that assigning @link(NavigationType) also implicitly sets
-      this property to an internal instance of
-      @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
-      Setting @link(NavigationType) to @nil sets this property to @nil.
-
-      @seealso OnCameraChanged }
-    property Navigation: TCastleNavigation read FNavigation write SetNavigation;
-
     { Instance for headlight that should be used for this scene.
       Uses @link(Headlight) method, applies appropriate camera position/direction.
       Returns @true only if @link(Headlight) method returned @true
@@ -656,10 +635,75 @@ type
       )
     }
     procedure Setup2D;
+
+    { Set @link(Navigation) and some of its' parameters
+      (like TCastleWalkNavigation.Gravity and so on).
+
+      If @link(AutoDetectNavigation), the initial @link(Navigation)
+      as well as initial value of this property are automatically determined
+      by the currently bound X3D NavigatinInfo node in the @link(GetMainScene),
+      and world bounding box.
+      They are also automatically adjusted e.g. when current NavigatinInfo
+      node changes.
+
+      But you can set @link(Navigation), or this property,
+      manually to override the detected navigation.
+      You should set @link(AutoDetectNavigation) to @false to take control
+      of @link(Navigation) and this property completely (no auto-detection
+      based on @link(GetMainScene) will then take place).
+
+      Note that you can also affect the current NavigationType by directly
+      changing the camera properties,
+      e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
+      and thus you effectively switch from ntFly to ntWalk navigation types.
+      When you read the NavigationType property, we determine the current navigation
+      type from current camera properties.
+
+      Setting this sets:
+      @unorderedList(
+        @itemSpacing compact
+        @item @link(TCastleNavigation.Input)
+        @item @link(TCastleExamineNavigation.Turntable), only in case of @link(TCastleExamineNavigation)
+        @item @link(TCastleWalkNavigation.Gravity), only in case of @link(TCastleWalkNavigation)
+        @item @link(TCastleWalkNavigation.PreferGravityUpForRotations), only in case of @link(TCastleWalkNavigation)
+        @item @link(TCastleWalkNavigation.PreferGravityUpForMoving), only in case of @link(TCastleWalkNavigation)
+      )
+
+      If you write to NavigationType, then you @italic(should not) touch the
+      above properties directly. That's because not every combination of
+      above properties correspond to some sensible value of NavigationType.
+      If you directly set some weird configuration, reading NavigationType will
+      try it's best to determine the closest TNavigationType value
+      that is similar to your configuration. }
+    property NavigationType: TNavigationType
+      read GetNavigationType write SetNavigationType
+      default ntNone;
   published
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
     property Camera: TCastleCamera read FCamera;
+
+    { Navigation method is an optional component that handles
+      the user input to control the camera.
+
+      You can assign here an instance of @link(TCastleNavigation),
+      like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
+      Or you can leave it as @nil.
+
+      Note that, if you leave it as @nil and have @link(AutoDetectNavigation) as @true
+      (default) then a default navigation will be calculated
+      right before the first rendering. It will take into account the 3D world
+      initialized in SceneManager.Items, e.g. the NavigatinInfo inside SceneManager.MainScene.
+      Set @link(AutoDetectNavigation) to false to avoid this automatic detection.
+
+      Note that assigning @link(NavigationType) also implicitly sets
+      this property to an internal instance of
+      @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
+      Setting @link(NavigationType) to @nil sets this property to @nil.
+
+      @seealso OnCameraChanged }
+    property Navigation: TCastleNavigation read FNavigation write SetNavigation
+      stored IsStoredNavigation;
 
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the navigation of this viewpoint paused
@@ -866,49 +910,6 @@ type
       all the motion events for dragging. }
     property EnableParentDragging: boolean
       read FEnableParentDragging write FEnableParentDragging default false;
-
-    { Set @link(Navigation) and some of its' parameters
-      (like TCastleWalkNavigation.Gravity and so on).
-
-      If @link(AutoDetectNavigation), the initial @link(Navigation)
-      as well as initial value of this property are automatically determined
-      by the currently bound X3D NavigatinInfo node in the @link(GetMainScene),
-      and world bounding box.
-      They are also automatically adjusted e.g. when current NavigatinInfo
-      node changes.
-
-      But you can set @link(Navigation), or this property,
-      manually to override the detected navigation.
-      You should set @link(AutoDetectNavigation) to @false to take control
-      of @link(Navigation) and this property completely (no auto-detection
-      based on @link(GetMainScene) will then take place).
-
-      Note that you can also affect the current NavigationType by directly
-      changing the camera properties,
-      e.g. you can directly change @link(TCastleWalkNavigation.Gravity) from @false to @true,
-      and thus you effectively switch from ntFly to ntWalk navigation types.
-      When you read the NavigationType property, we determine the current navigation
-      type from current camera properties.
-
-      Setting this sets:
-      @unorderedList(
-        @itemSpacing compact
-        @item @link(TCastleNavigation.Input)
-        @item @link(TCastleExamineNavigation.Turntable), only in case of @link(TCastleExamineNavigation)
-        @item @link(TCastleWalkNavigation.Gravity), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForRotations), only in case of @link(TCastleWalkNavigation)
-        @item @link(TCastleWalkNavigation.PreferGravityUpForMoving), only in case of @link(TCastleWalkNavigation)
-      )
-
-      If you write to NavigationType, then you @italic(should not) touch the
-      above properties directly. That's because not every combination of
-      above properties correspond to some sensible value of NavigationType.
-      If you directly set some weird configuration, reading NavigationType will
-      try it's best to determine the closest TNavigationType value
-      that is similar to your configuration. }
-    property NavigationType: TNavigationType
-      read GetNavigationType write SetNavigationType
-      stored IsStoredNavigationType default ntNone;
 
     { Assign initial camera properties
       (initial position, direction, up, TCastleCamera.ProjectionNear)
@@ -1769,7 +1770,11 @@ begin
 
       FNavigation.FreeNotification(Self);
       FNavigation.Viewport := Self;
-      InsertControl(0, FNavigation);
+      { Check IndexOfControl first, in case the FNavigation is already part
+        of our controls. This happens when deserializing: "Navigation" field
+        points to an instance that is within our GetChildren. }
+      if IndexOfControl(FNavigation) = -1 then
+        InsertControl(0, FNavigation);
     end;
   end;
 end;
@@ -2185,23 +2190,14 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function TCastleAbstractViewport.IsStoredNavigationType: Boolean;
+function TCastleAbstractViewport.IsStoredNavigation: Boolean;
 begin
-  { Do not store NavigationType when AutoDetectNavigation.
-    Reasons:
-
-    - When AutoDetectNavigation, NavigationType is by default detected as ntExamine,
-      so it would be non-default and stored even though user didn't set it.
-
-    - Changing NavigationType in editor (when AutoDetectNavigation) would be
-      inconsistent then:
-      Changing to ntWalk would work (since AssignDefaultNavigation doesn't work
-      when Navigation already <> nil).
-      Changing to ntNone would not work (since Navigation is nil then,
-      and auto-detection would occur).
-  }
-
-  Result := not AutoDetectNavigation;
+  { Do not store Navigation when it is an internal instance
+    (set by AutoDetectNavigation being true at some point).
+    This is consistent with what editor shows: internal instances
+    have csTransient, so they are not shown. }
+  Result := (Navigation <> nil) and
+    (not (csTransient in Navigation.ComponentStyle));
 end;
 
 procedure TCastleAbstractViewport.SetAutoDetectCamera(const Value: Boolean);

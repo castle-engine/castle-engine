@@ -50,6 +50,7 @@ uses SysUtils, Classes,
 {$I castlepropedits_vector.inc}
 {$I castlepropedits_image.inc}
 {$I castlepropedits_unused_controls.inc}
+{$I castlepropedits_viewport_navigation.inc}
 
 procedure Register;
 begin
@@ -91,6 +92,10 @@ begin
     TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
+    TViewportNavigationEditor);
+  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleSceneManager, 'Navigation',
+    TViewportNavigationEditor);
 end;
 
 initialization
