@@ -2156,7 +2156,7 @@ begin
 
   V.Camera.GetView(APos, ADir, AUp);
   V.Camera.SetInitialView(APos, ADir, AUp, false);
-  V.AutoDetectCamera := false;
+  V.AutoCamera := false;
 
   ModifiedOutsideObjectInspector;
 end;
@@ -2215,7 +2215,7 @@ begin
     NewNavigation.Name := ProposeName(TComponentClass(NewNavigation.ClassType), DesignOwner);
 
   // otherwise, setting Navigation to nil would not work, as it would be replaced by internal navigation
-  V.AutoDetectNavigation := false;
+  V.AutoNavigation := false;
 
   ModifiedOutsideObjectInspector;
   UpdateDesign;

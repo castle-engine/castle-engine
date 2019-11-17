@@ -102,7 +102,7 @@ begin
   Viewport.SceneManager := SceneManager;
   Viewport.Transparent := true;
   Viewport.NavigationType := ntNone;
-  Viewport.AutoDetectCamera := false;
+  Viewport.AutoCamera := false;
   Viewport.Camera.SetView(
     Vector3(5, 92.00, 0.99),
     Vector3(0, -1, 0),

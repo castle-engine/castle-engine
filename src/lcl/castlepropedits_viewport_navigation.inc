@@ -20,7 +20,7 @@ type
   { For some reason, Viewport.Navigation is displayed as subcomponent
     in editor by default (with properties expanded).
     We don't want that, as then internal navigation instances
-    (created when AutoDetectNavigation) could be changed too
+    (created when AutoNavigation) could be changed too
     (but they would not be saved). }
   TViewportNavigationEditor = class(TPropertyEditor)
   public
@@ -42,8 +42,7 @@ begin
     Result := '(none)'
   else
   if csTransient in V.ComponentStyle then
-    Result := '(internal, created by AutoDetectNavigation)'
+    Result := '(internal, because of AutoNavigation)'
   else
     Result := V.Name;
 end;
-

@@ -123,8 +123,8 @@ type
       FOnProjection: TProjectionEvent;
       FEnableParentDragging: boolean;
       AssignDefaultCameraDone: Boolean;
-      FAutoDetectCamera: Boolean;
-      FAutoDetectNavigation: Boolean;
+      FAutoCamera: Boolean;
+      FAutoNavigation: Boolean;
 
       FShadowVolumes: boolean;
       FShadowVolumesRender: boolean;
@@ -166,8 +166,8 @@ type
     function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
     procedure SetPaused(const Value: boolean);
     function GetNavigationType: TNavigationType;
-    procedure SetAutoDetectCamera(const Value: Boolean);
-    { Make sure to call AssignDefaultCamera, if needed because of AutoDetectCamera. }
+    procedure SetAutoCamera(const Value: Boolean);
+    { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
   private
     var
@@ -196,10 +196,10 @@ type
 
       This cooperates closely with current @link(Camera) definition.
 
-      If AutoDetectCamera then the initial and current @link(Camera) vectors
+      If AutoCamera then the initial and current @link(Camera) vectors
       are also initialized here (see TCastleCamera.Init
       and @link(AssignDefaultCamera).
-      If AutoDetectNavigation then the @link(Navigation) is automatically created here,
+      If AutoNavigation then the @link(Navigation) is automatically created here,
       see @link(AssignDefaultNavigation).
 
       This takes care to always update Camera.ProjectionMatrix,
@@ -214,11 +214,11 @@ type
       calculates projection based on the @link(Camera) parameters.
 
       In turn, the @link(Camera) parameters may be automatically
-      calculated (if @link(AutoDetectCamera))
+      calculated (if @link(AutoCamera))
       based on the nodes in the @link(TCastleSceneManager.MainScene).
       Nodes like TViewpointNode or TOrthoViewpointNode or TNavigationInfoNode
       determine the default camera and projection details.
-      Note that the TCastle2DSceneManager turns off @link(AutoDetectCamera),
+      Note that the TCastle2DSceneManager turns off @link(AutoCamera),
       and initializes camera to orthographic, regardless of the
       @link(TCastleSceneManager.MainScene).
 
@@ -495,7 +495,7 @@ type
       for navigating in this scene.
 
       This is automatically used when @link(Navigation) is @nil
-      and @link(AutoDetectNavigation).
+      and @link(AutoNavigation).
       You can also use it explicitly.
 
       The implementation in base TCastleAbstractViewport uses
@@ -509,7 +509,7 @@ type
 
     { Assign initial and current camera vectors and projection.
 
-      This is automatically used at first rendering if @link(AutoDetectCamera).
+      This is automatically used at first rendering if @link(AutoCamera).
       You can also use it explicitly. }
     procedure AssignDefaultCamera; virtual;
 
@@ -604,7 +604,7 @@ type
           The Z (depth) can be used to put things in front/behind each other.
 
           Since this initialized the camera sensibly,
-          we also set @link(AutoDetectCamera) to false.
+          we also set @link(AutoCamera) to false.
         )
 
         @item(
@@ -639,7 +639,7 @@ type
     { Set @link(Navigation) and some of its' parameters
       (like TCastleWalkNavigation.Gravity and so on).
 
-      If @link(AutoDetectNavigation), the initial @link(Navigation)
+      If @link(AutoNavigation), the initial @link(Navigation)
       as well as initial value of this property are automatically determined
       by the currently bound X3D NavigatinInfo node in the @link(GetMainScene),
       and world bounding box.
@@ -648,7 +648,7 @@ type
 
       But you can set @link(Navigation), or this property,
       manually to override the detected navigation.
-      You should set @link(AutoDetectNavigation) to @false to take control
+      You should set @link(AutoNavigation) to @false to take control
       of @link(Navigation) and this property completely (no auto-detection
       based on @link(GetMainScene) will then take place).
 
@@ -690,11 +690,11 @@ type
       like @link(TCastleWalkNavigation) or @link(TCastleExamineNavigation).
       Or you can leave it as @nil.
 
-      Note that, if you leave it as @nil and have @link(AutoDetectNavigation) as @true
+      Note that, if you leave it as @nil and have @link(AutoNavigation) as @true
       (default) then a default navigation will be calculated
       right before the first rendering. It will take into account the 3D world
       initialized in SceneManager.Items, e.g. the NavigatinInfo inside SceneManager.MainScene.
-      Set @link(AutoDetectNavigation) to false to avoid this automatic detection.
+      Set @link(AutoNavigation) to false to avoid this automatic detection.
 
       Note that assigning @link(NavigationType) also implicitly sets
       this property to an internal instance of
@@ -888,7 +888,7 @@ type
     }
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
-      deprecated 'use Camera.ProjectionFar, and set AutoDetectCamera to false';
+      deprecated 'use Camera.ProjectionFar, and set AutoCamera to false';
 
     { Viewports are by default full size (fill the parent control completely). }
     property FullSize default true;
@@ -923,8 +923,8 @@ type
       By default it is @true. Setting it to @false effectively means
       that you control @link(Camera) properties on your own.
     }
-    property AutoDetectCamera: Boolean
-      read FAutoDetectCamera write SetAutoDetectCamera default true;
+    property AutoCamera: Boolean
+      read FAutoCamera write SetAutoCamera default true;
 
     { Assign sensible @link(Navigation) looking
       at the initial world (@link(Items)) if it is not assigned.
@@ -935,8 +935,8 @@ type
       By default it is @true. Setting it to @false effectively means
       that you control @link(Navigation) on your own.
     }
-    property AutoDetectNavigation: Boolean
-      read FAutoDetectNavigation write FAutoDetectNavigation default true;
+    property AutoNavigation: Boolean
+      read FAutoNavigation write FAutoNavigation default true;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
@@ -1667,8 +1667,8 @@ begin
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   FullSize := true;
-  FAutoDetectNavigation := true;
-  FAutoDetectCamera := true;
+  FAutoNavigation := true;
+  FAutoCamera := true;
 
   FCamera := TCastleCamera.Create(Self);
   FCamera.Viewport := Self;
@@ -2131,11 +2131,11 @@ end;
 
 procedure TCastleAbstractViewport.EnsureCameraDetected;
 begin
-  if AutoDetectCamera and not AssignDefaultCameraDone then
+  if AutoCamera and not AssignDefaultCameraDone then
     AssignDefaultCamera;
   { Set AssignDefaultCameraDone to done,
     regardless if AssignDefaultCameraDone was done or not.
-    Otherwise later setting AutoDetectCamera to true would suddenly
+    Otherwise later setting AutoCamera to true would suddenly
     reinitialize camera (initial and current vectors) in the middle of game. }
   AssignDefaultCameraDone := true;
 end;
@@ -2146,7 +2146,7 @@ var
   AspectRatio: Single;
   M: TMatrix4;
 begin
-  if AutoDetectNavigation and (Navigation = nil) then
+  if AutoNavigation and (Navigation = nil) then
     AssignDefaultNavigation; // create Navigation if necessary
 
   EnsureCameraDetected;
@@ -2193,23 +2193,23 @@ end;
 function TCastleAbstractViewport.IsStoredNavigation: Boolean;
 begin
   { Do not store Navigation when it is an internal instance
-    (set by AutoDetectNavigation being true at some point).
+    (set by AutoNavigation being true at some point).
     This is consistent with what editor shows: internal instances
     have csTransient, so they are not shown. }
   Result := (Navigation <> nil) and
     (not (csTransient in Navigation.ComponentStyle));
 end;
 
-procedure TCastleAbstractViewport.SetAutoDetectCamera(const Value: Boolean);
+procedure TCastleAbstractViewport.SetAutoCamera(const Value: Boolean);
 begin
-  if FAutoDetectCamera <> Value then
+  if FAutoCamera <> Value then
   begin
-    FAutoDetectCamera := Value;
+    FAutoCamera := Value;
 
     (*
     At one point I had an idea to do this:
 
-    { When setting AutoDetectCamera to false, then back to true,
+    { When setting AutoCamera to false, then back to true,
       call AssignDefaultCamera again (thus resetting camera initial and current
       vectors).
       This provides a way to cause AssignDefaultCamera initialization again. }
@@ -2225,14 +2225,14 @@ begin
     because it overrides both initial and current camera vectors.
     You would not expect that
 
-    if AutoDetectCamera then
+    if AutoCamera then
     begin
-      AutoDetectCamera := false;
-      AutoDetectCamera := true;
+      AutoCamera := false;
+      AutoCamera := true;
     end;
 
     does something, but here it would do something.
-    Doing the same thing with AutoDetectNavigation doesn't
+    Doing the same thing with AutoNavigation doesn't
     recreate navigation (if Navigation <> nil, it will stay as it was).
     *)
   end;
@@ -3437,7 +3437,7 @@ begin
   Camera.ProjectionNear := -Default2DProjectionFar;
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
-  AutoDetectCamera := false;
+  AutoCamera := false;
 end;
 
 {$define read_implementation_methods}
@@ -4257,7 +4257,7 @@ end;
 
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
 begin
-  if AutoDetectCamera then
+  if AutoCamera then
   begin
     Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
     BoundViewpointChanged;
@@ -4266,7 +4266,7 @@ end;
 
 procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 begin
-  if AutoDetectNavigation and (Navigation <> nil) then
+  if AutoNavigation and (Navigation <> nil) then
   begin
     NavigationType := Scene.NavigationTypeFromNavigationInfo;
     Scene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
@@ -4277,9 +4277,9 @@ end;
 procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
 begin
   { TODO: It may be useful to enable camera animation by some specific property,
-    like AnimateCameraByViewpoint (that works even when AutoDetectCamera = false,
+    like AnimateCameraByViewpoint (that works even when AutoCamera = false,
     as we advise for new scene managers). }
-  if AutoDetectCamera { or AnimateCameraByViewpoint } then
+  if AutoCamera { or AnimateCameraByViewpoint } then
     Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
@@ -4439,7 +4439,7 @@ function TCastleSceneManager.PositionTo2DWorld(const Position: TVector2;
   const ScreenCoordinates: Boolean): TVector2;
 
 { Version 1:
-  This makes sense, but ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
+  This makes sense, but ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
 
 var
   P: TVector2;
@@ -4467,8 +4467,8 @@ end; }
 
 { Version 2:
   This also makes sense, but also
-  ignores TExamineCamera.ScaleFactor (assumes unscaled camera).
-  TCamera.CustomRay looks only at camera pos/dir/up and ignores scaling.
+  ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
+  TCastleNavigation.CustomRay looks only at camera pos/dir/up and ignores scaling.
 
 var
   P: TVector2;

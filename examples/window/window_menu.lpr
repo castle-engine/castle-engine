@@ -199,7 +199,7 @@ begin
   CreateScene;
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
-  Window.SceneManager.AutoDetectNavigation := false;
+  Window.SceneManager.AutoNavigation := false;
 
   { create menu }
   MainMenu := TMenu.Create('Main menu');

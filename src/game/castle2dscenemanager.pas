@@ -33,7 +33,7 @@ type
       )
 
       @item(Also, the navigation by default remains @nil,
-        because @link(AutoDetectNavigation) is by default @false.
+        because @link(AutoNavigation) is by default @false.
 
         That is because you typically want to
         code yourself all camera movement for 2D games.
@@ -65,8 +65,8 @@ type
     function CurrentProjectionWidth: Single; deprecated 'use Camera.Orthographic.EffectiveWidth';
     function CurrentProjectionHeight: Single; deprecated 'use Camera.Orthographic.EffectiveHeight';
   published
-    property AutoDetectCamera default false;
-    property AutoDetectNavigation default false;
+    property AutoCamera default false;
+    property AutoNavigation default false;
 
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
@@ -122,14 +122,14 @@ type
     property ProjectionOriginCenter: boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       deprecated 'use Camera.Orthographic.Origin';
-  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoDetectNavigation:=false';
+  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoNavigation:=false';
 
   T2DSceneManager = class(TCastle2DSceneManager)
   public
     constructor Create(AOwner: TComponent); override;
   published
     property Transparent default true;
-  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoDetectNavigation:=false, and set Transparent:=true';
+  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoNavigation:=false, and set Transparent:=true';
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
     good when your transparent objects have proper order along the Z axis
@@ -159,7 +159,7 @@ constructor TCastle2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
   Setup2D;
-  AutoDetectNavigation := false;
+  AutoNavigation := false;
 end;
 
 function TCastle2DSceneManager.CurrentProjectionWidth: Single;

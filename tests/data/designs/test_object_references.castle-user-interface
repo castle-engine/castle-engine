@@ -222,7 +222,7 @@
       "$ClassName" : "TCastle2DSceneManager"
     },
     {
-      "AutoDetectCamera" : false,
+      "AutoCamera" : false,
       "BackgroundColorPersistent" : {
         "Blue" : 5.0196081399917603E-001,
         "Green" : 0.0000000000000000E+000,

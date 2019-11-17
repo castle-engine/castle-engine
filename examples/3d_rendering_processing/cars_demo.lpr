@@ -154,7 +154,7 @@ begin
 
   Window.SceneManager.Items.Add(CreateBoxesScene);
 
-  Window.SceneManager.AutoDetectCamera := false;
+  Window.SceneManager.AutoCamera := false;
   Window.SceneManager.Camera.SetView(
     Vector3(-43.30, 27.23, -80.74),
     Vector3(  0.60, -0.36,   0.70),

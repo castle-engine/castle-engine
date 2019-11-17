@@ -1420,7 +1420,7 @@ object DesignFrame: TDesignFrame
     end
     object MenuItemViewportCameraSetInitial: TMenuItem
       Caption = 'Camera Initial := Current'
-      Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoDetectCamera to false.'
+      Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoCamera to false.'
       OnClick = MenuItemViewportCameraSetInitialClick
     end
     object MenuItemViewportCamera2DViewInitial: TMenuItem

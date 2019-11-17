@@ -97,7 +97,7 @@ begin
   Window.SceneManager.MainScene := Scene;
 
   Window.SceneManager.AssignDefaultCamera;
-  Window.SceneManager.AutoDetectCamera := false;
+  Window.SceneManager.AutoCamera := false;
 
   { Output some information about the loaded scene }
   Writeln('Scene vertexes: ', Scene.VerticesCount(true),

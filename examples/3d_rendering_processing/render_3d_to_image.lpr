@@ -109,8 +109,8 @@ begin
   }
 
   SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.AutoDetectCamera := false;
-  SceneManager.AutoDetectNavigation := false;
+  SceneManager.AutoCamera := false;
+  SceneManager.AutoNavigation := false;
   SceneManager.FullSize := false;
   SceneManager.Width := ImageWidth;
   SceneManager.Height := ImageHeight;

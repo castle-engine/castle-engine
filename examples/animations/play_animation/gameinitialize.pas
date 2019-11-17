@@ -199,8 +199,8 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  Window.SceneManager.AutoDetectCamera := false; // we will explicitly call AssignDefaultCamera
-  Window.SceneManager.AutoDetectNavigation := false;
+  Window.SceneManager.AutoCamera := false; // we will explicitly call AssignDefaultCamera
+  Window.SceneManager.AutoNavigation := false;
   Window.SceneManager.NavigationType := ntExamine; // always Examine, regardless of scene
 
   Y := -Margin;

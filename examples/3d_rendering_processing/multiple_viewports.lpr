@@ -280,8 +280,8 @@ begin
     if Viewports[I] = nil then
       Viewports[I] := TMyViewport.Create(Application);
 
-    Viewports[I].AutoDetectCamera := false;
-    Viewports[I].AutoDetectNavigation := false;
+    Viewports[I].AutoCamera := false;
+    Viewports[I].AutoNavigation := false;
     Viewports[I].SceneManager := Window.SceneManager;
     Viewports[I].FullSize := false;
     Viewports[I].ShadowVolumes := I = 1;

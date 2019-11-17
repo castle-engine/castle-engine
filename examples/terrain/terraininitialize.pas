@@ -665,8 +665,8 @@ begin
   Scene.Spatial := [ssDynamicCollisions]; // for proper walking
 
   SceneManager := Window.SceneManager;
-  SceneManager.AutoDetectNavigation := false;
-  SceneManager.AutoDetectCamera := false;
+  SceneManager.AutoNavigation := false;
+  SceneManager.AutoCamera := false;
   SceneManager.Items.Add(Scene);
   NavigationExamine := false; // do this only to make sure SetNavigationExamine updates state
   SetNavigationExamine(true);
