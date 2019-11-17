@@ -180,8 +180,10 @@ type
     procedure FrameAnchorsChange(Sender: TObject);
     procedure AdjustUserInterfaceAnchorsToKeepRect(const UI: TCastleUserInterface;
       const RenderRectBeforeChange: TFloatRectangle);
-    procedure SelectionRestoreAndFree(var Selection: Classes.TList);
-    function SelectionSave: Classes.TList;
+    // Save and restore selection.
+    // Careful: you can use it only if the operation between will *never* free any of them.
+    //procedure SelectionRestoreAndFree(var Selection: Classes.TList);
+    //function SelectionSave: Classes.TList;
 
     { Calculate Selected list, non-nil <=> non-empty }
     procedure GetSelected(out Selected: TComponentList;
@@ -1611,6 +1613,9 @@ procedure TDesignFrame.SetSelectedComponent(const Value: TComponent);
 var
   Node: TTreeNode;
 begin
+  if Value = nil then
+    ControlsTree.Select([])
+  else
   if TreeNodeMap.TryGetValue(Value, Node) then
     ControlsTree.Select([Node]);
 end;
@@ -2168,6 +2173,7 @@ begin
   UpdateDesign; // make the tree reflect new order
 end;
 
+{
 function TDesignFrame.SelectionSave: Classes.TList;
 var
   I: Integer;
@@ -2183,15 +2189,16 @@ begin
   ControlsTree.Select(Selection);
   FreeAndNil(Selection);
 end;
+}
 
 procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
 var
-  SavedSelection: Classes.TList;
   V: TCastleAbstractViewport;
 begin
-  SavedSelection := SelectionSave;
-
   V := SelectedViewport;
+
+  // fixes crash, in case current selection was equal to old V.Navigation that will be freed
+  SelectedUserInterface := nil;
 
   // free previous V.Navigation
   if (V.Navigation <> nil) and
@@ -2207,10 +2214,16 @@ begin
   if NewNavigation <> nil then
     NewNavigation.Name := ProposeName(TComponentClass(NewNavigation.ClassType), DesignOwner);
 
+  // otherwise, setting Navigation to nil would not work, as it would be replaced by internal navigation
+  V.AutoDetectNavigation := false;
+
   ModifiedOutsideObjectInspector;
   UpdateDesign;
 
-  SelectionRestoreAndFree(SavedSelection);
+  if NewNavigation <> nil then
+    SelectedUserInterface := NewNavigation
+  else
+    SelectedUserInterface := V;
 end;
 
 procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
