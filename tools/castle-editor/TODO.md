@@ -36,11 +36,6 @@ Before 6.6 release:
 
 * 3d gizmos to translate / rotate / scale
 
-* MainScene cannot be changed
-  (we disabled in object inspector some types, maybe we should not?)
-  Is it deserialized OK? Unsure, as headlight with hlMainScene doesn't shine.
-  Saving back suggests it's not deserialized OK now.
-
 * force non-empty Name on all, to have wokring streaming?
 
   unless it's already forced, is it possible to set name='' without
@@ -100,7 +95,7 @@ OK if after nearest release:
       open the only scene in the project, if only one exists?
     * does recursive saving work when Tcastletransform is present multiple times in graph?
     * Allow editing of:
-        * initial animation? along with TimePlayingSpeed, ProcessEvents
+        * TimePlayingSpeed, ProcessEvents
 
     * adding - better UI? component palette?
       after adding, keep previously selected still selected
@@ -128,8 +123,6 @@ OK if after nearest release:
     - Window encloses simulated area size (Recommended)
 
     (From code, you can control this using Window.Container.UIScalingXxx properties.)
-
-* ugly button in example? new ui for internal controls?
 
 * Make files browser with features as documented.
     * allow dropping scenes/images on UI design.

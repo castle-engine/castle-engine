@@ -27,12 +27,14 @@ type
     procedure TestEmptyCaption;
     procedure TestSaveLoad1;
     procedure TestSaveLoad2;
+    procedure TestDeserializeObjectReferences;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
-  CastleUIControls, CastleControls, CastleUtils;
+  CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
+  CastleScene;
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -264,6 +266,31 @@ begin
     AssertVectorEquals(Vector4(1, 1, 1, 1), Lab.FrameColor);
     AssertEquals(TCastleLabel.DefaultLineSpacing, Lab.LineSpacing);
     AssertEquals('', Lab.Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestDeserializeObjectReferences;
+var
+  UiOwner: TComponent;
+  //Ui: TCastleUserInterface;
+  Sm1, Sm2, Sm3: TCastleSceneManager;
+  {Scene1, Scene2, }Scene3, Scene4{, Scene5, Scene6}: TCastleScene;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    {Ui := }UserInterfaceLoad('castle-data:/designs/test_object_references.castle-user-interface', UiOwner);
+    Sm1 := UiOwner.FindRequiredComponent('SceneManager1') as TCastleSceneManager;
+    Sm2 := UiOwner.FindRequiredComponent('SceneManager2') as TCastleSceneManager;
+    Sm3 := UiOwner.FindRequiredComponent('SceneManager3') as TCastleSceneManager;
+    // Scene1 := UiOwner.FindRequiredComponent('Scene1') as TCastleScene;
+    // Scene2 := UiOwner.FindRequiredComponent('Scene2') as TCastleScene;
+    Scene3 := UiOwner.FindRequiredComponent('Scene3') as TCastleScene;
+    Scene4 := UiOwner.FindRequiredComponent('Scene4') as TCastleScene;
+    // Scene5 := UiOwner.FindRequiredComponent('Scene5') as TCastleScene;
+    // Scene6 := UiOwner.FindRequiredComponent('Scene6') as TCastleScene;
+    AssertTrue(Sm1.MainScene = Scene3);
+    AssertTrue(Sm2.MainScene = Scene4);
+    AssertTrue(Sm3.MainScene = nil);
   finally FreeAndNil(UiOwner) end;
 end;
 
