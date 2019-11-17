@@ -3119,9 +3119,12 @@ begin
       NewRoot := nil; // when AURL is ''
     end;
 
-    Load(NewRoot, true, AOptions);
-
+    { Set FURL before calling Load below.
+      This way eventual warning from Load (like "animation not found",
+      in case AutoAnimation is used) will mention the new URL, not the old one. }
     FURL := AURL;
+
+    Load(NewRoot, true, AOptions);
 
     { When loading from URL, reset FPrimitiveGeometry.
       Otherwise deserialization would be undefined -- do we load contents
