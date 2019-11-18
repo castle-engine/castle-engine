@@ -543,7 +543,7 @@ begin
   end else
   begin
     { Theta ~= 0, so both rotations equal (or opposite, in which case
-      result in undefined anyway). }
+      result is undefined anyway). }
     W1 := 1 - A;
     W2 := A;
   end;

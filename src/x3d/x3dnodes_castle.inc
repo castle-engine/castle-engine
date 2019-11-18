@@ -424,6 +424,30 @@
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;
 
+  { Interpolate (animate) a 2D orientation,
+    during which angle changes but axis remains constant. }
+  TOrientationInterpolator2DNode = class(TAbstractInterpolatorNode)
+  strict private
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+      const Time: TX3DTime);
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    strict private FFdKeyValue: TMFFloat;
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
+
+    strict private FFdAxis: TSFVec3f;
+    public property FdAxis: TSFVec3f read FFdAxis;
+
+    { Event out } { }
+    strict private FEventValue_changed: TSFRotationEvent;
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1014,6 +1038,77 @@ begin
   Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
+{ TOrientationInterpolator2DNode ---------------------------------- }
+
+procedure TOrientationInterpolator2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
+  AddField(FFdKeyValue);
+
+  FFdAxis := TSFVec3f.Create(Self, true, 'axis', Vector3(0, 0, 1));
+  AddField(FFdAxis);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  DefaultContainerField := 'children';
+
+  EventSet_Fraction.AddNotification(
+    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+end;
+
+class function TOrientationInterpolator2DNode.ClassX3DType: string;
+begin
+  Result := 'OrientationInterpolator2D';
+end;
+
+class function TOrientationInterpolator2DNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
+end;
+
+procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+
+  function KeyValue(Index: Integer): Single;
+  begin
+    if Index < FdKeyValue.Items.Count then
+      Result := FdKeyValue.Items.List^[Index]
+    else
+      Result := 0;
+  end;
+
+var
+  T: Single;
+  OutputValueAngle: Single;
+  KeyCount, Range: Integer;
+begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  KeyCount := FdKey.Items.Count;
+  if KeyCount = 0 then
+  begin
+    // Interpolator nodes containing no keys in the key field
+    // shall not produce any events.
+    Exit;
+  end else
+  begin
+    Range := KeyRange((Value as TSFFloat).Value, T);
+    if Range = 0 then
+      OutputValueAngle := KeyValue(0)
+    else
+    if Range = KeyCount then
+      OutputValueAngle := KeyValue(KeyCount - 1)
+    else
+      OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
+  end;
+  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time, Value.InternalPartialSend);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -1031,7 +1126,8 @@ begin
     TEffectNode,
     TEffectPartNode,
     TShaderTextureNode,
-    TViewpointMirrorNode
+    TViewpointMirrorNode,
+    TOrientationInterpolator2DNode
   ]);
 end;
 

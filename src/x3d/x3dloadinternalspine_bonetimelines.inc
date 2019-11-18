@@ -350,7 +350,7 @@ procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
-  N: TOrientationInterpolatorNode;
+  N: TOrientationInterpolator2DNode;
   NC: TCubicBezier2DOrientationInterpolatorNode;
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
@@ -362,9 +362,9 @@ begin
     NC.FdAxis.Value := Vector3(0, 0, 1);
     for I := 0 to Angles.Count - 1 do
     begin
-      NC.FdKeyValue.Items.Add(
-        { add setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]));
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]);
+      NC.FdKeyValue.Items.Add(AngleValue);
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
     NC.OptimizeControlPoints;
@@ -373,20 +373,39 @@ begin
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);
   end else
   begin
-    N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
+    { We use TOrientationInterpolator2DNode instead of
+      TOrientationInterpolatorNode with constant axis.
+      This is not only for optimization (TOrientationInterpolator2DNode
+      does trivial lerp using AngleLerp, instead of SLerp on 3D rotations),
+      it's also for correctness: TOrientationInterpolatorNode could choose
+      to interpolate through a 3D space sometimes, it seems.
+
+      Testcase: Unholy exorcist going_on_ladder_up animation hand movement.
+      It could do unexpected interpolation using slerp:
+
+          uses CastleVectors, CastleQuaternions;
+          const
+            Steps = 10;
+          var
+            V: TVector4;
+            I: Integer;
+          begin
+            for I := 0 to Steps - 1 do
+            begin
+              V := SLerp(I / (Steps - 1),
+                Vector4(0, 0, 1, -1.6584116220474243),
+                Vector4(0, 0, 1, 4.6247735023498535)
+              );
+              Writeln(V.ToString);
+            end;
+          end.
+    }
+    N := TOrientationInterpolator2DNode.Create('BoneTimeline_rotate_' + Bone.Name);
     for I := 0 to Angles.Count - 1 do
     begin
-      { We need to make FloatModulo here, otherwise Spine may export
-        two adjacent frames as angle -263.74, then 96.26.
-        Which is nearly the same modulo 360.0.
-        Testcase: exorcist on Silent Virginia, animation going_on_ladder_up.
-        TODO: Shouldn't OrientationInterpolator account for this already?
-      }
-      AngleValue := FloatModulo(Angles[I], 360);
-      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(AngleValue);
-      N.FdKeyValue.Items.Add(Vector4(0, 0, 1,
-        { add setup pose transform, as bone timeline is relative to setup pose }
-        AngleValue));
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]);
+      N.FdKeyValue.Items.Add(AngleValue);
     end;
     EventValueChanged := N.EventValue_changed;
     Node := N;
