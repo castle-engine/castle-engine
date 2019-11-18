@@ -26,17 +26,17 @@ uses SysUtils, Classes,
   CastleInputs, CastleTriangles, CastleRectangles, CastleClassUtils;
 
 type
-  { Possible navigation input types in cameras, set in TCastleNavigation.Input. }
-  TCameraInput = (
+  { Possible navigation input types for @link(TCastleNavigation.Input). }
+  TNavigationInput = (
     { Normal input types. This includes all inputs available as
       Input_Xxx properties in TCastleNavigation descendants.
       They are all fully configurable (as TInputShortcut class),
       they may be mouse button presses, mouse wheel clicks, or key presses.
-      You can always clear some shortcut (like @code(WalkCamera.Input_Forward.MakeClear))
+      You can always clear some shortcut (like @code(TCastleWalkNavigation.Input_Forward.MakeClear))
       to disable a specific shortcut.
-      Excluding ciNormal from TCastleNavigation.Input is an easy way to disable @italic(all)
+      Excluding niNormal from TCastleNavigation.Input is an easy way to disable @italic(all)
       shortcuts. }
-    ciNormal,
+    niNormal,
 
     { Mouse and touch dragging. Both TCastleExamineNavigation and TCastleWalkNavigation implement their own,
       special reactions to mouse dragging, that allows to navigate / rotate
@@ -44,16 +44,20 @@ type
 
       Note that mouse dragging is automatically disabled when
       @link(TCastleWalkNavigation.MouseLook) is used. }
-    ciMouseDragging,
+    niMouseDragging,
 
     { Touch gestures, like multi-touch pinch or pan gesture. }
-    ciGesture,
+    niGesture,
 
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
-    ci3dMouse);
-  TCameraInputs = set of TCameraInput;
+    ni3dMouse
+  );
+  TNavigationInputs = set of TNavigationInput;
 
-  { Navigation type that determines various camera properties,
+  TCameraInput = TNavigationInput deprecated 'use TNavigationInput';
+  TCameraInputs = TNavigationInputs deprecated 'use TNavigationInputs';
+
+  { Navigation type that determines various navigation properties,
     used by @link(TCastleAbstractViewport.NavigationType). }
   TNavigationType = (
     { Examine mode, comfortable to rotate the scene like an item held in your hand.
@@ -583,7 +587,7 @@ type
     games. }
   TCastleNavigation = class(TCastleUserInterface)
   private
-    FInput: TCameraInputs;
+    FInput: TNavigationInputs;
     FRadius: Single;
     FPreferredHeight: Single;
     FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
@@ -605,7 +609,7 @@ type
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
   protected
-    { Needed for ciMouseDragging navigation.
+    { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
       was initialized on viewport (since the viewport passed events to camera).
       MouseDraggingStarted -1 means none, otherwise it's the finder index
@@ -613,7 +617,7 @@ type
     MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2;
 
-    procedure SetInput(const Value: TCameraInputs); virtual;
+    procedure SetInput(const Value: TNavigationInputs); virtual;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
     procedure SetRadius(const Value: Single); virtual;
@@ -623,10 +627,10 @@ type
     procedure SetModelBox(const B: TBox3D);
   public
     const
-      { Default value for TCamera.Radius.
+      { Default value for TCastleNavigation.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
-      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse, ciGesture];
+      DefaultInput = [niNormal, niMouseDragging, ni3dMouse, niGesture];
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
@@ -993,12 +997,12 @@ type
       Initially this is TBox3D.Empty. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
   published
-    { Input methods available to user. See documentation of TCameraInput
+    { Input methods available to user. See documentation of TNavigationInput
       type for possible values and their meaning.
 
       To disable any user interaction with camera (for example,
       to implement X3D "NONE" navigation type) you can simply set this to empty. }
-    property Input: TCameraInputs read FInput write SetInput default DefaultInput;
+    property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
   end;
 
   { Navigate the 3D model in examine mode, like you would hold
@@ -1247,7 +1251,7 @@ type
     property Input_Home: TInputShortcut read FInput_Home;
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
 
-    { @Deprecated Include/exclude ciMouseDragging from @link(Input) instead. }
+    { @Deprecated Include/exclude niMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
   published
@@ -1708,7 +1712,7 @@ type
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
 
-    { What mouse dragging does. Used only when ciMouseDragging in @link(Input). }
+    { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
       read FMouseDragMode write FMouseDragMode default mdWalk;
 
@@ -1916,7 +1920,7 @@ type
     procedure UpPrefer(const AUp: TVector3); deprecated 'use Viewport.Camera.UpPrefer';
 
     { Last known information about whether camera is over the ground.
-      Updated by using @link(Height) call. For normal TCamera descendants,
+      Updated by using @link(Height) call. For normal TCastleNavigation descendants,
       this means using OnHeight callback.
 
       These are updated only when @link(Height)
@@ -2010,7 +2014,7 @@ type
     { @groupEnd }
 
     { Speed (degrees per pixel delta) of rotations by mouse dragging.
-      Relevant only if ciMouseDragging in @link(Input), and MouseDragMode is mdRotate.
+      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -2052,6 +2056,11 @@ const
   DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
   DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
   { @groupEnd }
+
+  ciNormal        = niNormal        deprecated 'use niNormal';
+  ciMouseDragging = niMouseDragging deprecated 'use niMouseDragging';
+  ciGesture       = niGesture       deprecated 'use niGesture';
+  ci3dMouse       = ni3dMouse       deprecated 'use ni3dMouse';
 
 { Convert camera direction and up vectors into a rotation (X3D "orientation" vector).
 
@@ -2663,7 +2672,7 @@ begin
   Result := (InternalViewport as TCastleAbstractViewport).Camera;
 end;
 
-procedure TCastleNavigation.SetInput(const Value: TCameraInputs);
+procedure TCastleNavigation.SetInput(const Value: TNavigationInputs);
 begin
   FInput := Value;
 end;
@@ -2781,7 +2790,7 @@ function TCastleNavigation.ReallyEnableMouseDragging: boolean;
 
   function ViewportItemsDragging(const V: TCastleAbstractViewport): Boolean;
   begin
-    { Do not navigate by dragging (regardless of ciMouseDragging in Navigation.Input)
+    { Do not navigate by dragging (regardless of niMouseDragging in Navigation.Input)
       when we're already dragging a 3D item.
       This means that if you drag X3D sensors like TouchSensor, then your
       dragging will not simultaneously also affect the navigation (which would be very
@@ -2791,10 +2800,10 @@ function TCastleNavigation.ReallyEnableMouseDragging: boolean;
   end;
 
 begin
-  Result := (ciMouseDragging in Input) and
+  Result := (niMouseDragging in Input) and
     { Is mouse dragging allowed by viewport.
       This is an additional condition to enable mouse dragging,
-      above the existing ciMouseDragging in Input.
+      above the existing niMouseDragging in Input.
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     ( (InternalViewport = nil) or
@@ -3150,7 +3159,7 @@ begin
     V.Rotations.LazyNormalizeMe;
   end;
 
-  if HandleInput and (ciNormal in Input) then
+  if HandleInput and (niNormal in Input) then
   begin
     if ModelBox.IsEmptyOrZero then
       MoveChange := KeysMoveSpeed * SecondsPassed else
@@ -3201,7 +3210,7 @@ begin
   ExamineVectors := V;
 
   { process things that do not set ExamineVectors }
-  if HandleInput and (ciNormal in Input) then
+  if HandleInput and (niNormal in Input) then
   begin
     if Input_ScaleLarger.IsPressed(Container) then
     begin
@@ -3257,7 +3266,7 @@ var
   Size: Single;
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in Input) then Exit(false);
   if not MoveEnabled then Exit(false);
   if FModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
@@ -3282,7 +3291,7 @@ var
   RotationSize: Double;
   V: TExamineVectors;
 begin
-  if not (ci3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in Input) then Exit(false);
   if not RotationEnabled then Exit(false);
   Result := true;
 
@@ -3414,10 +3423,10 @@ begin
      (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
-  if (ciGesture in Input) and FPinchGestureRecognizer.Press(Event) then
+  if (niGesture in Input) and FPinchGestureRecognizer.Press(Event) then
     Exit(ExclusiveEvents);
 
-  if not (ciNormal in Input) then Exit;
+  if not (niNormal in Input) then Exit;
 
   if Event.EventType <> itMouseWheel then
   begin
@@ -3454,7 +3463,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciGesture in Input) and FPinchGestureRecognizer.Release(Event) then
+  if (niGesture in Input) and FPinchGestureRecognizer.Release(Event) then
     Exit(ExclusiveEvents);
 end;
 
@@ -3588,7 +3597,7 @@ begin
   else
     Dpi := DefaultDpi;
 
-  if (ciGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
+  if (niGesture in Input) and FPinchGestureRecognizer.Motion(Event, Dpi) then
     Exit(ExclusiveEvents);
 
   MoveDivConst := Dpi;
@@ -3697,14 +3706,14 @@ function TCastleExamineNavigation.GetInput_RotateZDec: TInputShortcut; begin Res
 
 function TCastleExamineNavigation.GetMouseNavigation: boolean;
 begin
-  Result := ciMouseDragging in Input;
+  Result := niMouseDragging in Input;
 end;
 
 procedure TCastleExamineNavigation.SetMouseNavigation(const Value: boolean);
 begin
   if Value then
-    Input := Input + [ciMouseDragging] else
-    Input := Input - [ciMouseDragging];
+    Input := Input + [niMouseDragging] else
+    Input := Input - [niMouseDragging];
 end;
 
 function TCastleExamineNavigation.GetNavigationType: TNavigationType;
@@ -4817,7 +4826,7 @@ begin
 
   if HandleInput then
   begin
-    if ciNormal in Input then
+    if niNormal in Input then
     begin
       HandleInput := not ExclusiveEvents;
       FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
@@ -5000,7 +5009,7 @@ begin
     Exit;
   end;
 
-  if (not (ciNormal in Input)) or Camera.Animation then Exit(false);
+  if (not (niNormal in Input)) or Camera.Animation then Exit(false);
 
   if Input_GravityUp.IsEvent(Event) then
   begin
@@ -5019,7 +5028,7 @@ function TCastleWalkNavigation.SensorTranslation(const X, Y, Z, Length: Double;
 var
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in Input) then Exit(false);
   Result := true;
 
   MoveSize := Length * SecondsPassed / 5000;
@@ -5051,7 +5060,7 @@ end;
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 begin
-  if not (ci3dMouse in Input) then Exit(false);
+  if not (ni3dMouse in Input) then Exit(false);
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
@@ -5250,7 +5259,7 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (ciNormal in Input) and
+  if (niNormal in Input) and
     MouseLook and
     Container.Focused and
     ContainerSizeKnown and
