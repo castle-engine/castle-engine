@@ -2830,6 +2830,13 @@ begin
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
+    { TODO: Not setting Result to true below is a hack, to allow TCastleAbstractViewport
+      to receive presses anyway. A cleaner solution would be to use
+      PreviewPress in TCastleAbstractViewport, but this causes other problems,
+      for unknown reason clicking on TouchSensor then still allows navigation like Walk
+      to receive mouse dragging.
+      Testcase: demo-models, touch_sensor_tests.x3dv }
+    // Exit(ExclusiveEvents);
   end;
 end;
 

@@ -2472,11 +2472,26 @@ var
   end;
 
   function CalculateMouseCursor: TMouseCursor;
+  var
+    FocusIndex: Integer;
   begin
     Result := mcDefault;
 
     if Focus.Count <> 0 then
-      Result := Focus.Last.Cursor;
+    begin
+      { Calculate cursor looking at Focus.Last.Cursor,
+        unless that's mcDefault then look at previous control on Focus list,
+        and so on.
+        This is crucial e.g. to allow TCastleAbstractViewport to display
+        "hand" cursor over TouchSensor, even when TCastleXxxNavigation within
+        this viewport has focus.
+      }
+      FocusIndex := Focus.Count;
+      repeat
+        Dec(FocusIndex);
+        Result := Focus[FocusIndex].Cursor;
+      until (Result <> mcDefault) or (FocusIndex = 0);
+    end;
 
     if AnythingForcesNoneCursor then
       Result := mcForceNone;

@@ -380,7 +380,7 @@ type
     The rest are some cursor images will well-defined meanings for the user,
     their exact look may depend on current window manager theme etc.  }
   TMouseCursor = (
-    { Leave cursor as default, decided by a window manager. }
+    { Leave cursor as default, decided by a parent UI control, or by window manager. }
     mcDefault,
     { Make cursor invisible. }
     mcNone,

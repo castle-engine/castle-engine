@@ -1751,7 +1751,10 @@ begin
         FInternalWalkNavigation and FInternalExamineNavigation. }
       if (FNavigation <> FInternalWalkNavigation) and
          (FNavigation <> FInternalExamineNavigation) then
-        // TODO: Make Viewport Internal (private in this unit), or protect from SetViewport being called recursively
+        { Note that InternalViewport has no setter to, in turn, set Viewport.Navigation.
+          This would cause a recursive call from which we should protect.
+          But InternalViewport is a trivial internal field now, so no need to protect,
+          user code should not touch it. }
         FNavigation.InternalViewport := nil;
       RemoveControl(FNavigation);
     end;
@@ -1875,14 +1878,6 @@ begin
       Exit(ExclusiveEvents);
     end;
   end;
-
-  { Let Camera only work after PointingDeviceActivate, to let pointing
-    device sensors under camera work, even when camera allows to navigate
-    by dragging. }
-  // TODO: will below work Ok now? or should we use PreviewPress?
-  // if (Camera <> nil) and
-  //    Camera.Press(Event) then
-  //   Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
@@ -1898,14 +1893,6 @@ begin
      Input_Interact.IsEvent(Event) and
      PointingDeviceActivate(false) then
     Exit(ExclusiveEvents);
-
-  { Let Camera only work after PointingDeviceActivate, to let pointing
-    device sensors under camera work, even when camera allows to navigate
-    by dragging. }
-  // TODO: will below work Ok now? or should we use PreviewRelease?
-  // if (Camera <> nil) and
-  //    Camera.Release(Event) then
-  //   Exit(ExclusiveEvents);
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
@@ -1934,36 +1921,33 @@ begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists then
   begin
-    // TODO: Navigation.Motion now happens automatically, make sure below cases are covered.
+    if Navigation <> nil then
+    begin
+      if (GetMouseRayHit <> nil) and
+         (GetMouseRayHit.Count <> 0) then
+        TopMostScene := GetMouseRayHit.First.Item
+      else
+        TopMostScene := nil;
 
-    // if Navigation <> nil then
-    // begin
-    //   if (GetMouseRayHit <> nil) and
-    //      (GetMouseRayHit.Count <> 0) then
-    //     TopMostScene := GetMouseRayHit.First.Item
-    //   else
-    //     TopMostScene := nil;
+      { Test if dragging TTouchSensorNode. In that case cancel its dragging
+        and let navigation move instead. }
+      if (TopMostScene <> nil) and
+         IsTouchSensorActiveInScene(TopMostScene) and
+         (PointsDistance(LastPressEvent.Position, Event.Position) >
+          DistanceToHijackDragging / Container.Dpi) then
+      begin
+        TopMostScene.PointingDeviceActivate(false, 0, true);
 
-    //   { Test if dragging TTouchSensorNode. In that case cancel its dragging
-    //     and let navigation move instead. }
-    //   if (TopMostScene <> nil) and
-    //      IsTouchSensorActiveInScene(TopMostScene) and
-    //      (PointsDistance(LastPressEvent.Position, Event.Position) >
-    //       DistanceToHijackDragging / Container.Dpi) then
-    //   begin
-    //     TopMostScene.PointingDeviceActivate(false, 0, true);
+        if EnableParentDragging then
+        begin
+          { Without ReleaseCapture, the parent (like TCastleScrollView) would still
+            not receive the following motion events. }
+          Container.ReleaseCapture(Navigation);
+        end;
 
-    //     if EnableParentDragging then
-    //     begin
-    //       { Without ReleaseCapture, the parent (like TCastleScrollView) would still
-    //         not receive the following motion events. }
-    //       Container.ReleaseCapture(Self);
-    //     end;
-
-    //     Navigation.Press(LastPressEvent);
-    //   end;
-
-    // end;
+        Navigation.Press(LastPressEvent);
+      end;
+    end;
 
     { Do PointingDeviceMove, which updates MouseRayHit, even when Navigation.Motion
       is true. On Windows 10 with MouseLook, Navigation.Motion is always true. }
@@ -2026,17 +2010,6 @@ begin
     Exit;
   end;
 
-  { We have to treat Navigation.Cursor specially:
-    - mcForceNone because of mouse look means result is unconditionally mcForceNone.
-      Other Items.Cursor, MainScene.Cursor etc. is ignored then.
-    - otherwise, Navigation.Cursor is ignored, show 3D objects cursor. }
-  // TODO: will this still work automatically ok? cursor over touchSensor will be ok?
-  // if (Navigation <> nil) and (Camera.Cursor = mcForceNone) then
-  // begin
-  //   Cursor := mcForceNone;
-  //   Exit;
-  // end;
-
   { We show mouse cursor from top-most 3D object.
     This is sensible, if multiple 3D scenes obscure each other at the same
     pixel --- the one "on the top" (visible by the player at that pixel)
@@ -2092,10 +2065,6 @@ begin
     mark keys/mouse as handled". Besides, currently 3D objects do not
     get Pressed information (which keys/mouse buttons are pressed) at all,
     so they could not process keys/mouse anyway. }
-
-  // TODO: will this still work ok for Navigation stuff?
-  // if Camera <> nil then
-  //   Camera.Update(SecondsPassedScaled, HandleInput);
 
   Camera.Update(SecondsPassedScaled);
 
@@ -3386,7 +3355,6 @@ var
   Box: TBox3D;
   Scene: TCastleScene;
   APos, ADir, AUp, NewGravityUp: TVector3;
-  Radius: Single;
 begin
   Box := ItemsBoundingBox;
   Scene := GetMainScene;
