@@ -1803,9 +1803,9 @@ type
       @groupBegin }
     procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp: TVector3); overload;
     procedure CameraTransition(const Camera: TCastleCamera; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
-    procedure CameraTransition(const Camera: TCastleNavigation; const APosition, ADirection, AUp: TVector3); overload;
+    procedure CameraTransition(const Navigation: TCastleNavigation; const APosition, ADirection, AUp: TVector3); overload;
       deprecated 'use overloaded version with TCastleCamera';
-    procedure CameraTransition(const Camera: TCastleNavigation; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
+    procedure CameraTransition(const Navigation: TCastleNavigation; const APosition, ADirection, AUp, GravityUp: TVector3); overload;
       deprecated 'use overloaded version with TCastleCamera';
     { @groupEnd }
 
@@ -7259,18 +7259,16 @@ begin
   CameraTransition(Camera, APosition, ADirection, AUp);
 end;
 
-procedure TCastleSceneCore.CameraTransition(const Camera: TCastleNavigation;
+procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
   const APosition, ADirection, AUp: TVector3); overload;
 begin
-  CameraTransition((Camera.Viewport as TCastleAbstractViewport).Camera,
-    APosition, ADirection, AUp);
+  CameraTransition(Navigation.Camera, APosition, ADirection, AUp);
 end;
 
-procedure TCastleSceneCore.CameraTransition(const Camera: TCastleNavigation;
+procedure TCastleSceneCore.CameraTransition(const Navigation: TCastleNavigation;
   const APosition, ADirection, AUp, GravityUp: TVector3); overload;
 begin
-  CameraTransition((Camera.Viewport as TCastleAbstractViewport).Camera,
-    APosition, ADirection, AUp, GravityUp);
+  CameraTransition(Navigation.Camera, APosition, ADirection, AUp, GravityUp);
 end;
 
 { misc ----------------------------------------------------------------------- }
@@ -7557,7 +7555,7 @@ var
 begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
-  if Navigation.Viewport = nil then
+  if Navigation.InternalViewport = nil then
     raise Exception.Create('Navigation must be part of some Viewport before using AddViewpointFromCamera');
 
   Navigation.Camera.GetView(APosition, ADirection, AUp, GravityUp);

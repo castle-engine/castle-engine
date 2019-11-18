@@ -734,11 +734,13 @@ begin
   inherited;
 
   // synchronize Position, Direction, Up *to* Camera
-  GetView(P, D, U);
-  if Camera.Viewport <> nil then
-    Camera.Camera.SetView(P, D, U)
-  else
-    WritelnWarning('Changing TCastlePlayer transformation (like position) before the TCastlePlayer.Navigation is assigned as SceneManager.Navigation is ignored');
+  try
+    GetView(P, D, U);
+    Camera.Camera.SetView(P, D, U);
+  except
+    on EViewportNotAssigned do
+      WritelnWarning('Changing TCastlePlayer transformation (like position) before the TCastlePlayer.Navigation is assigned as SceneManager.Navigation is ignored');
+  end;
 end;
 
 procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
@@ -755,12 +757,13 @@ begin
     (Testcase: move/rotate using touch control
     in fps_game when you have shooting_eye.) }
 
-  if Camera.Viewport <> nil then
-    Camera.Camera.GetView(P, D, U)
-  else
-    WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if SceneManager.Navigation is not yet associated with TCastlePlayer.Navigation');
-
-  SetView(P, D, U);
+  try
+    Camera.Camera.GetView(P, D, U);
+    SetView(P, D, U);
+  except
+    on EViewportNotAssigned do
+      WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if SceneManager.Navigation is not yet associated with TCastlePlayer.Navigation');
+  end;
 end;
 
 procedure TPlayer.UpdateCamera;

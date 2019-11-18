@@ -314,7 +314,10 @@ type
   protected
     procedure Loaded; override;
   public
-    Viewport: TCastleUserInterface;
+    { Associated viewport.
+      Do not set this directly, instead always set @link(TCastleAbstractViewport.Navigation).
+      @exclude }
+    InternalViewport: TCastleUserInterface;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -629,7 +632,10 @@ type
       DefaultCrouchHeight = 0.5;
 
     var
-      Viewport: TCastleUserInterface;
+      { Associated viewport.
+        Do not set this directly, instead always set @link(TCastleAbstractViewport.Navigation).
+        @exclude }
+      InternalViewport: TCastleUserInterface;
 
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
@@ -2428,8 +2434,8 @@ end;
 
 procedure TCastleCamera.VisibleChange;
 begin
-  if Viewport <> nil then
-    Viewport.VisibleChange([chCamera]);
+  if InternalViewport <> nil then
+    InternalViewport.VisibleChange([chCamera]);
 end;
 
 function TCastleCamera.Matrix: TMatrix4;
@@ -2652,9 +2658,9 @@ end;
 
 function TCastleNavigation.Camera: TCastleCamera;
 begin
-  if Viewport = nil then
+  if InternalViewport = nil then
     raise EViewportNotAssigned.Create('Viewport not assigned, cannot get Camera properties');
-  Result := (Viewport as TCastleAbstractViewport).Camera;
+  Result := (InternalViewport as TCastleAbstractViewport).Camera;
 end;
 
 procedure TCastleNavigation.SetInput(const Value: TCameraInputs);
@@ -2791,8 +2797,8 @@ begin
       above the existing ciMouseDragging in Input.
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
-    ( (Viewport = nil) or
-      not ViewportItemsDragging(Viewport as TCastleAbstractViewport) );
+    ( (InternalViewport = nil) or
+      not ViewportItemsDragging(InternalViewport as TCastleAbstractViewport) );
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;

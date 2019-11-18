@@ -1667,7 +1667,7 @@ begin
   FAutoCamera := true;
 
   FCamera := TCastleCamera.Create(Self);
-  FCamera.Viewport := Self;
+  FCamera.InternalViewport := Self;
   FCamera.SetSubComponent(true);
   FCamera.Name := 'Camera';
 
@@ -1750,7 +1750,7 @@ begin
       if (FNavigation <> FInternalWalkNavigation) and
          (FNavigation <> FInternalExamineNavigation) then
         // TODO: Make Viewport Internal (private in this unit), or protect from SetViewport being called recursively
-        FNavigation.Viewport := nil;
+        FNavigation.InternalViewport := nil;
       RemoveControl(FNavigation);
     end;
 
@@ -1765,7 +1765,7 @@ begin
       end;
 
       FNavigation.FreeNotification(Self);
-      FNavigation.Viewport := Self;
+      FNavigation.InternalViewport := Self;
       { Check IndexOfControl first, in case the FNavigation is already part
         of our controls. This happens when deserializing: "Navigation" field
         points to an instance that is within our GetChildren. }
@@ -3150,7 +3150,7 @@ begin
     { For easy backward-compatibility, Viewport is assigned here for the
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
-    FInternalExamineNavigation.Viewport := Self;
+    FInternalExamineNavigation.InternalViewport := Self;
   end;
   Result := FInternalExamineNavigation;
 end;
@@ -3164,7 +3164,7 @@ begin
     { For easy backward-compatibility, Viewport is assigned here for the
       entire lifetime of FInternalExamineNavigation instance,
       even before calling SetNavigation on it. }
-    FInternalWalkNavigation.Viewport := Self;
+    FInternalWalkNavigation.InternalViewport := Self;
   end;
   Result := FInternalWalkNavigation;
 end;
