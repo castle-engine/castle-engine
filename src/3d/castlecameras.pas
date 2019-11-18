@@ -1000,8 +1000,9 @@ type
     { Input methods available to user. See documentation of TNavigationInput
       type for possible values and their meaning.
 
-      To disable any user interaction with camera (for example,
-      to implement X3D "NONE" navigation type) you can simply set this to empty. }
+      To disable any user interaction with camera
+      you can simply set this to empty.
+      You can also leave @link(TCastleAbstractViewport.Navigation) as @nil. }
     property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
   end;
 
@@ -1254,12 +1255,6 @@ type
     { @Deprecated Include/exclude niMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
-  published
-    { When @true, rotation keys make the rotation faster, and the model keeps
-      rotating even when you don't hold any keys. When @false, you have to
-      hold rotation keys to rotate. }
-    property RotationAccelerate: boolean
-      read FRotationAccelerate write SetRotationAccelerate default true;
 
     { Speed to change the rotation acceleration,
       used when RotationAccelerate = @true. }
@@ -1273,6 +1268,12 @@ type
       read FRotationSpeed
       write FRotationSpeed
       default DefaultRotationSpeed;
+  published
+    { When @true, rotation keys make the rotation faster, and the model keeps
+      rotating even when you don't hold any keys. When @false, you have to
+      hold rotation keys to rotate. }
+    property RotationAccelerate: boolean
+      read FRotationAccelerate write SetRotationAccelerate default true;
   end;
 
   TCastleWalkNavigation = class;
@@ -1974,7 +1975,7 @@ type
     property MoveForward: boolean read FMoveForward write FMoveForward;
     { Move backward, just like Input_Backward would be pressed. }
     property MoveBackward: boolean read FMoveBackward write FMoveBackward;
-  published
+
     { If @true then all rotation keys
       (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
       will work 10x slower when Ctrl modified is pressed. }
@@ -2002,6 +2003,13 @@ type
       read FCheckModsDown write FCheckModsDown
       default true;
 
+    { Horizontal rotation can rotate around a vector that is RotationHorizontalPivot units
+      forward before the camera. This is a poor-mans way to implement some 3rd camera game.
+      Note that when non-zero this may (for now) move the camera without actually checking
+      OnMoveAllowed. }
+    property RotationHorizontalPivot: Single
+      read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
+  published
     { Rotation keys speed, in degrees per second.
       @groupBegin }
     property RotationHorizontalSpeed: Single
@@ -2027,13 +2035,6 @@ type
       read FMouseDraggingVerticalRotationSpeed write FMouseDraggingVerticalRotationSpeed
       default DefaultMouseDraggingVerticalRotationSpeed;
     { @groupEnd }
-
-    { Horizontal rotation can rotate around a vector that is RotationHorizontalPivot units
-      forward before the camera. This is a poor-mans way to implement some 3rd camera game.
-      Note that when non-zero this may (for now) move the camera without actually checking
-      OnMoveAllowed. }
-    property RotationHorizontalPivot: Single
-      read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and SceneManager.NavigationType to switch type';
