@@ -57,18 +57,17 @@
       curve parameters. This makes the following interpolation using this node
       work fast. }
     procedure OptimizeControlPoints;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
   end;
 
-  { Interpolate (animate) a set of 2D positions,
+  { Interpolate (animate) a set of 2D rotations,
     using cubic Bezier curve instead of linear interpolation.
     See https://castle-engine.io/x3d_implementation_interpolation_extensions.php . }
   TCubicBezier2DOrientationInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
-
-    { Lerp on angle value in radians. }
-    class function AngleLerp(T, Angle1, Angle2: Single): Single; static;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -83,6 +82,8 @@
     { Event out } { }
     strict private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
   end;
 
   { Interpolate (animate) a set of 3D positions,
@@ -103,6 +104,8 @@
     { Event out } { }
     strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
   end;
 {$endif read_interface}
 
@@ -272,24 +275,6 @@ begin
 end;
 
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
-
-class function TCubicBezier2DOrientationInterpolatorNode.AngleLerp(
-  T, Angle1, Angle2: Single): Single; static;
-begin
-  Angle1 := FloatModulo(Angle1, 2 * Pi);
-  Angle2 := FloatModulo(Angle2, 2 * Pi);
-
-  if Angle1 > Angle2 then
-  begin
-    T := 1 - T;
-    SwapValues(Angle1, Angle2);
-  end;
-  { rest of the implementation can assume Angle1 <= Angle2 }
-
-  if Angle1 + 2 * Pi - Angle2 >= Angle2 - Angle1 then
-    Result := Lerp(T, Angle1, Angle2) else
-    Result := FloatModulo(Lerp(T, Angle1 + 2 * Pi, Angle2), 2 * Pi);
-end;
 
 procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
 begin
