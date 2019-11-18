@@ -406,7 +406,7 @@ begin
     R.InstanceProperty := Info;
     R.PropertyValue := DataName;
     ResolveObjectProperties.Add(R);
-    WritelnLog('Cannot resolve component name "%s", we will create a new empty instance, and resolve it later', [
+    WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
       DataName
     ]);
   end;
