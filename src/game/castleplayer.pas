@@ -149,8 +149,8 @@ type
       FEnableNavigationDragging: boolean;
       FFallingEffect: boolean;
       CurrentEquippedScene: TCastleScene;
-
       FNavigation: TCastleWalkNavigation;
+      InsideSynchronizeFromNavigation: Cardinal;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -176,6 +176,8 @@ type
     procedure SetFlying(const AValue: boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
     procedure SetEnableNavigationDragging(const AValue: boolean);
+    procedure SynchronizeToNavigation;
+    procedure SynchronizeFromNavigation;
   protected
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -731,11 +733,12 @@ begin
   end;
 end;
 
-procedure TPlayer.ChangedTransform;
+procedure TPlayer.SynchronizeToNavigation;
 var
   P, D, U: TVector3;
 begin
-  inherited;
+  // avoid recursive calls between SynchronizeToNavigation and SynchronizeFromNavigation
+  if InsideSynchronizeFromNavigation <> 0 then Exit;
 
   // synchronize Position, Direction, Up *to* Navigation
   try
@@ -747,27 +750,38 @@ begin
   end;
 end;
 
-procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+procedure TPlayer.SynchronizeFromNavigation;
 var
   P, D, U: TVector3;
 begin
-  inherited;
-
-  { Synchronize Position, Direction, Up *from* Navigation.
-
-    Do this before rendering (not in TPlayer.UpdateNavigation)
-    makes the player's weapon always correctly rendered, without any delay.
-    (Testcase: move/rotate using touch control
-    in fps_game when you have shooting_eye.) }
-
+  // synchronize Position, Direction, Up *from* Navigation
   try
     Navigation.Camera.GetView(P, D, U);
+    Inc(InsideSynchronizeFromNavigation);
     SetView(P, D, U);
+    Dec(InsideSynchronizeFromNavigation);
   except
     on EViewportNotAssigned do
       WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if SceneManager.Navigation is not yet associated with TCastlePlayer.Navigation');
   end;
+end;
+
+procedure TPlayer.ChangedTransform;
+begin
+  inherited;
+  { If something called Player.Translation := xxx, update Navigation }
+  SynchronizeToNavigation;
+end;
+
+procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
+begin
+  inherited;
+  { Do this before rendering (not in TPlayer.UpdateNavigation)
+    makes the player's weapon always correctly rendered, without any delay.
+    (Testcase: move/rotate using touch control
+    in fps_game when you have shooting_eye.) }
+  SynchronizeFromNavigation;
 end;
 
 procedure TPlayer.UpdateNavigation;
@@ -1131,6 +1145,8 @@ const
 begin
   inherited;
   if not GetExists then Exit;
+
+  SynchronizeFromNavigation;
 
   UpdateCurrentEquippedScene;
 
