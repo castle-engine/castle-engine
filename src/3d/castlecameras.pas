@@ -996,7 +996,7 @@ type
 
       Initially this is TBox3D.Empty. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
-  published
+
     { Input methods available to user. See documentation of TNavigationInput
       type for possible values and their meaning.
 
@@ -1447,6 +1447,7 @@ type
     FInvertVerticalMouseLook: boolean;
     FOnMoveAllowed: TMoveAllowedFunc;
     FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
+    FMouseDraggingMoveSpeed: Single;
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
@@ -1472,6 +1473,7 @@ type
       DefaultJumpTime = 1.0 / 8.0;
       DefaultMouseDraggingHorizontalRotationSpeed = 0.1;
       DefaultMouseDraggingVerticalRotationSpeed = 0.1;
+      DefaultMouseDraggingMoveSpeed = 0.01;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1684,75 +1686,9 @@ type
       read FMinAngleRadFromGravityUp write FMinAngleRadFromGravityUp
       default DefaultMinAngleRadFromGravityUp;
 
-    { Use mouse look to navigate (rotate the camera).
-
-      This also makes mouse cursor of Container hidden, and forces
-      mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders). }
-    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
-
-    { These control mouse look sensitivity.
-      They say how much angle change is produced by moving mouse by 1 pixel.
-      You can change this, to better adjust to user.
-
-      @groupBegin }
-    property MouseLookHorizontalSensitivity: Single
-      read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
-      default DefaultMouseLookHorizontalSensitivity;
-    property MouseLookVerticalSensitivity: Single
-      read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
-      default DefaultMouseLookVerticalSensitivity;
-    { @groupEnd }
-
-    { If this is @true and MouseLook works, then the meaning of vertical mouse
-      movement is inverted: when user moves mouse up, he looks down.
-      Many players are more comfortable with such configuration,
-      and many games implement it (usually by calling it "Invert mouse"
-      for short). }
-    property InvertVerticalMouseLook: boolean
-      read FInvertVerticalMouseLook write FInvertVerticalMouseLook
-      default false;
-
-    { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
-    property MouseDragMode: TMouseDragMode
-      read FMouseDragMode write FMouseDragMode default mdWalk;
-
     function Motion(const Event: TInputMotion): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
-
-    { This unlocks a couple of features and automatic behaviors
-      related to gravity. Gravity always drags the camera down to
-      -GravityUp.
-
-      Summary of things done by gravity:
-      @unorderedList(
-        @item(It uses OnHeight to get camera height above the ground.)
-        @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
-          JumpHorizontalSpeedMultiply.)
-        @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
-        @item(It tries to keep @link(Position) above the ground on
-          PreferredHeight height.)
-        @item(When current height is too small --- @link(Position) is moved up.
-          See GrowSpeed.)
-        @item(When current height is too large --- we're falling down.
-          See Falling, OnFall, FallSpeedStart,
-          FallSpeedIncrease, FallingEffect.)
-        @item(It does head bobbing. See HeadBobbing, HeadBobbingTime.)
-      )
-
-      While there are many properties allowing you to control
-      gravity behavior, most of them have initial values that should be
-      sensible in all cases. The only things that you really want to take
-      care of are: OnHeight and PreferredHeight.
-      Everything else should basically work auto-magically.
-
-      Note that Gravity setting is independent from
-      PreferGravityUpForRotations or PreferGravityUpForMoving settings ---
-      PreferGravityUpXxx say how the player controls work,
-      Gravity says what happens to player due to ... well, due to gravity. }
-    property Gravity: boolean
-      read FGravity write FGravity default true;
 
     { Assign here the callback (or override @link(Height))
       to say what is the current height of camera above the ground.
@@ -2009,6 +1945,13 @@ type
       OnMoveAllowed. }
     property RotationHorizontalPivot: Single
       read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
+
+    { Use mouse look to navigate (rotate the camera).
+
+      This also makes mouse cursor of Container hidden, and forces
+      mouse position to the middle of the window
+      (to avoid the situation when mouse movement is blocked by screen borders). }
+    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
   published
     { Rotation keys speed, in degrees per second.
       @groupBegin }
@@ -2022,7 +1965,7 @@ type
     { @groupEnd }
 
     { Speed (degrees per pixel delta) of rotations by mouse dragging.
-      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate.
+      Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate or mdWalk.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -2035,6 +1978,71 @@ type
       read FMouseDraggingVerticalRotationSpeed write FMouseDraggingVerticalRotationSpeed
       default DefaultMouseDraggingVerticalRotationSpeed;
     { @groupEnd }
+
+    { Moving speed when mouse dragging.
+      Relevant only when @code((MouseDragMode is mdWalk) and (niMouseDragging in Input)). }
+    property MouseDraggingMoveSpeed: Single
+      read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
+      default DefaultMouseDraggingMoveSpeed;
+
+    { These control mouse look sensitivity.
+      They say how much angle change is produced by moving mouse by 1 pixel.
+      You can change this, to better adjust to user.
+
+      @groupBegin }
+    property MouseLookHorizontalSensitivity: Single
+      read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
+      default DefaultMouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity: Single
+      read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
+      default DefaultMouseLookVerticalSensitivity;
+    { @groupEnd }
+
+    { If this is @true and MouseLook works, then the meaning of vertical mouse
+      movement is inverted: when user moves mouse up, he looks down.
+      Many players are more comfortable with such configuration,
+      and many games implement it (usually by calling it "Invert mouse"
+      for short). }
+    property InvertVerticalMouseLook: boolean
+      read FInvertVerticalMouseLook write FInvertVerticalMouseLook
+      default false;
+
+    { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
+    property MouseDragMode: TMouseDragMode
+      read FMouseDragMode write FMouseDragMode default mdWalk;
+
+    { This unlocks a couple of features and automatic behaviors
+      related to gravity. Gravity always drags the camera down to
+      -GravityUp.
+
+      Summary of things done by gravity:
+      @unorderedList(
+        @item(It uses OnHeight to get camera height above the ground.)
+        @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
+          JumpHorizontalSpeedMultiply.)
+        @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
+        @item(It tries to keep @link(Position) above the ground on
+          PreferredHeight height.)
+        @item(When current height is too small --- @link(Position) is moved up.
+          See GrowSpeed.)
+        @item(When current height is too large --- we're falling down.
+          See Falling, OnFall, FallSpeedStart,
+          FallSpeedIncrease, FallingEffect.)
+        @item(It does head bobbing. See HeadBobbing, HeadBobbingTime.)
+      )
+
+      While there are many properties allowing you to control
+      gravity behavior, most of them have initial values that should be
+      sensible in all cases. The only things that you really want to take
+      care of are: OnHeight and PreferredHeight.
+      Everything else should basically work auto-magically.
+
+      Note that Gravity setting is independent from
+      PreferGravityUpForRotations or PreferGravityUpForMoving settings ---
+      PreferGravityUpXxx say how the player controls work,
+      Gravity says what happens to player due to ... well, due to gravity. }
+    property Gravity: boolean
+      read FGravity write FGravity default true;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and SceneManager.NavigationType to switch type';
@@ -3755,6 +3763,7 @@ begin
   FInvertVerticalMouseLook := false;
   FMouseDraggingHorizontalRotationSpeed := DefaultMouseDraggingHorizontalRotationSpeed;
   FMouseDraggingVerticalRotationSpeed := DefaultMouseDraggingVerticalRotationSpeed;
+  FMouseDraggingMoveSpeed := DefaultMouseDraggingMoveSpeed;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4763,20 +4772,16 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
   begin
     MoveSizeX := 0;
     MoveSizeY := 0;
+
     if Abs(Delta[0]) < Tolerance then
       Delta[0] := 0
     else
-    begin
-      MoveSizeX := (Abs(Delta[0]) - Tolerance) / 100;
-      if MoveSizeX > 1.0 then MoveSizeX := 1.0;
-    end;
+      MoveSizeX := (Abs(Delta[0]) - Tolerance) * MouseDraggingMoveSpeed;
+
     if Abs(Delta[1]) < Tolerance then
       Delta[1] := 0
     else
-    begin
-      MoveSizeY := (Abs(Delta[1]) - Tolerance) / 100;
-      if MoveSizeY > 1.0 then MoveSizeY := 1.0;
-    end;
+      MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
 
     if mbLeft in Container.MousePressed then
     begin
@@ -4786,7 +4791,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
 
       if Abs(Delta[0]) > Tolerance then
-        RotateHorizontal(-Delta[0] / 4 * SecondsPassed); { rotate }
+        RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
     else if mbRight in Container.MousePressed then
     begin
