@@ -2158,7 +2158,7 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleStringUtils, CastleLog, CastleSceneManager, Castle2DSceneManager,
+  CastleStringUtils, CastleLog, CastleSceneManager,
   CastleComponentSerialize;
 
 procedure Register;
