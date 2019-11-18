@@ -2772,15 +2772,27 @@ begin
 end;
 
 function TCastleNavigation.ReallyEnableMouseDragging: boolean;
+
+  function ViewportItemsDragging(const V: TCastleAbstractViewport): Boolean;
+  begin
+    { Do not navigate by dragging (regardless of ciMouseDragging in Navigation.Input)
+      when we're already dragging a 3D item.
+      This means that if you drag X3D sensors like TouchSensor, then your
+      dragging will not simultaneously also affect the navigation (which would be very
+      disorienting). }
+
+    Result := (V.GetItems <> nil) and V.GetItems.Dragging;
+  end;
+
 begin
   Result := (ciMouseDragging in Input) and
-    { Is mouse dragging allowed by scene manager.
+    { Is mouse dragging allowed by viewport.
       This is an additional condition to enable mouse dragging,
       above the existing ciMouseDragging in Input.
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     ( (Viewport = nil) or
-      (Viewport as TCastleAbstractViewport).NavigationEnableDragging );
+      not ViewportItemsDragging(Viewport as TCastleAbstractViewport) );
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;

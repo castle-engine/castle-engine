@@ -581,10 +581,6 @@ type
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
 
-    { TCastleNavigation should check it in Motion overrides.
-      TODO: should be private. }
-    function NavigationEnableDragging: Boolean;
-
     { Called on any camera change. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
@@ -1988,17 +1984,6 @@ begin
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
   RecalculateCursor(Self);
-end;
-
-function TCastleAbstractViewport.NavigationEnableDragging: Boolean;
-begin
-  { Do not navigate by dragging (regardless of ciMouseDragging in Navigation.Input)
-    when we're already dragging a 3D item.
-    This means that if you drag X3D sensors like TouchSensor, then your
-    dragging will not simultaneously also affect the navigation (which would be very
-    disorienting). }
-
-  Result := (GetItems = nil) or (not GetItems.Dragging);
 end;
 
 procedure TCastleAbstractViewport.UpdateMouseRayHit;
