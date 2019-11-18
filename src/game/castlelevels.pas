@@ -827,7 +827,7 @@ var
       TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
 
     if Player <> nil then
-      WalkNavigation := Player.Camera
+      WalkNavigation := Player.Navigation
     else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
