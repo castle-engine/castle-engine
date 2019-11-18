@@ -1242,9 +1242,9 @@ begin
       if Sel is TCastleNavigation then
       begin
         Nav := Sel as TCastleNavigation;
-        if Nav.Viewport is TCastleAbstractViewport then
+        if Nav.InternalViewport is TCastleAbstractViewport then
         begin
-          NewResult := Nav.Viewport as TCastleAbstractViewport;
+          NewResult := Nav.InternalViewport as TCastleAbstractViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
