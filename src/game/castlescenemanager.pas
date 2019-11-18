@@ -702,15 +702,13 @@ type
       stored IsStoredNavigation;
 
     { For scene manager: you can pause everything inside your 3D world,
-      for viewport: you can make the navigation of this viewpoint paused
+      for viewport: you can make the navigation within this viewport paused
       (not responsive).
-
-      TODO: fix pausing of Navigation.
 
       @italic(For scene manager:)
 
       "Paused" means that no events (key, mouse, @link(Update)) are passed to any
-      @link(TCastleSceneManager.Items) or the @link(Camera).
+      @link(TCastleSceneManager.Items) or the @link(Navigation).
       This is suitable if you really want to totally, unconditionally,
       make your 3D world view temporary still (for example,
       useful when entering some modal dialog box and you want
@@ -740,7 +738,11 @@ type
           if only TCastleScene.TimePlaying.)
 
         @item(For navigation, you can set @code(TCastleNavigation.Input := []) to ignore
-          key / mouse clicks.)
+          key / mouse clicks.
+
+           Or you can set @code(TCastleNavigation.Exists) to @false,
+          this is actually equivalent to what pausing does now for TCastleNavigation.
+        )
       ) }
     property Paused: boolean read FPaused write SetPaused default false;
 

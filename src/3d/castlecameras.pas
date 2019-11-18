@@ -643,6 +643,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
+    function GetExists: boolean; override;
 
     { Associated TCastleCamera of the viewport.
       @raises EViewportNotAssigned If Viewport not assigned yet. }
@@ -2873,6 +2874,13 @@ begin
     { Call inherited ONLY when you cannot handle Source class,
       to raise EConvertError from TPersistent.Assign. }
     inherited Assign(Source);
+end;
+
+function TCastleNavigation.GetExists: boolean;
+begin
+  Result := (inherited GetExists) and
+    ( (InternalViewport = nil) or
+      (not (InternalViewport as TCastleAbstractViewport).Paused) );
 end;
 
 procedure TCastleNavigation.GetView(out APos, ADir, AUp: TVector3);
