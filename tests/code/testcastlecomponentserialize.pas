@@ -34,7 +34,9 @@ implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
   CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
-  CastleScene;
+  CastleScene,
+  { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
+  Castle2DSceneManager;
 
 { TMyComponent -------------------------------------------------------------- }
 
