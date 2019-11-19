@@ -1189,31 +1189,61 @@ procedure TDesignFrame.DuplicateComponent;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
   end;
 
+  procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
+  var
+    ParentComp, NewComp: TCastleUserInterface;
+    ComponentString: String;
+    InsertIndex: Integer;
+  begin
+    ParentComp := Selected.Parent;
+    if ParentComp = nil then
+    begin
+      ErrorBox('To duplicate, select component with exactly one parent');
+      Exit;
+    end;
+    ComponentString := ComponentToString(Selected);
+    NewComp := StringToComponent(ComponentString, DesignOwner) as TCastleUserInterface;
+    InsertIndex := ParentComp.IndexOfControl(Selected);
+    ParentComp.InsertControl(InsertIndex + 1, NewComp);
+    FinishAddingComponent(NewComp);
+  end;
+
+  procedure DuplicateTransform(const Selected: TCastleTransform);
+  var
+    ParentComp, NewComp: TCastleTransform;
+    ComponentString: String;
+    InsertIndex: Integer;
+  begin
+    ParentComp := Selected.UniqueParent;
+    if ParentComp = nil then
+    begin
+      ErrorBox('To duplicate, select component with exactly one parent');
+      Exit;
+    end;
+    ComponentString := ComponentToString(Selected);
+    NewComp := StringToComponent(ComponentString, DesignOwner) as TCastleTransform;
+    InsertIndex := ParentComp.List.IndexOf(Selected);
+    ParentComp.Insert(InsertIndex + 1, NewComp);
+    FinishAddingComponent(NewComp);
+  end;
+
 var
   Sel: TComponent;
-  ParentUi, NewUi, SelectedUi: TCastleUserInterface;
-  ComponentString: String;
-  InsertIndex: Integer;
 begin
-  // TODO: works only for TCastleUserInterface for now
-
   Sel := SelectedComponent;
+
   if (Sel <> nil) and
-     (Sel is TCastleUserInterface) and
-     (TCastleUserInterface(Sel).Parent <> nil) and
      (not (csSubComponent in Sel.ComponentStyle)) then
   begin
-    SelectedUi := TCastleUserInterface(Sel);
-    ParentUi := SelectedUi.Parent;
-    ComponentString := ComponentToString(SelectedUi);
-    NewUi := StringToComponent(ComponentString, DesignOwner) as TCastleUserInterface;
-    InsertIndex := ParentUi.IndexOfControl(SelectedUi);
-    ParentUi.InsertControl(InsertIndex + 1, NewUi);
-    FinishAddingComponent(NewUi);
+    if Sel is TCastleUserInterface then
+      DuplicateUserInterface(Sel as TCastleUserInterface)
+    else
+    if Sel is TCastleTransform then
+      DuplicateTransform(Sel as TCastleTransform)
+    else
+      ErrorBox('To duplicate, select TCastleUserInterface or TCastleTransform component');
   end else
-  begin
-    ErrorBox('Select exactly one user interface component, that has a parent and is not a subcomponent, to duplicate');
-  end;
+    ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
 end;
 
 function TDesignFrame.SelectedViewport: TCastleAbstractViewport;
