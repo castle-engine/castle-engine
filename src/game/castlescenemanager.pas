@@ -3290,9 +3290,18 @@ begin
       end;
     ntNone:
       begin
-        { This way setting NavigationType to ntNone (default NavigationType value)
+        { Advantage: This way setting NavigationType to ntNone (default NavigationType value)
           will restore Navigation to nil, which is Navigation default value. }
-        Navigation := nil;
+        // Navigation := nil;
+
+        { Advantage: This way of setting NavigationType to ntNone (by making Navigation non-nil)
+          explicitly will prevent
+          Navigation from being auto-created (in case AutoNavigation remains @true),
+          which would make setting "NavigationType := ntNone" moot. }
+        {$warnings off} // TODO: this should be internal
+        W := WalkNavigation;
+        {$warnings on}
+        W.Input := [];
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
