@@ -922,8 +922,7 @@ type
     property Environment: TCasScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-var
-  FunctionHandlers: TCasScriptFunctionHandlers;
+function FunctionHandlers: TCasScriptFunctionHandlers;
 
 { Make sure Value is assigned and of NeededClass.
   If Value is not assigned, or is not exactly of NeededClass,
@@ -2793,9 +2792,19 @@ end;
 
 { unit init/fini ------------------------------------------------------------- }
 
-initialization
-  FunctionHandlers := TCasScriptFunctionHandlers.Create;
+var
+  FFunctionHandlers: TCasScriptFunctionHandlers;
 
+function FunctionHandlers: TCasScriptFunctionHandlers;
+begin
+  { Create on-demand, just in case CastleScriptVectors initialization
+    is executed earlier than CastleScript initialization. }
+  if FFunctionHandlers = nil then
+    FFunctionHandlers := TCasScriptFunctionHandlers.Create;
+  Result := FFunctionHandlers;
+end;
+
+initialization
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSequence(nil).HandleSequence, TCasScriptSequence, [TCasScriptValue], true);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptAssignment(nil).HandleAssignment, TCasScriptAssignment, [TCasScriptValue, TCasScriptValue], false);
 
@@ -2923,5 +2932,5 @@ initialization
 
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 finalization
-  FreeAndNil(FunctionHandlers);
+  FreeAndNil(FFunctionHandlers);
 end.
