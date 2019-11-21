@@ -868,49 +868,19 @@ type
         URL: string;
 
         { Gain (how loud the sound is).
-          They are mapped directly to respective OpenAL source properties,
-          so see OpenAL specification for exact details what they mean.
-          In short:
+          See https://castle-engine.io/manual_sound.php .
 
-          @unorderedList(
-            @item(Gain scales the sound loudness. Use this to indicate that
-              e.g. a plane engine is louder than a mouse squeak (when heard
-              from the same distance).
+          When this sound is used for @link(TLoopingChannel.Sound),
+          effective Gain is the
+          @link(TLoopingChannel.Volume) multiplied by this @link(Gain). }
+        Gain: Single;
 
-              Do @italic(not) make the actual sound data (in wav, ogg and such files)
-              louder/more silent for this purpose.
-              This is usually bad for sound quality. Instead, keep your sound data
-              at max loudness (normalized), and use this @link(Gain) property
-              to scale sound.
-
-              It can be antything from 0 to +infinity. The default is 1.)
-
-            @item(MinGain and MaxGain force a minimum/maximum sound loudness.
-              These can be used to "cheat" around default distance attenuation
-              calculation.
-
-              These must be in [0, 1] range. By default MinGain is 0 and MaxGain is 1.)
-          )
-
-          Note that Gain value > 1 is allowed.
-          Although sound backend (like OpenAL) may clip the resulting sound (after all
-          calculations taking into account 3D position will be done).
-          The resulting sound is also clamped by MaxGain
-          (that generally must be in [0, 1], although some OpenAL implementations
-          allow values > 1).
-
-          When this sound is used for @link(TLoopingChannel.Sound):
-          @orderedList(
-            @item(MinGain, MaxGain are ignored.)
-            @item(Effective Gain (passed to OpenAL sound source) is the
-              @link(TLoopingChannel.Volume) multiplied by our @link(Gain).)
-          ) }
-        Gain, MinGain, MaxGain: Single;
+        { Limit gain after spatial calculation.
+          See https://castle-engine.io/manual_sound.php . }
+        MinGain, MaxGain: Single;
 
         { How important the sound is. Influences what happens when we have a lot
-          of sounds playing at once. See TSound.Importance.
-
-          Ignored when this sound is used for @link(TLoopingChannel.Sound). }
+          of sounds playing at once. See TSound.Importance. }
         DefaultImportance: Cardinal;
 
         procedure ReadElement(const Element: TDOMElement;
