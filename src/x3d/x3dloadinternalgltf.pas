@@ -886,8 +886,6 @@ type
         end;
       {$endif}
     end;
-
-    // TODO: reset fields not used by this animation, but possibly changed by others?
   end;
 
   procedure ReadAnimation(const Animation: TPasGLTF.TAnimation; const ParentGroup: TAbstractX3DGroupingNode);
