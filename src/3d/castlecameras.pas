@@ -4492,68 +4492,23 @@ function TWalkCamera.Motion(const Event: TInputMotion): boolean;
 
   procedure HandleMouseLook;
   var
-    Middle, MouseChange: TVector2;
+    MouseChange: TVector2;
   begin
-    { 1. Note that setting MousePosition may (but doesn't have to)
-         generate another Motion in the container to destination position.
+    MouseChange := Container.MouseLookDelta(Event.Position);
 
-         Subtracting Middle (instead of Container.Position, previous
-         known mouse position) solves it. This way
-
-         - The Motion caused by MakeMousePositionForMouseLook will not do
-           anything bad, as MouseChange wil be 0 then.
-
-         - In case MakeMousePositionForMouseLook does not cause Motion,
-           we will not measure the changes as too much. Consider this:
-
-            - player moves mouse to MiddleX-10
-            - Motion is generated, I rotate camera by "-10" horizontally
-            - Setting MousePosition sets mouse to the Middle,
-              but this time no Motion is generated
-            - player moved mouse to MiddleX+10. Although mouse was
-              positioned on Middle, TCastleWindowBase thinks that the mouse
-              is still positioned on Middle-10, and I will get "+20" move
-              for player (while I should get only "+10")
-
-      2. Another problem is when player switches to another window, moves the mouse,
-         than goes Alt+Tab back to our window.
-         Next mouse move would cause huge change,
-         because it's really *not* from the middle of the screen.
-
-         Solution to this is to track that previous position was set
-         by MakeMousePositionForMouseLook.
-         This is done by IsMousePositionForMouseLook. }
-
-    if Container.IsMousePositionForMouseLook then
+    if MouseChange[0] <> 0 then
     begin
-      Middle := Vector2(ContainerWidth div 2, ContainerHeight div 2);
-      MouseChange := Event.Position - Middle;
-
-      { Only make RotateHorizontal/Vertical if the mouse move does not seem
-        too wild. This prevents taking into account MousePosition that is wild,
-        and visible after Alt+Tabbing back to this window.
-        Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
-        100% reliable, see IsMousePositionForMouseLook comments. }
-      if (Abs(MouseChange.X) > ContainerWidth / 3) or
-         (Abs(MouseChange.Y) > ContainerHeight / 3) then
-        Exit;
-
-      if MouseChange[0] <> 0 then
-      begin
-        RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
-        Result := ExclusiveEvents;
-      end;
-
-      if MouseChange[1] <> 0 then
-      begin
-        if InvertVerticalMouseLook then
-          MouseChange[1] := -MouseChange[1];
-        RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
-        Result := ExclusiveEvents;
-      end;
+      RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
+      Result := ExclusiveEvents;
     end;
 
-    Container.MakeMousePositionForMouseLook;
+    if MouseChange[1] <> 0 then
+    begin
+      if InvertVerticalMouseLook then
+        MouseChange[1] := -MouseChange[1];
+      RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
+      Result := ExclusiveEvents;
+    end;
   end;
 
   procedure HandleMouseDrag;
