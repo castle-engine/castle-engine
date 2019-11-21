@@ -650,6 +650,79 @@ type
     { Internal for implementing mouse look in cameras. @exclude }
     procedure MakeMousePositionForMouseLook;
 
+    { Read mouse position delta from container middle,
+      and try to set mouse position to container middle.
+
+      This can be used to perform "mouse look" or a similar effect,
+      when user doesn't see the mouse cursor, but user can move something by dragging with mouse.
+      Moreover, user should not notice any "bounds" to this dragging (that's why we try
+      to keep mouse position in container middle,
+      to avoid screen borders from acting as constrains on mouse movement).
+
+      This is automatically used by @link(TCastleWalkNavigation.MouseLook).
+      You can use it yourself for custom effects "like mouse look". The template to use this:
+
+      @longCode(#
+
+      function TMyState.Press(const Event: TInputPressRelease): Boolean;
+      begin
+        Result := inherited;
+        if Result then Exit;
+
+        if Event.IsMouseButton(mbLook) then
+        begin
+          Drag := true;
+          Cursor := mcForceNone;
+          // do not trust that initial mouse position is in the screen middle
+          Container.IsMousePositionForMouseLook := false;
+        end;
+      end;
+
+      function TMyState.Release(const Event: TInputPressRelease): Boolean;
+      begin
+        Result := inherited;
+        if Result then Exit;
+
+        if Event.IsMouseButton(mbLook) then
+        begin
+          Drag := false;
+          Cursor := mcDefault;
+        end;
+      end;
+
+      procedure TMyState.Update(const SecondsPassed: Single;
+        var HandleInput: Boolean);
+      begin
+        inherited;
+        if Drag then
+          // try to make IsMousePositionForMouseLook satisfied
+          Container.MakeMousePositionForMouseLook;
+      end;
+
+      function TNewFightUi.Motion(const Event: TInputMotion): Boolean;
+      var
+        Delta: TVector2;
+      begin
+        Result := inherited;
+        if Result then Exit;
+
+        if Drag then
+        begin
+          Delta := Container.MouseLookDelta(Event.Position);
+          // ...
+          // Use Delta to perform any logic you want.
+          // It may be zero if mouse was not positioned correctly yet,
+          // just make sure that Delta=zero does nothing.
+          // You can use Delta / UiScale to adjust to UI scale
+          // (user will then have to move mouse by more pixels on a larger screen to achieve the same Delta).
+          // ...
+        end;
+      end;
+
+      #)
+    }
+    function MouseLookDelta(const NewMousePosition: TVector2): TVector2;
+
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
       Before we even send events to the currently "capturing" control
@@ -3390,6 +3463,60 @@ begin
       IsMousePositionForMouseLook := true;
     end;
   end;
+end;
+
+function TUIContainer.MouseLookDelta(const NewMousePosition: TVector2): TVector2;
+var
+  Middle: TVector2;
+begin
+  { 1. Note that setting MousePosition may (but doesn't have to)
+       generate another Motion in the container to destination position.
+
+       Subtracting Middle (instead of Container.Position, previous
+       known mouse position) solves it. This way
+
+       - The Motion caused by MakeMousePositionForMouseLook will not do
+         anything bad, as MouseChange wil be 0 then.
+
+       - In case MakeMousePositionForMouseLook does not cause Motion,
+         we will not measure the changes as too much. Consider this:
+
+          - player moves mouse to MiddleX-10
+          - Motion is generated, I rotate camera by "-10" horizontally
+          - Setting MousePosition sets mouse to the Middle,
+            but this time no Motion is generated
+          - player moved mouse to MiddleX+10. Although mouse was
+            positioned on Middle, TCastleWindowBase thinks that the mouse
+            is still positioned on Middle-10, and I will get "+20" move
+            for player (while I should get only "+10")
+
+    2. Another problem is when player switches to another window, moves the mouse,
+       than goes Alt+Tab back to our window.
+       Next mouse move would cause huge change,
+       because it's really *not* from the middle of the screen.
+
+       Solution to this is to track that previous position was set
+       by MakeMousePositionForMouseLook.
+       This is done by IsMousePositionForMouseLook. }
+
+  if IsMousePositionForMouseLook then
+  begin
+    // Middle must be calculated exactly the same as in MakeMousePositionForMouseLook
+    Middle := Vector2(Width div 2, Height div 2);
+    Result := NewMousePosition - Middle;
+
+    { Only apply the movement if the mouse move does not seem
+      too wild. This prevents taking into account MousePosition that is wild,
+      and visible after Alt+Tabbing back to this window.
+      Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
+      100% reliable, see IsMousePositionForMouseLook comments. }
+    if (Abs(Result.X) > Width / 3) or
+       (Abs(Result.Y) > Height / 3) then
+      Result := TVector2.Zero;
+  end else
+    Result := TVector2.Zero;
+
+  MakeMousePositionForMouseLook;
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
