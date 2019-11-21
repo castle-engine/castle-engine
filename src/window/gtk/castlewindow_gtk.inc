@@ -84,6 +84,7 @@ private
     ok_button, cancel_button: PGtkWidget): boolean;
   function GtkDialogRun(ADialog: PGtkDialog): gint;
   { @groupEnd }
+  procedure GetInitialCursorPos;
 private
   FBorderWidth: Cardinal;
 
@@ -704,9 +705,11 @@ SIGNAL_WINDOW_END;
 function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
-  { reset FMousePosition, since mouse position is unknown now,
-    and do not activate mouse look at next frame. }
-  FMousePosition := Vector2(-1, -1);
+  { Reset FMousePosition, since mouse position is unknown now,
+    and do not activate mouse look at next frame.
+    Note: resetting with FMousePosition := Vector2(-1, -1);
+    is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
+  GetInitialCursorPos;
   Container.IsMousePositionForMouseLook := false;
   FFocused := true;
   Result := g_false;
@@ -877,6 +880,14 @@ begin
   Result := GTK_WIDGET(GLArea);
 end;
 
+procedure TCastleWindowBase.GetInitialCursorPos;
+var
+  X, Y: GInt;
+begin
+  gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
+  FMousePosition := LeftTopToCastle(X, Y);
+end;
+
 procedure TCastleWindowBase.OpenBackend;
 
 { Notes about FullScreen implementation for GTK_2:
@@ -926,14 +937,6 @@ const
    raise EGLContextNotPossible.CreateFmt(
      'Cannot initialize OpenGL context with requested attributes (%s)',
      [ RequestedBufferAttributes ]);
-  end;
-
-  procedure GetInitialCursorPos;
-  var
-    X, Y: GInt;
-  begin
-    gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
-    FMousePosition := LeftTopToCastle(X, Y);
   end;
 
   procedure InitializeDpi;
