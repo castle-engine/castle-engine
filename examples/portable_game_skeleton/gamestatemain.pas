@@ -1,9 +1,6 @@
 { Main user interface class.
   This implements the majority of this application functionality.
 
-  This code is independent from mobile / standalone platforms.
-  It will be used by the appropriate .lpr file for desktop, Android or iOS.
-
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
   is covered by the LGPL license variant, see the COPYING.txt file.)
