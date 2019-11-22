@@ -660,7 +660,10 @@ type
       to avoid screen borders from acting as constrains on mouse movement).
 
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
-      You can use it yourself for custom effects "like mouse look". The template to use this:
+      You can use it yourself for custom effects "like mouse look". The template to use this
+      is below.
+      See the CGE examples examples/2d_standard_ui/dragging_test/ for a working code
+      demonstrating this.
 
       @longCode(#
 
@@ -708,7 +711,7 @@ type
 
         if Drag then
         begin
-          Delta := Container.MouseLookDelta(Event.Position);
+          Delta := Container.MouseLookDelta(Event);
           // ...
           // Use Delta to perform any logic you want.
           // It may be zero if mouse was not positioned correctly yet,
@@ -721,7 +724,7 @@ type
 
       #)
     }
-    function MouseLookDelta(const NewMousePosition: TVector2): TVector2;
+    function MouseLookDelta(const Event: TInputMotion): TVector2;
 
     { Force passing events to the given control first,
       regardless if this control is under the mouse cursor.
@@ -3465,7 +3468,7 @@ begin
   end;
 end;
 
-function TUIContainer.MouseLookDelta(const NewMousePosition: TVector2): TVector2;
+function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
 var
   Middle: TVector2;
 begin
@@ -3503,7 +3506,7 @@ begin
   begin
     // Middle must be calculated exactly the same as in MakeMousePositionForMouseLook
     Middle := Vector2(Width div 2, Height div 2);
-    Result := NewMousePosition - Middle;
+    Result := Event.Position - Middle;
 
     { Only apply the movement if the mouse move does not seem
       too wild. This prevents taking into account MousePosition that is wild,

@@ -5203,7 +5203,7 @@ function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
   var
     MouseChange: TVector2;
   begin
-    MouseChange := Container.MouseLookDelta(Event.Position);
+    MouseChange := Container.MouseLookDelta(Event);
 
     if MouseChange[0] <> 0 then
     begin
