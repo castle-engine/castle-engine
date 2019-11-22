@@ -286,8 +286,9 @@ type
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
-    FInternalMousePositionedForMouseLook: boolean;
-    FMotionToIgnoreForMouseLook: TVector2;
+    FMouseLookIgnoreNextMotion: Boolean;
+    FMouseLookWaitingForMiddle: Boolean;
+    FMouseLookMotionToSubtract: TVector2;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
     FDefaultFont: TCastleFont;
@@ -643,12 +644,9 @@ type
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { If @false, the current mouse position is definitely not OK for mouse look.
-      Internal. @exclude
+    { Internal. @exclude
       See @link(MouseLookDelta). }
-    property InternalMousePositionedForMouseLook: boolean
-      read FInternalMousePositionedForMouseLook
-      write FInternalMousePositionedForMouseLook;
+    procedure MouseLookIgnoreNextMotion;
 
     { For tracking mouse look. See @link(MouseLookDelta). }
     procedure MouseLookPress;
@@ -3447,12 +3445,19 @@ end;
 
 procedure TUIContainer.MouseLookPress;
 begin
-  FMotionToIgnoreForMouseLook := TVector2.Zero;
+  FMouseLookIgnoreNextMotion := false;
+  FMouseLookWaitingForMiddle := false;
+  FMouseLookMotionToSubtract := TVector2.Zero;
 end;
 
 procedure TUIContainer.MouseLookUpdate;
 begin
   // Nothing useful to do here
+end;
+
+procedure TUIContainer.MouseLookIgnoreNextMotion;
+begin
+  FMouseLookIgnoreNextMotion := true;
 end;
 
 function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
@@ -3510,14 +3515,14 @@ function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
 
        The new fix is to just use motion delta always,
        and use explicit SettingMousePositionCausesMotion knowwledge
-       to eventually subtract FMotionToIgnoreForMouseLook.
+       to eventually subtract FMouseLookMotionToSubtract.
 
     4. Another problem is when player switches to another window, moves the mouse,
        than goes Alt+Tab back to our window.
        Next mouse move would cause huge change,
        because it's really *not* from the middle of the screen.
 
-       Solution to this is to disable InternalMousePositionedForMouseLook
+       Solution to this is to use FMouseLookIgnoreNextMotion
        for the next event.
 
     5. Note that earlier I tried to reposition mouse for mouse look at various
@@ -3527,46 +3532,55 @@ function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
        below, causing weird first movement.
   }
 
-var
-  Middle: TVector2;
-
   { Position is roughly within the center of the window. }
-  function ValidArea(const P: TVector2): Boolean;
+  function ValidArea(const P, Middle: TVector2; const Margin: Single): Boolean;
   begin
-    Result := (Abs(P.X - Middle.X) < Width / 4) and
-              (Abs(P.Y - Middle.Y) < Height / 4);
+    Result := (Abs(P.X - Middle.X) < Margin * Width) and
+              (Abs(P.Y - Middle.Y) < Margin * Height);
   end;
 
+var
+  Middle: TVector2;
 begin
   Result := TVector2.Zero;
 
-  // if InternalMousePositionedForMouseLook, then ignore this one Motion event
-  if not InternalMousePositionedForMouseLook then
+  { Dividing by "div", not "/", because if CastleWindow backend doesn't support
+    sup-pixel accuracy for SetMousePosition, then it ignores the fractional
+    part of SetMousePosition argument.
+    Such fractional part would only cause later "error by 0.5"
+    when using FMouseLookMotionToSubtract to modify Result. }
+  Middle := Vector2(Width div 2, Height div 2);
+
+  if FMouseLookIgnoreNextMotion then
   begin
-    InternalMousePositionedForMouseLook := true;
-    FMotionToIgnoreForMouseLook := TVector2.Zero;
+    FMouseLookIgnoreNextMotion := false;
+    FMouseLookWaitingForMiddle := false;
+    FMouseLookMotionToSubtract := TVector2.Zero;
     Exit;
   end;
 
   Result := Event.Position - Event.OldPosition;
-
   if SettingMousePositionCausesMotion then
   begin
-    Result -= FMotionToIgnoreForMouseLook;
-    FMotionToIgnoreForMouseLook := TVector2.Zero;
+    Result -= FMouseLookMotionToSubtract;
+    FMouseLookMotionToSubtract := TVector2.Zero;
   end;
 
+  { If FMouseLookWaitingForMiddle then we set MousePosition := Middle,
+    and now we wait for it to be reported.
+    Otherwise we would set MousePosition := Middle again.
+    We check ValidArea here with smalller margin than below,
+    to avoid mistaking user mouse movements to do this. }
+  if FMouseLookWaitingForMiddle and not ValidArea(Event.Position, Middle, 1 / 8) then
+    Exit;
+  FMouseLookWaitingForMiddle := false;
+
   // When mouse gets too far away from Middle, move it back to Middle.
-  if not ValidArea(Event.Position) then
+  if not ValidArea(Event.Position, Middle, 1 / 4) then
   begin
-    { Dividing by "div", not "/", because if CastleWindow backend doesn't support
-      sup-pixel accuracy for SetMousePosition, then it ignores the fractional
-      part of SetMousePosition argument.
-      Such fractional part would only cause later "error by 0.5"
-      when using FMotionToIgnoreForMouseLook to modify Result. }
-    Middle := Vector2(Width div 2, Height div 2);
-    FMotionToIgnoreForMouseLook += Middle - Event.Position;
+    FMouseLookMotionToSubtract += Middle - Event.Position;
     MousePosition := Middle;
+    FMouseLookWaitingForMiddle := true;
   end;
 end;
 
