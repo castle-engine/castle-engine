@@ -3459,7 +3459,7 @@ begin
        (not TVector2.PerfectlyEquals(MousePosition, Middle)) then
     begin
       { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
-        seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
+        seems simpler, but is risky: if the backend doesn't support sub-pixel accuracy,
         we will never be able to position mouse exactly at half pixel. }
       MousePosition := Middle;
 
