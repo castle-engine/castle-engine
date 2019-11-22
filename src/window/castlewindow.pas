@@ -619,6 +619,7 @@ type
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+    function SettingMousePositionCausesMotion: Boolean; override;
   end;
 
   {$define read_interface_types}

@@ -291,4 +291,11 @@ procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
 
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
+end;
+
 {$endif read_implementation}

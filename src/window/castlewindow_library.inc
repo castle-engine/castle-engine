@@ -567,4 +567,11 @@ begin
   end;
 end;
 
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
+end;
+
 {$endif read_implementation}

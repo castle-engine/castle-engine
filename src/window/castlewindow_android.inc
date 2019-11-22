@@ -627,8 +627,8 @@ var
 begin
   MessageHandlingBegin := Timer;
   repeat
-    { When the window is open: We cannot suspend (wait indefinitely for a message) 
-      an open window, even when AllowSuspendForInput or WaitForMessage. 
+    { When the window is open: We cannot suspend (wait indefinitely for a message)
+      an open window, even when AllowSuspendForInput or WaitForMessage.
       That's because we would not react to resize events soon enough then,
       since we have to actually do a couple of loop passes until "resize" event
       reaches us. Reproducible on drawing_toy.
@@ -800,6 +800,13 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 begin
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

@@ -287,6 +287,7 @@ type
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
     FInternalMousePositionedForMouseLook: boolean;
+    FMotionToIgnoreForMouseLook: TVector2;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
     FDefaultFont: TCastleFont;
@@ -336,6 +337,15 @@ type
     function GetMousePosition: TVector2; virtual;
     procedure SetMousePosition(const Value: TVector2); virtual;
     function GetTouches(const Index: Integer): TTouch; virtual;
+
+    { Does setting MousePosition also causes Motion / OnMotion events.
+      While we tried to make everything work reliably always,
+      the mouse look logic just needs to know this.
+
+      It is easy to test it in practice.
+      Just run examples/window/window_events.lpr,
+      move mouse around, and press "5" (this does "MousePosition := window middle"). }
+    function SettingMousePositionCausesMotion: Boolean; virtual;
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
@@ -3430,9 +3440,14 @@ begin
   Result := TChildrenControls(FControls);
 end;
 
+function TUIContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
+end;
+
 procedure TUIContainer.MouseLookPress;
 begin
-  // Nothing useful to do here
+  FMotionToIgnoreForMouseLook := TVector2.Zero;
 end;
 
 procedure TUIContainer.MouseLookUpdate;
@@ -3491,16 +3506,21 @@ function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
        + movement from user", we will ignore too much, but this should
        not have noticeable effect on speed (as it will happen seldom).
 
-    3. Another problem is when player switches to another window, moves the mouse,
+    3. Actually, 2 was also invalid.
+
+       The new fix is to just use motion delta always,
+       and use explicit SettingMousePositionCausesMotion knowwledge
+       to eventually subtract FMotionToIgnoreForMouseLook.
+
+    4. Another problem is when player switches to another window, moves the mouse,
        than goes Alt+Tab back to our window.
        Next mouse move would cause huge change,
        because it's really *not* from the middle of the screen.
 
-       Solution to this is to track that previous position was set
-       by MakeMousePositionedForMouseLook.
-       This is done by InternalMousePositionedForMouseLook.
+       Solution to this is to disable InternalMousePositionedForMouseLook
+       for the next event.
 
-    4. Note that earlier I tried to reposition mouse for mouse look at various
+    5. Note that earlier I tried to reposition mouse for mouse look at various
        moments. I tried calling MakeMousePositionedForMouseLook from Press, Motion,
        Update... all these approaches had some drawbacks, and eventually
        they have one big drawback: this could result in Motion that isn't rejected
@@ -3524,32 +3544,28 @@ begin
   if not InternalMousePositionedForMouseLook then
   begin
     InternalMousePositionedForMouseLook := true;
+    FMotionToIgnoreForMouseLook := TVector2.Zero;
     Exit;
   end;
 
-  Middle := Vector2(Width / 2, Height / 2);
+  Result := Event.Position - Event.OldPosition;
 
-  if ValidArea(Event.Position) then
+  if SettingMousePositionCausesMotion then
   begin
-    if ValidArea(Event.OldPosition) then
-    begin
-      Result := Event.Position - Event.OldPosition;
+    Result -= FMotionToIgnoreForMouseLook;
+    FMotionToIgnoreForMouseLook := TVector2.Zero;
+  end;
 
-      { Only apply the movement if the mouse move does not seem
-        too wild. This prevents taking into account MousePosition that is wild,
-        and visible after Alt+Tabbing back to this window.
-        Our InternalMousePositionedForMouseLook tries to prevent it, but it cannot be
-        100% reliable, see InternalMousePositionedForMouseLook comments. }
-      if (Abs(Result.X) > Width / 3) or
-         (Abs(Result.Y) > Height / 3) then
-        Result := TVector2.Zero;
-    end;
-
-    { Ignore events when old position was not in valid area,
-      but new position is in valid area. }
-  end else
+  // When mouse gets too far away from Middle, move it back to Middle.
+  if not ValidArea(Event.Position) then
   begin
-    { When mouse gets too far away from screen Middle, move it back to Middle. }
+    { Dividing by "div", not "/", because if CastleWindow backend doesn't support
+      sup-pixel accuracy for SetMousePosition, then it ignores the fractional
+      part of SetMousePosition argument.
+      Such fractional part would only cause later "error by 0.5"
+      when using FMotionToIgnoreForMouseLook to modify Result. }
+    Middle := Vector2(Width div 2, Height div 2);
+    FMotionToIgnoreForMouseLook += Middle - Event.Position;
     MousePosition := Middle;
   end;
 end;
