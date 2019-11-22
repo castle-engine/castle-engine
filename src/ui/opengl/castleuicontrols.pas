@@ -3560,27 +3560,39 @@ begin
   end;
 
   Result := Event.Position - Event.OldPosition;
-  if SettingMousePositionCausesMotion then
+
+  { If FMouseLookWaitingForMiddle then we have set MousePosition := Middle,
+    and now we wait for MousePosition to be reported near Middle.
+
+    Until this happens, we don't apply FMouseLookMotionToSubtract,
+    (as it would cause unexpected shift before the "MousePosition := Middle"
+    is actually realized).
+
+    We still set MousePosition := Middle again
+    (although we already wait for it to happen),
+    in case waiting on "ValidArea(Event.Position, Middle, 1 / 8)" is not reliable.
+  }
+  if FMouseLookWaitingForMiddle and ValidArea(Event.Position, Middle, 1 / 8) then
+    FMouseLookWaitingForMiddle := false;
+
+  if (not FMouseLookWaitingForMiddle) and SettingMousePositionCausesMotion then
   begin
     Result -= FMouseLookMotionToSubtract;
     FMouseLookMotionToSubtract := TVector2.Zero;
   end;
 
-  { If FMouseLookWaitingForMiddle then we set MousePosition := Middle,
-    and now we wait for it to be reported.
-    Otherwise we would set MousePosition := Middle again.
-    We check ValidArea here with smalller margin than below,
-    to avoid mistaking user mouse movements to do this. }
-  if FMouseLookWaitingForMiddle and not ValidArea(Event.Position, Middle, 1 / 8) then
-    Exit;
-  FMouseLookWaitingForMiddle := false;
-
   // When mouse gets too far away from Middle, move it back to Middle.
   if not ValidArea(Event.Position, Middle, 1 / 4) then
   begin
-    FMouseLookMotionToSubtract += Middle - Event.Position;
+    if not FMouseLookWaitingForMiddle then
+      FMouseLookMotionToSubtract += Middle - Event.Position;
     MousePosition := Middle;
+    { This is crazy, but it doesn't seem like a solution that satisfies all systems is possible.
+      Windows 10 does something fundementally weird here,
+      and it's a different kind of weird than GTK on Linux. }
+    {$ifndef MSWINDOWS}
     FMouseLookWaitingForMiddle := true;
+    {$endif}
   end;
 end;
 
