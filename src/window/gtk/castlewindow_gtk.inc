@@ -1988,6 +1988,8 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
+  { Confirmed using window_events example that it is "true" for GTK
+    (press "5", OnMotion is generated). }
   Result := true;
 end;
 

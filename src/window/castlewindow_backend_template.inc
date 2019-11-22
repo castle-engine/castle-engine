@@ -295,6 +295,8 @@ end;
 
 function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
 begin
+  { You should check, using window_events example, what is the correct value
+    (press "5", see if OnMotion is generated). }
   Result := true;
 end;
 
