@@ -102,7 +102,7 @@ procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolea
 begin
   inherited;
   if Dragging and MouseLook then
-    Container.MakeMousePositionForMouseLook;
+    Container.MouseLookUpdate;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
@@ -116,7 +116,7 @@ begin
     if MouseLook then
     begin
       Cursor := mcForceNone;
-      Container.IsMousePositionForMouseLook := false;
+      Container.MouseLookPress;
     end;
     Exit(ExclusiveEvents);
   end;

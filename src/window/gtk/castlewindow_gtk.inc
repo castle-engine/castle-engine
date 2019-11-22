@@ -710,7 +710,7 @@ SIGNAL_WINDOW_BEGIN
     Note: resetting with FMousePosition := Vector2(-1, -1);
     is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
   GetInitialCursorPos;
-  Container.IsMousePositionForMouseLook := false;
+  Container.InternalMousePositionedForMouseLook := false;
   FFocused := true;
   Result := g_false;
 SIGNAL_WINDOW_END;

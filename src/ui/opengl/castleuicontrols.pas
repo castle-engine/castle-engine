@@ -286,7 +286,7 @@ type
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
-    FIsMousePositionForMouseLook: boolean;
+    FInternalMousePositionedForMouseLook: boolean;
     FFocusAndMouseCursorValid: boolean;
     FOverrideCursor: TMouseCursor;
     FDefaultFont: TCastleFont;
@@ -633,22 +633,18 @@ type
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal for implementing mouse look in cameras. @exclude
+    { If @false, the current mouse position is definitely not OK for mouse look.
+      Internal. @exclude
+      See @link(MouseLookDelta). }
+    property InternalMousePositionedForMouseLook: boolean
+      read FInternalMousePositionedForMouseLook
+      write FInternalMousePositionedForMouseLook;
 
-      This used to be a function that returns is
-      MousePosition perfectly equal to (Width div 2, Height div 2).
-      But this is unreliable on Windows 10, where SetCursorPos seems
-      to work with some noticeable delay, so IsMousePositionForMouseLook
-      was too often considered false.
+    { For tracking mouse look. See @link(MouseLookDelta). }
+    procedure MouseLookPress;
 
-      So now we just track are we after MakeMousePositionForMouseLook
-      (and not after something that moves the cursor wildly, like
-      switching windows with Alt+Tab). }
-    property IsMousePositionForMouseLook: boolean
-      read FIsMousePositionForMouseLook
-      write FIsMousePositionForMouseLook;
-    { Internal for implementing mouse look in cameras. @exclude }
-    procedure MakeMousePositionForMouseLook;
+    { For tracking mouse look. See @link(MouseLookDelta). }
+    procedure MouseLookUpdate;
 
     { Read mouse position delta from container middle,
       and try to set mouse position to container middle.
@@ -676,8 +672,7 @@ type
         begin
           Drag := true;
           Cursor := mcForceNone;
-          // do not trust that initial mouse position is in the screen middle
-          Container.IsMousePositionForMouseLook := false;
+          MouseLookPress;
         end;
       end;
 
@@ -698,8 +693,7 @@ type
       begin
         inherited;
         if Drag then
-          // try to make IsMousePositionForMouseLook satisfied
-          Container.MakeMousePositionForMouseLook;
+          Container.MouseLookUpdate;
       end;
 
       function TNewFightUi.Motion(const Event: TInputMotion): Boolean;
@@ -3436,52 +3430,37 @@ begin
   Result := TChildrenControls(FControls);
 end;
 
-procedure TUIContainer.MakeMousePositionForMouseLook;
-var
-  Middle: TVector2;
+procedure TUIContainer.MouseLookPress;
 begin
-  if Focused then
-  begin
-    Middle := Vector2(Width div 2, Height div 2);
+  // Nothing useful to do here
+end;
 
-    { Check below is MousePosition different than Middle, to avoid setting
-      MousePosition in every Update. Setting MousePosition should be optimized
-      for this case (when position is already set), but let's check anyway.
-
-      This also avoids infinite loop, when setting MousePosition,
-      getting Motion event, setting MousePosition, getting Motion event...
-      in a loop.
-      Not really likely (as messages will be queued, and some
-      MousePosition setting will finally just not generate event Motion),
-      but I want to safeguard anyway. }
-
-    if (not IsMousePositionForMouseLook) or
-       (not TVector2.PerfectlyEquals(MousePosition, Middle)) then
-    begin
-      { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
-        seems simpler, but is risky: if the backend doesn't support sub-pixel accuracy,
-        we will never be able to position mouse exactly at half pixel. }
-      MousePosition := Middle;
-
-      IsMousePositionForMouseLook := true;
-    end;
-  end;
+procedure TUIContainer.MouseLookUpdate;
+begin
+  // Nothing useful to do here
 end;
 
 function TUIContainer.MouseLookDelta(const Event: TInputMotion): TVector2;
-var
-  Middle: TVector2;
-begin
-  { 1. Note that setting MousePosition may (but doesn't have to)
+
+  { There's a lot of tricky things in implementing this correctly.
+
+    1. Initially we tried to set mouse position to container center very often
+       (in every Update, and/or in every MouseLookDelta).
+
+       But then:
+       Doing "Result := Event.Position - Event.OldPosition" is bad.
+       Instead "Result := Event.Position - Middle" is better:
+
+       That is because setting MousePosition may (but doesn't have to)
        generate another Motion in the container to destination position.
 
        Subtracting Middle (instead of Container.Position, previous
        known mouse position) solves it. This way
 
-       - The Motion caused by MakeMousePositionForMouseLook will not do
+       - The Motion caused by MakeMousePositionedForMouseLook will not do
          anything bad, as MouseChange wil be 0 then.
 
-       - In case MakeMousePositionForMouseLook does not cause Motion,
+       - In case MakeMousePositionedForMouseLook does not cause Motion,
          we will not measure the changes as too much. Consider this:
 
           - player moves mouse to MiddleX-10
@@ -3493,33 +3472,86 @@ begin
             is still positioned on Middle-10, and I will get "+20" move
             for player (while I should get only "+10")
 
-    2. Another problem is when player switches to another window, moves the mouse,
+    2. Unfortunately "Result := Event.Position - Middle"
+       is also bad, in case there's unspecified delay in applying SetMousePosition.
+       Effectively, we would apply some differences in positions many times,
+       making the speed of MouseLookDelta faster than normal dragging
+       (and the exact factor "how much faster" can depend on mouse sensitivity,
+       how much is SetMousePosition delayed (on Windows 10 it can be delayed a lot,
+       more than one frame very often)).
+
+       This was easily seen in Unholy fight, and dragging_test example in CGE.
+
+       The new fix is that we allow mouse in a large area in the center,
+       and we do SetMousePosition only when it's outside of this large area.
+       This allows to easily reject Motion events that report such move,
+       as they will have ValidArea(new position)=true but ValidArea(old position)=false.
+
+       In case the Motion event has a summed value of "moving to center by SetMousePosition
+       + movement from user", we will ignore too much, but this should
+       not have noticeable effect on speed (as it will happen seldom).
+
+    3. Another problem is when player switches to another window, moves the mouse,
        than goes Alt+Tab back to our window.
        Next mouse move would cause huge change,
        because it's really *not* from the middle of the screen.
 
        Solution to this is to track that previous position was set
-       by MakeMousePositionForMouseLook.
-       This is done by IsMousePositionForMouseLook. }
+       by MakeMousePositionedForMouseLook.
+       This is done by InternalMousePositionedForMouseLook.
 
-  if IsMousePositionForMouseLook then
+    4. Note that earlier I tried to reposition mouse for mouse look at various
+       moments. I tried calling MakeMousePositionedForMouseLook from Press, Motion,
+       Update... all these approaches had some drawbacks, and eventually
+       they have one big drawback: this could result in Motion that isn't rejected
+       below, causing weird first movement.
+  }
+
+var
+  Middle: TVector2;
+
+  { Position is roughly within the center of the window. }
+  function ValidArea(const P: TVector2): Boolean;
   begin
-    // Middle must be calculated exactly the same as in MakeMousePositionForMouseLook
-    Middle := Vector2(Width div 2, Height div 2);
-    Result := Event.Position - Middle;
+    Result := (Abs(P.X - Middle.X) < Width / 4) and
+              (Abs(P.Y - Middle.Y) < Height / 4);
+  end;
 
-    { Only apply the movement if the mouse move does not seem
-      too wild. This prevents taking into account MousePosition that is wild,
-      and visible after Alt+Tabbing back to this window.
-      Our IsMousePositionForMouseLook tries to prevent it, but it cannot be
-      100% reliable, see IsMousePositionForMouseLook comments. }
-    if (Abs(Result.X) > Width / 3) or
-       (Abs(Result.Y) > Height / 3) then
-      Result := TVector2.Zero;
+begin
+  Result := TVector2.Zero;
+
+  // if InternalMousePositionedForMouseLook, then ignore this one Motion event
+  if not InternalMousePositionedForMouseLook then
+  begin
+    InternalMousePositionedForMouseLook := true;
+    Exit;
+  end;
+
+  Middle := Vector2(Width / 2, Height / 2);
+
+  if ValidArea(Event.Position) then
+  begin
+    if ValidArea(Event.OldPosition) then
+    begin
+      Result := Event.Position - Event.OldPosition;
+
+      { Only apply the movement if the mouse move does not seem
+        too wild. This prevents taking into account MousePosition that is wild,
+        and visible after Alt+Tabbing back to this window.
+        Our InternalMousePositionedForMouseLook tries to prevent it, but it cannot be
+        100% reliable, see InternalMousePositionedForMouseLook comments. }
+      if (Abs(Result.X) > Width / 3) or
+         (Abs(Result.Y) > Height / 3) then
+        Result := TVector2.Zero;
+    end;
+
+    { Ignore events when old position was not in valid area,
+      but new position is in valid area. }
   end else
-    Result := TVector2.Zero;
-
-  MakeMousePositionForMouseLook;
+  begin
+    { When mouse gets too far away from screen Middle, move it back to Middle. }
+    MousePosition := Middle;
+  end;
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
@@ -3696,12 +3728,8 @@ begin
   { Default implementation, assuming mouse is glued to the middle of the screen.
     Some methods, like TUIContainer.UpdateFocusAndMouseCursor,
     use this to calculate "focused" CGE control.
-
-    This returns the same value as TUIContainer.MakeMousePositionForMouseLook sets,
-    so the "mouse look" will report "no movement", which seems reasonable if we don't
-    know mouse position.
   }
-  Result := Vector2(Width div 2, Height div 2);
+  Result := Vector2(Width / 2, Height / 2);
 end;
 
 procedure TUIContainer.SetMousePosition(const Value: TVector2);

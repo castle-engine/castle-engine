@@ -3391,7 +3391,7 @@ begin
   for mb := Low(mb) to High(mb) do if mb in MousePressed then
     DoMouseUp(MousePosition, mb);
 
-  Container.IsMousePositionForMouseLook := false;
+  Container.InternalMousePositionedForMouseLook := false;
 end;
 
 function TCastleWindowBase.GetColorBits: Cardinal;

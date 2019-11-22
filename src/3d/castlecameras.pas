@@ -4739,44 +4739,10 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     CorrectPreferredHeight;
   end;
 
-  procedure PositionMouseLook;
+  procedure MouseLookUpdate;
   begin
-    { Why reposition mouse for MouseLook here?
-
-      1. Older approach was to reposition only at UpdateMouseLook,
-         which was automatically called by camera's SetMouseLook.
-         But this turned out to reposition mouse too often:
-
-         MouseLook may be true for a very short time.
-
-         For example, consider castle, where MouseLook is usually true
-         during the game, but it's off in game menu (TCastleOnScreenMenu) and start screen.
-         So when you're in the game, and choose "End game", game menu
-         closes (immediately bringing back MouseLook = true by TGLMode.Destroy
-         restoring everything), but game mode immediately closes and goes
-         back to start screen. Effect: mouse cursor is forced to the middle
-         of the screen, without any apparent (for user) reason.
-
-      2. Later approach: just not reposition mouse at all just
-         because MoseLook = true.  Only reposition from
-         TCastleWalkNavigation.Motion.
-
-         This requires the Motion handler to only work when initial
-         mouse position is at the screen middle,
-         otherwise initial mouse look would generate large move.
-         But in fact TCastleWalkNavigation.Motion already does this, so it's all Ok.
-
-         Unfortunately, this isn't so nice: sometimes you really want your
-         mouse repositioned even before you move it:
-         - e.g. when entering castle game, it's strange that mouse cursor
-           is temporarily visible, until you move the mouse.
-         - worse: when mouse cursor is outside castle window, you have
-           to move mouse first over the window, before mouse look catches up.
-
-      So we have to reposition the mouse, but not too eagerly.
-      Update seems a good moment. }
     if MouseLook and (Container <> nil) then
-      Container.MakeMousePositionForMouseLook;
+      Container.MouseLookUpdate;
   end;
 
   procedure MoveViaMouseDragging(Delta: TVector2);
@@ -4835,7 +4801,7 @@ var
 begin
   inherited;
 
-  PositionMouseLook;
+  MouseLookUpdate;
 
   { Do not handle keys or gravity etc. }
   if Camera.Animation then Exit;
@@ -5191,9 +5157,8 @@ begin
       Cursor := mcForceNone
     else
       Cursor := mcDefault;
-    { do not trust that MousePosition is suitable for next mouse look }
     if Container <> nil then
-      Container.IsMousePositionForMouseLook := false;
+      Container.MouseLookPress;
   end;
 end;
 
