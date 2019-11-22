@@ -17,10 +17,11 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties;
+  CastleUIControls, CastleApplicationProperties, CastleSceneManager;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  SceneManager: TCastleSceneManager;
   Status: TCastleLabel;
   ExampleImage: TCastleImageControl;
   ExampleScene: TCastleScene;
@@ -50,6 +51,19 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
+  { Create scene manager to show 3D stuff (in TCastleScene) }
+  SceneManager := TCastleSceneManager.Create(Application);
+  Window.Controls.InsertFront(SceneManager);
+
+  { Show a 3D object (TCastleScene) inside a Window.SceneManager
+    (which acts as a full-screen viewport by default). }
+  ExampleScene := TCastleScene.Create(Application);
+  ExampleScene.Load('castle-data:/example_scene.x3dv');
+  ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
+  ExampleScene.ProcessEvents := true;
+  SceneManager.Items.Add(ExampleScene);
+  SceneManager.MainScene := ExampleScene;
+
   { Show a label with frames per second information }
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
@@ -63,15 +77,6 @@ begin
   ExampleImage.Bottom := 100;
   ExampleImage.Left := 100;
   Window.Controls.InsertFront(ExampleImage);
-
-  { Show a 3D object (TCastleScene) inside a Window.SceneManager
-    (which acts as a full-screen viewport by default). }
-  ExampleScene := TCastleScene.Create(Application);
-  ExampleScene.Load('castle-data:/example_scene.x3dv');
-  ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
-  ExampleScene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(ExampleScene);
-  Window.SceneManager.MainScene := ExampleScene;
 end;
 
 initialization
@@ -92,7 +97,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.
