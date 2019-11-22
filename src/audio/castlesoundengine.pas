@@ -1047,6 +1047,7 @@ type
         @item 'player' - PlayerSoundImportance
         @item 'default_creature' - DefaultCreatureSoundImportance
         @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
+        @item 'default' - DefaultSoundImportance
       ) }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
 
@@ -1210,6 +1211,7 @@ const
   PlayerSoundImportance          = 10000;
   DefaultCreatureSoundImportance = 1000;
   MinorNonSpatialSoundImportance = 100;
+  DefaultSoundImportance         = 10;
 
   dmNone                    = CastleSoundBase.dmNone;
   dmInverseDistance         = CastleSoundBase.dmInverseDistance;
@@ -2506,7 +2508,7 @@ begin
   Gain := 1;
   MinGain := 0;
   MaxGain := 1;
-  DefaultImportance := MaxSoundImportance;
+  DefaultImportance := DefaultSoundImportance;
 
   { retrieve URL using AttributeString
     (that internally uses Element.Attributes.GetNamedItem),
@@ -2596,6 +2598,7 @@ begin
   AddSoundImportanceName('player', PlayerSoundImportance);
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
+  AddSoundImportanceName('default', DefaultSoundImportance);
 
   FSoundGroups := TSoundGroupList.Create;
 
