@@ -38,6 +38,9 @@ end;
 
 initialization
   ApplicationProperties.ApplicationName := 'dragging_test';
+  { For programs, InitializeLog is not called here.
+    Instead InitializeLog is done by the program main file,
+    after command-line parameters are parsed. }
   if IsLibrary then
     InitializeLog;
 
