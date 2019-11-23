@@ -103,6 +103,7 @@ private
 {$ifdef read_implementation}
 
 {$I castlewindow_winapi_menu.inc}
+{$I castlewindow_winapi_sendinput.inc}
 
 { WMSizing ------------------------------------------------------------------- }
 
@@ -1039,6 +1040,45 @@ begin
 end;
 
 procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
+
+  { Perform similar function as WinAPI SetCursorPos (set cursor position,
+    given absolute screen coordinates), but using SendInput WinAPI call.
+    This is more reliable, which can be observed when using MouseLook.
+
+    Testcase: dragging_test, if we would use SetCursorPos then:
+
+    - TUIContainer.MouseLookDelta doesn't set FMouseLookWaitingForMiddle to true:
+      then we have problems due to occasional rect jump, when moving mouse slowly
+      (because we need to set FMouseLookWaitingForMiddle to true!).
+
+    - TUIContainer.MouseLookDelta sets FMouseLookWaitingForMiddle to true:
+      then we have occasional "blocks" when moving mouse very fast
+      (like from edge to edge of the screen). Experimenting, we just
+      cannot reliably capture "the end of FMouseLookWaitingForMiddle",
+      no matter how small/large margin in ValidArea we use.
+
+    Info about SendInput:
+
+    - https://social.msdn.microsoft.com/Forums/sqlserver/en-US/72d2c30e-0689-4c80-bf02-dcbc33b7b7de/problems-with-getcursorpos-and-setcursorpos-when-running-directx11-on-windows-10
+      https://docs.microsoft.com/pl-pl/windows/win32/api/winuser/ns-winuser-mouseinput
+
+    - Possibly related:
+      https://github.com/gottebp/windows10-setcursorpos-bug-demonstration
+      http://www.cplusplus.com/forum/general/101920/
+  }
+  procedure SetCursorPosBySendInput(const X, Y: Integer);
+  var
+    I: TInput;
+  begin
+    FillChar(I, SizeOf(I), 0);
+    I.InputType := INPUT_MOUSE;
+    I.Mi.Flags := MOUSEEVENTF_MOVE or MOUSEEVENTF_ABSOLUTE;
+    I.Mi.Dx := (X * 65535) div Application.ScreenWidth;
+    I.Mi.Dy := (Y * 65535) div Application.ScreenHeight;
+    if SendInput(1, @I, SizeOf(I)) <> 1 then
+      WritelnWarning('Could not set mouse position with SendInput, WinAPI error');
+  end;
+
 var
   P: TVector2Integer;
 begin
@@ -1050,7 +1090,7 @@ begin
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
     P := CastleToLeftTopInt(Value);
-    SetCursorPos(Left + P.X, Top + P.Y);
+    SetCursorPosBySendInput(Left + P.X, Top + P.Y);
   end;
 end;
 

@@ -3587,12 +3587,7 @@ begin
     if not FMouseLookWaitingForMiddle then
       FMouseLookMotionToSubtract += Middle - Event.Position;
     MousePosition := Middle;
-    { This is crazy, but it doesn't seem like a solution that satisfies all systems is possible.
-      Windows 10 does something fundementally weird here,
-      and it's a different kind of weird than GTK on Linux. }
-    {$ifndef MSWINDOWS}
     FMouseLookWaitingForMiddle := true;
-    {$endif}
   end;
 end;
 
