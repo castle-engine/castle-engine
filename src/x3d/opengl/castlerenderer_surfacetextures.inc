@@ -157,7 +157,12 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
   procedure SurfaceTextureEnable(const SurfaceTexture: TSurfaceTexture;
     const Texture: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
-    const TextureChannelMask: string);
+    const ChannelMask,
+      VariableTextureValue,
+      VariableTextureType,
+      PlugNameSuffix,
+      PlugParameterType,
+      PlugMultiplicateChannels: String);
   var
     GLTextureId: TGLTextureId;
   begin
@@ -170,7 +175,13 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLTextureId);
         Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
-          Max(0, TextureCoordinatesId), TextureChannelMask);
+          Max(0, TextureCoordinatesId),
+          ChannelMask,
+          VariableTextureValue,
+          VariableTextureType,
+          PlugNameSuffix,
+          PlugParameterType,
+          PlugMultiplicateChannels);
         Inc(ABoundTextureUnits);
 
         { There is no need to increase the TexCoordNeeded unconditionally.
@@ -193,15 +204,30 @@ begin
       SurfaceTextureEnable(stAmbient,
         SurfaceShader.AmbientTexture,
         SurfaceShader.AmbientTextureCoordinatesId,
-        SurfaceShader.AmbientTextureChannelMask);
+        SurfaceShader.AmbientTextureChannelMask,
+        'castle_texture_ambient',
+        'vec3',
+        'light_ambient',
+        'vec4',
+        '.rgb');
       SurfaceTextureEnable(stSpecular,
         SurfaceShader.SpecularTexture,
         SurfaceShader.SpecularTextureCoordinatesId,
-        SurfaceShader.SpecularTextureChannelMask);
+        SurfaceShader.SpecularTextureChannelMask,
+        'castle_texture_specular',
+        'vec3',
+        'light_specular',
+        'vec4',
+        '.rgb');
       SurfaceTextureEnable(stShininess,
         SurfaceShader.ShininessTexture,
         SurfaceShader.ShininessTextureCoordinatesId,
-        SurfaceShader.ShininessTextureChannelMask);
+        SurfaceShader.ShininessTextureChannelMask,
+        'castle_texture_shininess',
+        'float',
+        'shininess',
+        'float',
+        '');
     end;
   end;
 end;

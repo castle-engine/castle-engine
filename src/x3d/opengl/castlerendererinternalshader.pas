@@ -344,7 +344,12 @@ type
   TSurfaceTextureShader = record
     Enable: boolean;
     TextureUnit, TextureCoordinatesId: Cardinal;
-    ChannelMask: string;
+    ChannelMask: String;
+    VariableTextureValue: String;
+    VariableTextureType: String;
+    PlugNameSuffix: String;
+    PlugParameterType: String;
+    PlugMultiplicateChannels: String;
     class function UniformTextureName(const SurfaceTexture: TSurfaceTexture): string; static;
   end;
 
@@ -576,7 +581,12 @@ type
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
-      const ChannelMask: string);
+      const ChannelMask,
+        VariableTextureValue,
+        VariableTextureType,
+        PlugNameSuffix,
+        PlugParameterType,
+        PlugMultiplicateChannels: String);
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -2589,38 +2599,24 @@ var
 
   procedure EnableShaderSurfaceTextures;
   const
-    PlugFunction: array [TSurfaceTexture] of string =
-    (
-      'uniform sampler2D %s;' +NL+
+    PlugFunction =
+      'uniform sampler2D {uniform_texture_name};' +NL+
       {$ifdef OpenGLES}
       '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
       {$endif}
-      'varying vec4 %s;' + NL+
-      'void PLUG_material_light_ambient(inout vec4 ambient)' +NL+
+      'varying vec4 {coord_name};' + NL+
+      '{variable_texture_type} {variable_texture_value};' + NL+
+      // Calculate {variable_texture_value} once, in PLUG_fragment_eye_space,
+      // to later use it potentially many times in
+      // PLUG_material_{plug_name_suffix} (which may be called multiple times in case of multiple lights).
+      'void PLUG_fragment_eye_space(const vec4 vertex_eye, inout vec3 normal_eye)' + NL+
       '{' +NL+
-      '  ambient.rgb *= texture2D(%s, %s.st).%s;' +NL+
-      '}' +NL,
-
-      'uniform sampler2D %s;' +NL+
-      {$ifdef OpenGLES}
-      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
-      {$endif}
-      'varying vec4 %s;' + NL+
-      'void PLUG_material_light_specular(inout vec4 specular)' +NL+
+      '  {variable_texture_value} = texture2D({uniform_texture_name}, {coord_name}.st).{channel_mask};' +NL+
+      '}' +NL+
+      'void PLUG_material_{plug_name_suffix}(inout {plug_parameter_type} parameter)' +NL+
       '{' +NL+
-      '  specular.rgb *= texture2D(%s, %s.st).%s;' +NL+
-      '}' +NL,
-
-      'uniform sampler2D %s;' +NL+
-      {$ifdef OpenGLES}
-      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
-      {$endif}
-      'varying vec4 %s;' + NL+
-      'void PLUG_material_shininess(inout float shininess)' +NL+
-      '{' +NL+
-      '  shininess *= texture2D(%s, %s.st).%s;' +NL+
-      '}' +NL
-    );
+      '  parameter{plug_multiplicate_channels} *= {variable_texture_value};' +NL+
+      '}' +NL;
   var
     SurfaceTexture: TSurfaceTexture;
     CoordName, UniformTextureName: string;
@@ -2630,12 +2626,26 @@ var
       begin
         UniformTextureName := TSurfaceTextureShader.UniformTextureName(SurfaceTexture);
         CoordName := TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId);
-        Plug(stFragment, Format(PlugFunction[SurfaceTexture],
-          [ UniformTextureName,
-            CoordName,
-            UniformTextureName,
-            CoordName,
-            FSurfaceTextureShaders[SurfaceTexture].ChannelMask ]));
+        Plug(stFragment, SReplacePatterns(PlugFunction, [
+          '{uniform_texture_name}',
+          '{coord_name}',
+          '{channel_mask}',
+          '{variable_texture_value}',
+          '{variable_texture_type}',
+          '{plug_name_suffix}',
+          '{plug_parameter_type}',
+          '{plug_multiplicate_channels}'
+        ],
+        [
+          UniformTextureName,
+          CoordName,
+          FSurfaceTextureShaders[SurfaceTexture].ChannelMask,
+          FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue,
+          FSurfaceTextureShaders[SurfaceTexture].VariableTextureType,
+          FSurfaceTextureShaders[SurfaceTexture].PlugNameSuffix,
+          FSurfaceTextureShaders[SurfaceTexture].PlugParameterType,
+          FSurfaceTextureShaders[SurfaceTexture].PlugMultiplicateChannels
+        ], false));
       end;
   end;
 
@@ -3290,7 +3300,12 @@ end;
 
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
-  const ChannelMask: string);
+  const ChannelMask,
+    VariableTextureValue,
+    VariableTextureType,
+    PlugNameSuffix,
+    PlugParameterType,
+    PlugMultiplicateChannels: String);
 var
   HashMultiplier: LongWord;
 begin
@@ -3298,6 +3313,11 @@ begin
   FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;
   FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
   FSurfaceTextureShaders[SurfaceTexture].ChannelMask := ChannelMask;
+  FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue := VariableTextureValue;
+  FSurfaceTextureShaders[SurfaceTexture].VariableTextureType := VariableTextureType;
+  FSurfaceTextureShaders[SurfaceTexture].PlugNameSuffix := PlugNameSuffix;
+  FSurfaceTextureShaders[SurfaceTexture].PlugParameterType := PlugParameterType;
+  FSurfaceTextureShaders[SurfaceTexture].PlugMultiplicateChannels := PlugMultiplicateChannels;
 
   ShapeRequiresShaders := true;
 
