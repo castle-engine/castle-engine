@@ -96,7 +96,7 @@ type
   TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
-    FInterceptInput: boolean;
+    FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
     procedure InternalStart;
     procedure InternalStop;
@@ -154,8 +154,58 @@ type
     class function StateStackCount: Integer;
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
 
+    { Create an instance of the state.
+      You willl typically create one instance of each state class
+      (like TStateMain, TStatePlay) at the application initialization
+      (e.g. in Application.OnInitialize callback), like
+
+      @longCode(#
+        StateMain := TStateMain.Create(Application);
+        StatePlay := TStateMain.Create(Application);
+      #)
+
+      Later you switch between states using @link(Current) or @link(Push) or @link(Pop),
+      like this:
+
+      @longCode(#
+        TUIState.Current := StateMain;
+      #)
+    }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create the instance TUIState that will be automatically freed when
+      the state is stopped.
+      This allows alternative usage of states (as opposed to the ones described in @link(Create)
+      docs), where you create short-lived instances of state classes.
+      Use it like this:
+
+      @longCode(#
+        TUIState.Current := TStateMain.CreateUntilStopped;
+      #)
+
+      The advantages:
+
+      @unorderedList(
+        @item(You don't need to worry
+          that some state field value will "survive" with an invalid value after
+          @link(Stop). So you don't need to clear everything in @link(Stop)
+          or initialize everything in @link(Start), instead you can depend
+          that @link(Start) happens only once right after the constructor,
+          so the instance fields are clear.)
+
+        @item(You avoid having global variables, keeping singletons of each state class.
+          So the code is a little safer.)
+
+        @item(You can reintroduce your own constructor to require some parameters,
+          instead of exposing state parameters as public fields/properties.)
+      )
+
+      The disadvantage is that you cannot store in state fields anything
+      that should "survive" the state @link(Stop).
+      You can instead use "class variables" in state class, or any global variable.
+    }
+    constructor CreateUntilStopped;
 
     { State becomes active, it's now part of the state stack.
 
@@ -379,6 +429,9 @@ begin
     else
       WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
 
+    if TopState.FFreeWhenStopped then
+      FreeAndNil(TopState);
+
     { resume new top-most state }
     if (FStateStack <> nil) and
        (FStateStack.Count <> 0) then
@@ -481,6 +534,12 @@ constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
   FullSize := true;
+end;
+
+constructor TUIState.CreateUntilStopped;
+begin
+  Create(nil);
+  FFreeWhenStopped := true;
 end;
 
 destructor TUIState.Destroy;
