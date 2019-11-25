@@ -1428,14 +1428,21 @@ object DesignFrame: TDesignFrame
   object MenuViewport: TPopupMenu
     left = 952
     top = 96
+    object MenuItemViewportCameraSetInitial: TMenuItem
+      Caption = 'Camera Initial (stored in design file) := Current'
+      Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoCamera to false.'
+      OnClick = MenuItemViewportCameraSetInitialClick
+    end
+    object MenuItemViewportCameraCurrentFromInitial: TMenuItem
+      Caption = 'Camera Current := Initial (stored in design file)'
+      OnClick = MenuItemViewportCameraCurrentFromInitialClick
+    end
     object MenuItemViewportCameraViewAll: TMenuItem
       Caption = 'Camera Current := View All'
       OnClick = MenuItemViewportCameraViewAllClick
     end
-    object MenuItemViewportCameraSetInitial: TMenuItem
-      Caption = 'Camera Initial := Current'
-      Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoCamera to false.'
-      OnClick = MenuItemViewportCameraSetInitialClick
+    object MenuItemSeparator123: TMenuItem
+      Caption = '-'
     end
     object MenuItemViewportCamera2DViewInitial: TMenuItem
       Caption = 'Camera Setup (Initial and Current) for  2D View and Projection'

@@ -42,6 +42,8 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuItemViewportCameraCurrentFromInitial: TMenuItem;
+    MenuItemSeparator123: TMenuItem;
     MenuItemSeparator2: TMenuItem;
     MenuItemViewportCamera2DViewInitial: TMenuItem;
     MenuItemViewportCameraSetInitial: TMenuItem;
@@ -100,6 +102,7 @@ type
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
+    procedure MenuItemViewportCameraCurrentFromInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
@@ -2134,6 +2137,20 @@ var
 begin
   V := SelectedViewport;
   V.Setup2D;
+  ModifiedOutsideObjectInspector;
+end;
+
+procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
+  Sender: TObject);
+var
+  V: TCastleAbstractViewport;
+  APos, ADir, AUp: TVector3;
+begin
+  V := SelectedViewport;
+  V.Camera.SetView(
+    V.Camera.InitialPosition,
+    V.Camera.InitialDirection,
+    V.Camera.InitialUp);
   ModifiedOutsideObjectInspector;
 end;
 
