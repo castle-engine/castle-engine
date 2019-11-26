@@ -40,6 +40,8 @@ See CGE manual about text and localization: https://castle-engine.io/manual_text
 
     * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
 
+    * Note: You cannot force something to be empty by translating it to an empty string. `GetText` treats `msgstr ""` as indicating "not translated", and the `msgfmt` will not even place this mapping in MO file. In turn, the text will be left in the original (English) version. See https://github.com/grosser/gettext_i18n_rails/issues/81 and links from it to other similar issues. To make something empty, for now it's simplest to translate it to a space character.
+
 4. Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
 
 # Using translations from Pascal code
