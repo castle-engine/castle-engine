@@ -252,6 +252,18 @@ begin
      (Container.DefaultFont <> nil) then
     Result := Container.DefaultFont
   else
+  { If the Container is not assigned yet, then assume that UI control
+    will be inserted to the GetMainContainer, and use GetMainContainer.DefaultFont
+    (which is typically adjusted using CastleSettings.xml).
+    This makes calling e.g. TCastleLabel.Font.Text before the TCastleLabel instance
+    is inserted into the Container sensible -- it will measure using the right font
+    (with right sizes, right characters).
+    Testcase: Escape warnings about invalid chars in Japanese version. }
+  if (Container = nil) and
+     (GetMainContainer <> nil) and
+     (GetMainContainer.DefaultFont <> nil) then
+    Result := GetMainContainer.DefaultFont
+  else
     Result := UIFont;
 
   { if needed, wrap Result in TFontFamily instance }

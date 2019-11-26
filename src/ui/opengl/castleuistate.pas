@@ -522,9 +522,7 @@ begin
     Result := FStartContainer
   else
   begin
-    if not Assigned(OnMainContainer) then
-      raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TUIState');
-    Result := OnMainContainer();
+    Result := GetMainContainer;
     if Result = nil then
       raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TUIState');
   end;

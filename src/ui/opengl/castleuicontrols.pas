@@ -2267,17 +2267,29 @@ const
   vpTop    = CastleRectangles.vpTop   ;
 
 type
-  { Internal for communication with CastleWindow or CastleControl,
-    useful by CastleUIState.
-    See @link(OnMainContainer).
+  { Internal for communication with CastleWindow or CastleControl.
+    See @link(GetMainContainer).
     @exclude }
   TOnMainContainer = function: TUIContainer of object;
 
 var
-  { Internal for communication with CastleWindow or CastleControl,
-    useful by CastleUIState.
+  { Internal for communication with CastleWindow or CastleControl.
+    You can set this, but read it only through GetMainContainer function.
+    See @link(GetMainContainer).
     @exclude }
   OnMainContainer: TOnMainContainer = nil;
+
+{ Internal for communication with CastleWindow or CastleControl.
+  Returns the main UI container.
+  It may be used in rare situations when the UI control may not be added
+  to the container yet, but it needs to know the container.
+
+  Returns @nil if OnMainContainer not assigned (possible if you don't use
+  CastleWindow or CastleControl), or OnMainContainer returns @nil
+  (possible if you don't set Application.MainWindow or TCastleControl.MainControl).
+
+  @exclude }
+function GetMainContainer: TUIContainer;
 
 { Render control contents to an RGBA image, using off-screen rendering.
   The background behind the control is filled with BackgroundColor
@@ -5607,6 +5619,16 @@ begin
 
     glFreeTexture(TargetTexture);
   finally FreeAndNil(RenderToTexture) end;
+end;
+
+function GetMainContainer: TUIContainer;
+begin
+  if Assigned(OnMainContainer) then
+    Result := OnMainContainer()
+  else
+    //raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TUIState');
+    // returning nil is more flexible to the caller
+    Result := nil;
 end;
 
 procedure DoInitialization;
