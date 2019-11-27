@@ -234,8 +234,11 @@ end;
 
 procedure TJoysticks.Initialize;
 begin
+  FInitialized := true;
+
   { In case of TExplicitJoystickBackend,
     do not clear the list and call Backend.Initialize.
+    Instead leave existing joysticks (set by TExplicitJoystickBackend.SetJoystickCount).
     That's because Backend.Initialize doesn't have a way to get new joystick information
     (in case of TExplicitJoystickBackend, it is CGE that is informed by external code
     about joystick existence). }
@@ -244,7 +247,6 @@ begin
 
   FList.Clear;
   Backend.Initialize(FList);
-  FInitialized := true;
   ClearState;
   DoChange;
 end;
